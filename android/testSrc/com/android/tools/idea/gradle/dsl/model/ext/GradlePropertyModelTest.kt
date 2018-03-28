@@ -23,10 +23,13 @@ import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VfsUtil
+import org.junit.Ignore
+import org.junit.Test
 import java.io.File
 import java.math.BigDecimal
 
 class GradlePropertyModelTest : GradleFileModelTestCase() {
+  @Test
   fun testProperties() {
     val text = """
                ext {
@@ -128,6 +131,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testVariables() {
     val text = """
                ext {
@@ -225,6 +229,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testUnknownValues() {
     val text = """
                ext {
@@ -246,6 +251,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testUnknownValuesInMap() {
     val text = """
                ext {
@@ -265,6 +271,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testUnknownValuesInList() {
     val text = """
                ext {
@@ -285,6 +292,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testGetProperties() {
     val text = """
                ext {
@@ -310,6 +318,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     verifyPropertyModel(properties[2].dependencies[0], STRING_TYPE, "Value3", STRING, VARIABLE, 0, "var3", "ext.var3")
   }
 
+  @Test
   fun testGetVariables() {
     val text = """
                ext {
@@ -332,6 +341,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     verifyPropertyModel(variables[2], STRING_TYPE, "crane", STRING, VARIABLE, 0, "var3", "ext.var3")
   }
 
+  @Test
   fun testAsType() {
     val text = """
                ext {
@@ -373,6 +383,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testGetNonQuotedListIndex() {
     val text = """
                ext {
@@ -392,6 +403,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     verifyPropertyModel(secondModel, STRING_TYPE, "prop1[1]", REFERENCE, REGULAR, 1)
   }
 
+  @Test
   fun testReferencePropertyDependency() {
     val text = """
                ext {
@@ -416,6 +428,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertEquals(REGULAR, value.propertyType)
   }
 
+  @Test
   fun testIntegerReferencePropertyDependency() {
     val text = """
                ext {
@@ -440,6 +453,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertEquals(REGULAR, value.propertyType)
   }
 
+  @Test
   fun testReferenceVariableDependency() {
     val text = """
                ext {
@@ -464,6 +478,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertEquals(VARIABLE, value.propertyType)
   }
 
+  @Test
   fun testCreateAndDeleteListToEmpty() {
     val text = """
                ext {
@@ -493,6 +508,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testCreateAndDeletePlaceHoldersToEmpty() {
     val text = """
                android {
@@ -523,6 +539,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testCreateAndDeleteMapToEmpty() {
     val text = """
                ext {
@@ -552,6 +569,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testReferenceMapDependency() {
     val text = """
                ext {
@@ -581,6 +599,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertEquals("value", mapValue.getValue(STRING_TYPE))
   }
 
+  @Test
   fun testReferenceListDependency() {
     val text = """
                ext {
@@ -616,6 +635,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertEquals(true, secondItem.getValue(BOOLEAN_TYPE))
   }
 
+  @Test
   fun testPropertyDependency() {
     val text = """"
                ext {
@@ -640,6 +660,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertEquals("hello", dep.getValue(STRING_TYPE))
   }
 
+  @Test
   fun testVariableDependency() {
     val text = """
                ext {\n" +
@@ -664,6 +685,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertEquals("hello", dep.getValue(STRING_TYPE))
   }
 
+  @Test
   fun testPropertyVariableDependency() {
     val text = """
                ext {
@@ -688,6 +710,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertEquals("hello", dep.getValue(STRING_TYPE))
   }
 
+  @Test
   fun testVariablePropertyDependency() {
     val text = """
                ext {
@@ -712,6 +735,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertEquals("hello", dep.getValue(STRING_TYPE))
   }
 
+  @Test
   fun testMultipleDependenciesWithFullyQualifiedName() {
     val text = """
                ext {
@@ -749,6 +773,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testMultipleTypeDependenciesWithFullyQualifiedName() {
     val text = """
                ext {
@@ -786,6 +811,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testNestedListPropertyInjection() {
     val text = """
            ext {
@@ -811,6 +837,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertSize(0, depModel.dependencies)
   }
 
+  @Test
   fun testNestedMapVariableInjection() {
     val text = """
                ext {
@@ -845,6 +872,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertSize(0, depModel2.dependencies)
   }
 
+  @Test
   fun testListDependency() {
     val text = """
                ext {
@@ -866,6 +894,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertEquals(STRING, value.valueType)
   }
 
+  @Test
   fun testMapDependency() {
     val text = """
                ext {
@@ -886,6 +915,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertEquals(STRING, value.valueType)
   }
 
+  @Test
   fun testOutOfScopeMapAndListDependencies() {
     val text = """
                def prop1 = 'value1'
@@ -925,6 +955,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testDeepDependencies() {
     val text = """
                ext {
@@ -968,6 +999,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertEquals(REGULAR, propertyModel.propertyType)
   }
 
+  @Test
   fun testDependenciesInMap() {
     val text = """
                ext {
@@ -1028,6 +1060,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testGetFile() {
     val text = """
                ext {
@@ -1040,6 +1073,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertEquals(propertyModel.gradleFile, VfsUtil.findFileByIoFile(myBuildFile, true))
   }
 
+  @Test
   fun testPropertySetValue() {
     val text = """
                ext {
@@ -1049,6 +1083,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     runSetPropertyTest(text, REGULAR)
   }
 
+  @Test
   fun testVariableSetValue() {
     val text = """
                ext {
@@ -1058,6 +1093,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     runSetPropertyTest(text, VARIABLE)
   }
 
+  @Test
   fun testSetUnknownValueType() {
     val text = """
                ext {
@@ -1093,6 +1129,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testEscapeSetStrings() {
     val text = """
                ext {
@@ -1125,6 +1162,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testQuotesInString() {
     val text = """
                ext {
@@ -1158,6 +1196,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testSetBothStringTypes() {
     val text = """
                ext {
@@ -1199,6 +1238,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testSetGarbageReference() {
     val text = """
                ext {
@@ -1225,6 +1265,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testSetReferenceWithModel() {
     val text = """
                ext {
@@ -1255,6 +1296,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testQuotesWithinQuotes() {
     val text = """
                ext {
@@ -1285,6 +1327,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testSetReferenceValue() {
     val text = """
                ext {
@@ -1311,6 +1354,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testChangePropertyTypeToReference() {
     val text = """
                ext {
@@ -1345,6 +1389,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testChangePropertyTypeToLiteral() {
     val text = """
                ext {
@@ -1380,6 +1425,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testDependencyChangedUpdatesValue() {
     val text = """
                ext {
@@ -1422,6 +1468,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testDependencyBasicCycle() {
     val text = """
                ext {
@@ -1433,6 +1480,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     verifyPropertyModel(propertyModel, STRING_TYPE, "${'$'}{prop1}", STRING, REGULAR, 1)
   }
 
+  @Test
   fun testDependencyBasicCycleReference() {
     val text = """
                ext {
@@ -1444,6 +1492,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     verifyPropertyModel(propertyModel, STRING_TYPE, "prop1", REFERENCE, REGULAR, 1)
   }
 
+  @Test
   fun testDependencyNoCycle4Depth() {
     val text = """
                ext {
@@ -1461,6 +1510,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testDependencyTwice() {
     val text = """
                ext {
@@ -1476,6 +1526,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testDependencyNoCycle() {
     val text = """
                ext {
@@ -1498,6 +1549,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testDeleteProperty() {
     val text = """
                ext {
@@ -1521,6 +1573,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testDeleteVariable() {
     val text = """
                ext {
@@ -1544,6 +1597,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testDeleteAndResetProperty() {
     val text = """
                ext {
@@ -1581,6 +1635,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testDeleteEmptyProperty() {
     val text = ""
     writeToBuildFile(text)
@@ -1601,6 +1656,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testDeleteVariableDependency() {
     val text = """
                ext {
@@ -1633,6 +1689,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testCheckSettingDeletedModel() {
     val text = """
                ext {
@@ -1666,6 +1723,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testEmptyProperty() {
     val text = ""
     writeToBuildFile(text)
@@ -1689,6 +1747,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertSize(0, model.dependencies)
   }
 
+  @Test
   fun testDeletePropertyInList() {
     val text = """
                ext {
@@ -1730,6 +1789,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testCreateNewEmptyMapValue() {
     val text = ""
     writeToBuildFile(text)
@@ -1755,6 +1815,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testAddMapValueToString() {
     val text = """
                ext {
@@ -1775,6 +1836,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testSetNewValueInMap() {
     val text = """
                ext {
@@ -1824,6 +1886,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testSetNewValueInEmptyMap() {
     val text = """
                ext {
@@ -1867,6 +1930,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testDeletePropertyInMap() {
     val text = """
                ext {
@@ -1905,6 +1969,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testDeleteMapItemToAndSetFromEmpty() {
     val text = """
                ext {
@@ -1954,6 +2019,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testSetMapValueToLiteral() {
     val text = """
                ext {
@@ -1982,6 +2048,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testDeleteToEmptyMap() {
     val text = """
                ext {
@@ -2014,6 +2081,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testAddExistingMapProperty() {
     val text = """
                ext {
@@ -2039,6 +2107,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testDeleteMapProperty() {
     val text = """
                ext {
@@ -2066,6 +2135,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testDeleteMapVariable() {
     val text = """
                ext {
@@ -2097,6 +2167,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testDeleteEmptyMap() {
     val text = """
                ext {
@@ -2123,7 +2194,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
-  // Test currently fails due to b/72144740
+  @Test
   fun testSetLiteralToMapValue() {
     val text = """
                ext {
@@ -2166,6 +2237,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testParseMapInMap() {
     val text = """
                ext {
@@ -2190,6 +2262,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testMapsInMap() {
     val text = """
                ext {
@@ -2267,6 +2340,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testSetMapInMap() {
     val text = """
                ext {
@@ -2300,6 +2374,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testCreateNewEmptyList() {
     val text = ""
     writeToBuildFile(text)
@@ -2326,6 +2401,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testConvertToEmptyList() {
     val text = """
                ext {
@@ -2380,6 +2456,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testAddToNoneList() {
     val text = """
                ext {
@@ -2410,6 +2487,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testAddOutOfBounds() {
     val text = """
                ext {
@@ -2432,6 +2510,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testSetListInMap() {
     val text = """
                ext {
@@ -2466,6 +2545,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testSetToListValues() {
     val text = """
                ext {
@@ -2557,6 +2637,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testAddSingleElementToEmpty() {
     val text = """
                ext {
@@ -2582,6 +2663,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testAddToAndDeleteListFromEmpty() {
     val text = """
                ext {
@@ -2639,6 +2721,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testAddAndRemoveFromNonLiteralList() {
     val text = """
                android {
@@ -2677,6 +2760,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testSetList() {
     val text = """
                ext {
@@ -2723,6 +2807,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testAddMiddleOfList() {
     val text = """
                ext {
@@ -2751,6 +2836,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testSetInMiddleOfList() {
     val text = """
                ext {
@@ -2779,6 +2865,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testResolveAndSetVariablesInParentModule() {
     val parentText = """
                      ext {
@@ -2823,6 +2910,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testResolveVariablesInPropertiesFile() {
     val parentText = """
                      ext {
@@ -2900,6 +2988,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testSetValueInMap() {
     val text = """
                ext {
@@ -2949,6 +3038,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testSetMapValueOnNoneMap() {
     val text = """
                ext {
@@ -2987,6 +3077,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testOuterScopeVariablesResolved() {
     val text = """
                def max_version = 15
@@ -3023,6 +3114,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testInScopeElement() {
     val parentText = """
                      def var1 = "aardwolf" // No
@@ -3083,6 +3175,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testVariablesFromNestedApply() {
     val firstApplyFileText = """
                              def var1 = "1"
@@ -3158,7 +3251,9 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
-  fun /*test*/ApplicationCycle() {
+  @Ignore
+  @Test
+  fun testApplicationCycle() {
     val applyFileText = """
                         ext {
                           prop1 = "hello"
@@ -3185,6 +3280,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testVariablesFromApply() {
     val applyFileText = """
                         def var1 = "Hello"
@@ -3234,6 +3330,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testAddRemoveReferenceValues() {
     val text = """
                ext {
@@ -3263,6 +3360,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testRename() {
     val text = """
                ext {
@@ -3299,6 +3397,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testRenameMapPropertyAndKeys() {
     val text = """
                ext {
@@ -3349,6 +3448,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testRenameListValueThrows() {
     val text = """
                ext {
@@ -3389,6 +3489,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testGetDeclaredProperties() {
     val text = """
                android {

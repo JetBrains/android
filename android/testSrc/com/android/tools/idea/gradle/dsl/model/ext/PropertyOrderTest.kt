@@ -26,8 +26,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelImpl
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.parser.elements.*
-import com.intellij.testFramework.TestDataFile
-import org.apache.commons.io.FileUtils
+import org.junit.Ignore
 import org.junit.Test
 
 class PropertyOrderTest : GradleFileModelTestCase() {
@@ -737,9 +736,9 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     verifyFileContents(myBuildFile, expected)
   }
 
-  // TODO: Comments don't get moved with the line they are on.
+  @Ignore("Comments don't get moved with the line they are on")
   @Test
-  fun /*test*/MoveBasicWithComments() {
+  fun testMoveBasicWithComments() {
     val text = """
                ext {
                  prop1 = value1 // This is a comment

@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import org.junit.Test;
 
 import java.util.List;
 
@@ -36,6 +37,7 @@ import static com.google.common.truth.Truth.assertThat;
  * {@code android.defaultConfig {}} block.
  */
 public class ProductFlavorsElementTest extends GradleFileModelTestCase {
+  @Test
   public void testProductFlavorsWithApplicationStatements() throws Exception {
     String text = "android {\n" +
                   "  productFlavors {\n" +
@@ -72,6 +74,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
                  flavor2.testInstrumentationRunnerArguments());
   }
 
+  @Test
   public void testProductFlavorsWithAssignmentStatements() throws Exception {
     String text = "android.productFlavors {\n" +
                   "  flavor1 {\n" +
@@ -107,6 +110,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
                  flavor2.testInstrumentationRunnerArguments());
   }
 
+  @Test
   public void testProductFlavorsWithOverrideStatements() throws Exception {
     String text = "android {\n" +
                   "  productFlavors {\n" +
@@ -156,6 +160,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
                  flavor2.testInstrumentationRunnerArguments());
   }
 
+  @Test
   public void testProductFlavorsWithAppendStatements() throws Exception {
     String text = "android {\n" +
                   "  productFlavors {\n" +
@@ -201,6 +206,8 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
     assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("key3", "value3", "key4", "value4", "key6", "value6"),
                  flavor2.testInstrumentationRunnerArguments());
   }
+
+  @Test
   public void testAddEmptyProductFlavor() throws Exception {
     String text = "android {}\n";
 
@@ -240,6 +247,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
     assertMissingProperty("versionName", productFlavor.versionName());
   }
 
+  @Test
   public void testAddProductFlavor() throws Exception {
     String text = "android {}\n";
 

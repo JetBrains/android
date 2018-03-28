@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.model;
 import com.android.tools.idea.gradle.dsl.api.BuildScriptModel;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.util.List;
@@ -28,6 +29,7 @@ import static com.google.common.truth.Truth.assertThat;
  * Tests for {@link GradleBuildModelImpl}.
  */
 public class GradleBuildModelImplTest extends GradleFileModelTestCase {
+  @Test
   public void testRemoveRepositoriesSingleBlock() throws IOException {
     String text = "repositories {\n" +
                   "  jcenter()\n" +
@@ -42,6 +44,7 @@ public class GradleBuildModelImplTest extends GradleFileModelTestCase {
     assertThat(repositories).hasSize(0);
   }
 
+  @Test
   public void testRemoveRepositoriesMultipleBlocks() throws IOException {
     String text = "repositories {\n" +
                   "  jcenter()\n" +
@@ -58,6 +61,7 @@ public class GradleBuildModelImplTest extends GradleFileModelTestCase {
     assertThat(repositories).hasSize(0);
   }
 
+  @Test
   public void testRemoveRepositoriesWithBuildscriptRepositories() throws IOException {
     String text = "buildscript {\n" +
                   "  repositories {\n" +
@@ -84,6 +88,7 @@ public class GradleBuildModelImplTest extends GradleFileModelTestCase {
     assertThat(repositories).hasSize(2);
   }
 
+  @Test
   public void testRemoveRepositoriesWithAllprojectsBlock() throws IOException {
     String text = "allprojects {\n" +
                   "  repositories {\n" +

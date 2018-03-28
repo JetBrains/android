@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.api.android.splits.DensityModel;
 import com.android.tools.idea.gradle.dsl.api.android.splits.LanguageModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
+import org.junit.Test;
 
 /**
  * Tests for {@link SplitsModel}.
@@ -50,11 +51,13 @@ public class SplitsModelTest extends GradleFileModelTestCase {
                                             "  }\n" +
                                             "}";
 
+  @Test
   public void testParseElements() throws Exception {
     writeToBuildFile(SPLITS_TEXT);
     verifySplitsValues();
   }
 
+  @Test
   public void testEditElements() throws Exception {
     writeToBuildFile(SPLITS_TEXT);
     verifySplitsValues();
@@ -104,6 +107,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     assertEquals("include", ImmutableList.of("language-include-1", "language-include-3"), language.include());
   }
 
+  @Test
   public void testAddElements() throws Exception {
     String text = "android {\n" +
                   "  splits {\n" +
@@ -158,6 +162,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     assertEquals("include", ImmutableList.of("language-include"), language.include());
   }
 
+  @Test
   public void testRemoveElements() throws Exception {
     writeToBuildFile(SPLITS_TEXT);
     verifySplitsValues();
@@ -245,6 +250,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     assertFalse(hasPsiElement(language));
   }
 
+  @Test
   public void testRemoveBlockElements() throws Exception {
     String text = "android {\n" +
                   "  splits {\n" +
@@ -282,6 +288,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     assertFalse(hasPsiElement(splits.language()));
   }
 
+  @Test
   public void testRemoveOneOfElementsInTheList() throws Exception {
     String text = "android {\n" +
                   "  splits {\n" +
@@ -344,6 +351,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     assertEquals("include", ImmutableList.of("language-include-1"), language.include());
   }
 
+  @Test
   public void testRemoveOnlyElementsInTheList() throws Exception {
     String text = "android {\n" +
                   "  splits {\n" +
@@ -414,6 +422,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     assertFalse(hasPsiElement(splits));
   }
 
+  @Test
   public void testResetStatement() throws Exception {
     String text = "android {\n" +
                   "  splits {\n" +
@@ -437,6 +446,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     assertNull("density-include", splits.density().include());
   }
 
+  @Test
   public void testResetNoneExisting() throws Exception {
     String text = "android {\n" +
                   "  splits {\n" +
@@ -460,6 +470,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     assertEquals("density-include", ImmutableList.of("density-include-3"), splits.density().include());
   }
 
+  @Test
   public void testResetAndInitialize() throws Exception {
     String text = "android {\n" +
                   "  splits {\n" +
@@ -485,6 +496,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     assertEquals("density-include", ImmutableList.of("density-include-3"), splits.density().include());
   }
 
+  @Test
   public void testAddResetStatement() throws Exception {
     String text = "android {\n" +
                   "  splits {\n" +
@@ -517,6 +529,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     assertNull("density-include", splits.density().include());
   }
 
+  @Test
   public void testRemoveResetStatement() throws Exception {
     String text = "android {\n" +
                   "  splits {\n" +

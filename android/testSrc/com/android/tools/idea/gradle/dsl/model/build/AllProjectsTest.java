@@ -18,11 +18,13 @@ package com.android.tools.idea.gradle.dsl.model.build;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.intellij.pom.java.LanguageLevel;
+import org.junit.Test;
 
 /**
  * Tests allprojects section of the build.gradle file.
  */
 public class AllProjectsTest extends GradleFileModelTestCase {
+  @Test
   public void testAllProjectsSection() throws Exception {
     String settingsText = "include ':" + SUB_MODULE_NAME + "'";
 
@@ -46,6 +48,7 @@ public class AllProjectsTest extends GradleFileModelTestCase {
     assertEquals(LanguageLevel.JDK_1_6, subModuleJavaModel.targetCompatibility().toLanguageLevel());
   }
 
+  @Test
   public void testOverrideWithAllProjectsSection() throws Exception {
     String settingsText = "include ':" + SUB_MODULE_NAME + "'";
 
@@ -71,6 +74,7 @@ public class AllProjectsTest extends GradleFileModelTestCase {
     assertEquals(LanguageLevel.JDK_1_6, subModuleJavaModel.targetCompatibility().toLanguageLevel()); // Subproject got 1_5 from allprojects section
   }
 
+  @Test
   public void testOverrideAllProjectsSection() throws Exception {
     String settingsText = "include ':" + SUB_MODULE_NAME + "'";
 
@@ -96,6 +100,7 @@ public class AllProjectsTest extends GradleFileModelTestCase {
     assertEquals(LanguageLevel.JDK_1_5, subModuleJavaModel.targetCompatibility().toLanguageLevel()); // Subproject got 1_5 from allprojects section
   }
 
+  @Test
   public void testOverrideAllProjectsSectionInSubproject() throws Exception {
     String settingsText = "include ':" + SUB_MODULE_NAME + "'";
 

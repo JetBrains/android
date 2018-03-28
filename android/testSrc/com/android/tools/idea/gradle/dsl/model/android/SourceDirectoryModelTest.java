@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.api.android.sourceSets.SourceDirectoryM
 import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 import java.util.List;
 
@@ -51,12 +52,13 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
                                             "  }\n" +
                                             "}";
 
+  @Test
   public void testSourceDirectoryEntries() throws Exception {
     writeToBuildFile(GRADLE_TEXT);
     verifySourceDirectoryEntries(getGradleBuildModel(), 1, 2);
   }
 
-
+  @Test
   public void testSourceDirectoryEntriesAddAndReset() throws Exception {
     writeToBuildFile(GRADLE_TEXT);
 
@@ -83,6 +85,7 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     verifySourceDirectoryEntries(buildModel, 1, 2);
   }
 
+  @Test
   public void testSourceDirectoryEntriesAddAndApply() throws Exception {
     writeToBuildFile(GRADLE_TEXT);
 
@@ -109,6 +112,7 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     verifySourceDirectoryEntries(buildModel, 1, 2, 3);
   }
 
+  @Test
   public void testSourceDirectoryEntriesRemoveAndReset() throws Exception {
     writeToBuildFile(GRADLE_TEXT);
 
@@ -135,6 +139,7 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     verifySourceDirectoryEntries(buildModel, 1, 2);
   }
 
+  @Test
   public void testSourceDirectoryEntriesRemoveAndApply() throws Exception {
     writeToBuildFile(GRADLE_TEXT);
 
@@ -161,6 +166,7 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     verifySourceDirectoryEntries(buildModel, 1);
   }
 
+  @Test
   public void testSourceDirectoryEntriesRemoveAllAndReset() throws Exception {
     writeToBuildFile(GRADLE_TEXT);
 
@@ -187,6 +193,7 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     verifySourceDirectoryEntries(buildModel, 1, 2);
   }
 
+  @Test
   public void testSourceDirectoryEntriesRemoveAllAndApply() throws Exception {
     writeToBuildFile(GRADLE_TEXT);
 
@@ -216,6 +223,7 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     assertEmpty(android.sourceSets());
   }
 
+  @Test
   public void testSourceDirectoryEntriesReplaceAndReset() throws Exception {
     writeToBuildFile(GRADLE_TEXT);
 
@@ -242,6 +250,7 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     verifySourceDirectoryEntries(buildModel, 1, 2);
   }
 
+  @Test
   public void testSourceDirectoryEntriesReplaceAndApply() throws Exception {
     writeToBuildFile(GRADLE_TEXT);
 

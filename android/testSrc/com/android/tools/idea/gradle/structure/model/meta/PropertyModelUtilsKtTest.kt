@@ -21,12 +21,14 @@ import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Test
 import java.io.File
 
 class PropertyModelUtilsKtTest : GradleFileModelTestCase() {
 
   private fun GradlePropertyModel.wrap(): ResolvedPropertyModel = resolve()
 
+  @Test
   fun testAsString() {
     val text = """
                ext {
@@ -62,6 +64,7 @@ class PropertyModelUtilsKtTest : GradleFileModelTestCase() {
     assertThat(propOtherExpression2.asString(), nullValue())
   }
 
+  @Test
   fun testAsInt() {
     val text = """
                ext {
@@ -97,6 +100,7 @@ class PropertyModelUtilsKtTest : GradleFileModelTestCase() {
     assertThat(propOtherExpression2.asInt(), nullValue())
   }
 
+  @Test
   fun testAsBoolean() {
     val text = """
                ext {
@@ -132,6 +136,7 @@ class PropertyModelUtilsKtTest : GradleFileModelTestCase() {
     assertThat(propOtherExpression2.asBoolean(), nullValue())
   }
 
+  @Test
   fun testAsFile() {
     val text = """
                ext {
@@ -146,6 +151,7 @@ class PropertyModelUtilsKtTest : GradleFileModelTestCase() {
     assertThat(propFile.asFile(), equalTo(File("tmp1")))
   }
 
+  @Test
   fun testDslText() {
     val text = """
                ext {

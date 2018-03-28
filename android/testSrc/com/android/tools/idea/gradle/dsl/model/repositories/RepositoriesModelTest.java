@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.api.values.GradleValue;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Comparator;
@@ -40,6 +41,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
   @NotNull private static final String TEST_DIR = "hello/i/am/a/dir";
   @NotNull private static final String OTHER_TEST_DIR = "/this/is/also/a/dir";
 
+  @Test
   public void testParseJCenterDefaultRepository() throws IOException {
     String text = "repositories {\n" +
                   "  jcenter()\n" +
@@ -52,6 +54,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     verifyJCenterDefaultRepositoryModel(repositories.get(0));
   }
 
+  @Test
   public void testParseJCenterCustomRepository() throws IOException {
     String text = "repositories {\n" +
                   "  jcenter {\n" +
@@ -72,6 +75,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertEquals("url", "http://jcenter.bintray.com/", repository.url().value());
   }
 
+  @Test
   public void testParseMavenCentralRepository() throws IOException {
     String text = "repositories {\n" +
                   "  mavenCentral()\n" +
@@ -90,6 +94,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertEquals("url", "https://repo1.maven.org/maven2/", repository.url().value());
   }
 
+  @Test
   public void testParseMavenCentralRepositoryWithMultipleArtifactUrls() throws IOException {
     String text = "repositories {\n" +
                   "  mavenCentral name: \"nonDefaultName\", " +
@@ -112,6 +117,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
                  repository.artifactUrls());
   }
 
+  @Test
   public void testParseMavenCentralRepositoryWithSingleArtifactUrls() throws IOException {
     String text = "repositories {\n" +
                   "  mavenCentral artifactUrls: \"http://www.mycompany.com/artifacts\"\n" +
@@ -131,6 +137,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertEquals("artifactUrls", ImmutableList.of("http://www.mycompany.com/artifacts"), repository.artifactUrls());
   }
 
+  @Test
   public void testParseCustomMavenRepository() throws IOException {
     String text = "repositories {\n" +
                   "  maven {\n" +
@@ -152,6 +159,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertEquals("url", "http://repo.mycompany.com/maven2", repository.url().value());
   }
 
+  @Test
   public void testParseMavenRepositoryWithArtifactUrls() throws IOException {
     String text = "repositories {\n" +
                   "  maven {\n" +
@@ -179,6 +187,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
                  repository.artifactUrls());
   }
 
+  @Test
   public void testParseMavenRepositoryWithCredentials() throws IOException {
     String text = "repositories {\n" +
                   "  maven {\n" +
@@ -209,6 +218,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertEquals("password", "password123", credentials.password());
   }
 
+  @Test
   public void testParseFlatDirRepository() throws IOException {
     String text = "repositories {\n" +
                   "  flatDir {\n" +
@@ -228,6 +238,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertEquals("dirs", ImmutableList.of("lib1", "lib2"), repository.dirs());
   }
 
+  @Test
   public void testParseFlatDirRepositoryWithSingleDirArgument() throws IOException {
     String text = "repositories {\n" +
                   "   flatDir name: 'libs', dirs: \"libs\"\n" +
@@ -245,6 +256,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertEquals("dirs", ImmutableList.of("libs"), repository.dirs());
   }
 
+  @Test
   public void testParseFlatDirRepositoryWithDirListArgument() throws IOException {
     String text = "repositories {\n" +
                   "   flatDir dirs: [\"libs1\", \"libs2\"]\n" +
@@ -263,6 +275,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertEquals("dirs", ImmutableList.of("libs1", "libs2"), repository.dirs());
   }
 
+  @Test
   public void testParseMultipleRepositories() throws IOException {
     String text = "repositories {\n" +
                   "  jcenter()\n" +
@@ -282,6 +295,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertEquals("url", "https://repo1.maven.org/maven2/", mavenCentralRepository.url());
   }
 
+  @Test
   public void testParseGoogleDefaultRepository() throws IOException {
     String text = "repositories {\n" +
                   "  google()\n" +
@@ -294,6 +308,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     verifyGoogleDefaultRepositoryModel(repositories.get(0));
   }
 
+  @Test
   public void testAddGoogleRepositoryByMethodCall() throws IOException {
     String text = "repositories {\n" +
                   "  jcenter()\n" +
@@ -308,6 +323,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     verifyJCenterDefaultRepositoryModel(repositories.get(0));
   }
 
+  @Test
   public void testAddGoogleRepositoryByMethodCallEmpty() throws IOException {
     String text = "repositories {\n" +
                   "}";
@@ -318,6 +334,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     verifyAddGoogleRepositoryByMethodCall();
   }
 
+  @Test
   public void testAddGoogleRepositoryToEmptyBuildscript() throws IOException {
     String text = "buildscript {\n" +
                   "}";
@@ -340,6 +357,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     verifyGoogleDefaultRepositoryModel(repositories.get(0));
   }
 
+  @Test
   public void testAddGoogleRepositoryByMethodCallPresent() throws IOException {
     String text = "repositories {\n" +
                   "  google()\n" +
@@ -356,6 +374,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertFalse(buildModel.isModified());
   }
 
+  @Test
   public void testAddGoogleRepositoryByUrl() throws IOException {
     String text = "repositories {\n" +
                   "  jcenter()\n" +
@@ -370,6 +389,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     verifyJCenterDefaultRepositoryModel(repositories.get(0));
   }
 
+  @Test
   public void testAddGoogleRepositoryByUrlEmpty() throws IOException {
     String text = "repositories {\n" +
                   "}";
@@ -380,6 +400,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     verifyAddGoogleRepositoryByUrl();
   }
 
+  @Test
   public void testAddGoogleRepositoryByUrlPresent() throws IOException {
     String text = "repositories {\n" +
                   "  maven {\n" +
@@ -460,6 +481,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertEquals("name", GOOGLE_DEFAULT_REPO_NAME, mavenRepository.name().value());
   }
 
+  @Test
   public void testAddFlatRepository() throws IOException {
     writeToBuildFile("repositories {\n\n}");
 
@@ -481,6 +503,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertEquals("/usr/local/repo", flatModel.dirs().get(0));
   }
 
+  @Test
   public void testAddFlatRepositoryFromEmpty() throws IOException {
     writeToBuildFile("");
 
@@ -502,6 +525,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertEquals("/usr/local/repo", flatModel.dirs().get(0));
   }
 
+  @Test
   public void testAddToExistingFlatRepository() throws IOException {
     String text = "repositories {\n" +
                   "  flatDir {\n" +
@@ -533,6 +557,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertEquals(TEST_DIR, dirs.get(1));
   }
 
+  @Test
   public void testAddDuplicateToExistingFlatRepository() throws IOException {
     String text = "repositories {\n" +
                   "  flatDir.dirs '" + TEST_DIR + "'\n" +

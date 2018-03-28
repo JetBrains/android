@@ -20,11 +20,13 @@ import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.DexOptionsModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
+import org.junit.Test;
 
 /**
  * Tests for {@link DexOptionsModel}.
  */
 public class DexOptionsModelTest extends GradleFileModelTestCase {
+  @Test
   public void testParseElementsInApplicationStatements() throws Exception {
     String text = "android {\n" +
                   "  dexOptions {\n" +
@@ -55,6 +57,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("threadCount", Integer.valueOf(5), dexOptions.threadCount());
   }
 
+  @Test
   public void testParseElementsInAssignmentStatements() throws Exception {
     String text = "android {\n" +
                   "  dexOptions {\n" +
@@ -85,6 +88,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("threadCount", Integer.valueOf(10), dexOptions.threadCount());
   }
 
+  @Test
   public void testEditElements() throws Exception {
     String text = "android {\n" +
                   "  dexOptions {\n" +
@@ -139,6 +143,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("threadCount", Integer.valueOf(10), dexOptions.threadCount());
   }
 
+  @Test
   public void testAddElements() throws Exception {
     String text = "android {\n" +
                   "  dexOptions {\n" +
@@ -185,6 +190,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("threadCount", Integer.valueOf(5), dexOptions.threadCount());
   }
 
+  @Test
   public void testRemoveElements() throws Exception {
     String text = "android {\n" +
                   "  dexOptions {\n" +
@@ -241,6 +247,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
     assertNull("threadCount", dexOptions.threadCount());
   }
 
+  @Test
   public void testRemoveOneOfElementsInTheList() throws Exception {
     String text = "android {\n" +
                   "  dexOptions {\n" +
@@ -267,6 +274,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("additionalParameters", ImmutableList.of("efgh"), dexOptions.additionalParameters());
   }
 
+  @Test
   public void testRemoveOnlyElementInTheList() throws Exception {
     String text = "android {\n" +
                   "  dexOptions {\n" +

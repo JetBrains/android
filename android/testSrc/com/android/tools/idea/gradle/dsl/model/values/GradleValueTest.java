@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.Lists;
+import org.junit.Test;
 
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,7 @@ import static com.google.common.truth.Truth.assertThat;
  * Tests for {@link GradleValueImpl}.
  */
 public class GradleValueTest extends GradleFileModelTestCase {
+  @Test
   public void testGradleValuesOfLiteralElementsInApplicationStatements() throws Exception {
     String text = "android { \n" +
                   "  buildToolsVersion \"23.0.0\"\n" +
@@ -59,6 +61,7 @@ public class GradleValueTest extends GradleFileModelTestCase {
     verifyPropertyModel(android.resourcePrefix(), "android.resourcePrefix", "abcd");
   }
 
+  @Test
   public void testGradleValuesOfLiteralElementsInAssignmentStatements() throws Exception {
     String text = "android { \n" +
                   "  buildToolsVersion = \"23.0.0\"\n" +
@@ -78,6 +81,7 @@ public class GradleValueTest extends GradleFileModelTestCase {
     verifyPropertyModel(android.generatePureSplits(), "android.generatePureSplits", "true");
   }
 
+  @Test
   public void testListOfGradleValuesInApplicationStatements() throws Exception {
     String text = "android {\n" +
                   "  defaultConfig {\n" +
@@ -114,6 +118,7 @@ public class GradleValueTest extends GradleFileModelTestCase {
     verifyPropertyModel(resConfigs.get(1), "android.defaultConfig.resConfigs[1]", "efgh");
   }
 
+  @Test
   public void testListOfGradleValuesInAssignmentStatements() throws Exception {
     String text = "android {\n" +
                   "  defaultConfig {\n" +
@@ -143,6 +148,7 @@ public class GradleValueTest extends GradleFileModelTestCase {
     verifyPropertyModel(proguardFiles.get(1), "android.defaultConfig.proguardFiles[1]", "proguard-rules.pro");
   }
 
+  @Test
   public void testMapOfGradleValuesInApplicationStatements() throws Exception {
     String text = "android {\n" +
                   "  defaultConfig {\n" +
@@ -176,6 +182,7 @@ public class GradleValueTest extends GradleFileModelTestCase {
     verifyPropertyModel(foo, "android.defaultConfig.testInstrumentationRunnerArguments.foo", "bar");
   }
 
+  @Test
   public void testMapOfGradleValuesInAssignmentStatements() throws Exception {
     String text = "android {\n" +
                   "  defaultConfig {\n" +
@@ -209,6 +216,7 @@ public class GradleValueTest extends GradleFileModelTestCase {
     verifyPropertyModel(foo, "android.defaultConfig.testInstrumentationRunnerArguments.foo", "bar");
   }
 
+  @Test
   public void testGradleValuesOfTypeNameValueElements() throws Exception {
     String text = "android {\n" +
                   "  defaultConfig {\n" +

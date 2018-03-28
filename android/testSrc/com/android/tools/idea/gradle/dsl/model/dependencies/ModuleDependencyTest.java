@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.util.List;
@@ -29,6 +30,7 @@ import static com.google.common.truth.Truth.assertThat;
  * Tests for {@link DependenciesModelImpl} and {@link ModuleDependencyModelImpl}.
  */
 public class ModuleDependencyTest extends GradleFileModelTestCase {
+  @Test
   public void testParsingWithCompactNotation() throws IOException {
     String text = "dependencies {\n" +
                   "    compile project(':javalib1')\n" +
@@ -46,6 +48,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     assertMatches(expected, dependencies.get(0));
   }
 
+  @Test
   public void testParsingWithDependencyOnRoot() throws IOException {
     String text = "dependencies {\n" +
                   "    compile project(':')\n" +
@@ -67,6 +70,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     assertEquals("", actual.name());
   }
 
+  @Test
   public void testParsingWithMapNotation() throws IOException {
     String text = "dependencies {\n" +
                   "    compile project(path: ':androidlib1', configuration: 'flavor1Release')\n" +
@@ -101,6 +105,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     assertMatches(expected, dependencies.get(2));
   }
 
+  @Test
   public void testSetNameOnCompactNotation() throws IOException {
     String text = "dependencies {\n" +
                   "    compile project(':javalib1')\n" +
@@ -125,6 +130,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     assertMatches(expected, dependency);
   }
 
+  @Test
   public void testSetNameOnMapNotationWithConfiguration() throws IOException {
     String text = "dependencies {\n" +
                   "    compile project(path: ':androidlib1', configuration: 'flavor1Release')\n" +
@@ -151,6 +157,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     assertMatches(expected, dependency);
   }
 
+  @Test
   public void testSetNameOnMapNotationWithoutConfiguration() throws IOException {
     String text = "dependencies {\n" +
                   "    compile project(path: ':androidlib1')\n" +
@@ -176,6 +183,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     assertMatches(expected, dependency);
   }
 
+  @Test
   public void testSetNameWithPathHavingSameSegmentNames() throws IOException {
     String text = "dependencies {\n" +
                   "    compile project(path: ':name:name')\n" +
@@ -205,6 +213,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     assertEquals("helloWorld", actual.name());
   }
 
+  @Test
   public void testReset() throws IOException {
     String text = "dependencies {\n" +
                   "    compile project(':javalib1')\n" +
@@ -234,6 +243,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
   }
 
   // Test for b/68188327
+  @Test
   public void testMultiTypeApplicationStatementDoesNotThrowException() throws IOException {
     String text = "dependencies {\n" +
                   "    implementation group: 'my.test.dep', name: 'artifact', version: 'version', {\n" +

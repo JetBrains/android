@@ -19,8 +19,10 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import org.hamcrest.CoreMatchers.hasItems
 import org.junit.Assert.assertThat
+import org.junit.Test
 
 class PsParsedDependenciesTest : GradleFileModelTestCase() {
+  @Test
   fun testParsedDependencies() {
     writeToBuildFile(
       """
@@ -47,6 +49,7 @@ class PsParsedDependenciesTest : GradleFileModelTestCase() {
     )
   }
 
+  @Test
   fun testFindLibraries() {
     writeToBuildFile(
       """

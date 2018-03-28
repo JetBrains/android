@@ -20,8 +20,10 @@ import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.CompileOptionsModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.intellij.pom.java.LanguageLevel;
+import org.junit.Test;
 
 public class CompileOptionsModelTest extends GradleFileModelTestCase {
+  @Test
   public void testCompileOptionsBlock() throws Exception {
     String text = "android {\n" +
                   "  compileOptions {\n" +
@@ -44,6 +46,7 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("incremental", Boolean.TRUE, compileOptions.incremental());
   }
 
+  @Test
   public void testCompileOptionsBlockUsingAssignment() throws Exception {
     String text = "android {\n" +
                   "  compileOptions {\n" +
@@ -66,6 +69,7 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("incremental", Boolean.FALSE, compileOptions.incremental());
   }
 
+  @Test
   public void testCompileOptionsApplicationStatement() throws Exception {
     String text = "android.compileOptions.sourceCompatibility 1.6\n" + "android.compileOptions.targetCompatibility 1.6\n";
     writeToBuildFile(text);
@@ -79,6 +83,7 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
   }
 
   // TODO test the case of remove sourceCompatibility with override
+  @Test
   public void testCompileOptionsBlockWithOverrideStatement() throws Exception {
     String text = "android {\n" +
                   "  compileOptions {\n" +
@@ -98,6 +103,7 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
     assertEquals(LanguageLevel.JDK_1_6, compileOptions.targetCompatibility().toLanguageLevel());
   }
 
+  @Test
   public void testCompileOptionsRemoveApplicationStatement() throws Exception {
     String text = "android {\n" +
                   "  compileSdkVersion 23\n" +
@@ -133,6 +139,7 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
     assertMissingProperty(compileOptions.incremental());
   }
 
+  @Test
   public void testCompileOptionsModify() throws Exception {
     String text = "android {\n" +
                   "  compileOptions {\n" +
@@ -171,6 +178,7 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("incremental", Boolean.TRUE, compileOptions.incremental());
   }
 
+  @Test
   public void testCompileOptionsAdd() throws Exception {
     String text = "android {\n" +
                   "  compileSdkVersion 23\n" +

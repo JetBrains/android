@@ -20,13 +20,13 @@ import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
-import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Map;
@@ -34,16 +34,16 @@ import java.util.Map;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTEGER;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.REFERENCE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
-import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*;
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 import static com.android.utils.FileUtils.toSystemIndependentPath;
 
 /**
  * Tests for {@link ExtModel}.
  */
 public class ExtModelTest extends GradleFileModelTestCase {
-
+  @Test
   public void testParsingSimplePropertyPerLine() throws IOException {
     String text = "ext.COMPILE_SDK_VERSION = 21\n" +
                   "ext.srcDirName = 'src/java'";
@@ -55,6 +55,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertEquals("src/java", extModel.getLiteralProperty("srcDirName", String.class));
   }
 
+  @Test
   public void testParsingSimplePropertyInExtBlock() throws IOException {
     String text = "ext {\n" +
                   "   COMPILE_SDK_VERSION = 21\n" +
@@ -68,6 +69,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertEquals("src/java", extModel.getLiteralProperty("srcDirName", String.class));
   }
 
+  @Test
   public void testParsingListOfProperties() throws IOException {
     String text = "ext.libraries = [\n" +
                   "    guava: \"com.google.guava:guava:19.0-rc1\",\n" +
@@ -81,6 +83,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     verifyPropertyModel(model, STRING_TYPE, "com.google.guava:guava:19.0-rc1", STRING, DERIVED, 0, "guava");
   }
 
+  @Test
   public void testResolveExtProperty() throws IOException {
     String text = "ext.COMPILE_SDK_VERSION = 21\n" +
                   "android {\n" +
@@ -98,6 +101,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     verifyPropertyModel(androidModel.compileSdkVersion(), INTEGER_TYPE, 21, INTEGER, REGULAR, 1, "compileSdkVersion");
   }
 
+  @Test
   public void testResolveQualifiedExtProperty() throws IOException {
     String text = "ext.constants = [\n" +
                   "  COMPILE_SDK_VERSION : 21\n" +
@@ -117,6 +121,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     verifyPropertyModel(androidModel.compileSdkVersion(), INTEGER_TYPE, 21, INTEGER, REGULAR, 1, "compileSdkVersion");
   }
 
+  @Test
   public void testResolveMultiLevelExtProperty() throws IOException {
     String text = "ext.SDK_VERSION = 21\n" +
                   "ext.COMPILE_SDK_VERSION = SDK_VERSION\n" +
@@ -142,6 +147,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertEquals("targetSdkVersion", 21, defaultConfig.targetSdkVersion());
   }
 
+  @Test
   public void testResolveMultiModuleExtProperty() throws IOException {
     String settingsText = "include ':" + SUB_MODULE_NAME + "'";
 
@@ -156,7 +162,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     writeToSubModuleBuildFile(subModuleText);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    ExtModelImpl extModel = (ExtModelImpl)getGradleBuildModel().ext();
+    ExtModelImpl extModel = (ExtModelImpl)buildModel.ext();
     assertEquals(21, extModel.getLiteralProperty("SDK_VERSION", Integer.class));
 
     GradleBuildModel subModuleBuildModel = getSubModuleGradleBuildModel();
@@ -168,6 +174,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertEquals("compileSdkVersion", "21", androidModel.compileSdkVersion()); // SDK_VERSION resolved from the main module.
   }
 
+  @Test
   public void testResolveVariablesInStringLiteral() throws IOException {
     String text = "ext.ANDROID = \"android\"\n" +
                   "ext.SDK_VERSION = 23\n" +
@@ -193,6 +200,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertEquals("targetSdkVersion", "android-23", defaultConfig.targetSdkVersion());
   }
 
+  @Test
   public void testResolveQualifiedVariableInStringLiteral() throws IOException {
     String text = "android {\n" +
                   "  compileSdkVersion 23\n" +
@@ -213,6 +221,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion());
   }
 
+  @Test
   public void testStringReferenceInListProperty() throws IOException {
     String text = "ext.TEST_STRING = \"test\"\n" +
                   "android.defaultConfig {\n" +
@@ -231,6 +240,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "test"), defaultConfig.proguardFiles());
   }
 
+  @Test
   public void testListReferenceInListProperty() throws IOException {
     String text = "ext.TEST_STRINGS = [\"test1\", \"test2\"]\n" +
                   "android.defaultConfig {\n" +
@@ -252,6 +262,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertEquals("proguardFiles", ImmutableList.of("test1", "test2"), defaultConfig.proguardFiles());
   }
 
+  @Test
   public void testResolveVariableInListProperty() throws IOException {
     String text = "ext.TEST_STRING = \"test\"\n" +
                   "android.defaultConfig {\n" +
@@ -270,6 +281,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "test"), defaultConfig.proguardFiles());
   }
 
+  @Test
   public void testStringReferenceInMapProperty() throws IOException {
     String text = "ext.TEST_STRING = \"test\"\n" +
                   "android.defaultConfig {\n" +
@@ -289,6 +301,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
                  defaultConfig.testInstrumentationRunnerArguments());
   }
 
+  @Test
   public void testMapReferenceInMapProperty() throws IOException {
     String text = "ext.TEST_MAP = [test1:\"value1\", test2:\"value2\"]\n" +
                   "android.defaultConfig {\n" +
@@ -313,6 +326,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
                  defaultConfig.testInstrumentationRunnerArguments());
   }
 
+  @Test
   public void testResolveVariableInMapProperty() throws IOException {
     String text = "ext.TEST_STRING = \"test\"\n" +
                   "android.defaultConfig {\n" +
@@ -332,6 +346,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
                  defaultConfig.testInstrumentationRunnerArguments());
   }
 
+  @Test
   public void testResolveVariableInSubModuleBuildFile() throws IOException {
     String settingsText = "include ':" + SUB_MODULE_NAME + "'";
     String mainModulePropertiesText = "xyz=value_from_main_module_properties_file";
@@ -350,6 +365,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertEquals("value_from_sub_module_build_file", extModel.getLiteralProperty("test", String.class));
   }
 
+  @Test
   public void testResolveVariableInSubModulePropertiesFile() throws IOException {
     String settingsText = "include ':" + SUB_MODULE_NAME + "'";
     String mainModulePropertiesText = "xyz=value_from_main_module_properties_file";
@@ -367,6 +383,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertEquals("value_from_sub_module_properties_file", extModel.getLiteralProperty("test", String.class));
   }
 
+  @Test
   public void testResolveVariableInMainModulePropertiesFile() throws IOException {
     String settingsText = "include ':" + SUB_MODULE_NAME + "'";
     String mainModulePropertiesText = "xyz=value_from_main_module_properties_file";
@@ -382,6 +399,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertEquals("value_from_main_module_properties_file", extModel.getLiteralProperty("test", String.class));
   }
 
+  @Test
   public void testResolveVariableInMainModuleBuildFile() throws IOException {
     String settingsText = "include ':" + SUB_MODULE_NAME + "'";
     String mainModuleBuildText = "ext.xyz = \"value_from_main_module_build_file\"";
@@ -395,6 +413,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertEquals("value_from_main_module_build_file", extModel.getLiteralProperty("test", String.class));
   }
 
+  @Test
   public void testResolveMultiLevelExtPropertyWithHistory() throws IOException {
     String text = "ext.FIRST = 123\n" +
                   "ext.SECOND = FIRST\n" +
@@ -425,6 +444,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertEquals(0, first.getResolvedVariables().size());
   }
 
+  @Test
   public void testResolveMultiModuleExtPropertyWithHistory() throws IOException {
     String settingsText = "include ':" + SUB_MODULE_NAME + "'";
     String mainModuleText = "ext.FIRST = 123";
@@ -450,6 +470,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertEquals(0, first.getResolvedVariables().size());
   }
 
+  @Test
   public void testResolveMultiModuleExtPropertyFromPropertiesFileWithHistory() throws IOException {
     String settingsText = "include ':" + SUB_MODULE_NAME + "'";
     String mainModulePropertiesText = "first=value_from_gradle_properties";
@@ -486,6 +507,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertEquals(0, first.getResolvedVariables().size());
   }
 
+  @Test
   public void testFlatDefVariablesAreResolved() throws IOException {
     String text = "def world = 'WORLD'\n" +
                   "def foo = 'bar'\n" +
@@ -507,6 +529,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertNull(defValue.value());
   }
 
+  @Test
   public void testNestedDefVariablesAreResolved() throws IOException {
     String text = "def world = 'world'\n" +
                   "def foo = 'bar'\n" +
@@ -523,7 +546,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertEquals("Welcome to bar world!", value.value());
   }
 
-
+  @Test
   public void testMultipleDefDeclarations() throws IOException {
     String text = "def olleh = 'hello', dlrow = 'world'\n" +
                   "ext.prop = \"hello $dlrow\"\n" +
@@ -540,6 +563,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertEquals("hello world", prop2Value.value());
   }
 
+  @Test
   public void testDefUsedInDefResolved() throws IOException {
     String text = "def animal = 'penguin'\n" +
                   "def message = \"${animal}s are cool!\"\n" +

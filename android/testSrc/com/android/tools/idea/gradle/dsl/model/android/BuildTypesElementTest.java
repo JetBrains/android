@@ -18,6 +18,7 @@ import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
+import org.junit.Test;
 
 import java.util.List;
 
@@ -31,6 +32,7 @@ import static com.google.common.truth.Truth.assertThat;
  * {@link BuildTypeModelImpl} is tested in great deal to cover all combinations in {@link BuildTypeModelTest}.
  */
 public class BuildTypesElementTest extends GradleFileModelTestCase {
+  @Test
   public void testBuildTypesWithApplicationStatements() throws Exception {
     String text = "android {\n" +
                   "  buildTypes {\n" +
@@ -61,6 +63,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     assertEquals("proguardFiles", ImmutableList.of("proguard-android-2.txt", "proguard-rules-2.txt"), buildType2.proguardFiles());
   }
 
+  @Test
   public void testBuildTypesWithAssignmentStatements() throws Exception {
     String text = "android.buildTypes {\n" +
                   "  type1 {\n" +
@@ -90,6 +93,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     assertEquals("proguardFiles", ImmutableList.of("proguard-android-2.txt", "proguard-rules-2.txt"), buildType2.proguardFiles());
   }
 
+  @Test
   public void testBuildTypesWithOverrideStatements() throws Exception {
     String text = "android {\n" +
                   "  buildTypes {\n" +
@@ -131,6 +135,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     assertEquals("proguardFiles", ImmutableList.of("proguard-android-4.txt", "proguard-rules-4.txt"), type2.proguardFiles());
   }
 
+  @Test
   public void testBuildTypesWithAppendStatements() throws Exception {
     String text = "android {\n" +
                   "  buildTypes {\n" +
@@ -170,6 +175,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
                  type2.proguardFiles());
   }
 
+  @Test
   public void testAddEmptyBuildType() throws Exception {
     String text = "android {}\n";
 
@@ -210,6 +216,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     assertMissingProperty("zipAlignEnabled", buildType.zipAlignEnabled());
   }
 
+  @Test
   public void testAddBuildType() throws Exception {
     String text = "android {}\n";
 

@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.model.repositories.MavenRepositoryModel
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.project.Project;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.util.List;
@@ -48,14 +49,16 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
     new IdeComponents(getProject()).replaceApplicationService(GradleVersions.class, myGradleVersions);
   }
 
-  public void testhasGoogleMavenRepositoryEmpty() throws IOException {
+  @Test
+  public void testHasGoogleMavenRepositoryEmpty() throws IOException {
     String text = "repositories {\n" +
                   "}";
     writeToBuildFile(text);
     assertFalse(getGradleBuildModel().repositories().hasGoogleMavenRepository());
   }
 
-  public void testhasGoogleMavenRepositoryName3dot5() throws IOException {
+  @Test
+  public void testHasGoogleMavenRepositoryName3dot5() throws IOException {
     String text = "repositories {\n" +
                   "  google()\n" +
                   "}";
@@ -64,7 +67,8 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
     assertFalse(getGradleBuildModel().repositories().hasGoogleMavenRepository());
   }
 
-  public void testhasGoogleMavenRepositoryName4dot0() throws IOException {
+  @Test
+  public void testHasGoogleMavenRepositoryName4dot0() throws IOException {
     String text = "repositories {\n" +
                   "  google()\n" +
                   "}";
@@ -73,7 +77,8 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
     assertTrue(getGradleBuildModel().repositories().hasGoogleMavenRepository());
   }
 
-  public void testhasGoogleMavenRepositoryUrl3dot5() throws IOException {
+  @Test
+  public void testHasGoogleMavenRepositoryUrl3dot5() throws IOException {
     String text = "repositories {\n" +
                   "  maven {\n" +
                   "    url \"" + GOOGLE_DEFAULT_REPO_URL + "\"\n" +
@@ -84,7 +89,8 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
     assertTrue(getGradleBuildModel().repositories().hasGoogleMavenRepository());
   }
 
-  public void testhasGoogleMavenRepositoryUrl4dot0() throws IOException {
+  @Test
+  public void testHasGoogleMavenRepositoryUrl4dot0() throws IOException {
     String text = "repositories {\n" +
                   "  maven {\n" +
                   "    url \"" + GOOGLE_DEFAULT_REPO_URL + "\"\n" +
@@ -95,6 +101,7 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
     assertTrue(getGradleBuildModel().repositories().hasGoogleMavenRepository());
   }
 
+  @Test
   public void testAddGoogleRepositoryEmpty3dot5() throws IOException {
     // Prepare repositories
     String text = "repositories {\n" +
@@ -119,6 +126,7 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
     assertThat(repositories.get(0)).isInstanceOf(MavenRepositoryModelImpl.class);
   }
 
+  @Test
   public void testAddGoogleRepositoryEmpty4dot0() throws IOException {
     // Prepare repositories
     String text = "repositories {\n" +
@@ -143,6 +151,7 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
     assertThat(repositories.get(0)).isInstanceOf(GoogleDefaultRepositoryModelImpl.class);
   }
 
+  @Test
   public void testAddGoogleRepositoryWithUrlAlready() throws IOException {
     // Prepare repositories
     String text = "repositories {\n" +
@@ -163,6 +172,7 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
     assertFalse(buildModel.isModified());
   }
 
+  @Test
   public void testAddGoogleRepositoryWithGoogleAlready3dot5() throws IOException {
     // Prepare repositories
     String text = "repositories {\n" +
@@ -189,6 +199,7 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
     assertThat(repositories.get(1)).isInstanceOf(MavenRepositoryModelImpl.class);
   }
 
+  @Test
   public void testAddGoogleRepositoryWithGoogleAlready4dot0() throws IOException {
     // Prepare repositories
     String text = "repositories {\n" +

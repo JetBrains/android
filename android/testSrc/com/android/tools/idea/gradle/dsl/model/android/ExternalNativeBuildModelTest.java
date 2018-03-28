@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.api.android.externalNativeBuild.NdkBuil
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.CMakeModelImpl;
 import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.NdkBuildModelImpl;
+import org.junit.Test;
 
 import java.io.File;
 
@@ -30,6 +31,7 @@ import java.io.File;
  * Tests for {@link ExternalNativeBuildModelImpl}.
  */
 public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
+  @Test
   public void testCMake() throws Exception {
     String text = "android {\n" +
                   "  externalNativeBuild {\n" +
@@ -51,6 +53,7 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     assertEquals("path", new File("foo/bar"), cmake.path());
   }
 
+  @Test
   public void testCMakeWithNewFilePath() throws Exception {
     String text = "android {\n" +
                   "  externalNativeBuild {\n" +
@@ -72,6 +75,7 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     assertEquals("path", new File("foo/bar"), cmake.path());
   }
 
+  @Test
   public void testRemoveCMakeAndReset() throws Exception {
     String text = "android {\n" +
                   "  externalNativeBuild {\n" +
@@ -99,6 +103,7 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     checkForValidPsiElement(externalNativeBuild.cmake(), CMakeModelImpl.class);
   }
 
+  @Test
   public void testRemoveCMakeAndApplyChanges() throws Exception {
     String text = "android {\n" +
                   "  externalNativeBuild {\n" +
@@ -134,6 +139,7 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     checkForInValidPsiElement(externalNativeBuild.cmake(), CMakeModelImpl.class);
   }
 
+  @Test
   public void testAddCMakePathAndReset() throws Exception {
     String text = "android {\n" +
                   "}";
@@ -155,6 +161,7 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     assertNull(cmake.path());
   }
 
+  @Test
   public void testAddCMakePathAndApplyChanges() throws Exception {
     String text = "android {\n" +
                   "}";
@@ -182,6 +189,7 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     assertEquals("path", new File("foo/bar"), cmake.path());
   }
 
+  @Test
   public void testNdkBuild() throws Exception {
     String text = "android {\n" +
                   "  externalNativeBuild {\n" +
@@ -203,6 +211,7 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     assertEquals("path", new File("foo/Android.mk"), ndkBuild.path());
   }
 
+  @Test
   public void testNdkBuildWithNewFilePath() throws Exception {
     String text = "android {\n" +
                   "  externalNativeBuild {\n" +
@@ -224,6 +233,7 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     assertEquals("path", new File("foo/Android.mk"), ndkBuild.path());
   }
 
+  @Test
   public void testRemoveNdkBuildAndReset() throws Exception {
     String text = "android {\n" +
                   "  externalNativeBuild {\n" +
@@ -251,6 +261,7 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     checkForValidPsiElement(externalNativeBuild.ndkBuild(), NdkBuildModelImpl.class);
   }
 
+  @Test
   public void testRemoveNdkBuildAndApplyChanges() throws Exception {
     String text = "android {\n" +
                   "  externalNativeBuild {\n" +
@@ -286,6 +297,7 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     checkForInValidPsiElement(externalNativeBuild.ndkBuild(), NdkBuildModelImpl.class);
   }
 
+  @Test
   public void testAddNdkBuildPathAndReset() throws Exception {
     String text = "android {\n" +
                   "}";
@@ -306,6 +318,7 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     assertNull(ndkBuild.path());
   }
 
+  @Test
   public void testAddNdkBuildPathAndApplyChanges() throws Exception {
     String text = "android {\n" +
                   "}";

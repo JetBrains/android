@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.LintOptionsModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
+import org.junit.Test;
 
 import java.io.File;
 
@@ -56,11 +57,13 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
                                                   "  }\n" +
                                                   "}";
 
+  @Test
   public void testParseElements() throws Exception {
     writeToBuildFile(LINT_OPTIONS_TEXT);
     verifyLintOptions();
   }
 
+  @Test
   public void testEditElements() throws Exception {
     writeToBuildFile(LINT_OPTIONS_TEXT);
     verifyLintOptions();
@@ -126,6 +129,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("xmlReport", Boolean.FALSE, lintOptions.xmlReport());
   }
 
+  @Test
   public void testAddElements() throws Exception {
     String text = "android {\n" +
                   "  lintOptions {\n" +
@@ -197,6 +201,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("xmlReport", Boolean.TRUE, lintOptions.xmlReport());
   }
 
+  @Test
   public void testRemoveElements() throws Exception {
     writeToBuildFile(LINT_OPTIONS_TEXT);
     verifyLintOptions();
@@ -303,6 +308,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     assertNull("xmlReport", lintOptions.xmlReport());
   }
 
+  @Test
   public void testRemoveOneOfElementsInTheList() throws Exception {
     String text = "android {\n" +
                   "  lintOptions {\n" +
@@ -353,6 +359,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("warning", ImmutableList.of("warning-id-2"), lintOptions.warning());
   }
 
+  @Test
   public void testRemoveOnlyElementsInTheList() throws Exception {
     String text = "android {\n" +
                   "  lintOptions {\n" +

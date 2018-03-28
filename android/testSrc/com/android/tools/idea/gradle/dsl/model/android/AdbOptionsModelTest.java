@@ -20,11 +20,13 @@ import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.externalNativeBuild.AdbOptionsModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
+import org.junit.Test;
 
 /**
  * Tests for {@link AdbOptionsModel}.
  */
 public class AdbOptionsModelTest extends GradleFileModelTestCase {
+  @Test
   public void testParseElementsOne() throws Exception {
     String text = "android {\n" +
                   "  adbOptions {\n" +
@@ -43,6 +45,7 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("timeOutInMs", Integer.valueOf(100), adbOptions.timeOutInMs());
   }
 
+  @Test
   public void testParseElementsTwo() throws Exception {
     String text = "android {\n" +
                   "  adbOptions {\n" +
@@ -61,6 +64,7 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("timeOutInMs", Integer.valueOf(200), adbOptions.timeOutInMs());
   }
 
+  @Test
   public void testEditElements() throws Exception {
     String text = "android {\n" +
                   "  adbOptions {\n" +
@@ -92,6 +96,7 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("timeOutInMs", Integer.valueOf(300), adbOptions.timeOutInMs());
   }
 
+  @Test
   public void testAddElements() throws Exception {
     String text = "android {\n" +
                   "  adbOptions {\n" +
@@ -120,6 +125,7 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("timeOutInMs", Integer.valueOf(100), adbOptions.timeOutInMs());
   }
 
+  @Test
   public void testRemoveElements() throws Exception {
     String text = "android {\n" +
                   "  adbOptions {\n" +
@@ -153,6 +159,7 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
     assertNull("timeOutInMs", adbOptions.timeOutInMs());
   }
 
+  @Test
   public void testRemoveOneOfElementsInTheList() throws Exception {
     String text = "android {\n" +
                   "  adbOptions {\n" +
@@ -179,6 +186,7 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("installOptions", ImmutableList.of("efgh"), adbOptions.installOptions());
   }
 
+  @Test
   public void testRemoveOnlyElementInTheList() throws Exception {
     String text = "android {\n" +
                   "  adbOptions {\n" +

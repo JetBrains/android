@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileTreeDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.util.List;
@@ -30,6 +31,7 @@ import static com.google.common.truth.Truth.assertThat;
  * Tests for {@link DependenciesModelImpl} and {@link FileTreeDependencyModelImpl}.
  */
 public class FileTreeDependencyTest extends GradleFileModelTestCase {
+  @Test
   public void testParseFileTreeWithDirAndIncludeAttributeList() throws IOException {
     String text = "dependencies {\n" +
                   "    compile fileTree(dir: 'libs', include: ['*.jar'])\n" +
@@ -46,6 +48,7 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
     assertEquals(ImmutableList.of("*.jar"), dependency.includes());
   }
 
+  @Test
   public void testParseFileTreeWithDirAndIncludeAttributePattern() throws IOException {
     String text = "dependencies {\n" +
                   "    compile fileTree(dir: 'libs', include: '*.jar')\n" +
@@ -62,6 +65,7 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
     assertEquals(ImmutableList.of("*.jar"), dependency.includes());
   }
 
+  @Test
   public void testParseFileTreeWithDirAndExcludeAttributeList() throws IOException {
     String text = "dependencies {\n" +
                   "    compile fileTree(dir: 'libs', include: ['*.jar'], exclude: ['*.aar'])\n" +
@@ -79,6 +83,7 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
     assertEquals(ImmutableList.of("*.aar"), dependency.excludes());
   }
 
+  @Test
   public void testParseFileTreeWithDirOnly() throws IOException {
     String text = "dependencies {\n" +
                   "    compile fileTree('libs')\n" +
@@ -94,6 +99,7 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
     assertEquals("libs", dependency.dir());
   }
 
+  @Test
   public void testSetDirWhenIncludeSpecified() throws IOException {
     String text = "dependencies {\n" +
                   "    compile fileTree(dir: 'libs', include: '*.jar')\n" +
@@ -120,6 +126,7 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
     assertEquals("jars", dependency.dir());
   }
 
+  @Test
   public void testSetDir() throws IOException {
     String text = "dependencies {\n" +
                   "    compile fileTree('libs')\n" +
@@ -146,6 +153,7 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
     assertEquals("jars", dependency.dir());
   }
 
+  @Test
   public void testAddFileTreeWithDirOnly() throws IOException {
     String text = "dependencies {\n" +
                   "}";
@@ -167,6 +175,7 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
     assertEquals("libs", fileTree.dir());
   }
 
+  @Test
   public void testAddFileTreeWithDirAndIncludeAttributePattern() throws IOException {
     String text = "dependencies {\n" +
                   "}";
@@ -188,6 +197,7 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
     assertEquals(ImmutableList.of("*.jar"), fileTree.includes());
   }
 
+  @Test
   public void testAddFileTreeWithDirAndIncludeAttributeList() throws IOException {
     String text = "dependencies {\n" +
                   "}";
@@ -209,6 +219,7 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
     assertEquals(ImmutableList.of("*.jar", "*.aar"), fileTree.includes());
   }
 
+  @Test
   public void testAddFileTreeWithDirAndExcludeAttributeList() throws IOException {
     String text = "dependencies {\n" +
                   "}";
@@ -231,6 +242,7 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
     assertEquals(ImmutableList.of("*.aar"), fileTree.excludes());
   }
 
+  @Test
   public void testRemoveFileTreeDependency() throws IOException {
     String text = "dependencies {\n" +
                   "    compile fileTree(dir: 'libs', include: ['*.jar'], exclude: ['*.aar'])\n" +
