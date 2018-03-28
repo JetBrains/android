@@ -38,7 +38,7 @@ import java.util.Set;
 
 import static com.android.tools.idea.templates.Parameter.Constraint.UNIQUE;
 import static com.android.tools.idea.templates.Template.*;
-import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APP_AND_LIB;
+import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
 
 /**
  * Test for uniqueness and existence for Parameter validation. In fact, these are the same exact tests,
@@ -55,7 +55,7 @@ public class UniqueParameterTest extends AndroidGradleTestCase {
   public void setUp() throws Exception {
     super.setUp();
 
-    loadProject(PROJECT_WITH_APP_AND_LIB);
+    loadProject(PROJECT_WITH_APPAND_LIB);
     assertNotNull(myAndroidFacet);
     AndroidModel androidModel = AndroidModuleModel.get(myAndroidFacet);
     assertNotNull(androidModel);
