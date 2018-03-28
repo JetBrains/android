@@ -69,8 +69,14 @@ public class FirstRunWizardFixture extends AbstractWizardFixture<FirstRunWizardF
     JFrame welcomeFrame = waitUntilShowing(robot, new GenericTypeMatcher<JFrame>(JFrame.class) {
       @Override
       protected boolean isMatching(@NotNull JFrame frame) {
-        // Waiting for the dialog to be active allows the "dialog grow animation" to end
-        return frame.isActive() && "Android Studio Setup Wizard".equals(frame.getTitle());
+        if ("Android Studio Setup Wizard".equals(frame.getTitle())) {
+          // Waiting for the dialog to be active allows the "dialog grow animation" to end
+          if (frame.isActive()) {
+            return true;
+          }
+          frame.requestFocus();
+        }
+        return false;
       }
     });
 
