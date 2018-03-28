@@ -30,6 +30,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
 import javax.swing.Box
 import javax.swing.JPanel
+import javax.swing.JSlider
 
 /**
  * The resource explorer lets the user browse resources from the provided [AndroidFacet]
@@ -93,6 +94,11 @@ class ResourceExplorer private constructor(
       centerContainer.add(designAssetDetailView)
     }
     add(centerContainer, BorderLayout.CENTER)
+    add(JSlider(JSlider.HORIZONTAL, 100, 300, 300).apply {
+      addChangeListener { event ->
+        internalResourceBrowser.cellWidth = (event.source as JSlider).value
+      }
+    }, BorderLayout.NORTH)
     Disposer.register(parentDisposable, synchronizationManager)
   }
 }
