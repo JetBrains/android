@@ -63,5 +63,15 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="module-library" exported="">
+      <library name="builder-test-api" type="repository">
+        <properties include-transitive-deps="false" maven-id="com.android.tools.build:builder-test-api:3.0.0" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/build/builder-test-api/3.0.0/builder-test-api-3.0.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>

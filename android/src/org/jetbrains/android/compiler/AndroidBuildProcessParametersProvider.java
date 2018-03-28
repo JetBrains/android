@@ -1,6 +1,7 @@
 package org.jetbrains.android.compiler;
 
 import com.android.builder.model.AndroidProject;
+import com.android.builder.testing.api.DeviceConfig;
 import com.android.ide.common.build.ApkData;
 import com.android.jarutils.SignedJarBuilder;
 import com.android.manifmerger.Merger;
@@ -29,6 +30,7 @@ public class AndroidBuildProcessParametersProvider extends BuildProcessParameter
                             PathManager.getJarPathForClass(Merger.class),           // manifest merger
                             PathManager.getJarPathForClass(ApkData.class),          // sdk common
                             PathManager.getJarPathForClass(AndroidProject.class),   // builder-model
+                            PathManager.getJarPathForClass(DeviceConfig.class),     // builder-test-api
                             PathManager.getJarPathForClass(Repository.class),       // repository
                             PathManager.getJarPathForClass(BuildException.class));  // gradle tooling
   }
