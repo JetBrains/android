@@ -22,9 +22,11 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProject
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepositories
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.util.GradleUtil.getAndroidModuleIcon
+import com.android.utils.StringHelper
 import com.intellij.openapi.module.Module
 import javax.swing.Icon
 
@@ -95,7 +97,50 @@ class PsAndroidModule(
     return repositories
   }
 
-  override fun getConfigurations(): List<String> = throw UnsupportedOperationException()
+  // TODO(solodkyy): Return a collection of PsBuildConfiguration instead of strings.
+  override fun getConfigurations(): List<String> {
+
+    fun applicableArtifacts() = listOf("", "test", "androidTest")
+
+    fun flavorsByDimension(dimension: String) =
+      productFlavors.filter { (it.dimension as? ParsedValue.Set.Parsed)?.value == dimension }.map { it.name }
+
+    fun buildFlavorCombinations() = when {
+      flavorDimensions.size > 1 -> flavorDimensions
+        .fold(listOf(listOf("")), { acc, dimension ->
+          flavorsByDimension(dimension).flatMap { flavor ->
+            acc.map { prefix -> prefix + flavor }
+          }
+        })
+        .map { StringHelper.combineAsCamelCase(it.filter { it != "" }) }
+      else -> listOf()  // There are no additional flavor combinations if there is only one flavor dimension.
+    }
+
+    fun applicableProductFlavors() =
+      listOf("") + productFlavors.map { it.name } + buildFlavorCombinations()
+
+    fun applicableBuildTypes(artifact: String) =
+    // TODO(solodkyy): Include product flavor combinations
+      when (artifact) {
+        "androidTest" -> listOf("")  // androidTest is built only for the configured buildType.
+        else -> listOf("") + buildTypes.map { it.name }
+      }
+
+    // TODO(solodkyy): When explicitly requested return other advanced scopes (compileOnly, api).
+    fun applicableScopes() = listOf("implementation")
+
+    val result = mutableListOf<String>()
+    applicableArtifacts().forEach { artifact ->
+      applicableProductFlavors().forEach { productFlavor ->
+        applicableBuildTypes(artifact).forEach { buildType ->
+          applicableScopes().forEach { scope ->
+            result.add(StringHelper.combineAsCamelCase(listOf(artifact, productFlavor, buildType, scope).filter { it != "" }))
+          }
+        }
+      }
+    }
+    return result.toList()
+  }
 
   override fun addLibraryDependency(library: String, scopesNames: List<String>) {
     // Update/reset the "parsed" model.
