@@ -36,6 +36,7 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
@@ -104,6 +105,10 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
                                            int index,
                                            boolean isSelected,
                                            boolean cellHasFocus) {
+        if (isSelected && !cellHasFocus) {
+          setBackground(UIUtil.getListUnfocusedSelectionBackground());
+          mySelectionForeground = UIUtil.getListForeground();
+        }
         append(NavComponentHelperKt.getUiName(component, myResourceResolver));
         if (NavComponentHelperKt.isStartDestination(component)) {
           append(" - Start", SimpleTextAttributes.GRAY_ATTRIBUTES);
@@ -118,7 +123,7 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
         else if (mySchema.getDestinationType(component.getTagName()) == NavigationSchema.DestinationType.NAVIGATION) {
           icon = NESTED_GRAPH;
         }
-        if (isSelected) {
+        if (isSelected && cellHasFocus) {
           icon = WHITE_ICONS.get(icon);
         }
         setIcon(icon);
