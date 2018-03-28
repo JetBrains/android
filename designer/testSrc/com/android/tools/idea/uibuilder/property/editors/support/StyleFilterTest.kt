@@ -56,6 +56,8 @@ class StyleFilterTest : AndroidTestCase() {
               mkStyleResourceValue(android, "Widget.TextView", "", ""),
               mkStyleResourceValue(android, "Widget.Material.TextView", "android:Widget.TextView", ""),
               mkStyleResourceValue(android, "TextAppearance", "", ""),
+              mkStyleResourceValue(android, "TextAppearance.Toolkit", "android:TextAppearance", ""), // private
+              mkStyleResourceValue(android, "TextAppearance.Toast", "android:TextAppearance", ""), // private
               mkStyleResourceValue(android, "TextAppearance.DeviceDefault", "android:TextAppearance", ""),
               mkStyleResourceValue(android, "TextAppearance.Material", "android:TextAppearance", ""),
               mkStyleResourceValue(android, "TextAppearance.Material.Body1", "android:TextAppearance.Material", ""),

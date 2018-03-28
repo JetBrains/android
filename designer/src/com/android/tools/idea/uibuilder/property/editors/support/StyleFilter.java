@@ -22,6 +22,7 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceUrl;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -111,16 +112,12 @@ public class StyleFilter {
 
   @VisibleForTesting
   boolean filter(@NotNull StyleResourceValue style) {
-    if (style.getName().startsWith("Base.")) {
-      // AppCompat contains several styles that serves as base styles and that should not be selectable:
+    if (style.getName().startsWith("Base.") && style.getName().contains(".AppCompat")) {
+      // AppCompat contains several styles that serves as base styles and that should not be selectable.
       return false;
     }
-    if (style.getNamespace() == ResourceNamespace.ANDROID &&
-        style.getName().toLowerCase(Locale.US).equals(style.getName())) {
-      // All lowercase styles in the framework should typically be hidden:
-      return false;
-    }
-    return true;
+
+    return ResourceHelper.isAccessibleInXml(style, myFacet);
   }
 
   @NotNull
