@@ -41,6 +41,7 @@ import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
@@ -126,6 +127,20 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
    * Row index of the threads panel in the TabularLayout of the {@code monitorCpuThreadsLayout}.
    */
   private static final int THREADS_PANEL_ROW = 2;
+
+  /**
+   * Default ratio of splitter. The splitter ratio adjust the first elements size relative to the bottom elements size.
+   * A ratio of 1 means only the first element is shown, while a ratio of 0 means only the bottom element is shown.
+   */
+  @VisibleForTesting
+  static final float SPLITTER_DEFAULT_RATIO = 0.5f;
+
+  /**
+   * When we are showing the kernel data we want to increase the size of the kernel and threads view. This in turn reduces
+   * the size of the view used for the CallChart, FlameChart, ect..
+   */
+  @VisibleForTesting
+  static final float KERNEL_VIEW_SPLITTER_RATIO = 0.75f;
 
   private final CpuProfilerStage myStage;
 
@@ -357,6 +372,16 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         boolean hasElements = myCpus.getModel().getSize() != 0;
         hideableCpus.setVisible(hasElements);
         hideableCpus.setExpanded(hasElements);
+        // When the CpuKernelModel is updated we adjust the splitter. The higher the number the more space
+        // the first component occupies. For when we are showing Kernel elements we want to take up more space
+        // than when we are not. As such each time we modify the CpuKernelModel (when a trace is selected) we
+        // adjust the proportion of the splitter accordingly.
+        if (hasElements) {
+          mySplitter.setProportion(KERNEL_VIEW_SPLITTER_RATIO);
+        }
+        else {
+          mySplitter.setProportion(SPLITTER_DEFAULT_RATIO);
+        }
         monitorCpuThreadsPanel.revalidate();
       }
 
