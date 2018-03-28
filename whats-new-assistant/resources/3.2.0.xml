@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 <tutorialBundle
-    name="What's New in 3.2"
+    name="What's New"
     logo="core/whats_new_logo.png"
     resourceRoot="/">
   <feature
@@ -29,50 +29,26 @@
       <description>
         <![CDATA[
 
-          You're now running Android Studio 3.2. You can learn more about new features and behavior changes
-          below, or read about them
-          <a href="https://d.android.com/r/studio-ui/whats-new-assistant/canary-release-notes.html">in a browser</a>.
-          <br><br>
-          To open this panel again later, select <b>Help &gt; What's New in Android Studio</b> from the main menu.
+          You're now running <b>Android Studio 3.2</b>. Learn about the new features and behavior changes
+          below.
 
         <div style="padding-left: 10px; padding-right: 10px;">
-          <h1>New code shrinker</h1>
 
-          R8 is a new tool for code shrinking and obfuscation that replaces ProGuard. You can start using a
-          <em>preview</em> version of R8 by including the following in your project’s
-          <code>gradle.properties</code> file:
+          <h1>Improved editor for CMake scripts</h1>
 
-          <br><br>
-          <div style="border: solid gray 1px; padding-left: 10px;">
-            <pre>android.enableR8 = true</pre>
-          </div>
+          Android Studio now includes improved features to help you
+          <a href="https://developer.android.com/studio/projects/configure-cmake.html?utm_source=android-studio&utm_medium=studio-assistant">
+          configure your CMake build scripts</a>, such as syntax highlighting,
+          code-completion, and safe code refactoring.
+          <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#cmake-editor">
+          Learn more</a>
 
-          <br>
-          <h1>Editor features for CMake scripts</h1>
-
-          If you use CMake to
-          <a href="https://d.android.com/studio/projects/add-native-code.html?utm_source=android-studio&utm_medium=studio-assistant">
-          add C and C++ code to your project</a>, Android Studio now includes improved features to help you edit your CMake build scripts.
           <br><br>
           <div align="center">
             <img src="https://d.android.com/studio/releases/assistant/3.2.0/cmake-ide-features.gif">
           </div>
-          <br>
-          Features include the following:
-          <br><br>
-          <ul>
-            <li><b>Syntax highlighting and code-completion:</b> The IDE now highlights and suggests code completion for common CMake
-            commands. Additionally, you can navigate to a file by clicking it while pressing the Control key (or Command on MacOS).
-            </li>
-            <li><b>Code reformatting:</b> You can now use the
-            <a href="https://www.jetbrains.com/help/idea/editor-basics.html#reformat_rearrange_code"><b>Reformat Code</b></a> option
-            to apply code styles to your CMake build scripts.
-            </li>
-            <li><b>Safe refactoring:</b> The IDE’s built-in refactoring tools now also check if you are renaming or deleting files that you
-            reference in your CMake build scripts.
-            </li>
-          </ul>
 
+          <br>
           <h1>Inspect JNI references</h1>
 
           If you deploy your app to a device running Android 8.0 (API level 26) or higher,
@@ -83,16 +59,30 @@
           While your app is
           running, select a portion of the timeline that you want to inspect and select
           <b>JNI heap</b> from the drop-down menu above the class list.
+
           <br><br>
           <div align="center">
             <img src="https://d.android.com/studio/releases/assistant/3.2.0/memory-profiler-jni-heap.png">
           </div>
+
           <br>
           You can then inspect objects in the heap as you normally would and double-click objects
           in the <b>Allocation Call Stack</b> tab to see where the JNI references are
           allocated and released by your code.
 
           <br><br>
+          <h1>Navigate external header files</h1>
+
+          In the <b>Project</b> window, you can now view and inspect header files from
+          external C/C++ library dependencies that you import into your app. Look for them organized under the <b>include</b>
+          node for each of your local C/C++ library projects, as shown below.
+
+          <br><br>
+          <div align="center">
+            <img src="https://d.android.com/studio/releases/assistant/3.2.0/project-include-nodes.png">
+          </div>
+
+          <br>
           <h1>Changed set of default ABIs</h1>
 
           When <a href="https://d.android.com/studio/build/configure-apk-splits.html?utm_source=android-studio&utm_medium=studio-assistant">
@@ -113,6 +103,13 @@
     }
 }</pre>
           </div>
+
+          <br><br><hr><br>
+          If you'd rather read this in a browser, go to the
+          <a href="https://d.android.com/r/studio-ui/whats-new-assistant/canary-release-notes.html">Android Studio preview website</a>.
+
+          <br><br>
+          <a href="https://d.android.com/r/studio-wna/feedback.html">Submit feedback</a> for this panel.
         </div>
         ]]>
       </description>
