@@ -21,7 +21,8 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.*
-import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture
+import com.android.tools.profilers.cpu.CpuProfilerStageView.KERNEL_VIEW_SPLITTER_RATIO
+import com.android.tools.profilers.cpu.CpuProfilerStageView.SPLITTER_DEFAULT_RATIO
 import com.android.tools.profilers.cpu.atrace.AtraceParser
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
@@ -29,6 +30,7 @@ import com.android.tools.profilers.network.FakeNetworkService
 import com.android.tools.profilers.stacktrace.ContextMenuItem
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.ExpandedItemListCellRendererWrapper
+import com.intellij.ui.JBSplitter
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -121,7 +123,7 @@ class CpuProfilerStageViewTest {
     // Create a session and a ongoing profiling session.
     myStage.studioProfilers.sessionsManager.endCurrentSession()
     myStage.studioProfilers.sessionsManager.beginSession(device, process1)
-    val session = myStage.studioProfilers.sessionsManager.selectedSession;
+    val session = myStage.studioProfilers.sessionsManager.selectedSession
     val cpuProfilerStageView = CpuProfilerStageView(myProfilersView, myStage)
     val treeWalker = TreeWalker(cpuProfilerStageView.component)
     val cpuTree = treeWalker.descendants().filterIsInstance<JList<CpuKernelModel.CpuState>>().first()
@@ -133,7 +135,7 @@ class CpuProfilerStageViewTest {
     val cpuCell = (cpuTree.cellRenderer as ExpandedItemListCellRendererWrapper<CpuKernelModel.CpuState>).wrappee as CpuKernelCellRenderer
 
     // Validate that the process we are looking at is the same as the process from the session.
-    assertThat(cpuCell.myProcessId).isEqualTo(session.pid);
+    assertThat(cpuCell.myProcessId).isEqualTo(session.pid)
   }
 
   @Test
@@ -144,7 +146,6 @@ class CpuProfilerStageViewTest {
     // Create a session and a ongoing profiling session.
     myStage.studioProfilers.sessionsManager.endCurrentSession()
     myStage.studioProfilers.sessionsManager.beginSession(device, process1)
-    val session = myStage.studioProfilers.sessionsManager.selectedSession;
     val cpuProfilerStageView = CpuProfilerStageView(myProfilersView, myStage)
     val treeWalker = TreeWalker(cpuProfilerStageView.component)
     // Find our cpu list.
@@ -154,11 +155,19 @@ class CpuProfilerStageViewTest {
     assertThat(hideablePanel.isExpanded).isFalse()
     assertThat(hideablePanel.isVisible).isFalse()
     val traceFile = TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE)
-    var capture = AtraceParser(1).parse(traceFile, 0)
+    val capture = AtraceParser(1).parse(traceFile, 0)
     myStage.capture = capture
     // After we set a capture it should be visible and expanded.
     assertThat(hideablePanel.isExpanded).isTrue()
     assertThat(hideablePanel.isVisible).isTrue()
+
+    // Verify the expanded kernel view adjust the splitter to take up more space.
+    val splitter = treeWalker.descendants().filterIsInstance<JBSplitter>().first()
+    assertThat(splitter.proportion).isWithin(0.0001f).of(KERNEL_VIEW_SPLITTER_RATIO)
+
+    // Verify when we reset the capture our splitter value goes back to default.
+    myStage.capture = null
+    assertThat(splitter.proportion).isWithin(0.0001f).of(SPLITTER_DEFAULT_RATIO)
   }
 
   /**
