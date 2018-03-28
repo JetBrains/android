@@ -47,11 +47,11 @@ private val HQ_RENDERING_HITS = ImmutableMap.of(
     RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR
 )
 
-@SwingCoordinate private const val ACTION_STROKE_WIDTH = 3f
-@SwingCoordinate private const val DASHED_STROKE_CYCLE = 5f
+@SwingCoordinate private val ACTION_STROKE_WIDTH = JBUI.scale(3f)
+@SwingCoordinate private val DASHED_STROKE_CYCLE = JBUI.scale(5f)
 
-@SwingCoordinate const val REGULAR_FRAME_THICKNESS = 1
-@SwingCoordinate const val HIGHLIGHTED_FRAME_THICKNESS = 2
+@SwingCoordinate val REGULAR_FRAME_THICKNESS = JBUI.scale(1)
+@SwingCoordinate val HIGHLIGHTED_FRAME_THICKNESS = JBUI.scale(2)
 
 @JvmField
 val ACTION_STROKE = BasicStroke(ACTION_STROKE_WIDTH, CAP_BUTT, JOIN_ROUND)
