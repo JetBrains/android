@@ -20,11 +20,13 @@ import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.PackagingOptionsModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
+import org.junit.Test;
 
 /**
  * Tests for {@link PackagingOptionsModel}.
  */
 public class PackagingOptionsModelTest extends GradleFileModelTestCase {
+  @Test
   public void testParseElementsInApplicationStatements() throws Exception {
     String text = "android {\n" +
                   "  packagingOptions {\n" +
@@ -48,6 +50,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("pickFirsts", ImmutableList.of("pickFirst1", "pickFirst2", "pickFirst3"), packagingOptions.pickFirsts());
   }
 
+  @Test
   public void testParseElementsInAssignmentStatements() throws Exception {
     String text = "android {\n" +
                   "  packagingOptions {\n" +
@@ -71,6 +74,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("pickFirsts", ImmutableList.of("pickFirst1", "pickFirst2", "pickFirst3"), packagingOptions.pickFirsts());
   }
 
+  @Test
   public void testReplaceElements() throws Exception {
     String text = "android {\n" +
                   "  packagingOptions {\n" +
@@ -108,6 +112,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("pickFirsts", ImmutableList.of("pickFirst1", "pickFirst2", "pickFirstX"), packagingOptions.pickFirsts());
   }
 
+  @Test
   public void testAddElements() throws Exception {
     String text = "android {\n" +
                   "  packagingOptions {\n" +
@@ -139,6 +144,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("pickFirsts", ImmutableList.of("pickFirst"), packagingOptions.pickFirsts());
   }
 
+  @Test
   public void testAppendElements() throws Exception {
     String text = "android {\n" +
                   "  packagingOptions {\n" +
@@ -173,6 +179,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("pickFirsts", ImmutableList.of("pickFirst1", "pickFirst2"), packagingOptions.pickFirsts());
   }
 
+  @Test
   public void testRemoveElements() throws Exception {
     String text = "android {\n" +
                   "  packagingOptions {\n" +
@@ -211,6 +218,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     assertNull("pickFirsts", packagingOptions.pickFirsts());
   }
 
+  @Test
   public void testRemoveOneOfElements() throws Exception {
     String text = "android {\n" +
                   "  packagingOptions {\n" +
@@ -248,6 +256,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("pickFirsts", ImmutableList.of("pickFirst1", "pickFirst2"), packagingOptions.pickFirsts());
   }
 
+  @Test
   public void testRemoveOnlyElement() throws Exception {
     String text = "android {\n" +
                   "  packagingOptions {\n" +

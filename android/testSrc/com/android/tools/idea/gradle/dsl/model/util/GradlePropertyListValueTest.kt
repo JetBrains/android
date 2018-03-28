@@ -17,8 +17,10 @@ package com.android.tools.idea.gradle.dsl.model.util
 
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
+import org.junit.Test
 
 class GradlePropertyListValueTest : GradleFileModelTestCase() {
+  @Test
   fun testReplaceListValue() {
     val text = """
                ext {
@@ -67,6 +69,7 @@ class GradlePropertyListValueTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testReplaceListValueOnNoneList() {
     val text = """
                ext {
@@ -108,6 +111,7 @@ class GradlePropertyListValueTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testRemoveListValues() {
     val text = """
                ext {

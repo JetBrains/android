@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.util.List;
@@ -29,6 +30,7 @@ import static com.google.common.truth.Truth.assertThat;
  * Tests for {@link DependenciesModelImpl} and {@link FileDependencyModelImpl}.
  */
 public class FileDependencyTest extends GradleFileModelTestCase {
+  @Test
   public void testParseSingleFileDependency() throws IOException {
     String text = "dependencies {\n" +
                   "    compile files('lib.jar')\n" +
@@ -42,6 +44,7 @@ public class FileDependencyTest extends GradleFileModelTestCase {
     assertEquals("lib.jar", fileDependencies.get(0).file());
   }
 
+  @Test
   public void testParseMultipleFileDependencies() throws IOException {
     String text = "dependencies {\n" +
                   "    compile files('lib1.jar', 'lib2.jar')\n" +
@@ -58,6 +61,7 @@ public class FileDependencyTest extends GradleFileModelTestCase {
     assertEquals("lib3.jar", fileDependencies.get(2).file());
   }
 
+  @Test
   public void testParseFileDependenciesWithClosure() throws IOException {
     String text = "dependencies {\n" +
                   "    compile files('lib1.jar', 'lib2.jar') {\n" +
@@ -74,6 +78,7 @@ public class FileDependencyTest extends GradleFileModelTestCase {
     assertEquals("lib2.jar", fileDependencies.get(1).file());
   }
 
+  @Test
   public void testSetFile() throws IOException {
     String text = "dependencies {\n" +
                   "    compile files('lib1.jar')\n" +
@@ -98,6 +103,7 @@ public class FileDependencyTest extends GradleFileModelTestCase {
     assertEquals("lib2.jar", fileDependencies.get(0).file());
   }
 
+  @Test
   public void testUpdateOneOfFileDependency() throws IOException {
     String text = "dependencies {\n" +
                   "    compile files('lib1.jar', 'lib2.jar')\n" +
@@ -124,6 +130,7 @@ public class FileDependencyTest extends GradleFileModelTestCase {
     assertEquals("lib3.jar", fileDependencies.get(1).file());
   }
 
+  @Test
   public void testAddFileDependency() throws IOException {
     String text = "dependencies {\n" +
                   "}";
@@ -144,6 +151,7 @@ public class FileDependencyTest extends GradleFileModelTestCase {
     assertEquals("lib1.jar", fileDependencies.get(0).file());
   }
 
+  @Test
   public void testRemoveFileDependency() throws IOException {
     String text = "dependencies {\n" +
                   "    compile files('lib1.jar')\n" +
@@ -164,6 +172,7 @@ public class FileDependencyTest extends GradleFileModelTestCase {
     assertThat(buildModel.dependencies().files()).isEmpty();
   }
 
+  @Test
   public void testRemoveOneOfFileDependency() throws IOException {
     String text = "dependencies {\n" +
                   "    compile files('lib1.jar', 'lib2.jar')\n" +

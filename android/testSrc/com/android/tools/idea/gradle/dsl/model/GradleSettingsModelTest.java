@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.model;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 import java.io.File;
 
@@ -28,6 +29,7 @@ import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAct
  * Tests for {@link GradleSettingsModel}.
  */
 public class GradleSettingsModelTest extends GradleFileModelTestCase {
+  @Test
   public void testIncludedModulePaths() throws Exception {
     String text = "include \":app\" \n" +
                   "include \":lib\", \":lib:subLib\"";
@@ -37,6 +39,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     assertEquals("include", ImmutableList.of(":", ":app", ":lib", ":lib:subLib"), settingsModel.modulePaths());
   }
 
+  @Test
   public void testAddAndResetModulePaths() throws Exception {
     String text = "include \":app\", \":lib\"";
 
@@ -51,6 +54,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     assertEquals("include", ImmutableList.of(":", ":app", ":lib"), settingsModel.modulePaths());
   }
 
+  @Test
   public void testAddAndApplyModulePaths() throws Exception {
     String text = "include \":app\", \":lib\"";
 
@@ -68,6 +72,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     assertEquals("include", ImmutableList.of(":", ":app", ":lib", ":lib1"), settingsModel.modulePaths());
   }
 
+  @Test
   public void testAddAndApplyAllModulePaths() throws Exception {
     String text = "";
 
@@ -85,6 +90,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     assertEquals("include", ImmutableList.of(":", ":app"), settingsModel.modulePaths());
   }
 
+  @Test
   public void testRemoveAndResetModulePaths() throws Exception {
     String text = "include \":app\" \n" +
                   "include \":lib\"";
@@ -100,6 +106,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     assertEquals("include", ImmutableList.of(":", ":app", ":lib"), settingsModel.modulePaths());
   }
 
+  @Test
   public void testRemoveAndApplyModulePaths() throws Exception {
     String text = "include \":app\" \n" +
                   "include \":lib\"";
@@ -118,6 +125,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     assertEquals("include", ImmutableList.of(":", ":lib"), settingsModel.modulePaths());
   }
 
+  @Test
   public void testRemoveAndApplyAllModulePaths() throws Exception {
     String text = "include \":app\" \n" +
                   "include \":lib\", \":lib1\"";
@@ -138,6 +146,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     assertEquals("include", ImmutableList.of(":"), settingsModel.modulePaths());
   }
 
+  @Test
   public void testReplaceAndResetModulePaths() throws Exception {
     String text = "include \":app\" \n" +
                   "include \":lib\", \":lib:subLib\"";
@@ -153,6 +162,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     assertEquals("include", ImmutableList.of(":", ":app", ":lib", ":lib:subLib"), settingsModel.modulePaths());
   }
 
+  @Test
   public void testReplaceAndApplyModulePaths() throws Exception {
     String text = "include \":app\" \n" +
                   "include \":lib\", \":lib:subLib\"";
@@ -171,6 +181,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     assertEquals("include", ImmutableList.of(":", ":app", ":lib1", ":lib:subLib"), settingsModel.modulePaths());
   }
 
+  @Test
   public void testGetModuleDirectory() throws Exception {
     String text = "include \"app\", \":libs\"\n" +
                   "include 'libs:mylibrary'\n" +
@@ -192,6 +203,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     assertEquals(new File(rootDir, "otherlibs/mylibrary"), settingsModel.moduleDirectory(":olibs:mylibrary"));
   }
 
+  @Test
   public void testGetModuleWithDirectory() throws Exception {
     String text = "include \"app\", \":libs\"\n" +
                   "include 'libs:mylibrary'\n" +
@@ -213,6 +225,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     assertEquals(":olibs:mylibrary", settingsModel.moduleWithDirectory(new File(rootDir, "otherlibs/mylibrary")));
   }
 
+  @Test
   public void testGetBuildFile() throws Exception {
     String text = "include \"app\", \":lib\"\n" +
                   "project(':lib').buildFileName = 'test.gradle'\n" +
@@ -231,6 +244,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     assertEquals(new File(rootDir, "otherlibs/xyz/other.gradle"), settingsModel.buildFile(":olib"));
   }
 
+  @Test
   public void testGetParentModule() throws Exception {
     String text = "include \"app\", \":libs\"\n" +
                   "include 'libs:mylibrary'\n" +

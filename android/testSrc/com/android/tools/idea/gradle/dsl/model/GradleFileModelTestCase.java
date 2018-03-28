@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.FlavorTypeModel.TypeNameValueElement;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
@@ -39,15 +40,17 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.testFramework.PlatformTestCase;
 import org.apache.commons.io.FileUtils;
+import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.*;
+import org.junit.rules.TestName;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*;
@@ -58,9 +61,23 @@ import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.*;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.io.FileUtil.*;
+import static org.junit.runners.Parameterized.Parameter;
+import static org.junit.runners.Parameterized.Parameters;
 
+@Ignore // Needs to be ignored so bazel doesn't try to run this class as a test and fail with "No tests found".
+@RunWith(Parameterized.class)
 public abstract class GradleFileModelTestCase extends PlatformTestCase {
   protected static final String SUB_MODULE_NAME = "gradleModelTest";
+
+  @Rule public TestName myNameRule = new TestName();
+  @Rule public RunInEDTRule myEDTRule = new RunInEDTRule();
+
+  protected String myTestDataPath;
+
+  @Parameter
+  public String myTestDataExtension;
+  @Parameter(1)
+  public String myLanguageName;
 
   protected Module mySubModule;
 
@@ -73,8 +90,24 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   protected File myModuleDirPath;
   protected File myProjectBasePath;
 
+  @Parameters(name="{1}")
+  public static Collection languageExtensions() {
+    return Arrays.asList(new Object[][] { {".gradle", "Groovy"} });
+  }
+
+  /**
+   * This method override is required for a PlatformTestCase subclass to be run with the Parameterized test runner.
+   * PlatformTestCase expects the JUnit3 method TestCase#getName to return the correct value. While use Parameterized test runner
+   * this is null. We make sure that getName gives us the correct value here by using the JUnit4 method to obtain the name.
+   */
   @Override
-  protected void setUp() throws Exception {
+  public String getName() {
+    return myNameRule.getMethodName();
+  }
+
+  @Before
+  @Override
+  public void setUp() throws Exception {
     super.setUp();
     IdeSdks.removeJdksOn(getTestRootDisposable());
 
@@ -100,11 +133,19 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     assertTrue(ensureCanCreateFile(mySubModuleBuildFile));
     mySubModulePropertiesFile = new File(subModuleDirPath, FN_GRADLE_PROPERTIES);
     assertTrue(ensureCanCreateFile(mySubModulePropertiesFile));
+
+    myTestDataPath = AndroidTestBase.getTestDataPath() + "/parser";
+  }
+
+  @After
+  @Override
+  public void tearDown() throws Exception {
+    super.tearDown();
   }
 
   @Override
   @NotNull
-  protected Module createMainModule() throws IOException {
+  protected Module createMainModule() {
     Module mainModule = createModule(myProject.getName());
 
     // Create a sub module
@@ -116,7 +157,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     myFilesToDelete.add(moduleFile);
     mySubModule = new WriteAction<Module>() {
       @Override
-      protected void run(@NotNull Result<Module> result) throws Throwable {
+      protected void run(@NotNull Result<Module> result) {
         VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleFile);
         assertNotNull(virtualFile);
         Module module = ModuleManager.getInstance(myProject).newModule(virtualFile.getPath(), getModuleType().getId());
@@ -136,6 +177,12 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     writeToFile(myBuildFile, text);
   }
 
+  protected void writeToBuildFile(@NotNull TestFileName fileName) throws IOException {
+    final File testFile = fileName.toFile(myTestDataPath, myTestDataExtension);
+    Assume.assumeTrue(testFile.exists());
+    copyFileOrDir(testFile, myBuildFile);
+  }
+
   protected Module writeToNewSubModule(@NotNull String name, @NotNull String buildFileText, @NotNull String propertiesFileText)
     throws IOException {
     final VirtualFile baseDir = myProject.getBaseDir();
@@ -148,7 +195,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     Module newModule = new WriteAction<Module>() {
 
       @Override
-      protected void run(@NotNull Result<Module> result) throws Throwable {
+      protected void run(@NotNull Result<Module> result) {
         VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleFile);
         assertNotNull(virtualFile);
         Module module = ModuleManager.getInstance(myProject).newModule(virtualFile.getPath(), getModuleType().getId());
@@ -169,14 +216,6 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     writeToFile(moduleProperties, propertiesFileText);
 
     return newModule;
-  }
-
-  protected void writeToNewSubModuleFile(@NotNull String fileName, @NotNull String text) throws IOException {
-    File newFile = new File(myModuleDirPath, fileName);
-    if (!newFile.createNewFile()) {
-      return;
-    }
-    writeToFile(newFile, text);
   }
 
   protected void writeToNewProjectFile(@NotNull String fileName, @NotNull String text) throws IOException {

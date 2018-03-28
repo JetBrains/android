@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.model.build;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.model.ext.ExtModelImpl;
+import org.junit.Test;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
 
@@ -25,6 +26,7 @@ import static com.android.tools.idea.Projects.getBaseDirPath;
  * Tests resolving references to project, parent, rootProject etc.
  */
 public class ReferenceResolutionTest extends GradleFileModelTestCase {
+  @Test
   public void testResolveRootDir() throws Exception {
     String settingsText = "include ':" + SUB_MODULE_NAME + "'";
 
@@ -53,6 +55,7 @@ public class ReferenceResolutionTest extends GradleFileModelTestCase {
     assertEquals("rootDir", expectedRootDir, ext.getLiteralProperty("rpd5", String.class));
   }
 
+  @Test
   public void testResolveProjectDir() throws Exception {
     String settingsText = "include ':" + SUB_MODULE_NAME + "'";
 
@@ -82,6 +85,7 @@ public class ReferenceResolutionTest extends GradleFileModelTestCase {
     assertEquals("projectDir", expectedRootDir, ext.getLiteralProperty("pd5", String.class));
   }
 
+  @Test
   public void testResolveProject() throws Exception {
     String settingsText = "include ':" + SUB_MODULE_NAME + "'";
 
@@ -105,6 +109,7 @@ public class ReferenceResolutionTest extends GradleFileModelTestCase {
     assertEquals("minSdkVersion", "android-23", android.defaultConfig().minSdkVersion());
   }
 
+  @Test
   public void testResolveParent() throws Exception {
     String settingsText = "include ':" + SUB_MODULE_NAME + "'";
 
@@ -129,6 +134,7 @@ public class ReferenceResolutionTest extends GradleFileModelTestCase {
     assertEquals("compileSdkVersion", "android-23", subModuleAndroidModel.compileSdkVersion());
   }
 
+  @Test
   public void testResolveRootProject() throws Exception {
     String settingsText = "include ':" + SUB_MODULE_NAME + "'";
 
@@ -153,6 +159,7 @@ public class ReferenceResolutionTest extends GradleFileModelTestCase {
     assertEquals("compileSdkVersion", "android-23", subModuleAndroidModel.compileSdkVersion());
   }
 
+  @Test
   public void testResolveProjectPath() throws Exception {
     String settingsText = "include ':" + SUB_MODULE_NAME + "'";
 
@@ -176,6 +183,7 @@ public class ReferenceResolutionTest extends GradleFileModelTestCase {
     assertEquals("minSdkVersion", "android-23", android.defaultConfig().minSdkVersion());
   }
 
+  @Test
   public void testResolveOtherProjectPath() throws Exception {
     String settingsText = "include ':" + SUB_MODULE_NAME + "'";
 

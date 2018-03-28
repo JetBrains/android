@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.api.android.sourceSets.SourceFileModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Test;
 
 import java.util.List;
 
@@ -31,6 +32,7 @@ import static com.google.common.truth.Truth.assertThat;
  * Tests for {@link SourceFileModel}.
  */
 public class SourceFileModelTest extends GradleFileModelTestCase {
+  @Test
   public void testSourceFile() throws Exception {
     String text = "android {\n" +
                   "  sourceSets {\n" +
@@ -46,6 +48,7 @@ public class SourceFileModelTest extends GradleFileModelTestCase {
     verifySourceFile(getGradleBuildModel(), "mainSource.xml");
   }
 
+  @Test
   public void testSourceFileEditAndReset() throws Exception {
     String text = "android {\n" +
                   "  sourceSets {\n" +
@@ -70,6 +73,7 @@ public class SourceFileModelTest extends GradleFileModelTestCase {
     verifySourceFile(buildModel, "mainSource.xml");
   }
 
+  @Test
   public void testSourceFileEditAndApply() throws Exception {
     String text = "android {\n" +
                   "  sourceSets {\n" +
@@ -94,6 +98,7 @@ public class SourceFileModelTest extends GradleFileModelTestCase {
     verifySourceFile(buildModel, "otherSource.xml");
   }
 
+  @Test
   public void testSourceFileAddAndReset() throws Exception {
     String text = "android {\n" +
                   "  sourceSets {\n" +
@@ -117,6 +122,7 @@ public class SourceFileModelTest extends GradleFileModelTestCase {
     verifySourceFile(buildModel, null);
   }
 
+  @Test
   public void testSourceFileAddAndApply() throws Exception {
     String text = "android {\n" +
                   "  sourceSets {\n" +
@@ -140,6 +146,7 @@ public class SourceFileModelTest extends GradleFileModelTestCase {
     verifySourceFile(buildModel, "mainSource.xml");
   }
 
+  @Test
   public void testSourceFileRemoveAndReset() throws Exception {
     String text = "android {\n" +
                   "  sourceSets {\n" +
@@ -164,6 +171,7 @@ public class SourceFileModelTest extends GradleFileModelTestCase {
     verifySourceFile(buildModel, "mainSource.xml");
   }
 
+  @Test
   public void testSourceFileRemoveAndApply() throws Exception {
     String text = "android {\n" +
                   "  sourceSets {\n" +

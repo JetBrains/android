@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import org.junit.Test;
 
 import java.util.List;
 
@@ -29,6 +30,7 @@ import static com.google.common.truth.Truth.assertThat;
  * Tests for {@link SigningConfigModel}.
  */
 public class SigningConfigModelTest extends GradleFileModelTestCase {
+  @Test
   public void testSigningConfigBlockWithApplicationStatements() throws Exception {
     String text = "android {\n" +
                   "  signingConfigs {\n" +
@@ -57,6 +59,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     verifyPasswordModel(signingConfig.keyPassword(), "releaseKeyPassword", PLAIN_TEXT);
   }
 
+  @Test
   public void testSigningConfigBlockWithAssignmentStatements() throws Exception {
     String text = "android {\n" +
                   "  signingConfigs {\n" +
@@ -85,6 +88,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     verifyPasswordModel(signingConfig.keyPassword(), "releaseKeyPassword", PLAIN_TEXT);
   }
 
+  @Test
   public void testSigningConfigApplicationStatements() throws Exception {
     String text = "android.signingConfigs.release.storeFile file(\"release.keystore\")\n" +
                   "android.signingConfigs.release.storePassword \"password\"\n" +
@@ -107,6 +111,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     verifyPasswordModel(signingConfig.keyPassword(), "releaseKeyPassword", PLAIN_TEXT);
   }
 
+  @Test
   public void testSigningConfigAssignmentStatements() throws Exception {
     String text = "android.signingConfigs.release.storeFile = file(\"release.keystore\")\n" +
                   "android.signingConfigs.release.storePassword = \"password\"\n" +
@@ -129,6 +134,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     verifyPasswordModel(signingConfig.keyPassword(), "releaseKeyPassword", PLAIN_TEXT);
   }
 
+  @Test
   public void testMultipleSigningConfigs() throws Exception {
     String text = "android {\n" +
                   "  signingConfigs {\n" +
@@ -171,6 +177,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     verifyPasswordModel(signingConfig2.keyPassword(), "debugKeyPassword", PLAIN_TEXT);
   }
 
+  @Test
   public void testSetAndApplySigningConfig() throws Exception {
     String text = "android {\n" +
                   "  signingConfigs {\n" +
@@ -232,6 +239,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     verifyPasswordModel(signingConfig.keyPassword(), "debugKeyPassword", PLAIN_TEXT);
   }
 
+  @Test
   public void testRemoveAndApplySigningConfig() throws Exception {
     String text = "android {\n" +
                   "  signingConfigs {\n" +
@@ -286,6 +294,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertThat(signingConfigs).isEmpty(); // empty blocks are deleted automatically.
   }
 
+  @Test
   public void testAddAndApplySigningConfig() throws Exception {
     String text = "android {\n" +
                   "  signingConfigs {\n" +
@@ -340,6 +349,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     verifyPasswordModel(signingConfig.keyPassword(), "releaseKeyPassword", PLAIN_TEXT);
   }
 
+  @Test
   public void testParseEnvironmentVariablePasswordElements() throws Exception {
     String text = "android {\n" +
                   "  signingConfigs {\n" +
@@ -362,6 +372,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     verifyPasswordModel(signingConfig.keyPassword(), "KEYPWD", ENVIRONMENT_VARIABLE);
   }
 
+  @Test
   public void testParseConsoleReadPasswordElements() throws Exception {
     String text = "android {\n" +
                   "  signingConfigs {\n" +
@@ -384,6 +395,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     verifyPasswordModel(signingConfig.keyPassword(), "\nKey password: ", CONSOLE_READ);
   }
 
+  @Test
   public void testEditEnvironmentVariablePasswordElements() throws Exception {
     String text = "android {\n" +
                   "  signingConfigs {\n" +
@@ -419,6 +431,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     verifyPasswordModel(signingConfig.keyPassword(), "KEYPWD1", ENVIRONMENT_VARIABLE);
   }
 
+  @Test
   public void testEditConsoleReadPasswordElements() throws Exception {
     String text = "android {\n" +
                   "  signingConfigs {\n" +
@@ -455,6 +468,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     verifyPasswordModel(signingConfig.keyPassword(), "Another Key Password: ", CONSOLE_READ);
   }
 
+  @Test
   public void testAddEnvironmentVariablePasswordElements() throws Exception {
     String text = "android {\n" +
                   "  signingConfigs {\n" +
@@ -488,6 +502,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     verifyPasswordModel(signingConfig.keyPassword(), "KEYPWD", ENVIRONMENT_VARIABLE);
   }
 
+  @Test
   public void testAddConsoleReadPasswordElements() throws Exception {
     String text = "android {\n" +
                   "  signingConfigs {\n" +
@@ -522,6 +537,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     verifyPasswordModel(signingConfig.keyPassword(), /*"\n*/"Key password: ", CONSOLE_READ);
   }
 
+  @Test
   public void testChangeEnvironmentVariablePasswordToConsoleReadPassword() throws Exception {
     String text = "android {\n" +
                   "  signingConfigs {\n" +
@@ -558,6 +574,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     verifyPasswordModel(signingConfig.keyPassword(), /*"\n*/"Key password: ", CONSOLE_READ);
   }
 
+  @Test
   public void testChangeConsoleReadPasswordElementsToPlainTextPasswordElements() throws Exception {
     String text = "android {\n" +
                   "  signingConfigs {\n" +

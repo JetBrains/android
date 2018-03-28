@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.model.android
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.CMakeModelImpl
 import com.google.common.truth.Truth.assertThat
+import org.junit.Test
 import java.io.File
 
 /**
@@ -57,6 +58,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("resourcePrefix", "abcd", android.resourcePrefix())
   }
 
+  @Test
   fun testAndroidBlockWithApplicationStatements() {
     val text = """android {
                     buildToolsVersion "23.0.0"
@@ -70,6 +72,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     runBasicAndroidBlockTest(text)
   }
 
+  @Test
   fun testAndroidBlockWithApplicationStatementsWithParentheses() {
     val text = """android {
                     buildToolsVersion("23.0.0")
@@ -83,7 +86,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     runBasicAndroidBlockTest(text)
   }
 
-
+  @Test
   fun testAndroidBlockWithAssignmentStatements() {
     val text = """android {
                     buildToolsVersion = "23.0.0"
@@ -103,7 +106,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("generatePureSplits", true, android.generatePureSplits())
   }
 
-
+  @Test
   fun testAndroidApplicationStatements() {
     val text = """android.buildToolsVersion "23.0.0"
                   android.compileSdkVersion 23
@@ -127,7 +130,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("resourcePrefix", "abcd", android.resourcePrefix())
   }
 
-
+  @Test
   fun testAndroidAssignmentStatements() {
     val text = """android.buildToolsVersion = "23.0.0"
                   android.compileSdkVersion = "android-23"
@@ -145,7 +148,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("generatePureSplits", true, android.generatePureSplits())
   }
 
-
+  @Test
   fun testAndroidBlockWithOverrideStatements() {
     val text = """android {
                     buildToolsVersion = "23.0.0"
@@ -179,7 +182,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("resourcePrefix", "efgh", android.resourcePrefix())
   }
 
-
+  @Test
   fun testAndroidBlockWithDefaultConfigBlock() {
     val text = """android {
                     defaultConfig {
@@ -196,7 +199,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId())
   }
 
-
+  @Test
   fun testAndroidBlockWithBuildTypeBlocks() {
     val text = """android {
                     buildTypes {
@@ -224,7 +227,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("applicationIdSuffix", "typeSuffix-2", buildType2.applicationIdSuffix())
   }
 
-
+  @Test
   fun testAndroidBlockWithProductFlavorBlocks() {
     val text = """android {
                     productFlavors {
@@ -252,7 +255,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("applicationId", "com.example.myapplication.flavor2", flavor2.applicationId())
   }
 
-
+  @Test
   fun testAndroidBlockWithExternalNativeBuildBlock() {
     val text = """android {
                     externalNativeBuild {
@@ -274,7 +277,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("path", File("foo/bar"), cmake.path())
   }
 
-
+  @Test
   fun testRemoveAndResetElements() {
     val text = """android {
                     buildToolsVersion "23.0.0"
@@ -327,7 +330,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("resourcePrefix", "abcd", android.resourcePrefix())
   }
 
-
+  @Test
   fun testEditAndResetLiteralElements() {
     val text = """android {
                     buildToolsVersion "23.0.0"
@@ -387,7 +390,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
   }
 
-
+  @Test
   fun testAddAndResetLiteralElements() {
     val text = """android {
                   }""".trimIndent()
@@ -441,7 +444,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty("compileSdkVersion", android.compileSdkVersion())
   }
 
-
+  @Test
   fun testReplaceAndResetListElements() {
     val text = """android {
                     flavorDimensions "abi", "version"
@@ -462,7 +465,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
   }
 
-
+  @Test
   fun testAddAndResetListElements() {
     val text = """android {
                   }""".trimIndent()
@@ -482,7 +485,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty("flavorDimensions", android.flavorDimensions())
   }
 
-
+  @Test
   fun testAddToAndResetListElementsWithArgument() {
     val text = """android {
                     flavorDimensions "abi"
@@ -503,7 +506,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("flavorDimensions", listOf("abi"), android.flavorDimensions())
   }
 
-
+  @Test
   fun testAddToAndResetListElementsWithMultipleArguments() {
     val text = """android {
                     flavorDimensions "abi", "version"
@@ -523,7 +526,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
   }
 
-
+  @Test
   fun testRemoveFromAndResetListElements() {
     val text = """android {
                     flavorDimensions "abi", "version"
@@ -543,7 +546,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
   }
 
-
+  @Test
   fun testAddAndResetDefaultConfigBlock() {
     val text = """android {
                   }""".trimIndent()
@@ -564,7 +567,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty(android.defaultConfig().applicationId())
   }
 
-
+  @Test
   fun testAddAndResetBuildTypeBlock() {
     val text = """android {
                   }""".trimIndent()
@@ -585,7 +588,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertThat(android.buildTypes()).isEmpty()
   }
 
-
+  @Test
   fun testAddAndResetProductFlavorBlock() {
     val text = """android {
                   }""".trimIndent()
@@ -606,7 +609,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertThat(android.productFlavors()).isEmpty()
   }
 
-
+  @Test
   fun testRemoveAndResetBuildTypeBlock() {
     val text = """android {
                     buildTypes {
@@ -639,7 +642,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("buildTypes", "type2", buildTypes[1].name())
   }
 
-
+  @Test
   fun testRemoveAndResetProductFlavorBlock() {
     val text = """android {
                     productFlavors {
@@ -671,7 +674,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("productFlavors", "flavor2", productFlavors[1].name())
   }
 
-
+  @Test
   fun testRemoveAndApplyElements() {
     val text = """android {
                     buildToolsVersion "23.0.0"
@@ -728,7 +731,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     checkForInValidPsiElement(android!!, AndroidModelImpl::class.java)
   }
 
-
+  @Test
   fun testAddAndRemoveBuildTypeBlock() {
     val text = """android {
                   }""".trimIndent()
@@ -756,7 +759,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertThat(loadBuildFile()).doesNotContain("buildTypes")
   }
 
-
+  @Test
   fun testAddAndRemoveProductFlavorBlock() {
     val text = """android {
                   }""".trimIndent()
@@ -784,7 +787,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertThat(loadBuildFile()).doesNotContain("productFlavors")
   }
 
-
+  @Test
   fun testAddAndApplyEmptySigningConfigBlock() {
     val text = """android {
                         }""".trimIndent()
@@ -808,7 +811,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertThat(android!!.signingConfigs()).isEmpty() // Empty blocks are not saved to the file.
   }
 
-
+  @Test
   fun testAddAndApplyEmptySourceSetBlock() {
     val text = """android {
                   }""".trimIndent()
@@ -832,7 +835,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertThat(android!!.sourceSets()).isEmpty() // Empty blocks are not saved to the file.
   }
 
-
+  @Test
   fun testAddAndApplyDefaultConfigBlock() {
     val text = """android {
                   }""".trimIndent()
@@ -854,7 +857,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("defaultConfig", "foo.bar", android!!.defaultConfig().applicationId())
   }
 
-
+  @Test
   fun testAddAndApplyBuildTypeBlock() {
     val text = """android {
                   }""".trimIndent()
@@ -894,7 +897,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("buildTypes", "mySuffix", buildType.applicationIdSuffix())
   }
 
-
+  @Test
   fun testAddAndApplyProductFlavorBlock() {
     val text = """android {
                   }""".trimIndent()
@@ -934,7 +937,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("productFlavors", "abc.xyz", productFlavor.applicationId())
   }
 
-
+  @Test
   fun testAddAndApplySigningConfigBlock() {
     val text = """android {
                   }""".trimIndent()
@@ -974,7 +977,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("signingConfigs", "myKeyAlias", signingConfig.keyAlias())
   }
 
-
+  @Test
   fun testAddAndApplySourceSetBlock() {
     val text = """android {
                   }""".trimIndent()
@@ -1014,7 +1017,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("sourceSets", "source", sourceSet.root())
   }
 
-
+  @Test
   fun testRemoveAndApplyDefaultConfigBlock() {
     val text = """android {
                     defaultConfig {
@@ -1046,7 +1049,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     checkForInValidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
   }
 
-
+  @Test
   fun testRemoveAndApplyBuildTypeBlock() {
     val text = """android {
                             buildTypes {
@@ -1086,7 +1089,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("buildTypes", "type2", buildTypes[0].name())
   }
 
-
+  @Test
   fun testRemoveAndApplyProductFlavorBlock() {
     val text = """android {
                     productFlavors {
@@ -1125,7 +1128,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("productFlavors", "flavor1", productFlavors[0].name())
   }
 
-
+  @Test
   fun testRemoveAndApplySigningConfigBlock() {
     val text = """android {
                     signingConfigs {
@@ -1164,7 +1167,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("signingConfigs", "config1", signingConfigs[0].name())
   }
 
-
+  @Test
   fun testRemoveAndApplySourceSetBlock() {
     val text = """android {
                     sourceSets {
@@ -1203,7 +1206,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("sourceSets", "set1", sourceSets[0].name())
   }
 
-
+  @Test
   fun testRemoveAndApplyBlockApplicationStatements() {
     val text = """android.defaultConfig.applicationId "com.example.myapplication"
                   android.defaultConfig.proguardFiles "proguard-android.txt", "proguard-rules.pro"""".trimIndent()
@@ -1229,7 +1232,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty(defaultConfig.proguardFiles())
   }
 
-
+  @Test
   fun testAddAndApplyBlockStatements() {
     val text = """android.defaultConfig.applicationId "com.example.myapplication"
                   android.defaultConfig.proguardFiles "proguard-android.txt", "proguard-rules.pro"""".trimIndent()
@@ -1259,7 +1262,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("dimension", "abcd", defaultConfig.dimension())
   }
 
-
+  @Test
   fun testEditAndApplyLiteralElements() {
     val text = """android {
                     buildToolsVersion "23.0.0"
@@ -1318,7 +1321,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("resourcePrefix", "efgh", android.resourcePrefix())
   }
 
-
+  @Test
   fun testEditAndApplyIntegerLiteralElements() {
     val text = """android {
                     buildToolsVersion "23.0.0"
@@ -1353,7 +1356,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("compileSdkVersion", "21", android.compileSdkVersion())
   }
 
-
+  @Test
   fun testAddAndApplyLiteralElements() {
     val text = """android {
                   }""".trimIndent()
@@ -1406,7 +1409,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("resourcePrefix", "efgh", android.resourcePrefix())
   }
 
-
+  @Test
   fun testAddAndApplyIntegerLiteralElements() {
     val text = """android {
                   }""".trimIndent()
@@ -1439,7 +1442,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("compileSdkVersion", "21", android.compileSdkVersion())
   }
 
-
+  @Test
   fun testReplaceAndApplyListElements() {
     val text = """android {
                     flavorDimensions "abi", "version"
@@ -1464,7 +1467,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("flavorDimensions", listOf("xyz", "version"), android!!.flavorDimensions())
   }
 
-
+  @Test
   fun testAddAndApplyListElements() {
     val text = """android {
                   }""".trimIndent()
@@ -1488,7 +1491,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("flavorDimensions", listOf("xyz"), android!!.flavorDimensions())
   }
 
-
+  @Test
   fun testAddToAndApplyListElementsWithOneArgument() {
     val text = """android {
                     flavorDimensions "abi"
@@ -1512,7 +1515,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("flavorDimensions", listOf("abi", "version"), android!!.flavorDimensions())
   }
 
-
+  @Test
   fun testAddToAndApplyListElementsWithMultipleArguments() {
     val text = """android {
                     flavorDimensions "abi", "version"
@@ -1537,7 +1540,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("flavorDimensions", listOf("abi", "version", "xyz"), android!!.flavorDimensions())
   }
 
-
+  @Test
   fun testRemoveFromAndApplyListElements() {
     val text = """android {
                     flavorDimensions "abi", "version"

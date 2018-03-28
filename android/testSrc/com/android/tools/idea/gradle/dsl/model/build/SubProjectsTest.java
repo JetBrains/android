@@ -18,11 +18,13 @@ package com.android.tools.idea.gradle.dsl.model.build;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.intellij.pom.java.LanguageLevel;
+import org.junit.Test;
 
 /**
  * Tests subprojects section of the build.gradle file.
  */
 public class SubProjectsTest extends GradleFileModelTestCase {
+  @Test
   public void testSubProjectsSection() throws Exception {
     String settingsText = "include ':" + SUB_MODULE_NAME + "'";
 
@@ -46,6 +48,7 @@ public class SubProjectsTest extends GradleFileModelTestCase {
     assertEquals(LanguageLevel.JDK_1_6, subModuleJava.targetCompatibility().toLanguageLevel());
   }
 
+  @Test
   public void testSubProjectsSectionWithLocalProperties() throws Exception {
     String settingsText = "include ':" + SUB_MODULE_NAME + "'";
 
@@ -71,6 +74,7 @@ public class SubProjectsTest extends GradleFileModelTestCase {
     assertEquals(LanguageLevel.JDK_1_6, subModuleJava.targetCompatibility().toLanguageLevel()); // Subproject got 1_6 from SubProjects section
   }
 
+  @Test
   public void testOverrideSubProjectsSection() throws Exception {
     String settingsText = "include ':" + SUB_MODULE_NAME + "'";
 

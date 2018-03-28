@@ -24,6 +24,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.util.List;
@@ -85,14 +86,17 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     "   })" +
     "}";
 
+  @Test
   public void testParsingWithCompactNotationAndConfigurationClosure_parens() throws IOException {
     doTestParsingConfigurationVersion(CONFIGURATION_CLOSURE_PARENS);
   }
 
+  @Test
   public void testParsingWithCompactNotationAndConfigurationClosure_noParens() throws IOException {
     doTestParsingConfigurationVersion(CONFIGURATION_CLOSURE_NO_PARENS);
   }
 
+  @Test
   public void testParsingWithCompactNotationAndConfigurationClosure_withinParens() throws IOException {
     doTestParsingConfigurationVersion(CONFIGURATION_CLOSURE_WITHIN_PARENS);
   }
@@ -135,14 +139,17 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertEquals("iAmBuggy", third.module().value());
   }
 
+  @Test
   public void testSetVersionOnDependencyWithCompactNotationAndConfigurationClosure_parens() throws IOException {
     doTestSetVersionWithConfigurationClosure(CONFIGURATION_CLOSURE_PARENS);
   }
 
+  @Test
   public void testSetVersionOnDependencyWithCompactNotationAndConfigurationClosure_noParens() throws IOException {
     doTestSetVersionWithConfigurationClosure(CONFIGURATION_CLOSURE_NO_PARENS);
   }
 
+  @Test
   public void testSetVersionOnDependencyWithCompactNotationAndConfigurationClosure_withinParens() throws IOException {
     doTestSetVersionWithConfigurationClosure(CONFIGURATION_CLOSURE_WITHIN_PARENS);
   }
@@ -177,6 +184,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     verifyDependencyConfiguration(hibernate.configuration());
   }
 
+  @Test
   public void testGetOnlyArtifacts() throws IOException {
     String text = "dependencies {\n" +
                   "    compile 'com.android.support:appcompat-v7:22.1.1'\n" +
@@ -200,6 +208,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(dependencies.get(1));
   }
 
+  @Test
   public void testParsingWithCompactNotation() throws IOException {
     String text = "dependencies {\n" +
                   "    compile 'com.android.support:appcompat-v7:22.1.1'\n" +
@@ -226,6 +235,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(dependencies.get(2));
   }
 
+  @Test
   public void testParsingWithMapNotation() throws IOException {
     String text = "dependencies {\n" +
                   "    runtime group: 'org.gradle.test.classifiers', name: 'service', version: '1.0', classifier: 'jdk14', ext: 'jar'\n" +
@@ -244,6 +254,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(dependencies.get(0));
   }
 
+  @Test
   public void testAddDependency() throws IOException {
     String text = "dependencies {\n" +
                   "    runtime group: 'org.gradle.test.classifiers', name: 'service', version: '1.0', classifier: 'jdk14', ext: 'jar'\n" +
@@ -271,6 +282,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(dependencies.get(1));
   }
 
+  @Test
   public void testAddDependencyWithConfigurationClosure() throws IOException {
     String text = "dependencies {\n" +
                   "    runtime group: 'org.gradle.test.classifiers', name: 'service', version: '1.0', classifier: 'jdk14', ext: 'jar'\n" +
@@ -332,7 +344,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertEquals("design", fourth.module().value());
   }
 
-
+  @Test
   public void testSetVersionOnDependencyWithCompactNotation() throws IOException {
     String text = "dependencies {\n" +
                   "    compile 'com.android.support:appcompat-v7:22.1.1'\n" +
@@ -357,6 +369,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(dependencies.get(0));
   }
 
+  @Test
   public void testSetVersionOnDependencyWithMapNotation() throws IOException {
     String text = "dependencies {\n" +
                   "    compile group: 'com.google.code.guice', name: 'guice', version: '1.0'\n" +
@@ -381,6 +394,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(dependencies.get(0));
   }
 
+  @Test
   public void testParseDependenciesWithCompactNotationInSingleLine() throws IOException {
     String text = "dependencies {\n" +
                   "    runtime 'org.springframework:spring-core:2.5', 'org.springframework:spring-aop:2.5'\n" +
@@ -401,6 +415,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(dependencies.get(1));
   }
 
+  @Test
   public void testParseDependenciesWithCompactNotationInSingleLineWithComments() throws IOException {
     String text = "dependencies {\n" +
                   "    runtime /* Hey */ 'org.springframework:spring-core:2.5', /* Hey */ 'org.springframework:spring-aop:2.5'\n" +
@@ -421,6 +436,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(dependencies.get(1));
   }
 
+  @Test
   public void testParseDependenciesWithMapNotationUsingSingleConfigurationName() throws IOException {
     String text = "dependencies {\n" +
                   "    runtime(\n" +
@@ -444,7 +460,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(dependencies.get(1));
   }
 
-
+  @Test
   public void testReset() throws IOException {
     String text = "dependencies {\n" +
                   "    compile group: 'com.google.code.guice', name: 'guice', version: '1.0'\n" +
@@ -473,6 +489,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(dependencies.get(0));
   }
 
+  @Test
   public void testRemoveDependencyWithCompactNotation() throws IOException {
     String text = "dependencies {\n" +
                   "    compile 'com.android.support:appcompat-v7:22.1.1'\n" +
@@ -505,6 +522,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(dependencies.get(1));
   }
 
+  @Test
   public void testRemoveDependencyWithCompactNotationAndSingleConfigurationName() throws IOException {
     String text = "dependencies {\n" +
                   "    runtime /* Hey */ 'org.springframework:spring-core:2.5', /* Hey */ 'org.springframework:spring-aop:2.5'\n" +
@@ -536,6 +554,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(dependencies.get(1));
   }
 
+  @Test
   public void testRemoveDependencyWithMapNotation() throws IOException {
     String text = "dependencies {\n" +
                   "    compile group: 'com.google.code.guice', name: 'guice', version: '1.0'\n" +
@@ -566,6 +585,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(dependencies.get(1));
   }
 
+  @Test
   public void testRemoveDependencyWithMapNotationAndSingleConfigurationName() throws IOException {
     String text = "dependencies {\n" +
                   "    runtime(\n" +
@@ -598,6 +618,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(dependencies.get(1));
   }
 
+  @Test
   public void testContains() throws IOException {
     String text = "dependencies {\n" +
                   "    compile group: 'com.google.code.guice', name: 'guice', version: '1.0'\n" +
@@ -617,6 +638,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertFalse(dependenciesModel.containsArtifact(CLASSPATH, guavaSpec));
   }
 
+  @Test
   public void testParseCompactNotationWithVariables() throws IOException {
     String text = "ext {\n" +
                   "    appcompat = 'com.android.support:appcompat-v7:22.1.1'\n" +
@@ -666,6 +688,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertEquals(0, guavaVersionVariable.getResolvedVariables().size());
   }
 
+  @Test
   public void testParseMapNotationWithVariables() throws IOException {
     String text = "ext {\n" +
                   "    guavaVersion = '18.0'\n" +
@@ -719,6 +742,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertEquals(0, guavaVersionVariable.getResolvedVariables().size());
   }
 
+  @Test
   public void testParseCompactNotationClosureWithVariables() throws IOException {
     String text = "ext {\n" +
                   "    appcompat = 'com.android.support:appcompat-v7:22.1.1'\n" +
@@ -768,6 +792,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertEquals(0, guavaVersionVariable.getResolvedVariables().size());
   }
 
+  @Test
   public void testParseMapNotationClosureWithVariables() throws IOException {
     String text = "ext {\n" +
                   "    guavaVersion = '18.0'\n" +
@@ -823,6 +848,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertEquals(0, guavaVersionVariable.getResolvedVariables().size());
   }
 
+  @Test
   public void testNonDependencyCodeInDependenciesSection() throws IOException {
     String text = "dependencies {\n" +
                   "  compile 'com.android.support:appcompat-v7:22.1.1'\n" +
@@ -850,6 +876,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(dependencies.get(2));
   }
 
+  @Test
   public void testReplaceDependencyByPsiElement() throws IOException {
     String text = "dependencies {\n" +
                   "  compile 'com.android.support:appcompat-v7:22.1.1'\n" +
@@ -878,6 +905,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(dependencies.get(0));
   }
 
+  @Test
   public void testReplaceDependencyByChildElement() throws IOException {
     String text = "dependencies {\n" +
                   "  test 'org.gradle.test.classifiers:service:1.0:jdk15@jar'\n" +
@@ -910,6 +938,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(dependencies.get(1));
   }
 
+  @Test
   public void testReplaceDependencyFailsIsPsiElementIsNotFound() throws IOException {
     String text = "dependencies {\n" +
                   "  testCompile('org.hibernate:hibernate:3.1') { \n" +
@@ -945,6 +974,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(dependencies.get(1));
   }
 
+  @Test
   public void testReplaceDependencyUsingMapNotationWithCompactNotation() throws IOException {
     String text = "dependencies {\n" +
                   "    compile group: 'com.google.code.guice', name: 'guice', version: '1.0'\n" +
@@ -972,6 +1002,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(dependencies.get(0));
   }
 
+  @Test
   public void testReplaceDependencyUsingMapNotationAddingFields() throws IOException {
     String text = "dependencies {\n" +
                   "    compile name: 'name'\n" +
@@ -999,6 +1030,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(buildModel.dependencies().artifacts().get(0));
   }
 
+  @Test
   public void testReplaceDependencyUsingMapNotationDeleteFields() throws IOException {
     String text = "dependencies {\n" +
                   "    compile group: 'com.google.code.guice', name: 'guice', version: '1.0', classifier: 'high', ext: 'bleh'\n" +
@@ -1026,6 +1058,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(buildModel.dependencies().artifacts().get(0));
   }
 
+  @Test
   public void testReplaceDependencyInArgumentList() throws IOException {
     String text = "dependencies {\n" +
                   "  compile('com.google.code.guice:guice:1.0', 'com.google.guava:guava:18.0')\n" +
@@ -1053,6 +1086,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(buildModel.dependencies().artifacts().get(1));
   }
 
+  @Test
   public void testReplaceMethodDependencyWithClosure() throws IOException {
     String text = "dependencies {\n" +
                   "  testCompile('org.hibernate:hibernate:3.1') { \n" +
@@ -1080,6 +1114,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(buildModel.dependencies().artifacts().get(0));
   }
 
+  @Test
   public void testReplaceApplicationDependencies() throws IOException {
     String text = "dependencies {\n" +
                   "  testCompile 'org.gradle.test.classifiers:service:1.0',  'com.google.guava:guava:+'\n" +

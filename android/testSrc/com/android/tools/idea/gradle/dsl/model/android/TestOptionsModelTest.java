@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.TestOptionsModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import org.junit.Test;
 
 /**
  * Tests for {@link TestOptionsModel}.
@@ -32,11 +33,13 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
                                                   "  }\n" +
                                                   "}";
 
+  @Test
   public void testParseElements() throws Exception {
     writeToBuildFile(TEST_OPTIONS_TEXT);
     verifyTestOptionsValues();
   }
 
+  @Test
   public void testEditElements() throws Exception {
     writeToBuildFile(TEST_OPTIONS_TEXT);
     verifyTestOptionsValues();
@@ -60,6 +63,7 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("unitTests.returnDefaultValues", Boolean.FALSE, testOptions.unitTests().returnDefaultValues());
   }
 
+  @Test
   public void testAddElements() throws Exception {
     String text = "android {\n" +
                   "  testOptions {\n" +
@@ -82,6 +86,7 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     verifyTestOptionsValues();
   }
 
+  @Test
   public void testRemoveElements() throws Exception {
     writeToBuildFile(TEST_OPTIONS_TEXT);
     verifyTestOptionsValues();

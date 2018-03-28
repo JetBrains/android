@@ -21,9 +21,11 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.utils.FileUtils.toSystemIndependentPath
+import org.junit.Test
 import java.io.File
 
 class GradleDslFileTest : GradleFileModelTestCase() {
+  @Test
   fun testInvolvedFiles() {
     val parentText = """
                       def parentVar1 = true
@@ -62,6 +64,7 @@ class GradleDslFileTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testPropertiesList() {
     val parentText = """
                       def parentVar1 = true
@@ -125,6 +128,7 @@ class GradleDslFileTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testInvolvedAppliedFiles() {
     val firstApplyFileText = """
                            def var1 = "1"
@@ -165,6 +169,7 @@ class GradleDslFileTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
   fun testListPropertiesFromAppliedFiles() {
     val firstApplyFileText = """
                            def var1 = "1"

@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.model;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.google.common.collect.ImmutableList;
 import com.intellij.psi.PsiElement;
+import org.junit.Test;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -25,6 +26,7 @@ import static com.google.common.truth.Truth.assertThat;
  * Tests for {@link GradleBuildModelImpl} to test apply, add and remove plugins.
  */
 public class ApplyPluginTest extends GradleFileModelTestCase {
+  @Test
   public void testAppliedPluginsBlock() throws Exception {
     String text = "apply {\n" +
                   "  plugin 'com.android.application'\n" +
@@ -36,6 +38,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
   }
 
+  @Test
   public void testAppliedPluginsBlockWithRepeatedPlugins() throws Exception {
     String text = "apply {\n" +
                   "  plugin 'com.android.application'\n" +
@@ -48,6 +51,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
   }
 
+  @Test
   public void testApplyPluginStatements() throws Exception {
     String text = "apply plugin: 'com.android.application'\n" +
                   "apply plugin: 'com.android.library'";
@@ -57,6 +61,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
   }
 
+  @Test
   public void testApplyPluginStatementsWithRepeatedPlugins() throws Exception {
     String text = "apply plugin: 'com.android.application'\n" +
                   "apply plugin: 'com.android.library'\n" +
@@ -67,6 +72,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
   }
 
+  @Test
   public void testRemoveAndResetPluginFromApplyBlock() throws Exception {
     String text = "apply {\n" +
                   "  plugin 'com.android.application'\n" +
@@ -84,6 +90,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
   }
 
+  @Test
   public void testRemoveAndResetPluginFromApplyBlockWithDuplicatedPlugin() throws Exception {
     String text = "apply {\n" +
                   "  plugin 'com.android.application'\n" +
@@ -102,6 +109,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
   }
 
+  @Test
   public void testRemoveAndResetPluginFromApplyStatements() throws Exception {
     String text = "apply plugin: 'com.android.application'\n" +
                   "apply plugin: 'com.android.library'";
@@ -117,6 +125,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
   }
 
+  @Test
   public void testRemoveAndResetPluginFromApplyStatementsWithRepeatedPlugins() throws Exception {
     String text = "apply plugin: 'com.android.application'\n" +
                   "apply plugin: 'com.android.library'\n" +
@@ -133,6 +142,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
   }
 
+  @Test
   public void testRemoveAndApplyPluginFromApplyBlock() throws Exception {
     String text = "apply {\n" +
                   "  plugin 'com.android.application'\n" +
@@ -153,6 +163,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     assertEquals("apply", ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
   }
 
+  @Test
   public void testRemoveAndApplyPluginFromApplyBlockWithDuplicatedPlugin() throws Exception {
     String text = "apply {\n" +
                   "  plugin 'com.android.application'\n" +
@@ -174,6 +185,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     assertEquals("apply", ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
   }
 
+  @Test
   public void testRemoveAndApplyPluginFromApplyStatements() throws Exception {
     String text = "apply plugin: 'com.android.application'\n" +
                   "apply plugin: 'com.android.library'";
@@ -192,6 +204,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     assertEquals("apply", ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
   }
 
+  @Test
   public void testRemoveAndApplyPluginFromApplyStatementsWithRepeatedPlugins() throws Exception {
     String text = "apply plugin: 'com.android.application'\n" +
                   "apply plugin: 'com.android.library'\n" +
@@ -211,6 +224,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     assertEquals("apply", ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
   }
 
+  @Test
   public void testAddAndResetPlugin() throws Exception {
     String text = "apply plugin: 'com.android.application'";
 
@@ -225,6 +239,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     assertEquals("apply", ImmutableList.of("com.android.application"), buildModel.appliedPlugins());
   }
 
+  @Test
   public void testAddAndResetAlreadyExistingPlugin() throws Exception {
     String text = "apply plugin: 'com.android.application'\n" +
                   "apply plugin: 'com.android.library'";
@@ -240,6 +255,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
   }
 
+  @Test
   public void testAddAndApplyPlugin() throws Exception {
     String text = "apply plugin: 'com.android.application'";
 
@@ -257,6 +273,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
   }
 
+  @Test
   public void testAddAndApplyAlreadyExistingPlugin() throws Exception {
     String text = "apply plugin: 'com.android.application'\n" +
                   "apply plugin: 'com.android.library'";

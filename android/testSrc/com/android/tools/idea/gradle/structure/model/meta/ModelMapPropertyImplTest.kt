@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.structure.model.helpers.parseString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Test
 
 class ModelMapPropertyImplTest : GradleFileModelTestCase() {
   var modifiedCount: Int = 0
@@ -59,6 +60,7 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
   private fun <T : Any> ModelPropertyCore<Unit, T>.testSetInterpolatedString(value: String) =
     setParsedValue(Unit, ParsedValue.Set.Parsed(dslText = DslText(DslMode.INTERPOLATED_STRING, value), value = null))
 
+  @Test
   fun testPropertyValues() {
     // TODO(b/72940492): Replace propC1 and propRef1 with propC and propRef respectively.
     val text = """
@@ -96,6 +98,7 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
     validateValues(propMapRef)
   }
 
+  @Test
   fun testWritePropertyValues() {
     // TODO(b/72940492): Replace propC1 and propRef1 with propC and propRef respectively.
     val text = """
@@ -134,6 +137,7 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
     assertThat(propE?.testValue(), equalTo("E"))
   }
 
+  @Test
   fun testEditMapKeys() {
     // TODO(b/72940492): Replace propC1 and propRef1 with propC and propRef respectively.
     val text = """

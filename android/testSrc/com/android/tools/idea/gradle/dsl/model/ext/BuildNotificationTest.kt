@@ -19,9 +19,9 @@ import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification.NotificationType.*
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.notifications.PropertyPlacementNotification
-import org.gradle.internal.impldep.org.junit.Test
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Test
 
 class BuildNotificationTest : GradleFileModelTestCase() {
   @Test

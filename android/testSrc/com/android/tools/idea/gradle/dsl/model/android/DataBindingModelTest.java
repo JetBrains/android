@@ -19,11 +19,13 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.DataBindingModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import org.junit.Test;
 
 /**
  * Tests for {@link DataBindingModel}.
  */
 public class DataBindingModelTest extends GradleFileModelTestCase {
+  @Test
   public void testParseElements() throws Exception {
     String text = "android {\n" +
                   "  dataBinding {\n" +
@@ -44,6 +46,7 @@ public class DataBindingModelTest extends GradleFileModelTestCase {
     assertEquals("version", "1.0", dataBinding.version());
   }
 
+  @Test
   public void testEditElements() throws Exception {
     String text = "android {\n" +
                   "  dataBinding {\n" +
@@ -78,6 +81,7 @@ public class DataBindingModelTest extends GradleFileModelTestCase {
     assertEquals("version", "2.0", dataBinding.version());
   }
 
+  @Test
   public void testAddElements() throws Exception {
     String text = "android {\n" +
                   "}";
@@ -107,6 +111,7 @@ public class DataBindingModelTest extends GradleFileModelTestCase {
     assertEquals("version", "1.0", dataBinding.version());
   }
 
+  @Test
   public void testAddElementsFromExisting() throws Exception {
     String text = "android {\n" +
                   "  dataBinding {\n" +
@@ -138,6 +143,7 @@ public class DataBindingModelTest extends GradleFileModelTestCase {
     assertEquals("version", "1.0", dataBinding.version());
   }
 
+  @Test
   public void testRemoveElements() throws Exception {
     String text = "android {\n" +
                   "  dataBinding {\n" +

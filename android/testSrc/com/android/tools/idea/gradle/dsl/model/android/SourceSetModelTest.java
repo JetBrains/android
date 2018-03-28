@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.api.android.sourceSets.SourceDirectoryM
 import com.android.tools.idea.gradle.dsl.api.android.sourceSets.SourceFileModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 import java.util.List;
 
@@ -31,6 +32,7 @@ import static com.google.common.truth.Truth.assertThat;
  * Tests for {@link SourceSetModel}.
  */
 public class SourceSetModelTest extends GradleFileModelTestCase {
+  @Test
   public void testSetRootInSourceSetBlock() throws Exception {
     String text = "android {\n" +
                   "  sourceSets {\n" +
@@ -53,6 +55,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     verifySourceSetRoot(getGradleBuildModel(), "source");
   }
 
+  @Test
   public void testSetRootStatements() throws Exception {
     String text = "android.sourceSets.set1.root = \"source1\"\n" +
                   "android.sourceSets.set2.root \"source2\"\n" +
@@ -63,6 +66,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     verifySourceSetRoot(getGradleBuildModel(), "source");
   }
 
+  @Test
   public void testSetRootOverrideStatements() throws Exception {
     String text = "android {\n" +
                   "  sourceSets {\n" +
@@ -90,6 +94,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     verifySourceSetRoot(buildModel, "override");
   }
 
+  @Test
   public void testSetRootEditAndReset() throws Exception {
     String text = "android {\n" +
                   "  sourceSets {\n" +
@@ -121,6 +126,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     verifySourceSetRoot(buildModel, "source");
   }
 
+  @Test
   public void testSetRootEditAndApply() throws Exception {
     String text = "android {\n" +
                   "  sourceSets {\n" +
@@ -155,6 +161,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     verifySourceSetRoot(buildModel, "newRoot");
   }
 
+  @Test
   public void testSetRootAddAndReset() throws Exception {
     String text = "android {\n" +
                   "  sourceSets {\n" +
@@ -183,6 +190,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     assertNull("root", sourceSet.root());
   }
 
+  @Test
   public void testSetRootAddAndApply() throws Exception {
     String text = "android {\n" +
                   "  sourceSets {\n" +
@@ -222,6 +230,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     assertEquals("root", "source", sourceSet.root());
   }
 
+  @Test
   public void testSetRootRemoveAndReset() throws Exception {
     String text = "android {\n" +
                   "  sourceSets {\n" +
@@ -254,6 +263,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     verifySourceSetRoot(buildModel, "source");
   }
 
+  @Test
   public void testSetRootRemoveAndApply() throws Exception {
     String text = "android {\n" +
                   "  sourceSets {\n" +
