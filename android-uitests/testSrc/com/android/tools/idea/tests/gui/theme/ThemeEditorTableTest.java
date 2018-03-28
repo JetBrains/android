@@ -109,10 +109,12 @@ public class ThemeEditorTableTest {
     Wait.seconds(1).expecting("potential tooltips to disappear").until(() -> guiTest.robot().findActivePopupMenu() == null);
     testParentPopup(themeEditorTable.cell(parentCell), newParent, themeEditor);
 
-    guiTest.ideFrame().invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
-    EditorFixture editor = guiTest.ideFrame().getEditor();
-    editor.moveBetween("", "AppTheme");
-    assertThat(editor.getCurrentLine().trim()).isEqualTo("<style name=\"AppTheme\" parent=\"Theme.AppCompat.NoActionBar\">");
+    String appThemeLine = guiTest.ideFrame()
+      .getEditor()
+      .switchToTab("styles.xml")
+      .moveBetween("", "AppTheme")
+      .getCurrentLine();
+    assertThat(appThemeLine.trim()).isEqualTo("<style name=\"AppTheme\" parent=\"Theme.AppCompat.NoActionBar\">");
   }
 
   private static void testParentPopup(@NotNull JTableCellFixture cell, @NotNull final String parentName,
