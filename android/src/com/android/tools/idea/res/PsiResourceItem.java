@@ -184,10 +184,10 @@ public class PsiResourceItem implements ResourceItem {
   public String getKey() {
     String qualifiers = getConfiguration().getQualifierString();
     if (!qualifiers.isEmpty()) {
-      return getType() + "-" + qualifiers + "/" + getName();
+      return myType.getName() + '-' + qualifiers + '/' + myName;
     }
 
-    return getType() + "/" + getName();
+    return myType.getName() + '/' + myName;
   }
 
   @Nullable
@@ -196,13 +196,12 @@ public class PsiResourceItem implements ResourceItem {
       return mySource;
     }
 
-    PsiFile file = getPsiFile();
-    if (file == null) {
+    PsiFile psiFile = getPsiFile();
+    if (psiFile == null) {
       return null;
     }
 
-    PsiElement parent = AndroidPsiUtils.getPsiParentSafely(file);
-
+    PsiElement parent = AndroidPsiUtils.getPsiParentSafely(psiFile);
     if (!(parent instanceof PsiDirectory)) {
       return null;
     }
@@ -215,11 +214,6 @@ public class PsiResourceItem implements ResourceItem {
 
     FolderConfiguration configuration = FolderConfiguration.getConfigForFolder(name);
     if (configuration == null) {
-      return null;
-    }
-
-    PsiFile psiFile = getPsiFile();
-    if (psiFile == null) {
       return null;
     }
 
@@ -247,11 +241,8 @@ public class PsiResourceItem implements ResourceItem {
         ResourceType type = getType();
         Density density = type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP ? getFolderDensity() : null;
 
-        String path = null;
         VirtualFile virtualFile = source.getVirtualFile();
-        if (virtualFile != null) {
-          path = VfsUtilCore.virtualToIoFile(virtualFile).getAbsolutePath();
-        }
+        String path = virtualFile == null ? null : VfsUtilCore.virtualToIoFile(virtualFile).getAbsolutePath();
         if (density != null) {
           myResourceValue = new DensityBasedResourceValue(getReferenceToSelf(), path, density, null);
         } else {
@@ -369,7 +360,6 @@ public class PsiResourceItem implements ResourceItem {
             declareStyleable.addValue(attr);
           }
         }
-
       }
     }
 
@@ -399,11 +389,10 @@ public class PsiResourceItem implements ResourceItem {
         String value = getAttributeValue(child, ATTR_VALUE);
         if (value != null) {
           try {
-            // Integer.decode/parseInt can't deal with hex value > 0x7FFFFFFF so we
-            // use Long.decode instead.
-            attrValue.addValue(name, (int)(long)Long.decode(value));
+            // Use Long.decode to deal with hexadecimal values greater than 0x7FFFFFFF.
+            attrValue.addValue(name, Long.decode(value).intValue());
           } catch (NumberFormatException e) {
-            // pass, we'll just ignore this value
+            // Ignore the invalid value.
           }
         }
       }
@@ -488,7 +477,7 @@ public class PsiResourceItem implements ResourceItem {
       return false;
     }
 
-    // Force recompute in getResourceValue
+    // Force recompute in getResourceValue.
     myResourceValue = null;
     return true;
   }
@@ -535,10 +524,11 @@ public class PsiResourceItem implements ResourceItem {
         return getValue();
       }
 
-      if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
-        return ApplicationManager.getApplication().runReadAction((Computable<String>)() -> tag.getValue().getText());
+      if (ApplicationManager.getApplication().isReadAccessAllowed()) {
+        return tag.getValue().getText();
       }
-      return tag.getValue().getText();
+
+      return ApplicationManager.getApplication().runReadAction((Computable<String>)() -> tag.getValue().getText());
     }
   }
 }
