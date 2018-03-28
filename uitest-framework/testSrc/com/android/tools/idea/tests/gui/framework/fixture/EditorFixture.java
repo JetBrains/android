@@ -629,13 +629,19 @@ public class EditorFixture {
       selectEditorTab(Tab.EDITOR);
     }
 
-    PreviewWindowFixture previewWindow = getPreviewWindow();
-    previewWindow.activateAndWaitUntilIsVisible(10);
+    if (!isPreviewShowing()) {
+      myFrame.invokeMenuPath("View", "Tool Windows", "Preview");
+    }
+
+    Wait.seconds(10).expecting("Preview window to be visible")
+      .until(() -> NlPreviewManager.getInstance(myFrame.getProject()).getPreviewForm().getSurface().isShowing());
+
     return new NlPreviewFixture(myFrame.getProject(), myFrame.robot());
   }
 
-  private PreviewWindowFixture getPreviewWindow() {
-    return new PreviewWindowFixture(myFrame.getProject(), myFrame.robot());
+  private boolean isPreviewShowing() {
+    return GuiQuery.getNonNull(
+      () -> NlPreviewManager.getInstance(myFrame.getProject()).getPreviewForm().getSurface().isShowing());
   }
 
   public boolean isPreviewVisible() {
