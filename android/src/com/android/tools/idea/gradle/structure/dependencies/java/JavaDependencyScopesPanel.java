@@ -15,64 +15,48 @@
  */
 package com.android.tools.idea.gradle.structure.dependencies.java;
 
-import com.android.tools.idea.gradle.structure.configurables.ui.PsCheckBoxList;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.dependencies.AbstractDependencyScopesPanel;
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule;
-import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.ListSpeedSearch;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.components.JBList;
 import icons.AndroidIcons;
-import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.ui.SideBorder.*;
-import static com.intellij.util.ui.UIUtil.getTextFieldBackground;
-import static com.intellij.util.ui.UIUtil.getTextFieldBorder;
 
 public class JavaDependencyScopesPanel extends AbstractDependencyScopesPanel {
   @NotNull private final ToolWindowPanel myToolWindowPanel;
-  @NotNull private final PsCheckBoxList<String> myConfigurationsList;
+  @NotNull private final JBList<String> myConfigurationsList;
 
   private JPanel myContentsPanel;
   private JPanel myMainPanel;
-  private JXLabel myScopesLabel;
 
   public JavaDependencyScopesPanel(@NotNull PsJavaModule module) {
-    myScopesLabel.setBorder(BorderFactory.createCompoundBorder(getTextFieldBorder(), JBUI.Borders.empty(2)));
-    myScopesLabel.setBackground(getTextFieldBackground());
-    myScopesLabel.setText(" ");
-
     List<String> configurations = Lists.newArrayList(module.getConfigurations());
-    Collections.sort(configurations, ConfigurationComparator.INSTANCE);
 
     String selected = null;
     if (!configurations.isEmpty()) {
       selected = configurations.get(0);
     }
 
-    myConfigurationsList = new PsCheckBoxList<>(configurations);
+    myConfigurationsList = new JBList<>(configurations);
 
     if (selected != null) {
-      myConfigurationsList.setItemSelected(selected, true);
-      updateLabel(getSelectedScopeNames());
+      myConfigurationsList.setSelectedValue(selected, true);
     }
-
-    myConfigurationsList.setSelectionChangeListener(this::updateLabel);
 
     new ListSpeedSearch(myConfigurationsList);
 
@@ -80,7 +64,6 @@ public class JavaDependencyScopesPanel extends AbstractDependencyScopesPanel {
     };
     ToolWindowHeader header = myToolWindowPanel.getHeader();
     header.setPreferredFocusedComponent(myConfigurationsList);
-    header.setAdditionalActions(myConfigurationsList.createSelectAllAction(), myConfigurationsList.createUnselectAllAction());
     header.setBorder(IdeBorderFactory.createBorder(LEFT | TOP | RIGHT));
 
     JScrollPane scrollPane = createScrollPane(myConfigurationsList);
@@ -90,14 +73,6 @@ public class JavaDependencyScopesPanel extends AbstractDependencyScopesPanel {
     myContentsPanel.add(myToolWindowPanel, BorderLayout.CENTER);
 
     setUpContents(myMainPanel, getInstructions());
-  }
-
-  private void updateLabel(@NotNull List<String> newSelection) {
-    String selectedScopes = Joiner.on(", ").skipNulls().join(getSelectedScopeNames());
-    if (isEmpty(selectedScopes)) {
-      selectedScopes = " ";
-    }
-    myScopesLabel.setText(selectedScopes);
   }
 
   @NotNull
@@ -118,29 +93,12 @@ public class JavaDependencyScopesPanel extends AbstractDependencyScopesPanel {
   @Override
   @NotNull
   public List<String> getSelectedScopeNames() {
-    List<String> scopes = Lists.newArrayList(myConfigurationsList.getSelectedItems());
-    Collections.sort(scopes, ConfigurationComparator.INSTANCE);
+    List<String> scopes = ImmutableList.of(myConfigurationsList.getSelectedValue());
     return scopes;
   }
 
   @Override
   public void dispose() {
     Disposer.dispose(myToolWindowPanel);
-  }
-
-  private static class ConfigurationComparator implements Comparator<String> {
-    static final ConfigurationComparator INSTANCE = new ConfigurationComparator();
-
-    @Override
-    public int compare(String s1, String s2) {
-      // compile goes first.
-      if ("compile".equals(s1)) {
-        return -1;
-      }
-      else if ("compile".endsWith(s2)) {
-        return 1;
-      }
-      return s1.compareTo(s2);
-    }
   }
 }
