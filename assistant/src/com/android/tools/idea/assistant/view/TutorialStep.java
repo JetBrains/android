@@ -156,8 +156,8 @@ public class TutorialStep extends JPanel {
   private void initLabel() {
     JLabel label = new JLabel(myStep.getLabel());
     Font font = label.getFont();
-    Font boldFont = new Font(font.getFontName(), Font.BOLD, font.getSize());
-    label.setFont(boldFont);
+    Font plainFont = new Font(font.getFontName(), Font.PLAIN, 18);
+    label.setFont(plainFont);
 
     GridBagConstraints c = new GridBagConstraints();
     c.gridx = 1;
@@ -165,7 +165,7 @@ public class TutorialStep extends JPanel {
     c.weightx = 1;
     c.fill = GridBagConstraints.HORIZONTAL;
     c.anchor = GridBagConstraints.NORTHWEST;
-    c.insets = JBUI.insets(7, 5, 10, 5);
+    c.insets = JBUI.insets(8, 10, 10, 5);
 
     add(label, c);
   }
@@ -181,7 +181,7 @@ public class TutorialStep extends JPanel {
     c.weightx = 1;
     c.fill = GridBagConstraints.HORIZONTAL;
     c.anchor = GridBagConstraints.NORTHWEST;
-    c.insets = JBUI.insets(5);
+    c.insets = JBUI.insets(10);
 
     add(myContents, c);
   }
@@ -407,7 +407,7 @@ public class TutorialStep extends JPanel {
             editor.getContentComponent().transferFocusBackward();
             return;
           }
-          
+
           editor.getContentComponent().transferFocus();
         }
       });

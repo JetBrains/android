@@ -121,7 +121,7 @@ public class TutorialCard extends CardViewPanel {
     c.insets = JBUI.insetsBottom(5);
 
     JBLabel title = new JBLabel(myTutorial.getLabel());
-    title.setFont(title.getFont().deriveFont(Font.BOLD, 16F));
+    title.setFont(title.getFont().deriveFont(Font.PLAIN, 24F));
     title.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
     if (myTutorial.getIcon() != null) {
       title.setIcon(myTutorial.getIcon());
