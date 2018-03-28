@@ -29,9 +29,16 @@ import javax.swing.ListCellRenderer
 
 object PropertyModelTestUtil {
 
-  fun makeProperty(namespace: String, name: String, value: String?): PropertyItem {
-    return object : PropertyItem {
-      var propertyValue = value
+  interface TestPropertyItem : PropertyItem {
+    override var resolvedValue: String?
+  }
+
+  interface TestPropertyEditorModel : PropertyEditorModel {
+    val focusWasRequested: Boolean
+  }
+
+  fun makeProperty(namespace: String, name: String, initialValue: String?): TestPropertyItem {
+    return object : TestPropertyItem {
 
       override val namespace: String
         get() = namespace
@@ -42,11 +49,9 @@ object PropertyModelTestUtil {
       override val name: String
         get() = name
 
-      override var value: String?
-        get() = propertyValue
-        set(value) {
-          propertyValue = value
-        }
+      override var value: String? = initialValue
+
+      override var resolvedValue: String? = initialValue
 
       override val isReference: Boolean
         get() = false
@@ -61,6 +66,7 @@ object PropertyModelTestUtil {
       override val flags = mutableListOf<FlagPropertyItem>()
       override fun flag(itemName: String): FlagPropertyItem? = flags.firstOrNull { it.name == itemName }
       override var value: String? = null
+      override var resolvedValue: String? = null
       override var isReference = false
       override val maskValue: Int
         get() {
@@ -98,6 +104,7 @@ object PropertyModelTestUtil {
         override var value: String?
           get() = if (actualValue) "true" else "false"
           set(value) { actualValue = (value == "true") }
+        override var resolvedValue: String? = null
         override val isReference = false
       })
     }
@@ -112,10 +119,6 @@ object PropertyModelTestUtil {
         EnumValueListCellRenderer()
       }
     }
-  }
-
-  interface TestPropertyEditorModel: PropertyEditorModel {
-    val focusWasRequested: Boolean
   }
 
   fun makePropertyEditorModel(property: PropertyItem): TestPropertyEditorModel {

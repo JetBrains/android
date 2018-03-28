@@ -97,7 +97,7 @@ open class NelePropertyItem(
   open val rawValue: String?
     get() = getCommonComponentValue()
 
-  val resolvedValue: String?
+  override val resolvedValue: String?
     get() = resolveValue(rawValue)
 
   val namespaceResolver: ResourceNamespace.Resolver

@@ -20,4 +20,9 @@ import com.android.tools.idea.common.property2.api.PropertyItem
 /**
  * Model for a 3 state boolean property: on/off/unset.
  */
-class ThreeStateBooleanPropertyEditorModel(property: PropertyItem) : BasePropertyEditorModel(property)
+class ThreeStateBooleanPropertyEditorModel(property: PropertyItem) : BasePropertyEditorModel(property) {
+
+  override var value: String
+    get() = property.resolvedValue.orEmpty()
+    set(value) { super.value = value }
+}

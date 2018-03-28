@@ -43,7 +43,13 @@ interface PropertyItem {
   var value: String?
 
   /**
-   * Whether the [value] is a reference value
+   * If [value] is a reference then resolve the reference, otherwise this is the same as [value].
+   */
+  val resolvedValue: String?
+    get() = value
+
+  /**
+   * Whether the original [value] is a reference value
    */
   val isReference: Boolean
 
