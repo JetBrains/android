@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,19 @@
  */
 package org.jetbrains.android.dom.navigation;
 
+import com.intellij.psi.PsiClass;
+import com.intellij.util.xml.Attribute;
+import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.DefinesXml;
-import com.intellij.util.xml.SubTag;
-import org.jetbrains.android.dom.AndroidDomElement;
-
-import java.util.List;
+import org.jetbrains.android.dom.AndroidAttributeValue;
+import org.jetbrains.android.dom.converters.FragmentClassConverter;
 
 /**
- * An element representing an destination (fragment, navigation, ...) tag in a navigation graph.
- *
- * Note subclasses of this don't currently need a {@code @Styleable} annotation because they're handled via a custom mechanism.
+ * An element representing a destination corresponding to a class (fragment, activity) in a navigation graph.
  */
-public interface NavDestinationElement extends NavElement {
+@DefinesXml
+public interface ConcreteDestinationElement extends NavDestinationElement {
+  @Attribute("name")
+  @Convert(FragmentClassConverter.class)
+  AndroidAttributeValue<PsiClass> getFragmentName();
 }

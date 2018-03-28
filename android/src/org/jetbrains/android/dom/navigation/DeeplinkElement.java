@@ -17,10 +17,12 @@ package org.jetbrains.android.dom.navigation;
 
 import com.intellij.util.xml.DefinesXml;
 import org.jetbrains.android.dom.AndroidDomElement;
+import org.jetbrains.android.dom.Styleable;
 
 /**
  * An element representing a deeplink tag in a navigation graph.
  */
 @DefinesXml
-public interface DeeplinkElement extends AndroidDomElement {
+@Styleable(value = "NavDeepLink", packageName = "androidx.navigation.common")
+public interface DeeplinkElement extends NavElement {
 }

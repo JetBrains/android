@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,7 @@
  */
 package org.jetbrains.android.dom.navigation;
 
-import com.intellij.util.xml.DefinesXml;
 import org.jetbrains.android.dom.AndroidDomElement;
 
-/**
- * An element representing a argument tag in a navigation graph.
- */
-@DefinesXml
-public interface ArgumentElement extends AndroidDomElement {
+public interface NavElement extends AndroidDomElement{
 }

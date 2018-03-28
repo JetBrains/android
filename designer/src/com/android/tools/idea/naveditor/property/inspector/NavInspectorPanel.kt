@@ -23,7 +23,7 @@ import com.android.tools.idea.naveditor.model.destinationType
 import com.android.tools.idea.naveditor.property.*
 import com.intellij.openapi.Disposable
 import org.jetbrains.android.dom.AndroidDomElement
-import org.jetbrains.android.dom.navigation.ArgumentElement
+import org.jetbrains.android.dom.navigation.NavArgumentElement
 import org.jetbrains.android.dom.navigation.DeeplinkElement
 import org.jetbrains.android.dom.navigation.NavActionElement
 import org.jetbrains.android.dom.navigation.NavigationSchema
@@ -49,7 +49,7 @@ class NavInspectorPanel(parentDisposable: Disposable) : InspectorPanel<NavProper
 
     addProperties(components, schema, propertiesByName, NavActionElement::class.java, ::NavActionsProperty)
     addProperties(components, schema, propertiesByName, DeeplinkElement::class.java, ::NavDeeplinkProperty)
-    addProperties(components, schema, propertiesByName, ArgumentElement::class.java) { c ->
+    addProperties(components, schema, propertiesByName, NavArgumentElement::class.java) { c ->
       if (c.all { it.destinationType != null }) {
         NavDestinationArgumentsProperty(c, propertiesManager)
       }

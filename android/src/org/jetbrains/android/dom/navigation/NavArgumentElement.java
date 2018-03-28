@@ -16,15 +16,13 @@
 package org.jetbrains.android.dom.navigation;
 
 import com.intellij.util.xml.DefinesXml;
-import com.intellij.util.xml.SubTag;
 import org.jetbrains.android.dom.AndroidDomElement;
-
-import java.util.List;
+import org.jetbrains.android.dom.Styleable;
 
 /**
- * An element representing an destination (fragment, navigation, ...) tag in a navigation graph.
- *
- * Note subclasses of this don't currently need a {@code @Styleable} annotation because they're handled via a custom mechanism.
+ * An element representing a argument tag in a navigation graph.
  */
-public interface NavDestinationElement extends NavElement {
+@DefinesXml
+@Styleable(value = "NavArgument", packageName = "androidx.navigation.common")
+public interface NavArgumentElement extends AndroidDomElement {
 }

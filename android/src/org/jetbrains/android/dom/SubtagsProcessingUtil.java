@@ -23,7 +23,7 @@ import com.intellij.util.containers.HashMap;
 import com.intellij.util.xml.XmlName;
 import org.jetbrains.android.dom.layout.LayoutElement;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
-import org.jetbrains.android.dom.navigation.NavDestinationElement;
+import org.jetbrains.android.dom.navigation.NavElement;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.dom.xml.PreferenceElement;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
@@ -162,7 +162,7 @@ public class SubtagsProcessingUtil {
     else if (element instanceof XmlResourceElement) {
       registerXmlResourcesSubtags(facet, element.getXmlTag(), (XmlResourceElement)element, subtagProcessor);
     }
-    else if (element instanceof NavDestinationElement) {
+    else if (element instanceof NavElement) {
       try {
         NavigationSchema.createIfNecessary(facet);
       }
