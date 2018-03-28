@@ -17,10 +17,9 @@ package com.android.tools.profilers.energy;
 
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.TabularLayout;
-import com.android.tools.adtui.chart.statechart.StateChart;
-import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.adtui.model.AxisComponentModel;
-import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.event.EventAction;
+import com.android.tools.adtui.model.event.EventModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profiler.proto.EnergyProfiler;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
@@ -30,7 +29,6 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerLayout;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBPanel;
-import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -41,9 +39,9 @@ import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
 
@@ -257,7 +255,7 @@ public final class EnergyEventsView {
      * Keep in sync 1:1 with {@link EventsTableModel#myList}. When the table asks for the
      * chart to render, it will be converted from model index to view index.
      */
-    @NotNull private final List<StateChart<EnergyEvent>> myEventCharts = new ArrayList<>();
+    @NotNull private final List<EnergyEventComponent> myEventComponents = new ArrayList<>();
     @NotNull private final JTable myTable;
     @NotNull private final Range myRange;
 
@@ -279,8 +277,8 @@ public final class EnergyEventsView {
         panel.add(axisLabels, new TabularLayout.Constraint(0, 0));
       }
 
-      StateChart<EnergyEvent> chart = myEventCharts.get(myTable.convertRowIndexToModel(row));
-      panel.add(chart, new TabularLayout.Constraint(0, 0));
+      EnergyEventComponent eventComponent = myEventComponents.get(myTable.convertRowIndexToModel(row));
+      panel.add(eventComponent, new TabularLayout.Constraint(0, 0));
       // Show timeline lines behind chart components
       AxisComponent axisTicks = createAxis();
       axisTicks.setMarkerLengths(myTable.getRowHeight(), 0);
@@ -292,12 +290,28 @@ public final class EnergyEventsView {
 
     @Override
     public void tableChanged(TableModelEvent e) {
-      myEventCharts.clear();
+      myEventComponents.clear();
       EventsTableModel model = (EventsTableModel) myTable.getModel();
       for (int i = 0; i < model.getRowCount(); ++i) {
-        StateChart<EnergyEvent> chart = EnergyEventStateChart.create(model.getValue(i), myRange);
-        chart.setHeightGap(0.3f);
-        myEventCharts.add(chart);
+        EnergyDuration duration = model.getValue(i);
+
+        // An event duration starts from its timestamp and ends at the next event's timestamp.
+        DefaultDataSeries<EventAction<EnergyEvent>> series = new DefaultDataSeries<>();
+        Iterator<EnergyEvent> iterator = duration.getEventList().iterator();
+        EnergyEvent event = iterator.hasNext() ? iterator.next() : null;
+        long startTimeUs = event != null ? TimeUnit.NANOSECONDS.toMicros(event.getTimestamp()) : -1;
+        while (event != null) {
+          EnergyEvent nextEvent = iterator.hasNext() ? iterator.next() : null;
+          long endTimeUs = nextEvent != null ? TimeUnit.NANOSECONDS.toMicros(nextEvent.getTimestamp()) : Long.MAX_VALUE;
+          series.add(startTimeUs, new EventAction<>(startTimeUs, endTimeUs, event));
+          startTimeUs = endTimeUs;
+          event = nextEvent;
+        }
+
+        EventModel<EnergyEvent> eventModel = new EventModel<>(new RangedSeries<>(myRange, series));
+        Color highlightColor = EnergyEventStateChart.DURATION_STATE_ENUM_COLORS.getColor(duration.getKind());
+        EnergyEventComponent component = new EnergyEventComponent(eventModel, highlightColor);
+        myEventComponents.add(component);
       }
     }
 
