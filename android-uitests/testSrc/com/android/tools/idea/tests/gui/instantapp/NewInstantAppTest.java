@@ -114,25 +114,28 @@ public class NewInstantAppTest {
       .getResults();
 
     verifyOnlyExpectedWarnings(inspectionResults,
-                               "    Android Lint: Security\n" +
-                               "        AllowBackup/FullBackupContent Problems\n" +
-                               "            AndroidManifest.xml\n" +
-                               "                On SDK version 23 and up, your app data will be automatically backed up and restored on app install. Consider adding the attribute 'android:fullBackupContent' to specify an '@xml' resource which configures which files to backup. More info: <a href=\"https://developer.android.com/training/backup/autosyncapi.html\">https://developer.android.com/training/backup/autosyncapi.html</a>\n" +
-                               "    Android Lint: Usability\n" +
-                               "        Missing support for Firebase App Indexing\n" +
-                               "            AndroidManifest.xml\n" +
-                               "                App is not indexable by Google Search; consider adding at least one Activity with an ACTION-VIEW intent filter. See issue explanation for more details.\n" +
-                               "    Declaration redundancy\n" +
-                               "        Redundant throws clause\n" +
-                               "            ExampleInstrumentedTest\n" +
-                               "            ExampleUnitTest\n" +
-                               "                The declared exception 'Exception' is never thrown\n" +
-                               "        Unnecessary module dependency\n" +
-                               "            app\n" +
-                               "                Module 'app' sources do not depend on module 'base' sources\n" +
-                               "                Module 'app' sources do not depend on module 'feature' sources\n" +
-                               "            feature\n" +
-                               "                Module 'feature' sources do not depend on module 'base' sources\n" +
+                               "    Android\n" +
+                               "        Lint\n" +
+                               "            Security\n" +
+                               "                AllowBackup/FullBackupContent Problems\n" +
+                               "                    AndroidManifest.xml\n" +
+                               "                        On SDK version 23 and up, your app data will be automatically backed up and restored on app install. Consider adding the attribute 'android:fullBackupContent' to specify an '@xml' resource which configures which files to backup. More info: <a href=\"https://developer.android.com/training/backup/autosyncapi.html\">https://developer.android.com/training/backup/autosyncapi.html</a>\n" +
+                               "            Usability\n" +
+                               "                Missing support for Firebase App Indexing\n" +
+                               "                    AndroidManifest.xml\n" +
+                               "                        App is not indexable by Google Search; consider adding at least one Activity with an ACTION-VIEW intent filter. See issue explanation for more details.\n" +
+                               "    Java\n" +
+                               "        Declaration redundancy\n" +
+                               "            Redundant throws clause\n" +
+                               "                ExampleInstrumentedTest\n" +
+                               "                ExampleUnitTest\n" +
+                               "                    The declared exception 'Exception' is never thrown\n" +
+                               "            Unnecessary module dependency\n" +
+                               "                app\n" +
+                               "                    Module 'app' sources do not depend on module 'base' sources\n" +
+                               "                    Module 'app' sources do not depend on module 'feature' sources\n" +
+                               "                feature\n" +
+                               "                    Module 'feature' sources do not depend on module 'base' sources\n" +
                                "    XML\n" +
                                "        Unused XML schema declaration\n" +
                                "            AndroidManifest.xml\n" +
