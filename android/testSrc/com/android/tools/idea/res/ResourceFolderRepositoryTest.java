@@ -4213,10 +4213,9 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
    * Checks that we handle PSI invalidation behaviour for PsiResourceItem.
    * When getting out of dumb mode, if the file has been modified during the dumb mode,
    * the file (and tags) will be invalidated.
-   * Regression test for b/73623886
+   * Regression test for http://b/73623886.
    */
-  /* Changes made in ag/3652354 have been reverted because they stopped working after the IntelliJ 181.2784.17 merge. */
-  public void ignored_testFileInvalidationAfterDumbMode() {
+  public void testFileInvalidationAfterDumbMode() {
     DumbServiceImpl dumbService = (DumbServiceImpl)DumbService.getInstance(getProject());
     dumbService.setDumb(true);
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
