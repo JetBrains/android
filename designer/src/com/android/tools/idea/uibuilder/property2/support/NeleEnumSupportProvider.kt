@@ -104,25 +104,23 @@ class NeleEnumSupportProvider : EnumSupportProvider<NelePropertyItem> {
 
   private fun getDropDownValuesFromSpecialCases(property: NelePropertyItem): EnumSupport? {
     val name = property.name
-    if (name.endsWith(TEXT_APPEARANCE_SUFFIX)) {
-      return TextAppearanceEnumSupport(property)
-    }
-    if (property.namespace != ANDROID_URI) {
-      return null
-    }
-    return when (name) {
-      ATTR_FONT_FAMILY -> getFontEnumSupport(property)
-      ATTR_TYPEFACE -> typefaceEnumSupport
-      ATTR_TEXT_SIZE -> textSizeEnumSupport
-      ATTR_LINE_SPACING_EXTRA -> textSizeEnumSupport
-      ATTR_TEXT_APPEARANCE -> TextAppearanceEnumSupport(property)
-      ATTR_LAYOUT_HEIGHT,
-      ATTR_LAYOUT_WIDTH,
-      ATTR_DROPDOWN_HEIGHT,
-      ATTR_DROPDOWN_WIDTH -> sizesSupport
-      ATTR_ON_CLICK -> OnClickEnumSupport(findNlModel(property.components))
-      ATTR_STYLE -> StyleEnumSupport(property)
-      else -> null
+    return when {
+      name.endsWith(TEXT_APPEARANCE_SUFFIX) -> TextAppearanceEnumSupport(property)
+      name == ATTR_STYLE && property.namespace.isEmpty() -> return StyleEnumSupport(property)
+      property.namespace != ANDROID_URI -> null
+      else -> when (name) {
+        ATTR_FONT_FAMILY -> getFontEnumSupport(property)
+        ATTR_TYPEFACE -> typefaceEnumSupport
+        ATTR_TEXT_SIZE -> textSizeEnumSupport
+        ATTR_LINE_SPACING_EXTRA -> textSizeEnumSupport
+        ATTR_TEXT_APPEARANCE -> TextAppearanceEnumSupport(property)
+        ATTR_LAYOUT_HEIGHT,
+        ATTR_LAYOUT_WIDTH,
+        ATTR_DROPDOWN_HEIGHT,
+        ATTR_DROPDOWN_WIDTH -> sizesSupport
+        ATTR_ON_CLICK -> OnClickEnumSupport(findNlModel(property.components))
+        else -> null
+      }
     }
   }
 

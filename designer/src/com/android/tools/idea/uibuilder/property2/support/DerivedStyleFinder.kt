@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.property2.support
 
-import com.android.annotations.VisibleForTesting
-import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.StyleResourceValue
 import com.android.ide.common.resources.ResourceResolver
+import com.android.tools.idea.res.isAccessibleInXml
+import org.jetbrains.android.facet.AndroidFacet
 import java.util.*
 
 typealias StyleFilter = (StyleResourceValue) -> Boolean
@@ -28,7 +28,7 @@ typealias StyleOrder = (StyleResourceValue) -> Comparable<*>
  * A class to find all styles that are derived from a given style
  * with transitive closure.
  */
-class DerivedStyleFinder(private val myResolver: ResourceResolver?) {
+class DerivedStyleFinder(private val facet: AndroidFacet, private val resolver: ResourceResolver?) {
 
   /**
    * Returns a [List] of styles that are derived from the `baseStyle`
@@ -50,7 +50,7 @@ class DerivedStyleFinder(private val myResolver: ResourceResolver?) {
   }
 
   fun find(baseStyles: List<StyleResourceValue>, filter: StyleFilter, sortOrder: StyleOrder): List<StyleResourceValue> {
-    if (myResolver == null) {
+    if (resolver == null) {
       return baseStyles
     }
     val bases = ArrayDeque(baseStyles)
@@ -59,20 +59,19 @@ class DerivedStyleFinder(private val myResolver: ResourceResolver?) {
       val base = bases.pop()
       if (!styles.contains(base)) {
         styles.add(base)
-        bases.addAll(myResolver.getChildren(base))
+        bases.addAll(resolver.getChildren(base))
       }
     }
     return styles
-      .filter { style -> !isHiddenStyle(style) && filter(style) }
+      .filter { style -> isAccessible(style) && filter(style) }
       .sortedWith(compareBy({ !it.isUserDefined }, { it.namespace }, { sortOrder(it) }))
   }
 
-  private fun isHiddenStyle(style: StyleResourceValue): Boolean {
-    if (style.name.startsWith("Base.")) {
-      // AppCompat contains several styles that serves as base styles and that should not be selectable:
-      return true
+  private fun isAccessible(style: StyleResourceValue): Boolean {
+    if (style.name.startsWith("Base.") && style.name.contains(".AppCompat")) {
+      // AppCompat contains several styles that serves as base styles and that should not be selectable.
+      return false
     }
-    // All lowercase styles in the framework should typically be hidden:
-    return style.namespace == ResourceNamespace.ANDROID && style.name.toLowerCase(Locale.US) == style.name
+    return style.isAccessibleInXml(facet)
   }
 }

@@ -45,7 +45,7 @@ const val OTHER_HEADER = "Other"
 open class StyleEnumSupport(val property: NelePropertyItem) : EnumSupport {
   protected val facet = property.model.facet
   protected val resolver = property.resolver
-  protected val derivedStyles = DerivedStyleFinder(resolver)
+  protected val derivedStyles = DerivedStyleFinder(facet, resolver)
 
   override val values: List<EnumValue>
     get() {

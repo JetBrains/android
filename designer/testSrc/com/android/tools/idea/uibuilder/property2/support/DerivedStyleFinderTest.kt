@@ -23,11 +23,9 @@ import com.android.ide.common.resources.ResourceValueMap
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.google.common.truth.Truth
-import org.junit.After
-import org.junit.Before
-import org.junit.Test
+import org.jetbrains.android.AndroidTestCase
 
-class DerivedStyleFinderTest {
+class DerivedStyleFinderTest: AndroidTestCase() {
   private val android = ResourceNamespace.ANDROID
   private val auto = ResourceNamespace.RES_AUTO
   private var finder: DerivedStyleFinder? = null
@@ -35,7 +33,7 @@ class DerivedStyleFinderTest {
       ResourceNamespace.TODO,
       ResourceNamespace.Resolver.EMPTY_RESOLVER
   )
-  private val resolver: ResourceResolver = ResourceResolver.create(
+  private var resolver: ResourceResolver? = ResourceResolver.create(
       mapOf(
           auto to mapOf(mkResourceValueMapPair(
               mkStyleResourceValue(auto, "TextAppearance", "TextAppearance.AppCompat.Body1", ""),
@@ -67,17 +65,17 @@ class DerivedStyleFinderTest {
       ),
       theme)
 
-  @Before
-  fun setUp() {
-    finder = DerivedStyleFinder(resolver)
+  override fun setUp() {
+    super.setUp()
+    finder = DerivedStyleFinder(myFacet, resolver)
   }
 
-  @After
-  fun tearDown() {
+  override fun tearDown() {
     finder = null
+    resolver = null
+    super.tearDown()
   }
 
-  @Test
   fun testTextAppearances() {
     val textAppearanceStyle = resolve(android, "TextAppearance")
     val styles = finder?.find(textAppearanceStyle, { true }, { style -> style.name })
@@ -96,7 +94,6 @@ class DerivedStyleFinderTest {
         resolve(android, "TextAppearance.Material.Body2")).inOrder()
   }
 
-  @Test
   fun testAppCompatThemes() {
     val appCompat = resolve(auto, "Theme.AppCompat")
     val styles = finder?.find(appCompat, { true }, { style -> style.name })
@@ -121,7 +118,7 @@ class DerivedStyleFinderTest {
 
   private fun resolve(namespace: ResourceNamespace, name: String): StyleResourceValue {
     val reference = ResourceReference(namespace, ResourceType.STYLE, name)
-    return resolver.getStyle(reference) ?: failure("$name not found!")
+    return resolver?.getStyle(reference) ?: failure("$name not found!")
   }
 
   private fun failure(message: String): Nothing {

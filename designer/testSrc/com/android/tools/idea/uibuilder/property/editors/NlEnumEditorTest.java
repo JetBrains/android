@@ -218,10 +218,9 @@ public class NlEnumEditorTest extends PropertyTestCase {
       .gainFocus()
       .expectText("")
       .showPopup()
-      .expectFirstChoices(5,
+      .expectFirstChoices(4,
                           "Material.Small", null,
                           "TextAppearance", "@android:style/TextAppearance",
-                          "AutoCorrectionSuggestion", "@android:style/TextAppearance.AutoCorrectionSuggestion",
                           "DeviceDefault", "@android:style/TextAppearance.DeviceDefault",
                           "DeviceDefault.DialogWindowTitle", "@android:style/TextAppearance.DeviceDefault.DialogWindowTitle")
       .key(VK_DOWN)
@@ -291,20 +290,19 @@ public class NlEnumEditorTest extends PropertyTestCase {
       .gainFocus()
       .expectText("")
       .showPopup()
-      .expectFirstChoices(5,
+      .expectFirstChoices(4,
                           "Material.Widget.Switch", null,
                           "TextAppearance", "@android:style/TextAppearance",
-                          "AutoCorrectionSuggestion", "@android:style/TextAppearance.AutoCorrectionSuggestion",
                           "DeviceDefault", "@android:style/TextAppearance.DeviceDefault",
                           "DeviceDefault.DialogWindowTitle", "@android:style/TextAppearance.DeviceDefault.DialogWindowTitle")
       .key(VK_DOWN)
       .key(VK_DOWN)
       .key(VK_ENTER)
-      .expectText("@android:style/TextAppearance.AutoCorrectionSuggestion")
-      .expectValue("@android:style/TextAppearance.AutoCorrectionSuggestion")
+      .expectText("@android:style/TextAppearance.DeviceDefault")
+      .expectValue("@android:style/TextAppearance.DeviceDefault")
       .loseFocus()
-      .expectText("AutoCorrectionSuggestion")
-      .expectValue("@android:style/TextAppearance.AutoCorrectionSuggestion");
+      .expectText("DeviceDefault")
+      .expectValue("@android:style/TextAppearance.DeviceDefault");
   }
 
   public void testEnterTextAppearanceInSwitchFoundInModel() {
@@ -338,24 +336,34 @@ public class NlEnumEditorTest extends PropertyTestCase {
       .expectValue("@android:style/Widget.ActionButton");
   }
 
-  public void testSelectStyleInSwitch() {
+  public void testSelectStyleInProgressBar() {
     myEditorFixture
-      .setProperty(getPropertyWithDefaultValue(mySwitch, ATTR_STYLE, "?android:switchStyle"))
+      .setProperty(getPropertyWithDefaultValue(myProgressBar, ATTR_STYLE, "?android:progressBarStyle"))
       .expectSelectedText(null)
-      .expectText("Widget.Material.Light.CompoundButton.Switch")
+      .expectText("Widget.Material.Light.ProgressBar")
       .gainFocus()
       .expectText("")
       .showPopup()
-      .expectChoices("Widget.Material.Light.CompoundButton.Switch", null,
-                     "Widget.CompoundButton.Switch", "@android:style/Widget.CompoundButton.Switch",
-                     "Widget.Holo.Light.CompoundButton.Switch", "@android:style/Widget.Holo.Light.CompoundButton.Switch")
+      .expectFirstChoices(6,
+                          "Widget.Material.Light.ProgressBar", null,
+                          "Widget.DeviceDefault.Light.ProgressBar", "@android:style/Widget.DeviceDefault.Light.ProgressBar",
+                          "Widget.DeviceDefault.Light.ProgressBar.Horizontal",
+                          "@android:style/Widget.DeviceDefault.Light.ProgressBar.Horizontal",
+                          "Widget.DeviceDefault.Light.ProgressBar.Inverse", "@android:style/Widget.DeviceDefault.Light.ProgressBar.Inverse",
+                          "Widget.DeviceDefault.Light.ProgressBar.Large", "@android:style/Widget.DeviceDefault.Light.ProgressBar.Large",
+                          "Widget.DeviceDefault.Light.ProgressBar.Large.Inverse",
+                          "@android:style/Widget.DeviceDefault.Light.ProgressBar.Large.Inverse",
+                          "Widget.DeviceDefault.Light.ProgressBar.Small", "@android:style/Widget.DeviceDefault.Light.ProgressBar.Small")
+      .key(VK_DOWN)
+      .key(VK_DOWN)
+      .key(VK_DOWN)
       .key(VK_DOWN)
       .key(VK_ENTER)
-      .expectText("@android:style/Widget.CompoundButton.Switch")
-      .expectValue("@android:style/Widget.CompoundButton.Switch")
+      .expectText("@android:style/Widget.DeviceDefault.Light.ProgressBar.Large")
+      .expectValue("@android:style/Widget.DeviceDefault.Light.ProgressBar.Large")
       .loseFocus()
-      .expectText("Widget.CompoundButton.Switch")
-      .expectValue("@android:style/Widget.CompoundButton.Switch");
+      .expectText("Widget.DeviceDefault.Light.ProgressBar.Large")
+      .expectValue("@android:style/Widget.DeviceDefault.Light.ProgressBar.Large");
   }
 
   public void testEnterStyleInSwitchFoundInModel() {
