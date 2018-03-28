@@ -28,7 +28,7 @@ import static com.intellij.ide.BrowserUtil.browse;
 import static com.intellij.util.ui.UIUtil.getTreeFont;
 import static javax.swing.BorderFactory.createEmptyBorder;
 
-public abstract class AbstractDependencyScopesPanel extends JPanel implements Disposable, DependencyScopesPanel {
+public abstract class AbstractDependencyScopesPanel extends JPanel implements Disposable, DependencyScopesSelector {
   protected AbstractDependencyScopesPanel() {
     super(new BorderLayout());
   }
