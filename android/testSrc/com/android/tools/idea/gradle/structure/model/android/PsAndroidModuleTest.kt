@@ -409,4 +409,58 @@ class PsAndroidModuleTest : DependencyTestCase() {
     signingConfigs = appModule.signingConfigs
     assertThat(signingConfigs.map { it.name }).containsExactly("debug")
   }
+
+  fun testConfigurations() {
+    loadProject(PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    val project = PsProject(resolvedProject)
+
+    val appModule = project.findModuleByName("app") as PsAndroidModule?
+    assertNotNull(appModule); appModule!!
+
+    assertThat(appModule.configurations).containsExactly(
+      "implementation",
+      "releaseImplementation",
+      "debugImplementation",
+      "basicImplementation",
+      "basicReleaseImplementation",
+      "basicDebugImplementation",
+      "paidImplementation",
+      "paidReleaseImplementation",
+      "paidDebugImplementation",
+      "barImplementation",
+      "barReleaseImplementation",
+      "barDebugImplementation",
+      "basicBarImplementation",
+      "basicBarReleaseImplementation",
+      "basicBarDebugImplementation",
+      "paidBarImplementation",
+      "paidBarReleaseImplementation",
+      "paidBarDebugImplementation",
+      "testImplementation",
+      "testReleaseImplementation",
+      "testDebugImplementation",
+      "testBasicImplementation",
+      "testBasicReleaseImplementation",
+      "testBasicDebugImplementation",
+      "testPaidImplementation",
+      "testPaidReleaseImplementation",
+      "testPaidDebugImplementation",
+      "testBarImplementation",
+      "testBarReleaseImplementation",
+      "testBarDebugImplementation",
+      "testBasicBarImplementation",
+      "testBasicBarReleaseImplementation",
+      "testBasicBarDebugImplementation",
+      "testPaidBarImplementation",
+      "testPaidBarReleaseImplementation",
+      "testPaidBarDebugImplementation",
+      "androidTestImplementation",
+      "androidTestBasicImplementation",
+      "androidTestPaidImplementation",
+      "androidTestBarImplementation",
+      "androidTestBasicBarImplementation",
+      "androidTestPaidBarImplementation")
+  }
 }
