@@ -193,7 +193,7 @@ class CaptureNodeHRendererTest {
         "c.e.MyClass.toString",
         "c.e.M.toString",
         "toString",
-        "toSt..."
+        "toStrin"
     ))
   }
 
@@ -204,7 +204,7 @@ class CaptureNodeHRendererTest {
         "MyNativeClass::myNativeMethod",
         "M::myNativeMethod",
         "myNativeMethod",
-        "myNativeMe..."
+        "myNativeMetho"
     ))
   }
 
