@@ -30,7 +30,9 @@ import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import javax.swing.*
 
-
+private const val HEIGHT_WIDTH_RATIO = 3 / 4f
+private const val DEFAULT_CELL_WIDTH = 300
+private const val COMPACT_MODE_TRIGGER_SIZE = 150
 private const val SECTION_CELL_MARGIN = 4
 private const val SECTION_CELL_MARGIN_LEFT = 8
 private const val COLORED_BORDER_WIDTH = 4
@@ -48,6 +50,14 @@ private val SECTION_HEADER_BORDER = BorderFactory.createCompoundBorder(
 class ModuleResourceBrowser(
   private val resourcesBrowserViewModel: ModuleResourcesBrowserViewModel
 ) : JPanel(BorderLayout()) {
+
+  var cellWidth = DEFAULT_CELL_WIDTH
+    set(value) {
+      field = value
+      sectionList.getLists().forEach {
+        it.setupListUI()
+      }
+    }
 
   private val listeners = mutableListOf<SelectionListener>()
 
@@ -100,7 +110,8 @@ class ModuleResourceBrowser(
           JBUI.Borders.customLine(JBColor.BLUE, 0, COLORED_BORDER_WIDTH, 0, 0),
           BorderFactory.createEmptyBorder(SECTION_CELL_MARGIN, SECTION_CELL_MARGIN_LEFT, SECTION_CELL_MARGIN, SECTION_CELL_MARGIN)
         )
-      } else {
+      }
+      else {
         label.border = BorderFactory.createEmptyBorder(
           SECTION_CELL_MARGIN,
           COLORED_BORDER_WIDTH + SECTION_CELL_MARGIN_LEFT,
@@ -125,10 +136,14 @@ class ModuleResourceBrowser(
   }
 
   private fun <T : Any> JList<T>.setupListUI() {
-    fixedCellWidth = 300
-    fixedCellHeight = 200
+    fixedCellWidth = cellWidth
+    fixedCellHeight = (fixedCellWidth * HEIGHT_WIDTH_RATIO).toInt()
     layoutOrientation = JList.HORIZONTAL_WRAP
     visibleRowCount = 0
+    val renderer = cellRenderer
+    if (renderer is DesignAssetCellRenderer) {
+      renderer.useSmallMargins = cellWidth < COMPACT_MODE_TRIGGER_SIZE
+    }
   }
 
   class AssetSection<T>(

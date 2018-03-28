@@ -163,6 +163,10 @@ class SectionList(private val model: SectionListModel) {
       }
     }
   }
+
+  fun getLists(): List<JList<*>> {
+    return allInnerLists
+  }
 }
 
 class SectionListModel : ListModel<Section<*>> {

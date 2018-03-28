@@ -17,36 +17,49 @@ package com.android.tools.idea.resourceExplorer.view
 
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.resources.ResourceResolver
+import com.android.tools.adtui.ImageUtils.lowQualityFastScale
 import com.android.tools.idea.concurrent.EdtExecutor
+import com.android.tools.idea.projectsystem.transform
 import com.android.tools.idea.res.resolveMultipleColors
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.viewmodel.ModuleResourcesBrowserViewModel
 import com.google.common.cache.CacheBuilder
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
+import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.update.MergingUpdateQueue
+import com.intellij.util.ui.update.Update
 import icons.StudioIcons
+import org.jetbrains.ide.PooledThreadExecutor
 import java.awt.*
 import java.awt.image.BufferedImage
 import javax.swing.*
 
 private val LOG = Logger.getInstance(DesignAssetCellRenderer::class.java)
-private val MAIN_CELL_BORDER = JBUI.Borders.empty(10, 30, 10, 30)
-private val CONTENT_CELL_BORDER = BorderFactory.createCompoundBorder(
+private val LINE_BORDER = JBUI.Borders.customLine(Gray.x41, 2)
+private val LARGE_MAIN_CELL_BORDER = JBUI.Borders.empty(10, 30, 10, 30)
+private val LARGE_CONTENT_CELL_BORDER = BorderFactory.createCompoundBorder(
   JBUI.Borders.empty(10, 0, 10, 0),
-  JBUI.Borders.customLine(Gray.x41, 2)
+  LINE_BORDER
+)
+
+private val SMALL_MAIN_CELL_BORDER = JBUI.Borders.empty(5, 15, 5, 15)
+private val SMALL_CONTENT_CELL_BORDER = BorderFactory.createCompoundBorder(
+  JBUI.Borders.empty(5, 0, 5, 0),
+  LINE_BORDER
 )
 private const val CHESSBOARD_CELL_SIZE = 10
 private const val CHESSBOARD_PATTERN_SIZE = 2 * CHESSBOARD_CELL_SIZE
 private val CHESSBOARD_COLOR_1 = JBColor(0xFF0000, 0x414243)
 private val CHESSBOARD_COLOR_2 = JBColor(0x00FF00, 0x393A3B)
-private val ICON_SIZE = JBUI.size(128)
 private val EMPTY_ICON = UIUtil.createImage(
-  ICON_SIZE.width, ICON_SIZE.height, BufferedImage.TYPE_INT_ARGB
+  1, 1, BufferedImage.TYPE_INT_ARGB
 )
 
 /**
@@ -67,11 +80,11 @@ abstract class DesignAssetCellRenderer : ListCellRenderer<DesignAssetSet> {
     }
 
   private val mainPanel = JPanel(BorderLayout()).apply {
-    border = MAIN_CELL_BORDER
+    border = LARGE_MAIN_CELL_BORDER
   }
 
   private var contentWrapper: JComponent = JPanel(BorderLayout()).apply {
-    border = CONTENT_CELL_BORDER
+    border = LARGE_CONTENT_CELL_BORDER
   }
 
   private val bottomPanel = JPanel(BorderLayout()).apply {
@@ -90,6 +103,13 @@ abstract class DesignAssetCellRenderer : ListCellRenderer<DesignAssetSet> {
     }
   }
 
+  var useSmallMargins = false
+    set(smallMargin) {
+      field = smallMargin
+      mainPanel.border = if (smallMargin) SMALL_MAIN_CELL_BORDER else LARGE_MAIN_CELL_BORDER
+      contentWrapper.border = if (smallMargin) SMALL_CONTENT_CELL_BORDER else SMALL_CONTENT_CELL_BORDER
+    }
+
   override fun getListCellRendererComponent(
     list: JList<out DesignAssetSet>,
     value: DesignAssetSet,
@@ -99,7 +119,7 @@ abstract class DesignAssetCellRenderer : ListCellRenderer<DesignAssetSet> {
   ): Component {
     mainPanel.preferredSize = JBUI.size(list.fixedCellWidth, list.fixedCellHeight)
     contentWrapper.removeAll()
-    val content = getContent(value, list.fixedCellWidth, list.fixedCellHeight, isSelected, index)
+    val content = getContent(value, contentWrapper.width, contentWrapper.height, isSelected, index)
     if (content != null) {
       contentWrapper.add(content)
     }
@@ -138,7 +158,8 @@ class ColorResourceCellRenderer(
     backgroundPanel.colorList = colors
     backgroundPanel.colorCodeLabel.text = if (colors.size == 1) {
       "#${ColorUtil.toHex(colors.first())}"
-    } else {
+    }
+    else {
       ""
     }
     return backgroundPanel
@@ -176,10 +197,13 @@ class DrawableResourceCellRenderer(
 
   private val imageIcon = ImageIcon(EMPTY_ICON)
   private val content = ChessBoardPanel()
+  private val contentRatio = 0.2
   private val assetToImage = CacheBuilder.newBuilder()
     .softValues()
     .maximumSize(200)
     .build<DesignAssetSet, Image>()
+
+  private val updateQueue = MergingUpdateQueue("DrawableResourceCellRenderer", 1000, true, null)
 
   init {
     content.add(JLabel(imageIcon).apply {
@@ -195,20 +219,116 @@ class DrawableResourceCellRenderer(
     index: Int
   ): JComponent? {
     title = designAssetSet.name
-    val image = assetToImage.getIfPresent(designAssetSet) ?: fetchImage(designAssetSet, index)
+    var image = assetToImage.getIfPresent(designAssetSet)
+    val targetSize = (height * (1 - contentRatio * 2)).toInt()
+
+    if (image == null) {
+      image = queueImageFetch(designAssetSet, index, targetSize)
+    }
+    else {
+      // If an image is cached but does not fit into the content (i.e the list cell size was changed)
+      // we do a fast rescaling in place and request a higher quality scaled image in the background
+      val imageHeight = image.getHeight(null)
+      val scale = getScale(targetSize, imageHeight)
+      if (image != EMPTY_ICON && shouldScale(scale)) {
+        val bufferedImage = ImageUtil.toBufferedImage(image)
+        image = lowQualityFastScale(bufferedImage, scale, scale)
+        queueImageFetch(designAssetSet, index, targetSize)
+      }
+    }
     imageIcon.image = image
     return content
   }
 
-  private fun fetchImage(designAssetSet: DesignAssetSet, index: Int): Image {
-    val previewFuture = browserViewModel.getDrawablePreview(ICON_SIZE, designAssetSet)
-    val listener = Runnable {
-      val image = if (!previewFuture.isCancelled) previewFuture.get() ?: EMPTY_ICON else EMPTY_ICON
-      assetToImage.put(designAssetSet, image)
-      refreshListCallback(index)
-    }
-    previewFuture.addListener(listener, EdtExecutor.INSTANCE)
+  /**
+   * To avoid scaling too many times, we keep an acceptable window for the scale value before actually
+   * requiring the scale.
+   *
+   * Since we have a margin around the image defined by [contentRatio], the image does not need to be resized
+   * when it fits into this margin.
+   */
+  private fun shouldScale(scale: Double) = scale !in (1 - contentRatio)..(1 + contentRatio)
+
+  /**
+   * Get the scaling factor from [source] to [target] rounded to 2 digits.
+   */
+  private fun getScale(target: Int, source: Int) = Math.round(target * 100 / source.toDouble()) / 100.0
+
+  /**
+   * Add a call to [fetchImage] into [updateQueue]
+   */
+  private fun queueImageFetch(
+    designAssetSet: DesignAssetSet,
+    index: Int,
+    targetSize: Int
+  ): Image {
+    updateQueue.queue(createUpdate(index) {
+      fetchImage(targetSize, designAssetSet, index)
+    })
     return EMPTY_ICON
+  }
+
+  /**
+   * Create a new [Update] object overriding [Update.canEat] such that the queue will only keep the last instance of
+   * all the [Update] having the same [identity].
+   */
+  private fun createUpdate(identity: Any, runnable: () -> Unit) = object : Update(identity) {
+    override fun canEat(update: Update?) = this == update
+    override fun run() = runnable()
+  }
+
+  /**
+   * Request a new image to the [browserViewModel] that should fit inside [targetSize].
+   *
+   * Once the image is fetched, we check if it needs to be rescaled in a background Future
+   * then we cache the final result or [EMPTY_ICON] if the future was cancelled and refresh the list.
+   */
+  private fun fetchImage(
+    targetSize: Int,
+    designAssetSet: DesignAssetSet,
+    index: Int
+  ) {
+    val previewFuture = browserViewModel
+      .getDrawablePreview(JBUI.size(targetSize), designAssetSet)
+      .transform(PooledThreadExecutor.INSTANCE, { image -> scaleToFitIfNeeded(image, targetSize) })
+
+    previewFuture.addListener(Runnable { useImage(previewFuture, designAssetSet, index) }, EdtExecutor.INSTANCE)
+  }
+
+  /**
+   * Cache the image from the [previewFuture] and refresh the list
+   */
+  private fun useImage(
+    previewFuture: ListenableFuture<Image>,
+    designAssetSet: DesignAssetSet,
+    index: Int
+  ) {
+    val finalImage = if (previewFuture.isCancelled) EMPTY_ICON else previewFuture.get()
+    assetToImage.put(designAssetSet, finalImage)
+    refreshListCallback(index)
+  }
+
+  /**
+   * Scale the provided [image] to fit into [targetSize] if needed. It might be converted to a
+   * [BufferedImage] before being scaled
+   */
+  private fun scaleToFitIfNeeded(image: Image?, targetSize: Int): Image {
+    return if (image != null) {
+      val imageHeight = image.getHeight(null)
+      val scale = getScale(targetSize, imageHeight)
+      if (shouldScale(scale)) {
+        val newWidth = (image.getWidth(null) * scale).toInt()
+        val newHeight = (imageHeight * scale).toInt()
+        ImageUtil.toBufferedImage(image)
+          .getScaledInstance(newWidth, newHeight, BufferedImage.SCALE_SMOOTH)
+      }
+      else {
+        image
+      }
+    }
+    else {
+      EMPTY_ICON
+    }
   }
 }
 
