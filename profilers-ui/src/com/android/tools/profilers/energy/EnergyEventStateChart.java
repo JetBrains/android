@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.energy;
 
-
 import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.adtui.model.DefaultDataSeries;
@@ -24,7 +23,6 @@ import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.Color;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
@@ -35,7 +33,7 @@ public final class EnergyEventStateChart {
    * Class responsible for rendering one or more sequential network requests, with each request appearing as a horizontal
    * bar where each stage of its lifetime (sending, receiving, etc.) is highlighted with unique colors.
    */
-  private static final EnumColors<EnergyDuration.Kind> DURATION_STATE_ENUM_COLORS = new EnumColors.Builder<EnergyDuration.Kind>(1)
+  static final EnumColors<EnergyDuration.Kind> DURATION_STATE_ENUM_COLORS = new EnumColors.Builder<EnergyDuration.Kind>(1)
     .add(EnergyDuration.Kind.ALARM, ENERGY_BACKGROUND)
     .add(EnergyDuration.Kind.JOB, ENERGY_BACKGROUND)
     .add(EnergyDuration.Kind.WAKE_LOCK, ENERGY_WAKE_LOCK)
