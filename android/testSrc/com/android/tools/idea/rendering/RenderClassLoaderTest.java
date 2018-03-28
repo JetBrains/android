@@ -28,7 +28,6 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -76,7 +75,6 @@ public class RenderClassLoaderTest {
     }
   }
 
-  @Ignore("fails after IDEA 181.2784.17 merge")
   @Test
   public void testRemovingJarFile() throws IOException {
     ourLoggerInstance = new DefaultLogger("") {
