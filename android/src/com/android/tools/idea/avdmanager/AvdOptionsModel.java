@@ -689,6 +689,7 @@ public final class AvdOptionsModel extends WizardModel {
       map.put(AvdWizardUtils.EXISTING_SD_LOCATION, existingSdLocation.get());
     }
     if (!Strings.isNullOrEmpty(myExternalSdCardLocation.get())) {
+      map.put(AvdWizardUtils.EXISTING_SD_LOCATION, myExternalSdCardLocation.get());
       map.put(AvdWizardUtils.DISPLAY_SD_LOCATION_KEY, myExternalSdCardLocation.get());
     }
     map.put(AvdWizardUtils.DISPLAY_USE_EXTERNAL_SD_KEY, myUseExternalSdCard.get());
@@ -721,34 +722,31 @@ public final class AvdOptionsModel extends WizardModel {
     Map<String, String> hardwareProperties = DeviceManager.getHardwareProperties(device);
     Map<String, Object> userEditedProperties = generateUserEditedPropertiesMap();
 
-    // Remove the SD card setting that we're not using
     String sdCard = null;
-
-    boolean useExisting = myUseExternalSdCard.get();
-    if (!useExisting) {
-      if (sdCardStorage().get().isPresent() && myOriginalSdCard != null && sdCardStorage().getValue().equals(myOriginalSdCard.get())) {
-        // unchanged, use existing card
-        useExisting = true;
-      }
-    }
-
     boolean hasSdCard = false;
-    if (!useExisting) {
-
-      userEditedProperties.remove(AvdWizardUtils.EXISTING_SD_LOCATION);
-      Storage storage = null;
-      myOriginalSdCard = new ObjectValueProperty<>(mySdCardStorage.getValue());
-      if (mySdCardStorage.get().isPresent()) {
-        storage = mySdCardStorage.getValue();
-        sdCard = toIniString(storage, false);
-      }
-      hasSdCard = storage != null && storage.getSize() > 0;
-    }
-    else if (!Strings.isNullOrEmpty(myExternalSdCardLocation.get())) {
+    if (myUseExternalSdCard.get()) {
       sdCard = myExternalSdCardLocation.get();
+      // Remove SD card storage size because it will use external file
       userEditedProperties.remove(AvdWizardUtils.SD_CARD_STORAGE_KEY);
       hasSdCard = true;
+    } else {
+      if (sdCardStorage().get().isPresent() && myOriginalSdCard != null && sdCardStorage().getValue().equals(myOriginalSdCard.get())) {
+        // unchanged, use existing card
+        sdCard = existingSdLocation.get();
+        hasSdCard = true;
+      } else {
+        // Remove existing sd card because we will create a new one
+        userEditedProperties.remove(AvdWizardUtils.EXISTING_SD_LOCATION);
+        Storage storage = null;
+        myOriginalSdCard = new ObjectValueProperty<>(mySdCardStorage.getValue());
+        if (mySdCardStorage.get().isPresent()) {
+          storage = mySdCardStorage.getValue();
+          sdCard = toIniString(storage, false);
+        }
+        hasSdCard = storage != null && storage.getSize() > 0;
+      }
     }
+
     hardwareProperties.put(HardwareProperties.HW_SDCARD, toIniString(hasSdCard));
     // Remove any internal keys from the map
     userEditedProperties = Maps.filterEntries(
