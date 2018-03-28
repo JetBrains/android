@@ -233,7 +233,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_NEW_PROPERTY_PANEL = Flag.create(
     NELE, "new.property", "Enable the new Property Panel",
     "Enable the new Property Panel",
-    true);
+    false);
 
   private static final FlagGroup RUNDEBUG_GROUP = new FlagGroup(FLAGS, "rundebug", "Run/Debug");
   public static final Flag<Boolean> RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED = Flag.create(
