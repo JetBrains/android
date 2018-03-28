@@ -27,6 +27,7 @@ import javax.swing.KeyStroke
  * A standard control for editing a boolean property value with 3 states: on/off/unset.
  */
 class PropertyThreeStateCheckBox(private val propertyModel: ThreeStateBooleanPropertyEditorModel) : ThreeStateCheckBox() {
+  private var stateChangeFromModel = false
 
   init {
     registerKeyAction({ propertyModel.enterKeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
@@ -36,14 +37,20 @@ class PropertyThreeStateCheckBox(private val propertyModel: ThreeStateBooleanPro
     propertyModel.addListener(ValueChangedListener { handleValueChanged() })
     addFocusListener(EditorFocusListener(propertyModel, { fromThreeStateValue(state) }))
     addPropertyChangeListener { event ->
-      if (event.propertyName == THREE_STATE_CHECKBOX_STATE) {
+      if (!stateChangeFromModel && event.propertyName == THREE_STATE_CHECKBOX_STATE) {
         propertyModel.value = fromThreeStateValue(event.newValue)
       }
     }
   }
 
   private fun handleValueChanged() {
-    state = toThreeStateValue(propertyModel.value)
+    stateChangeFromModel = true
+    try {
+      state = toThreeStateValue(propertyModel.value)
+    }
+    finally {
+      stateChangeFromModel = false
+    }
     isVisible = propertyModel.visible
     if (propertyModel.focusRequest && !isFocusOwner) {
       requestFocusInWindow()
