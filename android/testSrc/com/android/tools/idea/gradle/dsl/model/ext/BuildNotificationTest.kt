@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.dsl.model.ext
 
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification.NotificationType.*
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
+import com.android.tools.idea.gradle.dsl.model.notifications.PropertyPlacementNotification
 import org.gradle.internal.impldep.org.junit.Test
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -82,5 +84,46 @@ class BuildNotificationTest : GradleFileModelTestCase() {
       val expected = "Found the following unknown element types while parsing: GrMultiplicativeExpressionImpl, GrAdditiveExpressionImpl"
       assertThat(firstNotification.toString(), equalTo(expected))
     }
+  }
+
+  @Test
+  fun testPropertyPlacementNotification() {
+    val text = """
+               ext {
+                 prop  = "${'$'}{greeting}"
+                 prop1 = prop
+               }
+               """.trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    val extModel = buildModel.ext()
+
+    val propertyModel = extModel.findProperty("greeting")
+    propertyModel.setValue(ReferenceTo("prop"))
+
+    val notifications =  buildModel.notifications[myBuildFile.path]!!
+    assertSize(1, notifications)
+    assertTrue(notifications[0] is PropertyPlacementNotification)
+  }
+
+  @Test
+  fun testNoPropertyPlacementNotification() {
+    val text = """
+               ext {
+                 prop  = "${'$'}{greeting}"
+                 prop1 = prop
+               }
+               """.trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    val extModel = buildModel.ext()
+
+    val propertyModel = extModel.findProperty("greeting")
+    propertyModel.setValue(ReferenceTo("hello"))
+
+    val notifications =  buildModel.notifications[myBuildFile.path]!!
+    assertSize(0, notifications)
   }
 }

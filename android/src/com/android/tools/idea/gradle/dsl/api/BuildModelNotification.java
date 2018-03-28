@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 public interface BuildModelNotification {
   enum NotificationType {
     INCOMPLETE_PARSE, // Some elements in a build file related to this GradleFileModel couldn't be parsed.
+    PROPERTY_PLACEMENT, // There was an issue with the placement of properties.
   }
 
   boolean isCorrectionAvailable();

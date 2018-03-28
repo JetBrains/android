@@ -36,6 +36,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.PROPERTY_PLACEMENT;
 import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.*;
 
 /**
@@ -609,7 +610,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
     int resultIndex = myProperties.myElements.size();
 
     if (!result) {
-      // TODO: Add notification here.
+      notification(PROPERTY_PLACEMENT);
       return resultIndex;
     }
 

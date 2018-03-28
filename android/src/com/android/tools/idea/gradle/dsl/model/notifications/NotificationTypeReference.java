@@ -31,6 +31,8 @@ import org.jetbrains.annotations.NotNull;
 public class NotificationTypeReference<T extends BuildModelNotification> {
   public static final NotificationTypeReference<IncompleteParsingNotification> INCOMPLETE_PARSING =
     new NotificationTypeReference<>(IncompleteParsingNotification.class, IncompleteParsingNotification::new);
+  public static final NotificationTypeReference<PropertyPlacementNotification> PROPERTY_PLACEMENT =
+    new NotificationTypeReference<>(PropertyPlacementNotification.class, PropertyPlacementNotification::new);
 
   @NotNull private final Class<T> myClazz;
   @NotNull private final Producer<T> myConstructor;
