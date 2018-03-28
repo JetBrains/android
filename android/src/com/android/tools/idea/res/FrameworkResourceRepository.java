@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.*;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceVisibility;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.utils.ILogger;
 import com.google.common.collect.*;
@@ -146,6 +147,15 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
   public Collection<ResourceItem> getPublicResourcesOfType(@NotNull ResourceType type) {
     List<ResourceItem> resourceItems = myPublicResources.get(type);
     return resourceItems == null ? Collections.emptyList() : resourceItems;
+  }
+
+  public boolean isPublic(@NotNull ResourceType type, @NotNull String name) {
+    List<ResourceItem> byType = myPublicResources.get(type);
+    if (byType == null) {
+      return false;
+    }
+
+    return byType.stream().anyMatch(item -> name.equals(item.getName()));
   }
 
   @VisibleForTesting
