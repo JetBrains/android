@@ -417,50 +417,13 @@ public class GradleFiles {
     }
 
     @Override
-    public void beforeChildAddition(@NotNull PsiTreeChangeEvent event) {
-      // newChild is sometimes null, in this case child is normally populated instead.
-      if (event.getNewChild() != null) {
-        processEvent(event, event.getNewChild());
-      }
-      else {
-        processEvent(event, event.getChild());
-      }
-    }
-
-    @Override
-    public void beforeChildRemoval(@NotNull PsiTreeChangeEvent event) {
-      processEvent(event, event.getOldChild());
-    }
-
-    @Override
-    public void beforeChildReplacement(@NotNull PsiTreeChangeEvent event) {
-      processEvent(event, event.getNewChild(), event.getOldChild());
-    }
-
-    @Override
-    public void beforeChildMovement(@NotNull PsiTreeChangeEvent event) {
+    public void childAdded(@NotNull PsiTreeChangeEvent event) {
       processEvent(event, event.getChild());
     }
 
     @Override
-    public void beforeChildrenChange(@NotNull PsiTreeChangeEvent event) {
-      processEvent(event, event.getOldChild(), event.getNewChild());
-    }
-
-    @Override
-    public void childAdded(@NotNull PsiTreeChangeEvent event) {
-      // newChild is sometimes null, in this case child is normally populated instead.
-      if (event.getNewChild() != null) {
-        processEvent(event, event.getNewChild());
-      }
-      else {
-        processEvent(event, event.getChild());
-      }
-    }
-
-    @Override
     public void childRemoved(@NotNull PsiTreeChangeEvent event) {
-      processEvent(event, event.getOldChild());
+      processEvent(event, event.getChild());
     }
 
     @Override
