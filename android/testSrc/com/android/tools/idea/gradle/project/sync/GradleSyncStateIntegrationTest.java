@@ -26,7 +26,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.mockito.Mock;
 
 import static com.android.tools.idea.gradle.project.sync.GradleSyncState.GRADLE_SYNC_TOPIC;
-import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APP_AND_LIB;
+import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -53,7 +53,7 @@ public class GradleSyncStateIntegrationTest extends AndroidGradleTestCase {
   }
 
   public void testInvalidateLastSync() throws Exception {
-    loadProject(PROJECT_WITH_APP_AND_LIB);
+    loadProject(PROJECT_WITH_APPAND_LIB);
 
     Module appModule = myModules.getAppModule();
     AndroidFacet appAndroidFacet = AndroidFacet.getInstance(appModule);

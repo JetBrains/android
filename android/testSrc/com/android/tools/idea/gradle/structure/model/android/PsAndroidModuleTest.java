@@ -102,7 +102,7 @@ public class PsAndroidModuleTest extends DependencyTestCase {
   }
 
   public void testProductFlavors() throws Throwable {
-    loadProject(PROJECT_WITH_APP_AND_LIB);
+    loadProject(PROJECT_WITH_APPAND_LIB);
 
     Project resolvedProject = myFixture.getProject();
     PsProject project = new PsProject(resolvedProject);
@@ -125,7 +125,7 @@ public class PsAndroidModuleTest extends DependencyTestCase {
   }
 
   public void testAddProductFlavor() throws Throwable {
-    loadProject(PROJECT_WITH_APP_AND_LIB);
+    loadProject(PROJECT_WITH_APPAND_LIB);
 
     Project resolvedProject = myFixture.getProject();
     PsProject project = new PsProject(resolvedProject);
@@ -191,7 +191,7 @@ public class PsAndroidModuleTest extends DependencyTestCase {
   }
 
   public void testBuildTypes() throws Throwable {
-    loadProject(PROJECT_WITH_APP_AND_LIB);
+    loadProject(PROJECT_WITH_APPAND_LIB);
 
     Project resolvedProject = myFixture.getProject();
     PsProject project = new PsProject(resolvedProject);
@@ -214,7 +214,7 @@ public class PsAndroidModuleTest extends DependencyTestCase {
   }
 
   public void testAddBuildType() throws Throwable {
-    loadProject(PROJECT_WITH_APP_AND_LIB);
+    loadProject(PROJECT_WITH_APPAND_LIB);
 
     Project resolvedProject = myFixture.getProject();
     PsProject project = new PsProject(resolvedProject);
@@ -284,7 +284,7 @@ public class PsAndroidModuleTest extends DependencyTestCase {
   }
 
   public void testVariants() throws Throwable {
-    loadProject(PROJECT_WITH_APP_AND_LIB);
+    loadProject(PROJECT_WITH_APPAND_LIB);
 
     Project resolvedProject = myFixture.getProject();
     PsProject project = new PsProject(resolvedProject);
@@ -317,7 +317,7 @@ public class PsAndroidModuleTest extends DependencyTestCase {
   }
 
   public void testCanDependOnModules() throws Throwable {
-    loadProject(PROJECT_WITH_APP_AND_LIB);
+    loadProject(PROJECT_WITH_APPAND_LIB);
 
     Project resolvedProject = myFixture.getProject();
     PsProject project = new PsProject(resolvedProject);

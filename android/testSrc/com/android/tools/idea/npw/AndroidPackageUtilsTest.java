@@ -26,7 +26,7 @@ import org.mockito.Mockito;
 
 import java.io.File;
 
-import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APP_AND_LIB;
+import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
 import static com.intellij.openapi.module.ModuleUtilCore.getModuleDirPath;
 
 /**
@@ -35,7 +35,7 @@ import static com.intellij.openapi.module.ModuleUtilCore.getModuleDirPath;
 public final class AndroidPackageUtilsTest extends AndroidGradleTestCase {
 
   public void testGetPackageForPath() throws Exception {
-    loadProject(PROJECT_WITH_APP_AND_LIB);
+    loadProject(PROJECT_WITH_APPAND_LIB);
 
     File javaSrcDir = new File(getModuleDirPath(myAndroidFacet.getModule()), "src/main/java");
     AndroidModuleTemplate AndroidModuleTemplate = Mockito.mock(AndroidModuleTemplate.class);

@@ -40,7 +40,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Set;
 
-import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APP_AND_LIB;
+import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
 
 /**
  * Test for utility functions provided by IdeaSourceProvider
@@ -57,7 +57,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
   public void setUp() throws Exception {
     super.setUp();
 
-    loadProject(PROJECT_WITH_APP_AND_LIB);
+    loadProject(PROJECT_WITH_APPAND_LIB);
     assertNotNull(myAndroidFacet);
     AndroidModuleModel androidModel = AndroidModuleModel.get(myAndroidFacet);
     assertNotNull(androidModel);
