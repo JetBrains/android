@@ -22,13 +22,13 @@ import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import com.android.tools.idea.naveditor.editor.NavActionManager
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
 import com.google.common.collect.ImmutableList
 import com.intellij.ui.ColoredListCellRenderer
 import icons.StudioIcons
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.verify
+import org.mockito.Mockito.*
 import java.awt.event.MouseEvent
 import java.util.*
 import javax.swing.Icon
@@ -163,9 +163,21 @@ class DestinationListTest : NavTestCase() {
 
   fun testDoubleClickActivity() {
     val nlComponent = model.find("fragment2")!!
-    model.surface.selectionModel.setSelection(ImmutableList.of(nlComponent))
-    list.myList.dispatchEvent(MouseEvent(list.myList, MouseEvent.MOUSE_CLICKED, 1, 0, 0, 0, 2, false))
+    val listModel = list.myList.model
+    val point = list.myList.indexToLocation((0 until listModel.size).indexOfFirst { listModel.getElementAt(it) == nlComponent })
+    list.myList.dispatchEvent(MouseEvent(list.myList, MouseEvent.MOUSE_CLICKED, 1, 0, point.x, point.y, 2, false))
     verify(model.surface as NavDesignSurface).notifyComponentActivate(nlComponent)
+  }
+
+  fun testRightClickActivity() {
+    val actionManager = mock(NavActionManager::class.java)
+    `when`(model.surface.actionManager).thenReturn(actionManager)
+    val nlComponent = model.find("fragment2")!!
+    val listModel = list.myList.model
+    val point = list.myList.indexToLocation((0 until listModel.size).indexOfFirst { listModel.getElementAt(it) == nlComponent })
+    val event = MouseEvent(list.myList, MouseEvent.MOUSE_CLICKED, 1, 0, point.x, point.y, 1, true)
+    list.myList.dispatchEvent(event)
+    verify(actionManager).showPopup(event, nlComponent)
   }
 
   fun testBack() {
