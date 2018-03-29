@@ -30,6 +30,6 @@ interface JUnitClient {
 
   fun removeAllHandlers()
 
-  fun stopClient()
+  fun stop()
 
 }

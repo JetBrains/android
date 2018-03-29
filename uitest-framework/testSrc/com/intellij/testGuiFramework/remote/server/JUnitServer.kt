@@ -23,18 +23,14 @@ import java.util.concurrent.TimeUnit
  */
 interface JUnitServer {
 
-  fun start()
-
-  fun isStarted(): Boolean
-
   fun send(message: TransportMessage)
 
   fun receive(): TransportMessage
 
-  fun isConnected(): Boolean
+  fun isRunning(): Boolean
 
-  fun getPort(): Int
+  fun launchIdeAndStart()
 
-  fun stopServer()
+  fun closeIdeAndStop()
 
 }
