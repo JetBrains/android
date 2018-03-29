@@ -155,12 +155,7 @@ public abstract class ToolWindowFixture {
 
   protected void waitUntilIsVisible(long secondsToWait) {
     Wait.seconds(secondsToWait).expecting("ToolWindow '" + myToolWindowId + "' to be visible")
-      .until(() -> {
-        if (!isActive()) {
-          activate();
-        }
-        return GuiQuery.getNonNull(
-          () -> myToolWindow.isVisible() && myToolWindow.getComponent().isVisible() && myToolWindow.getComponent().isShowing());
-      });
+      .until(() -> GuiQuery.getNonNull(
+        () -> myToolWindow.isVisible() && myToolWindow.getComponent().isVisible() && myToolWindow.getComponent().isShowing()));
   }
 }
