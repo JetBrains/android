@@ -85,128 +85,21 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
             "        android:layout_toRightOf=\"@id/button\" />")
   }
 
-  fun testDragComponentToLeftTopSide() {
+  fun testDraggingComponentUpdatesConstraints() {
     myInteraction.select("checkbox", true)
     myInteraction.mouseDown("checkbox")
     myInteraction.mouseRelease(150f, 150f)
     myScreen.get("@id/checkbox")
         .expectXml("<CheckBox\n" +
-            "        android:id=\"@id/checkbox\"\n" +
-            "        android:layout_width=\"20dp\"\n" +
-            "        android:layout_height=\"20dp\"\n" +
-            "        android:layout_alignParentStart=\"true\"\n" +
-            "        android:layout_alignParentTop=\"true\"\n" +
-            "        android:layout_marginStart=\"145dp\"\n" +
-            "        android:layout_marginTop=\"145dp\" />")
+                   "        android:id=\"@id/checkbox\"\n" +
+                   "        android:layout_width=\"20dp\"\n" +
+                   "        android:layout_height=\"20dp\"\n" +
+                   "        android:layout_below=\"@id/button\"\n" +
+                   "        android:layout_marginLeft=\"45dp\"\n" +
+                   "        android:layout_marginTop=\"45dp\"\n" +
+                   "        android:layout_toRightOf=\"@id/button\" />")
   }
 
-  fun testDragComponentToRightBottomSide() {
-    myInteraction.select("checkbox", true)
-    myInteraction.mouseDown("checkbox")
-    myInteraction.mouseRelease(400f, 400f)
-    myScreen.get("@id/checkbox")
-        .expectXml("<CheckBox\n" +
-            "        android:id=\"@id/checkbox\"\n" +
-            "        android:layout_width=\"20dp\"\n" +
-            "        android:layout_height=\"20dp\"\n" +
-            "        android:layout_alignParentEnd=\"true\"\n" +
-            "        android:layout_alignParentBottom=\"true\"\n" +
-            "        android:layout_marginEnd=\"95dp\"\n" +
-            "        android:layout_marginBottom=\"95dp\" />")
-  }
-
-  fun testDragComponentOverLeftTopEdges() {
-    myInteraction.select("checkbox", true)
-    myInteraction.mouseDown("checkbox")
-    myInteraction.mouseRelease(-100f, -100f)
-    myScreen.get("@id/checkbox")
-        .expectXml("<CheckBox\n" +
-            "        android:id=\"@id/checkbox\"\n" +
-            "        android:layout_width=\"20dp\"\n" +
-            "        android:layout_height=\"20dp\"\n" +
-            "        android:layout_alignParentStart=\"true\"\n" +
-            "        android:layout_alignParentTop=\"true\" />")
-  }
-
-  fun testDragComponentOverRightBottomEdges() {
-    // FIXME: The actual XML has weired format.
-    myInteraction.select("checkbox", true)
-    myInteraction.mouseDown("checkbox")
-    myInteraction.mouseRelease(500f, 500f)
-    myScreen.get("@id/checkbox")
-        .expectXml("<CheckBox\n" +
-            "        android:id=\"@id/checkbox\"\n" +
-            "        android:layout_width=\"20dp\"\n" +
-            "        android:layout_height=\"20dp\"\n" +
-            "        android:layout_alignParentEnd=\"true\"\n" +
-            "        android:layout_alignParentBottom=\"true\" />")
-  }
-
-  fun testDragComponentCenterHorizontal() {
-    myInteraction.select("checkbox", true)
-    myInteraction.mouseDown("checkbox")
-    myInteraction.mouseRelease(250f, 30f)
-    myScreen.get("@id/checkbox")
-        .expectXml("<CheckBox\n" +
-            "        android:id=\"@id/checkbox\"\n" +
-            "        android:layout_width=\"20dp\"\n" +
-            "        android:layout_height=\"20dp\"\n" +
-            "        android:layout_alignParentTop=\"true\"\n" +
-            "        android:layout_centerHorizontal=\"true\"\n" +
-            "        android:layout_marginTop=\"25dp\" />")
-  }
-
-  fun testDragComponentCenterVertical() {
-    myInteraction.select("checkbox", true)
-    myInteraction.mouseDown("checkbox")
-    myInteraction.mouseRelease(30f, 250f)
-    myScreen.get("@id/checkbox")
-        .expectXml("<CheckBox\n" +
-            "        android:id=\"@id/checkbox\"\n" +
-            "        android:layout_width=\"20dp\"\n" +
-            "        android:layout_height=\"20dp\"\n" +
-            "        android:layout_alignParentStart=\"true\"\n" +
-            "        android:layout_centerVertical=\"true\"\n" +
-            "        android:layout_marginStart=\"25dp\" />")
-  }
-
-  fun testDragComponentToCenterOfParent() {
-    myInteraction.select("checkbox", true)
-    myInteraction.mouseDown("checkbox")
-    myInteraction.mouseRelease(250f, 250f)
-    myScreen.get("@id/checkbox")
-        .expectXml("<CheckBox\n" +
-            "        android:id=\"@id/checkbox\"\n" +
-            "        android:layout_width=\"20dp\"\n" +
-            "        android:layout_height=\"20dp\"\n" +
-            "        android:layout_centerInParent=\"true\" />")
-  }
-
-  fun testDragComponentToAlignWidgetStartAndTop() {
-    myInteraction.select("checkbox", true)
-    myInteraction.mouseDown("checkbox")
-    myInteraction.mouseRelease(50f, 50f)
-    myScreen.get("@id/checkbox")
-        .expectXml("<CheckBox\n" +
-            "        android:id=\"@id/checkbox\"\n" +
-            "        android:layout_width=\"20dp\"\n" +
-            "        android:layout_height=\"20dp\"\n" +
-            "        android:layout_alignStart=\"@+id/button\"\n" +
-            "        android:layout_alignTop=\"@+id/button\" />")
-  }
-
-  fun testDragComponentToBelowAndToEndOfWidget() {
-    myInteraction.select("checkbox", true)
-    myInteraction.mouseDown("checkbox")
-    myInteraction.mouseRelease(100f, 100f)
-    myScreen.get("@id/checkbox")
-        .expectXml("<CheckBox\n" +
-            "        android:id=\"@id/checkbox\"\n" +
-            "        android:layout_width=\"20dp\"\n" +
-            "        android:layout_height=\"20dp\"\n" +
-            "        android:layout_below=\"@+id/button\"\n" +
-            "        android:layout_toEndOf=\"@+id/button\" />")
-  }
 
   fun testCreateAlignmentToParentLeft() {
     myInteraction.select("checkbox", true)
