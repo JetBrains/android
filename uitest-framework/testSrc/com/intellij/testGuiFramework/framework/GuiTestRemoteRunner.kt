@@ -35,7 +35,7 @@ import org.junit.runners.BlockJUnit4ClassRunner
 import org.junit.runners.model.FrameworkMethod
 import org.junit.runners.model.InitializationError
 import java.lang.reflect.InvocationTargetException
-import java.util.concurrent.TimeUnit
+import java.net.SocketException
 
 /**
  * [GuiTestRemoteRunner] serves as the JUnit runner on both the server and client side (test classes can only be annotated with one @[RunWith]
@@ -78,8 +78,8 @@ open class GuiTestRemoteRunner @Throws(InitializationError::class)
     val server = JUnitServerHolder.getServer(notifier)
 
     try {
-      if (!server.isStarted()) {
-        startIdeAndServer(server)
+      if (!server.isRunning()) {
+        server.launchIdeAndStart()
       }
       val jUnitTestContainer = JUnitTestContainer(method.declaringClass, method.name, buildSystem = buildSystem)
       server.send(TransportMessage(MessageType.RUN_TEST, jUnitTestContainer))
@@ -92,7 +92,13 @@ open class GuiTestRemoteRunner @Throws(InitializationError::class)
     }
     var testIsRunning = true
     while(testIsRunning) {
-      val message = server.receive()
+      val message = try {
+        server.receive()
+      } catch (e: SocketException) {
+        LOG.warn(e.message)
+        eachNotifier.fireTestIgnored()
+        return
+      }
       if (message.content is JUnitInfo && message.content.testClassAndMethodName == JUnitInfo.getClassAndMethodName(description)) {
         when (message.content.type) {
           Type.STARTED -> eachNotifier.fireTestStarted()
@@ -122,19 +128,6 @@ open class GuiTestRemoteRunner @Throws(InitializationError::class)
     }
   }
 
-  private fun closeIdeAndStopServer (server: JUnitServer) {
-    server.send(TransportMessage(MessageType.CLOSE_IDE))
-    GuiTestLauncher.process?.waitFor(2, TimeUnit.MINUTES)
-    server.stopServer()
-  }
-
-  private fun startIdeAndServer (server: JUnitServer) {
-    GuiTestLauncher.runIde(server.getPort())
-    if (!server.isStarted()) {
-      server.start()
-    }
-  }
-
   // run methods in test class annotated with @BetweenRestarts
   private fun runBetweenRestartsMethods (method: FrameworkMethod) {
     for (m in method.declaringClass.methods.filter { it.isAnnotationPresent(BetweenRestarts::class.java) }) {
@@ -143,7 +136,7 @@ open class GuiTestRemoteRunner @Throws(InitializationError::class)
   }
 
   private fun restartIdeAndServer (server: JUnitServer, method: FrameworkMethod, forResume: Boolean = false): Throwable? {
-    closeIdeAndStopServer(server)
+    server.closeIdeAndStop()
     if (forResume) {
       try {
         runBetweenRestartsMethods(method)
@@ -151,7 +144,7 @@ open class GuiTestRemoteRunner @Throws(InitializationError::class)
         return e.targetException
       }
     }
-    startIdeAndServer(server)
+    server.launchIdeAndStart()
     return null
   }
 

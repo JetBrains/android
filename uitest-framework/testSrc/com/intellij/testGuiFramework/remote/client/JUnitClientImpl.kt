@@ -15,10 +15,10 @@
  */
 package com.intellij.testGuiFramework.remote.client
 
-import com.intellij.testGuiFramework.impl.GuiTestThread
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.impl.ApplicationImpl
 import com.intellij.testGuiFramework.remote.transport.MessageType
 import com.intellij.testGuiFramework.remote.transport.TransportMessage
-import org.apache.log4j.Level
 import org.apache.log4j.Logger
 import java.io.NotSerializableException
 import java.io.ObjectInputStream
@@ -87,15 +87,11 @@ class JUnitClientImpl(val host: String, val port: Int, initHandlers: Array<Clien
     poolOfMessages.add(message)
   }
 
-  override fun stopClient() {
-    val clientPort = connection.port
-    LOG.info("Stopping client on port: $clientPort ...")
+  override fun stop() {
     poolOfMessages.clear()
     handlers.clear()
     connection.close()
     keepAliveThread.cancel()
-
-    LOG.info("Stopped client on port: $clientPort")
   }
 
   inner class ClientReceiveThread(val connection: Socket, val objectInputStream: ObjectInputStream) : Thread(RECEIVE_THREAD) {
@@ -149,7 +145,8 @@ class JUnitClientImpl(val host: String, val port: Int, initHandlers: Array<Clien
           if (!connection.isClosed) {
             objectOutputStream.writeObject(TransportMessage(MessageType.KEEP_ALIVE))
           } else{
-            throw SocketException("Connection is broken")
+            LOG.warn("Connection broken, shutting down client")
+            cancel()
           }
         }, 0L, 5, TimeUnit.SECONDS)
     }
@@ -157,7 +154,7 @@ class JUnitClientImpl(val host: String, val port: Int, initHandlers: Array<Clien
     fun cancel() {
       myExecutor.shutdownNow()
       objectOutputStream.close()
-      GuiTestThread.closeIde()
+      (ApplicationManager.getApplication() as ApplicationImpl).exit(true, true)
     }
   }
 

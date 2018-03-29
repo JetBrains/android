@@ -15,6 +15,7 @@
  */
 package com.intellij.testGuiFramework.remote.server
 
+import com.intellij.testGuiFramework.launcher.GuiTestLauncher
 import com.intellij.testGuiFramework.remote.transport.MessageType
 import com.intellij.testGuiFramework.remote.transport.TransportMessage
 import org.apache.log4j.Level
@@ -48,12 +49,13 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
   lateinit private var serverSendThread: ServerSendThread
   lateinit private var serverReceiveThread: ServerReceiveThread
   lateinit private var connection: Socket
-  private var isStarted = false
+  private var running = false
 
   lateinit private var objectInputStream: ObjectInputStream
   lateinit private var objectOutputStream: ObjectOutputStream
 
   private val IDE_STARTUP_TIMEOUT = 180000
+  private val MESSAGE_INTERVAL_TIMEOUT = 15L
 
   private val port: Int
 
@@ -64,13 +66,15 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
     serverSocket.soTimeout = IDE_STARTUP_TIMEOUT
     notifier.addListener(object : RunListener() {
       override fun testRunFinished(result: Result?) {
-        send(TransportMessage(MessageType.CLOSE_IDE))
+        closeIdeAndStop()
         super.testRunFinished(result)
       }
     })
   }
 
-  override fun start() {
+  private fun start() {
+    postingMessages.clear()
+    receivingMessages.clear()
     connection = serverSocket.accept()
     LOG.info("Server accepted client on port: ${connection.port}")
 
@@ -81,10 +85,8 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
     objectInputStream = ObjectInputStream(connection.getInputStream())
     serverReceiveThread = ServerReceiveThread(connection, objectInputStream)
     serverReceiveThread.start()
-    isStarted = true
+    running = true
   }
-
-  override fun isStarted(): Boolean = isStarted
 
   override fun send(message: TransportMessage) {
     postingMessages.put(message)
@@ -92,22 +94,18 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
   }
 
   override fun receive(): TransportMessage {
-    return receivingMessages.poll(IDE_STARTUP_TIMEOUT.toLong(), TimeUnit.MILLISECONDS)
-           ?: throw SocketException("Client doesn't respond. Either the test has hanged or IDE crushed.")
-  }
-
-  override fun isConnected(): Boolean {
-    try {
-      return connection.isConnected && !connection.isClosed
-    }
-    catch (lateInitException: UninitializedPropertyAccessException) {
-      return false
+    val message = receivingMessages.poll(MESSAGE_INTERVAL_TIMEOUT, TimeUnit.SECONDS)
+    if (message != null) {
+      return message
+    } else {
+      closeIdeAndStop()
+      throw SocketException("Server hasn't received a message in $MESSAGE_INTERVAL_TIMEOUT seconds.")
     }
   }
 
-  override fun getPort() = port
+  override fun isRunning(): Boolean = running
 
-  override fun stopServer() {
+  private fun stopServer() {
     serverSendThread.objectOutputStream.close()
     LOG.info("Object output stream closed")
     serverSendThread.interrupt()
@@ -117,7 +115,26 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
     serverReceiveThread.interrupt()
     LOG.info("Server Receive Thread joined")
     connection.close()
-    isStarted = false
+    running = false
+  }
+
+  private fun stopClient() {
+    send(TransportMessage(MessageType.CLOSE_IDE))
+    val process = GuiTestLauncher.process
+    if (process != null && !process.waitFor(5, TimeUnit.SECONDS)) {
+      LOG.warn("Client didn't shut down when asked nicely; shutting it down forcibly.")
+      process.destroyForcibly()
+    }
+  }
+
+  override fun launchIdeAndStart() {
+    GuiTestLauncher.runIde(port)
+    start()
+  }
+
+  override fun closeIdeAndStop() {
+    stopClient()
+    stopServer()
   }
 
   inner class ServerSendThread(val connection: Socket, val objectOutputStream: ObjectOutputStream) : Thread(SEND_THREAD) {

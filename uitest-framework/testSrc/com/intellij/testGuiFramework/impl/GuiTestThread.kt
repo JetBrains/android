@@ -15,8 +15,6 @@
  */
 package com.intellij.testGuiFramework.impl
 
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.impl.ApplicationImpl
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.testGuiFramework.launcher.GuiTestOptions
 import com.intellij.testGuiFramework.remote.JUnitClientListener
@@ -45,10 +43,6 @@ class GuiTestThread : Thread(GUI_TEST_THREAD_NAME) {
   companion object {
     val GUI_TEST_THREAD_NAME = "GuiTest Thread"
     var client: JUnitClient? = null
-
-    fun closeIde() {
-      (ApplicationManager.getApplication() as ApplicationImpl).exit(true, true)
-    }
   }
 
   override fun run() {
@@ -93,9 +87,7 @@ class GuiTestThread : Thread(GUI_TEST_THREAD_NAME) {
       override fun accept(message: TransportMessage) = message.type == MessageType.CLOSE_IDE
 
       override fun handle(message: TransportMessage) {
-        client?.send(TransportMessage(MessageType.RESPONSE, null, message.id)) ?: throw Exception(
-            "Unable to handle transport message: \"$message\", because JUnitClient is accidentally null")
-        closeIde()
+        client?.stop()
       }
     }
 
