@@ -33,6 +33,7 @@ import static com.intellij.openapi.actionSystem.ActionToolbar.DEFAULT_MINIMUM_BU
  */
 public class ToolWindowDefinition<T> {
   public static final int DEFAULT_SIDE_WIDTH = JBUI.scale(225);
+  public static final Dimension DEFAULT_BUTTON_SIZE = DEFAULT_MINIMUM_BUTTON_SIZE;
 
   private final String myTitle;
   private final Icon myIcon;
@@ -51,7 +52,7 @@ public class ToolWindowDefinition<T> {
                               @NotNull Split split,
                               @NotNull AutoHide autoHide,
                               @NotNull Factory<ToolContent<T>> factory) {
-    this(title, icon, name, side, split, autoHide, DEFAULT_SIDE_WIDTH, DEFAULT_MINIMUM_BUTTON_SIZE, factory);
+    this(title, icon, name, side, split, autoHide, DEFAULT_SIDE_WIDTH, DEFAULT_BUTTON_SIZE, factory);
   }
 
   public ToolWindowDefinition(@NotNull String title,
