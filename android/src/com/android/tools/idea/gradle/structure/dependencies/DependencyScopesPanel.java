@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.dependencies.java;
+package com.android.tools.idea.gradle.structure.dependencies;
 
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.dependencies.AbstractDependencyScopesPanel;
-import com.android.tools.idea.gradle.structure.model.java.PsJavaModule;
+import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.ui.ValidationInfo;
@@ -37,14 +37,14 @@ import java.util.List;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.ui.SideBorder.*;
 
-public class JavaDependencyScopesPanel extends AbstractDependencyScopesPanel {
+public class DependencyScopesPanel extends AbstractDependencyScopesPanel {
   @NotNull private final ToolWindowPanel myToolWindowPanel;
   @NotNull private final JBList<String> myConfigurationsList;
 
   private JPanel myContentsPanel;
   private JPanel myMainPanel;
 
-  public JavaDependencyScopesPanel(@NotNull PsJavaModule module) {
+  public DependencyScopesPanel(@NotNull PsModule module) {
     List<String> configurations = Lists.newArrayList(module.getConfigurations());
 
     String selected = null;
@@ -93,8 +93,7 @@ public class JavaDependencyScopesPanel extends AbstractDependencyScopesPanel {
   @Override
   @NotNull
   public List<String> getSelectedScopeNames() {
-    List<String> scopes = ImmutableList.of(myConfigurationsList.getSelectedValue());
-    return scopes;
+    return ImmutableList.of(myConfigurationsList.getSelectedValue());
   }
 
   @Override

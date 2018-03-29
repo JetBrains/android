@@ -15,11 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.dependencies;
 
-import com.android.tools.idea.gradle.structure.dependencies.android.AndroidDependencyScopesPanel;
-import com.android.tools.idea.gradle.structure.dependencies.java.JavaDependencyScopesPanel;
 import com.android.tools.idea.gradle.structure.model.PsModule;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.android.tools.idea.gradle.structure.model.java.PsJavaModule;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.OnePixelDivider;
 import com.intellij.openapi.util.Disposer;
@@ -60,13 +56,7 @@ public abstract class AbstractAddDependenciesDialog extends DialogWrapper {
 
   @NotNull
   private static AbstractDependencyScopesPanel createDependencyScopesPanel(@NotNull PsModule module) {
-    if (module instanceof PsAndroidModule) {
-      return new AndroidDependencyScopesPanel((PsAndroidModule)module);
-    }
-    if (module instanceof PsJavaModule) {
-      return new JavaDependencyScopesPanel((PsJavaModule)module);
-    }
-    throw new IllegalStateException("Unsupported module type: " + module.getClass().getName());
+    return new DependencyScopesPanel(module);
   }
 
   @Override
