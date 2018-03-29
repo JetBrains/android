@@ -143,6 +143,8 @@ object CommonControlPortfolio {
     val model = object : CommonTextFieldModel {
       override val value = text
 
+      override var text: String = text
+
       override val enabled: Boolean
         get() = enabled
 
@@ -176,9 +178,8 @@ object CommonControlPortfolio {
     model.placeHolderValue = "@+id/name"
 
     val combo = CommonComboBox(model)
-    val inset = combo.insets.left
     combo.isOpaque = false
-    combo.renderer = SimpleListRenderer(0, inset)
+    combo.renderer = SimpleListRenderer(0, 6)
     return combo
   }
 

@@ -48,6 +48,8 @@ class ComboBoxPropertyEditorModel(property: PropertyItem, private val enumSuppor
     updateValueFromProperty()
   }
 
+  override var text: String = ""
+
   override fun validate(editedValue: String): String {
     return property.validate(editedValue)
   }

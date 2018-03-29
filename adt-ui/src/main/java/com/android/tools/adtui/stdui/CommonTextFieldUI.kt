@@ -15,11 +15,16 @@
  */
 package com.android.tools.adtui.stdui
 
+import com.android.tools.adtui.model.stdui.CommonBorderModel
+import com.android.tools.adtui.stdui.StandardDimensions.HORIZONTAL_PADDING
+import com.android.tools.adtui.stdui.StandardDimensions.TEXT_FIELD_CORNER_RADIUS
+import com.android.tools.adtui.stdui.StandardDimensions.VERTICAL_PADDING
 import java.awt.Color
 import java.awt.Graphics
-import java.awt.Graphics2D
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
+import javax.swing.LookAndFeel
+import javax.swing.plaf.BorderUIResource
 import javax.swing.plaf.ColorUIResource
 import javax.swing.plaf.UIResource
 import javax.swing.plaf.basic.BasicTextFieldUI
@@ -47,7 +52,8 @@ open class CommonTextFieldUI(private val editor: CommonTextField<*>) : BasicText
     super.installDefaults()
 
     if (editor.border == null || editor.border is UIResource) {
-      editor.border = StandardBorder(StandardDimensions.TEXT_FIELD_CORNER_RADIUS)
+      editor.border = BorderUIResource(CommonBorder(
+        TEXT_FIELD_CORNER_RADIUS, EditorCommonBorderModel(editor), VERTICAL_PADDING, HORIZONTAL_PADDING, 0, HORIZONTAL_PADDING))
     }
     if (editor.foreground == null || editor.foreground is UIResource) {
       editor.foreground = ColorUIResource(StandardColors.TEXT_COLOR)
@@ -64,32 +70,44 @@ open class CommonTextFieldUI(private val editor: CommonTextField<*>) : BasicText
     if (editor.disabledTextColor == null || editor.disabledTextColor is UIResource) {
       editor.disabledTextColor = ColorUIResource(StandardColors.DISABLED_TEXT_COLOR)
     }
+    LookAndFeel.installProperty(editor, "opaque", true)
   }
 
   override fun paintSafely(g: Graphics) {
-    val g2 = g as Graphics2D
+    paintBackground(g)
+    if (editor.text.isEmpty() && editor.editorModel.placeHolderValue.isNotEmpty()) {
+      printPlaceHolderText(g)
+    }
+    g.color = textColor
 
-    val hasErrors = !editor.editorModel.validate(editor.text).isEmpty()
-    val hasFocus = editor.isFocusOwner
-    val hasVisiblePlaceHolder = editor.text.isEmpty() && editor.editorModel.placeHolderValue.isNotEmpty()
-    (editor.border as? StandardBorder)?.paintBorder(editor, g, hasErrors, hasFocus, hasVisiblePlaceHolder)
-    if (hasVisiblePlaceHolder) {
-      printPlaceHolderText(g2)
-    }
-    else {
-      g2.setColorAndAlpha(textColor)
-    }
-    super.paintSafely(g2)
+    super.paintSafely(g)
+  }
+
+  override fun paintBackground(g: Graphics) {
+    val insets = editor.border.getBorderInsets(editor)
+    g.color = editor.background
+    g.fillRect(insets.left, insets.top,  editor.width - insets.left - insets.right, editor.height - insets.top - insets.bottom)
   }
 
   private val textColor: Color
     get() = if (editor.isEnabled) StandardColors.TEXT_COLOR else StandardColors.DISABLED_TEXT_COLOR
 
-  private fun printPlaceHolderText(g2: Graphics2D) {
+  private fun printPlaceHolderText(g: Graphics) {
     val insets = editor.insets
     val baseline = editor.getBaseline(editor.width, editor.height)
-    g2.setColorAndAlpha(StandardColors.PLACEHOLDER_TEXT_COLOR)
-    g2.font = editor.font
-    g2.drawString(editor.editorModel.placeHolderValue, insets.left, baseline)
+    g.color = StandardColors.PLACEHOLDER_TEXT_COLOR
+    g.font = editor.font
+    g.drawString(editor.editorModel.placeHolderValue, insets.left, baseline)
+  }
+
+  // Note: this violates the golden rule about not having component references in a model.
+  // However in this case initDefaults() are being called in the constructor of JTextField
+  // before the constructor of CommonTextField has been executed.
+  private class EditorCommonBorderModel(private val editor: CommonTextField<*>): CommonBorderModel {
+    override val hasError: Boolean
+      get() = editor.editorModel.validate(editor.editorModel.text).isNotEmpty()
+
+    override val hasPlaceHolder: Boolean
+      get() = editor.editorModel.text.isEmpty() && editor.editorModel.placeHolderValue.isNotEmpty()
   }
 }

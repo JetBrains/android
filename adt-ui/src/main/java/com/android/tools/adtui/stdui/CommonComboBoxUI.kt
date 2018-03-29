@@ -15,12 +15,15 @@
  */
 package com.android.tools.adtui.stdui
 
+import com.android.tools.adtui.model.stdui.CommonBorderModel
 import com.android.tools.adtui.model.stdui.CommonComboBoxModel
 import com.android.tools.adtui.model.stdui.CommonTextFieldModel
 import com.android.tools.adtui.stdui.StandardDimensions.DROPDOWN_ARROW_HEIGHT
 import com.android.tools.adtui.stdui.StandardDimensions.DROPDOWN_ARROW_WIDTH
 import com.android.tools.adtui.stdui.StandardDimensions.DROPDOWN_BUTTON_WIDTH
 import com.android.tools.adtui.stdui.StandardDimensions.DROPDOWN_CORNER_RADIUS
+import com.android.tools.adtui.stdui.StandardDimensions.DROPDOWN_HORIZONTAL_PADDING_RIGHT
+import com.android.tools.adtui.stdui.StandardDimensions.HORIZONTAL_PADDING
 import com.android.tools.adtui.stdui.StandardDimensions.INNER_BORDER_WIDTH
 import com.android.tools.adtui.stdui.StandardDimensions.OUTER_BORDER_WIDTH
 import com.intellij.util.ui.JBUI
@@ -35,10 +38,7 @@ import java.awt.geom.Rectangle2D
 import java.beans.PropertyChangeEvent
 import java.lang.Math.round
 import javax.swing.*
-import javax.swing.plaf.ActionMapUIResource
-import javax.swing.plaf.ColorUIResource
-import javax.swing.plaf.InputMapUIResource
-import javax.swing.plaf.UIResource
+import javax.swing.plaf.*
 import javax.swing.plaf.basic.BasicComboBoxEditor
 import javax.swing.plaf.basic.BasicComboBoxUI
 import javax.swing.plaf.basic.BasicComboPopup
@@ -52,14 +52,14 @@ open class CommonComboBoxUI : BasicComboBoxUI() {
   override fun installDefaults() {
     super.installDefaults()
 
-    val border = comboBox.border
-    if (border == null || border is UIResource) {
-      comboBox.border = StandardBorder(DROPDOWN_CORNER_RADIUS)
+    if (comboBox.border == null || comboBox.border is UIResource) {
+      comboBox.border = BorderUIResource(CommonBorder(
+        DROPDOWN_CORNER_RADIUS, EditorCommonBorderModel(comboBox), 0, HORIZONTAL_PADDING, 0, DROPDOWN_HORIZONTAL_PADDING_RIGHT))
     }
-    val background = comboBox.background
-    if (background == null || background is UIResource) {
+    if (comboBox.background == null || comboBox.background is UIResource) {
       comboBox.background = ColorUIResource(StandardColors.BACKGROUND_COLOR)
     }
+    LookAndFeel.installProperty(comboBox, "opaque", true)
   }
 
   override fun getMinimumSize(component: JComponent): Dimension {
@@ -94,34 +94,35 @@ open class CommonComboBoxUI : BasicComboBoxUI() {
   }
 
   override fun paint(g: Graphics, c: JComponent) {
-    val g2 = g.create()
-    val model = comboBox.model as? CommonComboBoxModel
-    val textEditor = editor as? JTextField
-    val hasErrors = model?.validate(textEditor?.text ?: "")?.isNotEmpty() == true
-    val hasFocus = if (model?.editable == true) editor?.isFocusOwner == true else comboBox.isFocusOwner
-    val hasVisiblePlaceHolder = textEditor?.text?.isEmpty() == true && model?.placeHolderValue?.isNotEmpty() == true
-    (comboBox.border as? StandardBorder)?.paintBorder(comboBox, g2, hasErrors, hasFocus, hasVisiblePlaceHolder)
     paintArrowButton(g)
-    g2.dispose()
     super.paint(g, c)
   }
 
   override fun paintCurrentValueBackground(g: Graphics, bounds: Rectangle, hasFocus: Boolean) {
     val prevColor = g.color
-    g.color = StandardColors.BACKGROUND_COLOR
+    g.color = comboBox.background
     g.fillRect(bounds.x, bounds.y, bounds.width, bounds.height)
     g.color = prevColor
   }
 
   private fun paintArrowButton(g: Graphics) {
+    val g2 = g.create() as Graphics2D
     val rect = createRectWithBorderInsets()
-    val g2 = g as Graphics2D
+
+    val background = Path2D.Float()
+    background.moveTo(rect.x + rect.width - DROPDOWN_BUTTON_WIDTH, rect.y)
+    background.lineTo(rect.x + rect.width, rect.y)
+    background.lineTo(rect.x + rect.width, rect.y + rect.height)
+    background.lineTo(rect.x + rect.width - DROPDOWN_BUTTON_WIDTH, rect.y + rect.height)
+    background.lineTo(rect.x + rect.width - DROPDOWN_BUTTON_WIDTH, rect.y)
+    g2.color = comboBox.background
+    g2.fill(background)
+
     val line = Path2D.Float()
     line.moveTo(rect.x + rect.width - DROPDOWN_BUTTON_WIDTH - 0.5f, rect.y)
     line.lineTo(rect.x + rect.width - DROPDOWN_BUTTON_WIDTH - 0.5f, rect.y + rect.height - 0.5f)
-    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
     g2.stroke = BasicStroke(INNER_BORDER_WIDTH)
-    g2.setColorAndAlpha(StandardColors.INNER_BORDER_COLOR)
+    g2.color = StandardColors.INNER_BORDER_COLOR
     g2.draw(line)
 
     val y = rect.y + (rect.height - DROPDOWN_ARROW_HEIGHT) / 2f + 1f
@@ -131,23 +132,18 @@ open class CommonComboBoxUI : BasicComboBoxUI() {
     triangle.lineTo(x - DROPDOWN_ARROW_WIDTH / 2f, y)
     triangle.lineTo(x + DROPDOWN_ARROW_WIDTH / 2f, y)
     triangle.lineTo(x, y + DROPDOWN_ARROW_HEIGHT)
-    g2.setColorAndAlpha(StandardColors.DROPDOWN_ARROW_COLOR)
+    g2.color = StandardColors.DROPDOWN_ARROW_COLOR
     g2.fill(triangle)
+    g2.dispose()
   }
 
   private fun createRectWithBorderInsets(): Rectangle2D.Float {
     val rect = Rectangle2D.Float(0f, 0f, comboBox.width.toFloat(), comboBox.height.toFloat())
-    if (comboBox.border is StandardBorder) {
-      rect.applyInset(OUTER_BORDER_WIDTH)
-      rect.applyInset(INNER_BORDER_WIDTH)
-    }
-    else {
-      val insets = comboBox.border?.getBorderInsets(comboBox) ?: JBUI.insets(0)
-      rect.x += insets.left.toFloat()
-      rect.y += insets.top.toFloat()
-      rect.width += insets.left.toFloat() + insets.right.toFloat()
-      rect.height += insets.left.toFloat() + insets.bottom.toFloat()
-    }
+    val insets = comboBox.border?.getBorderInsets(comboBox) ?: JBUI.insets(0)
+    rect.x += insets.left.toFloat()
+    rect.y += insets.top.toFloat()
+    rect.width -= insets.left.toFloat() + insets.right.toFloat()
+    rect.height -= insets.top.toFloat() + insets.bottom.toFloat()
     return rect
   }
 
@@ -167,6 +163,10 @@ open class CommonComboBoxUI : BasicComboBoxUI() {
             else {
               super.processKeyEvent(event)
             }
+          }
+
+          override fun repaint() {
+            comboBox.repaint()
           }
 
           private fun willOpenPopup(event: KeyEvent): Boolean {
@@ -223,7 +223,7 @@ open class CommonComboBoxUI : BasicComboBoxUI() {
     map.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), ActionType.SELECT_NEXT)
     map.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, KeyEvent.ALT_DOWN_MASK), ActionType.HIDE_POPUP)
     map.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, KeyEvent.ALT_DOWN_MASK), ActionType.TOGGLE_POPUP)
-    UIManager.getLookAndFeelDefaults().put(GLOBAL_INPUT_MAP, map)
+    UIManager.getLookAndFeelDefaults()[GLOBAL_INPUT_MAP] = map
     return map
   }
 
@@ -236,7 +236,7 @@ open class CommonComboBoxUI : BasicComboBoxUI() {
     for (type in ActionType.values()) {
       map.put(type, ComboAction(type))
     }
-    UIManager.getLookAndFeelDefaults().put(GLOBAL_ACTION_MAP, map)
+    UIManager.getLookAndFeelDefaults()[GLOBAL_ACTION_MAP] = map
     return map
   }
 
@@ -297,5 +297,22 @@ open class CommonComboBoxUI : BasicComboBoxUI() {
         ActionType.SELECT_BOTTOM -> comboBox.itemCount - 1
         else -> comboBox.selectedIndex
       }
+  }
+
+  // Note: this violates the golden rule about not having component references in a model.
+  // However in this case initDefaults() are being called in the constructor of JTextField
+  // before the constructor of CommonTextField has been executed.
+  private class EditorCommonBorderModel(private val comboBox: JComboBox<*>): CommonBorderModel {
+    override val hasError: Boolean
+      get() = model?.validate(text)?.isNotEmpty() == true
+
+    override val hasPlaceHolder: Boolean
+      get() = text.isEmpty() && model?.placeHolderValue?.isNotEmpty() == true
+
+    private val model: CommonComboBoxModel<*>?
+      get() = comboBox.model as? CommonComboBoxModel
+
+    private val text: String
+      get() = model?.text ?: ""
   }
 }

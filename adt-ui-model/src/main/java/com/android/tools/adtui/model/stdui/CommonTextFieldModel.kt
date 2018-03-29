@@ -20,20 +20,55 @@ package com.android.tools.adtui.model.stdui
  */
 interface CommonTextFieldModel {
 
+  /**
+   * The value being edited.
+   *
+   * It is up to the model to decide when the value should be updated.
+   */
   val value: String
 
+  /**
+   * Controls enabled/disabled state of the TextField.
+   */
   val enabled: Boolean
     get() = true
 
+  /**
+   * Controls the editable state of the TextField.
+   */
   val editable: Boolean
     get() = true
 
+  /**
+   * The place holder value.
+   *
+   * The value to be displayed when the text editor is empty.
+   */
   val placeHolderValue: String
     get() = ""
 
+  /**
+   * The current value seen in the TextField.
+   *
+   * Note: this is updated for every key stroke. It is up to the
+   * implementation of this model when [value] should be updated.
+   */
+  var text: String
+
+  /**
+   * Validate the specified string.
+   *
+   * Return an error message or the empty string if there is no error.
+   */
   fun validate(editedValue: String): String = ""
 
+  /**
+   * Add a listener for updates to the model.
+   */
   fun addListener(listener: ValueChangedListener)
 
+  /**
+   * Remove a listener for updates to the model.
+   */
   fun removeListener(listener: ValueChangedListener)
 }
