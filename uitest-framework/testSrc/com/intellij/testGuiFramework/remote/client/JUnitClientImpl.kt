@@ -102,7 +102,7 @@ class JUnitClientImpl(val host: String, val port: Int, initHandlers: Array<Clien
     override fun run() {
       LOG.info("Starting Client Receive Thread")
       try{
-        while (connection.isConnected) {
+        while (!connection.isClosed) {
           val obj = objectInputStream.readObject()
           LOG.info("Received message: $obj")
           obj as TransportMessage
@@ -122,7 +122,7 @@ class JUnitClientImpl(val host: String, val port: Int, initHandlers: Array<Clien
     override fun run() {
       try {
         LOG.info("Starting Client Send Thread")
-        while (connection.isConnected) {
+        while (!connection.isClosed) {
           val transportMessage = poolOfMessages.take()
           LOG.info("Sending message: $transportMessage")
           try {
@@ -146,7 +146,7 @@ class JUnitClientImpl(val host: String, val port: Int, initHandlers: Array<Clien
     override fun run() {
       myExecutor.scheduleWithFixedDelay(
         {
-          if (connection.isConnected) {
+          if (!connection.isClosed) {
             objectOutputStream.writeObject(TransportMessage(MessageType.KEEP_ALIVE))
           } else{
             throw SocketException("Connection is broken")

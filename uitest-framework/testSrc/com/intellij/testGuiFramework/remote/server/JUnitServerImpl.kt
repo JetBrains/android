@@ -98,7 +98,7 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
 
   override fun isConnected(): Boolean {
     try {
-      return connection.isConnected
+      return connection.isConnected && !connection.isClosed
     }
     catch (lateInitException: UninitializedPropertyAccessException) {
       return false
@@ -125,7 +125,7 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
     override fun run() {
       LOG.info("Server Send Thread started")
       try {
-        while (connection.isConnected) {
+        while (!connection.isClosed) {
           val message = postingMessages.take()
           LOG.info("Sending message: $message ")
           objectOutputStream.writeObject(message)
@@ -149,7 +149,7 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
     override fun run() {
       try {
         LOG.info("Server Receive Thread started")
-        while (connection.isConnected) {
+        while (!connection.isClosed) {
           val obj = objectInputStream.readObject()
           LOG.info("Receiving message: $obj")
           assert(obj is TransportMessage)
