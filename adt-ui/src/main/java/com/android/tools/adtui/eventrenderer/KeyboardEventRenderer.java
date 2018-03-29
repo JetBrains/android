@@ -40,6 +40,7 @@ public class KeyboardEventRenderer<E> implements SimpleEventRenderer<E> {
   private static final JBColor BACKGROUND_COLOR = new JBColor(0x988b8e, 0x999a9a);
   private static final JBColor TEXT_COLOR = new JBColor(0xfafafa, 0x313335);
   private static final Map<String, Icon> KEYBOARD_ICON_LOOKUP;
+  private static final Map<KeyboardIconCacheKey, Icon> BORDERED_KEYBOARD_ICON_CACHE = new HashMap<>();
 
   static {
     Map<String, Icon> keyboardIcons = new HashMap<>();
@@ -118,11 +119,42 @@ public class KeyboardEventRenderer<E> implements SimpleEventRenderer<E> {
   }
 
   private void drawIcon(Component parent, Graphics2D g2d, AffineTransform transform, KeyboardAction action) {
-    Icon icon = SimpleEventRenderer
-      .createImageIconWithBackgroundBorder(KEYBOARD_ICON_LOOKUP.get(action.getData().toString()), BORDER_MARGIN, parent.getBackground());
+    Icon icon = BORDERED_KEYBOARD_ICON_CACHE
+      .computeIfAbsent(new KeyboardIconCacheKey(action.getData().toString(), parent.getBackground(), BORDER_MARGIN),
+                       key -> SimpleEventRenderer
+                         .createImageIconWithBackgroundBorder(KEYBOARD_ICON_LOOKUP.get(action.getData().toString()), BORDER_MARGIN,
+                                                              parent.getBackground()));
     AffineTransform originalTransform = g2d.getTransform();
     g2d.transform(transform);
     icon.paintIcon(parent, g2d, -icon.getIconWidth() / 2, 0);
     g2d.setTransform(originalTransform);
+  }
+
+  private static class KeyboardIconCacheKey {
+    @NotNull private final String myKeyString;
+    @NotNull private final Color myBackgroundColor;
+    private final int myBorderMargin;
+
+    public KeyboardIconCacheKey(@NotNull String string, @NotNull Color color, int margin) {
+      myKeyString = string;
+      myBackgroundColor = color;
+      myBorderMargin = margin;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (obj instanceof KeyboardIconCacheKey) {
+        KeyboardIconCacheKey key = (KeyboardIconCacheKey)obj;
+        return myKeyString.equals(key.myKeyString) &&
+               myBackgroundColor.equals(key.myBackgroundColor) &&
+               myBorderMargin == key.myBorderMargin;
+      }
+      return false;
+    }
+
+    @Override
+    public int hashCode() {
+      return Arrays.hashCode(new int[]{myKeyString.hashCode(), myBackgroundColor.hashCode(), myBorderMargin});
+    }
   }
 }
