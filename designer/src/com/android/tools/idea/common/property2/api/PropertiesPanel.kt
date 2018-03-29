@@ -23,11 +23,13 @@ import com.android.tools.idea.common.property2.impl.ui.GenericLinePanel
 import com.android.tools.idea.common.property2.impl.ui.InspectorPanelImpl
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import com.intellij.ui.ScrollPaneFactory
 import java.awt.BorderLayout
 import java.util.*
-import javax.swing.JComponent
-import javax.swing.JPanel
-import javax.swing.JSeparator
+import javax.swing.*
+
+private const val VERTICAL_SCROLLING_UNIT_INCREMENT = 3
+private const val VERTICAL_SCROLLING_BLOCK_INCREMENT = 25
 
 /**
  * The top level class for creating UI classes and model classes for a properties panel.
@@ -55,7 +57,15 @@ class PropertiesPanel(parentDisposable: Disposable) : InspectorPanel, Disposable
   private val gotoNextLine: (InspectorLineModel) -> Unit = { inspectorModel.moveToNextLineEditor(it) }
 
   init {
-    component.add(inspector, BorderLayout.CENTER)
+    val scrollPane = ScrollPaneFactory.createScrollPane(
+      inspector,
+      ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+      ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER)
+    scrollPane.border = BorderFactory.createEmptyBorder()
+    scrollPane.verticalScrollBar.unitIncrement = VERTICAL_SCROLLING_UNIT_INCREMENT
+    scrollPane.verticalScrollBar.blockIncrement = VERTICAL_SCROLLING_BLOCK_INCREMENT
+
+    component.add(scrollPane, BorderLayout.CENTER)
     Disposer.register(parentDisposable, this)
   }
 
