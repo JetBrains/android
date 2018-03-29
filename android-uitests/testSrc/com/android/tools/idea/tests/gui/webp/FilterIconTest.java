@@ -64,7 +64,7 @@ public class FilterIconTest {
   @Test
   @RunIn(TestGroup.QA)
   public void testFilterIcon() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrame = guiTest.importSimpleLocalApplication();
 
     AssetStudioWizardFixture assetStudioWizardFixture = ideFrame.getProjectView()
       .selectAndroidPane()
