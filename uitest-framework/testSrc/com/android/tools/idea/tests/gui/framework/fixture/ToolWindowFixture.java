@@ -97,10 +97,8 @@ public abstract class ToolWindowFixture {
   }
 
   protected final void activateAndWaitUntilIsVisible() {
-    long startTime = System.currentTimeMillis();
-    activate(120);
-    long secondsRemaining = 120 - TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - startTime);
-    waitUntilIsVisible(secondsRemaining);
+    activate();
+    waitUntilIsVisible();
   }
 
   @NotNull
