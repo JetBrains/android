@@ -24,6 +24,8 @@ import com.android.tools.idea.common.property2.api.PropertyItem
 class TextFieldPropertyEditorModel(property: PropertyItem, override val editable: Boolean) :
   BasePropertyEditorModel(property), CommonTextFieldModel {
 
+  override var text: String = ""
+
   override fun validate(editedValue: String) = property.validate(editedValue)
 
   fun enter(editedValue: String) {

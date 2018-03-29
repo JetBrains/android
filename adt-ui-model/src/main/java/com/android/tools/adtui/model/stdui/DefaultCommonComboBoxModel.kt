@@ -48,6 +48,8 @@ class DefaultCommonComboBoxModel<Item>(initialValue: String) : DefaultComboBoxMo
       fireValueChanged()
     }
 
+  override var text: String = ""
+
   override fun validate(editedValue: String): String {
     return if (editedValue == "Error") "Error is not a valid value" else ""
   }

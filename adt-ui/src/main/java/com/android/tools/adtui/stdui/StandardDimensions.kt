@@ -16,14 +16,14 @@
 package com.android.tools.adtui.stdui
 
 import com.intellij.util.ui.JBUI
-import javax.swing.BorderFactory
 
 /**
  * Standard UI Component Dimensions.
  */
 object StandardDimensions {
-  val VERTICAL_PADDING = 1
-  val HORIZONTAL_PADDING = 6
+  val HORIZONTAL_PADDING = JBUI.scale(6)
+  val VERTICAL_PADDING = JBUI.scale(1)
+  val DROPDOWN_HORIZONTAL_PADDING_RIGHT = JBUI.scale(0)
   val INNER_BORDER_WIDTH = JBUI.scale(1f)
   val OUTER_BORDER_WIDTH = JBUI.scale(2f)
   val TEXT_FIELD_CORNER_RADIUS = JBUI.scale(1f)

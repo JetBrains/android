@@ -17,8 +17,10 @@ package com.android.tools.adtui.stdui
 
 import com.android.tools.adtui.model.stdui.CommonTextFieldModel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
+import com.intellij.ui.DocumentAdapter
 import com.intellij.util.ui.UIUtil
 import javax.swing.JTextField
+import javax.swing.event.DocumentEvent
 import javax.swing.text.PlainDocument
 
 /**
@@ -31,10 +33,14 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JT
   init {
     isFocusable = true
     document = PlainDocument()
-    isOpaque = false
     setFromModel()
 
     editorModel.addListener(ValueChangedListener { updateFromModel() })
+    document.addDocumentListener(object: DocumentAdapter() {
+      override fun textChanged(event: DocumentEvent) {
+        editorModel.text = text
+      }
+    })
 
     @Suppress("LeakingThis")
     UIUtil.addUndoRedoActions(this)

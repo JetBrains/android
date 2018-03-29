@@ -16,14 +16,11 @@
 package com.android.tools.adtui.stdui.menu;
 
 import com.android.tools.adtui.stdui.GraphicsUtilKt;
-import com.android.tools.adtui.stdui.StandardBorder;
 import com.android.tools.adtui.stdui.StandardColors;
 import com.android.tools.adtui.stdui.StandardDimensions;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.plaf.UIResource;
 import javax.swing.plaf.basic.BasicButtonUI;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -62,11 +59,7 @@ public class CommonDropDownButtonUI extends BasicButtonUI {
   @Override
   protected void installDefaults(@NotNull AbstractButton button) {
     super.installDefaults(button);
-    button.setOpaque(false);
-    Border border = button.getBorder();
-    if (border == null || border instanceof UIResource) {
-      button.setBorder(new StandardBorder(4));
-    }
+    LookAndFeel.installProperty(button, "opaque", false);
   }
 
   @Override
