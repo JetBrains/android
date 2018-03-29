@@ -84,6 +84,7 @@ iml_module(
         "//tools/base/instant-run:studio.instant-run-common[module]",
         "//tools/idea/.idea/libraries:jna",
         "//tools/data-binding:studio.baseLibrary[module]",
+        "//tools/data-binding:studio.baseLibrarySupport[module]",
         "//tools/data-binding:studio.compilerCommon[module]",
         "//tools/data-binding:studio.compiler[module]",
         "//tools/idea/platform/external-system-impl[module]",

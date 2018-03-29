@@ -16,6 +16,7 @@
 package com.android.tools.idea.lang.databinding.model;
 
 import android.databinding.Bindable;
+import android.databinding.tool.BindableCompat;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.ModelField;
 import com.intellij.psi.PsiAnnotation;
@@ -29,6 +30,8 @@ public class PsiModelField extends ModelField {
 
   @NotNull PsiField myPsiField;
 
+  private static final BindableCompat BINDABLE_COMPAT = new BindableCompat(new String[0]);
+
   public PsiModelField(@NotNull PsiField psiField) {
     myPsiField = psiField;
   }
@@ -39,17 +42,18 @@ public class PsiModelField extends ModelField {
   }
 
   @Override
-  public boolean isBindable() {
+  public BindableCompat getBindableAnnotation() {
     PsiModifierList modifierList = myPsiField.getModifierList();
     if (modifierList != null) {
       PsiAnnotation[] annotations = modifierList.getAnnotations();
       for (PsiAnnotation annotation : annotations) {
         if (BINDABLE_CLASS_NAME.equals(annotation.getQualifiedName())) {
-          return true;
+          // we don't care about dependencies in studio so we can return a shared instance.
+          return BINDABLE_COMPAT;
         }
       }
     }
-    return false;
+    return null;
   }
 
   @Override
