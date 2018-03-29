@@ -119,7 +119,7 @@ public class ThemeResolver {
     ConfigurationManager configurationManager = myConfiguration.getConfigurationManager();
     ResourceResolverCache resolverCache = configurationManager.getResolverCache();
 
-    IAndroidTarget target = configurationManager.getTarget();
+    IAndroidTarget target = myConfiguration.getTarget();
     if (target == null) {
       return Collections.emptyList();
     }
