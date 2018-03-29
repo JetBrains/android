@@ -30,7 +30,6 @@ import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.progress.StudioProgressRunner;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
-import com.android.tools.idea.ui.ApplicationUtils;
 import com.android.tools.idea.welcome.SdkLocationUtils;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
@@ -43,7 +42,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.execution.ui.ConsoleViewContentType;
-import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.ProjectManager;
@@ -449,7 +448,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     public File apply(@Nullable final File input) {
       assert input != null;
 
-      ApplicationUtils.invokeWriteActionAndWait(ModalityState.any(), () -> {
+      TransactionGuard.getInstance().submitTransactionAndWait(() -> {
         IdeSdks.getInstance().setAndroidSdkPath(input, ProjectManager.getInstance().getDefaultProject());
         AndroidFirstRunPersistentData.getInstance().markSdkUpToDate(myInstallerTimestamp);
       });
