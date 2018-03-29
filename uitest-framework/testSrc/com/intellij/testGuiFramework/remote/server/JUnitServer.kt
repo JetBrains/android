@@ -31,18 +31,6 @@ interface JUnitServer {
 
   fun receive(): TransportMessage
 
-  fun sendAndWaitAnswer(message: TransportMessage)
-
-  fun sendAndWaitAnswer(message: TransportMessage, timeout: Long, timeUnit: TimeUnit)
-
-  fun addHandler(serverHandler: ServerHandler)
-
-  fun setFailHandler(failHandler: (Throwable) -> Unit)
-
-  fun removeHandler(serverHandler: ServerHandler)
-
-  fun removeAllHandlers()
-
   fun isConnected(): Boolean
 
   fun getPort(): Int
