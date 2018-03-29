@@ -21,6 +21,8 @@ import com.android.sdklib.AndroidVersion
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.LegacySourceProvider
 import java.io.File
 
 open class TestAndroidModel @JvmOverloads constructor(
@@ -43,7 +45,10 @@ open class TestAndroidModel @JvmOverloads constructor(
 ) : AndroidModel {
 
   companion object {
-    @JvmStatic fun namespaced() = TestAndroidModel(namespacing = AaptOptions.Namespacing.REQUIRED)
+    @JvmStatic fun namespaced(facet: AndroidFacet) = TestAndroidModel(
+      namespacing = AaptOptions.Namespacing.REQUIRED,
+      defaultSourceProvider = LegacySourceProvider(facet)
+    )
   }
 
   override fun getDefaultSourceProvider(): SourceProvider = defaultSourceProvider ?: error("defaultSourceProvider not set")

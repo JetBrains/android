@@ -227,7 +227,7 @@ public class AndroidRenameTest extends AndroidTestCase {
    * Enables namespacing and sets the app namespace to "p1.p2".
    */
   private void enableNamespacing() {
-    myFacet.getConfiguration().setModel(TestAndroidModel.namespaced());
+    myFacet.getConfiguration().setModel(TestAndroidModel.namespaced(myFacet));
     runWriteCommandAction(getProject(), () -> myFacet.getManifest().getPackage().setValue("p1.p2"));
   }
 

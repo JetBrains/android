@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.dom
 
-import com.android.builder.model.AaptOptions
 import com.android.builder.model.AndroidProject
 import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.testing.caret
@@ -66,18 +65,12 @@ class AndroidNamespacedXmlResourcesDomTest : AndroidTestCase() {
 
     runUndoTransparentWriteAction {
       myFacet.run {
-        configuration.model = TestAndroidModel(
-          namespacing = AaptOptions.Namespacing.REQUIRED
-        )
-
+        configuration.model = TestAndroidModel.namespaced(this)
         manifest!!.`package`.value = "com.example.app"
       }
 
       AndroidFacet.getInstance(getAdditionalModuleByName("lib")!!)!!.run {
-        configuration.model = TestAndroidModel(
-          namespacing = AaptOptions.Namespacing.REQUIRED
-        )
-
+        configuration.model = TestAndroidModel.namespaced(this)
         manifest!!.`package`.value = "com.example.lib"
       }
     }
