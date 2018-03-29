@@ -21,6 +21,7 @@ import com.android.annotations.VisibleForTesting
 import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.common.model.BooleanAutoAttributeDelegate
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.model.StringAttributeDelegate
 import com.android.tools.idea.common.model.StringAutoAttributeDelegate
 import com.android.tools.idea.res.resolveStringValue
 import com.android.tools.idea.uibuilder.model.IdAutoAttributeDelegate
@@ -151,6 +152,8 @@ private fun NlComponent.containsDestination(destinationId: String?): Boolean {
 
 var NlComponent.actionDestinationId: String? by IdAutoAttributeDelegate(NavigationSchema.ATTR_DESTINATION)
 var NlComponent.enterAnimation: String? by StringAutoAttributeDelegate(NavigationSchema.ATTR_ENTER_ANIM)
+var NlComponent.className: String? by StringAttributeDelegate(ANDROID_URI, ATTR_NAME)
+var NlComponent.layout: String? by StringAttributeDelegate(TOOLS_URI, ATTR_LAYOUT)
 var NlComponent.exitAnimation: String? by StringAutoAttributeDelegate(NavigationSchema.ATTR_EXIT_ANIM)
 // TODO: Use IdAutoAttributeDelegate for popUpTo
 var NlComponent.popUpTo: String? by IdAutoAttributeDelegate(NavigationSchema.ATTR_POP_UP_TO)

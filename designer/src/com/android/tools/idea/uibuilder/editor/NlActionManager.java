@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.actions.MockupDeleteAction;
 import com.android.tools.idea.actions.MockupEditAction;
@@ -142,7 +143,8 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
 
   @Override
   @NotNull
-  protected DefaultActionGroup createPopupMenu(@NotNull com.intellij.openapi.actionSystem.ActionManager actionManager,
+  @VisibleForTesting
+  public DefaultActionGroup createPopupMenu(@NotNull com.intellij.openapi.actionSystem.ActionManager actionManager,
                                                @Nullable NlComponent leafComponent) {
     DefaultActionGroup group = new DefaultActionGroup();
 

@@ -25,6 +25,10 @@ import com.intellij.openapi.command.WriteCommandAction
 import org.jetbrains.android.dom.navigation.NavigationSchema
 
 class StartDestinationAction(private val component: NlComponent) : AnAction("Set as Start Destination") {
+  init {
+    templatePresentation.isEnabled = isEnabled
+  }
+
   override fun actionPerformed(e: AnActionEvent?) {
     WriteCommandAction.runWriteCommandAction(null) {
       component.setAsStartDestination()
@@ -33,6 +37,9 @@ class StartDestinationAction(private val component: NlComponent) : AnAction("Set
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    e.presentation.isEnabled = component.destinationType != NavigationSchema.DestinationType.ACTIVITY && !component.isStartDestination
+    e.presentation.isEnabled = isEnabled
   }
+
+  private val isEnabled
+    get() = component.destinationType != NavigationSchema.DestinationType.ACTIVITY && !component.isStartDestination
 }
