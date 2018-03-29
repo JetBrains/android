@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.editor;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -84,8 +85,9 @@ public abstract class ActionManager<S extends DesignSurface> {
     popupMenu.getComponent().show(invoker, event.getX(), event.getY());
   }
 
+  @VisibleForTesting
   @NotNull
-  abstract protected DefaultActionGroup createPopupMenu(@NotNull com.intellij.openapi.actionSystem.ActionManager actionManager,
+  public abstract DefaultActionGroup createPopupMenu(@NotNull com.intellij.openapi.actionSystem.ActionManager actionManager,
                                                         @Nullable NlComponent leafComponent);
 
   public abstract void addActions(@NotNull DefaultActionGroup group, @Nullable NlComponent component, @Nullable NlComponent parent,

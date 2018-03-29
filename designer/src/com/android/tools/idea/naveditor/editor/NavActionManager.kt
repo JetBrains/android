@@ -20,13 +20,12 @@ import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurfaceShortcut
 import com.android.tools.idea.naveditor.actions.*
-import com.android.tools.idea.naveditor.model.getUiName
-import com.android.tools.idea.naveditor.model.isDestination
-import com.android.tools.idea.naveditor.model.isNavigation
+import com.android.tools.idea.naveditor.model.*
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.IdeActions
+import org.jetbrains.android.dom.navigation.NavActionElement
 import javax.swing.JComponent
 
 /**
@@ -87,7 +86,8 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
     component: NlComponent,
     actionManager: com.intellij.openapi.actionSystem.ActionManager
   ) {
-    group.add(ActivateComponentAction(if (component.isNavigation) "Open" else "Edit", mySurface, component))
+    val activateComponentAction = ActivateComponentAction(if (component.isNavigation) "Open" else "Edit", mySurface, component)
+    group.add(activateComponentAction)
 
     group.addSeparator()
     group.add(createAddActionGroup(component))
@@ -103,10 +103,15 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
 
   private fun createAddActionGroup(component: NlComponent): DefaultActionGroup {
     val group = DefaultActionGroup("Add Action", true)
-    mySurface?.configuration?.resourceResolver?.let { group.add(ToDestinationAction(mySurface, component, it)) }
-    group.add(ToSelfAction(mySurface, component))
-    group.add(ReturnToSourceAction(mySurface, component))
-    group.add(AddGlobalAction(mySurface, component))
+
+    val enabled = mySurface.schema.getDestinationSubtags(component.tagName).containsKey(NavActionElement::class.java)
+    if (enabled) {
+      mySurface?.configuration?.resourceResolver?.let { group.add(ToDestinationAction(mySurface, component, it)) }
+      group.add(ToSelfAction(mySurface, component))
+      group.add(ReturnToSourceAction(mySurface, component))
+      group.add(AddGlobalAction(mySurface, component))
+    }
+
     return group
   }
 
@@ -118,10 +123,13 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
 
     val resolver = mySurface?.configuration?.resourceResolver
 
-    if (resolver != null && currentNavigation.childCount > 0) {
-      group.addSeparator()
-      for (graph in currentNavigation.children.filter { it.isNavigation && !components.contains(it) }) {
-        group.add(AddToExistingGraphAction(mySurface, components, graph.getUiName(resolver), graph))
+    if (resolver != null) {
+      val subnavs = currentNavigation.children.filter { it.isNavigation && !components.contains(it) }
+      if (!subnavs.isEmpty()) {
+        group.addSeparator()
+        for (graph in subnavs) {
+          group.add(AddToExistingGraphAction(mySurface, components, graph.getUiName(resolver), graph))
+        }
       }
     }
 

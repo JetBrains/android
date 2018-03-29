@@ -27,7 +27,7 @@ class ToDestinationAction(
   private val component: NlComponent,
   private val resourceResolver: ResourceResolver
 ) :
-    AnAction("To Destination..") {
+    AnAction("To Destination...") {
   override fun actionPerformed(e: AnActionEvent?) {
     val addActionDialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, component, resourceResolver)
     if (addActionDialog.showAndGet()) {
