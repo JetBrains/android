@@ -83,6 +83,53 @@
           </div>
 
           <br>
+          <h1>Profiler Sessions</h1>
+
+          You can now save
+          <a href="https://d.android.com/studio/profile/android-profiler.html?utm_source=android-studio&utm_medium=studio-assistant">
+          Android Profiler</a> data as "sessions" to revisit and inspect later.
+          The profiler keeps your session data until you restart the IDE.
+
+          <br><br>
+          After you deploy your app by clicking <b>Profile</b>
+          <img src="https://d.android.com/studio/images/buttons/toolbar-android-profiler.png" width="16" height="16">,
+          start a new session by clicking <img src="https://d.android.com/studio/images/buttons/ic_plus.png" width="16" height="16">
+          and selecting an app process from the menu.
+
+          <br><br>
+          <div align="center">
+            <img src="https://d.android.com/studio/releases/assistant/3.2.0/animated-sessions-overview.gif">
+          </div>
+
+          <br>
+          When you <a href="https://d.android.com/studio/profile/cpu-profiler.html?utm_source=android-studio&utm_medium=studio-assistant#method_traces">
+          record a method trace</a> or
+          <a href="https://d.android.com/studio/profile/memory-profiler.html?utm_source=android-studio&utm_medium=studio-assistant#capture-heap-dump">
+          capture a heap dump</a>, the IDE adds that data (along with your app's network activity) to the session. Click
+          <img src="https://d.android.com/studio/releases/assistant/3.2.0/ic_red_stop.png" width="16" height="16"> at any time to stop
+          adding data to the current session.
+
+          <br><br>
+          <h1>System Trace</h1>
+
+          In the
+          <a href="https://d.android.com/studio/profile/cpu-profiler.html?utm_source=android-studio&utm_medium=studio-assistant">
+          CPU profiler</a>, select the new <b>System Trace</b> configuration to inspect your device's system CPU and thread activity.
+          This trace configuration is built on
+          <a href="https://d.android.com/studio/command-line/systrace.html?utm_source=android-studio&utm_medium=studio-assistant">
+          <code>systrace</code></a> and is useful for investigating system-level issues, such as UI jank.
+
+          <br><br>
+          <div align="center">
+            <img src="https://d.android.com/studio/releases/assistant/3.2.0/animated-systemtrace-overview.gif">
+          </div>
+
+          <br>
+          While using this new trace configuration, you can visually mark important code routines in the profiler timeline by
+          instrumenting your code with
+          the <a href="https://d.android.com/reference/android/os/Trace.html"><code>Trace</code></a> class.
+
+          <br><br>
           <h1>Changed set of default ABIs</h1>
 
           When <a href="https://d.android.com/studio/build/configure-apk-splits.html?utm_source=android-studio&utm_medium=studio-assistant">
