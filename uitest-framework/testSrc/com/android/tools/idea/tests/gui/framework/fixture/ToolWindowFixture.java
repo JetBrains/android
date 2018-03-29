@@ -59,7 +59,8 @@ public abstract class ToolWindowFixture {
 
   @Nullable
   protected Content getContent(@NotNull final String displayName) {
-    activateAndWaitUntilIsVisible();
+    activate();
+    waitUntilIsVisible();
     final Ref<Content> contentRef = new Ref<>();
     Wait.seconds(120).expecting("content '" + displayName + "' to be found")
       .until(() -> {
@@ -78,7 +79,8 @@ public abstract class ToolWindowFixture {
   @Nullable
   protected Content getContent(@NotNull final TextMatcher displayNameMatcher) {
     long startTime = System.currentTimeMillis();
-    activateAndWaitUntilIsVisible();
+    activate();
+    waitUntilIsVisible();
     long secondsRemaining = 120 - TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - startTime);
     final Ref<Content> contentRef = new Ref<>();
     Wait.seconds(secondsRemaining).expecting("content matching " + displayNameMatcher.formattedValues() + " to be found")
@@ -94,11 +96,6 @@ public abstract class ToolWindowFixture {
         return false;
       });
     return contentRef.get();
-  }
-
-  protected final void activateAndWaitUntilIsVisible() {
-    activate();
-    waitUntilIsVisible();
   }
 
   @NotNull

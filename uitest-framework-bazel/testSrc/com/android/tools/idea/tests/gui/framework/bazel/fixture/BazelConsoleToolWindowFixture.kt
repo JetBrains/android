@@ -59,7 +59,8 @@ class BazelConsoleToolWindowFixture(project: Project, robot: Robot) :  ToolWindo
   }
 
   fun clearBazelConsole() {
-    activateAndWaitUntilIsVisible()
+    activate()
+    waitUntilIsVisible()
     myRobot.rightClick(content.component)
     myRobot.click(GuiTests.waitUntilShowing(myRobot, null, Matchers.byText(JMenuItem::class.java, "Clear All")))
   }
