@@ -295,6 +295,7 @@ public class NewActivityTest {
     myDialog.clickCancel();
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/77157746
   @Test
   public void projectViewPaneNotChanged() throws Exception {
     // Verify that after creating a new activity, the current pane on projectView does not change, assumes initial pane is ProjectView
