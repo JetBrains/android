@@ -18,7 +18,6 @@ package com.intellij.testGuiFramework.impl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.impl.ApplicationImpl
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testGuiFramework.launcher.GuiTestOptions
 import com.intellij.testGuiFramework.remote.JUnitClientListener
 import com.intellij.testGuiFramework.remote.client.ClientHandler
@@ -31,7 +30,6 @@ import org.junit.runner.JUnitCore
 import org.junit.runner.Request
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import java.io.File
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 
@@ -74,7 +72,7 @@ class GuiTestThread : Thread(GUI_TEST_THREAD_NAME) {
 
       override fun handle(message: TransportMessage) {
         val content = (message.content as JUnitTestContainer)
-        System.setProperty(GuiTestOptions.RESUME_LABEL, GuiTestOptions.FIRST_RUN_RESUME_LABEL)
+        System.setProperty(GuiTestOptions.SEGMENT_INDEX, "0")
         LOG.info("Added test to testQueue: ${content.toString()}")
         testQueue.add(content)
       }
@@ -85,8 +83,7 @@ class GuiTestThread : Thread(GUI_TEST_THREAD_NAME) {
 
       override fun handle(message: TransportMessage) {
         val content = (message.content as JUnitTestContainer)
-        if (content.resumeLabel.isEmpty()) throw Exception("Cannot resume test without any additional info (label where to resume) in JUnitTestContainer")
-        System.setProperty(GuiTestOptions.RESUME_LABEL, content.resumeLabel)
+        System.setProperty(GuiTestOptions.SEGMENT_INDEX, content.segmentIndex.toString())
         LOG.info("Added test to testQueue: $content")
         testQueue.add(content)
       }

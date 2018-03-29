@@ -20,10 +20,9 @@ import com.intellij.openapi.application.PathManager
 
 object GuiTestOptions {
 
-  const val RESUME_LABEL = "idea.gui.test.resume.label"
+  const val SEGMENT_INDEX = "idea.gui.test.segment.index"
   const val NUM_TEST_SEGMENTS_KEY = "idea.gui.test.segments"
   const val REMOTE_IDE_PATH_KEY = "idea.gui.test.remote.ide.path"
-  const val FIRST_RUN_RESUME_LABEL = "0"
 
   var buildSystem = TargetBuildSystem.BuildSystem.GRADLE
 
@@ -40,7 +39,7 @@ object GuiTestOptions {
   fun getEncoding(): String = getSystemProperty("idea.gui.test.encoding", "UTF-8")
   fun getXmxSize(): Int = getSystemProperty("idea.gui.test.xmx", 512)
   //used for restarted and resumed test to qualify from what point to start
-  fun getResumeInfo(): String = getSystemProperty(RESUME_LABEL, FIRST_RUN_RESUME_LABEL)
+  fun getSegmentIndex(): Int = getSystemProperty(SEGMENT_INDEX, 0)
   fun getNumTestSegments(): Int = getSystemProperty(NUM_TEST_SEGMENTS_KEY, 1)
   fun getRemoteIdePath(): String = getSystemProperty(REMOTE_IDE_PATH_KEY, "undefined")
   fun isRunningOnRelease(): Boolean = getRemoteIdePath() != "undefined"

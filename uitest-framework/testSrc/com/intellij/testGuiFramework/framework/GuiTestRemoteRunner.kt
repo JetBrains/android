@@ -109,7 +109,7 @@ open class GuiTestRemoteRunner @Throws(InitializationError::class)
       }
       if (message.type == MessageType.RESTART_IDE_AND_RESUME) {
         val additionalInfoLabel = message.content
-        if (additionalInfoLabel !is String) throw Exception("Additional info for a resuming test should have a String type!")
+        if (additionalInfoLabel !is Int) throw Exception("Additional info for a resuming test should be an Int!")
         val ex = restartIdeAndServer(server, method, true)
         if (ex != null) {
           eachNotifier.addFailure(ex)
@@ -160,8 +160,8 @@ open class GuiTestRemoteRunner @Throws(InitializationError::class)
     server.send(TransportMessage(MessageType.RUN_TEST, jUnitTestContainer))
   }
 
-  private fun sendResumeTestCommand(method: FrameworkMethod, server: JUnitServer, resumeTestLabel: String) {
-    val jUnitTestContainer = JUnitTestContainer(method.declaringClass, method.name, resumeLabel = resumeTestLabel, buildSystem = buildSystem)
+  private fun sendResumeTestCommand(method: FrameworkMethod, server: JUnitServer, segmentIndex: Int) {
+    val jUnitTestContainer = JUnitTestContainer(method.declaringClass, method.name, segmentIndex = segmentIndex, buildSystem = buildSystem)
     server.send(TransportMessage(MessageType.RESUME_TEST, jUnitTestContainer))
   }
 
