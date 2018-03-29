@@ -73,10 +73,19 @@ class VariablesTable(private val project: Project, private val context: PsContex
 
   fun deleteSelectedVariables() {
     removeEditor()
-    val selectedNodes = tree.getSelectedNodes(VariableNode::class.java, null)
+    val selectedNodes = tree.getSelectedNodes(BaseVariableNode::class.java, null)
     for (node in selectedNodes) {
       node.variable.delete()
-      (tableModel as DefaultTreeModel).removeNodeFromParent(node)
+      val model = tableModel as DefaultTreeModel
+      if (node is ListItemNode) {
+        var sibling = node.nextSibling
+        while (sibling is ListItemNode) {
+          sibling.updateIndex(sibling.index - 1)
+          model.nodeChanged(sibling)
+          sibling = sibling.nextSibling
+        }
+      }
+      model.removeNodeFromParent(node)
     }
   }
 
@@ -295,7 +304,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
         val treeModel = tableTree!!.model as DefaultTreeModel
         treeModel.removeNodeFromParent(node)
         treeModel.insertNodeInto(variableNode, parent, index)
-        treeModel.insertNodeInto(EmptyListItemNode(index + 1, parent.variable), parent, index + 1)
+        treeModel.insertNodeInto(EmptyListItemNode(parent.variable), parent, index + 1)
         return
       }
 
@@ -350,7 +359,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
           val list = variable.getUnresolvedValue(LIST_TYPE)
           if (list != null) {
             list.forEachIndexed { index, propertyModel -> add(ListItemNode(index, PsVariable(propertyModel, variable.module))) }
-            add(EmptyListItemNode(list.size, variable))
+            add(EmptyListItemNode(variable))
           }
         }
         else -> {
@@ -397,7 +406,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
     }
   }
 
-  class ListItemNode(val index: Int, variable: PsVariable) : BaseVariableNode(index.toString(), variable) {
+  class ListItemNode(var index: Int, variable: PsVariable) : BaseVariableNode(index.toString(), variable) {
     override fun getUnresolvedValue(expanded: Boolean): String {
       val value = variable.getUnresolvedValue(STRING_TYPE) ?: ""
       if (variable.valueType == ValueType.STRING) {
@@ -417,12 +426,17 @@ class VariablesTable(private val project: Project, private val context: PsContex
     override fun setName(newName: String) {
       throw UnsupportedOperationException("List item indices cannot be renamed")
     }
+
+    fun updateIndex(newIndex: Int) {
+      index = newIndex
+      setUserObject(newIndex)
+    }
   }
 
-  class EmptyListItemNode(val index: Int, private val containingList: PsVariable) : DefaultMutableTreeNode() {
+  class EmptyListItemNode(private val containingList: PsVariable) : DefaultMutableTreeNode() {
     fun createVariableNode(value: String): ListItemNode {
       val newVariable = containingList.addListValue(value)
-      return ListItemNode(index, newVariable)
+      return ListItemNode(parent.getIndex(this), newVariable)
     }
   }
 
