@@ -32,6 +32,13 @@ interface PropertiesModel<out P: PropertyItem> {
   val properties: PropertiesTable<P>
 
   /**
+   * This function can be called to instruct the model, that it is currently
+   * not being used. A model may decide to get rid of certain internal data
+   * structures.
+   */
+  fun deactivate()
+
+  /**
    * The model should notify the properties of changes to the properties table above.
    */
   fun addListener(listener: PropertiesModelListener)
