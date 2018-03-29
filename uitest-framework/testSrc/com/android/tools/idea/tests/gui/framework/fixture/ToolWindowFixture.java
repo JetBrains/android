@@ -32,7 +32,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.util.concurrent.TimeUnit;
 
 public abstract class ToolWindowFixture {
 
@@ -78,12 +77,10 @@ public abstract class ToolWindowFixture {
 
   @Nullable
   protected Content getContent(@NotNull final TextMatcher displayNameMatcher) {
-    long startTime = System.currentTimeMillis();
     activate();
     waitUntilIsVisible();
-    long secondsRemaining = 120 - TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - startTime);
     final Ref<Content> contentRef = new Ref<>();
-    Wait.seconds(secondsRemaining).expecting("content matching " + displayNameMatcher.formattedValues() + " to be found")
+    Wait.seconds(120).expecting("content matching " + displayNameMatcher.formattedValues() + " to be found")
       .until(() -> {
         Content[] contents = getContents();
         for (Content content : contents) {
