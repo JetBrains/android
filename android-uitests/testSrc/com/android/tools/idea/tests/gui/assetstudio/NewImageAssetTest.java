@@ -62,6 +62,7 @@ public class NewImageAssetTest {
     wizard.clickCancel();
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/77269384
   @Test
   public void testNotificationImageCount() throws Exception {
     NewImageAssetStepFixture<AssetStudioWizardFixture> step = guiTest.importSimpleApplication()
