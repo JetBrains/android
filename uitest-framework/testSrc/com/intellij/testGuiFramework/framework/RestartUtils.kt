@@ -18,7 +18,6 @@ import com.intellij.testGuiFramework.impl.GuiTestThread
 import com.intellij.testGuiFramework.launcher.GuiTestOptions
 import com.intellij.testGuiFramework.remote.transport.MessageType
 import com.intellij.testGuiFramework.remote.transport.TransportMessage
-import org.fest.swing.timing.Wait
 
 /**
  * This provides a convenient way to run tests that restart the IDE. Provide at least two functions as arguments; the client IDE will be
@@ -28,26 +27,25 @@ import org.fest.swing.timing.Wait
  * method is invoked every time the IDE starts, so any other code present will execute multiple times, which is misleading to a reader and
  * is probably not what was intended. Also note that any @Before and @After methods will also be invoked multiple times.
  *
- * Internally, when the client sends a message with type [MessageType.RESTART_IDE_AND_RESUME], it additionally sends a String label (as the
- * 'content' field) indicating where the test should resume. The server then restarts the IDE, and sends it a message with type
- * [MessageType.RESUME_TEST], whose 'resumeLabel' field is set to that label. The [ClientHandler] that matches (testResumeHandler in
- * [GuiTestThread]) sets the [GuiTestOptions.RESUME_LABEL] system property to that label, which is read here via
- * [GuiTestOptions.getResumeInfo]. [GuiTestThread] also takes care of setting the RESUME_LABEL property to
- * [GuiTestOptions.FIRST_RUN_RESUME_LABEL] whenever a new test is started.
+ * Internally, when the client sends a message with type [MessageType.RESTART_IDE_AND_RESUME], it additionally sends an integer (as the
+ * 'content' field) indicating the number of times the IDE has restarted. The server then restarts the IDE, and sends it a message with type
+ * [MessageType.RESUME_TEST], whose 'segmentIndex' field is set to that value. The [ClientHandler] that matches (testResumeHandler in
+ * [GuiTestThread]) sets the [GuiTestOptions.SEGMENT_INDEX] system property to that value, which is read here via
+ * [GuiTestOptions.getSegmentIndex]. [GuiTestThread] also takes care of setting the SEGMENT_INDEX property to 0 whenever a new test is started.
  */
 fun restartIdeBetween (vararg funcs: () -> Unit) {
   if (funcs.size < 2) throw IllegalArgumentException("restartIdeBetween requires at least 2 parameters")
   System.setProperty(GuiTestOptions.NUM_TEST_SEGMENTS_KEY, funcs.size.toString())
-  val index = GuiTestOptions.getResumeInfo().toInt()
+  val index = GuiTestOptions.getSegmentIndex()
   funcs[index]()
   if (index + 1 < funcs.size) {
-    restartIdeAndResume("${index + 1}")
+    restartIdeAndResume(index + 1)
   }
 }
 
-private fun restartIdeAndResume(label: String) {
-  IdeControl.restartMessage = TransportMessage(MessageType.RESTART_IDE_AND_RESUME, label)
+private fun restartIdeAndResume(index: Int) {
+  IdeControl.restartMessage = TransportMessage(MessageType.RESTART_IDE_AND_RESUME, index)
 }
 
-fun isFirstRun(): Boolean = GuiTestOptions.getResumeInfo() == GuiTestOptions.FIRST_RUN_RESUME_LABEL
-fun isLastRun(): Boolean = GuiTestOptions.getResumeInfo() == (GuiTestOptions.getNumTestSegments() - 1).toString()
+fun isFirstRun(): Boolean = GuiTestOptions.getSegmentIndex() == 0
+fun isLastRun(): Boolean = GuiTestOptions.getSegmentIndex() == GuiTestOptions.getNumTestSegments() - 1
