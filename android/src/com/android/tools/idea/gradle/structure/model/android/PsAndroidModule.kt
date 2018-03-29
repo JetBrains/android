@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
+import com.android.tools.idea.gradle.structure.model.PsDependency
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
@@ -37,7 +38,6 @@ class PsAndroidModule(
   private val gradleModel: AndroidModuleModel,
   parsedModel: GradleBuildModel
 ) : PsModule(parent, resolvedModel, gradlePath, parsedModel), PsAndroidModel {
-
   private var buildTypeCollection: PsBuildTypeCollection? = null
   private var productFlavorCollection: PsProductFlavorCollection? = null
   private var variantCollection: PsVariantCollection? = null
@@ -147,6 +147,14 @@ class PsAndroidModule(
     resetDependencies()
 
     fireModuleDependencyAddedEvent(modulePath)
+    isModified = true
+  }
+
+  override fun removeDependency(dependency: PsDependency) {
+    removeDependencyFromParsedModel(dependency)
+
+    resetDependencies()
+    // TODO(solodkyy): Notify about changed dependencies.
     isModified = true
   }
 

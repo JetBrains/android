@@ -177,6 +177,38 @@ class DependencyManagementTest : DependencyTestCase() {
     }
   }
 
+  fun testRemoveLibraryDependency() {
+    var module = project.findModuleByName("mainModule") as PsAndroidModule
+    val lib10 = module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0")
+    assertThat(lib10, notNullValue())
+    assertThat(lib10!!.size, equalTo(2))
+
+    lib10.forEach {
+      module.removeDependency(it)
+    }
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), nullValue())
+
+    run {
+      val resolvedDependencies = module.findVariant("freeRelease")?.findArtifact(ARTIFACT_MAIN)?.dependencies
+      assertThat(resolvedDependencies?.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
+      assertThat(resolvedDependencies?.findLibraryDependency("com.example.libs:lib2:1.0"), notNullValue())
+    }
+
+    project.applyChanges()
+    requestSyncAndWait()
+    reparse()
+
+    module = project.findModuleByName("mainModule") as PsAndroidModule
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), nullValue())
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib2:1.0"), nullValue())
+
+    run {
+      val resolvedDependencies = module.findVariant("freeRelease")?.findArtifact(ARTIFACT_MAIN)?.dependencies
+      assertThat(resolvedDependencies?.findLibraryDependency("com.example.libs:lib1:1.0"), nullValue())
+      assertThat(resolvedDependencies?.findLibraryDependency("com.example.libs:lib2:1.0"), nullValue())
+    }
+  }
+
   fun testAddLibraryDependency() {
     var module = project.findModuleByName("moduleA") as PsAndroidModule
     assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), nullValue())

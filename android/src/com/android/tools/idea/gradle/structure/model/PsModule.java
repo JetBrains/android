@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository;
@@ -115,6 +116,17 @@ public abstract class PsModule extends PsChildModel {
     if (parsedModel != null) {
       DependenciesModel dependencies = parsedModel.dependencies();
       configurationNames.forEach(configurationName -> dependencies.addModule(configurationName, modulePath));
+
+      getParsedDependencies().reset(getParsedModel());
+    }
+  }
+
+  protected void removeDependencyFromParsedModel(@NotNull PsDependency dependency) {
+    GradleBuildModel parsedModel = getParsedModel();
+    if (parsedModel != null) {
+      for (DependencyModel dependencyParsedModel : dependency.getParsedModels()) {
+        getParsedModel().dependencies().remove(dependencyParsedModel);
+      }
 
       getParsedDependencies().reset(getParsedModel());
     }
@@ -225,6 +237,7 @@ public abstract class PsModule extends PsChildModel {
 
   public abstract void addLibraryDependency(@NotNull String library, @NotNull List<String> scopesNames);
   public abstract void addModuleDependency(@NotNull String modulePath, @NotNull List<String> scopesNames);
+  public abstract void removeDependency(@NotNull PsDependency dependency);
   public abstract void setLibraryDependencyVersion(@NotNull PsArtifactDependencySpec spec,
                                                    @NotNull String configurationName,
                                                    @NotNull String newVersion);

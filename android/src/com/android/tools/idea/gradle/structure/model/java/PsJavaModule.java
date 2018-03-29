@@ -18,10 +18,7 @@ package com.android.tools.idea.gradle.structure.model.java;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
-import com.android.tools.idea.gradle.structure.model.PsModule;
-import com.android.tools.idea.gradle.structure.model.PsParsedDependencies;
-import com.android.tools.idea.gradle.structure.model.PsProject;
+import com.android.tools.idea.gradle.structure.model.*;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
@@ -121,6 +118,11 @@ public class PsJavaModule extends PsModule {
 
   @Override
   public void addModuleDependency(@NotNull String modulePath, @NotNull List<String> scopesNames) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void removeDependency(@NotNull PsDependency dependency) {
     throw new UnsupportedOperationException();
   }
 
