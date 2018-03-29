@@ -22,11 +22,13 @@ import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+
+import static com.intellij.util.containers.ContainerUtil.exists;
+import static com.intellij.util.containers.ContainerUtil.filter;
 
 public class AndroidProjectInfo {
   @NotNull private final Project myProject;
@@ -48,7 +50,7 @@ public class AndroidProjectInfo {
    */
   @NotNull
   public List<Module> getAllModulesOfProjectType(int projectType) {
-    return ContainerUtil.filter(ProjectFacetManager.getInstance(myProject).getModulesWithFacet(AndroidFacet.ID), module -> {
+    return filter(ProjectFacetManager.getInstance(myProject).getModulesWithFacet(AndroidFacet.ID), module -> {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       return facet != null && facet.getProjectType() == projectType;
     });
@@ -61,7 +63,7 @@ public class AndroidProjectInfo {
    * @return {@code true} if the project has one or more modules backed by an {@link AndroidProject}; {@code false} otherwise.
    */
   public boolean requiresAndroidModel() {
-    return ContainerUtil.exists(ProjectFacetManager.getInstance(myProject).getFacets(AndroidFacet.ID), f -> f.requiresAndroidModel());
+    return exists(ProjectFacetManager.getInstance(myProject).getFacets(AndroidFacet.ID), f -> f.requiresAndroidModel());
   }
 
   public boolean isApkProject() {
@@ -79,7 +81,7 @@ public class AndroidProjectInfo {
    * @return {@code true} if the project is an Android project that does not contain any build system-based model.
    */
   public boolean requiredAndroidModelMissing() {
-    return ContainerUtil.exists(ProjectFacetManager.getInstance(myProject).getFacets(AndroidFacet.ID), f -> f.requiresAndroidModel() && f.getAndroidModel() == null);
+    return exists(ProjectFacetManager.getInstance(myProject).getFacets(AndroidFacet.ID), f -> f.requiresAndroidModel() && f.getAndroidModel() == null);
   }
 
   /**
@@ -88,7 +90,7 @@ public class AndroidProjectInfo {
    * @return {@code true} if the given project is a legacy IDEA Android project; {@code false} otherwise.
    */
   public boolean isLegacyIdeaAndroidProject() {
-    return ContainerUtil.exists(ProjectFacetManager.getInstance(myProject).getFacets(AndroidFacet.ID), f -> !f.requiresAndroidModel());
+    return exists(ProjectFacetManager.getInstance(myProject).getFacets(AndroidFacet.ID), f -> !f.requiresAndroidModel());
   }
 
 }
