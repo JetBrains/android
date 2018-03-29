@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property2
 
 import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.idea.common.property2.api.EditorProvider
+import com.android.tools.idea.common.property2.api.PropertiesPanel
 import com.android.tools.idea.common.property2.api.PropertiesView
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.property2.inspector.*
@@ -34,7 +35,8 @@ import javax.swing.JPanel
  */
 class NelePropertiesPanelToolContent(facet: AndroidFacet) : JPanel(BorderLayout()), ToolContent<DesignSurface> {
   private val model = NelePropertiesModel(this, facet)
-  private val properties = PropertiesView(model, this)
+  private val view = PropertiesView(model)
+  private val properties = PropertiesPanel(model)
   private val controlTypeProvider = NeleControlTypeProvider()
   private val enumSupportProvider = NeleEnumSupportProvider()
   private val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
@@ -42,12 +44,13 @@ class NelePropertiesPanelToolContent(facet: AndroidFacet) : JPanel(BorderLayout(
 
   init {
     add(properties.component, BorderLayout.CENTER)
-    properties.builders.add(IdInspectorBuilder(editorProvider))
-    properties.builders.add(LayoutInspectorBuilder(facet.module.project, editorProvider))
-    properties.builders.add(ViewInspectorBuilder(facet.module.project, editorProvider))
-    properties.builders.add(TextViewInspectorBuilder(editorProvider))
-    properties.builders.add(ProgressBarInspectorBuilder(editorProvider))
-    properties.builders.add(FavoritesInspectorBuilder(editorProvider))
+    properties.addView(view)
+    view.builders.add(IdInspectorBuilder(editorProvider))
+    view.builders.add(LayoutInspectorBuilder(facet.module.project, editorProvider))
+    view.builders.add(ViewInspectorBuilder(facet.module.project, editorProvider))
+    view.builders.add(TextViewInspectorBuilder(editorProvider))
+    view.builders.add(ProgressBarInspectorBuilder(editorProvider))
+    view.builders.add(FavoritesInspectorBuilder(editorProvider))
   }
 
   override fun setToolContext(toolContext: DesignSurface?) {

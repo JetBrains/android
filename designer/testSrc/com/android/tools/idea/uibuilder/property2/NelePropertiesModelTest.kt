@@ -41,7 +41,7 @@ class NelePropertiesModelTest: LayoutTestCase() {
     // test
     model.surface = nlModel.surface
     waitUntilEventsProcessed(model)
-    verify(listener).propertiesGenerated()
+    verify(listener).propertiesGenerated(model)
   }
 
   fun testPropertiesGeneratedEventWhenSwitchingDesignSurface() {
@@ -59,7 +59,7 @@ class NelePropertiesModelTest: LayoutTestCase() {
     // test
     model.surface = nlModelB.surface
     waitUntilEventsProcessed(model)
-    verify(listener).propertiesGenerated()
+    verify(listener).propertiesGenerated(model)
     assertThat(model.properties[ANDROID_URI, ATTR_TEXT].components[0].model).isEqualTo(nlModelB)
   }
 
@@ -76,7 +76,7 @@ class NelePropertiesModelTest: LayoutTestCase() {
     // test
     nlModel.surface.selectionModel.setSelection(listOf(textView))
     waitUntilEventsProcessed(model)
-    verify(listener).propertiesGenerated()
+    verify(listener).propertiesGenerated(model)
   }
 
   fun testPropertiesChangedEventAfterRendering() {
@@ -95,7 +95,7 @@ class NelePropertiesModelTest: LayoutTestCase() {
     method.invoke(manager)
     UIUtil.dispatchAllInvocationEvents()
 
-    verify(listener).propertyValuesChanged()
+    verify(listener).propertyValuesChanged(model)
   }
 
   fun testAccessToDefaultPropertiesViaModel() {

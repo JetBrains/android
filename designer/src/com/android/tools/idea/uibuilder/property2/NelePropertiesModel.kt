@@ -77,7 +77,12 @@ class NelePropertiesModel(parentDisposable: Disposable, val facet: AndroidFacet)
   }
 
   override fun dispose() {
+    properties = PropertiesTable.emptyTable()
     useDesignSurface(null)
+  }
+
+  override fun deactivate() {
+    properties = PropertiesTable.emptyTable()
   }
 
   override fun addListener(listener: PropertiesModelListener) {
@@ -165,11 +170,11 @@ class NelePropertiesModel(parentDisposable: Disposable, val facet: AndroidFacet)
   }
 
   private fun firePropertiesGenerated() {
-    listeners.forEach { it.propertiesGenerated() }
+    listeners.forEach { it.propertiesGenerated(this) }
   }
 
   private fun firePropertyValueChange() {
-    listeners.forEach { it.propertyValuesChanged() }
+    listeners.forEach { it.propertyValuesChanged(this) }
   }
 
   private fun createNeleDefaultPropertyProvider(): NeleDefaultPropertyProvider? {

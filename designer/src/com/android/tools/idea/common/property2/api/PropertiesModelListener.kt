@@ -25,12 +25,12 @@ interface PropertiesModelListener {
    * There may be different reasons why this happened.
    * One example: the user selected different object to display properties for.
    */
-  fun propertiesGenerated()
+  fun propertiesGenerated(model: PropertiesModel<*>)
 
   /**
    * An update to 1 or more property values happened.
    *
    * The property items in the [PropertiesModel] are still the same.
    */
-  fun propertyValuesChanged()
+  fun propertyValuesChanged(model: PropertiesModel<*>)
 }

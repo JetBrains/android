@@ -27,12 +27,13 @@ The Property Inspector provides property editing with a number of predefined
 editors. Currently tabular editing is not supported, but that is expected to
 be added at some point.
 
-An implementation must implement a number of interfaces defined in the api
-package. The top level interface is a [PropertiesModel](#PropertiesModel).
-
-The top level UI component is a [PropertiesView](#PropertiesView). This
-component must be configured with a list of [InspectorBuilder](#InspectorBuilder)'s
-which each constructs a section of lines that make up the inspector.
+The top level UI component is a [PropertiesPanel](#PropertiesPanel). This
+component must be configured with a list of [PropertiesView](#PropertiesView)s.
+A property view holds:
+- a [PropertiesModel](#PropertiesModel) which controls what properties to
+  show and when to show them.
+- a list of [InspectorBuilder](#InspectorBuilder)s which are used to populate
+  lines in the inspector given which properties are currently available.
 
 
 Interfaces to Implement
@@ -193,15 +194,25 @@ methods (which each can be customized with builder style methods):
 Provided Implementations
 ========================
 
-PropertiesView
+PropertiesPanel
 -------------------------------------------------------------------------------
 
-Is the top level JPanel of the property inspector.
+Is the top level panel of the property inspector.
+The panel should be supplied with a list of [PropertiesView](#PropertiesView)
+instances. This panel will listen to events from the model from each view.
+When a model sends a `propertiesGenerated` event that view will replace the
+content of the property inspector until another view sends another
+`propertyGenerated` event.
+
+When the _active_ model sends a `propertyValuesChanged` event, the panel will
+delegate the event to all lines currently shown in the inspector.
+
+PropertiesView
+-------------------------------------------------------------------------------
 The view must be supplied with an implementation of a [PropertiesModel](#PropertiesModel)
-and a list of [InspectorBuilder](#InspectorBuilder)s.
-This view will listen to changes in the model and react accordingly by either
-rebuilding the entire inspector or delegate value changes to the individual
-lines and editors that make up the inspector.
+and a list of [InspectorBuilder](#InspectorBuilder)s. The view serves as a holder
+of these items but contains no logic in itself.
+
 
 Interfaces with provided default implementations
 -------------------------------------------------------------------------------
