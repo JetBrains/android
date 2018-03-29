@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
+import com.android.tools.idea.gradle.structure.model.PsDependency;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import org.jetbrains.annotations.NotNull;
@@ -54,6 +55,11 @@ public class PsAllModulesFakeModule extends PsModule {
 
   @Override
   public void addModuleDependency(@NotNull String modulePath, @NotNull List<String> scopesNames) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void removeDependency(@NotNull PsDependency dependency) {
     throw new UnsupportedOperationException();
   }
 
