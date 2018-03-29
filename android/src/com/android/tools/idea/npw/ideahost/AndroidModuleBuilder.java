@@ -21,7 +21,9 @@ import com.android.tools.idea.npw.module.ChooseModuleTypeStep;
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
 import com.android.tools.idea.npw.module.ModuleGalleryEntry;
 import com.android.tools.idea.npw.project.ChooseAndroidProjectStep;
+import com.android.tools.idea.npw.project.ConfigureAndroidSdkStep;
 import com.android.tools.idea.npw.project.deprecated.ConfigureAndroidProjectStep;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.google.common.base.Preconditions;
 import com.intellij.ide.projectWizard.ProjectTypeStep;
@@ -161,6 +163,10 @@ public final class AndroidModuleBuilder extends ModuleBuilder implements WizardD
     Preconditions.checkState(myWizardAdapter == null, "Attempting to create a Wizard Adaptor when one already exists.");
 
     ModelWizard.Builder builder = new ModelWizard.Builder();
+
+    if (IdeSdks.getInstance().getAndroidSdkPath() == null) {
+      builder.addStep(new ConfigureAndroidSdkStep());
+    }
     if (type == WizardType.PROJECT) {
       if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
         builder.addStep(new ChooseAndroidProjectStep(new NewProjectModel()));
