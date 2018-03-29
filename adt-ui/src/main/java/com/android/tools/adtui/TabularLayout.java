@@ -77,6 +77,7 @@ public final class TabularLayout implements LayoutManager2 {
        * Set this column to a fixed width in pixels.
        * <p/>
        * For fixed columns, {@link #getValue()} is a width in pixels.
+       * For fixed columns, {@link #getFitType()} has no meaning.
        */
       FIXED,
 
@@ -91,20 +92,48 @@ public final class TabularLayout implements LayoutManager2 {
        * with all other proportional columns to determine how much space it gets. For example, if
        * column A is set to 1 and column B is set to 3, column A gets 25% of all remaining space
        * and column B gets 75%.
+       * For proportional columns, {@link #getFitType()} has no meaning.
        */
       PROPORTIONAL,
     }
 
+    public enum FitSizing {
+      /**
+       * Default value returned for {@link Type.FIXED} and {@link Type.PROPORTIONAL} types.
+       */
+      UNINITIALIZED,
+      /**
+       * Use the elements minimum size for determining spacing.
+       * <p/>
+       * This is represented by a '-' at the end of "Fit".
+       * This is the default value for uninitialized rows/columns.
+       * TODO (b/77491599) Update unassigned rows to use preferred in place of minimum
+       */
+      MINIMUM,
+      /**
+       * Use the elements preferred size for determining spacing.
+       * <p/>
+       * This is the default value for "Fit" sizing.
+       */
+      PREFERRED,
+    }
+
     private final Type myType;
     private final int myValue; // Value's meaning depends on this constraint's type
+    private final FitSizing myFitSizing; // Value only meaningful for fit type.
 
-    public SizingRule(Type type) {
-      this(type, 0);
+    public SizingRule(Type type, FitSizing fitSizing) {
+      this(type, 0, fitSizing);
     }
 
     public SizingRule(Type type, int value) {
+      this(type, value, FitSizing.UNINITIALIZED);
+    }
+
+    public SizingRule(Type type, int value, FitSizing fitSizing) {
       myType = type;
       myValue = value;
+      myFitSizing = fitSizing;
     }
 
     public Type getType() {
@@ -113,6 +142,10 @@ public final class TabularLayout implements LayoutManager2 {
 
     public int getValue() {
       return myValue;
+    }
+
+    public FitSizing getFitSizing() {
+      return myFitSizing;
     }
 
     /**
@@ -126,8 +159,8 @@ public final class TabularLayout implements LayoutManager2 {
     @NotNull
     public static SizingRule fromString(@NotNull String s) throws IllegalArgumentException {
       try {
-        if (s.equals("Fit")) {
-          return new SizingRule(SizingRule.Type.FIT);
+        if (s.startsWith("Fit")) {
+          return new SizingRule(Type.FIT, s.endsWith("-") ? FitSizing.MINIMUM : FitSizing.PREFERRED);
         }
         else if (s.endsWith("px")) {
           int value = Integer.parseInt(s.substring(0, s.length() - 2)); // e.g. "30px" -> "30"
@@ -250,32 +283,9 @@ public final class TabularLayout implements LayoutManager2 {
   private static SizingRule[] parseSizingRules(String colSizesString) {
     String[] sizeStrings = colSizesString.split(",");
     SizingRule[] colSizes = new SizingRule[sizeStrings.length];
-    try {
-      for (int i = 0; i < sizeStrings.length; i++) {
-        String s = sizeStrings[i];
-        if (s.equals("Fit")) {
-          colSizes[i] = new SizingRule(SizingRule.Type.FIT);
-        }
-        else if (s.endsWith("px")) {
-          int value = Integer.parseInt(s.substring(0, s.length() - 2)); // e.g. "30px" -> "30"
-          colSizes[i] = new SizingRule(SizingRule.Type.FIXED, value);
-        }
-        else if (s.equals("*")) {
-          colSizes[i] = new SizingRule(SizingRule.Type.PROPORTIONAL, 1);
-        }
-        else if (s.endsWith("*")) {
-          int value = Integer.parseInt(s.substring(0, s.length() - 1)); // e.g. "3*" -> "3"
-          colSizes[i] = new SizingRule(SizingRule.Type.PROPORTIONAL, value);
-        }
-        else {
-          throw new IllegalArgumentException(String.format("Bad column definition: \"%1$s\" in \"%2$s\"", s, colSizesString));
-        }
-      }
+    for (int i = 0; i < sizeStrings.length; i++) {
+      colSizes[i] = SizingRule.fromString(sizeStrings[i]);
     }
-    catch (NumberFormatException ex) {
-      throw new IllegalArgumentException(String.format("Bad column definition: \"%s\"", colSizesString));
-    }
-
     return colSizes;
   }
 
@@ -304,7 +314,7 @@ public final class TabularLayout implements LayoutManager2 {
 
   @Override
   public void addLayoutComponent(Component comp, Object constraint) {
-    if (constraint == null || !(constraint instanceof Constraint)) {
+    if (!(constraint instanceof Constraint)) {
       throw new IllegalArgumentException("Children of ProportionalLayouts must be added with a property constraint");
     }
 
@@ -447,7 +457,8 @@ public final class TabularLayout implements LayoutManager2 {
       for (int i = 0; i < numRules; i++) {
         SizingRule rule = sparseRules.get(i);
         if (rule == null) {
-          rule = new SizingRule(SizingRule.Type.FIT);
+          //TODO (b/77491599) Update unassigned rows to use preferred in place of minimum
+          rule = new SizingRule(SizingRule.Type.FIT, SizingRule.FitSizing.MINIMUM);
         }
         rules.add(rule);
       }
@@ -500,6 +511,19 @@ public final class TabularLayout implements LayoutManager2 {
         // after it takes its percentage cut.
         myExtraSize = Math.max(myExtraSize, Math.round(size / myPercentages.get(i)));
       }
+    }
+
+    /**
+     * Gets the dimensions for a component based on the type for the specified rule.
+     * The default sizing rule is minimum. The "Fit" sizing rule uses preferred and is
+     * the only exception to this.
+     */
+    public Dimension getComponentDimension(int i, Component c) {
+      SizingRule sizingRule = myRules.get(i);
+      if (sizingRule.getFitSizing() == SizingRule.FitSizing.PREFERRED) {
+        return c.getPreferredSize();
+      }
+      return c.getMinimumSize();
     }
 
     /**
@@ -625,11 +649,12 @@ public final class TabularLayout implements LayoutManager2 {
         }
 
         Constraint constraint = myConstraints.get(c);
-        Dimension size = c.getMinimumSize();
         if (constraint.getColSpan() == 1) {
+          Dimension size = colCalculator.getComponentDimension(constraint.getCol(), c);
           colCalculator.notifySize(constraint.getCol(), size.width);
         }
         if (constraint.getRowSpan() == 1) {
+          Dimension size = rowCalculator.getComponentDimension(constraint.getRow(), c);
           rowCalculator.notifySize(constraint.getRow(), size.height);
         }
       }

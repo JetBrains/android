@@ -97,10 +97,16 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     HIDEABLE_PANEL_EXPANDED("6*"),
 
     /**
-     * String to represent the threads/kernel view when an element is hidden. This value is used when the {@link HideablePanel} is
+     * String to represent the threads view when an element is hidden. This value is used when the {@link HideablePanel} is
      * collapsed and we need to adjust the size of our layout accordingly.
      */
-    HIDEABLE_PANEL_COLLAPSED("Fit");
+    HIDEABLE_PANEL_COLLAPSED("Fit-"),
+
+    /**
+     * String to represent the kernel view. This string means that the elements preferred size will be used when determining
+     * sizing. As such the panel does not need to change sizing rules when expanding/collapsing.
+     */
+    HIDEABLE_PANEL_FIT("Fit");
 
     private final String myLayoutString;
 
@@ -203,7 +209,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     final OverlayComponent overlay = new OverlayComponent(mySelection);
 
     // "Fit" for the event profiler, "*" for everything else.
-    final JPanel details = new JPanel(new TabularLayout("*", "Fit,*"));
+    final JPanel details = new JPanel(new TabularLayout("*", "Fit-,*"));
     details.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
 
     if (!myStage.isImportTraceMode()) {
@@ -230,7 +236,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     // The cpu monitor takes up 40%.
     monitorCpuThreadsLayout.setRowSizing(MONITOR_PANEL_ROW, PanelSpacing.MONITOR_PANEL_SPACING.toString());
     // The CPU list is hidden by default so we use "Fit" making it be 0.
-    monitorCpuThreadsLayout.setRowSizing(KERNEL_PANEL_ROW, PanelSpacing.HIDEABLE_PANEL_COLLAPSED.toString());
+    monitorCpuThreadsLayout.setRowSizing(KERNEL_PANEL_ROW, PanelSpacing.HIDEABLE_PANEL_FIT.toString());
     // The threads list is expanded and takes up roughly 60%.
     monitorCpuThreadsLayout.setRowSizing(THREADS_PANEL_ROW, PanelSpacing.HIDEABLE_PANEL_EXPANDED.toString());
 
@@ -354,22 +360,14 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       // get triggered and we will not update our layout.
       .setInitiallyExpanded(false)
       .build();
-      hideableCpus.addStateChangedListener((actionEvent) -> {
-        // On expanded set row sizing to initial ratio.
-        if (hideableCpus.isExpanded()) {
-          monitorCpuThreadsLayout.setRowSizing(KERNEL_PANEL_ROW, PanelSpacing.HIDEABLE_PANEL_EXPANDED.toString());
-        }
-        else {
-          // On collapse have monitor panel take any left over space.
-          monitorCpuThreadsLayout.setRowSizing(KERNEL_PANEL_ROW, PanelSpacing.HIDEABLE_PANEL_COLLAPSED.toString());
-        }
-      });
 
     // Handle when we get CPU data we want to show the cpu list.
     cpuModel.addListDataListener(new ListDataListener() {
       @Override
       public void contentsChanged(ListDataEvent e) {
         boolean hasElements = myCpus.getModel().getSize() != 0;
+        // Lets only show 4 cores max the user can scroll to view the rest.
+        myCpus.setVisibleRowCount(Math.min(4, myCpus.getModel().getSize()));
         hideableCpus.setVisible(hasElements);
         hideableCpus.setExpanded(hasElements);
         // When the CpuKernelModel is updated we adjust the splitter. The higher the number the more space
