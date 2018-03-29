@@ -241,11 +241,15 @@ public class TargetSnapper {
     return myVerticalNotch == null ? null : myVerticalNotch.myTarget;
   }
 
-  public void reset() {
-    myNotchesForSnapping = ImmutableList.of();
+  public void clearSnappedNotches() {
     myHorizontalNotch = null;
     myVerticalNotch = null;
     myCircularNotch = null;
+  }
+
+  public void reset() {
+    myNotchesForSnapping = ImmutableList.of();
+    clearSnappedNotches();
   }
 
   /**

@@ -1,0 +1,60 @@
+<!--
+  ~ Copyright (C) 2018 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!-- For better readability, Please open this file in the browser -->
+
+**Design Doc of RelativeLayout**
+
+*Last updated: April 3rd 2018*
+
+Overview
+========
+
+RelativeLayout supports dragging, resizing, and constraint creation in Layout Editor.
+
+Resizing
+========
+
+RelativeLayout offers `RelativeResizeTarget` to support resizing function. Resizing doesn't create or remove any constraint. Instead of
+that, it updates the margin value(s).
+
+Constraint Creation
+===================
+
+RelativeLayout offers `RelativeAnchorTarget` to support constraint creation. Dragging from one anchor to another anchor create a
+constraint. Only legal anchor should be display while dragging the anchor. It is possible to drag the anchor to the parent to create
+the Constraint to the parent as well.
+
+Dragging
+========
+
+RelativeLayout offers `RelativeDragHandler` and `RelativeDragTarget` to support dragging behaviours. `RelativeDragHandler` is used when
+dragging component from Palette or ComponentTree and `RelativeDragTarget` is used to support dragging component inside the RelativeLayout.
+
+Dragging Component from Palette
+-------------------------------
+When dragging from Palette, the dragged component is added to RelativeLayout.<br>
+Constraint will be automatically added to keep the component at the position where it was dropped.
+
+Dragging Component inside RelativeLayout
+----------------------------------------
+Before AS 3.1, dragging component used to change the constraints. But it is because we didn't provide other way to create the constraint.
+Since RelativeLayout now offers the anchor to create the constraint, dragging inside RelativeLayout doesn't add or remove any constraint
+anymore.<br>
+If it already has constraint in the given direction, the corresponding margin is updated. Otherwise it creates the constraint related to
+RelativeLayout itself.
+
+<!-- Markdeep: --><style class="fallback">body{visibility:hidden;white-space:pre;font-family:monospace}</style><script src="markdeep.min.js"></script><script src="https://casual-effects.com/markdeep/latest/markdeep.min.js"></script><script>window.alreadyProcessedMarkdeep||(document.body.style.visibility="visible")</script>

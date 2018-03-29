@@ -26,11 +26,7 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.target.AnchorTarget
 import com.android.tools.idea.common.scene.target.Target
-import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawAnchor
-import com.android.tools.idea.uibuilder.model.TextDirection
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.google.common.collect.ImmutableList
 
 /**
  * Target offers the anchors in RelativeLayout.
@@ -42,7 +38,6 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
    * Note that this doesn't mean the associated component is dragging. This means Anchor itself is dragging.
    */
   private var isDragging = false
-  private var rtlDirection = TextDirection.LEFT_TO_RIGHT
   /**
    * Used to record the aligned component ids.
    */
@@ -50,8 +45,6 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
 
   override fun setComponent(component: SceneComponent) {
     super.setComponent(component)
-    rtlDirection = if (component.scene.isInRTL) TextDirection.RIGHT_TO_LEFT else TextDirection.LEFT_TO_RIGHT
-
     updateAlignedComponentIds()
   }
 
@@ -290,37 +283,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
     return Pair(marginAttribute, String.format(VALUE_N_DP, marginValue))
   }
 
-  /**
-   * Get the proper attributes for real layout file, which consider minimal SDK and target SDK.
-   */
-  private fun getProperAttributesForLayout(attribute: String?): List<String> {
-    if (attribute == null) {
-      return emptyList()
-    }
-    val builder = ImmutableList.Builder<String>()
-
-    val viewEditor = (myComponent.scene.sceneManager as LayoutlibSceneManager).viewEditor
-    if (viewEditor.minSdkVersion.apiLevel < RtlSupportProcessor.RTL_TARGET_SDK_START) {
-      builder.add(attribute)
-    }
-
-    if (viewEditor.targetSdkVersion.apiLevel >= RtlSupportProcessor.RTL_TARGET_SDK_START) {
-      val rtlAttribute = when (attribute) {
-        ATTR_LAYOUT_ALIGN_PARENT_LEFT -> rtlDirection.attrAlignParentLeft
-        ATTR_LAYOUT_ALIGN_PARENT_RIGHT -> rtlDirection.attrAlignParentRight
-        ATTR_LAYOUT_ALIGN_LEFT -> rtlDirection.attrLeft
-        ATTR_LAYOUT_ALIGN_RIGHT -> rtlDirection.attrRight
-        ATTR_LAYOUT_TO_LEFT_OF -> rtlDirection.attrLeftOf
-        ATTR_LAYOUT_TO_RIGHT_OF -> rtlDirection.attrRightOf
-        ATTR_LAYOUT_MARGIN_LEFT -> rtlDirection.attrMarginLeft
-        ATTR_LAYOUT_MARGIN_RIGHT -> rtlDirection.attrMarginRight
-        else -> attribute
-      }
-      builder.add(rtlAttribute)
-    }
-
-    return builder.build()
-  }
+  private fun getProperAttributesForLayout(attribute: String?) = getProperAttributesForLayout(myComponent, attribute)
 }
 
 private val SIBLING_ALIGNMENT_ATTRIBUTES = listOf(

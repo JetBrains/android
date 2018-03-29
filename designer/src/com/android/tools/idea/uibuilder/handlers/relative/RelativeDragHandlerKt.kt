@@ -29,8 +29,10 @@ import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeDragTa
 import com.android.tools.idea.uibuilder.model.h
 import com.android.tools.idea.uibuilder.model.w
 
+private const val ERROR_UNDEFINED = "undefined"
+
 /**
- * TODO: don't allow dragging multiple component from Component Tree
+ * [DragHandler] handles the dragging from Palette and ComponentTree to RelativeLayout
  */
 internal class RelativeDragHandlerKt(editor: ViewEditor,
                                      handler: RelativeLayoutHandlerKt,
@@ -39,26 +41,40 @@ internal class RelativeDragHandlerKt(editor: ViewEditor,
                                      type: DragType
 ) : DragHandler(editor, handler, layout, components, type) {
 
-  private val component: SceneComponent
+  private val component: SceneComponent?
   private val dragTarget = RelativeDragTarget()
 
   init {
-    assert(!components.isEmpty())
-    val dragged = components[0]
-    component = layout.scene.getSceneComponent(dragged) ?:
-        TemporarySceneComponent(layout.scene, dragged).apply { setSize(editor.pxToDp(dragged.w), editor.pxToDp(dragged.h), false) }
+    if (components.size == 1) {
+      val dragged = components[0]
+      component = layout.scene.getSceneComponent(dragged) ?: TemporarySceneComponent(layout.scene, dragged).apply {
+        setSize(editor.pxToDp(dragged.w), editor.pxToDp(dragged.h), false)
+      }
 
-    component.setTargetProvider({ _ -> mutableListOf<Target>(dragTarget) })
-    layout.addChild(component)
-    component.drawState = SceneComponent.DrawState.DRAG
+      component.setTargetProvider({ _ -> mutableListOf<Target>(dragTarget) })
+      // Note: Don't use [dragged] in this lambda function since the content of components may be replaced within interaction.
+      // This weird implementation may be fixed in the future, but we just work around here.
+      component.setComponentProvider { _ -> components[0] }
+      layout.addChild(component)
+      component.drawState = SceneComponent.DrawState.DRAG
+    }
+    else {
+      component = null
+    }
   }
 
   override fun start(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, modifiers: Int) {
+    if (component == null) {
+      return
+    }
     super.start(x, y, modifiers)
     dragTarget.mouseDown(x, y)
   }
 
   override fun update(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, modifiers: Int): String? {
+    if (component == null) {
+      return ERROR_UNDEFINED
+    }
     val result = super.update(x, y, modifiers)
     @AndroidDpCoordinate val dx = x + startX - component.drawWidth / 2
     @AndroidDpCoordinate val dy = y + startY - component.drawHeight / 2
@@ -67,19 +83,24 @@ internal class RelativeDragHandlerKt(editor: ViewEditor,
   }
 
   override fun commit(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int, modifiers: Int, insertType: InsertType) {
-    editor.insertChildren(layout.nlComponent, components, -1, insertType)
-    for (child in components) {
-      @AndroidDpCoordinate val dx = editor.pxToDp(x) + startX - component.drawWidth / 2
-      @AndroidDpCoordinate val dy = editor.pxToDp(y) + startY - component.drawHeight / 2
-      dragTarget.mouseRelease(dx, dy, child)
+    if (component == null) {
+      return
     }
+    editor.insertChildren(layout.nlComponent, components, -1, insertType)
+    assert(components.size == 1)
+    @AndroidDpCoordinate val dx = editor.pxToDp(x) + startX - component.drawWidth / 2
+    @AndroidDpCoordinate val dy = editor.pxToDp(y) + startY - component.drawHeight / 2
+    dragTarget.mouseRelease(dx, dy, emptyList())
+
     // Remove Temporary SceneComponent
     layout.scene.removeComponent(component)
     layout.scene.checkRequestLayoutStatus()
   }
 
   override fun cancel() {
-    layout.scene.removeComponent(component)
+    if (component != null) {
+      layout.scene.removeComponent(component)
+    }
     dragTarget.cancel()
   }
 }
