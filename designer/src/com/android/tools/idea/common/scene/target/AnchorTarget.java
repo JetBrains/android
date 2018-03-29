@@ -132,7 +132,7 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
         break;
     }
     DecoratorUtilities.ViewStates mode = DecoratorUtilities.ViewStates.SELECTED;
-    if (isTargeted()) {
+    if (mIsOver) {
       mode = DecoratorUtilities.ViewStates.WILL_DESTROY;
     }
     DecoratorUtilities.setTimeChange(myComponent.getNlComponent(), dir, mode);
