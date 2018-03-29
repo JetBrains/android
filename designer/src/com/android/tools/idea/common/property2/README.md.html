@@ -1,0 +1,215 @@
+<!--
+  ~ Copyright (C) 2018 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!-- For better readability, Please open this file in the browser -->
+
+**Property Inspector v2**
+
+*Last updated: March 28th 2018*
+
+Overview
+========
+
+The Property Inspector provides property editing with a number of predefined
+editors. Currently tabular editing is not supported, but that is expected to
+be added at some point.
+
+An implementation must implement a number of interfaces defined in the api
+package. The top level interface is a [PropertiesModel](#PropertiesModel).
+
+The top level UI component is a [PropertiesView](#PropertiesView). This
+component must be configured with a list of [InspectorBuilder](#InspectorBuilder)'s
+which each constructs a section of lines that make up the inspector.
+
+
+Interfaces to Implement
+=======================
+
+PropertiesModel
+-------------------------------------------------------------------------------
+
+The implementation of
+[PropertiesModel.kt](http://cs/android/tools/adt/idea/designer/src/com/android/tools/idea/common/property2/api/PropertiesModel.kt)
+should hold the logic for:
+- creating the table of properties that can be displayed and edited with the inspector
+- notifying the editors to update after the values of the properties may have changed
+
+The inspector will register listeners via
+[PropertiesModelListener.kt](http://cs/android/tools/adt/idea/designer/src/com/android/tools/idea/common/property2/api/PropertiesModelListener.kt)
+and the model will must send the following notifications:
+- propertiesGenerated: when a "new" component has been selected and new properties are available.
+  The Property Inspector will then regenerate the UI to match the newly selected object.
+- propertiesValueChanged: when one or more property values have changed. The Property Inspector
+  will then update the UI but not regenerate the UI. The properties supplied must remain
+  the same [PropertyItem](#PropertyItem) instances.
+
+
+The properties must be supplied as a [PropertiesTable](#PropertiesTable).
+
+PropertiesTable
+-------------------------------------------------------------------------------
+
+Is a readonly table of [PropertyItem](#PropertyItem) properties.
+The table is indexed by namespace and name. The names will show up in the UI,
+but it is up to the implementation how the namespace information is used.
+
+There is a default implementation with a Table as backing store in
+[PropertiesTable.kt](http://cs/android/tools/adt/idea/designer/src/com/android/tools/idea/common/property2/api/PropertiesTable.kt).
+
+PropertyItem
+-------------------------------------------------------------------------------
+
+An implementation must implement the
+[PropertyItem.kt](http://cs/android/tools/adt/idea/designer/src/com/android/tools/idea/common/property2/api/PropertyItem.kt)
+interface which should be used for all properties. The most important fields are:
+- value: The value that should be shown in the UI.
+- isReference: Which is true if the value is a reference to a different value
+- resolvedValue: The resolved value if the original value is a reference. Some
+  editors e.g. a boolean editor is only able to show resolved values.
+
+In addition an implementation could also implement the following interfaces:
+- [ActionButtonSupport.kt](http://cs/android/tools/adt/idea/designer/src/com/android/tools/idea/common/property2/api/ActionButtonSupport.kt)
+   for displaying an icon after the editor with an action or an action group.
+- [HelpSupport.kt](http://cs/android/tools/adt/idea/designer/src/com/android/tools/idea/common/property2/api/HelpSupport.kt)
+   for supporting F1 and shift-F1 help while an editor has focus.
+
+InspectorBuilder
+-------------------------------------------------------------------------------
+
+An [InspectorBuilder.kt](http://cs/android/tools/adt/idea/designer/src/com/android/tools/idea/common/property2/api/InspectorBuilder.kt)
+builds a section of lines in the inspector.
+The implementation of an inspector must implement one of more of these builders
+and supply them to the [PropertiesView](#PropertiesView) in the order the sections
+should appear. Use the builders property on the [PropertiesView](#PropertiesView).
+
+An implementation of an [InspectorBuilder](#InspectorBuilder) is usually given an
+[EditorProvider](#EditorProvider) which is able to generate a line for a given
+[PropertyItem](#PropertyItem). The lines generated in a section may contain lines
+generated by the [EditorProvider](#EditorProvider) and/or custom lines with custom
+controls. Separator lines and title lines can also be included. Custom lines must
+be accompanied by an
+[InspectorLineModel.kt](http://cs/android/tools/adt/idea/designer/src/com/android/tools/idea/common/property2/api/InspectorLineModel.kt)
+or use the base class:
+[GenericInspectorLineModel.kt](http://cs/android/tools/adt/idea/designer/src/com/android/tools/idea/common/property2/impl/GenericInspectorLineModel.kt).
+
+
+Title lines and lines from the builtin [EditorProvider](#EditorProvider) support
+collapsible sections. The [InspectorBuilder](#InspectorBuilder) is responsible for
+specifying the hierarchy of these collapsible sections.
+
+Here is a couple of implementations used in Nele:
+- [IdInspectorBuilder.kt](http://cs/android/tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/property2/inspector/IdInspectorBuilder.kt)
+- [ViewInspectorBuilder.kt](http://cs/android/tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/property2/inspector/ViewInspectorBuilder.kt)
+- [TextViewInspectorBuilder.kt](http://cs/android/tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/property2/inspector/TextViewInspectorBuilder.kt)
+- [ProgressBarInspectorBuilder.kt](http://cs/android/tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/property2/inspector/ProgressBarInspectorBuilder.kt)
+- [LayoutInspectorBuilder.kt](http://cs/android/tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/property2/inspector/LayoutInspectorBuilder.kt)
+- [FavoritesInspectorBuilder.kt](http://cs/android/tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/property2/inspector/FavoritesInspectorBuilder.kt)
+
+EditorProvider
+-------------------------------------------------------------------------------
+
+An [EditorProvider.kt](http://cs/android/tools/adt/idea/designer/src/com/android/tools/idea/common/property2/api/EditorProvider.kt)
+should be provided to generate a line from a given [PropertyItem](#PropertyItem).
+Each line should consist of an editor for the specified property and a corresponding
+model (the model also serves as the controller of the editor in the MVC pattern).
+
+An implementation may choose to use the builtin [EditorProvider](#EditorProider)
+by calling the create method with implementations of a [EnumSupportProvider](#EnumSupportProvider)
+and a [ControlTypeProvider](#ControlTypeProvider). The builtin editors include:
+- a text editor
+- a comboBox and a dropDown editor see: [EnumSupport](#EnumSupport)
+- a boolean editor (has 3 states: on/off/unset)
+- a flag editor see: [FlagsPropertyItem](#FlagsPropertyItem)
+- (more is expected)
+
+ControlTypeProvider
+-------------------------------------------------------------------------------
+
+An implementation can optionally implement an [ControlTypeProvider](#ControlTypeProvider)
+which will provide the
+[ControlType](http://cs/android/tools/adt/idea/designer/src/com/android/tools/idea/common/property2/api/ControlType.kt)
+for a given property.
+
+The ControlType is referring to the editor type being generated by the
+default [EditorProvider](#EditorProvider).
+
+
+EnumSupportProvider
+-------------------------------------------------------------------------------
+
+An implementation can optionally implement an [EnumSupportProvider](#EnumSupportProvider)
+which will provide the [EnumSupport](#EnumSupport) for a given property.
+
+By providing [EnumSupport](#EnumSupport) for a property, the default
+[EditorProvider](#EditorProvider) will generate a ComboBox editor where the elements
+in the dropdown are specified by the [EnumSupport](#EnumSupport).
+
+EnumSupport
+-------------------------------------------------------------------------------
+
+An EnumSupport implementation will provide:
+- the values specified as [EnumValue](#EnumValue) shown in the dropdown of the comboBox
+- a ListCellRenderer which can be used to provide custom rendering of
+  each value in the dropdown.
+
+There is a default implementation of an [EnumSupport](#EnumSupport) if
+the values are a simple list of strings.
+
+There is also a default implementation of a renderer that can display the
+structure supported by an [EnumValue](#EnumValue).
+
+EnumValue
+-------------------------------------------------------------------------------
+
+Each [EnumValue](#EnumValue) contains a:
+- value that is used if this [EnumValue](#EnumValue) is selected
+- display value that is meant to be shown instead of the value if any
+- header if this [EnumValue](#EnumValue) is the first element in a section
+- separator if this element is the first element after a separator
+- indentation if this element should be indented (only 1 level supported)
+- an action if this element should perform an action instead of supplying
+  a new value to the property. An action could be to bring up a dialog or
+  a bubble editor.
+
+There is a default implementation of an EnumValue. Check out the following
+methods (which each can be customized with builder style methods):
+- item
+- indented
+- action
+
+Provided Implementations
+========================
+
+PropertiesView
+-------------------------------------------------------------------------------
+
+Is the top level JPanel of the property inspector.
+The view must be supplied with an implementation of a [PropertiesModel](#PropertiesModel)
+and a list of [InspectorBuilder](#InspectorBuilder)s.
+This view will listen to changes in the model and react accordingly by either
+rebuilding the entire inspector or delegate value changes to the individual
+lines and editors that make up the inspector.
+
+Interfaces with provided default implementations
+-------------------------------------------------------------------------------
+
+The following interfaces have default implementations:
+- [PropertiesTable](#PropertiesTable)
+- [EditorProvider](#EditorProvider)
+- [EnumSupport](#EnumSupport)
+- [EnumValue](#EnumValue)
+
+<!-- Markdeep: --><style class="fallback">body{visibility:hidden;white-space:pre;font-family:monospace}</style><script src="markdeep.min.js"></script><script src="https://casual-effects.com/markdeep/latest/markdeep.min.js"></script><script>window.alreadyProcessedMarkdeep||(document.body.style.visibility="visible")</script>
