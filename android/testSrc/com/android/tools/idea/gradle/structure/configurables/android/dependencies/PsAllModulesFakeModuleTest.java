@@ -47,7 +47,7 @@ public class PsAllModulesFakeModuleTest {
 
   @Test
   public void appplyChanges() throws Exception {
-    myallModules.appplyChanges();
+    myallModules.applyChanges();
 
     verify(myProject, only()).applyChanges();
   }

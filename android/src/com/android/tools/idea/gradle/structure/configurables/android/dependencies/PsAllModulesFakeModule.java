@@ -32,7 +32,8 @@ public class PsAllModulesFakeModule extends PsModule {
     return getParent().isModified();
   }
 
-  public void appplyChanges() {
+  @Override
+  public void applyChanges() {
     getProject().applyChanges();
   }
 

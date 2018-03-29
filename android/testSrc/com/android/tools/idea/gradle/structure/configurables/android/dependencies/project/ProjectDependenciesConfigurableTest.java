@@ -46,7 +46,7 @@ public class ProjectDependenciesConfigurableTest {
   @Test
   public void testApply() throws ConfigurationException {
     myConfigurable.apply();
-    verify(myAllModules, only()).appplyChanges();
+    verify(myAllModules, only()).applyChanges();
   }
 
   @Test
