@@ -61,7 +61,7 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
   implements ToolContent<DesignSurface>, DesignSurfaceListener, ModelListener, Disposable {
   public final static int UPDATE_DELAY_MSECS = 250;
   private final static int START_DELAY_MSECS = 20;
-  private final static int MINIMUM_WIDTH = 250;
+  public final static int MINIMUM_WIDTH = 250;
 
   private final Project myProject;
   private final AndroidFacet myFacet;
