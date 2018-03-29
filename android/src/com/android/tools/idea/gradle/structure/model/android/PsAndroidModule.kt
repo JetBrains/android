@@ -79,22 +79,9 @@ class PsAndroidModule(
 
   override fun getIcon(): Icon? = getAndroidModuleIcon(gradleModel)
 
-  override fun getGradlePath(): String = super.getGradlePath()!!
-
-  override fun getResolvedModel(): Module = super.getResolvedModel()!!
-
-  override fun getArtifactRepositories(): List<ArtifactRepository> {
-    val repositories = mutableListOf<ArtifactRepository>()
-    populateRepositories(repositories)
-    var repository = AndroidSdkRepositories.getAndroidRepository()
-    if (repository != null) {
-      repositories.add(repository)
-    }
-    repository = AndroidSdkRepositories.getGoogleRepository()
-    if (repository != null) {
-      repositories.add(repository)
-    }
-    return repositories
+  override fun populateRepositories(repositories: MutableList<ArtifactRepository>) {
+    super.populateRepositories(repositories)
+    repositories.addAll(listOfNotNull(AndroidSdkRepositories.getAndroidRepository(), AndroidSdkRepositories.getGoogleRepository()))
   }
 
   // TODO(solodkyy): Return a collection of PsBuildConfiguration instead of strings.

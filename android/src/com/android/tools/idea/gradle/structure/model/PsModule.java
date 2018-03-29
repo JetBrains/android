@@ -153,13 +153,13 @@ public abstract class PsModule extends PsChildModel {
   }
 
   @NotNull
-  public List<ArtifactRepository> getArtifactRepositories() {
+  public final List<ArtifactRepository> getArtifactRepositories() {
     List<ArtifactRepository> repositories = Lists.newArrayList();
     populateRepositories(repositories);
     return repositories;
   }
 
-  protected final void populateRepositories(@NotNull List<ArtifactRepository> repositories) {
+  protected void populateRepositories(@NotNull List<ArtifactRepository> repositories) {
     GradleBuildModel parsedModel = getParsedModel();
     if (parsedModel != null) {
       for (RepositoryModel repositoryModel : parsedModel.repositories().repositories()) {

@@ -87,7 +87,7 @@ public class ProjectDependenciesConfigurable extends AbstractDependenciesConfigu
 
   @Override
   public void apply() throws ConfigurationException {
-    myModule.appplyChanges();
+    myModule.applyChanges();
   }
 
   @Override
