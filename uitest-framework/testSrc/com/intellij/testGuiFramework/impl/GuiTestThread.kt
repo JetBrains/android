@@ -21,9 +21,7 @@ import com.intellij.testGuiFramework.remote.JUnitClientListener
 import com.intellij.testGuiFramework.remote.client.ClientHandler
 import com.intellij.testGuiFramework.remote.client.JUnitClient
 import com.intellij.testGuiFramework.remote.client.JUnitClientImpl
-import com.intellij.testGuiFramework.remote.transport.JUnitTestContainer
-import com.intellij.testGuiFramework.remote.transport.MessageType
-import com.intellij.testGuiFramework.remote.transport.TransportMessage
+import com.intellij.testGuiFramework.remote.transport.*
 import org.junit.runner.JUnitCore
 import org.junit.runner.Request
 import org.junit.runner.RunWith
@@ -48,7 +46,7 @@ class GuiTestThread : Thread(GUI_TEST_THREAD_NAME) {
   override fun run() {
     client = JUnitClientImpl(host(), port(), createHandlers())
 
-    core.addListener(JUnitClientListener({ jUnitInfo -> client!!.send(TransportMessage(MessageType.JUNIT_INFO, jUnitInfo)) }))
+    core.addListener(JUnitClientListener({ jUnitInfo -> client!!.send(JUnitInfoMessage(jUnitInfo)) }))
 
     try {
       while (true) {
@@ -62,21 +60,10 @@ class GuiTestThread : Thread(GUI_TEST_THREAD_NAME) {
 
   private fun createHandlers(): Array<ClientHandler> {
     val testHandler = object : ClientHandler {
-      override fun accept(message: TransportMessage) = message.type == MessageType.RUN_TEST
+      override fun accept(message: MessageFromServer) = message is RunTestMessage
 
-      override fun handle(message: TransportMessage) {
-        val content = (message.content as JUnitTestContainer)
-        System.setProperty(GuiTestOptions.SEGMENT_INDEX, "0")
-        LOG.info("Added test to testQueue: ${content.toString()}")
-        testQueue.add(content)
-      }
-    }
-
-    val testResumeHandler = object : ClientHandler {
-      override fun accept(message: TransportMessage) = message.type == MessageType.RESUME_TEST
-
-      override fun handle(message: TransportMessage) {
-        val content = (message.content as JUnitTestContainer)
+      override fun handle(message: MessageFromServer) {
+        val content = (message as RunTestMessage).testContainer
         System.setProperty(GuiTestOptions.SEGMENT_INDEX, content.segmentIndex.toString())
         LOG.info("Added test to testQueue: $content")
         testQueue.add(content)
@@ -84,14 +71,14 @@ class GuiTestThread : Thread(GUI_TEST_THREAD_NAME) {
     }
 
     val closeHandler = object : ClientHandler {
-      override fun accept(message: TransportMessage) = message.type == MessageType.CLOSE_IDE
+      override fun accept(message: MessageFromServer) = message is CloseIdeMessage
 
-      override fun handle(message: TransportMessage) {
+      override fun handle(message: MessageFromServer) {
         client?.stop()
       }
     }
 
-    return arrayOf(testHandler, testResumeHandler, closeHandler)
+    return arrayOf(testHandler, closeHandler)
   }
 
   private fun host(): String = System.getProperty(GuiTestStarter.GUI_TEST_HOST)

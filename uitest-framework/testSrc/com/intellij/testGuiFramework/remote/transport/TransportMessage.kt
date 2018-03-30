@@ -16,12 +16,18 @@
 package com.intellij.testGuiFramework.remote.transport
 
 import java.io.Serializable
-import java.util.concurrent.ThreadLocalRandom
 
 /**
  * @author Sergey Karashevich
  */
 
-enum class MessageType {RUN_TEST, CLOSE_IDE, JUNIT_INFO, RESTART_IDE, RESTART_IDE_AND_RESUME, RESUME_TEST, KEEP_ALIVE }
-data class TransportMessage(val type: MessageType, val content: Any? = null, val id: Long = ThreadLocalRandom.current().nextLong()): Serializable
+sealed class TransportMessage: Serializable
+sealed class MessageFromClient: TransportMessage()
+sealed class MessageFromServer: TransportMessage()
 
+data class RunTestMessage(val testContainer: JUnitTestContainer): MessageFromServer()
+class CloseIdeMessage: MessageFromServer()
+
+data class RestartIdeMessage(val resumeTest: Boolean = false, val index: Int = 0): MessageFromClient()
+data class JUnitInfoMessage(val info: JUnitInfo): MessageFromClient()
+class KeepAliveMessage: MessageFromClient()

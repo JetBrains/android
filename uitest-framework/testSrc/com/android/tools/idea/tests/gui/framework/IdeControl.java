@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.testGuiFramework.impl.GuiTestThread;
 import com.intellij.testGuiFramework.remote.client.JUnitClient;
+import com.intellij.testGuiFramework.remote.transport.RestartIdeMessage;
 import com.intellij.testGuiFramework.remote.transport.TransportMessage;
 import org.fest.swing.core.BasicRobot;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -33,7 +34,7 @@ import java.util.concurrent.TimeUnit;
 
 public class IdeControl extends TestWatcher {
 
-  public static TransportMessage restartMessage = null;
+  public static RestartIdeMessage restartMessage = null;
 
   /**
    * This test rule ensures that the IDE has initialized fully before proceeding with a test. This is needed when running tests with
