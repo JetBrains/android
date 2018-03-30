@@ -324,7 +324,7 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
     }
 
     @TestOnly
-    public boolean stop() {
+    public ContentFixture stop() {
       for (final ActionButton button : getToolbarButtons()) {
         final AnAction action = button.getAction();
         if (action != null && action.getClass().getName().equals("com.intellij.execution.actions.StopAction")) {
@@ -332,12 +332,12 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
           boolean enabled = method("isButtonEnabled").withReturnType(boolean.class).in(button).invoke();
           if (enabled) {
             GuiTask.execute(() -> button.click());
-            return true;
+            return this;
           }
-          return false;
+          throw new IllegalStateException(button.getName() + " button is disabled");
         }
       }
-      return false;
+      throw new IllegalStateException("no StopAction button found");
     }
 
     public void waitForStopClick() {
