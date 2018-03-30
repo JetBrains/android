@@ -31,6 +31,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.wizard.WizardConstants;
+import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Maps;
 import com.intellij.ide.util.PropertiesComponent;
@@ -103,7 +104,6 @@ public class NewProjectModel extends WizardModel {
     myApplicationName.addConstraint(String::trim);
 
     myEnableKotlinSupport.set(getInitialKotlinSupport());
-    myEnableKotlinSupport.addListener(sender -> setInitialKotlinSupport(myEnableKotlinSupport.get()));
   }
 
   public StringProperty packageName() {
@@ -204,8 +204,11 @@ public class NewProjectModel extends WizardModel {
     return PropertiesComponent.getInstance().isTrueValue(PROPERTIES_KOTLIN_SUPPORT_KEY);
   }
 
-  private static void setInitialKotlinSupport(boolean isSupported) {
-    PropertiesComponent.getInstance().setValue(PROPERTIES_KOTLIN_SUPPORT_KEY, isSupported);
+  public void onWizardFinished(@NotNull ModelWizard.WizardResult wizardResult) {
+    if (wizardResult == ModelWizard.WizardResult.FINISHED) {
+      // Set the property value
+      PropertiesComponent.getInstance().setValue(PROPERTIES_KOTLIN_SUPPORT_KEY, myEnableKotlinSupport.get());
+    }
   }
 
   @NotNull
