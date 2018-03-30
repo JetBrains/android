@@ -19,7 +19,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeaDialogFixture;
 import com.android.tools.idea.npw.assetstudio.ui.IconPickerDialog;
 import com.android.tools.idea.tests.gui.framework.fixture.SearchTextFieldFixture;
 import com.intellij.ui.SearchTextField;
-import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JTableFixture;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,18 +28,24 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOk
 
 public class IconPickerDialogFixture extends IdeaDialogFixture<IconPickerDialog> {
 
-  @NotNull
-  public static IconPickerDialogFixture find(@NotNull Robot robot) {
-    return new IconPickerDialogFixture(robot, find(robot, IconPickerDialog.class));
-  }
-
-  private IconPickerDialogFixture(@NotNull Robot robot, @NotNull DialogAndWrapper<IconPickerDialog> dialogAndWrapper) {
-    super(robot, dialogAndWrapper);
-  }
+  private final AssetStudioWizardFixture myParentFixture;
 
   @NotNull
-  public void clickOk() {
+  public static IconPickerDialogFixture find(@NotNull AssetStudioWizardFixture parentFixture) {
+    return new IconPickerDialogFixture(
+      parentFixture, IdeaDialogFixture.find(parentFixture.robot(), IconPickerDialog.class));
+  }
+
+  private IconPickerDialogFixture(
+    @NotNull AssetStudioWizardFixture assetStudioWizardFixture, @NotNull DialogAndWrapper<IconPickerDialog> dialogAndWrapper) {
+    super(assetStudioWizardFixture.robot(), dialogAndWrapper);
+    myParentFixture = assetStudioWizardFixture;
+  }
+
+  @NotNull
+  public AssetStudioWizardFixture clickOk() {
     findAndClickOkButton(this);
+    return myParentFixture;
   }
 
   public IconPickerDialogFixture filterIconByName(@NotNull String name) {

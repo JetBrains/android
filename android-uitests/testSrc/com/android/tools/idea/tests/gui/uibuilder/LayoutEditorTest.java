@@ -78,15 +78,13 @@ public class LayoutEditorTest {
   @RunIn(TestGroup.QA)
   @Test
   public void androidVectorDrawableTool() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
-    AssetStudioWizardFixture assetStudioWizardFixture = guiTest.ideFrame()
+    String contents = guiTest.importSimpleLocalApplication()
       .getProjectView()
       .selectAndroidPane()
       .clickPath(MouseButton.RIGHT_BUTTON, "app")
-      .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Vector Asset");
-    assetStudioWizardFixture.chooseIcon()
-      .clickOk();
-    String contents = assetStudioWizardFixture
+      .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Vector Asset")
+      .chooseIcon()
+      .clickOk()
       .enableOverrideDefaultSize()
       .setSize(48, 24)
       .setOpacity(50)

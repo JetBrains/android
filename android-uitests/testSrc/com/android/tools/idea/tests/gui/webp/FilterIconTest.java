@@ -78,8 +78,8 @@ public class FilterIconTest {
     assertThat(tableFixture.rowCount()).isGreaterThan(0);
     // Select 1st icon.
     tableFixture.click(row(0).column(0), MouseButton.LEFT_BUTTON);
-    iconPickerDialogFixture.clickOk();
-    String fileContents = assetStudioWizardFixture
+    String fileContents = iconPickerDialogFixture
+      .clickOk()
       .clickNext()
       .clickFinish()
       .getEditor()
