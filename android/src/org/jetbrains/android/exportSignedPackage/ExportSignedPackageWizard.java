@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.wireless.android.vending.developer.signing.tools.extern.export.ExportEncryptedPrivateKeyTool;
 import com.intellij.CommonBundle;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.actions.RevealFileAction;
@@ -75,9 +76,14 @@ import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
  * @author Eugene.Kudelevsky
  */
 public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackageWizardStep> {
-  private static final Logger LOG = Logger.getInstance(ExportSignedPackageWizard.class);
   public static final String BUNDLE = "bundle";
   public static final String APK = "apk";
+  private static final String ENCRYPTED_PRIVATE_KEY_FILE = "private_key.pepk";
+  private static final String GOOGLE_PUBLIC_KEY =
+    "eb10fe8f7c7c9df715022017b00c6471f8ba8170b13049a11e6c09ffe3056a104a3bbe4ac5a955f4ba4fe93fc8cef27558a3eb9d2a529a2092761fb833b656cd48b9de6a";
+  private static Logger getLog() {
+    return Logger.getInstance(ExportSignedPackageWizard.class);
+  }
 
   @NotNull private final Project myProject;
 
@@ -94,13 +100,22 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
   // build type, list of flavors and gradle signing info are valid only for Gradle projects
   private String myBuildType;
+  @NotNull private ExportEncryptedPrivateKeyTool myEncryptionTool;
+  private boolean myExportPrivateKey;
   private List<String> myFlavors;
   private GradleSigningInfo myGradleSigningInfo;
 
-  public ExportSignedPackageWizard(@NotNull Project project, @NotNull List<AndroidFacet> facets, boolean signed, Boolean showBundle) {
+
+  public ExportSignedPackageWizard(@NotNull Project project,
+                                   @NotNull List<AndroidFacet> facets,
+                                   boolean signed,
+                                   Boolean showBundle,
+                                   @NotNull ExportEncryptedPrivateKeyTool encryptionTool) {
     super(AndroidBundle.message(showBundle ? "android.export.package.wizard.bundle.title" : "android.export.package.wizard.title"), project);
+
     myProject = project;
     mySigned = signed;
+    myEncryptionTool = encryptionTool;
     assert !facets.isEmpty();
     myFacet = facets.get(0);
     if (showBundle) {
@@ -161,26 +176,26 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
       public void run(@NotNull ProgressIndicator indicator) {
         GradleFacet gradleFacet = GradleFacet.getInstance(myFacet.getModule());
         if (gradleFacet == null) {
-          LOG.error("Unable to get gradle project information for module: " + myFacet.getModule().getName());
+          getLog().error("Unable to get gradle project information for module: " + myFacet.getModule().getName());
           return;
         }
         String gradleProjectPath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
         String rootProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(myFacet.getModule());
         if(StringUtil.isEmpty(rootProjectPath)) {
-          LOG.error("Unable to get gradle root project path for module: " + myFacet.getModule().getName());
+          getLog().error("Unable to get gradle root project path for module: " + myFacet.getModule().getName());
           return;
         }
 
         // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
         AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
         if (androidModel == null) {
-          LOG.error("Unable to obtain Android project model. Did the last Gradle sync complete successfully?");
+          getLog().error("Unable to obtain Android project model. Did the last Gradle sync complete successfully?");
           return;
         }
 
         // should have been set by previous steps
         if (myBuildType == null || myFlavors == null || myTargetType == null) {
-          LOG.error("Unable to find required information. Please check the previous steps are completed.");
+          getLog().error("Unable to find required information. Please check the previous steps are completed.");
           return;
         }
         List<String> gradleTasks = getGradleTasks(gradleProjectPath, androidModel.getAndroidProject(), myBuildType, myFlavors, myTargetType);
@@ -197,7 +212,8 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_V1_ENABLED, Boolean.toString(myV1Signature)));
         projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_V2_ENABLED, Boolean.toString(myV2Signature)));
 
-        Map<Module, File> appModulesToOutputs = Collections.singletonMap(myFacet.getModule(), getApkLocation(myApkPath, myBuildType));
+        File apkDirectory = getApkLocation(myApkPath, myBuildType);
+        Map<Module, File> appModulesToOutputs = Collections.singletonMap(myFacet.getModule(), apkDirectory);
 
         assert myProject != null;
 
@@ -205,7 +221,33 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         gradleBuildInvoker.add(new GoToApkLocationTask(appModulesToOutputs, "Generate Signed APK"));
         gradleBuildInvoker.executeTasks(new File(rootProjectPath), gradleTasks, projectProperties);
 
-        LOG.info("Export APK command: " +
+        if (myExportPrivateKey) {
+          //if the apkFile path doesn't exist, try to create it, the encryption tool will not work without the directory.
+          if(!apkDirectory.exists() && !apkDirectory.mkdirs()) {
+            getLog().error("Unable to make a folder at location: " + apkDirectory.getAbsolutePath());
+            return;
+          }
+
+          try {
+            myEncryptionTool.run(myGradleSigningInfo.keyStoreFilePath,
+                                 myGradleSigningInfo.keyAlias,
+                                 GOOGLE_PUBLIC_KEY,
+                                 generatePrivateKeyPath(apkDirectory).getPath(),
+                                 myGradleSigningInfo.keyStorePassword,
+                                 myGradleSigningInfo.keyPassword
+            );
+
+            final GenerateSignedApkSettings settings = GenerateSignedApkSettings.getInstance(myProject);
+            //We want to only export the private key once. Anymore would be redundant.
+            settings.EXPORT_PRIVATE_KEY = false;
+          }
+          catch (Exception e) {
+            getLog().error("Something went wrong with the encryption tool", e);
+            return;
+          }
+        }
+
+        getLog().info("Export " + myTargetType.toUpperCase() + " command: " +
                  Joiner.on(',').join(gradleTasks) +
                  ", destination: " +
                  createProperty(AndroidProject.PROPERTY_APK_LOCATION, myApkPath));
@@ -246,21 +288,21 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         String taskName = getTaskName(v, targetType);
         return Collections.singletonList(GradleTaskFinder.getInstance().createBuildTask(gradleProjectPath, taskName));
       } else {
-        LOG.error("Unable to find default variant");
+        getLog().error("Unable to find default variant");
         return Collections.emptyList();
       }
     }
 
-    List<String> assembleTasks = Lists.newArrayListWithExpectedSize(flavors.size());
+    List<String> gradleTasks = Lists.newArrayListWithExpectedSize(flavors.size());
     for (String flavor : flavors) {
       Variant v = variantsByFlavor.get(flavor);
       if (v != null) {
         String taskName = getTaskName(v,targetType);
-        assembleTasks.add(GradleTaskFinder.getInstance().createBuildTask(gradleProjectPath, taskName));
+        gradleTasks.add(GradleTaskFinder.getInstance().createBuildTask(gradleProjectPath, taskName));
       }
     }
 
-    return assembleTasks;
+    return gradleTasks;
   }
 
   private static String getTaskName(Variant v, String targetType) {
@@ -470,11 +512,20 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     }
   }
 
+  @NotNull
+  private File generatePrivateKeyPath(@NotNull File apkDirectory) {
+    return new File(apkDirectory, ENCRYPTED_PRIVATE_KEY_FILE);
+  }
+
   private void showErrorInDispatchThread(@NotNull final String message) {
     invokeLaterIfNeeded(() -> Messages.showErrorDialog(getProject(), "Error: " + message, CommonBundle.getErrorTitle()));
   }
 
   public void setGradleSigningInfo(GradleSigningInfo gradleSigningInfo) {
     myGradleSigningInfo = gradleSigningInfo;
+  }
+
+  public void setExportPrivateKey(boolean exportPrivateKey) {
+    myExportPrivateKey = exportPrivateKey;
   }
 }

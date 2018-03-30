@@ -15,6 +15,8 @@
  */
 package org.jetbrains.android.exportSignedPackage
 
+import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.testing.IdeComponents
 import com.intellij.credentialStore.CredentialAttributes
 import com.intellij.credentialStore.Credentials
@@ -22,6 +24,7 @@ import com.intellij.ide.passwordSafe.PasswordSafe
 import com.intellij.testFramework.IdeaTestCase
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_PASSWORD_KEY
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.AndroidFacetConfiguration
 import org.jetbrains.concurrency.Promise
 import org.jetbrains.concurrency.resolvedPromise
 import org.junit.Assert.assertArrayEquals
@@ -34,9 +37,44 @@ class KeystoreStepTest : IdeaTestCase() {
   override fun setUp() {
     super.setUp()
     ideComponents = IdeComponents(myProject)
-    val mockFacet = mock(AndroidFacet::class.java, RETURNS_DEEP_STUBS)
-    facets = mutableListOf(mockFacet)
+    facets = Collections.emptyList()
+  }
 
+  fun testEnableEncryptedKeyExportFlagFalse() {
+    val wizard = setupWizardHelper()
+    `when`(wizard.targetType).thenReturn("apk")
+    val keystoreStep = KeystoreStep(wizard, true, facets)
+    keystoreStep._init()
+    assertEquals(false, keystoreStep.exportKeysCheckBox.isVisible)
+    assertEquals(false, keystoreStep.exportKeysCheckBox.isSelected)
+  }
+
+  fun testEnableEncryptedKeyExportFlagTrue() {
+    val wizard = setupWizardHelper()
+    `when`(wizard.targetType).thenReturn("bundle")
+    val keystoreStep = KeystoreStep(wizard, true, facets)
+    keystoreStep._init()
+    assertEquals(true, keystoreStep.exportKeysCheckBox.isVisible)
+  }
+
+  fun setupWizardHelper(): ExportSignedPackageWizard
+  {
+    val testKeyStorePath = "/test/path/to/keystore"
+    val testKeyAlias = "testkey"
+
+    val settings = GenerateSignedApkSettings()
+    settings.KEY_STORE_PATH = testKeyStorePath
+    settings.KEY_ALIAS = testKeyAlias
+    settings.REMEMBER_PASSWORDS = true
+
+    ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
+
+    val passwordSafe = PasswordSafeMock()
+    ideComponents.replaceApplicationService(PasswordSafe::class.java, passwordSafe)
+
+    val wizard = mock(ExportSignedPackageWizard::class.java)
+    `when`(wizard.project).thenReturn(myProject)
+    return wizard
   }
 
   fun testRememberPasswords() {

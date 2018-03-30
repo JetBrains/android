@@ -124,3 +124,10 @@ java_import(
     tags = ["managed"],
     visibility = ["//visibility:public"],
 )
+
+java_import(
+    name = "pepk",
+    jars = ["pepk.jar"],
+    tags = ["managed"],
+    visibility = ["//visibility:public"],
+)
