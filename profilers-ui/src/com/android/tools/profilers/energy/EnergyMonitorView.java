@@ -23,7 +23,9 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.ProfilerMonitorView;
 import com.android.tools.profilers.StudioProfilersView;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.util.ui.JBEmptyBorder;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -41,6 +43,21 @@ public class EnergyMonitorView extends ProfilerMonitorView<EnergyMonitor> {
 
   public EnergyMonitorView(@NotNull StudioProfilersView profilersView, @NotNull EnergyMonitor monitor) {
     super(monitor);
+  }
+
+  @Override
+  protected void populateDisabledView(JPanel container) {
+    container.setLayout(new TabularLayout("*,Fit,*", "*,Fit,Fit,*"));
+    JLabel disabledMessage = new JLabel("Energy profiler unavailable");
+    disabledMessage.setFont(disabledMessage.getFont().deriveFont(15.5f));
+    disabledMessage.setHorizontalAlignment(SwingConstants.CENTER);
+    disabledMessage.setBorder(new JBEmptyBorder(0, 0, 6, 0));
+    container.add(disabledMessage, new TabularLayout.Constraint(1, 0, 3));
+    HyperlinkLabel linkToConfigMessage = new HyperlinkLabel();
+    linkToConfigMessage.setFont(linkToConfigMessage.getFont().deriveFont(12f));
+    // TODO (73396137): Add real target URL.
+    linkToConfigMessage.setHyperlinkText("Supported only on devices running Android 8.0 (API level 26) and higher. ", "", "");
+    container.add(linkToConfigMessage, new TabularLayout.Constraint(2, 1));
   }
 
   @Override

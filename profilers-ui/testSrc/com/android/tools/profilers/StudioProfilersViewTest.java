@@ -45,6 +45,10 @@ import java.util.stream.Collectors;
 import static com.google.common.truth.Truth.assertThat;
 
 public class StudioProfilersViewTest {
+  private static final Common.Session SESSION_O = Common.Session.newBuilder().setSessionId(2).setStartTimestamp(FakeTimer.ONE_SECOND_IN_NS)
+    .setEndTimestamp(FakeTimer.ONE_SECOND_IN_NS * 2).build();
+  private static final Common.SessionMetaData SESSION_O_METADATA = Common.SessionMetaData.newBuilder().setSessionId(2).setJvmtiEnabled(true)
+    .setSessionName("App Device").setType(Common.SessionMetaData.SessionType.FULL).setStartTimestampEpochMs(1).build();
 
   private final FakeProfilerService myService = new FakeProfilerService();
   @Rule public FakeGrpcServer myGrpcChannel = new FakeGrpcServer("StudioProfilerTestChannel", myService);
@@ -79,7 +83,13 @@ public class StudioProfilersViewTest {
   }
 
   @Test
-  public void testMonitorExpansion() throws IOException {
+  public void testMonitorExpansion() {
+    // Set session to enable Energy Monitor.
+    myService.addSession(SESSION_O, SESSION_O_METADATA);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    myProfilers.getSessionsManager().setSession(SESSION_O);
+    myUi = new FakeUi(myView.getComponent());
+
     assertThat(myProfilers.getStage()).isInstanceOf(StudioMonitorStage.class);
 
     List<Point> points = new TreeWalker(myView.getComponent()).descendantStream()
@@ -114,7 +124,13 @@ public class StudioProfilersViewTest {
   }
 
   @Test
-  public void testMonitorTooltip() throws IOException {
+  public void testMonitorTooltip() {
+    // Set Session to enable Energy monitor tooltip.
+    myService.addSession(SESSION_O, SESSION_O_METADATA);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    myProfilers.getSessionsManager().setSession(SESSION_O);
+    myUi = new FakeUi(myView.getComponent());
+
     assertThat(myProfilers.getStage()).isInstanceOf(StudioMonitorStage.class);
     StudioMonitorStage stage = (StudioMonitorStage)myProfilers.getStage();
 

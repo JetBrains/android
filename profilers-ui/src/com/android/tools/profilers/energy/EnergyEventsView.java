@@ -241,10 +241,18 @@ public final class EnergyEventsView {
       String calledByValue = "";
       if (value instanceof String) {
         String stackTrace = myStage.requestBytes((String) value).toStringUtf8();
-        // Get the method name which is before the line metadata in the first line, for example, "AlarmManager.method(Class line: 50)"
+        // Get the method name which is before the line metadata in the first line, for example, "com.AlarmManager.method(Class line: 50)"
         // results in "AlarmManager.method".
         int firstLineIndex = stackTrace.indexOf('(');
         calledByValue = firstLineIndex > 0 ? stackTrace.substring(0, firstLineIndex).trim() : stackTrace.trim();
+        // LastDotIndex in the line is the method name start index, the second last index is the class name start index.
+        int lastDotIndex = calledByValue.lastIndexOf('.');
+        if (lastDotIndex > 0) {
+          int secondLastDotIndex = calledByValue.substring(0, lastDotIndex).lastIndexOf('.');
+          if (secondLastDotIndex != -1) {
+            calledByValue = calledByValue.substring(secondLastDotIndex + 1);
+          }
+        }
       }
       return super.getTableCellRendererComponent(table, calledByValue, isSelected, hasFocus, row, column);
     }
