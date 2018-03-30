@@ -15,17 +15,17 @@
  */
 package com.intellij.testGuiFramework.remote.server
 
-import com.intellij.testGuiFramework.remote.transport.TransportMessage
-import java.util.concurrent.TimeUnit
+import com.intellij.testGuiFramework.remote.transport.MessageFromClient
+import com.intellij.testGuiFramework.remote.transport.MessageFromServer
 
 /**
  * @author Sergey Karashevich
  */
 interface JUnitServer {
 
-  fun send(message: TransportMessage)
+  fun send(message: MessageFromServer)
 
-  fun receive(): TransportMessage
+  fun receive(): MessageFromClient
 
   fun isRunning(): Boolean
 

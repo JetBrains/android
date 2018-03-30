@@ -15,14 +15,14 @@
  */
 package com.intellij.testGuiFramework.remote.client
 
-import com.intellij.testGuiFramework.remote.transport.TransportMessage
+import com.intellij.testGuiFramework.remote.transport.MessageFromClient
 
 /**
  * @author Sergey Karashevich
  */
 interface JUnitClient {
 
-  fun send(message: TransportMessage)
+  fun send(message: MessageFromClient)
 
   fun addHandler(handler: ClientHandler)
 

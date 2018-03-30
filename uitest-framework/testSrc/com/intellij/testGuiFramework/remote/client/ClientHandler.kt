@@ -15,14 +15,14 @@
  */
 package com.intellij.testGuiFramework.remote.client
 
-import com.intellij.testGuiFramework.remote.transport.TransportMessage
+import com.intellij.testGuiFramework.remote.transport.MessageFromServer
 
 /**
  * @author Sergey Karashevich
  */
 interface ClientHandler {
 
-  fun accept(message: TransportMessage): Boolean
-  fun handle(message: TransportMessage): Unit
+  fun accept(message: MessageFromServer): Boolean
+  fun handle(message: MessageFromServer): Unit
 
 }

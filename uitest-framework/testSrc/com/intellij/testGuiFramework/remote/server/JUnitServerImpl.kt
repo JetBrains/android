@@ -16,7 +16,9 @@
 package com.intellij.testGuiFramework.remote.server
 
 import com.intellij.testGuiFramework.launcher.GuiTestLauncher
-import com.intellij.testGuiFramework.remote.transport.MessageType
+import com.intellij.testGuiFramework.remote.transport.CloseIdeMessage
+import com.intellij.testGuiFramework.remote.transport.MessageFromClient
+import com.intellij.testGuiFramework.remote.transport.MessageFromServer
 import com.intellij.testGuiFramework.remote.transport.TransportMessage
 import org.apache.log4j.Level
 import org.apache.log4j.Logger
@@ -41,8 +43,8 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
 
   private val SEND_THREAD = "JUnit Server Send Thread"
   private val RECEIVE_THREAD = "JUnit Server Receive Thread"
-  private val postingMessages: BlockingQueue<TransportMessage> = LinkedBlockingQueue()
-  private val receivingMessages: BlockingQueue<TransportMessage> = LinkedBlockingQueue()
+  private val postingMessages: BlockingQueue<MessageFromServer> = LinkedBlockingQueue()
+  private val receivingMessages: BlockingQueue<MessageFromClient> = LinkedBlockingQueue()
   private val LOG = Logger.getLogger("#com.intellij.testGuiFramework.remote.server.JUnitServerImpl")
 
   private val serverSocket = ServerSocket(0)
@@ -88,12 +90,12 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
     running = true
   }
 
-  override fun send(message: TransportMessage) {
+  override fun send(message: MessageFromServer) {
     postingMessages.put(message)
     LOG.info("Add message to send pool: $message ")
   }
 
-  override fun receive(): TransportMessage {
+  override fun receive(): MessageFromClient {
     val message = receivingMessages.poll(MESSAGE_INTERVAL_TIMEOUT, TimeUnit.SECONDS)
     if (message != null) {
       return message
@@ -120,7 +122,7 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
   }
 
   private fun stopClient() {
-    send(TransportMessage(MessageType.CLOSE_IDE))
+    send(CloseIdeMessage())
     val process = GuiTestLauncher.process
     if (process != null && !process.waitFor(5, TimeUnit.SECONDS)) {
       LOG.warn("Client didn't shut down when asked nicely; shutting it down forcibly.")
@@ -168,10 +170,8 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
       try {
         LOG.info("Server Receive Thread started")
         while (!connection.isClosed) {
-          val obj = objectInputStream.readObject()
-          LOG.info("Receiving message: $obj")
-          assert(obj is TransportMessage)
-          val message = obj as TransportMessage
+          val message = objectInputStream.readObject() as MessageFromClient
+          LOG.info("Receiving message: $message")
           receivingMessages.put(message)
         }
       }
