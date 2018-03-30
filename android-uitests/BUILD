@@ -132,7 +132,7 @@ java_test(
         "testData/SimpleLocalApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.NewActivityTest"],
-    tags = COMMON_TAGS + ["no_psq"],  # b/74910563
+    tags = COMMON_TAGS + ["manual"],  # b/74910563
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":android-uitests_testlib"],
 )
@@ -201,7 +201,7 @@ java_test(
         "testData/SimpleLocalApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.BuildTypesTest"],
-    tags = COMMON_TAGS + ["no_psq"],  #UI flaky issue, fail sometimes
+    tags = COMMON_TAGS + ["manual"],  #UI flaky issue, fail sometimes
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":android-uitests_testlib"],
 )
