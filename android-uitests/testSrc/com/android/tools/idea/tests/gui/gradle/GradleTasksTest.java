@@ -95,8 +95,7 @@ public class GradleTasksTest {
     final Pattern buildSuccessfulPattern = Pattern.compile(".*BUILD SUCCESSFUL.*", DOTALL);
     runTask(
       "build", runContent -> {
-        boolean askedToStop = runContent.stop();
-        assertTrue(askedToStop);
+        runContent.stop();
         Wait.seconds(1).expecting("'build' task to stop").until(
           () -> !runContent.isExecutionInProgress() && runContent.outputMatches(new NotMatchingPatternMatcher(buildSuccessfulPattern)));
       });

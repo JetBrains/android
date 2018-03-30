@@ -21,7 +21,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.fileEditor.impl.EditorsSplitters;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -90,11 +89,6 @@ public class NativeOptimizedWarningTest extends DebuggerTestBase {
     listFixture.selectItem(2).requireSelection(".*stringFromJNI.*");
     GuiTests.waitUntilGone(guiTest.robot(), editorTabs, myWarningMatcher);
 
-    {
-      // We cannot reuse the context fixture we got above, as its windows could have been repurposed for other things.
-      final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);
-      contentFixture.stop();
-      contentFixture.waitForExecutionToFinish();
-    }
+    debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME).stop().waitForExecutionToFinish();
   }
 }
