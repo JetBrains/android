@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.testFramework.LeakHunter;
 import com.intellij.util.MemoryDumpHelper;
+import com.intellij.util.containers.ContainerUtil;
 import gnu.trove.*;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
@@ -259,7 +260,7 @@ public class LayoutEditorMemoryUseTest {
           myClassNameToInstances.get(clazzName).add(o);
         }
         else {
-          myClassNameToInstances.put(clazzName, new THashSet<>(TObjectHashingStrategy.IDENTITY));
+          myClassNameToInstances.put(clazzName, ContainerUtil.newIdentityTroveSet());
         }
         return false;
       }
