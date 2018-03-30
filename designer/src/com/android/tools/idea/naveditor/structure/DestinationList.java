@@ -244,7 +244,6 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
     else {
       myBackPanel.setVisible(true);
       NlComponent parent = myDesignSurface.getCurrentNavigation().getParent();
-      // TODO: We are actually occasionally NPE-ing below, I think, though it should be impossible. Investigation is needed.
       myBackLabel.setText(parent.getParent() == null ? ROOT_NAME : NavComponentHelperKt.getUiName(parent, myResourceResolver));
     }
   }

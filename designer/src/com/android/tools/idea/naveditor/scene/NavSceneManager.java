@@ -490,6 +490,7 @@ public class NavSceneManager extends SceneManager {
     @Override
     public void modelChanged(@NotNull NlModel model) {
       updateHierarchy(model, model);
+      getDesignSurface().refreshRoot();
       requestRender();
     }
 

@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.surface
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
@@ -27,6 +28,7 @@ import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.model.NavCoordinate
+import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.uibuilder.LayoutTestUtilities
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -44,6 +46,7 @@ import java.util.concurrent.atomic.AtomicReference
 import javax.swing.JComponent
 import javax.swing.JScrollPane
 import javax.swing.JViewport
+import kotlin.test.assertNotEquals
 
 /**
  * Tests for [NavDesignSurface]
@@ -271,6 +274,55 @@ class NavDesignSurfaceTest : NavTestCase() {
     assertFalse(fragment2.isSelected)
 
     manager.stopListening()
+  }
+
+  fun testRefreshRoot() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1")
+        navigation("subnav") {
+          navigation("duplicate")
+        }
+        navigation("othersubnav") {
+          navigation("duplicate")
+        }
+        fragment("oldfragment")
+      }
+    }
+
+    val surface = NavDesignSurface(project, project)
+    surface.model = model
+
+    val root = model.components[0]
+    assertEquals(root, surface.currentNavigation)
+    surface.refreshRoot()
+    assertEquals(root, surface.currentNavigation)
+
+    val subnav = model.find("subnav")!!
+    surface.currentNavigation = subnav
+    surface.refreshRoot()
+    assertEquals(subnav, surface.currentNavigation)
+
+    val orig = model.find("othersubnav")!!.getChild(0)!!
+    surface.currentNavigation = orig
+    val model2 = model("nav.xml") {
+      navigation("foo") {
+        fragment("fragment1")
+        navigation("subnav") {
+          navigation("duplicate")
+        }
+        navigation("othersubnav") {
+          navigation("duplicate")
+        }
+        activity("newactivity")
+      }
+    }
+
+    NavSceneManager.updateHierarchy(model, model2)
+    val newVersion = model.find("othersubnav")!!.getChild(0)!!
+    assertNotEquals(orig, newVersion)
+    surface.refreshRoot()
+    assertEquals(newVersion, surface.currentNavigation)
   }
 
   private fun dragSelect(manager: InteractionManager, sceneView: SceneView, @NavCoordinate rect: Rectangle) {
