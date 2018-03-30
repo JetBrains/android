@@ -334,9 +334,7 @@ public abstract class ResourceChooserItem {
                           ResourceType.DRAWABLE :
                           myItem.getType();
       SampleDataResourceValue value = getSampleDataResourceValue();
-      ResourceReference ref = myItem.getReferenceToSelf();
-      return new ResourceValue(new ResourceReference(ref.getNamespace(), type, ref.getName()), value.getValueAsLines().get(0),
-                               value.getLibraryName());
+      return new ResourceValue(myItem.getNamespace(), type, myItem.getName(), value.getValueAsLines().get(0), value.getLibraryName());
     }
   }
 }

@@ -244,9 +244,9 @@ public class PsiResourceItem implements ResourceItem {
         VirtualFile virtualFile = source.getVirtualFile();
         String path = virtualFile == null ? null : VfsUtilCore.virtualToIoFile(virtualFile).getAbsolutePath();
         if (density != null) {
-          myResourceValue = new DensityBasedResourceValue(getReferenceToSelf(), path, density, null);
+          myResourceValue = new DensityBasedResourceValue(myNamespace, myType, myName, path, density, null);
         } else {
-          myResourceValue = new ResourceValue(getReferenceToSelf(), path, null);
+          myResourceValue = new ResourceValue(myNamespace, myType, myName, path, null);
         }
       } else {
         myResourceValue = parseXmlToResourceValue(tag);
@@ -293,16 +293,16 @@ public class PsiResourceItem implements ResourceItem {
     switch (myType) {
       case STYLE:
         String parent = getAttributeValue(tag, ATTR_PARENT);
-        value = parseStyleValue(tag, new StyleResourceValue(getReferenceToSelf(), parent, null));
+        value = parseStyleValue(tag, new StyleResourceValue(myNamespace, myType, myName, parent, null));
         break;
       case DECLARE_STYLEABLE:
-        value = parseDeclareStyleable(tag, new DeclareStyleableResourceValue(getReferenceToSelf(), null, null));
+        value = parseDeclareStyleable(tag, new DeclareStyleableResourceValue(myNamespace, myType, myName, null, null));
         break;
       case ATTR:
-        value = parseAttrValue(tag, new AttrResourceValue(getReferenceToSelf(), null));
+        value = parseAttrValue(tag, new AttrResourceValue(myNamespace, myType, myName, null));
         break;
       case ARRAY:
-        value = parseArrayValue(tag, new ArrayResourceValue(getReferenceToSelf(), null) {
+        value = parseArrayValue(tag, new ArrayResourceValue(myNamespace, myType, myName, null) {
           // Allow the user to specify a specific element to use via tools:index
           @Override
           protected int getDefaultIndex() {
@@ -315,7 +315,7 @@ public class PsiResourceItem implements ResourceItem {
         });
         break;
       case PLURALS:
-        value = parsePluralsValue(tag, new PluralsResourceValue(getReferenceToSelf(), null, null) {
+        value = parsePluralsValue(tag, new PluralsResourceValue(myNamespace, myType, myName, null, null) {
           // Allow the user to specify a specific quantity to use via tools:quantity
           @Override
           public String getValue() {
@@ -331,10 +331,10 @@ public class PsiResourceItem implements ResourceItem {
         });
         break;
       case STRING:
-        value = parseTextValue(tag, new PsiTextResourceValue(getReferenceToSelf(), null, null, null));
+        value = parseTextValue(tag, new PsiTextResourceValue(myNamespace, myType, myName, null, null, null));
         break;
       default:
-        value = parseValue(tag, new ResourceValue(getReferenceToSelf(), null));
+        value = parseValue(tag, new ResourceValue(myNamespace, myType, myName, null));
         break;
     }
 
@@ -512,8 +512,9 @@ public class PsiResourceItem implements ResourceItem {
   }
 
   private class PsiTextResourceValue extends TextResourceValue {
-    public PsiTextResourceValue(ResourceReference reference, String textValue, String rawXmlValue, String libraryName) {
-      super(reference, textValue, rawXmlValue, libraryName);
+    public PsiTextResourceValue(@NotNull ResourceNamespace namespace, @NotNull ResourceType type, @NotNull String name,
+                                @Nullable String textValue, @Nullable String rawXmlValue, @Nullable String libraryName) {
+      super(namespace, type, name, textValue, rawXmlValue, libraryName);
     }
 
     @Override
