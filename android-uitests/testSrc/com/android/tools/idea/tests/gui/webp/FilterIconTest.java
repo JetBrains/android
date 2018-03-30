@@ -19,17 +19,12 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.IconPickerDialogFixture;
-import org.fest.swing.core.MouseButton;
-import org.fest.swing.fixture.JTableFixture;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.fest.swing.data.TableCell.row;
 
 @RunWith(GuiTestRunner.class)
 public class FilterIconTest {
@@ -63,22 +58,14 @@ public class FilterIconTest {
   @Test
   @RunIn(TestGroup.QA)
   public void testFilterIcon() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importSimpleLocalApplication();
-
-    AssetStudioWizardFixture assetStudioWizardFixture = ideFrame.getProjectView()
+    String fileContents = guiTest.importSimpleLocalApplication()
+      .getProjectView()
       .selectAndroidPane()
       .clickPath("app")
-      .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Vector Asset");
-    assetStudioWizardFixture.enableAutoMirror();
-
-    IconPickerDialogFixture iconPickerDialogFixture = assetStudioWizardFixture.chooseIcon();
-    iconPickerDialogFixture.filterIconByName("call");
-    JTableFixture tableFixture = iconPickerDialogFixture.getIconTable();
-    // Searching icon by "call", count of results should be greater than 0.
-    assertThat(tableFixture.rowCount()).isGreaterThan(0);
-    // Select 1st icon.
-    tableFixture.click(row(0).column(0), MouseButton.LEFT_BUTTON);
-    String fileContents = iconPickerDialogFixture
+      .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Vector Asset")
+      .enableAutoMirror()
+      .chooseIcon()
+      .filterByNameAndSelect("call")
       .clickOk()
       .clickNext()
       .clickFinish()
