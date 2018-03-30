@@ -19,7 +19,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.IconPickerDialogFixture;
@@ -80,12 +79,12 @@ public class FilterIconTest {
     // Select 1st icon.
     tableFixture.click(row(0).column(0), MouseButton.LEFT_BUTTON);
     iconPickerDialogFixture.clickOk();
-    assetStudioWizardFixture.clickNext().clickFinish();
-
-    EditorFixture editor = guiTest.ideFrame()
+    String fileContents = assetStudioWizardFixture
+      .clickNext()
+      .clickFinish()
       .getEditor()
-      .open("app/src/main/res/drawable/ic_call_black_24dp.xml");
-    String fileContents = editor.getCurrentFileContents();
+      .open("app/src/main/res/drawable/ic_call_black_24dp.xml")
+      .getCurrentFileContents();
     assertThat(fileContents).containsMatch(REG_EXP);
   }
 }

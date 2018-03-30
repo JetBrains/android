@@ -36,8 +36,7 @@ public class NewVectorAssetTest {
       .clickPath("app")
       .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Vector Asset")
       .clickNext()
-      .clickFinish();
-    guiTest.ideFrame()
+      .clickFinish()
       .getEditor()
       .open("app/src/main/res/drawable/ic_android_black_24dp.xml");
   }
