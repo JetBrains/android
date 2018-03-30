@@ -20,7 +20,10 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.common.model.*;
+import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.*;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Interaction;
@@ -28,11 +31,13 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.surface.ZoomType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.naveditor.editor.NavActionManager;
+import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.FutureCallback;
@@ -63,6 +68,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -83,7 +89,6 @@ public class NavDesignSurface extends DesignSurface {
   private NlComponent myCurrentNavigation;
   @VisibleForTesting
   AtomicReference<Future<?>> myScheduleRef = new AtomicReference<>();
-  private ModelListener myListener;
 
   public NavDesignSurface(@NotNull Project project, @NotNull Disposable parentDisposable) {
     super(project, new SelectionModel(), parentDisposable);
@@ -221,9 +226,7 @@ public class NavDesignSurface extends DesignSurface {
   @NotNull
   public NlComponent getCurrentNavigation() {
     if (myCurrentNavigation == null || myCurrentNavigation.getModel() != getModel()) {
-      if (getModel() != null) {
-        myCurrentNavigation = getModel().getComponents().get(0);
-      }
+      refreshRoot();
     }
     return myCurrentNavigation;
   }
@@ -428,22 +431,20 @@ public class NavDesignSurface extends DesignSurface {
       getScheduleRef().get().cancel(false);
     }
 
-    Runnable action = () -> {
-      UIUtil.invokeAndWaitIfNeeded((Runnable)() -> {
-        long time = System.currentTimeMillis();
-        @SwingCoordinate int xSwingValue = xLerp.getValue(time);
-        @SwingCoordinate int ySwingValue = yLerp.getValue(time);
-        @SwingCoordinate int targetSwingX = Coordinates.getSwingX(view, (int)selectionBounds.getCenterX());
-        @SwingCoordinate int targetSwingY = Coordinates.getSwingY(view, (int)selectionBounds.getCenterY());
+    Runnable action = () -> UIUtil.invokeAndWaitIfNeeded((Runnable)() -> {
+      long time = System.currentTimeMillis();
+      @SwingCoordinate int xSwingValue = xLerp.getValue(time);
+      @SwingCoordinate int ySwingValue = yLerp.getValue(time);
+      @SwingCoordinate int targetSwingX = Coordinates.getSwingX(view, (int)selectionBounds.getCenterX());
+      @SwingCoordinate int targetSwingY = Coordinates.getSwingY(view, (int)selectionBounds.getCenterY());
 
-        setScrollPosition(targetSwingX - xSwingValue, targetSwingY - ySwingValue);
-        setScale(zoomLerp.getValue(time) / 100., targetSwingX, targetSwingY);
-        if (xSwingValue == xLerp.getEnd() && ySwingValue == yLerp.getEnd()) {
-          getScheduleRef().get().cancel(false);
-          getScheduleRef().set(null);
-        }
-      });
-    };
+      setScrollPosition(targetSwingX - xSwingValue, targetSwingY - ySwingValue);
+      setScale(zoomLerp.getValue(time) / 100., targetSwingX, targetSwingY);
+      if (xSwingValue == xLerp.getEnd() && ySwingValue == yLerp.getEnd()) {
+        getScheduleRef().get().cancel(false);
+        getScheduleRef().set(null);
+      }
+    });
 
     getScheduleRef().set(AppExecutorUtil.getAppScheduledExecutorService().scheduleWithFixedDelay(action, 0, 10, TimeUnit.MILLISECONDS));
   }
@@ -457,5 +458,51 @@ public class NavDesignSurface extends DesignSurface {
   @VisibleForTesting
   int getScrollDurationMs() {
     return SCROLL_DURATION_MS;
+  }
+
+  /**
+   * Sometimes the model gets regenerated and we need to update the current view root component. This tries to do that as best as possible.
+   */
+  public void refreshRoot() {
+    if (myModel == null) {
+      return;
+    }
+    NlComponent match = myModel.getComponents().get(0);
+    if (myCurrentNavigation != null) {
+      boolean includingParent = false;
+      TagSnapshot currentSnapshot = myCurrentNavigation.getSnapshot();
+      NlComponent currentParent = myCurrentNavigation.getParent();
+      for (NlComponent component : (Iterable<NlComponent>)myModel.flattenComponents()::iterator) {
+        if (!NavComponentHelperKt.isNavigation(component)) {
+          continue;
+        }
+        if (component == myCurrentNavigation) {
+          // The old component still exists, so don't change anything
+          return;
+        }
+        TagSnapshot componentSnapshot = component.getSnapshot();
+        if (currentSnapshot != null && currentSnapshot == componentSnapshot) {
+          // This corresponds exactly to the old component, and is surely the best we can do.
+          match = component;
+          break;
+        }
+        // We might not have found the best match yet, keep looking
+        if (!includingParent) {
+          if (Objects.equals(component.getId(), myCurrentNavigation.getId())) {
+            match = component;
+            NlComponent componentParent = component.getParent();
+            if ((componentParent == null) != (currentParent == null)) {
+              continue;
+            }
+            if (componentParent == null || Objects.equals(componentParent.getId(), currentParent.getId())) {
+              // Both the component ids and the parent ids match, so this is a pretty good match.
+              includingParent = true;
+            }
+          }
+        }
+      }
+    }
+    myCurrentNavigation = match;
+    zoomToFit();
   }
 }
