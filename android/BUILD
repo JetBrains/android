@@ -121,6 +121,7 @@ iml_module(
         "//tools/idea/.idea/libraries:xml-apis-ext",
         "//tools/analytics-library/crash:analytics-crash[module]",
         "//tools/idea/.idea/libraries:aapt-proto-jarjar",
+        "//tools/adt/idea/android/lib:pepk",
     ],
 )
 
@@ -258,6 +259,7 @@ iml_module(
         "//tools/analytics-library/crash:analytics-crash[module, test]",
         "//tools/idea/.idea/libraries:commons-io",
         "//tools/idea/.idea/libraries:aapt-proto-jarjar",
+        "//tools/adt/idea/android/lib:pepk[test]",
     ],
 )
 
