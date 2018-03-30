@@ -58,7 +58,7 @@ public class AssetStudioWizardFixture extends AbstractWizardFixture<AssetStudioW
   public IconPickerDialogFixture chooseIcon() {
     VectorIconButton vectorIconButton = robot().finder().findByType(VectorIconButton.class);
     new JButtonFixture(robot(), vectorIconButton).click();
-    return IconPickerDialogFixture.find(robot());
+    return IconPickerDialogFixture.find(this);
   }
 
   @NotNull
