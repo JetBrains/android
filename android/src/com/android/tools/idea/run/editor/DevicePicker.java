@@ -52,7 +52,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.event.*;
 import java.util.*;
-import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
 public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListener, AndroidDebugBridge.IDeviceChangeListener, Disposable,
@@ -79,8 +79,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
   @NotNull private final MergingUpdateQueue myUpdateQueue;
   private final LaunchCompatibilityChecker myCompatibilityChecker;
 
-  private List<AvdInfo> myAvdInfos = new ArrayList<>();
-  private boolean myAvdInfosHasInitialized = false;
+  private final AtomicReference<List<AvdInfo>> myAvdInfos = new AtomicReference();
 
   public DevicePicker(@NotNull Disposable parent,
                       int runContextId,
@@ -196,8 +195,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
       if (myDevicesList == null) { // Don't update anything after disposal of the dialog.
         return;
       }
-      myAvdInfos = avdInfos;
-      myAvdInfosHasInitialized = true;
+      myAvdInfos.set(avdInfos);
       updateModelAndSelectAvd(avdToSelect);
       myDevicesList.setPaintBusy(false);
     });
@@ -213,7 +211,8 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
 
       myNotificationPanel.add(panel);
     }
-    if (!myAvdInfos.isEmpty()) {
+    List<AvdInfo> infos = myAvdInfos.get();
+    if (infos != null && !infos.isEmpty()) {
       final int currentErrorGen = myErrorGen;
       executeOnPooledThread(() -> {
         final AccelerationErrorCode error = AvdManagerConnection.getDefaultAvdManagerConnection().checkAcceleration();
@@ -305,16 +304,18 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
     executeOnPooledThread(() -> {
       List<IDevice> connectedDevices = Arrays.asList(bridge.getDevices());
 
-      if (myDevicesList == null) { // Happens if the method is invoked after disposal of the dialog.
-        return;
-      }
-      if (!myAvdInfosHasInitialized) {
+      List<AvdInfo> infos = myAvdInfos.get();
+      if (infos == null) {
         return;
       }
       // DevicePickerListModel may query device to get info. Need to run on background thread.
-      DevicePickerListModel model = new DevicePickerListModel(connectedDevices, myAvdInfos);
+      DevicePickerListModel model = new DevicePickerListModel(connectedDevices, infos);
 
       invokeLater(() -> {
+        if (myDevicesList == null) { // Happens if the method is invoked after disposal of the dialog.
+          return;
+        }
+
         setModel(model);
         if (avdToSelect != null) {
           selectAvd(avdToSelect);
