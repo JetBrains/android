@@ -42,8 +42,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
   public EnergyProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull EnergyProfilerStage energyProfilerStage) {
     super(profilersView, energyProfilerStage);
 
-    getTooltipBinder().bind(EnergyUsageTooltip.class, EnergyStageTooltipView::new);
-    getTooltipBinder().bind(EnergyEventTooltip.class, EnergyEventTooltipView::new);
+    getTooltipBinder().bind(EnergyStageTooltip.class, EnergyStageTooltipView::new);
     getTooltipBinder().bind(EventActivityTooltip.class, EventActivityTooltipView::new);
     getTooltipBinder().bind(EventSimpleEventTooltip.class, EventSimpleEventTooltipView::new);
 
@@ -61,7 +60,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     verticalSplitter.setSecondComponent(myEventsPanel);
 
     myDetailsView = new EnergyDetailsView(this);
-    myDetailsView.setMinimumSize(new Dimension(JBUI.scale(450), (int) myDetailsView.getMinimumSize().getHeight()));
+    myDetailsView.setMinimumSize(new Dimension(JBUI.scale(450), (int)myDetailsView.getMinimumSize().getHeight()));
     myDetailsView.setVisible(false);
     JBSplitter splitter = new JBSplitter(false, 0.6f);
     splitter.setFirstComponent(verticalSplitter);
@@ -135,7 +134,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     leftAxis.setMargins(0, Y_AXIS_TOP_MARGIN);
     axisPanel.add(leftAxis, BorderLayout.WEST);
 
-    EnergyProfilerStage.EnergyLegends legends = getStage().getLegends();
+    EnergyProfilerStage.EnergyUsageLegends legends = getStage().getLegends();
     LegendComponent legend = new LegendComponent.Builder(legends).setRightPadding(PROFILER_LEGEND_RIGHT_PADDING).build();
     legend.configure(legends.getCpuLegend(), new LegendConfig(lineChart.getLineConfig(usage.getCpuUsageSeries())));
     legend.configure(legends.getNetworkLegend(), new LegendConfig(lineChart.getLineConfig(usage.getNetworkUsageSeries())));
@@ -166,8 +165,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
 
     JComponent minibar = new EnergyEventMinibar(this).getComponent();
 
-    selection.addMouseListener(new ProfilerTooltipMouseAdapter(getStage(), () -> new EnergyUsageTooltip(getStage())));
-    minibar.addMouseListener(new ProfilerTooltipMouseAdapter(getStage(), () -> new EnergyEventTooltip(getStage())));
+    selection.addMouseListener(new ProfilerTooltipMouseAdapter(getStage(), () -> new EnergyStageTooltip(getStage())));
     RangeTooltipComponent tooltip =
       new RangeTooltipComponent(timeline.getTooltipRange(),
                                 timeline.getViewRange(),
@@ -176,23 +174,24 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
                                 ProfilerLayeredPane.class);
 
     tooltip.registerListenersOn(selection);
-    tooltip.registerListenersOn(minibar);
     eventsView.registerTooltip(tooltip, getStage());
 
     if (!getStage().hasUserUsedEnergySelection()) {
       installProfilingInstructions(monitorPanel);
     }
 
-    monitorPanel.add(tooltip, new TabularLayout.Constraint(0, 0));
-    monitorPanel.add(selection, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(axisPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(lineChartPanel, new TabularLayout.Constraint(0, 0));
-    layout.setRowSizing(1, "*"); // Give as much space as possible to the main monitor panel
-    panel.add(monitorPanel, new TabularLayout.Constraint(1, 0));
 
-    layout.setRowSizing(2, "50px");
-    panel.add(minibar, new TabularLayout.Constraint(2, 0));
+    JPanel stagePanel = new JPanel(new TabularLayout("*", "*,50px"));
+    stagePanel.add(monitorPanel, new TabularLayout.Constraint(0, 0));
+    stagePanel.add(minibar, new TabularLayout.Constraint(1, 0));
+    layout.setRowSizing(1, "*");
+
+    panel.add(tooltip, new TabularLayout.Constraint(1, 0));
+    panel.add(selection, new TabularLayout.Constraint(1, 0));
+    panel.add(stagePanel, new TabularLayout.Constraint(1, 0));
 
     return panel;
   }

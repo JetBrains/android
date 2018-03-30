@@ -18,15 +18,20 @@ package com.android.tools.profilers.energy;
 import com.android.tools.profilers.ProfilerTooltip;
 import org.jetbrains.annotations.NotNull;
 
-public class EnergyEventTooltip implements ProfilerTooltip{
+final class EnergyStageTooltip implements ProfilerTooltip {
   @NotNull private final EnergyProfilerStage myStage;
 
-  public EnergyEventTooltip(@NotNull EnergyProfilerStage stage) {
+  public EnergyStageTooltip(@NotNull EnergyProfilerStage stage) {
     myStage = stage;
   }
 
   @NotNull
-  EnergyProfilerStage.EnergyEventLegends getLegends() {
-    return myStage.getEventLegends();
+  EnergyProfilerStage.EnergyUsageLegends getUsageLegends() {
+    return myStage.getUsageTooltipLegends();
+  }
+
+  @NotNull
+  EnergyProfilerStage.EnergyEventLegends getEventLegends() {
+    return myStage.getEventTooltipLegends();
   }
 }
