@@ -72,6 +72,7 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 
 public class NewProjectModel extends WizardModel {
   private static final String PROPERTIES_DOMAIN_KEY = "SAVED_COMPANY_DOMAIN";
+  private static final String PROPERTIES_CPP_SUPPORT_KEY = "SAVED_PROJECT_CPP_SUPPORT";
   private static final String PROPERTIES_KOTLIN_SUPPORT_KEY = "SAVED_PROJECT_KOTLIN_SUPPORT";
   private static final String EXAMPLE_DOMAIN = "example.com";
   private static final Pattern DISALLOWED_IN_DOMAIN = Pattern.compile("[^a-zA-Z0-9_]");
@@ -103,6 +104,7 @@ public class NewProjectModel extends WizardModel {
 
     myApplicationName.addConstraint(String::trim);
 
+    myEnableCppSupport.set(getInitialCppSupport());
     myEnableKotlinSupport.set(getInitialKotlinSupport());
   }
 
@@ -198,7 +200,14 @@ public class NewProjectModel extends WizardModel {
   }
 
   /**
-   * Loads saved source language. If none was saved, returns Java
+   * Loads saved value for Cpp support.
+   */
+  private static boolean getInitialCppSupport() {
+    return PropertiesComponent.getInstance().isTrueValue(PROPERTIES_CPP_SUPPORT_KEY);
+  }
+
+  /**
+   * Loads saved value for Kotlin support.
    */
   private static boolean getInitialKotlinSupport() {
     return PropertiesComponent.getInstance().isTrueValue(PROPERTIES_KOTLIN_SUPPORT_KEY);
@@ -207,6 +216,7 @@ public class NewProjectModel extends WizardModel {
   public void onWizardFinished(@NotNull ModelWizard.WizardResult wizardResult) {
     if (wizardResult == ModelWizard.WizardResult.FINISHED) {
       // Set the property value
+      PropertiesComponent.getInstance().setValue(PROPERTIES_CPP_SUPPORT_KEY, myEnableCppSupport.get());
       PropertiesComponent.getInstance().setValue(PROPERTIES_KOTLIN_SUPPORT_KEY, myEnableKotlinSupport.get());
     }
   }
