@@ -125,11 +125,11 @@ public abstract class ToolWindowFixture {
     });
   }
 
-  public void activate() {
-    activate(120);
+  public ToolWindowFixture activate() {
+    return activate(120);
   }
 
-  public void activate(long secondsToWait) {
+  public ToolWindowFixture activate(long secondsToWait) {
     Wait.seconds(secondsToWait)
       .expecting("ToolWindow '" + myToolWindowId + "' to be activated")
       .until(() -> {
@@ -139,15 +139,17 @@ public abstract class ToolWindowFixture {
         }
         return isActive;
       });
+    return this;
   }
 
-  protected void waitUntilIsVisible() {
-    waitUntilIsVisible(30);
+  protected ToolWindowFixture waitUntilIsVisible() {
+    return waitUntilIsVisible(30);
   }
 
-  protected void waitUntilIsVisible(long secondsToWait) {
+  protected ToolWindowFixture waitUntilIsVisible(long secondsToWait) {
     Wait.seconds(secondsToWait).expecting("ToolWindow '" + myToolWindowId + "' to be visible")
       .until(() -> GuiQuery.getNonNull(
         () -> myToolWindow.isVisible() && myToolWindow.getComponent().isVisible() && myToolWindow.getComponent().isShowing()));
+    return this;
   }
 }
