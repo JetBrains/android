@@ -71,7 +71,7 @@ public class FilterIconTest {
       .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Vector Asset");
     assetStudioWizardFixture.enableAutoMirror();
 
-    IconPickerDialogFixture iconPickerDialogFixture = assetStudioWizardFixture.chooseIcon(ideFrame);
+    IconPickerDialogFixture iconPickerDialogFixture = assetStudioWizardFixture.chooseIcon();
     iconPickerDialogFixture.filterIconByName("call");
     JTableFixture tableFixture = iconPickerDialogFixture.getIconTable();
     // Searching icon by "call", count of results should be greater than 0.
