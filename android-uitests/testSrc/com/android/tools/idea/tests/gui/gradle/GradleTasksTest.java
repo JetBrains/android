@@ -88,7 +88,7 @@ public class GradleTasksTest {
     //   2. Start 'build' task once again (assuming that it takes some time for it to finish)
     //   3. Stop the task
     //   4. Ensure that the task is really finished
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     guiTest.ideFrame().requestProjectSync();
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
@@ -102,7 +102,7 @@ public class GradleTasksTest {
   }
 
   private void openProjectAndAddToGradleConfig(@NotNull final String textToAdd) throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     Module module = guiTest.ideFrame().getModule("app");
 
     // Add a long-running task and refresh the project.
@@ -122,7 +122,7 @@ public class GradleTasksTest {
     gradleToolWindow.runTask(taskName);
 
     // Ensure that task output is shown and updated.
-    String regex = ".*SimpleApplication \\[" + taskName + "\\].*";
+    String regex = ".*\\[" + taskName + "\\].*";
     PatternTextMatcher matcher = new PatternTextMatcher(Pattern.compile(regex, DOTALL));
     closure.consume(guiTest.ideFrame().getRunToolWindow().findContent(matcher));
   }
