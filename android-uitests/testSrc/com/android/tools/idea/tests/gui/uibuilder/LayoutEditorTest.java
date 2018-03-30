@@ -84,7 +84,7 @@ public class LayoutEditorTest {
       .selectAndroidPane()
       .clickPath(MouseButton.RIGHT_BUTTON, "app")
       .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Vector Asset");
-    assetStudioWizardFixture.chooseIcon(ideFrameFixture)
+    assetStudioWizardFixture.chooseIcon()
       .clickOk();
     String contents = assetStudioWizardFixture
       .enableOverrideDefaultSize()

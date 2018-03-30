@@ -55,10 +55,10 @@ public class AssetStudioWizardFixture extends AbstractWizardFixture<AssetStudioW
     return new NewImageAssetStepFixture<>(this, rootPane);
   }
 
-  public IconPickerDialogFixture chooseIcon(@NotNull IdeFrameFixture ideFrameFixture) {
-    VectorIconButton vectorIconButton = ideFrameFixture.robot().finder().findByType(VectorIconButton.class);
-    new JButtonFixture(ideFrameFixture.robot(), vectorIconButton).click();
-    return IconPickerDialogFixture.find(ideFrameFixture.robot());
+  public IconPickerDialogFixture chooseIcon() {
+    VectorIconButton vectorIconButton = robot().finder().findByType(VectorIconButton.class);
+    new JButtonFixture(robot(), vectorIconButton).click();
+    return IconPickerDialogFixture.find(robot());
   }
 
   @NotNull
