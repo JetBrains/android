@@ -13,17 +13,16 @@
 // limitations under the License.
 package com.android.tools.profilers.energy
 
+import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.AxisComponentModel
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.LineChartModel
 import com.android.tools.adtui.model.formatter.EnergyAxisFormatter
 import com.android.tools.adtui.model.legend.LegendComponentModel
+import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.EnergyProfiler
-import com.android.tools.profilers.FakeGrpcChannel
-import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.NullMonitorStage
-import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.*
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -37,18 +36,64 @@ class EnergyMonitorTest {
               setNetworkUsage(20).
               setCpuUsage(30).build()
       ))
+  private val profilerService = FakeProfilerService(false)
+  private val deviceNougat = Common.Device.newBuilder()
+    .setDeviceId("FakeDeviceNougat".hashCode().toLong())
+    .setFeatureLevel(AndroidVersion.VersionCodes.N_MR1)
+    .setSerial("FakeDeviceNougat")
+    .setState(Common.Device.State.ONLINE)
+    .build()
+  private val deviceOreo = Common.Device.newBuilder()
+    .setDeviceId("FakeDeviceOreo".hashCode().toLong())
+    .setFeatureLevel(AndroidVersion.VersionCodes.O)
+    .setSerial("FakeDeviceOreo")
+    .setState(Common.Device.State.ONLINE)
+    .build()
 
   @get:Rule
-  val grpcChannel = FakeGrpcChannel("EnergyMonitorTest", service)
+  val grpcChannel = FakeGrpcChannel("EnergyMonitorTest", profilerService, service)
 
   private lateinit var monitor: EnergyMonitor
   private lateinit var timer: FakeTimer
+  private lateinit var profilers: StudioProfilers
 
   @Before
   fun setUp() {
     timer = FakeTimer()
     val services = FakeIdeProfilerServices().apply { enableEnergyProfiler(true) }
-    monitor = EnergyMonitor(StudioProfilers(grpcChannel.client, services, timer))
+    profilers = StudioProfilers(grpcChannel.client, services, timer)
+    monitor = EnergyMonitor(profilers)
+  }
+
+  @Test
+  fun testMonitorEnabled() {
+    profilerService.addDevice(deviceNougat)
+    profilerService.addDevice(deviceOreo)
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+
+    profilers.device = deviceNougat
+    assertThat(profilers.device!!.serial).isEqualTo("FakeDeviceNougat")
+    assertThat(monitor.isEnabled).isFalse()
+    profilers.device = deviceOreo
+    assertThat(profilers.device!!.serial).isEqualTo("FakeDeviceOreo")
+    assertThat(monitor.isEnabled).isTrue()
+
+    val sessionPreO = Common.Session.newBuilder()
+      .setSessionId(1).setStartTimestamp(FakeTimer.ONE_SECOND_IN_NS).setEndTimestamp(FakeTimer.ONE_SECOND_IN_NS * 2).build()
+    val sessionPreOMetadata = Common.SessionMetaData.newBuilder()
+      .setSessionId(1).setType(Common.SessionMetaData.SessionType.FULL).setJvmtiEnabled(false).setStartTimestampEpochMs(1).build()
+    profilerService.addSession(sessionPreO, sessionPreOMetadata)
+    val sessionO = Common.Session.newBuilder()
+      .setSessionId(2).setStartTimestamp(FakeTimer.ONE_SECOND_IN_NS).setEndTimestamp(FakeTimer.ONE_SECOND_IN_NS * 2).build()
+    val sessionOMetadata = Common.SessionMetaData.newBuilder()
+      .setSessionId(2).setType(Common.SessionMetaData.SessionType.FULL).setJvmtiEnabled(true).setStartTimestampEpochMs(1).build()
+    profilerService.addSession(sessionO, sessionOMetadata)
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+
+    profilers.sessionsManager.setSession(sessionPreO)
+    assertThat(monitor.isEnabled).isFalse()
+    profilers.sessionsManager.setSession(sessionO)
+    assertThat(monitor.isEnabled).isTrue()
   }
 
   @Test
@@ -59,7 +104,6 @@ class EnergyMonitorTest {
     monitor.expand()
     assertThat(monitor.profilers.stage).isInstanceOf(EnergyProfilerStage::class.java)
   }
-
 
   @Test
   fun testEnergyUsage() {

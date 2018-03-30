@@ -13,6 +13,7 @@
 // limitations under the License.
 package com.android.tools.profilers.energy;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AxisComponentModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.EnergyAxisFormatter;
@@ -38,6 +39,7 @@ public class EnergyMonitor extends ProfilerMonitor {
     myAxis.setClampToMajorTicks(true);
     myLegends = new Legends(myUsage, getTimeline().getDataRange(), false);
     myTooltipLegends = new Legends(myUsage, getTimeline().getTooltipRange(), true);
+    changed(Aspect.ENABLE);
   }
 
   @Override
@@ -52,23 +54,45 @@ public class EnergyMonitor extends ProfilerMonitor {
 
   @Override
   public void expand() {
-    myProfilers.setStage(new EnergyProfilerStage(getProfilers()));
+    if (canExpand()) {
+      myProfilers.setStage(new EnergyProfilerStage(getProfilers()));
+    }
+  }
+
+  @Override
+  public boolean canExpand() {
+    return isEnabled();
   }
 
   @Override
   public void enter() {
-    myProfilers.getUpdater().register(myUsage);
-    myProfilers.getUpdater().register(myAxis);
-    myProfilers.getUpdater().register(myLegends);
-    myProfilers.getUpdater().register(myTooltipLegends);
+    if (isEnabled()) {
+      myProfilers.getUpdater().register(myUsage);
+      myProfilers.getUpdater().register(myAxis);
+      myProfilers.getUpdater().register(myLegends);
+      myProfilers.getUpdater().register(myTooltipLegends);
+    }
   }
 
   @Override
   public void exit() {
-    myProfilers.getUpdater().unregister(myUsage);
-    myProfilers.getUpdater().unregister(myAxis);
-    myProfilers.getUpdater().unregister(myLegends);
-    myProfilers.getUpdater().unregister(myTooltipLegends);
+    if (isEnabled()) {
+      myProfilers.getUpdater().unregister(myUsage);
+      myProfilers.getUpdater().unregister(myAxis);
+      myProfilers.getUpdater().unregister(myLegends);
+      myProfilers.getUpdater().unregister(myTooltipLegends);
+    }
+  }
+
+  /**
+   * The energy monitor is valid when the session has JVMTI enabled or the device is above O.
+   */
+  @Override
+  public boolean isEnabled() {
+    if (myProfilers.getSession().getSessionId() != 0) {
+      return myProfilers.getSelectedSessionMetaData().getJvmtiEnabled();
+    }
+    return myProfilers.getDevice() == null || myProfilers.getDevice().getFeatureLevel() >= AndroidVersion.VersionCodes.O;
   }
 
   @NotNull

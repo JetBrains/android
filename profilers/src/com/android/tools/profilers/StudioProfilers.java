@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.Updatable;
@@ -613,7 +614,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     listBuilder.add(CpuProfilerStage.class);
     listBuilder.add(MemoryProfilerStage.class);
     listBuilder.add(NetworkProfilerStage.class);
-    if (getIdeServices().getFeatureConfig().isEnergyProfilerEnabled()) {
+    // Show the energy stage in the list only when the session has JVMTI enabled or the device is above O.
+    boolean hasSession = mySelectedSession.getSessionId() != 0;
+    boolean isEnergyStageEnabled = hasSession ? mySelectedSessionMetaData.getJvmtiEnabled()
+                                              : myDevice != null && myDevice.getFeatureLevel() >= AndroidVersion.VersionCodes.O;
+    if (getIdeServices().getFeatureConfig().isEnergyProfilerEnabled() && isEnergyStageEnabled) {
       listBuilder.add(EnergyProfilerStage.class);
     }
     return listBuilder.build();

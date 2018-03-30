@@ -107,25 +107,29 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
     }
     else {
       myContainer.setBackground(ProfilerColors.MONITOR_DISABLED);
-      myContainer.setLayout(new TabularLayout("*,Fit,*", "6*,4*"));
-
-      JLabel disabledMessage = new JLabel(getDisabledMessage());
-      disabledMessage.setHorizontalAlignment(SwingConstants.CENTER);
-      disabledMessage.setVerticalAlignment(SwingConstants.CENTER);
-      disabledMessage.setFont(disabledMessage.getFont().deriveFont(15.5f));
-      myContainer.add(disabledMessage, new TabularLayout.Constraint(0, 0, 3));
-
-      HyperlinkLabel linkToConfigMessage = new HyperlinkLabel();
-      linkToConfigMessage.setHyperlinkText("Configure this setting in the ", "Run Configuration", "");
-      linkToConfigMessage.addHyperlinkListener(new HyperlinkAdapter() {
-        @Override
-        protected void hyperlinkActivated(HyperlinkEvent e) {
-          myMonitor.getProfilers().getIdeServices().enableAdvancedProfiling();
-        }
-      });
-      myContainer.add(linkToConfigMessage, new TabularLayout.Constraint(1, 1));
-      linkToConfigMessage.setFont(linkToConfigMessage.getFont().deriveFont(12f));
+      populateDisabledView(myContainer);
     }
+  }
+
+  protected void populateDisabledView(JPanel container) {
+    myContainer.setLayout(new TabularLayout("*,Fit,*", "6*,4*"));
+
+    JLabel disabledMessage = new JLabel(getDisabledMessage());
+    disabledMessage.setHorizontalAlignment(SwingConstants.CENTER);
+    disabledMessage.setVerticalAlignment(SwingConstants.CENTER);
+    disabledMessage.setFont(disabledMessage.getFont().deriveFont(15.5f));
+    myContainer.add(disabledMessage, new TabularLayout.Constraint(0, 0, 3));
+
+    HyperlinkLabel linkToConfigMessage = new HyperlinkLabel();
+    linkToConfigMessage.setHyperlinkText("Configure this setting in the ", "Run Configuration", "");
+    linkToConfigMessage.addHyperlinkListener(new HyperlinkAdapter() {
+      @Override
+      protected void hyperlinkActivated(HyperlinkEvent e) {
+        myMonitor.getProfilers().getIdeServices().enableAdvancedProfiling();
+      }
+    });
+    myContainer.add(linkToConfigMessage, new TabularLayout.Constraint(1, 1));
+    linkToConfigMessage.setFont(linkToConfigMessage.getFont().deriveFont(12f));
   }
 
   /**
