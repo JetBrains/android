@@ -21,7 +21,6 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.*;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
-import com.android.resources.ResourceVisibility;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.utils.ILogger;
 import com.google.common.collect.*;
@@ -32,6 +31,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ObjectIntHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -80,7 +80,7 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
   };
 
   private final boolean myWithLocaleResources;
-  private final Map<ResourceType, List<ResourceItem>> myPublicResources = new EnumMap<>(ResourceType.class);
+  private final Map<ResourceType, Set<ResourceItem>> myPublicResources = new EnumMap<>(ResourceType.class);
   private boolean myLoadedFromCache;
 
   private FrameworkResourceRepository(@NotNull File resFolder, boolean withLocaleResources) {
@@ -145,17 +145,18 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
   @Override
   @NotNull
   public Collection<ResourceItem> getPublicResourcesOfType(@NotNull ResourceType type) {
-    List<ResourceItem> resourceItems = myPublicResources.get(type);
-    return resourceItems == null ? Collections.emptyList() : resourceItems;
+    Set<ResourceItem> resourceItems = myPublicResources.get(type);
+    return resourceItems == null ? Collections.emptySet() : resourceItems;
   }
 
   public boolean isPublic(@NotNull ResourceType type, @NotNull String name) {
-    List<ResourceItem> byType = myPublicResources.get(type);
-    if (byType == null) {
+    List<ResourceItem> items = getResourceItems(ANDROID_NAMESPACE, type, name);
+    if (items.isEmpty()) {
       return false;
     }
 
-    return byType.stream().anyMatch(item -> name.equals(item.getName()));
+    Set<ResourceItem> publicSet = myPublicResources.get(type);
+    return publicSet != null && publicSet.contains(items.get(0));
   }
 
   @VisibleForTesting
@@ -226,13 +227,13 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
               // Some entries in public.xml point to attributes defined attrs_manifest.xml and therefore
               // don't match any resources.
               if (!matchingResources.isEmpty()) {
-                List<ResourceItem> publicList = myPublicResources.get(type);
-                if (publicList == null) {
-                  publicList = new ArrayList<>(getMap(type, false).size());
-                  myPublicResources.put(type, publicList);
+                Set<ResourceItem> publicSet = myPublicResources.get(type);
+                if (publicSet == null) {
+                  publicSet = ContainerUtil.newIdentityTroveSet();
+                  myPublicResources.put(type, publicSet);
                 }
 
-                publicList.addAll(matchingResources);
+                publicSet.addAll(matchingResources);
               }
             }
             else {
@@ -252,16 +253,16 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
 
     // Put unmodifiable list for all resource types in the public resource map.
     for (ResourceType type : ResourceType.values()) {
-      List<ResourceItem> list = myPublicResources.get(type);
-      if (list == null) {
-        list = Collections.emptyList();
+      Set<ResourceItem> items = myPublicResources.get(type);
+      if (items == null) {
+        items = Collections.emptySet();
       }
       else {
-        list = ImmutableList.copyOf(list); // Make immutable and free unused memory.
+        items = Collections.unmodifiableSet(items); // Make immutable.
       }
 
       // put the new list in the map
-      myPublicResources.put(type, list);
+      myPublicResources.put(type, items);
     }
   }
 
@@ -393,9 +394,9 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
             throw new StreamCorruptedException("Unresolved public resource reference, type: " + resourceType.getName()
                                                + ", name: " + resourceName);
           }
-          List<ResourceItem> publicItems = myPublicResources.get(resourceType);
+          Set<ResourceItem> publicItems = myPublicResources.get(resourceType);
           if (publicItems == null) {
-            publicItems = new ArrayList<>(items.size());
+            publicItems = ContainerUtil.newIdentityTroveSet(items.size());
             myPublicResources.put(resourceType, publicItems);
           }
           publicItems.addAll(items);
@@ -629,14 +630,14 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
 
       // Write public resources.
       numNonEmpty = 0;
-      for (Map.Entry<ResourceType, List<ResourceItem>> typeEntry : myPublicResources.entrySet()) {
+      for (Map.Entry<ResourceType, Set<ResourceItem>> typeEntry : myPublicResources.entrySet()) {
         if (!typeEntry.getValue().isEmpty()) {
           numNonEmpty++;
         }
       }
       out.writeByte(numNonEmpty);
-      for (Map.Entry<ResourceType, List<ResourceItem>> entry : myPublicResources.entrySet()) {
-        List<ResourceItem> resourceItems = entry.getValue();
+      for (Map.Entry<ResourceType, Set<ResourceItem>> entry : myPublicResources.entrySet()) {
+        Set<ResourceItem> resourceItems = entry.getValue();
         if (!resourceItems.isEmpty()) {
           ResourceType resourceType = entry.getKey();
           out.writeResourceType(resourceType);
@@ -687,6 +688,13 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
       return "unknown";
     }
     return plugin.getVersion();
+  }
+
+  @NotNull
+  private static UnsupportedOperationException createAndLogUnsupportedOperationException() {
+    UnsupportedOperationException exception = new UnsupportedOperationException();
+    LOG.error("Unsupported operation in FrameworkResourceRepository", exception);
+    return exception;
   }
 
   private static class CacheOutputStream extends ObjectOutputStream {
@@ -1477,13 +1485,6 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
     public Object getUserData(String key) {
       throw createAndLogUnsupportedOperationException();
     }
-  }
-
-  @NotNull
-  private static UnsupportedOperationException createAndLogUnsupportedOperationException() {
-    UnsupportedOperationException exception = new UnsupportedOperationException();
-    LOG.error("Unsupported operation in FrameworkResourceRepository", exception);
-    return exception;
   }
 
   public enum ResourceItemType {

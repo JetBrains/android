@@ -147,6 +147,9 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
       List<ResourceItem> publicResources2 = new ArrayList<>(fromCache.getPublicResourcesOfType(type));
       assertEquals("Number of public resources doesn't match for type " + type.getName(),
                    publicResources.size(), publicResources2.size());
+      Comparator<ResourceItem> comparator = Comparator.comparing(ResourceItem::getName).thenComparing(ResourceItem::getFile);
+      publicResources.sort(comparator);
+      publicResources2.sort(comparator);
       for (int i = 0; i < publicResources.size(); i++) {
         ResourceMergerItem withoutCache = (ResourceMergerItem)publicResources.get(i);
         ResourceMergerItem withCache = (ResourceMergerItem)publicResources2.get(i);
