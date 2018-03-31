@@ -148,6 +148,10 @@ public abstract class PsModule extends PsChildModel {
     myDependenciesChangeEventDispatcher.getMulticaster().dependencyChanged(new DependencyModifiedEvent(dependency));
   }
 
+  public void fireDependencyRemovedEvent(@NotNull PsDependency dependency) {
+    myDependenciesChangeEventDispatcher.getMulticaster().dependencyChanged(new DependencyRemovedEvent(dependency));
+  }
+
   @Nullable
   public String getGradlePath() {
     return myGradlePath;
@@ -279,6 +283,19 @@ public abstract class PsModule extends PsChildModel {
     @NotNull private final PsDependency myDependency;
 
     DependencyModifiedEvent(@NotNull PsDependency dependency) {
+      myDependency = dependency;
+    }
+
+    @NotNull
+    public PsDependency getDependency() {
+      return myDependency;
+    }
+  }
+
+  public static class DependencyRemovedEvent implements DependencyChangedEvent {
+    @NotNull private final PsDependency myDependency;
+
+    DependencyRemovedEvent(@NotNull PsDependency dependency) {
       myDependency = dependency;
     }
 

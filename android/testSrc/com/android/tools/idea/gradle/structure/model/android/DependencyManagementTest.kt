@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.builder.model.AndroidProject.ARTIFACT_MAIN
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
+import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.testing.TestProjectPaths.PSD_DEPENDENCY
 import com.intellij.openapi.project.Project
@@ -181,12 +182,15 @@ class DependencyManagementTest : DependencyTestCase() {
     var module = project.findModuleByName("mainModule") as PsAndroidModule
     val lib10 = module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0")
     assertThat(lib10, notNullValue())
-    assertThat(lib10!!.size, equalTo(2))
-
+    val numberOfMatchingDependencies = 2
+    assertThat(lib10!!.size, equalTo(numberOfMatchingDependencies))
+    var notifications = 0
+    module.add(PsModule.DependenciesChangeListener { if (it is PsModule.DependencyRemovedEvent) notifications++ }, testRootDisposable)
     lib10.forEach {
       module.removeDependency(it)
     }
     assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), nullValue())
+    assertThat(notifications, equalTo(numberOfMatchingDependencies))
 
     run {
       val resolvedDependencies = module.findVariant("freeRelease")?.findArtifact(ARTIFACT_MAIN)?.dependencies
