@@ -30,14 +30,9 @@ object GuiTestOptions {
   fun getSystemPath(): String = PathManager.getSystemPath()
   fun getPluginPath(): String = getSystemProperty("plugin.path", "")
   fun isDebug(): Boolean = getSystemProperty("idea.debug.mode", false)
-  fun suspendDebug(): String = if (isDebug()) "y" else "n"
-  fun isInternal(): Boolean = getSystemProperty("idea.is.internal", true)
-  fun useAppleScreenMenuBar(): Boolean = getSystemProperty("apple.laf.useScreenMenuBar", false)
 
   fun getDebugPort(): Int = getSystemProperty("idea.gui.test.debug.port", 5005)
   fun getBootClasspath(): String = getSystemProperty("idea.gui.test.bootclasspath", "../out/production/boot")
-  fun getEncoding(): String = getSystemProperty("idea.gui.test.encoding", "UTF-8")
-  fun getXmxSize(): Int = getSystemProperty("idea.gui.test.xmx", 512)
   //used for restarted and resumed test to qualify from what point to start
   fun getSegmentIndex(): Int = getSystemProperty(SEGMENT_INDEX, 0)
   fun getNumTestSegments(): Int = getSystemProperty(NUM_TEST_SEGMENTS_KEY, 1)
