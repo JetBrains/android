@@ -36,6 +36,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonShortcuts
 import com.intellij.openapi.project.DumbAwareAction
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil.isEmpty
@@ -50,7 +51,7 @@ import javax.swing.JComponent
  * Panel that displays the table of "editable" dependencies.
  */
 internal class DeclaredDependenciesPanel(
-  module: PsAndroidModule, context: PsContext
+  val module: PsAndroidModule, context: PsContext
 ) : AbstractDependenciesPanel("Declared Dependencies", context, module), DependencySelection {
 
   private val dependenciesTableModel: DeclaredDependenciesTableModel
@@ -120,7 +121,7 @@ internal class DeclaredDependenciesPanel(
 
   override fun getExtraToolbarActions(): List<AnAction> {
     val actions = Lists.newArrayList<AnAction>()
-    actions.add(EditDependencyAction())
+    actions.add(RemoveDependencyAction())
     return actions
   }
 
@@ -205,9 +206,9 @@ internal class DeclaredDependenciesPanel(
     dependenciesTable.selectDependency(toSelect)
   }
 
-  private inner class EditDependencyAction internal constructor() : DumbAwareAction("Edit Dependency...", "", AllIcons.Actions.Edit) {
+  private inner class RemoveDependencyAction internal constructor() : DumbAwareAction("Remove Dependency...", "", AllIcons.Actions.Delete) {
     init {
-      registerCustomShortcutSet(CommonShortcuts.ENTER, dependenciesTable)
+      registerCustomShortcutSet(CommonShortcuts.getDelete(), dependenciesTable)
     }
 
     override fun update(e: AnActionEvent) {
@@ -215,6 +216,19 @@ internal class DeclaredDependenciesPanel(
       e.presentation.isEnabled = details != null
     }
 
-    override fun actionPerformed(e: AnActionEvent) {}
+    override fun actionPerformed(e: AnActionEvent) {
+      val dependency = selection
+      if (dependency != null) {
+        if (Messages.showYesNoDialog(
+            e.project,
+            "Remove dependency '${dependency.joinedConfigurationNames} ${dependency.name}'?",
+            "Remove Dependency",
+            Messages.getQuestionIcon()
+          ) == Messages.YES) {
+          module.removeDependency(dependency)
+          dependenciesTable.selectFirstRow()
+        }
+      }
+    }
   }
 }
