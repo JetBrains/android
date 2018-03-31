@@ -28,7 +28,6 @@ import org.jetbrains.jps.model.module.JpsModule
 import org.jetbrains.jps.model.serialization.JpsModelSerializationDataService
 import org.jetbrains.jps.model.serialization.JpsProjectLoader
 import java.io.File
-import java.lang.management.ManagementFactory
 import java.net.URL
 import java.nio.file.Paths
 import java.util.*
@@ -99,7 +98,7 @@ object GuiTestLauncher {
   private fun createArgs(port: Int): List<String> {
     val args = listOf<String>()
         .plus(getCurrentJavaExec())
-        .plus(getDefaultAndCustomVmOptions(getCustomPassedOptions()))
+        .plus(getVmOptions())
         .plus("-classpath")
         .plus(getFullClasspath(STUDIO_UITESTS_MAIN_MODULE_NAME))
         .plus(MAIN_CLASS_NAME)
@@ -110,48 +109,46 @@ object GuiTestLauncher {
 
   private fun createArgsByPath(path: String, port: Int): List<String> = listOf(path, GuiTestStarter.COMMAND_NAME, "port=$port")
 
-  private fun getCurrentProcessVmOptions(): List<String> {
-    val runtimeMxBean = ManagementFactory.getRuntimeMXBean()
-    return runtimeMxBean.inputArguments
-  }
-
-  private fun getPassedVmOptions(): List<String> {
-    return getCurrentProcessVmOptions().filter { it.startsWith("-Dpass.") }
-  }
-
-  private fun getCustomPassedOptions(): List<String> {
-    return getPassedVmOptions().map { it.replace("-Dpass.", "-D") }
-  }
-
   /**
    * Default VM options to start IntelliJ IDEA (or IDEA-based IDE). To customize options use com.intellij.testGuiFramework.launcher.GuiTestOptions
    */
-  private fun getDefaultAndCustomVmOptions(customVmOptions: List<String> = emptyList()) =
-    mutableListOf<String>()
-      .plus("-Xmx${GuiTestOptions.getXmxSize()}m")
+  private fun getVmOptions(): List<String> {
+    // TODO(b/77341383): avoid having to sync manually with studio64.vmoptions
+    var options = mutableListOf<String>()
+      /* studio64.vmoptions */
+      .plus("-Xms256m")
+      .plus("-Xmx1280m")
       .plus("-XX:ReservedCodeCacheSize=240m")
       .plus("-XX:+UseConcMarkSweepGC")
       .plus("-XX:SoftRefLRUPolicyMSPerMB=50")
-      .plus("-XX:MaxJavaStackTraceDepth=10000")
-      .plus("-ea")
-      .plus("-Xbootclasspath/p:${GuiTestOptions.getBootClasspath()}")
-      .plus("-Dsun.awt.disablegrab=true")
       .plus("-Dsun.io.useCanonCaches=false")
       .plus("-Djava.net.preferIPv4Stack=true")
-      .plus("-Dapple.laf.useScreenMenuBar=${GuiTestOptions.useAppleScreenMenuBar()}")
-      .plus("-Didea.is.internal=${GuiTestOptions.isInternal()}")
-      .plus("-Didea.debug.mode=true")
+      .plus("-Djna.nosys=true")
+      .plus("-Djna.boot.library.path=")
+      .plus("-XX:MaxJavaStackTraceDepth=-1")
+      .plus("-XX:+HeapDumpOnOutOfMemoryError")
+      .plus("-XX:-OmitStackTraceInFastThrow")
+      .plus("-ea")
+      .plus("-Dawt.useSystemAAFontSettings=lcd")
+      .plus("-Dsun.java2d.renderer=sun.java2d.marlin.MarlinRenderingEngine")
+      /* studio.sh options */
+      .plus("-Xbootclasspath/p:${GuiTestOptions.getBootClasspath()}")
+      .plus("-Didea.platform.prefix=AndroidStudio")
+      .plus("-Didea.jre.check=true")
+      /* testing-specific options */
       .plus("-Didea.config.path=${GuiTestOptions.getConfigPath()}")
       .plus("-Didea.system.path=${GuiTestOptions.getSystemPath()}")
       .plus("-Dplugin.path=${GuiTestOptions.getPluginPath()}")
-      .plus("-Dfile.encoding=${GuiTestOptions.getEncoding()}")
-      .plus("-Didea.platform.prefix=AndroidStudio")
-      .plus(customVmOptions)
-      .plus("-Xdebug")
-      .plus("-Xrunjdwp:transport=dt_socket,server=y,suspend=${GuiTestOptions.suspendDebug()},address=${GuiTestOptions.getDebugPort()}")
-      .plus("-Duse.linux.keychain=false")
       .plus("-Ddisable.android.first.run=true")
       .plus("-Ddisable.config.import=true")
+    /* debugging options */
+    if (GuiTestOptions.isDebug()) {
+      options = options.plus("-Didea.debug.mode=true")
+        .plus("-Xdebug")
+        .plus("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=${GuiTestOptions.getDebugPort()}")
+    }
+    return options
+  }
 
   private fun getCurrentJavaExec(): String {
     val homePath = System.getProperty("java.home")
