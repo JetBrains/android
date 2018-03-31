@@ -154,7 +154,8 @@ class PsAndroidModule(
     removeDependencyFromParsedModel(dependency)
 
     resetDependencies()
-    // TODO(solodkyy): Notify about changed dependencies.
+
+    fireDependencyRemovedEvent(dependency)
     isModified = true
   }
 
