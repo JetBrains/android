@@ -54,7 +54,7 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
   lateinit private var objectInputStream: ObjectInputStream
   lateinit private var objectOutputStream: ObjectOutputStream
 
-  private val IDE_STARTUP_TIMEOUT = 180000
+  private val IDE_STARTUP_TIMEOUT = 20000
   private val MESSAGE_INTERVAL_TIMEOUT = 15L
 
   private val port: Int
@@ -106,6 +106,7 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
   override fun isRunning(): Boolean = running
 
   private fun stopServer() {
+    if (!running) return
     serverSendThread.objectOutputStream.close()
     LOG.info("Object output stream closed")
     serverSendThread.interrupt()
