@@ -166,7 +166,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     // "Gradle-aware Make" is only available in Android Studio.
     if (configurationTypeIsSupported(runConfiguration)) {
       MakeBeforeRunTask task = new MakeBeforeRunTask();
-      if (runConfiguration instanceof PreferGradleMake) {
+      if (configurationTypeIsEnabledByDefault(runConfiguration)) {
         // For Android configurations, we want to replace the default make, so this new task needs to be enabled.
         // In AndroidRunConfigurationType#configureBeforeTaskDefaults we disable the default make, which is
         // enabled by default. For other configurations we leave it disabled, so we don't end up with two different
@@ -181,11 +181,15 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     }
   }
 
-  private boolean configurationTypeIsSupported(@NotNull RunConfiguration runConfiguration) {
+  public boolean configurationTypeIsSupported(@NotNull RunConfiguration runConfiguration) {
     if (myAndroidProjectInfo.isApkProject()) {
       return false;
     }
     return runConfiguration instanceof PreferGradleMake || isUnitTestConfiguration(runConfiguration);
+  }
+
+  public boolean configurationTypeIsEnabledByDefault(@NotNull RunConfiguration runConfiguration) {
+    return runConfiguration instanceof PreferGradleMake;
   }
 
   private static boolean isUnitTestConfiguration(@NotNull RunConfiguration runConfiguration) {
