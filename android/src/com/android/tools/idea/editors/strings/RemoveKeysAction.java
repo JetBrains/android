@@ -70,6 +70,8 @@ final class RemoveKeysAction extends AnAction {
 
     if (DumbService.getInstance(project).isDumb()) {
       DeleteHandler.deletePsiElement(keys, project);
+      myPanel.reloadData();
+
       return;
     }
 
@@ -86,6 +88,8 @@ final class RemoveKeysAction extends AnAction {
     else {
       DeleteHandler.deletePsiElement(keys, project, false);
     }
+
+    myPanel.reloadData();
   }
 
   private static final class MySafeDeleteDialog extends SafeDeleteDialog {
