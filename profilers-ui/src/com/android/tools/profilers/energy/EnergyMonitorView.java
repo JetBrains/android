@@ -47,7 +47,7 @@ public class EnergyMonitorView extends ProfilerMonitorView<EnergyMonitor> {
 
   @Override
   protected void populateDisabledView(JPanel container) {
-    container.setLayout(new TabularLayout("*,Fit,*", "*,Fit,Fit,*"));
+    container.setLayout(new TabularLayout("*,Fit-,*", "*,Fit-,Fit-,*"));
     JLabel disabledMessage = new JLabel("Energy profiler unavailable");
     disabledMessage.setFont(disabledMessage.getFont().deriveFont(15.5f));
     disabledMessage.setHorizontalAlignment(SwingConstants.CENTER);

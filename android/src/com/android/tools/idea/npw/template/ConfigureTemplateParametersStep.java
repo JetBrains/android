@@ -511,7 +511,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
   }
 
   private void createUIComponents() {
-    myParametersPanel = new JPanel(new TabularLayout("Fit,*").setVGap(10));
+    myParametersPanel = new JPanel(new TabularLayout("Fit-,*").setVGap(10));
   }
 
   private void resetPanel() {

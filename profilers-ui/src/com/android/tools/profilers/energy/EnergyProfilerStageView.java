@@ -50,7 +50,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     verticalSplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
     verticalSplitter.setFirstComponent(buildMonitorUi());
 
-    myEventsPanel = new JPanel(new TabularLayout("*,Fit", "Fit,*"));
+    myEventsPanel = new JPanel(new TabularLayout("*,Fit-", "Fit-,*"));
     myEventsPanel.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
     myEventsPanel.add(getSelectionTimeLabel(), new TabularLayout.Constraint(0, 1));
 

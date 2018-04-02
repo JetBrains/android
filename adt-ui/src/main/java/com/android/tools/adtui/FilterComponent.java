@@ -58,7 +58,7 @@ public class FilterComponent extends JPanel {
   private final int myDelayMs;
 
   public FilterComponent(int textFieldWidth, int historySize, int delayMs) {
-    super(new TabularLayout("4px," + textFieldWidth + "px,5px,Fit,5px,Fit", "Fit"));
+    super(new TabularLayout("4px," + textFieldWidth + "px,5px,Fit-,5px,Fit-", "Fit-"));
     myDelayMs = delayMs;
     myModel = new FilterModel();
     addComponentListener(new ComponentAdapter() {

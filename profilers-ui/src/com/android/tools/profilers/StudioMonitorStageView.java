@@ -75,7 +75,7 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     // Create a 2-row panel. First row, all monitors; second row, the timeline. This way, the
     // timeline will always be at the bottom, even if no monitors are found (e.g. when the phone is
     // disconnected).
-    JPanel topPanel = new JPanel(new TabularLayout("*", "*,Fit"));
+    JPanel topPanel = new JPanel(new TabularLayout("*", "*,Fit-"));
     topPanel.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
 
     TabularLayout layout = new TabularLayout("*");
@@ -142,7 +142,7 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
       profilersView.installCommonMenuItems(component);
 
       int weight = (int)(view.getVerticalWeight() * 100f);
-      layout.setRowSizing(rowIndex, (weight > 0) ? weight + "*" : "Fit");
+      layout.setRowSizing(rowIndex, (weight > 0) ? weight + "*" : "Fit-");
       monitors.add(component, new TabularLayout.Constraint(rowIndex, 0));
       rowIndex++;
       myViews.add(view);

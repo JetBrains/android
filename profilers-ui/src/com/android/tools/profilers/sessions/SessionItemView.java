@@ -50,7 +50,7 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
 
     // 1st column reserved for the Session's title (time), 2nd column for the live session icon.
     // 1st row for showing session start time, 2nd row for name, 3rd row for duration
-    myComponent = new JPanel(new TabularLayout("Fit,Fit,*", "Fit,Fit,Fit"));
+    myComponent = new JPanel(new TabularLayout("Fit-,Fit-,*", "Fit-,Fit-,Fit-"));
     if (isHovered()) {
       myComponent.setBackground(HOVERED_SESSION_COLOR);
     }

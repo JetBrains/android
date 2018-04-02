@@ -42,7 +42,7 @@ public class InstructionsPanel extends JPanel {
   @Nullable private Consumer<InstructionsPanel> myEaseOutCompletionCallback;
 
   private InstructionsPanel(@NotNull Builder builder) {
-    super(new TabularLayout("*,Fit,*", "*,Fit,*"));
+    super(new TabularLayout("*,Fit-,*", "*,Fit-,*"));
 
     setOpaque(false);
     setBackground(builder.myBackgroundColor);

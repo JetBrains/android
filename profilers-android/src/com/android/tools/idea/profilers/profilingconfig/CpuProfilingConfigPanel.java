@@ -244,7 +244,7 @@ public class CpuProfilingConfigPanel {
   }
 
   private void createConfigNamePanel() {
-    JPanel namePanel = new JPanel(new TabularLayout("Fit,200px", "25px"));
+    JPanel namePanel = new JPanel(new TabularLayout("Fit-,200px", "25px"));
     JLabel nameLabel = new JLabel("Name:");
     nameLabel.setBorder(new EmptyBorder(0, 0, 0, 5));
     namePanel.add(nameLabel, new TabularLayout.Constraint(0, 0));
@@ -331,7 +331,7 @@ public class CpuProfilingConfigPanel {
    * The same layout is used so their components keep aligned.
    */
   private static TabularLayout getSamplingIntervalFileSizeLayout() {
-    return new TabularLayout("120px,75px,Fit,*", "25px");
+    return new TabularLayout("120px,75px,Fit-,*", "25px");
   }
 
   private void createSamplingIntervalPanel() {

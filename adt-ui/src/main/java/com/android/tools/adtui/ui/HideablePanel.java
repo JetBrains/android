@@ -49,7 +49,7 @@ public class HideablePanel extends JPanel {
     super(new BorderLayout());
     myChild = builder.myContent;
     myStateChangeListeners = new EventListenerList();
-    myTitlePanel = new JPanel(new TabularLayout("Fit,*,Fit"));
+    myTitlePanel = new JPanel(new TabularLayout("Fit-,*,Fit-"));
     myLabel = setupTitleBar(builder);
     myChild.setBorder(HIDEABLE_CONTENT_BORDER);
     setBorder(HIDEABLE_PANEL_BORDER);

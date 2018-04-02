@@ -77,7 +77,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     leftSplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
     leftSplitter.setFirstComponent(buildMonitorUi());
 
-    myConnectionsPanel = new JPanel(new TabularLayout("*,Fit", "Fit,*"));
+    myConnectionsPanel = new JPanel(new TabularLayout("*,Fit-", "Fit-,*"));
     JPanel connectionsPanel = new JPanel(new CardLayout());
     if (stage.getStudioProfilers().getIdeServices().getFeatureConfig().isNetworkThreadViewEnabled()) {
       JTabbedPane connectionsTab = new CommonTabbedPane();
