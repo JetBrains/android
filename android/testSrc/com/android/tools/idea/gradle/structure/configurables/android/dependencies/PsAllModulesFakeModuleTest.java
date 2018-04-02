@@ -28,26 +28,26 @@ import static org.mockito.Mockito.*;
 @RunWith(JUnit4.class)
 public class PsAllModulesFakeModuleTest {
   private PsProject myProject;
-  private PsAllModulesFakeModule myallModules;
+  private PsAllModulesFakeModule myAllModules;
 
   @Before
   public void setUp() {
     myProject = mock(PsProject.class);
-    myallModules = new PsAllModulesFakeModule(myProject);
+    myAllModules = new PsAllModulesFakeModule(myProject);
   }
 
   @Test
   public void isModified() throws Exception {
     when(myProject.isModified()).thenReturn(false);
-    assertThat(myallModules.isModified(), is(false));
+    assertThat(myAllModules.isModified(), is(false));
 
     when(myProject.isModified()).thenReturn(true);
-    assertThat(myallModules.isModified(), is(true));
+    assertThat(myAllModules.isModified(), is(true));
   }
 
   @Test
-  public void appplyChanges() throws Exception {
-    myallModules.applyChanges();
+  public void applyChanges() throws Exception {
+    myAllModules.applyChanges();
 
     verify(myProject, only()).applyChanges();
   }
