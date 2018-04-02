@@ -16,11 +16,15 @@
 package com.android.tools.idea.gradle.structure.model;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleModelProvider;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -36,6 +40,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 
 public class PsProject extends PsModel {
   @NotNull private final Project myProject;
+  @Nullable private final ProjectBuildModel myParsedModel;
 
   @NotNull private final List<PsModule> myModules = Lists.newArrayList();
 
@@ -44,28 +49,30 @@ public class PsProject extends PsModel {
   public PsProject(@NotNull Project project) {
     super(null);
     myProject = project;
+    myParsedModel = GradleModelProvider.get().getProjectModel(project);
+    if (myParsedModel != null) {
+      for (Module resolvedModel : ModuleManager.getInstance(myProject).getModules()) {
+        String gradlePath = getGradlePath(resolvedModel);
+        GradleBuildModel parsedModel = myParsedModel.getModuleBuildModel(resolvedModel);
+        if (gradlePath != null && parsedModel != null) {
+          // Only Gradle-based modules are displayed in the PSD.
+          PsModule module = null;
 
-    for (Module resolvedModel : ModuleManager.getInstance(myProject).getModules()) {
-      String gradlePath = getGradlePath(resolvedModel);
-      GradleBuildModel parsedModel = GradleBuildModel.get(resolvedModel);
-      if (gradlePath != null && parsedModel != null) {
-        // Only Gradle-based modules are displayed in the PSD.
-        PsModule module = null;
-
-        AndroidModuleModel gradleModel = AndroidModuleModel.get(resolvedModel);
-        if (gradleModel != null) {
-          module = new PsAndroidModule(this, resolvedModel, gradlePath, gradleModel, parsedModel);
-        }
-        // TODO enable when Java module support is complete.
-        else {
-          JavaModuleModel javaModuleModel = JavaModuleModel.get(resolvedModel);
-          if (javaModuleModel != null && javaModuleModel.isBuildable()) {
-            module = new PsJavaModule(this, resolvedModel, gradlePath, javaModuleModel, parsedModel);
+          AndroidModuleModel gradleModel = AndroidModuleModel.get(resolvedModel);
+          if (gradleModel != null) {
+            module = new PsAndroidModule(this, resolvedModel, gradlePath, gradleModel, parsedModel);
           }
-        }
+          // TODO enable when Java module support is complete.
+          else {
+            JavaModuleModel javaModuleModel = JavaModuleModel.get(resolvedModel);
+            if (javaModuleModel != null && javaModuleModel.isBuildable()) {
+              module = new PsJavaModule(this, resolvedModel, gradlePath, javaModuleModel, parsedModel);
+            }
+          }
 
-        if (module != null) {
-          myModules.add(module);
+          if (module != null) {
+            myModules.add(module);
+          }
         }
       }
     }
@@ -139,6 +146,16 @@ public class PsProject extends PsModel {
   }
 
   public void applyChanges() {
-    forEachModule(PsModule::applyChanges);
+    if (myParsedModel != null) {
+      if (isModified()) {
+        new WriteCommandAction(getResolvedModel(), "Applying changes to the project structure.") {
+          @Override
+          protected void run(@NotNull Result result) {
+            myParsedModel.applyChanges();
+            setModified(false);
+          }
+        }.execute();
+      }
+    }
   }
 }
