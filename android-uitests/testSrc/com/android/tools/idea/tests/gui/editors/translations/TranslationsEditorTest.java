@@ -80,8 +80,6 @@ public final class TranslationsEditorTest {
   private Path myStringsXmlPath;
   private Path myTamilStringsXmlPath;
 
-  private TranslationsEditorFixture myTranslationsEditor;
-
   @Before
   public void initPaths() {
     FileSystem fileSystem = FileSystems.getDefault();
@@ -109,15 +107,15 @@ public final class TranslationsEditorTest {
         return table.getModel().getRowCount() != 0;
       }
     });
-
-    myTranslationsEditor = editor.getTranslationsEditor();
   }
 
   @Test
   public void basics() throws IOException {
     importSimpleApplication();
 
-    FixedColumnTableFixture table = myTranslationsEditor.getTable();
+    TranslationsEditorFixture translationsEditor = myGuiTest.ideFrame().getEditor().getTranslationsEditor();
+    FixedColumnTableFixture table = translationsEditor.getTable();
+
     assertEquals(Arrays.asList("app_name", "hello_world", "action_settings", "some_id", "cancel", "app_name"), table.columnAt(KEY_COLUMN));
 
     Object expected = Arrays.asList(
@@ -126,7 +124,7 @@ public final class TranslationsEditorTest {
       "English (en) in United Kingdom (GB)",
       "Hebrew (iw)",
       "Tamil (ta)");
-    assertEquals(expected, myTranslationsEditor.locales());
+    assertEquals(expected, translationsEditor.locales());
 
     JTableCellFixture cancel = table.cell(TableCell.row(4).column(CHINESE_IN_CHINA_COLUMN)); // Cancel in zh-rCN
     assertEquals("取消", cancel.value());
@@ -136,24 +134,28 @@ public final class TranslationsEditorTest {
   @Test
   public void dialogAddsKeyInDifferentFolder() throws IOException {
     importSimpleApplication();
-    myTranslationsEditor.getAddKeyButton().click();
+    TranslationsEditorFixture translationsEditor = myGuiTest.ideFrame().getEditor().getTranslationsEditor();
 
-    AddKeyDialogFixture dialog = myTranslationsEditor.getAddKeyDialog();
+    translationsEditor.getAddKeyButton().click();
+
+    AddKeyDialogFixture dialog = translationsEditor.getAddKeyDialog();
     dialog.getDefaultValueTextField().enterText("action_settings");
     dialog.getKeyTextField().enterText("action_settings");
     dialog.getResourceFolderComboBox().selectItem(toResourceName("app/src/debug/res"));
     dialog.getOkButton().click();
 
     Object expected = Arrays.asList("app_name", "hello_world", "action_settings", "some_id", "cancel", "app_name", "action_settings");
-    assertEquals(expected, myTranslationsEditor.getTable().columnAt(KEY_COLUMN));
+    assertEquals(expected, translationsEditor.getTable().columnAt(KEY_COLUMN));
   }
 
   @Test
   public void dialogDoesntAddKeyInSameFolder() throws IOException {
     importSimpleApplication();
-    myTranslationsEditor.getAddKeyButton().click();
+    TranslationsEditorFixture translationsEditor = myGuiTest.ideFrame().getEditor().getTranslationsEditor();
 
-    AddKeyDialogFixture dialog = myTranslationsEditor.getAddKeyDialog();
+    translationsEditor.getAddKeyButton().click();
+
+    AddKeyDialogFixture dialog = translationsEditor.getAddKeyDialog();
     dialog.getDefaultValueTextField().enterText("action_settings");
     dialog.getKeyTextField().enterText("action_settings");
     dialog.getOkButton().click();
@@ -165,13 +167,13 @@ public final class TranslationsEditorTest {
   @Test
   public void removeLocale() throws IOException {
     importSimpleApplication();
+
     IdeFrameFixture frame = myGuiTest.ideFrame();
-
     VirtualFile debugValuesEn = frame.findFileByRelativePath("app/src/debug/res/values-en", false);
-
     VirtualFile mainValuesEn = frame.findFileByRelativePath("app/src/main/res/values-en", false);
+    TranslationsEditorFixture translationsEditor = frame.getEditor().getTranslationsEditor();
 
-    myTranslationsEditor.getTable().tableHeader().showPopupMenuAt(ENGLISH_COLUMN).menuItem("removeLocaleMenuItem").click();
+    translationsEditor.getTable().tableHeader().showPopupMenuAt(ENGLISH_COLUMN).menuItem("removeLocaleMenuItem").click();
 
     Object expected = Arrays.asList(
       "Chinese (zh) in China (CN)",
@@ -179,7 +181,7 @@ public final class TranslationsEditorTest {
       "Hebrew (iw)",
       "Tamil (ta)");
 
-    assertEquals(expected, myTranslationsEditor.locales());
+    assertEquals(expected, translationsEditor.locales());
 
     assertFalse(debugValuesEn.exists());
     assertFalse(mainValuesEn.exists());
@@ -189,8 +191,10 @@ public final class TranslationsEditorTest {
   public void removeKeySafely() throws Exception {
     importSimpleApplication();
 
-    // TODO myTranslationsEditor is not initialized in a @Before method. It should not be a field.
-    FixedColumnTableFixture table = myTranslationsEditor.getTable();
+    EditorFixture editor = myGuiTest.ideFrame().getEditor();
+    TranslationsEditorFixture translationsEditor = editor.getTranslationsEditor();
+    FixedColumnTableFixture table = translationsEditor.getTable();
+
     table.selectCell(TableCell.row(1).column(KEY_COLUMN)).pressAndReleaseKey(KeyPressInfo.keyCode(KeyEvent.VK_DELETE));
 
     DeleteDialogFixture.find(myGuiTest.robot(), "Delete")
@@ -198,10 +202,8 @@ public final class TranslationsEditorTest {
       .clickOk()
       .waitUntilNotShowing();
 
-    myTranslationsEditor.finishLoading();
+    translationsEditor.finishLoading();
     assertEquals(Arrays.asList("app_name", "action_settings", "some_id", "cancel", "app_name"), table.columnAt(KEY_COLUMN));
-
-    EditorFixture editor = myGuiTest.ideFrame().getEditor();
 
     editor.open(myStringsXmlPath);
     assertFalse(editor.getCurrentFileContents().contains("hello_world"));
@@ -214,7 +216,10 @@ public final class TranslationsEditorTest {
   public void removeKeyUnsafely() throws Exception {
     importSimpleApplication();
 
-    FixedColumnTableFixture table = myTranslationsEditor.getTable();
+    EditorFixture editor = myGuiTest.ideFrame().getEditor();
+    TranslationsEditorFixture translationsEditor = editor.getTranslationsEditor();
+    FixedColumnTableFixture table = translationsEditor.getTable();
+
     table.selectCell(TableCell.row(1).column(KEY_COLUMN)).pressAndReleaseKey(KeyPressInfo.keyCode(KeyEvent.VK_DELETE));
 
     DeleteDialogFixture.find(myGuiTest.robot(), "Delete")
@@ -222,10 +227,8 @@ public final class TranslationsEditorTest {
       .waitForUnsafeDialog()
       .deleteAnyway();
 
-    myTranslationsEditor.finishLoading();
+    translationsEditor.finishLoading();
     assertEquals(Arrays.asList("app_name", "action_settings", "some_id", "cancel", "app_name"), table.columnAt(KEY_COLUMN));
-
-    EditorFixture editor = myGuiTest.ideFrame().getEditor();
 
     editor.open(myStringsXmlPath);
     assertFalse(editor.getCurrentFileContents().contains("hello_world"));
@@ -237,44 +240,49 @@ public final class TranslationsEditorTest {
   @Test
   public void filterKeys() throws IOException {
     importSimpleApplication();
-    FixedColumnTableFixture table = myTranslationsEditor.getTable();
 
-    myTranslationsEditor.clickFilterKeysComboBoxItem("Show Translatable Keys");
+    TranslationsEditorFixture translationsEditor = myGuiTest.ideFrame().getEditor().getTranslationsEditor();
+    FixedColumnTableFixture table = translationsEditor.getTable();
+
+    translationsEditor.clickFilterKeysComboBoxItem("Show Translatable Keys");
     assertEquals(Arrays.asList("app_name", "hello_world", "action_settings", "cancel", "app_name"), table.columnAt(KEY_COLUMN));
 
-    myTranslationsEditor.clickFilterKeysComboBoxItem("Show Keys Needing Translations");
+    translationsEditor.clickFilterKeysComboBoxItem("Show Keys Needing Translations");
     assertEquals(Arrays.asList("app_name", "hello_world", "action_settings", "cancel", "app_name"), table.columnAt(KEY_COLUMN));
 
-    myTranslationsEditor.clickFilterKeysComboBoxItem("Show Keys Needing a Translation for English (en)");
+    translationsEditor.clickFilterKeysComboBoxItem("Show Keys Needing a Translation for English (en)");
     assertEquals(Collections.singletonList("cancel"), table.columnAt(KEY_COLUMN));
   }
 
   @Test
   public void showOnlyHebrew() throws IOException {
     importSimpleApplication();
+    TranslationsEditorFixture translationsEditor = myGuiTest.ideFrame().getEditor().getTranslationsEditor();
 
-    myTranslationsEditor.clickFilterLocalesComboBoxItem("Show Hebrew (iw)");
-    assertEquals(Collections.singletonList("Hebrew (iw)"), myTranslationsEditor.locales());
+    translationsEditor.clickFilterLocalesComboBoxItem("Show Hebrew (iw)");
+    assertEquals(Collections.singletonList("Hebrew (iw)"), translationsEditor.locales());
   }
 
   @Test
   public void filterByText() throws IOException {
     importSimpleApplication();
-    myTranslationsEditor.clickFilterKeysComboBoxItem("Filter by Text");
+    TranslationsEditorFixture translationsEditor = myGuiTest.ideFrame().getEditor().getTranslationsEditor();
+
+    translationsEditor.clickFilterKeysComboBoxItem("Filter by Text");
 
     DialogBuilderFixture dialog = DialogBuilderFixture.find(myGuiTest.robot());
     new JTextComponentFixture(myGuiTest.robot(), myGuiTest.robot().finder().findByType(dialog.target(), JTextField.class))
       .enterText("world");
     dialog.clickOk();
 
-    assertEquals(Collections.singletonList("hello_world"), myTranslationsEditor.getTable().columnAt(KEY_COLUMN));
+    assertEquals(Collections.singletonList("hello_world"), translationsEditor.getTable().columnAt(KEY_COLUMN));
   }
 
   @Test
   public void setModel() throws IOException {
     importSimpleApplication();
 
-    StringResourceTable table = (StringResourceTable)myTranslationsEditor.getTable().target();
+    StringResourceTable table = (StringResourceTable)myGuiTest.ideFrame().getEditor().getTranslationsEditor().getTable().target();
     OptionalInt optionalWidth = table.getKeyColumnPreferredWidth();
 
     if (optionalWidth.isPresent()) {
@@ -301,8 +309,8 @@ public final class TranslationsEditorTest {
   @Test
   public void paste() throws IOException {
     importSimpleApplication();
+    JTableFixture table = myGuiTest.ideFrame().getEditor().getTranslationsEditor().getTable();
 
-    JTableFixture table = myTranslationsEditor.getTable();
     table.selectCell(TableCell.row(0).column(DEFAULT_VALUE_COLUMN));
 
     String data = "app_name\tapp_name_zh_rcn\n" +
@@ -318,18 +326,22 @@ public final class TranslationsEditorTest {
   @Test
   public void goToDeclaration() throws IOException {
     importSimpleApplication();
+    EditorFixture editor = myGuiTest.ideFrame().getEditor();
 
-    JTableFixture table = myTranslationsEditor.getTable();
-    table.showPopupMenuAt(TableCell.row(5).column(ENGLISH_COLUMN)).menuItemWithPath("Go to Declaration").click();
-    assertEquals("<string name=\"app_name\">Simple Application(en)</string>", myGuiTest.ideFrame().getEditor().getCurrentLine().trim());
+    TableCell cell = TableCell.row(5).column(ENGLISH_COLUMN);
+    editor.getTranslationsEditor().getTable().showPopupMenuAt(cell).menuItemWithPath("Go to Declaration").click();
+
+    assertEquals("<string name=\"app_name\">Simple Application(en)</string>", editor.getCurrentLine().trim());
   }
 
   @Test
   public void enteringValueUpdatesDebugStringsXml() throws IOException {
     importSimpleApplication();
-    myTranslationsEditor.getTable().enterValue(TableCell.row(5).column(HEBREW_COLUMN), "app_name_debug_iw");
+    EditorFixture editor = myGuiTest.ideFrame().getEditor();
 
-    Object line = myGuiTest.ideFrame().getEditor()
+    editor.getTranslationsEditor().getTable().enterValue(TableCell.row(5).column(HEBREW_COLUMN), "app_name_debug_iw");
+
+    Object line = editor
       .open("app/src/debug/res/values-iw/strings.xml")
       .moveBetween("app_name", "\"")
       .getCurrentLine()
@@ -341,9 +353,11 @@ public final class TranslationsEditorTest {
   @Test
   public void enteringValueUpdatesMainStringsXml() throws IOException {
     importSimpleApplication();
-    myTranslationsEditor.getTable().enterValue(TableCell.row(0).column(HEBREW_COLUMN), "app_name_main_iw");
+    EditorFixture editor = myGuiTest.ideFrame().getEditor();
 
-    Object line = myGuiTest.ideFrame().getEditor()
+    editor.getTranslationsEditor().getTable().enterValue(TableCell.row(0).column(HEBREW_COLUMN), "app_name_main_iw");
+
+    Object line = editor
       .open("app/src/main/res/values-iw/strings.xml")
       .moveBetween("app_name", "\"")
       .getCurrentLine()
@@ -355,16 +369,17 @@ public final class TranslationsEditorTest {
   @Test
   public void rename() throws IOException {
     importSimpleApplication();
+    EditorFixture editor = myGuiTest.ideFrame().getEditor();
 
-    myTranslationsEditor.getTable().enterValue(TableCell.row(1).column(KEY_COLUMN), "new_key");
+    editor.getTranslationsEditor().getTable().enterValue(TableCell.row(1).column(KEY_COLUMN), "new_key");
     myGuiTest.waitForBackgroundTasks();
 
-    assertEquals("<string name=\"new_key\">Hello world!</string>", myGuiTest.ideFrame().getEditor()
+    assertEquals("<string name=\"new_key\">Hello world!</string>", editor
       .open("app/src/main/res/values/strings.xml")
       .moveBetween("new_key", "\"")
       .getCurrentLine()
       .trim());
-    assertEquals("<string name=\"new_key\">Hello world!</string>", myGuiTest.ideFrame().getEditor()
+    assertEquals("<string name=\"new_key\">Hello world!</string>", editor
       .open("app/src/main/res/values-en/strings.xml")
       .moveBetween("new_key", "\"")
       .getCurrentLine()
@@ -375,7 +390,7 @@ public final class TranslationsEditorTest {
   public void resourceFolderColumn() throws IOException {
     importSimpleApplication();
 
-    JTableFixture table = myTranslationsEditor.getTable();
+    JTableFixture table = myGuiTest.ideFrame().getEditor().getTranslationsEditor().getTable();
     assertEquals(toResourceName("app/src/main/res"), table.valueAt(TableCell.row(0).column(RESOURCE_FOLDER_COLUMN)));
     assertEquals(toResourceName("app/src/main/res"), table.valueAt(TableCell.row(1).column(RESOURCE_FOLDER_COLUMN)));
     assertEquals(toResourceName("app/src/main/res"), table.valueAt(TableCell.row(2).column(RESOURCE_FOLDER_COLUMN)));
@@ -387,7 +402,7 @@ public final class TranslationsEditorTest {
   @Test
   public void keySorting() throws IOException {
     importSimpleApplication();
-    FixedColumnTableFixture table = myTranslationsEditor.getTable();
+    FixedColumnTableFixture table = myGuiTest.ideFrame().getEditor().getTranslationsEditor().getTable();
 
     assertEquals(Arrays.asList("app_name", "hello_world", "action_settings", "some_id", "cancel", "app_name"), table.columnAt(KEY_COLUMN));
 
@@ -407,7 +422,9 @@ public final class TranslationsEditorTest {
   @Test
   public void keyColumnWidthDoesntResetWhenAddingKey() throws IOException {
     importSimpleApplication();
-    JTableFixture table = myTranslationsEditor.getTable();
+
+    TranslationsEditorFixture translationsEditor = myGuiTest.ideFrame().getEditor().getTranslationsEditor();
+    JTableFixture table = translationsEditor.getTable();
 
     // A new width not equal to the current one
     int width = 127;
@@ -419,9 +436,9 @@ public final class TranslationsEditorTest {
       column.setPreferredWidth(width);
     });
 
-    myTranslationsEditor.getAddKeyButton().click();
+    translationsEditor.getAddKeyButton().click();
 
-    AddKeyDialogFixture dialog = myTranslationsEditor.getAddKeyDialog();
+    AddKeyDialogFixture dialog = translationsEditor.getAddKeyDialog();
     dialog.getDefaultValueTextField().enterText("key_1");
     dialog.getKeyTextField().enterText("key_1");
     dialog.getOkButton().click();
@@ -441,8 +458,7 @@ public final class TranslationsEditorTest {
     new WriteAndSaveDocumentAction(myGuiTest.getProjectPath().toPath().resolve(myStringsXmlPath), text).execute();
     openTranslationsEditor(myStringsXmlPath);
 
-    SimpleColoredComponent component = myTranslationsEditor.getCellRenderer(4, 1);
-
+    SimpleColoredComponent component = myGuiTest.ideFrame().getEditor().getTranslationsEditor().getCellRenderer(4, 1);
     assertEquals("https://oslobysykkel.no/_app/options/terms?locale=%1$s&product_id=%2$s", component.myValue);
     assertEquals(SimpleTextAttributes.STYLE_WAVED, component.myAttributes.getStyle());
     assertEquals(JBColor.RED, component.myAttributes.getFgColor());
@@ -462,8 +478,7 @@ public final class TranslationsEditorTest {
     new WriteAndSaveDocumentAction(myGuiTest.getProjectPath().toPath().resolve(stringsXml), text).execute();
     openTranslationsEditor(stringsXml);
 
-    SimpleColoredComponent component = myTranslationsEditor.getCellRenderer(5, 3);
-
+    SimpleColoredComponent component = myGuiTest.ideFrame().getEditor().getTranslationsEditor().getCellRenderer(5, 3);
     assertEquals("https://oslobysykkel.no/_app/options/terms?locale=%1$s&product_id=%2$s", component.myValue);
     assertEquals(SimpleTextAttributes.STYLE_WAVED, component.myAttributes.getStyle());
     assertEquals(JBColor.RED, component.myAttributes.getFgColor());
@@ -494,8 +509,7 @@ public final class TranslationsEditorTest {
   @Test
   public void selectedCellIsntLostAfterEnteringValue() throws IOException {
     importSimpleApplication();
-
-    FixedColumnTableFixture table = myTranslationsEditor.getTable();
+    FixedColumnTableFixture table = myGuiTest.ideFrame().getEditor().getTranslationsEditor().getTable();
     TableCell cell = TableCell.row(0).column(3);
     table.enterValue(cell, "app_name");
 
@@ -506,18 +520,19 @@ public final class TranslationsEditorTest {
   public void enteringTextInDefaultValueTextFieldUpdatesTableCell() throws IOException {
     importSimpleApplication();
 
-    JTableFixture table = myTranslationsEditor.getTable();
+    TranslationsEditorFixture translationsEditor = myGuiTest.ideFrame().getEditor().getTranslationsEditor();
+    JTableFixture table = translationsEditor.getTable();
     TableCell actionSettingsDefaultValue = TableCell.row(2).column(DEFAULT_VALUE_COLUMN);
     table.selectCell(actionSettingsDefaultValue);
 
-    JTextComponentFixture field = myTranslationsEditor.getDefaultValueTextField();
+    JTextComponentFixture field = translationsEditor.getDefaultValueTextField();
     field.selectAll();
     field.enterText("action_settings");
 
     TableCell appNameDefaultValue = TableCell.row(0).column(DEFAULT_VALUE_COLUMN);
     table.selectCell(appNameDefaultValue);
 
-    myTranslationsEditor.waitUntilTableValueAtEquals(actionSettingsDefaultValue, "action_settings");
+    translationsEditor.waitUntilTableValueAtEquals(actionSettingsDefaultValue, "action_settings");
     assertEquals("Simple Application", table.valueAt(appNameDefaultValue));
   }
 
@@ -525,68 +540,80 @@ public final class TranslationsEditorTest {
   public void enteringTextInTranslationTextFieldUpdatesTableCell() throws IOException {
     importSimpleApplication();
 
+    TranslationsEditorFixture translationsEditor = myGuiTest.ideFrame().getEditor().getTranslationsEditor();
     TableCell cancelEnglishTranslation = TableCell.row(3).column(ENGLISH_COLUMN);
-    myTranslationsEditor.getTable().selectCell(cancelEnglishTranslation);
+    translationsEditor.getTable().selectCell(cancelEnglishTranslation);
 
-    JTextComponentFixture field = myTranslationsEditor.getTranslationTextField();
+    JTextComponentFixture field = translationsEditor.getTranslationTextField();
     field.selectAll();
     field.enterText("cancel_en");
 
-    myTranslationsEditor.waitUntilTableValueAtEquals(cancelEnglishTranslation, "cancel_en");
+    translationsEditor.waitUntilTableValueAtEquals(cancelEnglishTranslation, "cancel_en");
   }
 
   @Test
   public void translationTextFieldFontCanDisplayPastedHebrew() throws IOException {
     importSimpleApplication();
+    TranslationsEditorFixture translationsEditor = myGuiTest.ideFrame().getEditor().getTranslationsEditor();
 
-    myTranslationsEditor.getTable().selectCell(TableCell.row(1).column(HEBREW_COLUMN));
+    translationsEditor.getTable().selectCell(TableCell.row(1).column(HEBREW_COLUMN));
     myGuiTest.robot().pasteText("יישום פשוט");
-    JTextComponentFixture translationTextField = myTranslationsEditor.getTranslationTextField();
-    assertEquals(-1, translationTextField.font().target().canDisplayUpTo("יישום פשוט"));
+
+    assertEquals(-1, translationsEditor.getTranslationTextField().font().target().canDisplayUpTo("יישום פשוט"));
   }
 
   @Test
   public void multilineEditUpdateShowsInTable() throws IOException {
     importSimpleApplication();
-    myTranslationsEditor.getTable().selectCell(TableCell.row(1).column(ENGLISH_COLUMN));
+
+    IdeFrameFixture frame = myGuiTest.ideFrame();
+    TranslationsEditorFixture translationsEditor = frame.getEditor().getTranslationsEditor();
+    JTableFixture table = translationsEditor.getTable();
+
+    table.selectCell(TableCell.row(1).column(ENGLISH_COLUMN));
 
     /* TODO Ideally, this would be good to have an option on the GuiTestRunner to avoid showing any notification for tests
      * because the notification prevent the robot to click on the multiline editor button */
-    Notification notification =
-      ServiceManager.getService(myGuiTest.ideFrame().getProject(), AndroidNotification.class).getNotification();
+    Notification notification = ServiceManager.getService(frame.getProject(), AndroidNotification.class).getNotification();
+
     if (notification != null) {
       notification.hideBalloon();
     }
 
-    MultilineStringEditorDialogFixture editor = myTranslationsEditor.getMultilineEditorDialog();
+    MultilineStringEditorDialogFixture editor = translationsEditor.getMultilineEditorDialog();
     editor.getTranslationEditorTextField().replaceText("Multiline\nTest");
     editor.clickOk();
-    myTranslationsEditor.getTable().cell(TableCell.row(1).column(ENGLISH_COLUMN)).requireValue("Multiline\nTest");
+
+    table.cell(TableCell.row(1).column(ENGLISH_COLUMN)).requireValue("Multiline\nTest");
   }
 
   @Test
   public void deleteString() throws IOException {
     importSimpleApplication();
+    EditorFixture editor = myGuiTest.ideFrame().getEditor();
 
     // delete just the translation
-    myTranslationsEditor.getTable().selectCell(TableCell.row(1).column(ENGLISH_COLUMN));
+    editor.getTranslationsEditor().getTable().selectCell(TableCell.row(1).column(ENGLISH_COLUMN));
     myGuiTest.robot().pressAndReleaseKey(KeyEvent.VK_DELETE);
 
     // gone from en
-    EditorFixture editor = myGuiTest.ideFrame().getEditor().open("app/src/main/res/values-en/strings.xml");
+    editor.open("app/src/main/res/values-en/strings.xml");
     assertThat(editor.getCurrentFileContents()).doesNotContain("hello_world");
 
     // still in other languages
-    editor = myGuiTest.ideFrame().getEditor().open("app/src/main/res/values-ta/strings.xml");
+    editor.open("app/src/main/res/values-ta/strings.xml");
     assertThat(editor.getCurrentFileContents()).contains("hello_world");
   }
 
   @Test
   public void deleteRightClick() throws IOException {
     importSimpleApplication();
+    EditorFixture editor = myGuiTest.ideFrame().getEditor();
 
-    myTranslationsEditor.getTable().showPopupMenuAt(TableCell.row(1).column(ENGLISH_COLUMN)).menuItemWithPath("Delete String(s)").click();
-    EditorFixture editor = myGuiTest.ideFrame().getEditor().open("app/src/main/res/values-en/strings.xml");
+    TableCell cell = TableCell.row(1).column(ENGLISH_COLUMN);
+    editor.getTranslationsEditor().getTable().showPopupMenuAt(cell).menuItemWithPath("Delete String(s)").click();
+
+    editor.open("app/src/main/res/values-en/strings.xml");
     assertThat(editor.getCurrentFileContents()).doesNotContain("hello_world");
   }
 
