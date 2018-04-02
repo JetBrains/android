@@ -152,4 +152,9 @@ abstract class ConfigurablesMasterDetailsPanel<ModelT>(
       tree.selectionPath = TreePath(treeModel.getPathToRoot(node))
     }
   }
+
+  // Kotlin generates a second MasterDetailsComponent.setHistory method that conflicts with the literal one, requiring this override.
+  override fun setHistory(history: com.intellij.ui.navigation.History) {
+    myHistory = history
+  }
 }
