@@ -19,7 +19,8 @@ import com.android.tools.profiler.proto.EnergyProfiler;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Helper of the energy details' html text building.
@@ -33,7 +34,7 @@ final class UiHtmlText {
   }
 
   public void appendTitle(@NotNull String title) {
-    myStringBuilder.append("<p>").append(title).append("</p>");
+    myStringBuilder.append("<p><b>").append(title).append("</b></p>");
   }
 
   public void appendTitleAndValues(@NotNull String title, @NotNull Iterable<String> values) {
@@ -43,6 +44,10 @@ final class UiHtmlText {
   public void appendTitleAndValue(@NotNull String title, @NotNull String value) {
     myStringBuilder.append("<p><b>").append(title).append("</b>:&nbsp;<span>");
     myStringBuilder.append(value).append("</span></p>");
+  }
+
+  public void appendValueWithIndentation(String value, int intendation) {
+    myStringBuilder.append("<p>").append(StringUtil.repeat("&nbsp;", intendation)).append(value).append("</p>");
   }
 
   public void appendNewLine() {
@@ -55,47 +60,34 @@ final class UiHtmlText {
   }
 
   public void renderAlarmSet(@NotNull EnergyProfiler.AlarmSet alarmSet) {
-    appendTitleAndValue("Type", alarmSet.getType().name());
+    appendTitleAndValue("Type", EnergyDuration.getAlarmTypeName(alarmSet.getType()));
     // triggerTimeMs depends on alarm type, see https://developer.android.com/reference/android/app/AlarmManager.html#constants.
     String triggerTime = StringUtil.formatDuration(alarmSet.getTriggerMs());
     switch (alarmSet.getType()) {
       case RTC:
       case RTC_WAKEUP:
-        appendTitleAndValue("TriggerTime in System.currentTimeMillis()", triggerTime);
+        appendTitleAndValue("Trigger Time in System.currentTimeMillis()", triggerTime);
         break;
       case ELAPSED_REALTIME:
       case ELAPSED_REALTIME_WAKEUP:
-        appendTitleAndValue("TriggerTime in SystemClock.elapsedRealtime()", triggerTime);
+        appendTitleAndValue("Trigger Time in SystemClock.elapsedRealtime()", triggerTime);
         break;
       default:
         break;
     }
     // Interval time and Window time are not required in all set methods, only visible when the value is not zero.
     if (alarmSet.getIntervalMs() > 0) {
-      appendTitleAndValue("IntervalTime", StringUtil.formatDuration(alarmSet.getIntervalMs()));
+      appendTitleAndValue("Interval Time", StringUtil.formatDuration(alarmSet.getIntervalMs()));
     }
     if (alarmSet.getWindowMs() > 0) {
-      appendTitleAndValue("WindowTime", StringUtil.formatDuration(alarmSet.getWindowMs()));
+      appendTitleAndValue("Window Time", StringUtil.formatDuration(alarmSet.getWindowMs()));
     }
     switch(alarmSet.getSetActionCase()) {
       case OPERATION:
         renderPendingIntent(alarmSet.getOperation());
         break;
       case LISTENER:
-        appendTitleAndValue("ListenerTag", alarmSet.getListener().getTag());
-        break;
-      default:
-        break;
-    }
-  }
-
-  public void renderAlarmCancelled(@NotNull EnergyProfiler.AlarmCancelled alarmCancelled) {
-    switch (alarmCancelled.getCancelActionCase()) {
-      case OPERATION:
-        renderPendingIntent(alarmCancelled.getOperation());
-        break;
-      case LISTENER:
-        appendTitleAndValue("ListenerTag", alarmCancelled.getListener().getTag());
+        appendTitleAndValue("Listener tag", alarmSet.getListener().getTag());
         break;
       default:
         break;
@@ -111,103 +103,172 @@ final class UiHtmlText {
 
   public void renderWakeLockAcquired(@NotNull EnergyProfiler.WakeLockAcquired wakeLockAcquired) {
     appendTitleAndValue("Tag", wakeLockAcquired.getTag());
-    appendTitleAndValue("Level", wakeLockAcquired.getLevel().name());
-    if (!wakeLockAcquired.getFlagsList().isEmpty()) {
-      String creationFlags = wakeLockAcquired.getFlagsList().stream()
-        .map(EnergyProfiler.WakeLockAcquired.CreationFlag::name)
-        .collect(Collectors.joining(", "));
-      appendTitleAndValue("Flags", creationFlags);
-    }
+    appendTitleAndValue("Level", EnergyDuration.getWakeLockLevelName(wakeLockAcquired.getLevel()));
   }
 
   public void renderJobScheduled(@NotNull EnergyProfiler.JobScheduled jobScheduled) {
+    appendTitleAndValue("Result", getJobResult(jobScheduled.getResult()));
     if (jobScheduled.hasJob()) {
       renderJobInfo(jobScheduled.getJob());
     }
-    appendTitleAndValue("Result", jobScheduled.getResult().name());
+  }
+
+  @NotNull
+  private static String getJobResult(@NotNull EnergyProfiler.JobScheduled.Result result) {
+    switch (result) {
+      case RESULT_SUCCESS:
+        return "SUCCESS";
+      case RESULT_FAILURE:
+        return "FAILURE";
+      default:
+        // Job result is a required field, so returns n/a.
+        return "n/a";
+    }
   }
 
   private void renderJobInfo(@NotNull EnergyProfiler.JobInfo job) {
-    appendTitleAndValue("JobId", String.valueOf(job.getJobId()));
-    appendTitleAndValue("ServiceName", job.getServiceName());
-    appendTitleAndValue("BackoffPolicy", job.getBackoffPolicy().name());
-    appendTitleAndValue("InitialBackoffTime", StringUtil.formatDuration(job.getInitialBackoffMs()));
+    appendTitleAndValue("Job ID", String.valueOf(job.getJobId()));
+    appendTitleAndValue("Service", job.getServiceName());
 
-    appendTitleAndValue("IsPeriodic", String.valueOf(job.getIsPeriodic()));
+    String backoffPolicy = getBackoffPolicyName(job.getBackoffPolicy());
+    if (!backoffPolicy.isEmpty()) {
+      appendTitleAndValue("Backoff Criteria", String.join(" ", StringUtil.formatDuration(job.getInitialBackoffMs()), backoffPolicy));
+    }
+
     if (job.getIsPeriodic()) {
-      appendTitleAndValue("FlexTime", StringUtil.formatDuration(job.getFlexMs()));
-      appendTitleAndValue("IntervalTime", StringUtil.formatDuration(job.getIntervalMs()));
+      StringBuilder builder = new StringBuilder();
+      builder.append(String.format("%s interval", StringUtil.formatDuration(job.getIntervalMs())));
+      if (job.getFlexMs() > 0) {
+        builder.append(String.format(", %s flex", StringUtil.formatDuration(job.getFlexMs())));
+      }
+      appendTitleAndValue("Periodic", builder.toString());
     }
     else {
-      appendTitleAndValue("MinLatencyTime", StringUtil.formatDuration(job.getMinLatencyMs()));
-      appendTitleAndValue("MaxExecutionDelayTime", StringUtil.formatDuration(job.getMaxExecutionDelayMs()));
+      if (job.getMinLatencyMs() > 0) {
+        appendTitleAndValue("Minimum Latency", StringUtil.formatDuration(job.getMinLatencyMs()));
+      }
+      if (job.getMaxExecutionDelayMs() > 0) {
+        appendTitleAndValue("Override Deadline", StringUtil.formatDuration(job.getMaxExecutionDelayMs()));
+      }
     }
 
-    appendTitleAndValue("NetworkType", job.getNetworkType().name());
+    if (job.getIsPersisted()) {
+      appendTitleAndValue("Is Persisted", String.valueOf(job.getIsPersisted()));
+    }
+
+    List<String> requiredList = new ArrayList<>();
+    String networkType = getRequiredNetworkType(job.getNetworkType());
+    if (!networkType.isEmpty()) {
+      requiredList.add("- Network Type: " + networkType);
+    }
+    if (job.getIsRequireBatteryNotLow()) {
+      requiredList.add("- Battery Not Low");
+    }
+    if (job.getIsRequireCharging()) {
+      requiredList.add("- Charging");
+    }
+    if (job.getIsRequireDeviceIdle()) {
+      requiredList.add("- Device Idle");
+    }
+    if (job.getIsRequireStorageNotLow()) {
+      requiredList.add("- Storage Not Low");
+    }
+    if (!requiredList.isEmpty()) {
+      appendTitle("Requires:");
+      requiredList.forEach(s -> appendValueWithIndentation(s, 5));
+    }
 
     if (job.getTriggerContentUrisCount() != 0) {
-      appendTitleAndValues("TriggerContentURIs", job.getTriggerContentUrisList());
+      appendTitleAndValues("Trigger Content URIs", job.getTriggerContentUrisList());
     }
-    appendTitleAndValue("TriggerContentMaxDelayTime", StringUtil.formatDuration(job.getTriggerContentMaxDelay()));
-    appendTitleAndValue("TriggerContentUpdateDelayTime", StringUtil.formatDuration(job.getTriggerContentUpdateDelay()));
-
-    appendTitleAndValue("PersistOnReboot", String.valueOf(job.getIsPersisted()));
-    appendTitleAndValue("RequiresBatteryNotLow", String.valueOf(job.getIsRequireBatteryNotLow()));
-    appendTitleAndValue("RequiresCharging", String.valueOf(job.getIsRequireCharging()));
-    appendTitleAndValue("RequiresDeviceIdle", String.valueOf(job.getIsRequireDeviceIdle()));
-    appendTitleAndValue("RequiresStorageNotLow", String.valueOf(job.getIsRequireStorageNotLow()));
-
-    if (!job.getExtras().isEmpty()) {
-      appendTitleAndValue("Extras", job.getExtras());
+    if (job.getTriggerContentMaxDelay() > 0) {
+      appendTitleAndValue("Trigger Content Max Delay", StringUtil.formatDuration(job.getTriggerContentMaxDelay()));
     }
-    if (!job.getTransientExtras().isEmpty()) {
-      appendTitleAndValue("TransientExtras", job.getTransientExtras());
+    if (job.getTriggerContentUpdateDelay() > 0) {
+      appendTitleAndValue("Trigger Content Update Delay", StringUtil.formatDuration(job.getTriggerContentUpdateDelay()));
     }
   }
 
-  public void renderJobStarted(@NotNull EnergyProfiler.JobStarted jobStarted) {
-    renderJobParams(jobStarted.getParams());
-    appendTitleAndValue("WorkOngoing", String.valueOf(jobStarted.getWorkOngoing()));
+  @NotNull
+  private static String getBackoffPolicyName(EnergyProfiler.JobInfo.BackoffPolicy policy) {
+    switch (policy) {
+      case BACKOFF_POLICY_LINEAR:
+        return "Linear";
+      case BACKOFF_POLICY_EXPONENTIAL:
+        return "Exponential";
+      default:
+        return "";
+    }
   }
 
-  public void renderJobStopped(@NotNull EnergyProfiler.JobStopped jobStopped) {
-    renderJobParams(jobStopped.getParams());
-    appendTitleAndValue("Reschedule", String.valueOf(jobStopped.getReschedule()));
+  @NotNull
+  private static String getRequiredNetworkType(EnergyProfiler.JobInfo.NetworkType networkType) {
+    switch (networkType) {
+      case NETWORK_TYPE_ANY:
+        return "Any";
+      case NETWORK_TYPE_METERED:
+        return "Metered";
+      case NETWORK_TYPE_UNMETERED:
+        return "Unmetered";
+      case NETWORK_TYPE_NOT_ROAMING:
+        return "Not Roaming";
+      default:
+        return "";
+    }
   }
 
   public void renderJobFinished(@NotNull EnergyProfiler.JobFinished jobFinished) {
+    appendTitleAndValue("Needs Reschedule", String.valueOf(jobFinished.getNeedsReschedule()));
     renderJobParams(jobFinished.getParams());
-    appendTitleAndValue("NeedsReschedule", String.valueOf(jobFinished.getNeedsReschedule()));
   }
 
   private void renderJobParams(@NotNull EnergyProfiler.JobParameters jobParams) {
     // Job Id is redundant from JobInfo, so does not show it.
     if (jobParams.getTriggeredContentAuthoritiesCount() != 0) {
-      appendTitleAndValues("TriggerContentAuthorities", jobParams.getTriggeredContentAuthoritiesList());
+      appendTitleAndValues("Triggered Content Authorities", jobParams.getTriggeredContentAuthoritiesList());
     }
     if (jobParams.getTriggeredContentUrisCount() != 0) {
-      appendTitleAndValues("TriggerContentUris", jobParams.getTriggeredContentUrisList());
+      appendTitleAndValues("Triggered Content URIs", jobParams.getTriggeredContentUrisList());
     }
-    appendTitleAndValue("IsOverrideDeadlineExpired", String.valueOf(jobParams.getIsOverrideDeadlineExpired()));
-    appendTitleAndValue("Extras", jobParams.getExtras());
-    appendTitleAndValue("TransientExtras", jobParams.getTransientExtras());
+    if (jobParams.getIsOverrideDeadlineExpired()) {
+      appendTitleAndValue("Is Override Deadline Expired", String.valueOf(jobParams.getIsOverrideDeadlineExpired()));
+    }
   }
 
   public void renderLocationUpdateRequested(@NotNull EnergyProfiler.LocationUpdateRequested locationRequested) {
     EnergyProfiler.LocationRequest request = locationRequested.getRequest();
-    appendTitleAndValue("Provider", request.getProvider());
-    appendTitleAndValue("Priority", request.getPriority().name());
+    appendTitleAndValue("Priority", getLocationPriority(request.getPriority()));
     if (request.getIntervalMs() > 0) {
-      appendTitleAndValue("IntervalTime", StringUtil.formatDuration(request.getIntervalMs()));
+      appendTitleAndValue("Min Interval Time", StringUtil.formatDuration(request.getIntervalMs()));
     }
     if (request.getFastestIntervalMs() > 0) {
-      appendTitleAndValue("FastestIntervalTime", StringUtil.formatDuration(request.getFastestIntervalMs()));
+      appendTitleAndValue("Fastest Interval Time", StringUtil.formatDuration(request.getFastestIntervalMs()));
+    }
+    if (!request.getProvider().isEmpty()) {
+      appendTitleAndValue("Provider", request.getProvider());
     }
     if (request.getSmallestDisplacementMeters() > 0) {
-      appendTitleAndValue("SmallestDisplacement", request.getSmallestDisplacementMeters() + "m");
+      appendTitleAndValue("Min Distance", request.getSmallestDisplacementMeters() + "m");
     }
     if (locationRequested.hasIntent()) {
       renderPendingIntent(locationRequested.getIntent());
+    }
+  }
+
+  @NotNull
+  private static String getLocationPriority(@NotNull EnergyProfiler.LocationRequest.Priority priority) {
+    switch (priority) {
+      case NO_POWER:
+        return "No Power";
+      case LOW_POWER:
+        return "Low Power";
+      case BALANCED:
+        return "Balanced";
+      case HIGH_ACCURACY:
+        return "High Accuracy";
+      default:
+        // Priority is a required field, so returns n/a.
+        return "n/a";
     }
   }
 }

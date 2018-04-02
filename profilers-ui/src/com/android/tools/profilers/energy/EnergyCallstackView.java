@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -32,9 +33,9 @@ import java.util.stream.Collectors;
 
 public final class EnergyCallstackView extends JPanel {
 
-  private final EnergyProfilerStageView myStageView;
+  @NotNull private final EnergyProfilerStageView myStageView;
 
-  public EnergyCallstackView(EnergyProfilerStageView stageView) {
+  public EnergyCallstackView(@NotNull EnergyProfilerStageView stageView) {
     super(new VerticalFlowLayout());
     myStageView = stageView;
   }
@@ -48,9 +49,10 @@ public final class EnergyCallstackView extends JPanel {
       return;
     }
 
+    List<HideablePanel> callstackList = new ArrayList<>();
     long startTimeNs = myStageView.getStage().getStudioProfilers().getSession().getStartTimestamp();
     for (EnergyProfiler.EnergyEvent event : duration.getEventList()) {
-      if (event.getTraceId().isEmpty()) {
+      if (event.getTraceId().isEmpty() || getMetadataName(event.getMetadataCase()).isEmpty()) {
         continue;
       }
 
@@ -68,11 +70,42 @@ public final class EnergyCallstackView extends JPanel {
       }
 
       String time = TimeAxisFormatter.DEFAULT.getClockFormattedString(TimeUnit.NANOSECONDS.toMicros(event.getTimestamp() - startTimeNs));
-      String metadataCase = event.getMetadataCase().name();
-      String description = metadataCase.substring(metadataCase.lastIndexOf('_') + 1) + " - " + time;
+      String description = time + "&nbsp;&nbsp;" + getMetadataName(event.getMetadataCase());
       HideablePanel hideablePanel = new HideablePanel.Builder(description, traceComponent).build();
       hideablePanel.setBorder(new JBEmptyBorder(0, 0, 5, 0));
-      add(hideablePanel);
+      callstackList.add(hideablePanel);
+    }
+    if (callstackList.size() > 2) {
+      callstackList.forEach(c -> c.setExpanded(false));
+    }
+
+    JLabel label = new JLabel("<html><b>Callstacks</b>: " + callstackList.size() + "</html>");
+    label.setBorder(new JBEmptyBorder(0, 0, 5, 0));
+    add(label);
+    callstackList.forEach(c -> add(c));
+  }
+
+  @NotNull
+  private static String getMetadataName(EnergyProfiler.EnergyEvent.MetadataCase metadataCase) {
+    switch (metadataCase) {
+      case WAKE_LOCK_ACQUIRED:
+        return "Acquired";
+      case WAKE_LOCK_RELEASED:
+        return "Released";
+      case ALARM_SET:
+        return "Set";
+      case ALARM_CANCELLED:
+        return "Cancelled";
+      case JOB_SCHEDULED:
+        return "Scheduled";
+      case JOB_FINISHED:
+        return "Finished";
+      case LOCATION_UPDATE_REQUESTED:
+        return "Requested";
+      case LOCATION_UPDATE_REMOVED:
+        return "Removed";
+      default:
+        return "";
     }
   }
 }

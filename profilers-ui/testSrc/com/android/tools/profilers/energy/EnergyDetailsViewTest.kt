@@ -145,8 +145,7 @@ class EnergyDetailsViewTest {
     val wakeLockTextPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
     with(wakeLockTextPane.text) {
       assertUiContainsLabelAndValue(this, "Tag", "wakeLockTag")
-      assertUiContainsLabelAndValue(this, "Level", "SCREEN_DIM_WAKE_LOCK")
-      assertUiContainsLabelAndValue(this, "Flags", "ACQUIRE_CAUSES_WAKEUP")
+      assertUiContainsLabelAndValue(this, "Level", "Screen Dim")
       assertUiContainsLabelAndValue(this, "Duration", "200ms")
     }
   }
@@ -156,9 +155,9 @@ class EnergyDetailsViewTest {
     view.setDuration(EnergyDuration(Arrays.asList(alarmSetEvent, alarmCancelledEvent)))
     val alarmTextPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
     with(alarmTextPane.text) {
-      assertUiContainsLabelAndValue(this, "TriggerTime", "1s")
-      assertUiContainsLabelAndValue(this, "IntervalTime", "100ms")
-      assertUiContainsLabelAndValue(this, "WindowTime", "200ms")
+      assertUiContainsLabelAndValue(this, "Trigger Time", "1s")
+      assertUiContainsLabelAndValue(this, "Interval Time", "100ms")
+      assertUiContainsLabelAndValue(this, "Window Time", "200ms")
       assertUiContainsLabelAndValue(this, "Creator", "package\\b.+\\bUID\\b.+\\b1234")
       assertUiContainsLabelAndValue(this, "Duration", "300ms")
     }
@@ -184,13 +183,11 @@ class EnergyDetailsViewTest {
     with(textPane.text) {
       assertJobInfoLabelsAndValues(this)
 
-      assertUiContainsLabelAndValue(this, "IsPeriodic", "true")
-      assertUiContainsLabelAndValue(this, "FlexTime", "2ms")
-      assertUiContainsLabelAndValue(this, "IntervalTime", "3ms")
-      assertThat(this).doesNotContain("MinLatencyTime")
-      assertThat(this).doesNotContain("MaxExecutionDelayTime")
+      assertUiContainsLabelAndValue(this, "Periodic", "3ms interval, 2ms flex")
+      assertThat(this).doesNotContain("Minimum Latency")
+      assertThat(this).doesNotContain("Override Deadline")
 
-      assertUiContainsLabelAndValue(this, "Result", "RESULT_SUCCESS")
+      assertUiContainsLabelAndValue(this, "Result", "SUCCESS")
     }
   }
 
@@ -203,13 +200,11 @@ class EnergyDetailsViewTest {
     with(textPane.text) {
       assertJobInfoLabelsAndValues(this)
 
-      assertUiContainsLabelAndValue(this, "IsPeriodic", "false")
-      assertUiContainsLabelAndValue(this, "MinLatencyTime", "10ms")
-      assertUiContainsLabelAndValue(this, "MaxExecutionDelayTime", "20ms")
-      assertThat(this).doesNotContain("FlexTime")
-      assertThat(this).doesNotContain("IntervalTime")
+      assertUiContainsLabelAndValue(this, "Minimum Latency", "10ms")
+      assertUiContainsLabelAndValue(this, "Override Deadline", "20ms")
+      assertThat(this).doesNotContain("Periodic")
 
-      assertUiContainsLabelAndValue(this, "Result", "RESULT_FAILURE")
+      assertUiContainsLabelAndValue(this, "Result", "FAILURE")
     }
   }
 
@@ -222,10 +217,8 @@ class EnergyDetailsViewTest {
     view.setDuration(EnergyDuration(Arrays.asList(scheduled, finished)))
     val textPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
     with(textPane.text) {
-      assertUiContainsLabelAndValue(this, "TriggerContentAuthorities", "auth1, auth2")
-      assertUiContainsLabelAndValue(this, "IsOverrideDeadlineExpired", "true")
-      assertUiContainsLabelAndValue(this,"Extras", "ExtrasValue")
-      assertUiContainsLabelAndValue(this,"TransientExtras", "TransientExtrasValue")
+      assertUiContainsLabelAndValue(this, "Triggered Content Authorities", "auth1, auth2")
+      assertUiContainsLabelAndValue(this, "Is Override Deadline Expired", "true")
       assertUiContainsLabelAndValue(this,"Duration", "400ms")
     }
   }
@@ -248,30 +241,25 @@ class EnergyDetailsViewTest {
     val textPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
     with(textPane.text) {
       assertUiContainsLabelAndValue(this,"Provider", "ProviderValue")
-      assertUiContainsLabelAndValue(this,"IntervalTime", "100ms")
-      assertUiContainsLabelAndValue(this, "FastestIntervalTime", "200ms")
-      assertUiContainsLabelAndValue(this, "SmallestDisplacement", "0.1m")
+      assertUiContainsLabelAndValue(this,"Min Interval Time", "100ms")
+      assertUiContainsLabelAndValue(this, "Fastest Interval Time", "200ms")
+      assertUiContainsLabelAndValue(this, "Min Distance", "0.1m")
       assertUiContainsLabelAndValue(this, "Creator", "package\\b.+\\bUID\\b.+\\b1")
     }
   }
 
   private fun assertJobInfoLabelsAndValues(uiText: String) {
-    assertUiContainsLabelAndValue(uiText, "JobId", "1111")
-    assertUiContainsLabelAndValue(uiText, "ServiceName", "ServiceNameValue")
-    assertUiContainsLabelAndValue(uiText, "BackoffPolicy", "BACKOFF_POLICY_LINEAR")
-    assertUiContainsLabelAndValue(uiText, "InitialBackoffTime", "1ms")
+    assertUiContainsLabelAndValue(uiText, "Job ID", "1111")
+    assertUiContainsLabelAndValue(uiText, "Service", "ServiceNameValue")
+    assertUiContainsLabelAndValue(uiText, "Backoff Criteria", "1ms Linear")
 
-    assertUiContainsLabelAndValue(uiText, "NetworkType", "NETWORK_TYPE_METERED")
-    assertUiContainsLabelAndValue(uiText, "TriggerContentURIs", "url1, url2")
-    assertUiContainsLabelAndValue(uiText, "TriggerContentMaxDelayTime", "4ms")
-    assertUiContainsLabelAndValue(uiText, "TriggerContentUpdateDelayTime", "5ms")
-    assertUiContainsLabelAndValue(uiText, "PersistOnReboot", "false")
-    assertUiContainsLabelAndValue(uiText, "RequiresBatteryNotLow", "true")
-    assertUiContainsLabelAndValue(uiText, "RequiresCharging", "false")
-    assertUiContainsLabelAndValue(uiText, "RequiresDeviceIdle", "true")
-    assertUiContainsLabelAndValue(uiText, "RequiresStorageNotLow", "false")
-    assertUiContainsLabelAndValue(uiText, "Extras", "ExtrasValue")
-    assertUiContainsLabelAndValue(uiText, "TransientExtras", "TransientExtrasValue")
+    assertThat(uiText).contains("Network Type: Metered")
+    assertThat(uiText).contains("Battery Not Low")
+    assertThat(uiText).contains("Device Idle")
+
+    assertUiContainsLabelAndValue(uiText, "Trigger Content URIs", "url1, url2")
+    assertUiContainsLabelAndValue(uiText, "Trigger Content Max Delay", "4ms")
+    assertUiContainsLabelAndValue(uiText, "Trigger Content Update Delay", "5ms")
   }
 
   private fun assertUiContainsLabelAndValue(uiText: String, label: String, value: String) {
