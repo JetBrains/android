@@ -22,6 +22,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.naveditor.model.*
 import com.android.tools.idea.naveditor.property.editors.getAnimatorsPopupContent
 import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.uibuilder.model.parentSequence
 import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.ui.DialogWrapper
@@ -50,7 +51,7 @@ open class AddActionDialog(
   private val parent: NlComponent
 ) : DialogWrapper(false) {
 
-  private var previousPopTo: NlComponent? = null
+  private var previousPopTo: DestinationListEntry? = null
   private var previousInclusive: Boolean = false
   private var generatedId: String = ""
 
@@ -82,7 +83,7 @@ open class AddActionDialog(
 
   // Open for testing
   open val popTo: String?
-    get() = (dialog.myPopToComboBox.selectedItem as NlComponent?)?.id
+    get() = (dialog.myPopToComboBox.selectedItem as? DestinationListEntry)?.component?.id
 
   // Open for testing
   open val isInclusive: Boolean
@@ -147,7 +148,6 @@ open class AddActionDialog(
   }
 
   private fun setDefaults(type: Defaults) {
-    dialog.myDestinationComboBox.addItem(null)
     populateDestinations()
     if (type == Defaults.GLOBAL) {
       val sourceNav = parent.parent!!
@@ -155,7 +155,7 @@ open class AddActionDialog(
       dialog.myFromComboBox.selectedIndex = dialog.myFromComboBox.itemCount - 1
       selectItem(dialog.myDestinationComboBox, { it.component }, parent)
     } else if (type == Defaults.RETURN_TO_SOURCE) {
-      dialog.myPopToComboBox.selectedItem = parent
+      selectItem(dialog.myPopToComboBox, { it.component }, parent)
       dialog.myInclusiveCheckBox.isSelected = true
       selectItem(dialog.myDestinationComboBox, { entry -> entry.isReturnToSource }, true)
     }
@@ -163,54 +163,31 @@ open class AddActionDialog(
   }
 
   private fun populateDestinations() {
-    val byParent = parent.visibleDestinations
-      .filter { component -> component.parent != null }
-      .groupBy { it.parent }
-    // Add parent and siblings
-    if (!parent.isRoot) {
-      dialog.myDestinationComboBox.addItem(DestinationListEntry(parent.parent))
-      byParent[parent.parent]?.forEach { c ->
-        dialog.myDestinationComboBox.addItem(DestinationListEntry(c))
-      }
-    } else {
-      // If this is the root, we need to explicitly add it.
-      dialog.myDestinationComboBox.addItem(DestinationListEntry(parent))
-    }
-    // Add return to source
+    dialog.myDestinationComboBox.addItem(null)
     dialog.myDestinationComboBox.addItem(RETURN_TO_SOURCE)
-    // Add children if we're a nav
-    if (parent.isNavigation && byParent.containsKey(parent)) {
-      dialog.myDestinationComboBox.addItem(SEPARATOR)
-      byParent[parent]?.forEach { c -> dialog.myDestinationComboBox.addItem(DestinationListEntry(c)) }
-    }
-    // Add siblings of ancestors
-    if (byParent.keys.stream().anyMatch { c -> c !== parent && c !== parent.parent }) {
-      dialog.myDestinationComboBox.addItem(SEPARATOR)
-      for (nav in byParent.keys) {
-        if (nav === parent || nav === parent.parent) {
-          continue
-        }
-        dialog.myDestinationComboBox.addItem(DestinationListEntry.Parent(nav))
-        for (child in byParent[nav]!!) {
-          if (!byParent.containsKey(child)) {
-            dialog.myDestinationComboBox.addItem(DestinationListEntry(child))
-          }
-        }
-      }
-    }
+    dialog.myDestinationComboBox.addItem(SEPARATOR)
+
+    populateComboBox(dialog.myDestinationComboBox, { true })
   }
 
   private fun populatePopTo() {
     dialog.myPopToComboBox.addItem(null)
-    val navs = parent.model.flattenComponents()
-      .filter { c -> c.isNavigation }
-    for (nav in navs) {
-      dialog.myPopToComboBox.addItem(nav)
-      for (component in nav.children) {
-        if (component.isDestination && !component.isNavigation) {
-          dialog.myPopToComboBox.addItem(component)
+
+    populateComboBox(dialog.myPopToComboBox, { it.isFragment || it.isNavigation })
+  }
+
+  private fun populateComboBox(comboBox: JComboBox<DestinationListEntry>, filter: (NlComponent) -> Boolean) {
+    val visibleDestinations = parent.visibleDestinations
+
+    parent.parentSequence().forEach {
+      comboBox.addItem(
+        if (it.isNavigation) DestinationListEntry.Parent(it)
+        else DestinationListEntry(it))
+
+      visibleDestinations[it]?.filter(filter)
+        ?.forEach {
+          comboBox.addItem(DestinationListEntry(it))
         }
-      }
     }
   }
 
@@ -235,7 +212,7 @@ open class AddActionDialog(
     }
     dialog.myDestinationComboBox.isEnabled = false
 
-    selectItem(dialog.myPopToComboBox, { it.getAttribute(ANDROID_URI, ATTR_ID) }, NavigationSchema.ATTR_POP_UP_TO, AUTO_URI, existingAction)
+    selectItem(dialog.myPopToComboBox, { it.component?.getAttribute(ANDROID_URI, ATTR_ID) }, NavigationSchema.ATTR_POP_UP_TO, AUTO_URI, existingAction)
     dialog.myInclusiveCheckBox.isSelected = existingAction.inclusive
     selectItem(dialog.myEnterComboBox, { it.value }, ATTR_ENTER_ANIM, AUTO_URI, existingAction)
     selectItem(dialog.myExitComboBox, { it.value }, ATTR_EXIT_ANIM, AUTO_URI, existingAction)
@@ -307,20 +284,15 @@ open class AddActionDialog(
           value.isSeparator -> setSeparator()
           else -> {
             val component = value.component
-            var text = component?.uiName
-            val valueParent = component!!.parent
-            if (valueParent !== parent.parent && component !== parent.parent && valueParent !== parent) {
-              if (value.isParent) {
-                setFont(list.font.deriveFont(Font.BOLD))
-              } else if (index != -1) {
-                text = "  " + text
-              }
+            var text = if (component?.parent == null) "Root" else component.uiName
+            if (value.isParent) {
+              setFont(list.font.deriveFont(Font.BOLD))
             }
             if (component === parent) {
-              text = "↻ " + text
+              text += " (Self)"
             }
-            if (component.parent == null) {
-              text += " (Root)"
+            else if (index != -1 && !value.isParent) {
+              text = "  " + text
             }
             setText(text)
           }
@@ -354,14 +326,15 @@ open class AddActionDialog(
       val item = event.item as DestinationListEntry?
       if (event.stateChange == ItemEvent.SELECTED || item == null) {
         if (item != null && item.isReturnToSource) {
-          previousPopTo = dialog.myPopToComboBox.selectedItem as NlComponent?
+          previousPopTo = dialog.myPopToComboBox.selectedItem as DestinationListEntry?
           previousInclusive = dialog.myInclusiveCheckBox.isSelected
-          dialog.myPopToComboBox.selectedItem = parent
+          selectItem(dialog.myPopToComboBox, {it.component }, parent)
           dialog.myPopToComboBox.isEnabled = false
           dialog.myInclusiveCheckBox.isSelected = true
           dialog.myInclusiveCheckBox.isEnabled = false
         } else {
           if (!dialog.myPopToComboBox.isEnabled) {
+            selectItem(dialog.myPopToComboBox, { it }, previousPopTo)
             dialog.myPopToComboBox.selectedItem = previousPopTo
             dialog.myInclusiveCheckBox.isSelected = previousInclusive
             dialog.myPopToComboBox.isEnabled = true
@@ -375,30 +348,7 @@ open class AddActionDialog(
     dialog.myExitComboBox.addItem(ValueWithDisplayString("None", null))
 
     populatePopTo()
-    dialog.myPopToComboBox.renderer = object : ListCellRendererWrapper<NlComponent>() {
-      override fun customize(
-        list: JList<*>,
-        value: NlComponent?,
-        index: Int,
-        selected: Boolean,
-        hasFocus: Boolean
-      ) {
-        if (value == null) {
-          setText("None")
-        } else {
-          var text = value.uiName
-          if (value.isNavigation) {
-            setFont(list.font.deriveFont(Font.BOLD))
-          } else if (index != -1) {
-            text = "  " + text
-          }
-          if (value.parent == null) {
-            text += " (Root)"
-          }
-          setText(text)
-        }
-      }
-    }
+    dialog.myPopToComboBox.renderer = destinationRenderer
   }
 
   override fun doValidate(): ValidationInfo? {

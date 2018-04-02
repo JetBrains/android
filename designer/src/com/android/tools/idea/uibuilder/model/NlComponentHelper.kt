@@ -404,6 +404,8 @@ private val NlComponent.nlComponentData: NlComponentData
     }
   }
 
+fun NlComponent.parentSequence(): Sequence<NlComponent> = generateSequence(this) { it.parent }
+
 internal data class NlComponentData(
     var x: Int = 0,
     var y: Int = 0,

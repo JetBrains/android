@@ -17,6 +17,7 @@ import com.android.SdkConstants.AUTO_URI
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import com.android.tools.idea.naveditor.structure.DestinationList
 import com.intellij.ui.TitledSeparator
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.dom.navigation.NavigationSchema
@@ -72,18 +73,19 @@ class AddActionDialogTest : NavTestCase() {
     )
     val dialog = dialogWrapper.dialog
 
-    dialog.myDestinationComboBox.selectedIndex = 2
+    dialog.myDestinationComboBox.selectedIndex = 3
 
     assertEquals(model.find("f1"), dialog.myFromComboBox.getItemAt(0))
     assertEquals(1, dialog.myFromComboBox.itemCount)
     assertFalse(dialog.myFromComboBox.isEnabled)
 
     assertEquals(null, dialog.myDestinationComboBox.getItemAt(0))
-    assertEquals(model.find("root"), dialog.myDestinationComboBox.getItemAt(1).component)
-    assertEquals(model.find("f1"), dialog.myDestinationComboBox.getItemAt(2).component)
-    assertEquals(model.find("f2"), dialog.myDestinationComboBox.getItemAt(3).component)
-    assertTrue(dialog.myDestinationComboBox.getItemAt(4).isReturnToSource)
-    assertEquals(5, dialog.myDestinationComboBox.itemCount)
+    assertTrue(dialog.myDestinationComboBox.getItemAt(1).isReturnToSource)
+    assertTrue(dialog.myDestinationComboBox.getItemAt(2).isSeparator)
+    assertEquals(model.find("f1"), dialog.myDestinationComboBox.getItemAt(3).component)
+    assertEquals(model.find("root"), dialog.myDestinationComboBox.getItemAt(4).component)
+    assertEquals(model.find("f2"), dialog.myDestinationComboBox.getItemAt(5).component)
+    assertEquals(6, dialog.myDestinationComboBox.itemCount)
     assertTrue(dialog.myDestinationComboBox.isEnabled)
 
     assertEquals(null, dialog.myEnterComboBox.getItemAt(0).value)
@@ -99,9 +101,9 @@ class AddActionDialogTest : NavTestCase() {
     assertEquals(4, dialog.myExitComboBox.itemCount)
 
     assertEquals(null, dialog.myPopToComboBox.getItemAt(0))
-    assertEquals("root", dialog.myPopToComboBox.getItemAt(1).id)
-    assertEquals("f1", dialog.myPopToComboBox.getItemAt(2).id)
-    assertEquals("f2", dialog.myPopToComboBox.getItemAt(3).id)
+    assertEquals("f1", dialog.myPopToComboBox.getItemAt(1).component?.id)
+    assertEquals("root", dialog.myPopToComboBox.getItemAt(2).component?.id)
+    assertEquals("f2", dialog.myPopToComboBox.getItemAt(3).component?.id)
     assertEquals(4, dialog.myPopToComboBox.itemCount)
 
     assertEquals("action_f1_self", dialog.myIdTextField.text)
@@ -124,9 +126,10 @@ class AddActionDialogTest : NavTestCase() {
     )
     val dialog = dialogWrapper.dialog
 
-    dialog.myDestinationComboBox.selectedIndex = 4
+    dialog.myDestinationComboBox.selectedIndex = 1
 
-    assertEquals(model.find("f1"), dialog.myPopToComboBox.selectedItem)
+    val entry = dialog.myPopToComboBox.selectedItem as AddActionDialog.DestinationListEntry?
+    assertEquals(model.find("f1"), entry?.component)
     assertFalse(dialog.myPopToComboBox.isEnabled)
     assertTrue(dialog.myInclusiveCheckBox.isSelected)
     assertFalse(dialog.myInclusiveCheckBox.isEnabled)
@@ -151,12 +154,13 @@ class AddActionDialogTest : NavTestCase() {
     val dialog = dialogWrapper.dialog
 
     // Initial condition that will be restored
-    dialog.myPopToComboBox.selectedIndex = 2
+    dialog.myPopToComboBox.selectedIndex = 1
 
     // select "source"
-    dialog.myDestinationComboBox.selectedIndex = 4
+    dialog.myDestinationComboBox.selectedIndex = 1
 
-    assertEquals(model.find("f1"), dialog.myPopToComboBox.selectedItem)
+    var entry = dialog.myPopToComboBox.selectedItem as AddActionDialog.DestinationListEntry?
+    assertEquals(model.find("f1"), entry?.component)
     assertFalse(dialog.myPopToComboBox.isEnabled)
     assertTrue(dialog.myInclusiveCheckBox.isSelected)
     assertFalse(dialog.myInclusiveCheckBox.isEnabled)
@@ -164,7 +168,8 @@ class AddActionDialogTest : NavTestCase() {
     // Now select a different destination and the original state should be restored
     dialog.myDestinationComboBox.selectedIndex = 3
 
-    assertEquals(model.find("f1"), dialog.myPopToComboBox.selectedItem)
+    entry = dialog.myPopToComboBox.selectedItem as AddActionDialog.DestinationListEntry?
+    assertEquals(model.find("f1"), entry?.component)
     assertTrue(dialog.myPopToComboBox.isEnabled)
     assertFalse(dialog.myInclusiveCheckBox.isSelected)
     assertTrue(dialog.myInclusiveCheckBox.isEnabled)
@@ -172,7 +177,7 @@ class AddActionDialogTest : NavTestCase() {
     // Change the initial "inclusive" and make sure it's restored correctly
     dialog.myInclusiveCheckBox.isSelected = true
 
-    dialog.myDestinationComboBox.selectedIndex = 4
+    dialog.myDestinationComboBox.selectedIndex = 1
 
     assertTrue(dialog.myInclusiveCheckBox.isSelected)
     assertFalse(dialog.myInclusiveCheckBox.isEnabled)
@@ -212,20 +217,19 @@ class AddActionDialogTest : NavTestCase() {
     val dialog = dialogWrapper.dialog
 
     assertEquals(null, dialog.myDestinationComboBox.getItemAt(0))
-    assertEquals(model.find("subnav1"), dialog.myDestinationComboBox.getItemAt(1).component)
-    assertEquals(model.find("f2"), dialog.myDestinationComboBox.getItemAt(2).component)
-    assertEquals(model.find("f3"), dialog.myDestinationComboBox.getItemAt(3).component)
-    assertEquals(model.find("subnav2"), dialog.myDestinationComboBox.getItemAt(4).component)
-    assertTrue(dialog.myDestinationComboBox.getItemAt(5).isReturnToSource)
-    assertTrue(dialog.myDestinationComboBox.getItemAt(6).isSeparator)
-    assertEquals(model.find("f4"), dialog.myDestinationComboBox.getItemAt(7).component)
-    assertEquals(model.find("subnav3"), dialog.myDestinationComboBox.getItemAt(8).component)
-    assertTrue(dialog.myDestinationComboBox.getItemAt(9).isSeparator)
-    assertEquals(model.find("root"), dialog.myDestinationComboBox.getItemAt(10).component)
-    assertEquals(model.find("f1"), dialog.myDestinationComboBox.getItemAt(11).component)
-    assertEquals(model.find("othersubnav"), dialog.myDestinationComboBox.getItemAt(12).component)
+    assertTrue(dialog.myDestinationComboBox.getItemAt(1).isReturnToSource)
+    assertTrue(dialog.myDestinationComboBox.getItemAt(2).isSeparator)
+    assertEquals(model.find("subnav2"), dialog.myDestinationComboBox.getItemAt(3).component)
+    assertEquals(model.find("f4"), dialog.myDestinationComboBox.getItemAt(4).component)
+    assertEquals(model.find("subnav3"), dialog.myDestinationComboBox.getItemAt(5).component)
+    assertEquals(model.find("subnav1"), dialog.myDestinationComboBox.getItemAt(6).component)
+    assertEquals(model.find("f2"), dialog.myDestinationComboBox.getItemAt(7).component)
+    assertEquals(model.find("f3"), dialog.myDestinationComboBox.getItemAt(8).component)
+    assertEquals(model.find("root"), dialog.myDestinationComboBox.getItemAt(9).component)
+    assertEquals(model.find("f1"), dialog.myDestinationComboBox.getItemAt(10).component)
+    assertEquals(model.find("othersubnav"), dialog.myDestinationComboBox.getItemAt(11).component)
 
-    assertEquals(13, dialog.myDestinationComboBox.itemCount)
+    assertEquals(12, dialog.myDestinationComboBox.itemCount)
     dialogWrapper.close(0)
   }
 
@@ -258,11 +262,11 @@ class AddActionDialogTest : NavTestCase() {
 
     val combo = dialog.myDestinationComboBox
     assertEquals(null, combo.getItemAt(0))
-    assertEquals(model.find("subnav2"), combo.getItemAt(1).component)
-    assertEquals(model.find("f4"), combo.getItemAt(2).component)
-    assertEquals(model.find("subnav3"), combo.getItemAt(3).component)
-    assertTrue(combo.getItemAt(4).isReturnToSource)
-    assertTrue(combo.getItemAt(5).isSeparator)
+    assertTrue(combo.getItemAt(1).isReturnToSource)
+    assertTrue(combo.getItemAt(2).isSeparator)
+    assertEquals(model.find("f4"), combo.getItemAt(3).component)
+    assertEquals(model.find("subnav2"), combo.getItemAt(4).component)
+    assertEquals(model.find("subnav3"), combo.getItemAt(5).component)
     assertEquals(model.find("subnav1"), combo.getItemAt(6).component)
     assertEquals(model.find("f2"), combo.getItemAt(7).component)
     assertEquals(model.find("f3"), combo.getItemAt(8).component)
@@ -293,15 +297,14 @@ class AddActionDialogTest : NavTestCase() {
 
     val combo = dialog.myDestinationComboBox
     assertEquals(null, combo.getItemAt(0))
-    assertEquals(model.find("root"), combo.getItemAt(1).component)
-    assertTrue(combo.getItemAt(2).isReturnToSource)
-    assertTrue(combo.getItemAt(3).isSeparator)
+    assertTrue(combo.getItemAt(1).isReturnToSource)
+    assertTrue(combo.getItemAt(2).isSeparator)
+    assertEquals(model.find("root"), combo.getItemAt(3).component)
     assertEquals(model.find("f1"), combo.getItemAt(4).component)
     assertEquals(model.find("subnav1"), combo.getItemAt(5).component)
 
     assertEquals(6, combo.itemCount)
     dialogWrapper.close(0)
-
   }
 
   fun testDestinationRendering() {
@@ -338,40 +341,39 @@ class AddActionDialogTest : NavTestCase() {
     assertEquals("None", rendererComponent.text)
     assertFalse(rendererComponent.font.isBold)
     rendererComponent = getRendererComponent(renderer, list, combo, 1)
-    assertEquals("subnav1", rendererComponent.text)
-    assertFalse(rendererComponent.font.isBold)
-    rendererComponent = getRendererComponent(renderer, list, combo, 2)
-    assertEquals("f2", rendererComponent.text)
-    assertFalse(rendererComponent.font.isBold)
-    rendererComponent = getRendererComponent(renderer, list, combo, 3)
-    assertEquals("f3", rendererComponent.text)
-    assertFalse(rendererComponent.font.isBold)
-    rendererComponent = getRendererComponent(renderer, list, combo, 4)
-    assertEquals("↻ subnav2", rendererComponent.text)
-    assertFalse(rendererComponent.font.isBold)
-    rendererComponent = getRendererComponent(renderer, list, combo, 5)
     assertEquals("↵ Source", rendererComponent.text)
     assertFalse(rendererComponent.font.isBold)
-    assertInstanceOf(renderer.getListCellRendererComponent(list, combo.getItemAt(6), 6, false, false), TitledSeparator::class.java)
+    assertInstanceOf(renderer.getListCellRendererComponent(list, combo.getItemAt(2), 2, false, false), TitledSeparator::class.java)
+    rendererComponent = getRendererComponent(renderer, list, combo, 3)
+    assertEquals("subnav2 (Self)", rendererComponent.text)
+    assertTrue(rendererComponent.font.isBold)
+    rendererComponent = getRendererComponent(renderer, list, combo, 4)
+    assertEquals("  f4", rendererComponent.text)
+    assertFalse(rendererComponent.font.isBold)
+    rendererComponent = getRendererComponent(renderer, list, combo, 5)
+    assertEquals("  subnav3", rendererComponent.text)
+    assertFalse(rendererComponent.font.isBold)
+    rendererComponent = getRendererComponent(renderer, list, combo, 6)
+    assertEquals("subnav1", rendererComponent.text)
+    assertTrue(rendererComponent.font.isBold)
     rendererComponent = getRendererComponent(renderer, list, combo, 7)
-    assertEquals("f4", rendererComponent.text)
+    assertEquals("  f2", rendererComponent.text)
     assertFalse(rendererComponent.font.isBold)
     rendererComponent = getRendererComponent(renderer, list, combo, 8)
-    assertEquals("subnav3", rendererComponent.text)
+    assertEquals("  f3", rendererComponent.text)
     assertFalse(rendererComponent.font.isBold)
-    assertInstanceOf(renderer.getListCellRendererComponent(list, combo.getItemAt(9), 9, false, false), TitledSeparator::class.java)
-    rendererComponent = getRendererComponent(renderer, list, combo, 10)
-    assertEquals("navigation (Root)", rendererComponent.text)
+    rendererComponent = getRendererComponent(renderer, list, combo, 9)
+    assertEquals("Root", rendererComponent.text)
     assertTrue(rendererComponent.font.isBold)
-    rendererComponent = getRendererComponent(renderer, list, combo, 11)
+    rendererComponent = getRendererComponent(renderer, list, combo, 10)
     assertEquals("  f1", rendererComponent.text)
     assertFalse(rendererComponent.font.isBold)
-    rendererComponent = getRendererComponent(renderer, list, combo, 12)
+    rendererComponent = getRendererComponent(renderer, list, combo, 11)
     assertEquals("  othersubnav", rendererComponent.text)
     assertFalse(rendererComponent.font.isBold)
 
     // Check that it doesn't have leading spaces when it's the selected item (not in the popup)
-    rendererComponent = renderer.getListCellRendererComponent(list, combo.getItemAt(11), -1, false, false) as JLabel
+    rendererComponent = renderer.getListCellRendererComponent(list, combo.getItemAt(10), -1, false, false) as JLabel
     assertEquals("f1", rendererComponent.text)
     assertFalse(rendererComponent.font.isBold)
 
@@ -380,7 +382,7 @@ class AddActionDialogTest : NavTestCase() {
   }
 
   private fun <T> getRendererComponent(renderer: ListCellRenderer<in T>, list: JList<out T>, combo: JComboBox<T>, index: Int)
-      = renderer.getListCellRendererComponent(list, combo.getItemAt(index), index, false, false) as JLabel
+    = renderer.getListCellRendererComponent(list, combo.getItemAt(index), index, false, false) as JLabel
 
   fun testPopToRendering() {
     val model = model("nav.xml") {
@@ -409,7 +411,7 @@ class AddActionDialogTest : NavTestCase() {
     val renderer = combo.renderer
 
     @Suppress("UNCHECKED_CAST")
-    val list = mock(JList::class.java) as JList<out NlComponent>
+    val list = mock(JList::class.java) as JList<out AddActionDialog.DestinationListEntry>
     val font = UIUtil.getListFont().deriveFont(Font.PLAIN)
     `when`(list.font).thenReturn(font)
 
@@ -417,14 +419,14 @@ class AddActionDialogTest : NavTestCase() {
     assertEquals("None", rendererComponent.text)
     assertFalse(rendererComponent.font.isBold)
     rendererComponent = getRendererComponent(renderer, list, combo, 1)
-    assertEquals("navigation (Root)", rendererComponent.text)
+    assertEquals("subnav2 (Self)", rendererComponent.text)
     assertTrue(rendererComponent.font.isBold)
     rendererComponent = getRendererComponent(renderer, list, combo, 2)
-    assertEquals("  f1", rendererComponent.text)
+    assertEquals("  f4", rendererComponent.text)
     assertFalse(rendererComponent.font.isBold)
     rendererComponent = getRendererComponent(renderer, list, combo, 3)
-    assertEquals("othersubnav", rendererComponent.text)
-    assertTrue(rendererComponent.font.isBold)
+    assertEquals("  subnav3", rendererComponent.text)
+    assertFalse(rendererComponent.font.isBold)
     rendererComponent = getRendererComponent(renderer, list, combo, 4)
     assertEquals("subnav1", rendererComponent.text)
     assertTrue(rendererComponent.font.isBold)
@@ -435,17 +437,17 @@ class AddActionDialogTest : NavTestCase() {
     assertEquals("  f3", rendererComponent.text)
     assertFalse(rendererComponent.font.isBold)
     rendererComponent = getRendererComponent(renderer, list, combo, 7)
-    assertEquals("subnav2", rendererComponent.text)
+    assertEquals("Root", rendererComponent.text)
     assertTrue(rendererComponent.font.isBold)
     rendererComponent = getRendererComponent(renderer, list, combo, 8)
-    assertEquals("  f4", rendererComponent.text)
+    assertEquals("  f1", rendererComponent.text)
     assertFalse(rendererComponent.font.isBold)
     rendererComponent = getRendererComponent(renderer, list, combo, 9)
-    assertEquals("subnav3", rendererComponent.text)
-    assertTrue(rendererComponent.font.isBold)
+    assertEquals("  othersubnav", rendererComponent.text)
+    assertFalse(rendererComponent.font.isBold)
 
     // Check that it doesn't have leading spaces when it's the selected item (not in the popup)
-    rendererComponent = renderer.getListCellRendererComponent(list, combo.getItemAt(8), -1, false, false) as JLabel
+    rendererComponent = renderer.getListCellRendererComponent(list, combo.getItemAt(2), -1, false, false) as JLabel
     assertEquals("f4", rendererComponent.text)
     assertFalse(rendererComponent.font.isBold)
 
@@ -504,12 +506,12 @@ class AddActionDialogTest : NavTestCase() {
 
     val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, f1)
     assertEquals("", dialog.id)
-    dialog.dialog.myDestinationComboBox.selectedIndex = 3
+    dialog.dialog.myDestinationComboBox.selectedIndex = 5
     assertEquals("action_f1_to_f2", dialog.id)
-    dialog.dialog.myDestinationComboBox.selectedIndex = 2
+    dialog.dialog.myDestinationComboBox.selectedIndex = 3
     assertEquals("action_f1_self", dialog.id)
     dialog.dialog.myIdTextField.text = "foo"
-    dialog.dialog.myDestinationComboBox.selectedIndex = 3
+    dialog.dialog.myDestinationComboBox.selectedIndex = 5
     assertEquals("foo", dialog.id)
     dialog.close(0)
   }

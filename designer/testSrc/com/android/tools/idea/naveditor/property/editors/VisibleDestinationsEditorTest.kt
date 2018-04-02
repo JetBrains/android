@@ -49,12 +49,12 @@ class VisibleDestinationsEditorTest: NavTestCase() {
         .expectChoices(
           "none", null,
           "f2", "@+id/f2",
-          "f3", "@+id/f3",
-          "f1", "@+id/f1",
-          "activity1", "@+id/activity1",
           "subnav1", "@+id/subnav1",
-          "subnav2", "@+id/subnav2",
-          "root", "@+id/root"
+          "f3", "@+id/f3",
+          "root", "@+id/root",
+          "activity1", "@+id/activity1",
+          "f1", "@+id/f1",
+          "subnav2", "@+id/subnav2"
         )
     }
   }

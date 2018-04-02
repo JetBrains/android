@@ -76,12 +76,38 @@ class NavComponentHelperTest2 : NavTestCase() {
     val subnav2 = model.find("subnav2")
     val subsubnav = model.find("subsubnav")
 
-    assertSameElements(f1!!.visibleDestinations, listOf(root, f1, a1, subnav1, subnav2))
-    assertSameElements(f2!!.visibleDestinations, listOf(root, f1, a1, f2, f3, subnav1, subnav2))
-    assertSameElements(f4!!.visibleDestinations, listOf(root, f1, a1, subnav1, subnav2, f4, subsubnav))
-    assertSameElements(f5!!.visibleDestinations, listOf(root, f1, a1, subnav1, subnav2, f4, subsubnav, f5))
-    assertSameElements(model.find("root")!!.visibleDestinations, listOf(root, f1, a1, subnav1, subnav2))
-    assertSameElements(subnav1!!.visibleDestinations, listOf(root, f1, a1, subnav1, f2, f3, subnav2))
+    var map = f1!!.visibleDestinations
+    assertSameElements(map.keys, setOf(f1, root))
+    assertSameElements(map[f1]!!, listOf())
+    assertSameElements(map[root]!!, listOf(a1, subnav1, subnav2))
+
+    map = f2!!.visibleDestinations
+    assertSameElements(map.keys, listOf(f2, subnav1, root))
+    assertSameElements(map[f2]!!, listOf())
+    assertSameElements(map[subnav1]!!, listOf(f3))
+    assertSameElements(map[root]!!, listOf(a1, f1, subnav2))
+
+    map = f4!!.visibleDestinations
+    assertSameElements(map.keys, listOf(f4, subnav2, root))
+    assertSameElements(map[f4]!!, listOf())
+    assertSameElements(map[subnav2]!!, listOf(subsubnav))
+    assertSameElements(map[root]!!, listOf(f1, a1, subnav1))
+
+    map = f5!!.visibleDestinations
+    assertSameElements(map.keys, listOf(f5, subsubnav, subnav2, root))
+    assertSameElements(map[f5]!!, listOf())
+    assertSameElements(map[subsubnav]!!, listOf())
+    assertSameElements(map[subnav2]!!, listOf(f4))
+    assertSameElements(map[root]!!, listOf(f1, a1, subnav1))
+
+    map = root!!.visibleDestinations
+    assertSameElements(map.keys, listOf(root))
+    assertSameElements(map[root]!!, listOf(f1, a1, subnav1, subnav2))
+
+    map = subnav1!!.visibleDestinations
+    assertSameElements(map.keys, listOf(subnav1, root))
+    assertSameElements(map[subnav1]!!, listOf(f2, f3))
+    assertSameElements(map[root]!!, listOf(f1, a1, subnav2))
   }
 
   fun testFindVisibleDestination() {
