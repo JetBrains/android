@@ -38,7 +38,7 @@ public class CpuCaptureArtifactView extends SessionArtifactView<CpuCaptureSessio
 
     // 1st column for artifact's icon, 2nd column for texts
     // 1st row for showing name, second row for time.
-    myComponent = new JPanel(new TabularLayout("Fit,*", "Fit,Fit"));
+    myComponent = new JPanel(new TabularLayout("Fit-,*", "Fit-,Fit-"));
     if (isHovered()) {
       myComponent.setBackground(HOVERED_SESSION_COLOR);
     }

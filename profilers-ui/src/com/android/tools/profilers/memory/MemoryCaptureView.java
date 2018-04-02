@@ -52,7 +52,7 @@ public final class MemoryCaptureView extends AspectObserver {
       .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::reset)
       .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::refresh);
 
-    myPanel = new JPanel(new TabularLayout("Fit,Fit,Fit,Fit", "*"));
+    myPanel = new JPanel(new TabularLayout("Fit-,Fit-,Fit-,Fit-", "*"));
 
     myLabel = new JLabel();
     myLabel.setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 3));

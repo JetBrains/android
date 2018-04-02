@@ -44,7 +44,7 @@ public class EnergyDetailsView extends JPanel {
     // *   _ _
     //
     // where main contents span the whole area and a close button fits into the top right
-    JPanel rootPanel = new JPanel(new TabularLayout("*,Fit", "Fit,*"));
+    JPanel rootPanel = new JPanel(new TabularLayout("*,Fit-", "Fit-,*"));
 
     myTabsPanel = new CommonTabbedPane();
     myDetailsOverview = new EnergyDetailsOverview();

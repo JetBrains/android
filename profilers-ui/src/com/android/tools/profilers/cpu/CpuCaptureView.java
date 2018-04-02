@@ -139,7 +139,7 @@ class CpuCaptureView {
     myTabsPanel.addChangeListener(this::setCaptureDetailToTab);
     myTabsPanel.setOpaque(false);
 
-    myPanel = new JPanel(new TabularLayout("*,Fit", "Fit,*"));
+    myPanel = new JPanel(new TabularLayout("*,Fit-", "Fit-,*"));
     JPanel toolbar = new JPanel(createToolbarLayout());
     toolbar.add(clockTypeCombo);
     toolbar.add(myView.getSelectionTimeLabel());

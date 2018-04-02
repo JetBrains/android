@@ -308,7 +308,7 @@ public class ColumnTreeBuilder {
     private final JTable myTable;
 
     public ColumnTreeScrollPanel(@NotNull JTree tree, @NotNull JTable table) {
-      super((new TabularLayout("Fit,*")));
+      super((new TabularLayout("Fit-,*")));
       myTree = tree;
       myTable = table;
       myScrollbar = new ColumnTreeScrollBar(table);

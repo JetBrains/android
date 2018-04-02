@@ -92,7 +92,7 @@ public abstract class ProfilerTooltipView extends AspectObserver {
     myHeadingLabel.setMinimumSize(new Dimension(myMaximumWidth, myMaximumLabelHeight));
     updateMaximumLabelDimensions();
 
-    TooltipPanel tooltipPanel = new TooltipPanel(new TabularLayout("*", "Fit,10px,*"));
+    TooltipPanel tooltipPanel = new TooltipPanel(new TabularLayout("*", "Fit-,10px,*"));
     tooltipPanel.add(myHeadingLabel, new TabularLayout.Constraint(0, 0));
     tooltipPanel.add(myTooltipContent, new TabularLayout.Constraint(2, 0));
     tooltipPanel.setForeground(ProfilerColors.TOOLTIP_TEXT);

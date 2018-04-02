@@ -112,7 +112,7 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
   }
 
   protected void populateDisabledView(JPanel container) {
-    myContainer.setLayout(new TabularLayout("*,Fit,*", "6*,4*"));
+    myContainer.setLayout(new TabularLayout("*,Fit-,*", "6*,4*"));
 
     JLabel disabledMessage = new JLabel(getDisabledMessage());
     disabledMessage.setHorizontalAlignment(SwingConstants.CENTER);

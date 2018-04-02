@@ -90,7 +90,7 @@ final class OverviewTabContent extends TabContent {
   }
 
   private static JComponent createFields(@NotNull HttpData httpData, @Nullable Dimension payloadDimension) {
-    JPanel myFieldsPanel = new JPanel(new TabularLayout("Fit,20px,*").setVGap(TabUiUtils.SECTION_VGAP));
+    JPanel myFieldsPanel = new JPanel(new TabularLayout("Fit-,20px,*").setVGap(TabUiUtils.SECTION_VGAP));
 
     int row = 0;
     myFieldsPanel.add(new NoWrapBoldLabel("Request"), new TabularLayout.Constraint(row, 0));

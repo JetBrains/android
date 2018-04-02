@@ -96,7 +96,7 @@ public class NetworkRadioView {
     topPane.add(label, BorderLayout.WEST);
     topPane.add(legend, BorderLayout.EAST);
 
-    panel.setLayout(new TabularLayout("*", "Fit,12px,8px"));
+    panel.setLayout(new TabularLayout("*", "Fit-,12px,8px"));
     panel.add(topPane, new TabularLayout.Constraint(0, 0));
     panel.add(myRadioChart, new TabularLayout.Constraint(1, 0));
   }
