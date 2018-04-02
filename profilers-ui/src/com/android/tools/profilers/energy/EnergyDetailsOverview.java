@@ -44,7 +44,7 @@ final class EnergyDetailsOverview extends JPanel {
     Font labelFont = UIManager.getFont("Label.font");
     StyleSheet styleSheet = ((HTMLDocument)myTextPane.getDocument()).getStyleSheet();
     styleSheet.addRule("body { font-family: " + labelFont.getFamily() + "; font-size: 13pt; }");
-    styleSheet.addRule("p { margin: 2 0 2 0; }");
+    styleSheet.addRule("p { margin: 4 0 4 0; }");
     add(myTextPane);
   }
 

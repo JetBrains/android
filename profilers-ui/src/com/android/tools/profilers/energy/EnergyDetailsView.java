@@ -50,6 +50,7 @@ public class EnergyDetailsView extends JPanel {
     myCallstackView = new EnergyCallstackView(stageView);
     JPanel detailsPanel = new JPanel(new VerticalFlowLayout());
     detailsPanel.add(myDetailsOverview);
+    detailsPanel.add(new JSeparator(SwingConstants.HORIZONTAL));
     detailsPanel.add(myCallstackView);
     myTabsPanel.addTab("Details", new JBScrollPane(detailsPanel));
 
