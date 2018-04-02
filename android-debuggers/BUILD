@@ -53,6 +53,7 @@ iml_module(
         "//tools/idea/platform/credential-store",
         "//tools/adt/idea/adt-branding",
         "//tools/idea/java/compiler/instrumentation-util-8",
+        "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
