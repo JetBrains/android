@@ -57,7 +57,6 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.stream.IntStream;
 
@@ -559,15 +558,6 @@ public final class TranslationsEditorTest {
     assertThat(editor.getCurrentFileContents()).doesNotContain("hello_world");
     editor = myGuiTest.ideFrame().getEditor().open("app/src/main/res/values-ta/strings.xml");
     assertThat(editor.getCurrentFileContents()).doesNotContain("hello_world");
-  }
-
-  @NotNull
-  private static KeyStroke getKeyStroke(@NotNull InputMap inputMap, @NotNull Object actionMapKey) {
-    Optional<KeyStroke> optionalKeyStroke = Arrays.stream(inputMap.allKeys())
-      .filter(keyStroke -> inputMap.get(keyStroke).equals(actionMapKey))
-      .findFirst();
-
-    return optionalKeyStroke.orElseThrow(() -> new IllegalArgumentException(actionMapKey.toString()));
   }
 
   @NotNull
