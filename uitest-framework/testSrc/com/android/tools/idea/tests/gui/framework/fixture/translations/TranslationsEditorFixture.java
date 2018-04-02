@@ -26,6 +26,7 @@ import com.intellij.openapi.application.TransactionGuardImpl;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.SimpleColoredComponent.ColoredIterator;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.components.JBLoadingPanel;
 import org.fest.swing.cell.JTableCellWriter;
 import org.fest.swing.core.ComponentMatcher;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -56,14 +57,18 @@ import static org.fest.swing.edt.GuiTask.execute;
 
 public final class TranslationsEditorFixture {
   private final Robot myRobot;
-  private final Container myTranslationsEditor;
+  private final JBLoadingPanel myTranslationsEditor;
 
   private final JButtonFixture myFilterKeysComboBox;
 
   public TranslationsEditorFixture(@NotNull Robot robot) {
     myRobot = robot;
-    myTranslationsEditor = (Container)robot.finder().findByName("translationsEditor");
+    myTranslationsEditor = (JBLoadingPanel)robot.finder().findByName("translationsEditor");
     myFilterKeysComboBox = getButton("Show All Keys");
+  }
+
+  public void finishLoading() {
+    Wait.seconds(10).expecting("translations editor to finish loading").until(() -> !myTranslationsEditor.isLoading());
   }
 
   @NotNull
@@ -109,15 +114,6 @@ public final class TranslationsEditorFixture {
       new FixedColumnTableFixture(myRobot, (FixedColumnTable)myRobot.finder().findByName(myTranslationsEditor, "table"));
     tableFixture.replaceCellWriter(new TranslationsEditorTableCellWriter(myRobot));
     return tableFixture;
-  }
-
-  @NotNull
-  public List<String> keys() {
-    JTableFixture table = getTable();
-
-    return IntStream.range(0, table.rowCount())
-      .mapToObj(row -> table.valueAt(TableCell.row(row).column(StringResourceTableModel.KEY_COLUMN)))
-      .collect(Collectors.toList());
   }
 
   @NotNull

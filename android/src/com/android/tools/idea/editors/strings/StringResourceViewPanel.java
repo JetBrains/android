@@ -63,6 +63,7 @@ final class StringResourceViewPanel implements Disposable {
     myFacet = facet;
 
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), this, 200);
+    myLoadingPanel.setName("translationsEditor");
     myLoadingPanel.add(myContainer);
 
     ActionToolbar toolbar = createToolbar();

@@ -28,6 +28,9 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.table.JTableHeader;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static com.google.common.base.Verify.verifyNotNull;
 
@@ -41,6 +44,17 @@ public final class FixedColumnTableFixture extends JTableFixture {
 
   private int getFixedColumnCount() {
     return myFixed.target().getColumnCount();
+  }
+
+  @NotNull
+  public List<Object> columnAt(int column) {
+    return GuiQuery.getNonNull(() -> {
+      JTable table = column < getFixedColumnCount() ? myFixed.target() : target();
+
+      return IntStream.range(0, table.getRowCount())
+        .mapToObj(row -> table.getValueAt(row, column))
+        .collect(Collectors.toList());
+    });
   }
 
   private boolean isInFixedTable(@NotNull TableCell cell) {
