@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.naveditor.property.editors
 
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.editors.EnumEditor
 import com.android.tools.idea.naveditor.model.visibleDestinations
+import com.android.tools.idea.uibuilder.model.parentSequence
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener
 import com.android.tools.idea.uibuilder.property.editors.support.EnumSupport
 
@@ -26,5 +28,15 @@ class VisibleDestinationsEditor(listener: NlEditingListener, comboBox: CustomCom
 
   constructor() : this(NlEditingListener.DEFAULT_LISTENER, CustomComboBox())
 
-  override fun getEnumSupport(property: NlProperty): EnumSupport = DestinationEnumSupport(property) { it.visibleDestinations }
+  override fun getEnumSupport(property: NlProperty): EnumSupport = DestinationEnumSupport(property) {
+    val visibleDestinations = it.visibleDestinations
+    val result = arrayListOf<NlComponent>()
+
+    it.parentSequence().forEach {
+      result.add(it)
+      result.addAll(visibleDestinations[it].orEmpty())
+    }
+
+    result
+  }
 }

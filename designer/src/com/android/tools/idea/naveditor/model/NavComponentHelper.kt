@@ -23,6 +23,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.StringAttributeDelegate
 import com.android.tools.idea.common.model.StringAutoAttributeDelegate
 import com.android.tools.idea.uibuilder.model.IdAutoAttributeDelegate
+import com.android.tools.idea.uibuilder.model.parentSequence
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
 import com.intellij.openapi.vfs.VfsUtil
@@ -57,18 +58,29 @@ get() =  id
       ?: resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)?.substringAfterLast(".")
       ?: tagName
 
-val NlComponent.visibleDestinations: List<NlComponent>
+/**
+ * Creates a map of the visible destinations
+ * The keys make up the parent chain to the root.
+ * Each value is a list of visible destinations under the key sorted by UiName
+ * If a destination appears as a key, it will not appear in
+ * the values list under its parent
+ * i.e. if B and C are children of A, then the visible destination map
+ * of B will be:
+ *     B -> { }
+ *     A -> { C } (no B)
+ *
+ */
+val NlComponent.visibleDestinations: Map<NlComponent, List<NlComponent>>
   get() {
-    val schema = NavigationSchema.get(model.facet)
-    val result = arrayListOf<NlComponent>()
-    var p: NlComponent? = this
-    while (p != null) {
-      p.children.filterTo(result, { c -> schema.getDestinationType(c.tagName) != null })
-      p = p.parent
+    val map = HashMap<NlComponent, List<NlComponent>>()
+    val current: NlComponent? = if (isDestination) this else parent
+
+    current?.parentSequence()?.forEach {
+      map[it] = it.children.filter { it.isDestination && !map.containsKey(it) }
+        .sortedBy { it.uiName }
     }
-    // The above won't add the root itself
-    result.addAll(model.components)
-    return result
+
+    return map
   }
 
 fun NlComponent.findVisibleDestination(id: String): NlComponent? {
@@ -110,6 +122,9 @@ val NlComponent.isDestination: Boolean
 
 val NlComponent.isAction: Boolean
   get() = tagName == NavigationSchema.TAG_ACTION
+
+val NlComponent.isFragment: Boolean
+  get() = destinationType == NavigationSchema.DestinationType.FRAGMENT
 
 val NlComponent.isNavigation: Boolean
   get() = destinationType == NavigationSchema.DestinationType.NAVIGATION

@@ -31,7 +31,7 @@ public class AddActionDialogUI {
   JComboBox<AddActionDialog.DestinationListEntry> myDestinationComboBox;
   JComboBox<ValueWithDisplayString> myEnterComboBox;
   JComboBox<ValueWithDisplayString> myExitComboBox;
-  JComboBox<NlComponent> myPopToComboBox;
+  JComboBox<AddActionDialog.DestinationListEntry> myPopToComboBox;
   JCheckBox myInclusiveCheckBox;
   JCheckBox mySingleTopCheckBox;
   JCheckBox myDocumentCheckBox;
