@@ -24,7 +24,6 @@
     </orderEntry>
     <orderEntry type="library" name="NanoXML" level="project" />
     <orderEntry type="module" module-name="android.sdktools.common" exported="" />
-    <orderEntry type="module" module-name="android.sdktools.ddmlib" exported="" />
     <orderEntry type="module" module-name="android.sdktools.dvlib" exported="" />
     <orderEntry type="module" module-name="android.sdktools.layoutlib-api" exported="" />
     <orderEntry type="module" module-name="android.sdktools.ninepatch" exported="" />
@@ -73,5 +72,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" exported="" name="com.android.tools.ddms:ddmlib:26.0.0" level="project" />
   </component>
 </module>
