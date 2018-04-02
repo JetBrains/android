@@ -139,6 +139,7 @@ class JUnitClientImpl(val host: String, val port: Int, initHandlers: Array<Clien
 
   inner class KeepAliveThread(val connection: Socket, private val objectOutputStream: ObjectOutputStream) : Thread(KEEP_ALIVE_THREAD) {
     private val myExecutor = Executors.newSingleThreadScheduledExecutor()
+    private var hasCancelled = false
     override fun run() {
       myExecutor.scheduleWithFixedDelay(
         {
@@ -152,9 +153,14 @@ class JUnitClientImpl(val host: String, val port: Int, initHandlers: Array<Clien
     }
 
     fun cancel() {
-      myExecutor.shutdownNow()
-      objectOutputStream.close()
-      (ApplicationManager.getApplication() as ApplicationImpl).exit(true, true)
+      synchronized(this) {
+        if (!hasCancelled) {
+          hasCancelled = true
+          myExecutor.shutdownNow()
+          objectOutputStream.close()
+          (ApplicationManager.getApplication() as ApplicationImpl).exit(true, true)
+        }
+      }
     }
   }
 
