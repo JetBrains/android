@@ -79,7 +79,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
   @NotNull private final MergingUpdateQueue myUpdateQueue;
   private final LaunchCompatibilityChecker myCompatibilityChecker;
 
-  private final AtomicReference<List<AvdInfo>> myAvdInfos = new AtomicReference();
+  private final AtomicReference<List<AvdInfo>> myAvdInfos = new AtomicReference<>();
 
   public DevicePicker(@NotNull Disposable parent,
                       int runContextId,
@@ -183,9 +183,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
 
   public void refreshAvds(@Nullable AvdInfo avdToSelect) {
     myDevicesList.setPaintBusy(true);
-    ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      refreshAvdsNow(avdToSelect);
-    });
+    ApplicationManager.getApplication().executeOnPooledThread(() -> refreshAvdsNow(avdToSelect));
   }
 
   public void refreshAvdsNow(@Nullable AvdInfo avdToSelect) {
@@ -531,8 +529,8 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
     }
   }
 
-  private static class DeviceListSpeedSearch extends ListSpeedSearch {
-    public DeviceListSpeedSearch(JBList list) {
+  private static class DeviceListSpeedSearch extends ListSpeedSearch<DevicePickerEntry> {
+    public DeviceListSpeedSearch(JBList<DevicePickerEntry> list) {
       super(list);
     }
 
