@@ -16,14 +16,13 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
-import com.android.tools.idea.gradle.dsl.model.ext.ResolvedPropertyModelImpl
 import java.io.File
 
 class PsVariables(private val module: PsModule) : VariablesProvider {
   override fun <T> getAvailableVariablesForType(type: Class<T>): List<Pair<String, T?>> =
       // TODO(solodkyy): Merge with variables available at the project level.
-    module.parsedModel?.ext()?.properties.orEmpty()
-      .map { it.name to it.resolve() }
+    module.parsedModel?.inScopeProperties.orEmpty()
+      .map { it.key to it.value.resolve() }
       .flatMap {
         when (it.second.valueType) {
           GradlePropertyModel.ValueType.LIST -> listOf()
