@@ -219,6 +219,11 @@ public class LayoutInspectorPanel extends JPanel implements DataProvider, ImageC
     }
 
     @Override
+    public void fitZoomToWindow() {
+      // TODO(kelvinhanma): implement this method added by commit 43c4633
+    }
+
+    @Override
     public void zoomOut() {
       setZoomFactor(getZoomFactor() / DELTA);
       myZoomLevelChanged = true;
