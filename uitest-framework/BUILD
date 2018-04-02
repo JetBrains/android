@@ -15,6 +15,7 @@ iml_module(
         "//tools/idea/json",
         "//tools/idea/xml/relaxng",
         "//tools/idea/java/compiler/instrumentation-util-8",
+        "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin",
         "//tools/adt/idea/adt-branding",
     ],
     # do not sort: must match IML order
@@ -28,10 +29,7 @@ iml_module(
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/platform/testFramework[module, test]",
         "//tools/idea/plugins/gradle[module, test]",
-        "//tools/idea/java/compiler/openapi:compiler-openapi[module, test]",
-        "//tools/idea:java-impl[module, test]",
         "//tools/idea/java/openapi[module, test]",
-        "//tools/idea/platform/testRunner[module, test]",
         "//tools/idea/platform/bootstrap[module, test]",
         "//tools/idea/platform/xdebugger-impl[module, test]",
         "//tools/idea/xml/dom-openapi[module, test]",

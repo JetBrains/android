@@ -13,6 +13,7 @@ iml_module(
         "//tools/idea/json",
         "//tools/idea/xml/relaxng",
         "//tools/idea/java/compiler/instrumentation-util-8",
+        "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin",
         "//tools/adt/idea/adt-branding",
         "//tools/vendor/intellij/cidr:doxygen",
     ],

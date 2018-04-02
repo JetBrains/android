@@ -4,6 +4,7 @@ iml_module(
     name = "android-test-framework",
     iml_files = ["android-test-framework.iml"],
     tags = ["managed"],
+    test_runtime_deps = ["//tools/idea/plugins/IntelliLang/intellilang-jps-plugin"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
