@@ -20,11 +20,10 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
+import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,30 +32,33 @@ import java.awt.*;
 import java.util.HashMap;
 import java.util.List;
 
-public class AccessoryPanel extends JPanel implements DesignSurfaceListener, Disposable, ModelListener {
+public class AccessoryPanel extends JPanel implements DesignSurfaceListener, ModelListener {
 
-  public static final int SOUTH_ACCESSORY_PANEL = 0;
-  public static final int EAST_ACCESSORY_PANEL = 1;
+  public enum Type { SOUTH_PANEL, EAST_PANEL }
 
-  private final NlDesignSurface mySurface;
+  private NlDesignSurface mySurface;
   private NlModel myModel;
-  private JPanel myCachedPanel;
-  private HashMap<ViewGroupHandler, JPanel> myPanels =  new HashMap<>();
-  private int myType = 0;
+  private AccessoryPanelInterface myCachedPanel;
+  private HashMap<NlComponent, AccessoryPanelInterface> myPanels =  new HashMap<>();
+  private Type myType = Type.SOUTH_PANEL;
 
-  public AccessoryPanel(@NotNull NlDesignSurface surface, int type) {
+  public AccessoryPanel(@NotNull Type type) {
     super(new BorderLayout());
-    mySurface = surface;
-    mySurface.addListener(this);
-    Disposer.register(surface, this);
     myType = type;
   }
 
-  @Override
-  public void dispose() {
-    mySurface.removeListener(this);
-    if (myModel !=  null) {
-      myModel.removeListener(this);
+  public void setSurface(@Nullable NlDesignSurface surface) {
+    if (mySurface != null) {
+      mySurface.removeListener(this);
+      setModel(null);
+    }
+    removeCurrentPanel();
+    mySurface = surface;
+    if (surface == null) {
+      setModel(null);
+    } else {
+      setModel(mySurface.getModel());
+      mySurface.addListener(this);
     }
   }
 
@@ -122,29 +124,33 @@ public class AccessoryPanel extends JPanel implements DesignSurfaceListener, Dis
     ViewHandler handler = ViewHandlerManager.get(surface.getProject()).getHandler(parent);
     if (handler instanceof ViewGroupHandler) {
       ViewGroupHandler viewGroupHandler = (ViewGroupHandler) handler;
-      if (!viewGroupHandler.needsAccessoryPanel()) {
+      if (!viewGroupHandler.needsAccessoryPanel(myType)) {
         removeCurrentPanel();
         return;
       }
-      JPanel panel = myPanels.get(viewGroupHandler);
+      AccessoryPanelInterface panel = myPanels.get(parent);
       if (panel == null) {
-        panel = viewGroupHandler.createAccessoryPanel(myType);
-        myPanels.put(viewGroupHandler, panel);
+        ViewGroupHandler.AccessoryPanelVisibility visibilityCallback = mySurface;
+        panel = viewGroupHandler.createAccessoryPanel(myType, parent, visibilityCallback);
+        myPanels.put(parent, panel);
       }
-      viewGroupHandler.updateAccessoryPanelWithSelection(myType, panel, newSelection);
-      if (panel == myCachedPanel) {
-        return;
+
+      if (panel != myCachedPanel) {
+        removeCurrentPanel();
+        myCachedPanel = panel;
+        add(myCachedPanel.getPanel());
       }
-      removeCurrentPanel();
-      myCachedPanel = panel;
-      add(myCachedPanel);
+
+      panel.updateAccessoryPanelWithSelection(myType, newSelection);
       setVisible(true);
     }
   }
 
   private void removeCurrentPanel() {
     if (myCachedPanel != null) {
-      remove(myCachedPanel);
+      remove(myCachedPanel.getPanel());
+      myCachedPanel.deactivate();
+      myCachedPanel = null;
     }
     setVisible(false);
   }

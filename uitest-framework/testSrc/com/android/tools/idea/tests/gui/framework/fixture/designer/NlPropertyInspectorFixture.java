@@ -65,7 +65,7 @@ public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspe
 
   @NotNull
   public NlPropertyInspectorFixture openAsInspector() {
-    if (myPanel.isAllPropertiesPanelVisible()) {
+    if (myPanel.isAllPropertiesPanelMode()) {
       myPanel.setAllPropertiesPanelVisible(false);
     }
     return this;
@@ -73,7 +73,7 @@ public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspe
 
   @NotNull
   public NlPropertyTableFixture openAsTable() {
-    if (!myPanel.isAllPropertiesPanelVisible()) {
+    if (!myPanel.isAllPropertiesPanelMode()) {
       myPanel.setAllPropertiesPanelVisible(true);
     }
     if (isSliceEditorActive()) {
@@ -85,7 +85,7 @@ public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspe
   @NotNull
   @SuppressWarnings("UnusedReturnValue")
   public NlPropertyTableFixture openAsSliceEditor() {
-    if (!myPanel.isAllPropertiesPanelVisible()) {
+    if (!myPanel.isAllPropertiesPanelMode()) {
       myPanel.setAllPropertiesPanelVisible(true);
     }
     if (!isSliceEditorActive()) {

@@ -23,21 +23,18 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.ComponentProvider;
 import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.TargetProvider;
-import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
 import com.android.tools.idea.uibuilder.model.SegmentType;
+import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.xml.XmlBuilder;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.dnd.DropTargetDropEvent;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -267,27 +264,24 @@ public class ViewGroupHandler extends ViewHandler {
    * Returns true if this handler needs an accessory panel
    * @return
    */
-  public boolean needsAccessoryPanel() {
+  public boolean needsAccessoryPanel(@NotNull AccessoryPanel.Type type) {
     return false;
   }
 
   /**
-   * Returns a JPanel used as an accessory panel, displayed south.
+   * Returns a AccessoryPanelInterface used as an accessory panel
    * @param type type of accessory panel
+   * @param parent The NLComponent that triggered the request.
    * @return
    */
   @Nullable
-  public JPanel createAccessoryPanel(int type) {
+  public AccessoryPanelInterface createAccessoryPanel(@NotNull AccessoryPanel.Type type,
+                                                      @NotNull NlComponent parent,
+                                                      @NotNull AccessoryPanelVisibility callback) {
     return null;
   }
 
-  /**
-   * Give a chance for the handler to populate the accessory panel
-   * @param type type of accessory panel
-   * @param panel
-   * @param selection
-   */
-  public void updateAccessoryPanelWithSelection(int type, @NotNull JPanel panel, @NotNull List<NlComponent> selection) {
-    // nothing
+  public interface AccessoryPanelVisibility {
+    void show(@NotNull AccessoryPanel.Type type, boolean show);
   }
 }

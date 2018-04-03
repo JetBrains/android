@@ -36,4 +36,7 @@ public interface DesignSurfaceListener {
   default boolean activatePreferredEditor(@NotNull DesignSurface surface, @NotNull NlComponent component) {
     return false;
   }
+
+  /** Change the visibility of related accessory panel */
+  default void showAccessoryPanel(@NotNull DesignSurface surface, boolean show) {}
 }

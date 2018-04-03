@@ -38,6 +38,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlSelectionModel;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
@@ -64,7 +65,7 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.*;
  * The {@link DesignSurface} for the layout editor, which contains the full background, rulers, one
  * or more device renderings, etc
  */
-public class NlDesignSurface extends DesignSurface {
+public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.AccessoryPanelVisibility {
 
   @NotNull private static SceneMode
     ourDefaultSceneMode = SceneMode.Companion.loadPreferredMode();
@@ -81,11 +82,12 @@ public class NlDesignSurface extends DesignSurface {
   private ShapeMenuAction.AdaptiveIconShape myAdaptiveIconShape = ShapeMenuAction.AdaptiveIconShape.getDefaultShape();
   private final RenderListener myRenderListener = this::modelRendered;
   private RenderIssueProvider myRenderIssueProvider;
-  private AccessoryPanel myAccessoryPanel = new AccessoryPanel(this, AccessoryPanel.SOUTH_ACCESSORY_PANEL);
+  private AccessoryPanel myAccessoryPanel = new AccessoryPanel(AccessoryPanel.Type.SOUTH_PANEL);
 
   public NlDesignSurface(@NotNull Project project, boolean inPreview, @NotNull Disposable parentDisposable) {
     super(project, new NlSelectionModel(), parentDisposable);
     myInPreview = inPreview;
+    myAccessoryPanel.setSurface(this);
   }
 
   public boolean isPreviewSurface() {
@@ -249,6 +251,17 @@ public class NlDesignSurface extends DesignSurface {
 
   public JPanel getAccessoryPanel() {
     return myAccessoryPanel;
+  }
+
+  public void showInspectorAccessoryPanel(boolean show) {
+    for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
+      listener.showAccessoryPanel(this, show);
+    }
+  }
+
+  @Override
+  public void show(@NotNull AccessoryPanel.Type type, boolean show) {
+    showInspectorAccessoryPanel(show);
   }
 
   /**
@@ -446,6 +459,12 @@ public class NlDesignSurface extends DesignSurface {
   public void setModel(@Nullable NlModel model) {
     myAccessoryPanel.setModel(model);
     super.setModel(model);
+  }
+
+  @Override
+  public void dispose() {
+    myAccessoryPanel.setSurface(null);
+    super.dispose();
   }
 
   @Override

@@ -25,11 +25,13 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
 import com.android.tools.idea.uibuilder.api.CustomPanel;
 import com.android.tools.idea.uibuilder.handlers.assistant.TransitionLayoutAssistantPanel;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory;
+import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -219,7 +221,7 @@ public class MotionLayoutHandler extends ConstraintLayoutHandler {
   }
 
   @Override
-  @Nullable
+  @NotNull
   public CustomPanel getLayoutCustomPanel() {
     return new AnimationPositionPanel();
   }
@@ -247,5 +249,27 @@ public class MotionLayoutHandler extends ConstraintLayoutHandler {
     return panelFactory != null ?
            ImmutableList.of(new ComponentAssistantActionTarget(panelFactory)) :
            ImmutableList.of();
+  }
+
+  @Override
+  public boolean needsAccessoryPanel(@NotNull AccessoryPanel.Type type) {
+    switch (type) {
+      case SOUTH_PANEL:
+      case EAST_PANEL:
+        return true;
+    }
+    return false;
+  }
+
+  @Override
+  @NotNull
+  public AccessoryPanelInterface createAccessoryPanel(@NotNull AccessoryPanel.Type type,
+                                                      @NotNull NlComponent parent,
+                                                      @NotNull AccessoryPanelVisibility panelVisibility) {
+    switch (type) {
+      case SOUTH_PANEL: return new MotionLayoutTimelinePanel(parent, panelVisibility);
+      case EAST_PANEL: return new MotionLayoutAttributePanel(parent, panelVisibility);
+    }
+     throw new IllegalArgumentException("Unsupported type");
   }
 }

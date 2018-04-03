@@ -26,7 +26,10 @@ import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.PropertiesManager;
 import com.android.tools.idea.common.property.PropertiesPanel;
 import com.android.tools.idea.common.property.inspector.InspectorPanel;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.property.inspector.NlInspectorPanel;
+import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.Table;
 import com.intellij.ide.util.PropertiesComponent;
@@ -86,6 +89,9 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
   private PropertiesViewMode myPropertiesViewMode;
   private Runnable myRestoreToolWindowCallback;
 
+  private AccessoryPanel myAccessoryPanel = new AccessoryPanel(AccessoryPanel.Type.EAST_PANEL);
+
+
   public NlPropertiesPanel(@NotNull NlPropertiesManager propertiesManager) {
     this(propertiesManager, new NlPTable(new PTableModel()), null);
   }
@@ -138,6 +144,8 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
     tableScrollPane.getVerticalScrollBar().setBlockIncrement(VERTICAL_SCROLLING_BLOCK_INCREMENT);
     tableScrollPane.setBorder(BorderFactory.createEmptyBorder());
     myCardPanel.add(PropertiesViewMode.TABLE.name(), tableScrollPane);
+
+    myCardPanel.add(PropertiesViewMode.ACCESSORY.name(), myAccessoryPanel);
     myPropertiesViewMode = getPropertiesViewModeInitially();
     myCardLayout.show(myCardPanel, myPropertiesViewMode.name());
     myComponents = Collections.emptyList();
@@ -334,8 +342,12 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
   }
 
   @Override
-  public boolean isAllPropertiesPanelVisible() {
+  public boolean isAllPropertiesPanelMode() {
     return myPropertiesViewMode == PropertiesViewMode.TABLE;
+  }
+
+  public void setToolContext(@Nullable DesignSurface surface) {
+    myAccessoryPanel.setSurface((NlDesignSurface) surface);
   }
 
   @Override
@@ -344,10 +356,20 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
     setAllPropertiesPanelVisibleInternal(viewAllProperties, next::requestFocus);
   }
 
+  @Override
+  public boolean isAccessoryPanelVisible() {
+    return myAccessoryPanel.isVisible();
+  }
+
   private void setAllPropertiesPanelVisibleInternal(boolean viewAllProperties, @Nullable Runnable onDone) {
     myPropertiesViewMode = viewAllProperties ? PropertiesViewMode.TABLE : PropertiesViewMode.INSPECTOR;
     myCardLayout.swipe(myCardPanel, myPropertiesViewMode.name(), JBCardLayout.SwipeDirection.AUTO, onDone);
     PropertiesComponent.getInstance().setValue(PROPERTY_MODE, myPropertiesViewMode.name());
+  }
+
+  public void showAccessoryPanel(boolean show) {
+    String name = show ? PropertiesViewMode.ACCESSORY.name() : myPropertiesViewMode.name();
+    myCardLayout.swipe(myCardPanel, name, JBCardLayout.SwipeDirection.AUTO, null);
   }
 
   @NotNull
@@ -383,7 +405,7 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
       // Set focus on the editor of preferred property
       myInspectorPanel.activatePreferredEditor(propertyName, afterload);
     };
-    if (!isAllPropertiesPanelVisible()) {
+    if (!isAllPropertiesPanelMode()) {
       selectEditor.run();
     }
     else {
@@ -519,7 +541,8 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
 
   public enum PropertiesViewMode {
     TABLE,
-    INSPECTOR
+    INSPECTOR,
+    ACCESSORY
   }
 
   @VisibleForTesting
