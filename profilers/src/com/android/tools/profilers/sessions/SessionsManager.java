@@ -363,8 +363,8 @@ public class SessionsManager extends AspectModel<SessionAspect> {
         return 1;
       }
 
-      // b) more recent artifacts should appear at the bottom.
-      return Long.compare(artifact1.getTimestampNs(), artifact2.getTimestampNs());
+      // b) more recent artifacts should appear at the top.
+      return Long.compare(artifact2.getTimestampNs(), artifact1.getTimestampNs());
     }
   }
 }
