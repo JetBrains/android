@@ -31,6 +31,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ThreadCellRenderer extends CpuCellRenderer<CpuThreadsModel.RangedCpuThread, CpuProfilerStage.ThreadState> {
+
+  private static final int SIZE_IN_PIXELS = 19;
   /**
    * Maps a {@link StateChart} to a {@link EnumColors} helper class to return the proper color object for the {@link StateChart}
    */
@@ -55,7 +57,7 @@ public class ThreadCellRenderer extends CpuCellRenderer<CpuThreadsModel.RangedCp
                                                 boolean isSelected,
                                                 boolean cellHasFocus) {
     JPanel panel = new JPanel(new TabularLayout("150px,*", "*"));
-    panel.setPreferredSize(new Dimension(panel.getPreferredSize().width, JBUI.scale(15)));
+    panel.setPreferredSize(new Dimension(panel.getPreferredSize().width, JBUI.scale(SIZE_IN_PIXELS)));
     panel.setBackground(list.getBackground());
 
     myLabel.setText(value.getName());
@@ -75,6 +77,7 @@ public class ThreadCellRenderer extends CpuCellRenderer<CpuThreadsModel.RangedCp
     }
     StateChart<CpuProfilerStage.ThreadState> stateChart = getOrCreateStateChart(tid, model);
     stateChart.setOpaque(true);
+    stateChart.setBorder(null);
     // 1 is index of the selected color, 0 is of the non-selected
     // See more: {@link ProfilerColors#THREAD_STATES}
     // For now we always use the non-selected color.
@@ -82,8 +85,9 @@ public class ThreadCellRenderer extends CpuCellRenderer<CpuThreadsModel.RangedCp
 
     if (isSelected) {
       // Cell is selected. Update its background accordingly.
-      myLabel.setBackground(ProfilerColors.THREAD_SELECTED_BACKGROUND);
+      myLabel.setBackground(ProfilerColors.CPU_THREAD_SELECTED_BACKGROUND);
       myLabel.setForeground(ProfilerColors.SELECTED_THREAD_LABEL_TEXT);
+      stateChart.setBorder(JBUI.Borders.customLine(ProfilerColors.CPU_THREAD_SELECTED_BACKGROUND, 2));
     }
     else if (myHoveredIndex == index) {
       // Cell is hovered. Draw the hover overlay over it.
@@ -109,7 +113,8 @@ public class ThreadCellRenderer extends CpuCellRenderer<CpuThreadsModel.RangedCp
     EnumColors<CpuProfilerStage.ThreadState> enumColors = ProfilerColors.THREAD_STATES.build();
     StateChart<CpuProfilerStage.ThreadState> stateChart = new StateChart<>(model, enumColors::getColor);
     StateChartData<CpuProfilerStage.ThreadState> data = new StateChartData<>(stateChart, model);
-    stateChart.setHeightGap(0.40f);
+    // Our size in pixels is 19 and we want a 3 pixel gap.
+    stateChart.setHeightGap(3.0f/SIZE_IN_PIXELS);
     myStateCharts.put(tid, data);
     myColors.put(stateChart, enumColors);
     myUpdatableManager.register(model);

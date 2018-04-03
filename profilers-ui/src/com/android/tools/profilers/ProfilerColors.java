@@ -109,7 +109,7 @@ public class ProfilerColors {
 
   public static final Color CPU_CAPTURE_STATUS = new JBColor(0x545454, 0xCACACA);
 
-  public static final Color THREAD_SELECTED_BACKGROUND = new JBColor(0x3476DC, 0x3476DC);
+  public static final Color CPU_THREAD_SELECTED_BACKGROUND = new JBColor(0x3476DC, 0x3476DC);
 
   public static final Color THREAD_LABEL_TEXT = new JBColor(0x545454, 0x9C9C9C);
 
