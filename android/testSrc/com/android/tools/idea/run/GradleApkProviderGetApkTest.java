@@ -103,7 +103,7 @@ public class GradleApkProviderGetApkTest extends IdeaTestCase {
     when(bestOutputFinder.findBestOutput(myVariant, myDevice, testOutputs2)).thenReturn(testBestFoundOutput);
 
     myApkProvider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), myOutputModelProvider,
-                                          bestOutputFinder, true);
+                                          bestOutputFinder, true, false);
 
     when(myOutputModelProvider.getPostBuildModel()).thenReturn(myPostBuildModel);
 

@@ -31,18 +31,18 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class AndroidRunConfigurationType implements ConfigurationType {
-  private final ConfigurationFactory myFactory = new AndroidRunConfigurationFactory(this);
+public class AndroidBundleRunConfigurationType implements ConfigurationType {
+  private final ConfigurationFactory myFactory = new AndroidRunBundleConfigurationFactory(this);
 
-  public static class AndroidRunConfigurationFactory extends ConfigurationFactory {
-    protected AndroidRunConfigurationFactory(@NotNull ConfigurationType type) {
+  public static class AndroidRunBundleConfigurationFactory extends ConfigurationFactory {
+    protected AndroidRunBundleConfigurationFactory(@NotNull ConfigurationType type) {
       super(type);
     }
 
     @NotNull
     @Override
     public RunConfiguration createTemplateConfiguration(@NotNull Project project) {
-      return new AndroidRunConfiguration(project, this);
+      return new AndroidBundleRunConfiguration(project, this);
     }
 
     @Override
@@ -64,18 +64,23 @@ public class AndroidRunConfigurationType implements ConfigurationType {
     }
   }
 
-  public static AndroidRunConfigurationType getInstance() {
-    return ConfigurationTypeUtil.findConfigurationType(AndroidRunConfigurationType.class);
+  @NotNull
+  public static AndroidBundleRunConfigurationType getInstance() {
+    return ConfigurationTypeUtil.findConfigurationType(AndroidBundleRunConfigurationType.class);
   }
 
+  /**
+   * Returns the display name of the configuration type, but also the id of the configuration factory
+   * (see {@link ConfigurationFactory#getId()}).
+   */
   @Override
   public String getDisplayName() {
-    return AndroidBundle.message("android.run.configuration.type.name");
+    return AndroidBundle.message("android.run.bundle.configuration.type.name");
   }
 
   @Override
   public String getConfigurationTypeDescription() {
-    return AndroidBundle.message("android.run.configuration.type.description");
+    return AndroidBundle.message("android.run.bundle.configuration.type.description");
   }
 
   @Override
@@ -83,10 +88,14 @@ public class AndroidRunConfigurationType implements ConfigurationType {
     return AndroidIcons.AndroidModule;
   }
 
+  /**
+   * Returns the ID of the configuration type. This ID is persisted in the workspace.xml file,
+   * so it can never be changed.
+   */
   @Override
   @NotNull
   public String getId() {
-    return AndroidRunConfigurationType.class.getSimpleName();
+    return AndroidBundleRunConfigurationType.class.getSimpleName();
   }
 
   @Override

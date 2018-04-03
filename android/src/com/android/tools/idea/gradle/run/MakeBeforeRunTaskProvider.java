@@ -19,21 +19,15 @@ import com.android.builder.model.TestedTargetVariant;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.resources.Density;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.fd.InstantRunBuilder;
 import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
@@ -47,14 +41,11 @@ import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.google.common.annotations.VisibleForTesting;
-import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
-import com.google.common.base.Throwables;
-import com.google.common.collect.Ordering;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Ordering;
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.BeforeRunTaskProvider;
 import com.intellij.execution.configurations.ModuleRunProfile;
@@ -78,13 +69,9 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -96,7 +83,6 @@ import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createPro
 import static com.android.tools.idea.gradle.util.GradleProjects.getModulesToBuildFromSelection;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static com.android.tools.idea.run.editor.ProfilerState.ANDROID_ADVANCED_PROFILING_TRANSFORMS;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.intellij.openapi.util.io.FileUtil.createTempFile;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
@@ -240,6 +226,14 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     return task.isValid();
   }
 
+  /**
+   * Execute the Gradle build task, returns {@code false} in case of any error.
+   *
+   * <p>Note: Error handling should be improved to notify user in case of {@code false} return value.
+   * Currently, the caller does not expect exceptions, and there is no notification mechanism to propagate an
+   * error message to the user. The current implementation uses logging (in idea.log) to report errors, whereas the
+   * UI behavior is to merely stop the execution without any other sort of notification, which far from ideal.
+   */
   @Override
   public boolean executeTask(DataContext context, RunConfiguration configuration, ExecutionEnvironment env, MakeBeforeRunTask task) {
     if (!myAndroidProjectInfo.requiresAndroidModel() || !myGradleProjectInfo.isDirectGradleBuildEnabled()) {
@@ -289,7 +283,14 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     AndroidRunConfigContext runConfigContext = env.getCopyableUserData(AndroidRunConfigContext.KEY);
     DeviceFutures deviceFutures = runConfigContext == null ? null : runConfigContext.getTargetDevices();
     List<AndroidDevice> targetDevices = deviceFutures == null ? Collections.emptyList() : deviceFutures.getDevices();
-    List<String> cmdLineArgs = getCommonArguments(configuration, targetDevices);
+    List<String> cmdLineArgs;
+    try {
+      cmdLineArgs = getCommonArguments(configuration, targetDevices);
+    }
+    catch (Exception e) {
+      getLog().warn("Error generating command line arguments for Gradle task", e);
+      return false;
+    }
 
     BeforeRunBuilder builder =
       createBuilder(env, getModules(myProject, context, configuration), configuration, runConfigContext, task.getGoal());
@@ -332,49 +333,46 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
    * Returns the list of arguments to Gradle that are common to both instant and non-instant builds.
    */
   @NotNull
-  private static List<String> getCommonArguments(@NotNull RunConfiguration configuration, @NotNull List<AndroidDevice> targetDevices) {
+  private static List<String> getCommonArguments(@NotNull RunConfiguration configuration, @NotNull List<AndroidDevice> targetDevices) throws IOException {
     List<String> cmdLineArgs = new ArrayList<>();
-    cmdLineArgs.addAll(getDeviceSpecificArguments(targetDevices));
+    cmdLineArgs.addAll(getDeviceSpecificArguments(configuration, targetDevices));
     cmdLineArgs.addAll(getProfilingOptions(configuration, targetDevices));
     return cmdLineArgs;
   }
 
   @NotNull
-  public static List<String> getDeviceSpecificArguments(@NotNull List<AndroidDevice> devices) {
-    if (devices.isEmpty()) {
+  public static List<String> getDeviceSpecificArguments(@NotNull RunConfiguration configuration, @NotNull List<AndroidDevice> devices) throws IOException {
+    AndroidDeviceSpec deviceSpec = AndroidDeviceSpec.create(devices);
+    if (deviceSpec == null) {
       return Collections.emptyList();
     }
 
     List<String> properties = new ArrayList<>(2);
-
-    // Find the minimum value of the build API level and pass it to Gradle as a property
-    List<AndroidVersion> versionLists = devices.stream().map(AndroidDevice::getVersion).collect(Collectors.toList());
-    AndroidVersion minVersion = Ordering.natural().min(versionLists);
-    properties.add(createProjectProperty(PROPERTY_BUILD_API, Integer.toString(minVersion.getApiLevel())));
-    if(minVersion.getCodename() != null) {
-      properties.add(createProjectProperty(PROPERTY_BUILD_API_CODENAME, minVersion.getCodename()));
+    if (configuration instanceof AndroidBundleRunConfiguration) {
+      // For the bundle tool, we create a temporary json file with the device spec and
+      // pass the file path to the gradle task.
+      File deviceSpecFile = deviceSpec.writeToJsonTempFile();
+      properties.add(createProjectProperty(PROPERTY_APK_SELECT_CONFIG, deviceSpecFile.getAbsolutePath()));
     }
-
-    // If we are building for only one device, pass the density and the ABI
-    if (devices.size() == 1) {
-      AndroidDevice device = devices.get(0);
-      Density density = Density.getEnum(device.getDensity());
-      if (density != null) {
-        properties.add(createProjectProperty(PROPERTY_BUILD_DENSITY, density.getResourceValue()));
+    else {
+      // For non bundle tool deploy tasks, we have one argument per device spec property
+      properties.add(createProjectProperty(PROPERTY_BUILD_API, Integer.toString(deviceSpec.getApiLevel())));
+      if (deviceSpec.getApiCodeName() != null) {
+        properties.add(createProjectProperty(PROPERTY_BUILD_API_CODENAME, deviceSpec.getApiCodeName()));
       }
 
-      // Note: the abis are returned in their preferred order which should be maintained while passing it on to Gradle.
-      List<String> abis = device.getAbis().stream().map(Abi::toString).collect(Collectors.toList());
-      if (!abis.isEmpty()) {
-        properties.add(createProjectProperty(PROPERTY_BUILD_ABI, Joiner.on(',').join(abis)));
+      if (deviceSpec.getBuildDensity() != null) {
+        properties.add(createProjectProperty(PROPERTY_BUILD_DENSITY, deviceSpec.getBuildDensity().getResourceValue()));
+      }
+      if (!deviceSpec.getBuildAbis().isEmpty()) {
+        properties.add(createProjectProperty(PROPERTY_BUILD_ABI, Joiner.on(',').join(deviceSpec.getBuildAbis())));
       }
     }
-
     return properties;
   }
 
   @NotNull
-  private static List<String> getProfilingOptions(@NotNull RunConfiguration configuration, @NotNull List<AndroidDevice> devices) {
+  private static List<String> getProfilingOptions(@NotNull RunConfiguration configuration, @NotNull List<AndroidDevice> devices) throws IOException {
     if (!StudioFlags.PROFILER_ENABLED.get() || !(configuration instanceof AndroidRunConfigurationBase) || devices.isEmpty()) {
       return Collections.emptyList();
     }
@@ -393,19 +391,14 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       Properties profilerProperties = state.toProperties();
       profilerProperties.setProperty(StudioFlags.PROFILER_NETWORK_REQUEST_PAYLOAD.getId(),
                                      String.valueOf(StudioFlags.PROFILER_NETWORK_REQUEST_PAYLOAD.get()));
-      try {
-        File propertiesFile = createTempFile("profiler", ".properties");
-        propertiesFile.deleteOnExit(); // TODO: It'd be nice to clean this up sooner than at exit.
+      File propertiesFile = createTempFile("profiler", ".properties");
+      propertiesFile.deleteOnExit(); // TODO: It'd be nice to clean this up sooner than at exit.
 
-        Writer writer = new OutputStreamWriter(new FileOutputStream(propertiesFile), Charsets.UTF_8);
-        profilerProperties.store(writer, "Android Studio Profiler Gradle Plugin Properties");
-        writer.close();
+      Writer writer = new OutputStreamWriter(new FileOutputStream(propertiesFile), Charsets.UTF_8);
+      profilerProperties.store(writer, "Android Studio Profiler Gradle Plugin Properties");
+      writer.close();
 
-        arguments.add(AndroidGradleSettings.createJvmArg("android.profiler.properties", propertiesFile.getAbsolutePath()));
-      }
-      catch (IOException e) {
-        Throwables.propagate(e);
-      }
+      arguments.add(AndroidGradleSettings.createJvmArg("android.profiler.properties", propertiesFile.getAbsolutePath()));
     }
     return arguments;
   }
@@ -441,6 +434,11 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     InstantRunContext irContext = env.getCopyableUserData(InstantRunContext.KEY);
     DeviceFutures deviceFutures = runConfigContext == null ? null : runConfigContext.getTargetDevices();
     if (deviceFutures == null || irContext == null) {
+      // Use the "select apks from bundle" task if using a "AndroidBundleRunConfiguration".
+      // Note: This is very ad-hoc, and it would be nice to have a better abstraction for this special case.
+      if (configuration instanceof AndroidBundleRunConfiguration) {
+        return new DefaultGradleBuilder(gradleTasksProvider.getTasksFor(BuildMode.APK_FROM_BUNDLE, testCompileType), BuildMode.APK_FROM_BUNDLE);
+      }
       return new DefaultGradleBuilder(gradleTasksProvider.getTasksFor(BuildMode.ASSEMBLE, testCompileType), BuildMode.ASSEMBLE);
     }
 

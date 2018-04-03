@@ -216,6 +216,13 @@ public class GradleTaskFinder {
             addTaskIfSpecified(tasks, gradlePath, taskName);
           }
           break;
+        case APK_FROM_BUNDLE:
+          // The "ApkFromBundle" task is only valid for base (app) module, not for features, libraries, etc.
+          if (androidModel != null && androidModel.getAndroidProject().getProjectType() == AndroidProject.PROJECT_TYPE_APP) {
+            String taskName = androidModel.getSelectedVariant().getMainArtifact().getApkFromBundleTaskName();
+            addTaskIfSpecified(tasks, gradlePath, taskName);
+          }
+          break;
         default:
           addAfterSyncTasks(tasks, gradlePath, properties);
           if (androidModel != null) {
