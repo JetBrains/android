@@ -7,10 +7,10 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="ddmlib" />
+    <orderEntry type="module" module-name="android.sdktools.ddmlib" />
     <orderEntry type="library" name="jsr305" level="project" />
-    <orderEntry type="module" module-name="platform-api" />
-    <orderEntry type="module" module-name="xdebugger-api" />
+    <orderEntry type="module" module-name="intellij.platform.ide" />
+    <orderEntry type="module" module-name="intellij.platform.debugger" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
   </component>

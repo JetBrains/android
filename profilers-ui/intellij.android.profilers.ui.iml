@@ -8,18 +8,20 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="annotations" />
+    <orderEntry type="module" module-name="intellij.android.profilers" />
+    <orderEntry type="module" module-name="intellij.platform.annotations.java5" />
     <orderEntry type="library" name="studio-profiler-grpc-1.0-jarjar" level="project" />
+    <orderEntry type="module" module-name="intellij.platform.core" />
     <orderEntry type="library" name="Guava" level="project" />
-    <orderEntry type="module" module-name="adt-ui-model" />
-    <orderEntry type="module" module-name="util" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
+    <orderEntry type="module" module-name="intellij.platform.ide" />
+    <orderEntry type="module" module-name="android.sdktools.perflib" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
-    <orderEntry type="module" module-name="perflib" />
-    <orderEntry type="module" module-name="testutils" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="module" module-name="common" />
+    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="KotlinJavaRuntime" level="project" />
-    <orderEntry type="module" module-name="profilers-atrace" />
+    <orderEntry type="module" module-name="intellij.android.artwork" />
   </component>
 </module>

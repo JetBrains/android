@@ -10,7 +10,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="util" />
+    <orderEntry type="module" module-name="intellij.platform.util" />
     <orderEntry type="module-library" exported="">
       <library name="android-sdk-tools-jps">
         <CLASSES>
@@ -23,16 +23,16 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="NanoXML" level="project" />
-    <orderEntry type="module" module-name="common" exported="" />
-    <orderEntry type="module" module-name="ddmlib" exported="" />
-    <orderEntry type="module" module-name="dvlib" exported="" />
-    <orderEntry type="module" module-name="layoutlib-api" exported="" />
-    <orderEntry type="module" module-name="lint-api" exported="" />
-    <orderEntry type="module" module-name="lint-checks" exported="" />
-    <orderEntry type="module" module-name="ninepatch" exported="" />
-    <orderEntry type="module" module-name="sdk-common" exported="" />
-    <orderEntry type="module" module-name="sdklib" exported="" />
-    <orderEntry type="module" module-name="testutils" scope="TEST" />
-    <orderEntry type="module" module-name="android-common" />
+    <orderEntry type="module" module-name="android.sdktools.common" exported="" />
+    <orderEntry type="module" module-name="android.sdktools.ddmlib" exported="" />
+    <orderEntry type="module" module-name="android.sdktools.dvlib" exported="" />
+    <orderEntry type="module" module-name="android.sdktools.layoutlib-api" exported="" />
+    <orderEntry type="module" module-name="android.sdktools.lint-api" exported="" />
+    <orderEntry type="module" module-name="android.sdktools.lint-checks" exported="" />
+    <orderEntry type="module" module-name="android.sdktools.ninepatch" exported="" />
+    <orderEntry type="module" module-name="android.sdktools.sdk-common" exported="" />
+    <orderEntry type="module" module-name="android.sdktools.sdklib" exported="" />
+    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.common" />
   </component>
 </module>

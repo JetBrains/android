@@ -9,12 +9,12 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="uitest-framework" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.guiTestFramework" scope="TEST" />
     <orderEntry type="module" module-name="fest-swing" scope="TEST" />
-    <orderEntry type="module" module-name="external-system-api" scope="TEST" />
-    <orderEntry type="module" module-name="openapi" scope="TEST" />
-    <orderEntry type="module" module-name="platform-impl" scope="TEST" />
-    <orderEntry type="module" module-name="testutils" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.externalSystem" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.java" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.ide.impl" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
   </component>

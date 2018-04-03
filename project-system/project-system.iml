@@ -7,11 +7,11 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="platform-api" />
+    <orderEntry type="module" module-name="intellij.platform.ide" />
     <orderEntry type="library" name="Guava" level="project" />
-    <orderEntry type="module" module-name="platform-impl" />
-    <orderEntry type="module" module-name="common" />
-    <orderEntry type="module" module-name="annotations-common" />
-    <orderEntry type="module" module-name="sdk-common" />
+    <orderEntry type="module" module-name="intellij.platform.ide.impl" />
+    <orderEntry type="module" module-name="android.sdktools.common" />
+    <orderEntry type="module" module-name="intellij.platform.annotations.common" />
+    <orderEntry type="module" module-name="android.sdktools.sdk-common" />
   </component>
 </module>

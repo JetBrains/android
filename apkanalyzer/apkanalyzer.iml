@@ -10,23 +10,23 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="editor-ui-api" />
-    <orderEntry type="module" module-name="platform-api" />
+    <orderEntry type="module" module-name="intellij.platform.editor" />
+    <orderEntry type="module" module-name="intellij.platform.ide" />
     <orderEntry type="library" name="Guava" level="project" />
-    <orderEntry type="module" module-name="platform-impl" />
-    <orderEntry type="module" module-name="analyzer" />
-    <orderEntry type="module" module-name="common" />
-    <orderEntry type="module" module-name="binary-resources" />
-    <orderEntry type="module" module-name="adt-ui" />
+    <orderEntry type="module" module-name="intellij.platform.ide.impl" />
+    <orderEntry type="module" module-name="intellij.android.analyzer" />
+    <orderEntry type="module" module-name="android.sdktools.common" />
+    <orderEntry type="module" module-name="android.sdktools.binary-resources" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="analytics-protos" />
-    <orderEntry type="module" module-name="android-common" />
-    <orderEntry type="module" module-name="artwork" />
-    <orderEntry type="module" module-name="sdk-common" />
+    <orderEntry type="module" module-name="intellij.android.common" />
+    <orderEntry type="module" module-name="intellij.android.artwork" />
+    <orderEntry type="module" module-name="android.sdktools.sdk-common" />
     <orderEntry type="library" name="dexlib2" level="project" />
-    <orderEntry type="module" module-name="debugger-impl" />
+    <orderEntry type="module" module-name="intellij.java.debugger.impl" />
     <orderEntry type="module" module-name="project-system" />
-    <orderEntry type="module" module-name="smali" />
+    <orderEntry type="module" module-name="intellij.android.smali" />
     <orderEntry type="module" module-name="android-lang" />
   </component>
 </module>
