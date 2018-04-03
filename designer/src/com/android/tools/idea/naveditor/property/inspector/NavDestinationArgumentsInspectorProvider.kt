@@ -24,8 +24,10 @@ import com.android.tools.idea.common.property.inspector.InspectorPanel
 import com.android.tools.idea.common.property.inspector.InspectorProvider
 import com.android.tools.idea.naveditor.property.NavDestinationArgumentsProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
+import com.android.tools.idea.naveditor.property.editors.ArgumentTypeEditor
 import com.android.tools.idea.naveditor.property.editors.TextEditor
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.android.tools.idea.uibuilder.property.editors.BrowsePanel
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener
 import com.android.tools.idea.uibuilder.property.editors.NlTableCellEditor
 import com.intellij.icons.AllIcons
@@ -136,7 +138,8 @@ class NavDestinationArgumentsInspectorProvider : InspectorProvider<NavProperties
         }
       })
       table.columnModel.getColumn(0).cellRenderer = MyCellRenderer("name")
-      table.columnModel.getColumn(1).cellRenderer = MyCellRenderer("default value")
+      table.columnModel.getColumn(1).cellRenderer = MyCellRenderer("type")
+      table.columnModel.getColumn(2).cellRenderer = MyCellRenderer("default value")
 
       val cellEditor = object: NlTableCellEditor() {
         override fun isCellEditable(e: EventObject?): Boolean {
@@ -146,7 +149,11 @@ class NavDestinationArgumentsInspectorProvider : InspectorProvider<NavProperties
       cellEditor.init(textEditor, null)
 
       table.columnModel.getColumn(0).cellEditor = cellEditor
-      table.columnModel.getColumn(1).cellEditor = cellEditor
+      val typeEditor = NlTableCellEditor()
+      val browsePanel = BrowsePanel(typeEditor, true)
+      typeEditor.init(ArgumentTypeEditor(), browsePanel)
+      table.columnModel.getColumn(1).cellEditor = typeEditor
+      table.columnModel.getColumn(2).cellEditor = cellEditor
 
       panel.add(table, BorderLayout.CENTER)
       val plus = InplaceButton("Add Argument", addIcon) {
@@ -188,6 +195,12 @@ private class MyCellRenderer(emptyText: String) : TableCellRenderer {
       else {
         it.foreground = table?.foreground
         it.background = if (isSelected) UIUtil.getListUnfocusedSelectionBackground() else table?.background
+      }
+      when (column) {
+        0 -> it.toolTipText = "The name of the argument"
+        1 -> it.toolTipText = "The type of this argument value. If no type is specified the type will be inferred from any default " +
+                              "values provided."
+        2 -> it.toolTipText = "The default value for this argument"
       }
     }
   }

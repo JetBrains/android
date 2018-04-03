@@ -24,6 +24,6 @@ private val PROPERTY_NAME_UI_NAME_MAP = mapOf(
     SdkConstants.ATTR_NAME to "Class",
     SdkConstants.ATTR_START_DESTINATION to "Start Destination",
     NavigationSchema.ATTR_DESTINATION to "Destination",
-    NavigationSchema.ATTR_GRAPH to "Source")
+    SdkConstants.ATTR_GRAPH to "Source")
 
 class NavMainPropertiesInspectorProvider : NavPropertiesInspectorProvider(PROPERTY_NAME_UI_NAME_MAP, null)

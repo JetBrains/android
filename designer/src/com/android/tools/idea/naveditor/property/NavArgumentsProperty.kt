@@ -39,5 +39,6 @@ abstract class NavArgumentsProperty(components: List<NlComponent>, val propertie
 
 interface NavArgumentProperty : NlProperty {
   val defaultValueProperty: NlProperty
+  val typeProperty: NlProperty
 }
 

@@ -260,7 +260,7 @@ class NavComponentMixin(component: NlComponent)
 
   override fun getAttribute(namespace: String?, attribute: String): String? {
     if (component.tagName == TAG_INCLUDE) {
-      if (attribute == NavigationSchema.ATTR_GRAPH) {
+      if (attribute == ATTR_GRAPH) {
         // To avoid recursion
         return null
       }

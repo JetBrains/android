@@ -18,6 +18,7 @@ package com.android.tools.idea.naveditor.property.inspector
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.property.NlProperty
+import com.android.tools.idea.common.property.editors.EnumEditor
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.property.NavDestinationArgumentsProperty
@@ -67,8 +68,8 @@ class NavDestinationArgumentsInspectorProviderTest : NavTestCase() {
     val model = model("nav.xml") {
       navigation {
         fragment("f1") {
-          argument("arg1", "value1")
-          argument("arg2", "value2")
+          argument("arg1", type = "reference", value = "value1")
+          argument("arg2", value = "value2")
         }
         fragment("f2")
         activity("activity")
@@ -88,11 +89,13 @@ class NavDestinationArgumentsInspectorProviderTest : NavTestCase() {
     val plusButton = flatten(panel).find { it is InplaceButton && it.toolTipText == "Add Argument" } as InplaceButton
 
     assertEquals(2, argumentsTable.rowCount)
-    assertEquals(2, argumentsTable.columnCount)
+    assertEquals(3, argumentsTable.columnCount)
     assertEquals("arg1", (argumentsTable.getValueAt(0, 0) as NlProperty).value)
-    assertEquals("value1", (argumentsTable.getValueAt(0, 1) as NlProperty).value)
+    assertEquals("reference", (argumentsTable.getValueAt(0, 1) as NlProperty).value)
+    assertEquals("value1", (argumentsTable.getValueAt(0, 2) as NlProperty).value)
     assertEquals("arg2", (argumentsTable.getValueAt(1, 0) as NlProperty).value)
-    assertEquals("value2", (argumentsTable.getValueAt(1, 1) as NlProperty).value)
+    assertEquals(null, (argumentsTable.getValueAt(1, 1) as NlProperty).value)
+    assertEquals("value2", (argumentsTable.getValueAt(1, 2) as NlProperty).value)
 
     // add a new row
     plusButton.doClick()
@@ -102,9 +105,11 @@ class NavDestinationArgumentsInspectorProviderTest : NavTestCase() {
 
     assertEquals(3, argumentsTable.rowCount)
     assertEquals("foo", (argumentsTable.getValueAt(2, 0) as NlProperty).value)
-    (argumentsTable.getValueAt(2, 1) as NlProperty).setValue("bar")
+    (argumentsTable.getValueAt(2, 1) as NlProperty).setValue("integer")
+    (argumentsTable.getValueAt(2, 2) as NlProperty).setValue("bar")
     assertEquals(3, argumentsTable.rowCount)
-    assertEquals("bar", (argumentsTable.getValueAt(2, 1) as NlProperty).value)
+    assertEquals("integer", (argumentsTable.getValueAt(2, 1) as NlProperty).value)
+    assertEquals("bar", (argumentsTable.getValueAt(2, 2) as NlProperty).value)
 
     // another one
     plusButton.doClick()
@@ -112,22 +117,32 @@ class NavDestinationArgumentsInspectorProviderTest : NavTestCase() {
     assertEquals(4, argumentsTable.rowCount)
     assertEquals("foo2", (argumentsTable.getValueAt(3, 0) as NlProperty).value)
 
-    // Now delete one
-    setValue("", 1, 0, argumentsTable)
-    setValue("", 1, 1, argumentsTable)
+    // Now start deleting one
+    setValue("", 0, 0, argumentsTable)
+    setValue("", 0, 2, argumentsTable)
 
+    // Shouldn't be enough yet
+    assertEquals(4, argumentsTable.rowCount)
+    setValue(null, 0, 1, argumentsTable)
+
+    // now it's enough
     assertEquals(3, argumentsTable.rowCount)
-    assertEquals("arg1", (argumentsTable.getValueAt(0, 0) as NlProperty).value)
-    assertEquals("value1", (argumentsTable.getValueAt(0, 1) as NlProperty).value)
+    assertEquals("arg2", (argumentsTable.getValueAt(0, 0) as NlProperty).value)
+    assertEquals(null, (argumentsTable.getValueAt(0, 1) as NlProperty).value)
+    assertEquals("value2", (argumentsTable.getValueAt(0, 2) as NlProperty).value)
     assertEquals("foo", (argumentsTable.getValueAt(1, 0) as NlProperty).value)
-    assertEquals("bar", (argumentsTable.getValueAt(1, 1) as NlProperty).value)
+    assertEquals("integer", (argumentsTable.getValueAt(1, 1) as NlProperty).value)
+    assertEquals("bar", (argumentsTable.getValueAt(1, 2) as NlProperty).value)
     assertEquals("foo2", (argumentsTable.getValueAt(2, 0) as NlProperty).value)
   }
 
-  private fun setValue(value: String, row: Int, column: Int, argumentsTable: JBTable) {
+  private fun setValue(value: String?, row: Int, column: Int, argumentsTable: JBTable) {
     val editor = argumentsTable.getCellEditor(row, column) as NlTableCellEditor
     argumentsTable.editCellAt(row, column)
-    ApplicationManager.getApplication().runWriteAction { (editor.editor as TextEditor).setText(value) }
+    ApplicationManager.getApplication().runWriteAction {
+      (editor.editor as? TextEditor)?.setText(value.orEmpty())
+      (editor.editor as? EnumEditor)?.selectItem(value)
+    }
     editor.stopCellEditing()
   }
 }

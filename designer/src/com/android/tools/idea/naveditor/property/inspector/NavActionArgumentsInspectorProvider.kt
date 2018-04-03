@@ -93,7 +93,7 @@ class NavActionArgumentsInspectorProvider : InspectorProvider<NavPropertiesManag
     override fun attachToInspector(inspector: InspectorPanel<NavPropertiesManager>) {
       val panel = JPanel(BorderLayout())
       val table = JBTable(object: NavArgumentsTableModel(argumentProperty) {
-        override fun isCellEditable(rowIndex: Int, columnIndex: Int) = columnIndex == 1
+        override fun isCellEditable(rowIndex: Int, columnIndex: Int) = columnIndex == 2
       })
 
       table.name = NAV_ACTION_ARGUMENTS_COMPONENT_NAME
@@ -108,11 +108,18 @@ class NavActionArgumentsInspectorProvider : InspectorProvider<NavPropertiesManag
       table.columnModel.getColumn(0).cellRenderer = TableCellRenderer { _, value, _, _, _, _ ->
         nameCellRenderer.also { it.text = (value as? NlProperty)?.value }
       }
+      val typeCellRenderer = JBTextField()
+      typeCellRenderer.isEnabled = false
+      typeCellRenderer.emptyText.text = "type"
+      typeCellRenderer.border = BorderFactory.createEmptyBorder()
+      table.columnModel.getColumn(1).cellRenderer = TableCellRenderer { _, value, _, _, _, _ ->
+        typeCellRenderer.also { it.text = (value as? NlProperty)?.value }
+      }
 
       val defaultValueCellRenderer = JBTextField()
       defaultValueCellRenderer.emptyText.text = "default value"
       defaultValueCellRenderer.border = BorderFactory.createEmptyBorder()
-      table.columnModel.getColumn(1).cellRenderer = TableCellRenderer { _, value, _, _, _, _ ->
+      table.columnModel.getColumn(2).cellRenderer = TableCellRenderer { _, value, _, _, _, _ ->
         defaultValueCellRenderer.also { it.text = (value as? NlProperty)?.value }
       }
 
@@ -121,7 +128,7 @@ class NavActionArgumentsInspectorProvider : InspectorProvider<NavPropertiesManag
       val defaultValueEditor = NlTableCellEditor()
       defaultValueEditor.init(defaultValueTextEditor, null)
 
-      table.columnModel.getColumn(1).cellEditor = defaultValueEditor
+      table.columnModel.getColumn(2).cellEditor = defaultValueEditor
 
       table.putClientProperty("terminateEditOnFocusLost", true)
 
