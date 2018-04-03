@@ -117,7 +117,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_STARTUP_CPU_PROFILING = Flag.create(
     PROFILER, "startup.cpu.profiling", "Enable startup CPU Profiling",
     "Record a method trace on startup by enabling it in the Profiler tab of Run/Debug configuration.",
-    false);
+    true);
 
   public static final Flag<Boolean> PROFILER_CPU_API_TRACING = Flag.create(
     PROFILER, "cpu.api.tracing", "Enable CPU API Tracing",
