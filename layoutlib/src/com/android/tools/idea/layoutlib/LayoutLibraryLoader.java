@@ -68,7 +68,7 @@ public class LayoutLibraryLoader {
         LayoutlibBundle.message("android.file.not.exist.error", FileUtil.toSystemDependentName(buildProp.getPath())));
     }
 
-    if (!SystemInfo.isJavaVersionAtLeast("1.8") && target.getVersion().getFeatureLevel() >= 24) {
+    if (!SystemInfo.isJavaVersionAtLeast(8, 0, 0) && target.getVersion().getFeatureLevel() >= 24) {
       // From N, we require to be running in Java 8
       throw new UnsupportedJavaRuntimeException(LayoutlibBundle.message("android.layout.preview.unsupported.jdk",
                                                                         SdkVersionInfo.getCodeName(target.getVersion().getFeatureLevel())));
