@@ -32,7 +32,10 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.ClassInheritorsSearch
 import com.intellij.psi.xml.XmlFile
-import com.intellij.ui.*
+import com.intellij.ui.CollectionListModel
+import com.intellij.ui.DocumentAdapter
+import com.intellij.ui.DottedBorder
+import com.intellij.ui.SearchTextField
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBLoadingPanel
@@ -45,9 +48,11 @@ import icons.StudioIcons
 import org.jetbrains.android.AndroidGotoRelatedProvider
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.resourceManagers.LocalResourceManager
-import java.awt.*
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
+import java.awt.BorderLayout
+import java.awt.Image
+import java.awt.MediaTracker
+import java.awt.Point
+import java.awt.event.*
 import java.util.*
 import javax.swing.*
 import javax.swing.border.CompoundBorder
@@ -140,6 +145,8 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     searchField.textEditor.emptyText.text = "   Search existing destinations"
   }
 
+  private var neverShown = true
+
   private fun createSelectionPanel(): JPanel {
     val listModel = FilteringListModel<Destination>(CollectionListModel<Destination>(destinations))
 
@@ -176,7 +183,6 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
             val index = destinationsList.locationToIndex(event.point)
             if (index != -1) {
               destinationsList.selectedIndex = index
-              destinationsList.requestFocusInWindow()
             } else {
               destinationsList.clearSelection()
             }
@@ -229,6 +235,20 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     } else {
       result.add(scrollPane)
     }
+    result.addHierarchyListener { e ->
+      if (e?.changeFlags?.and(HierarchyEvent.SHOWING_CHANGED.toLong())?.let { it > 0 } == true) {
+        if (neverShown || balloon?.wasFadedOut() == true) {
+          neverShown = false
+          ApplicationManager.getApplication().invokeLater { searchField.requestFocusInWindow() }
+        }
+      }
+    }
+    destinationsList.addKeyListener(object : KeyAdapter() {
+      override fun keyTyped(e: KeyEvent?) {
+        searchField.requestFocus()
+        ApplicationManager.getApplication().invokeLater { searchField.dispatchEvent(e) }
+      }
+    })
     return result
   }
 
