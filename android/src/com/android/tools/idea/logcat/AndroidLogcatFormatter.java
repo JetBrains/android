@@ -45,7 +45,7 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
    */
   @NonNls private static final Pattern CONTINUATION_PATTERN = Pattern.compile("^\\+ (.*)$");
 
-  private static final CharSequence CONTINUATION_INDENT = "    ";
+  public static final CharSequence CONTINUATION_INDENT = "    ";
 
   private final MessageFormatter myLongEpochFormatter;
   private final MessageFormatter myLongFormatter;
