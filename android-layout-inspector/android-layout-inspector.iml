@@ -7,23 +7,23 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="util" />
-    <orderEntry type="module" module-name="editor-ui-api" />
-    <orderEntry type="module" module-name="core-api" />
-    <orderEntry type="module" module-name="adt-ui" />
+    <orderEntry type="module" module-name="intellij.platform.util" />
+    <orderEntry type="module" module-name="intellij.platform.editor" />
+    <orderEntry type="module" module-name="intellij.platform.core" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="analytics-protos" />
-    <orderEntry type="module" module-name="platform-api" />
-    <orderEntry type="module" module-name="artwork" />
-    <orderEntry type="module" module-name="layoutinspector" />
+    <orderEntry type="module" module-name="intellij.platform.ide" />
+    <orderEntry type="module" module-name="intellij.android.artwork" />
+    <orderEntry type="module" module-name="intellij.android.layoutInspector" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
-    <orderEntry type="module" module-name="platform-impl" />
-    <orderEntry type="module" module-name="images" />
-    <orderEntry type="module" module-name="android-common" />
-    <orderEntry type="module" module-name="observable" />
-    <orderEntry type="module" module-name="flags" />
-    <orderEntry type="module" module-name="xml-psi-impl" />
-    <orderEntry type="module" module-name="ddmlib" />
-    <orderEntry type="module" module-name="android" />
+    <orderEntry type="module" module-name="intellij.platform.ide.impl" />
+    <orderEntry type="module" module-name="intellij.platform.images" />
+    <orderEntry type="module" module-name="intellij.android.common" />
+    <orderEntry type="module" module-name="intellij.android.observable" />
+    <orderEntry type="module" module-name="intellij.android.flags" />
+    <orderEntry type="module" module-name="intellij.xml.psi.impl" />
+    <orderEntry type="module" module-name="android.sdktools.ddmlib" />
+    <orderEntry type="module" module-name="intellij.android" />
   </component>
 </module>

@@ -8,20 +8,20 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="common" />
-    <orderEntry type="module" module-name="util" />
+    <orderEntry type="module" module-name="android.sdktools.common" />
+    <orderEntry type="module" module-name="intellij.platform.util" />
     <orderEntry type="module" module-name="analytics-shared" />
-    <orderEntry type="module" module-name="core-api" />
+    <orderEntry type="module" module-name="intellij.platform.core" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="module" module-name="layoutlib-api" />
-    <orderEntry type="module" module-name="adt-ui" />
-    <orderEntry type="module" module-name="testutils" scope="TEST" />
-    <orderEntry type="module" module-name="platform-impl" scope="TEST" />
-    <orderEntry type="module" module-name="ninepatch" />
-    <orderEntry type="module" module-name="sdklib" />
-    <orderEntry type="module" module-name="flags" />
-    <orderEntry type="module" module-name="projectModel-api" />
+    <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui" />
+    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.ide.impl" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.ninepatch" />
+    <orderEntry type="module" module-name="android.sdktools.sdklib" />
+    <orderEntry type="module" module-name="intellij.android.flags" />
+    <orderEntry type="module" module-name="intellij.platform.projectModel" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module" module-name="adt-testutils" scope="TEST" />
   </component>

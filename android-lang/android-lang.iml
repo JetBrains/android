@@ -9,14 +9,14 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="core-api" />
-    <orderEntry type="module" module-name="common" />
-    <orderEntry type="module" module-name="artwork" />
-    <orderEntry type="module" module-name="java-analysis-impl" />
-    <orderEntry type="module" module-name="lang-impl" />
+    <orderEntry type="module" module-name="intellij.platform.core" />
+    <orderEntry type="module" module-name="android.sdktools.common" />
+    <orderEntry type="module" module-name="intellij.android.artwork" />
+    <orderEntry type="module" module-name="intellij.java.analysis.impl" />
+    <orderEntry type="module" module-name="intellij.platform.lang.impl" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
-    <orderEntry type="module" module-name="uast-common" />
-    <orderEntry type="module" module-name="util" />
+    <orderEntry type="module" module-name="intellij.platform.uast" />
+    <orderEntry type="module" module-name="intellij.platform.util" />
   </component>
 </module>
