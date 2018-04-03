@@ -57,6 +57,7 @@ public class AndroidProfilersPanel implements HyperlinkListener {
   private JLabel mySyncStatusMessage;
   private JCheckBox myStartupCpuProfileCheckBox;
   private ComboBox<CpuProfilerConfig> myStartupCpuConfigsComboBox;
+  private JTextPane myStartupCpuProfilerDescription;
 
   public JComponent getComponent() {
     return myDescription;
@@ -97,6 +98,7 @@ public class AndroidProfilersPanel implements HyperlinkListener {
     if (!StudioFlags.PROFILER_STARTUP_CPU_PROFILING.get()) {
       myStartupCpuProfileCheckBox.setVisible(false);
       myStartupCpuConfigsComboBox.setVisible(false);
+      myStartupCpuProfilerDescription.setVisible(false);
     }
   }
 
