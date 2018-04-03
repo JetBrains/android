@@ -27,7 +27,7 @@ sealed class ParsedValue<out T> {
   /**
    * The outcome of parsing of a text input representing the case "Nothing to parse".
    */
-  class NotSet<out T> : ParsedValue<T>()
+  object NotSet : ParsedValue<Nothing>()
 
   /**
    * An outcome of parsing of a text input representing the cases where there is some text input to parse.
@@ -37,7 +37,7 @@ sealed class ParsedValue<out T> {
     /**
      * An outcome of parsing of a valid text input representing a value of type [T].
      */
-    class Parsed<out T>(
+    data class Parsed<out T>(
         /**
          * The parsed value.
          *
@@ -54,7 +54,7 @@ sealed class ParsedValue<out T> {
     /**
      * An outcome of parsing of a text input which is not a valid representation of type [T].
      */
-    class Invalid<out T>(
+    data class Invalid<out T>(
         /**
          * The original text input which might be a DSL expression.
          */

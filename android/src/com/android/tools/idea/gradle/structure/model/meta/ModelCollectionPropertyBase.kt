@@ -78,7 +78,7 @@ fun <T : Any> makeItemProperty(
       val parsed: T? = resolvedProperty.getTypedValue()
       val dslText: DslText? = resolvedProperty.dslText()
       return when {
-        (parsed == null && dslText == null) -> ParsedValue.NotSet<T>()
+        (parsed == null && dslText == null) -> ParsedValue.NotSet
         parsed == null -> ParsedValue.Set.Invalid(dslText?.text.orEmpty(), "Unknown")
         else -> ParsedValue.Set.Parsed(value = parsed, dslText = dslText)
       }

@@ -43,7 +43,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT
     { getParsedProperty().dslText() },
     { getParsedProperty().delete() },
     { getParsedProperty().setDslText(it) },
-    { if (it.isBlank()) ParsedValue.NotSet() else parse(it.trim()) },
+    { if (it.isBlank()) ParsedValue.NotSet else parse(it.trim()) },
     { if (getKnownValues != null) getKnownValues(it) else null }
   )
 
@@ -100,7 +100,7 @@ class ModelMapPropertyImpl<in ModelT, ResolvedT, ParsedT, ValueT : Any>(
         ?.toMap()
     val dslText: DslText? = parsedModel?.getParsedRawValue()
     return when {
-      parsedGradleValue == null || (parsed == null && dslText == null) -> ParsedValue.NotSet()
+      parsedGradleValue == null || (parsed == null && dslText == null) -> ParsedValue.NotSet
       parsed == null -> ParsedValue.Set.Invalid(dslText?.text.orEmpty(), "Unknown")
       else -> ParsedValue.Set.Parsed(
         value = parsed,

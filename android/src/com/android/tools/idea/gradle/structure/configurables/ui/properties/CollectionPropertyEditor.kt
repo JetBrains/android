@@ -145,13 +145,13 @@ abstract class CollectionPropertyEditor<ModelT, out ModelPropertyT : ModelCollec
 }
 
 class SimplePropertyStub<ValueT : Any> : ModelSimpleProperty<Unit, ValueT> {
-  override fun getParsedValue(model: Unit): ParsedValue<ValueT> = ParsedValue.NotSet()
+  override fun getParsedValue(model: Unit): ParsedValue<ValueT> = ParsedValue.NotSet
   override fun setParsedValue(model: Unit, value: ParsedValue<ValueT>) = Unit
   override fun getResolvedValue(model: Unit): ResolvedValue<ValueT> = ResolvedValue.NotResolved()
   override val description: String = ""
   override fun getDefaultValue(model: Unit): ValueT? = null
-  override fun getValue(thisRef: Unit, property: KProperty<*>): ParsedValue<ValueT> = ParsedValue.NotSet()
+  override fun getValue(thisRef: Unit, property: KProperty<*>): ParsedValue<ValueT> = ParsedValue.NotSet
   override fun setValue(thisRef: Unit, property: KProperty<*>, value: ParsedValue<ValueT>) = Unit
-  override fun parse(value: String): ParsedValue<ValueT> = ParsedValue.NotSet()
+  override fun parse(value: String): ParsedValue<ValueT> = ParsedValue.NotSet
   override fun getKnownValues(model: Unit): List<ValueDescriptor<ValueT>>? = null
 }

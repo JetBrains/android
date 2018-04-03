@@ -23,7 +23,7 @@ class ParsedValueTest {
 
   @Test
   fun parsedValueGetText() {
-    assertThat(ParsedValue.NotSet<String>().getText(), equalTo(""))
+    assertThat(ParsedValue.NotSet.getText(), equalTo(""))
     assertThat(ParsedValue.Set.Parsed(1, DslText(mode = DslMode.LITERAL, text = "1")).getText(), equalTo("1"))
     assertThat(ParsedValue.Set.Parsed("a", DslText(mode = DslMode.LITERAL, text = "1")).getText(), equalTo("a"))
     assertThat(ParsedValue.Set.Parsed("AA", DslText(mode = DslMode.REFERENCE, text = "var")).getText(), equalTo("\$var"))
@@ -36,7 +36,7 @@ class ParsedValueTest {
 
   @Test
   fun parsedValueGetText_wellKnownValue() {
-    assertThat(ParsedValue.NotSet<Int>().getText(mapOf(null to "(def)", 1 to "one")), equalTo("(def)"))
+    assertThat(ParsedValue.NotSet.getText(mapOf(null to "(def)", 1 to "one")), equalTo("(def)"))
     assertThat(
       ParsedValue.Set.Parsed(1, DslText(mode = DslMode.LITERAL, text = "1")).getText(
         mapOf(null to "(def)", 1 to "one")

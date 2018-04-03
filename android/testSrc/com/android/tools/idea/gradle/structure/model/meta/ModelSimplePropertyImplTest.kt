@@ -51,7 +51,7 @@ class ModelSimplePropertyImplTest : GradleFileModelTestCase() {
 
   private fun <T : Any> ModelSimpleProperty<Model, T>.testValue() = (getParsedValue(Model) as? ParsedValue.Set.Parsed<T>)?.value
   private fun <T : Any> ModelSimpleProperty<Model, T>.testSetValue(value: T?) =
-    setParsedValue(Model, if (value != null) ParsedValue.Set.Parsed(value = value) else ParsedValue.NotSet())
+    setParsedValue(Model, if (value != null) ParsedValue.Set.Parsed(value = value) else ParsedValue.NotSet)
 
   private fun <T : Any> ModelSimpleProperty<Model, T>.testSetReference(value: String) =
     setParsedValue(Model, ParsedValue.Set.Parsed(dslText = DslText(DslMode.REFERENCE, value), value = null))
