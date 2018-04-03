@@ -563,16 +563,20 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     setScrollPosition(new Point(x, y));
   }
 
-  public void setScrollPosition(Point p) {
-    final JScrollBar horizontalScrollBar = myScrollPane.getHorizontalScrollBar();
-    final JScrollBar verticalScrollBar = myScrollPane.getVerticalScrollBar();
-    p.setLocation(
-      Math.max(horizontalScrollBar.getMinimum(), p.x),
-      Math.max(verticalScrollBar.getMinimum(), p.y));
+  /**
+   * Sets the offset for the scroll viewer to the specified x and y values
+   * The offset will never be less than zero, and never greater that the
+   * maximum value allowed by the sizes of the underlying view and the extent.
+   * If the zoom factor is large enough that a scroll bars isn't visible,
+   * the position will be set to zero.
+   */
+  public void setScrollPosition(@SwingCoordinate Point p) {
+    Dimension extent = myScrollPane.getViewport().getExtentSize();
+    Dimension view = myScrollPane.getViewport().getViewSize();
 
-    p.setLocation(
-      Math.min(horizontalScrollBar.getMaximum() - horizontalScrollBar.getVisibleAmount(), p.x),
-      Math.min(verticalScrollBar.getMaximum() - verticalScrollBar.getVisibleAmount(), p.y));
+    p.setLocation(Math.max(0, Math.min(view.width - extent.width, p.x)),
+                  Math.max(0, Math.min(view.height - extent.height, p.y)));
+
     myScrollPane.getViewport().setViewPosition(p);
   }
 
