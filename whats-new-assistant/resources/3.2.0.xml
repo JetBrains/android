@@ -17,149 +17,130 @@
 <tutorialBundle
     name="What's New"
     logo="core/whats_new_logo.png"
-    resourceRoot="/">
+    resourceRoot="/"
+    stepByStep="false"
+    hideStepIndex="true">
   <feature
       name="What's New in 3.2">
     <tutorial
         key="whats-new"
-        label=""
-        icon="core/whats_new_logo.png"
-        remoteLink="https://developer.android.com/studio/releases/index.html"
-        remoteLinkLabel="">
+        label=" What's New in 3.2"
+        icon="core/whats_new_icon.png"
+        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/canary-release-notes.html"
+        remoteLinkLabel="Read in a browser">
       <description>
         <![CDATA[
+          This panel describes some of the new features and behavior changes
+          included in this update.
+          ]]>
+      </description>
+      <step label="C/C++ IDE Features">
+        <stepElement>
+          <section>
+            <![CDATA[
 
-          You're now running <b>Android Studio 3.2</b>. Learn about the new features and behavior changes
-          below.
-
-        <div style="padding-left: 10px; padding-right: 10px;">
-
-          <h1>Improved editor for CMake scripts</h1>
-
-          Android Studio now includes improved features to help you
-          <a href="https://developer.android.com/studio/projects/configure-cmake.html?utm_source=android-studio&utm_medium=studio-assistant">
-          configure your CMake build scripts</a>, such as syntax highlighting,
-          code-completion, and safe code refactoring.
-          <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#cmake-editor">
-          Learn more</a>
+          <img src="https://d.android.com/studio/releases/assistant/3.2.0/cpp-features-overview.gif">
 
           <br><br>
-          <div align="center">
-            <img src="https://d.android.com/studio/releases/assistant/3.2.0/cmake-ide-features.gif">
+          Android Studio now includes the following features for developing and
+          debugging your C/C++ libraries:
+
+          <br><br>
+          <div style="margin-bottom:0px;">
+          <ul>
+            <li><b>Smart editor features for CMake scripts</b>:
+            Perform safe refactoring, code completion,
+            code reformatting, and other smart editor actions when editing CMake
+            build scripts.
+            <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#cmake-editor">
+            Learn more</a></li>
+
+            <li><b>Inspect JNI references</b>:
+            Inspect memory allocations for your app’s JNI code when you deploy
+            to a device running Android 8.0 (API level 26) or higher.
+            <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#jni_memory">
+            Learn more</a>.</li>
+
+            <li><b>Navigate external header files</b>:
+            In the <b>Project</b> window, view and inspect header
+            files from external C/C++ library dependencies that you import into
+            your project.
+            <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#navigate_headers">
+            Learn more</li>
+          </ul>
           </div>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="New Profiler Features">
+        <stepElement>
+          <section>
+            <![CDATA[
 
-          <br>
-          <h1>Inspect JNI references</h1>
-
-          If you deploy your app to a device running Android 8.0 (API level 26) or higher,
-          you can now inspect memory allocations for your app’s JNI code using
-          <a href="https://d.android.com/studio/profile/memory-profiler.html?utm_source=android-studio&utm_medium=studio-assistant">
-          the Memory Profiler</a>.
-          <br><br>
-          While your app is
-          running, select a portion of the timeline that you want to inspect and select
-          <b>JNI heap</b> from the drop-down menu above the class list.
+          <img src="https://d.android.com/studio/releases/assistant/3.2.0/profiler-features-overview.gif">
 
           <br><br>
-          <div align="center">
-            <img src="https://d.android.com/studio/releases/assistant/3.2.0/memory-profiler-jni-heap.png">
-          </div>
-
-          <br>
-          You can then inspect objects in the heap as you normally would and double-click objects
-          in the <b>Allocation Call Stack</b> tab to see where the JNI references are
-          allocated and released by your code.
+          <a href="https://developer.android.com/studio/profile/android-profiler.html">
+          The Android Profiler</a>
+          <img src="https://d.android.com/studio/images/buttons/toolbar-android-profiler.png" width="16" height="16">
+          now includes the following new features:
 
           <br><br>
-          <h1>Navigate external header files</h1>
+          <ul>
+            <li><b>Sessions:</b> Save profiler data as "sessions" to
+            revisit and inspect later.
+            <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#sessions">
+            Learn more</a></li>
 
-          In the <b>Project</b> window, you can now view and inspect header files from
-          external C/C++ library dependencies that you import into your app. Look for them organized under the <b>include</b>
-          node for each of your local C/C++ library projects, as shown below.
+            <li><b>System Trace:</b> In the CPU Profiler, inspect your device's
+            system CPU and thread activity using the new <b>System Trace</b>
+            configuration. It's built on
+            <a href="https://d.android.com/studio/command-line/systrace.html?utm_source=android-studio&utm_medium=studio-assistant">
+            <code>systrace</code></a> and is useful for investigating
+            system-level issues, such as UI jank.
+            <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#system_trace">
+            Learn more</a></li>
+            </li>
+          </ul>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Other new features and behavior changes">
+        <stepElement>
+          <section>
+            <![CDATA[
 
-          <br><br>
-          <div align="center">
-            <img src="https://d.android.com/studio/releases/assistant/3.2.0/project-include-nodes.png">
-          </div>
+          <ul>
+            <li><b>New code shrinker:</b> Preview a new code shrinker that
+            also obfuscates by adding the line below to your project’s
+            <code>gradle.properties</code> file.
+            <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#R8">
+            Learn more</a>
 
-          <br>
-          <h1>Profiler Sessions</h1>
+            <br><br>
+            <div style="border: solid gray 1px; padding-left: 10px;">
+            <pre>android.enableR8 = true</pre>
+            </div>
+            </li>
 
-          You can now save
-          <a href="https://d.android.com/studio/profile/android-profiler.html?utm_source=android-studio&utm_medium=studio-assistant">
-          Android Profiler</a> data as "sessions" to revisit and inspect later.
-          The profiler keeps your session data until you restart the IDE.
+            <li><b>Changed set of default ABIs:</b> When building multiple
+            per-ABI APKs, Android plugin for Gradle 3.2.0 no longer
+            generates APKs for the following ABIs by default: <code>mips</code>,
+            <code>mips64</code>, and <code>armeabi</code>.
+            <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#default_abis">
+            Learn more</a></li>
+          </ul>
 
-          <br><br>
-          After you deploy your app by clicking <b>Profile</b>
-          <img src="https://d.android.com/studio/images/buttons/toolbar-android-profiler.png" width="16" height="16">,
-          start a new session by clicking <img src="https://d.android.com/studio/images/buttons/ic_plus.png" width="16" height="16">
-          and selecting an app process from the menu.
-
-          <br><br>
-          <div align="center">
-            <img src="https://d.android.com/studio/releases/assistant/3.2.0/animated-sessions-overview.gif">
-          </div>
-
-          <br>
-          When you <a href="https://d.android.com/studio/profile/cpu-profiler.html?utm_source=android-studio&utm_medium=studio-assistant#method_traces">
-          record a method trace</a> or
-          <a href="https://d.android.com/studio/profile/memory-profiler.html?utm_source=android-studio&utm_medium=studio-assistant#capture-heap-dump">
-          capture a heap dump</a>, the IDE adds that data (along with your app's network activity) to the session. Click
-          <img src="https://d.android.com/studio/releases/assistant/3.2.0/ic_red_stop.png" width="16" height="16"> at any time to stop
-          adding data to the current session.
-
-          <br><br>
-          <h1>System Trace</h1>
-
-          In the
-          <a href="https://d.android.com/studio/profile/cpu-profiler.html?utm_source=android-studio&utm_medium=studio-assistant">
-          CPU profiler</a>, select the new <b>System Trace</b> configuration to inspect your device's system CPU and thread activity.
-          This trace configuration is built on
-          <a href="https://d.android.com/studio/command-line/systrace.html?utm_source=android-studio&utm_medium=studio-assistant">
-          <code>systrace</code></a> and is useful for investigating system-level issues, such as UI jank.
-
-          <br><br>
-          <div align="center">
-            <img src="https://d.android.com/studio/releases/assistant/3.2.0/animated-systemtrace-overview.gif">
-          </div>
-
-          <br>
-          While using this new trace configuration, you can visually mark important code routines in the profiler timeline by
-          instrumenting your code with
-          the <a href="https://d.android.com/reference/android/os/Trace.html"><code>Trace</code></a> class.
-
-          <br><br>
-          <h1>Changed set of default ABIs</h1>
-
-          When <a href="https://d.android.com/studio/build/configure-apk-splits.html?utm_source=android-studio&utm_medium=studio-assistant">
-          building multiple APKs</a> that each target a different ABI, Android plugin for Gradle 3.2.0 no longer generates APKs for the
-          following ABIs by default: <code>mips</code>, <code>mips64</code>, and <code>armeabi</code>.
-
-          <br><br>
-          If you want to build APKs that target these ABIs, you must use
-          <a href="https://d.android.com/ndk/downloads/revision_history.html?utm_source=android-studio&utm_medium=studio-assistant">
-          NDK r16b or lower</a> and specify the ABIs in your <code>build.gradle</code> file, as shown below:
-
-          <br><br>
-          <div style="border: solid gray 1px; padding-left: 10px;">
-          <pre>splits {
-    abi {
-        include 'armeabi', 'mips', 'mips64'
-        ...
-    }
-}</pre>
-          </div>
-
-          <br><br><hr><br>
-          If you'd rather read this in a browser, go to the
-          <a href="https://d.android.com/r/studio-ui/whats-new-assistant/canary-release-notes.html">Android Studio preview website</a>.
-
-          <br><br>
+          <br><hr><br>
           <a href="https://d.android.com/r/studio-wna/feedback.html">Submit feedback</a> for this panel.
+          <br><br>
         </div>
         ]]>
-      </description>
+          </section>
+        </stepElement>
+      </step>
     </tutorial>
   </feature>
 </tutorialBundle>
