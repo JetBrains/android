@@ -48,7 +48,7 @@ public class AndroidLintInvalidUsesTagAttributeInspection extends AndroidLintIns
       String[] suggestions = AndroidAutoDetector.getAllowedAutomotiveAppTypes();
       List<AndroidLintQuickFix> fixes = Lists.newArrayListWithExpectedSize(suggestions.length);
       for (String suggestion : suggestions) {
-        fixes.add(new ReplaceStringQuickFix("Replace with \"" + suggestion + "\"", regexp, suggestion));
+        fixes.add(new ReplaceStringQuickFix("Replace with \"" + suggestion + "\"", null, regexp, suggestion));
       }
       return fixes.toArray(new AndroidLintQuickFix[fixes.size()]);
     }

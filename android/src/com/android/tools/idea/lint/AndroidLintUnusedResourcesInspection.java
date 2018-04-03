@@ -30,7 +30,6 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.ATTR_KEEP;
 import static com.android.SdkConstants.TOOLS_URI;
-import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 public class AndroidLintUnusedResourcesInspection extends AndroidLintInspectionBase {
   public AndroidLintUnusedResourcesInspection() {
@@ -49,7 +48,7 @@ public class AndroidLintUnusedResourcesInspection extends AndroidLintInspectionB
       return new AndroidLintQuickFix[]{
         new UnusedResourcesQuickFix(null),
         new UnusedResourcesQuickFix(resource),
-        new SetAttributeQuickFix("Add a tools:keep attribute to mark as implicitly used", ATTR_KEEP, TOOLS_URI, resourceUrl) {
+        new SetAttributeQuickFix("Add a tools:keep attribute to mark as implicitly used", null, ATTR_KEEP, TOOLS_URI, resourceUrl) {
           @Override
           public boolean startInWriteAction() {
             // The unused resource quickfixes are refactoring operations, and refactoring operations

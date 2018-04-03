@@ -28,6 +28,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.containers.HashMap;
+import com.siyeh.ig.InspectionGadgetsFix;
 import gnu.trove.THashMap;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
@@ -625,7 +626,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
       } else {
         regexp = null;
       }
-      ReplaceStringQuickFix fix = new ReplaceStringQuickFix(data.getDisplayName(), regexp, data.replacement);
+      ReplaceStringQuickFix fix = new ReplaceStringQuickFix(data.getDisplayName(), data.getFamilyName(), regexp, data.replacement);
       if (data.shortenNames) {
         fix.setShortenNames(true);
       }
@@ -653,7 +654,8 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
         return new AndroidLintQuickFix[]{ new RemoteAttributeFix(data) };
       }
 
-      return new AndroidLintQuickFix[]{new SetAttributeQuickFix(data.getDisplayName(), data.attribute,
+      // TODO: SetAttribute can now have a custom range!
+      return new AndroidLintQuickFix[]{new SetAttributeQuickFix(data.getDisplayName(), data.getFamilyName(), data.attribute,
                                                                 data.namespace, data.value,
                                                                 data.dot, data.mark)};
     } else if (lintFix instanceof LintFixGroup) {
@@ -666,7 +668,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
 
       switch (group.type) {
         case COMPOSITE:
-          return new AndroidLintQuickFix[] { new CompositeLintFix(lintFix.getDisplayName(), fixes) };
+          return new AndroidLintQuickFix[] { new CompositeLintFix(lintFix.getDisplayName(), lintFix.getFamilyName(), fixes) };
         case ALTERNATIVES:
           return fixes;
       }
@@ -676,10 +678,12 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
 
   static class CompositeLintFix implements AndroidLintQuickFix {
     private final String myDisplayName;
+    private final String myFamilyName;
     private final AndroidLintQuickFix[] myFixes;
 
-    public CompositeLintFix(String displayName, AndroidLintQuickFix[] myFixes) {
+    public CompositeLintFix(String displayName, String familyName, AndroidLintQuickFix[] myFixes) {
       myDisplayName = displayName;
+      myFamilyName = familyName;
       this.myFixes = myFixes;
     }
 
@@ -706,6 +710,12 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     @Override
     public String getName() {
       return myDisplayName != null ? myDisplayName : "Fix";
+    }
+
+    @Nullable
+    @Override
+    public String getFamilyName() {
+      return myFamilyName;
     }
   }
 
@@ -751,9 +761,15 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     public String getName() {
       return myData.getDisplayName();
     }
+
+    @Nullable
+    @Override
+    public String getFamilyName() {
+      return myData.getFamilyName();
+    }
   }
 
-  static class MyLocalQuickFix implements LocalQuickFix {
+  static class MyLocalQuickFix extends InspectionGadgetsFix {
     private final AndroidLintQuickFix myLintQuickFix;
 
     MyLocalQuickFix(@NotNull AndroidLintQuickFix lintQuickFix) {
@@ -769,20 +785,27 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     @NotNull
     @Override
     public String getFamilyName() {
-      // Ensure that we use different family names so actions are not collapsed into a single button in
-      // the inspections UI (and then *all* processed when the user invokes the action); see
-      // https://code.google.com/p/android/issues/detail?id=235641
+      String familyName = myLintQuickFix.getFamilyName();
+      if (familyName != null) {
+        return familyName;
+      }
       return myLintQuickFix.getName();
     }
 
     @Override
-    public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
+    protected void doFix(Project project, ProblemDescriptor descriptor) {
       myLintQuickFix.apply(descriptor.getStartElement(), descriptor.getEndElement(), AndroidQuickfixContexts.BatchContext.getInstance());
     }
 
     @Override
     public boolean startInWriteAction() {
       return myLintQuickFix.startInWriteAction();
+    }
+
+    @Nullable
+    @Override
+    public PsiElement getElementToMakeWritable(@NotNull PsiFile currentFile) {
+      return currentFile;
     }
   }
 

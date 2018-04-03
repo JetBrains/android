@@ -25,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 public class SetAttributeQuickFix implements AndroidLintQuickFix {
 
   private final String myName;
+  private final String myFamilyName;
   private final String myAttributeName;
   private final String myValue;
   private final String myNamespace;
@@ -32,21 +33,31 @@ public class SetAttributeQuickFix implements AndroidLintQuickFix {
   private final int myMark;
 
   // 'null' value means asking
-  public SetAttributeQuickFix(@NotNull String name, @NotNull String attributeName, @Nullable String value) {
-    this(name, attributeName, SdkConstants.ANDROID_URI, value);
+  public SetAttributeQuickFix(@NotNull String name, String familyName, @NotNull String attributeName, @Nullable String value) {
+    this(name, familyName, attributeName, SdkConstants.ANDROID_URI, value);
   }
 
-  public SetAttributeQuickFix(@NotNull String name, @NotNull String attributeName, @Nullable String namespace, @Nullable String value) {
-    this(name, attributeName, namespace, value,
+  public SetAttributeQuickFix(@NotNull String name,
+                              @Nullable String familyName,
+                              @NotNull String attributeName,
+                              @Nullable String namespace,
+                              @Nullable String value) {
+    this(name, familyName, attributeName, namespace, value,
          // The default was to select the whole text range
          value != null ? 0 : Integer.MIN_VALUE,
          value != null ? value.length() : Integer.MIN_VALUE);
 
   }
-  public SetAttributeQuickFix(@NotNull String name, @NotNull String attributeName, @Nullable String namespace, @Nullable String value,
-                              int dot, int mark) {
+  public SetAttributeQuickFix(@NotNull String name,
+                              @Nullable String familyName,
+                              @NotNull String attributeName,
+                              @Nullable String namespace,
+                              @Nullable String value,
+                              int dot,
+                              int mark) {
     super();
     myName = name;
+    myFamilyName = familyName;
     myAttributeName = attributeName;
     myValue = value;
     myNamespace = namespace;
@@ -58,6 +69,12 @@ public class SetAttributeQuickFix implements AndroidLintQuickFix {
   @Override
   public String getName() {
     return myName;
+  }
+
+  @Nullable
+  @Override
+  public String getFamilyName() {
+    return myFamilyName;
   }
 
   @Override

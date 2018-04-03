@@ -43,6 +43,10 @@ import static com.android.tools.lint.checks.PermissionDetector.MISSING_PERMISSIO
 import static com.android.utils.SdkUtils.escapePropertyValue;
 import static org.jetbrains.android.inspections.lint.AndroidLintInspectionBase.LINT_INSPECTION_PREFIX;
 
+// TODO: For inspections that have safe fixes, mark the inspections with the interface
+// com.intellij.codeInspection.CleanupLocalInspectionTool . However, that also requires
+// it to provide a LocalInspectionTool via getSharedLocalInspectionToolWrapper.
+
 /** Ensures that all relevant lint checks are available and registered */
 public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
   private static final boolean LIST_ISSUES_WITH_QUICK_FIXES = false;

@@ -19,12 +19,24 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class DefaultLintQuickFix implements AndroidLintQuickFix {
   protected final String myName;
+  protected final String myFamilyName;
 
   public DefaultLintQuickFix(String name) {
+    this(name, null);
+  }
+
+  public DefaultLintQuickFix(String name, @Nullable String familyName) {
     myName = name;
+    myFamilyName = familyName;
+  }
+
+  public DefaultLintQuickFix(String name, boolean useAsFamilyNameToo) { // to use as family name, the description must be general
+    myName = name;
+    myFamilyName = useAsFamilyNameToo ? myName : null;
   }
 
   @Override
@@ -42,5 +54,11 @@ public class DefaultLintQuickFix implements AndroidLintQuickFix {
   @Override
   public String getName() {
     return myName;
+  }
+
+  @Nullable
+  @Override
+  public String getFamilyName() {
+    return myFamilyName;
   }
 }
