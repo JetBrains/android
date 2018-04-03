@@ -53,7 +53,6 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.uipreview.RecyclerViewHelper;
 import org.jetbrains.android.uipreview.ViewLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -357,14 +356,17 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Override
   public ILayoutPullParser getParser(@NotNull ResourceValue layoutResource) {
     String value = layoutResource.getValue();
+    if (value == null) {
+      return null;
+    }
     ILayoutPullParser parser;
-    if (value != null && !myAaptDeclaredResources.isEmpty() && value.startsWith(AAPT_ATTR_PREFIX)) {
-      TagSnapshot aaptResource = myAaptDeclaredResources.get(StringUtil.trimStart(layoutResource.getValue(), AAPT_ATTR_PREFIX));
+    if (!myAaptDeclaredResources.isEmpty() && value.startsWith(AAPT_ATTR_PREFIX)) {
+      TagSnapshot aaptResource = myAaptDeclaredResources.get(StringUtil.trimStart(value, AAPT_ATTR_PREFIX));
       // TODO(namespaces, b/74003372): figure out where to get the namespace from.
       parser = LayoutPsiPullParser.create(aaptResource, ResourceNamespace.TODO, myLogger);
     }
     else {
-      parser = getParser(layoutResource.getName(), layoutResource.getNamespace(), new File(layoutResource.getValue()));
+      parser = getParser(layoutResource.getName(), layoutResource.getNamespace(), new File(value));
     }
 
     if (parser instanceof AaptAttrParser) {
