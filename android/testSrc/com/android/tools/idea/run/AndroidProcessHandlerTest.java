@@ -34,6 +34,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -124,13 +126,15 @@ public class AndroidProcessHandlerTest extends AndroidTestCase {
     myExecuteShellCommandLatch = new CountDownLatch(2);
 
     AndroidProcessHandler processHandler = new AndroidProcessHandler(APPLICATION_ID, false);
-    List<ProcessEvent> events = new ArrayList<>();
+    Collection<String> text = new ArrayList<>();
+
     processHandler.addProcessListener(new ProcessAdapter() {
       @Override
       public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
-        events.add(event);
+        text.add(event.getText());
       }
     });
+
     processHandler.addTargetDevice(myDevice);
     processHandler.clientChanged(myClient, Client.CHANGE_NAME);
 
@@ -138,14 +142,13 @@ public class AndroidProcessHandlerTest extends AndroidTestCase {
     myLogcatService.deviceConnected(myDevice);
     myExecuteShellCommandLatch.await();
 
-    // Assert
-    assertThat(events.size()).isEqualTo(6);
-    assertThat(events.get(0).getText()).isEqualTo("Connected to process 1493 on device myDevice\n");
-    assertThat(events.get(1).getText()).isEqualTo(LogcatOutputConfigurableProvider.BANNER_MESSAGE + "\n");
-    assertThat(events.get(2).getText()).isEqualTo("W/DummyFirst: First Line1\n");
-    assertThat(events.get(3).getText()).isEqualTo("              First Line2\n");
-    assertThat(events.get(4).getText()).isEqualTo("              First Line3\n");
-    assertThat(events.get(5).getText()).isEqualTo("W/DummySecond: Second Line1\n");
+    assertThat(text).isEqualTo(Arrays.asList(
+      "Connected to process 1493 on device myDevice\n",
+      LogcatOutputConfigurableProvider.BANNER_MESSAGE + '\n',
+      "W/DummyFirst: First Line1\n",
+      "    First Line2\n",
+      "    First Line3\n",
+      "W/DummySecond: Second Line1\n"));
   }
 
   public void testLogcatMessagesAreNotForwardedIfFeatureDisabled() throws Exception {
