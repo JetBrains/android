@@ -97,12 +97,22 @@ public class PropertyUtil {
         list.addNewElement(newElement);
       }
     }
+    else if (holder instanceof GradleDslMethodCall) {
+      throw new UnsupportedOperationException("Replacing elements in argument lists is not currently supported");
+    }
     else {
       throw new IllegalStateException("Property holder has unknown type, " + holder);
     }
   }
 
   public static void removeElement(@NotNull GradleDslElement element) {
+    if (element instanceof FakeElement) {
+      // Fake elements don't actually exist in the tree and therefore can't be removed from
+      // their holders.
+      ((FakeElement)element).delete();
+      return;
+    }
+
     GradleDslElement holder = element.getParent();
 
     if (holder instanceof GradlePropertiesDslElement) {
@@ -111,6 +121,10 @@ public class PropertyUtil {
     else if (holder instanceof GradleDslExpressionList) {
       GradleDslExpressionList list = (GradleDslExpressionList)holder;
       list.removeElement(element);
+    }
+    else if (holder instanceof GradleDslMethodCall) {
+      GradleDslMethodCall methodCall = (GradleDslMethodCall)holder;
+      methodCall.remove(element);
     }
     else {
       assert holder instanceof GradleDslElementList;
