@@ -269,6 +269,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> NEW_PSD_ENABLED = Flag.create(
     GRADLE_IDE, "new.psd", "Enable new \"Project Structure\" dialog",
     "Turns on the new \"Project Structure\" dialog.", false);
+  public static final Flag<Boolean> SINGLE_VARIANT_SYNC_ENABLED = Flag.create(
+    GRADLE_IDE, "single.variant.sync", "Enable new \"Single-Variant Sync\"",
+    "Turns on Single-Variant Sync.", false);
 
   private static final FlagGroup SQLITE_VIEWER = new FlagGroup(FLAGS, "sqlite.viewer", "SQLite Viewer");
   public static final Flag<Boolean> SQLITE_VIEWER_ENABLED = Flag.create(
