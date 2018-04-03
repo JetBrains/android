@@ -16,7 +16,9 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.profilers.UiMessageHandler;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.util.Consumer;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -25,5 +27,27 @@ public class IntellijUiMessageHandler implements UiMessageHandler {
   @Override
   public void displayErrorMessage(@NotNull JComponent parent, @NotNull String title, @NotNull String message) {
     Messages.showErrorDialog(parent, message, title);
+  }
+
+  @Override
+  public boolean displayOkCancelMessage(@NotNull String title,
+                                     @NotNull String message,
+                                     @NotNull String okText,
+                                     @NotNull String cancelText,
+                                     @NotNull Icon icon,
+                                     @NotNull String doNotShowMessage,
+                                     @NotNull Consumer<Boolean> doNotShowSettingSaver) {
+    return Messages.OK == Messages.showOkCancelDialog(message, title, okText, cancelText, icon, new DialogWrapper.DoNotAskOption.Adapter() {
+      @Override
+      public void rememberChoice(boolean isSelected, int exitCode) {
+        doNotShowSettingSaver.consume(isSelected);
+      }
+
+      @NotNull
+      @Override
+      public String getDoNotShowMessage() {
+        return doNotShowMessage;
+      }
+    });
   }
 }

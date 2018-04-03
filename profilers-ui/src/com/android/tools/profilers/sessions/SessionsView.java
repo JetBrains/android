@@ -31,6 +31,7 @@ import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
+import icons.StudioIllustrations;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -53,6 +54,9 @@ import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
  * A collapsible panel which lets users see the list of and interact with their profiling sessions.
  */
 public class SessionsView extends AspectObserver {
+
+  private static final String HIDE_STOP_PROMPT = "session.hide.stop.prompt";
+
   /**
    * Preference string for whether the sessions UI is collapsed (bool).
    */
@@ -135,11 +139,26 @@ public class SessionsView extends AspectObserver {
     myStopProfilingButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        mySessionsManager.endCurrentSession();
-        // Unselect the device and process, which avoids them from appearing to be selected in the process selection dropdown even
-        // after the session has stopped.
-        myProfilers.setDevice(null);
-        myProfilers.getIdeServices().getFeatureTracker().trackStopSession();
+        boolean confirmed = true;
+        if (!myProfilers.getIdeServices().getTemporaryProfilerPreferences().getBoolean(HIDE_STOP_PROMPT, false)) {
+          confirmed = myIdeProfilerComponents.createUiMessageHandler().displayOkCancelMessage(
+            "Confirm End",
+            "Are you sure you want to end the current profiler session?",
+            "End",
+            "Cancel",
+            StudioIllustrations.Common.DISCONNECT_PROFILER,
+            "Do not ask me again",
+            result -> myProfilers.getIdeServices().getTemporaryProfilerPreferences().setBoolean(HIDE_STOP_PROMPT, result)
+          );
+        }
+
+        if (confirmed) {
+          mySessionsManager.endCurrentSession();
+          // Unselect the device and process, which avoids them from appearing to be selected in the process selection dropdown even
+          // after the session has stopped.
+          myProfilers.setDevice(null);
+          myProfilers.getIdeServices().getFeatureTracker().trackStopSession();
+        }
       }
     });
 
@@ -150,8 +169,8 @@ public class SessionsView extends AspectObserver {
     myProcessSelectionDropDown.setAlignmentY(Component.CENTER_ALIGNMENT);
     myProcessSelectionDropDown.setBorder(TOOLBAR_ICON_BORDER);
     myProfilers.addDependency(this)
-      .onChange(ProfilerAspect.DEVICES, this::refreshProcessDropdown)
-      .onChange(ProfilerAspect.PROCESSES, this::refreshProcessDropdown);
+               .onChange(ProfilerAspect.DEVICES, this::refreshProcessDropdown)
+               .onChange(ProfilerAspect.PROCESSES, this::refreshProcessDropdown);
 
     mySessionsListModel = new DefaultListModel<>();
     mySessionsList = new SessionsList(mySessionsListModel);
@@ -167,9 +186,9 @@ public class SessionsView extends AspectObserver {
       }
     });
     mySessionsManager.addDependency(this)
-      .onChange(SessionAspect.SESSIONS, this::refreshSessions)
-      .onChange(SessionAspect.PROFILING_SESSION, () -> myStopProfilingButton
-        .setEnabled(!Common.Session.getDefaultInstance().equals(mySessionsManager.getProfilingSession())));
+                     .onChange(SessionAspect.SESSIONS, this::refreshSessions)
+                     .onChange(SessionAspect.PROFILING_SESSION, () -> myStopProfilingButton
+                       .setEnabled(!Common.Session.getDefaultInstance().equals(mySessionsManager.getProfilingSession())));
 
     myScrollPane = new JBScrollPane(mySessionsList);
     myScrollPane.getViewport().setOpaque(false);
@@ -320,7 +339,8 @@ public class SessionsView extends AspectObserver {
           file -> {
             if (!myProfilers.getSessionsManager().importSessionFromFile(new File(file.getPath()))) {
               myIdeProfilerComponents.createUiMessageHandler()
-                .displayErrorMessage(myComponent, "File Open Error", String.format("Unknown file type: %s", file.getPath()));
+                                     .displayErrorMessage(myComponent, "File Open Error",
+                                                          String.format("Unknown file type: %s", file.getPath()));
             }
           }));
       myProcessSelectionAction.addChildrenActions(loadAction, new CommonAction.Separator());
@@ -336,7 +356,7 @@ public class SessionsView extends AspectObserver {
     Common.Process selectedProcess = myProfilers.getProcess();
     // Rebuild the action tree.
     Set<Common.Device> devices = processMap.keySet().stream()
-      .filter(device -> device.getState() == Common.Device.State.ONLINE).collect(Collectors.toSet());
+                                           .filter(device -> device.getState() == Common.Device.State.ONLINE).collect(Collectors.toSet());
     if (devices.isEmpty()) {
       CommonAction noDeviceAction = new CommonAction(NO_SUPPORTED_DEVICES, null);
       noDeviceAction.setEnabled(false);
@@ -346,7 +366,8 @@ public class SessionsView extends AspectObserver {
       for (Common.Device device : devices) {
         CommonAction deviceAction = new CommonAction(buildDeviceName(device), null);
         java.util.List<Common.Process> processes = processMap.get(device).stream()
-          .filter(process -> process.getState() == Common.Process.State.ALIVE).collect(Collectors.toList());
+                                                             .filter(process -> process.getState() == Common.Process.State.ALIVE)
+                                                             .collect(Collectors.toList());
         if (processes.isEmpty()) {
           CommonAction noProcessAction = new CommonAction(NO_DEBUGGABLE_PROCESSES, null);
           noProcessAction.setEnabled(false);
