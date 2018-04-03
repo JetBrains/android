@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
  * Class which handles parsing the output from logcat and reformatting it to its final form before
  * displaying it to the user.
  *
- * By default, this formatter prints a full header + message to the console, but you can modify
+ * <p>By default, this formatter prints a full header + message to the console, but you can modify
  * {@link AndroidLogcatPreferences#LOGCAT_FORMAT_STRING} (setting it to a value returned by
  * {@link #createCustomFormat(boolean, boolean, boolean, boolean)}) to hide parts of the header.
  */
@@ -64,7 +64,7 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
    * line of text we should show to the user in the logcat console. (However, this line may be
    * further processed if {@link AndroidLogcatPreferences#LOGCAT_FORMAT_STRING} is set.)
    *
-   * Note: If a logcat message contains multiple lines, you should only use this for the first
+   * <p>Note: If a logcat message contains multiple lines, you should only use this for the first
    * line, and {@link #formatContinuation(String)} for each additional line.
    */
   @NotNull

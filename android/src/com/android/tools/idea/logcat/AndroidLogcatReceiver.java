@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
  * searching for callstacks and reformatting the final output before it is printed to the
  * logcat console.
  *
- * This class expects the logcat format to be 'logcat -v long' (which prints out a header and then
+ * <p>This class expects the logcat format to be 'logcat -v long' (which prints out a header and then
  * 1+ lines of log text below, for each log message).
  */
 public final class AndroidLogcatReceiver extends AndroidOutputReceiver implements Disposable {
