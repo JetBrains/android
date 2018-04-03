@@ -269,3 +269,14 @@ java_test(
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":android-uitests_testlib"],
 )
+
+java_test(
+    name = "CodeConversionFromJavaToKotlinTest",
+    data = COMMON_DATA + glob([
+        "testData/JavaToKotlinCode/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.CodeConversionFromJavaToKotlinTest"],
+    tags = COMMON_TAGS + ["no_psq"],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":android-uitests_testlib"],
+)
