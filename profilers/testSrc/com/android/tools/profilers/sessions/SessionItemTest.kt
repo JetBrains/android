@@ -64,4 +64,26 @@ class SessionItemTest {
     sessionItem.onSelect()
     Truth.assertThat(profilers.stageClass).isEqualTo(StudioMonitorStage::class.java)
   }
+
+  @Test
+  fun testNonFullSessionNavigation() {
+    val profilers = StudioProfilers(
+      myGrpcChannel.client,
+      FakeIdeProfilerServices(),
+      FakeTimer()
+    )
+    Truth.assertThat(profilers.stageClass).isEqualTo(NullMonitorStage::class.java)
+
+    val sessionsManager = profilers.sessionsManager
+    val session = sessionsManager.createImportedSession("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE, 0, 0, 0)
+    sessionsManager.update()
+    sessionsManager.setSession(session)
+    Truth.assertThat(profilers.stageClass).isEqualTo(MemoryProfilerStage::class.java)
+
+    Truth.assertThat(sessionsManager.sessionArtifacts.size).isEqualTo(1)
+    val sessionItem = sessionsManager.sessionArtifacts[0] as SessionItem
+    sessionItem.onSelect()
+    // Selecting a memory capture session should not navigate to StudioMonitorStage
+    Truth.assertThat(profilers.stageClass).isEqualTo(MemoryProfilerStage::class.java)
+  }
 }
