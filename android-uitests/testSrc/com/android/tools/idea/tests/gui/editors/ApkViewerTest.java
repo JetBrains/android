@@ -24,7 +24,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture.PaneFixture;
-import com.intellij.ide.projectView.impl.ProjectViewPane;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
@@ -73,7 +72,7 @@ public class ApkViewerTest {
       .waitForBuildToFinish(BuildMode.ASSEMBLE, Wait.seconds(180))
       .getProjectView();
 
-    PaneFixture paneFixture = projectView.selectPane(ProjectViewPane.ID, "Project");
+    PaneFixture paneFixture = projectView.selectPane("Project");
     paneFixture.expand();
     paneFixture.clickPath(SIMPLE_APP, APP, BUILD, OUTPUTS, APK, DEBUG);
 
