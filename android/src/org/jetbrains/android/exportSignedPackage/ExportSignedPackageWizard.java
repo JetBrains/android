@@ -90,17 +90,22 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   private String myApkPath;
   private boolean myV1Signature;
   private boolean myV2Signature;
+  private String myTargetType;
 
   // build type, list of flavors and gradle signing info are valid only for Gradle projects
   private String myBuildType;
   private List<String> myFlavors;
   private GradleSigningInfo myGradleSigningInfo;
 
-  public ExportSignedPackageWizard(@NotNull Project project, @NotNull List<AndroidFacet> facets, boolean signed) {
-    super(AndroidBundle.message("android.export.package.wizard.title"), project);
+  public ExportSignedPackageWizard(@NotNull Project project, @NotNull List<AndroidFacet> facets, boolean signed, Boolean showBundle) {
+    super(AndroidBundle.message(showBundle ? "android.export.package.wizard.bundle.title" : "android.export.package.wizard.title"), project);
     myProject = project;
     mySigned = signed;
     assert !facets.isEmpty();
+    if (showBundle) {
+      myFacet = facets.get(0); // TODO figure out proper logic here to get gradle version
+      addStep(new ChooseBundleOrApkStep(this, AndroidModuleModel.get(myFacet).getModelVersion()));
+    }
     if (facets.size() > 1 || SystemInfo.isMac /* wizards with only step are shown incorrectly on mac */) {
       addStep(new ChooseModuleStep(this, facets));
     }
@@ -370,6 +375,10 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   public void setGradleOptions(String buildType, @NotNull List<String> flavors) {
     myBuildType = buildType;
     myFlavors = flavors;
+  }
+
+  public void setTargetType(@NotNull String targetType) {
+    myTargetType = targetType;
   }
 
   private void createAndAlignApk(final String apkPath) {
