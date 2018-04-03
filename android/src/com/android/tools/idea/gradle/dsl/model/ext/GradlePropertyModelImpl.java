@@ -55,10 +55,10 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     myTransforms.add(DEFAULT_TRANSFORM);
 
     GradleDslElement parent = element.getParent();
-    assert parent != null &&
-           (parent instanceof GradlePropertiesDslElement ||
+    assert (parent instanceof GradlePropertiesDslElement ||
             parent instanceof GradleDslExpressionList ||
-            parent instanceof GradleDslElementList) : "Property found to be invalid, this should never happen!";
+            parent instanceof GradleDslElementList ||
+            parent instanceof GradleDslMethodCall) : "Property found to be invalid, this should never happen!";
     myPropertyHolder = parent;
 
     myPropertyType = myElement.getElementType();
@@ -347,7 +347,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     }
 
     // Check that the element should actually be renamed.
-    if (myPropertyHolder instanceof GradleDslExpressionList) {
+    if (myPropertyHolder instanceof GradleDslExpressionList || myPropertyHolder instanceof GradleDslMethodCall) {
       throw new IllegalStateException("Can't rename list values!");
     }
 
@@ -433,6 +433,9 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       }
       else if (value instanceof BigDecimal) {
         return BIG_DECIMAL;
+      }
+      else if (value == null) {
+        return NONE;
       }
       else {
         return UNKNOWN;
