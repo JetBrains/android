@@ -71,7 +71,7 @@ class SimplePropertyEditorTest {
     setParsedRawValue = { value = null; dsl = it; },
     parser = {
       when {
-        it.isEmpty() -> ParsedValue.NotSet()
+        it.isEmpty() -> ParsedValue.NotSet
         it == "invalid" -> ParsedValue.Set.Invalid("invalid", "invalid text message")
         else -> ParsedValue.Set.Parsed(value = it)
       }

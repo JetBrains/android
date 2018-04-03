@@ -20,19 +20,19 @@ import java.io.File
 
 fun parseString(text: String): ParsedValue<String> =
     if (text == "")
-      ParsedValue.NotSet()
+      ParsedValue.NotSet
     else
       ParsedValue.Set.Parsed(value = text)
 
 fun parseFile(text: String): ParsedValue<File> =
     if (text == "")
-      ParsedValue.NotSet()
+      ParsedValue.NotSet
     else
       ParsedValue.Set.Parsed(value = File(text))
 
 inline fun <reified T> parseEnum(text: String, parser: (String) -> T?): ParsedValue<T> =
     if (text == "")
-      ParsedValue.NotSet()
+      ParsedValue.NotSet
     else {
       val parsed = parser(text)
       if (parsed != null)
@@ -43,7 +43,7 @@ inline fun <reified T> parseEnum(text: String, parser: (String) -> T?): ParsedVa
 
 fun parseBoolean(text: String): ParsedValue<Boolean> =
     when {
-      text == "" -> ParsedValue.NotSet()
+      text == "" -> ParsedValue.NotSet
       text.equals("true", ignoreCase = true) -> ParsedValue.Set.Parsed(value = true)
       text.equals("false", ignoreCase = true) -> ParsedValue.Set.Parsed(value = false)
       else -> ParsedValue.Set.Invalid(text, "Unknown boolean value: '$text'. Expected 'true' or 'false'")
@@ -51,7 +51,7 @@ fun parseBoolean(text: String): ParsedValue<Boolean> =
 
 fun parseInt(text: String): ParsedValue<Int> =
     if (text == "")
-      ParsedValue.NotSet()
+      ParsedValue.NotSet
     else {
       try {
         ParsedValue.Set.Parsed(value = text.toInt())

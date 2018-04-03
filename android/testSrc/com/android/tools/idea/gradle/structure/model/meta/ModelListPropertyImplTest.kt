@@ -49,7 +49,7 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
 
   private fun <T : Any> ModelPropertyCore<Unit, T>.testValue() = (getParsedValue(Unit) as? ParsedValue.Set.Parsed<T>)?.value
   private fun <T : Any> ModelPropertyCore<Unit, T>.testSetValue(value: T?) =
-    setParsedValue(Unit, if (value != null) ParsedValue.Set.Parsed(value = value) else ParsedValue.NotSet())
+    setParsedValue(Unit, if (value != null) ParsedValue.Set.Parsed(value = value) else ParsedValue.NotSet)
 
   private fun <T : Any> ModelPropertyCore<Unit, T>.testSetReference(value: String) =
     setParsedValue(Unit, ParsedValue.Set.Parsed(dslText = DslText(DslMode.REFERENCE, value), value = null))

@@ -51,7 +51,7 @@ class MapPropertyEditor<ModelT, ValueT : Any, out ModelPropertyT : ModelMapPrope
   override fun getValueAt(row: Int): ParsedValue<ValueT> {
     val entryKey = keyAt(row)
     val entryValue = if (entryKey == "") modelValueAt(row) else property.getEditableValues(model)[entryKey]?.getParsedValue(Unit)
-    return entryValue ?: ParsedValue.NotSet()
+    return entryValue ?: ParsedValue.NotSet
   }
 
   override fun setValueAt(row: Int, value: ParsedValue<ValueT>) {
@@ -66,7 +66,7 @@ class MapPropertyEditor<ModelT, ValueT : Any, out ModelPropertyT : ModelMapPrope
   override fun addItem() {
     tableModel?.let { tableModel ->
       val index = tableModel.rowCount
-      tableModel.addRow(arrayOf("", ParsedValue.NotSet<ValueT>().toTableModelValue()))
+      tableModel.addRow(arrayOf("", ParsedValue.NotSet.toTableModelValue()))
       table.selectionModel.setSelectionInterval(index, index)
       table.editCellAt(index, 0)
     }
