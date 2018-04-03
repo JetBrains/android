@@ -295,7 +295,7 @@ public class NewActivityTest {
 
   private void verifyNewActivityProjectPane(@NotNull String viewId, @NotNull String name, boolean finish) {
     // Change to viewId
-    guiTest.ideFrame().getProjectView().selectPane(viewId, name);
+    guiTest.ideFrame().getProjectView().selectPane(name);
     myEditor = guiTest.ideFrame().getEditor();
     myEditor.open(PROVIDED_ACTIVITY);
 
