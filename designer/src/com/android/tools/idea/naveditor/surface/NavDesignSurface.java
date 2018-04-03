@@ -114,15 +114,15 @@ public class NavDesignSurface extends DesignSurface {
     return 1f;
   }
 
+  /**
+   * @deprecated use {@link #getSceneManager()} and {@link NavSceneManager#getSchema()} instead.
+   */
+  @Deprecated
   @NotNull
   public NavigationSchema getSchema() {
-    // TODO: simplify this logic if possible:
-    if (mySchema == null) {
-      NlModel model = getModel();
-      assert model != null;  // TODO: make sure this cannot happen
-      mySchema = NavigationSchema.get(model.getFacet());
-    }
-    return mySchema;
+    NavSceneManager manager = getSceneManager();
+    assert manager != null;  // TODO: make sure this cannot happen
+    return manager.getSchema();
   }
 
   @Override

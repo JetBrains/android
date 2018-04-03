@@ -90,10 +90,12 @@ public class NavSceneManager extends SceneManager {
 
   private SceneDecoratorFactory myDecoratorFactory;
 
+  private NavigationSchema mySchema;
+
   public NavSceneManager(@NotNull NlModel model, @NotNull NavDesignSurface surface) {
     super(model, surface);
     createSceneView();
-    NavigationSchema schema = surface.getSchema();
+    NavigationSchema schema = getSchema();
     myLayoutAlgorithm = new ManualLayoutAlgorithm(model.getModule());
     myScreenTargetProvider = new NavScreenTargetProvider(myLayoutAlgorithm, schema);
     myNavigationTargetProvider = new NavigationTargetProvider(surface);
@@ -136,7 +138,7 @@ public class NavSceneManager extends SceneManager {
         break;
     }
 
-    NavigationSchema.DestinationType type = getDesignSurface().getSchema().getDestinationType(nlComponent.getTagName());
+    NavigationSchema.DestinationType type = getSchema().getDestinationType(nlComponent.getTagName());
     if (type != null) {
       sceneComponent.setTargetProvider(sceneComponent.getNlComponent() == getDesignSurface().getCurrentNavigation()
                                        ? myNavigationTargetProvider
@@ -181,7 +183,7 @@ public class NavSceneManager extends SceneManager {
 
   @Override
   protected void postUpdateFromComponent(@NotNull SceneComponent sceneComponent) {
-    NavigationSchema.DestinationType type = getDesignSurface().getSchema().getDestinationType(sceneComponent.getNlComponent().getTagName());
+    NavigationSchema.DestinationType type = getSchema().getDestinationType(sceneComponent.getNlComponent().getTagName());
     if (type == NAVIGATION && sceneComponent.getNlComponent() == getDesignSurface().getCurrentNavigation()) {
       layoutAll(sceneComponent);
       updateRootBounds(sceneComponent);
@@ -453,7 +455,7 @@ public class NavSceneManager extends SceneManager {
   @Override
   public SceneDecoratorFactory getSceneDecoratorFactory() {
     if (myDecoratorFactory == null) {
-      myDecoratorFactory = new NavSceneDecoratorFactory(getDesignSurface().getSchema());
+      myDecoratorFactory = new NavSceneDecoratorFactory(getSchema());
     }
     return myDecoratorFactory;
   }
@@ -560,5 +562,13 @@ public class NavSceneManager extends SceneManager {
     boundingBox.grow(BOUNDING_BOX_PADDING, BOUNDING_BOX_PADDING);
 
     return boundingBox;
+  }
+
+  @NotNull
+  public NavigationSchema getSchema() {
+    if (mySchema == null) {
+      mySchema = NavigationSchema.get(getModel().getFacet());
+    }
+    return mySchema;
   }
 }
