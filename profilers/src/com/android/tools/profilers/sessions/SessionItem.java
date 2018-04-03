@@ -93,16 +93,10 @@ public class SessionItem implements SessionArtifact {
 
   @Override
   public void onSelect() {
-    if (mySession.equals(myProfilers.getSession())) {
-      // Navigate back to main stage if its SessionType is FULL.
-      if (!myProfilers.getStageClass().equals(StudioMonitorStage.class) &&
-          mySessionMetaData.getType() == Common.SessionMetaData.SessionType.FULL) {
-        myProfilers.setStage(new StudioMonitorStage(myProfilers));
-      }
-    }
-    else {
-      // Navigate to the new Session.
-      myProfilers.getSessionsManager().setSession(mySession);
+    // Navigate to the new session
+    myProfilers.getSessionsManager().setSession(mySession);
+    if (mySessionMetaData.getType() == Common.SessionMetaData.SessionType.FULL) {
+      myProfilers.setStage(new StudioMonitorStage(myProfilers));
     }
     myProfilers.getIdeServices().getFeatureTracker().trackSessionArtifactSelected(this, myProfilers.getSessionsManager().isSessionAlive());
   }
