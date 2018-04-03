@@ -46,7 +46,7 @@ public class AndroidLintWearStandaloneAppFlagInspection extends AndroidLintInspe
     Integer id = LintFix.getData(fixData, Integer.class);
     if (id != null && id == QFX_EXTRA_MISSING_META_DATA) {
       return new AndroidLintQuickFix[]{
-        new DefaultLintQuickFix("Add meta-data element for '" + WEARABLE_STANDALONE_ATTR + "'") {
+        new DefaultLintQuickFix("Add meta-data element for '" + WEARABLE_STANDALONE_ATTR + "'", true) {
           @Override
           public void apply(@NotNull PsiElement startElement,
                             @NotNull PsiElement endElement,
