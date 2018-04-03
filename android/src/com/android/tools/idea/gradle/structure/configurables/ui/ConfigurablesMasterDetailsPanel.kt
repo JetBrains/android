@@ -153,7 +153,7 @@ abstract class ConfigurablesMasterDetailsPanel<ModelT>(
     }
   }
 
-  // Kotlin generates a second MasterDetailsComponent.setHistory method that conflicts with the literal one, requiring this override.
+  // This override prevents this class from inheriting setHistory implementations from both MasterDetailsComponent and Place.Navigator
   override fun setHistory(history: com.intellij.ui.navigation.History) {
     myHistory = history
   }
