@@ -82,7 +82,7 @@ public class AndroidRunConfigurations {
       configuration.getDeployTargetContext().setTargetSelectionMode(targetSelectionMode);
     }
     TransactionGuard.submitTransaction(module.getProject(), () -> {
-      runManager.addConfiguration(settings, false);
+      runManager.addConfiguration(settings);
       runManager.setSelectedConfiguration(settings);
     });
   }

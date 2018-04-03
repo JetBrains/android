@@ -21,9 +21,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.util.containers.HashMap;
-import com.intellij.util.xmlb.annotations.MapAnnotation;
 import com.intellij.util.xmlb.annotations.Property;
 import com.intellij.util.xmlb.annotations.Tag;
+import com.intellij.util.xmlb.annotations.XMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,7 +39,7 @@ import java.util.Map;
  */
 @State(name = "AndroidLayouts", storages = @Storage(StoragePathMacros.WORKSPACE_FILE))
 public class ConfigurationStateManager implements PersistentStateComponent<ConfigurationStateManager.State> {
-  private final Map<VirtualFile, ConfigurationFileState> myFileToState = new HashMap<VirtualFile, ConfigurationFileState>();
+  private final Map<VirtualFile, ConfigurationFileState> myFileToState = new HashMap<>();
   private ConfigurationProjectState myProjectState = new ConfigurationProjectState();
 
   @NotNull
@@ -78,7 +78,7 @@ public class ConfigurationStateManager implements PersistentStateComponent<Confi
 
   @Override
   public State getState() {
-    final Map<String, ConfigurationFileState> urlToState = new HashMap<String, ConfigurationFileState>();
+    final Map<String, ConfigurationFileState> urlToState = new HashMap<>();
 
     synchronized (myFileToState) {
       for (Map.Entry<VirtualFile, ConfigurationFileState> entry : myFileToState.entrySet()) {
@@ -92,7 +92,7 @@ public class ConfigurationStateManager implements PersistentStateComponent<Confi
   }
 
   @Override
-  public void loadState(State state) {
+  public void loadState(@NotNull State state) {
     myProjectState = state.getProjectState();
 
     synchronized (myFileToState) {
@@ -122,12 +122,9 @@ public class ConfigurationStateManager implements PersistentStateComponent<Confi
       myProjectState = projectState;
     }
 
-    private Map<String, ConfigurationFileState> myUrlToStateMap = new HashMap<String, ConfigurationFileState>();
+    private Map<String, ConfigurationFileState> myUrlToStateMap = new HashMap<>();
 
-    @Tag("layouts")
-    @Property(surroundWithTag = false)
-    @MapAnnotation(surroundWithTag = false, surroundValueWithTag = false, surroundKeyWithTag = false,
-                   keyAttributeName = "url", entryTagName = "layout")
+    @XMap(propertyElementName = "layouts", keyAttributeName = "url", entryTagName = "layout")
     public Map<String, ConfigurationFileState> getUrlToStateMap() {
       return myUrlToStateMap;
     }
