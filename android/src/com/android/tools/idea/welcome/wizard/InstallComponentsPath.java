@@ -43,6 +43,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.application.TransactionGuard;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.ProjectManager;
@@ -448,10 +449,10 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     public File apply(@Nullable final File input) {
       assert input != null;
 
-      TransactionGuard.getInstance().submitTransactionAndWait(() -> {
+      TransactionGuard.getInstance().submitTransactionAndWait(() -> WriteAction.run(() -> {
         IdeSdks.getInstance().setAndroidSdkPath(input, ProjectManager.getInstance().getDefaultProject());
         AndroidFirstRunPersistentData.getInstance().markSdkUpToDate(myInstallerTimestamp);
-      });
+      }));
 
       return input;
     }
