@@ -26,6 +26,8 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.AddDestinationMenuFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.DestinationListFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.NavDesignSurfaceFixture;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.util.ui.UIUtil;
 import org.fest.swing.driver.BasicJListCellReader;
 import org.junit.Rule;
 import org.junit.Test;
@@ -86,7 +88,12 @@ public class NavNlEditorTest {
     frame.waitForGradleProjectSyncToFinish();
     layout.waitForRenderToFinish();
 
-    ((NavDesignSurfaceFixture)layout.getSurface()).openAddDestinationMenu().selectDestination("fragment_my");
+    AddDestinationMenuFixture menuFixture = ((NavDesignSurfaceFixture)layout.getSurface()).openAddDestinationMenu();
+    assertEquals(4, menuFixture.visibleItemCount());
+    guiTest.robot().enterText("fragment_my");
+    assertEquals(1, menuFixture.visibleItemCount());
+
+    menuFixture.selectDestination("fragment_my");
 
     DestinationListFixture fixture = DestinationListFixture.Companion.create(guiTest.robot());
     fixture.replaceCellReader(new BasicJListCellReader(c -> c.toString()));
@@ -97,6 +104,8 @@ public class NavNlEditorTest {
     guiTest.robot().type('\b');
 
     layout.getAllComponents().forEach(component -> assertNotEquals("main_activity", component.getComponent().getId()));
+
+    ApplicationManager.getApplication().invokeAndWait(() -> UIUtil.dispatchAllInvocationEvents());
 
     List<NlComponent> selectedComponents = fixture.getSelectedComponents();
     assertEquals(selectedComponents.size(), 0);

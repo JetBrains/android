@@ -45,6 +45,7 @@ abstract class NavToolbarMenu(protected val surface: NavDesignSurface, descripti
       .setHideOnAction(false)
       .setBlockClicksThroughBalloon(true)
       .setAnimationCycle(200)
+      .setRequestFocus(true)  // Note that this seems non-functional, since it requests focus before the balloon is shown
     surface.currentSceneView?.colorSet?.subduedBackground?.let {
       balloonBuilder.setBorderColor(it)
       balloonBuilder.setFillColor(it)

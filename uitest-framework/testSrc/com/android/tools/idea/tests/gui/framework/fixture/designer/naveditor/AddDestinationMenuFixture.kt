@@ -30,10 +30,14 @@ class AddDestinationMenuFixture(private val robot: Robot, private val menu: AddD
   fun selectDestination(label: String) {
     val index = ProgressManager.getInstance().runProcess(Computable {
       ApplicationManager.getApplication().runReadAction(Computable {
-        menu.destinations.indexOfFirst { it.label == label }
+        (0 until menu.destinationsList.itemsCount).first { menu.destinationsList.model.getElementAt(it).label == label }
       })
     }, EmptyProgressIndicator())
     JListFixture(robot, menu.destinationsList).clickItem(index)
+  }
+
+  fun visibleItemCount(): Int {
+    return menu.destinationsList.itemsCount
   }
 
   fun clickCreateBlank() {
