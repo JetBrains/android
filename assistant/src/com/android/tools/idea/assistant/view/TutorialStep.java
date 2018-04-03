@@ -145,8 +145,8 @@ public class TutorialStep extends JPanel {
         default:
           getLog().error("Found a StepElement of unknown type. " + element.toString());
       }
-      // Add 10px spacing between elements.
-      myContents.add(Box.createRigidArea(new Dimension(0, 10)));
+      // Add 5px spacing between elements.
+      myContents.add(Box.createRigidArea(new Dimension(0, 5)));
     }
   }
 
@@ -181,7 +181,7 @@ public class TutorialStep extends JPanel {
     c.weightx = 1;
     c.fill = GridBagConstraints.HORIZONTAL;
     c.anchor = GridBagConstraints.NORTHWEST;
-    c.insets = JBUI.insets(10);
+    c.insets = JBUI.insets(0,10,0,10);
 
     add(myContents, c);
   }

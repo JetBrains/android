@@ -143,7 +143,7 @@ public class TutorialCard extends CardViewPanel {
     c.gridy++;
 
     // Add extra padding for tutorial steps.
-    c.insets = JBUI.insets(0, 5, 5, 5);
+    c.insets = JBUI.insets(0, 5, 0, 5);
 
     if (myIsStepByStep) {
       contents.add(new TutorialStep(myTutorial.getSteps().get(myStepIndex), myStepIndex, myListener, myProject, myHideStepIndex), c);
