@@ -44,11 +44,13 @@ abstract class DefinitionReference implements DataBindingXmlReferenceContributor
     myTextRange = range;
   }
 
+  @NotNull
   @Override
   public PsiElement getElement() {
     return myElement;
   }
 
+  @NotNull
   @Override
   public TextRange getRangeInElement() {
     return myTextRange;

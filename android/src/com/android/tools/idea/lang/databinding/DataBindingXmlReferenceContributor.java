@@ -432,11 +432,13 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
       myTextRange = myElement.getTextRange().shiftRight(-myElement.getStartOffsetInParent());
     }
 
+    @NotNull
     @Override
     public PsiElement getElement() {
       return myElement;
     }
 
+    @NotNull
     @Override
     public TextRange getRangeInElement() {
       return myTextRange;
