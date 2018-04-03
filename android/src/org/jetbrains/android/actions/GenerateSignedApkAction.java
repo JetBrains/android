@@ -1,5 +1,6 @@
 package org.jetbrains.android.actions;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.intellij.CommonBundle;
@@ -23,7 +24,7 @@ import static org.jetbrains.android.util.AndroidUtils.getApplicationFacets;
  */
 public class GenerateSignedApkAction extends AnAction {
   public GenerateSignedApkAction() {
-    super(AndroidBundle.message("android.generate.signed.apk.action.text"));
+    super(AndroidBundle.message(StudioFlags.RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED.get() ? "android.generate.signed.apk.action.bundle.text" : "android.generate.signed.apk.action.text"));
   }
 
   private static boolean checkFacet(@NotNull AndroidFacet facet) {
@@ -71,7 +72,7 @@ public class GenerateSignedApkAction extends AnAction {
       return;
     }
 
-    ExportSignedPackageWizard wizard = new ExportSignedPackageWizard(project, facets, true);
+    ExportSignedPackageWizard wizard = new ExportSignedPackageWizard(project, facets, true, StudioFlags.RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED.get());
     wizard.show();
   }
 
