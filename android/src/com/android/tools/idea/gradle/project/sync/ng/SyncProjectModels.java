@@ -43,7 +43,9 @@ public class SyncProjectModels implements Serializable {
   @NotNull private final List<GlobalLibraryMap> myGlobalLibraryMaps = new ArrayList<>();
   private BuildIdentifier myRootBuildId;
 
-  public SyncProjectModels(@NotNull Set<Class<?>> extraAndroidModelTypes, @NotNull Set<Class<?>> extraJavaModelTypes) {
+  public SyncProjectModels(@NotNull Set<Class<?>> extraAndroidModelTypes,
+                           @NotNull Set<Class<?>> extraJavaModelTypes,
+                           @NotNull SyncActionOptions options) {
     myExtraAndroidModelTypes = extraAndroidModelTypes;
     myExtraJavaModelTypes = extraJavaModelTypes;
   }
@@ -136,5 +138,14 @@ public class SyncProjectModels implements Serializable {
   @NotNull
   public BuildIdentifier getRootBuildId() {
     return myRootBuildId;
+  }
+
+  public static class Factory implements Serializable {
+    @NotNull
+    public SyncProjectModels create(@NotNull Set<Class<?>> extraAndroidModelTypes,
+                                    @NotNull Set<Class<?>> extraJavaModelTypes,
+                                    @NotNull SyncActionOptions options) {
+      return new SyncProjectModels(extraAndroidModelTypes, extraJavaModelTypes, options);
+    }
   }
 }
