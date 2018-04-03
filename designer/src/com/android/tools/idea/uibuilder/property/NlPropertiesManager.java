@@ -181,6 +181,17 @@ public class NlPropertiesManager extends PropertiesManager<NlPropertiesManager> 
   }
 
   @Override
+  public void setToolContext(@Nullable DesignSurface designSurface) {
+    super.setToolContext(designSurface);
+    getPropertiesPanel().setToolContext(designSurface);
+  }
+
+  @Override
+  public void showAccessoryPanel(@NotNull DesignSurface surface, boolean show) {
+    getPropertiesPanel().showAccessoryPanel(show);
+  }
+
+  @Override
   public void onRenderCompleted() {
     getPropertiesPanel().modelRendered();
   }

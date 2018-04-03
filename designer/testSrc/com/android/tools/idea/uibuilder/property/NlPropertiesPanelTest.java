@@ -295,21 +295,21 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
   }
 
   public void testDefaultMode() {
-    assertThat(myPanel.isAllPropertiesPanelVisible()).isFalse();
+    assertThat(myPanel.isAllPropertiesPanelMode()).isFalse();
   }
 
   public void testInitialModeIsReadFromOptions() {
     PropertiesComponent.getInstance().setValue(PROPERTY_MODE, PropertiesViewMode.TABLE.name());
     Disposer.dispose(myPanel);
     myPanel = new NlPropertiesPanel(myPropertiesManager, myTable, myInspector);
-    assertThat(myPanel.isAllPropertiesPanelVisible()).isTrue();
+    assertThat(myPanel.isAllPropertiesPanelMode()).isTrue();
   }
 
   public void testInitialModeFromMalformedOptionValueIsIgnored() {
     PropertiesComponent.getInstance().setValue(PROPERTY_MODE, "malformed");
     Disposer.dispose(myPanel);
     myPanel = new NlPropertiesPanel(myPropertiesManager, myTable, myInspector);
-    assertThat(myPanel.isAllPropertiesPanelVisible()).isFalse();
+    assertThat(myPanel.isAllPropertiesPanelMode()).isFalse();
   }
 
   public void testInitialModeIsSavedToOptions() {
@@ -327,7 +327,7 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
     myPanel.setItems(components, properties);
 
     myPanel.activatePreferredEditor(ATTR_TEXT, false);
-    assertThat(myPanel.isAllPropertiesPanelVisible()).isFalse();
+    assertThat(myPanel.isAllPropertiesPanelMode()).isFalse();
     assertThat(called[0]).isTrue();
     verify(myInspector).activatePreferredEditor(ATTR_TEXT, false);
   }
