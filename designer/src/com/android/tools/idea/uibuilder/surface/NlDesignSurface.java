@@ -51,6 +51,7 @@ import com.intellij.util.ui.update.Update;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.awt.*;
 import java.util.Collections;
 import java.util.List;
@@ -80,6 +81,7 @@ public class NlDesignSurface extends DesignSurface {
   private ShapeMenuAction.AdaptiveIconShape myAdaptiveIconShape = ShapeMenuAction.AdaptiveIconShape.getDefaultShape();
   private final RenderListener myRenderListener = this::modelRendered;
   private RenderIssueProvider myRenderIssueProvider;
+  private AccessoryPanel myAccessoryPanel = new AccessoryPanel(this, AccessoryPanel.SOUTH_ACCESSORY_PANEL);
 
   public NlDesignSurface(@NotNull Project project, boolean inPreview, @NotNull Disposable parentDisposable) {
     super(project, new NlSelectionModel(), parentDisposable);
@@ -243,6 +245,10 @@ public class NlDesignSurface extends DesignSurface {
   @NotNull
   public ShapeMenuAction.AdaptiveIconShape getAdaptiveIconShape() {
     return myAdaptiveIconShape;
+  }
+
+  public JPanel getAccessoryPanel() {
+    return myAccessoryPanel;
   }
 
   /**
@@ -434,6 +440,12 @@ public class NlDesignSurface extends DesignSurface {
   @Override
   public NlSelectionModel getSelectionModel() {
     return (NlSelectionModel)super.getSelectionModel();
+  }
+
+  @Override
+  public void setModel(@Nullable NlModel model) {
+    myAccessoryPanel.setModel(model);
+    super.setModel(model);
   }
 
   @Override
