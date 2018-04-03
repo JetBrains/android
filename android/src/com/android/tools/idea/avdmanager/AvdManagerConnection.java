@@ -209,7 +209,7 @@ public class AvdManagerConnection {
     return new File(mySdkHandler.getLocation(), FileUtil.join(SdkConstants.OS_SDK_TOOLS_FOLDER, filename));
   }
 
-  private File getEmulatorBinary() {
+  public File getEmulatorBinary() {
     return getBinaryLocation(SdkConstants.FN_EMULATOR);
   }
 
@@ -490,7 +490,12 @@ public class AvdManagerConnection {
         // No fast boot now, but do store a snapshot on exit for next time
         commandLine.addParameter("-no-snapshot-load");
       }
-      // We could use "-snapstorage" for the "no" case, but don't bother. It is the default.
+      else if ("yes".equals(properties.get(AvdWizardUtils.USE_CHOSEN_SNAPSHOT_BOOT))) {
+        // Fast boot with the specific file that was requested. Don't save on exit.
+        commandLine.addParameters("-snapshot", StringUtil.notNullize(properties.get(AvdWizardUtils.CHOSEN_SNAPSHOT_FILE)));
+        commandLine.addParameter("-no-snapshot-save");
+      }
+      // We could use "-snapstorage" for the "normal" case, but don't bother. It is the default.
     }
 
     writeParameterFile(commandLine);
@@ -552,38 +557,73 @@ public class AvdManagerConnection {
       return; // No values to send
     }
 
-    File emuTempFile = null;
+    File tempFile = writeTempFile(proxyParameters);
+    if (tempFile != null) {
+        commandLine.addParameters("-studio-params", tempFile.getAbsolutePath());
+    }
+  }
+
+  /** Create a directory under $ANDROID_HOME where we can write
+   * temporary files.
+   *
+   * @return The directory file. This will be null if we
+   * could not find, create, or write the directory.
+   */
+  @Nullable
+  public static File tempFileDirectory() {
+    // Create a temporary file in /temp under $ANDROID_HOME.
+    String androidHomeValue = System.getenv(ANDROID_HOME_ENV);
+    if (androidHomeValue == null) {
+      // Fall back to the user's home directory
+      androidHomeValue = System.getProperty("user.home");
+    }
+    File tempDir = new File(androidHomeValue, "temp");
+    tempDir.mkdirs(); // Create if necessary
+    if (!tempDir.exists()) {
+      return null; // Give up
+    }
+    return tempDir;
+  }
+
+  /** Create a temporary file and write some parameters into it.
+   * This is how we pass parameters to the Emulator (other than
+   * on the command line).
+   * The file is marked to be deleted when Studio exits. This is
+   * to increase security in case the file contains sensitive
+   * information.
+   *
+   * @param fileContents What should be written to the file.
+   * @return The temporary file. This will be null
+   * if we could not create or write the file.
+   */
+  @Nullable
+  public static File writeTempFile(List<String> fileContents) {
+    File tempFile = null;
     try {
-      // Create a temporary file in /temp under $ANDROID_HOME.
-      String androidHomeValue = System.getenv(ANDROID_HOME_ENV);
-      if (androidHomeValue == null) {
-        // Fall back to the user's home directory
-        androidHomeValue = System.getProperty("user.home");
+      File tempDir = tempFileDirectory();
+      if (tempDir == null) {
+        return null; // Fail
       }
-      File tempDir = new File(androidHomeValue + "/temp");
-      tempDir.mkdirs(); // Create if necessary
-      if (!tempDir.exists()) {
-        return; // Give up
-      }
-      emuTempFile = File.createTempFile("emu", ".tmp", tempDir);
-      emuTempFile.deleteOnExit(); // File disappears when Studio exits
-      emuTempFile.setReadable(false, false); // Non-owner cannot read
-      emuTempFile.setReadable(true, true); // Owner can read
+      tempFile = File.createTempFile("emu", ".tmp", tempDir);
+      tempFile.deleteOnExit(); // File disappears when Studio exits
+      tempFile.setReadable(false, false); // Non-owner cannot read
+      tempFile.setReadable(true, true); // Owner can read
 
-      BufferedWriter tempFileWriter = new BufferedWriter(new FileWriter(emuTempFile));
-
-      for (String proxyLine : proxyParameters) {
-        tempFileWriter.write(proxyLine);
-      }
-      tempFileWriter.close();
-      // Put the name of this file on the emulator's command line
-      commandLine.addParameters("-studio-params", emuTempFile.getAbsolutePath());
-    } catch (IOException ex) {
-      // Try to remove the temporary file
-      if (emuTempFile != null) {
-        emuTempFile.delete(); // Ignore the return value
+      final FileWriter fileWriter = new FileWriter(tempFile);
+      try (BufferedWriter tempFileWriter = new BufferedWriter(fileWriter)) {
+        for (String fileLine : fileContents) {
+          tempFileWriter.write(fileLine);
+        }
       }
     }
+    catch (IOException ex) {
+      // Try to remove the temporary file
+      if (tempFile != null) {
+        tempFile.delete(); // Ignore the return value
+        tempFile = null;
+      }
+    }
+    return tempFile;
   }
 
   /**

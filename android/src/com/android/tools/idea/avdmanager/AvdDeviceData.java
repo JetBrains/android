@@ -67,6 +67,7 @@ public final class AvdDeviceData {
   private BoolProperty myHasGps = new BoolValueProperty();
   private BoolProperty myHasProximitySensor = new BoolValueProperty();
   private OptionalProperty<File> myCustomSkinFile = new OptionalValueProperty<File>();
+  private OptionalProperty<File> mySelectedSnapshotFile = new OptionalValueProperty<>(new File(""));
 
   private BoolValueProperty myIsTv = new BoolValueProperty();
   private BoolValueProperty myIsWear = new BoolValueProperty();
@@ -261,6 +262,11 @@ public final class AvdDeviceData {
   @NotNull
   public OptionalProperty<File> customSkinFile() {
     return myCustomSkinFile;
+  }
+
+  @NotNull
+  public OptionalProperty<File> selectedSnapshotFile() {
+    return mySelectedSnapshotFile;
   }
 
   @NotNull

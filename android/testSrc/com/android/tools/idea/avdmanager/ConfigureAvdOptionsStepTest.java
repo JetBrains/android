@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.avdmanager;
 
+import com.android.emulator.SnapshotOuterClass;
 import com.android.repository.api.RepoManager;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.impl.meta.TypeDetails;
@@ -33,10 +34,14 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.android.AndroidTestCase;
+import org.junit.rules.TemporaryFolder;
 
 import javax.swing.*;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.util.List;
 import java.util.Map;
 
 import static com.android.sdklib.internal.avd.GpuMode.*;
@@ -53,6 +58,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
   private AvdInfo myMarshmallowAvdInfo;
   private AvdInfo myPreviewAvdInfo;
   private AvdInfo myZuluAvdInfo;
+  private ISystemImage mySnapshotSystemImage;
   private Map<String, String> myPropertiesMap = Maps.newHashMap();
 
   @Override
@@ -115,6 +121,8 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
       sdkHandler.getLocalPackage(NPreviewPath, progress).getLocation());
     ISystemImage ZuluImage = systemImageManager.getImageAt(
       sdkHandler.getLocalPackage(zuluPath, progress).getLocation());
+
+    mySnapshotSystemImage = ZuluImage; // Re-use Zulu for the snapshot test
 
     myMarshmallowAvdInfo =
       new AvdInfo("name", new File("ini"), "folder", marshmallowImage, myPropertiesMap);
@@ -182,5 +190,70 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     assertNotNull(icon);
     iconUrl = icon.toString();
     assertTrue("Wrong icon fetched for unknown API: " + iconUrl, iconUrl.endsWith("Default_32.png"));
+  }
+
+  public void testPopulateSnapshotList() throws Exception {
+    TemporaryFolder tempFolder = new TemporaryFolder();
+    tempFolder.create();
+    File snapAvdDir = tempFolder.newFolder("proto_avd");
+    AvdInfo snapshotAvdInfo =
+      new AvdInfo("snapAvd", new File("ini"), snapAvdDir.getAbsolutePath(), mySnapshotSystemImage, myPropertiesMap);
+    AvdOptionsModel optionsModel = new AvdOptionsModel(snapshotAvdInfo);
+
+    ConfigureAvdOptionsStep optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel);
+    Disposer.register(getTestRootDisposable(), optionsStep);
+
+    File snapshotDir = new File(snapAvdDir, "snapshots");
+    assertThat(snapshotDir.mkdir()).isTrue();
+    SnapshotOuterClass.Image.Builder imageBuilder = SnapshotOuterClass.Image.newBuilder();
+    SnapshotOuterClass.Image anImage = imageBuilder.build();
+
+    File snapNewestDir = new File(snapshotDir, "snapNewest");
+    assertThat(snapNewestDir.mkdir()).isTrue();
+    SnapshotOuterClass.Snapshot.Builder newestBuilder = SnapshotOuterClass.Snapshot.newBuilder();
+    newestBuilder.addImages(anImage);
+    newestBuilder.setCreationTime(1_500_300_000L);
+    SnapshotOuterClass.Snapshot protoNewestBuf = newestBuilder.build();
+    File protoNewestFile = new File(snapNewestDir, "snapshot.pb");
+    OutputStream protoNewestOutputStream = new FileOutputStream(protoNewestFile);
+    protoNewestBuf.writeTo(protoNewestOutputStream);
+
+    File snapSelectedDir = new File(snapshotDir, "snapSelected");
+    assertThat(snapSelectedDir.mkdir()).isTrue();
+    SnapshotOuterClass.Snapshot.Builder selectedBuilder = SnapshotOuterClass.Snapshot.newBuilder();
+    selectedBuilder.addImages(anImage);
+    selectedBuilder.setCreationTime(1_500_200_000L);
+    SnapshotOuterClass.Snapshot protoSelectedBuf = selectedBuilder.build();
+    File protoSelectedFile = new File(snapSelectedDir, "snapshot.pb");
+    OutputStream protoSelectedOutputStream = new FileOutputStream(protoSelectedFile);
+    protoSelectedBuf.writeTo(protoSelectedOutputStream);
+
+    File snapOldestDir = new File(snapshotDir, "snapOldest");
+    assertThat(snapOldestDir.mkdir()).isTrue();
+    SnapshotOuterClass.Snapshot.Builder oldestBuilder = SnapshotOuterClass.Snapshot.newBuilder();
+    oldestBuilder.addImages(anImage);
+    oldestBuilder.setCreationTime(1_500_100_000L);
+    SnapshotOuterClass.Snapshot protoOldestBuf = oldestBuilder.build();
+    File protoOldestFile = new File(snapOldestDir, "snapshot.pb");
+    OutputStream protoOldestOutputStream = new FileOutputStream(protoOldestFile);
+    protoOldestBuf.writeTo(protoOldestOutputStream);
+
+    File snapQuickDir = new File(snapshotDir, "default_boot");
+    assertThat(snapQuickDir.mkdir()).isTrue();
+    SnapshotOuterClass.Snapshot.Builder quickBootBuilder = SnapshotOuterClass.Snapshot.newBuilder();
+    quickBootBuilder.addImages(anImage);
+    quickBootBuilder.setCreationTime(1_500_000_000L);
+    SnapshotOuterClass.Snapshot protoQuickBuf = quickBootBuilder.build();
+    File protoQuickFile = new File(snapQuickDir, "snapshot.pb");
+    OutputStream protoQuickOutputStream = new FileOutputStream(protoQuickFile);
+    protoQuickBuf.writeTo(protoQuickOutputStream);
+
+    List<String> snapshotList = optionsStep.getSnapshotNamesList("snapSelected");
+
+    // This list should NOT include 'default_boot'
+    assertThat(snapshotList.size()).isEqualTo(3);
+    assertThat(snapshotList.get(0)).isEqualTo("snapSelected"); // First because it's selected
+    assertThat(snapshotList.get(1)).isEqualTo("snapOldest");   // Next because of creation time
+    assertThat(snapshotList.get(2)).isEqualTo("snapNewest");
   }
 }

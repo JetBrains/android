@@ -43,6 +43,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.hash.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -107,6 +108,9 @@ public final class AvdOptionsModel extends WizardModel {
 
   private BoolProperty myUseHostGpu = new BoolValueProperty(true);
   private BoolProperty myColdBoot = new BoolValueProperty(false);
+  private BoolProperty myFastBoot = new BoolValueProperty(true);
+  private BoolProperty myChosenSnapshotBoot = new BoolValueProperty(false);
+  private StringProperty myChosenSnapshotFile = new StringValueProperty();
   private OptionalProperty<GpuMode> myHostGpuMode = new OptionalValueProperty<>(GpuMode.AUTO);
   private BoolProperty myEnableHardwareKeyboard = new BoolValueProperty(true);
 
@@ -389,6 +393,21 @@ public final class AvdOptionsModel extends WizardModel {
   }
 
   @NotNull
+  public BoolProperty useFastBoot() {
+    return myFastBoot;
+  }
+
+  @NotNull
+  public BoolProperty useChosenSnapshotBoot() {
+    return myChosenSnapshotBoot;
+  }
+
+  @NotNull
+  public StringProperty chosenSnapshotFile() {
+    return myChosenSnapshotFile;
+  }
+
+  @NotNull
   public OptionalProperty<GpuMode> hostGpuMode() {
     return myHostGpuMode;
   }
@@ -504,6 +523,10 @@ public final class AvdOptionsModel extends WizardModel {
     myAvdDisplayName.set(AvdManagerConnection.getAvdDisplayName(avdInfo));
     myHasDeviceFrame.set(fromIniString(properties.get(AvdWizardUtils.DEVICE_FRAME_KEY)));
     myColdBoot.set(fromIniString(properties.get(AvdWizardUtils.USE_COLD_BOOT)));
+    myFastBoot.set(fromIniString(properties.get(AvdWizardUtils.USE_FAST_BOOT)));
+    myChosenSnapshotBoot.set(fromIniString(properties.get(AvdWizardUtils.USE_CHOSEN_SNAPSHOT_BOOT)));
+    final String chosenFile = properties.get(AvdWizardUtils.CHOSEN_SNAPSHOT_FILE);
+    myChosenSnapshotFile.set(StringUtil.notNullize(chosenFile));
 
     ScreenOrientation screenOrientation = null;
     String orientation = properties.get(HardwareProperties.HW_INITIAL_ORIENTATION);
@@ -666,6 +689,9 @@ public final class AvdOptionsModel extends WizardModel {
     map.put(AvdWizardUtils.DEVICE_FRAME_KEY, myHasDeviceFrame.get());
     map.put(AvdWizardUtils.HOST_GPU_MODE_KEY, myHostGpuMode.getValue());
     map.put(AvdWizardUtils.USE_COLD_BOOT, myColdBoot.get());
+    map.put(AvdWizardUtils.USE_FAST_BOOT, myFastBoot.get());
+    map.put(AvdWizardUtils.USE_CHOSEN_SNAPSHOT_BOOT, myChosenSnapshotBoot.get());
+    map.put(AvdWizardUtils.CHOSEN_SNAPSHOT_FILE, myChosenSnapshotFile.get());
 
     if (myUseQemu2.get()) {
       if (myCpuCoreCount.get().isPresent()) {
@@ -853,5 +879,10 @@ public final class AvdOptionsModel extends WizardModel {
   @NotNull
   public AvdInfo getCreatedAvd() {
     return myCreatedAvd;
+  }
+
+  @Nullable
+  public String getAvdLocation() {
+    return (myAvdInfo == null) ? null : myAvdInfo.getDataFolderPath();
   }
 }
