@@ -22,9 +22,11 @@ import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
 import com.android.tools.idea.gradle.dsl.model.java.LanguageLevelPropertyModelImpl;
+import com.android.tools.idea.gradle.dsl.parser.elements.FakeElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +41,7 @@ public class GradlePropertyModelBuilder {
    * Creates a builder.
    *
    * @param holder the GradlePropertiesDslElement that the property belongs to
-   * @param name of the property that the model should be built for
+   * @param name   of the property that the model should be built for
    * @return new builder for model.
    */
   @NotNull
@@ -47,10 +49,25 @@ public class GradlePropertyModelBuilder {
     return new GradlePropertyModelBuilder(holder, name);
   }
 
+  /**
+   * Creates a builder for a {@link FakeElement} this can't be created in the normal way since it is not visible from
+   * its parent. See {@link FakeElement} for more information.
+   * In most cases {@link #create(GradlePropertiesDslElement, String)} should be used instead.
+   *
+   * @param element the fake element
+   * @return new builder for the model
+   */
   @NotNull
+  public static GradlePropertyModelBuilder create(@NotNull GradleDslElement element) {
+    return new GradlePropertyModelBuilder(element);
+  }
+
+  @Nullable
   private final GradlePropertiesDslElement myHolder;
   @NotNull
   private final String myName;
+  @Nullable
+  private final GradleDslElement myElement;
   @NotNull
   private PropertyType myType = REGULAR;
   private boolean myIsMethod = false;
@@ -60,6 +77,13 @@ public class GradlePropertyModelBuilder {
   private GradlePropertyModelBuilder(@NotNull GradlePropertiesDslElement holder, @NotNull String name) {
     myHolder = holder;
     myName = name;
+    myElement = null;
+  }
+
+  private GradlePropertyModelBuilder(@NotNull GradleDslElement element) {
+    myHolder = null;
+    myName = element.getName();
+    myElement = element;
   }
 
   /**
@@ -67,11 +91,11 @@ public class GradlePropertyModelBuilder {
    * difference is as follows:
    * {@code true}  -> Method Call -> propertyName propertyValue
    * {@code false} -> Assignment  -> propertyName = propertyValue
-   *
+   * <p>
    * This is only applied to new elements that are created via this model. If an element already exists on file and does not
    * use the form that is requested, changing its value may or may not cause the form to change. A form change will occur
    * if the underlying {@link GradleDslElement} can't be reused i.e if an existing literal property is being set to a reference.
-   *
+   * <p>
    * Defaults to {@code false}.
    *
    * @param bool whether to use the method call form.
@@ -104,15 +128,36 @@ public class GradlePropertyModelBuilder {
     return this;
   }
 
+  @Nullable
+  private GradleDslElement getElement() {
+    if (myElement != null) {
+      return myElement;
+    }
+
+    assert myHolder != null;
+    return myHolder.getPropertyElement(myName);
+  }
+
+  @NotNull
+  private GradleDslElement getParentElement() {
+    if (myHolder != null) {
+      return myHolder;
+    }
+
+    assert myElement != null && myElement.getParent() != null;
+    return myElement.getParent();
+  }
+
   /**
    * Builds a {@link GradlePropertyModel} with the properties defined by this builder
    *
    * @return the built model
    */
   public GradlePropertyModelImpl build() {
-    GradleDslElement currentElement = myHolder.getPropertyElement(myName);
+    GradleDslElement currentElement = getElement();
     GradlePropertyModelImpl model = currentElement == null
-                                    ? new GradlePropertyModelImpl(myHolder, myType, myName) : new GradlePropertyModelImpl(currentElement);
+                                    ? new GradlePropertyModelImpl(getParentElement(), myType, myName)
+                                    : new GradlePropertyModelImpl(currentElement);
     return setUpModel(model);
   }
 
@@ -121,14 +166,15 @@ public class GradlePropertyModelBuilder {
   }
 
   /**
-   *  Builds a {@link PasswordPropertyModel} with the properties defined by this builder.
+   * Builds a {@link PasswordPropertyModel} with the properties defined by this builder.
    *
    * @return the built model
    */
   public PasswordPropertyModelImpl buildPassword() {
-    GradleDslElement currentElement = myHolder.getPropertyElement(myName);
+    GradleDslElement currentElement = getElement();
     PasswordPropertyModelImpl model = currentElement == null
-                                    ? new PasswordPropertyModelImpl(myHolder, myType, myName) : new PasswordPropertyModelImpl(currentElement);
+                                      ? new PasswordPropertyModelImpl(getParentElement(), myType, myName)
+                                      : new PasswordPropertyModelImpl(currentElement);
     return setUpModel(model);
   }
 
