@@ -225,7 +225,7 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
             if (jPanel instanceof ComponentWithMnemonics) {
               componentWithMnemonicsCount++;
               myRobot.finder().find(jPanel, Matchers.byText(JCheckBox.class, "Enabled"));
-              myRobot.finder().find(jPanel, Matchers.byText(JCheckBox.class, "Suspend"));
+              myRobot.finder().find(jPanel, Matchers.byText(JCheckBox.class, "Suspend:"));
               myRobot.finder().find(jPanel, Matchers.byText(JLabel.class, "Access Type:"));
               myRobot.finder().find(jPanel, Matchers.byText(LinkLabel.class, "More (Ctrl+Shift+F8)"));
               myRobot.finder().find(jPanel, Matchers.byText(JButton.class, "Done"));
