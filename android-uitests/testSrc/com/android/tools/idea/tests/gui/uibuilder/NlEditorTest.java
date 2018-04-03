@@ -251,7 +251,6 @@ public class NlEditorTest {
       .waitForGradleProjectSyncToFinish();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/77159390
   @Test
   public void morphComponent() throws IOException {
     boolean morphViewActionEnabled = StudioFlags.NELE_CONVERT_VIEW.get();
@@ -298,7 +297,6 @@ public class NlEditorTest {
     }
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/77160884
   @Test
   public void morphViewGroup() throws IOException {
     boolean morphViewActionEnabled = StudioFlags.NELE_CONVERT_VIEW.get();
