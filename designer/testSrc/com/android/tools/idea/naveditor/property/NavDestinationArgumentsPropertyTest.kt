@@ -29,8 +29,8 @@ class NavDestinationArgumentsPropertyTest : NavTestCase() {
     model = model("nav.xml") {
       navigation {
         fragment("f1") {
-          argument("arg1", "val1")
-          argument("arg2", "val2")
+          argument("arg1", value = "val1")
+          argument("arg2", value = "val2")
         }
         fragment("f2") {
           argument("arg3")

@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.naveditor.property.editors
 
-import com.android.SdkConstants.ATTR_NAME
-import com.android.SdkConstants.ATTR_START_DESTINATION
+import com.android.SdkConstants.*
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.editors.NlComponentEditor
 import com.android.tools.idea.common.property.editors.NonEditableEditor

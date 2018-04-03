@@ -70,7 +70,7 @@ class NavActionArgumentsInspectorProviderTest: NavTestCase() {
     val model = model("nav.xml") {
       navigation {
         fragment("f1") {
-          argument("arg1", value = "value1")
+          argument("arg1", value = "value1", type = "integer")
           argument("arg2", value = "value2")
         }
         fragment("f2") {
@@ -92,17 +92,19 @@ class NavActionArgumentsInspectorProviderTest: NavTestCase() {
     val argumentsTable = flatten(panel).find { it.name == NAV_ACTION_ARGUMENTS_COMPONENT_NAME }!! as JBTable
 
     assertEquals(2, argumentsTable.rowCount)
-    assertEquals(2, argumentsTable.columnCount)
+    assertEquals(3, argumentsTable.columnCount)
     assertEquals("arg1", (argumentsTable.getValueAt(0, 0) as NlProperty).value)
-    assertEquals("actionvalue1", (argumentsTable.getValueAt(0, 1) as NlProperty).value)
-    assertEquals("arg2", (argumentsTable.getValueAt(1, 0) as NlProperty).value)
+    assertEquals("integer", (argumentsTable.getValueAt(0, 1) as NlProperty).value)
+    assertEquals("actionvalue1", (argumentsTable.getValueAt(0, 2) as NlProperty).value)
+    assertEquals("arg1", (argumentsTable.getValueAt(0, 0) as NlProperty).value)
     assertEquals(null, (argumentsTable.getValueAt(1, 1) as NlProperty).value)
+    assertEquals(null, (argumentsTable.getValueAt(1, 2) as NlProperty).value)
 
     // edit the second default value
-    setValue("foo", 1, 1, argumentsTable)
+    setValue("foo", 1, 2, argumentsTable)
 
     assertEquals(2, argumentsTable.rowCount)
-    assertEquals("foo", (argumentsTable.getValueAt(1, 1) as NlProperty).value)
+    assertEquals("foo", (argumentsTable.getValueAt(1, 2) as NlProperty).value)
     assertEquals(2, model.find("a1")!!.childCount)
     assertEquals("foo",
         model.find("a1")!!
@@ -111,14 +113,14 @@ class NavActionArgumentsInspectorProviderTest: NavTestCase() {
             .getAttribute(ANDROID_URI, ATTR_DEFAULT_VALUE))
 
     // Now delete the first one
-    setValue("", 0, 1, argumentsTable)
+    setValue("", 0, 2, argumentsTable)
 
     assertEquals(1, model.find("a1")!!.childCount)
     assertEquals(2, argumentsTable.rowCount)
     assertEquals("arg1", (argumentsTable.getValueAt(0, 0) as NlProperty).value)
-    assertEquals(null, (argumentsTable.getValueAt(0, 1) as NlProperty).value)
+    assertEquals(null, (argumentsTable.getValueAt(0, 2) as NlProperty).value)
     assertEquals("arg2", (argumentsTable.getValueAt(1, 0) as NlProperty).value)
-    assertEquals("foo", (argumentsTable.getValueAt(1, 1) as NlProperty).value)
+    assertEquals("foo", (argumentsTable.getValueAt(1, 2) as NlProperty).value)
     Disposer.dispose(navPropertiesManager)
   }
 

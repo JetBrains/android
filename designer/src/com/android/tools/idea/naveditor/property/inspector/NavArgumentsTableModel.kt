@@ -20,11 +20,15 @@ import javax.swing.table.AbstractTableModel
 open class NavArgumentsTableModel(private val argumentsProperty: NavArgumentsProperty) : AbstractTableModel() {
   override fun getRowCount() = argumentsProperty.properties.size
 
-  override fun getColumnCount() = 2
+  override fun getColumnCount() = 3
 
   override fun getValueAt(rowIndex: Int, columnIndex: Int): NlProperty {
     val nameProperty = argumentsProperty.properties[rowIndex]
-    return if (columnIndex == 0) nameProperty else nameProperty.defaultValueProperty
+    return when (columnIndex) {
+      0 -> nameProperty
+      1 -> nameProperty.typeProperty
+      else -> nameProperty.defaultValueProperty
+    }
   }
 
   override fun setValueAt(value: Any?, rowIndex: Int, columnIndex: Int) {

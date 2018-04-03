@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.property.editors;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.uibuilder.property.editors.BrowsePanel;
@@ -247,6 +248,18 @@ abstract public class EnumEditor extends BaseComponentEditor implements NlCompon
     }
     myEditor.setText(value.toString());
     myEditor.setForeground(value.getValue() != null ? CHANGED_VALUE_TEXT_COLOR : DEFAULT_VALUE_TEXT_COLOR);
+  }
+
+  @TestOnly
+  public void selectItem(@Nullable String value) {
+    DefaultComboBoxModel<ValueWithDisplayString> model = (DefaultComboBoxModel<ValueWithDisplayString>)myCombo.getModel();
+    for (int i = 0; i < model.getSize(); i++) {
+      ValueWithDisplayString candidate = model.getElementAt(i);
+      if (Objects.equals(candidate.getValue(), value)) {
+        model.setSelectedItem(candidate);
+        return;
+      }
+    }
   }
 
   private int findBestInsertionPoint(@NotNull ValueWithDisplayString newValue) {

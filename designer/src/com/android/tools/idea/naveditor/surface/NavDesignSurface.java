@@ -76,6 +76,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import static com.android.SdkConstants.ATTR_GRAPH;
 import static com.android.SdkConstants.TAG_INCLUDE;
 import static com.android.annotations.VisibleForTesting.Visibility;
 
@@ -322,7 +323,7 @@ public class NavDesignSurface extends DesignSurface {
     String id;
     if (getSchema().getDestinationType(tagName) == NavigationSchema.DestinationType.NAVIGATION) {
       if (tagName.equals(TAG_INCLUDE)) {
-        id = component.getAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_GRAPH);
+        id = component.getAttribute(SdkConstants.AUTO_URI, ATTR_GRAPH);
         if (id == null) {
           // includes are always supposed to have a graph specified, but if not, give up.
           return;

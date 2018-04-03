@@ -135,8 +135,8 @@ object NavModelBuilderUtil {
       addChild(DeepLinkComponentDescriptor(uri), null)
     }
 
-    fun argument(name: String, value: String? = null) {
-      addChild(ArgumentComponentDescriptor(name, value), null)
+    fun argument(name: String, type: String? = null, value: String? = null) {
+      addChild(ArgumentComponentDescriptor(name, type, value), null)
     }
   }
 
@@ -159,8 +159,8 @@ object NavModelBuilderUtil {
       addChild(DeepLinkComponentDescriptor(uri), null)
     }
 
-    fun argument(name: String, value: String? = null) {
-      addChild(ArgumentComponentDescriptor(name, value), null)
+    fun argument(name: String, type: String? = null, value: String? = null) {
+      addChild(ArgumentComponentDescriptor(name, type, value), null)
     }
   }
 
@@ -176,7 +176,7 @@ object NavModelBuilderUtil {
     }
 
     fun argument(name: String, value: String? = null) {
-      addChild(ArgumentComponentDescriptor(name, value), null)
+      addChild(ArgumentComponentDescriptor(name, null, value), null)
     }
   }
 
@@ -189,8 +189,8 @@ object NavModelBuilderUtil {
       addChild(DeepLinkComponentDescriptor(uri), null)
     }
 
-    fun argument(name: String, value: String? = null) {
-      addChild(ArgumentComponentDescriptor(name, value), null)
+    fun argument(name: String, type: String? = null, value: String? = null) {
+      addChild(ArgumentComponentDescriptor(name, type, value), null)
     }
   }
 
@@ -206,10 +206,11 @@ object NavModelBuilderUtil {
     }
   }
 
-  class ArgumentComponentDescriptor(name: String, value: String?) : NavComponentDescriptor(TAG_ARGUMENT) {
+  class ArgumentComponentDescriptor(name: String, type: String?, value: String?) : NavComponentDescriptor(TAG_ARGUMENT) {
     init {
       withAttribute(ANDROID_URI, SdkConstants.ATTR_NAME, name)
       value?.let { withAttribute(ANDROID_URI, NavigationSchema.ATTR_DEFAULT_VALUE, it) }
+      type?.let { withAttribute(AUTO_URI, SdkConstants.ATTR_TYPE, it) }
     }
   }
 
