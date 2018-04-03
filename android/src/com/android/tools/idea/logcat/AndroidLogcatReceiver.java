@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.logcat;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatLongEpochMessageParser;
@@ -27,6 +28,8 @@ import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.util.AndroidOutputReceiver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.regex.Pattern;
 
 /**
  * An {@link AndroidOutputReceiver} which receives output from logcat and processes each line,
@@ -46,6 +49,8 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
    * Prefix to use for the stack trace "Caused by:" lines.
    */
   private static final String STACK_TRACE_CAUSE_LINE_PREFIX = Character.toString(' ');
+
+  private static final Pattern CARRIAGE_RETURN = Pattern.compile("\r", Pattern.LITERAL);
 
   private final LogCatMessageParser myLongEpochParser;
   private final LogCatMessageParser myLongParser;
@@ -85,7 +90,7 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
     // both external to Android Studio. In fact, the latest adb/logcat versions have already fixed
     // this issue! But we still need to run properly with older versions. Also, putting this fix in
     // MultiLineReceiver isn't right either because it is used for more than just receiving logcat.
-    line = line.replaceAll("\\r", "");
+    line = CARRIAGE_RETURN.matcher(line).replaceAll("");
 
     if (line.isEmpty()) {
       myDelayedNewlineCount++;
@@ -150,5 +155,10 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
 
   public void cancel() {
     myCanceled = true;
+  }
+
+  @VisibleForTesting
+  int getDelayedNewlineCount() {
+    return myDelayedNewlineCount;
   }
 }

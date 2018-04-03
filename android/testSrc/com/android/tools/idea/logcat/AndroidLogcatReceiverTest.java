@@ -66,6 +66,14 @@ public class AndroidLogcatReceiverTest {
   }
 
   @Test
+  public void processNewLineStripsCarriageReturns() {
+    myReceiver.processNewLine("\r");
+
+    assertThat(myReceiver.getDelayedNewlineCount()).isEqualTo(1);
+    assertThat(myLogcatListener.toString()).isEqualTo("");
+  }
+
+  @Test
   public void processNewLineWorksOnSimpleLogEntry() {
     // the following line is sample output from 'logcat -v long'
     myReceiver.processNewLine("[ 1534635551.439 1493:1595 W/EDMNativeHelper     ]");
