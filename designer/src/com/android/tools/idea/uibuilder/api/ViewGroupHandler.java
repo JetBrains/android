@@ -34,6 +34,7 @@ import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.dnd.DropTargetDropEvent;
 import java.util.ArrayList;
@@ -260,5 +261,33 @@ public class ViewGroupHandler extends ViewHandler {
    */
   public Object getComponentTreeChild(@NotNull Object component, int i) {
     return ((NlComponent)component).getChild(i);
+  }
+
+  /**
+   * Returns true if this handler needs an accessory panel
+   * @return
+   */
+  public boolean needsAccessoryPanel() {
+    return false;
+  }
+
+  /**
+   * Returns a JPanel used as an accessory panel, displayed south.
+   * @param type type of accessory panel
+   * @return
+   */
+  @Nullable
+  public JPanel createAccessoryPanel(int type) {
+    return null;
+  }
+
+  /**
+   * Give a chance for the handler to populate the accessory panel
+   * @param type type of accessory panel
+   * @param panel
+   * @param selection
+   */
+  public void updateAccessoryPanelWithSelection(int type, @NotNull JPanel panel, @NotNull List<NlComponent> selection) {
+    // nothing
   }
 }

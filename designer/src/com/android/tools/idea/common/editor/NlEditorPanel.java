@@ -70,6 +70,7 @@ public class NlEditorPanel extends JPanel implements Disposable {
   private final WorkBench<DesignSurface> myWorkBench;
   private boolean myIsActive;
   private JBSplitter mySplitter;
+  private JPanel myAccessoryPanel;
 
   public NlEditorPanel(@NotNull NlEditor editor, @NotNull Project project, @NotNull VirtualFile file) {
     super(new BorderLayout());
@@ -87,6 +88,7 @@ public class NlEditorPanel extends JPanel implements Disposable {
     else {
       mySurface = new NlDesignSurface(project, false, editor);
       ((NlDesignSurface)mySurface).setCentered(true);
+      myAccessoryPanel = ((NlDesignSurface) mySurface).getAccessoryPanel();
     }
     Disposer.register(this, mySurface);
 
@@ -161,6 +163,10 @@ public class NlEditorPanel extends JPanel implements Disposable {
     JComponent toolbarComponent = mySurface.getActionManager().createToolbar();
     myContentPanel.add(toolbarComponent, BorderLayout.NORTH);
     myContentPanel.add(mySurface);
+
+    if (myAccessoryPanel != null) {
+      myContentPanel.add(myAccessoryPanel, BorderLayout.SOUTH);
+    }
 
     List<ToolWindowDefinition<DesignSurface>> tools = new ArrayList<>(4);
     // TODO: factor out tool creation
