@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.stats.RunStatsService;
 import com.android.tools.ir.client.InstantRunClient;
 import com.android.tools.ir.client.InstantRunPushFailedException;
 import com.android.tools.ir.client.UpdateMode;
@@ -25,6 +26,7 @@ import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunStatsService;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.google.wireless.android.sdk.stats.StudioRunEvent;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,11 +56,14 @@ public class HotSwapTask implements LaunchTask {
 
   @Override
   public boolean perform(@NotNull final IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
+    RunStatsService.get(myProject).notifyDeployStarted(StudioRunEvent.DeployTask.HOTSWAP, device,
+                                                       myInstantRunContext.getInstantRunBuildInfo().getArtifacts().size(), false, false);
     InstantRunManager manager = InstantRunManager.get(myProject);
     UpdateMode updateMode;
     try {
       InstantRunClient instantRunClient = InstantRunManager.getInstantRunClient(myInstantRunContext);
       if (instantRunClient == null) {
+        RunStatsService.get(myProject).notifyDeployFinished(false);
         return terminateLaunch(launchStatus, "Unable to connect to application. Press Run or Debug to rebuild and install the app.");
       }
 
@@ -66,9 +71,10 @@ public class HotSwapTask implements LaunchTask {
       printer.stdout("Hot swapped changes, activity " + (updateMode == UpdateMode.HOT_SWAP ? "not restarted" : "restarted"));
     }
     catch (InstantRunPushFailedException | IOException e) {
+      RunStatsService.get(myProject).notifyDeployFinished(false);
       return terminateLaunch(launchStatus, "Error installing hot swap patches: " + e);
     }
-
+    RunStatsService.get(myProject).notifyDeployFinished(true);
     InstantRunStatsService.get(myProject).notifyDeployType(DeployType.HOTSWAP, myInstantRunContext, device);
     return true;
   }

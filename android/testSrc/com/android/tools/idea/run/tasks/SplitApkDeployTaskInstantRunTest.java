@@ -21,12 +21,17 @@ import com.android.tools.idea.fd.BuildSelection;
 import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.android.tools.idea.stats.RunStatsService;
+import com.android.tools.idea.stats.RunStatsServiceImpl;
 import com.android.tools.ir.client.InstantRunBuildInfo;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Answers;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -59,6 +64,12 @@ public class SplitApkDeployTaskInstantRunTest {
     when(myContext.getInstantRunBuildInfo()).thenReturn(myBuildInfo);
     when(myContext.getApplicationId()).thenReturn(PACKAGE_NAME);
     when(myContext.getBuildSelection()).thenReturn(new BuildSelection(APP_NOT_INSTALLED, false));
+    RunStatsService.setTestOverride(Mockito.mock(RunStatsService.class, Answers.RETURNS_DEEP_STUBS));
+  }
+
+  @After
+  public void teardown() {
+    RunStatsService.setTestOverride(null);
   }
 
   @Test

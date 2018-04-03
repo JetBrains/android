@@ -23,8 +23,10 @@ import com.android.tools.idea.run.InstallResult;
 import com.android.tools.idea.run.RetryingInstaller;
 import com.android.tools.idea.run.RetryingInstallerResult;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.android.tools.idea.stats.RunStatsService;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import com.google.wireless.android.sdk.stats.StudioRunEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -76,6 +78,7 @@ public class SplitApkDeployTask implements LaunchTask {
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
     // TODO: should we pass in pm install options?
+    RunStatsService.get(myProject).notifyDeployStarted(StudioRunEvent.DeployTask.SPLIT_APK_DEPLOY, device, myContext.getArtifacts().size(), myContext.isPatchBuild(), myDontKill);
     List<String> installOptions = Lists.newArrayList();
     installOptions.add("-t");
 
@@ -107,6 +110,7 @@ public class SplitApkDeployTask implements LaunchTask {
     }
 
     myContext.notifyInstall(myProject, device, installResult.isSuccess());
+    RunStatsService.get(myProject).notifyDeployFinished(installResult.isSuccess());
     return installResult.isSuccess();
   }
 

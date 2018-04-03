@@ -19,6 +19,7 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.run.util.LaunchUtils;
+import com.android.tools.idea.stats.RunStatsService;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
@@ -80,16 +81,19 @@ public class EmulatorConnectionListener {
     public void run() {
       File adb = AndroidSdkUtils.getAdb(myProject);
       if (adb == null) {
+        RunStatsService.get(myProject).notifyEmulatorStarted(false);
         myDeviceFuture.setException(new IllegalArgumentException("Unable to locate adb"));
         return;
       }
 
       for (long i = 0; i < myTimeout; i++) {
         if (myDeviceFuture.isCancelled()) {
+          RunStatsService.get(myProject).notifyEmulatorStarted(false);
           return;
         }
 
         if (myEmulatorProcessHandler.isProcessTerminated() || myEmulatorProcessHandler.isProcessTerminating()) {
+          RunStatsService.get(myProject).notifyEmulatorStarted(false);
           myDeviceFuture.setException(new RuntimeException("The emulator process for AVD " + myAvdName + " was killed."));
           return;
         }
@@ -103,11 +107,13 @@ public class EmulatorConnectionListener {
           continue;
         }
         catch (Exception e) {
+          RunStatsService.get(myProject).notifyEmulatorStarted(false);
           myDeviceFuture.setException(e);
           return;
         }
 
         if (bridge == null || !bridge.isConnected()) {
+          RunStatsService.get(myProject).notifyEmulatorStarted(false);
           myDeviceFuture.setException(new RuntimeException("adb connection not available, or was terminated."));
           return;
         }
@@ -123,6 +129,7 @@ public class EmulatorConnectionListener {
 
           // now it looks like the AVD is online, but we still have to wait for the AVD to be ready for installation
           if (isEmulatorReady(device)) {
+            RunStatsService.get(myProject).notifyEmulatorStarted(true);
             LaunchUtils.initiateDismissKeyguard(device);
             myDeviceFuture.set(device);
             return;

@@ -19,11 +19,16 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.InstallException;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.android.tools.idea.stats.RunStatsService;
+import com.android.tools.idea.stats.RunStatsServiceImpl;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Answers;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -54,8 +59,14 @@ public class SplitApkDeployTaskTest {
     MockitoAnnotations.initMocks(this);
     when(myEmbeddedDevice.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(true);
     when(myContext.getApplicationId()).thenReturn(PACKAGE_NAME);
+    RunStatsService.setTestOverride(Mockito.mock(RunStatsService.class, Answers.RETURNS_DEEP_STUBS));
   }
 
+  @After
+  public void teardown() {
+    RunStatsService.setTestOverride(null);
+  }
+  
   @Test
   public void testPerformOnEmbedded() throws Throwable {
     SplitApkDeployTask task = new SplitApkDeployTask(myProject, myContext);
