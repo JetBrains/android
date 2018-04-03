@@ -39,7 +39,6 @@ import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.android.tools.idea.testing.ProjectFiles.createFileInProjectRoot;
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static org.mockito.Mockito.*;
 
 /**
@@ -54,11 +53,8 @@ public class GradleProjectInfoTest extends IdeaTestCase {
     myProjectInfo = GradleProjectInfo.getInstance(getProject());
   }
 
-  public void testHasTopLevelGradleBuildFileUsingGradleProject() {
-    File projectFolderPath = getBaseDirPath(getProject());
-    File buildFilePath = new File(projectFolderPath, "build.gradle");
-    assertTrue("Failed to create top-level build.gradle file", createIfNotExists(buildFilePath));
-
+  public void testHasTopLevelGradleBuildFileUsingGradleProject() throws Exception {
+    createFileInProjectRoot(getProject(), "build.gradle");
     assertTrue(myProjectInfo.hasTopLevelGradleBuildFile());
   }
 
