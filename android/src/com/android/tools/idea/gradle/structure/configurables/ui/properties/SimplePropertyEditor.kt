@@ -196,7 +196,7 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
       val referenceText = "\$${it.first}"
       referenceText to ParsedValue.Set.Parsed(
         value = it.second,
-        dslText = DslText(mode = DslMode.REFERENCE, text = referenceText)
+        dslText = DslText(mode = DslMode.REFERENCE, text = it.first)
       )
     }
 
