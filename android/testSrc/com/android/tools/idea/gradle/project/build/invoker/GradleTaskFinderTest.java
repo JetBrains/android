@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
+import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
@@ -60,6 +61,7 @@ public class GradleTaskFinderTest extends IdeaTestCase {
   @Mock private AndroidModuleModel myAndroidModel;
   @Mock private IdeAndroidProject myIdeAndroidProject;
   @Mock private IdeVariant myIdeVariant;
+  @Mock private IdeAndroidArtifact myMainArtifact;
   @Mock private IdeBaseArtifact myArtifact;
   @Mock private TestCompileType myTestCompileType;
   @Mock private GradleRootPathFinder myRootPathFinder;
@@ -219,6 +221,26 @@ public class GradleTaskFinderTest extends IdeaTestCase {
                                       ":feature1:assembleTask2");
   }
 
+  public void testFindTasksToExecuteForBundleTool() {
+    setUpModuleAsAndroidModule();
+
+    File projectPath = getBaseDirPath(getProject());
+    ListMultimap<Path, String> tasksPerProject = myTaskFinder.findTasksToExecute(projectPath, myModules, BUNDLE, myTestCompileType);
+    List<String> tasks = tasksPerProject.get(projectPath.toPath());
+
+    assertThat(tasks).containsExactly(":testFindTasksToExecuteForBundleTool:bundleTask1");
+  }
+
+  public void testFindTasksToExecuteForApkFromBundle() {
+    setUpModuleAsAndroidModule();
+
+    File projectPath = getBaseDirPath(getProject());
+    ListMultimap<Path, String> tasksPerProject = myTaskFinder.findTasksToExecute(projectPath, myModules, APK_FROM_BUNDLE, myTestCompileType);
+    List<String> tasks = tasksPerProject.get(projectPath.toPath());
+
+    assertThat(tasks).containsExactly(":testFindTasksToExecuteForApkFromBundle:apkFromBundleTask1");
+  }
+
   private void setUpModuleAsAndroidModule() {
     setUpModuleAsAndroidModule(getModule(), myAndroidModel, myIdeAndroidProject);
   }
@@ -233,6 +255,9 @@ public class GradleTaskFinderTest extends IdeaTestCase {
     AndroidModelFeatures androidModelFeatures = mock(AndroidModelFeatures.class);
     when(androidModelFeatures.isTestedTargetVariantsSupported()).thenReturn(false);
     when(androidModel.getFeatures()).thenReturn(androidModelFeatures);
+    when(myIdeVariant.getMainArtifact()).thenReturn(myMainArtifact);
+    when(myMainArtifact.getBundleTaskName()).thenReturn("bundleTask1");
+    when(myMainArtifact.getApkFromBundleTaskName()).thenReturn("apkFromBundleTask1");
 
     when(myArtifact.getAssembleTaskName()).thenReturn("assembleTask1");
     when(myArtifact.getCompileTaskName()).thenReturn("compileTask1");

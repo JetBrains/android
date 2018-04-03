@@ -82,6 +82,11 @@ public class PostBuildModel {
   }
 
   @Nullable
+  public AppBundleProjectBuildOutput findAppBundleProjectBuildOutput(@NotNull AndroidFacet facet) {
+    return findOutputModel(facet, AppBundleProjectBuildOutput.class);
+  }
+
+  @Nullable
   public ProjectBuildOutput findProjectBuildOutput(@NotNull AndroidFacet facet) {
     return findOutputModel(facet, ProjectBuildOutput.class);
   }

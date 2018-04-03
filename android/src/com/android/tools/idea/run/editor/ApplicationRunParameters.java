@@ -18,6 +18,7 @@ package com.android.tools.idea.run.editor;
 
 import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.run.AndroidAppRunConfigurationBase;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
 import com.google.common.collect.ImmutableMap;
@@ -55,7 +56,7 @@ import java.util.List;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 
-public class ApplicationRunParameters<T extends AndroidRunConfiguration> implements ConfigurationSpecificEditor<T>, ActionListener {
+public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> implements ConfigurationSpecificEditor<T>, ActionListener {
   private JPanel myPanel;
 
   // Deploy options
@@ -158,7 +159,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
   }
 
   @Override
-  public void resetFrom(@NotNull AndroidRunConfiguration configuration) {
+  public void resetFrom(@NotNull AndroidAppRunConfigurationBase configuration) {
     InstallOption installOption = getDeployOption(configuration.DEPLOY, configuration.ARTIFACT_NAME);
     myDeployOptionCombo.setSelectedItem(installOption);
 
@@ -209,7 +210,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
   }
 
   @Override
-  public void applyTo(@NotNull AndroidRunConfiguration configuration) {
+  public void applyTo(@NotNull AndroidAppRunConfigurationBase configuration) {
     InstallOption installOption = (InstallOption)myDeployOptionCombo.getSelectedItem();
     configuration.DEPLOY = installOption != InstallOption.NOTHING;
     configuration.ARTIFACT_NAME = "";
