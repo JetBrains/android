@@ -127,6 +127,7 @@ class EnergyProfilerStageTest {
     assertThat(tooltip.eventLegends.alarmAndJobLegend.name).isEqualTo("Alarms & Jobs")
   }
 
+  @Test
   fun getEventsModel() {
     val range = myStage.studioProfilers.timeline.viewRange
     val eventSeries = myStage.eventModel.series
