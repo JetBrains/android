@@ -18,6 +18,7 @@ import com.android.resources.ResourceFolderType
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.idea.actions.NewAndroidComponentAction
 import com.android.tools.idea.naveditor.scene.NavColorSet
+import com.android.tools.idea.naveditor.scene.layout.NEW_DESTINATION_MARKER_PROPERTY
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.google.common.collect.ImmutableList
@@ -107,7 +108,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
           val tag = schema.findTagForComponent(element) ?: continue
           val destination =
               Destination.RegularDestination(parent, tag, null, element.name, element.qualifiedName, layoutFile = resourceFile)
-          classToDestination.put(element, destination)
+          classToDestination[element] = destination
         }
       }
 
@@ -313,8 +314,8 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     // explicitly update so the new SceneComponent is created
     surface.sceneManager!!.update()
     val component = destination.component
-    surface.selectionModel.setSelection(ImmutableList.of(component!!))
-    surface.scrollToCenter(ImmutableList.of(component))
+    component!!.putClientProperty(NEW_DESTINATION_MARKER_PROPERTY, true)
+    surface.selectionModel.setSelection(ImmutableList.of(component))
     balloon?.hide()
   }
 

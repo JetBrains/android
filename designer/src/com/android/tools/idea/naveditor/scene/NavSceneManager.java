@@ -35,6 +35,7 @@ import com.android.tools.idea.naveditor.scene.decorator.NavSceneDecoratorFactory
 import com.android.tools.idea.naveditor.scene.layout.DummyAlgorithm;
 import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
 import com.android.tools.idea.naveditor.scene.layout.NavSceneLayoutAlgorithm;
+import com.android.tools.idea.naveditor.scene.layout.NewDestinationLayoutAlgorithm;
 import com.android.tools.idea.naveditor.scene.targets.NavScreenTargetProvider;
 import com.android.tools.idea.naveditor.scene.targets.NavigationTargetProvider;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
@@ -97,7 +98,8 @@ public class NavSceneManager extends SceneManager {
     super(model, surface);
     createSceneView();
     NavigationSchema schema = getSchema();
-    myLayoutAlgorithms = ImmutableList.of(new ManualLayoutAlgorithm(model.getModule()), new DummyAlgorithm(schema));
+    myLayoutAlgorithms =
+      ImmutableList.of(new NewDestinationLayoutAlgorithm(), new ManualLayoutAlgorithm(model.getModule()), new DummyAlgorithm(schema));
     mySavingLayoutAlgorithm = myLayoutAlgorithms.stream().filter(algorithm -> algorithm.canSave()).findFirst().orElse(null);
     myScreenTargetProvider = new NavScreenTargetProvider();
     myNavigationTargetProvider = new NavigationTargetProvider(surface);
