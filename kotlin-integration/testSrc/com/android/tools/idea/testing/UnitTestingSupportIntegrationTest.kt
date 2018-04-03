@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testing
 
+import com.android.tools.idea.stats.RunStatsService
 import com.android.tools.idea.testartifacts.TestConfigurationTesting.createContext
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.executors.DefaultRunExecutor
@@ -27,6 +28,8 @@ import com.intellij.execution.testframework.sm.runner.SMTestProxy
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.testFramework.TestRunnerUtil
 import com.intellij.testFramework.runInEdtAndWait
+import org.mockito.Answers
+import org.mockito.Mockito
 import java.util.concurrent.ConcurrentSkipListSet
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -79,6 +82,7 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
       VirtualFileManager.getInstance().syncRefresh()
       log("Vfs synced")
     }
+    RunStatsService.setTestOverride(Mockito.mock(RunStatsService::class.java, Answers.RETURNS_DEEP_STUBS))
   }
 
   fun testAppModule() {

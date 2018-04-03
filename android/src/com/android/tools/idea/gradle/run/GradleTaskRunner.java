@@ -19,6 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.stats.RunStatsService;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -74,7 +75,7 @@ public interface GradleTaskRunner {
     @Override
     public boolean run(@NotNull ListMultimap<Path, String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments) {
       assert !ApplicationManager.getApplication().isDispatchThread();
-
+      RunStatsService.get(myProject).notifyGradleStarted(buildMode);
       GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(myProject);
 
       AtomicBoolean success = new AtomicBoolean();
@@ -99,7 +100,9 @@ public interface GradleTaskRunner {
       });
 
       done.waitFor();
-      return success.get();
+      boolean successful = success.get();
+      RunStatsService.get(myProject).notifyGradleFinished(successful);
+      return successful;
     }
 
     @Nullable

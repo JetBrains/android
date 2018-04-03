@@ -39,6 +39,7 @@ import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.log.LogWrapper;
+import com.android.tools.idea.stats.RunStatsService;
 import com.android.utils.ILogger;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
@@ -418,6 +419,7 @@ public class AvdManagerConnection {
 
     final ProcessHandler processHandler;
     try {
+      RunStatsService.get(project).notifyEmulatorStarting();
       processHandler = runner.start();
     }
     catch (ExecutionException e) {

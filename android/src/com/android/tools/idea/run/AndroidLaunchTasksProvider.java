@@ -159,7 +159,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
         assert state != null;
         tasks.add(new RunInstantAppTask(myApkProvider.getApks(device), state.DEEP_LINK));
       } else {
-        tasks.add(new DeployInstantAppTask(myApkProvider.getApks(device)));
+        tasks.add(new DeployInstantAppTask(myProject, myApkProvider.getApks(device)));
       }
     } else {
       InstantRunManager.LOG.info("Using non-instant run deploy tasks (single and split apks apps)");

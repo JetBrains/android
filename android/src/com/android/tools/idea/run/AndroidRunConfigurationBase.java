@@ -39,6 +39,7 @@ import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.run.util.MultiUserUtils;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.stats.RunStatsService;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -78,7 +79,9 @@ import static com.android.tools.idea.fd.gradle.InstantRunGradleSupport.*;
 
 public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule> implements PreferGradleMake {
 
-  private static final Logger LOG = Logger.getInstance(AndroidRunConfigurationBase.class);
+  private static Logger getLogger() {
+    return Logger.getInstance(AndroidRunConfigurationBase.class);
+  }
 
   private static final String GRADLE_SYNC_FAILED_ERR_MSG = "Gradle project sync failed. Please fix your project and try again.";
 
@@ -246,6 +249,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   public RunProfileState getState(@NotNull final Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
     validateBeforeRun(executor);
 
+
     final Module module = getConfigurationModule().getModule();
     assert module != null : "Enforced by fatal validation check in checkConfiguration.";
     final AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -256,6 +260,13 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     final boolean instantRunEnabled = InstantRunSettings.isInstantRunEnabled();
     final AndroidSessionInfo existingSessionInfo = AndroidSessionInfo.findOldSession(project, null, getUniqueID());
 
+    try {
+      RunStatsService.get(getProject()).notifyRunStarted(getApplicationIdProvider(facet).getPackageName(), executor.getId(), forceColdswap,
+                                                         instantRunEnabled);
+    }
+    catch (ApkProvisionException e) {
+      getLogger().error(e);
+    }
     boolean couldHaveHotswapped = false;
     DeviceFutures deviceFutures = null;
 
@@ -264,17 +275,20 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (forceColdswap) {
       DeployTarget deployTarget = getDeployTarget(executor, env, isDebugging, facet);
       if (deployTarget == null) { // if user doesn't select a deploy target from the dialog
+        RunStatsService.get(project).notifyStudioSectionFinished(false, isDebugging, false);
         return null;
       }
 
       DeployTargetState deployTargetState = getDeployTargetContext().getCurrentDeployTargetState();
       if (deployTarget.hasCustomRunProfileState(executor)) {
+        RunStatsService.get(project).notifyStudioSectionFinished(false, isDebugging, false);
         return deployTarget.getRunProfileState(executor, env, deployTargetState);
       }
 
       deviceFutures = deployTarget.getDevices(deployTargetState, facet, getDeviceCount(isDebugging), isDebugging, getUniqueID());
       if (deviceFutures == null) {
         // The user deliberately canceled, or some error was encountered and exposed by the chooser. Quietly exit.
+        RunStatsService.get(project).notifyStudioSectionFinished(false, isDebugging, false);
         return null;
       }
     }
@@ -284,6 +298,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       PrepareSessionResult result = prepareInstantRunSession(existingSessionInfo, executor, facet, project, deviceFutures, forceColdswap);
       // returns null if we prompt user and they choose to abort the Run
       if (result == null) {
+        RunStatsService.get(project).notifyStudioSectionFinished(false, isDebugging, false);
         return null;
       }
       if (deviceFutures == null && !forceColdswap) { // if user used apply changes, then set deviceFutures based on session
@@ -293,6 +308,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     if (deviceFutures == null || deviceFutures.get().isEmpty()) {
+      RunStatsService.get(project).notifyStudioSectionFinished(false, isDebugging, false);
       throw new ExecutionException(AndroidBundle.message("deployment.target.not.found"));
     }
 
@@ -307,6 +323,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (isDebugging) {
       String error = canDebug(deviceFutures, facet, module.getName());
       if (error != null) {
+        RunStatsService.get(project).notifyStudioSectionFinished(false, isDebugging, instantRunContext != null);
         throw new ExecutionException(error);
       }
     }
@@ -336,6 +353,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
                                        applicationIdProvider, launchOptions.build(), instantRunContext, processHandler);
 
     InstantRunStatsService.get(project).notifyBuildStarted();
+    RunStatsService.get(project).notifyStudioSectionFinished(true, isDebugging, instantRunContext != null);
     return new AndroidRunState(env, getName(), module, applicationIdProvider, getConsoleProvider(), deviceFutures, providerFactory,
                                processHandler);
   }
@@ -465,7 +483,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       ModelWizardDialog dialog =
         SdkQuickfixUtils.createDialogForPaths(project, ImmutableList.of(DetailsTypes.getPlatformPath(version)));
       if (dialog == null) {
-        LOG.warn("Unable to get quick fix wizard to install missing platform required for instant run.");
+        getLogger().warn("Unable to get quick fix wizard to install missing platform required for instant run.");
       }
       else if (dialog.showAndGet()) {
         return true;
@@ -610,7 +628,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       }
     }
 
-    LOG.info("Disconnecting existing session of the same launch configuration");
+    getLogger().info("Disconnecting existing session of the same launch configuration");
     killSession(info);
     return true;
   }

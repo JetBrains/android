@@ -68,6 +68,7 @@ iml_module(
         "//tools/analytics-library/shared:analytics-shared[module, test]",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/idea/.idea/libraries:mockito[test]",
     ],
 )
 

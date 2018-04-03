@@ -17,6 +17,7 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.stats.RunStatsService;
 import com.android.tools.ir.client.InstantRunClient;
 import com.android.tools.idea.fd.*;
 import com.android.tools.idea.run.*;
@@ -24,6 +25,7 @@ import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.google.common.base.Preconditions;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.StudioRunEvent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -68,6 +70,7 @@ public class DeployApkTask implements LaunchTask {
 
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
+    RunStatsService.get(myProject).notifyDeployStarted(StudioRunEvent.DeployTask.DEPLOY_APK, device, myApks.size(), false, false);
     printer = new SkipEmptyLinesConsolePrinter(printer);
     FullApkInstaller
       installer = new FullApkInstaller(myProject, myLaunchOptions, ServiceManager.getService(InstalledApkCache.class), printer);
@@ -76,11 +79,13 @@ public class DeployApkTask implements LaunchTask {
         String message = "The APK file " + apk.getFile().getPath() + " does not exist on disk.";
         printer.stderr(message);
         LOG.warn(message);
+        RunStatsService.get(myProject).notifyDeployFinished(false);
         return false;
       }
 
       String pkgName = apk.getApplicationId();
       if (!installer.uploadAndInstallApk(device, pkgName, apk.getFile(), launchStatus)) {
+        RunStatsService.get(myProject).notifyDeployFinished(false);
         return false;
       }
 
@@ -100,8 +105,8 @@ public class DeployApkTask implements LaunchTask {
     } else {
       InstantRunStatsService.get(myProject).notifyDeployType(DeployType.FULLAPK, myInstantRunContext, device);
     }
+    RunStatsService.get(myProject).notifyDeployFinished(true);
     trackInstallation(device);
-
     return true;
   }
 

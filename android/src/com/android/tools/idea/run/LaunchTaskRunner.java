@@ -23,6 +23,7 @@ import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
+import com.android.tools.idea.stats.RunStatsService;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.notification.NotificationType;
@@ -154,6 +155,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
 
   @Override
   public void onSuccess() {
+    RunStatsService.get(myProject).notifyRunFinished(myError == null);
     if (myError == null) {
       return;
     }

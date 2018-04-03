@@ -23,13 +23,17 @@ import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.DeviceSelectionUtils;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.android.tools.idea.stats.RunStatsService;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.wireless.android.sdk.stats.StudioRunEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.util.io.ZipUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,8 +51,15 @@ import static com.google.common.io.Files.createTempDir;
  */
 public class DeployInstantAppTask implements LaunchTask {
   @NotNull private final Collection<ApkInfo> myPackages;
+  private Project myProject;
 
-  public DeployInstantAppTask(@NotNull Collection<ApkInfo> packages) {
+  public DeployInstantAppTask(@NotNull Project project, @NotNull Collection<ApkInfo> packages) {
+    myProject = project;
+    myPackages = packages;
+  }
+
+  @TestOnly
+  DeployInstantAppTask(@NotNull Collection<ApkInfo> packages) {
     myPackages = packages;
   }
 
@@ -65,6 +76,9 @@ public class DeployInstantAppTask implements LaunchTask {
 
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
+    if (myProject != null) {
+      RunStatsService.get(myProject).notifyDeployStarted(StudioRunEvent.DeployTask.DEPLOY_INSTANT_APP, device, myPackages.size(), false, false);
+    }
     if (launchStatus.isLaunchTerminated()) {
       return false;
     }
@@ -155,7 +169,11 @@ public class DeployInstantAppTask implements LaunchTask {
         });
       }
     }
-    return result.get();
+    boolean resultBoolean = result.get();
+    if (myProject != null) {
+      RunStatsService.get(myProject).notifyDeployFinished(resultBoolean);
+    }
+    return resultBoolean;
   }
 
   @NotNull
