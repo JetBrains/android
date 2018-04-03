@@ -114,11 +114,11 @@ class SessionsViewTest {
 
     assertThat(sessionArtifacts.size).isEqualTo(6)
     sessionItem0 = sessionArtifacts.getElementAt(0) as SessionItem
-    val hprofItem0 = sessionArtifacts.getElementAt(1) as HprofSessionArtifact
-    val cpuCaptureItem0 = sessionArtifacts.getElementAt(2) as CpuCaptureSessionArtifact
+    val cpuCaptureItem0 = sessionArtifacts.getElementAt(1) as CpuCaptureSessionArtifact
+    val hprofItem0 = sessionArtifacts.getElementAt(2) as HprofSessionArtifact
     sessionItem1 = sessionArtifacts.getElementAt(3) as SessionItem
-    val hprofItem1 = sessionArtifacts.getElementAt(4) as HprofSessionArtifact
-    val cpuCaptureItem1 = sessionArtifacts.getElementAt(5) as CpuCaptureSessionArtifact
+    val cpuCaptureItem1 = sessionArtifacts.getElementAt(4) as CpuCaptureSessionArtifact
+    val hprofItem1 = sessionArtifacts.getElementAt(5) as HprofSessionArtifact
     assertThat(sessionItem0.session).isEqualTo(session2)
     assertThat(hprofItem0.session).isEqualTo(session2)
     assertThat(cpuCaptureItem0.session).isEqualTo(session2)
@@ -352,11 +352,11 @@ class SessionsViewTest {
     assertThat(sessionArtifacts.size).isEqualTo(6)
     // Sessions are sorted in descending order.
     var sessionItem0 = sessionArtifacts.getElementAt(0) as SessionItem
-    val hprofItem0 = sessionArtifacts.getElementAt(1) as HprofSessionArtifact
-    val cpuCaptureItem0 = sessionArtifacts.getElementAt(2) as CpuCaptureSessionArtifact
+    val cpuCaptureItem0 = sessionArtifacts.getElementAt(1) as CpuCaptureSessionArtifact
+    val hprofItem0 = sessionArtifacts.getElementAt(2) as HprofSessionArtifact
     var sessionItem1 = sessionArtifacts.getElementAt(3) as SessionItem
-    var hprofItem1 = sessionArtifacts.getElementAt(4) as HprofSessionArtifact
-    var cpuCaptureItem1 = sessionArtifacts.getElementAt(5) as CpuCaptureSessionArtifact
+    var cpuCaptureItem1 = sessionArtifacts.getElementAt(4) as CpuCaptureSessionArtifact
+    var hprofItem1 = sessionArtifacts.getElementAt(5) as HprofSessionArtifact
     assertThat(sessionItem0.session).isEqualTo(session2)
     assertThat(hprofItem0.session).isEqualTo(session2)
     assertThat(cpuCaptureItem0.session).isEqualTo(session2)
