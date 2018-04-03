@@ -165,6 +165,12 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
     return resolveModel().toString();
   }
 
+  @NotNull
+  @Override
+  public String forceString() {
+    return resolveModel().forceString();
+  }
+
   @Nullable
   @Override
   public Integer toInt() {

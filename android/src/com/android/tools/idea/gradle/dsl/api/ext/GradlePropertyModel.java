@@ -237,6 +237,12 @@ public interface GradlePropertyModel {
   String toString();
 
   /**
+   * @return the value of the property as a String or throws an exception by asserting not null.
+   */
+  @NotNull
+  String forceString();
+
+  /**
    * @return the value of the property as an Integer or null if no value exists or is of an incorrect type.
    */
   @Nullable
