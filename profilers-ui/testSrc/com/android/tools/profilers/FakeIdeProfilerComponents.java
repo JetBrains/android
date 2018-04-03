@@ -27,7 +27,10 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.*;
 import java.util.List;
-import java.util.function.*;
+import java.util.function.Consumer;
+import java.util.function.IntConsumer;
+import java.util.function.IntPredicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertFalse;
@@ -196,6 +199,17 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
       @Override
       public void displayErrorMessage(@NotNull JComponent parent, @NotNull String title, @NotNull String message) {
         parent.add(new JLabel(message));
+      }
+
+      @Override
+      public boolean displayOkCancelMessage(@NotNull String title,
+                                            @NotNull String message,
+                                            @NotNull String okText,
+                                            @NotNull String cancelText,
+                                            @NotNull Icon icon,
+                                            @NotNull String doNotShowMessage,
+                                            @NotNull com.intellij.util.Consumer<Boolean> doNotShowSettingSaver) {
+        return true;
       }
     };
   }
