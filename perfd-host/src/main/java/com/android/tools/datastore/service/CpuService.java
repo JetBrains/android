@@ -193,7 +193,15 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
       observer.onNext(response);
     }
     else {
-      observer.onNext(ProfilingStateResponse.getDefaultInstance());
+      // When Profiler opens CpuProfilerStage directly (e.g when startup profiling was started),
+      // we're expecting to hit this, because we haven't inserted any data in the DB yet.
+      CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(DeviceId.fromSession(request.getSession()));
+      if (client != null) {
+        observer.onNext(client.checkAppProfilingState(request));
+      }
+      else {
+        observer.onNext(ProfilingStateResponse.getDefaultInstance());
+      }
     }
     observer.onCompleted();
   }

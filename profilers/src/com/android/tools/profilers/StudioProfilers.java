@@ -149,14 +149,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         TimeResponse timeResponse = myClient.getProfilerClient()
           .getCurrentTime(TimeRequest.newBuilder().setDeviceId(mySelectedSession.getDeviceId()).build());
 
-        ProfilingStateResponse startupCpuProfilingState = getStartupCpuProfilingState();
-        if (startupCpuProfilingState != null) {
-          // TODO(b/75253573): this is a workaround until we get the startup profiling trace aligned with rest of profiling.
-          myTimeline.reset(startupCpuProfilingState.getStartTimestamp(), timeResponse.getTimestampNs());
+        myTimeline.reset(mySelectedSession.getStartTimestamp(), timeResponse.getTimestampNs());
+        if (startupCpuProfilingStarted()) {
           setStage(new CpuProfilerStage(this));
-        }
-        else {
-          myTimeline.reset(mySelectedSession.getStartTimestamp(), timeResponse.getTimestampNs());
         }
       }
       else {
@@ -451,23 +446,17 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   /**
-   * @return {@link ProfilingStateResponse} if startup profiling started, otherwise null.
+   * Checks whether startup CPU Profiling started for the selected session by making RPC call to perfd.
    */
-  @Nullable
-  private ProfilingStateResponse getStartupCpuProfilingState() {
+  private boolean startupCpuProfilingStarted() {
     if (!getIdeServices().getFeatureConfig().isStartupCpuProfilingEnabled()) {
-      return null;
+      return false;
     }
 
     ProfilingStateResponse response = getClient().getCpuClient()
       .checkAppProfilingState(ProfilingStateRequest.newBuilder().setSession(mySelectedSession).build());
 
-    if (response.getBeingProfiled() && response.getIsStartupProfiling()) {
-      return response;
-    }
-    else {
-      return null;
-    }
+    return response.getBeingProfiled() && response.getIsStartupProfiling();
   }
 
   @NotNull
