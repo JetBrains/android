@@ -31,6 +31,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*;
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.FAKE;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.*;
 
 public class GradlePropertyModelImpl implements GradlePropertyModel {
@@ -517,6 +518,10 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     if (newElement == myElement) {
       // No need to bind
       return;
+    }
+
+    if (myElement != null && myElement.getElementType() == FAKE) {
+      throw new UnsupportedOperationException("Can't bind from a fake element!");
     }
 
     replaceElement(myPropertyHolder, myElement, newElement);
