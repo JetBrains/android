@@ -52,7 +52,7 @@ public abstract class GradleDslSettableExpression extends GradleDslExpression {
   }
 
   @Nullable
-  protected PsiElement getCurrentElement() {
+  public PsiElement getCurrentElement() {
     return myUnsavedValue != null ? myUnsavedValue : myExpression;
   }
 
