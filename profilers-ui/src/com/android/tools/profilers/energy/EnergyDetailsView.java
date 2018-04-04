@@ -34,6 +34,7 @@ public class EnergyDetailsView extends JPanel {
 
   @NotNull private final EnergyCallstackView myCallstackView;
   @NotNull private final EnergyDetailsOverview myDetailsOverview;
+  @NotNull private final CommonTabbedPane myTabsPanel;
 
   public EnergyDetailsView(@NotNull EnergyProfilerStageView stageView) {
     super(new BorderLayout());
@@ -45,7 +46,7 @@ public class EnergyDetailsView extends JPanel {
     // where main contents span the whole area and a close button fits into the top right
     JPanel rootPanel = new JPanel(new TabularLayout("*,Fit", "Fit,*"));
 
-    CommonTabbedPane myTabsPanel = new CommonTabbedPane();
+    myTabsPanel = new CommonTabbedPane();
     myDetailsOverview = new EnergyDetailsOverview();
     myCallstackView = new EnergyCallstackView(stageView);
     JPanel detailsPanel = new JPanel(new VerticalFlowLayout());
@@ -68,6 +69,9 @@ public class EnergyDetailsView extends JPanel {
     setVisible(duration != null && !duration.getEventList().isEmpty());
     myDetailsOverview.setDuration(duration);
     myCallstackView.setDuration(duration);
+    if (duration != null) {
+      myTabsPanel.setTitleAt(0, duration.getKind().getDisplayName() + " Details");
+    }
     revalidate();
     repaint();
   }

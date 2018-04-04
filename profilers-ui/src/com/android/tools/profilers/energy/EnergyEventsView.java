@@ -69,7 +69,7 @@ public final class EnergyEventsView {
     CALLED_BY(0.16, String.class) {
       @Override
       Object getValueFrom(@NotNull EnergyDuration data) {
-        return data.getEventList().get(0).getTraceId();
+        return data.getEventList().stream().filter(e -> !e.getTraceId().isEmpty()).findFirst().map(EnergyEvent::getTraceId).orElse("");
       }
     },
     TIMELINE(0.5, Long.class) {
