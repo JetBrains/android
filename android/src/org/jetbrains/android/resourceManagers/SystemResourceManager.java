@@ -56,7 +56,7 @@ public class SystemResourceManager extends ResourceManager {
   @NotNull
   public AbstractResourceRepository getResourceRepository() {
     AndroidTargetData targetData = myPlatform.getSdkData().getTargetData(myPlatform.getTarget());
-    AbstractResourceRepository frameworkResources = targetData.getFrameworkResources(true);
+    AbstractResourceRepository frameworkResources = targetData.getFrameworkResources(false);
     return frameworkResources == null ? new EmptyRepository() : frameworkResources;
   }
 
