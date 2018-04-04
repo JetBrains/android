@@ -20,21 +20,19 @@ import com.android.repository.api.*;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
-import com.android.tools.adtui.validation.Validator;
-import com.android.tools.adtui.validation.ValidatorPanel;
-import com.android.tools.adtui.validation.validators.FalseValidator;
-import com.android.tools.adtui.validation.validators.TrueValidator;
-import com.android.tools.idea.observable.ListenerManager;
-import com.android.tools.idea.observable.core.BoolProperty;
-import com.android.tools.idea.observable.core.BoolValueProperty;
-import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.install.StudioSdkInstallerUtil;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.progress.ThrottledProgressWrapper;
+import com.android.tools.idea.observable.ListenerManager;
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.adtui.validation.Validator;
+import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.adtui.validation.validators.FalseValidator;
+import com.android.tools.adtui.validation.validators.TrueValidator;
 import com.android.tools.idea.ui.wizard.deprecated.StudioWizardStepPanel;
-import com.android.tools.idea.welcome.config.FirstRunWizardMode;
-import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -55,7 +53,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
-import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
@@ -143,12 +140,7 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
   @Override
   protected void onEntering() {
     mySdkManagerOutput.setText("");
-    File path = myRepoManager.getLocalPath();
-    if (path == null) {
-      path = FirstRunWizardDefaults.getInitialSdkLocation(FirstRunWizardMode.MISSING_SDK);
-      myRepoManager.setLocalPath(path);
-    }
-    myLabelSdkPath.setText(path.getPath());
+    myLabelSdkPath.setText(myRepoManager.getLocalPath().getPath());
 
     myInstallationFinished.set(false);
     startSdkInstall();
