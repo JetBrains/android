@@ -1103,7 +1103,7 @@ public final class StudioProfilersTest {
     assertThat(profilers.getTimeline().isPaused()).isTrue();
 
     // Arbitrarily setting the view range to something beyond the data range should force the timeline to clamp to data range.
-    profilers.getTimeline().getViewRange().set(TimeUnit.SECONDS.toMicros(-10), TimeUnit.SECONDS.toMicros(2));
+    profilers.getTimeline().getViewRange().set(TimeUnit.SECONDS.toMicros(-10), TimeUnit.SECONDS.toMicros(10));
     profilers.getSessionsManager().setSession(Common.Session.getDefaultInstance());
     profilers.getSessionsManager().setSession(finished_session);
     assertThat(profilers.getTimeline().getViewRange().getMin()).isWithin(0).of(TimeUnit.SECONDS.toMicros(1));

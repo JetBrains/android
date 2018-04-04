@@ -140,9 +140,10 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       // The previous view range could contain the initial empty space if the data range is short, just clamp the view range's min to the
       // data range's min in that case.
       viewRangeMin = Math.max(viewRangeMin, cachedRange.getMin());
-      // Previous view range's max should never be grater than the data range's max
-      assert viewRangeMax >= cachedRange.getMax();
-      viewRangeMax = cachedRange.getMax();
+      // If a device is disconnected (e.g. unplugged, the update loop could have put the view range's max over the session's end time,
+      // which is determined by the timestamp of the last TimeResponse we received from the device, simply clamp the max here to be the
+      // session's end time when that happens.
+      viewRangeMax = Math.min(viewRangeMax, cachedRange.getMax());
     }
 
     return new Range(viewRangeMin, viewRangeMax);
