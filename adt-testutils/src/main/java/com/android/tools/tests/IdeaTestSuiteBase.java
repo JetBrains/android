@@ -53,7 +53,7 @@ public class IdeaTestSuiteBase {
     setRealJdkPathForGradle();
   }
 
-  protected static Path createTmpDir(String p) {
+  public static Path createTmpDir(String p) {
     Path path = Paths.get(TMP_DIR, p);
     try {
       Files.createDirectories(path);
