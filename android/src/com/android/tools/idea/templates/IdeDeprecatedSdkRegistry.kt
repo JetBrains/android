@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.templates
 
-import com.android.ide.common.repository.GoogleMavenRepository
-import com.android.ide.common.repository.GoogleMavenRepository.Companion.MAVEN_GOOGLE_CACHE_DIR_KEY
 import com.android.tools.idea.ui.GuiTestingService
+import com.android.tools.lint.checks.DEPRECATED_SDK_CACHE_DIR_KEY
+import com.android.tools.lint.checks.DeprecatedSdkRegistry
 import com.google.common.io.ByteStreams
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
@@ -28,8 +28,8 @@ import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
 
-/** A [GoogleMavenRepository] that uses IDE mechanisms (including proxy config) to download data. */
-object IdeGoogleMavenRepository : GoogleMavenRepository(getCacheDir()) {
+/** A [DeprecatedSdkRegistry] that uses IDE mechanisms (including proxy config) to download data. */
+object IdeDeprecatedSdkRegistry : DeprecatedSdkRegistry(getCacheDir()) {
   override fun readUrlData(url: String, timeout: Int): ByteArray? {
     val query = URL(url)
     val connection = HttpConfigurable.getInstance().openConnection(query.toExternalForm())
@@ -47,12 +47,12 @@ object IdeGoogleMavenRepository : GoogleMavenRepository(getCacheDir()) {
   }
 
   override fun error(throwable: Throwable, message: String?) {
-    Logger.getInstance(IdeGoogleMavenRepository::class.java).warn(message, throwable)
+    Logger.getInstance(IdeDeprecatedSdkRegistry::class.java).warn(message, throwable)
   }
 }
 
 private fun getCacheDir(): File? =
-    if (ApplicationManager.getApplication().isUnitTestMode || GuiTestingService.getInstance().isGuiTestingMode)
-      null
-    else
-      File(PathUtil.getCanonicalPath(PathManager.getSystemPath()), MAVEN_GOOGLE_CACHE_DIR_KEY)
+  if (ApplicationManager.getApplication().isUnitTestMode || GuiTestingService.getInstance().isGuiTestingMode)
+    null
+  else
+    File(PathUtil.getCanonicalPath(PathManager.getSystemPath()), DEPRECATED_SDK_CACHE_DIR_KEY)
