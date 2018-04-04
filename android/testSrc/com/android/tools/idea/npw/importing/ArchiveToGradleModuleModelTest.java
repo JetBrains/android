@@ -226,7 +226,7 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
 
     List<? extends ArtifactDependencyModel> artifacts = dependencies.artifacts();
     assertThat(artifacts).hasSize(1);
-    assertEquals("com.google.guava:guava:23.0", artifacts.get(0).compactNotation().value());
+    assertEquals("com.google.guava:guava:23.0", artifacts.get(0).compactNotation());
 
     List<? extends FileTreeDependencyModel> fileTrees = dependencies.fileTrees();
     assertThat(fileTrees).hasSize(1);

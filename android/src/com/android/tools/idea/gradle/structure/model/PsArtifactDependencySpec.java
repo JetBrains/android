@@ -65,7 +65,8 @@ public final class PsArtifactDependencySpec {
 
   @NotNull
   public static PsArtifactDependencySpec create(@NotNull ArtifactDependencyModel dependency) {
-    return new PsArtifactDependencySpec(dependency.name().value(), dependency.group().value(), dependency.version().value());
+    String name = dependency.name().forceString();
+    return new PsArtifactDependencySpec(name, dependency.group().toString(), dependency.version().toString());
   }
 
   @NotNull

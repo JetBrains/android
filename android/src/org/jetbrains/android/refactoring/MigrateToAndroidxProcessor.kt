@@ -242,8 +242,8 @@ class MigrateToAndroidxProcessor(val project: Project,
       val dependencies = GradleBuildModel.get(module)?.dependencies() ?: continue
       for (dep in dependencies.all()) {
         if (dep is ArtifactDependencyModel) {
-          val compactDependencyNotation = dep.compactNotation().value()
-          val psiElement = dep.compactNotation().psiElement ?: continue
+          val compactDependencyNotation = dep.compactNotation()
+          val psiElement = dep.psiElement ?: continue
           val gc = GradleCoordinate.parseCoordinateString(compactDependencyNotation) ?: continue
           val key: Pair<String, String> = Pair.create(gc.groupId, gc.artifactId)
           val entry = gradleDependencyEntries[key] ?: continue

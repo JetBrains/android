@@ -112,7 +112,7 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
     ArtifactDependencyModel actual = dependencies.get(0);
     expected.assertMatches(actual);
 
-    actual.setVersion("2.0.1");
+    actual.version().setValue("2.0.1");
 
     expected = new ExpectedArtifactDependency("classpath", "gradle", "com.android.tools.build", "2.0.1");
     expected.assertMatches(actual);
