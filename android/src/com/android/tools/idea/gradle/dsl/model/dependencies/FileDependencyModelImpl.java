@@ -16,7 +16,9 @@
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValueImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import org.jetbrains.annotations.NonNls;
@@ -76,14 +78,7 @@ public class FileDependencyModelImpl extends DependencyModelImpl implements File
 
   @Override
   @NotNull
-  public GradleNotNullValue<String> file() {
-    String file = myFileDslExpression.getValue(String.class);
-    assert file != null;
-    return new GradleNotNullValueImpl<>(myFileDslExpression, file);
-  }
-
-  @Override
-  public void setFile(@NotNull String file) {
-    myFileDslExpression.setValue(file);
+  public ResolvedPropertyModel file() {
+    return GradlePropertyModelBuilder.create(myFileDslExpression).asMethod(true).buildResolved();
   }
 }
