@@ -68,6 +68,7 @@ import static org.junit.runners.Parameterized.Parameters;
 @RunWith(Parameterized.class)
 public abstract class GradleFileModelTestCase extends PlatformTestCase {
   protected static final String SUB_MODULE_NAME = "gradleModelTest";
+  @NotNull private static final String GROOVY_LANGUAGE = "Groovy";
 
   @Rule public TestName myNameRule = new TestName();
   @Rule public RunInEDTRule myEDTRule = new RunInEDTRule();
@@ -92,7 +93,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
   @Parameters(name="{1}")
   public static Collection languageExtensions() {
-    return Arrays.asList(new Object[][] { {".gradle", "Groovy"} });
+    return Arrays.asList(new Object[][] { {".gradle", GROOVY_LANGUAGE} });
   }
 
   /**
@@ -103,6 +104,10 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   @Override
   public String getName() {
     return myNameRule.getMethodName();
+  }
+
+  protected boolean isGroovy() {
+    return myLanguageName.equals(GROOVY_LANGUAGE);
   }
 
   @Before
