@@ -121,6 +121,12 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
       .setLegendIconType(LegendConfig.IconType.BOX)
       .setDataBucketInterval(EnergyMonitorView.CHART_INTERVAL_US);
     lineChart.configure(usage.getNetworkUsageSeries(), networkConfig);
+    LineConfig locationConfig = new LineConfig(ProfilerColors.ENERGY_LOCATION)
+      .setFilled(true)
+      .setStacked(true)
+      .setLegendIconType(LegendConfig.IconType.BOX)
+      .setDataBucketInterval(EnergyMonitorView.CHART_INTERVAL_US);
+    lineChart.configure(usage.getLocationUsageSeries(), locationConfig);
     lineChart.setRenderOffset(0, (int)LineConfig.DEFAULT_DASH_STROKE.getLineWidth() / 2);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
@@ -138,6 +144,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     LegendComponent legend = new LegendComponent.Builder(legends).setRightPadding(PROFILER_LEGEND_RIGHT_PADDING).build();
     legend.configure(legends.getCpuLegend(), new LegendConfig(lineChart.getLineConfig(usage.getCpuUsageSeries())));
     legend.configure(legends.getNetworkLegend(), new LegendConfig(lineChart.getLineConfig(usage.getNetworkUsageSeries())));
+    legend.configure(legends.getLocationLegend(), new LegendConfig(lineChart.getLineConfig(usage.getLocationUsageSeries())));
 
     final JPanel legendPanel = new JBPanel(new BorderLayout());
     legendPanel.setOpaque(false);

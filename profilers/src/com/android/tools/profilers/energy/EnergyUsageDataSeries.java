@@ -35,7 +35,7 @@ class EnergyUsageDataSeries implements DataSeries<Long> {
   @NotNull private final Function<EnergySample, Integer> mySampleToUsage;
 
   private static int getTotalUsage(@NotNull EnergySample sample) {
-    return sample.getCpuUsage() + sample.getNetworkUsage();
+    return sample.getCpuUsage() + sample.getNetworkUsage() + sample.getLocationUsage();
   }
 
   /**

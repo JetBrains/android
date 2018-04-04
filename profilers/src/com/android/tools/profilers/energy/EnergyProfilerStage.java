@@ -230,16 +230,20 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
 
     @NotNull private final SeriesLegend myCpuLegend;
     @NotNull private final SeriesLegend myNetworkLegend;
+    @NotNull private final SeriesLegend myLocationLegend;
 
     EnergyUsageLegends(DetailedEnergyUsage detailedUsage, Range range) {
       super(ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS);
       myCpuLegend = new SeriesLegend(detailedUsage.getCpuUsageSeries(), EnergyAxisFormatter.DEFAULT, range, "CPU",
                                      Interpolatable.SegmentInterpolator);
-      myNetworkLegend = new SeriesLegend(detailedUsage.getNetworkUsageSeries(), EnergyAxisFormatter.DEFAULT, range, "NETWORK",
+      myNetworkLegend = new SeriesLegend(detailedUsage.getNetworkUsageSeries(), EnergyAxisFormatter.DEFAULT, range, "Network",
                                          Interpolatable.SegmentInterpolator);
+      myLocationLegend = new SeriesLegend(detailedUsage.getLocationUsageSeries(), EnergyAxisFormatter.DEFAULT, range, "Location",
+                                     Interpolatable.SegmentInterpolator);
 
       add(myCpuLegend);
       add(myNetworkLegend);
+      add(myLocationLegend);
     }
 
     @NotNull
@@ -250,6 +254,11 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
     @NotNull
     public Legend getNetworkLegend() {
       return myNetworkLegend;
+    }
+
+    @NotNull
+    public SeriesLegend getLocationLegend() {
+      return myLocationLegend;
     }
   }
 

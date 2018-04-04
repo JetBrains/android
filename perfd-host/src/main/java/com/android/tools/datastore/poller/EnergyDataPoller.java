@@ -96,13 +96,42 @@ public final class EnergyDataPoller extends PollRunner {
       .setEndTimestamp(endTimestampNs) // TODO: Replace with Long.MAX_VALUE when grabbing data from device (see other pollers)
       .build();
 
+    addLatestEvents(request); // Update events before samples, so any event with an effect on samples will get reflected in the samples.
     addLatestSamples(request);
-    addLatestEvents(request);
 
     myDataRequestStartTimestampNs = endTimestampNs;
   }
 
-  private void addLatestSamples(EnergyProfiler.EnergyRequest request) {
+  private void addLatestEvents(@NotNull EnergyProfiler.EnergyRequest request) {
+    for (EnergyProfiler.EnergyEvent event : myEnergyService.getEvents(request).getEventsList()) {
+      // Location-related events.
+      if (event.hasLocationUpdateRequested()) {
+        myBatteryModel.handleEvent(
+          event.getTimestamp(),
+          BatteryModel.Event.LOCATION_REGISTER,
+          new PowerProfile.LocationEvent(
+            event.getEventId(), PowerProfile.LocationType.from(event.getLocationUpdateRequested().getRequest().getProvider())));
+      }
+      if (event.hasLocationChanged()) {
+        myBatteryModel.handleEvent(
+          event.getTimestamp(),
+          BatteryModel.Event.LOCATION_USAGE,
+          new PowerProfile.LocationEvent(
+            event.getEventId(), PowerProfile.LocationType.from(event.getLocationChanged().getLocation().getProvider())));
+      }
+      if (event.hasLocationUpdateRemoved()) {
+        myBatteryModel.handleEvent(
+          event.getTimestamp(),
+          BatteryModel.Event.LOCATION_UNREGISTER,
+          new PowerProfile.LocationEvent(
+            event.getEventId(), PowerProfile.LocationType.NONE));
+      }
+
+      myEnergyTable.insertOrReplace(mySession, event);
+    }
+  }
+
+  private void addLatestSamples(@NotNull EnergyProfiler.EnergyRequest request) {
     // Network-related samples
     {
       NetworkProfiler.NetworkDataRequest networkDataRequest =
@@ -157,12 +186,6 @@ public final class EnergyDataPoller extends PollRunner {
 
     for (EnergyProfiler.EnergySample sample : myBatteryModel.getSamplesBetween(request.getStartTimestamp(), request.getEndTimestamp())) {
       myEnergyTable.insertOrReplace(mySession, sample);
-    }
-  }
-
-  private void addLatestEvents(EnergyProfiler.EnergyRequest request) {
-    for (EnergyProfiler.EnergyEvent event : myEnergyService.getEvents(request).getEventsList()) {
-      myEnergyTable.insertOrReplace(mySession, event);
     }
   }
 

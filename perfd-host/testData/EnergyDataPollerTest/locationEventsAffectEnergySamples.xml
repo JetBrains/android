@@ -148,11 +148,11 @@
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Profiler$TimeResponse">
-        <Message>timestamp_ns: 1000000000
+        <Message>timestamp_ns: 3000000000
 </Message>
         <clazz>class com.android.tools.profiler.proto.Profiler$TimeResponse</clazz>
         <functionCalled>profiler.proto.ProfilerService/GetCurrentTime</functionCalled>
-        <message>timestamp_ns: 1000000000
+        <message>timestamp_ns: 3000000000
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.EnergyService/GetEvents" Class="class com.android.tools.profiler.proto.EnergyProfiler$EnergyRequest">
@@ -161,7 +161,7 @@
   device_id: 1234
   pid: 5678
 }
-end_timestamp: 1000000000
+end_timestamp: 3000000000
 </Message>
         <clazz>class com.android.tools.profiler.proto.EnergyProfiler$EnergyRequest</clazz>
         <functionCalled>profiler.proto.EnergyService/GetEvents</functionCalled>
@@ -170,57 +170,57 @@ end_timestamp: 1000000000
   device_id: 1234
   pid: 5678
 }
-end_timestamp: 1000000000
+end_timestamp: 3000000000
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.EnergyService/GetEvents" Class="class com.android.tools.profiler.proto.EnergyProfiler$EnergyEventsResponse">
         <Message>events {
-  event_id: 1
-  wake_lock_acquired {
+  location_changed {
+    location {
+      provider: "gps"
+    }
   }
 }
 events {
-  timestamp: 250000000
-  event_id: 2
-  wake_lock_acquired {
+  timestamp: 1000000000
+  location_changed {
+    location {
+      provider: "gps"
+    }
   }
 }
 events {
-  timestamp: 500000000
-  event_id: 1
-  wake_lock_released {
-  }
-}
-events {
-  timestamp: 750000000
-  event_id: 2
-  wake_lock_released {
+  timestamp: 2000000000
+  location_changed {
+    location {
+      provider: "gps"
+    }
   }
 }
 </Message>
         <clazz>class com.android.tools.profiler.proto.EnergyProfiler$EnergyEventsResponse</clazz>
         <functionCalled>profiler.proto.EnergyService/GetEvents</functionCalled>
         <message>events {
-  event_id: 1
-  wake_lock_acquired {
+  location_changed {
+    location {
+      provider: "gps"
+    }
   }
 }
 events {
-  timestamp: 250000000
-  event_id: 2
-  wake_lock_acquired {
+  timestamp: 1000000000
+  location_changed {
+    location {
+      provider: "gps"
+    }
   }
 }
 events {
-  timestamp: 500000000
-  event_id: 1
-  wake_lock_released {
-  }
-}
-events {
-  timestamp: 750000000
-  event_id: 2
-  wake_lock_released {
+  timestamp: 2000000000
+  location_changed {
+    location {
+      provider: "gps"
+    }
   }
 }
 </message>
@@ -231,7 +231,7 @@ events {
   device_id: 1234
   pid: 5678
 }
-end_timestamp: 1000000000
+end_timestamp: 3000000000
 </Message>
         <clazz>class com.android.tools.profiler.proto.NetworkProfiler$NetworkDataRequest</clazz>
         <functionCalled>profiler.proto.NetworkService/GetData</functionCalled>
@@ -240,7 +240,7 @@ end_timestamp: 1000000000
   device_id: 1234
   pid: 5678
 }
-end_timestamp: 1000000000
+end_timestamp: 3000000000
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.NetworkService/GetData" Class="class com.android.tools.profiler.proto.NetworkProfiler$NetworkDataResponse">
@@ -255,7 +255,7 @@ end_timestamp: 1000000000
   device_id: 1234
   pid: 5678
 }
-end_timestamp: 1000000000
+end_timestamp: 3000000000
 </Message>
         <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuDataRequest</clazz>
         <functionCalled>profiler.proto.CpuService/GetData</functionCalled>
@@ -264,7 +264,7 @@ end_timestamp: 1000000000
   device_id: 1234
   pid: 5678
 }
-end_timestamp: 1000000000
+end_timestamp: 3000000000
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.CpuService/GetData" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuDataResponse">

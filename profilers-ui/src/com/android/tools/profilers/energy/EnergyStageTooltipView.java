@@ -45,6 +45,8 @@ class EnergyStageTooltipView extends ProfilerTooltipView {
     usageLegendComponent.configure(usageLegends.getCpuLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.ENERGY_CPU));
     usageLegendComponent
       .configure(usageLegends.getNetworkLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.ENERGY_NETWORK));
+    usageLegendComponent
+      .configure(usageLegends.getLocationLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.ENERGY_LOCATION));
 
     EnergyProfilerStage.EnergyEventLegends eventLegends = myTooltip.getEventLegends();
     LegendComponent eventLegendComponent = new LegendComponent.Builder(eventLegends)

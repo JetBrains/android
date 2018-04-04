@@ -34,9 +34,15 @@ import java.util.List;
  * on power profiles</a>, which this class aims to emulate.
  */
 public interface PowerProfile {
+  String GPS_PROVIDER = "gps";
+  String NETWORK_PROVIDER = "network";
+  String PASSIVE_PROVIDER = "passive";
+
   int getCpuUsage(@NotNull CpuCoreUsage[] usages);
 
   int getNetworkUsage(@NotNull NetworkStats networkStats);
+
+  int getLocationUsage(@NotNull LocationStats locationStats);
 
   enum NetworkType {
     WIFI,
@@ -56,31 +62,26 @@ public interface PowerProfile {
     }
   }
 
-  enum NetworkState {
-    /**
-     * The network is in a low power state
-     */
-    IDLE,
+  enum LocationType {
+    NONE,
+    PASSIVE,
+    NETWORK,
+    GPS_ACQUIRE,
+    GPS;
 
-    /**
-     * The network is currently looking for endpoints to connect to.
-     */
-    SCANNING,
-
-    /**
-     * The network is in a high power state and ready to send (radio only).
-     */
-    READY,
-
-    /**
-     * The network is actively receiving data.
-     */
-    RECEIVING,
-
-    /**
-     * The network is actively sending data.
-     */
-    SENDING,
+    @NotNull
+    public static LocationType from(@NotNull String protoLocationProvider) {
+      switch (protoLocationProvider) {
+        case GPS_PROVIDER:
+          return GPS;
+        case NETWORK_PROVIDER:
+          return NETWORK;
+        case PASSIVE_PROVIDER:
+          return PASSIVE;
+        default:
+          return NONE;
+      }
+    }
   }
 
   /**
@@ -169,6 +170,24 @@ public interface PowerProfile {
       return usage;
     }
 
+    @Override
+    public int getLocationUsage(@NotNull LocationStats locationStats) {
+      // TODO(b/77588320): Change this to actually charge for the duration the GPS is on.
+      // For initial version, we'll reshape (90mA * duration) into a single spike over the sample period.
+      switch (locationStats.myLocationType) {
+        case GPS:
+          return (int)(90 * (double)locationStats.myDurationNs / (double)locationStats.mySampleIntervalNs);
+        case GPS_ACQUIRE:
+          return 90;
+        case NETWORK:
+          return (int)(30 * (double)locationStats.myDurationNs / (double)locationStats.mySampleIntervalNs);
+        case PASSIVE:
+          // fall through
+        default:
+          return 0;
+      }
+    }
+
     @VisibleForTesting
     static double renormalizeFrequency(@NotNull CpuCoreUsage core, int maxFrequencyKhz) {
       double clampedFreq = Ints.constrainToRange(core.myFrequencyKhz, core.myMinFrequencyKhz, core.myMaxFrequencyKhz);
@@ -239,6 +258,28 @@ public interface PowerProfile {
       myNetworkType = type;
       myReceivingBps = receivingBps;
       mySendingBps = sendingBps;
+    }
+  }
+
+  final class LocationEvent {
+    public final int myEventId;
+    public final LocationType myLocationType;
+
+    public LocationEvent(int id, @NotNull LocationType type) {
+      myEventId = id;
+      myLocationType = type;
+    }
+  }
+
+  final class LocationStats {
+    public final LocationType myLocationType;
+    public final long myDurationNs;
+    public final long mySampleIntervalNs;
+
+    public LocationStats(@NotNull LocationType type, long durationNs, long sampleIntervalNs) {
+      myLocationType = type;
+      myDurationNs = durationNs;
+      mySampleIntervalNs = sampleIntervalNs;
     }
   }
 }
