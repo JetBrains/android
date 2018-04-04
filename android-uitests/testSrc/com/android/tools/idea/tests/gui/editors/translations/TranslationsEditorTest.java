@@ -21,6 +21,8 @@ import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.AddKeyDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.FixedColumnTableFixture;
@@ -212,6 +214,7 @@ public final class TranslationsEditorTest {
     assertFalse(editor.getCurrentFileContents().contains("hello_world"));
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/77559678
   @Test
   public void removeKeyUnsafely() throws Exception {
     importSimpleApplication();
