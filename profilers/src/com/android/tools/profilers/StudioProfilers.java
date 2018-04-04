@@ -83,6 +83,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   private AgentStatusResponse.Status myAgentStatus;
 
   @Nullable
+  private String myPreferredDeviceName;
+
+  @Nullable
   private String myPreferredProcessName;
 
   private Common.Device myDevice;
@@ -148,7 +151,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       if (isSessionAlive(mySelectedSession)) {
         // The session is live - move the timeline to the current time.
         TimeResponse timeResponse = myClient.getProfilerClient()
-          .getCurrentTime(TimeRequest.newBuilder().setDeviceId(mySelectedSession.getDeviceId()).build());
+                                            .getCurrentTime(TimeRequest.newBuilder().setDeviceId(mySelectedSession.getDeviceId()).build());
 
         myTimeline.reset(mySelectedSession.getStartTimestamp(), timeResponse.getTimestampNs());
         if (startupCpuProfilingStarted()) {
@@ -178,8 +181,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     mySelectedSession = myProfilingSession = Common.Session.getDefaultInstance();
     mySelectedSessionMetaData = Common.SessionMetaData.getDefaultInstance();
     mySessionsManager.addDependency(this)
-      .onChange(SessionAspect.SELECTED_SESSION, this::selectedSessionChanged)
-      .onChange(SessionAspect.PROFILING_SESSION, this::profilingSessionChanged);
+                     .onChange(SessionAspect.SELECTED_SESSION, this::selectedSessionChanged)
+                     .onChange(SessionAspect.PROFILING_SESSION, this::profilingSessionChanged);
 
     myViewAxis = new AxisComponentModel(myTimeline.getViewRange(), TimeAxisFormatter.DEFAULT);
     myViewAxis.setGlobalRange(myTimeline.getDataRange());
@@ -218,6 +221,15 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   /**
+   * Tells the profiler to select and profile the device of the same name next time it is detected.
+   */
+  public void setPreferredDeviceName(@Nullable String name) {
+    myPreferredDeviceName = name;
+    // Checks whether we can switch immediately if the device is already there.
+    setDevice(findPreferredDevice());
+  }
+
+  /**
    * Tells the profiler to select and profile the process of the same name next time it is detected.
    */
   public void setPreferredProcessName(@Nullable String name) {
@@ -244,10 +256,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
         int lastProcessId = myProcess == null ? 0 : myProcess.getPid();
         List<Common.Process> processList = processes.getProcessList()
-          .stream()
-          .filter(process -> process.getState() == Common.Process.State.ALIVE ||
-                             process.getPid() == lastProcessId)
-          .collect(Collectors.toList());
+                                                    .stream()
+                                                    .filter(process -> process.getState() == Common.Process.State.ALIVE ||
+                                                                       process.getPid() == lastProcessId)
+                                                    .collect(Collectors.toList());
 
         newProcesses.put(device, processList);
       }
@@ -289,36 +301,44 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   /**
-   * Finds and returns the preferred devices depending on the current state of the devices connected and their processes.
-   * If the currently selected device is ONLINE and has alive processes that can be profiled, it should remain selected.
-   * Online devices (first the ones with alive processes that can profiled) have preference over disconnected/offline ones.
-   * Finally, currently selected device (in case its state has changed) has preference over others.
+   * Finds and returns the preferred device if there is an online device with a matching name. Otherwise, we attempt to maintain the
+   * currently selected device. Otherwise if no preferred device is specified, return any device that has live processes in it.
    */
   @Nullable
   private Common.Device findPreferredDevice() {
-    if (myDevice != null && myDevice.getState().equals(Common.Device.State.ONLINE) && deviceHasAliveProcesses(myDevice)) {
-      // Current selected device is online and has alive processes that can be profiled. We don't need to change it.
-      return myDevice;
-    }
-
     Set<Common.Device> devices = myProcesses.keySet();
     Set<Common.Device> onlineDevices =
       devices.stream().filter(device -> device.getState().equals(Common.Device.State.ONLINE)).collect(Collectors.toSet());
-    if (!onlineDevices.isEmpty()) {
-      // There are online devices. First try to find a device with alive processes that can be profiled.
-      // If cant't find one, return any online device.
-      Common.Device anyOnlineDevice = onlineDevices.iterator().next();
-      return onlineDevices.stream().filter(this::deviceHasAliveProcesses).findAny().orElse(anyOnlineDevice);
+
+    // We have a preferred device, try not to select anything else.
+    if (myPreferredDeviceName != null) {
+      for (Common.Device device : onlineDevices) {
+        if (myPreferredDeviceName.equals(buildDeviceName(device))) {
+          return device;
+        }
+      }
     }
 
-    // In case the currently selected device state has changed, it will be represented as a new Common.Device object.
-    // Therefore, try to find a device with same serial as the selected one. If can't find it, return any device.
+    // Next, prefer the device currently used, either selected by user or automatically
+    if (myDevice != null) {
+      for (Common.Device device : devices) {
+        if (myDevice.getDeviceId() == device.getDeviceId()) {
+          return device;
+        }
+      }
+    }
+
+    // No preferred candidate. Choose any device that has online processes
     Common.Device anyDevice = devices.isEmpty() ? null : devices.iterator().next();
-    return myDevice == null ? anyDevice :
-           devices.stream().filter(device -> device.getSerial().equals(myDevice.getSerial())).findAny().orElse(anyDevice);
+    return myPreferredDeviceName == null ?
+           devices.stream().filter(this::deviceHasAliveProcesses).findAny().orElse(anyDevice) : null;
   }
 
   private boolean deviceHasAliveProcesses(@NotNull Common.Device device) {
+    if (!device.getState().equals(Common.Device.State.ONLINE)) {
+      return false;
+    }
+
     List<Common.Process> deviceProcesses = myProcesses.get(device);
     if (deviceProcesses == null) {
       return false;
@@ -332,9 +352,18 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   /**
-   * Chooses the given device. If the device is not known or null, the first available one will be chosen instead.
+   * Chooses the given device.
    */
-  public void setDevice(Common.Device device) {
+  public void setDevice(@Nullable Common.Device device) {
+    if (device != null) {
+      // Device can be not null in the following scenarios:
+      // 1. User explicitly sets a device from the dropdown.
+      // 2. The update loop has found the preferred device, in which case it will stay selected until the user selects something else.
+      // 3. There was no preferred device and the update loop found a device with live processes.
+      // All of these cases mean that we can unset the preferred device.
+      myPreferredDeviceName = null;
+    }
+
     if (!Objects.equals(device, myDevice)) {
       // The device has changed and we need to reset the process.
       // First, end the current session on the previous device.
@@ -411,7 +440,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
     mySelectedSession = newSession;
     mySelectedSessionMetaData = myClient.getProfilerClient()
-      .getSessionMetaData(GetSessionMetaDataRequest.newBuilder().setSessionId(mySelectedSession.getSessionId()).build()).getData();
+                                        .getSessionMetaData(
+                                          GetSessionMetaDataRequest.newBuilder().setSessionId(mySelectedSession.getSessionId()).build())
+                                        .getData();
     myAgentStatus = getAgentStatus(mySelectedSession);
     if (Common.Session.getDefaultInstance().equals(newSession)) {
       // No selected session - go to the null stage.
@@ -455,7 +486,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
 
     ProfilingStateResponse response = getClient().getCpuClient()
-      .checkAppProfilingState(ProfilingStateRequest.newBuilder().setSession(mySelectedSession).build());
+                                                 .checkAppProfilingState(
+                                                   ProfilingStateRequest.newBuilder().setSession(mySelectedSession).build());
 
     return response.getBeingProfiled() && response.getIsStartupProfiling();
   }
@@ -646,6 +678,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return String.format("%s (%s)", process.getName(), buildDeviceName(device));
   }
 
+  /**
+   * Mirrors AndroidProfilerToolWindow#getDeviceDisplayName but works with a {@link Common.Device}.
+   */
   @NotNull
   public static String buildDeviceName(@NotNull Common.Device device) {
     StringBuilder deviceNameBuilder = new StringBuilder();

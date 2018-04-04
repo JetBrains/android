@@ -270,7 +270,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
             window.setShowStripeButton(true);
             AndroidProfilerToolWindow profilerToolWindow = AndroidProfilerToolWindowFactory.getProfilerTooWindow(myProject);
             if (profilerToolWindow != null) {
-              profilerToolWindow.profileProject(myProject);
+              profilerToolWindow.profileProject(myProject, device);
             }
           }
         });
