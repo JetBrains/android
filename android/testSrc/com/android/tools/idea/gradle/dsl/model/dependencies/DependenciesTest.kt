@@ -60,7 +60,7 @@ class DependenciesTest : GradleFileModelTestCase() {
     run {
       val dep = deps[3] as FileDependencyModel
       assertThat(dep.configurationName(), equalTo("compile"))
-      assertThat(dep.file().value(), equalTo("lib1.jar"))
+      assertThat(dep.file().toString(), equalTo("lib1.jar"))
     }
     run {
       val dep = deps[4] as ModuleDependencyModel

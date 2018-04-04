@@ -182,7 +182,7 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
 
     // Test that other dependency is preserved
     assertThat(buildModel.dependencies().files()).hasSize(1);
-    assertEquals("some/other/file.jar", buildModel.dependencies().files().get(0).file().value());
+    assertEquals("some/other/file.jar", buildModel.dependencies().files().get(0).file().toString());
   }
 
   public void testPropertiesAreStripped() {
