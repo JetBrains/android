@@ -117,7 +117,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     centerToolbarComponent.setName("NlLayoutToolbar");
     // Wrap the component inside a fixed height component so it doesn't disappear
     JPanel centerToolbarComponentWrapper = new AdtPrimaryPanel(new BorderLayout());
-    centerToolbarComponentWrapper.setPreferredSize(JBUI.size(-1, 30));
+    centerToolbarComponentWrapper.setPreferredSize(JBUI.size(-1, 29));
     centerToolbarComponentWrapper.add(centerToolbarComponent);
 
     ActionToolbar eastToolbar = createActionToolbar("NlRhsToolbar", groups.getEastGroup());
@@ -125,14 +125,16 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     JComponent eastToolbarComponent = eastToolbar.getComponent();
     eastToolbarComponent.setName("NlRhsToolbar");
 
-    JComponent northPanel = new AdtPrimaryPanel(new BorderLayout());
-    northPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, StudioColorsKt.getBorder()));
-    northPanel.add(northToolbarComponent, BorderLayout.CENTER);
-    northPanel.add(northEastToolbarComponent, BorderLayout.EAST);
-
     JComponent panel = new AdtPrimaryPanel(new BorderLayout());
     panel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, StudioColorsKt.getBorder()));
-    panel.add(northPanel, BorderLayout.NORTH);
+    if (northToolbarComponent.isVisible()) {
+      JComponent northPanel = new AdtPrimaryPanel(new BorderLayout());
+      northPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, StudioColorsKt.getBorder()));
+      northPanel.add(northToolbarComponent, BorderLayout.CENTER);
+      northPanel.add(northEastToolbarComponent, BorderLayout.EAST);
+      panel.add(northPanel, BorderLayout.NORTH);
+    }
+
     panel.add(centerToolbarComponentWrapper, BorderLayout.CENTER);
     panel.add(eastToolbarComponent, BorderLayout.EAST);
 
@@ -143,7 +145,9 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   private static ActionToolbar createActionToolbar(@NotNull String place, @NotNull ActionGroup group) {
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(place, group, true);
     toolbar.setLayoutPolicy(ActionToolbar.WRAP_LAYOUT_POLICY);
-
+    if (group == ActionGroup.EMPTY_GROUP) {
+      toolbar.getComponent().setVisible(false);
+    }
     return toolbar;
   }
 
