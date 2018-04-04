@@ -48,23 +48,26 @@ class SyncExecutor {
   @NotNull private final CommandLineArgs myCommandLineArgs;
   @NotNull private final SyncErrorHandlerManager myErrorHandlerManager;
   @NotNull private final ExtraGradleSyncModelsManager myExtraModelsManager;
+  @NotNull private final SelectedVariantCollector mySelectedVariantCollector;
 
   @NotNull private final GradleExecutionHelper myHelper = new GradleExecutionHelper();
 
   SyncExecutor(@NotNull Project project) {
     this(project, ExtraGradleSyncModelsManager.getInstance(), new CommandLineArgs(true /* apply Java library plugin */),
-         new SyncErrorHandlerManager(project));
+         new SyncErrorHandlerManager(project), new SelectedVariantCollector(project));
   }
 
   @VisibleForTesting
   SyncExecutor(@NotNull Project project,
                @NotNull ExtraGradleSyncModelsManager extraModelsManager,
                @NotNull CommandLineArgs commandLineArgs,
-               @NotNull SyncErrorHandlerManager errorHandlerManager) {
+               @NotNull SyncErrorHandlerManager errorHandlerManager,
+               @NotNull SelectedVariantCollector selectedVariantCollector) {
     myProject = project;
     myCommandLineArgs = commandLineArgs;
     myErrorHandlerManager = errorHandlerManager;
     myExtraModelsManager = extraModelsManager;
+    mySelectedVariantCollector = selectedVariantCollector;
   }
 
   void syncProject(@NotNull ProgressIndicator indicator, @NotNull SyncExecutionCallback callback) {
@@ -122,6 +125,10 @@ class SyncExecutor {
   SyncAction createSyncAction() {
     SyncActionOptions options = new SyncActionOptions();
     options.setSingleVariantSyncEnabled(StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.get());
+    if (options.isSingleVariantSyncEnabled()) {
+      SelectedVariants selectedVariants = mySelectedVariantCollector.collectSelectedVariants();
+      options.setSelectedVariants(selectedVariants);
+    }
     return new SyncAction(myExtraModelsManager.getAndroidModelTypes(), myExtraModelsManager.getJavaModelTypes(), options);
   }
 

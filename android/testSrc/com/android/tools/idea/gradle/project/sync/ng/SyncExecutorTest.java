@@ -27,6 +27,7 @@ import org.mockito.Mock;
 import java.util.ArrayList;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
@@ -36,6 +37,8 @@ public class SyncExecutorTest {
   @Mock private Project myProject;
   @Mock private CommandLineArgs myCommandLineArgs;
   @Mock private SyncErrorHandlerManager mySyncErrorHandlerManager;
+  @Mock private SelectedVariantCollector mySelectedVariantCollector;
+  @Mock private SelectedVariants mySelectedVariants;
 
   private ExtraGradleSyncModelsManager myExtraGradleSyncModelsManager;
   private SyncExecutor mySyncExecutor;
@@ -44,7 +47,10 @@ public class SyncExecutorTest {
   public void setUp() {
     initMocks(this);
     myExtraGradleSyncModelsManager = new ExtraGradleSyncModelsManager(new ArrayList<>());
-    mySyncExecutor = new SyncExecutor(myProject, myExtraGradleSyncModelsManager, myCommandLineArgs, mySyncErrorHandlerManager);
+    mySyncExecutor = new SyncExecutor(myProject, myExtraGradleSyncModelsManager, myCommandLineArgs, mySyncErrorHandlerManager,
+                                      mySelectedVariantCollector);
+
+    when(mySelectedVariantCollector.collectSelectedVariants()).thenReturn(mySelectedVariants);
   }
 
   @After
@@ -53,7 +59,7 @@ public class SyncExecutorTest {
   }
 
   @Test
-  public void singleVariantSyncShouldBeDisabled() {
+  public void singleVariantSyncShouldBeDisabledByDefault() {
     assertFalse(StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.get());
   }
 
@@ -66,6 +72,7 @@ public class SyncExecutorTest {
 
     SyncActionOptions options = action.getOptions();
     assertTrue(options.isSingleVariantSyncEnabled());
+    assertSame(mySelectedVariants, options.getSelectedVariants());
   }
 
   @Test
@@ -77,5 +84,6 @@ public class SyncExecutorTest {
 
     SyncActionOptions options = action.getOptions();
     assertFalse(options.isSingleVariantSyncEnabled());
+    assertNull(options.getSelectedVariants());
   }
 }
