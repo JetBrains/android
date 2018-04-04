@@ -15,12 +15,14 @@
  */
 package org.jetbrains.android.refactoring
 
+import com.android.SdkConstants.FN_GRADLE_PROPERTIES
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.google.common.collect.Range
 import com.google.common.collect.RangeMap
 import com.google.common.collect.TreeRangeMap
+import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.command.CommandProcessor
@@ -30,6 +32,8 @@ import com.intellij.openapi.roots.GeneratedSourcesFilter
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.util.Ref
+import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.VfsUtil.findFileByIoFile
 import com.intellij.psi.*
 import com.intellij.psi.codeStyle.JavaCodeStyleManager
 import com.intellij.psi.impl.migration.PsiMigrationManager
@@ -43,6 +47,17 @@ import org.jetbrains.android.refactoring.AppCompatMigrationEntry.*
 import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.ClassMigrationUsageInfo
 import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.PackageMigrationUsageInfo
 import org.jetbrains.android.util.AndroidBundle
+import java.io.File
+
+/**
+ * Returns a [PropertiesFile] instance for the `gradle.properties` file in the given project or null if it does not exist.
+ */
+private fun getProjectProperties(project: Project): PropertiesFile? {
+  val gradlePropertiesFile = findFileByIoFile(File(FileUtil.toCanonicalPath(project.basePath), FN_GRADLE_PROPERTIES), true)
+  val psiPropertiesFile = PsiManager.getInstance(project).findFile(gradlePropertiesFile ?: return null)
+
+  return if (psiPropertiesFile is PropertiesFile) psiPropertiesFile else null
+}
 
 class MigrateToAndroidxProcessor(val project: Project,
                                  private val migrationMap: List<AppCompatMigrationEntry>) : BaseRefactoringProcessor(project) {
@@ -85,9 +100,9 @@ class MigrateToAndroidxProcessor(val project: Project,
               val classUsages = MigrateToAppCompatUtil.findClassUsages(project, clsEntry.myOldName)
               val infos = mutableListOf<UsageInfo>()
               classUsages
-                  .filter(generatedCodeUsages)
-                  .map { ClassMigrationUsageInfo(it, clsEntry) }
-                  .toCollection(infos)
+                .filter(generatedCodeUsages)
+                .map { ClassMigrationUsageInfo(it, clsEntry) }
+                .toCollection(infos)
 
               usageAccumulator.addAll(infos)
             }
@@ -96,15 +111,15 @@ class MigrateToAndroidxProcessor(val project: Project,
               val packageUsages = MigrateToAppCompatUtil.findPackageUsages(project, migration, pkgEntry.myOldName)
               val infos = mutableListOf<UsageInfo>()
               packageUsages
-                  .filter(generatedCodeUsages)
-                  .map { PackageMigrationUsageInfo(it, pkgEntry) }
-                  .toCollection(infos)
+                .filter(generatedCodeUsages)
+                .map { PackageMigrationUsageInfo(it, pkgEntry) }
+                .toCollection(infos)
 
               usageAccumulator.addAll(infos)
             }
             CHANGE_GRADLE_DEPENDENCY -> {
               val migrationEntry = entry as GradleDependencyMigrationEntry
-              gradleDependencyEntries.put(migrationEntry.compactKey(), migrationEntry)
+              gradleDependencyEntries[migrationEntry.compactKey()] = migrationEntry
             }
           }
         }
@@ -128,11 +143,16 @@ class MigrateToAndroidxProcessor(val project: Project,
     try {
       CommandProcessor.getInstance().markCurrentCommandAsGlobal(project)
       val smartPointerManager = SmartPointerManager.getInstance(myProject)
-      for (usage in usages) {
-        val psiElement = (usage as? MigrateToAppCompatUsageInfo)?.applyChange(migration)
-        if (psiElement != null) {
-          refsToShorten.add(smartPointerManager.createSmartPsiElementPointer(psiElement))
-        }
+      usages
+        .filterIsInstance<MigrateToAppCompatUsageInfo>()
+        .mapNotNull { it.applyChange(migration) }
+        .map { smartPointerManager.createSmartPsiElementPointer(it) }
+        .forEach { refsToShorten.add(it) }
+
+      // Add gradle properties to enable the androidx handling
+      getProjectProperties(project)?.let {
+        it.findPropertyByKey("android.useAndroidX") ?: it.addProperty("android.useAndroidX", "true")
+        it.findPropertyByKey("android.enableJetifier") ?: it.addProperty("android.enableJetifier", "true")
       }
     }
     catch (e: IncorrectOperationException) {
@@ -172,7 +192,7 @@ class MigrateToAndroidxProcessor(val project: Project,
     if (refUsages.get().isEmpty()) {
       if (!ApplicationManager.getApplication().isUnitTestMode) {
         Messages.showInfoMessage(myProject, RefactoringBundle.message("migration.no.usages.found.in.the.project"),
-            AndroidBundle.message("android.refactoring.migrateto.androidx"))
+                                 AndroidBundle.message("android.refactoring.migrateto.androidx"))
       }
       return false
     }
@@ -233,7 +253,7 @@ class MigrateToAndroidxProcessor(val project: Project,
 
   private fun findUsagesInBuildFiles(project: Project,
                                      gradleDependencyEntries: Map<Pair<String, String>, GradleDependencyMigrationEntry>)
-      : List<UsageInfo> {
+    : List<UsageInfo> {
     val gradleUsages = mutableListOf<UsageInfo>()
     if (gradleDependencyEntries.isEmpty()) {
       return emptyList()
@@ -251,6 +271,7 @@ class MigrateToAndroidxProcessor(val project: Project,
         }
       }
     }
+
     return gradleUsages
   }
 }
