@@ -718,7 +718,7 @@ fun getCompletionFromTypes(
   var frameworkResources: AbstractResourceRepository? = null
   if (androidPlatform != null) {
     val targetData = androidPlatform.sdkData.getTargetData(androidPlatform.target)
-    frameworkResources = targetData.getFrameworkResources(true)
+    frameworkResources = targetData.getFrameworkResources(false)
   }
 
   val resources = Lists.newArrayListWithCapacity<String>(500)
