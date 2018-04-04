@@ -96,10 +96,84 @@ class NodeNameParserTest {
     assertThat(cppFunctionModel.parameters[0]).isEqualTo("bool")
 
     try {
-      NodeNameParser.parseNodeName("malformed::method<(", true)
+      NodeNameParser.parseNodeName("malformed::method<())", true)
       fail()
     } catch (e: IllegalStateException) {
       assertThat(e.message).isEqualTo("Native function signature must have matching parentheses and brackets.")
+    }
+  }
+
+  @Test
+  fun testCppOperatorOverloadingMethod() {
+    (NodeNameParser.parseNodeName("std::__1::basic_ostream<char, std::__1::char_traits<char> >::operator<<(int)",
+                                  false) as CppFunctionModel).apply {
+      expect(name = "operator<<",
+             fullName = "std::__1::basic_ostream::operator<<",
+             id = "std::__1::basic_ostream::operator<<[int]",
+             classOrNamespace = "std::__1::basic_ostream",
+             parameters = listOf("int"))
+    }
+
+    // Test a method with "operator" as a substring of its name
+    (NodeNameParser.parseNodeName("void MyNameSpace::my_operator<int>::my_method(int)",
+                                             false) as CppFunctionModel).apply {
+      expect(name = "my_method",
+             fullName = "MyNameSpace::my_operator::my_method",
+             id = "MyNameSpace::my_operator::my_method[int]",
+             classOrNamespace = "MyNameSpace::my_operator",
+             parameters = listOf("int"))
+
+    }
+    (NodeNameParser.parseNodeName("void MyNameSpace::operator_my<int>::my_method(int)",
+                                  false) as CppFunctionModel).apply {
+      expect(name = "my_method",
+             fullName = "MyNameSpace::operator_my::my_method",
+             id = "MyNameSpace::operator_my::my_method[int]",
+             classOrNamespace = "MyNameSpace::operator_my",
+             parameters = listOf("int"))
+    }
+
+    // Test a method with "operator" as a substring of its parameter
+    (NodeNameParser.parseNodeName("std::__1::basic_ostream<char, std::__1::char_traits<char> >::operator<<(my_operator_type)",
+                                  false) as CppFunctionModel).apply {
+      expect(name = "operator<<",
+             fullName = "std::__1::basic_ostream::operator<<",
+             id = "std::__1::basic_ostream::operator<<[my_operator_type]",
+             classOrNamespace = "std::__1::basic_ostream",
+             parameters = listOf("my_operator_type"))
+    }
+  }
+
+  @Test
+  fun testCppOperatorOverloadingAndTemplatesInParameterAndInNamespace() {
+    (NodeNameParser.parseNodeName("std::__1::basic_ostream<char, std::__1::char_traits<char> >::operator<<(MyTemplate<int>)",
+                                  false) as CppFunctionModel).apply {
+      expect(name = "operator<<",
+             fullName = "std::__1::basic_ostream::operator<<",
+             id = "std::__1::basic_ostream::operator<<[MyTemplate]",
+             classOrNamespace = "std::__1::basic_ostream",
+             parameters = listOf("MyTemplate"))
+    }
+  }
+
+  @Test
+  fun testCppOperatorBoolOverloading() {
+    (NodeNameParser.parseNodeName("MyNamespace::operator bool()",
+                                  false) as CppFunctionModel).apply {
+      expect(name = "operator bool",
+             fullName = "MyNamespace::operator bool",
+             id = "MyNamespace::operator bool[]",
+             classOrNamespace = "MyNamespace",
+             parameters = emptyList())
+    }
+
+    (NodeNameParser.parseNodeName("operator bool()",
+                                  false) as CppFunctionModel).apply {
+      expect(name = "operator bool",
+             fullName = "operator bool",
+             id = "operator bool[]",
+             classOrNamespace = "",
+             parameters = emptyList())
     }
   }
 
@@ -132,4 +206,12 @@ class NodeNameParserTest {
     assertThat(model.fullName).isEqualTo("write")
     assertThat(model.id).isEqualTo("write")
   }
+}
+
+private fun CppFunctionModel.expect(name: String, fullName: String, id: String, classOrNamespace: String, parameters: List<String>) {
+  assertThat(this.name).isEqualTo(name)
+  assertThat(this.fullName).isEqualTo(fullName)
+  assertThat(this.id).isEqualTo(id)
+  assertThat(this.classOrNamespace).isEqualTo(classOrNamespace)
+  assertThat(this.parameters).isEqualTo(parameters)
 }
