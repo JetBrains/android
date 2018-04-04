@@ -35,6 +35,7 @@ import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBList;
+import com.intellij.ui.speedSearch.FilteringListModel;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
@@ -45,10 +46,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.event.*;
 import java.util.*;
 import java.util.List;
 
@@ -56,6 +54,7 @@ import static com.android.SdkConstants.TAG_INCLUDE;
 import static icons.StudioIcons.NavEditor.Tree.*;
 import static java.awt.event.KeyEvent.VK_BACK_SPACE;
 import static java.awt.event.KeyEvent.VK_DELETE;
+import static java.awt.event.KeyEvent.VK_ESCAPE;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
@@ -68,7 +67,9 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
   static final String ROOT_NAME = "Root";
 
   @VisibleForTesting
-  final DefaultListModel<NlComponent> myListModel = new DefaultListModel<>();
+  final DefaultListModel<NlComponent> myUnderlyingModel = new DefaultListModel<>();
+  @VisibleForTesting
+  final FilteringListModel<NlComponent> myListModel = new FilteringListModel<>(myUnderlyingModel);
   private NavigationSchema mySchema;
 
   @VisibleForTesting
@@ -87,6 +88,9 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
   @VisibleForTesting
   JPanel myBackPanel;
   private NavDesignSurface myDesignSurface;
+
+  private StartFilteringListener myStartFilteringListener;
+  private Runnable myStopFilteringListener;
 
   private static final Map<Icon, Icon> WHITE_ICONS = ImmutableMap.of(
     FRAGMENT, ColoredIconGenerator.INSTANCE.generateWhiteIcon(FRAGMENT),
@@ -127,6 +131,17 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
           icon = WHITE_ICONS.get(icon);
         }
         setIcon(icon);
+      }
+    });
+    myList.addKeyListener(new KeyAdapter() {
+      @Override
+      public void keyTyped(KeyEvent e) {
+        if (Character.isAlphabetic(e.getKeyChar()) && myStartFilteringListener != null) {
+          myStartFilteringListener.startFiltering(e.getKeyChar());
+        }
+        if (e.getKeyChar() == VK_ESCAPE && myStopFilteringListener != null) {
+          myStopFilteringListener.run();
+        }
       }
     });
     InputMap inputMap = getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
@@ -282,12 +297,12 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
         }
       }
     }
-    if (!newElements.equals(Collections.list(myListModel.elements()))) {
+    if (!newElements.equals(Collections.list(myUnderlyingModel.elements()))) {
       mySelectionUpdating = true;
 
       try {
-        myListModel.clear();
-        newElements.forEach(myListModel::addElement);
+        myUnderlyingModel.clear();
+        newElements.forEach(myUnderlyingModel::addElement);
       }
       finally {
         mySelectionUpdating = false;
@@ -304,8 +319,8 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
       mySelectionUpdating = true;
       Set<NlComponent> components = new HashSet<>(mySelectionModel.getSelection());
       List<Integer> selectedIndices = new ArrayList<>();
-      for (int i = 0; i < myListModel.size(); i++) {
-        if (components.contains(myListModel.get(i))) {
+      for (int i = 0; i < myUnderlyingModel.size(); i++) {
+        if (components.contains(myUnderlyingModel.get(i))) {
           selectedIndices.add(i);
         }
       }
@@ -322,6 +337,26 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
   @Override
   public JComponent getComponent() {
     return this;
+  }
+
+  @Override
+  public boolean supportsFiltering() {
+    return true;
+  }
+
+  @Override
+  public void setFilter(@NotNull String filter) {
+    myListModel.setFilter(c -> NavComponentHelperKt.getUiName(c).toLowerCase(getLocale()).contains(filter.toLowerCase(getLocale())));
+  }
+
+  @Override
+  public void setStartFiltering(@NotNull StartFilteringListener listener) {
+    myStartFilteringListener = listener;
+  }
+
+  @Override
+  public void setStopFiltering(@NotNull Runnable stopFilteringListener) {
+    myStopFilteringListener = stopFilteringListener;
   }
 
   // ---- Implements DataProvider ----
