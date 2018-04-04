@@ -101,32 +101,27 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
     return false;
   }
 
-  @NotNull
   @Override
-  public DependenciesModel addArtifact(@NotNull String configurationName, @NotNull String compactNotation) {
+  public void addArtifact(@NotNull String configurationName, @NotNull String compactNotation) {
     ArtifactDependencySpec dependency = ArtifactDependencySpecImpl.create(compactNotation);
     if (dependency == null) {
       String msg = String.format("'%1$s' is not a valid artifact dependency", compactNotation);
       throw new IllegalArgumentException(msg);
     }
     addArtifact(configurationName, dependency);
-    return this;
   }
 
-  @NotNull
   @Override
-  public DependenciesModel addArtifact(@NotNull String configurationName, @NotNull ArtifactDependencySpec dependency) {
-    return addArtifact(configurationName, dependency, Collections.emptyList());
+  public void addArtifact(@NotNull String configurationName, @NotNull ArtifactDependencySpec dependency) {
+    addArtifact(configurationName, dependency, Collections.emptyList());
   }
 
-  @NotNull
   @Override
-  public DependenciesModel addArtifact(@NotNull String configurationName,
+  public void addArtifact(@NotNull String configurationName,
                                        @NotNull ArtifactDependencySpec dependency,
                                        @NotNull List<ArtifactDependencySpec> excludes) {
     GradleDslElementList list = getOrCreateGradleDslElementList(configurationName);
     ArtifactDependencyModelImpl.createAndAddToList(list, configurationName, dependency, excludes);
-    return this;
   }
 
   @Override
@@ -156,18 +151,15 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
   }
 
 
-  @NotNull
   @Override
-  public DependenciesModel addModule(@NotNull String configurationName, @NotNull String path) {
-    return addModule(configurationName, path, null);
+  public void addModule(@NotNull String configurationName, @NotNull String path) {
+    addModule(configurationName, path, null);
   }
 
-  @NotNull
   @Override
-  public DependenciesModel addModule(@NotNull String configurationName, @NotNull String path, @Nullable String config) {
+  public void addModule(@NotNull String configurationName, @NotNull String path, @Nullable String config) {
     GradleDslElementList list = getOrCreateGradleDslElementList(configurationName);
     ModuleDependencyModelImpl.createAndAddToList(list, configurationName, path, config);
-    return this;
   }
 
   @NotNull
@@ -186,20 +178,17 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
   }
 
   @Override
-  @NotNull
-  public DependenciesModel addFileTree(@NotNull String configurationName, @NotNull String dir) {
-    return addFileTree(configurationName, dir, null, null);
+  public void addFileTree(@NotNull String configurationName, @NotNull String dir) {
+    addFileTree(configurationName, dir, null, null);
   }
 
   @Override
-  @NotNull
-  public DependenciesModel addFileTree(@NotNull String configurationName,
+  public void addFileTree(@NotNull String configurationName,
                                        @NotNull String dir,
                                        @Nullable List<String> includes,
                                        @Nullable List<String> excludes) {
     GradleDslElementList list = getOrCreateGradleDslElementList(configurationName);
     FileTreeDependencyModelImpl.createAndAddToList(list, configurationName, dir, includes, excludes);
-    return this;
   }
 
   @NotNull
@@ -218,11 +207,9 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
   }
 
   @Override
-  @NotNull
-  public DependenciesModel addFile(@NotNull String configurationName, @NotNull String file) {
+  public void addFile(@NotNull String configurationName, @NotNull String file) {
     GradleDslElementList list = getOrCreateGradleDslElementList(configurationName);
     FileDependencyModelImpl.createAndAddToList(list, configurationName, file);
-    return this;
   }
 
   @NotNull
@@ -236,15 +223,14 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
     return list;
   }
 
-  @NotNull
   @Override
-  public DependenciesModel remove(@NotNull DependencyModel dependency) {
+  public void remove(@NotNull DependencyModel dependency) {
     GradleDslElementList gradleDslElementList = myDslElement.getPropertyElement(dependency.configurationName(), GradleDslElementList.class);
     if (gradleDslElementList != null) {
       if (!(dependency instanceof DependencyModelImpl)) {
         Logger.getInstance(DependenciesModelImpl.class)
           .warn("Tried to remove an unknown dependency type!");
-        return this;
+        return;
       }
       GradleDslElement dependencyElement = ((DependencyModelImpl)dependency).getDslElement();
       GradleDslElement parent = dependencyElement.getParent();
@@ -263,10 +249,9 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
         gradleDslElementList.removeElement(dependencyElement);
       }
     }
-    return this;
   }
 
-  private void performDependencyReplace(@NotNull PsiElement psiElement,
+  private static void performDependencyReplace(@NotNull PsiElement psiElement,
                                         @NotNull GradleDslElement element,
                                         @NotNull ArtifactDependencySpec dependency) {
     if (element instanceof GradleDslLiteral) {
@@ -289,7 +274,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
   /**
    * Updates a {@link GradleDslExpressionMap} so that it represents the given {@link ArtifactDependencySpec}.
    */
-  private void updateGradleExpressionMapWithDependency(@NotNull GradleDslExpressionMap map, @NotNull ArtifactDependencySpec dependency) {
+  private static void updateGradleExpressionMapWithDependency(@NotNull GradleDslExpressionMap map, @NotNull ArtifactDependencySpec dependency) {
     // We need to create a copy of the new map so that we can track the r
     Map<String, Function<ArtifactDependencySpec, String>> properties = new LinkedHashMap<>(ArtifactDependencySpecImpl.COMPONENT_MAP);
     // Update any existing properties.

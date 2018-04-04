@@ -31,16 +31,13 @@ public interface DependenciesModel {
   @NotNull
   List<ArtifactDependencyModel> artifacts();
 
-  @NotNull
-  DependenciesModel addArtifact(@NotNull String configurationName, @NotNull String compactNoation);
+  void addArtifact(@NotNull String configurationName, @NotNull String compactNoation);
 
   boolean containsArtifact(@NotNull String configurationName, @NotNull ArtifactDependencySpec dependency);
 
-  @NotNull
-  DependenciesModel addArtifact(@NotNull String configurationName, @NotNull ArtifactDependencySpec dependency);
+  void addArtifact(@NotNull String configurationName, @NotNull ArtifactDependencySpec dependency);
 
-  @NotNull
-  DependenciesModel addArtifact(@NotNull String configurationName,
+  void addArtifact(@NotNull String configurationName,
                                 @NotNull ArtifactDependencySpec dependency,
                                 @NotNull List<ArtifactDependencySpec> excludes);
 
@@ -54,20 +51,16 @@ public interface DependenciesModel {
   @NotNull
   List<ModuleDependencyModel> modules();
 
-  @NotNull
-  DependenciesModel addModule(@NotNull String configuationName, @NotNull String path);
+  void addModule(@NotNull String configurationName, @NotNull String path);
 
-  @NotNull
-  DependenciesModel addModule(@NotNull String configuationName, @NotNull String path, @Nullable String config);
+  void addModule(@NotNull String configurationName, @NotNull String path, @Nullable String config);
 
   @NotNull
   List<FileTreeDependencyModel> fileTrees();
 
-  @NotNull
-  DependenciesModel addFileTree(@NotNull String configurationName, @NotNull String dir);
+  void addFileTree(@NotNull String configurationName, @NotNull String dir);
 
-  @NotNull
-  DependenciesModel addFileTree(@NotNull String configurationName,
+  void addFileTree(@NotNull String configurationName,
                                 @NotNull String dir,
                                 @Nullable List<String> includes,
                                 @Nullable List<String> excludes);
@@ -76,9 +69,7 @@ public interface DependenciesModel {
   @NotNull
   List<FileDependencyModel> files();
 
-  @NotNull
-  DependenciesModel addFile(@NotNull String configurationName, @NotNull String file);
+  void addFile(@NotNull String configurationName, @NotNull String file);
 
-  @NotNull
-  DependenciesModel remove(@NotNull DependencyModel dependency);
+  void remove(@NotNull DependencyModel dependency);
 }
