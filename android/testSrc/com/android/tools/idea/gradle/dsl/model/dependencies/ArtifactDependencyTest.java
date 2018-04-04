@@ -132,8 +132,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
   private static void verifyDependencyConfiguration(@Nullable DependencyConfigurationModel configuration) {
     assertNotNull(configuration);
 
-    assertEquals(Boolean.TRUE, configuration.force().value());
-    assertEquals(Boolean.FALSE, configuration.transitive().value());
+    assertEquals(Boolean.TRUE, configuration.force().toBoolean());
+    assertEquals(Boolean.FALSE, configuration.transitive().toBoolean());
 
     List<ExcludedDependencyModel> excludedDependencies = configuration.excludes();
     assertThat(excludedDependencies).hasSize(3);
