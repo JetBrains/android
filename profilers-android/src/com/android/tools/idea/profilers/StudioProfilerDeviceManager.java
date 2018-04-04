@@ -415,6 +415,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         .setServiceSocketName("@" + DEVICE_SOCKET_NAME)
         .setEnergyProfilerEnabled(StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get())
         .setCpuApiTracingEnabled(StudioFlags.PROFILER_CPU_API_TRACING.get())
+        .setAndroidFeatureLevel(myDevice.getVersion().getFeatureLevel())
         .build();
 
       File configFile = FileUtil.createTempFile(fileName, null, true);
