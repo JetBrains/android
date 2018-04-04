@@ -107,7 +107,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_IMPORT_CPU_TRACE = Flag.create(
     PROFILER, "cpu.import.trace", "Enable CPU trace importing",
     "Add the option to import CPU trace files when right-clicking the CPU profiler usage chart.",
-    true);
+    false);
 
   public static final Flag<Boolean> PROFILER_EXPORT_CPU_TRACE = Flag.create(
     PROFILER, "cpu.export.trace", "Enable CPU trace exporting",
