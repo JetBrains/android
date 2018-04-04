@@ -32,11 +32,12 @@ public class NodeNameParser {
 
   /**
    * Parses a string representing a full symbol name into its corresponding model. For example:
-   *    "namespace::Class::Fun<int>(params)" is parsed into a {@link CppFunctionModel}
-   *    "java.util.String.toString" is parsed into a {@link JavaMethodModel}
-   *    "ioctl" is parsed into a {@link SyscallModel}
-   * @param fullName       name to be parsed into a {@link CaptureNodeModel}.
-   * @param isUserWritten  whether the symbol is part of the user-written code
+   * "namespace::Class::Fun<int>(params)" is parsed into a {@link CppFunctionModel}
+   * "java.util.String.toString" is parsed into a {@link JavaMethodModel}
+   * "ioctl" is parsed into a {@link SyscallModel}
+   *
+   * @param fullName      name to be parsed into a {@link CaptureNodeModel}.
+   * @param isUserWritten whether the symbol is part of the user-written code
    */
   static CaptureNodeModel parseNodeName(String fullName, boolean isUserWritten) {
     // C/C++ methods are represented as Namespace::Class::MethodName() in simpleperf. Check for the presence of "(".
@@ -61,91 +62,137 @@ public class NodeNameParser {
    */
   @NotNull
   public static CppFunctionModel parseCppFunctionName(String functionFullName, boolean isUserWritten) {
-    // First, remove template information.
-    functionFullName = removeTemplateInformation(functionFullName);
-
-    // Then, try to extract the function parameters, which should be between parentheses
+    // First, extract the function parameters, which should be between the matching '(' and  the last index of ')' parentheses.
     String parameters = "";
-    int paramsStartIndex = functionFullName.lastIndexOf('(');
-    if (paramsStartIndex != -1) {
-      int paramsEndIndex = findMatchingClosingCharacterIndex(functionFullName, '(', ')', paramsStartIndex);
+    int paramsEndIndex = functionFullName.lastIndexOf(')');
+    if (paramsEndIndex != -1) {
+      int paramsStartIndex = findMatchingOpeningCharacterIndex(functionFullName, '(', ')', paramsEndIndex);
       // Make sure not to include the indexes of "(" and ")" when creating the parameters substring.
       parameters = functionFullName.substring(paramsStartIndex + 1, paramsEndIndex);
       // Remove the parameters and everything that comes after it, such as const/volatile modifiers.
       functionFullName = functionFullName.substring(0, paramsStartIndex);
     }
 
-    // If the string still contains a whitespace, it's the separator between the return type and the function name.
-    int returnTypeSeparatorIndex = functionFullName.indexOf(' ');
+    // Then, strip out the return type, we assume that the return type is separated by the first space,
+    // however the space in "operator bool()" or "someNamespace::operator bool()" is an exception.
+    int returnTypeSeparatorIndex = separatorIndexOutsideOfTemplateInfo(functionFullName, " ", false);
     if (returnTypeSeparatorIndex >= 0) {
-      functionFullName = functionFullName.substring(returnTypeSeparatorIndex + 1);
+      String returnType = functionFullName.substring(0, returnTypeSeparatorIndex);
+      if (!returnType.equals("operator") && !returnType.endsWith("::operator")) {
+        functionFullName = functionFullName.substring(returnTypeSeparatorIndex + 1);
+      }
     }
-    ModelInfo modelInfo;
-    // If there is not a "::" separator in the function name, it's part of the global namespace
-    boolean isGlobalNamespace = !functionFullName.contains("::");
-    if (isGlobalNamespace) {
-      modelInfo = new ModelInfo(functionFullName,  "");
+
+    String name = functionFullName;
+    String classOrNamespace = "";
+
+    int methodNameSeparatorIndex = separatorIndexOutsideOfTemplateInfo(functionFullName, "::", true);
+    if (methodNameSeparatorIndex != -1) {
+      classOrNamespace = functionFullName.substring(0, methodNameSeparatorIndex);
+      name = functionFullName.substring(methodNameSeparatorIndex + 2);
     }
-    else {
-      modelInfo = createModelInfo(functionFullName, "::", NATIVE_SEPARATOR_PATTERN);
-    }
-    return new CppFunctionModel.Builder(modelInfo.getName())
-      .setClassOrNamespace(modelInfo.getClassOrNamespace())
+
+    return new CppFunctionModel.Builder(isOperatorOverload(name) ? name : removeTemplateInfo(name))
+      .setClassOrNamespace(removeTemplateInfo(classOrNamespace))
       .setIsUserCode(isUserWritten)
-      .setParameters(parameters)
+      .setParameters(removeTemplateInfo(parameters))
       .build();
   }
 
   /**
-   * Simplifies a C++ function name by removing the templates. Essentially, removes angle brackets and everything between them. For example:
-   *    "Type1<int> Type2<float>::FuncTemplate<Type3<2>>(Type4<bool>)" -> "Type1 Type2::FuncTemplate(Type4)"
+   * @param functionFullName - a function full name where to search for the occurrence index.
+   * @param separator        - a separator which should be searched.
+   * @param lastIndex        - whether to return the last occurrence index or the first.
+   * @return occurrence index of {@param separator} which is outside of all CPP templates in the given {@param functionFullName}.
    */
-  private static String removeTemplateInformation(String functionFullName) {
-    int currentIndex = functionFullName.indexOf('<');
-    if (currentIndex < 0) {
-      // The function name doesn't contain any template
-      return functionFullName;
+  private static int separatorIndexOutsideOfTemplateInfo(String functionFullName, String separator, boolean lastIndex) {
+    int open = 0;
+    int lastOccurrenceIndex = -1;
+    for (int index = 0; index <= functionFullName.length() - separator.length(); index++) {
+      char ch = functionFullName.charAt(index);
+      if (ch == '<') {
+        ++open;
+      }
+      else if (ch == '>') {
+        --open;
+      }
+      else if (open == 0 && functionFullName.startsWith(separator, index)) {
+        if (!lastIndex) {
+          return index;
+        }
+        lastOccurrenceIndex = index;
+      }
     }
-    StringBuilder filteredName = new StringBuilder(functionFullName.substring(0, currentIndex));
+    return lastOccurrenceIndex;
+  }
 
-    while (currentIndex < functionFullName.length()) {
-      char currentChar = functionFullName.charAt(currentIndex);
-      if (currentChar == '<') {
-        // Skip template.
-        currentIndex = findMatchingClosingCharacterIndex(functionFullName, '<', '>', currentIndex);
+  /**
+   * @param functionName - the given function name, i.e "myMethod", "my_method", "myMethod<int>", "operator<<", "my_operator"
+   * @return true, if the given {@param functionName} describes an operator overloading.
+   */
+  private static boolean isOperatorOverload(@NotNull String functionName) {
+    final String operator = "operator";
+    if (!functionName.startsWith(operator)) {
+      return false;
+    }
+    // whether function's name is operator.
+    if (operator.length() == functionName.length()) {
+      return true;
+    }
+
+    return !isCppIdentifierChar(functionName.charAt(operator.length()));
+  }
+
+  private static boolean isCppIdentifierChar(char ch) {
+    // See: http://en.cppreference.com/w/cpp/language/identifiers
+    return ('a' <= ch && ch >= 'z') || ('A' <= ch && ch >= 'Z') || Character.isDigit(ch) || ch == '_';
+  }
+
+  /**
+   * Simplifies a C++ function name by removing the template instantiation information including template arguments.
+   * Essentially, removes angle brackets and everything between them. For example:
+   * "Type1<int> Type2<float>::FuncTemplate<Type3<2>>(Type4<bool>)" -> "Type1 Type2::FuncTemplate(Type4)"
+   */
+  @NotNull
+  private static String removeTemplateInfo(@NotNull String functionFullName) {
+    StringBuilder filteredName = new StringBuilder();
+    int open = 0;
+    for (int i = 0; i < functionFullName.length(); ++i) {
+      char ch = functionFullName.charAt(i);
+      if (ch == '<') {
+        ++open;
       }
-      else {
-        // If not reading a template, just include the char in the function name.
-        filteredName.append(currentChar);
+      else if (ch == '>') {
+        --open;
       }
-      currentIndex++;
+      else if (open == 0) {
+        filteredName.append(ch);
+      }
+    }
+
+    if (open != 0) {
+      throw new IllegalStateException("Native function signature must have matching parentheses and brackets.");
     }
     return filteredName.toString();
   }
 
   /**
-   * Given the opening and closing characters (e.g. '<' and '>', or '(' and ')'), returns the index of the closing character
-   * that matches the opening character of a string representing a function name.
+   * Given the opening and closing characters (e.g. '<' and '>', or '(' and ')'), returns the index of the opening character
+   * that matches the closing character of a string representing a function name.
    */
-  private static int findMatchingClosingCharacterIndex(String functionName, char opening, char closing, int startIndex) {
-    // Counter to keep track of the characters we read. If we read an opening character, increment the counter. If we read a closing one,
-    // decrement it. Start the counter as 1 to take the first opening character into account. If the counter gets to 0, it means we have
-    // found the target index.
-    int count = 1;
-
-    int index = startIndex;
-    assert functionName.charAt(index) == opening;
-
-    // Iterate backwards until we reach the matching opening parenthesis.
-    while (index++ < functionName.length() - 1) {
-      if (functionName.charAt(index) == opening) {
+  private static int findMatchingOpeningCharacterIndex(String functionName, char opening, char closing, int endIndex) {
+    assert functionName.charAt(endIndex) == closing;
+    int count = 0;
+    for (int i = endIndex; i >= 0; --i) {
+      Character ch = functionName.charAt(i);
+      if (ch == closing) {
         count++;
       }
-      else if (functionName.charAt(index) == closing) {
+      else if (ch == opening) {
         count--;
       }
       if (count == 0) {
-        return index;
+        return i;
       }
     }
     throw new IllegalStateException("Native function signature must have matching parentheses and brackets.");
@@ -153,8 +200,9 @@ public class NodeNameParser {
 
   /**
    * Receives a full method/function name and returns a {@link ModelInfo} containing its class name (or namespace), and its (simple) name.
-   * @param fullName The method's (or function's) full qualified name (e.g. java.lang.Object.equals)
-   * @param separator The namespace/package separator (e.g. "." or "::")
+   *
+   * @param fullName         The method's (or function's) full qualified name (e.g. java.lang.Object.equals)
+   * @param separator        The namespace/package separator (e.g. "." or "::")
    * @param separatorPattern The regex pattern used to split the method full name (e.g. "\\." or "::")
    */
   private static ModelInfo createModelInfo(String fullName, String separator, Pattern separatorPattern) {
