@@ -23,7 +23,6 @@ iml_module(
     javacopts = ["-Xep:MissingCasesInEnumSwitch:WARN"],
     tags = [
         "managed",
-        "no_foundry",  # b/73948555
     ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -131,7 +130,6 @@ iml_module(
     javacopts = ["-XepAllErrorsAsWarnings"],
     tags = [
         "managed",
-        "no_foundry",  # b/73948555
     ],
     test_class = "com.android.tools.idea.IdeaTestSuite",
     # keep sorted
@@ -276,7 +274,6 @@ filegroup(
             "//tools/base/profiler/transform:profilers-transform.jar",
         ],
     }),
-    tags = ["no_foundry"],  # b/73948555
     visibility = ["//visibility:public"],
 )
 
@@ -285,7 +282,6 @@ filegroup(
     srcs = [
         "//tools/base/sdk-common/aia-manifest-jar-generator:jarjar.jar",
     ],
-    tags = ["no_foundry"],  # b/73948555
     visibility = ["//visibility:public"],
 )
 
@@ -297,7 +293,6 @@ filegroup(
         ":profiler-artifacts",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
     ],
-    tags = ["no_foundry"],  # b/73948555
 )
 
 maven_repo(
@@ -430,7 +425,6 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/org/objenesis/objenesis/2.5:jar",
         "//prebuilts/tools/common/m2/repository/org/slf4j/slf4j-api/1.7.2:jar",
     ],
-    tags = ["no_foundry"],  # b/73948555
     visibility = ["//visibility:public"],
 )
 
@@ -491,6 +485,5 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/org/ow2/asm/asm-tree/5.0.3:jar",
         "//prebuilts/tools/common/m2/repository/org/ow2/asm/asm/5.0.3:jar",
     ],
-    tags = ["no_foundry"],  # b/73948555
     visibility = ["//visibility:public"],
 )
