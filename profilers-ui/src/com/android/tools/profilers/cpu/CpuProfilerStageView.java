@@ -723,13 +723,13 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     ProfilerAction navigateNext =
       new ProfilerAction.Builder("Next capture")
         .setActionRunnable(() -> myStage.navigateNext())
-        .setEnableBooleanSupplier(() -> myStage.getTraceIdsIterator().hasNext())
+        .setEnableBooleanSupplier(() -> !myStage.isImportTraceMode() && myStage.getTraceIdsIterator().hasNext())
         .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, shortcutModifier)).build();
 
     ProfilerAction navigatePrevious =
       new ProfilerAction.Builder("Previous capture")
         .setActionRunnable(() -> myStage.navigatePrevious())
-        .setEnableBooleanSupplier(() -> myStage.getTraceIdsIterator().hasPrevious())
+        .setEnableBooleanSupplier(() -> !myStage.isImportTraceMode() && myStage.getTraceIdsIterator().hasPrevious())
         .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, shortcutModifier)).build();
 
     contextMenuInstaller.installGenericContextMenu(mySelection, navigateNext);
@@ -741,10 +741,13 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
    * Installs the {@link ContextMenuItem} corresponding to the "Export Trace" feature on {@link #mySelection}.
    */
   private void installExportTraceMenuItem(ContextMenuInstaller contextMenuInstaller) {
-    ProfilerAction exportTrace = new ProfilerAction.Builder("Export trace...").setIcon(StudioIcons.Common.EXPORT).build();
+    // Call setEnableBooleanSupplier() on ProfilerAction.Builder to make it easier to test.
+    ProfilerAction exportTrace = new ProfilerAction.Builder("Export trace...").setIcon(StudioIcons.Common.EXPORT)
+                                                                              .setEnableBooleanSupplier(() -> !myStage.isImportTraceMode())
+                                                                              .build();
     contextMenuInstaller.installGenericContextMenu(
       mySelection, exportTrace,
-      x -> getTraceIntersectingWithMouseX(x) != null,
+      x -> exportTrace.isEnabled() && getTraceIntersectingWithMouseX(x) != null,
       x -> getIdeComponents().createExportDialog().open(
         () -> "Export trace as",
         () -> generateTraceName(getTraceIntersectingWithMouseX(x)),
@@ -764,8 +767,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
                                                              ? "Stop recording" : "Record CPU trace")
       .setIcon(() -> myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING
                      ? StudioIcons.Profiler.Toolbar.STOP_RECORDING : StudioIcons.Profiler.Toolbar.RECORD)
-      .setEnableBooleanSupplier(() -> myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING
-                                      || myStage.getCaptureState() == CpuProfilerStage.CaptureState.IDLE)
+      .setEnableBooleanSupplier(() -> !myStage.isImportTraceMode() && (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING
+                                                                       || myStage.getCaptureState() == CpuProfilerStage.CaptureState.IDLE))
       .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_R, SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK))
       .setActionRunnable(() -> capture())
       .build();

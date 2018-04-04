@@ -34,6 +34,7 @@ import com.intellij.ui.JBSplitter
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.io.File
 import javax.swing.JList
 
 // Path to trace file. Used in test to build AtraceParser.
@@ -114,6 +115,60 @@ class CpuProfilerStageViewTest {
     // Check the common menu items are added after "Record" action
     checkCommonProfilersMenuItems(items, 5)
   }
+
+  @Test
+  fun contextMenuShouldBeDisabledInImportTraceMode() {
+    // Enable the export trace flag because we are going to test if the export menu item is enabled/disabled.
+    myIdeServices.enableExportTrace(true)
+    // Clear any context menu items added to the service to make sure we'll have only the items created in CpuProfilerStageView
+    myComponents.clearContextMenuItems()
+    // Create a CpuProfilerStageView. We don't need its value, so we don't store it in a variable.
+    CpuProfilerStageView(myProfilersView, myStage)
+    assertThat(myStage.isImportTraceMode).isFalse()
+
+    var items = myComponents.allContextMenuItems
+    assertThat(items).hasSize(12)
+
+    // Check we add CPU specific actions first.
+    assertThat(items[0].text).isEqualTo("Record CPU trace")
+    assertThat(items[0].isEnabled).isTrue()
+
+    assertThat(items[2].text).isEqualTo("Export trace...")
+    assertThat(items[2].isEnabled).isTrue()
+
+    myStage.traceIdsIterator.addTrace(123)  // add a fake trace
+    assertThat(items[4].text).isEqualTo("Next capture")
+    assertThat(items[4].isEnabled).isTrue()
+    assertThat(items[5].text).isEqualTo("Previous capture")
+    assertThat(items[5].isEnabled).isTrue()
+
+    // Enable import trace and sessions view, both of which are required for import-trace-mode.
+    myIdeServices.enableImportTrace(true)
+    myIdeServices.enableSessionsView(true)
+    myStage = CpuProfilerStage(myStage.studioProfilers, File("FakePathToTraceFile.trace"))
+    // Clear any context menu items added to the service to make sure we'll have only the items created in CpuProfilerStageView
+    myComponents.clearContextMenuItems()
+    // Create a CpuProfilerStageView. We don't need its value, so we don't store it in a variable.
+    CpuProfilerStageView(myProfilersView, myStage)
+    assertThat(myStage.isImportTraceMode).isTrue()
+
+    items = myComponents.allContextMenuItems
+    assertThat(items).hasSize(12)
+
+    // Check we add CPU specific actions first.
+    assertThat(items[0].text).isEqualTo("Record CPU trace")
+    assertThat(items[0].isEnabled).isFalse()
+
+    assertThat(items[2].text).isEqualTo("Export trace...")
+    assertThat(items[2].isEnabled).isFalse()
+
+    myStage.traceIdsIterator.addTrace(123)  // add a fake trace
+    assertThat(items[4].text).isEqualTo("Next capture")
+    assertThat(items[4].isEnabled).isFalse()
+    assertThat(items[5].text).isEqualTo("Previous capture")
+    assertThat(items[5].isEnabled).isFalse()
+  }
+
 
   @Test
   fun testCpuCellRendererHasSessionPid() {
