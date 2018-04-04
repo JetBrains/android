@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.project.build.BuildContext;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
+import com.android.tools.idea.gradle.project.settings.AndroidStudioGradleIdeSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
@@ -74,6 +75,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.tools.idea.gradle.project.build.BuildStatus.*;
+import static com.android.tools.idea.gradle.project.sync.common.CommandLineArgs.isInTestingMode;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.android.tools.idea.gradle.util.GradleBuilds.CONFIGURE_ON_DEMAND_OPTION;
 import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPTION;
@@ -231,10 +233,11 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         commandLineArguments.add(createProjectProperty(AndroidProject.PROPERTY_INVOKED_FROM_IDE, true));
         commandLineArguments.addAll(myRequest.getCommandLineArguments());
 
-        GradleInitScripts initScripts = GradleInitScripts.getInstance();
-        initScripts.addLocalMavenRepoInitScriptCommandLineArg(commandLineArguments);
-
-        attemptToUseEmbeddedGradle(project);
+        // Inject embedded repository if it's enabled by user or if in testing mode.
+        if (AndroidStudioGradleIdeSettings.getInstance().isEmbeddedMavenRepoEnabled() || isInTestingMode()) {
+          GradleInitScripts.getInstance().addLocalMavenRepoInitScriptCommandLineArg(commandLineArguments);
+          attemptToUseEmbeddedGradle(project);
+        }
 
         // Don't include passwords in the log
         String logMessage = "Build command line options: " + commandLineArguments;
