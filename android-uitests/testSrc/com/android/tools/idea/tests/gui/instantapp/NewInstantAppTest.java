@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.instantapp;
 
 import com.android.tools.idea.instantapp.InstantAppUrlFinder;
-import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -25,7 +24,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
 import com.intellij.openapi.module.Module;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
@@ -247,9 +245,7 @@ public class NewInstantAppTest {
     createAndOpenDefaultAIAProject("RouteApp", "routefeature", null);
 
     Module module = guiTest.ideFrame().getModule("routefeature");
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    assertThat(facet).isNotNull();
-    assertThat(new InstantAppUrlFinder(MergedManifest.get(facet)).getAllUrls()).isNotEmpty();
+    assertThat(new InstantAppUrlFinder(module).getAllUrls()).isNotEmpty();
   }
 
   @Test

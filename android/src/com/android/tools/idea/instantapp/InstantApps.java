@@ -18,10 +18,8 @@ package com.android.tools.idea.instantapp;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -133,7 +131,7 @@ public class InstantApps {
     String defaultUrl = "<<ERROR - NO URL SET>>";
     List<Module> featureModules = findFeatureModules(facet);
     for (Module module : featureModules) {
-      String foundUrl = new InstantAppUrlFinder(MergedManifest.get(module)).getDefaultUrl();
+      String foundUrl = new InstantAppUrlFinder(module).getDefaultUrl();
       if (isNotEmpty(foundUrl)) {
         defaultUrl = foundUrl;
         break;
