@@ -139,16 +139,16 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertThat(excludedDependencies).hasSize(3);
 
     ExcludedDependencyModel first = excludedDependencies.get(0);
-    assertNull(first.group().value());
-    assertEquals("cglib", first.module().value());
+    assertNull(first.group().toString());
+    assertEquals("cglib", first.module().toString());
 
     ExcludedDependencyModel second = excludedDependencies.get(1);
-    assertEquals("org.jmock", second.group().value());
-    assertNull(second.module().value());
+    assertEquals("org.jmock", second.group().toString());
+    assertNull(second.module().toString());
 
     ExcludedDependencyModel third = excludedDependencies.get(2);
-    assertEquals("org.unwanted", third.group().value());
-    assertEquals("iAmBuggy", third.module().value());
+    assertEquals("org.unwanted", third.group().toString());
+    assertEquals("iAmBuggy", third.module().toString());
   }
 
   @Test
@@ -341,20 +341,20 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertThat(excludedDependencies).hasSize(4);
 
     ExcludedDependencyModel first = excludedDependencies.get(0);
-    assertEquals("com.android.support", first.group().value());
-    assertEquals("support-v4", first.module().value());
+    assertEquals("com.android.support", first.group().toString());
+    assertEquals("support-v4", first.module().toString());
 
     ExcludedDependencyModel second = excludedDependencies.get(1);
-    assertEquals("com.android.support", second.group().value());
-    assertEquals("support-annotations", second.module().value());
+    assertEquals("com.android.support", second.group().toString());
+    assertEquals("support-annotations", second.module().toString());
 
     ExcludedDependencyModel third = excludedDependencies.get(2);
-    assertEquals("com.android.support", third.group().value());
-    assertEquals("recyclerview-v7", third.module().value());
+    assertEquals("com.android.support", third.group().toString());
+    assertEquals("recyclerview-v7", third.module().toString());
 
     ExcludedDependencyModel fourth = excludedDependencies.get(3);
-    assertEquals("com.android.support", fourth.group().value());
-    assertEquals("design", fourth.module().value());
+    assertEquals("com.android.support", fourth.group().toString());
+    assertEquals("design", fourth.module().toString());
   }
 
   @Test
