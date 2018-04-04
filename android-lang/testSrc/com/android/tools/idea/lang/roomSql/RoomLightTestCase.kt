@@ -31,49 +31,49 @@ abstract class RoomLightTestCase : LightCodeInsightFixtureTestCase() {
 
     myFixture.addClass(
         """
-          package android.arch.persistence.room;
+          package androidx.room;
 
           public @interface Dao {}
           """.trimIndent())
 
     myFixture.addClass(
         """
-          package android.arch.persistence.room;
+          package androidx.room;
 
           public @interface Database { Class[] entities(); int version(); }
           """.trimIndent())
 
     myFixture.addClass(
         """
-          package android.arch.persistence.room;
+          package androidx.room;
 
           public @interface Entity { String tableName() default ""; }
           """.trimIndent())
 
     myFixture.addClass(
         """
-          package android.arch.persistence.room;
+          package androidx.room;
 
           public @interface Query { String value(); }
           """.trimIndent())
 
     myFixture.addClass(
         """
-          package android.arch.persistence.room;
+          package androidx.room;
 
           public @interface Ignore {}
           """.trimIndent())
 
     myFixture.addClass(
         """
-          package android.arch.persistence.room;
+          package androidx.room;
 
           public @interface ColumnInfo { String name() default ""; }
           """.trimIndent())
 
     myFixture.addClass(
         """
-          package android.arch.persistence.room;
+          package androidx.room;
 
           public @interface Embedded { String prefix() default ""; }
           """.trimIndent())
@@ -116,8 +116,8 @@ abstract class RoomLightTestCase : LightCodeInsightFixtureTestCase() {
         """
         $packageLine
 
-        import android.arch.persistence.room.Entity;
-        import android.arch.persistence.room.ColumnInfo;
+        import androidx.room.Entity;
+        import androidx.room.ColumnInfo;
 
         @Entity$annotationArguments
         public class $className { $fieldsSnippet }

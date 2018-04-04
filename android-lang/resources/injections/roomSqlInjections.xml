@@ -18,6 +18,7 @@
   <injection language="RoomSql" injector-id="java">
     <display-name>Room Query annotation</display-name>
     <place><![CDATA[psiMethod().withName("value").withParameters().definedInClass("android.arch.persistence.room.Query")]]></place>
+    <place><![CDATA[psiMethod().withName("value").withParameters().definedInClass("androidx.room.Query")]]></place>
   </injection>
   <injection language="RoomSql" injector-id="java">
     <display-name>SQLiteDatabase methods</display-name>
@@ -30,8 +31,11 @@
     <place><![CDATA[psiParameter().ofMethod(1, psiMethod().withName("rawQueryWithFactory").withParameters("android.database.sqlite.SQLiteDatabase.CursorFactory", "java.lang.String", "java.lang.String[]", "java.lang.String").definedInClass("android.database.sqlite.SQLiteDatabase"))]]></place>
     <place><![CDATA[psiParameter().ofMethod(1, psiMethod().withName("rawQueryWithFactory").withParameters("android.database.sqlite.SQLiteDatabase.CursorFactory", "java.lang.String", "java.lang.String[]", "java.lang.String", "android.os.CancellationSignal").definedInClass("android.database.sqlite.SQLiteDatabase"))]]></place>
     <place><![CDATA[psiParameter().ofMethod(0, psiMethod().withName("compileStatement").withParameters("java.lang.String").definedInClass("android.arch.persistence.db.SupportSQLiteDatabase"))]]></place>
+    <place><![CDATA[psiParameter().ofMethod(0, psiMethod().withName("compileStatement").withParameters("java.lang.String").definedInClass("androidx.sqlite.db.SupportSQLiteDatabase"))]]></place>
     <place><![CDATA[psiParameter().ofMethod(0, psiMethod().withName("execSQL").withParameters("java.lang.String").definedInClass("android.arch.persistence.db.SupportSQLiteDatabase"))]]></place>
+    <place><![CDATA[psiParameter().ofMethod(0, psiMethod().withName("execSQL").withParameters("java.lang.String").definedInClass("androidx.sqlite.db.SupportSQLiteDatabase"))]]></place>
     <place><![CDATA[psiParameter().ofMethod(0, psiMethod().withName("execSQL").withParameters("java.lang.String", "java.lang.Object[]").definedInClass("android.arch.persistence.db.SupportSQLiteDatabase"))]]></place>
+    <place><![CDATA[psiParameter().ofMethod(0, psiMethod().withName("execSQL").withParameters("java.lang.String", "java.lang.Object[]").definedInClass("androidx.sqlite.db.SupportSQLiteDatabase"))]]></place>
   </injection>
 </component>
 

@@ -27,8 +27,8 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
     myFixture.configureByText("UserDao.java", """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao
@@ -47,8 +47,8 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
     myFixture.configureByText("UserDao.java", """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao
@@ -67,8 +67,8 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
     myFixture.configureByText("UserDao.java", """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao
@@ -87,8 +87,8 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
     myFixture.configureByText("UserDao.java", """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao
@@ -107,8 +107,8 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
     myFixture.configureByText("UserDao.java", """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao
@@ -127,8 +127,8 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
     myFixture.configureByText("UserDao.java", """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao
@@ -147,8 +147,8 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
     myFixture.configureByText("UserDao.java", """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao
@@ -167,8 +167,8 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
     myFixture.configureByText("UserDao.java", """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao
@@ -187,8 +187,8 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
     myFixture.configureByText("UserDao.java", """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao
@@ -207,8 +207,8 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
     myFixture.configureByText("UserDao.java", """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao
@@ -227,8 +227,8 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
     myFixture.configureByText("UserDao.java", """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao
@@ -243,8 +243,8 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
     myFixture.configureByText("UserDao.java", """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao
@@ -263,8 +263,8 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
     myFixture.configureByText("UserDao.java", """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao
@@ -279,8 +279,8 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
     myFixture.configureByText("UserDao.java", """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao
@@ -295,8 +295,8 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
     myFixture.configureByText("UserDao.java", """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao
@@ -315,8 +315,8 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
     myFixture.configureByText("UserDao.java", """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao
@@ -331,8 +331,8 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
     myFixture.configureByText("UserDao.java", """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao
@@ -347,8 +347,8 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
     myFixture.configureByText("UserDao.java", """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao
@@ -369,8 +369,8 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
     myFixture.configureByText("UserDao.java", """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao
@@ -384,8 +384,8 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
     myFixture.configureByText("UserDao.java", """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao
@@ -403,8 +403,8 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
     myFixture.configureByText("UserDao.java", """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao
@@ -419,8 +419,8 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
     myFixture.configureByText("UserDao.java", """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao
@@ -437,8 +437,8 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
     myFixture.configureByText("SomeDao.java", """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao
@@ -453,8 +453,8 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
     myFixture.configureByText("SomeDao.java", """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao

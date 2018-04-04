@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.lang.roomSql.psi
 
-import com.android.tools.idea.lang.roomSql.QUERY_ANNOTATION_NAME
 import com.android.tools.idea.lang.roomSql.ROOM_ICON
 import com.android.tools.idea.lang.roomSql.ROOM_SQL_FILE_TYPE
+import com.android.tools.idea.lang.roomSql.RoomAnnotations
 import com.android.tools.idea.lang.roomSql.RoomSqlLanguage
 import com.android.tools.idea.lang.roomSql.resolution.RoomSchemaManager
 import com.android.tools.idea.lang.roomSql.resolution.SqlTable
@@ -54,7 +54,7 @@ class RoomSqlFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, Ro
       val injectionHost = InjectedLanguageManager.getInstance(project).getInjectionHost(this)
       val annotation = injectionHost?.getUastParentOfType<UAnnotation>() ?: return null
 
-      return if (annotation.qualifiedName == QUERY_ANNOTATION_NAME) annotation else null
+      return if (RoomAnnotations.QUERY.isEquals(annotation.qualifiedName)) annotation else null
     }
 
   val queryMethod: UMethod? get() = queryAnnotation?.getParentOfType<UAnnotated>() as? UMethod
