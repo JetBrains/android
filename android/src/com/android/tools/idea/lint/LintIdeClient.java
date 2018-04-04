@@ -36,6 +36,7 @@ import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.res.*;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.templates.IdeDeprecatedSdkRegistry;
 import com.android.tools.idea.templates.IdeGoogleMavenRepository;
 import com.android.tools.lint.checks.ApiLookup;
 import com.android.tools.lint.client.api.*;
@@ -94,6 +95,7 @@ import java.util.*;
 import java.util.function.Predicate;
 
 import static com.android.ide.common.repository.GoogleMavenRepository.MAVEN_GOOGLE_CACHE_DIR_KEY;
+import static com.android.tools.lint.checks.DeprecatedSdkRegistryKt.DEPRECATED_SDK_CACHE_DIR_KEY;
 import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 /**
@@ -588,6 +590,11 @@ public class LintIdeClient extends LintClient implements Disposable {
     if (MAVEN_GOOGLE_CACHE_DIR_KEY.equals(name)) {
       // Share network cache with existing implementation
       return IdeGoogleMavenRepository.INSTANCE.getCacheDir();
+    }
+
+    if (DEPRECATED_SDK_CACHE_DIR_KEY.equals(name)) {
+      // Share network cache with existing implementation
+      return IdeDeprecatedSdkRegistry.INSTANCE.getCacheDir();
     }
 
     final String path = ourSystemPath != null ? ourSystemPath : (ourSystemPath = PathUtil.getCanonicalPath(PathManager.getSystemPath()));
