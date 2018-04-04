@@ -346,8 +346,8 @@ private fun RenderResources.resolveColor(colorValue: ResourceValue?, project: Pr
   val state = states[states.size - 1]
 
   val stateColor = parseColor(state.value) ?: resolveColor(findResValue(state.value, false), project, depth + 1) ?: return null
-  try {
-    return makeColorWithAlpha(stateColor, state.alpha)
+  return try {
+    makeColorWithAlpha(stateColor, state.alpha)
   } catch (e: NumberFormatException) {
     // If the alpha value is not valid, Android uses 1.0
     LOG.warn(
@@ -356,7 +356,7 @@ private fun RenderResources.resolveColor(colorValue: ResourceValue?, project: Pr
         stateList.fileName
       )
     )
-    return stateColor
+    stateColor
   }
 }
 
