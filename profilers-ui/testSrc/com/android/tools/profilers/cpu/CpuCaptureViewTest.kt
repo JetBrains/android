@@ -15,8 +15,14 @@
  */
 package com.android.tools.profilers.cpu
 
+import com.android.testutils.TestUtils
+import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.adtui.model.Range
+import com.android.tools.adtui.stdui.CommonTabbedPane
+import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profilers.*
+import com.android.tools.profilers.cpu.atrace.AtraceParser
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
@@ -24,9 +30,11 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.TimeUnit
 
 class CpuCaptureViewTest {
   private val TRACE_PATH = "tools/adt/idea/profilers-ui/testData/valid_trace.trace"
+  private val ATRACE_TRACE_PATH = "tools/adt/idea/profilers-ui/testData/cputraces/atrace_processid_1.ctrace"
 
   private val myProfilerService = FakeProfilerService()
 
@@ -44,6 +52,16 @@ class CpuCaptureViewTest {
   fun setUp() {
     val services = FakeIdeProfilerServices()
     val profilers = StudioProfilers(myGrpcChannel.client, services, myTimer)
+    // Add a trace for Atrace captures. This is required to work around a framework design loop see b/77597839.
+    val traceInfo = CpuProfiler.TraceInfo.newBuilder()
+      .setTraceId(0)
+      .setTraceFilePath(ATRACE_TRACE_PATH)
+      .setProfilerType(CpuProfiler.CpuProfilerType.ATRACE)
+      .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos(0))
+      .setToTimestamp(TimeUnit.MICROSECONDS.toNanos(800))
+    myCpuService.addTraceInfo(traceInfo.build())
+    myCpuService.addTraceInfo(traceInfo.setTraceId(1).setTraceFilePath(TRACE_PATH).setProfilerType(CpuProfiler.CpuProfilerType.ART).build())
+    myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)
     // One second must be enough for new devices (and processes) to be picked up
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
@@ -57,14 +75,28 @@ class CpuCaptureViewTest {
   @Test
   fun whenSelectingCallChartThereShouldBeInstanceOfTreeChartView() {
     val stage = myStageView.stage
-    val capture = CpuProfilerTestUtils.getCapture(TRACE_PATH)
-    stage.capture = capture
-    stage.selectedThread = capture.mainThreadId
+    myCpuService.profilerType = CpuProfiler.CpuProfilerType.ART
+    myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(TRACE_PATH)))
+    stage.setAndSelectCapture(1)
+    stage.selectedThread = stage.capture!!.mainThreadId
     stage.setCaptureDetails(CaptureModel.Details.Type.BOTTOM_UP)
 
     ReferenceWalker(myStageView).assertNotReachable(CpuCaptureView.CallChartView::class.java)
     stage.setCaptureDetails(CaptureModel.Details.Type.CALL_CHART)
     assertThat(stage.captureDetails?.type).isEqualTo(CaptureModel.Details.Type.CALL_CHART)
     ReferenceWalker(myStageView).assertReachable(CpuCaptureView.CallChartView::class.java)
+    var tabPane = TreeWalker(myStageView.component).descendants().filterIsInstance(CommonTabbedPane::class.java)[0]
+    tabPane.selectedIndex = 0;
+    assertThat(tabPane.getTitleAt(0)).matches("Call Chart")
+
+    //Change to an atrace capture because the tab name changes
+    myCpuService.profilerType = CpuProfiler.CpuProfilerType.ATRACE
+    myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(ATRACE_TRACE_PATH)))
+    stage.setAndSelectCapture(0)
+    stage.selectedThread = stage.capture!!.mainThreadId
+    tabPane = TreeWalker(myStageView.component).descendants().filterIsInstance(CommonTabbedPane::class.java)[0]
+    tabPane.selectedIndex = 0;
+    ReferenceWalker(myStageView).assertReachable(CpuCaptureView.CallChartView::class.java)
+    assertThat(tabPane.getTitleAt(0)).matches("Trace Events")
   }
 }
