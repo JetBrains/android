@@ -17,7 +17,6 @@ package com.android.tools.idea.run.editor;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.instantapp.InstantAppUrlFinder;
-import com.android.tools.idea.model.MergedManifest;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
@@ -73,7 +72,7 @@ public class DeepLinkChooserDialog extends DialogWrapper {
       if (facet != null) {
         List<Module> featureModules = findFeatureModules(facet);
         for (Module featureModule : featureModules) {
-          deepLinks.addAll(new InstantAppUrlFinder(MergedManifest.get(featureModule)).getAllUrls());
+          deepLinks.addAll(new InstantAppUrlFinder(featureModule).getAllUrls());
         }
       }
     }

@@ -16,7 +16,6 @@
 package com.android.tools.idea.run.editor;
 
 import com.android.tools.idea.instantapp.InstantAppUrlFinder;
-import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
@@ -29,9 +28,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.instantapp.InstantApps.findFeatureModules;
@@ -61,7 +58,7 @@ public class DeepLinkLaunch extends LaunchOption<DeepLinkLaunch.State> {
         boolean matched = false;
         List<Module> featureModules = findFeatureModules(facet);
         for (Module featureModule : featureModules) {
-          if (new InstantAppUrlFinder(MergedManifest.get(featureModule)).matchesUrl(DEEP_LINK)) {
+          if (new InstantAppUrlFinder(featureModule).matchesUrl(DEEP_LINK)) {
             matched = true;
             break;
           }
