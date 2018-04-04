@@ -478,7 +478,25 @@ public class GraphicsLayoutRenderer {
 
   @NotNull
   public List<ViewInfo> getRootViews() {
-    return myRenderSession == null ? Collections.emptyList() : myRenderSession.getRootViews();
+    myRenderSessionLock.readLock().lock();
+
+    try {
+      if (myRenderSession == null) {
+        return Collections.emptyList();
+      }
+
+      List<ViewInfo> views = myRenderSession.getRootViews();
+
+      if (views == null) {
+        LOG.warn("The root views from the render session are unexpectedly null");
+        return Collections.emptyList();
+      }
+
+      return views;
+    }
+    finally {
+      myRenderSessionLock.readLock().unlock();
+    }
   }
 
   /**
