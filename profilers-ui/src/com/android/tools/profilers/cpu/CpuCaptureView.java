@@ -29,6 +29,7 @@ import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
+import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
@@ -59,6 +60,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -70,11 +72,18 @@ import static com.android.tools.profilers.ProfilerLayout.*;
 
 class CpuCaptureView {
   // Note the order of the values in the map defines the order of the tabs in UI.
-  private static final Map<CaptureModel.Details.Type, String> TABS = ImmutableMap.of(
+  private static final Map<CaptureModel.Details.Type, String> DEFAULT_TAB_NAMES = ImmutableMap.of(
     CaptureModel.Details.Type.CALL_CHART, "Call Chart",
     CaptureModel.Details.Type.FLAME_CHART, "Flame Chart",
     CaptureModel.Details.Type.TOP_DOWN, "Top Down",
     CaptureModel.Details.Type.BOTTOM_UP, "Bottom Up");
+
+  // For Atrace captures names from this map will be used in place of default tab names.
+  private static final Map<CaptureModel.Details.Type, String> ATRACE_TAB_NAMES = ImmutableMap.of(
+    CaptureModel.Details.Type.CALL_CHART, "Trace Events");
+
+  // Some of the tab names may be replaced. This list defines the currently active tab names as
+  private final Map<CaptureModel.Details.Type, String> myTabs = new LinkedHashMap<>(DEFAULT_TAB_NAMES);
 
   private static final Map<CaptureModel.Details.Type, Consumer<FeatureTracker>> CAPTURE_TRACKERS = ImmutableMap.of(
     CaptureModel.Details.Type.TOP_DOWN, FeatureTracker::trackSelectCaptureTopDown,
@@ -111,12 +120,6 @@ class CpuCaptureView {
   CpuCaptureView(@NotNull CpuProfilerStageView view) {
     myView = view;
     myTabsPanel = new CommonTabbedPane();
-
-    for (String label : TABS.values()) {
-      myTabsPanel.addTab(label, new JPanel(new BorderLayout()));
-    }
-    myTabsPanel.addChangeListener(this::setCaptureDetailToTab);
-
     JComboBox<ClockType> clockTypeCombo = new ComboBox<>();
     JComboBoxView clockTypes =
       new JComboBoxView<>(clockTypeCombo, view.getStage().getAspect(), CpuProfilerAspect.CLOCK_TYPE,
@@ -125,7 +128,14 @@ class CpuCaptureView {
     clockTypeCombo.setRenderer(new ClockTypeCellRenderer());
     CpuCapture capture = myView.getStage().getCapture();
     clockTypeCombo.setEnabled(capture != null && capture.isDualClock());
+    if (capture != null && capture.getType() == CpuProfiler.CpuProfilerType.ATRACE) {
+      myTabs.putAll(ATRACE_TAB_NAMES);
+    }
 
+    for (String label : myTabs.values()) {
+      myTabsPanel.addTab(label, new JPanel(new BorderLayout()));
+    }
+    myTabsPanel.addChangeListener(this::setCaptureDetailToTab);
     myTabsPanel.setOpaque(false);
 
     myPanel = new JPanel(new TabularLayout("*,Fit", "Fit,*"));
@@ -174,7 +184,7 @@ class CpuCaptureView {
     }
 
     // Update the current selected tab
-    String detailsTypeString = TABS.get(details.getType());
+    String detailsTypeString = myTabs.get(details.getType());
     int currentTabIndex = myTabsPanel.getSelectedIndex();
     if (currentTabIndex < 0 || !myTabsPanel.getTitleAt(currentTabIndex).equals(detailsTypeString)) {
       for (int i = 0; i < myTabsPanel.getTabCount(); ++i) {
@@ -206,7 +216,7 @@ class CpuCaptureView {
     CaptureModel.Details.Type type = null;
     if (myTabsPanel.getSelectedIndex() >= 0) {
       String tabTitle = myTabsPanel.getTitleAt(myTabsPanel.getSelectedIndex());
-      for (Map.Entry<CaptureModel.Details.Type, String> entry : TABS.entrySet()) {
+      for (Map.Entry<CaptureModel.Details.Type, String> entry : myTabs.entrySet()) {
         if (tabTitle.equals(entry.getValue())) {
           type = entry.getKey();
         }
@@ -271,14 +281,15 @@ class CpuCaptureView {
     HTreeChart<CaptureNode> chart = new HTreeChart<>(globalRange, range, orientation);
     chart.setHRenderer(new CaptureNodeHRenderer(type));
     chart.setRootVisible(false);
-
     chart.setHTree(node);
-    CodeNavigator navigator = stageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator();
-    TreeChartNavigationHandler handler = new TreeChartNavigationHandler(chart, navigator);
-    chart.addMouseListener(handler);
-    stageView.getIdeComponents().createContextMenuInstaller().installNavigationContextMenu(chart, navigator, handler::getCodeLocation);
     CpuChartTooltipView.install(chart, stageView);
 
+    if (stageView.getStage().getCapture() != null && stageView.getStage().getCapture().getType() != CpuProfiler.CpuProfilerType.ATRACE) {
+      CodeNavigator navigator = stageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator();
+      TreeChartNavigationHandler handler = new TreeChartNavigationHandler(chart, navigator);
+      chart.addMouseListener(handler);
+      stageView.getIdeComponents().createContextMenuInstaller().installNavigationContextMenu(chart, navigator, handler::getCodeLocation);
+    }
     return chart;
   }
 

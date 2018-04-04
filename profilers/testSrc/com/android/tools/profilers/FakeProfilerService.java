@@ -66,7 +66,8 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
         .setState(Common.Device.State.ONLINE)
         .build();
       Common.Process process = Common.Process.newBuilder()
-        .setPid(20)
+        //Setting PID to be 1 since there is a process with pid being 1 in test input atrace_processid_1
+        .setPid(1)
         .setDeviceId(FAKE_DEVICE_ID)
         .setState(Common.Process.State.ALIVE)
         .setName("FakeProcess")
