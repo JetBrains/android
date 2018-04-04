@@ -14,9 +14,9 @@ import org.jetbrains.annotations.Nullable;
 import static com.android.SdkConstants.*;
 
 /**
- * @author Eugene.Kudelevsky
+ * Finds implicit usages of fields, methods, parameters and constructors; resulting from Android conventions.
  */
-public class AndroidImplicitUsagesProvider implements ImplicitUsageProvider {
+public class AndroidClassMembersImplicitUsagesProvider implements ImplicitUsageProvider {
   @Override
   public boolean isImplicitUsage(PsiElement element) {
     if (element instanceof PsiField) {
