@@ -20,6 +20,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -62,15 +63,14 @@ final class UiHtmlText {
   public void renderAlarmSet(@NotNull EnergyProfiler.AlarmSet alarmSet) {
     appendTitleAndValue("Type", EnergyDuration.getAlarmTypeName(alarmSet.getType()));
     // triggerTimeMs depends on alarm type, see https://developer.android.com/reference/android/app/AlarmManager.html#constants.
-    String triggerTime = StringUtil.formatDuration(alarmSet.getTriggerMs());
     switch (alarmSet.getType()) {
       case RTC:
       case RTC_WAKEUP:
-        appendTitleAndValue("Trigger Time in System.currentTimeMillis()", triggerTime);
+        appendTitleAndValue("Trigger Time", new Date(alarmSet.getTriggerMs()).toString());
         break;
       case ELAPSED_REALTIME:
       case ELAPSED_REALTIME_WAKEUP:
-        appendTitleAndValue("Trigger Time in SystemClock.elapsedRealtime()", triggerTime);
+        appendTitleAndValue("Trigger Time since boot", StringUtil.formatDuration(alarmSet.getTriggerMs()));
         break;
       default:
         break;
