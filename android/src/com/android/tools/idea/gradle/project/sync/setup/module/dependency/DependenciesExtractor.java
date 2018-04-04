@@ -28,7 +28,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.DependencyScope;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder.getModuleId;
+import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.TEST;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -99,9 +99,9 @@ public class DependenciesExtractor {
       if (isNotEmpty(gradlePath)) {
         Module module = null;
         String moduleId = gradlePath;
-        String projectFolder = library.getBuildId();
-        if (isNotEmpty(projectFolder)) {
-          moduleId = getModuleId(projectFolder, gradlePath);
+        String moduleFolderPath = library.getBuildId();
+        if (isNotEmpty(moduleFolderPath)) {
+          moduleId = createUniqueModuleId(moduleFolderPath, gradlePath);
           module = moduleFinder.findModuleByModuleId(moduleId);
         }
         if (module == null) {

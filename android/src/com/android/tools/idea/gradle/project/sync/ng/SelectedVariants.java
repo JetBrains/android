@@ -15,28 +15,31 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
-public class SyncActionOptions implements Serializable {
-  @Nullable private SelectedVariants mySelectedVariants;
-  private boolean mySingleVariantSyncEnabled;
+public class SelectedVariants implements Serializable {
+  // Key: module's Gradle ID, value: selected variant.
+  /**
+   * @see com.android.tools.idea.gradle.project.sync.Modules#createUniqueModuleId(File, String)
+   */
+  private final Map<String, String> mySelectedVariantByModule = new HashMap<>();
 
-  public boolean isSingleVariantSyncEnabled() {
-    return mySingleVariantSyncEnabled;
+  void addSelectedVariant(@NotNull String moduleId, @NotNull String selectedVariant) {
+    mySelectedVariantByModule.put(moduleId, selectedVariant);
   }
 
-  public void setSingleVariantSyncEnabled(boolean singleVariantSyncEnabled) {
-    mySingleVariantSyncEnabled = singleVariantSyncEnabled;
+  public int size() {
+    return mySelectedVariantByModule.size();
   }
 
   @Nullable
-  public SelectedVariants getSelectedVariants() {
-    return mySelectedVariants;
-  }
-
-  public void setSelectedVariants(@Nullable SelectedVariants selectedVariants) {
-    mySelectedVariants = selectedVariants;
+  public String getSelectedVariant(@NotNull String moduleId) {
+    return mySelectedVariantByModule.get(moduleId);
   }
 }
