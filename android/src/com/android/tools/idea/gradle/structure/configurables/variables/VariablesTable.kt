@@ -60,11 +60,9 @@ class VariablesTable(private val project: Project, private val context: PsContex
     val moduleNodes = mutableListOf<ModuleNode>()
     context.project.forEachModule { module ->
       val moduleVariables = module.variables.getModuleVariables()
-      if (!moduleVariables.isEmpty()) {
-        val moduleRoot = ModuleNode(module)
-        moduleNodes.add(moduleRoot)
-        moduleVariables.map({ VariableNode(it) }).sortedBy { it.variable.getName() }.forEach { moduleRoot.add(it) }
-      }
+      val moduleRoot = ModuleNode(module)
+      moduleNodes.add(moduleRoot)
+      moduleVariables.map({ VariableNode(it) }).sortedBy { it.variable.getName() }.forEach { moduleRoot.add(it) }
     }
     moduleNodes.sortedBy { it.module.name }.forEach { (tableModel.root as DefaultMutableTreeNode).add(it) }
     tree.expandRow(0)

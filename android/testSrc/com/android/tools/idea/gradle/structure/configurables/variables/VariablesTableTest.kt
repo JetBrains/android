@@ -36,9 +36,18 @@ class VariablesTableTest : AndroidGradleTestCase() {
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
-    val appNode = (tableModel.root as DefaultMutableTreeNode).firstChild as DefaultMutableTreeNode
+    val rootNode = tableModel.root as DefaultMutableTreeNode
+    assertThat(rootNode.childCount, equalTo(2))
+
+    val appNode = rootNode.firstChild as DefaultMutableTreeNode
     assertThat(tableModel.getValueAt(appNode, 0) as String, equalTo("app"))
     assertThat(tableModel.getValueAt(appNode, 1) as String, equalTo(""))
+    assertThat(appNode.childCount, not(0))
+
+    val libNode = rootNode.getChildAt(1) as DefaultMutableTreeNode
+    assertThat(tableModel.getValueAt(libNode, 0) as String, equalTo("lib"))
+    assertThat(tableModel.getValueAt(libNode, 1) as String, equalTo(""))
+    assertThat(libNode.childCount, equalTo(0))
 
     val row = variablesTable.tree.getRowForPath(TreePath(appNode.path))
     for (column in 0..2) {
