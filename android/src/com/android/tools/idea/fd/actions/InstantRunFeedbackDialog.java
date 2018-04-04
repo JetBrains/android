@@ -51,7 +51,7 @@ public class InstantRunFeedbackDialog extends DialogWrapper {
     myFilesList.setModel(new CollectionListModel<>(myLogs));
     myFilesList.setCellRenderer(new ColoredListCellRenderer<Path>() {
       @Override
-      protected void customizeCellRenderer(JList list, Path value, int index, boolean selected, boolean hasFocus) {
+      protected void customizeCellRenderer(@NotNull JList list, Path value, int index, boolean selected, boolean hasFocus) {
         append(value.toString());
       }
     });
