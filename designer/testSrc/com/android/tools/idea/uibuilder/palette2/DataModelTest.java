@@ -170,7 +170,7 @@ public class DataModelTest extends AndroidTestCase {
     assertThat(getMatchCounts()).containsExactly(1, 1).inOrder();
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(0));
     assertThat(getElementsAsStrings(myItemListModel)).containsExactly("FloatingActionButton").inOrder();
-    assertThat(myItemListModel.getElementAt(0).getTagName()).isEqualTo("com.google.android.material.widget.FloatingActionButton");
+    assertThat(myItemListModel.getElementAt(0).getTagName()).isEqualTo("com.google.android.material.floatingactionbutton.FloatingActionButton");
   }
 
   public void testMetaSearch() {
@@ -212,7 +212,7 @@ public class DataModelTest extends AndroidTestCase {
     assertThat(getMatchCounts()).containsExactly(1, 1).inOrder();
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(0));
     assertThat(getElementsAsStrings(myItemListModel)).containsExactly("FloatingActionButton").inOrder();
-    assertThat(myItemListModel.getElementAt(0).getTagName()).isEqualTo("com.google.android.material.widget.FloatingActionButton");
+    assertThat(myItemListModel.getElementAt(0).getTagName()).isEqualTo("com.google.android.material.floatingactionbutton.FloatingActionButton");
 
     // Check meta-search
     myDataModel.setFilterPattern("material");
@@ -220,7 +220,7 @@ public class DataModelTest extends AndroidTestCase {
       .containsExactly(DataModel.RESULTS.getName(), "Text", "Buttons", "Containers").inOrder();
     assertThat(getMatchCounts()).containsExactly(7, 1, 1, 5).inOrder();
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(1));
-    assertThat(myItemListModel.getElementAt(0).getTagName()).isEqualTo("com.google.android.material.widget.TextInputLayout");
+    assertThat(myItemListModel.getElementAt(0).getTagName()).isEqualTo("com.google.android.material.textfield.TextInputLayout");
   }
 
   @NotNull

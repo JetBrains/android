@@ -189,7 +189,7 @@
     <item tag="MultiAutoCompleteTextView" materialReference="https://material.io/guidelines/components/text-fields.html"/>
     <item tag="CheckedTextView" materialReference="https://material.io/guidelines/components/selection-controls.html"/>
     <item tag="android.support.design.widget.TextInputLayout" suggested="true" meta="material"/>
-    <item tag="com.google.android.material.widget.TextInputLayout" suggested="true" meta="material"/>
+    <item tag="com.google.android.material.textfield.TextInputLayout" suggested="true" meta="material"/>
   </group>
   <group name="Buttons">
     <item tag="Button" suggested="true" materialReference="https://material.io/guidelines/components/buttons.html"/>
@@ -202,7 +202,7 @@
           materialReference="https://material.io/guidelines/components/selection-controls.html#selection-controls-switch"/>
     <item tag="android.support.design.widget.FloatingActionButton" suggested="true" meta="material"
           materialReference="https://material.io/guidelines/components/buttons-floating-action-button.html#buttons-floating-action-button-floating-action-button"/>
-    <item tag="com.google.android.material.widget.FloatingActionButton" suggested="true" meta="material"
+    <item tag="com.google.android.material.floatingactionbutton.FloatingActionButton" suggested="true" meta="material"
           materialReference="https://material.io/guidelines/components/buttons-floating-action-button.html#buttons-floating-action-button-floating-action-button"/>
   </group>
   <group name="Widgets">
@@ -379,20 +379,20 @@
     <item tag="android.support.v4.view.ViewPager" id="Tabs" title="Tabs"/>
     <item tag="androidx.viewpager.widget.ViewPager" id="Tabs2" title="Tabs"/>
     <item tag="android.support.design.widget.AppBarLayout" suggested="true"/>
-    <item tag="com.google.android.material.widget.AppBarLayout" suggested="true"/>
+    <item tag="com.google.android.material.appbar.AppBarLayout" suggested="true"/>
     <item tag="android.support.design.widget.NavigationView" suggested="true"/>
-    <item tag="com.google.android.material.widget.NavigationView" suggested="true"/>
+    <item tag="com.google.android.material.navigation.NavigationView" suggested="true"/>
     <item tag="android.support.design.widget.BottomNavigationView" suggested="true"/>
-    <item tag="com.google.android.material.widget.BottomNavigationView" suggested="true"/>
+    <item tag="com.google.android.material.bottomnavigation.BottomNavigationView" suggested="true"/>
     <item tag="android.support.v7.widget.Toolbar" suggested="true" materialReference="https://material.io/guidelines/components/toolbars.html"/>
     <item tag="androidx.appcompat.widget.Toolbar" suggested="true" materialReference="https://material.io/guidelines/components/toolbars.html"/>
     <item tag="android.support.design.widget.TabLayout" suggested="true" meta="material"
           materialReference="https://material.io/guidelines/components/tabs.html"/>
-    <item tag="com.google.android.material.widget.TabLayout" suggested="true" meta="material"
+    <item tag="com.google.android.material.tabs.TabLayout" suggested="true" meta="material"
           materialReference="https://material.io/guidelines/components/tabs.html"/>
     <item tag="android.support.design.widget.TabItem" meta="material"
           materialReference="https://material.io/guidelines/components/tabs.html"/>
-    <item tag="com.google.android.material.widget.TabItem" meta="material"
+    <item tag="com.google.android.material.tabs.TabItem" meta="material"
           materialReference="https://material.io/guidelines/components/tabs.html"/>
 
     <item tag="ViewStub"/>
