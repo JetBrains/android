@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.groovy;
 
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
@@ -52,10 +53,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementVisitor;
+import org.jetbrains.plugins.groovy.lang.psi.*;
 import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrVariable;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrVariableDeclaration;
@@ -203,6 +201,20 @@ public class GroovyDslParser implements GradleDslParser {
     // Otherwise resolve the value and then return the resolved text.
     Collection<GradleReferenceInjection> injections = context.getResolvedVariables();
     return ensureUnquotedText(GradleReferenceInjection.injectAll(literal, injections));
+  }
+
+  @Override
+  @NotNull
+  public PsiElement convertToExcludesBlock(@NotNull List<ArtifactDependencySpec> excludes) {
+      GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(myDslFile.getProject());
+      GrClosableBlock block = factory.createClosureFromText("{\n}");
+      for (ArtifactDependencySpec spec : excludes) {
+        String text = String.format("exclude group: '%s', module: '%s'", spec.getGroup(), spec.getName());
+        block.addBefore(factory.createStatementFromText(text), block.getLastChild());
+        PsiElement lineTerminator = factory.createLineTerminator(1);
+        block.addBefore(lineTerminator, block.getLastChild());
+      }
+      return block;
   }
 
   @Override
