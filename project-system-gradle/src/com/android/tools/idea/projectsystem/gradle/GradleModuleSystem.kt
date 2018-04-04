@@ -89,8 +89,8 @@ class GradleModuleSystem(val module: Module, @TestOnly private val mavenReposito
 
     return GradleBuildModel.get(module)?.let {
       it.dependencies().artifacts(configurationName)
-          .filter { artifactId.toString() == "${it.group().value()}:${it.name().value()}" }
-          .map { parseDependencyVersion(it.version().value()) }
+          .filter { artifactId.toString() == "${it.group()}:${it.name().forceString()}" }
+          .map { parseDependencyVersion(it.version().toString()) }
           .firstOrNull()
     }
   }

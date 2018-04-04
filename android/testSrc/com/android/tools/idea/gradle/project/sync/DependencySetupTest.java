@@ -109,8 +109,8 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
     GradleBuildModel buildModel = GradleBuildModel.parseBuildFile(buildFile, project);
 
     for (ArtifactDependencyModel artifact : buildModel.dependencies().artifacts()) {
-      if ("com.android.support".equals(artifact.group().value()) && "appcompat-v7".equals(artifact.name().value())) {
-        artifact.setVersion("100.0.0");
+      if ("com.android.support".equals(artifact.group().toString()) && "appcompat-v7".equals(artifact.name().forceString())) {
+        artifact.version().setValue("100.0.0");
         versionChanged = true;
         break;
       }

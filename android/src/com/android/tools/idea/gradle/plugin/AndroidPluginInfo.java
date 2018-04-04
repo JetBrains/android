@@ -145,8 +145,8 @@ public class AndroidPluginInfo {
         DependenciesModel dependencies = buildModel.buildscript().dependencies();
         for (ArtifactDependencyModel dependency : dependencies.artifacts(CLASSPATH)) {
           for (AndroidPluginGeneration generation : AndroidPluginGeneration.values()) {
-            if (generation.isAndroidPlugin(dependency.name().value(), dependency.group().value())) {
-              String version = dependency.version().value();
+            if (generation.isAndroidPlugin(dependency.name().forceString(), dependency.group().toString())) {
+              String version = dependency.version().toString();
               if (isNotEmpty(version)) {
                 result.pluginVirtualFile = buildModel.getVirtualFile();
                 result.pluginVersion = version;

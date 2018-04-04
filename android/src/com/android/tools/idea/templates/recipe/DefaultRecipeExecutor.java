@@ -164,9 +164,9 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
       }
       else {
         GradleVersion toBeAddedDependencyVersion = GradleVersion.parse(nullToEmpty(toBeAddedDependency.getVersion()));
-        GradleVersion existingDependencyVersion = GradleVersion.parse(nullToEmpty(targetDependencyModel.version().value()));
+        GradleVersion existingDependencyVersion = GradleVersion.parse(nullToEmpty(targetDependencyModel.version().toString()));
         if (toBeAddedDependencyVersion.compareTo(existingDependencyVersion) > 0) {
-          targetDependencyModel.setVersion(nullToEmpty(toBeAddedDependency.getVersion()));
+          targetDependencyModel.version().setValue(nullToEmpty(toBeAddedDependency.getVersion()));
         }
       }
       myIO.applyChanges(buildModel);
