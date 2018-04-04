@@ -89,9 +89,10 @@ class EnergyProfilerStageTest {
   fun getLegends() {
     val energyLegends = myStage.legends
     assertThat(energyLegends.cpuLegend.name).isEqualTo("CPU")
-    assertThat(energyLegends.networkLegend.name).isEqualTo("NETWORK")
+    assertThat(energyLegends.networkLegend.name).isEqualTo("Network")
+    assertThat(energyLegends.locationLegend.name).isEqualTo("Location")
 
-    assertThat(energyLegends.legends).hasSize(2)
+    assertThat(energyLegends.legends).hasSize(3)
   }
 
   @Test
@@ -110,9 +111,10 @@ class EnergyProfilerStageTest {
     myStage.tooltip = EnergyStageTooltip(myStage)
     assertThat(myStage.tooltip).isInstanceOf(EnergyStageTooltip::class.java)
     val tooltip = myStage.tooltip as EnergyStageTooltip
-    assertThat(tooltip.usageLegends.legends).hasSize(2)
+    assertThat(tooltip.usageLegends.legends).hasSize(3)
     assertThat(tooltip.usageLegends.cpuLegend.name).isEqualTo("CPU")
-    assertThat(tooltip.usageLegends.networkLegend.name).isEqualTo("NETWORK")
+    assertThat(tooltip.usageLegends.networkLegend.name).isEqualTo("Network")
+    assertThat(tooltip.usageLegends.locationLegend.name).isEqualTo("Location")
   }
 
   @Test

@@ -64,6 +64,9 @@ class EnergyDataPollerTest : DataStorePollerTest() {
     // Totally fake values, but chosen to make sure that different categories of power
     // will never overlap by accident.
     companion object {
+      const val NETWORK_USAGE = 1
+      const val GPS_USAGE = 10
+      const val GPS_ACQUIRE_USAGE = 50
       const val CPU_USAGE = 100 // 0 if [percent] == 0.0, max if [percent] == 1.0
       const val WIFI_ACTIVE = 1000
       const val RADIO_ACTIVE = 10000
@@ -77,6 +80,15 @@ class EnergyDataPollerTest : DataStorePollerTest() {
           if (stats.myReceivingBps > 0 || stats.mySendingBps > 0) WIFI_ACTIVE else 0
         PowerProfile.NetworkType.RADIO ->
           if (stats.myReceivingBps > 0 || stats.mySendingBps > 0) RADIO_ACTIVE else 0
+        else -> 0
+      }
+    }
+
+    override fun getLocationUsage(locationStats: PowerProfile.LocationStats): Int {
+      return when (locationStats.myLocationType) {
+        PowerProfile.LocationType.GPS -> GPS_USAGE
+        PowerProfile.LocationType.GPS_ACQUIRE -> GPS_ACQUIRE_USAGE
+        PowerProfile.LocationType.NETWORK -> NETWORK_USAGE
         else -> 0
       }
     }
@@ -374,6 +386,62 @@ class EnergyDataPollerTest : DataStorePollerTest() {
         ).build()
     )
     responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(4 * SAMPLE_INTERVAL_NS).setNetworkUsage(0).build())
+
+    val responseObserver = mock(StreamObserver::class.java) as StreamObserver<EnergyProfiler.EnergySamplesResponse>
+    energyService.getSamples(request, responseObserver)
+    validateResponse(responseObserver, responseBuilder.build())
+  }
+
+  @Test
+  fun locationEventsAffectEnergySamples() {
+    fakeEnergyService.eventList = Lists.newArrayList(
+        EnergyProfiler.EnergyEvent.newBuilder()
+            .setTimestamp(0)
+            .setLocationChanged(
+                EnergyProfiler.LocationChanged.newBuilder()
+                    .setLocation(EnergyProfiler.Location.newBuilder().setProvider("gps").build())
+                    .build())
+            .build(),
+        EnergyProfiler.EnergyEvent.newBuilder()
+            .setTimestamp(5 * SAMPLE_INTERVAL_NS)
+            .setLocationChanged(
+                EnergyProfiler.LocationChanged.newBuilder()
+                    .setLocation(EnergyProfiler.Location.newBuilder().setProvider("gps").build())
+                    .build())
+            .build(),
+        EnergyProfiler.EnergyEvent.newBuilder()
+            .setTimestamp(10 * SAMPLE_INTERVAL_NS)
+            .setLocationChanged(
+                EnergyProfiler.LocationChanged.newBuilder()
+                    .setLocation(EnergyProfiler.Location.newBuilder().setProvider("gps").build())
+                    .build())
+            .build()
+    )
+    fastForward(3 * ONE_SEC_NS)
+
+    val request = EnergyProfiler.EnergyRequest.newBuilder()
+        .setSession(SESSION)
+        .setStartTimestamp(0)
+        .setEndTimestamp(3 * ONE_SEC_NS)
+        .build()
+
+    val responseBuilder = EnergyProfiler.EnergySamplesResponse.newBuilder()
+
+    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(0 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(1 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(2 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(3 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(4 * SAMPLE_INTERVAL_NS).setLocationUsage(0).build())
+    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(5 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(6 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(7 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(8 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(9 * SAMPLE_INTERVAL_NS).setLocationUsage(0).build())
+    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(10 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(11 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(12 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(13 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(14 * SAMPLE_INTERVAL_NS).setLocationUsage(0).build())
 
     val responseObserver = mock(StreamObserver::class.java) as StreamObserver<EnergyProfiler.EnergySamplesResponse>
     energyService.getSamples(request, responseObserver)

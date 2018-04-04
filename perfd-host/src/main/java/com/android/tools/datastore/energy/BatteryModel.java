@@ -16,12 +16,12 @@
 package com.android.tools.datastore.energy;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.profiler.proto.EnergyProfiler;
+import com.android.tools.datastore.energy.PowerProfile.LocationStats;
+import com.android.tools.datastore.energy.PowerProfile.LocationType;
+import com.android.tools.profiler.proto.EnergyProfiler.EnergySample;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -45,12 +45,17 @@ import java.util.function.Function;
  */
 public final class BatteryModel {
   private static final long DEFAULT_SAMPLE_INTERVAL_NS = TimeUnit.MILLISECONDS.toNanos(200);
+
+  private static final long GPS_LOCK_DURATION_NS = TimeUnit.SECONDS.toNanos(7);
+  private static final long NETWORK_SCAN_DURATION_NS = TimeUnit.MILLISECONDS.toNanos(500);
+  private static final int LOCATION_SMOOTHING_SAMPLES = 4;
+
   /**
    * Sparse samples will be converted to dense samples on the fly when the user calls
    * {@link #getSamplesBetween(long, long)}.
    */
   @NotNull
-  private final List<EnergyProfiler.EnergySample> mySparseSamples = new ArrayList<>();
+  private final List<EnergySample> mySparseSamples = new ArrayList<>();
   @NotNull
   private final PowerProfile myPowerProfile;
   private final long mySampleIntervalNs;
@@ -61,6 +66,10 @@ public final class BatteryModel {
   private long myReceivingBps;
   private long mySendingBps;
 
+  private Map<Integer, Long> myLocationEventToTimestampMap = new HashMap<>();
+  private long myLastNetworkLocationOffTime = 0;
+  private long myLastGpsOffTime = 0;
+
   public BatteryModel() {
     this(new PowerProfile.DefaultPowerProfile(), DEFAULT_SAMPLE_INTERVAL_NS);
   }
@@ -69,7 +78,7 @@ public final class BatteryModel {
   public BatteryModel(@NotNull PowerProfile powerProfile, long sampleIntervalNs) {
     myPowerProfile = powerProfile;
     mySampleIntervalNs = sampleIntervalNs;
-    mySparseSamples.add(0, EnergyProfiler.EnergySample.getDefaultInstance());
+    mySparseSamples.add(0, EnergySample.getDefaultInstance());
   }
 
   /**
@@ -100,6 +109,7 @@ public final class BatteryModel {
    * to see what the right arg type is.
    */
   public void handleEvent(long timestampNs, @NotNull BatteryModel.Event energyEvent, Object eventArg) {
+    PowerProfile.LocationEvent locationEvent;
     switch (energyEvent) {
       case CPU_USAGE:
         PowerProfile.CpuCoreUsage[] cpuCoresUsage = (PowerProfile.CpuCoreUsage[])eventArg;
@@ -121,20 +131,78 @@ public final class BatteryModel {
           addNewNetworkSample(timestampNs, new PowerProfile.NetworkStats(myNetworkType, myReceivingBps, mySendingBps));
         }
         break;
+
+      case LOCATION_REGISTER:
+        locationEvent = (PowerProfile.LocationEvent)eventArg;
+        if (locationEvent.myLocationType == LocationType.GPS) {
+          myLocationEventToTimestampMap.put(locationEvent.myEventId, timestampNs);
+          addNewLocationSample(timestampNs + mySampleIntervalNs, new LocationStats(LocationType.GPS_ACQUIRE, 0, mySampleIntervalNs));
+        }
+        break;
+
+      case LOCATION_UNREGISTER:
+        locationEvent = (PowerProfile.LocationEvent)eventArg;
+        Long timestamp = myLocationEventToTimestampMap.remove(locationEvent.myEventId);
+        if (timestamp != null) {
+          // This should only be entered if the location event is GPS, and the first location fix hasn't been entered.
+          addNewLocationSample(timestampNs + mySampleIntervalNs, new LocationStats(LocationType.NONE, 0, mySampleIntervalNs));
+        }
+        break;
+
+      case LOCATION_USAGE:
+        locationEvent = (PowerProfile.LocationEvent)eventArg;
+        switch (locationEvent.myLocationType) {
+          case GPS:
+            if (myLocationEventToTimestampMap.containsKey(locationEvent.myEventId)) {
+              myLocationEventToTimestampMap.remove(locationEvent.myEventId);
+              addNewLocationSample(timestampNs, new LocationStats(LocationType.NONE, 0, mySampleIntervalNs));
+            }
+            else {
+              addNewLocationSample(
+                timestampNs,
+                new LocationStats(
+                  LocationType.GPS,
+                  Math.min(GPS_LOCK_DURATION_NS, timestampNs - myLastGpsOffTime),
+                  mySampleIntervalNs * LOCATION_SMOOTHING_SAMPLES));
+              addNewLocationSample(timestampNs + LOCATION_SMOOTHING_SAMPLES * mySampleIntervalNs,
+                                   new LocationStats(LocationType.NONE, 0, mySampleIntervalNs));
+            }
+            myLastGpsOffTime = timestampNs;
+            break;
+          case NETWORK:
+            addNewLocationSample(
+              timestampNs,
+              new LocationStats(
+                LocationType.NETWORK,
+                Math.min(NETWORK_SCAN_DURATION_NS, timestampNs - myLastNetworkLocationOffTime),
+                mySampleIntervalNs * LOCATION_SMOOTHING_SAMPLES));
+            addNewLocationSample(timestampNs + LOCATION_SMOOTHING_SAMPLES * mySampleIntervalNs,
+                                 new LocationStats(LocationType.NONE, 0, mySampleIntervalNs));
+            myLastNetworkLocationOffTime = timestampNs;
+            break;
+          case PASSIVE:
+            addNewLocationSample(timestampNs, new LocationStats(LocationType.PASSIVE, 0, mySampleIntervalNs));
+            break;
+          case NONE:
+            // fall through
+          default:
+            addNewLocationSample(timestampNs, new LocationStats(LocationType.NONE, 0, mySampleIntervalNs));
+        }
+        break;
     }
   }
 
   @NotNull
-  public List<EnergyProfiler.EnergySample> getSamplesBetween(long startInclusiveNs, long endExclusiveNs) {
+  public List<EnergySample> getSamplesBetween(long startInclusiveNs, long endExclusiveNs) {
     int currIndex = getSampleIndexFor(startInclusiveNs);
-    List<EnergyProfiler.EnergySample> samples = new ArrayList<>();
+    List<EnergySample> samples = new ArrayList<>();
     // By aligning start time to our bucket interval and incrementing by that interval, every
     // intermediate for-loop value will be aligned as well.
     for (long timestampNs = alignToSampleInterval(startInclusiveNs); timestampNs < endExclusiveNs; timestampNs += mySampleIntervalNs) {
-      EnergyProfiler.EnergySample nearestSample = mySparseSamples.get(currIndex);
+      EnergySample nearestSample = mySparseSamples.get(currIndex);
       int nextIndex = currIndex + 1;
       if (nextIndex < mySparseSamples.size()) {
-        EnergyProfiler.EnergySample nextSample = mySparseSamples.get(nextIndex);
+        EnergySample nextSample = mySparseSamples.get(nextIndex);
         if (nextSample.getTimestamp() <= timestampNs) {
           ++currIndex;
           nearestSample = nextSample;
@@ -147,7 +215,7 @@ public final class BatteryModel {
 
   private int getSampleIndexFor(long timestampNs) {
     for (int i = mySparseSamples.size() - 1; i >= 0; i--) {
-      EnergyProfiler.EnergySample sample = mySparseSamples.get(i);
+      EnergySample sample = mySparseSamples.get(i);
       if (sample.getTimestamp() <= timestampNs) {
         // TODO (b/73486903): How slow is this? Replace with binary search?
         return i;
@@ -164,23 +232,27 @@ public final class BatteryModel {
     addNewSample(timestampNs, sample -> sample.setNetworkUsage(myPowerProfile.getNetworkUsage(networkStats)));
   }
 
+  private void addNewLocationSample(long timestampNs, @NotNull PowerProfile.LocationStats locationStats) {
+    addNewSample(timestampNs, sample -> sample.setLocationUsage(myPowerProfile.getLocationUsage(locationStats)));
+  }
+
   private void addNewSample(long timestampNs,
-                            Function<EnergyProfiler.EnergySample.Builder, EnergyProfiler.EnergySample.Builder> produceNewSample) {
+                            @NotNull Function<EnergySample.Builder, EnergySample.Builder> produceNewSample) {
     timestampNs = alignToSampleInterval(timestampNs);
 
     int prevSampleIndex = getSampleIndexFor(timestampNs);
-    EnergyProfiler.EnergySample prevSample = mySparseSamples.get(prevSampleIndex);
+    EnergySample prevSample = mySparseSamples.get(prevSampleIndex);
     if (timestampNs < prevSample.getTimestamp()) {
       throw new IllegalArgumentException("Received energy events out of order");
     }
 
-    EnergyProfiler.EnergySample newSample = produceNewSample.apply(prevSample.toBuilder().setTimestamp(timestampNs)).build();
+    EnergySample newSample = produceNewSample.apply(prevSample.toBuilder().setTimestamp(timestampNs)).build();
 
     // We want to compare samples to see if their usage amounts are the same even if they are at
     // different timestamps. The easiest way to do this is to make a copy of the two samples
     // with their timestamps stubbed out.
-    EnergyProfiler.EnergySample prevSampleNoTime = prevSample.toBuilder().setTimestamp(0).build();
-    EnergyProfiler.EnergySample newSampleNoTime = newSample.toBuilder().setTimestamp(0).build();
+    EnergySample prevSampleNoTime = prevSample.toBuilder().setTimestamp(0).build();
+    EnergySample newSampleNoTime = newSample.toBuilder().setTimestamp(0).build();
 
     if (!prevSampleNoTime.equals(newSampleNoTime)) {
       if (prevSample.getTimestamp() == newSample.getTimestamp()) {
@@ -213,5 +285,23 @@ public final class BatteryModel {
      * arg: A {@link PowerProfile.NetworkStats} value.
      */
     NETWORK_USAGE,
+
+    /**
+     * A location request register event.
+     * arg: A {@link PowerProfile.LocationEvent} indicating the event ID and the source of location fix.
+     */
+    LOCATION_REGISTER,
+
+    /**
+     * A location request unregister event.
+     * arg: A {@link PowerProfile.LocationEvent} indicating the event ID and the source of location fix.
+     */
+    LOCATION_UNREGISTER,
+
+    /**
+     * A location update has occurred.
+     * arg: A {@link PowerProfile.LocationEvent} indicating the event ID and the source of location fix.
+     */
+    LOCATION_USAGE,
   }
 }
