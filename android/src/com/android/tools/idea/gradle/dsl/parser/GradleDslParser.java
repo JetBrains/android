@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
@@ -68,6 +69,12 @@ public interface GradleDslParser {
   Object extractValue(@NotNull GradleDslExpression context, @NotNull PsiElement literal, boolean resolve);
 
   /**
+   * @param elementToCheck GradleDslElement, returns false if a non-string element is provided.
+   * @return whether the string represented by this GradleDslElement should be interpolated.
+   */
+  boolean shouldInterpolate(@NotNull GradleDslElement elementToCheck);
+
+  /**
    * Returns a list of {@link GradleReferenceInjection}s that were derived from {@code psiElement} .
    * A {@link GradleDslExpression} is needed to resolve any variable names that need to be injected.
    * This method only returns GradleReferenceInjections for which {@link GradleReferenceInjection#isResolved()}
@@ -111,6 +118,9 @@ public interface GradleDslParser {
     public Object extractValue(@NotNull GradleDslExpression context, @NotNull PsiElement literal, boolean resolve) {
       return null;
     }
+
+    @Override
+    public boolean shouldInterpolate(@NotNull GradleDslElement elementToCheck) { return false; }
 
     @Override
     @NotNull

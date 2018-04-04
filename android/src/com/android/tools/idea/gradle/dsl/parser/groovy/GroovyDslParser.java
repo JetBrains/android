@@ -206,6 +206,23 @@ public class GroovyDslParser implements GradleDslParser {
   }
 
   @Override
+  public boolean shouldInterpolate(@NotNull GradleDslElement elementToCheck) {
+    // Get the correct psiElement to check.
+    PsiElement element;
+    if (elementToCheck instanceof GradleDslSettableExpression) {
+      element = ((GradleDslSettableExpression)elementToCheck).getCurrentElement();
+    }
+    else if (elementToCheck instanceof GradleDslExpression) {
+      element = ((GradleDslExpression)elementToCheck).getExpression();
+    }
+    else {
+      element = elementToCheck.getPsiElement();
+    }
+
+    return element instanceof GrString;
+  }
+
+  @Override
   @NotNull
   public List<GradleReferenceInjection> getResolvedInjections(@NotNull GradleDslExpression context, @NotNull PsiElement psiElement) {
     return findInjections(context, psiElement, false);
@@ -371,7 +388,7 @@ public class GroovyDslParser implements GradleDslParser {
       for (GroovyPsiElement element : arguments) {
         // We need to make sure all of these are GrExpressions, there can be multiple types.
         // We currently can't handle different argument types.
-        if (element instanceof GrExpression) {
+        if (element instanceof GrExpression && !(element instanceof GrClosableBlock)) {
           expressions.add((GrExpression)element);
         }
       }
@@ -388,7 +405,7 @@ public class GroovyDslParser implements GradleDslParser {
       for (GroovyPsiElement element : arguments) {
         // We need to make sure all of these are GrNamedArgument, there can be multiple types.
         // We currently can't handle different argument types.
-        if (element instanceof GrNamedArgument) {
+        if (element instanceof GrNamedArgument && !(element instanceof GrClosableBlock)) {
           namedArguments.add((GrNamedArgument)element);
         }
       }
