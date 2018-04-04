@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.jetbrains.android.sdk;
 
 import com.android.SdkConstants;
@@ -37,8 +36,6 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.util.containers.HashMap;
-import com.intellij.util.containers.HashSet;
 import com.intellij.util.xml.NanoXmlUtil;
 import gnu.trove.TIntObjectHashMap;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
@@ -52,6 +49,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -86,7 +85,7 @@ public class AndroidTargetData {
    */
   @Nullable
   public AttributeDefinitions getPublicAttrDefs(@NotNull Project project) {
-    final AttributeDefinitionsImpl attrDefs = getAllAttrDefs(project);
+    AttributeDefinitionsImpl attrDefs = getAllAttrDefs(project);
     return attrDefs != null ? new PublicAttributeDefinitions(attrDefs) : null;
   }
 
@@ -94,18 +93,15 @@ public class AndroidTargetData {
    * Returns all attributes
    */
   @Nullable
-  public AttributeDefinitionsImpl getAllAttrDefs(@NotNull final Project project) {
+  public AttributeDefinitionsImpl getAllAttrDefs(@NotNull Project project) {
     if (myAttrDefs == null) {
-      ApplicationManager.getApplication().runReadAction(new Runnable() {
-        @Override
-        public void run() {
-          final String attrsPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.ATTRIBUTES));
-          final String attrsManifestPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.MANIFEST_ATTRIBUTES));
+      ApplicationManager.getApplication().runReadAction(() -> {
+        String attrsPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.ATTRIBUTES));
+        String attrsManifestPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.MANIFEST_ATTRIBUTES));
 
-          final XmlFile[] files = findXmlFiles(project, attrsPath, attrsManifestPath);
-          if (files != null) {
-            myAttrDefs = new AttributeDefinitionsImpl(files);
-          }
+        XmlFile[] files = findXmlFiles(project, attrsPath, attrsManifestPath);
+        if (files != null) {
+          myAttrDefs = new AttributeDefinitionsImpl(files);
         }
       });
     }
@@ -133,23 +129,23 @@ public class AndroidTargetData {
   }
 
   public boolean isResourcePublic(@NotNull String type, @NotNull String name) {
-    final Map<String, Set<String>> publicResourceCache = getPublicResourceCache();
+    Map<String, Set<String>> publicResourceCache = getPublicResourceCache();
 
     if (publicResourceCache == null) {
       return false;
     }
-    final Set<String> set = publicResourceCache.get(type);
+    Set<String> set = publicResourceCache.get(type);
     return set != null && set.contains(name);
   }
 
   private void parsePublicResCache() {
-    final String resDirPath = myTarget.getPath(IAndroidTarget.RESOURCES);
-    final String publicXmlPath = resDirPath + '/' + SdkConstants.FD_RES_VALUES + "/public.xml";
-    final VirtualFile publicXml = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(publicXmlPath));
+    String resDirPath = myTarget.getPath(IAndroidTarget.RESOURCES);
+    String publicXmlPath = resDirPath + '/' + SdkConstants.FD_RES_VALUES + "/public.xml";
+    VirtualFile publicXml = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(publicXmlPath));
 
     if (publicXml != null) {
       try {
-        final MyPublicResourceCacheBuilder builder = new MyPublicResourceCacheBuilder();
+        MyPublicResourceCacheBuilder builder = new MyPublicResourceCacheBuilder();
         NanoXmlUtil.parse(publicXml.getInputStream(), builder);
 
         synchronized (myPublicResourceCacheLock) {
@@ -175,7 +171,7 @@ public class AndroidTargetData {
         }
       }
 
-      final AttributeDefinitionsImpl attrDefs = getAllAttrDefs(project);
+      AttributeDefinitionsImpl attrDefs = getAllAttrDefs(project);
       if (attrDefs == null) {
         return null;
       }
@@ -197,11 +193,11 @@ public class AndroidTargetData {
   }
 
   @Nullable
-  private static XmlFile[] findXmlFiles(final Project project, final String... paths) {
+  private static XmlFile[] findXmlFiles(@NotNull Project project, @NotNull String... paths) {
     XmlFile[] xmlFiles = new XmlFile[paths.length];
     for (int i = 0; i < paths.length; i++) {
       String path = paths[i];
-      final VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
+      VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
       PsiFile psiFile = file != null ? AndroidPsiUtils.getPsiFileSafely(project, file) : null;
       if (psiFile == null) {
         LOG.info("File " + path + " is not found");
@@ -273,7 +269,7 @@ public class AndroidTargetData {
     private boolean inGroup;
 
     @Override
-    public void elementAttributesProcessed(String name, String nsPrefix, String nsURI) throws Exception {
+    public void elementAttributesProcessed(String name, String nsPrefix, String nsURI) {
       if ("public".equals(name) && myName != null && myType != null) {
         Set<String> set = myResult.get(myType);
 
@@ -286,7 +282,7 @@ public class AndroidTargetData {
         if (myId != 0) {
           myIdMap.put(myId, SdkConstants.ANDROID_PREFIX + myType + "/" + myName);
 
-          // Within <public-group> we increase the id based on a given first id
+          // Within <public-group> we increase the id based on a given first id.
           if (inGroup) {
             myId++;
           }
@@ -295,8 +291,7 @@ public class AndroidTargetData {
     }
 
     @Override
-    public void addAttribute(String key, String nsPrefix, String nsURI, String value, String type)
-      throws Exception {
+    public void addAttribute(String key, String nsPrefix, String nsURI, String value, String type) {
       switch (key) {
         case "name":
           myName = value;
@@ -316,8 +311,7 @@ public class AndroidTargetData {
     }
 
     @Override
-    public void startElement(String name, String nsPrefix, String nsURI, String systemID, int lineNr)
-      throws Exception {
+    public void startElement(String name, String nsPrefix, String nsURI, String systemID, int lineNr) {
       if (!inGroup) {
         // This is a top-level <attr> so clear myType and myId
         myType = null;
@@ -332,7 +326,7 @@ public class AndroidTargetData {
     }
 
     @Override
-    public void endElement(String name, String nsPrefix, String nsURI) throws Exception {
+    public void endElement(String name, String nsPrefix, String nsURI) {
       if ("public-group".equals(name)) {
         inGroup = false;
       }
@@ -382,29 +376,21 @@ public class AndroidTargetData {
 
     @Nullable
     private Set<String> collectValues(int pathId) {
-      final Set<String> result = new HashSet<>();
-      try {
-        final BufferedReader reader = new BufferedReader(new FileReader(myTarget.getPath(pathId)));
+      try (BufferedReader reader = new BufferedReader(new FileReader(myTarget.getPath(pathId)))) {
+        Set<String> result = new HashSet<>();
+        String line;
+        while ((line = reader.readLine()) != null) {
+          line = line.trim();
 
-        try {
-          String line;
-
-          while ((line = reader.readLine()) != null) {
-            line = line.trim();
-
-            if (!line.isEmpty() && !line.startsWith("#")) {
-              result.add(line);
-            }
+          if (!line.isEmpty() && !line.startsWith("#")) {
+            result.add(line);
           }
         }
-        finally {
-          reader.close();
-        }
+        return result;
       }
       catch (IOException e) {
         return null;
       }
-      return result;
     }
   }
 }
