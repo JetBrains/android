@@ -54,25 +54,25 @@ public final class EnergyEventsView {
    * Columns of event duration data.
    */
   enum Column {
-    EVENT(0.18, String.class) {
+    EVENT(0.18, String.class, "System Event") {
       @Override
       Object getValueFrom(@NotNull EnergyDuration data) {
         return data.getName();
       }
     },
-    DESCRIPTION(0.16, String.class) {
+    DESCRIPTION(0.16, String.class, "Description") {
       @Override
       Object getValueFrom(@NotNull EnergyDuration data) {
         return data.getDescription();
       }
     },
-    CALLED_BY(0.16, String.class) {
+    CALLED_BY(0.16, String.class, "Called By") {
       @Override
       Object getValueFrom(@NotNull EnergyDuration data) {
         return data.getEventList().stream().filter(e -> !e.getTraceId().isEmpty()).findFirst().map(EnergyEvent::getTraceId).orElse("");
       }
     },
-    TIMELINE(0.5, Long.class) {
+    TIMELINE(0.5, Long.class, "Timeline") {
       @Override
       Object getValueFrom(@NotNull EnergyDuration data) {
         return data.getInitialTimestamp();
@@ -81,10 +81,12 @@ public final class EnergyEventsView {
 
     private final double myWidthPercentage;
     private final Class<?> myType;
+    private final String myDisplayName;
 
-    Column(double widthPercentage, Class<?> type) {
+    Column(double widthPercentage, Class<?> type, String name) {
       myWidthPercentage = widthPercentage;
       myType = type;
+      myDisplayName = name;
     }
 
     public double getWidthPercentage() {
@@ -96,10 +98,7 @@ public final class EnergyEventsView {
     }
 
     public String toDisplayString() {
-      if (this == CALLED_BY) {
-        return "Called By";
-      }
-      return StringUtil.capitalize(name().toLowerCase(Locale.getDefault()));
+      return myDisplayName;
     }
 
     abstract Object getValueFrom(@NotNull EnergyDuration data);

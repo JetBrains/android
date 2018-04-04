@@ -64,7 +64,7 @@ class EnergyStageTooltipView extends ProfilerTooltipView {
     legendPanel.setOpaque(false);
     legendPanel.add(usageLegendComponent, new TabularLayout.Constraint(0, 0));
 
-    JLabel eventLabel = new JLabel("Events");
+    JLabel eventLabel = new JLabel("System Events");
     eventLabel.setFont(myFont);
     legendPanel.add(eventLabel, new TabularLayout.Constraint(1, 0));
 
