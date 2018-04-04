@@ -20,7 +20,9 @@ import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurfaceShortcut
 import com.android.tools.idea.naveditor.actions.*
-import com.android.tools.idea.naveditor.model.*
+import com.android.tools.idea.naveditor.model.isDestination
+import com.android.tools.idea.naveditor.model.isNavigation
+import com.android.tools.idea.naveditor.model.uiName
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -106,7 +108,7 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
 
     val enabled = mySurface.schema.getDestinationSubtags(component.tagName).containsKey(NavActionElement::class.java)
     if (enabled) {
-      mySurface?.configuration?.resourceResolver?.let { group.add(ToDestinationAction(mySurface, component, it)) }
+      group.add(ToDestinationAction(mySurface, component))
       group.add(ToSelfAction(mySurface, component))
       group.add(ReturnToSourceAction(mySurface, component))
       group.add(AddGlobalAction(mySurface, component))
@@ -121,15 +123,11 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
     val currentNavigation = mySurface.currentNavigation
     group.add(AddToNewGraphAction(mySurface, components))
 
-    val resolver = mySurface?.configuration?.resourceResolver
-
-    if (resolver != null) {
-      val subnavs = currentNavigation.children.filter { it.isNavigation && !components.contains(it) }
-      if (!subnavs.isEmpty()) {
-        group.addSeparator()
-        for (graph in subnavs) {
-          group.add(AddToExistingGraphAction(mySurface, components, graph.getUiName(resolver), graph))
-        }
+    val subnavs = currentNavigation.children.filter { it.isNavigation && !components.contains(it) }
+    if (!subnavs.isEmpty()) {
+      group.addSeparator()
+      for (graph in subnavs) {
+        group.add(AddToExistingGraphAction(mySurface, components, graph.uiName, graph))
       }
     }
 

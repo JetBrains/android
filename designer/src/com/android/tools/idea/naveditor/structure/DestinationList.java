@@ -17,7 +17,6 @@ package com.android.tools.idea.naveditor.structure;
 
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.android.tools.adtui.workbench.*;
 import com.android.tools.idea.common.model.*;
@@ -71,7 +70,6 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
   @VisibleForTesting
   final DefaultListModel<NlComponent> myListModel = new DefaultListModel<>();
   private NavigationSchema mySchema;
-  private ResourceResolver myResourceResolver;
 
   @VisibleForTesting
   SelectionModel mySelectionModel;
@@ -111,7 +109,7 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
           setBackground(UIUtil.getListUnfocusedSelectionBackground());
           mySelectionForeground = UIUtil.getListForeground();
         }
-        append(NavComponentHelperKt.getUiName(component, myResourceResolver));
+        append(NavComponentHelperKt.getUiName(component));
         if (NavComponentHelperKt.isStartDestination(component)) {
           append(" - Start", SimpleTextAttributes.GRAY_ATTRIBUTES);
         }
@@ -221,7 +219,6 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
 
       Configuration configuration = toolContext.getConfiguration();
       assert configuration != null;
-      myResourceResolver = configuration.getResourceResolver();
 
       ColorSet colorSet = SceneContext.get(toolContext.getCurrentSceneView()).getColorSet();
       myList.setBackground(colorSet.getSubduedBackground());
@@ -244,7 +241,7 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
     else {
       myBackPanel.setVisible(true);
       NlComponent parent = myDesignSurface.getCurrentNavigation().getParent();
-      myBackLabel.setText(parent.getParent() == null ? ROOT_NAME : NavComponentHelperKt.getUiName(parent, myResourceResolver));
+      myBackLabel.setText(parent.getParent() == null ? ROOT_NAME : NavComponentHelperKt.getUiName(parent));
     }
   }
 

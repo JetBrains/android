@@ -46,8 +46,7 @@ class AddActionDialogTest : NavTestCase() {
     val dialog = AddActionDialog(
         AddActionDialog.Defaults.NORMAL,
         model.find("a1"),
-        model.find("f1")!!,
-        null
+        model.find("f1")!!
     )
     dialog.close(0)
     assertEquals(model.find("f2"), dialog.destination)
@@ -69,8 +68,7 @@ class AddActionDialogTest : NavTestCase() {
     val dialogWrapper = AddActionDialog(
         AddActionDialog.Defaults.NORMAL,
         null,
-        model.find("f1")!!,
-        null
+        model.find("f1")!!
     )
     val dialog = dialogWrapper.dialog
 
@@ -122,8 +120,7 @@ class AddActionDialogTest : NavTestCase() {
     val dialogWrapper = AddActionDialog(
         AddActionDialog.Defaults.NORMAL,
         null,
-        model.find("f1")!!,
-        null
+        model.find("f1")!!
     )
     val dialog = dialogWrapper.dialog
 
@@ -149,8 +146,7 @@ class AddActionDialogTest : NavTestCase() {
     val dialogWrapper = AddActionDialog(
         AddActionDialog.Defaults.NORMAL,
         null,
-        model.find("f1")!!,
-        null
+        model.find("f1")!!
     )
     val dialog = dialogWrapper.dialog
 
@@ -211,8 +207,7 @@ class AddActionDialogTest : NavTestCase() {
     val dialogWrapper = AddActionDialog(
         AddActionDialog.Defaults.NORMAL,
         null,
-        model.find("subnav2")!!,
-        null
+        model.find("subnav2")!!
     )
     val dialog = dialogWrapper.dialog
 
@@ -257,8 +252,7 @@ class AddActionDialogTest : NavTestCase() {
     val dialogWrapper = AddActionDialog(
         AddActionDialog.Defaults.NORMAL,
         null,
-        model.find("f4")!!,
-        null
+        model.find("f4")!!
     )
     val dialog = dialogWrapper.dialog
 
@@ -293,8 +287,7 @@ class AddActionDialogTest : NavTestCase() {
     val dialogWrapper = AddActionDialog(
         AddActionDialog.Defaults.NORMAL,
         null,
-        model.find("root")!!,
-        null
+        model.find("root")!!
     )
     val dialog = dialogWrapper.dialog
 
@@ -330,8 +323,7 @@ class AddActionDialogTest : NavTestCase() {
     val dialogWrapper = AddActionDialog(
         AddActionDialog.Defaults.NORMAL,
         null,
-        model.find("subnav2")!!,
-        null
+        model.find("subnav2")!!
     )
     val dialog = dialogWrapper.dialog
 
@@ -409,8 +401,7 @@ class AddActionDialogTest : NavTestCase() {
     val dialogWrapper = AddActionDialog(
         AddActionDialog.Defaults.NORMAL,
         null,
-        model.find("subnav2")!!,
-        null
+        model.find("subnav2")!!
     )
     val dialog = dialogWrapper.dialog
 
@@ -472,7 +463,7 @@ class AddActionDialogTest : NavTestCase() {
 
     val f1 = model.find("f1")!!
 
-    var dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, f1, null)
+    var dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, f1)
     assertEquals(null, dialog.destination)
     assertEquals(f1, dialog.source)
     assertFalse(dialog.isInclusive)
@@ -480,7 +471,7 @@ class AddActionDialogTest : NavTestCase() {
     assertEquals("", dialog.id)
     dialog.close(0)
 
-    dialog = AddActionDialog(AddActionDialog.Defaults.GLOBAL, null, f1, null)
+    dialog = AddActionDialog(AddActionDialog.Defaults.GLOBAL, null, f1)
     assertEquals(f1, dialog.destination)
     assertEquals(model.find("root"), dialog.source)
     assertFalse(dialog.isInclusive)
@@ -491,8 +482,7 @@ class AddActionDialogTest : NavTestCase() {
     dialog = AddActionDialog(
         AddActionDialog.Defaults.RETURN_TO_SOURCE,
         null,
-        f1,
-        null
+        f1
     )
     assertEquals(null, dialog.destination)
     assertEquals(f1, dialog.source)
@@ -511,9 +501,8 @@ class AddActionDialogTest : NavTestCase() {
     }
 
     val f1 = model.find("f1")!!
-    val f2 = model.find("f2")!!
 
-    val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, f1, null)
+    val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, f1)
     assertEquals("", dialog.id)
     dialog.dialog.myDestinationComboBox.selectedIndex = 3
     assertEquals("action_f1_to_f2", dialog.id)

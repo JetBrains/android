@@ -17,7 +17,6 @@ package com.android.tools.idea.naveditor.property.inspector
 
 import com.android.SdkConstants.*
 import com.android.annotations.VisibleForTesting
-import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.naveditor.model.*
@@ -48,8 +47,7 @@ import javax.swing.JList
 open class AddActionDialog(
   defaultsType: Defaults,
   private val existingAction: NlComponent?,
-  private val parent: NlComponent,
-  resourceResolver: ResourceResolver?
+  private val parent: NlComponent
 ) : DialogWrapper(false) {
 
   private var previousPopTo: NlComponent? = null
@@ -108,7 +106,7 @@ open class AddActionDialog(
 
   init {
     val model = parent.model
-    setUpComponents(model, resourceResolver)
+    setUpComponents(model)
 
     dialog.myFromComboBox.addItem(parent)
 
@@ -286,15 +284,14 @@ open class AddActionDialog(
 
 
   private fun setUpComponents(
-    model: NlModel,
-    resourceResolver: ResourceResolver?
+    model: NlModel
   ) {
     val sourceRenderer = object : ListCellRendererWrapper<NlComponent>() {
       override fun customize(list: JList<*>, value: NlComponent?, index: Int, selected: Boolean, hasFocus: Boolean) {
         if (value == null) {
           setText("None")
         } else {
-          setText(value.getUiName(resourceResolver))
+          setText(value.uiName)
         }
       }
     }
@@ -310,7 +307,7 @@ open class AddActionDialog(
           value.isSeparator -> setSeparator()
           else -> {
             val component = value.component
-            var text = component?.getUiName(resourceResolver)
+            var text = component?.uiName
             val valueParent = component!!.parent
             if (valueParent !== parent.parent && component !== parent.parent && valueParent !== parent) {
               if (value.isParent) {
@@ -389,7 +386,7 @@ open class AddActionDialog(
         if (value == null) {
           setText("None")
         } else {
-          var text = value.getUiName(resourceResolver)
+          var text = value.uiName
           if (value.isNavigation) {
             setFont(list.font.deriveFont(Font.BOLD))
           } else if (index != -1) {

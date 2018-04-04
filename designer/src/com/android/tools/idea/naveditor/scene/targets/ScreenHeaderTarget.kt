@@ -26,7 +26,7 @@ import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawTruncatedText
 import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.naveditor.model.NavCoordinate
-import com.android.tools.idea.naveditor.model.getUiName
+import com.android.tools.idea.naveditor.model.uiName
 import com.android.tools.idea.naveditor.scene.DRAW_SCREEN_LABEL_LEVEL
 import com.android.tools.idea.naveditor.scene.draw.DrawIcon
 import com.android.tools.idea.naveditor.scene.scaledFont
@@ -92,7 +92,7 @@ class ScreenHeaderTarget(component: SceneComponent) : NavBaseTarget(component) {
       r -= iconSize + textPadding
     }
 
-    val text = component.nlComponent.getUiName(component.scene.designSurface.configuration?.resourceResolver)
+    val text = component.nlComponent.uiName
     @SwingCoordinate val textRectangle = Rectangle(l, t + textPadding, r - l, textHeight)
     list.add(DrawTruncatedText(DRAW_SCREEN_LABEL_LEVEL, text, textRectangle,
         sceneContext.colorSet.subduedText, scaledFont(sceneContext, Font.PLAIN), false))
