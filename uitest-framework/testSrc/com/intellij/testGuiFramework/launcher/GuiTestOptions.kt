@@ -23,6 +23,7 @@ object GuiTestOptions {
   const val SEGMENT_INDEX = "idea.gui.test.segment.index"
   const val NUM_TEST_SEGMENTS_KEY = "idea.gui.test.segments"
   const val REMOTE_IDE_PATH_KEY = "idea.gui.test.remote.ide.path"
+  const val IS_RUNNING_ON_RELEASE = "idea.gui.test.running.on.release"
 
   var buildSystem = TargetBuildSystem.BuildSystem.GRADLE
 
@@ -37,7 +38,7 @@ object GuiTestOptions {
   fun getSegmentIndex(): Int = getSystemProperty(SEGMENT_INDEX, 0)
   fun getNumTestSegments(): Int = getSystemProperty(NUM_TEST_SEGMENTS_KEY, 1)
   fun getRemoteIdePath(): String = getSystemProperty(REMOTE_IDE_PATH_KEY, "undefined")
-  fun isRunningOnRelease(): Boolean = getRemoteIdePath() != "undefined"
+  fun isRunningOnRelease(): Boolean = getSystemProperty(IS_RUNNING_ON_RELEASE, false)
 
   inline fun <reified ReturnType> getSystemProperty(key: String, defaultValue: ReturnType): ReturnType {
     val value = System.getProperty(key) ?: return defaultValue
