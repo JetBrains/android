@@ -16,11 +16,13 @@
 package com.android.tools.idea.lang.roomSql
 
 import com.android.tools.idea.lang.roomSql.psi.*
+import com.android.tools.idea.lang.roomSql.resolution.RoomColumnPsiReference
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.LocalInspectionToolSession
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
+import com.intellij.psi.PsiReference
 import com.intellij.psi.util.PsiTreeUtil
 
 /**
@@ -67,7 +69,29 @@ class RoomUnresolvedReferenceInspection : RoomQueryOnlyInspection() {
         if (!(isWellUnderstood(PsiTreeUtil.findPrevParent(referenceElement.containingFile, referenceElement)))) return
 
         val reference = referenceElement.reference ?: return
-        if (reference.resolve() == null) holder.registerProblem(reference)
+        if (reference.resolve() == null && !isRowIdReference(reference)) {
+          holder.registerProblem(reference)
+        }
+      }
+
+      /**
+       * Checks if the given reference is a column reference to the magic ROWID column.
+       *
+       * ROWID can be referenced in queries (for most tables) using multiple special names, but doesn't need to be declared. There's also
+       * little point suggesting it in code completion, so we don't insert this column into the schema, instead we just ignore references
+       * to it, which are most likely correct (edge cases will be caught by the Room query compiler).
+       *
+       * See [SQLite docs](https://sqlite.org/lang_createtable.html#rowid).
+       */
+      private fun isRowIdReference(reference: PsiReference): Boolean {
+        return if (reference is RoomColumnPsiReference) {
+          when (reference.element.nameAsString.toLowerCase()) {
+            "rowid", "_rowid_", "oid" -> true
+            else -> false
+          }
+        } else {
+          false
+        }
       }
 
       /**
