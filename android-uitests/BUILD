@@ -29,17 +29,17 @@ COMMON_TAGS = [
 ]
 
 iml_module(
-    name = "android-uitests",
-    iml_files = ["android-uitests.iml"],
+    name = "intellij.android.guiTests",
+    iml_files = ["intellij.android.guiTests.iml"],
     tags = ["managed"],
     # do not sort: must match IML order
     test_runtime_deps = [
-        "//tools/idea/platform/credential-store",
-        "//tools/idea/java/compiler/instrumentation-util-8",
-        "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin",
-        "//tools/vendor/intellij/cidr:doxygen",
-        "//tools/idea/plugins/settings-repository",
-        "//tools/idea/jps/javac-ref-scanner-8",
+        "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
+        "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
+        "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
+        "//tools/vendor/intellij/cidr:intellij.c.doxygen",
+        "//tools/idea/plugins/settings-repository:intellij.settingsRepository",
+        "//tools/idea/jps/javac-ref-scanner-8:intellij.java.jps.javacRefScanner8",
     ],
     test_srcs = ["testSrc"],
     test_tags = ["manual"],
@@ -49,35 +49,35 @@ iml_module(
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/.idea/libraries:layoutlib[test]",
-        "//tools/adt/idea/android[module, test]",
-        "//tools/adt/idea/wizard-model[module, test]",
-        "//tools/adt/idea/android-test-framework[module, test]",
-        "//tools/idea:community-main[module, test]",
-        "//tools/base/testutils:studio.testutils[module, test]",
+        "//tools/adt/idea/android:intellij.android[module, test]",
+        "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module, test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/idea:intellij.idea.community.main[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/swing-testing/fest-swing[module, test]",
-        "//tools/idea/java/debugger/openapi:debugger-openapi[module, test]",
-        "//tools/idea/platform/analysis-api[module, test]",
-        "//tools/idea/platform/platform-api[module, test]",
-        "//tools/idea/platform/external-system-api[module, test]",
-        "//tools/idea/java/openapi[module, test]",
-        "//tools/idea/plugins/gradle[module, test]",
-        "//tools/idea/java/compiler/openapi:compiler-openapi[module, test]",
-        "//tools/idea:java-impl[module, test]",
-        "//tools/idea/xml/dom-openapi[module, test]",
-        "//tools/idea/platform/xdebugger-impl[module, test]",
-        "//tools/adt/idea/designer[module, test]",
-        "//tools/base/flags:studio.flags[module, test]",
+        "//tools/idea/java/debugger/openapi:intellij.java.debugger[module, test]",
+        "//tools/idea/platform/analysis-api:intellij.platform.analysis[module, test]",
+        "//tools/idea/platform/platform-api:intellij.platform.ide[module, test]",
+        "//tools/idea/platform/external-system-api:intellij.platform.externalSystem[module, test]",
+        "//tools/idea/java/openapi:intellij.java[module, test]",
+        "//tools/idea/plugins/gradle:intellij.gradle[module, test]",
+        "//tools/idea/java/compiler/openapi:intellij.java.compiler[module, test]",
+        "//tools/idea:intellij.java.impl[module, test]",
+        "//tools/idea/xml/dom-openapi:intellij.xml.dom[module, test]",
+        "//tools/idea/platform/xdebugger-impl:intellij.platform.debugger.impl[module, test]",
+        "//tools/adt/idea/designer:intellij.android.designer[module, test]",
+        "//tools/base/flags:studio.intellij.android.flags[module, test]",
         "//tools/analytics-library/shared:analytics-shared[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
-        "//tools/adt/idea/adt-ui[module, test]",
-        "//tools/adt/idea/artwork[module, test]",
-        "//tools/adt/idea/android-common[module, test]",
-        "//tools/idea/platform/xdebugger-api[module, test]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/idea/platform/xdebugger-api:intellij.platform.debugger[module, test]",
         "//tools/adt/idea/adt-testutils[module, test]",
-        "//tools/adt/idea/uitest-framework[module, test]",
+        "//tools/adt/idea/uitest-framework:intellij.android.guiTestFramework[module, test]",
         "//tools/adt/idea/uitest-framework-gradle[module, test]",
         "//tools/adt/idea/uitest-framework-bazel[module, test]",
-        "//tools/idea/platform/testFramework[module, test]",
+        "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
     ],
 )
 
@@ -88,7 +88,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.framework.GuiTestRuleTest"],
     tags = COMMON_TAGS,
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":android-uitests_testlib"],
+    runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
 java_test(
@@ -103,7 +103,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editing.DataBindingTest"],
     tags = COMMON_TAGS,
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":android-uitests_testlib"],
+    runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
 java_test(
@@ -113,7 +113,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.ApkViewerTest"],
     tags = COMMON_TAGS + ["no_psq"],  # b/74906386
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":android-uitests_testlib"],
+    runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
 java_test(
@@ -123,7 +123,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.NewProjectTest"],
     tags = COMMON_TAGS + ["manual"],  #sanity test passing, but latestSupportLibraryWhileDndLayouts failed for UI reason
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":android-uitests_testlib"],
+    runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
 java_test(
@@ -135,7 +135,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.NewActivityTest"],
     tags = COMMON_TAGS + ["manual"],  # b/74910563
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":android-uitests_testlib"],
+    runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
 java_test(
@@ -147,7 +147,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.AddModuleTest"],
     tags = COMMON_TAGS + ["manual"],  #sanity test passing, some other test method failed for UI
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":android-uitests_testlib"],
+    runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
 java_test(
@@ -162,7 +162,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ConstraintLayoutTest"],
     tags = COMMON_TAGS + ["manual"],  #Test failed for UI reason
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":android-uitests_testlib"],
+    runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
 java_test(
@@ -176,7 +176,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.GradleSyncTest"],
     tags = COMMON_TAGS + ["manual"],  #Sanity tests passing, but other tests fail
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":android-uitests_testlib"],
+    runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
 java_test(
@@ -190,7 +190,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.NewModuleTest"],
     tags = COMMON_TAGS + ["no_psq"],  #sanity test passing, some other test method failed for UI
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":android-uitests_testlib"],
+    runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
 java_test(
@@ -204,7 +204,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.BuildTypesTest"],
     tags = COMMON_TAGS + ["manual"],  #UI flaky issue, fail sometimes
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":android-uitests_testlib"],
+    runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
 java_test(
@@ -218,7 +218,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.layoutinspector.LayoutInspectorTest"],
     tags = COMMON_TAGS + ["manual"],  #Test failed for UI reason
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":android-uitests_testlib"],
+    runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
 java_test(
@@ -232,7 +232,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.webp.ConvertToWebpActionTest"],
     tags = COMMON_TAGS + ["manual"],  #Sanity tests passing, but other tests fail
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":android-uitests_testlib"],
+    runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
 java_test(
@@ -245,7 +245,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.webp.FilterIconTest"],
     tags = COMMON_TAGS + ["no_psq"],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":android-uitests_testlib"],
+    runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
 java_test(
@@ -256,7 +256,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.lint.LintTest"],
     tags = COMMON_TAGS + ["no_psq"],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":android-uitests_testlib"],
+    runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
 java_test(
@@ -267,7 +267,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.CreateNewFlavorsTest"],
     tags = COMMON_TAGS + ["manual"],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":android-uitests_testlib"],
+    runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
 java_test(
