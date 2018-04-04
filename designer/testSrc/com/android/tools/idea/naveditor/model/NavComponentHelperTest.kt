@@ -16,14 +16,9 @@
 package com.android.tools.idea.naveditor.model
 
 import com.android.SdkConstants
-import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.ide.common.rendering.api.ResourceValue
-import com.android.ide.common.resources.ResourceResolver
-import com.android.resources.ResourceType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
-import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -37,23 +32,13 @@ class NavComponentHelperTest {
     val component = mock(NlComponent::class.java)
     `when`(component.id).thenCallRealMethod()
     `when`(component.tagName).thenReturn("myTag")
-    assertEquals("myTag", component.getUiName(null))
+    assertEquals("myTag", component.uiName)
     `when`(component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)).thenReturn("com.example.Foo")
-    assertEquals("Foo", component.getUiName(null))
+    assertEquals("Foo", component.uiName)
     `when`(component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)).thenReturn("Bar")
-    assertEquals("Bar", component.getUiName(null))
+    assertEquals("Bar", component.uiName)
     `when`(component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID)).thenReturn("@+id/myId")
-    assertEquals("myId", component.getUiName(null))
-  }
-
-  @Test
-  fun testUiNameWithResources() {
-    val resolver = ResourceResolver.withValues(
-      ResourceValue(ResourceNamespace.RES_AUTO, ResourceType.STRING, "myName", "resolvedValue")
-    )
-    val component = mock(NlComponent::class.java)
-    `when`(component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)).thenReturn("@string/myName")
-    assertEquals("resolvedValue", component.getUiName(resolver))
+    assertEquals("myId", component.uiName)
   }
 }
 

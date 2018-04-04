@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.naveditor.actions
 
-import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.property.inspector.AddActionDialog
@@ -24,12 +23,11 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 
 class ToDestinationAction(
   private val surface: DesignSurface,
-  private val component: NlComponent,
-  private val resourceResolver: ResourceResolver
+  private val component: NlComponent
 ) :
     AnAction("To Destination...") {
   override fun actionPerformed(e: AnActionEvent?) {
-    val addActionDialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, component, resourceResolver)
+    val addActionDialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, component)
     if (addActionDialog.showAndGet()) {
       val action = addActionDialog.writeUpdatedAction()
       surface.selectionModel.setSelection(listOf(action))

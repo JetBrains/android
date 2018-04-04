@@ -18,12 +18,10 @@ package com.android.tools.idea.naveditor.model
 import com.android.SdkConstants
 import com.android.SdkConstants.*
 import com.android.annotations.VisibleForTesting
-import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.common.model.BooleanAutoAttributeDelegate
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.StringAttributeDelegate
 import com.android.tools.idea.common.model.StringAutoAttributeDelegate
-import com.android.tools.idea.res.resolveStringValue
 import com.android.tools.idea.uibuilder.model.IdAutoAttributeDelegate
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
@@ -54,12 +52,10 @@ enum class ActionType {
   EXIT
 }
 
-fun NlComponent.getUiName(resourceResolver: ResourceResolver?): String {
-  val name = id ?:
-      resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)?.substringAfterLast(".") ?:
-      tagName
-  return resourceResolver?.resolveStringValue(name) ?: name
-}
+val NlComponent.uiName: String
+get() =  id
+      ?: resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)?.substringAfterLast(".")
+      ?: tagName
 
 val NlComponent.visibleDestinations: List<NlComponent>
   get() {

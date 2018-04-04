@@ -19,7 +19,7 @@ import com.android.SdkConstants
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlComponent.stripId
 import com.android.tools.idea.common.property.NlProperty
-import com.android.tools.idea.naveditor.model.getUiName
+import com.android.tools.idea.naveditor.model.uiName
 import com.android.tools.idea.uibuilder.property.editors.support.EnumSupport
 import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString
 
@@ -32,7 +32,7 @@ class DestinationEnumSupport(property: NlProperty, private val destinationGetter
   }
 
   private fun getDisplayForDestination(component: NlComponent): ValueWithDisplayString {
-    val displayString = component.getUiName(myProperty.resolver)
+    val displayString = component.uiName
     return ValueWithDisplayString(displayString, component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID))
   }
 

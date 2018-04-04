@@ -43,7 +43,7 @@ open class NavActionsInspectorProvider : NavListInspectorProvider<NavActionsProp
 
   override fun doAddItem(existing: NlComponent?, parents: List<NlComponent>, surface: DesignSurface?) {
     assert(parents.size == 1)
-    showAndUpdateFromDialog(AddActionDialog(AddActionDialog.Defaults.NORMAL, existing, parents[0], surface?.configuration?.resourceResolver), surface)
+    showAndUpdateFromDialog(AddActionDialog(AddActionDialog.Defaults.NORMAL, existing, parents[0]), surface)
   }
 
   @VisibleForTesting
@@ -116,16 +116,15 @@ open class NavActionsInspectorProvider : NavListInspectorProvider<NavActionsProp
   fun getPopupActions(parents: List<NlComponent>, surface: NavDesignSurface?): MutableList<AnAction> {
     assert(parents.size == 1)
     val parent = parents[0]
-    val resourceResolver = surface?.configuration?.resourceResolver
     val actions: MutableList<AnAction> = mutableListOf(
         object : AnAction("Add Action...") {
           override fun actionPerformed(e: AnActionEvent?) {
-            showAndUpdateFromDialog(AddActionDialog(AddActionDialog.Defaults.NORMAL, null, parent, resourceResolver), surface)
+            showAndUpdateFromDialog(AddActionDialog(AddActionDialog.Defaults.NORMAL, null, parent), surface)
           }
         },
         object : AnAction("Return to Source...") {
           override fun actionPerformed(e: AnActionEvent?) {
-            showAndUpdateFromDialog(AddActionDialog(AddActionDialog.Defaults.RETURN_TO_SOURCE, null, parent, resourceResolver), surface)
+            showAndUpdateFromDialog(AddActionDialog(AddActionDialog.Defaults.RETURN_TO_SOURCE, null, parent), surface)
           }
         }
     )
@@ -134,7 +133,7 @@ open class NavActionsInspectorProvider : NavListInspectorProvider<NavActionsProp
       actions.add(
           object : AnAction("Add Global...") {
             override fun actionPerformed(e: AnActionEvent?) {
-              showAndUpdateFromDialog(AddActionDialog(AddActionDialog.Defaults.GLOBAL, null, parent, resourceResolver), surface)
+              showAndUpdateFromDialog(AddActionDialog(AddActionDialog.Defaults.GLOBAL, null, parent), surface)
             }
           }
       )
