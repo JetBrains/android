@@ -340,7 +340,7 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
         String path = in.readUTF();
         int folderConfigurationIndex = in.readUnsignedShort();
         FolderConfiguration folderConfig = folderConfigurations[folderConfigurationIndex];
-        resourceFiles[i] = new ResourceFile(new File(path), Collections.emptyList(), folderConfig.getQualifierString(), folderConfig);
+        resourceFiles[i] = new ResourceFile(new File(path), Collections.emptyList(), folderConfig);
       }
 
       // Read resource items.
@@ -369,7 +369,7 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
                 int folderConfigurationIndex = in.readUnsignedShort();
                 FolderConfiguration folderConfig = folderConfigurations[folderConfigurationIndex];
                 String path = in.readUTF();
-                new ResourceFile(new File(path), item, folderConfig.getQualifierString(), folderConfig);
+                new ResourceFile(new File(path), item, folderConfig);
                 break;
               }
             }

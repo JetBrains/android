@@ -609,7 +609,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       String name = ResourceHelper.getResourceName(file);
       ResourceMergerItem item = new ResourceMergerItem(name, myNamespace, type, null, getLibraryName());
       addToResult(result, item);
-      resourceFile = new ResourceFile(VfsUtilCore.virtualToIoFile(file), item, qualifiers, folderConfiguration);
+      resourceFile = new ResourceFile(VfsUtilCore.virtualToIoFile(file), item, folderConfiguration);
       item.setIgnoredFromDiskMerge(true);
     }
     sources.put(file, new ResourceFileAdapter(resourceFile));
