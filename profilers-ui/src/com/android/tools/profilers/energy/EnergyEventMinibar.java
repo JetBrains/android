@@ -50,7 +50,7 @@ public final class EnergyEventMinibar {
 
     JPanel labelContainer = new JPanel(new BorderLayout());
     labelContainer.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
-    JLabel label = new JLabel("SYSTEM");
+    JLabel label = new JLabel("SYSTEM EVENTS");
     label.setBorder(MONITOR_LABEL_PADDING);
     label.setVerticalAlignment(SwingConstants.TOP);
     labelContainer.add(label, BorderLayout.WEST);
