@@ -15,14 +15,21 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext;
 
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.DefaultTransform;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.SingleArgumentMethodTransform;
+import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.REFERENCE;
 
 public class PropertyUtil {
   @NonNls private static final String FILE_METHOD_NAME = "file";
@@ -112,6 +119,44 @@ public class PropertyUtil {
     }
   }
 
+  @NotNull
   public static final PropertyTransform DEFAULT_TRANSFORM = new DefaultTransform();
+  @NotNull
   public static final PropertyTransform FILE_TRANSFORM = new SingleArgumentMethodTransform(FILE_METHOD_NAME);
+
+  @NotNull
+  public static GradlePropertyModelImpl resolveModel(@NotNull GradlePropertyModelImpl model) {
+    Set<GradlePropertyModel> seenModels = new HashSet<>();
+
+    while (model.getValueType() == REFERENCE && !seenModels.contains(model)) {
+      if (model.getDependencies().isEmpty()) {
+        return model;
+      }
+      seenModels.add(model);
+      model = model.dependencies().get(0);
+    }
+    return model;
+  }
+
+  /**
+   * Follows references as the DslElement level to obtain the resulting element.
+   *
+   * @param expression expression to start at
+   * @return resolved expression
+   */
+  @NotNull
+  public static GradleDslExpression resolveElement(@NotNull GradleDslExpression expression) {
+    while (expression instanceof GradleDslReference && !expression.hasCycle()) {
+      GradleReferenceInjection injection = ((GradleDslReference)expression).getReferenceInjection();
+      if (injection == null) {
+        return expression;
+      }
+      GradleDslExpression next = injection.getToBeInjectedExpression();
+      if (next == null) {
+        return expression;
+      }
+      expression = next;
+    }
+    return expression;
+  }
 }

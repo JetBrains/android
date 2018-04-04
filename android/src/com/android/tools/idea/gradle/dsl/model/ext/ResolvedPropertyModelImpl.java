@@ -226,17 +226,8 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
     return resolveModel();
   }
 
+  @NotNull
   protected GradlePropertyModelImpl resolveModel() {
-    GradlePropertyModelImpl model = myRealModel;
-    Set<GradlePropertyModel> seenModels = new HashSet<>();
-
-    while (model.getValueType() == REFERENCE && !seenModels.contains(model)) {
-      if (model.getDependencies().isEmpty()) {
-        return model;
-      }
-      seenModels.add(model);
-      model = model.dependencies().get(0);
-    }
-    return model;
+    return PropertyUtil.resolveModel(myRealModel);
   }
 }
