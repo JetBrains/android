@@ -96,7 +96,7 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> PROFILER_ENERGY_PROFILER_ENABLED = Flag.create(
     PROFILER, "energy", "Enable Energy profiling",
-    "Enable the new energy profiler. It monitors battery usage of the selected app.", false);
+    "Enable the new energy profiler. It monitors battery usage of the selected app.", true);
 
   public static final Flag<Boolean> PROFILER_USE_SIMPLEPERF = Flag.create(
     PROFILER, "simpleperf", "Enable Simpleperf profiling",
