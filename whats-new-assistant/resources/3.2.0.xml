@@ -101,7 +101,18 @@
             system-level issues, such as UI jank.
             <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#system_trace">
             Learn more</a></li>
-            </li>
+
+
+            <li><b>Record a method trace during app startup:</b>
+            Enable the feature by selecting
+            <b>Run &gt; Edit Configurations</b> from the main menu
+            and, under the <b>Profile</b> tab of your desired run
+            configuration, checking the box next to <b>Start
+            recording a method trace on startup</b>. Now deploy
+            your app to a device running Android 8.0 or higher by
+            selecting <b>Run &gt; Profile</b>.
+            <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#trace_startup">
+            Learn more</a></li>
           </ul>
            ]]>
           </section>
