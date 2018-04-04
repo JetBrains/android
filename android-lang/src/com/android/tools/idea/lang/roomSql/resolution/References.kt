@@ -29,6 +29,7 @@ import org.jetbrains.uast.UMethod
 
 interface RoomColumnPsiReference : PsiReference {
   fun resolveColumn(): SqlColumn?
+  override fun getElement(): RoomNameElement
 }
 
 /**

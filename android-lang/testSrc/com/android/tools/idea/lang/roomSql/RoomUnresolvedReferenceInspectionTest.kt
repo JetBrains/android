@@ -466,4 +466,30 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
 
     myFixture.checkHighlighting()
   }
+
+  fun testRowId() {
+    myFixture.addRoomEntity("com.example.User","name" ofType "String")
+
+    myFixture.configureByText("SomeDao.java", """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface SomeDao {
+          @Query("SELECT `rowid` FROM user WHERE `rowid` = 1")
+          String quoted();
+
+          @Query("SELECT _rowid_ FROM user WHERE _rowid_ = 1")
+          String underscores();
+
+          @Query("SELECT oid FROM user WHERE oid = 1")
+          String oid();
+        }
+    """.trimIndent())
+
+    myFixture.checkHighlighting()
+  }
 }
