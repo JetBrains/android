@@ -227,7 +227,7 @@ public class AndroidTargetData {
   @Nullable
   public synchronized AbstractResourceRepository getFrameworkResources(boolean withLocale) {
     // If the framework resources that we got was created by someone else who didn't need locale data.
-    if (myFrameworkResources != null && withLocale && myFrameworkResources.isWithLocaleResources()) {
+    if (myFrameworkResources != null && withLocale && !myFrameworkResources.isWithLocaleResources()) {
       myFrameworkResources = null;
     }
     if (myFrameworkResources == null) {
