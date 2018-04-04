@@ -122,7 +122,7 @@ public class ProfilerServiceProxy extends PerfdProxyService
       .setCodename(StringUtil.notNullize(device.getVersion().getCodename()))
       .setApiLevel(device.getVersion().getApiLevel())
       .setFeatureLevel(device.getVersion().getFeatureLevel())
-      .setManufacturer(DevicePropertyUtil.getManufacturer(device, device.isEmulator() ? EMULATOR : ""))
+      .setManufacturer(getDeviceManufacturer(device))
       .setIsEmulator(device.isEmulator())
       .setState(convertState(device.getState()))
       .build();
@@ -151,8 +151,13 @@ public class ProfilerServiceProxy extends PerfdProxyService
   }
 
   @NotNull
-  private static String getDeviceModel(@NotNull IDevice device) {
+  public static String getDeviceModel(@NotNull IDevice device) {
     return device.isEmulator() ? StringUtil.notNullize(device.getAvdName(), "Unknown") : DevicePropertyUtil.getModel(device, "Unknown");
+  }
+
+  @NotNull
+  public static String getDeviceManufacturer(@NotNull IDevice device) {
+    return DevicePropertyUtil.getManufacturer(device, device.isEmulator() ? EMULATOR : "");
   }
 
   @Override

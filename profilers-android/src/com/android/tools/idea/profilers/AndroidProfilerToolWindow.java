@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.profilers;
 
+import com.android.ddmlib.IDevice;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.profilers.perfd.ProfilerServiceProxy;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.intellij.openapi.Disposable;
@@ -25,6 +28,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import org.jetbrains.annotations.NotNull;
@@ -84,8 +88,12 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
 
   /**
    * Sets the profiler's auto-profiling process in case it has been unset.
+   *
+   * @param project The project being profiled.
+   * @param device  The target {@link IDevice} that the app will launch in.
    */
-  public void profileProject(@NotNull Project project) {
+  public void profileProject(@NotNull Project project, @NotNull IDevice device) {
+    myProfilers.setPreferredDeviceName(getDeviceDisplayName(device));
     myProfilers.setPreferredProcessName(getPreferredProcessName(project));
   }
 
@@ -137,5 +145,29 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
       }
     }
     return null;
+  }
+
+  /**
+   * Analogous to {@link StudioProfilers#buildDeviceName(Common.Device)} but works with an {@link IDevice} instead.
+   *
+   * @return A string of the format: {Manufacturer Model}.
+   */
+  @NotNull
+  public static String getDeviceDisplayName(@NotNull IDevice device) {
+    StringBuilder deviceNameBuilder = new StringBuilder();
+    String manufacturer = ProfilerServiceProxy.getDeviceManufacturer(device);
+    String model = ProfilerServiceProxy.getDeviceModel(device);
+    String serial = device.getSerialNumber();
+    String suffix = String.format("-%s", serial);
+    if (model.endsWith(suffix)) {
+      model = model.substring(0, model.length() - suffix.length());
+    }
+    if (!StringUtil.isEmpty(manufacturer)) {
+      deviceNameBuilder.append(manufacturer);
+      deviceNameBuilder.append(" ");
+    }
+    deviceNameBuilder.append(model);
+
+    return deviceNameBuilder.toString();
   }
 }
