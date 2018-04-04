@@ -26,6 +26,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.FAKE;
+
 /**
  * A {@link FakeElement} that is used to represent models that are derived from part of a {@link GradleDslElement}.
  * This is needed since a {@link GradlePropertyModel} requires a backing element, these elements are not
@@ -48,6 +50,7 @@ public abstract class FakeElement extends GradleDslSettableExpression {
     super(parent, null, name, null);
     myRealExpression = originExpression;
     myCanDelete = canDelete;
+    setElementType(FAKE);
   }
 
   @Nullable

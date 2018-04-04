@@ -50,8 +50,9 @@ public class GradlePropertyModelBuilder {
   }
 
   /**
-   * Creates a builder for a {@link FakeElement} this can't be created in the normal way since it is not visible from
-   * its parent. See {@link FakeElement} for more information.
+   * Creates a builder from an element.
+   * This is used for things such as {@link FakeElement}s as these can't be created in the normal way since they are not visible from
+   * their parents. See {@link FakeElement} for more information.
    * In most cases {@link #create(GradlePropertiesDslElement, String)} should be used instead.
    *
    * @param element the fake element

@@ -26,7 +26,6 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.PsiElement;
-import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
@@ -41,8 +40,7 @@ import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigura
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr;
-import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
-import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
@@ -1230,9 +1228,9 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     ArtifactDependencyModel artifact = artifacts.get(0);
     assertMissingProperty(artifact.extension());
     assertMissingProperty(artifact.classifier());
-    verifyPropertyModel(artifact.name(), STRING_TYPE, "appcompat-v7", STRING, DERIVED, 0, "name");
-    verifyPropertyModel(artifact.group(), STRING_TYPE, "com.android.support", STRING, DERIVED, 0, "group");
-    verifyPropertyModel(artifact.version(), STRING_TYPE, "22.1.1", STRING, DERIVED, 0, "version");
+    verifyPropertyModel(artifact.name(), STRING_TYPE, "appcompat-v7", STRING, FAKE, 0, "name");
+    verifyPropertyModel(artifact.group(), STRING_TYPE, "com.android.support", STRING, FAKE, 0, "group");
+    verifyPropertyModel(artifact.version(), STRING_TYPE, "22.1.1", STRING, FAKE, 0, "version");
 
     verifyPropertyModel(artifact.completeModel(), STRING_TYPE, "com.android.support:appcompat-v7:22.1.1", STRING, REGULAR, 0, "compile");
   }
@@ -1413,13 +1411,61 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertSize(2, artifacts);
 
     firstModel = artifacts.get(0);
-    verifyPropertyModel(firstModel.version(), STRING_TYPE, "3.6", STRING, DERIVED, 1, "version");
+    verifyPropertyModel(firstModel.version(), STRING_TYPE, "3.6", STRING, FAKE, 1, "version");
     assertThat(firstModel.completeModel().getRawValue(STRING_TYPE)).isEqualTo("org.gradle.test.classifiers:service:${version}");
 
     secondModel = artifacts.get(1);
-    verifyPropertyModel(secondModel.name(), STRING_TYPE, "guava", STRING, DERIVED, 1, "name");
+    verifyPropertyModel(secondModel.name(), STRING_TYPE, "guava", STRING, FAKE, 1, "name");
     assertThat(secondModel.completeModel().getRawValue(STRING_TYPE)).isEqualTo("com.google.guava:${ext.name}:+");
   }
+
+
+  public void testCompactNotationElementUnsupportedOperations() throws IOException {
+    String text = "dependencies {\n" +
+                  "  testCompile 'org.gradle.test.classifiers:service:1.0'\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependencies = buildModel.dependencies();
+
+    List<ArtifactDependencyModel> artifacts = dependencies.artifacts();
+    ArtifactDependencyModel artifact = artifacts.get(0);
+    try {
+      artifact.version().rename("hello"); // This doesn't make sense
+      fail();
+    }
+    catch (UnsupportedOperationException e) {
+      // Expected
+    }
+
+    try {
+      artifact.name().delete(); // Names can't be deleted
+      fail();
+    }
+    catch (UnsupportedOperationException e) {
+      // Expected
+    }
+
+    try {
+      artifact.classifier().convertToEmptyMap(); // Again this operation doesn't make sense
+      fail();
+    }
+    catch (UnsupportedOperationException e) {
+      // Expected
+    }
+
+    try {
+      artifact.extension().convertToEmptyList();
+      fail();
+    }
+    catch (UnsupportedOperationException e) {
+      // Expected
+    }
+
+    assertFalse(buildModel.isModified());
+  }
+
 
   @Test
   public void testParseFullReferencesCompactApplication() throws IOException {
@@ -1462,8 +1508,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     dependencies = buildModel.dependencies();
     artifacts = dependencies.artifacts();
     assertSize(2, artifacts);
-
-    System.out.println(FileUtils.readFileToString(myBuildFile));
 
     model = artifacts.get(0).completeModel();
     verifyPropertyModel(model, STRING_TYPE, "com.google.guava:guava:+", STRING, REGULAR, 1, "testCompile");
@@ -1608,8 +1652,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     dependencies = buildModel.dependencies();
     artifacts = dependencies.artifacts();
     assertSize(4, artifacts);
-
-    System.out.println(FileUtils.readFileToString(myBuildFile));
 
     model = artifacts.get(0);
     verifyMapProperty(model.completeModel(), ImmutableMap.of("group", "com.google.guava", "name", "guava", "version", "4.0"));
