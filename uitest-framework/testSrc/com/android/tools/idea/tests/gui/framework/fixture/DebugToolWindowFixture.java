@@ -70,6 +70,12 @@ public class DebugToolWindowFixture extends ExecutionToolWindowFixture {
     }
   }
 
+  @Override
+  public DebugToolWindowFixture activate() {
+    // Do nothing here.
+    return this;
+  }
+
   private ActionButton findDebugResumeButton() {
     return GuiTests.waitUntilShowing(myRobot, new GenericTypeMatcher<ActionButton>(ActionButton.class) {
       @Override
