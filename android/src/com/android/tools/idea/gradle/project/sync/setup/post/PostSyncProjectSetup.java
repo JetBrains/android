@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.ProjectStructure.AndroidPluginVersionsInProject;
+import com.android.tools.idea.gradle.project.RunConfigurationChecker;
 import com.android.tools.idea.gradle.project.SupportedModuleChecker;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
@@ -208,6 +209,7 @@ public class PostSyncProjectSetup {
     myProjectSetup.setUpProject(progressIndicator, false /* sync successful */);
 
     modifyJUnitRunConfigurations();
+    RunConfigurationChecker.getInstance(myProject).ensureRunConfigsInvokeBuild();
 
     myProvisionTasks.addInstantAppProvisionTaskToRunConfigurations(myProject);
 

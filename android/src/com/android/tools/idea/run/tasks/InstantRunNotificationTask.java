@@ -61,7 +61,7 @@ public class InstantRunNotificationTask implements LaunchTask {
     myContext = context;
     myNotificationsProvider = provider;
     myBuildSelection = buildSelection;
-    myShowBrokenForSecondaryUserMessage = buildSelection.brokenForSecondaryUser;
+    myShowBrokenForSecondaryUserMessage = buildSelection != null ? buildSelection.brokenForSecondaryUser : false;
   }
 
   @NotNull

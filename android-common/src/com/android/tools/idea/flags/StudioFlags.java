@@ -182,6 +182,12 @@ public final class StudioFlags {
     true);
 
   private static final FlagGroup GRADLE_IDE = new FlagGroup(FLAGS, "gradle.ide", "Gradle Project System");
+  public static final Flag<Boolean> FIX_ANDROID_RUN_CONFIGURATIONS_ENABLED = Flag.create(
+    GRADLE_IDE, "gradle.run.configuration.fix.enabled",
+    "Check Android Run Configurations contains the \"Gradle-aware Make\" task and fix them",
+    "When a project is loaded, automatically add a \"Gradle-aware Make\" task to each Run Configuration if the task is missing" ,
+    true);
+
   public static final Flag<Boolean> GRADLE_INVOCATIONS_INDEXING_AWARE = Flag.create(
     GRADLE_IDE, "indexing.aware", "Execute gradle actions in indexing-aware mode",
     "Make Gradle actions and IDE indexing mutually exclusive to allow better utilisation of machine resources.",

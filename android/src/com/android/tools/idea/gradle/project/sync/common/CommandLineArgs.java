@@ -122,7 +122,7 @@ public class CommandLineArgs {
     return args;
   }
 
-  private static boolean isInTestingMode() {
+  public static boolean isInTestingMode() {
     return GuiTestingService.getInstance().isGuiTestingMode() || ApplicationManager.getApplication().isUnitTestMode();
   }
 }
