@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
@@ -69,6 +70,12 @@ public interface GradleDslParser {
   Object extractValue(@NotNull GradleDslExpression context, @NotNull PsiElement literal, boolean resolve);
 
   /**
+   * Builds an excludes block for a list of {@link ArtifactDependencySpec}s
+   */
+  @NotNull
+  PsiElement convertToExcludesBlock(@NotNull List<ArtifactDependencySpec> excludes);
+
+  /**
    * @param elementToCheck GradleDslElement, returns false if a non-string element is provided.
    * @return whether the string represented by this GradleDslElement should be interpolated.
    */
@@ -118,6 +125,9 @@ public interface GradleDslParser {
     public Object extractValue(@NotNull GradleDslExpression context, @NotNull PsiElement literal, boolean resolve) {
       return null;
     }
+
+    @Override
+    public PsiElement convertToExcludesBlock(@NotNull List<ArtifactDependencySpec> specs) { return null; }
 
     @Override
     public boolean shouldInterpolate(@NotNull GradleDslElement elementToCheck) { return false; }
