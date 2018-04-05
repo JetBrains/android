@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,12 @@ package com.android.tools.idea.lint;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.ide.common.repository.GradleCoordinate;
-import com.android.ide.common.repository.GradleVersion;
-import com.android.ide.common.repository.SdkMavenRepository;
-import com.android.repository.api.RemotePackage;
-import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.lint.checks.GradleDetector;
-import com.android.tools.lint.client.api.LintClient;
-import com.android.tools.lint.detector.api.*;
+import com.android.tools.lint.client.api.GradleVisitor;
+import com.android.tools.lint.detector.api.DefaultPosition;
+import com.android.tools.lint.detector.api.GradleContext;
+import com.android.tools.lint.detector.api.GradleScanner;
+import com.android.tools.lint.detector.api.Location;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
@@ -44,16 +41,11 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals
 
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
 
 import static com.android.SdkConstants.ATTR_MIN_SDK_VERSION;
 import static com.android.SdkConstants.ATTR_TARGET_SDK_VERSION;
 
-public class LintIdeGradleDetector extends GradleDetector {
-  static final Implementation IMPLEMENTATION = new Implementation(
-    LintIdeGradleDetector.class,
-    Scope.GRADLE_SCOPE);
-
+public class LintIdeGradleVisitor extends GradleVisitor {
   @Nullable
   private static String getClosureName(@NonNull GrClosableBlock closure) {
     if (closure.getParent() instanceof GrMethodCall) {
@@ -70,35 +62,10 @@ public class LintIdeGradleDetector extends GradleDetector {
   }
 
   @Override
-  @Nullable
-  protected GradleVersion getHighestKnownVersion(@NonNull LintClient client, @NonNull GradleCoordinate coordinate,
-                                                 @Nullable Predicate<GradleVersion> filter) {
-    AndroidSdkHandler sdkHandler = client.getSdk();
-    if (sdkHandler == null) {
-      return null;
-    }
-    StudioLoggerProgressIndicator logger = new StudioLoggerProgressIndicator(getClass());
-    RemotePackage sdkPackage = SdkMavenRepository.findLatestRemoteVersion(coordinate, sdkHandler, filter, logger);
-    if (sdkPackage != null) {
-      GradleCoordinate found = SdkMavenRepository.getCoordinateFromSdkPath(sdkPackage.getPath());
-      if (found != null) {
-        return found.getVersion();
-      }
-    }
-
-    return null;
-  }
-
-  @Override
-  public void visitBuildScript(@NonNull final Context context) {
+  public void visitBuildScript(@NotNull GradleContext context, @NotNull List<? extends GradleScanner> detectors) {
     ApplicationManager.getApplication().runReadAction(new Runnable() {
       @Override
       public void run() {
-        if (context instanceof JavaContext) {
-          handleGradleKotlinScript((JavaContext)context);
-          return;
-        }
-
         final PsiFile psiFile = LintIdeUtils.getPsiFile(context);
         if (!(psiFile instanceof GroovyFile)) {
           return;
@@ -115,7 +82,7 @@ public class LintIdeGradleDetector extends GradleDetector {
                 parentParentName = getClosureName(block);
               }
             }
-            if (parentName != null && isInterestingBlock(parentName, parentParentName)) {
+            if (parentName != null) {
               for (PsiElement element : closure.getChildren()) {
                 if (element instanceof GrApplicationStatement) {
                   GrApplicationStatement call = (GrApplicationStatement)element;
@@ -125,10 +92,11 @@ public class LintIdeGradleDetector extends GradleDetector {
                     GrReferenceExpression propertyRef = (GrReferenceExpression)propertyExpression;
                     String property = propertyRef.getReferenceName();
                     //noinspection ConstantConditions
-                    if (property != null && isInterestingProperty(property, parentName, parentParentName)
-                          && argumentList != null) {
+                    if (property != null && argumentList != null) {
                       String value = argumentList.getText();
-                      checkDslPropertyAssignment(context, property, value, parentName, parentParentName, argumentList, call);
+                      for (GradleScanner detector : detectors) {
+                        detector.checkDslPropertyAssignment(context, property, value, parentName, parentParentName, argumentList, call);
+                      }
                     }
                   }
                 } else if (element instanceof GrAssignmentExpression) {
@@ -137,11 +105,13 @@ public class LintIdeGradleDetector extends GradleDetector {
                   if (lValue instanceof GrReferenceExpression) {
                     GrReferenceExpression propertyRef = (GrReferenceExpression)lValue;
                     String property = propertyRef.getReferenceName();
-                    if (property != null && isInterestingProperty(property, parentName, parentParentName)) {
+                    if (property != null) {
                       GrExpression rValue = assignment.getRValue();
                       if (rValue != null) {
                         String value = rValue.getText();
-                        checkDslPropertyAssignment(context, property, value, parentName, parentParentName, rValue, assignment);
+                        for (GradleScanner detector : detectors) {
+                          detector.checkDslPropertyAssignment(context, property, value, parentName, parentParentName, rValue, assignment);
+                        }
 
                         // As of 0.11 you can't use assignment for these two properties. This is handled here rather
                         // than up in GradleDetector for a couple of reasons: The project won't compile with that
@@ -173,7 +143,6 @@ public class LintIdeGradleDetector extends GradleDetector {
             GrClosableBlock block = PsiTreeUtil.getParentOfType(applicationStatement, GrClosableBlock.class, true);
             String parentName = block != null ? getClosureName(block) : null;
             String statementName = applicationStatement.getInvokedExpression().getText();
-            if (isInterestingStatement(statementName, parentName)) {
               GrCommandArgumentList argumentList = applicationStatement.getArgumentList();
               Map<String, String> namedArguments = Maps.newHashMap();
               List<String> unnamedArguments = Lists.newArrayList();
@@ -181,7 +150,7 @@ public class LintIdeGradleDetector extends GradleDetector {
                 if (groovyPsiElement instanceof GrNamedArgument) {
                   GrNamedArgument namedArgument = (GrNamedArgument)groovyPsiElement;
                   GrExpression expression = namedArgument.getExpression();
-                  if (expression == null || !(expression instanceof GrLiteral)) {
+                  if (!(expression instanceof GrLiteral)) {
                     continue;
                   }
                   Object value = ((GrLiteral)expression).getValue();
@@ -192,8 +161,9 @@ public class LintIdeGradleDetector extends GradleDetector {
                 } else if (groovyPsiElement instanceof GrExpression) {
                   unnamedArguments.add(groovyPsiElement.getText());
                 }
-              }
-              checkMethodCall(context, statementName, parentName, namedArguments, unnamedArguments, applicationStatement);
+                for (GradleScanner detector : detectors) {
+                  detector.checkMethodCall(context, statementName, parentName, namedArguments, unnamedArguments, applicationStatement);
+                }
             }
             super.visitApplicationStatement(applicationStatement);
           }
@@ -203,7 +173,7 @@ public class LintIdeGradleDetector extends GradleDetector {
   }
 
   @Override
-  protected int getStartOffset(@NonNull Context context, @NonNull Object cookie) {
+  public int getStartOffset(@NotNull GradleContext context, @NotNull Object cookie) {
     int startOffset = super.getStartOffset(context, cookie);
     if (startOffset != -1) {
       return startOffset;
@@ -216,14 +186,14 @@ public class LintIdeGradleDetector extends GradleDetector {
 
   @NonNull
   @Override
-  protected Object getPropertyPairCookie(@NonNull Object cookie) {
+  public Object getPropertyPairCookie(@NonNull Object cookie) {
     PsiElement element = (PsiElement)cookie;
     return element.getParent();
   }
 
   @NonNull
   @Override
-  protected Object getPropertyKeyCookie(@NonNull Object cookie) {
+  public Object getPropertyKeyCookie(@NonNull Object cookie) {
     PsiElement element = (PsiElement)cookie;
     PsiElement parent = element.getParent();
     if (parent instanceof GrApplicationStatement) {
@@ -237,19 +207,13 @@ public class LintIdeGradleDetector extends GradleDetector {
     return super.getPropertyKeyCookie(cookie);
   }
 
+  @NotNull
   @Override
-  protected Location createLocation(@NonNull Context context, @NonNull Object cookie) {
-    Location location = super.createLocation(context, cookie);
-    if (location != null) {
-      return location;
-    }
-
+  public Location createLocation(@NotNull GradleContext context, @NotNull Object cookie) {
     PsiElement element = (PsiElement)cookie;
     TextRange textRange = element.getTextRange();
     int start = textRange.getStartOffset();
     int end = textRange.getEndOffset();
-    location = Location.create(context.file, new DefaultPosition(-1, -1, start), new DefaultPosition(-1, -1, end));
-    location.setSource(element);
-    return location;
+    return Location.create(context.file, new DefaultPosition(-1, -1, start), new DefaultPosition(-1, -1, end)).withSource(element);
   }
 }
