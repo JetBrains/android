@@ -170,6 +170,7 @@ public class RecyclerViewAssistant extends JPanel {
     "</LinearLayout>";
 
   private static final ImmutableList<Template> TEMPLATES = ImmutableList.of(
+    Template.NONE_TEMPLATE,
     new Template("e-mail client", EMAIL_TEMPLATE),
     new Template("One line", ONE_LINE_TEMPLATE),
     new Template("Two lines", TWO_LINES_TEMPLATE),
@@ -190,7 +191,7 @@ public class RecyclerViewAssistant extends JPanel {
     VirtualFile resourceDir = ResourceFolderManager.getInstance(facet).getPrimaryFolder();
     assert resourceDir != null;
     myProject = facet.getModule().getProject();
-    myResourceName = getTemplateName(facet, "recycler_view");
+    myResourceName = getTemplateName(facet, "recycler_view_item");
 
     mySpinner = HorizontalSpinner.forModel(
       JBList.createDefaultListModel(TEMPLATES.toArray(new Template[0])));
@@ -230,7 +231,12 @@ public class RecyclerViewAssistant extends JPanel {
 
   private void fireSelectionUpdated() {
     Template template = mySpinner.getModel().getElementAt(mySpinner.getSelectedIndex());
-    myCreatedFile = setTemplate(myProject, myComponent, myResourceName, template.myTemplate);
+    if (template == Template.NONE_TEMPLATE) {
+      setOriginalState();
+    }
+    else {
+      myCreatedFile = setTemplate(myProject, myComponent, myResourceName, template.getMyTemplate());
+    }
   }
 
 
@@ -281,14 +287,10 @@ public class RecyclerViewAssistant extends JPanel {
     });
   }
 
-  /**
-   * Method called if the user has closed the popup
-   */
-  @Nullable
-  private Unit onClosed(Boolean cancelled) {
-    if (myCreatedFile == null || !cancelled) {
-      // The user didn't create a file, nothing to undo
-      return null;
+  private void setOriginalState() {
+    if (myCreatedFile == null) {
+      // Nothing to restore
+      return;
     }
 
     AndroidFacet facet = myComponent.getModel().getFacet();
@@ -296,32 +298,27 @@ public class RecyclerViewAssistant extends JPanel {
     // onClosed is invoked when the dialog is closed so we run the clean-up it later when the dialog has effectively closed
     ApplicationManager.getApplication().invokeLater(() -> WriteCommandAction.runWriteCommandAction(project, () -> {
       myCreatedFile.delete();
+      myCreatedFile = null;
       myComponent.setAttribute(TOOLS_URI, ATTR_LISTITEM, myOriginalListItemValue);
       CommandProcessor.getInstance().addAffectedFiles(project, myComponent.getTag().getContainingFile().getVirtualFile());
     }));
+  }
+
+  /**
+   * Method called if the user has closed the popup
+   */
+  @Nullable
+  private Unit onClosed(Boolean cancelled) {
+    if (!cancelled) {
+      return null;
+    }
+
+    setOriginalState();
     return null;
   }
 
   @NotNull
   public static JComponent createComponent(@NotNull Context context) {
     return new RecyclerViewAssistant(context);
-  }
-
-  /**
-   * Holder class for the templates information
-   */
-  private static class Template {
-    final String myTemplateName;
-    final String myTemplate;
-
-    private Template(@NotNull String templateName, @NotNull String template) {
-      myTemplateName = templateName;
-      myTemplate = template;
-    }
-
-    @Override
-    public String toString() {
-      return myTemplateName;
-    }
   }
 }
