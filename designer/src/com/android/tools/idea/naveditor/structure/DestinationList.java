@@ -15,22 +15,21 @@
  */
 package com.android.tools.idea.naveditor.structure;
 
-import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.ColoredIconGenerator;
-import com.android.tools.adtui.workbench.*;
+import com.android.tools.adtui.workbench.StartFilteringListener;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.SceneContext;
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.google.common.collect.ImmutableMap;
-import com.intellij.icons.AllIcons;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.SimpleTextAttributes;
@@ -38,7 +37,6 @@ import com.intellij.ui.components.JBList;
 import com.intellij.ui.speedSearch.FilteringListModel;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.UIUtil;
-import icons.StudioIcons;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -52,16 +50,14 @@ import java.util.List;
 
 import static com.android.SdkConstants.TAG_INCLUDE;
 import static icons.StudioIcons.NavEditor.Tree.*;
-import static java.awt.event.KeyEvent.VK_BACK_SPACE;
-import static java.awt.event.KeyEvent.VK_DELETE;
-import static java.awt.event.KeyEvent.VK_ESCAPE;
+import static java.awt.event.KeyEvent.*;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 /**
  * Left panel for the nav editor, showing a list of available destinations.
  */
-public class DestinationList extends JPanel implements ToolContent<DesignSurface>, DataProvider {
+public class DestinationList extends JPanel implements DataProvider, Disposable {
 
   @VisibleForTesting
   static final String ROOT_NAME = "Root";
@@ -83,10 +79,6 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
   private NlModel myModel;
   private ListSelectionListener myListSelectionListener;
   private MouseListener myMouseListener;
-  @VisibleForTesting
-  public JLabel myBackLabel;
-  @VisibleForTesting
-  JPanel myBackPanel;
   private NavDesignSurface myDesignSurface;
 
   private StartFilteringListener myStartFilteringListener;
@@ -98,7 +90,9 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
     ACTIVITY, ColoredIconGenerator.INSTANCE.generateWhiteIcon(ACTIVITY),
     NESTED_GRAPH, ColoredIconGenerator.INSTANCE.generateWhiteIcon(NESTED_GRAPH));
 
-  private DestinationList() {
+  DestinationList(@NotNull Disposable parentDisposable, @NotNull NavDesignSurface surface) {
+    myDesignSurface = surface;
+    Disposer.register(parentDisposable, this);
     setLayout(new BorderLayout());
     myList = new JBList<>(myListModel);
     myList.setName("DestinationList");
@@ -138,6 +132,7 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
       public void keyTyped(KeyEvent e) {
         if (Character.isAlphabetic(e.getKeyChar()) && myStartFilteringListener != null) {
           myStartFilteringListener.startFiltering(e.getKeyChar());
+          e.consume();
         }
         if (e.getKeyChar() == VK_ESCAPE && myStopFilteringListener != null) {
           myStopFilteringListener.run();
@@ -168,6 +163,49 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
     JScrollPane pane = ScrollPaneFactory.createScrollPane(myList, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_AS_NEEDED);
     pane.setBorder(null);
     add(pane, BorderLayout.CENTER);
+
+    myModel = surface.getModel();
+    mySelectionModel = surface.getSelectionModel();
+    mySelectionModelListener = (model, selection) -> {
+      updateListSelection();
+    };
+    mySelectionModel.addListener(mySelectionModelListener);
+    myListSelectionListener = e -> {
+      if (mySelectionUpdating || e.getValueIsAdjusting()) {
+        return;
+      }
+      try {
+        mySelectionUpdating = true;
+        mySelectionModel.setSelection(myList.getSelectedValuesList());
+        myDesignSurface.scrollToCenter(myList.getSelectedValuesList());
+      }
+      finally {
+        mySelectionUpdating = false;
+      }
+    };
+    myList.addListSelectionListener(myListSelectionListener);
+    myModelListener = new ModelListener() {
+      @Override
+      public void modelChanged(@NotNull NlModel model) {
+        updateComponentList();
+      }
+
+      @Override
+      public void modelActivated(@NotNull NlModel model) {
+        updateComponentList();
+      }
+
+      @Override
+      public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
+      }
+    };
+    myMouseListener = new DestinationListMouseListener();
+    myList.addMouseListener(myMouseListener);
+    myModel.addListener(myModelListener);
+
+    ColorSet colorSet = SceneContext.get(surface.getCurrentSceneView()).getColorSet();
+    myList.setBackground(colorSet.getSubduedBackground());
+    updateComponentList();
   }
 
   @Override
@@ -178,69 +216,6 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
     myList.removeMouseListener(myMouseListener);
   }
 
-  @Override
-  public void setToolContext(@Nullable DesignSurface toolContext) {
-    myDesignSurface = (NavDesignSurface)toolContext;
-    if (mySelectionModel != null && mySelectionModelListener != null) {
-      mySelectionModel.removeListener(mySelectionModelListener);
-    }
-    if (myListSelectionListener != null) {
-      myList.removeListSelectionListener(myListSelectionListener);
-    }
-    if (myModel != null && myModelListener != null) {
-      myModel.removeListener(myModelListener);
-    }
-
-    if (toolContext != null) {
-      add(createBackPanel(toolContext), BorderLayout.NORTH);
-      myModel = toolContext.getModel();
-      mySelectionModel = toolContext.getSelectionModel();
-      mySelectionModelListener = (model, selection) -> {
-        updateListSelection();
-      };
-      mySelectionModel.addListener(mySelectionModelListener);
-      myListSelectionListener = e -> {
-        if (mySelectionUpdating || e.getValueIsAdjusting()) {
-          return;
-        }
-        try {
-          mySelectionUpdating = true;
-          mySelectionModel.setSelection(myList.getSelectedValuesList());
-          myDesignSurface.scrollToCenter(myList.getSelectedValuesList());
-        }
-        finally {
-          mySelectionUpdating = false;
-        }
-      };
-      myList.addListSelectionListener(myListSelectionListener);
-      myModelListener = new ModelListener() {
-        @Override
-        public void modelChanged(@NotNull NlModel model) {
-          updateComponentList(toolContext);
-        }
-
-        @Override
-        public void modelActivated(@NotNull NlModel model) {
-          updateComponentList(toolContext);
-        }
-
-        @Override
-        public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
-        }
-      };
-      myMouseListener = new DestinationListMouseListener();
-      myList.addMouseListener(myMouseListener);
-      myModel.addListener(myModelListener);
-
-      Configuration configuration = toolContext.getConfiguration();
-      assert configuration != null;
-
-      ColorSet colorSet = SceneContext.get(toolContext.getCurrentSceneView()).getColorSet();
-      myList.setBackground(colorSet.getSubduedBackground());
-    }
-    updateComponentList(toolContext);
-  }
-
   private NavigationSchema getSchema() {
     if (mySchema == null) {
       assert myModel != null;
@@ -249,52 +224,12 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
     return mySchema;
   }
 
-  private void updateBackLabel() {
-    if (myModel.getComponents().contains(myDesignSurface.getCurrentNavigation())) {
-      myBackPanel.setVisible(false);
-    }
-    else {
-      myBackPanel.setVisible(true);
-      NlComponent parent = myDesignSurface.getCurrentNavigation().getParent();
-      myBackLabel.setText(parent.getParent() == null ? ROOT_NAME : NavComponentHelperKt.getUiName(parent));
-    }
-  }
-
-  @NotNull
-  private JComponent createBackPanel(@NotNull DesignSurface context) {
-    myBackPanel = new JPanel(new BorderLayout());
-    myBackLabel = new JLabel("", StudioIcons.Common.BACK_ARROW, SwingConstants.LEFT);
-    ColorSet colorSet = SceneContext.get(context.getCurrentSceneView()).getColorSet();
-    myBackPanel.setBackground(colorSet.getSubduedBackground());
-    myBackPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, colorSet.getFrames()),
-                                                             BorderFactory.createEmptyBorder(5, 5, 5, 5)));
-    myBackPanel.setVisible(false);
-    myBackPanel.add(myBackLabel, BorderLayout.WEST);
-    myBackLabel.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        goBack();
-      }
-    });
-    return myBackPanel;
-  }
-
-  @VisibleForTesting
-  void goBack() {
-    //noinspection ConstantConditions This is only shown in the case where the current navigation has a parent.
-    myDesignSurface.setCurrentNavigation(myDesignSurface.getCurrentNavigation().getParent());
-    updateComponentList(myDesignSurface);
-    updateBackLabel();
-  }
-
-  private void updateComponentList(@Nullable DesignSurface toolContext) {
+  void updateComponentList() {
     List<NlComponent> newElements = new ArrayList<>();
-    if (toolContext != null) {
-      NlComponent root = myDesignSurface.getCurrentNavigation();
-      for (NlComponent child : root.getChildren()) {
-        if (getSchema().getDestinationType(child.getTagName()) != null) {
-          newElements.add(child);
-        }
+    NlComponent root = myDesignSurface.getCurrentNavigation();
+    for (NlComponent child : root.getChildren()) {
+      if (getSchema().getDestinationType(child.getTagName()) != null) {
+        newElements.add(child);
       }
     }
     if (!newElements.equals(Collections.list(myUnderlyingModel.elements()))) {
@@ -325,36 +260,20 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
         }
       }
       myList.setSelectedIndices(ArrayUtil.toIntArray(selectedIndices));
-
-      updateBackLabel();
     }
     finally {
       mySelectionUpdating = false;
     }
   }
 
-  @NotNull
-  @Override
-  public JComponent getComponent() {
-    return this;
-  }
-
-  @Override
-  public boolean supportsFiltering() {
-    return true;
-  }
-
-  @Override
   public void setFilter(@NotNull String filter) {
     myListModel.setFilter(c -> NavComponentHelperKt.getUiName(c).toLowerCase(getLocale()).contains(filter.toLowerCase(getLocale())));
   }
 
-  @Override
   public void setStartFiltering(@NotNull StartFilteringListener listener) {
     myStartFilteringListener = listener;
   }
 
-  @Override
   public void setStopFiltering(@NotNull Runnable stopFilteringListener) {
     myStopFilteringListener = stopFilteringListener;
   }
@@ -363,13 +282,6 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
   @Override
   public Object getData(@NonNls String dataId) {
     return myDesignSurface == null ? null : myDesignSurface.getData(dataId);
-  }
-
-  public static class DestinationListDefinition extends ToolWindowDefinition<DesignSurface> {
-    public DestinationListDefinition() {
-      super("Destinations", AllIcons.Toolwindows.ToolWindowHierarchy, "destinations", Side.LEFT, Split.TOP, AutoHide.DOCKED,
-            DestinationList::new);
-    }
   }
 
   private class DestinationListMouseListener extends MouseAdapter {

@@ -19,16 +19,10 @@ import com.android.tools.idea.naveditor.structure.DestinationList
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import org.fest.swing.core.Robot
-import org.fest.swing.fixture.JLabelFixture
 import org.fest.swing.fixture.JListFixture
 
 class DestinationListFixture(private val robot: Robot, private val list: DestinationList) :
     JListFixture(robot, list.myList) {
-
-  fun clickBack(): DestinationListFixture {
-    JLabelFixture(robot, list.myBackLabel).click()
-    return this
-  }
 
   val selectedComponents
     get() = list.myList.selectedValuesList
