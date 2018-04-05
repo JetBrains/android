@@ -37,6 +37,7 @@ public class SyncProjectModels implements Serializable {
 
   @NotNull private final Set<Class<?>> myExtraAndroidModelTypes;
   @NotNull private final Set<Class<?>> myExtraJavaModelTypes;
+  @NotNull private final SyncActionOptions myOptions;
 
   // List of SyncModuleModels for modules in root build and included builds.
   @NotNull private final List<SyncModuleModels> mySyncModuleModels = new ArrayList<>();
@@ -48,6 +49,7 @@ public class SyncProjectModels implements Serializable {
                            @NotNull SyncActionOptions options) {
     myExtraAndroidModelTypes = extraAndroidModelTypes;
     myExtraJavaModelTypes = extraJavaModelTypes;
+    myOptions = options;
   }
 
   public void populate(@NotNull BuildController controller) {
@@ -61,13 +63,39 @@ public class SyncProjectModels implements Serializable {
 
     for (GradleBuild gradleBuild : gradleBuilds) {
       GradleProject gradleProject = controller.findModel(gradleBuild.getRootProject(), GradleProject.class);
-      populateModels(gradleProject, controller, gradleBuild.getBuildIdentifier());
+      populateModelsForModule(gradleProject, controller, gradleBuild.getBuildIdentifier());
     }
 
     // Ensure unique module names.
     deduplicateModuleNames();
     // Request for GlobalLibraryMap model.
     populateGlobalLibraryMap(controller);
+  }
+
+  private void populateModelsForModule(@Nullable GradleProject project,
+                                       @NotNull BuildController controller,
+                                       @NotNull BuildIdentifier buildId) {
+    if (project == null) {
+      return;
+    }
+    SyncModuleModels models = new SyncModuleModels(project, buildId, myExtraAndroidModelTypes, myExtraJavaModelTypes, myOptions);
+    models.populate(project, controller);
+    mySyncModuleModels.add(models);
+
+    for (GradleProject child : project.getChildren()) {
+      populateModelsForModule(child, controller, buildId);
+    }
+  }
+
+  // If there are duplicated module names, update module name to include project name.
+  private void deduplicateModuleNames() {
+    Map<String, Long> nameCount = mySyncModuleModels.stream().collect(groupingBy(m -> m.getModuleName(), counting()));
+    for (SyncModuleModels moduleModel : mySyncModuleModels) {
+      String moduleName = moduleModel.getModuleName();
+      if (nameCount.get(moduleName) > 1) {
+        moduleModel.deduplicateModuleName();
+      }
+    }
   }
 
   private void populateGlobalLibraryMap(@NotNull BuildController controller) {
@@ -83,32 +111,6 @@ public class SyncProjectModels implements Serializable {
           visitedBuildId.add(buildId);
           myGlobalLibraryMaps.add(map);
         }
-      }
-    }
-  }
-
-  private void populateModels(@Nullable GradleProject project,
-                              @NotNull BuildController controller,
-                              @NotNull BuildIdentifier buildId) {
-    if (project == null) {
-      return;
-    }
-    SyncModuleModels models = new SyncModuleModels(project, buildId, myExtraAndroidModelTypes, myExtraJavaModelTypes);
-    models.populate(project, controller);
-    mySyncModuleModels.add(models);
-
-    for (GradleProject child : project.getChildren()) {
-      populateModels(child, controller, buildId);
-    }
-  }
-
-  // If there are duplicated module names, update module name to include project name.
-  private void deduplicateModuleNames() {
-    List<SyncModuleModels> syncModuleModels = getSyncModuleModels();
-    Map<String, Long> nameCount = syncModuleModels.stream().collect(groupingBy(m -> m.getModuleName(), counting()));
-    for (SyncModuleModels moduleModel : syncModuleModels) {
-      if (nameCount.get(moduleModel.getModuleName()) > 1) {
-        moduleModel.deduplicateModuleName();
       }
     }
   }
