@@ -50,12 +50,12 @@ class DependenciesTest : GradleFileModelTestCase() {
       // Note: all() will group all dependencies by configuration name.
       val dep = deps[1] as ArtifactDependencyModel
       assertThat(dep.configurationName(), equalTo("api"))
-      assertThat(dep.compactNotation().value(), equalTo("com.android.support:appcompat-v7:+"))
+      assertThat(dep.compactNotation(), equalTo("com.android.support:appcompat-v7:+"))
     }
     run {
       val dep = deps[2] as ArtifactDependencyModel
       assertThat(dep.configurationName(), equalTo("implementation"))
-      assertThat(dep.compactNotation().value(), equalTo("com.example.libs:lib1:0.+"))
+      assertThat(dep.compactNotation(), equalTo("com.example.libs:lib1:0.+"))
     }
     run {
       val dep = deps[3] as FileDependencyModel

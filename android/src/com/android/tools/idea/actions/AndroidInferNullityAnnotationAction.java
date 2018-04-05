@@ -144,7 +144,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
         String configurationName =
           GradleUtil.mapConfigurationName(COMPILE, GradleUtil.getAndroidGradleModelVersionInUse(module), false);
         for (ArtifactDependencyModel dependency : dependenciesModel.artifacts(configurationName)) {
-          String notation = dependency.compactNotation().value();
+          String notation = dependency.compactNotation();
           if (notation.startsWith(GoogleMavenArtifactId.APP_COMPAT_V7.toString()) ||
               notation.startsWith(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7.toString()) ||
               notation.startsWith(GoogleMavenArtifactId.SUPPORT_V4.toString()) ||

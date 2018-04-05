@@ -66,9 +66,9 @@ class PsAndroidModuleDependencyCollection(parent: PsAndroidModule) : PsAndroidDe
     val artifactsByConfigurationNames = buildArtifactsByConfigurations()
     parsedDependencies.forEachLibraryDependency { libraryDependency ->
       val spec = PsArtifactDependencySpec(
-        libraryDependency.name().value(),
-        libraryDependency.group().value(),
-        libraryDependency.version().value()
+        libraryDependency.name().toString(),
+        libraryDependency.group().toString(),
+        libraryDependency.version().toString()
       )
       val artifacts = artifactsByConfigurationNames[libraryDependency.configurationName()] ?: listOf()
       libraryDependenciesBySpec.put(

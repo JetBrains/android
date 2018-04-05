@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.api.dependencies;
 
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -25,8 +25,8 @@ public interface DependencyConfigurationModel {
   List<ExcludedDependencyModel> excludes();
 
   @NotNull
-  GradleNullableValue<Boolean> force();
+  ResolvedPropertyModel force();
 
   @NotNull
-  GradleNullableValue<Boolean> transitive();
+  ResolvedPropertyModel transitive();
 }

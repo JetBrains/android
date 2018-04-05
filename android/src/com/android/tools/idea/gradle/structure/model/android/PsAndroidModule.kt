@@ -176,7 +176,7 @@ class PsAndroidModule(
       for (parsedDependency in dependency.parsedModels) {
         assert(parsedDependency is ArtifactDependencyModel)
         val artifactDependencyModel = parsedDependency as ArtifactDependencyModel
-        artifactDependencyModel.setVersion(newVersion)
+        artifactDependencyModel.version().setValue(newVersion)
         modified = true
       }
     }

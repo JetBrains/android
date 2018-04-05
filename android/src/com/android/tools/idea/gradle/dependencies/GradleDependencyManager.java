@@ -80,9 +80,9 @@ public class GradleDependencyManager {
     GradleVersion appCompatVersion = null;
     if (compileDependencies != null) {
       for (ArtifactDependencyModel dependency : compileDependencies) {
-        if (Objects.equal(SUPPORT_LIB_GROUP_ID, dependency.group().value()) &&
-            !Objects.equal("multidex", dependency.name().value())) {
-          String s = dependency.version().value();
+        if (Objects.equal(SUPPORT_LIB_GROUP_ID, dependency.group().toString()) &&
+            !Objects.equal("multidex", dependency.name().forceString())) {
+          String s = dependency.version().toString();
           if (s != null) {
             appCompatVersion = GradleVersion.tryParse(s);
           }
@@ -129,8 +129,8 @@ public class GradleDependencyManager {
       else if (compileDependencies != null) {
         // Now, check in the model obtained from the gradle files.
         for (ArtifactDependencyModel dependency : compileDependencies) {
-          if (Objects.equal(groupId, dependency.group().value()) &&
-              Objects.equal(artifactId, dependency.name().value())) {
+          if (Objects.equal(groupId, dependency.group().toString()) &&
+              Objects.equal(artifactId, dependency.name().forceString())) {
             dependencyFound = true;
             break;
           }
@@ -279,9 +279,9 @@ public class GradleDependencyManager {
       for (GradleCoordinate gc : coordinates) {
         List<ArtifactDependencyModel> artifacts = new ArrayList<>(dependenciesModel.artifacts());
         for (ArtifactDependencyModel m : artifacts) {
-          if (gc.getGroupId() != null && gc.getGroupId().equals(m.group().value())
-              && gc.getArtifactId() != null && gc.getArtifactId().equals(m.name().value())
-              && !gc.getRevision().equals(m.version().value())) {
+          if (gc.getGroupId() != null && gc.getGroupId().equals(m.group().toString())
+              && gc.getArtifactId() != null && gc.getArtifactId().equals(m.name().forceString())
+              && !gc.getRevision().equals(m.version().toString())) {
             dependenciesModel.remove(m);
             dependenciesModel.addArtifact(m.configurationName(), gc.toString());
           }
