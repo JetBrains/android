@@ -148,7 +148,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
       }
     }
     else if (element instanceof GradleDslExpressionList) {
-      for (GradleDslSimpleExpression expression : ((GradleDslExpressionList)element).getExpressions()) {
+      for (GradleDslSimpleExpression expression : ((GradleDslExpressionList)element).getSimpleExpressions()) {
         CompactNotation compactNotation = CompactNotation.create(configurationName, expression, configurationElement);
         if (compactNotation != null) {
           results.add(compactNotation);

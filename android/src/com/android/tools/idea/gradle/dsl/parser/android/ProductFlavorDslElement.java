@@ -70,7 +70,7 @@ public final class ProductFlavorDslElement extends AbstractFlavorTypeDslElement 
         return;
       }
       GradleDslExpressionList gradleDslExpressionList = (GradleDslExpressionList)element;
-      List<GradleDslSimpleExpression> elements = gradleDslExpressionList.getExpressions();
+      List<GradleDslSimpleExpression> elements = gradleDslExpressionList.getSimpleExpressions();
       if (elements.size() != 2) {
         return;
       }

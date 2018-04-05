@@ -44,7 +44,7 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 /**
  * Represents an expression element.
  */
-public abstract class GradleDslSimpleExpression extends GradleDslElementImpl {
+public abstract class GradleDslSimpleExpression extends GradleDslElementImpl implements GradleDslExpression {
   @NotNull private static final String SINGLE_QUOTES = "\'";
   @NotNull private static final String DOUBLE_QUOTES = "\"";
 
@@ -62,6 +62,7 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl {
     resolve();
   }
 
+  @Override
   @Nullable
   public PsiElement getExpression() {
     return myExpression;

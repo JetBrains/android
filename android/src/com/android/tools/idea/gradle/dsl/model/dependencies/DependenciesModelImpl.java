@@ -207,7 +207,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
         methodCall.remove(dependencyElement);
       }
     } else if (parent instanceof GradleDslExpressionList) {
-      List<GradleDslSimpleExpression> expressions = ((GradleDslExpressionList)parent).getExpressions();
+      List<GradleDslSimpleExpression> expressions = ((GradleDslExpressionList)parent).getSimpleExpressions();
       if (expressions.size() == 1 && expressions.get(0).equals(dependencyElement)) {
         myDslElement.removeProperty(parent);
       }
@@ -239,7 +239,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
       }
     }
     else if (element instanceof GradleDslExpressionList) {
-      for (GradleDslSimpleExpression expression : ((GradleDslExpressionList)element).getExpressions()) {
+      for (GradleDslSimpleExpression expression : ((GradleDslExpressionList)element).getSimpleExpressions()) {
         if (element.getPsiElement() == psiElement) {
           performDependencyReplace(psiElement, expression, dependency);
         }
@@ -313,7 +313,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
           }
         }
         else if (element instanceof GradleDslExpressionList) {
-          for (GradleDslSimpleExpression e : ((GradleDslExpressionList)element).getExpressions()) {
+          for (GradleDslSimpleExpression e : ((GradleDslExpressionList)element).getSimpleExpressions()) {
             if (e.getPsiElement() != null && isChildOfParent(child, e.getPsiElement())) {
               return e;
             }
