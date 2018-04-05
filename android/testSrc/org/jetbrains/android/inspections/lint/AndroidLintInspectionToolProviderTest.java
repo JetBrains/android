@@ -15,11 +15,9 @@
  */
 package org.jetbrains.android.inspections.lint;
 
-import com.android.tools.idea.lint.LintIdeGradleDetector;
 import com.android.tools.idea.lint.LintIdeIssueRegistry;
 import com.android.tools.idea.lint.LintIdeProject;
 import com.android.tools.idea.lint.LintIdeViewTypeDetector;
-import com.android.tools.lint.checks.GradleDetector;
 import com.android.tools.lint.checks.ViewTypeDetector;
 import com.android.tools.lint.detector.api.*;
 import com.android.utils.XmlUtils;
@@ -28,7 +26,6 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
-import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.android.AndroidTestCase;
 
@@ -55,12 +52,12 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
   public void testAllLintChecksRegistered() throws Exception {
     assertTrue(
       "Not all lint checks have been registered. See the standard output for instructions on how to register the missing checks.",
-      checkAllLintChecksRegistered(getProject()));
+      checkAllLintChecksRegistered());
   }
 
   private static boolean ourDone;
   @SuppressWarnings("deprecation")
-  private static boolean checkAllLintChecksRegistered(Project project) throws Exception {
+  private static boolean checkAllLintChecksRegistered() throws Exception {
     if (ourDone) {
       return true;
     }
@@ -379,9 +376,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
     Class<? extends Detector> detectorClass = issue.getImplementation().getDetectorClass();
 
     // Undo the effects of LintIdeIssueRegistry
-    if (detectorClass == LintIdeGradleDetector.class) {
-      detectorClass = GradleDetector.class;
-    } else if (detectorClass == LintIdeViewTypeDetector.class) {
+    if (detectorClass == LintIdeViewTypeDetector.class) {
       detectorClass = ViewTypeDetector.class;
     }
     return detectorClass;
