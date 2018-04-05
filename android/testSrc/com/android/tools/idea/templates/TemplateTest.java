@@ -704,6 +704,18 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
+  public void testNewViewModelFragment() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "ViewModelFragment");
+  }
+
+  @TemplateCheck
+  public void testNewViewModelFragmentWithKotlin() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "ViewModelFragment", false, withKotlin);
+  }
+
+  @TemplateCheck
   public void testNewService() throws Exception {
     myApiSensitiveTemplate = false;
     checkCreateTemplate("other", "Service");
