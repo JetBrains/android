@@ -41,23 +41,19 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
   @Override
   public List<DependencyModel> all() {
     List<DependencyModel> dependencies = Lists.newArrayList();
-    for (String configurationName : myDslElement.getProperties()) {
-      GradleDslElementList list = myDslElement.getPropertyElement(configurationName, GradleDslElementList.class);
-      if (list != null) {
-        for (GradleDslElement element : list.getElements(GradleDslElement.class)) {
-          dependencies.addAll(ArtifactDependencyModelImpl.create(configurationName, element));
-          if (element instanceof GradleDslMethodCall) {
-            GradleDslMethodCall methodCall = (GradleDslMethodCall)element;
-            if (methodCall.getMethodName().equals(ModuleDependencyModelImpl.PROJECT)) {
-              dependencies.addAll(ModuleDependencyModelImpl.create(configurationName, methodCall));
-            }
-            else if (methodCall.getMethodName().equals(FileDependencyModelImpl.FILES)) {
-              dependencies.addAll(FileDependencyModelImpl.create(configurationName, methodCall));
-            }
-            else if (methodCall.getMethodName().equals(FileTreeDependencyModelImpl.FILE_TREE)) {
-              dependencies.addAll(FileTreeDependencyModelImpl.create(configurationName, methodCall));
-            }
-          }
+    for (GradleDslElement element : myDslElement.getAllPropertyElements()) {
+      String configurationName = element.getName();
+      dependencies.addAll(ArtifactDependencyModelImpl.create(configurationName, element));
+      if (element instanceof GradleDslMethodCall) {
+        GradleDslMethodCall methodCall = (GradleDslMethodCall)element;
+        if (methodCall.getMethodName().equals(ModuleDependencyModelImpl.PROJECT)) {
+          dependencies.addAll(ModuleDependencyModelImpl.create(configurationName, methodCall));
+        }
+        else if (methodCall.getMethodName().equals(FileDependencyModelImpl.FILES)) {
+          dependencies.addAll(FileDependencyModelImpl.create(configurationName, methodCall));
+        }
+        else if (methodCall.getMethodName().equals(FileTreeDependencyModelImpl.FILE_TREE)) {
+          dependencies.addAll(FileTreeDependencyModelImpl.create(configurationName, methodCall));
         }
       }
     }
@@ -76,18 +72,16 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
   @Override
   public List<ArtifactDependencyModel> artifacts() {
     List<ArtifactDependencyModel> dependencies = Lists.newArrayList();
-    for (String configurationName : myDslElement.getProperties()) {
-      addArtifacts(configurationName, dependencies);
+    for (GradleDslElement element : myDslElement.getAllPropertyElements()) {
+      dependencies.addAll(ArtifactDependencyModelImpl.create(element.getName(), element));
     }
     return dependencies;
   }
 
   private void addArtifacts(@NotNull String configurationName, @NotNull List<ArtifactDependencyModel> dependencies) {
-    GradleDslElementList list = myDslElement.getPropertyElement(configurationName, GradleDslElementList.class);
-    if (list != null) {
-      for (GradleDslElement element : list.getElements(GradleDslElement.class)) {
-        dependencies.addAll(ArtifactDependencyModelImpl.create(configurationName, element));
-      }
+    List<GradleDslElement> list = myDslElement.getPropertyElementsByName(configurationName);
+    for (GradleDslElement element : list) {
+      dependencies.addAll(ArtifactDependencyModelImpl.create(configurationName, element));
     }
   }
 
@@ -120,8 +114,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
   public void addArtifact(@NotNull String configurationName,
                                        @NotNull ArtifactDependencySpec dependency,
                                        @NotNull List<ArtifactDependencySpec> excludes) {
-    GradleDslElementList list = getOrCreateGradleDslElementList(configurationName);
-    ArtifactDependencyModelImpl.createAndAddToList(list, configurationName, dependency, excludes);
+    ArtifactDependencyModelImpl.create(myDslElement, configurationName, dependency, excludes);
   }
 
   @Override
@@ -139,13 +132,8 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
   @Override
   public List<ModuleDependencyModel> modules() {
     List<ModuleDependencyModel> dependencies = Lists.newArrayList();
-    for (String configurationName : myDslElement.getProperties()) {
-      GradleDslElementList list = myDslElement.getPropertyElement(configurationName, GradleDslElementList.class);
-      if (list != null) {
-        for (GradleDslMethodCall element : list.getElements(GradleDslMethodCall.class)) {
-          dependencies.addAll(ModuleDependencyModelImpl.create(configurationName, element));
-        }
-      }
+    for (GradleDslElement element : myDslElement.getPropertyElements(GradleDslMethodCall.class)) {
+      dependencies.addAll(ModuleDependencyModelImpl.create(element.getName(), (GradleDslMethodCall)element));
     }
     return dependencies;
   }
@@ -158,21 +146,15 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
 
   @Override
   public void addModule(@NotNull String configurationName, @NotNull String path, @Nullable String config) {
-    GradleDslElementList list = getOrCreateGradleDslElementList(configurationName);
-    ModuleDependencyModelImpl.createAndAddToList(list, configurationName, path, config);
+    ModuleDependencyModelImpl.create(myDslElement, configurationName, path, config);
   }
 
   @NotNull
   @Override
   public List<FileTreeDependencyModel> fileTrees() {
     List<FileTreeDependencyModel> dependencies = Lists.newArrayList();
-    for (String configurationName : myDslElement.getProperties()) {
-      GradleDslElementList list = myDslElement.getPropertyElement(configurationName, GradleDslElementList.class);
-      if (list != null) {
-        for (GradleDslMethodCall element : list.getElements(GradleDslMethodCall.class)) {
-          dependencies.addAll(FileTreeDependencyModelImpl.create(configurationName, element));
-        }
-      }
+    for (GradleDslMethodCall element : myDslElement.getPropertyElements(GradleDslMethodCall.class)) {
+      dependencies.addAll(FileTreeDependencyModelImpl.create(element.getName(), element));
     }
     return dependencies;
   }
@@ -187,67 +169,54 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
                                        @NotNull String dir,
                                        @Nullable List<String> includes,
                                        @Nullable List<String> excludes) {
-    GradleDslElementList list = getOrCreateGradleDslElementList(configurationName);
-    FileTreeDependencyModelImpl.createAndAddToList(list, configurationName, dir, includes, excludes);
+    FileTreeDependencyModelImpl.create(myDslElement, configurationName, dir, includes, excludes);
   }
 
   @NotNull
   @Override
   public List<FileDependencyModel> files() {
     List<FileDependencyModel> dependencies = Lists.newArrayList();
-    for (String configurationName : myDslElement.getProperties()) {
-      GradleDslElementList list = myDslElement.getPropertyElement(configurationName, GradleDslElementList.class);
-      if (list != null) {
-        for (GradleDslMethodCall element : list.getElements(GradleDslMethodCall.class)) {
-          dependencies.addAll(FileDependencyModelImpl.create(configurationName, element));
-        }
-      }
+    for (GradleDslMethodCall element : myDslElement.getPropertyElements(GradleDslMethodCall.class)) {
+          dependencies.addAll(FileDependencyModelImpl.create(element.getName(), element));
     }
     return dependencies;
   }
 
   @Override
   public void addFile(@NotNull String configurationName, @NotNull String file) {
-    GradleDslElementList list = getOrCreateGradleDslElementList(configurationName);
-    FileDependencyModelImpl.createAndAddToList(list, configurationName, file);
-  }
-
-  @NotNull
-  private GradleDslElementList getOrCreateGradleDslElementList(@NotNull String configurationName) {
-    GradleDslElementList list = myDslElement.getPropertyElement(configurationName, GradleDslElementList.class);
-    if (list == null) {
-      GradleNameElement name = GradleNameElement.create(configurationName);
-      list = new GradleDslElementList(myDslElement, name);
-      myDslElement.setNewElement(list);
-    }
-    return list;
+    FileDependencyModelImpl.create(myDslElement, configurationName, file);
   }
 
   @Override
   public void remove(@NotNull DependencyModel dependency) {
-    GradleDslElementList gradleDslElementList = myDslElement.getPropertyElement(dependency.configurationName(), GradleDslElementList.class);
-    if (gradleDslElementList != null) {
-      if (!(dependency instanceof DependencyModelImpl)) {
-        Logger.getInstance(DependenciesModelImpl.class)
-          .warn("Tried to remove an unknown dependency type!");
-        return;
-      }
-      GradleDslElement dependencyElement = ((DependencyModelImpl)dependency).getDslElement();
-      GradleDslElement parent = dependencyElement.getParent();
-      if (parent instanceof GradleDslMethodCall) {
-        GradleDslMethodCall methodCall = (GradleDslMethodCall)parent;
-        List<GradleDslElement> arguments = methodCall.getArguments();
-        if (arguments.size() == 1 && arguments.get(0).equals(dependencyElement)) {
-          // If this is the last argument, remove the method call altogether.
-          gradleDslElementList.removeElement(methodCall);
-        }
-        else {
-          methodCall.remove(dependencyElement);
-        }
+    if (!(dependency instanceof DependencyModelImpl)) {
+      Logger.getInstance(DependenciesModelImpl.class)
+        .warn("Tried to remove an unknown dependency type!");
+      return;
+    }
+    GradleDslElement dependencyElement = ((DependencyModelImpl)dependency).getDslElement();
+    GradleDslElement parent = dependencyElement.getParent();
+    if (parent instanceof GradleDslMethodCall) {
+      GradleDslMethodCall methodCall = (GradleDslMethodCall)parent;
+      List<GradleDslElement> arguments = methodCall.getArguments();
+      if (arguments.size() == 1 && arguments.get(0).equals(dependencyElement)) {
+        // If this is the last argument, remove the method call altogether.
+        myDslElement.removeProperty(methodCall);
       }
       else {
-        gradleDslElementList.removeElement(dependencyElement);
+        methodCall.remove(dependencyElement);
       }
+    } else if (parent instanceof GradleDslExpressionList) {
+      List<GradleDslExpression> expressions = ((GradleDslExpressionList)parent).getExpressions();
+      if (expressions.size() == 1 && expressions.get(0).equals(dependencyElement)) {
+        myDslElement.removeProperty(parent);
+      }
+      else {
+        ((GradleDslExpressionList)parent).removeElement(dependencyElement);
+      }
+    }
+    else {
+      myDslElement.removeProperty(dependencyElement);
     }
   }
 
@@ -266,6 +235,13 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
       for (GradleDslElement e : methodCall.getArguments()) {
         if (e.getPsiElement() == psiElement) {
           performDependencyReplace(psiElement, e, dependency);
+        }
+      }
+    }
+    else if (element instanceof GradleDslExpressionList) {
+      for (GradleDslExpression expression : ((GradleDslExpressionList)element).getExpressions()) {
+        if (element.getPsiElement() == psiElement) {
+          performDependencyReplace(psiElement, expression, dependency);
         }
       }
     }
@@ -326,14 +302,20 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
   @Nullable
   private GradleDslElement findByPsiElement(@NotNull PsiElement child) {
     for (String configurationName : myDslElement.getProperties()) {
-      GradleDslElementList list = getOrCreateGradleDslElementList(configurationName);
-      for (GradleDslElement element : list.getElements()) {
+      for (GradleDslElement element : myDslElement.getPropertyElementsByName(configurationName)) {
         // For method calls we need to check each of the arguments individually.
         if (element instanceof GradleDslMethodCall) {
           GradleDslMethodCall methodCall = (GradleDslMethodCall)element;
           for (GradleDslElement el : methodCall.getArguments()) {
             if (el.getPsiElement() != null && isChildOfParent(child, el.getPsiElement())) {
               return el;
+            }
+          }
+        }
+        else if (element instanceof GradleDslExpressionList) {
+          for (GradleDslExpression e : ((GradleDslExpressionList)element).getExpressions()) {
+            if (e.getPsiElement() != null && isChildOfParent(child, e.getPsiElement())) {
+              return e;
             }
           }
         }

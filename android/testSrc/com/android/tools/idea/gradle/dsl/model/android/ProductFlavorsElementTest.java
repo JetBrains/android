@@ -235,7 +235,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
     assertMissingProperty("multiDexEnabled", productFlavor.multiDexEnabled());
     assertMissingProperty("proguardFiles", productFlavor.proguardFiles());
     assertMissingProperty("resConfigs", productFlavor.resConfigs());
-    assertNull("resValues", productFlavor.resValues());
+    assertEmpty("resValues", productFlavor.resValues());
     assertMissingProperty("targetSdkVersion", productFlavor.targetSdkVersion());
     assertMissingProperty("testApplicationId", productFlavor.testApplicationId());
     assertMissingProperty("testFunctionalTest", productFlavor.testFunctionalTest());

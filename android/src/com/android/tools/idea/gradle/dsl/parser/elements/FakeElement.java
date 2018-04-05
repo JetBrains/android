@@ -42,6 +42,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.FAKE;
 public abstract class FakeElement extends GradleDslSettableExpression {
   @NotNull protected final GradleDslExpression myRealExpression;
   private final boolean myCanDelete;
+  private final GradleNameElement myFakeName;
 
   public FakeElement(@Nullable GradleDslElement parent,
                      @NotNull GradleNameElement name,
@@ -50,6 +51,7 @@ public abstract class FakeElement extends GradleDslSettableExpression {
     super(parent, null, name, null);
     myRealExpression = originExpression;
     myCanDelete = canDelete;
+    myFakeName = name;
     setElementType(FAKE);
   }
 
@@ -133,6 +135,24 @@ public abstract class FakeElement extends GradleDslSettableExpression {
       return clazz.cast(value);
     }
     return null;
+  }
+
+  @Override
+  @NotNull
+  public final String getName() {
+    return myFakeName.name();
+  }
+
+  @Override
+  @NotNull
+  public final String getFullName() {
+    return myFakeName.fullName();
+  }
+
+  @Override
+  @NotNull
+  public final GradleNameElement getNameElement() {
+    return myFakeName;
   }
 
   @Nullable

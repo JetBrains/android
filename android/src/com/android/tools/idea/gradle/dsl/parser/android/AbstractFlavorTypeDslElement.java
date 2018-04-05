@@ -47,15 +47,6 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
       if (listElement.getExpressions().size() != 3 || listElement.getValues(String.class).size() != 3) {
         return;
       }
-
-      GradleDslElementList elementList = getPropertyElement("resValue", GradleDslElementList.class);
-      if (elementList == null) {
-        GradleNameElement name = GradleNameElement.create("resValue");
-        elementList = new GradleDslElementList(this, name);
-        setParsedElement(elementList);
-      }
-      elementList.addParsedElement(element);
-      return;
     }
 
     super.addParsedElement(element);

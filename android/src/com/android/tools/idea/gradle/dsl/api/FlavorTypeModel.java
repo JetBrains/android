@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.SigningConfigPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -35,7 +34,7 @@ public interface FlavorTypeModel extends GradleDslModel {
   @NotNull
   ResolvedPropertyModel applicationIdSuffix();
 
-  @Nullable
+  @NotNull
   List<BuildConfigField> buildConfigFields();
 
   BuildConfigField addBuildConfigField(@NotNull String type, @NotNull String name, @NotNull String value);
@@ -69,7 +68,7 @@ public interface FlavorTypeModel extends GradleDslModel {
   @NotNull
   ResolvedPropertyModel proguardFiles();
 
-  @Nullable
+  @NotNull
   List<ResValue> resValues();
 
   ResValue addResValue(@NotNull String type, @NotNull String name, @NotNull String value);

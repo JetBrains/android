@@ -196,7 +196,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     assertEquals("name", "typeA", buildType.name());
     assertEquals("name", "typeA", buildType.name());
     assertMissingProperty("applicationIdSuffix", buildType.applicationIdSuffix());
-    assertNull("buildConfigFields", buildType.buildConfigFields());
+    assertEmpty("buildConfigFields", buildType.buildConfigFields());
     assertMissingProperty("consumerProguardFiles", buildType.consumerProguardFiles());
     assertMissingProperty("debuggable", buildType.debuggable());
     assertMissingProperty("embedMicroApp", buildType.embedMicroApp());
@@ -208,7 +208,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     assertMissingProperty("pseudoLocalesEnabled", buildType.pseudoLocalesEnabled());
     assertMissingProperty("renderscriptDebuggable", buildType.renderscriptDebuggable());
     assertMissingProperty("renderscriptOptimLevel", buildType.renderscriptOptimLevel());
-    assertNull("resValues", buildType.resValues());
+    assertEmpty("resValues", buildType.resValues());
     assertMissingProperty("shrinkResources", buildType.shrinkResources());
     assertMissingProperty("testCoverageEnabled", buildType.testCoverageEnabled());
     assertMissingProperty("useJack", buildType.useJack());

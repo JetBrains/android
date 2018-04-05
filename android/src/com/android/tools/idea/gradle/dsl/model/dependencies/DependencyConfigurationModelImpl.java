@@ -20,9 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ExcludedDependencyMode
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependencyConfigurationDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
-import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,13 +41,8 @@ public class DependencyConfigurationModelImpl implements DependencyConfiguration
   @Override
   @NotNull
   public List<ExcludedDependencyModel> excludes() {
-    GradleDslElementList elementList = myConfigurationElement.getPropertyElement(EXCLUDE, GradleDslElementList.class);
-    if (elementList == null) {
-      return ImmutableList.of();
-    }
-
     List<ExcludedDependencyModel> excludedDependencies = new ArrayList<>();
-    for (GradleDslExpressionMap excludeElement : elementList.getElements(GradleDslExpressionMap.class)) {
+    for (GradleDslExpressionMap excludeElement : myConfigurationElement.getPropertyElements(EXCLUDE, GradleDslExpressionMap.class)) {
       excludedDependencies.add(new ExcludedDependencyModelImpl(excludeElement));
     }
     return excludedDependencies;

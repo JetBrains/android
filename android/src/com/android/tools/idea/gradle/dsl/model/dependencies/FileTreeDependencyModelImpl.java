@@ -70,13 +70,13 @@ public class FileTreeDependencyModelImpl extends DependencyModelImpl implements 
     return result;
   }
 
-  static void createAndAddToList(@NotNull GradleDslElementList list,
-                                 @NotNull String configurationName,
-                                 @NotNull String dir,
-                                 @Nullable List<String> includes,
-                                 @Nullable List<String> excludes) {
+  static void create(@NotNull GradlePropertiesDslElement parent,
+                     @NotNull String configurationName,
+                     @NotNull String dir,
+                     @Nullable List<String> includes,
+                     @Nullable List<String> excludes) {
     GradleNameElement name = GradleNameElement.create(configurationName);
-    GradleDslMethodCall methodCall = new GradleDslMethodCall(list, name, FILE_TREE);
+    GradleDslMethodCall methodCall = new GradleDslMethodCall(parent, name, FILE_TREE);
     if ((includes == null || includes.isEmpty()) && (excludes == null || excludes.isEmpty())) {
       GradleDslLiteral directory = new GradleDslLiteral(methodCall, name);
       directory.setValue(dir);
@@ -107,7 +107,7 @@ public class FileTreeDependencyModelImpl extends DependencyModelImpl implements 
       }
       methodCall.addNewArgument(mapArguments);
     }
-    list.addNewElement(methodCall);
+    parent.setNewElement(methodCall);
   }
 
   private FileTreeDependencyModelImpl(@NotNull String configurationName,

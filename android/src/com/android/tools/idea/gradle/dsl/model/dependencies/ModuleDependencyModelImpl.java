@@ -73,19 +73,19 @@ public class ModuleDependencyModelImpl extends DependencyModelImpl implements
     return result;
   }
 
-  static void createAndAddToList(@NotNull GradleDslElementList list,
-                                 @NotNull String configurationName,
-                                 @NotNull String path,
-                                 @Nullable String config) {
+  static void create(@NotNull GradlePropertiesDslElement parent,
+                     @NotNull String configurationName,
+                     @NotNull String path,
+                     @Nullable String config) {
     GradleNameElement name = GradleNameElement.create(configurationName);
-    GradleDslMethodCall methodCall = new GradleDslMethodCall(list, name, PROJECT);
+    GradleDslMethodCall methodCall = new GradleDslMethodCall(parent, name, PROJECT);
     GradleDslExpressionMap mapArguments = new GradleDslExpressionMap(methodCall, name);
     mapArguments.setNewLiteral(PATH, path);
     if (config != null) {
       mapArguments.setNewLiteral(CONFIGURATION, config);
     }
     methodCall.addNewArgument(mapArguments);
-    list.addNewElement(methodCall);
+    parent.setNewElement(methodCall);
   }
 
   private ModuleDependencyModelImpl(@NotNull String configurationName,
