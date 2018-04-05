@@ -146,7 +146,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     });
 
     registerSessionChangeListener(Common.SessionMetaData.SessionType.FULL, () -> {
-      // Set the stage before updating the timeline, otherwise the stage's scrollbar would not pick up the initial timeline changes.
       setStage(new StudioMonitorStage(this));
       if (isSessionAlive(mySelectedSession)) {
         // The session is live - move the timeline to the current time.
