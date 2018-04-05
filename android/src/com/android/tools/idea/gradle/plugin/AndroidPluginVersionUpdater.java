@@ -163,12 +163,12 @@ public class AndroidPluginVersionUpdater {
     BuildFileProcessor.getInstance().processRecursively(myProject, buildModel -> {
       DependenciesModel dependencies = buildModel.buildscript().dependencies();
       for (ArtifactDependencyModel dependency : dependencies.artifacts(CLASSPATH)) {
-        String artifactId = dependency.name().forceString();
-        String groupId = dependency.group().toString();
+        String artifactId = dependency.name().value();
+        String groupId = dependency.group().value();
         if (AndroidPluginGeneration.find(artifactId, groupId) != null) {
-          String versionValue = dependency.version().toString();
+          String versionValue = dependency.version().value();
           if (isEmpty(versionValue) || pluginVersion.compareTo(versionValue) != 0) {
-            dependency.version().setValue(pluginVersion.toString());
+            dependency.setVersion(pluginVersion.toString());
             // Add Google Maven repository to buildscript (b/69977310)
             if (gradleVersion != null) {
               buildModel.buildscript().repositories().addGoogleMavenRepository(gradleVersion);

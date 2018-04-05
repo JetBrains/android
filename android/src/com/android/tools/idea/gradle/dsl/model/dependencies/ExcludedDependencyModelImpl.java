@@ -16,8 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.ExcludedDependencyModel;
-import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
+import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -34,13 +33,13 @@ public class ExcludedDependencyModelImpl implements ExcludedDependencyModel {
 
   @Override
   @NotNull
-  public ResolvedPropertyModel group() {
-    return GradlePropertyModelBuilder.create(myExcludeMap, GROUP).asMethod(true).buildResolved();
+  public GradleNullableValue<String> group() {
+    return myExcludeMap.getLiteralProperty(GROUP, String.class);
   }
 
   @Override
   @NotNull
-  public ResolvedPropertyModel module() {
-    return GradlePropertyModelBuilder.create(myExcludeMap, MODULE).asMethod(true).buildResolved();
+  public GradleNullableValue<String> module() {
+    return myExcludeMap.getLiteralProperty(MODULE, String.class);
   }
 }

@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.gradle.dsl.api.dependencies;
 
-import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import org.jetbrains.annotations.NotNull;
 
 public interface ExcludedDependencyModel {
   @NotNull
-  ResolvedPropertyModel group();
+  GradleNullableValue<String> group();
 
   @NotNull
-  ResolvedPropertyModel module();
+  GradleNullableValue<String> module();
 }
