@@ -265,27 +265,57 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
     mySelectionModel = new SelectionModel(selectionRange);
     mySelectionModel.addConstraint(myTraceDurations);
-    mySelectionModel.addListener(new SelectionListener() {
-      @Override
-      public void selectionCreated() {
-        mySelectionFailure = false;
-        profilers.getIdeServices().getFeatureTracker().trackSelectRange();
-        selectionChanged();
-      }
+    if (myIsImportTraceMode) {
+      mySelectionModel.addListener(new SelectionListener() {
+        @Override
+        public void selectionCreated() {
+          mySelectionFailure = false;
+          profilers.getIdeServices().getFeatureTracker().trackSelectRange();
+        }
 
-      @Override
-      public void selectionCleared() {
-        mySelectionFailure = false;
-        selectionChanged();
-      }
+        @Override
+        public void selectionCleared() {
+          mySelectionFailure = false;
+          if (myCaptureModel.getCapture() != null) {
+            // when we switch from a session into another session of import trace mode, we first create a new stage, and then the selection
+            // on timeline is cleared which would trigger this method in the new stage, but at that point myCaptureModel.getCapture()
+            // isn't set yet. That's why we need a null check.
+            setAndSelectCapture(myCaptureModel.getCapture());
+          }
+        }
 
-      @Override
-      public void selectionCreationFailure() {
-        mySelectionFailure = true;
-        selectionChanged();
-        setProfilerMode(ProfilerMode.EXPANDED);
-      }
-    });
+        @Override
+        public void selectionCreationFailure() {
+          mySelectionFailure = false;
+          if (myCaptureModel.getCapture() != null) {
+            setAndSelectCapture(myCaptureModel.getCapture());
+          }
+        }
+      });
+    }
+    else {
+      mySelectionModel.addListener(new SelectionListener() {
+        @Override
+        public void selectionCreated() {
+          mySelectionFailure = false;
+          profilers.getIdeServices().getFeatureTracker().trackSelectRange();
+          selectionChanged();
+        }
+
+        @Override
+        public void selectionCleared() {
+          mySelectionFailure = false;
+          selectionChanged();
+        }
+
+        @Override
+        public void selectionCreationFailure() {
+          mySelectionFailure = true;
+          selectionChanged();
+          setProfilerMode(ProfilerMode.EXPANDED);
+        }
+      });
+    }
 
     myInstructionsEaseOutModel = new EaseOutModel(profilers.getUpdater(), PROFILING_INSTRUCTIONS_EASE_OUT_NS);
 
