@@ -264,7 +264,9 @@ public class ImageUtils {
     int destWidth = Math.max(1, (int) (xScale * sourceWidth));
     int destHeight = Math.max(1, (int) (yScale * sourceHeight));
     int imageType = source.getType();
-    if (imageType == BufferedImage.TYPE_CUSTOM) {
+    if (imageType == BufferedImage.TYPE_CUSTOM
+        || imageType == BufferedImage.TYPE_BYTE_INDEXED
+        || imageType == BufferedImage.TYPE_BYTE_BINARY) {
       imageType = BufferedImage.TYPE_INT_ARGB;
     }
     if (xScale > 0.5 && yScale > 0.5) {
