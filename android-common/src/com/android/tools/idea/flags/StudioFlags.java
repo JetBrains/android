@@ -253,6 +253,11 @@ public final class StudioFlags {
     "Enable the new Property Panel",
     false);
 
+  public static final Flag<Boolean> NELE_NEW_COLOR_PICKER = Flag.create(
+    NELE, "new.color.picker", "New Color Picker",
+    "Enable new Color Picker in layout Editor",
+    false);
+
   private static final FlagGroup RUNDEBUG_GROUP = new FlagGroup(FLAGS, "rundebug", "Run/Debug");
   public static final Flag<Boolean> RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED = Flag.create(
     RUNDEBUG_GROUP, "logcat.console.output.enabled", "Show logcat process output in Run/Debug console window",

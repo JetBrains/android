@@ -61,7 +61,9 @@ object MaterialColors {
     MATERIAL_ACCENT_100("Material A100"),
     MATERIAL_ACCENT_200("Material A200"),
     MATERIAL_ACCENT_400("Material A400"),
-    MATERIAL_ACCENT_700("Material A700"),
+    MATERIAL_ACCENT_700("Material A700");
+
+    override fun toString() = displayName
   }
 
   private val table: Table<Color, Category, java.awt.Color>
