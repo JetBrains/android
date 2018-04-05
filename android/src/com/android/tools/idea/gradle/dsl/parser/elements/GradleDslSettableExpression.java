@@ -57,7 +57,7 @@ public abstract class GradleDslSettableExpression extends GradleDslSimpleExpress
   }
 
   @Override
-  protected void resolve() {
+  public void resolve() {
     setupDependencies(getCurrentElement());
   }
 

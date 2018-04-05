@@ -45,7 +45,7 @@ import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.*;
  * <p>
  * TODO: Rename this class to something different as this will be conflicting with GradlePropertiesModel
  */
-public abstract class GradlePropertiesDslElement extends GradleDslElement {
+public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   @NotNull private final static Predicate<ElementList.ElementItem> VARIABLE_FILTER =
     e -> e.myElement.getElementType() == PropertyType.VARIABLE;
   // This filter currently gives us everything that is not a variable.
@@ -88,7 +88,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
   }
 
   private void addAppliedProperty(@NotNull GradleDslElement element) {
-    element.myHolders.add(this);
+    element.addHolder(this);
     addPropertyInternal(element, APPLIED);
   }
 
@@ -160,7 +160,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
    * <p>This method should be used when the given {@code property} is defined using an assigned statement.
    */
   public void setParsedElement(@NotNull GradleDslElement element) {
-    element.myParent = this;
+    element.setParent(this);
     addPropertyInternal(element, EXISTING);
   }
 
@@ -172,7 +172,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
    * for any given property.
    */
   public void addParsedElement(@NotNull GradleDslElement element) {
-    element.myParent = this;
+    element.setParent(this);
     addPropertyInternal(element, EXISTING);
   }
 
@@ -183,7 +183,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
    * in android.splits.abi block will reset the effect of the previously defined {@code includes} element.
    */
   protected void addParsedResettingElement(@NotNull GradleDslElement element, @NotNull String propertyToReset) {
-    element.myParent = this;
+    element.setParent(this);
     addPropertyInternal(element, EXISTING);
     hidePropertyInternal(propertyToReset);
   }
@@ -411,7 +411,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
    */
   @NotNull
   public GradleDslElement setNewElement(@NotNull GradleDslElement newElement) {
-    newElement.myParent = this;
+    newElement.setParent(this);
     addPropertyInternal(newElement, TO_BE_ADDED);
     setModified(true);
     return newElement;
@@ -419,7 +419,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
 
   @VisibleForTesting
   public void addNewElementAt(int index, @NotNull GradleDslElement newElement) {
-    newElement.myParent = this;
+    newElement.setParent(this);
     addPropertyInternal(index, newElement, TO_BE_ADDED);
     setModified(true);
   }
@@ -434,7 +434,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
   public GradleDslElement replaceElement(@NotNull GradleDslElement oldElement, @NotNull GradleDslElement newElement) {
     List<GradlePropertiesDslElement> holders = new ArrayList<>();
     holders.add(this);
-    holders.addAll(oldElement.myHolders);
+    holders.addAll(oldElement.getHolders());
     for (GradlePropertiesDslElement holder : holders) {
       holder.replacePropertyInternal(oldElement, newElement);
     }
@@ -593,7 +593,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
     myProperties.createElements((e) -> e.create() != null);
     myProperties.applyElements(e -> {
       if (e.isModified()) {
-        e.apply();
+        e.applyChanges();
       }
     });
     myProperties.forEach(item -> {
@@ -824,7 +824,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
     private void reset() {
       for (Iterator<ElementItem> i = myElements.iterator(); i.hasNext(); ) {
         ElementItem item = i.next();
-        item.myElement.reset();
+        item.myElement.resetState();
         if (item.myElementState == TO_BE_REMOVED) {
           item.myElementState = EXISTING;
         }

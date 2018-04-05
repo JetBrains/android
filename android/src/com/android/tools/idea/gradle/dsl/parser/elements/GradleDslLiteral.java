@@ -146,7 +146,7 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
   }
 
   @Override
-  protected void delete() {
+  public void delete() {
     getDslFile().getWriter().deleteDslLiteral(this);
   }
 
