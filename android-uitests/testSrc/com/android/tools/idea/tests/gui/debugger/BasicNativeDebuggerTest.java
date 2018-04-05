@@ -68,12 +68,8 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
     DebuggerTestUtil.setDebuggerType(projectFrame, DebuggerTestUtil.AUTO);
     openAndToggleBreakPoints(projectFrame, C_FILE_NAME, C_BP_LINE);
 
-    projectFrame.debugApp(DEBUG_CONFIG_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
-      .clickOk();
-
-    DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);
-    waitForSessionStart(debugToolWindowFixture);
+    DebugToolWindowFixture debugToolWindowFixture =
+      DebuggerTestUtil.debugAppAndWaitForSessionToStart(projectFrame, guiTest, DEBUG_CONFIG_NAME, emulator.getDefaultAvdName());
 
     projectFrame.findDebugApplicationButton().click();
 
@@ -114,12 +110,8 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
 
     openAndToggleBreakPoints(projectFrame, C_FILE_NAME, C_BP_LINE);
 
-    projectFrame.debugApp(DEBUG_CONFIG_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
-      .clickOk();
-
-    DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);
-    waitForSessionStart(debugToolWindowFixture);
+    DebugToolWindowFixture debugToolWindowFixture =
+      DebuggerTestUtil.debugAppAndWaitForSessionToStart(projectFrame, guiTest, DEBUG_CONFIG_NAME, emulator.getDefaultAvdName());
 
     String[] expectedPatterns = new String[]{
       variableToSearchPattern("sum_of_10_ints", "int", "55"),
@@ -140,12 +132,8 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
 
     openAndToggleBreakPoints(projectFrame, C_FILE_NAME, C_BP_LINE);
 
-    projectFrame.debugApp(DEBUG_CONFIG_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
-      .clickOk();
-
-    DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);
-    waitForSessionStart(debugToolWindowFixture);
+    DebugToolWindowFixture debugToolWindowFixture =
+      DebuggerTestUtil.debugAppAndWaitForSessionToStart(projectFrame, guiTest, DEBUG_CONFIG_NAME, emulator.getDefaultAvdName());
 
     projectFrame.invokeMenuPath("Build", "Clean Project");
     MessagesFixture messagesFixture = MessagesFixture.findByTitle(guiTest.robot(), "Terminate debugging");
@@ -167,12 +155,8 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
     DebuggerTestUtil.setDebuggerType(projectFrame, DebuggerTestUtil.NATIVE);
     openAndToggleBreakPoints(projectFrame, C_FILE_NAME, C_BP_LINE);
 
-    projectFrame.debugApp(DEBUG_CONFIG_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
-      .clickOk();
-
-    DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);
-    waitForSessionStart(debugToolWindowFixture);
+    DebugToolWindowFixture debugToolWindowFixture =
+      DebuggerTestUtil.debugAppAndWaitForSessionToStart(projectFrame, guiTest, DEBUG_CONFIG_NAME, emulator.getDefaultAvdName());
 
     // Add a new Android Library.  Note that this needs the path to Kotlin defined in the test's
     // JVM arguments.  See go/studio-testing-pitfalls for information.
@@ -231,12 +215,8 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
     openAndToggleBreakPoints(ideFrameFixture, C_FILE_NAME, C_BP_LINE);
     openAndToggleBreakPoints(ideFrameFixture, JAVA_FILE_NAME, JAVA_BP_LINE);
 
-    ideFrameFixture.debugApp(DEBUG_CONFIG_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
-      .clickOk();
-
-    DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(ideFrameFixture);
-    waitForSessionStart(debugToolWindowFixture);
+    DebugToolWindowFixture debugToolWindowFixture =
+      DebuggerTestUtil.debugAppAndWaitForSessionToStart(ideFrameFixture, guiTest, DEBUG_CONFIG_NAME, emulator.getDefaultAvdName());
 
     // Setup the expected patterns to match the variable values displayed in Debug windows's 'Variables' tab.
     String[] expectedPatterns = new String[]{

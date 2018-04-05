@@ -69,6 +69,9 @@ public class BuildAndRunCMakeProjectTest {
       .selectDevice(emulator.getDefaultAvdName())
       .clickOk();
 
+    // Wait for background tasks to finish before requesting Debug Tool Window. Otherwise Debug Tool Window won't activate.
+    guiTest.waitForBackgroundTasks();
+
     RunToolWindowFixture runToolWindowFixture = new RunToolWindowFixture(ideFrame);
     Pattern LAUNCH_APP_PATTERN = Pattern.compile(".*Launching app.*", Pattern.DOTALL);
     Pattern CONNECTED_APP_PATTERN = Pattern.compile(".*Connected to process.*", Pattern.DOTALL);

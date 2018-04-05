@@ -68,10 +68,8 @@ public class NativeOptimizedWarningTest extends DebuggerTestBase {
     // Setup breakpoints
     openAndToggleBreakPoints(projectFrame, "app/src/main/cpp/hello-jni.c", "return 1+c;");
 
-    projectFrame.debugApp(DEBUG_CONFIG_NAME).selectDevice(emulator.getDefaultAvdName()).clickOk();
-
-    DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);
-    waitForSessionStart(debugToolWindowFixture);
+    DebugToolWindowFixture debugToolWindowFixture =
+      DebuggerTestUtil.debugAppAndWaitForSessionToStart(projectFrame, guiTest, DEBUG_CONFIG_NAME, emulator.getDefaultAvdName());
 
     Wait.seconds(5).expecting("Frame list populated").until(
       () -> debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME).getFramesListFixture().selection().length > 0);

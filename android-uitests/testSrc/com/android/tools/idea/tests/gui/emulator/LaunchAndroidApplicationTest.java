@@ -98,6 +98,10 @@ public class LaunchAndroidApplicationTest {
       .runApp(APP_NAME)
       .selectDevice(avdName)
       .clickOk();
+
+    // Wait for background tasks to finish before requesting Run Tool Window. Otherwise Run Tool Window won't activate.
+    guiTest.waitForBackgroundTasks();
+
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
     ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), 120);
     ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
@@ -137,6 +141,9 @@ public class LaunchAndroidApplicationTest {
       .debugApp(APP_NAME)
       .selectDevice(avdName)
       .clickOk();
+
+    // Wait for background tasks to finish before requesting Debug Tool Window. Otherwise Debug Tool Window won't activate.
+    guiTest.waitForBackgroundTasks();
 
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
     ideFrameFixture.getDebugToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), 120);
@@ -193,6 +200,9 @@ public class LaunchAndroidApplicationTest {
       .debugApp(APP_NAME)
       .selectDevice(avdName)
       .clickOk();
+
+    // Wait for background tasks to finish before requesting Debug Tool Window. Otherwise Debug Tool Window won't activate.
+    guiTest.waitForBackgroundTasks();
 
     // wait for both debugger tabs to be available and visible
     ContentTabLabelFixture.find(
@@ -296,6 +306,9 @@ public class LaunchAndroidApplicationTest {
       .selectDevice(emulator.getDefaultAvdName())
       .clickOk();
 
+    // Wait for background tasks to finish before requesting Run Tool Window. Otherwise Run Tool Window won't activate.
+    guiTest.waitForBackgroundTasks();
+
     Wait.seconds(EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS)
       .expecting("emulator with the app launched in debug mode")
       .until(() -> ideFrameFixture.getDebugToolWindow().getContentCount() >= 2);
@@ -363,6 +376,9 @@ public class LaunchAndroidApplicationTest {
       .selectDevice(avdName)
       .clickOk();
 
+    // Wait for background tasks to finish before requesting Run Tool Window. Otherwise Run Tool Window won't activate.
+    guiTest.waitForBackgroundTasks();
+
     ideFrameFixture.getRunToolWindow().findContent(appName)
       .waitForOutput(new PatternTextMatcher(RUN_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
   }
@@ -409,6 +425,9 @@ public class LaunchAndroidApplicationTest {
     ideFrameFixture.runApp(INSTRUMENTED_TEST_CONF_NAME)
       .selectDevice(avdName)
       .clickOk();
+
+    // Wait for background tasks to finish before requesting Run Tool Window. Otherwise Run Tool Window won't activate.
+    guiTest.waitForBackgroundTasks();
 
     ideFrameFixture.getRunToolWindow().findContent(INSTRUMENTED_TEST_CONF_NAME)
         .waitForOutput(new PatternTextMatcher(INSTRUMENTED_TEST_OUTPUT), 120);

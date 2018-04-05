@@ -15,9 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditConfigurationsDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.regex.Pattern;
 
 public class DebuggerTestUtil {
 
@@ -33,5 +39,26 @@ public class DebuggerTestUtil {
     EditConfigurationsDialogFixture.find(ideFrameFixture.robot())
       .selectDebuggerType(type)
       .clickOk();
+  }
+
+  public static DebugToolWindowFixture debugAppAndWaitForSessionToStart(@NotNull IdeFrameFixture ideFrameFixture,
+                                                                        @NotNull GuiTestRule guiTest,
+                                                                        @NotNull String configName,
+                                                                        @NotNull String avdName) {
+    ideFrameFixture.debugApp(configName)
+      .selectDevice(avdName)
+      .clickOk();
+
+    // Wait for background tasks to finish before requesting Debug Tool Window. Otherwise Debug Tool Window won't activate.
+    guiTest.waitForBackgroundTasks();
+
+    DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(ideFrameFixture);
+
+    // Wait for "Debugger attached to process.*" to be printed on the app-native debug console.
+    ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(configName);
+    Pattern DEBUGGER_ATTACHED_PATTERN = Pattern.compile(".*Debugger attached to process.*", Pattern.DOTALL);
+    contentFixture.waitForOutput(new PatternTextMatcher(DEBUGGER_ATTACHED_PATTERN), 120);
+
+    return debugToolWindowFixture;
   }
 }

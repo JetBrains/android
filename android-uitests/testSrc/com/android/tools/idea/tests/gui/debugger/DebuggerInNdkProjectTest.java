@@ -127,12 +127,8 @@ public class DebuggerInNdkProjectTest extends DebuggerTestBase {
                              "app/src/main/cpp/hello-jni.c",
                              "return (*env)->NewStringUTF(env, \"ABI \" ABI \".\");");
 
-    ideFrame.debugApp(DEBUG_CONFIG_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
-      .clickOk();
-
-    DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(ideFrame);
-    waitForSessionStart(debugToolWindowFixture);
+    DebugToolWindowFixture debugToolWindowFixture =
+      DebuggerTestUtil.debugAppAndWaitForSessionToStart(ideFrame, guiTest, DEBUG_CONFIG_NAME, emulator.getDefaultAvdName());
 
     // Setup the expected patterns to match the variable values displayed in Debug windows's
     // 'Variables' tab.
