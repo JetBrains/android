@@ -35,16 +35,16 @@ public class PropertyUtil {
   @NonNls private static final String FILE_METHOD_NAME = "file";
 
   @NotNull
-  public static GradleDslExpression createOrReplaceBasicExpression(@NotNull GradleDslElement parent,
-                                                                   @Nullable GradleDslElement oldElement,
-                                                                   @NotNull Object value,
-                                                                   @NotNull GradleNameElement name) {
+  public static GradleDslSimpleExpression createOrReplaceBasicExpression(@NotNull GradleDslElement parent,
+                                                                         @Nullable GradleDslElement oldElement,
+                                                                         @NotNull Object value,
+                                                                         @NotNull GradleNameElement name) {
     boolean isReference = value instanceof ReferenceTo;
 
     // Check if we can reuse the element.
     if (!isReference && oldElement instanceof GradleDslLiteral ||
         isReference && oldElement instanceof GradleDslReference) {
-      GradleDslExpression expression = (GradleDslExpression)oldElement;
+      GradleDslSimpleExpression expression = (GradleDslSimpleExpression)oldElement;
       expression.setValue(value);
       return expression;
     }
@@ -53,7 +53,7 @@ public class PropertyUtil {
         name = oldElement.getNameElement();
       }
 
-      GradleDslExpression newElement;
+      GradleDslSimpleExpression newElement;
       if (!isReference) {
         newElement = new GradleDslLiteral(parent, name);
       }
@@ -78,14 +78,14 @@ public class PropertyUtil {
       }
     }
     else if (holder instanceof GradleDslExpressionList) {
-      assert newElement instanceof GradleDslExpression;
+      assert newElement instanceof GradleDslSimpleExpression;
       GradleDslExpressionList list = (GradleDslExpressionList)holder;
       if (oldElement != null) {
-        assert oldElement instanceof GradleDslExpression;
-        list.replaceExpression((GradleDslExpression)oldElement, (GradleDslExpression)newElement);
+        assert oldElement instanceof GradleDslSimpleExpression;
+        list.replaceExpression((GradleDslSimpleExpression)oldElement, (GradleDslSimpleExpression)newElement);
       }
       else {
-        list.addNewExpression((GradleDslExpression)newElement, list.getExpressions().size());
+        list.addNewExpression((GradleDslSimpleExpression)newElement, list.getExpressions().size());
       }
     }
     else if (holder instanceof GradleDslMethodCall) {
@@ -147,13 +147,13 @@ public class PropertyUtil {
    * @return resolved expression
    */
   @NotNull
-  public static GradleDslExpression resolveElement(@NotNull GradleDslExpression expression) {
+  public static GradleDslSimpleExpression resolveElement(@NotNull GradleDslSimpleExpression expression) {
     while (expression instanceof GradleDslReference && !expression.hasCycle()) {
       GradleReferenceInjection injection = ((GradleDslReference)expression).getReferenceInjection();
       if (injection == null) {
         return expression;
       }
-      GradleDslExpression next = injection.getToBeInjectedExpression();
+      GradleDslSimpleExpression next = injection.getToBeInjectedExpression();
       if (next == null) {
         return expression;
       }

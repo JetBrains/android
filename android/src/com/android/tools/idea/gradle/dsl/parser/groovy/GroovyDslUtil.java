@@ -658,7 +658,7 @@ public final class GroovyDslUtil {
     return false;
   }
 
-  static List<GradleReferenceInjection> findInjections(@NotNull GradleDslExpression context,
+  static List<GradleReferenceInjection> findInjections(@NotNull GradleDslSimpleExpression context,
                                                        @NotNull PsiElement psiElement,
                                                        boolean includeUnresolved) {
     ApplicationManager.getApplication().assertReadAccessAllowed();

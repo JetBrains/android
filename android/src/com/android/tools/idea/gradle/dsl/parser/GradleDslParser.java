@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.intellij.openapi.application.Application;
@@ -61,13 +61,13 @@ public interface GradleDslParser {
   /**
    * Extracts a value {@link Object} from a given {@link PsiElement}. The {@code resolve} parameter determines
    * whether or not the returned value should contained resolved references to variables. e.g either "android-${version}" (unresolved)
-   * or "android-23" (resolved). A {@link GradleDslExpression} is needed to resolve any variable names that need
+   * or "android-23" (resolved). A {@link GradleDslSimpleExpression} is needed to resolve any variable names that need
    * to be injected.
    *
    * This method REQUIRES read access.
    */
   @Nullable
-  Object extractValue(@NotNull GradleDslExpression context, @NotNull PsiElement literal, boolean resolve);
+  Object extractValue(@NotNull GradleDslSimpleExpression context, @NotNull PsiElement literal, boolean resolve);
 
   /**
    * Builds an excludes block for a list of {@link ArtifactDependencySpec}s
@@ -83,23 +83,23 @@ public interface GradleDslParser {
 
   /**
    * Returns a list of {@link GradleReferenceInjection}s that were derived from {@code psiElement} .
-   * A {@link GradleDslExpression} is needed to resolve any variable names that need to be injected.
+   * A {@link GradleDslSimpleExpression} is needed to resolve any variable names that need to be injected.
    * This method only returns GradleReferenceInjections for which {@link GradleReferenceInjection#isResolved()}
    * returns true.
    *
    * This method REQUIRES read access.
    */
   @NotNull
-  List<GradleReferenceInjection> getResolvedInjections(@NotNull GradleDslExpression context, @NotNull PsiElement psiElement);
+  List<GradleReferenceInjection> getResolvedInjections(@NotNull GradleDslSimpleExpression context, @NotNull PsiElement psiElement);
 
   /**
-   * Same as {@link #getResolvedInjections(GradleDslExpression, PsiElement)} apart from we also return references where
+   * Same as {@link #getResolvedInjections(GradleDslSimpleExpression, PsiElement)} apart from we also return references where
    * {@link GradleReferenceInjection#isResolved()} returns false.
    *
    * This method REQUIRES read access.
    */
   @NotNull
-  List<GradleReferenceInjection> getInjections(@NotNull GradleDslExpression context, @NotNull PsiElement psiElement);
+  List<GradleReferenceInjection> getInjections(@NotNull GradleDslSimpleExpression context, @NotNull PsiElement psiElement);
 
   /**
    * This method creates an empty block element (possibly nested) from {@code nameParts} with {@code parentElement} as a parent.
@@ -122,7 +122,7 @@ public interface GradleDslParser {
 
     @Override
     @Nullable
-    public Object extractValue(@NotNull GradleDslExpression context, @NotNull PsiElement literal, boolean resolve) {
+    public Object extractValue(@NotNull GradleDslSimpleExpression context, @NotNull PsiElement literal, boolean resolve) {
       return null;
     }
 
@@ -134,13 +134,13 @@ public interface GradleDslParser {
 
     @Override
     @NotNull
-    public List<GradleReferenceInjection> getResolvedInjections(@NotNull GradleDslExpression context, @NotNull PsiElement psiElement) {
+    public List<GradleReferenceInjection> getResolvedInjections(@NotNull GradleDslSimpleExpression context, @NotNull PsiElement psiElement) {
       return Collections.emptyList();
     }
 
     @Override
     @NotNull
-    public List<GradleReferenceInjection> getInjections(@NotNull GradleDslExpression context, @NotNull PsiElement psiElement) {
+    public List<GradleReferenceInjection> getInjections(@NotNull GradleDslSimpleExpression context, @NotNull PsiElement psiElement) {
       return Collections.emptyList();
     }
 

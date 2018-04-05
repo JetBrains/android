@@ -96,7 +96,7 @@ public abstract class GradleFileModelImpl implements GradleFileModel {
 
     List<GradleDslFile> currentFiles = new ArrayList<>();
     currentFiles.add(myGradleDslFile);
-    // TODO: Generalize cycle detection in GradleDslExpression and reuse here.
+    // TODO: Generalize cycle detection in GradleDslSimpleExpression and reuse here.
     // Attempting to parse a cycle of applied files will fail in GradleDslFile#mergeAppliedFiles;
     while (!currentFiles.isEmpty()) {
       GradleDslFile currentFile = currentFiles.remove(0);

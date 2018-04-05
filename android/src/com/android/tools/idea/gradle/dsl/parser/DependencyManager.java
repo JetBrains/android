@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import org.jetbrains.annotations.NotNull;
@@ -75,7 +75,7 @@ public final class DependencyManager {
       // Attempt to re-resolve any references.
       GradleDslElement newElement = injection.getOriginElement().resolveReference(injection.getName(), true);
       if (newElement != null) {
-        assert newElement instanceof GradleDslExpression ||
+        assert newElement instanceof GradleDslSimpleExpression ||
                newElement instanceof GradleDslExpressionList ||
                newElement instanceof GradleDslExpressionMap;
         injection.resolveWith(newElement);

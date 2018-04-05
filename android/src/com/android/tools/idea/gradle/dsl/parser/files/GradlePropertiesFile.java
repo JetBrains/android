@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.files;
 import com.android.tools.idea.gradle.dsl.parser.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
@@ -55,7 +55,7 @@ public final class GradlePropertiesFile extends GradleDslFile {
 
   @Override
   @Nullable
-  public GradleDslExpression getPropertyElement(@NotNull String property) {
+  public GradleDslSimpleExpression getPropertyElement(@NotNull String property) {
     String value = myProperties.getProperty(property);
     if (value == null) {
       return null;
@@ -89,7 +89,7 @@ public final class GradlePropertiesFile extends GradleDslFile {
     return new GradleDslWriter.Adapter();
   }
 
-  private static class GradlePropertyElement extends GradleDslExpression {
+  private static class GradlePropertyElement extends GradleDslSimpleExpression {
     @Nullable private Object myValue;
 
     private GradlePropertyElement(@Nullable GradleDslElement parent, @NotNull GradleNameElement name) {

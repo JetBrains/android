@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.api.values.GradleValue;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -55,7 +55,7 @@ public abstract class GradleValueImpl<T> implements GradleValue<T> {
     if (myDslElement == null) {
       return null;
     }
-    return myDslElement instanceof GradleDslExpression ? ((GradleDslExpression)myDslElement).getExpression() : myDslElement.getPsiElement();
+    return myDslElement instanceof GradleDslSimpleExpression ? ((GradleDslSimpleExpression)myDslElement).getExpression() : myDslElement.getPsiElement();
   }
 
   @Nullable
@@ -89,7 +89,7 @@ public abstract class GradleValueImpl<T> implements GradleValue<T> {
       String variableName = injection.getName();
 
       // Skip any lists or maps that we might possibly get here.
-      GradleDslExpression expression = injection.getToBeInjectedExpression();
+      GradleDslSimpleExpression expression = injection.getToBeInjectedExpression();
       if (expression == null) {
         continue;
       }

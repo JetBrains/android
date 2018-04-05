@@ -113,7 +113,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     if (extractAndGetValueType(getElement()) == LIST && myElement instanceof GradleDslExpressionList) {
       GradleDslExpressionList list = (GradleDslExpressionList)myElement;
       if (list.getExpressions().size() == 1) {
-        GradleDslExpression expression = list.getElementAt(0);
+        GradleDslSimpleExpression expression = list.getElementAt(0);
         if (expression instanceof GradleDslReference) {
           GradleDslReference reference = (GradleDslReference)expression;
           GradleReferenceInjection injection = reference.getReferenceInjection();
@@ -423,8 +423,8 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       // This check ensures that methods we care about, i.e targetSdkVersion(12) are not classed as unknown.
       return UNKNOWN;
     }
-    else if (element instanceof GradleDslExpression) {
-      GradleDslExpression expression = (GradleDslExpression)element;
+    else if (element instanceof GradleDslSimpleExpression) {
+      GradleDslSimpleExpression expression = (GradleDslSimpleExpression)element;
       Object value = expression.getValue();
       if (value instanceof Boolean) {
         return BOOLEAN;
@@ -488,7 +488,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       }
     }
     else {
-      GradleDslExpression expression = (GradleDslExpression)element;
+      GradleDslSimpleExpression expression = (GradleDslSimpleExpression)element;
 
       value = resolved ? expression.getValue() : expression.getUnresolvedValue();
     }

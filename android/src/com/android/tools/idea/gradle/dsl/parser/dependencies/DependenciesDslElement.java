@@ -29,7 +29,7 @@ public class DependenciesDslElement extends GradleDslBlockElement {
   @Override
   public void addParsedElement(@NotNull GradleDslElement dependency) {
     // Treat all expressions and expression maps as dependencies
-    if (dependency instanceof GradleDslExpression ||
+    if (dependency instanceof GradleDslSimpleExpression ||
         dependency instanceof GradleDslExpressionMap ||
         dependency instanceof GradleDslExpressionList) {
       super.addParsedElement(dependency);

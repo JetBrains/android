@@ -114,8 +114,8 @@ public abstract class GradleDslElement implements AnchorProvider {
     myName.rename(newName);
     setModified(true);
 
-    // If we are a GradleDslExpression we need to ensure our dependencies are correct.
-    if (!(this instanceof GradleDslExpression)) {
+    // If we are a GradleDslSimpleExpression we need to ensure our dependencies are correct.
+    if (!(this instanceof GradleDslSimpleExpression)) {
       return;
     }
 

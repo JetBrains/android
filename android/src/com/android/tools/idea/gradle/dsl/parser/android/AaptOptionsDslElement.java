@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -36,9 +36,9 @@ public class AaptOptionsDslElement extends GradleDslBlockElement {
 
   @Override
   public void addParsedElement(@NotNull GradleDslElement element) {
-    if (element instanceof GradleDslExpression &&
+    if (element instanceof GradleDslSimpleExpression &&
         (element.getName().equals("additionalParameters") || element.getName().equals("noCompress"))) {
-      addAsParsedDslExpressionList((GradleDslExpression)element);
+      addAsParsedDslExpressionList((GradleDslSimpleExpression)element);
       return;
     }
     super.addParsedElement(element);

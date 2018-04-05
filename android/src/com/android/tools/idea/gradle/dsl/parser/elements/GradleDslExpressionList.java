@@ -29,11 +29,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Represents an element which consists a list of {@link GradleDslExpression}s.
+ * Represents an element which consists a list of {@link GradleDslSimpleExpression}s.
  */
 public final class GradleDslExpressionList extends GradleDslElement {
-  @NotNull private final List<GradleDslExpression> myExpressions = Lists.newArrayList();
-  @NotNull private final List<GradleDslExpression> myUnsavedExpressions = Lists.newArrayList();
+  @NotNull private final List<GradleDslSimpleExpression> myExpressions = Lists.newArrayList();
+  @NotNull private final List<GradleDslSimpleExpression> myUnsavedExpressions = Lists.newArrayList();
 
   private final boolean myAppendToArgumentListWithOneElement;
 
@@ -63,13 +63,13 @@ public final class GradleDslExpressionList extends GradleDslElement {
     myIsLiteralList = false;
   }
 
-  public void addParsedExpression(@NotNull GradleDslExpression expression) {
+  public void addParsedExpression(@NotNull GradleDslSimpleExpression expression) {
     expression.myParent = this;
     myExpressions.add(expression);
     myUnsavedExpressions.add(expression);
   }
 
-  public void addNewExpression(@NotNull GradleDslExpression expression, int index) {
+  public void addNewExpression(@NotNull GradleDslSimpleExpression expression, int index) {
     expression.myParent = this;
     myUnsavedExpressions.add(index, expression);
     setModified(true);
@@ -84,7 +84,7 @@ public final class GradleDslExpressionList extends GradleDslElement {
     updateDependenciesOnRemoveElement(element);
   }
 
-  public GradleDslExpression getElementAt(int index) {
+  public GradleDslSimpleExpression getElementAt(int index) {
     if (index < 0 || index > myUnsavedExpressions.size()) {
       return null;
     }
@@ -104,7 +104,7 @@ public final class GradleDslExpressionList extends GradleDslElement {
   }
 
   void removeExpression(@NotNull Object value) {
-    for (GradleDslExpression expression : myUnsavedExpressions) {
+    for (GradleDslSimpleExpression expression : myUnsavedExpressions) {
       if (value.equals(expression.getValue())) {
         myUnsavedExpressions.remove(expression);
         setModified(true);
@@ -115,7 +115,7 @@ public final class GradleDslExpressionList extends GradleDslElement {
   }
 
   void replaceExpression(@NotNull Object oldValue, @NotNull Object newValue) {
-    for (GradleDslExpression expression : myUnsavedExpressions) {
+    for (GradleDslSimpleExpression expression : myUnsavedExpressions) {
       if (oldValue.equals(expression.getValue())) {
         expression.setValue(newValue);
         return;
@@ -123,7 +123,7 @@ public final class GradleDslExpressionList extends GradleDslElement {
     }
   }
 
-  public void replaceExpression(@NotNull GradleDslExpression oldExpression, @NotNull GradleDslExpression newExpression) {
+  public void replaceExpression(@NotNull GradleDslSimpleExpression oldExpression, @NotNull GradleDslSimpleExpression newExpression) {
     assert oldExpression.getFullName().equals(newExpression.getFullName());
     int index = myUnsavedExpressions.indexOf(oldExpression);
     assert index != -1;
@@ -132,8 +132,8 @@ public final class GradleDslExpressionList extends GradleDslElement {
   }
 
   @NotNull
-  public List<GradleDslExpression> getExpressions() {
-    List<GradleDslExpression> result = Lists.newArrayList();
+  public List<GradleDslSimpleExpression> getExpressions() {
+    List<GradleDslSimpleExpression> result = Lists.newArrayList();
     result.addAll(myUnsavedExpressions);
     return result;
   }
@@ -150,11 +150,11 @@ public final class GradleDslExpressionList extends GradleDslElement {
    * This method should <b>not</b> be called outside of the GradleDslWriter classes.
    * <p>
    * If you need to add expressions to this GradleDslExpressionList please use
-   * {@link #addNewExpression(GradleDslExpression) addNewExpression} followed by a call to {@link #apply() apply}
+   * {@link #addNewExpression(GradleDslSimpleExpression) addNewExpression} followed by a call to {@link #apply() apply}
    * to ensure the changes are written to the underlying file.
    */
   public void commitExpressions(@NotNull PsiElement psiElement) {
-    for (GradleDslExpression expression : myUnsavedExpressions) {
+    for (GradleDslSimpleExpression expression : myUnsavedExpressions) {
       if (expression.getPsiElement() == null) {
         expression.setPsiElement(psiElement);
         expression.applyChanges();
@@ -171,7 +171,7 @@ public final class GradleDslExpressionList extends GradleDslElement {
   @NotNull
   public <E> List<GradleNotNullValue<E>> getValues(Class<E> clazz) {
     List<GradleNotNullValue<E>> result = Lists.newArrayList();
-    for (GradleDslExpression expression : getExpressions()) {
+    for (GradleDslSimpleExpression expression : getExpressions()) {
       if (expression instanceof GradleDslReference) {
         // See if the reference itself is pointing to a list.
         GradleDslExpressionList referenceList = expression.getValue(GradleDslExpressionList.class);
@@ -200,7 +200,7 @@ public final class GradleDslExpressionList extends GradleDslElement {
 
     getDslFile().getWriter().applyDslExpressionList(this);
 
-    for (GradleDslExpression expression : myExpressions) {
+    for (GradleDslSimpleExpression expression : myExpressions) {
       if (!myUnsavedExpressions.contains(expression)) {
         expression.delete();
       }
@@ -208,7 +208,7 @@ public final class GradleDslExpressionList extends GradleDslElement {
 
     if (psiElement != null) {
       for (int i = 0; i < myUnsavedExpressions.size(); i++) {
-        GradleDslExpression expression = myUnsavedExpressions.get(i);
+        GradleDslSimpleExpression expression = myUnsavedExpressions.get(i);
         if (expression.getPsiElement() == null) {
           // See GroovyDslUtil#shouldAddToListInternal for why this workaround is needed.
           if (i > 0) {
@@ -225,7 +225,7 @@ public final class GradleDslExpressionList extends GradleDslElement {
     }
     saveExpressions();
 
-    for (GradleDslExpression expression : myExpressions) {
+    for (GradleDslSimpleExpression expression : myExpressions) {
       if (expression.isModified()) {
         expression.applyChanges();
       }
@@ -236,7 +236,7 @@ public final class GradleDslExpressionList extends GradleDslElement {
   protected void reset() {
     myUnsavedExpressions.clear();
     myUnsavedExpressions.addAll(myExpressions);
-    for (GradleDslExpression expression : myExpressions) {
+    for (GradleDslSimpleExpression expression : myExpressions) {
       if (expression.isModified()) {
         expression.resetState();
       }
@@ -246,7 +246,7 @@ public final class GradleDslExpressionList extends GradleDslElement {
   @Override
   @NotNull
   public Collection<GradleDslElement> getChildren() {
-    List<GradleDslExpression> expressions = getExpressions();
+    List<GradleDslSimpleExpression> expressions = getExpressions();
     List<GradleDslElement> children = new ArrayList<>(expressions.size());
     children.addAll(expressions);
     return children;

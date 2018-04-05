@@ -40,13 +40,13 @@ import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.FAKE;
  * and setting the derived value from and to its real element.
  */
 public abstract class FakeElement extends GradleDslSettableExpression {
-  @NotNull protected final GradleDslExpression myRealExpression;
+  @NotNull protected final GradleDslSimpleExpression myRealExpression;
   private final boolean myCanDelete;
   private final GradleNameElement myFakeName;
 
   public FakeElement(@Nullable GradleDslElement parent,
                      @NotNull GradleNameElement name,
-                     @NotNull GradleDslExpression originExpression,
+                     @NotNull GradleDslSimpleExpression originExpression,
                      boolean canDelete) {
     super(parent, null, name, null);
     myRealExpression = originExpression;
