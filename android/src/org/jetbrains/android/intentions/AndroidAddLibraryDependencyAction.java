@@ -83,7 +83,7 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
   private static ImmutableCollection<String> findAllDependencies(@NotNull GradleBuildModel buildModel) {
     HashSet<String> existingDependencies = Sets.newHashSet();
     for (ArtifactDependencyModel dependency : buildModel.dependencies().artifacts()) {
-      existingDependencies.add(dependency.group().value() + ":" + dependency.name().value());
+      existingDependencies.add(dependency.group().toString() + ":" + dependency.name().toString());
     }
 
     ImmutableList.Builder<String> dependenciesBuilder = ImmutableList.builder();

@@ -15,31 +15,35 @@
  */
 package com.android.tools.idea.gradle.dsl.api.dependencies;
 
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface ArtifactDependencyModel extends DependencyModel {
   @NotNull
-  GradleNotNullValue<String> compactNotation();
+  String compactNotation();
 
   @NotNull
-  GradleNotNullValue<String> name();
+  ResolvedPropertyModel name();
 
   @NotNull
-  GradleNullableValue<String> group();
+  ResolvedPropertyModel group();
 
   @NotNull
-  GradleNullableValue<String> version();
-
-  void setVersion(@NotNull String version);
+  ResolvedPropertyModel version();
 
   @NotNull
-  GradleNullableValue<String> classifier();
+  ResolvedPropertyModel classifier();
 
   @NotNull
-  GradleNullableValue<String> extension();
+  ResolvedPropertyModel extension();
+
+  /**
+   * @return the model representing this entire dependency, this will be either a MAP_TYPE model for map form dependencies. Or
+   * a STRING_TYPE model for compact notation.
+   */
+  @NotNull
+  ResolvedPropertyModel completeModel();
 
   @Nullable
   DependencyConfigurationModel configuration();

@@ -84,7 +84,7 @@ public class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryAndro
       String declaredSpecs =
         Joiner.on(",")
           .join(dependency.getParsedModels().stream().filter(m -> m instanceof ArtifactDependencyModel)
-                  .map(m -> ((ArtifactDependencyModel)m).version().value())
+                  .map(m -> ((ArtifactDependencyModel)m).version().toString())
                   .collect(Collectors.toList()));
       String version = declaredSpecs + "→" + resolvedSpec.getVersion();
       return getTextForSpec(resolvedSpec.getName(), version, resolvedSpec.getGroup(),

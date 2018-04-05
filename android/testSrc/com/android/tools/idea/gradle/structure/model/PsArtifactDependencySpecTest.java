@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
@@ -31,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 import org.mockito.Mockito;
 
 import java.util.Map;
+import java.util.function.Function;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -153,10 +155,19 @@ public class PsArtifactDependencySpecTest extends IdeaTestCase {
   }
 
   public void testCreate_artifactDependencyModel() {
-    ArtifactDependencyModel model = Mockito.mock(ArtifactDependencyModel.class);
-    when(model.group()).thenReturn(new TestGradleValue("group"));
-    when(model.name()).thenReturn(new TestGradleValue("name"));
-    when(model.version()).thenReturn(new TestGradleValue("version"));
+    ArtifactDependencyModel model = mock(ArtifactDependencyModel.class);
+    Function<String, ResolvedPropertyModel> propertyModelFunc = val -> {
+      ResolvedPropertyModel propertyModel = mock(ResolvedPropertyModel.class);
+      when(propertyModel.toString()).thenReturn(val);
+      when(propertyModel.forceString()).thenReturn(val);
+      return propertyModel;
+    };
+    ResolvedPropertyModel groupModel = propertyModelFunc.apply("group");
+    ResolvedPropertyModel nameModel = propertyModelFunc.apply("name");
+    ResolvedPropertyModel versionModel = propertyModelFunc.apply("version");
+    when(model.group()).thenReturn(groupModel);
+    when(model.name()).thenReturn(nameModel);
+    when(model.version()).thenReturn(versionModel);
     PsArtifactDependencySpec spec = PsArtifactDependencySpec.create(model);
     assertNotNull(spec);
     assertEquals("group", spec.getGroup());

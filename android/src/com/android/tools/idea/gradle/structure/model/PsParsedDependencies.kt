@@ -82,7 +82,7 @@ class PsParsedDependencies(parsedModel: GradleBuildModel?) {
     joinAsGradlePath(listOf(group, name))
 
   private fun createIdFrom(dependency: ArtifactDependencyModel) =
-    joinAsGradlePath(listOf(dependency.group().value(), dependency.name().value()))
+    joinAsGradlePath(listOf(dependency.group().toString(), dependency.name().toString()))
 
   private fun joinAsGradlePath(segments: List<String?>) =
     segments.filterNotNull().joinToString(GRADLE_PATH_SEPARATOR)

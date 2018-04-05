@@ -29,7 +29,7 @@ public interface PsLibraryDependency extends PsBaseDependency {
 
   @NotNull
   default PsArtifactDependencySpec createSpec(@NotNull ArtifactDependencyModel parsedModel) {
-    String compactNotation = parsedModel.compactNotation().value();
+    String compactNotation = parsedModel.compactNotation();
     PsArtifactDependencySpec spec = PsArtifactDependencySpec.create(compactNotation);
     assert spec != null;
     return spec;
