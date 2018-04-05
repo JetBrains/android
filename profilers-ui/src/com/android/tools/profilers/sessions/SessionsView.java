@@ -343,7 +343,7 @@ public class SessionsView extends AspectObserver {
                                                           String.format("Unknown file type: %s", file.getPath()));
             }
           }));
-      myProcessSelectionAction.addChildrenActions(loadAction, new CommonAction.Separator());
+      myProcessSelectionAction.addChildrenActions(loadAction, new CommonAction.SeparatorAction());
     }
   }
 

@@ -146,14 +146,14 @@ class SessionsViewTest {
     assertThat(loadAction.isSelected).isFalse()
     assertThat(loadAction.isEnabled).isTrue()
     assertThat(loadAction.childrenActionCount).isEqualTo(0)
-    assertThat(selectionAction.childrenActions[1]).isInstanceOf(CommonAction.Separator::class.java)
+    assertThat(selectionAction.childrenActions[1]).isInstanceOf(CommonAction.SeparatorAction::class.java)
     assertThat(selectionAction.childrenActions[2].text).isEqualTo(SessionsView.NO_SUPPORTED_DEVICES)
     assertThat(selectionAction.childrenActions[2].isEnabled).isFalse()
 
     myProfilerService.addDevice(device1)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     assertThat(selectionAction.childrenActionCount).isEqualTo(3)
-    assertThat(selectionAction.childrenActions[1]).isInstanceOf(CommonAction.Separator::class.java)
+    assertThat(selectionAction.childrenActions[1]).isInstanceOf(CommonAction.SeparatorAction::class.java)
     loadAction = selectionAction.childrenActions.first { c -> c.text == "Load from file..." }
     assertThat(loadAction.isSelected).isFalse()
     assertThat(loadAction.isEnabled).isTrue()
