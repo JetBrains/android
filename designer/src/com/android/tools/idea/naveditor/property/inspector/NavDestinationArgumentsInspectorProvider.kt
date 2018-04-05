@@ -139,6 +139,7 @@ class NavDestinationArgumentsInspectorProvider : InspectorProvider<NavProperties
       })
       table.columnModel.getColumn(0).cellRenderer = MyCellRenderer("name")
       table.columnModel.getColumn(1).cellRenderer = MyCellRenderer("type")
+      table.columnModel.getColumn(1).preferredWidth = -1
       table.columnModel.getColumn(2).cellRenderer = MyCellRenderer("default value")
 
       val cellEditor = object: NlTableCellEditor() {
