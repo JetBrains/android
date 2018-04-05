@@ -120,7 +120,7 @@ public final class GradleDslReference extends GradleDslSettableExpression {
   }
 
   @Override
-  protected void delete() {
+  public void delete() {
     getDslFile().getWriter().deleteDslReference(this);
   }
 

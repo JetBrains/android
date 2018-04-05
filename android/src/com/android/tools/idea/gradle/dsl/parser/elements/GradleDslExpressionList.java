@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 /**
  * Represents an element which consists a list of {@link GradleDslSimpleExpression}s.
  */
-public final class GradleDslExpressionList extends GradleDslElement {
+public final class GradleDslExpressionList extends GradleDslElementImpl {
   @NotNull private final List<GradleDslSimpleExpression> myExpressions = Lists.newArrayList();
   @NotNull private final List<GradleDslSimpleExpression> myUnsavedExpressions = Lists.newArrayList();
 
