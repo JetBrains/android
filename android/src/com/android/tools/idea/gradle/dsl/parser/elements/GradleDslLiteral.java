@@ -65,7 +65,7 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
       return null;
     }
     return ApplicationManager.getApplication()
-      .runReadAction((Computable<Object>)() -> getDslFile().getParser().extractValue(this, element, true));
+                             .runReadAction((Computable<Object>)() -> getDslFile().getParser().extractValue(this, element, true));
   }
 
   @Override
@@ -76,7 +76,7 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
       return null;
     }
     return ApplicationManager.getApplication()
-      .runReadAction((Computable<Object>)() -> getDslFile().getParser().extractValue(this, element, false));
+                             .runReadAction((Computable<Object>)() -> getDslFile().getParser().extractValue(this, element, false));
   }
 
   @Nullable
@@ -111,7 +111,9 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
   @Override
   public void setValue(@NotNull Object value) {
     checkForValidValue(value);
-    setUnsavedValue(getDslFile().getParser().convertToPsiElement(value));
+    PsiElement element =
+      ApplicationManager.getApplication().runReadAction((Computable<PsiElement>)() -> getDslFile().getParser().convertToPsiElement(value));
+    setUnsavedValue(element);
     valueChanged();
   }
 
