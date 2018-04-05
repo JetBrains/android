@@ -20,8 +20,6 @@ import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.*;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
-import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
-import com.android.tools.idea.gradle.project.sync.ng.ModuleSetup.ModuleSetupImpl;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedModuleModels;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetup;
@@ -52,7 +50,7 @@ public class ModuleSetupImplTest extends IdeaTestCase {
   @Mock private NdkModuleSetup myNdkModuleSetup;
   @Mock private JavaModuleSetup myJavaModuleSetup;
   @Mock private AndroidModuleProcessor myAndroidModuleProcessor;
-  @Mock private VariantSelector myVariantSelector;
+  @Mock private AndroidModelFactory myAndroidModelFactory;
   @Mock private ProjectCleanup myProjectCleanup;
   @Mock private ObsoleteModuleDisposer myModuleDisposer;
   @Mock private CachedProjectModels.Factory myCachedProjectModelsFactory;
@@ -76,10 +74,10 @@ public class ModuleSetupImplTest extends IdeaTestCase {
 
     when(myModulesFinderFactory.create(myProject)).thenReturn(myModuleFinder);
 
-    myModuleSetup = new ModuleSetupImpl(getProject(), myModelsProvider, myExtraModelsManager, myModuleFactory, myGradleModuleSetup,
-                                        myAndroidModuleSetup, myNdkModuleSetup, myJavaModuleSetup, myAndroidModuleProcessor,
-                                        myVariantSelector, myProjectCleanup, myModuleDisposer, myCachedProjectModelsFactory,
-                                        myNativeAndroidProjectFactory, myJavaModuleModelFactory, myDependenciesFactory,
+    myModuleSetup = new ModuleSetupImpl(getProject(), myModelsProvider, myDependenciesFactory, myExtraModelsManager, myModuleFactory,
+                                        myGradleModuleSetup, myAndroidModuleSetup, myNdkModuleSetup, myJavaModuleSetup,
+                                        myAndroidModuleProcessor, myAndroidModelFactory, myProjectCleanup, myModuleDisposer, myCachedProjectModelsFactory,
+                                        myNativeAndroidProjectFactory, myJavaModuleModelFactory,
                                         myProjectDataNodeSetup, myModuleSetupContextFactory, myModulesFinderFactory,
                                         myCompositeBuildDataSetup);
   }

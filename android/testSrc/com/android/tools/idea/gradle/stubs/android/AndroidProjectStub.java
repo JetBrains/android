@@ -191,6 +191,10 @@ public class AndroidProjectStub implements IdeAndroidProject {
     return result;
   }
 
+  public void clearVariants() {
+    myVariants.clear();
+  }
+
   @Override
   @NotNull
   public Collection<String> getVariantNames() {

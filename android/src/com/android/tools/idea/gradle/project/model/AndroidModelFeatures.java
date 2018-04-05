@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,7 +34,6 @@ public class AndroidModelFeatures {
   private final boolean myExportDependencies;
   private final boolean myIsVfsRefreshRequired;
 
-  @VisibleForTesting
   public AndroidModelFeatures(@Nullable GradleVersion modelVersion) {
     myModelVersion = modelVersion;
     myIssueReportingSupported = modelVersionIsAtLeast("1.1.0");

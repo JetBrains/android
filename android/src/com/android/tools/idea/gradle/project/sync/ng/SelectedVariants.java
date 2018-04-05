@@ -28,7 +28,7 @@ public class SelectedVariants implements Serializable {
   /**
    * @see com.android.tools.idea.gradle.project.sync.Modules#createUniqueModuleId(File, String)
    */
-  private final Map<String, String> mySelectedVariantByModule = new HashMap<>();
+  @NotNull private Map<String, String> mySelectedVariantByModule = new HashMap<>();
 
   void addSelectedVariant(@NotNull String moduleId, @NotNull String selectedVariant) {
     mySelectedVariantByModule.put(moduleId, selectedVariant);
