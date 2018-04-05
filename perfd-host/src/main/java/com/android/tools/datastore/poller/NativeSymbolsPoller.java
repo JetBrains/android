@@ -103,7 +103,8 @@ public class NativeSymbolsPoller extends PollRunner {
     long offset = frame.getModuleOffset();
     Symbol symbol = null;
     try {
-      symbol = mySymbolizer.symbolize(myProcess.getAbiCpuArch(), frame.getModuleName(), offset);
+      long prevInstructionOffset = getOffsetOfPreviousInstruction(offset);
+      symbol = mySymbolizer.symbolize(myProcess.getAbiCpuArch(), frame.getModuleName(), prevInstructionOffset);
     }
     catch (IOException | RuntimeException e) {
       getLogger().warn(e);
@@ -116,6 +117,16 @@ public class NativeSymbolsPoller extends PollRunner {
       .setModuleName(symbol.getModule())
       .setFileName(symbol.getSourceFile())
       .setLineNumber(symbol.getLineNumber()).build();
+  }
+
+  private long getOffsetOfPreviousInstruction(long offset) {
+    // In non-bottom frames native backtrace contains addresses where the execution will
+    // continue after a function call. After symbolization such addresses often resolved
+    // to the source line immediately following the function call.
+    // That's why offset needs to be adjusted (by -1) to actually get into a source range
+    // of the function call. The bottom stack frame belong to perfa itself and never being
+    // sent to the data store, that's why there is no need for handling of this special case.
+    return offset - 1;
   }
 
   @NotNull
