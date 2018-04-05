@@ -16,10 +16,7 @@
 package com.android.tools.idea.gradle.project.model;
 
 import com.android.builder.model.*;
-import com.android.ide.common.gradle.model.IdeAndroidArtifact;
-import com.android.ide.common.gradle.model.IdeAndroidProject;
-import com.android.ide.common.gradle.model.IdeAndroidProjectImpl;
-import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.ide.common.gradle.model.*;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.repository.GradleVersion;
@@ -29,6 +26,7 @@ import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.android.tools.idea.projectsystem.FilenameConstants;
+import com.android.tools.lint.detector.api.Lint;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -58,7 +56,6 @@ import static com.android.SdkConstants.DATA_BINDING_LIB_ARTIFACT;
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.dependsOn;
-import static com.android.tools.lint.detector.api.LintUtils.convertVersion;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
@@ -118,10 +115,28 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
                             @NotNull AndroidProject androidProject,
                             @NotNull String selectedVariantName,
                             @NotNull IdeDependenciesFactory dependenciesFactory) {
+    this(moduleName, rootDirPath, androidProject, selectedVariantName, dependenciesFactory, null);
+  }
+
+  public AndroidModuleModel(@NotNull String moduleName,
+                            @NotNull File rootDirPath,
+                            @NotNull AndroidProject androidProject,
+                            @NotNull Variant variant,
+                            @NotNull IdeDependenciesFactory dependenciesFactory) {
+    this(moduleName, rootDirPath, androidProject, variant.getName(), dependenciesFactory, variant);
+  }
+
+  private AndroidModuleModel(@NotNull String moduleName,
+                             @NotNull File rootDirPath,
+                             @NotNull AndroidProject androidProject,
+                             @NotNull String variantName,
+                             @NotNull IdeDependenciesFactory dependenciesFactory,
+                             @Nullable Variant variant) {
+    myAndroidProject = new IdeAndroidProjectImpl(androidProject, dependenciesFactory, variant);
+
     myProjectSystemId = GRADLE_SYSTEM_ID;
     myModuleName = moduleName;
     myRootDirPath = rootDirPath;
-    myAndroidProject = new IdeAndroidProjectImpl(androidProject, dependenciesFactory);
     parseAndSetModelVersion();
     myFeatures = new AndroidModelFeatures(myModelVersion);
 
@@ -129,8 +144,9 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     populateProductFlavorsByName();
     populateVariantsByName();
 
-    mySelectedVariantName = findVariantToSelect(selectedVariantName);
+    mySelectedVariantName = findVariantToSelect(variantName);
   }
+
 
   private void populateBuildTypesByName() {
     for (BuildTypeContainer container : myAndroidProject.getBuildTypes()) {
@@ -268,10 +284,9 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   private List<SourceProvider> getTestSourceProviders(@NotNull String variantName, @NotNull String... testArtifactNames) {
     validateTestArtifactNames(testArtifactNames);
 
-    List<SourceProvider> providers = new ArrayList<>();
     // Collect the default config test source providers.
     Collection<SourceProviderContainer> extraSourceProviders = getAndroidProject().getDefaultConfig().getExtraSourceProviders();
-    providers.addAll(getSourceProvidersForArtifacts(extraSourceProviders, testArtifactNames));
+    List<SourceProvider> providers = new ArrayList<>(getSourceProvidersForArtifacts(extraSourceProviders, testArtifactNames));
 
     Variant variant = myVariantsByName.get(variantName);
     assert variant != null;
@@ -405,7 +420,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
           }
         }
       }
-      myMinSdkVersion = minSdkVersion != null ? convertVersion(minSdkVersion, null) : NOT_SPECIFIED;
+      myMinSdkVersion = minSdkVersion != null ? Lint.convertVersion(minSdkVersion, null) : NOT_SPECIFIED;
     }
 
     return myMinSdkVersion != NOT_SPECIFIED ? myMinSdkVersion : null;
@@ -415,20 +430,14 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @Nullable
   public AndroidVersion getRuntimeMinSdkVersion() {
     ApiVersion minSdkVersion = getSelectedVariant().getMergedFlavor().getMinSdkVersion();
-    if (minSdkVersion != null) {
-      return convertVersion(minSdkVersion, null);
-    }
-    return null;
+    return minSdkVersion != null ? Lint.convertVersion(minSdkVersion, null) : null;
   }
 
   @Override
   @Nullable
   public AndroidVersion getTargetSdkVersion() {
     ApiVersion targetSdkVersion = getSelectedVariant().getMergedFlavor().getTargetSdkVersion();
-    if (targetSdkVersion != null) {
-      return convertVersion(targetSdkVersion, null);
-    }
-    return null;
+    return targetSdkVersion != null ? Lint.convertVersion(targetSdkVersion, null) : null;
   }
 
   /**
@@ -693,7 +702,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   /**
    * Returns the {@link IdeAndroidArtifact} that should be used for instrumented testing.
-   *
+   * <p>
    * <p>For test-only modules this is the main artifact.
    */
   @Nullable
