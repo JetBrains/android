@@ -96,6 +96,9 @@ public final class ProfilerScrollbar extends JBScrollBar {
         myCheckStream = deltaUs > 0;
       }
     });
+
+    // Ensure the scrollbar is set to the correct initial state.
+    modelChanged();
   }
 
   @VisibleForTesting

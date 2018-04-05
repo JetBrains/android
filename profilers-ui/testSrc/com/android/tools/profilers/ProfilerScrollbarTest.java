@@ -54,6 +54,18 @@ public class ProfilerScrollbarTest {
   }
 
   @Test
+  public void testInitialization() {
+    ProfilerScrollbar scrollbar = new ProfilerScrollbar(myTimeline, myPanel);
+
+    // Scrollbar's model should be correct without an explicit update.
+    // Note: model units are kept in 1000th of a range unit
+    assertEquals(0, scrollbar.getModel().getMinimum());
+    assertEquals(10, scrollbar.getModel().getMaximum());
+    assertEquals(0, scrollbar.getModel().getValue());
+    assertEquals(5, scrollbar.getModel().getExtent());
+  }
+
+  @Test
   public void testModelChanged() {
     // Note: model units are kept in 1000th of a range unit
     assertEquals(0, myScrollbar.getModel().getMinimum());
