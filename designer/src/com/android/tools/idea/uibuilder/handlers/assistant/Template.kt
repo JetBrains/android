@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.handlers.assistant
 
+import libcore.io.Streams
+import java.io.InputStream
+import java.io.InputStreamReader
+
 
 /**
  * Holder class for the templates information
@@ -27,5 +31,14 @@ internal data class Template(private val myTemplateName: String, val myTemplate:
   companion object {
     @JvmField
     val NONE_TEMPLATE = Template("None", "")
+
+    /**
+     * Returns a new template using the contents from the given stream
+     */
+    @JvmStatic
+    fun fromStream(name: String, stream: InputStream): Template {
+      val content = Streams.readFully(InputStreamReader(stream))
+      return Template(name, content)
+    }
   }
 }
