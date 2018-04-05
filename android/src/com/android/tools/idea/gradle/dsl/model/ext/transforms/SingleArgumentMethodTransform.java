@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.dsl.model.ext.transforms;
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NotNull;
@@ -73,7 +73,7 @@ public class SingleArgumentMethodTransform extends PropertyTransform {
     // This cast is safe, we are guaranteed to have test(e) return true.
     GradleDslMethodCall methodCall = (GradleDslMethodCall)e;
     GradleDslElement arg = methodCall.getArguments().get(0);
-    if (arg instanceof GradleDslExpression) {
+    if (arg instanceof GradleDslSimpleExpression) {
       return arg;
     }
     return null;
@@ -103,7 +103,7 @@ public class SingleArgumentMethodTransform extends PropertyTransform {
       if (methodCall.getMethodName().equals(myMethodName)) {
         GradleDslElement baseElement = transform(oldElement);
         if (baseElement != null) {
-          GradleDslExpression newBaseElement = createOrReplaceBasicExpression(methodCall, baseElement, value, nameElement);
+          GradleDslSimpleExpression newBaseElement = createOrReplaceBasicExpression(methodCall, baseElement, value, nameElement);
           if (baseElement != newBaseElement) {
             methodCall.remove(baseElement);
             methodCall.addNewArgument(newBaseElement);
@@ -114,7 +114,7 @@ public class SingleArgumentMethodTransform extends PropertyTransform {
     }
 
     methodCall = new GradleDslMethodCall(holder, nameElement, myMethodName);
-    GradleDslExpression argument = createOrReplaceBasicExpression(methodCall, null, value, nameElement);
+    GradleDslSimpleExpression argument = createOrReplaceBasicExpression(methodCall, null, value, nameElement);
     methodCall.addNewArgument(argument);
     return methodCall;
   }

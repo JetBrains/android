@@ -44,7 +44,7 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 /**
  * Represents an expression element.
  */
-public abstract class GradleDslExpression extends GradleDslElement {
+public abstract class GradleDslSimpleExpression extends GradleDslElement {
   @NotNull private static final String SINGLE_QUOTES = "\'";
   @NotNull private static final String DOUBLE_QUOTES = "\"";
 
@@ -52,10 +52,10 @@ public abstract class GradleDslExpression extends GradleDslElement {
   // Whether or not this value is part of a cycle. If UNSURE, needs to be computed.
   @Nullable protected ThreeState myHasCycle;
 
-  protected GradleDslExpression(@Nullable GradleDslElement parent,
-                                @Nullable PsiElement psiElement,
-                                @NotNull GradleNameElement name,
-                                @Nullable PsiElement expression) {
+  protected GradleDslSimpleExpression(@Nullable GradleDslElement parent,
+                                      @Nullable PsiElement psiElement,
+                                      @NotNull GradleNameElement name,
+                                      @Nullable PsiElement expression) {
     super(parent, psiElement, name);
     myExpression = expression;
     myHasCycle = ThreeState.UNSURE;
@@ -183,8 +183,8 @@ public abstract class GradleDslExpression extends GradleDslElement {
       if (clazz.isInstance(resolvedElement)) {
         result = clazz.cast(resolvedElement);
       }
-      else if (resolvedElement instanceof GradleDslExpression) {
-        result = ((GradleDslExpression)resolvedElement).getValue(clazz);
+      else if (resolvedElement instanceof GradleDslSimpleExpression) {
+        result = ((GradleDslSimpleExpression)resolvedElement).getValue(clazz);
       }
       if (result != null) {
         return result;
@@ -505,15 +505,15 @@ public abstract class GradleDslExpression extends GradleDslElement {
   }
 
   /**
-   * Works out whether or not this GradleDslExpression has a cycle.
+   * Works out whether or not this GradleDslSimpleExpression has a cycle.
    */
   public boolean hasCycle() {
     return hasCycle(this, new HashSet<>(), new HashSet<>());
   }
 
-  private static boolean hasCycle(@NotNull GradleDslExpression element,
-                                  @NotNull Set<GradleDslExpression> seen,
-                                  @NotNull Set<GradleDslExpression> cycleFree) {
+  private static boolean hasCycle(@NotNull GradleDslSimpleExpression element,
+                                  @NotNull Set<GradleDslSimpleExpression> seen,
+                                  @NotNull Set<GradleDslSimpleExpression> cycleFree) {
     if (element.myHasCycle != ThreeState.UNSURE) {
       return element.myHasCycle == ThreeState.YES;
     }
@@ -523,9 +523,9 @@ public abstract class GradleDslExpression extends GradleDslElement {
     return hasCycle;
   }
 
-  private static boolean checkCycle(@NotNull GradleDslExpression element,
-                                    @NotNull Set<GradleDslExpression> seen,
-                                    @NotNull Set<GradleDslExpression> cycleFree) {
+  private static boolean checkCycle(@NotNull GradleDslSimpleExpression element,
+                                    @NotNull Set<GradleDslSimpleExpression> seen,
+                                    @NotNull Set<GradleDslSimpleExpression> cycleFree) {
     if (cycleFree.contains(element) || element.getExpression() == null) {
       return false;
     }

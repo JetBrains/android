@@ -132,7 +132,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
       }
     }
     List<ArtifactDependencyModel> results = Lists.newArrayList();
-    assert element instanceof GradleDslExpression || element instanceof GradleDslExpressionMap || element instanceof GradleDslExpressionList;
+    assert element instanceof GradleDslSimpleExpression || element instanceof GradleDslExpressionMap || element instanceof GradleDslExpressionList;
     if (element instanceof GradleDslExpressionMap) {
       MapNotation mapNotation = MapNotation.create(configurationName, (GradleDslExpressionMap)element, configurationElement);
       if (mapNotation != null) {
@@ -148,7 +148,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
       }
     }
     else if (element instanceof GradleDslExpressionList) {
-      for (GradleDslExpression expression : ((GradleDslExpressionList)element).getExpressions()) {
+      for (GradleDslSimpleExpression expression : ((GradleDslExpressionList)element).getExpressions()) {
         CompactNotation compactNotation = CompactNotation.create(configurationName, expression, configurationElement);
         if (compactNotation != null) {
           results.add(compactNotation);
@@ -156,7 +156,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
       }
     }
     else {
-      CompactNotation compactNotation = CompactNotation.create(configurationName, (GradleDslExpression)element, configurationElement);
+      CompactNotation compactNotation = CompactNotation.create(configurationName, (GradleDslSimpleExpression)element, configurationElement);
       if (compactNotation != null) {
         results.add(compactNotation);
       }
@@ -245,11 +245,11 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
   }
 
   private static class CompactNotation extends ArtifactDependencyModelImpl {
-    @NotNull private GradleDslExpression myDslExpression;
+    @NotNull private GradleDslSimpleExpression myDslExpression;
 
     @Nullable
     static CompactNotation create(@NotNull String configurationName,
-                                  @NotNull GradleDslExpression dslExpression,
+                                  @NotNull GradleDslSimpleExpression dslExpression,
                                   @Nullable DependencyConfigurationDslElement configurationElement) {
       String value = dslExpression.getValue(String.class);
       if (value == null) {
@@ -259,7 +259,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     }
 
     private CompactNotation(@NotNull String configurationName,
-                            @NotNull GradleDslExpression dslExpression,
+                            @NotNull GradleDslSimpleExpression dslExpression,
                             @Nullable DependencyConfigurationDslElement configurationElement) {
       super(configurationElement, configurationName);
       myDslExpression = dslExpression;

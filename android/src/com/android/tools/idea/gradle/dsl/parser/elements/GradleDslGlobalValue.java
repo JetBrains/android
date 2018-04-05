@@ -25,7 +25,7 @@ import java.util.Collections;
  * Represents a value that doesn't have a backing element. These are used to represent commonly used
  * values that are automatically populated by Gradle e.g "rootDir" and "projectDir".
  */
-public class GradleDslGlobalValue extends GradleDslExpression {
+public class GradleDslGlobalValue extends GradleDslSimpleExpression {
   @NotNull Object myFakeValue;
 
   public GradleDslGlobalValue(@NotNull GradleDslElement parent, @NotNull Object value) {

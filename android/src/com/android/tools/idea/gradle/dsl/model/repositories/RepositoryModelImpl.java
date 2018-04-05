@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.dsl.model.repositories;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleDefaultValue;
 import com.android.tools.idea.gradle.dsl.model.values.GradleDefaultValueImpl;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +46,7 @@ public abstract class RepositoryModelImpl implements RepositoryModel {
       return new GradleDefaultValueImpl<>(null, myDefaultRepoName);
     }
 
-    GradleDslExpression nameExpression = myDslElement.getPropertyElement(NAME, GradleDslExpression.class);
+    GradleDslSimpleExpression nameExpression = myDslElement.getPropertyElement(NAME, GradleDslSimpleExpression.class);
 
     String name = null;
     if (nameExpression != null) {

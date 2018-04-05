@@ -188,7 +188,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
     hidePropertyInternal(propertyToReset);
   }
 
-  protected void addAsParsedDslExpressionList(GradleDslExpression expression) {
+  protected void addAsParsedDslExpressionList(GradleDslSimpleExpression expression) {
     PsiElement psiElement = expression.getPsiElement();
     if (psiElement == null) {
       return;
@@ -203,8 +203,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
       // Make sure the psi is set to the argument list instead of the whole method call.
       literalList.setPsiElement(((GradleDslMethodCall)expression).getArgumentListPsiElement());
       for (GradleDslElement element : ((GradleDslMethodCall)expression).getArguments()) {
-        if (element instanceof GradleDslExpression) {
-          literalList.addParsedExpression((GradleDslExpression)element);
+        if (element instanceof GradleDslSimpleExpression) {
+          literalList.addParsedExpression((GradleDslSimpleExpression)element);
         }
       }
     }
@@ -229,12 +229,12 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
       gradleDslExpressionList.setPsiElement(psiElement);
     }
 
-    if (element instanceof GradleDslExpression) {
-      gradleDslExpressionList.addParsedExpression((GradleDslExpression)element);
+    if (element instanceof GradleDslSimpleExpression) {
+      gradleDslExpressionList.addParsedExpression((GradleDslSimpleExpression)element);
     }
     else if (element instanceof GradleDslExpressionList) {
-      List<GradleDslExpression> gradleExpressions = ((GradleDslExpressionList)element).getExpressions();
-      for (GradleDslExpression expression : gradleExpressions) {
+      List<GradleDslSimpleExpression> gradleExpressions = ((GradleDslExpressionList)element).getExpressions();
+      for (GradleDslSimpleExpression expression : gradleExpressions) {
         gradleDslExpressionList.addParsedExpression(expression);
       }
     }
@@ -375,8 +375,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
     if (clazz.isInstance(element)) {
       resultValue = clazz.cast(element);
     }
-    else if (element instanceof GradleDslExpression) {
-      resultValue = ((GradleDslExpression)element).getValue(clazz);
+    else if (element instanceof GradleDslSimpleExpression) {
+      resultValue = ((GradleDslSimpleExpression)element).getValue(clazz);
     }
 
     if (resultValue != null) {

@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.android;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NonNls;
@@ -31,8 +31,8 @@ public class DexOptionsDslElement extends GradlePropertiesDslElement {
 
   @Override
   public void addParsedElement(@NotNull GradleDslElement element) {
-    if (element instanceof GradleDslExpression && (element.getName().equals("additionalParameters"))) {
-      addAsParsedDslExpressionList((GradleDslExpression)element);
+    if (element instanceof GradleDslSimpleExpression && (element.getName().equals("additionalParameters"))) {
+      addAsParsedDslExpressionList((GradleDslSimpleExpression)element);
       return;
     }
     super.addParsedElement(element);

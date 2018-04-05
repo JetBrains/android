@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 
 /**
- * Represents an element which consists of a map from properties of type {@link String} and values of type {@link GradleDslExpression}.
+ * Represents an element which consists of a map from properties of type {@link String} and values of type {@link GradleDslSimpleExpression}.
  */
 public final class GradleDslExpressionMap extends GradlePropertiesDslElement {
 
@@ -70,8 +70,8 @@ public final class GradleDslExpressionMap extends GradlePropertiesDslElement {
     Map<String, GradleNotNullValue<V>> result = Maps.newLinkedHashMap();
     for (Map.Entry<String, GradleDslElement> entry : getPropertyElements().entrySet()) {
       GradleDslElement propertyElement = entry.getValue();
-      if (propertyElement instanceof GradleDslExpression) {
-        V value = ((GradleDslExpression)propertyElement).getValue(clazz);
+      if (propertyElement instanceof GradleDslSimpleExpression) {
+        V value = ((GradleDslSimpleExpression)propertyElement).getValue(clazz);
         if (value != null) {
           result.put(entry.getKey(), new GradleNotNullValueImpl<>(propertyElement, value));
         }

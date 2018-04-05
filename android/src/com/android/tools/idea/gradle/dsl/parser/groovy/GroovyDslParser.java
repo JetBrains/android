@@ -171,7 +171,7 @@ public class GroovyDslParser implements GradleDslParser {
 
   @Override
   @Nullable
-  public Object extractValue(@NotNull GradleDslExpression context, @NotNull PsiElement literal, boolean resolve) {
+  public Object extractValue(@NotNull GradleDslSimpleExpression context, @NotNull PsiElement literal, boolean resolve) {
     ApplicationManager.getApplication().assertReadAccessAllowed();
 
     if (!(literal instanceof GrLiteral)) {
@@ -225,8 +225,8 @@ public class GroovyDslParser implements GradleDslParser {
     if (elementToCheck instanceof GradleDslSettableExpression) {
       element = ((GradleDslSettableExpression)elementToCheck).getCurrentElement();
     }
-    else if (elementToCheck instanceof GradleDslExpression) {
-      element = ((GradleDslExpression)elementToCheck).getExpression();
+    else if (elementToCheck instanceof GradleDslSimpleExpression) {
+      element = ((GradleDslSimpleExpression)elementToCheck).getExpression();
     }
     else {
       element = elementToCheck.getPsiElement();
@@ -237,13 +237,13 @@ public class GroovyDslParser implements GradleDslParser {
 
   @Override
   @NotNull
-  public List<GradleReferenceInjection> getResolvedInjections(@NotNull GradleDslExpression context, @NotNull PsiElement psiElement) {
+  public List<GradleReferenceInjection> getResolvedInjections(@NotNull GradleDslSimpleExpression context, @NotNull PsiElement psiElement) {
     return findInjections(context, psiElement, false);
   }
 
   @NotNull
   @Override
-  public List<GradleReferenceInjection> getInjections(@NotNull GradleDslExpression context, @NotNull PsiElement psiElement) {
+  public List<GradleReferenceInjection> getInjections(@NotNull GradleDslSimpleExpression context, @NotNull PsiElement psiElement) {
     return findInjections(context, psiElement, true);
   }
 
@@ -290,7 +290,7 @@ public class GroovyDslParser implements GradleDslParser {
     if (argumentList.getAllArguments().length > 0) {
       // This element is a method call with arguments and an optional closure associated with it.
       // ex: compile("dependency") {}
-      GradleDslExpression methodCall = getMethodCall(dslElement, expression, name, argumentList, name.fullName());
+      GradleDslSimpleExpression methodCall = getMethodCall(dslElement, expression, name, argumentList, name.fullName());
       if (closureArguments.length > 0) {
         methodCall.setParsedClosureElement(getClosureElement(methodCall, closureArguments[0], name));
       }
@@ -526,10 +526,10 @@ public class GroovyDslParser implements GradleDslParser {
   }
 
   @NotNull
-  private GradleDslExpression getExpressionElement(@NotNull GradleDslElement parentElement,
-                                                   @NotNull GroovyPsiElement psiElement,
-                                                   @NotNull GradleNameElement propertyName,
-                                                   @NotNull GrExpression propertyExpression) {
+  private GradleDslSimpleExpression getExpressionElement(@NotNull GradleDslElement parentElement,
+                                                         @NotNull GroovyPsiElement psiElement,
+                                                         @NotNull GradleNameElement propertyName,
+                                                         @NotNull GrExpression propertyExpression) {
     if (propertyExpression instanceof GrLiteral) { // ex: compileSdkVersion 23 or compileSdkVersion = "android-23"
       return new GradleDslLiteral(parentElement, psiElement, propertyName, propertyExpression);
     }
@@ -598,7 +598,7 @@ public class GroovyDslParser implements GradleDslParser {
         }
         else {
           for (GrExpression grExpression : listOrMap.getInitializers()) {
-            GradleDslExpression dslExpression = getExpressionElement(methodCall, expression, propertyName, grExpression);
+            GradleDslSimpleExpression dslExpression = getExpressionElement(methodCall, expression, propertyName, grExpression);
             methodCall.addParsedExpression(dslExpression);
           }
         }
@@ -607,7 +607,7 @@ public class GroovyDslParser implements GradleDslParser {
         methodCall.setParsedClosureElement(getClosureElement(methodCall, (GrClosableBlock)expression, propertyName));
       }
       else {
-        GradleDslExpression dslExpression = getExpressionElement(methodCall, expression, propertyName, expression);
+        GradleDslSimpleExpression dslExpression = getExpressionElement(methodCall, expression, propertyName, expression);
         methodCall.addParsedExpression(dslExpression);
       }
     }
@@ -634,13 +634,13 @@ public class GroovyDslParser implements GradleDslParser {
         GrListOrMap listOrMap = (GrListOrMap)expression;
         if (!listOrMap.isMap()) {
           for (GrExpression grExpression : listOrMap.getInitializers()) {
-            GradleDslExpression dslExpression = getExpressionElement(newExpression, expression, propertyName, grExpression);
+            GradleDslSimpleExpression dslExpression = getExpressionElement(newExpression, expression, propertyName, grExpression);
             newExpression.addParsedExpression(dslExpression);
           }
         }
       }
       else {
-        GradleDslExpression dslExpression = getExpressionElement(newExpression, expression, propertyName, expression);
+        GradleDslSimpleExpression dslExpression = getExpressionElement(newExpression, expression, propertyName, expression);
         newExpression.addParsedExpression(dslExpression);
       }
     }
@@ -656,7 +656,7 @@ public class GroovyDslParser implements GradleDslParser {
                                                     boolean isLiteral) {
     GradleDslExpressionList expressionList = new GradleDslExpressionList(parentElement, listPsiElement, isLiteral, propertyName);
     for (GrExpression expression : propertyExpressions) {
-      GradleDslExpression expressionElement = getExpressionElement(expressionList, expression, propertyName, expression);
+      GradleDslSimpleExpression expressionElement = getExpressionElement(expressionList, expression, propertyName, expression);
       expressionList.addParsedExpression(expressionElement);
     }
     return expressionList;

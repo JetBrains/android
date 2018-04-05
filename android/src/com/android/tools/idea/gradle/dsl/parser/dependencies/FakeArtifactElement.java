@@ -40,7 +40,7 @@ public class FakeArtifactElement extends FakeElement {
 
   public FakeArtifactElement(@Nullable GradleDslElement parent,
                              @NotNull GradleNameElement name,
-                             @NotNull GradleDslExpression originExpression,
+                             @NotNull GradleDslSimpleExpression originExpression,
                              @NotNull Function<ArtifactDependencySpec, String> getFunc,
                              @NotNull BiConsumer<ArtifactDependencySpec, String> setFunc,
                              boolean canDelete) {
@@ -52,7 +52,7 @@ public class FakeArtifactElement extends FakeElement {
   @Nullable
   @Override
   protected Object produceValue() {
-    GradleDslExpression resolved = PropertyUtil.resolveElement(myRealExpression);
+    GradleDslSimpleExpression resolved = PropertyUtil.resolveElement(myRealExpression);
     ArtifactDependencySpec spec = getSpec(resolved);
 
     if (resolved.getDslFile().getParser().shouldInterpolate(resolved)) {
@@ -66,7 +66,7 @@ public class FakeArtifactElement extends FakeElement {
 
   @Override
   protected void consumeValue(@Nullable Object value) {
-    GradleDslExpression resolved = PropertyUtil.resolveElement(myRealExpression);
+    GradleDslSimpleExpression resolved = PropertyUtil.resolveElement(myRealExpression);
     ArtifactDependencySpec spec = getSpec(resolved);
     if (spec == null) {
       throw new IllegalArgumentException("Could not create ArtifactDependencySpec from: " + value);
@@ -86,7 +86,7 @@ public class FakeArtifactElement extends FakeElement {
   }
 
   @Nullable
-  private static ArtifactDependencySpec getSpec(@NotNull GradleDslExpression element) {
+  private static ArtifactDependencySpec getSpec(@NotNull GradleDslSimpleExpression element) {
     Object val = element.getUnresolvedValue();
     assert val instanceof String;
     String stringValue = (String)val;

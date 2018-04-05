@@ -48,10 +48,10 @@ public abstract class AbstractBuildModelImpl extends GradleDslBlockModel impleme
 
     File value = null;
     if (pathElement instanceof GradleDslMethodCall || pathElement instanceof GradleDslNewExpression) {
-      value = ((GradleDslExpression)pathElement).getValue(File.class);
+      value = ((GradleDslSimpleExpression)pathElement).getValue(File.class);
     }
-    else if (pathElement instanceof GradleDslExpression) {
-      String path = ((GradleDslExpression)pathElement).getValue(String.class);
+    else if (pathElement instanceof GradleDslSimpleExpression) {
+      String path = ((GradleDslSimpleExpression)pathElement).getValue(String.class);
       if (path != null) {
         value = new File(path);
       }

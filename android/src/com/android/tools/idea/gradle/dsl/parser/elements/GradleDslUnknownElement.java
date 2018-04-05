@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 
-public class GradleDslUnknownElement extends GradleDslExpression {
+public class GradleDslUnknownElement extends GradleDslSimpleExpression {
 
   public GradleDslUnknownElement(@NotNull GradleDslElement parent, @NotNull PsiElement expression, @NotNull GradleNameElement name) {
     super(parent, expression, name, expression);

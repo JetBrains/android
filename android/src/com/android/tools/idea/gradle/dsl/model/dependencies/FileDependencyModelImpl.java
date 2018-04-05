@@ -32,15 +32,15 @@ public class FileDependencyModelImpl extends DependencyModelImpl implements File
   @NonNls public static final String FILES = "files";
 
   @NotNull private String myConfigurationName;
-  @NotNull private final GradleDslExpression myFileDslExpression;
+  @NotNull private final GradleDslSimpleExpression myFileDslExpression;
 
   static Collection<FileDependencyModel> create(@NotNull String configurationName, @NotNull GradleDslMethodCall methodCall) {
     List<FileDependencyModel> result = new ArrayList<>();
     if (FILES.equals(methodCall.getMethodName())) {
       List<GradleDslElement> arguments = methodCall.getArguments();
       for (GradleDslElement argument : arguments) {
-        if (argument instanceof GradleDslExpression) {
-          result.add(new FileDependencyModelImpl(configurationName, (GradleDslExpression)argument));
+        if (argument instanceof GradleDslSimpleExpression) {
+          result.add(new FileDependencyModelImpl(configurationName, (GradleDslSimpleExpression)argument));
         }
       }
     }
@@ -59,7 +59,7 @@ public class FileDependencyModelImpl extends DependencyModelImpl implements File
   }
 
   private FileDependencyModelImpl(@NotNull String configurationName,
-                                  @NotNull GradleDslExpression fileDslExpression) {
+                                  @NotNull GradleDslSimpleExpression fileDslExpression) {
     myConfigurationName = configurationName;
     myFileDslExpression = fileDslExpression;
   }

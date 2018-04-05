@@ -39,7 +39,7 @@ public class FileTreeDependencyModelImpl extends DependencyModelImpl implements 
 
   @NotNull private String myConfigurationName;
   @NotNull private final GradleDslMethodCall myDslElement;
-  @NotNull private final GradleDslExpression myDir;
+  @NotNull private final GradleDslSimpleExpression myDir;
 
   @Nullable private final GradleDslElement myIncludeElement;
   @Nullable private final GradleDslElement myExcludeElement;
@@ -49,12 +49,12 @@ public class FileTreeDependencyModelImpl extends DependencyModelImpl implements 
     if (FILE_TREE.equals(methodCall.getMethodName())) {
       List<GradleDslElement> arguments = methodCall.getArguments();
       for (GradleDslElement argument : arguments) {
-        if (argument instanceof GradleDslExpression) {
-          result.add(new FileTreeDependencyModelImpl(configurationName, methodCall, (GradleDslExpression)argument, null, null));
+        if (argument instanceof GradleDslSimpleExpression) {
+          result.add(new FileTreeDependencyModelImpl(configurationName, methodCall, (GradleDslSimpleExpression)argument, null, null));
         }
         else if (argument instanceof GradleDslExpressionMap) {
           GradleDslExpressionMap dslMap = (GradleDslExpressionMap)argument;
-          GradleDslExpression dirElement = dslMap.getPropertyElement(DIR, GradleDslExpression.class);
+          GradleDslSimpleExpression dirElement = dslMap.getPropertyElement(DIR, GradleDslSimpleExpression.class);
           if (dirElement == null) {
             assert methodCall.getPsiElement() != null;
             String msg = String.format("'%1$s' is not a valid file tree dependency", methodCall.getPsiElement().getText());
@@ -112,7 +112,7 @@ public class FileTreeDependencyModelImpl extends DependencyModelImpl implements 
 
   private FileTreeDependencyModelImpl(@NotNull String configurationName,
                                       @NotNull GradleDslMethodCall dslElement,
-                                      @NotNull GradleDslExpression dir,
+                                      @NotNull GradleDslSimpleExpression dir,
                                       @Nullable GradleDslElement includeElement,
                                       @Nullable GradleDslElement excludeElement) {
     myConfigurationName = configurationName;
@@ -165,8 +165,8 @@ public class FileTreeDependencyModelImpl extends DependencyModelImpl implements 
       return ((GradleDslExpressionList)expressionOrList).getValues(String.class);
     }
 
-    if (expressionOrList instanceof GradleDslExpression) {
-      String value = ((GradleDslExpression)expressionOrList).getValue(String.class);
+    if (expressionOrList instanceof GradleDslSimpleExpression) {
+      String value = ((GradleDslSimpleExpression)expressionOrList).getValue(String.class);
       if (value != null) {
         return Collections.singletonList(new GradleNotNullValueImpl<>(expressionOrList, value));
       }

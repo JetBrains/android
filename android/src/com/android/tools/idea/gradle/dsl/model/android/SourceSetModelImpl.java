@@ -27,7 +27,7 @@ import com.android.tools.idea.gradle.dsl.parser.android.SourceSetDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceDirectoryDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceFileDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.google.common.collect.ImmutableList;
@@ -62,7 +62,7 @@ public class SourceSetModelImpl extends GradleDslBlockModel implements SourceSet
   @Override
   @NotNull
   public GradleNullableValue<String> root() {
-    GradleDslExpression rootElement = myDslElement.getPropertyElement(ImmutableList.of(ROOT, SET_ROOT), GradleDslExpression.class);
+    GradleDslSimpleExpression rootElement = myDslElement.getPropertyElement(ImmutableList.of(ROOT, SET_ROOT), GradleDslSimpleExpression.class);
 
     if (rootElement == null) {
       return new GradleNullableValueImpl<>(myDslElement, null);
@@ -73,8 +73,8 @@ public class SourceSetModelImpl extends GradleDslBlockModel implements SourceSet
       List<GradleDslElement> arguments = ((GradleDslMethodCall)rootElement).getArguments();
       if (!arguments.isEmpty()) {
         GradleDslElement pathArgument = arguments.get(0);
-        if (pathArgument instanceof GradleDslExpression) {
-          value = ((GradleDslExpression)pathArgument).getValue(String.class);
+        if (pathArgument instanceof GradleDslSimpleExpression) {
+          value = ((GradleDslSimpleExpression)pathArgument).getValue(String.class);
         }
       }
     }
@@ -88,7 +88,7 @@ public class SourceSetModelImpl extends GradleDslBlockModel implements SourceSet
   @Override
   @NotNull
   public SourceSetModel setRoot(@NotNull String root) {
-    GradleDslExpression rootElement = myDslElement.getPropertyElement(ImmutableList.of(ROOT, SET_ROOT), GradleDslExpression.class);
+    GradleDslSimpleExpression rootElement = myDslElement.getPropertyElement(ImmutableList.of(ROOT, SET_ROOT), GradleDslSimpleExpression.class);
     if (rootElement == null) {
       myDslElement.setNewLiteral(ROOT, root);
       return this;
@@ -98,8 +98,8 @@ public class SourceSetModelImpl extends GradleDslBlockModel implements SourceSet
       List<GradleDslElement> arguments = ((GradleDslMethodCall)rootElement).getArguments();
       if (!arguments.isEmpty()) {
         GradleDslElement pathArgument = arguments.get(0);
-        if (pathArgument instanceof GradleDslExpression) {
-          ((GradleDslExpression)pathArgument).setValue(root);
+        if (pathArgument instanceof GradleDslSimpleExpression) {
+          ((GradleDslSimpleExpression)pathArgument).setValue(root);
           return this;
         }
       }

@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -31,8 +31,8 @@ public final class AndroidDslElement extends GradleDslBlockElement {
 
   @Override
   public void addParsedElement(@NotNull GradleDslElement element) {
-    if (element.getName().equals("flavorDimensions") && element instanceof GradleDslExpression) {
-      addAsParsedDslExpressionList((GradleDslExpression)element);
+    if (element.getName().equals("flavorDimensions") && element instanceof GradleDslSimpleExpression) {
+      addAsParsedDslExpressionList((GradleDslSimpleExpression)element);
       return;
     }
     super.addParsedElement(element);

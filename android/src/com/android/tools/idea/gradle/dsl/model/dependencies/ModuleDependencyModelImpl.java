@@ -44,28 +44,28 @@ public class ModuleDependencyModelImpl extends DependencyModelImpl implements
 
   @NotNull private String myConfigurationName;
   @NotNull private GradleDslMethodCall myDslElement;
-  @NotNull private GradleDslExpression myPath;
+  @NotNull private GradleDslSimpleExpression myPath;
 
-  @Nullable private GradleDslExpression myConfiguration;
+  @Nullable private GradleDslSimpleExpression myConfiguration;
 
   @NotNull
   static List<ModuleDependencyModel> create(@NotNull String configurationName, @NotNull GradleDslMethodCall methodCall) {
     List<ModuleDependencyModel> result = Lists.newArrayList();
     if (PROJECT.equals(methodCall.getMethodName())) {
       for (GradleDslElement argument : methodCall.getArguments()) {
-        if (argument instanceof GradleDslExpression) {
-          result.add(new ModuleDependencyModelImpl(configurationName, methodCall, (GradleDslExpression)argument, null));
+        if (argument instanceof GradleDslSimpleExpression) {
+          result.add(new ModuleDependencyModelImpl(configurationName, methodCall, (GradleDslSimpleExpression)argument, null));
         }
         else if (argument instanceof GradleDslExpressionMap) {
           GradleDslExpressionMap dslMap = (GradleDslExpressionMap)argument;
-          GradleDslExpression pathElement = dslMap.getPropertyElement(PATH, GradleDslExpression.class);
+          GradleDslSimpleExpression pathElement = dslMap.getPropertyElement(PATH, GradleDslSimpleExpression.class);
           if (pathElement == null) {
             assert methodCall.getPsiElement() != null;
             String msg = String.format("'%1$s' is not a valid module dependency", methodCall.getPsiElement().getText());
             LOG.warn(msg);
             continue;
           }
-          GradleDslExpression configuration = dslMap.getPropertyElement(CONFIGURATION, GradleDslExpression.class);
+          GradleDslSimpleExpression configuration = dslMap.getPropertyElement(CONFIGURATION, GradleDslSimpleExpression.class);
           result.add(new ModuleDependencyModelImpl(configurationName, methodCall, pathElement, configuration));
         }
       }
@@ -90,8 +90,8 @@ public class ModuleDependencyModelImpl extends DependencyModelImpl implements
 
   private ModuleDependencyModelImpl(@NotNull String configurationName,
                                     @NotNull GradleDslMethodCall dslElement,
-                                    @NotNull GradleDslExpression path,
-                                    @Nullable GradleDslExpression configuration) {
+                                    @NotNull GradleDslSimpleExpression path,
+                                    @Nullable GradleDslSimpleExpression configuration) {
     myConfigurationName = configurationName;
     myDslElement = dslElement;
     myPath = path;

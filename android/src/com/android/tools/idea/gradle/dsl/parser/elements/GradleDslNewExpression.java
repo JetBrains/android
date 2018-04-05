@@ -28,8 +28,8 @@ import java.util.List;
 /**
  * Represents a new expression.
  */
-public final class GradleDslNewExpression extends GradleDslExpression {
-  private final @NotNull List<GradleDslExpression> myArguments = Lists.newArrayList();
+public final class GradleDslNewExpression extends GradleDslSimpleExpression {
+  private final @NotNull List<GradleDslSimpleExpression> myArguments = Lists.newArrayList();
   private final @NotNull GradleNameElement myInvokedConstructor;
 
   public GradleDslNewExpression(@NotNull GradleDslElement parent, @NotNull PsiElement newExpression, @NotNull GradleNameElement name,
@@ -38,16 +38,16 @@ public final class GradleDslNewExpression extends GradleDslExpression {
     myInvokedConstructor = invokedConstructor;
   }
 
-  public void addParsedExpression(@NotNull GradleDslExpression expression) {
+  public void addParsedExpression(@NotNull GradleDslSimpleExpression expression) {
     expression.myParent = this;
     myArguments.add(expression);
   }
 
   @NotNull
-  public List<GradleDslExpression> getArguments() {
-    List<GradleDslExpression> result = Lists.newArrayList();
+  public List<GradleDslSimpleExpression> getArguments() {
+    List<GradleDslSimpleExpression> result = Lists.newArrayList();
 
-    for (GradleDslExpression argument : myArguments) {
+    for (GradleDslSimpleExpression argument : myArguments) {
       if (argument instanceof GradleDslReference) {
         // See if the reference is pointing to a list.
         GradleDslExpressionList listValue = argument.getValue(GradleDslExpressionList.class);
@@ -106,7 +106,7 @@ public final class GradleDslNewExpression extends GradleDslExpression {
       return null;
     }
 
-    List<GradleDslExpression> arguments = getArguments();
+    List<GradleDslSimpleExpression> arguments = getArguments();
     if (arguments.isEmpty()) {
       return null;
     }

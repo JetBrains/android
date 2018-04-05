@@ -28,7 +28,7 @@ import java.util.List;
 /**
  * Represents a method call expression element.
  */
-public final class GradleDslMethodCall extends GradleDslExpression {
+public final class GradleDslMethodCall extends GradleDslSimpleExpression {
   private final
   @NotNull List<GradleDslElement> myArguments = Lists.newArrayList();
   private final
@@ -70,7 +70,7 @@ public final class GradleDslMethodCall extends GradleDslExpression {
     myMethodName = methodName;
   }
 
-  public void addParsedExpression(@NotNull GradleDslExpression expression) {
+  public void addParsedExpression(@NotNull GradleDslSimpleExpression expression) {
     expression.myParent = this;
     myArguments.add(expression);
   }
@@ -80,7 +80,7 @@ public final class GradleDslMethodCall extends GradleDslExpression {
     myArguments.add(expressionMap);
   }
 
-  public void addNewArgument(@NotNull GradleDslExpression argument) {
+  public void addNewArgument(@NotNull GradleDslSimpleExpression argument) {
     addNewArgumentInternal(argument);
   }
 
@@ -91,7 +91,7 @@ public final class GradleDslMethodCall extends GradleDslExpression {
   /**
    * This method should <b>not</b> be called outside of the GradleDslWriter classes.
    * <p>
-   * If you need to add an argument to this GradleDslMethodCall please use {@link #addNewArgument(GradleDslExpression) addNewArgument}
+   * If you need to add an argument to this GradleDslMethodCall please use {@link #addNewArgument(GradleDslSimpleExpression) addNewArgument}
    * followed by a call to {@link #apply() apply} to ensure the change is written to the underlying file.
    */
   public void commitNewArgument(@NotNull GradleDslElement element) {
@@ -99,7 +99,7 @@ public final class GradleDslMethodCall extends GradleDslExpression {
   }
 
   private void addNewArgumentInternal(@NotNull GradleDslElement argument) {
-    assert argument instanceof GradleDslExpression || argument instanceof GradleDslExpressionMap;
+    assert argument instanceof GradleDslSimpleExpression || argument instanceof GradleDslExpressionMap;
     // Only adding expression or map arguments to an empty method is supported.
     // The other combinations are not supported as there is no real use case.
     if (getArguments().isEmpty()) {
@@ -163,8 +163,8 @@ public final class GradleDslMethodCall extends GradleDslExpression {
   public Object getValue() {
     // If we only have one argument then just return its value. This allows us to correctly
     // parse functions that are used to set properties.
-    if (myArguments.size() == 1 && myArguments.get(0) instanceof GradleDslExpression) {
-      return ((GradleDslExpression)myArguments.get(0)).getValue();
+    if (myArguments.size() == 1 && myArguments.get(0) instanceof GradleDslSimpleExpression) {
+      return ((GradleDslSimpleExpression)myArguments.get(0)).getValue();
     }
 
     PsiElement psiElement = getPsiElement();
@@ -208,11 +208,11 @@ public final class GradleDslMethodCall extends GradleDslExpression {
     }
 
     GradleDslElement pathArgument = arguments.get(0);
-    if (!(pathArgument instanceof GradleDslExpression)) {
+    if (!(pathArgument instanceof GradleDslSimpleExpression)) {
       return null;
     }
 
-    String path = ((GradleDslExpression)pathArgument).getValue(String.class);
+    String path = ((GradleDslSimpleExpression)pathArgument).getValue(String.class);
     if (path == null) {
       return null;
     }
@@ -244,11 +244,11 @@ public final class GradleDslMethodCall extends GradleDslExpression {
     }
 
     GradleDslElement pathArgument = arguments.get(0);
-    if (!(pathArgument instanceof GradleDslExpression)) {
+    if (!(pathArgument instanceof GradleDslSimpleExpression)) {
       return;
     }
 
-    ((GradleDslExpression)pathArgument).setValue(file.getPath());
+    ((GradleDslSimpleExpression)pathArgument).setValue(file.getPath());
   }
 
   @NotNull
