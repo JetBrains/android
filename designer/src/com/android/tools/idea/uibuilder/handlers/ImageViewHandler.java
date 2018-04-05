@@ -15,19 +15,21 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.ComponentAssistantActionTarget;
 import com.android.tools.idea.common.scene.target.Target;
-import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.common.api.InsertType;
+import com.android.tools.idea.res.SampleDataResourceItem;
+import com.android.tools.idea.res.SampleDataResourceRepository;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
+import com.android.tools.idea.uibuilder.handlers.assistant.ImageViewAssistant;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory;
 import com.android.xml.XmlBuilder;
@@ -36,7 +38,6 @@ import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -132,14 +133,46 @@ public class ImageViewHandler extends ViewHandler {
     });
   }
 
-  @Nullable
-  public String getSrcAttribute(@NotNull NlComponent component) {
-    String srcAttribute = null;
-    if (shouldUseSrcCompat(component.getModel())) {
-      srcAttribute = component.getAttribute(AUTO_URI, ATTR_SRC_COMPAT);
+  public void setSampleSrc(@NotNull NlComponent component, @Nullable SampleDataResourceItem item, int resourceValueIndex) {
+    if (item != null) {
+      String suffix = resourceValueIndex >= 0 ? "[" + resourceValueIndex + "]" : "";
+      setSampleSrc(component, getResourcePrefix(item.getNamespace()) + item.getName() + suffix);
     }
+    else {
+      setSampleSrc(component, null);
+    }
+  }
 
-    return srcAttribute != null ? srcAttribute : component.getAttribute(ANDROID_URI, ATTR_SRC);
+  public void setSampleSrc(@NotNull NlComponent component, String value) {
+    String attr = shouldUseSrcCompat(component.getModel()) ? ATTR_SRC_COMPAT : ATTR_SRC;
+    NlWriteCommandAction.run(component, "Set sample source", () -> component.setAttribute(TOOLS_URI, attr, value));
+  }
+
+  @Nullable
+  public String getSampleSrc(@NotNull NlComponent component) {
+    String attr = shouldUseSrcCompat(component.getModel()) ? ATTR_SRC_COMPAT : ATTR_SRC;
+    return component.getAttribute(TOOLS_URI, attr);
+  }
+
+  @NotNull
+  private static String getResourcePrefix(ResourceNamespace namespace) {
+    String prefix;
+    if (SampleDataResourceRepository.PREDEFINED_SAMPLES_NS.equals(namespace)) {
+      prefix = TOOLS_SAMPLE_PREFIX;
+    }
+    else if (ResourceNamespace.TODO.equals(namespace)) {
+      prefix = SAMPLE_PREFIX;
+    }
+    else {
+      String packageName = namespace.getPackageName();
+      if (packageName != null) {
+        prefix = "@" + packageName + ":" + SAMPLE_PREFIX.substring(1);
+      }
+      else {
+        prefix = SAMPLE_PREFIX;
+      }
+    }
+    return prefix;
   }
 
   public static boolean shouldUseSrcCompat(@NotNull NlModel model) {
@@ -148,26 +181,18 @@ public class ImageViewHandler extends ViewHandler {
   }
 
   @Nullable
-  private ComponentAssistantFactory getComponentAssistant(@NotNull DesignSurface surface, @NotNull NlComponent component) {
+  private ComponentAssistantFactory getComponentAssistant() {
     if (!NELE_SAMPLE_DATA_UI.get()) {
       return null;
     }
-
-    SceneView sceneView = surface.getCurrentSceneView();
-    if (sceneView == null || getSrcAttribute(component) != null) {
-      return null;
-    }
-
-    JButton button = new JButton("Set image");
-    button.addActionListener(e -> showImageChooser(new ViewEditorImpl(surface.getCurrentSceneView()), component));
-
-    return (context) -> button;
+    return (context) -> new ImageViewAssistant(context, this).getComponent();
   }
 
   @NotNull
   @Override
   public List<Target> createTargets(@NotNull SceneComponent sceneComponent) {
-    ComponentAssistantFactory panelFactory = getComponentAssistant(sceneComponent.getScene().getDesignSurface(), sceneComponent.getNlComponent());
+    ComponentAssistantFactory panelFactory =
+      getComponentAssistant();
 
     return panelFactory != null ?
            ImmutableList.of(new ComponentAssistantActionTarget(panelFactory)) :

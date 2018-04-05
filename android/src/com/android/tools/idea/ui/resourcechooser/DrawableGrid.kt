@@ -92,7 +92,7 @@ internal class DrawableCellRenderer(private val module: Module,
                                             isSelected: Boolean,
                                             cellHasFocus: Boolean): Component {
     label.isEnabled = list.isEnabled
-    label.border = if (isSelected) ITEM_BORDER_SELECTED else ITEM_BORDER
+    label.border = if (isSelected && label.isEnabled) ITEM_BORDER_SELECTED else ITEM_BORDER
 
     if (value == null || module.isDisposed) {
       label.icon = emptyIcon
@@ -118,8 +118,10 @@ internal class DrawableCellRenderer(private val module: Module,
       .getImage(file, module, JBUI.size(imageSize))
 
     image.addListener(Runnable {
-      cache.put(value, ImageIcon(image.get()))
-      list.repaint(list.getCellBounds(index, index))
+      if (!image.isCancelled) {
+        cache.put(value, ImageIcon(image.get()))
+        list.repaint(list.getCellBounds(index, index))
+      }
     }, EdtExecutor.INSTANCE)
     return label
   }
@@ -127,5 +129,6 @@ internal class DrawableCellRenderer(private val module: Module,
   fun resetCache() {
     cache.cleanUp()
     label.icon = emptyIcon
+    label.disabledIcon = emptyIcon
   }
 }
