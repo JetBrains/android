@@ -28,14 +28,17 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.util.PathString;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
+import com.android.tools.adtui.LightCalloutPopup;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.FileResourceOpener;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.ui.resourcechooser.ColorPicker;
+import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
@@ -46,6 +49,8 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.TransactionGuard;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.module.Module;
@@ -65,6 +70,8 @@ import com.intellij.util.ui.EmptyIcon;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -92,6 +99,9 @@ import static com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType;
  * TODO: Use {@link ResourceItemResolver} when possible!
  */
 public class AndroidColorAnnotator implements Annotator {
+
+  private static final String SET_COLOR_COMMAND_NAME = "Change Color";
+
   private static final int ICON_SIZE = 8;
   private static final int MAX_ICON_SIZE = 5000;
 
@@ -634,22 +644,63 @@ public class AndroidColorAnnotator implements Annotator {
             //  https://youtrack.jetbrains.com/issue/IDEA-123498
             //final Color color =
             //  ColorChooser.chooseColor(editor.getComponent(), AndroidBundle.message("android.choose.color"), getCurrentColor());
-            final Color color = ColorPicker.showDialog(editor.getComponent(), "Choose Color", getCurrentColor(), true, null, false);
-            if (color != null) {
-              ApplicationManager.getApplication().runWriteAction(() -> {
-                if (myElement instanceof XmlTag) {
-                  ((XmlTag)myElement).getValue().setText(ResourceHelper.colorToString(color));
-                } else if (myElement instanceof XmlAttributeValue) {
-                  XmlAttribute attribute = PsiTreeUtil.getParentOfType(myElement, XmlAttribute.class);
-                  if (attribute != null) {
-                    attribute.setValue(ResourceHelper.colorToString(color));
-                  }
-                }
-              });
+            if (StudioFlags.NELE_NEW_COLOR_PICKER.get()) {
+              openNewColorPicker(getCurrentColor());
+            }
+            else {
+              final Color color = ColorPicker.showDialog(editor.getComponent(), "Choose Color", getCurrentColor(), true, null, false);
+              if (color != null) {
+                setColorToAttribute(color);
+              }
             }
           }
         }
       };
+    }
+
+    private void openNewColorPicker(@Nullable Color currentColor) {
+      LightCalloutPopup dialog = new LightCalloutPopup();
+
+      Function1<Color, Unit> okCallback = c -> {
+        setColorToAttribute(c);
+        dialog.close();
+        return Unit.INSTANCE;
+      };
+
+      Function1<Color, Unit> cancelCallback = c -> {
+        dialog.close();
+        return Unit.INSTANCE;
+      };
+
+      JPanel panel = new ColorPickerBuilder()
+        .setOriginalColor(currentColor)
+        .addSaturationBrightnessComponent()
+        .addColorAdjustPanel()
+        .addColorValuePanel()
+        .addSeparator()
+        .addColorPalette()
+        .addSeparator()
+        .addOperationPanel(okCallback, cancelCallback)
+        .build();
+
+      dialog.show(panel, null, MouseInfo.getPointerInfo().getLocation());
+    }
+
+    private void setColorToAttribute(@NotNull Color color) {
+      // use TransactionGuard to avoid write in unsafe context, and use WriteCommandAction to make the change undoable.
+      TransactionGuard.submitTransaction(myElement.getProject(), () ->
+        WriteCommandAction.runWriteCommandAction(myElement.getProject(), SET_COLOR_COMMAND_NAME, null, () -> {
+          if (myElement instanceof XmlTag) {
+            ((XmlTag)myElement).getValue().setText(ResourceHelper.colorToString(color));
+          }
+          else if (myElement instanceof XmlAttributeValue) {
+            XmlAttribute attribute = PsiTreeUtil.getParentOfType(myElement, XmlAttribute.class);
+            if (attribute != null) {
+              attribute.setValue(ResourceHelper.colorToString(color));
+            }
+          }
+        })
+      );
     }
 
     @Override
