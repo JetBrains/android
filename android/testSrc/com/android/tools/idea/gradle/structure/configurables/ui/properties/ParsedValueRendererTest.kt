@@ -68,6 +68,17 @@ class ParsedValueRendererTest {
   }
 
   @Test
+  fun testBuildKnownValueRenderers_notDescribedKnownValues() {
+    val valueDescriptors = listOf(ValueDescriptor(true), ValueDescriptor(false))
+    val renderers = buildKnownValueRenderers(valueDescriptors, false)
+    assertThat(renderers.size, equalTo(3))
+
+    assertThat(testRender(renderers[null]), equalTo("<i><comment>false"))
+    assertThat(testRender(renderers[true]), equalTo("true"))
+    assertThat(testRender(renderers[false]), equalTo("false"))
+  }
+
+  @Test
   fun testRenderParsedValue_notSet() {
     assertThat(ParsedValue.NotSet.testRenderWith<Int>(buildKnownValueRenderers(listOf(), null)), equalTo(""))
     assertThat(ParsedValue.NotSet.testRenderWith<Int>(buildKnownValueRenderers(listOf(ValueDescriptor(null, "Null")), null)),
