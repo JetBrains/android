@@ -30,10 +30,10 @@ import java.util.stream.Collectors;
  * A {@link FakeElement} that is used to represent models that are derived from part of a {@link GradleDslElement}.
  * This is needed since a {@link GradlePropertyModel} requires a backing element, these elements are not
  * fully part of the tree, they have parents but are not visible from or attached to their parent.
- *
+ * <p>
  * Subclasses of {@link FakeElement} can decide whether or not they should be able to be renamed or deleted. By default
  * {@link FakeElement}s can't be renamed but can be deleted if constructed with canDelete being {@code true}.
- *
+ * <p>
  * {@link #produceValue()} and {@link #consumeValue(Object)} should be overridden by each subclass to provide getting
  * and setting the derived value from and to its real element.
  */
@@ -53,7 +53,10 @@ public abstract class FakeElement extends GradleDslSettableExpression {
   @Nullable
   private PsiElement createPsiElement() {
     Object s = produceValue();
-    PsiElement element = s == null ? null : getDslFile().getParser().convertToPsiElement(s);
+    PsiElement element = s == null
+                         ? null
+                         : ApplicationManager.getApplication()
+                                             .runReadAction((Computable<PsiElement>)() -> getDslFile().getParser().convertToPsiElement(s));
     // Note: Even though we use static dependencies for everything else, we are required to update them here.
     setupDependencies(element);
     return element;
@@ -68,7 +71,8 @@ public abstract class FakeElement extends GradleDslSettableExpression {
   public final void delete() {
     if (myCanDelete) {
       consumeValue(null);
-    } else {
+    }
+    else {
       throw new UnsupportedOperationException("Deleting this element is not supported.");
     }
   }
@@ -103,7 +107,7 @@ public abstract class FakeElement extends GradleDslSettableExpression {
     }
 
     return ApplicationManager.getApplication()
-      .runReadAction((Computable<Object>)() -> getDslFile().getParser().extractValue(this, element, true));
+                             .runReadAction((Computable<Object>)() -> getDslFile().getParser().extractValue(this, element, true));
   }
 
   @Nullable
@@ -115,7 +119,7 @@ public abstract class FakeElement extends GradleDslSettableExpression {
     }
 
     return ApplicationManager.getApplication()
-      .runReadAction((Computable<Object>)() -> getDslFile().getParser().extractValue(this, element, false));
+                             .runReadAction((Computable<Object>)() -> getDslFile().getParser().extractValue(this, element, false));
   }
 
   @Nullable

@@ -52,7 +52,7 @@ public interface GradleDslParser {
 
   /**
    * Converts a given {@link Object} to the language specific {@link PsiElement}, this method is used to convert newly set or parsed values.
-   * This method does NOT REQUIRE read access.
+   * This method does REQUIRE read access.
    */
   @Nullable
   PsiElement convertToPsiElement(@NotNull Object literal);

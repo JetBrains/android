@@ -167,6 +167,7 @@ public class GroovyDslParser implements GradleDslParser {
   @Override
   @Nullable
   public PsiElement convertToPsiElement(@NotNull Object literal) {
+    ApplicationManager.getApplication().assertReadAccessAllowed();
     return GroovyDslUtil.createLiteral(myDslFile, literal);
   }
 

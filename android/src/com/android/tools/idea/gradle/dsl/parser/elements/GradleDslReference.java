@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -100,7 +102,9 @@ public final class GradleDslReference extends GradleDslSettableExpression {
   @Override
   public void setValue(@NotNull Object value) {
     checkForValidValue(value);
-    setUnsavedValue(getDslFile().getParser().convertToPsiElement(value));
+    PsiElement element =
+      ApplicationManager.getApplication().runReadAction((Computable<PsiElement>)() -> getDslFile().getParser().convertToPsiElement(value));
+    setUnsavedValue(element);
     valueChanged();
   }
 
