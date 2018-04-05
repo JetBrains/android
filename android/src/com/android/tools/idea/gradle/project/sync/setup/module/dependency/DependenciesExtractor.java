@@ -99,9 +99,9 @@ public class DependenciesExtractor {
       if (isNotEmpty(gradlePath)) {
         Module module = null;
         String moduleId = gradlePath;
-        String moduleFolderPath = library.getBuildId();
-        if (isNotEmpty(moduleFolderPath)) {
-          moduleId = createUniqueModuleId(moduleFolderPath, gradlePath);
+        String projectFolderPath = library.getBuildId();
+        if (isNotEmpty(projectFolderPath)) {
+          moduleId = createUniqueModuleId(projectFolderPath, gradlePath);
           module = moduleFinder.findModuleByModuleId(moduleId);
         }
         if (module == null) {

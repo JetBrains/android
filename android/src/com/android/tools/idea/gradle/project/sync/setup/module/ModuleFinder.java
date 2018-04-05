@@ -75,14 +75,14 @@ public class ModuleFinder {
 
   public void addModule(@NotNull Module module, @NotNull String gradlePath) {
     myModulesByGradlePath.put(gradlePath, module);
-    File folderPath = getFolderPathOf(module);
+    File folderPath = getProjectFolder(module);
     if (folderPath != null) {
       myModulesByModuleId.put(Modules.createUniqueModuleId(folderPath, gradlePath), module);
     }
   }
 
   @Nullable
-  private File getFolderPathOf(@NotNull Module module) {
+  private File getProjectFolder(@NotNull Module module) {
     File moduleFolder = findModuleRootFolderPath(module);
     if (moduleFolder != null) {
       String modulePath = moduleFolder.getPath();
