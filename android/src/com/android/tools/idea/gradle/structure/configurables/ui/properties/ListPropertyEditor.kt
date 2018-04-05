@@ -60,6 +60,7 @@ class ListPropertyEditor<ModelT, ValueT : Any, out ModelPropertyT : ModelListPro
       addColumn(TableColumn(0).apply {
         headerValue = "V"
         cellEditor = MyCellEditor()
+        cellRenderer = MyCellRenderer()
       })
     }
   }

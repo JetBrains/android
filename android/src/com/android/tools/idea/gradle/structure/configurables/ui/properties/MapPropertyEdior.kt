@@ -108,6 +108,7 @@ class MapPropertyEditor<ModelT, ValueT : Any, out ModelPropertyT : ModelMapPrope
       addColumn(TableColumn(1).apply {
         headerValue = "V"
         cellEditor = MyCellEditor()
+        cellRenderer = MyCellRenderer()
       })
     }
   }

@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
 import com.android.tools.adtui.HtmlLabel
+import com.android.tools.idea.gradle.structure.configurables.ui.RenderedComboBox
+import com.android.tools.idea.gradle.structure.configurables.ui.TextRenderer
 import com.android.tools.idea.gradle.structure.model.VariablesProvider
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.google.common.annotations.VisibleForTesting
@@ -38,14 +40,9 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
   val model: ModelT,
   val property: ModelPropertyT,
   private val variablesProvider: VariablesProvider?
-) : ComboBox<String>(), ModelPropertyEditor<ModelT, PropertyT> {
-  private var textToParsedValue: Map<String, ParsedValue<PropertyT>> = mapOf()
-  private var valueToText: Map<PropertyT?, String> = mapOf()
-  private var beingLoaded = false
+) : RenderedComboBox<ParsedValue<PropertyT>>(DefaultComboBoxModel<ParsedValue<PropertyT>>()), ModelPropertyEditor<ModelT, PropertyT> {
+  private var knownValueRenderers: Map<PropertyT?, ValueRenderer> = mapOf()
   private var disposed = false
-  private var lastTextSet: String? = null
-
-
 
   override val component: JComponent = this
   override val statusComponent: HtmlLabel = HtmlLabel().also {
@@ -58,28 +55,22 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
     val dimensions = super.getPreferredSize()
     return if (dimensions.width < 200) {
       Dimension(200, dimensions.height)
-    } else dimensions
-  }
-
-  override fun getValue(): ParsedValue<PropertyT> {
-    // Note: it is fine to get the current value of a disposed editor.
-    val text = editor.item.toString()
-    return when {
-      text.startsWith("\$") -> ParsedValue.Set.Parsed<PropertyT>(value = null, dslText = DslText(DslMode.REFERENCE, text.substring(1)))
-      text.startsWith("\"") && text.endsWith("\"") ->
-        ParsedValue.Set.Parsed<PropertyT>(value = null, dslText = DslText(DslMode.INTERPOLATED_STRING, text.substring(1, text.length - 1)))
-      else -> textToParsedValue[text] ?: property.parse(text)
     }
+    else dimensions
   }
 
-  override fun getValueText(): String = getValue().getText(valueToText)
+  override fun getValue(): ParsedValue<PropertyT> =
+    @Suppress("UNCHECKED_CAST")
+    editor.item as ParsedValue<PropertyT>
+
+  override fun getValueText(): String = getValue().getText()
 
   override fun updateProperty() {
     if (disposed) throw IllegalStateException()
     // It is important to avoid applying the unchanged values since the application
     // process while not intended may change the "psi"-representation of the value.
     // it is especially important in the case of invalid/unparsed values.
-    if (isChanged()) {
+    if (isEditorChanged()) {
       applyChanges(getValue())
     }
   }
@@ -88,51 +79,28 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
     disposed = true
   }
 
-  private fun isChanged() = editor.item.toString() != lastTextSet
-
-  private fun setText(text: String) {
-    lastTextSet = text
-    selectedItem = text
-  }
-
   @VisibleForTesting
   fun loadKnownValues() {
-    val availableVariables = getAvailableVariables()
+    val availableVariables: List<ParsedValue.Set.Parsed<PropertyT>>? = getAvailableVariables()
     val possibleValues = getKnowValues()
-    textToParsedValue =
-        (possibleValues.map { it.description to ParsedValue.Set.Parsed(value = it.value) } +
-            availableVariables.orEmpty()).toMap()
-    valueToText = possibleValues.associate { it.value to it.description }
-    val comboBoxModel = DefaultComboBoxModel<String>(textToParsedValue.keys.toTypedArray()).apply {
-      selectedItem = super.getSelectedItem()
-    }
-    super.setModel(comboBoxModel)
+    val knownValues = possibleValues.keys.map {
+      if (it != null) ParsedValue.Set.Parsed(it)
+      else ParsedValue.NotSet
+    } + availableVariables.orEmpty()
+    knownValueRenderers = possibleValues
+
+    setKnownValues(knownValues)
   }
 
-  private fun getKnowValues(): List<ValueDescriptor<PropertyT>> {
+  private fun getKnowValues(): Map<PropertyT?, ValueRenderer> {
     val defaultValue = property.getDefaultValue(model)
-    val result = mutableListOf<ValueDescriptor<PropertyT>>()
-    if (defaultValue != null) {
-      // Note: having this value prevents users from inputting string value "($default)". However, since there are just few properties with
-      // default string values and the values in parentheses do not make sense it is safe to recognize this value as NotSet.
-      result.add(ValueDescriptor(null, "($defaultValue)"))
-    }
     val knownValues = property.getKnownValues(model)
-    if (knownValues != null) {
-      result.addAll(knownValues)
-    }
-    return result.toList()
+    return buildKnownValueRenderers(knownValues, defaultValue)
   }
 
   private fun loadValue(value: PropertyValue<PropertyT>) {
-    beingLoaded = true
-    try {
-      val text = value.parsedValue.getText(valueToText)
-      setText(text)
-      setStatusHtmlText(getStatusHtmlText(value))
-    } finally {
-      beingLoaded = false
-    }
+    setValue(value.parsedValue.normalizeForEditorAndLookup())
+    setStatusHtmlText(getStatusHtmlText(value))
   }
 
   private fun setStatusHtmlText(statusHtmlText: String) {
@@ -147,14 +115,6 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
     val resolvedValue = value.resolved
     val defaultValue = property.getDefaultValue(model)
 
-    val editorValueText = when (parsedValue) {
-      is ParsedValue.Set.Parsed<PropertyT> ->
-        when (parsedValue.dslText?.mode) {
-          DslMode.REFERENCE, DslMode.INTERPOLATED_STRING -> parsedValue.value.formatValue()
-          else -> null
-        }
-      else -> null
-    }
     val effectiveEditorValue = when (parsedValue) {
       is ParsedValue.Set.Parsed -> parsedValue.value
       is ParsedValue.NotSet -> defaultValue
@@ -168,10 +128,6 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
       is ResolvedValue.NotResolved -> null
     }
     return buildString {
-      if (editorValueText != null) {
-        append(" = ")
-        append(editorValueText)
-      }
       if (resolvedValueText != null) {
         append(" -> ")
         append(resolvedValueText)
@@ -191,10 +147,9 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
     }
   }
 
-  private fun getAvailableVariables(): List<Pair<String, ParsedValue.Set.Parsed<PropertyT>>>? =
+  private fun getAvailableVariables(): List<ParsedValue.Set.Parsed<PropertyT>>? =
     variablesProvider?.getAvailableVariablesForType(elementType)?.map {
-      val referenceText = "\$${it.first}"
-      referenceText to ParsedValue.Set.Parsed(
+      ParsedValue.Set.Parsed(
         value = it.second,
         dslText = DslText(mode = DslMode.REFERENCE, text = it.first)
       )
@@ -209,14 +164,29 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
     addFocusListener(focusListener)
   }
 
+  override fun parseEditorText(text: String): ParsedValue<PropertyT>? = when {
+    text.startsWith("\$\$") -> ParsedValue.Set.Parsed(value = null, dslText = DslText(DslMode.OTHER_UNPARSED_DSL_TEXT, text.substring(2)))
+    text.startsWith("\$") -> ParsedValue.Set.Parsed<PropertyT>(value = null, dslText = DslText(DslMode.REFERENCE, text.substring(1)))
+    text.startsWith("\"") && text.endsWith("\"") ->
+      ParsedValue.Set.Parsed<PropertyT>(value = null,
+                                        dslText = DslText(DslMode.INTERPOLATED_STRING, text.substring(1, text.length - 1)))
+    else -> property.parse(text)
+  }
+
+
+  override fun toEditorText(anObject: ParsedValue<PropertyT>?): String = when (anObject) {
+    null -> ""
+    else -> anObject.getText()
+  }
+
+  override fun TextRenderer.renderCell(value: ParsedValue<PropertyT>?) {
+    (value ?: ParsedValue.NotSet).renderTo(this, knownValueRenderers)
+  }
+
   init {
-    minLength = 60
     setEditable(true)
 
-    super.setModel(DefaultComboBoxModel<String>())
-
     loadKnownValues()
-    reloadValue()
 
     addActionListener {
       if (!disposed && !beingLoaded) {
@@ -230,6 +200,7 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
         reloadValue()
       }
     }
+    reloadValue()
   }
 }
 
@@ -239,4 +210,10 @@ inline fun <ModelT, reified PropertyT : Any, ModelPropertyT : ModelSimplePropert
   variablesProvider: VariablesProvider? = null
 ): SimplePropertyEditor<ModelT, PropertyT, ModelPropertyT> =
   SimplePropertyEditor(PropertyT::class.java, model, property, variablesProvider)
+
+private fun <T : Any> ParsedValue<T>.normalizeForEditorAndLookup() =
+  if (this is ParsedValue.Set.Parsed && value != null && dslText?.mode == DslMode.LITERAL)
+    ParsedValue.Set.Parsed(dslText = null, value = value)
+  else
+    this
 

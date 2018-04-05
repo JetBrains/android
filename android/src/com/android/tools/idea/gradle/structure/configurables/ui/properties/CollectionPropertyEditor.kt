@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
+import com.android.tools.idea.gradle.structure.configurables.ui.toRenderer
 import com.android.tools.idea.gradle.structure.model.VariablesProvider
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.openapi.actionSystem.ActionToolbarPosition
+import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.ToolbarDecorator
 import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.AbstractTableCellEditor
@@ -28,6 +30,7 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JTable
 import javax.swing.table.DefaultTableModel
+import javax.swing.table.TableCellRenderer
 import javax.swing.table.TableColumnModel
 import kotlin.reflect.KProperty
 
@@ -46,6 +49,7 @@ abstract class CollectionPropertyEditor<ModelT, out ModelPropertyT : ModelCollec
   private var beingLoaded = false
   protected var tableModel: DefaultTableModel? = null ; private set
   protected val valueToText: Map<ValueT?, String> = buildValueToTextMap()
+  private val knownValueRenderers: Map<ValueT?, ValueRenderer> = buildKnownValueRenderers(property.getKnownValues(model), null)
 
   protected val table: JBTable = JBTable()
     .apply {
@@ -93,6 +97,20 @@ abstract class CollectionPropertyEditor<ModelT, out ModelPropertyT : ModelCollec
    */
   protected inner class Value(val value: ParsedValue<ValueT>) {
     override fun toString(): String = value.getText(valueToText)
+  }
+
+  inner class MyCellRenderer: TableCellRenderer {
+    override fun getTableCellRendererComponent(table: JTable?,
+                                               value: Any?,
+                                               isSelected: Boolean,
+                                               hasFocus: Boolean,
+                                               row: Int,
+                                               column: Int): Component {
+      @Suppress("UNCHECKED_CAST")
+      val parsedValue = (value as CollectionPropertyEditor<*, *, ValueT>.Value?)?.value ?: ParsedValue.NotSet
+      return SimpleColoredComponent().also { parsedValue.renderTo(it.toRenderer(), knownValueRenderers) }
+    }
+
   }
 
   inner class MyCellEditor : AbstractTableCellEditor() {
