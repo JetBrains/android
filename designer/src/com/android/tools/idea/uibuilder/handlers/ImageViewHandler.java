@@ -69,12 +69,11 @@ public class ImageViewHandler extends ViewHandler {
   @NotNull
   @Language("XML")
   public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
-    String size = xmlType == XmlType.DRAG_PREVIEW ? "32dp" : VALUE_WRAP_CONTENT;
     return new XmlBuilder()
       .startTag(tagName)
-      .androidAttribute(ATTR_LAYOUT_WIDTH, size)
-      .androidAttribute(ATTR_LAYOUT_HEIGHT, size)
-      .attribute(TOOLS_PREFIX, ATTR_SRC, TOOLS_SAMPLE_PREFIX + "avatars")
+      .androidAttribute(ATTR_SRC, getSampleImageSrc())
+      .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT)
+      .androidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
       .endTag(tagName)
       .toString();
   }
@@ -84,8 +83,13 @@ public class ImageViewHandler extends ViewHandler {
                           @Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType insertType) {
+    if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
+      return showImageChooser(editor, newChild);
+    }
+
+    // Fallback if dismissed or during previews etc
     if (insertType.isCreate()) {
-      // TODO show assistant
+      setSrcAttribute(newChild, getSampleImageSrc());
     }
 
     return true;
@@ -163,8 +167,7 @@ public class ImageViewHandler extends ViewHandler {
   @NotNull
   @Override
   public List<Target> createTargets(@NotNull SceneComponent sceneComponent) {
-    ComponentAssistantFactory panelFactory =
-      getComponentAssistant(sceneComponent.getScene().getDesignSurface(), sceneComponent.getNlComponent());
+    ComponentAssistantFactory panelFactory = getComponentAssistant(sceneComponent.getScene().getDesignSurface(), sceneComponent.getNlComponent());
 
     return panelFactory != null ?
            ImmutableList.of(new ComponentAssistantActionTarget(panelFactory)) :
