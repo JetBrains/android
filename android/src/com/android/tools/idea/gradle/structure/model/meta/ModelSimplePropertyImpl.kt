@@ -129,13 +129,7 @@ class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
 
   override fun getParsedValue(model: ModelT): ParsedValue<PropertyT> {
     val parsedModel = modelDescriptor.getParsed(model)
-    val parsed: PropertyT? = parsedModel?.getParsedValue()
-    val dslText: DslText? = parsedModel?.getParsedRawValue()
-    return when {
-      (parsed == null && dslText == null) -> ParsedValue.NotSet
-      parsed == null -> ParsedValue.Set.Invalid(dslText?.text.orEmpty(), "Unknown")
-      else -> ParsedValue.Set.Parsed(value = parsed, dslText = dslText)
-    }
+    return makeParsedValue(parsedModel?.getParsedValue(), parsedModel?.getParsedRawValue())
   }
 
   override fun getResolvedValue(model: ModelT): ResolvedValue<PropertyT> {

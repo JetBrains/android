@@ -28,7 +28,8 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
 
   private fun <T> ResolvedValue<T>.asTestValue(): T? = (this as? ResolvedValue.Set<T>)?.resolved
   private fun <T> ParsedValue<T>.asTestValue(): T? = (this as? ParsedValue.Set.Parsed<T>)?.value
-  private fun <T> ParsedValue<T>.asTestInvalidValue(): String? = (this as? ParsedValue.Set.Invalid<T>)?.dslText
+  private fun <T> ParsedValue<T>.asUnparsedValue(): String? =
+    (this as? ParsedValue.Set.Parsed<T>)?.takeIf { it.dslText?.mode == DslMode.OTHER_UNPARSED_DSL_TEXT }?.dslText?.text
   private fun <T : Any> T.asParsed(): ParsedValue<T> = ParsedValue.Set.Parsed(value = this)
 
   fun testProperties() {
@@ -227,7 +228,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
 
       // TODO(b/72814329): Resolved values are not yet supported on list properties.
       assertThat(proGuardFiles[0].resolved.asTestValue(), nullValue())
-      assertThat(proGuardFiles[0].parsedValue.asTestInvalidValue(), equalTo("getDefaultProguardFile('proguard-android.txt')"))
+      assertThat(proGuardFiles[0].parsedValue.asUnparsedValue(), equalTo("getDefaultProguardFile('proguard-android.txt')"))
       // TODO(b/72814329): Resolved values are not yet supported on list properties.
       assertThat(proGuardFiles[1].resolved.asTestValue(), nullValue())
       assertThat(proGuardFiles[1].parsedValue.asTestValue(), equalTo(File("a.txt")))
@@ -292,7 +293,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
       assertThat(proGuardFiles[0].parsedValue.asTestValue(), equalTo(File("z.txt")))
       // TODO(b/72814329): Resolved values are not yet supported on list properties.
       assertThat(proGuardFiles[1].resolved.asTestValue(), nullValue())
-      assertThat(proGuardFiles[1].parsedValue.asTestInvalidValue(), equalTo("getDefaultProguardFile('proguard-android.txt')"))
+      assertThat(proGuardFiles[1].parsedValue.asUnparsedValue(), equalTo("getDefaultProguardFile('proguard-android.txt')"))
       // TODO(b/72814329): Resolved values are not yet supported on list properties.
       assertThat(proGuardFiles[2].resolved.asTestValue(), nullValue())
       assertThat(proGuardFiles[2].parsedValue.asTestValue(), equalTo(File("a.txt")))

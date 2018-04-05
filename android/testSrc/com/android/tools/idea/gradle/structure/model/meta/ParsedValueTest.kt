@@ -53,4 +53,60 @@ class ParsedValueTest {
       equalTo("\$var")
     )
   }
+
+  @Test
+  fun parsedValueGetText_unparsed() {
+    assertThat(
+      ParsedValue.Set.Parsed(value = null, dslText = DslText(mode = DslMode.OTHER_UNPARSED_DSL_TEXT, text = "doSomething()")).getText(),
+      equalTo("\$\$doSomething()")
+    )
+  }
+
+  @Test
+  fun makeParsedValue_notSet() {
+    assertThat(makeParsedValue(null, null), equalTo<ParsedValue<*>>(ParsedValue.NotSet))
+  }
+
+  @Test
+  fun makeParsedValue_parsed() {
+    assertThat(makeParsedValue(1, null), equalTo<ParsedValue<*>>(ParsedValue.Set.Parsed(1)))
+  }
+
+  @Test
+  fun makeParsedValue_parsedLiteral() {
+    assertThat(makeParsedValue(1, DslText(DslMode.LITERAL, "1")),
+               equalTo<ParsedValue<*>>(ParsedValue.Set.Parsed(1, DslText(DslMode.LITERAL, "1"))))
+  }
+
+  @Test
+  fun makeParsedValue_parsedReference() {
+    assertThat(makeParsedValue(1, DslText(DslMode.REFERENCE, "var1")),
+               equalTo<ParsedValue<*>>(ParsedValue.Set.Parsed(1, DslText(DslMode.REFERENCE, "var1"))))
+  }
+
+  @Test
+  fun makeParsedValue_parsedInterpolatedString() {
+    assertThat(makeParsedValue("a and b", DslText(DslMode.INTERPOLATED_STRING, "\$var1 and \$var2")),
+               equalTo<ParsedValue<*>>(ParsedValue.Set.Parsed("a and b", DslText(DslMode.INTERPOLATED_STRING, "\$var1 and \$var2"))))
+  }
+
+  @Test
+  fun makeParsedValue_parsedUnparsed() {
+    assertThat(makeParsedValue(null, DslText(DslMode.OTHER_UNPARSED_DSL_TEXT, "doSomething()")),
+               equalTo<ParsedValue<*>>(ParsedValue.Set.Parsed(null, DslText(DslMode.OTHER_UNPARSED_DSL_TEXT, "doSomething()"))))
+  }
+
+  @Test
+  fun makeParsedValue_invalidLiteral() {
+    assertThat(makeParsedValue(null, DslText(DslMode.LITERAL, "1")),
+               equalTo<ParsedValue<*>>(ParsedValue.Set.Invalid<Int>("1", "Invalid value")))
+  }
+
+  @Test
+  fun makeParsedValue_invalidReference() {
+    // TODO(b/77627789): Store full DslText() in ParsedValue and change the error message.
+    assertThat(makeParsedValue(null, DslText(DslMode.REFERENCE, "var1")),
+               equalTo<ParsedValue<*>>(ParsedValue.Set.Invalid<Int>("var1", "Invalid value")))
+  }
+
 }
