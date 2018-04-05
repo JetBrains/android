@@ -24,6 +24,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Represents a new expression.
@@ -44,8 +45,8 @@ public final class GradleDslNewExpression extends GradleDslSimpleExpression {
   }
 
   @NotNull
-  public List<GradleDslSimpleExpression> getArguments() {
-    List<GradleDslSimpleExpression> result = Lists.newArrayList();
+  public List<GradleDslExpression> getArguments() {
+    List<GradleDslExpression> result = Lists.newArrayList();
 
     for (GradleDslSimpleExpression argument : myArguments) {
       if (argument instanceof GradleDslReference) {
@@ -60,6 +61,12 @@ public final class GradleDslNewExpression extends GradleDslSimpleExpression {
     }
 
     return result;
+  }
+
+  @NotNull
+  public List<GradleDslSimpleExpression> getSimpleArguments() {
+    return getArguments().stream().filter(e -> e instanceof GradleDslSimpleExpression).map(e -> (GradleDslSimpleExpression)e).collect(
+      Collectors.toList());
   }
 
   @Override
@@ -106,7 +113,7 @@ public final class GradleDslNewExpression extends GradleDslSimpleExpression {
       return null;
     }
 
-    List<GradleDslSimpleExpression> arguments = getArguments();
+    List<GradleDslSimpleExpression> arguments = getSimpleArguments();
     if (arguments.isEmpty()) {
       return null;
     }

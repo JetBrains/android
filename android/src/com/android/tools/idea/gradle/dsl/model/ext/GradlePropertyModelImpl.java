@@ -113,7 +113,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     if (extractAndGetValueType(getElement()) == LIST && myElement instanceof GradleDslExpressionList) {
       GradleDslExpressionList list = (GradleDslExpressionList)myElement;
       if (list.getExpressions().size() == 1) {
-        GradleDslSimpleExpression expression = list.getElementAt(0);
+        GradleDslExpression expression = list.getElementAt(0);
         if (expression instanceof GradleDslReference) {
           GradleDslReference reference = (GradleDslReference)expression;
           GradleReferenceInjection injection = reference.getReferenceInjection();

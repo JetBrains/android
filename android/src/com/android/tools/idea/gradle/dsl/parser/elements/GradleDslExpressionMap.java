@@ -29,7 +29,7 @@ import java.util.Map;
 /**
  * Represents an element which consists of a map from properties of type {@link String} and values of type {@link GradleDslSimpleExpression}.
  */
-public final class GradleDslExpressionMap extends GradlePropertiesDslElement {
+public final class GradleDslExpressionMap extends GradlePropertiesDslElement implements GradleDslExpression {
 
   public GradleDslExpressionMap(@Nullable GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, null, name);
@@ -94,5 +94,11 @@ public final class GradleDslExpressionMap extends GradlePropertiesDslElement {
 
   public boolean isLiteralMap() {
     return myUseAssignment;
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getExpression() {
+    return getPsiElement();
   }
 }
