@@ -22,6 +22,7 @@ import com.android.builder.model.Variant;
 import com.android.java.model.ArtifactModel;
 import com.android.java.model.JavaProject;
 import org.gradle.tooling.BuildController;
+import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.GradleProject;
 import org.jetbrains.annotations.NotNull;
@@ -92,15 +93,21 @@ public class SyncModuleModels implements GradleModuleModels {
       String moduleId = createUniqueModuleId(gradleProject.getProjectDirectory(), gradleProject.getPath());
       String selectedVariant = variants.getSelectedVariant(moduleId);
       if (selectedVariant != null) {
-        AndroidProject androidProject = controller.findModel(gradleProject, AndroidProject.class, ModelBuilderParameter.class,
-                                                             parameter -> parameter.setShouldBuildVariant(false));
-        if (androidProject != null) {
-          myModelsByType.put(AndroidProject.class, androidProject);
-          Variant variant = controller.findModel(gradleProject, Variant.class, ModelBuilderParameter.class,
-                                                 parameter -> parameter.setVariantName(selectedVariant));
-          myModelsByType.put(Variant.class, variant);
+        try {
+          AndroidProject androidProject = controller.getModel(gradleProject, AndroidProject.class, ModelBuilderParameter.class,
+                                                              parameter -> parameter.setShouldBuildVariant(false));
+          if (androidProject != null) {
+            // TODO: what does it mean if we get a null AndroidProject?
+            myModelsByType.put(AndroidProject.class, androidProject);
+            Variant variant = controller.getModel(gradleProject, Variant.class, ModelBuilderParameter.class,
+                                                  parameter -> parameter.setVariantName(selectedVariant));
+            myModelsByType.put(Variant.class, variant);
+            return androidProject;
+          }
         }
-        return androidProject;
+        catch (UnsupportedVersionException e) {
+          // Using old version of Gradle.
+        }
       }
     }
     return findAndAddModel(gradleProject, controller, AndroidProject.class);
