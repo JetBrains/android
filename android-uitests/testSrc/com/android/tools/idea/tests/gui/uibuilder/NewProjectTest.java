@@ -456,6 +456,7 @@ public class NewProjectTest {
         .createNewProject();
 
       newProjectWizard.getConfigureAndroidProjectStep()
+        .setCppSupport(false)  // The setting is saved and restored by NewProjectModel, so can't be presumed disabled.
         .enterApplicationName(myName)
         .enterCompanyDomain(myDomain)
         .enterPackageName(myPkg);
