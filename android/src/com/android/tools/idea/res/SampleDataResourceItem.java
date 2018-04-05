@@ -145,6 +145,7 @@ public class SampleDataResourceItem implements ResourceItem {
   @NonNull
   private static SampleDataResourceItem getFromDirectory(@NonNull SmartPsiElementPointer<PsiElement> directoryPointer) {
     VirtualFile directory = directoryPointer.getVirtualFile();
+    // For directories, at this point, we always consider them images since it's the only type we handle for them
     return new SampleDataResourceItem(directory.getName(), ResourceNamespace.TODO, output -> {
       PrintStream printStream = new PrintStream(output);
       Arrays.stream(directory.getChildren())
@@ -152,7 +153,7 @@ public class SampleDataResourceItem implements ResourceItem {
         .sorted(Comparator.comparing(VirtualFile::getName))
         .forEach(file -> printStream.println(file.getPath()));
       return null;
-    }, () -> directory.getModificationStamp() + 1, directoryPointer, ContentType.UNKNOWN);
+    }, () -> directory.getModificationStamp() + 1, directoryPointer, ContentType.IMAGE);
   }
 
   /**

@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.res;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.SampleDataResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
@@ -32,10 +34,12 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 
@@ -264,6 +268,24 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
     // The cursor does not get reset when the file is changed so we expect "new3" as opposed as getting "new1"
     // Ignored temporarily since cache invalidation needs still work
     //assertEquals("new3", resolver.findResValue("@sample/strings", false).getValue());
+  }
+
+  public void testImageResources() {
+    myFixture.addFileToProject("sampledata/images/image1.png", "\n");
+    myFixture.addFileToProject("sampledata/images/image2.png", "\n");
+    myFixture.addFileToProject("sampledata/images/image3.png", "\n");
+
+    List<ResourceItem> items = AppResourceRepository.getOrCreateInstance(myFacet)
+                                                    .getResourceItems(ResourceNamespace.TODO, ResourceType.SAMPLE_DATA);
+    assertSize(1, items);
+    assertEquals("images", items.get(0).getName());
+    SampleDataResourceItem item = (SampleDataResourceItem)items.get(0);
+    assertEquals(SampleDataResourceItem.ContentType.IMAGE, item.getContentType());
+    SampleDataResourceValue value = (SampleDataResourceValue)item.getResourceValue();
+    List<String> fileNames = value.getValueAsLines().stream()
+         .map(file -> new File(file).getName())
+         .collect(Collectors.toList());
+    assertContainsElements(fileNames, "image1.png", "image2.png", "image3.png");
   }
 
   // Temporarily disabled to debug the failed leak test
