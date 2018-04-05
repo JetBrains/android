@@ -78,9 +78,7 @@ class SessionsManagerTest {
   }
 
   @Test
-  fun testBeginSessionWithNullDeviceOrProcess() {
-    myManager.beginSession(null, null)
-    myManager.beginSession(null, Common.Process.getDefaultInstance())
+  fun testBeginSessionWithNullProcess() {
     myManager.beginSession(Common.Device.getDefaultInstance(), null)
     assertThat(myManager.sessionArtifacts).isEmpty()
     assertThat(myManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
