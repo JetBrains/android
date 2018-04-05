@@ -86,7 +86,7 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
   }
 
   @Override
-  protected void createGradleWrapper(@NotNull File projectRoot) throws IOException {
+  protected void createGradleWrapper(@NotNull File projectRoot) {
     // Do not create the Gradle wrapper automatically. Let each test method create it with the version of Gradle needed.
   }
 
