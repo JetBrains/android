@@ -190,7 +190,7 @@ public final class TranslationsEditorTest {
   }
 
   @Test
-  public void removeKeySafely() throws Exception {
+  public void removeKeyWithDeleteHandler() throws Exception {
     importSimpleApplication();
 
     EditorFixture editor = myGuiTest.ideFrame().getEditor();
@@ -216,7 +216,7 @@ public final class TranslationsEditorTest {
 
   @RunIn(TestGroup.UNRELIABLE)  // b/77559678
   @Test
-  public void removeKeyUnsafely() throws Exception {
+  public void removeKeyWithSafeDeleteProcessor() throws Exception {
     importSimpleApplication();
 
     EditorFixture editor = myGuiTest.ideFrame().getEditor();
