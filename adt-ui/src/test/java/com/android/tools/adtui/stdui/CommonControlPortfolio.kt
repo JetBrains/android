@@ -196,7 +196,7 @@ object CommonControlPortfolio {
               label.text = String.format("Clicked: %s", action)
             }
         )
-        model.addChildrenActions(action)
+        model.addChildrenActions(action, CommonAction.SeparatorAction())
       } else {
         val action = CommonAction(text, icon)
         populateCommonActionRecursive(action, text, icon, width, depth - 1, label)
@@ -217,7 +217,7 @@ object CommonControlPortfolio {
               label.text = String.format("Clicked: %s", action)
             }
         )
-        parent.addChildrenActions(action)
+        parent.addChildrenActions(action, CommonAction.SeparatorAction())
       } else {
         val action = CommonAction(text, icon)
         populateCommonActionRecursive(action, text, icon, width, depth - 1, label)

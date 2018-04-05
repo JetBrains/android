@@ -30,4 +30,17 @@ public class CommonPopupMenu extends JPopupMenu {
     super.updateUI();
     setUI(new CommonPopupMenuUI());
   }
+
+  @Override
+  public void addSeparator() {
+    add(new CommonSeparator());
+  }
+
+  public static class CommonSeparator extends JSeparator {
+    @Override
+    public void updateUI() {
+      super.updateUI();
+      setUI(new CommonSeparatorUI());
+    }
+  }
 }

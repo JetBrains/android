@@ -79,7 +79,7 @@ public class CommonDropDownButton extends CommonToggleButton implements Property
     myPopup.removeAll();
     List<CommonAction> actions = myAction.getChildrenActions();
     for (CommonAction action : actions) {
-      if (action instanceof CommonAction.Separator) {
+      if (action instanceof CommonAction.SeparatorAction) {
         myPopup.addSeparator();
       }
       else {
@@ -101,7 +101,7 @@ public class CommonDropDownButton extends CommonToggleButton implements Property
 
   private void populateMenuRecursive(CommonMenu parent, List<CommonAction> actions) {
     for (CommonAction action : actions) {
-      if (action instanceof CommonAction.Separator) {
+      if (action instanceof CommonAction.SeparatorAction) {
         parent.addSeparator();
       }
       else {

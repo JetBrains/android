@@ -119,8 +119,11 @@ public class CommonAction extends AbstractAction {
     firePropertyChange(CHILDREN_ACTION_CHANGED, oldActions, myChildrenActions);
   }
 
-  static public class Separator extends CommonAction {
-    public Separator() {
+  /**
+   * Placeholder model for adding a separator between other {@link CommonAction}'s.
+   */
+  public static class SeparatorAction extends CommonAction {
+    public SeparatorAction() {
       super("separator", null);
     }
   }
