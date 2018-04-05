@@ -276,7 +276,7 @@ java_test(
         "testData/JavaToKotlinCode/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.CodeConversionFromJavaToKotlinTest"],
-    tags = COMMON_TAGS + ["no_psq"],
+    tags = COMMON_TAGS + ["manual"],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":android-uitests_testlib"],
 )
