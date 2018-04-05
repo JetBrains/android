@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.dsl.parser.repositories;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -27,30 +26,5 @@ public class RepositoriesDslElement extends GradleDslBlockElement {
 
   public RepositoriesDslElement(@NotNull GradleDslElement parent) {
     super(parent, GradleNameElement.create(REPOSITORIES_BLOCK_NAME));
-  }
-
-  @Override
-  public void setParsedElement(@NotNull GradleDslElement repository) {
-    // Because we need to preserve the the order of the repositories defined, storing all the repository elements in a dummy element list.
-    // TODO: Consider extending RepositoriesDslElement directly from GradleDslElementList instead of GradlePropertiesDslElement.
-    GradleDslElementList repositoriesListElement = getOrCreateRepositoriesElement();
-    repositoriesListElement.addParsedElement(repository);
-  }
-
-  @Override
-  public void addParsedElement(@NotNull GradleDslElement repository) {
-    GradleDslElementList repositoriesListElement = getOrCreateRepositoriesElement();
-    repositoriesListElement.addParsedElement(repository);
-  }
-
-  @NotNull
-  private GradleDslElementList getOrCreateRepositoriesElement() {
-    GradleDslElementList elementList = getPropertyElement(REPOSITORIES_BLOCK_NAME, GradleDslElementList.class);
-    if (elementList == null) {
-      GradleNameElement name = GradleNameElement.create(REPOSITORIES_BLOCK_NAME);
-      elementList = new GradleDslElementList(this, name);
-      super.addParsedElement(elementList);
-    }
-    return elementList;
   }
 }

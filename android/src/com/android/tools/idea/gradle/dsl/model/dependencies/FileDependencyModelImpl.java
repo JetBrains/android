@@ -47,15 +47,15 @@ public class FileDependencyModelImpl extends DependencyModelImpl implements File
     return result;
   }
 
-  static void createAndAddToList(@NotNull GradleDslElementList list,
-                                 @NotNull String configurationName,
-                                 @NotNull String file) {
+  static void create(@NotNull GradlePropertiesDslElement parent,
+                     @NotNull String configurationName,
+                     @NotNull String file) {
     GradleNameElement name = GradleNameElement.create(configurationName);
-    GradleDslMethodCall methodCall = new GradleDslMethodCall(list, name, FILES);
+    GradleDslMethodCall methodCall = new GradleDslMethodCall(parent, name, FILES);
     GradleDslLiteral fileDslLiteral = new GradleDslLiteral(methodCall, name);
     fileDslLiteral.setValue(file);
     methodCall.addNewArgument(fileDslLiteral);
-    list.addNewElement(methodCall);
+    parent.setNewElement(methodCall);
   }
 
   private FileDependencyModelImpl(@NotNull String configurationName,

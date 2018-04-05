@@ -1419,7 +1419,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertThat(secondModel.completeModel().getRawValue(STRING_TYPE)).isEqualTo("com.google.guava:${ext.name}:+");
   }
 
-
+  @Test
   public void testCompactNotationElementUnsupportedOperations() throws IOException {
     String text = "dependencies {\n" +
                   "  testCompile 'org.gradle.test.classifiers:service:1.0'\n" +
@@ -1485,9 +1485,11 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertSize(2, artifacts);
 
     ResolvedPropertyModel model = artifacts.get(0).completeModel();
-    verifyPropertyModel(model, STRING_TYPE, "org.gradle.test.classifiers:service:1.0", STRING, DERIVED, 1, "testCompile");
+    verifyPropertyModel(model, STRING_TYPE, "org.gradle.test.classifiers:service:1.0", STRING, DERIVED, 1, "0");
+    assertThat(artifacts.get(0).configurationName()).isEqualTo("testCompile");
     model = artifacts.get(1).completeModel();
-    verifyPropertyModel(model, STRING_TYPE, "com.google.guava:guava:+", STRING, DERIVED, 1, "testCompile");
+    verifyPropertyModel(model, STRING_TYPE, "com.google.guava:guava:+", STRING, DERIVED, 1, "1");
+    assertThat(artifacts.get(0).configurationName()).isEqualTo("testCompile");
   }
 
   private void runSetFullReferencesTest(@NotNull String text) throws IOException {
@@ -1510,9 +1512,11 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertSize(2, artifacts);
 
     model = artifacts.get(0).completeModel();
-    verifyPropertyModel(model, STRING_TYPE, "com.google.guava:guava:+", STRING, REGULAR, 1, "testCompile");
+    verifyPropertyModel(model, STRING_TYPE, "org.gradle.test.classifiers:service:1.0", STRING, DERIVED, 1, "0");
+    assertThat(artifacts.get(0).configurationName()).isEqualTo("testCompile");
     model = artifacts.get(1).completeModel();
-    verifyPropertyModel(model, STRING_TYPE, "org.gradle.test.classifiers:service:1.0", STRING, REGULAR, 1, "testCompile");
+    verifyPropertyModel(model, STRING_TYPE, "com.google.guava:guava:+", STRING, DERIVED, 1, "1");
+    assertThat(artifacts.get(0).configurationName()).isEqualTo("testCompile");
   }
 
   private void runSetFullSingleReferenceTest(@NotNull String text) throws IOException {
@@ -1534,6 +1538,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     model = artifacts.get(0).completeModel();
     verifyPropertyModel(model, STRING_TYPE, "org.gradle.test.classifiers:service:1.0", STRING, REGULAR, 1, "testCompile");
+    assertThat(artifacts.get(0).configurationName()).isEqualTo("testCompile");
   }
 
   @Test
@@ -1607,12 +1612,16 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     ResolvedPropertyModel model = artifacts.get(0).completeModel();
     verifyMapProperty(model, ImmutableMap.of("group", "group", "name", "name", "version", "1.0"));
+    assertThat(artifacts.get(0).configurationName()).isEqualTo("testCompile");
     model = artifacts.get(1).completeModel();
-    verifyMapProperty(model, ImmutableMap.of("group", "g", "name", "n", "version", "2.0"));
-    model = artifacts.get(2).completeModel();
     verifyMapProperty(model, ImmutableMap.of("group", "com.google.guava", "name", "guava", "version", "4.0"));
+    assertThat(artifacts.get(1).configurationName()).isEqualTo("compile");
+    model = artifacts.get(2).completeModel();
+    verifyMapProperty(model, ImmutableMap.of("group", "g", "name", "n", "version", "2.0"));
+    assertThat(artifacts.get(2).configurationName()).isEqualTo("testCompile");
     model = artifacts.get(3).completeModel();
     verifyMapProperty(model, ImmutableMap.of("group", "guava", "name", "com.google.guava", "version", "3.0"));
+    assertThat(artifacts.get(3).configurationName()).isEqualTo("compile");
   }
 
   @Test
@@ -1638,11 +1647,11 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     ArtifactDependencyModel model = artifacts.get(0);
     model.completeModel().setValue(new ReferenceTo("dependency"));
-    //model = artifacts.get(1);
-    //model.completeModel().setValue(new ReferenceTo("otherDependency"));
-    model = artifacts.get(2);
+    model = artifacts.get(1);
     model.group().setValue(new ReferenceTo("guavaGroup"));
     model.name().setValue(new ReferenceTo("guavaName"));
+    //model = artifacts.get(2);
+    //model.completeModel().setValue(new ReferenceTo("otherDependency"));
     //model = artifacts.get(3);
     //model.group().setValue(new ReferenceTo("guavaName"));
     //model.name().setValue(new ReferenceTo("guavaGroup"));
@@ -1654,13 +1663,15 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertSize(4, artifacts);
 
     model = artifacts.get(0);
-    verifyMapProperty(model.completeModel(), ImmutableMap.of("group", "com.google.guava", "name", "guava", "version", "4.0"));
-    //model = artifacts.get(1);
-    //verifyMapProperty(model.completeModel(), ImmutableMap.of("group", "g", "name", "n", "version", "2.0"));
-    //model = artifacts.get(2);
-    //verifyMapProperty(model.completeModel(), ImmutableMap.of("group", "guava", "name", "com.google.guava", "version", "3.0"));g
-    model = artifacts.get(3);
     verifyMapProperty(model.completeModel(), ImmutableMap.of("group", "group", "name", "name", "version", "1.0"));
+    assertThat(artifacts.get(0).configurationName()).isEqualTo("testCompile");
+    model = artifacts.get(1);
+    verifyMapProperty(model.completeModel(), ImmutableMap.of("group", "com.google.guava", "name", "guava", "version", "4.0"));
+    assertThat(artifacts.get(1).configurationName()).isEqualTo("compile");
+    //model = artifacts.get(2);
+    //verifyMapProperty(model.completeModel(), ImmutableMap.of("group", "g", "name", "n", "version", "2.0"));
+    //model = artifacts.get(3);
+    //verifyMapProperty(model.completeModel(), ImmutableMap.of("group", "guava", "name", "com.google.guava", "version", "3.0"));g
   }
 
   public static class ExpectedArtifactDependency extends ArtifactDependencySpecImpl {

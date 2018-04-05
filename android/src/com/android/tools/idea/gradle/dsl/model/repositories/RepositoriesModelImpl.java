@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.dsl.parser.repositories.FlatDirRepositoryDs
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
 import com.android.tools.idea.gradle.util.GradleVersions;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
@@ -38,7 +37,6 @@ import static com.android.tools.idea.gradle.dsl.model.repositories.JCenterDefaul
 import static com.android.tools.idea.gradle.dsl.model.repositories.MavenCentralRepositoryModel.MAVEN_CENTRAL_METHOD_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement.JCENTER_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement.MAVEN_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement.REPOSITORIES_BLOCK_NAME;
 
 public class RepositoriesModelImpl extends GradleDslBlockModel implements RepositoriesModel {
   public RepositoriesModelImpl(@NotNull RepositoriesDslElement dslElement) {
@@ -48,13 +46,8 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
   @NotNull
   @Override
   public List<RepositoryModel> repositories() {
-    GradleDslElementList repositoriesElementList = myDslElement.getPropertyElement(REPOSITORIES_BLOCK_NAME, GradleDslElementList.class);
-    if (repositoriesElementList == null) {
-      return ImmutableList.of();
-    }
-
     List<RepositoryModel> result = Lists.newArrayList();
-    for (GradleDslElement element : repositoriesElementList.getElements()) {
+    for (GradleDslElement element : myDslElement.getAllPropertyElements()) {
       if (element instanceof GradleDslMethodCall) {
         String methodName = ((GradleDslMethodCall)element).getMethodName();
         if (MAVEN_CENTRAL_METHOD_NAME.equals(methodName)) {
@@ -97,12 +90,11 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
    */
   @Override
   public void addRepositoryByMethodName(@NotNull String methodName) {
-    GradleDslElementList repositoriesElementList = getRepositoryElementList();
     // Check if it is already there
     if (containsMethodCall(methodName)) {
       return;
     }
-    repositoriesElementList.addNewElement(new GradleDslMethodCall(repositoriesElementList, GradleNameElement.empty(), methodName));
+    myDslElement.setNewElement(new GradleDslMethodCall(myDslElement, GradleNameElement.empty(), methodName));
   }
 
   /**
@@ -112,9 +104,7 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
    */
   @Override
   public void addFlatDirRepository(@NotNull String dirName) {
-    GradleDslElementList repositoriesElementList = getRepositoryElementList();
-
-    List<FlatDirRepositoryDslElement> flatDirElements = repositoriesElementList.getElements(FlatDirRepositoryDslElement.class);
+    List<FlatDirRepositoryDslElement> flatDirElements = myDslElement.getPropertyElements(FlatDirRepositoryDslElement.class);
     if (!flatDirElements.isEmpty()) {
       // A repository already exists
       new FlatDirRepositoryModel(flatDirElements.get(0)).addDir(dirName);
@@ -122,7 +112,7 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
     else {
       // We need to create one
       GradlePropertiesDslElement gradleDslElement = new FlatDirRepositoryDslElement(myDslElement);
-      repositoriesElementList.addNewElement(gradleDslElement);
+      myDslElement.setNewElement(gradleDslElement);
       new FlatDirRepositoryModel(gradleDslElement).addDir(dirName);
     }
   }
@@ -135,8 +125,7 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
    */
   @Override
   public boolean containsMethodCall(@NotNull String methodName) {
-    GradleDslElementList list = getRepositoryElementList();
-    List<GradleDslMethodCall> elements = list.getElements(GradleDslMethodCall.class);
+    List<GradleDslMethodCall> elements = myDslElement.getPropertyElements(GradleDslMethodCall.class);
     for (GradleDslMethodCall element : elements) {
       if (methodName.equals(element.getName())) {
         return true;
@@ -152,17 +141,16 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
    */
   @Override
   public void addMavenRepositoryByUrl(@NotNull String url, @NotNull String name) {
-    GradleDslElementList repositoriesElementList = getRepositoryElementList();
     // Check if it is already there
     if (containsMavenRepositoryByUrl(url)) {
       return;
     }
     GradleNameElement nameElement = GradleNameElement.create(MAVEN_BLOCK_NAME);
-    MavenRepositoryDslElement newElement = new MavenRepositoryDslElement(repositoriesElementList, nameElement);
+    MavenRepositoryDslElement newElement = new MavenRepositoryDslElement(myDslElement, nameElement);
     newElement.setNewLiteral("url", url);
     // name is an optional property, it can be nullable but at this point only non null values are used.
     newElement.setNewLiteral("name", name);
-    repositoriesElementList.addNewElement(newElement);
+    myDslElement.setNewElement(newElement);
   }
 
   /**
@@ -173,8 +161,7 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
    */
   @Override
   public boolean containsMavenRepositoryByUrl(@NotNull String repositoryUrl) {
-    GradleDslElementList list = getRepositoryElementList();
-    List<MavenRepositoryDslElement> elements = list.getElements(MavenRepositoryDslElement.class);
+    List<MavenRepositoryDslElement> elements = myDslElement.getPropertyElements(MavenRepositoryDslElement.class);
     for (MavenRepositoryDslElement element : elements) {
       String urlElement = element.getLiteralProperty("url", String.class).value();
       if (repositoryUrl.equals(urlElement)) {
@@ -182,17 +169,6 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
       }
     }
     return false;
-  }
-
-  @NotNull
-  private GradleDslElementList getRepositoryElementList() {
-    GradleDslElementList repositoriesElementList = myDslElement.getPropertyElement(REPOSITORIES_BLOCK_NAME, GradleDslElementList.class);
-    if (repositoriesElementList == null) {
-      GradleNameElement name = GradleNameElement.create(REPOSITORIES_BLOCK_NAME);
-      repositoriesElementList = new GradleDslElementList(myDslElement, name);
-      myDslElement.addParsedElement(repositoriesElementList);
-    }
-    return repositoriesElementList;
   }
 
   /**

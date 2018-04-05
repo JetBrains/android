@@ -449,7 +449,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     buildType.versionNameSuffix().delete();
     buildType.zipAlignEnabled().delete();
     assertMissingProperty("applicationIdSuffix", buildType.applicationIdSuffix());
-    assertNull("buildConfigFields", buildType.buildConfigFields());
+    assertEmpty("buildConfigFields", buildType.buildConfigFields());
     assertMissingProperty("consumerProguardFiles", buildType.consumerProguardFiles());
     assertMissingProperty("debuggable", buildType.debuggable());
     assertMissingProperty("embedMicroApp", buildType.embedMicroApp());
@@ -461,7 +461,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("pseudoLocalesEnabled", buildType.pseudoLocalesEnabled());
     assertMissingProperty("renderscriptDebuggable", buildType.renderscriptDebuggable());
     assertMissingProperty("renderscriptOptimLevel", buildType.renderscriptOptimLevel());
-    assertNull("resValues", buildType.resValues());
+    assertEmpty("resValues", buildType.resValues());
     assertMissingProperty("shrinkResources", buildType.shrinkResources());
     assertMissingProperty("testCoverageEnabled", buildType.testCoverageEnabled());
     assertMissingProperty("useJack", buildType.useJack());
@@ -595,7 +595,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
     assertMissingProperty("applicationIdSuffix", buildType.applicationIdSuffix());
-    assertNull("buildConfigFields", buildType.buildConfigFields());
+    assertEmpty("buildConfigFields", buildType.buildConfigFields());
     assertMissingProperty("consumerProguardFiles", buildType.consumerProguardFiles());
     assertMissingProperty("debuggable", buildType.debuggable());
     assertMissingProperty("embedMicroApp", buildType.embedMicroApp());
@@ -607,7 +607,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("pseudoLocalesEnabled", buildType.pseudoLocalesEnabled());
     assertMissingProperty("renderscriptDebuggable", buildType.renderscriptDebuggable());
     assertMissingProperty("renderscriptOptimLevel", buildType.renderscriptOptimLevel());
-    assertNull("resValues", buildType.resValues());
+    assertEmpty("resValues", buildType.resValues());
     assertMissingProperty("shrinkResources", buildType.shrinkResources());
     assertMissingProperty("testCoverageEnabled", buildType.testCoverageEnabled());
     assertMissingProperty("useJack", buildType.useJack());
@@ -646,7 +646,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
     buildModel.resetState();
     assertMissingProperty("applicationIdSuffix", buildType.applicationIdSuffix());
-    assertNull("buildConfigFields", buildType.buildConfigFields());
+    assertEmpty("buildConfigFields", buildType.buildConfigFields());
     assertMissingProperty("consumerProguardFiles", buildType.consumerProguardFiles());
     assertMissingProperty("debuggable", buildType.debuggable());
     assertMissingProperty("embedMicroApp", buildType.embedMicroApp());
@@ -658,7 +658,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("pseudoLocalesEnabled", buildType.pseudoLocalesEnabled());
     assertMissingProperty("renderscriptDebuggable", buildType.renderscriptDebuggable());
     assertMissingProperty("renderscriptOptimLevel", buildType.renderscriptOptimLevel());
-    assertNull("resValues", buildType.resValues());
+    assertEmpty("resValues", buildType.resValues());
     assertMissingProperty("shrinkResources", buildType.shrinkResources());
     assertMissingProperty("testCoverageEnabled", buildType.testCoverageEnabled());
     assertMissingProperty("useJack", buildType.useJack());
@@ -720,10 +720,10 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
-    assertNull("buildConfigFields", buildType.buildConfigFields());
+    assertEmpty("buildConfigFields", buildType.buildConfigFields());
     assertMissingProperty("consumerProguardFiles", buildType.consumerProguardFiles());
     assertMissingProperty("proguardFiles", buildType.proguardFiles());
-    assertNull("resValues", buildType.resValues());
+    assertEmpty("resValues", buildType.resValues());
 
     buildType.addBuildConfigField("abcd", "efgh", "ijkl");
     buildType.consumerProguardFiles().addListValue().setValue("proguard-android.txt");
@@ -735,10 +735,10 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     verifyFlavorType("resValues", ImmutableList.of(Lists.newArrayList("mnop", "qrst", "uvwx")), buildType.resValues());
 
     buildModel.resetState();
-    assertNull("buildConfigFields", buildType.buildConfigFields());
+    assertEmpty("buildConfigFields", buildType.buildConfigFields());
     assertMissingProperty("consumerProguardFiles", buildType.consumerProguardFiles());
     assertMissingProperty("proguardFiles", buildType.proguardFiles());
-    assertNull("resValues", buildType.resValues());
+    assertEmpty("resValues", buildType.resValues());
   }
 
   @Test
@@ -988,7 +988,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertThat(buildType, instanceOf(BuildTypeModelImpl.class));
     assertTrue(((BuildTypeModelImpl)buildType).hasValidPsiElement());
     assertEquals("applicationIdSuffix", "mySuffix", buildType.applicationIdSuffix());
-    assertNull("buildConfigFields", buildType.buildConfigFields());
+    assertEmpty("buildConfigFields", buildType.buildConfigFields());
     assertMissingProperty("consumerProguardFiles", buildType.consumerProguardFiles());
     assertMissingProperty("debuggable", buildType.debuggable());
     assertMissingProperty("embedMicroApp", buildType.embedMicroApp());
@@ -1000,7 +1000,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("pseudoLocalesEnabled", buildType.pseudoLocalesEnabled());
     assertMissingProperty("renderscriptDebuggable", buildType.renderscriptDebuggable());
     assertMissingProperty("renderscriptOptimLevel", buildType.renderscriptOptimLevel());
-    assertNull("resValues", buildType.resValues());
+    assertEmpty("resValues", buildType.resValues());
     assertMissingProperty("shrinkResources", buildType.shrinkResources());
     assertMissingProperty("testCoverageEnabled", buildType.testCoverageEnabled());
     assertMissingProperty("useJack", buildType.useJack());
@@ -1013,7 +1013,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertThat(buildType, instanceOf(BuildTypeModelImpl.class));
     assertTrue(((BuildTypeModelImpl)buildType).hasValidPsiElement());
     assertEquals("applicationIdSuffix", "mySuffix", buildType.applicationIdSuffix());
-    assertNull("buildConfigFields", buildType.buildConfigFields());
+    assertEmpty("buildConfigFields", buildType.buildConfigFields());
     assertMissingProperty("consumerProguardFiles", buildType.consumerProguardFiles());
     assertMissingProperty("debuggable", buildType.debuggable());
     assertMissingProperty("embedMicroApp", buildType.embedMicroApp());
@@ -1025,7 +1025,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("pseudoLocalesEnabled", buildType.pseudoLocalesEnabled());
     assertMissingProperty("renderscriptDebuggable", buildType.renderscriptDebuggable());
     assertMissingProperty("renderscriptOptimLevel", buildType.renderscriptOptimLevel());
-    assertNull("resValues", buildType.resValues());
+    assertEmpty("resValues", buildType.resValues());
     assertMissingProperty("shrinkResources", buildType.shrinkResources());
     assertMissingProperty("testCoverageEnabled", buildType.testCoverageEnabled());
     assertMissingProperty("useJack", buildType.useJack());
@@ -1041,7 +1041,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertThat(buildType, instanceOf(BuildTypeModelImpl.class));
     assertTrue(((BuildTypeModelImpl)buildType).hasValidPsiElement());
     assertEquals("applicationIdSuffix", "mySuffix", buildType.applicationIdSuffix());
-    assertNull("buildConfigFields", buildType.buildConfigFields());
+    assertEmpty("buildConfigFields", buildType.buildConfigFields());
     assertMissingProperty("consumerProguardFiles", buildType.consumerProguardFiles());
     assertMissingProperty("debuggable", buildType.debuggable());
     assertMissingProperty("embedMicroApp", buildType.embedMicroApp());
@@ -1053,7 +1053,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("pseudoLocalesEnabled", buildType.pseudoLocalesEnabled());
     assertMissingProperty("renderscriptDebuggable", buildType.renderscriptDebuggable());
     assertMissingProperty("renderscriptOptimLevel", buildType.renderscriptOptimLevel());
-    assertNull("resValues", buildType.resValues());
+    assertEmpty("resValues", buildType.resValues());
     assertMissingProperty("shrinkResources", buildType.shrinkResources());
     assertMissingProperty("testCoverageEnabled", buildType.testCoverageEnabled());
     assertMissingProperty("useJack", buildType.useJack());
@@ -1203,7 +1203,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
     assertMissingProperty("applicationIdSuffix", buildType.applicationIdSuffix());
-    assertNull("buildConfigFields", buildType.buildConfigFields());
+    assertEmpty("buildConfigFields", buildType.buildConfigFields());
     assertMissingProperty("consumerProguardFiles", buildType.consumerProguardFiles());
     assertMissingProperty("debuggable", buildType.debuggable());
     assertMissingProperty("embedMicroApp", buildType.embedMicroApp());
@@ -1215,7 +1215,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("pseudoLocalesEnabled", buildType.pseudoLocalesEnabled());
     assertMissingProperty("renderscriptDebuggable", buildType.renderscriptDebuggable());
     assertMissingProperty("renderscriptOptimLevel", buildType.renderscriptOptimLevel());
-    assertNull("resValues", buildType.resValues());
+    assertEmpty("resValues", buildType.resValues());
     assertMissingProperty("shrinkResources", buildType.shrinkResources());
     assertMissingProperty("testCoverageEnabled", buildType.testCoverageEnabled());
     assertMissingProperty("useJack", buildType.useJack());
@@ -1344,10 +1344,10 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
-    assertNull("buildConfigFields", buildType.buildConfigFields());
+    assertEmpty("buildConfigFields", buildType.buildConfigFields());
     assertMissingProperty("consumerProguardFiles", buildType.consumerProguardFiles());
     assertMissingProperty("proguardFiles", buildType.proguardFiles());
-    assertNull("resValues", buildType.resValues());
+    assertEmpty("resValues", buildType.resValues());
 
     buildType.addBuildConfigField("abcd", "efgh", "ijkl");
     buildType.consumerProguardFiles().addListValue().setValue("proguard-android.txt");

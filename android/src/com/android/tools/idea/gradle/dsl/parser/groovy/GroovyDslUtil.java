@@ -644,13 +644,8 @@ public final class GroovyDslUtil {
   }
 
   static boolean needToCreateParent(@NotNull GradleDslElement element) {
-    element = element.getParent();
-    // We have to be careful not to count element lists or maps when checking is the parent has been created.
-    while (element != null && (element instanceof GradleDslElementList)) {
-      element = element.getParent();
-    }
-
-    return element != null && element.getPsiElement() == null;
+    GradleDslElement parent = element.getParent();
+    return parent != null && parent.getPsiElement() == null;
   }
 
   static boolean hasNewLineBetween(@NotNull PsiElement start, @NotNull PsiElement end) {

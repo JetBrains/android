@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.android.AbstractFlavorTypeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.google.common.base.Function;
@@ -75,7 +74,7 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
 
 
   @Override
-  @Nullable
+  @NotNull
   public List<BuildConfigField> buildConfigFields() {
     return getTypeNameValuesElements(BuildConfigFieldImpl::new, BUILD_CONFIG_FIELD);
   }
@@ -155,7 +154,7 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   }
 
   @Override
-  @Nullable
+  @NotNull
   public List<ResValue> resValues() {
     return getTypeNameValuesElements(ResValueImpl::new, RES_VALUE);
   }
@@ -290,31 +289,20 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
                                                                           @NotNull String name,
                                                                           @NotNull String value) {
     GradleNameElement nameElement = GradleNameElement.create(elementName);
-    GradleDslElementList elementList = myDslElement.getPropertyElement(elementName, GradleDslElementList.class);
-    if (elementList == null) {
-      elementList = new GradleDslElementList(myDslElement, nameElement);
-      myDslElement.setNewElement(elementList);
-    }
-
     GradleDslExpressionList expressionList = new GradleDslExpressionList(myDslElement, nameElement, false);
     T newValue = producer.apply(expressionList);
     assert newValue != null;
     newValue.type().setValue(type);
     newValue.name().setValue(name);
     newValue.value().setValue(value);
-    elementList.addNewElement(expressionList);
+    myDslElement.setNewElement(expressionList);
 
     return newValue;
   }
 
   protected <T> List<T> getTypeNameValuesElements(@NotNull Function<GradleDslExpressionList, T> producer, @NotNull String elementName) {
-    GradleDslElementList elementList = myDslElement.getPropertyElement(elementName, GradleDslElementList.class);
-    if (elementList == null) {
-      return null;
-    }
-
     List<T> result = Lists.newArrayList();
-    for (GradleDslElement element : elementList.getElements()) {
+    for (GradleDslElement element :  myDslElement.getPropertyElementsByName(elementName)) {
       if (element instanceof GradleDslExpressionList) {
         GradleDslExpressionList list = (GradleDslExpressionList)element;
         T value = producer.apply(list);
@@ -331,12 +319,7 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
                                                                        @NotNull String type,
                                                                        @NotNull String name,
                                                                        @NotNull String value) {
-    GradleDslElementList elementList = myDslElement.getPropertyElement(elementName, GradleDslElementList.class);
-    if (elementList == null) {
-      return null;
-    }
-
-    for (GradleDslElement element : elementList.getElements()) {
+    for (GradleDslElement element : myDslElement.getPropertyElementsByName(elementName)) {
       if (element instanceof GradleDslExpressionList) {
         GradleDslExpressionList list = (GradleDslExpressionList)element;
         T typeNameValueElement = producer.apply(list);

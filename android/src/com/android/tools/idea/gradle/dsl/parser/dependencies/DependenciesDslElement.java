@@ -29,30 +29,10 @@ public class DependenciesDslElement extends GradleDslBlockElement {
   @Override
   public void addParsedElement(@NotNull GradleDslElement dependency) {
     // Treat all expressions and expression maps as dependencies
-    if (dependency instanceof GradleDslExpression || dependency instanceof GradleDslExpressionMap) {
-      GradleDslElementList elementList = getOrCreateParsedElement(dependency.getName());
-      elementList.addParsedElement(dependency);
+    if (dependency instanceof GradleDslExpression ||
+        dependency instanceof GradleDslExpressionMap ||
+        dependency instanceof GradleDslExpressionList) {
+      super.addParsedElement(dependency);
     }
-    else if (dependency instanceof GradleDslExpressionList) {
-      GradleDslElementList elementList = getOrCreateParsedElement(dependency.getName());
-      for (GradleDslExpression expression : ((GradleDslExpressionList)dependency).getExpressions()) {
-        GradleDslClosure dependencyClosureElement = dependency.getClosureElement();
-        if (expression.getClosureElement() == null && dependencyClosureElement != null) {
-          expression.setParsedClosureElement(dependencyClosureElement);
-        }
-        elementList.addParsedElement(expression);
-      }
-    }
-  }
-
-  @NotNull
-  private GradleDslElementList getOrCreateParsedElement(@NotNull String configurationName) {
-    GradleDslElementList elementList = getPropertyElement(configurationName, GradleDslElementList.class);
-    if (elementList == null) {
-      GradleNameElement name = GradleNameElement.create(configurationName);
-      elementList = new GradleDslElementList(this, name);
-      super.addParsedElement(elementList);
-    }
-    return elementList;
   }
 }

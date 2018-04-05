@@ -132,7 +132,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
       }
     }
     List<ArtifactDependencyModel> results = Lists.newArrayList();
-    assert element instanceof GradleDslExpression || element instanceof GradleDslExpressionMap;
+    assert element instanceof GradleDslExpression || element instanceof GradleDslExpressionMap || element instanceof GradleDslExpressionList;
     if (element instanceof GradleDslExpressionMap) {
       MapNotation mapNotation = MapNotation.create(configurationName, (GradleDslExpressionMap)element, configurationElement);
       if (mapNotation != null) {
@@ -147,6 +147,14 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
         }
       }
     }
+    else if (element instanceof GradleDslExpressionList) {
+      for (GradleDslExpression expression : ((GradleDslExpressionList)element).getExpressions()) {
+        CompactNotation compactNotation = CompactNotation.create(configurationName, expression, configurationElement);
+        if (compactNotation != null) {
+          results.add(compactNotation);
+        }
+      }
+    }
     else {
       CompactNotation compactNotation = CompactNotation.create(configurationName, (GradleDslExpression)element, configurationElement);
       if (compactNotation != null) {
@@ -156,20 +164,20 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     return results;
   }
 
-  static void createAndAddToList(@NotNull GradleDslElementList list,
-                                 @NotNull String configurationName,
-                                 @NotNull ArtifactDependencySpec dependency,
-                                 @NotNull List<ArtifactDependencySpec> excludes) {
+  static void create(@NotNull GradlePropertiesDslElement parent,
+                     @NotNull String configurationName,
+                     @NotNull ArtifactDependencySpec dependency,
+                     @NotNull List<ArtifactDependencySpec> excludes) {
     GradleNameElement name = GradleNameElement.create(configurationName);
-    GradleDslLiteral literal = new GradleDslLiteral(list, name);
+    GradleDslLiteral literal = new GradleDslLiteral(parent, name);
     literal.setValue(dependency.compactNotation());
 
     if (!excludes.isEmpty()) {
-      PsiElement configBlock = list.getDslFile().getParser().convertToExcludesBlock(excludes);
+      PsiElement configBlock = parent.getDslFile().getParser().convertToExcludesBlock(excludes);
       literal.setConfigBlock(configBlock);
     }
 
-    list.addNewElement(literal);
+    parent.setNewElement(literal);
   }
 
   private static class MapNotation extends ArtifactDependencyModelImpl {

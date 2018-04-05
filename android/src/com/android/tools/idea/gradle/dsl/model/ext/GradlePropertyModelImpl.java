@@ -58,7 +58,6 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     GradleDslElement parent = element.getParent();
     assert (parent instanceof GradlePropertiesDslElement ||
             parent instanceof GradleDslExpressionList ||
-            parent instanceof GradleDslElementList ||
             parent instanceof GradleDslMethodCall) : "Property found to be invalid, this should never happen!";
     myPropertyHolder = parent;
 
@@ -173,7 +172,11 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   public String getName() {
     if (myElement != null && myPropertyHolder instanceof GradleDslExpressionList) {
       GradleDslExpressionList list = (GradleDslExpressionList)myPropertyHolder;
-      return String.valueOf(list.findIndexOf(myElement));
+      int index = list.findIndexOf(myElement);
+      if (index != -1) {
+        // This is the case if the element is a FakeElement
+        return String.valueOf(index);
+      }
     }
 
     return myName;

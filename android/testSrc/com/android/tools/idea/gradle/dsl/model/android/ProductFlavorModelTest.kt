@@ -515,7 +515,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertMissingProperty("multiDexEnabled", defaultConfig.multiDexEnabled())
     assertMissingProperty("proguardFiles", defaultConfig.proguardFiles())
     assertMissingProperty("resConfigs", defaultConfig.resConfigs())
-    assertNull("resValues", defaultConfig.resValues())
+    assertEmpty("resValues", defaultConfig.resValues())
     assertMissingProperty("targetSdkVersion", defaultConfig.targetSdkVersion())
     assertMissingProperty("testApplicationId", defaultConfig.testApplicationId())
     assertMissingProperty("testFunctionalTest", defaultConfig.testFunctionalTest())
@@ -803,7 +803,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertMissingProperty("consumerProguardFiles", defaultConfig.consumerProguardFiles())
     assertMissingProperty("proguardFiles", defaultConfig.proguardFiles())
     assertMissingProperty("resConfigs", defaultConfig.resConfigs())
-    assertNull("resValues", defaultConfig.resValues())
+    assertEmpty("resValues", defaultConfig.resValues())
 
     defaultConfig.consumerProguardFiles().addListValue().setValue("proguard-android.txt")
 
@@ -821,7 +821,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertMissingProperty("consumerProguardFiles", defaultConfig.consumerProguardFiles())
     assertMissingProperty("proguardFiles", defaultConfig.proguardFiles())
     assertMissingProperty("resConfigs", defaultConfig.resConfigs())
-    assertNull("resValues", defaultConfig.resValues())
+    assertEmpty("resValues", defaultConfig.resValues())
   }
 
   @Test
@@ -1117,7 +1117,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertMissingProperty("multiDexEnabled", defaultConfig.multiDexEnabled())
     assertMissingProperty("proguardFiles", defaultConfig.proguardFiles())
     assertMissingProperty("resConfigs", defaultConfig.resConfigs())
-    assertNull("resValues", defaultConfig.resValues())
+    assertEmpty("resValues", defaultConfig.resValues())
     assertMissingProperty("targetSdkVersion", defaultConfig.targetSdkVersion())
     assertMissingProperty("testApplicationId", defaultConfig.testApplicationId())
     assertMissingProperty("testFunctionalTest", defaultConfig.testFunctionalTest())
@@ -1140,7 +1140,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertMissingProperty("multiDexEnabled", defaultConfig.multiDexEnabled())
     assertMissingProperty("proguardFiles", defaultConfig.proguardFiles())
     assertMissingProperty("resConfigs", defaultConfig.resConfigs())
-    assertNull("resValues", defaultConfig.resValues())
+    assertEmpty("resValues", defaultConfig.resValues())
     assertMissingProperty("targetSdkVersion", defaultConfig.targetSdkVersion())
     assertMissingProperty("testApplicationId", defaultConfig.testApplicationId())
     assertMissingProperty("testFunctionalTest", defaultConfig.testFunctionalTest())
@@ -1165,7 +1165,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertMissingProperty("multiDexEnabled", defaultConfig.multiDexEnabled())
     assertMissingProperty("proguardFiles", defaultConfig.proguardFiles())
     assertMissingProperty("resConfigs", defaultConfig.resConfigs())
-    assertNull("resValues", defaultConfig.resValues())
+    assertEmpty("resValues", defaultConfig.resValues())
     assertMissingProperty("targetSdkVersion", defaultConfig.targetSdkVersion())
     assertMissingProperty("testApplicationId", defaultConfig.testApplicationId())
     assertMissingProperty("testFunctionalTest", defaultConfig.testFunctionalTest())
@@ -1528,7 +1528,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertMissingProperty("consumerProguardFiles", defaultConfig.consumerProguardFiles())
     assertMissingProperty("proguardFiles", defaultConfig.proguardFiles())
     assertMissingProperty("resConfigs", defaultConfig.resConfigs())
-    assertNull("resValues", defaultConfig.resValues())
+    assertEmpty("resValues", defaultConfig.resValues())
 
     defaultConfig.consumerProguardFiles().addListValue().setValue("proguard-android.txt")
     defaultConfig.proguardFiles().addListValue().setValue("proguard-android.txt")
