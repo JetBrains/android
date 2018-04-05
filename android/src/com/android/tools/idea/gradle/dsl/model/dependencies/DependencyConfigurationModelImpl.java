@@ -17,8 +17,7 @@ package com.android.tools.idea.gradle.dsl.model.dependencies;
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyConfigurationModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ExcludedDependencyModel;
-import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
+import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependencyConfigurationDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
@@ -57,13 +56,13 @@ public class DependencyConfigurationModelImpl implements DependencyConfiguration
 
   @Override
   @NotNull
-  public ResolvedPropertyModel force() {
-    return GradlePropertyModelBuilder.create(myConfigurationElement, FORCE).asMethod(true).buildResolved();
+  public GradleNullableValue<Boolean> force() {
+    return myConfigurationElement.getLiteralProperty(FORCE, Boolean.class);
   }
 
   @Override
   @NotNull
-  public ResolvedPropertyModel transitive() {
-    return GradlePropertyModelBuilder.create(myConfigurationElement, TRANSITIVE).asMethod(true).buildResolved();
+  public GradleNullableValue<Boolean> transitive() {
+    return myConfigurationElement.getLiteralProperty(TRANSITIVE, Boolean.class);
   }
 }

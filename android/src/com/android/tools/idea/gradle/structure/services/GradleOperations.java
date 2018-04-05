@@ -60,7 +60,7 @@ public class GradleOperations implements DeveloperServiceBuildSystemOperations {
       DependenciesModel dependenciesModel = buildModel.dependencies();
       if (dependenciesModel != null) {
         for (ArtifactDependencyModel dependency : dependenciesModel.artifacts()) {
-          String name = dependency.name().forceString();
+          String name = dependency.name().value();
           moduleDependencyNames.add(name);
         }
       }

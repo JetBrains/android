@@ -166,13 +166,11 @@ public class ArtifactDependencySpecImpl implements ArtifactDependencySpec {
 
   @NotNull
   public static ArtifactDependencySpec create(@NotNull ArtifactDependencyModel dependency) {
-    String name = dependency.name().toString();
-    assert name != null;
-    return new ArtifactDependencySpecImpl(name,
-                                          dependency.group().toString(),
-                                          dependency.version().toString(),
-                                          dependency.classifier().toString(),
-                                          dependency.extension().toString());
+    return new ArtifactDependencySpecImpl(dependency.name().value(),
+                                          dependency.group().value(),
+                                          dependency.version().value(),
+                                          dependency.classifier().value(),
+                                          dependency.extension().value());
   }
 
   public ArtifactDependencySpecImpl(@NotNull GoogleMavenArtifactId artifactId, @Nullable String version) {
