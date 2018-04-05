@@ -106,12 +106,19 @@ fun <PropertyT> ParsedValue<PropertyT>.getText(wellKnownValues: Map<PropertyT?, 
     when (dsl.mode) {
       DslMode.LITERAL -> if (value == null) "" else (wellKnownValues?.get(value) ?: value.toString())
       DslMode.REFERENCE -> "\$${dsl.text}"
-      DslMode.OTHER_UNPARSED_DSL_TEXT -> throw IllegalStateException()
+      DslMode.OTHER_UNPARSED_DSL_TEXT -> "\$\$${dsl.text}"
       DslMode.INTERPOLATED_STRING -> "\"${dsl.text}\""
     }
   }
   // TODO(b/72088462) Decide on how to handle unparsed DSL text.
   is ParsedValue.Set.Invalid -> "\$\$${dslText}"
+}
+
+
+fun <T : Any> makeParsedValue(parsed: T?, dslText: DslText?): ParsedValue<T> = when {
+  (parsed == null && dslText == null) -> ParsedValue.NotSet
+  parsed == null && dslText?.mode != DslMode.OTHER_UNPARSED_DSL_TEXT -> ParsedValue.Set.Invalid(dslText?.text.orEmpty(), "Invalid value")
+  else -> ParsedValue.Set.Parsed(value = parsed, dslText = dslText)
 }
 
 

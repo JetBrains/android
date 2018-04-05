@@ -99,14 +99,7 @@ class ModelMapPropertyImpl<in ModelT, ResolvedT, ParsedT, ValueT : Any>(
         }
         ?.toMap()
     val dslText: DslText? = parsedModel?.getParsedRawValue()
-    return when {
-      parsedGradleValue == null || (parsed == null && dslText == null) -> ParsedValue.NotSet
-      parsed == null -> ParsedValue.Set.Invalid(dslText?.text.orEmpty(), "Unknown")
-      else -> ParsedValue.Set.Parsed(
-        value = parsed,
-        dslText = dslText
-      )
-    }
+    return makeParsedValue(parsed, dslText)
   }
 
   override fun getResolvedValue(model: ModelT): ResolvedValue<Map<String, ValueT>> {
