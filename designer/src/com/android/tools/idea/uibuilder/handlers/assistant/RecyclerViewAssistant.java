@@ -57,124 +57,22 @@ import static com.android.SdkConstants.*;
 public class RecyclerViewAssistant extends JPanel {
   private static Logger LOG = Logger.getInstance(RecyclerViewAssistant.class);
 
-  @Language("XML")
-  private static String EMAIL_TEMPLATE =
-    "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-    "<android.support.constraint.ConstraintLayout\n" +
-    "    xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-    "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
-    "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
-    "    android:layout_width=\"match_parent\"\n" +
-    "    android:layout_height=\"wrap_content\">\n" +
-    "\n" +
-    "    <ImageView\n" +
-    "        android:id=\"@+id/imageView2\"\n" +
-    "        android:layout_width=\"50dp\"\n" +
-    "        android:layout_height=\"50dp\"\n" +
-    "        tools:src=\"@tools:sample/avatars\"\n" +
-    "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
-    "        android:layout_marginStart=\"8dp\"\n" +
-    "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
-    "        android:layout_marginTop=\"8dp\" />\n" +
-    "\n" +
-    "    <TextView\n" +
-    "        android:id=\"@+id/textView\"\n" +
-    "        android:layout_width=\"wrap_content\"\n" +
-    "        android:layout_height=\"wrap_content\"\n" +
-    "        tools:text=\"@tools:sample/full_names\"\n" +
-    "        android:textSize=\"20sp\"\n" +
-    "        android:textColor=\"@android:color/black\"\n" +
-    "        app:layout_constraintTop_toTopOf=\"@+id/imageView2\"\n" +
-    "        app:layout_constraintStart_toEndOf=\"@+id/imageView2\"\n" +
-    "        android:layout_marginStart=\"8dp\"\n" +
-    "        android:layout_marginBottom=\"8dp\"\n" +
-    "        app:layout_constraintBottom_toTopOf=\"@+id/textView2\" />\n" +
-    "\n" +
-    "    <TextView\n" +
-    "        android:id=\"@+id/textView2\"\n" +
-    "        android:layout_width=\"285dp\"\n" +
-    "        android:layout_height=\"20dp\"\n" +
-    "        tools:text=\"@tools:sample/lorem[4:10]\"\n" +
-    "        app:layout_constraintBottom_toBottomOf=\"@+id/imageView2\"\n" +
-    "        app:layout_constraintStart_toEndOf=\"@+id/imageView2\"\n" +
-    "        android:layout_marginStart=\"8dp\"\n" +
-    "        app:layout_constraintEnd_toEndOf=\"parent\"\n" +
-    "        android:layout_marginEnd=\"8dp\"\n" +
-    "        app:layout_constraintHorizontal_bias=\"0.050\" />\n" +
-    "\n" +
-    "    <TextView\n" +
-    "        android:id=\"@+id/textView3\"\n" +
-    "        android:layout_width=\"wrap_content\"\n" +
-    "        android:layout_height=\"wrap_content\"\n" +
-    "        tools:text=\"@tools:sample/date/hhmm\"\n" +
-    "        app:layout_constraintTop_toTopOf=\"@+id/imageView2\"\n" +
-    "        app:layout_constraintEnd_toEndOf=\"parent\"\n" +
-    "        android:layout_marginEnd=\"8dp\" />\n" +
-    "</android.support.constraint.ConstraintLayout>";
-
-  @Language("XML")
-  private static String ONE_LINE_TEMPLATE =
-    "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-    "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-    "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
-    "    android:orientation=\"vertical\"\n" +
-    "    android:padding=\"8dp\"\n" +
-    "    android:layout_width=\"match_parent\"\n" +
-    "    android:layout_height=\"wrap_content\">\n" +
-    "    <TextView\n" +
-    "        android:layout_width=\"wrap_content\"\n" +
-    "        android:layout_height=\"wrap_content\"\n" +
-    "        tools:text=\"@tools:sample/lorem\" />\n" +
-    "</LinearLayout>";
-
-  @Language("XML")
-  private static String TWO_LINES_TEMPLATE =
-    "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-    "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-    "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
-    "    android:orientation=\"vertical\"\n" +
-    "    android:padding=\"8dp\"\n" +
-    "    android:layout_width=\"match_parent\"\n" +
-    "    android:layout_height=\"wrap_content\">\n" +
-    "    <TextView\n" +
-    "        android:layout_width=\"wrap_content\"\n" +
-    "        android:layout_height=\"wrap_content\"\n" +
-    "        tools:text=\"@tools:sample/lorem\" />\n" +
-    "    <TextView\n" +
-    "        android:layout_width=\"wrap_content\"\n" +
-    "        android:layout_height=\"wrap_content\"\n" +
-    "        tools:text=\"@tools:sample/lorem\" />\n" +
-    "</LinearLayout>";
-
-  @Language("XML")
-  private static String THREE_LINES_TEMPLATE =
-    "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-    "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-    "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
-    "    android:orientation=\"vertical\"\n" +
-    "    android:padding=\"8dp\"\n" +
-    "    android:layout_width=\"match_parent\"\n" +
-    "    android:layout_height=\"wrap_content\">\n" +
-    "    <TextView\n" +
-    "        android:layout_width=\"wrap_content\"\n" +
-    "        android:layout_height=\"wrap_content\"\n" +
-    "        tools:text=\"@tools:sample/lorem\" />\n" +
-    "    <TextView\n" +
-    "        android:layout_width=\"wrap_content\"\n" +
-    "        android:layout_height=\"wrap_content\"\n" +
-    "        tools:text=\"@tools:sample/lorem\" />\n" +
-    "    <TextView\n" +
-    "        android:layout_width=\"wrap_content\"\n" +
-    "        android:layout_height=\"wrap_content\"\n" +
-    "        tools:text=\"@tools:sample/lorem\" />\n" +
-    "</LinearLayout>";
-
   private static final ImmutableList<Template> TEMPLATES = ImmutableList.of(
     Template.NONE_TEMPLATE,
-    new Template("e-mail client", EMAIL_TEMPLATE),
-    new Template("One line", ONE_LINE_TEMPLATE),
-    new Template("Two lines", TWO_LINES_TEMPLATE),
-    new Template("Three lines", THREE_LINES_TEMPLATE));
+    Template.fromStream("e-mail client",
+                        RecyclerViewAssistant.class.getResourceAsStream("templates/email.xml")),
+    Template.fromStream("One line",
+                        RecyclerViewAssistant.class.getResourceAsStream("templates/one_line.xml")),
+    Template.fromStream("One line w/ avatar",
+                        RecyclerViewAssistant.class.getResourceAsStream("templates/one_line_avatar.xml")),
+    Template.fromStream("Two lines",
+                        RecyclerViewAssistant.class.getResourceAsStream("templates/two_lines.xml")),
+    Template.fromStream("Two lines w/ avatar",
+                        RecyclerViewAssistant.class.getResourceAsStream("templates/two_lines_avatar.xml")),
+    Template.fromStream("Three lines",
+                        RecyclerViewAssistant.class.getResourceAsStream("templates/three_lines.xml")),
+    Template.fromStream("Three lines w/ avatar",
+                        RecyclerViewAssistant.class.getResourceAsStream("templates/three_lines_avatar.xml")));
 
   private final NlComponent myComponent;
   private final String myOriginalListItemValue;
