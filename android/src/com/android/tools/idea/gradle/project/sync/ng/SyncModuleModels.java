@@ -16,7 +16,9 @@
 package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.builder.model.AndroidProject;
+import com.android.builder.model.ModelBuilderParameter;
 import com.android.builder.model.NativeAndroidProject;
+import com.android.builder.model.Variant;
 import com.android.java.model.ArtifactModel;
 import com.android.java.model.JavaProject;
 import org.gradle.tooling.BuildController;
@@ -29,6 +31,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
+
 public class SyncModuleModels implements GradleModuleModels {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 2L;
@@ -36,6 +40,7 @@ public class SyncModuleModels implements GradleModuleModels {
   @NotNull private final BuildIdentifier myBuildId;
   @NotNull private final Set<Class<?>> myExtraAndroidModelTypes;
   @NotNull private final Set<Class<?>> myExtraJavaModelTypes;
+  @NotNull private final SyncActionOptions myOptions;
 
   @NotNull private final Map<Class, Object> myModelsByType = new HashMap<>();
 
@@ -44,16 +49,18 @@ public class SyncModuleModels implements GradleModuleModels {
   SyncModuleModels(@NotNull GradleProject gradleProject,
                    @NotNull BuildIdentifier buildId,
                    @NotNull Set<Class<?>> extraAndroidModelTypes,
-                   @NotNull Set<Class<?>> extraJavaModelTypes) {
+                   @NotNull Set<Class<?>> extraJavaModelTypes,
+                   @NotNull SyncActionOptions options) {
     myBuildId = buildId;
     myExtraAndroidModelTypes = extraAndroidModelTypes;
     myExtraJavaModelTypes = extraJavaModelTypes;
     myModuleName = gradleProject.getName();
+    myOptions = options;
   }
 
   void populate(@NotNull GradleProject gradleProject, @NotNull BuildController controller) {
     myModelsByType.put(GradleProject.class, gradleProject);
-    AndroidProject androidProject = findAndAddModel(gradleProject, controller, AndroidProject.class);
+    AndroidProject androidProject = findAndAddAndroidProject(gradleProject, controller);
     if (androidProject != null) {
       // "Native" projects also both AndroidProject and AndroidNativeProject
       findAndAddModel(gradleProject, controller, NativeAndroidProject.class);
@@ -72,6 +79,40 @@ public class SyncModuleModels implements GradleModuleModels {
     }
     // Jar/Aar module.
     findAndAddModel(gradleProject, controller, ArtifactModel.class);
+  }
+
+  @Nullable
+  private AndroidProject findAndAddAndroidProject(@NotNull GradleProject gradleProject, @NotNull BuildController controller) {
+    if (myOptions.isSingleVariantSyncEnabled()) {
+      SelectedVariants variants = myOptions.getSelectedVariants();
+      if (variants.size() == 0) {
+        // syncing project for the first time. We need to pick the selected variant.
+        throw new UnsupportedOperationException(); // TODO add support for automatically picking a variant
+      }
+      String moduleId = createUniqueModuleId(gradleProject.getProjectDirectory(), gradleProject.getPath());
+      String selectedVariant = variants.getSelectedVariant(moduleId);
+      if (selectedVariant != null) {
+        AndroidProject androidProject = controller.findModel(gradleProject, AndroidProject.class, ModelBuilderParameter.class,
+                                                             parameter -> parameter.setShouldBuildVariant(false));
+        if (androidProject != null) {
+          myModelsByType.put(AndroidProject.class, androidProject);
+          Variant variant = controller.findModel(gradleProject, Variant.class, ModelBuilderParameter.class,
+                                                 parameter -> parameter.setVariantName(selectedVariant));
+          myModelsByType.put(Variant.class, variant);
+        }
+        return androidProject;
+      }
+    }
+    return findAndAddModel(gradleProject, controller, AndroidProject.class);
+  }
+
+  @Nullable
+  private <T> T findAndAddModel(@NotNull GradleProject gradleProject, @NotNull BuildController controller, @NotNull Class<T> modelType) {
+    T model = controller.findModel(gradleProject, modelType);
+    if (model != null) {
+      myModelsByType.put(modelType, model);
+    }
+    return model;
   }
 
   @Override
@@ -94,15 +135,6 @@ public class SyncModuleModels implements GradleModuleModels {
   @NotNull
   public BuildIdentifier getBuildId() {
     return myBuildId;
-  }
-
-  @Nullable
-  private <T> T findAndAddModel(@NotNull GradleProject gradleProject, @NotNull BuildController controller, @NotNull Class<T> modelType) {
-    T model = controller.findModel(gradleProject, modelType);
-    if (model != null) {
-      myModelsByType.put(modelType, model);
-    }
-    return model;
   }
 
   @Override
