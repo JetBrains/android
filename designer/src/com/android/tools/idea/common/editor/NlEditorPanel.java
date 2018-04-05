@@ -23,7 +23,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.naveditor.property.NavPropertyPanelDefinition;
-import com.android.tools.idea.naveditor.structure.DestinationList;
+import com.android.tools.idea.naveditor.structure.StructurePanel;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -172,7 +172,7 @@ public class NlEditorPanel extends JPanel implements Disposable {
     // TODO: factor out tool creation
     if (NlLayoutType.typeOf(model.getFile()) == NlLayoutType.NAV) {
       tools.add(new NavPropertyPanelDefinition(model.getFacet(), Side.RIGHT, Split.TOP, AutoHide.DOCKED));
-      tools.add(new DestinationList.DestinationListDefinition());
+      tools.add(new StructurePanel.StructurePanelDefinition());
     }
     else {
       tools.add(new PaletteDefinition(myProject, Side.LEFT, Split.TOP, AutoHide.DOCKED));
