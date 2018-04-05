@@ -21,7 +21,6 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.ScreenshotsDuringTest;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.EditConfigurationsDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.ui.JBPopupMenu;
 import org.junit.Rule;
@@ -70,12 +69,8 @@ public class WatchpointTest extends DebuggerTestBase {
     // Setup the expected patterns to match the variable values displayed in Debug windows's 'Variables' tab.
     String[] expectedPattern = {variableToSearchPattern("write", "int", "5")};
 
-    ideFrame.debugApp(DEBUG_CONFIG_NAME)
-        .selectDevice(emulator.getDefaultAvdName())
-        .clickOk();
-
-    DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(ideFrame);
-    waitForSessionStart(debugToolWindowFixture);
+    DebugToolWindowFixture debugToolWindowFixture =
+      DebuggerTestUtil.debugAppAndWaitForSessionToStart(ideFrame, guiTest, DEBUG_CONFIG_NAME, emulator.getDefaultAvdName());
     checkAppIsPaused(ideFrame, expectedPattern);
 
     DebugToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);

@@ -21,7 +21,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.EditConfigurationsDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import org.fest.swing.timing.Wait;
@@ -76,6 +75,9 @@ public class JavaDebuggerTest extends DebuggerTestBase {
     ideFrameFixture.debugApp(DEBUG_CONFIG_NAME)
         .selectDevice(emulator.getDefaultAvdName())
         .clickOk();
+
+    // Wait for background tasks to finish before requesting Debug Tool Window. Otherwise Debug Tool Window won't activate.
+    guiTest.waitForBackgroundTasks();
 
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(ideFrameFixture);
     waitForJavaDebuggerSessionStart(debugToolWindowFixture);

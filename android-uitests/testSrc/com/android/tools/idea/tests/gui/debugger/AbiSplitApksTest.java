@@ -22,15 +22,12 @@ import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
 import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.timing.Wait;
-import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
@@ -149,14 +146,7 @@ public class AbiSplitApksTest extends DebuggerTestBase {
       throw new RuntimeException("Not supported ABI type provided: " + abiType);
     }
 
-    ideFrame.debugApp(DEBUG_CONFIG_NAME)
-      .selectDevice(avdName)
-      .clickOk();
-
-    // Wait for session to start: For x64, it takes longer time to wait for emulator come online.
-    ExecutionToolWindowFixture.ContentFixture contentFixture = new DebugToolWindowFixture(ideFrame)
-      .findContent(DEBUG_CONFIG_NAME);
-    contentFixture.waitForOutput(new PatternTextMatcher(DEBUGGER_ATTACHED_PATTERN), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
+    DebuggerTestUtil.debugAppAndWaitForSessionToStart(ideFrame, guiTest, DEBUG_CONFIG_NAME, avdName);
 
     ideFrame.stopApp();
     ProjectViewFixture.PaneFixture projectPane = ideFrame.getProjectView().selectProjectPane();
