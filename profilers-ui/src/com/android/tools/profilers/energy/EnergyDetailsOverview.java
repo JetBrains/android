@@ -67,32 +67,22 @@ final class EnergyDetailsOverview extends JPanel {
     // TODO(b/74204071): Clean up these streams once we know the first item in the duration will always be the initiating event
     switch (duration.getKind()) {
       case WAKE_LOCK:
-        EnergyEvent firstAcquire = duration.getEventList().stream().filter(e -> e.hasWakeLockAcquired()).findFirst().orElse(null);
-        if (firstAcquire != null) {
-          html.renderWakeLockAcquired(firstAcquire.getWakeLockAcquired());
-        }
+        duration.getEventList().stream().filter(e -> e.hasWakeLockAcquired()).findFirst()
+                .ifPresent(event -> html.renderWakeLockAcquired(event.getWakeLockAcquired()));
         break;
       case ALARM:
-        EnergyEvent firstAlarmSet = duration.getEventList().stream().filter(e -> e.hasAlarmSet()).findFirst().orElse(null);
-        if (firstAlarmSet != null) {
-          html.renderAlarmSet(firstAlarmSet.getAlarmSet());
-        }
+        duration.getEventList().stream().filter(e -> e.hasAlarmSet()).findFirst()
+                .ifPresent(event -> html.renderAlarmSet(event.getAlarmSet()));
         break;
       case JOB:
-        EnergyEvent firstScheduled = duration.getEventList().stream().filter(e -> e.hasJobScheduled()).findFirst().orElse(null);
-        if (firstScheduled != null) {
-          html.renderJobScheduled(firstScheduled.getJobScheduled());
-        }
-        EnergyEvent firstFinished = duration.getEventList().stream().filter(e -> e.hasJobFinished()).findFirst().orElse(null);
-        if (firstFinished != null) {
-          html.renderJobFinished(firstFinished.getJobFinished());
-        }
+        duration.getEventList().stream().filter(e -> e.hasJobScheduled()).findFirst()
+                .ifPresent(event -> html.renderJobScheduled(event.getJobScheduled()));
+        duration.getEventList().stream().filter(e -> e.hasJobFinished()).findFirst()
+                .ifPresent(event -> html.renderJobFinished(event.getJobFinished()));
         break;
       case LOCATION:
-        EnergyEvent firstRequested = duration.getEventList().stream().filter(e -> e.hasLocationUpdateRequested()).findFirst().orElse(null);
-        if (firstRequested != null) {
-          html.renderLocationUpdateRequested(firstRequested.getLocationUpdateRequested());
-        }
+        duration.getEventList().stream().filter(e -> e.hasLocationUpdateRequested()).findFirst()
+                .ifPresent(event -> html.renderLocationUpdateRequested(event.getLocationUpdateRequested()));
         break;
       default:
         getLogger().warn("Unsupported overview " + duration.getKind().name());
