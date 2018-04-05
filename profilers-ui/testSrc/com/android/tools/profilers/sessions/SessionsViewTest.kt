@@ -294,14 +294,17 @@ class SessionsViewTest {
     myProfilerService.addDevice(device1)
     myProfilerService.addProcess(device1, process1)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    val session = myProfilers.session
     assertThat(stopProfilingButton.isEnabled).isTrue()
     assertThat(mySessionsManager.profilingSession).isNotEqualTo(Common.Session.getDefaultInstance())
+    assertThat(mySessionsManager.profilingSession).isEqualTo(session)
 
     stopProfilingButton.doClick()
     assertThat(stopProfilingButton.isEnabled).isFalse()
     assertThat(myProfilers.device).isNull()
     assertThat(myProfilers.process).isNull()
     assertThat(mySessionsManager.profilingSession).isEqualTo(Common.Session.getDefaultInstance())
+    assertThat(myProfilers.session.sessionId).isEqualTo(session.sessionId)
   }
 
   @Test

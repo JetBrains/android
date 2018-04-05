@@ -406,13 +406,22 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       myPreferredProcessName = null;
     }
 
-    if (!Objects.equals(process, myProcess)) {
+    // Even if the process stays as null, the selected session could be changed.
+    // e.g. When the user stops a profiling session (session remains selected, but device + process are set to null). Then, when the user
+    // switches to a different device without processes (new process == null), SessionsManager need to reset the session to default.
+    // TODO(b/77649021): This is an edge case only for pre-sessions workflow.
+    if (process == null || !Objects.equals(process, myProcess)) {
       // First make sure to end the previous session.
       mySessionsManager.endCurrentSession();
 
       myProcess = process;
       changed(ProfilerAspect.PROCESSES);
-      mySessionsManager.beginSession(myDevice, myProcess);
+
+      // In the case the device becomes null, keeps the previously stopped session.
+      // This happens when the user explicitly stops an ongoing session or the profiler.
+      if (myDevice != null) {
+        mySessionsManager.beginSession(myDevice, myProcess);
+      }
     }
   }
 

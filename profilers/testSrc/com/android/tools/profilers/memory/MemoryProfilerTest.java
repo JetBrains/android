@@ -133,7 +133,9 @@ public class MemoryProfilerTest {
       .build();
     myMemoryService.setMemoryData(memoryData);
     myStudioProfiler.stop();
-    Truth.assertThat(myStudioProfiler.isAgentAttached()).isFalse();
+    // Agent is still determined to be attached for the stopped session.
+    Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
+    // Allocation tracking should have been called to stop.
     Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(3);
   }
 

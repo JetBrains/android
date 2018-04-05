@@ -808,8 +808,40 @@ public final class StudioProfilersTest {
     assertThat(myGrpcServer.getProfiledProcessCount()).isEqualTo(0);
     assertThat(profilers.getProcess()).isNull();
     assertThat(profilers.getDevice()).isNull();
-    assertThat(profilers.getStageClass()).isSameAs(NullMonitorStage.class);
     assertThat(timer.isRunning()).isFalse();
+  }
+
+  @Test
+  public void testNullDeviceKeepsPreviousSession() throws Exception {
+    FakeTimer timer = new FakeTimer();
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
+    Common.Device device1 = createDevice(AndroidVersion.VersionCodes.BASE, "FakeDevice1", Common.Device.State.ONLINE);
+    Common.Process process = createProcess(device1.getDeviceId(), 20, "FakeProcess", Common.Process.State.ALIVE);
+    Common.Device device2 = createDevice(AndroidVersion.VersionCodes.BASE, "FakeDevice2", Common.Device.State.ONLINE);
+    myProfilerService.addDevice(device1);
+    myProfilerService.addProcess(device1, process);
+    myProfilerService.addDevice(device2);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    Common.Session session = profilers.getSession();
+    assertThat(profilers.getDevice()).isEqualTo(device1);
+    assertThat(profilers.getProcess()).isEqualTo(process);
+    assertThat(session).isNotEqualTo(Common.Session.getDefaultInstance());
+    assertThat(profilers.getStageClass()).isEqualTo(StudioMonitorStage.class);
+
+    // Setting device to null should maintain the current session.
+    profilers.setDevice(null);
+    assertThat(profilers.getDevice()).isEqualTo(null);
+    assertThat(profilers.getProcess()).isEqualTo(null);
+    assertThat(profilers.getSession().getSessionId()).isEqualTo(session.getSessionId());
+    assertThat(profilers.getStageClass()).isEqualTo(StudioMonitorStage.class);
+
+    // Setting the device without processes should go to the NullMonitorStage.
+    profilers.setDevice(device2);
+    assertThat(profilers.getDevice()).isEqualTo(device2);
+    assertThat(profilers.getProcess()).isEqualTo(null);
+    assertThat(profilers.getSession()).isEqualTo(Common.Session.getDefaultInstance());
+    assertThat(profilers.getStageClass()).isEqualTo(NullMonitorStage.class);
   }
 
   @Test

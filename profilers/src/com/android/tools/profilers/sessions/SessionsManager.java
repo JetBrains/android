@@ -189,18 +189,18 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   /**
    * Request to begin a new session using the input device and process.
    */
-  public void beginSession(@Nullable Common.Device device, @Nullable Common.Process process) {
+  public void beginSession(@NotNull Common.Device device, @Nullable Common.Process process) {
     // We currently don't support more than one profiling session at a time.
     assert Common.Session.getDefaultInstance().equals(myProfilingSession);
 
-    if (device == null || process == null) {
+    // No process is specified, starts a default empty session.
+    if (process == null) {
       setProfilingSession(Common.Session.getDefaultInstance());
       setSession(myProfilingSession);
       return;
     }
 
-    // TODO this part is currently only for backward compatibility
-    // Once we switched to the new device+process dropdown (b/67509466), we should not see offline device and process anymore.
+    // TODO(b/77649021): This part is currently only for backward compatibility.
     if (device.getState() != Common.Device.State.ONLINE || process.getState() != Common.Process.State.ALIVE) {
       return;
     }
