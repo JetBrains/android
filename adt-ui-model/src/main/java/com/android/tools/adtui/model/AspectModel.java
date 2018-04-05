@@ -27,7 +27,7 @@ public class AspectModel<T extends Enum<T>> extends AspectObserver {
   private Collection<Dependency<T>> myDependencies = Collections.newSetFromMap(new WeakHashMap<Dependency<T>, Boolean>());
 
   public void changed(T aspect) {
-    ArrayList<Dependency> deps = new ArrayList<>(myDependencies.size());
+    ArrayList<Dependency<T>> deps = new ArrayList<>(myDependencies.size());
     deps.addAll(myDependencies);
     deps.forEach(dependency -> dependency.changed(aspect));
   }
@@ -37,6 +37,7 @@ public class AspectModel<T extends Enum<T>> extends AspectObserver {
    * When an {@link AspectObserver} object is collected, all its {@link Dependency}s are collected,
    * and are removed from the {@link AspectModel}
    */
+  @NotNull
   public Dependency<T> addDependency(@NotNull AspectObserver observer) {
     Dependency<T> dependency = new Dependency<>();
     observer.addDependency(dependency);
@@ -71,6 +72,7 @@ public class AspectModel<T extends Enum<T>> extends AspectObserver {
     private Dependency() {
     }
 
+    @NotNull
     public Dependency<U> onChange(U aspect, Runnable runnable) {
       myListeners.put(aspect, runnable);
       return this;
