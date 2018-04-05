@@ -205,7 +205,7 @@ public class GroovyDslParser implements GradleDslParser {
   }
 
   @Override
-  @NotNull
+  @Nullable
   public PsiElement convertToExcludesBlock(@NotNull List<ArtifactDependencySpec> excludes) {
       GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(myDslFile.getProject());
       GrClosableBlock block = factory.createClosureFromText("{\n}");

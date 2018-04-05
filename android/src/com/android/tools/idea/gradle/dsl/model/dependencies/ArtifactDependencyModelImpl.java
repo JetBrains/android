@@ -174,6 +174,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
 
     if (!excludes.isEmpty()) {
       PsiElement configBlock = parent.getDslFile().getParser().convertToExcludesBlock(excludes);
+      assert configBlock != null;
       literal.setConfigBlock(configBlock);
     }
 
