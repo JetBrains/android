@@ -24,7 +24,7 @@ public class ToggleDebugRender extends ToggleAction {
   private final TimelineComponent myTimelineComponent;
 
   public ToggleDebugRender(TimelineComponent timelineComponent) {
-    super("Enable debug renderer", "Enables debug rendering", AllIcons.General.Debug);
+    super("Enable debug renderer", "Enables debug rendering", AllIcons.Actions.StartDebugger);
     myTimelineComponent = timelineComponent;
   }
 
