@@ -132,6 +132,12 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
     return new JListFixture(robot(), waitUntilFound(robot(), target(), Matchers.byName(JList.class, appNamespaceLabel)));
   }
 
+  @NotNull
+  public ChooseResourceDialogFixture expandList(@NotNull String appNamespaceLabel) {
+    new JLabelFixture(robot(), waitUntilShowing(robot(), target(), Matchers.byText(JLabel.class, appNamespaceLabel))).click();
+    return this;
+  }
+
   public void clickOK() {
     findAndClickOkButton(this);
   }
