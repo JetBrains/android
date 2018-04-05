@@ -1395,6 +1395,25 @@ public class CpuProfilerStageTest extends AspectObserver {
     }
   }
 
+  @Test
+  public void captureAlwaysSelectedInImportTraceMode() {
+    StudioProfilers profilers = myStage.getStudioProfilers();
+    myServices.enableImportTrace(true);
+    myServices.enableSessionsView(true);
+    File traceFile = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
+    CpuProfilerStage stage = new CpuProfilerStage(profilers, traceFile);
+    // Import trace mode is enabled successfully
+    assertThat(stage.isImportTraceMode()).isTrue();
+
+    CpuCapture capture = stage.getCapture();
+    assertThat(myStage.getStudioProfilers().getTimeline().getSelectionRange().getMin()).isEqualTo(capture.getRange().getMin());
+    assertThat(myStage.getStudioProfilers().getTimeline().getSelectionRange().getMax()).isEqualTo(capture.getRange().getMax());
+    // Pretend to clear the selection from UI.
+    myStage.getSelectionModel().clear();
+    assertThat(myStage.getStudioProfilers().getTimeline().getSelectionRange().getMin()).isEqualTo(capture.getRange().getMin());
+    assertThat(myStage.getStudioProfilers().getTimeline().getSelectionRange().getMax()).isEqualTo(capture.getRange().getMax());
+  }
+
   private void addAndSetDevice(int featureLevel, String serial) {
     int deviceId = serial.hashCode();
     Common.Device device = Common.Device.newBuilder()
