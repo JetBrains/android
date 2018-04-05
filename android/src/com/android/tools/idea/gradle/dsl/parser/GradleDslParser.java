@@ -72,7 +72,7 @@ public interface GradleDslParser {
   /**
    * Builds an excludes block for a list of {@link ArtifactDependencySpec}s
    */
-  @NotNull
+  @Nullable
   PsiElement convertToExcludesBlock(@NotNull List<ArtifactDependencySpec> excludes);
 
   /**
@@ -127,6 +127,7 @@ public interface GradleDslParser {
     }
 
     @Override
+    @Nullable
     public PsiElement convertToExcludesBlock(@NotNull List<ArtifactDependencySpec> specs) { return null; }
 
     @Override
