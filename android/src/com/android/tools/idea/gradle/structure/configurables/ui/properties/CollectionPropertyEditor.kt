@@ -98,32 +98,36 @@ abstract class CollectionPropertyEditor<ModelT, out ModelPropertyT : ModelCollec
   inner class MyCellEditor : AbstractTableCellEditor() {
     private var currentRow: Int = -1
     private var lastEditor: ModelPropertyEditor<Unit, ValueT>? = null
+    private var lastValue: ParsedValue<ValueT>? = null
     private val bindingProperty = BindingProperty()
 
     override fun getTableCellEditorComponent(table: JTable?, value: Any?, isSelected: Boolean, row: Int, column: Int): Component? {
       currentRow = row
       val editor = this@CollectionPropertyEditor.editor(Unit, bindingProperty, variablesProvider)
       lastEditor = editor
+      lastValue = null
       return editor.component
     }
 
     override fun stopCellEditing(): Boolean {
-      return super.stopCellEditing().also {
-        if (it) {
-          lastEditor?.updateProperty()
-          currentRow = -1
-          lastEditor?.dispose()
-        }
-      }
+      lastEditor?.updateProperty()
+      lastValue = bindingProperty.getParsedValue(Unit)
+      currentRow = -1
+      lastEditor?.dispose()
+      lastEditor = null
+      fireEditingStopped()
+      return true
     }
 
     override fun cancelCellEditing() {
+      lastValue = lastEditor?.getValue()
       currentRow = -1
       lastEditor?.dispose()
+      lastEditor = null
       super.cancelCellEditing()
     }
 
-    override fun getCellEditorValue(): Any = lastEditor!!.getValue().toTableModelValue()
+    override fun getCellEditorValue(): Any = (lastValue ?: lastEditor!!.getValue()).toTableModelValue()
 
     inner class BindingProperty : ModelSimpleProperty<Unit, ValueT> {
       override val description: String = "Binding Property"
