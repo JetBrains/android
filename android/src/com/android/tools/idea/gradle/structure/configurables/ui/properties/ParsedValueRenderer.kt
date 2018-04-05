@@ -107,8 +107,13 @@ fun <PropertyT : Any> buildKnownValueRenderers(
     result.addAll(knownValues.map {
       it.value to object : ValueRenderer {
         override fun renderTo(textRenderer: TextRenderer) {
-          textRenderer.append(it.value?.let { it.toString() + " " } ?: "", regularAttributes)
-          textRenderer.append("(${it.description})", commentAttributes)
+          if (it.description != null) {
+            textRenderer.append(it.value?.let { it.toString() + " " } ?: "", regularAttributes)
+            textRenderer.append("(${it.description})", commentAttributes)
+          }
+          else {
+            textRenderer.append(it.value?.toString() ?: "", regularAttributes)
+          }
         }
       }
     })

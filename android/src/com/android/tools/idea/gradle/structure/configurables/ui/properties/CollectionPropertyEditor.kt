@@ -48,7 +48,6 @@ abstract class CollectionPropertyEditor<ModelT, out ModelPropertyT : ModelCollec
   val statusComponent: JComponent? = null
   private var beingLoaded = false
   protected var tableModel: DefaultTableModel? = null ; private set
-  protected val valueToText: Map<ValueT?, String> = buildValueToTextMap()
   private val knownValueRenderers: Map<ValueT?, ValueRenderer> = buildKnownValueRenderers(property.getKnownValues(model), null)
 
   protected val table: JBTable = JBTable()
@@ -85,8 +84,6 @@ abstract class CollectionPropertyEditor<ModelT, out ModelPropertyT : ModelCollec
   protected abstract fun addItem()
   protected abstract fun removeItem()
 
-  private fun buildValueToTextMap() = property.getKnownValues(model)?.associate { it.value to it.description } ?: mapOf()
-
   private fun calculateMinRowHeight() = editor(Unit, SimplePropertyStub(), null).component.minimumSize.height
 
   protected fun ParsedValue<ValueT>.toTableModelValue() = Value(this)
@@ -96,7 +93,7 @@ abstract class CollectionPropertyEditor<ModelT, out ModelPropertyT : ModelCollec
    * in [MyCellEditor].
    */
   protected inner class Value(val value: ParsedValue<ValueT>) {
-    override fun toString(): String = value.getText(valueToText)
+    override fun toString(): String = value.getText()
   }
 
   inner class MyCellRenderer: TableCellRenderer {
