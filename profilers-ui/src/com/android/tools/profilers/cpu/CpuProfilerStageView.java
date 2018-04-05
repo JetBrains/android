@@ -48,6 +48,7 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
@@ -65,7 +66,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import java.awt.*;
@@ -277,7 +277,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     myCaptureStatus = new JLabel("");
     myCaptureStatus.setFont(AdtUiUtils.DEFAULT_FONT.deriveFont(12f));
-    myCaptureStatus.setBorder(new EmptyBorder(0, 5, 0, 0));
+    myCaptureStatus.setBorder(JBUI.Borders.emptyLeft(5));
     myCaptureStatus.setForeground(ProfilerColors.CPU_CAPTURE_STATUS);
 
     myCaptureViewLoading = getProfilersView().getIdeProfilerComponents().createLoadingPanel(-1);
@@ -604,6 +604,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     lineChart.setTopPadding(Y_AXIS_TOP_MARGIN);
     lineChart.setFillEndGap(true);
 
+    @SuppressWarnings("UseJBColor")
     DurationDataRenderer<CpuTraceInfo> traceRenderer =
       new DurationDataRenderer.Builder<>(getStage().getTraceDurations(), ProfilerColors.CPU_CAPTURE_EVENT)
         .setDurationBg(CPU_CAPTURE_BACKGROUND)
@@ -622,6 +623,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     overlay.addDurationDataRenderer(traceRenderer);
     lineChart.addCustomRenderer(traceRenderer);
 
+    @SuppressWarnings("UseJBColor")
     DurationDataRenderer<DefaultDurationData> inProgressTraceRenderer =
       new DurationDataRenderer.Builder<>(getStage().getInProgressTraceDuration(), ProfilerColors.CPU_CAPTURE_EVENT)
         .setDurationBg(CPU_CAPTURE_BACKGROUND)
@@ -784,7 +786,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     StringBuilder traceName = new StringBuilder("cpu-");
     CpuCapture capture = myStage.getCapture();
     if (capture != null) {
-      String normalizedTraceType = traceInfo.getProfilerType().name().toLowerCase();
+      String normalizedTraceType = StringUtil.toLowerCase(traceInfo.getProfilerType().name());
       traceName.append(normalizedTraceType);
       traceName.append("-");
     }
@@ -859,7 +861,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
                                                   boolean hasFocus) {
       if (value == CpuProfilerStage.CONFIG_SEPARATOR_ENTRY) {
         TitledSeparator separator = new TitledSeparator("");
-        separator.setBorder(new EmptyBorder(0, TitledSeparator.SEPARATOR_LEFT_INSET * -1, 0, TitledSeparator.SEPARATOR_RIGHT_INSET * -1));
+        separator
+          .setBorder(JBUI.Borders.empty(0, TitledSeparator.SEPARATOR_LEFT_INSET * -1, 0, TitledSeparator.SEPARATOR_RIGHT_INSET * -1));
         return separator;
       }
       return super.getListCellRendererComponent(list, value, index, selected, hasFocus);
@@ -916,9 +919,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     if (info.getInitiationType().equals(TraceInitiationType.INITIATED_BY_API)) {
       automatedTextOrEmpty = "(automated) ";
     }
-    String label = String.format("%s%s - %s", automatedTextOrEmpty, TimeAxisFormatter.DEFAULT.getClockFormattedString(min),
-                                 TimeAxisFormatter.DEFAULT.getClockFormattedString(max));
-    return label;
+    return String.format("%s%s - %s", automatedTextOrEmpty, TimeAxisFormatter.DEFAULT.getClockFormattedString(min),
+                         TimeAxisFormatter.DEFAULT.getClockFormattedString(max));
   }
 
   private void updateCaptureState() {
