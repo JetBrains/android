@@ -91,9 +91,8 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
   }
 
   @NotNull
-  // TODO: namespaces
   public static DynamicResourceValueRepository create(@NotNull AndroidFacet facet) {
-    return new DynamicResourceValueRepository(facet, ResourceNamespace.TODO);
+    return new DynamicResourceValueRepository(facet, ResourceRepositoryManager.getOrCreateInstance(facet).getNamespace());
   }
 
   @NotNull
