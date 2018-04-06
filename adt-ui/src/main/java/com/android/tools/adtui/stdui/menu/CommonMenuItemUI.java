@@ -40,7 +40,6 @@ public class CommonMenuItemUI extends BasicMenuItemUI {
   @Override
   public void installUI(JComponent component) {
     super.installUI(component);
-    component.setOpaque(false);
     Border border = component.getBorder();
     if (border == null || border instanceof UIResource) {
       component
@@ -48,6 +47,10 @@ public class CommonMenuItemUI extends BasicMenuItemUI {
                                                                         (int)StandardDimensions.INSTANCE.getMENU_LEFT_PADDING(),
                                                                         0,
                                                                         (int)StandardDimensions.INSTANCE.getMENU_RIGHT_PADDING())));
+    }
+    Color bgColor = component.getBackground();
+    if (bgColor == null || bgColor instanceof UIResource) {
+      component.setBackground(new ColorUIResource(StandardColors.MENU_BACKGROUND_COLOR));
     }
   }
 
