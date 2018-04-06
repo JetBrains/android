@@ -217,7 +217,7 @@ public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspe
   private Component findPropertyComponent(@NotNull String name, @Nullable Icon icon) {
     try {
       JBLabel label = waitUntilFound(robot(), myPanel,
-                                     Matchers.byText(JBLabel.class, "<html>" + name + "</html>").and(Matchers.byIcon(JBLabel.class, icon)));
+                                     Matchers.byText(JBLabel.class, "<html><nobr>" + name + "</nobr></html>").and(Matchers.byIcon(JBLabel.class, icon)));
 
       Container parent = label.getParent();
       Component[] components = parent.getComponents();

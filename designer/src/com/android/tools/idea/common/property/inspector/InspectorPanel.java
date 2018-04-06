@@ -399,7 +399,7 @@ public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>>
 
   private static JLabel createLabel(@NotNull String labelText, @Nullable String tooltip, @Nullable Component component) {
     // Use html such that we avoid ellipses in JLabels when the text is too large to fit on the left side of the inspector.
-    JLabel label = new JBLabel("<html>" + HtmlEscapers.htmlEscaper().escape(labelText) + "</html>");
+    JLabel label = new JBLabel("<html><nobr>" + HtmlEscapers.htmlEscaper().escape(labelText) + "</nobr></html>");
     label.setLabelFor(component);
     label.setToolTipText(tooltip);
     label.setSize(label.getPreferredSize());
