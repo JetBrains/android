@@ -105,7 +105,7 @@ class ApkStep extends ExportSignedPackageWizardStep {
     Module module = facet.getModule();
 
     PropertiesComponent properties = PropertiesComponent.getInstance(module.getProject());
-    String lastModule = properties.getValue(ChooseModuleStep.MODULE_PROPERTY);
+    String lastModule = properties.getValue(KeystoreStep.MODULE_PROPERTY);
     String lastApkPath = properties.getValue(getApkPathPropertyName());
     if (lastApkPath != null && module.getName().equals(lastModule)) {
       myApkPathField.setText(FileUtil.toSystemDependentName(lastApkPath));
@@ -217,7 +217,7 @@ class ApkStep extends ExportSignedPackageWizardStep {
 
     AndroidFacet facet = myWizard.getFacet();
     PropertiesComponent properties = PropertiesComponent.getInstance(myWizard.getProject());
-    properties.setValue(ChooseModuleStep.MODULE_PROPERTY, facet != null ? facet.getModule().getName() : "");
+    properties.setValue(KeystoreStep.MODULE_PROPERTY, facet != null ? facet.getModule().getName() : "");
     properties.setValue(getApkPathPropertyName(), apkPath);
 
     File folder = new File(apkPath).getParentFile();

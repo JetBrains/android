@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.exportSignedPackage
 
-import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.testing.IdeComponents
 import com.intellij.testFramework.IdeaTestCase
 import org.mockito.Mockito
@@ -28,23 +27,12 @@ class ChooseBundleOrApkStepTest : IdeaTestCase() {
     ideComponents = IdeComponents(myProject)
   }
 
-  fun testSufficientGradleVersion() {
+  fun testSetup() {
     val wizard = Mockito.mock(ExportSignedPackageWizard::class.java)
     Mockito.`when`(wizard.project).thenReturn(myProject)
 
-    val chooseStep = ChooseBundleOrApkStep(wizard, GradleVersion.parse("3.2.0"))
+    val chooseStep = ChooseBundleOrApkStep(wizard)
     assertTrue(chooseStep.myBundleButton.isEnabled)
     assertTrue(chooseStep.myBundleButton.isSelected)
-    assertFalse(chooseStep.myGradleErrorLabel.isVisible)
-  }
-
-  fun testInsufficientGradleVersion() {
-    val wizard = Mockito.mock(ExportSignedPackageWizard::class.java)
-    Mockito.`when`(wizard.project).thenReturn(myProject)
-
-    val chooseStep = ChooseBundleOrApkStep(wizard, GradleVersion.parse("3.1.0"))
-    assertFalse(chooseStep.myBundleButton.isEnabled)
-    assertTrue(chooseStep.myApksButton.isSelected)
-    assertTrue(chooseStep.myGradleErrorLabel.isVisible)
   }
 }

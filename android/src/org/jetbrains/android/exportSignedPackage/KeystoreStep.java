@@ -17,12 +17,24 @@
 package org.jetbrains.android.exportSignedPackage;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
+import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.intellij.ide.passwordSafe.PasswordSafe;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.wizard.CommitStepException;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.ui.CollectionComboBoxModel;
+import com.intellij.ui.HyperlinkLabel;
+import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.components.JBCheckBox;
+import com.intellij.ui.components.JBLabel;
 import org.jetbrains.android.compiler.artifact.ApkSigningSettingsForm;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUiUtil;
 import org.jetbrains.android.util.AndroidUtils;
@@ -30,6 +42,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -38,13 +52,19 @@ import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
+import java.util.List;
+
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE;
 
 /**
  * @author Eugene.Kudelevsky
  */
 class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSettingsForm {
+  public static final String MODULE_PROPERTY = "ExportedModule";
   @VisibleForTesting static final String KEY_STORE_PASSWORD_KEY = "KEY_STORE_PASSWORD";
   @VisibleForTesting static final String KEY_PASSWORD_KEY = "KEY_PASSWORD";
+  private boolean myShowError;
 
   private static class KeyStorePasswordRequestor {
     // dummy: used as a requestor class id to access the key store password
@@ -62,11 +82,23 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
   private JButton myCreateKeyStoreButton;
   private JButton myLoadKeyStoreButton;
   private JBCheckBox myRememberPasswordCheckBox;
+  private JComboBox myModuleCombo;
+  private JPanel myGradlePanel;
+  private HyperlinkLabel myCloseAndUpdateLink;
+  private JBLabel myKeyStorePathLabel;
+  private JBLabel myKeyStorePasswordLabel;
+  private JBLabel myKeyAliasLabel;
+  private JBLabel myKeyPasswordLabel;
 
   private final ExportSignedPackageWizard myWizard;
   private final boolean myUseGradleForSigning;
+  @NotNull
+  private AndroidFacet mySelection;
 
-  public KeystoreStep(ExportSignedPackageWizard wizard, boolean useGradleForSigning) {
+  public KeystoreStep(@NotNull ExportSignedPackageWizard wizard,
+                      boolean useGradleForSigning,
+                      @NotNull List<AndroidFacet> facets) {
+    assert !facets.isEmpty();
     myWizard = wizard;
     myUseGradleForSigning = useGradleForSigning;
     final Project project = wizard.getProject();
@@ -89,7 +121,84 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
         myKeyPasswordField.setText(password);
       }
     }
+
+    mySelection = facets.get(0);
+    String moduleName = PropertiesComponent.getInstance(wizard.getProject()).getValue(MODULE_PROPERTY);
+    if (moduleName != null) {
+      for (AndroidFacet facet : facets) {
+        if (moduleName.equals(facet.getModule().getName())) {
+          mySelection = facet;
+          break;
+        }
+      }
+    }
+
+    myModuleCombo.setModel(new CollectionComboBoxModel(facets, mySelection));
+    myModuleCombo.setRenderer(new ListCellRendererWrapper<AndroidFacet>() {
+      @Override
+      public void customize(JList list, AndroidFacet value, int index, boolean selected, boolean hasFocus) {
+        if (value == null) return;
+        final Module module = value.getModule();
+        setText(module.getName());
+        setIcon(ModuleType.get(module).getIcon());
+      }
+    });
+    myModuleCombo.setEnabled(facets.size() > 1);
+    myCloseAndUpdateLink.setHyperlinkText(AndroidBundle.message("android.export.package.bundle.gradle.update"));
+    myCloseAndUpdateLink.addHyperlinkListener(new HyperlinkListener() {
+      @Override
+      public void hyperlinkUpdate(HyperlinkEvent e) {
+        GradleVersion gradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION);
+        GradleVersion pluginVersion = GradleVersion.parse(AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion());
+        AndroidPluginVersionUpdater updater = AndroidPluginVersionUpdater.getInstance(project);
+        updater.updatePluginVersion(pluginVersion, gradleVersion);
+        myWizard.close(CANCEL_EXIT_CODE);
+      }
+    });
+    myGradlePanel.setVisible(false);
+    myModuleCombo.addActionListener(e -> updateSelection((AndroidFacet)myModuleCombo.getSelectedItem()));
     AndroidUiUtil.initSigningSettingsForm(project, this);
+  }
+
+  @Override
+  public void _init() {
+    super._init();
+    updateSelection(mySelection);
+  }
+
+  private void updateSelection(AndroidFacet selectedItem) {
+    mySelection = selectedItem;
+    showGradleError(!isGradleValid(myWizard.getTargetType()));
+  }
+
+
+  private boolean isGradleValid(@Nullable String targetType) {
+    // all gradle versions are valid unless targetType is bundle
+    if (targetType == null || !targetType.equals("bundle")) {
+      return true;
+    }
+
+    GradleVersion version = AndroidModuleModel.get(mySelection).getModelVersion();
+    return version.isAtLeastIncludingPreviews(3, 2, 0);
+  }
+
+  private void showGradleError(boolean showError) {
+    myShowError = showError;
+    // key store fields
+    myKeyStorePasswordField.setVisible(!showError);
+    myKeyPasswordField.setVisible(!showError);
+    myKeyAliasField.setVisible(!showError);
+    myKeyStorePathField.setVisible(!showError);
+    myCreateKeyStoreButton.setVisible(!showError);
+    myLoadKeyStoreButton.setVisible(!showError);
+    myRememberPasswordCheckBox.setVisible(!showError);
+    myKeyStorePasswordLabel.setVisible(!showError);
+    myKeyPasswordLabel.setVisible(!showError);
+    myKeyAliasLabel.setVisible(!showError);
+    myKeyStorePathLabel.setVisible(!showError);
+
+    // gradle error fields
+    myGradlePanel.setVisible(showError);
   }
 
   private static String retrievePassword(@NotNull Class<?> primaryRequestor, @NotNull String key) {
@@ -146,6 +255,10 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
 
   @Override
   protected void commitForNext() throws CommitStepException {
+    if (!isGradleValid(myWizard.getTargetType())) {
+      throw new CommitStepException(AndroidBundle.message("android.export.package.bundle.gradle.error"));
+    }
+
     final String keyStoreLocation = myKeyStorePathField.getText().trim();
     if (keyStoreLocation.isEmpty()) {
       throw new CommitStepException(AndroidBundle.message("android.export.package.specify.keystore.location.error"));
@@ -190,6 +303,10 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
 
     updateSavedPassword(KeyStorePasswordRequestor.class, keyStorePasswordKey, rememberPasswords ? new String(keyStorePassword) : null);
     updateSavedPassword(KeyPasswordRequestor.class, keyPasswordKey, rememberPasswords ? new String(keyPassword) : null);
+
+    AndroidFacet selectedFacet = getSelectedFacet();
+    assert selectedFacet != null;
+    myWizard.setFacet(selectedFacet);
   }
 
   private KeyStore loadKeyStore(File keystoreFile) throws CommitStepException {
@@ -241,6 +358,10 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     }
     myWizard.setPrivateKey(privateKey);
     myWizard.setCertificate((X509Certificate)certificate);
+  }
+
+  private AndroidFacet getSelectedFacet() {
+    return (AndroidFacet)myModuleCombo.getSelectedItem();
   }
 
   @Override

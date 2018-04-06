@@ -102,20 +102,14 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     myProject = project;
     mySigned = signed;
     assert !facets.isEmpty();
+    myFacet = facets.get(0);
     if (showBundle) {
-      myFacet = facets.get(0); // TODO figure out proper logic here to get gradle version
-      addStep(new ChooseBundleOrApkStep(this, AndroidModuleModel.get(myFacet).getModelVersion()));
+      addStep(new ChooseBundleOrApkStep(this));
     }
-    if (facets.size() > 1 || SystemInfo.isMac /* wizards with only step are shown incorrectly on mac */) {
-      addStep(new ChooseModuleStep(this, facets));
-    }
-    else {
-      myFacet = facets.get(0);
-    }
-    boolean useGradleToSign = facets.get(0).requiresAndroidModel();
+    boolean useGradleToSign = myFacet.requiresAndroidModel();
 
     if (signed) {
-      addStep(new KeystoreStep(this, useGradleToSign));
+      addStep(new KeystoreStep(this, useGradleToSign, facets));
     }
 
     if (useGradleToSign) {
@@ -379,6 +373,10 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
   public void setTargetType(@NotNull String targetType) {
     myTargetType = targetType;
+  }
+
+  public String getTargetType() {
+    return myTargetType;
   }
 
   private void createAndAlignApk(final String apkPath) {

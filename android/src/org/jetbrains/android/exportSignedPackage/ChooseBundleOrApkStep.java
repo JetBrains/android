@@ -16,10 +16,8 @@
 package org.jetbrains.android.exportSignedPackage;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.help.StudioHelpManagerImpl;
 import com.intellij.ui.HyperlinkLabel;
-import com.intellij.ui.components.JBLabel;
 
 import javax.swing.*;
 
@@ -33,23 +31,13 @@ public class ChooseBundleOrApkStep extends ExportSignedPackageWizardStep {
   JRadioButton myApksButton;
   private JPanel myBundlePanel;
   private JPanel myApkPanel;
-  private HyperlinkLabel myLearMoreLink;
-  @VisibleForTesting
-  JBLabel myGradleErrorLabel;
+  private HyperlinkLabel myLearnMoreLink;
 
-  public ChooseBundleOrApkStep(ExportSignedPackageWizard wizard, GradleVersion version) {
+  public ChooseBundleOrApkStep(ExportSignedPackageWizard wizard) {
     myWizard = wizard;
-    // bundle only available with gradle >= 3.2
-    if (version.isAtLeastIncludingPreviews(3, 2, 0)) {
-      myBundleButton.setSelected(true);
-      myGradleErrorLabel.setVisible(false);
-    } else {
-      myBundleButton.setEnabled(false);
-      myApksButton.setSelected(true);
-    }
 
-    myLearMoreLink.setHyperlinkText("Learn more");
-    myLearMoreLink.setHyperlinkTarget(DOC_URL);
+    myLearnMoreLink.setHyperlinkText("Learn more");
+    myLearnMoreLink.setHyperlinkTarget(DOC_URL);
   }
 
   @Override
