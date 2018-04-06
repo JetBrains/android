@@ -68,6 +68,7 @@ public class AndroidModelFactoryTest extends IdeaTestCase {
 
     AndroidProjectStub androidProject = new AndroidProjectStub("test");
     VariantStub variant = androidProject.addVariant("debug");
+    androidProject.setVariantNames("debug", "release");
     androidProject.clearVariants();
 
     when(myModuleModels.findModel(Variant.class)).thenReturn(variant);
@@ -82,6 +83,7 @@ public class AndroidModelFactoryTest extends IdeaTestCase {
     Variant variantCopy = variants.get(0);
     assertEquals("debug",variantCopy.getName());
     assertSame(variantCopy, androidModel.getSelectedVariant());
+    assertThat(androidProjectCopy.getVariantNames()).containsExactly("debug", "release");
 
     verify(myVariantSelector, never()).findVariantToSelect(androidProject);
   }
