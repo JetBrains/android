@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu
 
 import com.android.testutils.TestUtils
+import com.android.tools.adtui.RangeTooltipComponent
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.instructions.InstructionsPanel
 import com.android.tools.adtui.model.FakeTimer
@@ -224,6 +225,14 @@ class CpuProfilerStageViewTest {
     // Verify when we reset the capture our splitter value goes back to default.
     myStage.capture = null
     assertThat(splitter.proportion).isWithin(0.0001f).of(SPLITTER_DEFAULT_RATIO)
+  }
+
+  @Test
+  fun testTooltipComponentIsFirstChild() {
+    val cpuProfilerStageView = CpuProfilerStageView(myProfilersView, myStage)
+    val treeWalker = TreeWalker(cpuProfilerStageView.component)
+    val tooltipComponent = treeWalker.descendants().filterIsInstance(RangeTooltipComponent::class.java)[0]
+    assertThat(tooltipComponent.parent.components[0]).isEqualTo(tooltipComponent)
   }
 
   @Test

@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.network;
 
+import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.SelectionComponent;
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.chart.linechart.LineChart;
@@ -151,6 +152,14 @@ public class NetworkProfilerStageViewTest {
     assertThat(infoPanel.isVisible()).isTrue();
     myFakeUi.mouse.drag(start.x, start.y, 40 * microSecondToX, 0);
     assertThat(infoPanel.isVisible()).isTrue();
+  }
+
+  @Test
+  public void testTooltipComponentIsFirstChild() {
+    NetworkProfilerStageView stageView = (NetworkProfilerStageView)myView.getStageView();
+    TreeWalker treeWalker = new TreeWalker(stageView.getComponent());
+    Component tooltipComponent = treeWalker.descendantStream().filter(c -> c instanceof RangeTooltipComponent).findFirst().get();
+    assertThat(tooltipComponent.getParent().getComponent(0)).isEqualTo(tooltipComponent);
   }
 
   private static NetworkProfilerData createSpeedData(long time, long sent, long received) {

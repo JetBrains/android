@@ -44,13 +44,13 @@ import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.IconUtil;
 import com.intellij.util.PlatformIcons;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.util.concurrent.TimeUnit;
@@ -145,7 +145,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     myCaptureElapsedTime = new JLabel("");
     myCaptureElapsedTime.setFont(AdtUiUtils.DEFAULT_FONT.deriveFont(12f));
-    myCaptureElapsedTime.setBorder(new EmptyBorder(0, 5, 0, 0));
+    myCaptureElapsedTime.setBorder(JBUI.Borders.emptyLeft(5));
     myCaptureElapsedTime.setForeground(ProfilerColors.CPU_CAPTURE_STATUS);
 
     myAllocationButton = new CommonButton();
@@ -297,10 +297,16 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     StudioProfilers profilers = getStage().getStudioProfilers();
     ProfilerTimeline timeline = profilers.getTimeline();
     Range viewRange = getTimeline().getViewRange();
-
+    RangeTooltipComponent tooltip =
+      new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(),
+                                getTooltipPanel(), ProfilerLayeredPane.class);
     TabularLayout layout = new TabularLayout("*");
     JPanel panel = new JBPanel(layout);
     panel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
+
+    // Order matters, as such we want to put the tooltip component first so we draw the tooltip line on top of all other
+    // components.
+    panel.add(tooltip, new TabularLayout.Constraint(0, 0, 2, 1));
 
     // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
     // that attempts to read the same range instance.
@@ -420,9 +426,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     overlay.addMouseListener(new ProfilerTooltipMouseAdapter(getStage(), () -> new MemoryUsageTooltip(getStage())));
     overlayPanel.addMouseListener(new ProfilerTooltipMouseAdapter(getStage(), () -> new MemoryUsageTooltip(getStage())));
 
-    RangeTooltipComponent tooltip =
-      new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(),
-                                getTooltipPanel(), ProfilerLayeredPane.class);
+
     eventsView.registerTooltip(tooltip, getStage());
     // TODO: Probably this needs to be refactored.
     //       We register in both of them because mouse events received by overly will not be received by overlyPanel.
@@ -469,7 +473,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     if (!getStage().hasUserUsedMemoryCapture()) {
       installProfilingInstructions(monitorPanel);
     }
-    monitorPanel.add(tooltip, new TabularLayout.Constraint(0, 0));
+
     monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(overlayPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(mySelectionComponent, new TabularLayout.Constraint(0, 0));
@@ -566,7 +570,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       headingPanel.add(filterComponent, BorderLayout.SOUTH);
       filterComponent.setVisible(false);
       filterComponent.setBorder(AdtUiUtils.DEFAULT_TOP_BORDER);
-      filterComponent.configureKeyBindingAndFocusBehaviors(capturePanel, filterComponent, button);
+      FilterComponent.configureKeyBindingAndFocusBehaviors(capturePanel, filterComponent, button);
     }
     headingPanel.add(buttonToolbar, BorderLayout.EAST);
 

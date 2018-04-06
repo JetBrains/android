@@ -53,6 +53,8 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
    */
   @NotNull private final JLabel mySelectionTimeLabel;
 
+  // TODO (b/77709239): All Stages currently have a Panel that defines a tabular layout, and a tooltip.
+  // we should refactor this so common functionality is in the base class to avoid more duplication.
   public StageView(@NotNull StudioProfilersView profilersView, @NotNull T stage) {
     myProfilersView = profilersView;
     myStage = stage;

@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.adtui.RangeTooltipComponent;
+import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
@@ -33,6 +35,7 @@ import org.junit.Test;
 
 import javax.swing.*;
 import javax.swing.tree.TreePath;
+import java.awt.*;
 import java.io.File;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
@@ -67,7 +70,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
   }
 
   @Test
-  public void testCaptureAndHeapView() throws Exception {
+  public void testCaptureAndHeapView() {
     final String dummyClassName1 = "DUMMY_CLASS1";
     final String dummyClassName2 = "DUMMY_CLASS2";
 
@@ -160,7 +163,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
   }
 
   @Test
-  public void testCaptureElapsedTime() throws Exception {
+  public void testCaptureElapsedTime() {
     final int invalidTime = -1;
     final int startTime = 1;
     final int endTime = 5;
@@ -209,7 +212,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
   }
 
   @Test
-  public void testLoadingNewCaptureWithExistingLoad() throws Exception {
+  public void testLoadingNewCaptureWithExistingLoad() {
     Map<Integer, String> heapIdMap = ImmutableMap.of(0, "heap1", 1, "heap2");
 
     FakeCaptureObject fakeCapture1 =
@@ -237,6 +240,14 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     myMockLoader.runTask();
     assertView(fakeCapture2, fakeCapture2.getHeapSet(0), null, null, false);
     myAspectObserver.assertAndResetCounts(0, 0, 1, 0, 1, 0, 0, 0);
+  }
+
+  @Test
+  public void testTooltipComponentIsFirstChild() {
+    MemoryProfilerStageView stageView = (MemoryProfilerStageView)myProfilersView.getStageView();
+    TreeWalker treeWalker = new TreeWalker(stageView.getComponent());
+    Component tooltipComponent = treeWalker.descendantStream().filter(c -> c instanceof RangeTooltipComponent).findFirst().get();
+    assertThat(tooltipComponent.getParent().getComponent(0)).isEqualTo(tooltipComponent);
   }
 
   @Test
