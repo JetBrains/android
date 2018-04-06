@@ -52,7 +52,7 @@ public class GradleDslUnknownElement extends GradleDslSimpleExpression {
     if (element == null) {
       return null;
     }
-    return element.getText();
+    return getPsiText(element);
   }
 
   @Nullable

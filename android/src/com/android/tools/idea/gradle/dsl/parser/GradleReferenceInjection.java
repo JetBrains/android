@@ -17,6 +17,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -93,26 +94,28 @@ public class GradleReferenceInjection {
   @NotNull
   public static String injectAll(@NotNull PsiElement psiElement, @NotNull Collection<GradleReferenceInjection> injections) {
     StringBuilder builder = new StringBuilder();
-    for (PsiElement element : psiElement.getChildren()) {
-      // Reference equality intended
-      Optional<GradleReferenceInjection> filteredInjection =
-        injections.stream().filter(injection -> element == injection.getPsiInjection()).findFirst();
-      if (filteredInjection.isPresent()) {
-        GradleDslSimpleExpression expression = filteredInjection.get().getToBeInjectedExpression();
-        if (expression == null) {
-          // If this injection has no expression then we are trying to inject a string or map,
-          // in this case just use the raw text from the PsiElement instead.
-          builder.append(element.getText());
-          continue;
-        }
+    ApplicationManager.getApplication().runReadAction(() -> {
+      for (PsiElement element : psiElement.getChildren()) {
+        // Reference equality intended
+        Optional<GradleReferenceInjection> filteredInjection =
+          injections.stream().filter(injection -> element == injection.getPsiInjection()).findFirst();
+        if (filteredInjection.isPresent()) {
+          GradleDslSimpleExpression expression = filteredInjection.get().getToBeInjectedExpression();
+          if (expression == null) {
+            // If this injection has no expression then we are trying to inject a string or map,
+            // in this case just use the raw text from the PsiElement instead.
+            builder.append(element.getText());
+            continue;
+          }
 
-        Object value = expression.getValue();
-        builder.append(value == null ? "" : value);
+          Object value = expression.getValue();
+          builder.append(value == null ? "" : value);
+        }
+        else {
+          builder.append(element.getText());
+        }
       }
-      else {
-        builder.append(element.getText());
-      }
-    }
+    });
     return builder.toString();
   }
 }

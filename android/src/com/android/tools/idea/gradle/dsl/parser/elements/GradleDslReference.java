@@ -50,7 +50,7 @@ public final class GradleDslReference extends GradleDslSettableExpression {
   @Nullable
   public String getReferenceText() {
     PsiElement element = getCurrentElement();
-    return element != null ? element.getText() : null;
+    return element != null ? getPsiText(element) : null;
   }
 
   @Override
@@ -137,7 +137,7 @@ public final class GradleDslReference extends GradleDslSettableExpression {
 
   @Nullable
   private GradleReferenceInjection findInjection(@NotNull PsiElement currentElement) {
-    String text = currentElement.getText();
+    String text = getPsiText(currentElement);
     if (text == null) {
       return null;
     }

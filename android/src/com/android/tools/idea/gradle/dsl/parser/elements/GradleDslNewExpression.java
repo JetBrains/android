@@ -79,7 +79,7 @@ public final class GradleDslNewExpression extends GradleDslSimpleExpression {
   @Nullable
   public Object getValue() {
     PsiElement psiElement = getPsiElement();
-    return psiElement != null ? psiElement.getText() : null;
+    return psiElement != null ? getPsiText(psiElement) : null;
   }
 
   @Override

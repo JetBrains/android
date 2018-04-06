@@ -55,8 +55,7 @@ public final class GradleDslMethodCall extends GradleDslSimpleExpression {
   public GradleDslMethodCall(@NotNull GradleDslElement parent,
                              @NotNull PsiElement methodCall,
                              @NotNull GradleNameElement name,
-                             @NotNull String methodName
-                             ) {
+                             @NotNull String methodName) {
     super(parent, methodCall, name, methodCall);
     myMethodName = methodName;
     myArguments = new GradleDslExpressionList(this, name, false);
@@ -106,7 +105,7 @@ public final class GradleDslMethodCall extends GradleDslSimpleExpression {
     }
 
     PsiElement psiElement = getPsiElement();
-    return psiElement != null ? psiElement.getText() : null;
+    return psiElement != null ? getPsiText(psiElement) : null;
   }
 
   @Override

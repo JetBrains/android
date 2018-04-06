@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -431,5 +432,10 @@ public abstract class GradleDslElementImpl implements GradleDslElement {
     if (myParent instanceof ExtDslElement) {
       ((ExtDslElement)myParent).reorderAndMaybeGetNewIndex(this);
     }
+  }
+
+  @NotNull
+  public static String getPsiText(@NotNull PsiElement psiElement) {
+    return ApplicationManager.getApplication().runReadAction((Computable<String>)() -> psiElement.getText());
   }
 }

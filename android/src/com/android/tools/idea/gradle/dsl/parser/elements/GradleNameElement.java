@@ -229,6 +229,9 @@ public class GradleNameElement {
     return StringUtil.unquoteString(str);
   }
 
+  /**
+   * READ ACCESS REQUIRED.
+   */
   private void setUpFrom(@Nullable PsiElement element) {
     myNameElement = element;
     if (myNameElement instanceof PsiNamedElement) {
