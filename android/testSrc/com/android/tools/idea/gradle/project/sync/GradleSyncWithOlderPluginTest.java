@@ -157,17 +157,18 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
     Module appModule = myModules.getAppModule();
     // 'app' -> 'lib'
     // dependency should be set on the module not the compiled jar.
-    assertAbout(moduleDependencies()).that(appModule).hasDependency("lib", COMPILE, true);
-    assertAbout(libraryDependencies()).that(appModule).doesNotContain("lib", COMPILE);
+    assertAbout(moduleDependencies()).that(appModule).hasDependency("javalib1", COMPILE, true);
+    assertAbout(libraryDependencies()).that(appModule).doesNotContain("javalib1", COMPILE);
   }
 
   public void testJavaLibraryDependenciesFromJavaModule() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES_PRE30);
-    Module javaLibModule = myModules.getModule("lib");
-    // 'app' -> 'lib' -> 'guava'
+    Module javaLibModule = myModules.getModule("javalib1");
+    // 'app' -> 'javalib1' -> 'guava'
     // For older versions of plugin, app might not directly contain guava as library dependency.
     // Make sure lib has guava as library dependency, and exported is set to true, so that app has access to guava.
     assertAbout(libraryDependencies()).that(javaLibModule).containsMatching(true, ".*guava.*", COMPILE, PROVIDED);
+    assertAbout(moduleDependencies()).that(javaLibModule).hasDependency("javalib2", COMPILE, true);
   }
 
   public void testLocalJarDependenciesFromAndroidModule() throws Exception {

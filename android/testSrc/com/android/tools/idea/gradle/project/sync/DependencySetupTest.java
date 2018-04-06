@@ -180,7 +180,7 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
     Module appModule = myModules.getAppModule();
 
     // 'app' module should have 'guava' as dependency.
-    // 'app' -> 'lib' -> 'guava'
+    // 'app' -> 'javalib1' -> 'guava'
     assertAbout(libraryDependencies()).that(appModule).containsMatching(false, "Gradle: .*guava.*$", COMPILE, PROVIDED);
   }
 
@@ -209,14 +209,17 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
     Module appModule = myModules.getAppModule();
 
     // dependency should be set on the module not the compiled jar.
-    assertAbout(moduleDependencies()).that(appModule).hasDependency("lib", COMPILE, false);
-    assertAbout(libraryDependencies()).that(appModule).doesNotContain("Gradle: lib", COMPILE);
+    // 'app' -> 'javalib1' -> 'javalib2'
+    assertAbout(moduleDependencies()).that(appModule).hasDependency("javalib1", COMPILE, false);
+    assertAbout(moduleDependencies()).that(appModule).hasDependency("javalib2", COMPILE, false);
+    assertAbout(libraryDependencies()).that(appModule).doesNotContain("Gradle: javalib1", COMPILE);
   }
 
   public void testDependencySetUpInJavaModule() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
-    Module libModule = myModules.getModule("lib");
-    assertAbout(libraryDependencies()).that(libModule).doesNotContain("Gradle: lib.lib", COMPILE);
+    Module libModule = myModules.getModule("javalib1");
+    assertAbout(moduleDependencies()).that(libModule).hasDependency("javalib2", COMPILE, true);
+    assertAbout(libraryDependencies()).that(libModule).doesNotContain("Gradle: javalib2.javalib2", COMPILE);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=213627

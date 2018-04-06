@@ -59,10 +59,10 @@ public class NewGradleSyncIntegrationTest extends GradleSyncIntegrationTest {
     assertNotNull(projectDataNode);
 
     // Verify ModuleData DataNode is created for each of these modules,
-    // RootModule, :app, :library1, :library2, :lib
+    // RootModule, :app, :library1, :library2, :javalib1, :javalib2
     Collection<DataNode<ModuleData>> moduleNodes = findAll(projectDataNode, MODULE);
     Collection<String> moduleNames = moduleNodes.stream().map(moduleNode -> moduleNode.getData().getId()).collect(Collectors.toList());
-    assertThat(moduleNames).containsExactly(project.getName(), ":app", ":library1", ":library2", ":lib");
+    assertThat(moduleNames).containsExactly(project.getName(), ":app", ":library1", ":library2", ":javalib1", ":javalib2");
 
     // Verify that each ModuleData contains TASK node.
     for (DataNode<ModuleData> moduleData : moduleNodes) {

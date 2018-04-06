@@ -65,7 +65,7 @@ public class DependenciesModuleSetupStepTest extends IdeaTestCase {
     // These are the modules to add as dependency.
     createModule(moduleName);
 
-    JavaModuleDependency exportableModuleDependency = new JavaModuleDependency(moduleName, "compile", true);
+    JavaModuleDependency exportableModuleDependency = new JavaModuleDependency(moduleName, "::myLib", "compile", true);
 
     Collection<JavaModuleDependency> moduleDependencies = new ArrayList<>();
     moduleDependencies.add(exportableModuleDependency);

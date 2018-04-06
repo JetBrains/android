@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter;
+import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetupStep;
 import com.google.common.annotations.VisibleForTesting;
@@ -63,7 +64,7 @@ public class DependenciesModuleSetupStep extends JavaModuleSetupStep {
 
     List<String> unresolved = new ArrayList<>();
     for (JavaModuleDependency dependency : javaModuleModel.getJavaModuleDependencies()) {
-      updateDependency(module, ideModelsProvider, dependency);
+      updateDependency(context, dependency);
     }
 
     for (JarLibraryDependency dependency : javaModuleModel.getJarLibraryDependencies()) {
@@ -78,13 +79,20 @@ public class DependenciesModuleSetupStep extends JavaModuleSetupStep {
     UnresolvedDependenciesReporter.getInstance().report(unresolved, module);
   }
 
-  private static void updateDependency(@NotNull Module module,
-                                       @NotNull IdeModifiableModelsProvider modelsProvider,
+  private static void updateDependency(@NotNull ModuleSetupContext context,
                                        @NotNull JavaModuleDependency dependency) {
+    Module module = context.getModule();
+    IdeModifiableModelsProvider modelsProvider = context.getIdeModelsProvider();
+
     DependencySetupIssues setupIssues = DependencySetupIssues.getInstance(module.getProject());
 
     String moduleName = dependency.getModuleName();
-    Module found = modelsProvider.findIdeModule(moduleName);
+    ModuleFinder moduleFinder = context.getModuleFinder();
+    assert moduleFinder != null;
+    Module found = moduleFinder.findModuleByModuleId(dependency.getModuleId());
+    if (found == null) {
+      found = modelsProvider.findIdeModule(moduleName);
+    }
 
     ModifiableRootModel moduleModel = modelsProvider.getModifiableRootModel(module);
     if (found != null) {

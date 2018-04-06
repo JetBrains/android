@@ -37,6 +37,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.android.tools.idea.gradle.project.model.JavaModuleModel.isBuildable;
+import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
 
 /**
  * Factory class to create JavaModuleModel instance from JavaProject returned by Java Library plugin.
@@ -135,7 +136,9 @@ public class JavaModuleModelFactory {
                                 @NotNull Collection<JavaModuleDependency> javaModuleDependencies,
                                 @NotNull Collection<JarLibraryDependency> jarLibraryDependencies) {
     if (javaLibrary.getProject() != null) {
-      javaModuleDependencies.add(new JavaModuleDependency(javaLibrary.getName(), scope, false));
+      assert javaLibrary.getBuildId() != null;
+      String moduleId = createUniqueModuleId(javaLibrary.getBuildId(), javaLibrary.getProject());
+      javaModuleDependencies.add(new JavaModuleDependency(javaLibrary.getName(), moduleId, scope, false));
     }
     else {
       JarLibraryDependency jarLibraryDependency = myNewJarLibraryDependencyFactory.create(javaLibrary, scope);
