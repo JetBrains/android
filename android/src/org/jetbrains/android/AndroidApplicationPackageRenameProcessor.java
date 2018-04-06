@@ -43,7 +43,7 @@ public class AndroidApplicationPackageRenameProcessor extends RenamePsiElementPr
   }
 
   @Override
-  public void renameElement(PsiElement element, String newName, UsageInfo[] usages, @Nullable RefactoringElementListener listener)
+  public void renameElement(@NotNull PsiElement element, @NotNull String newName, @NotNull UsageInfo[] usages, @Nullable RefactoringElementListener listener)
     throws IncorrectOperationException {
     if (element instanceof PsiPackage) {
       final Map<GenericAttributeValue, String> newAttrValues = new HashMap<GenericAttributeValue, String>();
