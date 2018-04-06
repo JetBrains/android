@@ -78,10 +78,18 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
   private JPanel buildMonitorUi() {
     StudioProfilers profilers = getStage().getStudioProfilers();
     ProfilerTimeline timeline = profilers.getTimeline();
-
+    RangeTooltipComponent tooltip =
+      new RangeTooltipComponent(timeline.getTooltipRange(),
+                                timeline.getViewRange(),
+                                timeline.getDataRange(),
+                                getTooltipPanel(),
+                                ProfilerLayeredPane.class);
     TabularLayout layout = new TabularLayout("*");
     JPanel panel = new JBPanel(layout);
     panel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
+    // Order matters, as such we want to put the tooltip component first so we draw the tooltip line on top of all other
+    // components.
+    panel.add(tooltip, new TabularLayout.Constraint(0, 0, 2, 1));
 
     // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
     // that attempts to read the same range instance.
@@ -173,13 +181,6 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     JComponent minibar = new EnergyEventMinibar(this).getComponent();
 
     selection.addMouseListener(new ProfilerTooltipMouseAdapter(getStage(), () -> new EnergyStageTooltip(getStage())));
-    RangeTooltipComponent tooltip =
-      new RangeTooltipComponent(timeline.getTooltipRange(),
-                                timeline.getViewRange(),
-                                timeline.getDataRange(),
-                                getTooltipPanel(),
-                                ProfilerLayeredPane.class);
-
     tooltip.registerListenersOn(selection);
     eventsView.registerTooltip(tooltip, getStage());
 
@@ -197,7 +198,6 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     layout.setRowSizing(1, "*");
     stagePanel.setBackground(null);
 
-    panel.add(tooltip, new TabularLayout.Constraint(1, 0));
     panel.add(selection, new TabularLayout.Constraint(1, 0));
     panel.add(stagePanel, new TabularLayout.Constraint(1, 0));
 

@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers.energy
 
+import com.android.tools.adtui.RangeTooltipComponent
+import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.Profiler
 import com.android.tools.profilers.*
@@ -53,5 +55,13 @@ class EnergyProfilerStageViewTest {
   @Test
   fun expectedStageViewIsCreated() {
     assertThat(view.stageView).isInstanceOf(EnergyProfilerStageView::class.java)
+  }
+
+  @Test
+  fun testTooltipComponentIsFirstChild() {
+    val cpuProfilerStageView = view.stageView as EnergyProfilerStageView
+    val treeWalker = TreeWalker(cpuProfilerStageView.component)
+    val tooltipComponent = treeWalker.descendants().filterIsInstance(RangeTooltipComponent::class.java)[0]
+    assertThat(tooltipComponent.parent.components[0]).isEqualTo(tooltipComponent)
   }
 }

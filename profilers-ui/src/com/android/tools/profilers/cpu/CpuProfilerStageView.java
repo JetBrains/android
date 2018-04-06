@@ -196,7 +196,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     getTooltipBinder().bind(CpuThreadsTooltip.class, CpuThreadsTooltipView::new);
     getTooltipBinder().bind(EventActivityTooltip.class, EventActivityTooltipView::new);
     getTooltipBinder().bind(EventSimpleEventTooltip.class, EventSimpleEventTooltipView::new);
-
+    getTooltipPanel().setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
     myTooltipComponent = new RangeTooltipComponent(timeline.getTooltipRange(),
                                                    timeline.getViewRange(),
                                                    timeline.getDataRange(),
@@ -212,6 +212,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     // "Fit" for the event profiler, "*" for everything else.
     final JPanel details = new JPanel(new TabularLayout("*", "Fit-,*"));
     details.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
+    // Order matters as such our tooltip component should be first so it draws on top of all elements.
+    details.add(myTooltipComponent, new TabularLayout.Constraint(0, 0, 3, 1));
 
     if (!myStage.isImportTraceMode()) {
       // We shouldn't display the events monitor while in import trace mode.
@@ -286,7 +288,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     // Panel that represents all of L2
     details.add(monitorCpuThreadsPanel, new TabularLayout.Constraint(1, 0));
-    details.add(myTooltipComponent, new TabularLayout.Constraint(1, 0, 2, 1));
     details.add(timeAxis, new TabularLayout.Constraint(3, 0));
     details.add(scrollbar, new TabularLayout.Constraint(4, 0));
 
