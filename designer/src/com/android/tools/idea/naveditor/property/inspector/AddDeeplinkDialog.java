@@ -83,4 +83,10 @@ public class AddDeeplinkDialog extends DialogWrapper {
   protected Action[] createActions() {
     return new Action[]{getOKAction(), getCancelAction()};
   }
+
+  @Nullable
+  @Override
+  public JComponent getPreferredFocusedComponent() {
+    return myUriField;
+  }
 }
