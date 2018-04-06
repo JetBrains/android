@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  * Represents a new expression.
  */
 public final class GradleDslNewExpression extends GradleDslSimpleExpression {
-  private final @NotNull List<GradleDslSimpleExpression> myArguments = Lists.newArrayList();
+  private final @NotNull List<GradleDslExpression> myArguments = Lists.newArrayList();
   private final @NotNull GradleNameElement myInvokedConstructor;
 
   public GradleDslNewExpression(@NotNull GradleDslElement parent, @NotNull PsiElement newExpression, @NotNull GradleNameElement name,
@@ -39,8 +39,8 @@ public final class GradleDslNewExpression extends GradleDslSimpleExpression {
     myInvokedConstructor = invokedConstructor;
   }
 
-  public void addParsedExpression(@NotNull GradleDslSimpleExpression expression) {
-    expression.myParent = this;
+  public void addParsedExpression(@NotNull GradleDslExpression expression) {
+    expression.setParent(this);
     myArguments.add(expression);
   }
 
@@ -48,10 +48,10 @@ public final class GradleDslNewExpression extends GradleDslSimpleExpression {
   public List<GradleDslExpression> getArguments() {
     List<GradleDslExpression> result = Lists.newArrayList();
 
-    for (GradleDslSimpleExpression argument : myArguments) {
+    for (GradleDslExpression argument : myArguments) {
       if (argument instanceof GradleDslReference) {
         // See if the reference is pointing to a list.
-        GradleDslExpressionList listValue = argument.getValue(GradleDslExpressionList.class);
+        GradleDslExpressionList listValue = ((GradleDslReference)argument).getValue(GradleDslExpressionList.class);
         if (listValue != null) {
           result.addAll(listValue.getExpressions());
           continue;

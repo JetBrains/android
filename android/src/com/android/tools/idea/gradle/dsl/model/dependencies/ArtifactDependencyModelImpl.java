@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyConfiguratio
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.FakeElementTransform;
-import com.android.tools.idea.gradle.dsl.parser.dependencies.DependencyConfigurationDslElement;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.google.common.collect.Lists;
@@ -52,10 +51,10 @@ import java.util.function.Function;
  */
 public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl implements
                                                                               ArtifactDependencyModel {
-  @Nullable private DependencyConfigurationDslElement myConfigurationElement;
+  @Nullable private GradleDslClosure myConfigurationElement;
   @NotNull private String myConfigurationName;
 
-  public ArtifactDependencyModelImpl(@Nullable DependencyConfigurationDslElement configurationElement, @NotNull String configurationName) {
+  public ArtifactDependencyModelImpl(@Nullable GradleDslClosure configurationElement, @NotNull String configurationName) {
     myConfigurationElement = configurationElement;
     myConfigurationName = configurationName;
   }
@@ -124,12 +123,9 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
   @NotNull
   static List<ArtifactDependencyModel> create(@NotNull String configurationName,
                                               @NotNull GradleDslElement element,
-                                              @Nullable DependencyConfigurationDslElement configurationElement) {
+                                              @Nullable GradleDslClosure configurationElement) {
     if (configurationElement == null) {
-      GradleDslClosure closureElement = element.getClosureElement();
-      if (closureElement instanceof DependencyConfigurationDslElement) {
-        configurationElement = (DependencyConfigurationDslElement)closureElement;
-      }
+      configurationElement = element.getClosureElement();
     }
     List<ArtifactDependencyModel> results = Lists.newArrayList();
     assert element instanceof GradleDslSimpleExpression || element instanceof GradleDslExpressionMap || element instanceof GradleDslExpressionList;
@@ -187,7 +183,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     @Nullable
     static MapNotation create(@NotNull String configurationName,
                               @NotNull GradleDslExpressionMap dslElement,
-                              @Nullable DependencyConfigurationDslElement configurationElement) {
+                              @Nullable GradleDslClosure configurationElement) {
       if (dslElement.getLiteralProperty("name", String.class).value() == null) {
         return null; // not a artifact dependency element.
       }
@@ -197,7 +193,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
 
     private MapNotation(@NotNull String configurationName,
                         @NotNull GradleDslExpressionMap dslElement,
-                        @Nullable DependencyConfigurationDslElement configurationElement) {
+                        @Nullable GradleDslClosure configurationElement) {
       super(configurationElement, configurationName);
       myDslElement = dslElement;
     }
@@ -251,7 +247,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     @Nullable
     static CompactNotation create(@NotNull String configurationName,
                                   @NotNull GradleDslSimpleExpression dslExpression,
-                                  @Nullable DependencyConfigurationDslElement configurationElement) {
+                                  @Nullable GradleDslClosure configurationElement) {
       String value = dslExpression.getValue(String.class);
       if (value == null) {
         return null;
@@ -261,7 +257,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
 
     private CompactNotation(@NotNull String configurationName,
                             @NotNull GradleDslSimpleExpression dslExpression,
-                            @Nullable DependencyConfigurationDslElement configurationElement) {
+                            @Nullable GradleDslClosure configurationElement) {
       super(configurationElement, configurationName);
       myDslExpression = dslExpression;
     }

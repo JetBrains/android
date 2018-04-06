@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Represents a closable block.
  */
-public class GradleDslClosure extends GradlePropertiesDslElement {
+public class GradleDslClosure extends GradlePropertiesDslElement implements GradleDslExpression {
   public GradleDslClosure(@Nullable GradleDslElement parent, @Nullable PsiElement psiElement, @NotNull GradleNameElement name) {
     super(parent, psiElement, name);
   }
@@ -30,5 +30,11 @@ public class GradleDslClosure extends GradlePropertiesDslElement {
   @Override
   public boolean isBlockElement() {
     return true;
+  }
+
+  @Nullable
+  @Override
+  public PsiElement getExpression() {
+    return getPsiElement();
   }
 }

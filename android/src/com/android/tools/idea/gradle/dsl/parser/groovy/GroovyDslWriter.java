@@ -350,12 +350,19 @@ public class GroovyDslWriter implements GradleDslWriter {
       GrExpression[] expressionArguments = ((GrApplicationStatement)addedElement).getArgumentList().getExpressionArguments();
       if (expressionArguments.length == 1 && expressionArguments[0] instanceof GrMethodCallExpression) {
         methodCall.setPsiElement(expressionArguments[0]);
+
+        // Set the argument list element as well.
+        if (expressionArguments[0] instanceof GrMethodCallExpression) {
+          GrMethodCallExpression methodCallExpression = (GrMethodCallExpression)expressionArguments[0];
+          methodCall.getArgumentsElement().setPsiElement(methodCallExpression.getArgumentList());
+        }
         return methodCall.getPsiElement();
       }
     }
 
     if (addedElement instanceof GrMethodCallExpression) {
       methodCall.setPsiElement(addedElement);
+      methodCall.getArgumentsElement().setPsiElement(((GrMethodCallExpression)addedElement).getArgumentList());
       return methodCall.getPsiElement();
     }
 
@@ -364,25 +371,8 @@ public class GroovyDslWriter implements GradleDslWriter {
 
   @Override
   public void applyDslMethodCall(@NotNull GradleDslMethodCall element) {
-    PsiElement psiElement = element.getPsiElement();
-
     maybeUpdateName(element);
-
-    if (psiElement instanceof GrMethodCallExpression) {
-      GrMethodCallExpression methodCall = (GrMethodCallExpression)psiElement;
-      GradleDslElement toBeAddedArgument = element.getToBeAddedArgument();
-      if (toBeAddedArgument != null) {
-        toBeAddedArgument.setPsiElement(methodCall.getArgumentList());
-        toBeAddedArgument.applyChanges();
-        element.commitNewArgument(toBeAddedArgument);
-      }
-    }
-
-    for (GradleDslElement argument : element.getArguments()) {
-      if (argument.isModified()) {
-        argument.applyChanges();
-      }
-    }
+    element.getArgumentsElement().applyChanges();
   }
 
   @Override

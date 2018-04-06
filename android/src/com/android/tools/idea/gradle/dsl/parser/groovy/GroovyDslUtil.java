@@ -533,6 +533,14 @@ public final class GroovyDslUtil {
       // We want to anchor this off the added mCOMMA node.
       node.addChild(newElement.getNode(), list.getLBrack().getNode().getTreeNext());
     }
+    else if (((GrArgumentList)listElement).getLeftParen() != null) {
+      GrArgumentList list = (GrArgumentList)listElement;
+      final ASTNode anchor = list.getLeftParen().getNode().getTreeNext();
+      if (list.getAllArguments().length != 0) {
+        node.addLeaf(mCOMMA, ",", anchor);
+      }
+      node.addChild(newElement.getNode(), list.getLeftParen().getNode().getTreeNext());
+    }
     else {
       ASTNode anchor = getFirstASTNode(listElement);
       if (anchor != null) {
