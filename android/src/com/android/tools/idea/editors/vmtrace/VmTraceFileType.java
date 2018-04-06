@@ -36,7 +36,7 @@ public class VmTraceFileType implements FileType {
   @NotNull
   @Override
   public String getDescription() {
-    return "Method tracing file";
+    return "Method tracing";
   }
 
   @NotNull

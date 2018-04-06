@@ -36,7 +36,7 @@ public class HprofFileType implements FileType {
   @NotNull
   @Override
   public String getDescription() {
-    return "Heap Profiler (Hprof) files";
+    return "Heap Profiler (Hprof) dump";
   }
 
   @NotNull
