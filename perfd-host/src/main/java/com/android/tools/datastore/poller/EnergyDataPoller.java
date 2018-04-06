@@ -26,6 +26,8 @@ import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * This class hosts an EnergyService that will provide callers access to all cached energy data.
  *
@@ -46,7 +48,9 @@ public final class EnergyDataPoller extends PollRunner {
   @NotNull private CpuServiceGrpc.CpuServiceBlockingStub myCpuService;
   @NotNull private NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkService;
 
-  @NotNull private final CpuConfig myCpuConfig;
+  private long myLastRetryTime = 0;
+  private int myCpuConfigRetries = 5; // Initial value is maximum number of retries.
+  @NotNull private CpuConfig myCpuConfig;
 
   // TODO: Once we move away from fake data, don't rely on the profilerService anymore
   public EnergyDataPoller(@NotNull Common.Session session,
@@ -69,6 +73,7 @@ public final class EnergyDataPoller extends PollRunner {
 
     CpuCoreConfigResponse response = CpuCoreConfigResponse.getDefaultInstance();
     try {
+      myLastRetryTime = System.currentTimeMillis();
       // TODO: Test on single core phones to see if they report data via "cpu0" or "cpu".
       response = myCpuService.getCpuCoreConfig(CpuProfiler.CpuCoreConfigRequest.newBuilder().setDeviceId(session.getDeviceId()).build());
     }
@@ -163,6 +168,23 @@ public final class EnergyDataPoller extends PollRunner {
 
     // CPU-related samples
     {
+      // Try to retrieve the CPU min/max frequency files again if there was a parsing error.
+      if (!myCpuConfig.getIsMinMaxCoreFreqValid() &&
+          myCpuConfigRetries > 0 &&
+          (myLastRetryTime = System.currentTimeMillis()) - myLastRetryTime > TimeUnit.SECONDS.toMillis(1)) { // Retry once every second.
+        myCpuConfigRetries--;
+        myLastRetryTime = System.currentTimeMillis();
+
+        try {
+          // TODO: Test on single core phones to see if they report data via "cpu0" or "cpu".
+          myCpuConfig = new CpuConfig(
+            myCpuService.getCpuCoreConfig(CpuProfiler.CpuCoreConfigRequest.newBuilder().setDeviceId(mySession.getDeviceId()).build()));
+        }
+        catch (StatusRuntimeException e) {
+          getLog().debug(String.format("Unable to parse CPU frequency files. Retries remaining: %d", myCpuConfigRetries), e);
+        }
+      }
+
       CpuProfiler.CpuDataRequest cpuDataRequest =
         CpuProfiler.CpuDataRequest.newBuilder()
           .setSession(request.getSession())

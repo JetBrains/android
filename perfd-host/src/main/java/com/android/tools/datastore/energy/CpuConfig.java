@@ -19,7 +19,6 @@ import com.android.tools.datastore.energy.PowerProfile.CpuCoreUsage;
 import com.android.tools.datastore.poller.EnergyDataPoller;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuProfiler.CpuUsageData;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.primitives.Doubles;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -140,8 +139,12 @@ public class CpuConfig {
     return cpuCoresUtilization;
   }
 
-  @VisibleForTesting
-  boolean getIsMinMaxCoreFreqValid() {
+  /**
+   * The default core config has 0 cores. Assume that if a device reports 0 cores, then it has an invalid core config.
+   *
+   * @return true if the initialized config is valid, false otherwise.
+   */
+  public boolean getIsMinMaxCoreFreqValid() {
     return myIsMinMaxCoreFreqValid;
   }
 
