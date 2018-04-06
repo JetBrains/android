@@ -78,11 +78,11 @@ public class PropertyUtil {
       }
     }
     else if (holder instanceof GradleDslExpressionList) {
-      assert newElement instanceof GradleDslSimpleExpression;
+      assert newElement instanceof GradleDslExpression;
       GradleDslExpressionList list = (GradleDslExpressionList)holder;
       if (oldElement != null) {
-        assert oldElement instanceof GradleDslSimpleExpression;
-        list.replaceExpression((GradleDslSimpleExpression)oldElement, (GradleDslSimpleExpression)newElement);
+        assert oldElement instanceof GradleDslExpression;
+        list.replaceExpression((GradleDslExpression)oldElement, (GradleDslExpression)newElement);
       }
       else {
         list.addNewExpression((GradleDslSimpleExpression)newElement, list.getExpressions().size());
