@@ -28,6 +28,9 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiDocumentManager
 
 class NamespacesIntegrationTest : AndroidGradleTestCase() {
+  private val appPackageName = "com.example.app"
+  private val libPackageName = "com.example.lib"
+  private val otherLibPackageName = "com.example.otherlib"
 
   fun testNamespaceChoosing() {
     loadProject(TestProjectPaths.NAMESPACES)
@@ -38,7 +41,7 @@ class NamespacesIntegrationTest : AndroidGradleTestCase() {
     WriteCommandAction.runWriteCommandAction(project, {
       myFixture.openFileInEditor(VfsUtil.findRelativeFile(myFixture.project.baseDir, "app", "src", "main", "AndroidManifest.xml")!!)
       val manifest = myFixture.editor.document
-      manifest.setText(manifest.text.replace("com.example.app", "com.example.change"))
+      manifest.setText(manifest.text.replace(appPackageName, "com.example.change"))
       PsiDocumentManager.getInstance(project).commitDocument(manifest)
     })
 
@@ -65,11 +68,24 @@ class NamespacesIntegrationTest : AndroidGradleTestCase() {
       )
     }
 
-    check("@com.example.lib:string/lib_string", resolvesTo = "Hello, this is lib.")
-    check("@com.example.lib:string/lib_string_indirect_full", resolvesTo = "Hello, this is lib.")
-    check("@com.example.app:string/get_from_lib_full", resolvesTo = "Hello, this is lib.")
+    check("@$libPackageName:string/lib_string", resolvesTo = "Hello, this is lib.")
+    check("@$libPackageName:string/lib_string_indirect_full", resolvesTo = "Hello, this is lib.")
+    check("@$appPackageName:string/get_from_lib_full", resolvesTo = "Hello, this is lib.")
 
-    check("@com.example.lib:string/get_from_lib_full", resolvesTo = "@com.example.lib:string/get_from_lib_full")
-    check("@com.example.app:string/lib_string", resolvesTo = "@com.example.app:string/lib_string")
+    check("@$libPackageName:string/get_from_lib_full", resolvesTo = "@$libPackageName:string/get_from_lib_full")
+    check("@$appPackageName:string/lib_string", resolvesTo = "@$appPackageName:string/lib_string")
+  }
+
+  fun testAppResources() {
+    loadProject(TestProjectPaths.NAMESPACES)
+    val appResources = ResourceRepositoryManager.getOrCreateInstance(myAndroidFacet).getAppResources(true)!!
+
+    assertSameElements(
+      appResources.namespaces,
+      ResourceNamespace.fromPackageName(appPackageName),
+      ResourceNamespace.fromPackageName(libPackageName),
+      ResourceNamespace.fromPackageName(otherLibPackageName),
+      ResourceNamespace.TOOLS
+    )
   }
 }
