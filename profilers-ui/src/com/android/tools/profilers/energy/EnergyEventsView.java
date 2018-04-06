@@ -18,16 +18,14 @@ package com.android.tools.profilers.energy;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.TableUtils;
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.TooltipComponent;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.EventModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profiler.proto.EnergyProfiler;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
-import com.android.tools.profilers.BorderlessTableCellRenderer;
-import com.android.tools.profilers.HoverRowTable;
-import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerLayout;
+import com.android.tools.profilers.*;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,10 +34,14 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.util.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -146,7 +148,7 @@ public final class EnergyEventsView {
         for (int i = 0; i < Column.values().length; ++i) {
           Column column = Column.values()[i];
           myEventsTable.getColumnModel().getColumn(i)
-            .setPreferredWidth((int)(myEventsTable.getWidth() * column.getWidthPercentage()));
+                       .setPreferredWidth((int)(myEventsTable.getWidth() * column.getWidthPercentage()));
         }
       }
     });
@@ -166,6 +168,7 @@ public final class EnergyEventsView {
         myStage.setSelectedDuration(completeDuration);
       }
     });
+    createTooltip();
   }
 
   private void updateTableSelection() {
@@ -187,6 +190,50 @@ public final class EnergyEventsView {
 
   public JComponent getComponent() {
     return myEventsTable;
+  }
+
+  private void createTooltip() {
+    EnergyEventsTableTooltipInfoModel tooltipModel = new EnergyEventsTableTooltipInfoModel(myStage.getStudioProfilers().getTimeline().getDataRange());
+    EnergyEventsTableTooltipInfoComponent tooltipInfoComponent = new EnergyEventsTableTooltipInfoComponent(tooltipModel);
+    tooltipInfoComponent.setForeground(ProfilerColors.TOOLTIP_TEXT);
+    tooltipInfoComponent.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
+    TooltipComponent tooltip = new TooltipComponent(tooltipInfoComponent, myEventsTable, ProfilerLayeredPane.class);
+    tooltip.registerListenersOn(myEventsTable);
+
+    // Convert mouse position to the table timeline tooltipRange and update the model.
+    myEventsTable.addMouseMotionListener(new MouseAdapter() {
+      @Override
+      public void mouseMoved(MouseEvent e) {
+        int row = myEventsTable.rowAtPoint(e.getPoint());
+        int col = myEventsTable.columnAtPoint(e.getPoint());
+        boolean isTooltipVisible = false;
+        // Display the tooltip if the mouse position is within a timeline cell.
+        if (row >= 0 && col == Column.TIMELINE.ordinal()) {
+          TableColumnModel columnModel = myEventsTable.getColumnModel();
+
+          // Calculate the timestamp correspondent to the mouse position.
+          int position = e.getX();
+          for (int c = 0; c < Column.TIMELINE.ordinal(); ++c) {
+            position -= columnModel.getColumn(c).getWidth();
+          }
+          int width = columnModel.getColumn(Column.TIMELINE.ordinal()).getWidth();
+          Range range = myStage.getStudioProfilers().getTimeline().getSelectionRange();
+          long timestampUs = (long)(range.getMin() + range.getLength() * position / width);
+
+          // Calculate the tooltip range base on timestamp and event highlight width.
+          // Let the highlight range for a event at x be [x, x + highlightWidth],
+          // then for a tooltip at position y , y in [x, x + highlightWidth] is equivalent to x in [y - highlightWidth, y]
+          double highlightWidth = EnergyEventComponent.HIGHLIGHT_WIDTH * range.getLength() / Math.max(1, width);
+          Range tooltipRange = new Range(timestampUs - highlightWidth, timestampUs);
+
+          tooltipModel.update(((EventsTableModel)myEventsTable.getModel()).getValue(row), tooltipRange);
+          if (tooltipModel.getDuration() != null) {
+            isTooltipVisible = true;
+          }
+        }
+        tooltip.setVisible(isTooltipVisible);
+      }
+    });
   }
 
   private static final class EventsTableModel extends AbstractTableModel {
@@ -242,7 +289,7 @@ public final class EnergyEventsView {
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
       String calledByValue = "";
       if (value instanceof String) {
-        String stackTrace = myStage.requestBytes((String) value).toStringUtf8();
+        String stackTrace = myStage.requestBytes((String)value).toStringUtf8();
         // Get the method name which is before the line metadata in the first line, for example, "com.AlarmManager.method(Class line: 50)"
         // results in "AlarmManager.method".
         int firstLineIndex = stackTrace.indexOf('(');
@@ -301,7 +348,7 @@ public final class EnergyEventsView {
     @Override
     public void tableChanged(TableModelEvent e) {
       myEventComponents.clear();
-      EventsTableModel model = (EventsTableModel) myTable.getModel();
+      EventsTableModel model = (EventsTableModel)myTable.getModel();
       for (int i = 0; i < model.getRowCount(); ++i) {
         EnergyDuration duration = model.getValue(i);
 

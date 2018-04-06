@@ -69,7 +69,7 @@ public class ProfilerLayout {
 
   public static final Insets LIST_ROW_INSETS = new Insets(2, 10, 0, 0);
 
-  public static final Border TOOLTIP_BORDER = new JBEmptyBorder(5, 10, 5, 10);
+  public static final Border TOOLTIP_BORDER = new JBEmptyBorder(8, 10, 8, 10);
 
   public static final int PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER = JBUI.scale(16);
   public static final int PROFILING_INSTRUCTIONS_ICON_PADDING = JBUI.scale(1);
