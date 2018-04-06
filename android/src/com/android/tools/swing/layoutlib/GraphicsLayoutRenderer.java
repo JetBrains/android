@@ -41,6 +41,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -125,6 +126,8 @@ public class GraphicsLayoutRenderer {
         throw new UnsupportedLayoutlibException("GraphicsLayoutRenderer requires at least layoutlib version " + MIN_LAYOUTLIB_API_VERSION);
       }
 
+      // We need to make sure that we use a target for rendering when retrieving layoutlib
+      latestTarget = StudioEmbeddedRenderTarget.getCompatibilityTarget(latestTarget);
       layoutLib = platform.getSdkData().getTargetData(latestTarget).getLayoutLibrary(project);
       if (layoutLib == null) {
         throw new InitializationException("getLayoutLibrary() returned null");
