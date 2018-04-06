@@ -171,6 +171,7 @@ public class AndroidTargetData {
         }
       }
 
+      LOG.warn("Rendering will not use a CompatibilityRenderTarget");
       AttributeDefinitionsImpl attrDefs = getAllAttrDefs(project);
       if (attrDefs == null) {
         return null;
