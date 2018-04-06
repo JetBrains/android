@@ -219,6 +219,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
                                                 Collections.emptySet());
       return DynamicResourceValueRepository.createForTest(myFacet, namespace, Collections.singletonMap("model_value", field));
     };
+    ResourceNamespace appNamespace = ResourceNamespace.fromPackageName("com.example.app");
 
     ModuleResourceRepository app =
       ModuleResourceRepository.createForTest(myFacet,
@@ -227,8 +228,8 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
                                                                            "app/res/values/values.xml").getParent().getParent(),
                                                myFixture.copyFileToProject(VALUES_WITH_NAMESPACE,
                                                                            "app/res/values/values_with_namespace.xml").getParent().getParent()),
-                                             RES_AUTO,
-                                             makeDynamicRepo.apply(RES_AUTO, "appValue"));
+                                             appNamespace,
+                                             makeDynamicRepo.apply(appNamespace, "appValue"));
 
     ResourceNamespace localLibNamespace = ResourceNamespace.fromPackageName("com.localLib");
     ModuleResourceRepository localLib =
@@ -257,40 +258,42 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
 
     ResourceTable resourceTable = appResourceRepository.getItems();
 
-    assertThat(projectResourceRepository.getNamespaces()).containsExactly(RES_AUTO, localLibNamespace);
-    assertThat(appResourceRepository.getNamespaces()).containsExactly(RES_AUTO, localLibNamespace, aarLibNamespace);
+    assertThat(appResourceRepository.getItemsOfType(appNamespace, ResourceType.ID)).containsExactly("action_flip", "action_next");
 
-    assertOnlyValue(appResourceRepository, RES_AUTO, "app_name", "Animations Demo");
+    assertThat(projectResourceRepository.getNamespaces()).containsExactly(appNamespace, localLibNamespace);
+    assertThat(appResourceRepository.getNamespaces()).containsExactly(appNamespace, localLibNamespace, aarLibNamespace);
+
+    assertOnlyValue(appResourceRepository, appNamespace, "app_name", "Animations Demo");
     assertOnlyValue(appResourceRepository, localLibNamespace, "app_name", "Different App Name");
     assertOnlyValue(appResourceRepository, aarLibNamespace, "app_name", "Very Different App Name");
 
-    assertOnlyValue(appResourceRepository, RES_AUTO, "model_value", "appValue");
+    assertOnlyValue(appResourceRepository, appNamespace, "model_value", "appValue");
     assertOnlyValue(appResourceRepository, localLibNamespace, "model_value", "localLibValue");
     assertThat(resourceTable.get(aarLibNamespace, ResourceType.STRING).get("model_value")).isEmpty();
 
-    assertThat(resourceTable.get(RES_AUTO, ResourceType.ID).get("action_next")).hasSize(1);
+    assertThat(resourceTable.get(appNamespace, ResourceType.ID).get("action_next")).hasSize(1);
     assertThat(resourceTable.get(localLibNamespace, ResourceType.ID).get("action_next")).isEmpty();
     assertThat(resourceTable.get(aarLibNamespace, ResourceType.ID).get("action_next")).isEmpty();
 
-    assertThat(resourceTable.get(RES_AUTO, ResourceType.STRING).get("unique_string")).isEmpty();
+    assertThat(resourceTable.get(appNamespace, ResourceType.STRING).get("unique_string")).isEmpty();
     assertThat(resourceTable.get(localLibNamespace, ResourceType.STRING).get("unique_string")).hasSize(1);
     assertThat(resourceTable.get(aarLibNamespace, ResourceType.STRING).get("unique_string")).isEmpty();
 
-    assertThat(resourceTable.get(RES_AUTO, ResourceType.STRING).get("another_unique_string")).isEmpty();
+    assertThat(resourceTable.get(appNamespace, ResourceType.STRING).get("another_unique_string")).isEmpty();
     assertThat(resourceTable.get(localLibNamespace, ResourceType.STRING).get("another_unique_string")).isEmpty();
     assertThat(resourceTable.get(aarLibNamespace, ResourceType.STRING).get("another_unique_string")).hasSize(1);
 
     checkCrossNamespaceReference(appResourceRepository,
-                                 new ResourceReference(RES_AUTO, ResourceType.STRING, "using_alias"),
+                                 new ResourceReference(appNamespace, ResourceType.STRING, "using_alias"),
                                  new ResourceReference(aarLibNamespace, ResourceType.STRING, "app_name"),
                                  true);
     checkCrossNamespaceReference(appResourceRepository,
-                                 new ResourceReference(RES_AUTO, ResourceType.STRING, "using_package_name"),
+                                 new ResourceReference(appNamespace, ResourceType.STRING, "using_package_name"),
                                  new ResourceReference(aarLibNamespace, ResourceType.STRING, "app_name"),
                                  true);
     checkCrossNamespaceReference(appResourceRepository,
-                                 new ResourceReference(RES_AUTO, ResourceType.STRING, "this_namespace"),
-                                 new ResourceReference(RES_AUTO, ResourceType.STRING, "app_name"),
+                                 new ResourceReference(appNamespace, ResourceType.STRING, "this_namespace"),
+                                 new ResourceReference(appNamespace, ResourceType.STRING, "app_name"),
                                  true);
     checkCrossNamespaceReference(localLib,
                                  new ResourceReference(localLibNamespace, ResourceType.STRING, "using_alias"),
