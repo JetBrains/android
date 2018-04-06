@@ -66,7 +66,7 @@ import static com.intellij.util.ArrayUtil.contains;
  */
 public class AndroidModuleModel implements AndroidModel, ModuleModel {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 2L;
+  private static final long serialVersionUID = 3L;
 
   private static final String[] TEST_ARTIFACT_NAMES = {ARTIFACT_UNIT_TEST, ARTIFACT_ANDROID_TEST};
   private static final AndroidVersion NOT_SPECIFIED = new AndroidVersion(0, null);
@@ -88,6 +88,8 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @NotNull private Map<String, BuildTypeContainer> myBuildTypesByName = new HashMap<>();
   @NotNull private Map<String, ProductFlavorContainer> myProductFlavorsByName = new HashMap<>();
   @NotNull private Map<String, IdeVariant> myVariantsByName = new HashMap<>();
+  @NotNull private Set<String> myVariantNames = new HashSet<>();
+  private boolean myUsingSingleVariantSync;
 
   @NotNull private Set<File> myExtraGeneratedSourceFolders = new HashSet<>();
 
@@ -133,6 +135,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
                              @NotNull IdeDependenciesFactory dependenciesFactory,
                              @Nullable Variant variant) {
     myAndroidProject = new IdeAndroidProjectImpl(androidProject, dependenciesFactory, variant);
+    myUsingSingleVariantSync = variant != null;
 
     myProjectSystemId = GRADLE_SYSTEM_ID;
     myModuleName = moduleName;
@@ -164,6 +167,12 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   private void populateVariantsByName() {
     myAndroidProject.forEachVariant(variant -> myVariantsByName.put(variant.getName(), variant));
+    if (myUsingSingleVariantSync) {
+      myVariantNames.addAll(myAndroidProject.getVariantNames());
+    }
+    else {
+      myVariantNames.addAll(myVariantsByName.keySet());
+    }
   }
 
   /**
@@ -602,7 +611,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @NotNull
   public Collection<String> getVariantNames() {
-    return myVariantsByName.keySet();
+    return myVariantNames;
   }
 
   @Nullable

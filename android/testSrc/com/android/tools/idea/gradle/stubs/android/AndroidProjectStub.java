@@ -41,6 +41,7 @@ public class AndroidProjectStub implements IdeAndroidProject {
   @NotNull private final Map<String, IdeVariant> myVariants = Maps.newHashMap();
   @NotNull private final List<SigningConfig> mySigningConfigs = new ArrayList<>();
   @NotNull private final List<String> myFlavorDimensions = new ArrayList<>();
+  @NotNull private final List<String> myVariantNames = new ArrayList<>();
 
   @NotNull private final String myName;
   @NotNull private final FileStructure myFileStructure;
@@ -125,6 +126,7 @@ public class AndroidProjectStub implements IdeAndroidProject {
     return myDefaultConfig;
   }
 
+  @NotNull
   public BuildTypeContainerStub addBuildType(@NotNull String buildTypeName) {
     BuildTypeContainerStub buildType = new BuildTypeContainerStub(buildTypeName, myFileStructure);
     myBuildTypes.put(buildTypeName, buildType);
@@ -186,9 +188,7 @@ public class AndroidProjectStub implements IdeAndroidProject {
   @Override
   @NotNull
   public Collection<Variant> getVariants() {
-    List<Variant> result = new ArrayList<>();
-    result.addAll(myVariants.values());
-    return result;
+    return new ArrayList<>(myVariants.values());
   }
 
   public void clearVariants() {
@@ -198,7 +198,7 @@ public class AndroidProjectStub implements IdeAndroidProject {
   @Override
   @NotNull
   public Collection<String> getVariantNames() {
-    return Collections.emptyList();
+    return myVariantNames;
   }
 
   @Override
@@ -367,5 +367,10 @@ public class AndroidProjectStub implements IdeAndroidProject {
   @NotNull
   public File getBuildFile() {
     return myBuildFile;
+  }
+
+  public void setVariantNames(@NotNull String...variantNames) {
+    myVariantNames.clear();
+    myVariantNames.addAll(Arrays.asList(variantNames));
   }
 }
