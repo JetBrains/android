@@ -98,7 +98,7 @@ public interface PowerProfile {
         return 0;
       }
 
-      double totalMilliAmps = 7.201; // Base power consumption for a suspended + idle CPU.
+      double totalMilliAmps = 0.0;
       List<CpuCoreUsage> usagesList = Arrays.asList(usages);
       Collections.sort(usagesList, Comparator.comparingInt(o -> o.myMaxFrequencyKhz));
 
@@ -113,7 +113,7 @@ public interface PowerProfile {
         double f3 = f2 * fMhz;
 
         // Approximately add CPU active cost and cluster active costs (approximately 6mA per category).
-        if (fMhz * 1000 > MIN_CORE_FREQ_KHZ) {
+        if (core.myAppUsage > 0.0) {
           if (!cpuActivationAdded) {
             cpuActivationAdded = true;
             totalMilliAmps += 17.757;
@@ -149,7 +149,7 @@ public interface PowerProfile {
       }
 
       if (networkStats.myReceivingBps == 0 && networkStats.mySendingBps == 0) {
-        return 1;
+        return 0;
       }
 
       int usage = 0;
