@@ -72,6 +72,13 @@ public final class GradleDslExpressionList extends GradleDslElementImpl implemen
     myUnsavedExpressions.add(expression);
   }
 
+  public void addNewExpression(@NotNull GradleDslExpression expression) {
+    expression.setParent(this);
+    myUnsavedExpressions.add(expression);
+    setModified(true);
+    updateDependenciesOnAddElement(expression);
+  }
+
   public void addNewExpression(@NotNull GradleDslExpression expression, int index) {
     expression.setParent(this);
     myUnsavedExpressions.add(index, expression);

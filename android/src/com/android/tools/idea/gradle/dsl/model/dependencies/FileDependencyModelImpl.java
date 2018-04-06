@@ -37,7 +37,7 @@ public class FileDependencyModelImpl extends DependencyModelImpl implements File
   static Collection<FileDependencyModel> create(@NotNull String configurationName, @NotNull GradleDslMethodCall methodCall) {
     List<FileDependencyModel> result = new ArrayList<>();
     if (FILES.equals(methodCall.getMethodName())) {
-      List<GradleDslElement> arguments = methodCall.getArguments();
+      List<GradleDslExpression> arguments = methodCall.getArguments();
       for (GradleDslElement argument : arguments) {
         if (argument instanceof GradleDslSimpleExpression) {
           result.add(new FileDependencyModelImpl(configurationName, (GradleDslSimpleExpression)argument));

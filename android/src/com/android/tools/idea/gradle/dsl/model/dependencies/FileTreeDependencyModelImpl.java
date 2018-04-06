@@ -47,8 +47,8 @@ public class FileTreeDependencyModelImpl extends DependencyModelImpl implements 
   static Collection<FileTreeDependencyModel> create(@NotNull String configurationName, @NotNull GradleDslMethodCall methodCall) {
     List<FileTreeDependencyModel> result = Lists.newArrayList();
     if (FILE_TREE.equals(methodCall.getMethodName())) {
-      List<GradleDslElement> arguments = methodCall.getArguments();
-      for (GradleDslElement argument : arguments) {
+      List<GradleDslExpression> arguments = methodCall.getArguments();
+      for (GradleDslExpression argument : arguments) {
         if (argument instanceof GradleDslSimpleExpression) {
           result.add(new FileTreeDependencyModelImpl(configurationName, methodCall, (GradleDslSimpleExpression)argument, null, null));
         }

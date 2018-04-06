@@ -53,7 +53,11 @@ private val String.yellow get() = if (isEmpty()) "" else color(LIGHT_YELLOW) + t
 
 private fun GradleDslElement.printElement(builder : StringBuilder, indent : Int) {
   when(this) {
-    is GradleDslMethodCall -> builder.append("${javaClass.simpleName.red} : ${name.magenta} ${methodName.yellow} : ${value.toString().cyan}")
+    is GradleDslMethodCall -> {
+      builder.append("${javaClass.simpleName.red} : ${name.magenta} ${methodName.yellow} : ${value.toString().cyan} ->\n")
+      builder.append("${" ".repeat(indent)}| ${name.blue} -> ")
+      argumentsElement.printElement(builder, indent + INDENT)
+    }
     is GradleDslSimpleExpression -> builder.append("${javaClass.simpleName.red} : ${name.magenta} : ${value.toString().cyan}")
     is GradleDslExpressionList -> {
       builder.append("${javaClass.simpleName.red} : ${name.magenta} ->\n")

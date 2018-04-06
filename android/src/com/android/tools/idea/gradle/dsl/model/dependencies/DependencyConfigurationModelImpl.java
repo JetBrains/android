@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyConfiguratio
 import com.android.tools.idea.gradle.dsl.api.dependencies.ExcludedDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
-import com.android.tools.idea.gradle.dsl.parser.dependencies.DependencyConfigurationDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -32,9 +32,9 @@ public class DependencyConfigurationModelImpl implements DependencyConfiguration
   @NonNls private static final String FORCE = "force";
   @NonNls private static final String TRANSITIVE = "transitive";
 
-  @NotNull DependencyConfigurationDslElement myConfigurationElement;
+  @NotNull GradleDslClosure myConfigurationElement;
 
-  public DependencyConfigurationModelImpl(@NotNull DependencyConfigurationDslElement configurationElement) {
+  public DependencyConfigurationModelImpl(@NotNull GradleDslClosure configurationElement) {
     myConfigurationElement = configurationElement;
   }
 

@@ -16,10 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.ext.transforms;
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -72,11 +69,7 @@ public class SingleArgumentMethodTransform extends PropertyTransform {
   public GradleDslElement transform(@NotNull GradleDslElement e) {
     // This cast is safe, we are guaranteed to have test(e) return true.
     GradleDslMethodCall methodCall = (GradleDslMethodCall)e;
-    GradleDslElement arg = methodCall.getArguments().get(0);
-    if (arg instanceof GradleDslSimpleExpression) {
-      return arg;
-    }
-    return null;
+    return methodCall.getArguments().get(0);
   }
 
   /**
@@ -97,7 +90,7 @@ public class SingleArgumentMethodTransform extends PropertyTransform {
                                @NotNull String name) {
     GradleDslMethodCall methodCall;
     GradleNameElement nameElement = GradleNameElement.create(name);
-    if (oldElement != null && oldElement instanceof GradleDslMethodCall) {
+    if (oldElement instanceof GradleDslMethodCall) {
       // This cast is safe, we are guaranteed to have test(e) return true.
       methodCall = (GradleDslMethodCall)oldElement;
       if (methodCall.getMethodName().equals(myMethodName)) {

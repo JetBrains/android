@@ -198,7 +198,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
     GradleDslElement parent = dependencyElement.getParent();
     if (parent instanceof GradleDslMethodCall) {
       GradleDslMethodCall methodCall = (GradleDslMethodCall)parent;
-      List<GradleDslElement> arguments = methodCall.getArguments();
+      List<GradleDslExpression> arguments = methodCall.getArguments();
       if (arguments.size() == 1 && arguments.get(0).equals(dependencyElement)) {
         // If this is the last argument, remove the method call altogether.
         myDslElement.removeProperty(methodCall);
@@ -207,9 +207,15 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
         methodCall.remove(dependencyElement);
       }
     } else if (parent instanceof GradleDslExpressionList) {
-      List<GradleDslSimpleExpression> expressions = ((GradleDslExpressionList)parent).getSimpleExpressions();
+      List<GradleDslExpression> expressions = ((GradleDslExpressionList)parent).getExpressions();
       if (expressions.size() == 1 && expressions.get(0).equals(dependencyElement)) {
-        myDslElement.removeProperty(parent);
+        if (parent.getParent() instanceof GradleDslMethodCall) {
+          // We need to delete up two levels if this is a method call.
+          myDslElement.removeProperty(parent.getParent());
+        }
+        else {
+          myDslElement.removeProperty(parent);
+        }
       }
       else {
         ((GradleDslExpressionList)parent).removeElement(dependencyElement);

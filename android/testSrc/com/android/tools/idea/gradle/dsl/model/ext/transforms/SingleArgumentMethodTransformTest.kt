@@ -72,11 +72,11 @@ class SingleArgumentMethodTransformTest : TransformTestCase() {
   }
 
   @Test
-  fun testTransformOnIncorrectForm() {
+  fun testTransformOnMapForm() {
     val inputElement = createMethodCall(methodName)
     val expressionMap = GradleDslExpressionMap(inputElement, GradleNameElement.create("unusedListName"))
-    inputElement.addParsedExpressionMap(expressionMap)
-    assertNull(transform.transform(inputElement))
+    inputElement.addParsedExpression(expressionMap)
+    assertThat(transform.transform(inputElement), equalTo(expressionMap as GradleDslElement))
   }
 
   @Test
@@ -89,22 +89,23 @@ class SingleArgumentMethodTransformTest : TransformTestCase() {
     val argumentElement = resultElement.arguments[0] as GradleDslLiteral
     assertThat(argumentElement.value as Boolean, equalTo(true))
     assertThat(argumentElement.name, equalTo("statementName"))
-    assertThat(argumentElement.parent as GradleDslMethodCall, equalTo(resultElement))
+    assertThat(argumentElement.parent?.parent as GradleDslMethodCall, equalTo(resultElement))
   }
 
   @Test
-  fun testBindIncorrectFormCreateNewElement() {
+  fun testBindReplacesMapFormCreateNewElement() {
     val inputElement = createMethodCall(methodName)
     val expressionMap = GradleDslExpressionMap(inputElement, GradleNameElement.create("unusedListName"))
-    inputElement.addParsedExpressionMap(expressionMap)
+    inputElement.addParsedExpression(expressionMap)
     val resultElement = transform.bind(gradleDslFile, inputElement, "32", "statementName") as GradleDslMethodCall
-    assertThat(resultElement.name, equalTo("statementName"))
+    // Method call element name doesn't change, we result the same element
+    assertThat(resultElement.name, equalTo("unusedStatement"))
     assertThat(resultElement.methodName, equalTo(methodName))
     assertThat(resultElement.arguments.size, equalTo(1))
     val argumentElement = resultElement.arguments[0] as GradleDslLiteral
     assertThat(argumentElement.value as String, equalTo("32"))
-    assertThat(argumentElement.name, equalTo("statementName"))
-    assertThat(argumentElement.parent as GradleDslMethodCall, equalTo(resultElement))
+    assertThat(argumentElement.name, equalTo("unusedListName"))
+    assertThat(argumentElement.parent?.parent as GradleDslMethodCall, equalTo(resultElement))
   }
 
   @Test
@@ -125,7 +126,7 @@ class SingleArgumentMethodTransformTest : TransformTestCase() {
     assertThat(argumentElement.value as String, equalTo("32"))
     // Name is kept form the literal.
     assertTrue(argumentElement.nameElement.isEmpty)
-    assertThat(argumentElement.parent as GradleDslMethodCall, equalTo(resultElement))
+    assertThat(argumentElement.parent?.parent as GradleDslMethodCall, equalTo(resultElement))
   }
 
   @Test
@@ -144,6 +145,6 @@ class SingleArgumentMethodTransformTest : TransformTestCase() {
     assertThat(argumentElement.referenceText as String, equalTo("prop"))
     // Name is kept form the literal.
     assertTrue(argumentElement.nameElement.isEmpty)
-    assertThat(argumentElement.parent as GradleDslMethodCall, equalTo(resultElement))
+    assertThat(argumentElement.parent?.parent as GradleDslMethodCall, equalTo(resultElement))
   }
 }
