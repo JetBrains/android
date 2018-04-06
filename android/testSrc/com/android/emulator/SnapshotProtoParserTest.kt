@@ -36,6 +36,7 @@ class SnapshotProtoParserTest {
     val hasImageName = "snap_file_has_image_name"
     val allGoodName = "snap_file_all_good"
     val snapLogicalName = "snap_logical_name"
+    val arbitraryDateTime = 1_500_000_000L // (In July 2017)
     // Try to read a non-existing protobuf
     assertFailsWith(SnapshotProtoException::class) {
       SnapshotProtoParser(File("bogus_name"), "base_name")
@@ -58,6 +59,7 @@ class SnapshotProtoParserTest {
     val imageBuilder = SnapshotOuterClass.Image.newBuilder()
     val anImage = imageBuilder.build()
     builder.addImages(anImage)
+    builder.setCreationTime(arbitraryDateTime)
 
     val protoBufHasImage = builder.build()
     val hasImageFile = temporaryFolder.newFile(hasImageName)
@@ -65,6 +67,7 @@ class SnapshotProtoParserTest {
     protoBufHasImage.writeTo(oStreamHasImage)
     val hasImageProtoParser = SnapshotProtoParser(hasImageFile, "base_name")
     assertEquals("base_name", hasImageProtoParser.logicalName, "Wrong default logical name")
+    assertEquals(arbitraryDateTime, hasImageProtoParser.creationTime, "Wrong creation time")
 
     // Add a logical name to the protobuf
     builder.logicalName = snapLogicalName
