@@ -59,32 +59,6 @@ public class AndroidStatisticsService implements StatisticsService {
                             listener);
   }
 
-  @Nullable
-  @Override
-  public Map<String, String> getStatisticsConfigurationLabels() {
-    Map<String, String> labels = new HashMap<String, String>();
-
-    final String fullProductName = ApplicationNamesInfo.getInstance().getFullProductName();
-    final String companyName = ApplicationInfo.getInstance().getCompanyName();
-
-    labels.put(StatisticsService.TITLE,
-               "Help improve " +  fullProductName + " by sending usage statistics to " + companyName);
-    labels.put(StatisticsService.ALLOW_CHECKBOX,
-               "Send usage statistics to " + companyName);
-    labels.put(StatisticsService.DETAILS,
-               "<html>This allows " + companyName + " to collect usage information, such as data about your feature usage," +
-               "<br>resource usage and plugin configuration.</html>");
-
-    // Note: we inline the constants corresponding to the following keys since the corresponding change in IJ
-    // may not be in upstream as yet.
-    labels.put("linkUrl", "http://www.google.com/policies/privacy/");
-    labels.put("linkBeforeText", "This data is collected in accordance with " + companyName + "'s ");
-    labels.put("linkText", "privacy policy");
-    labels.put("linkAfterText", ".");
-
-    return labels;
-  }
-
   @SuppressWarnings("ConstantConditions")
   @Override
   public StatisticsResult send() {

@@ -1,3 +1,4 @@
+// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.formatter;
 
 import com.intellij.application.options.CodeStyleAbstractConfigurable;
@@ -22,11 +23,6 @@ public class AndroidXmlCodeStyleSettingsProvider extends CodeStyleSettingsProvid
       @Override
       protected CodeStyleAbstractPanel createPanel(final CodeStyleSettings settings) {
         return new AndroidXmlCodeStylePanel(getCurrentSettings(), settings);
-      }
-
-      @Override
-      public String getHelpTopic() {
-        return null;
       }
     };
   }
