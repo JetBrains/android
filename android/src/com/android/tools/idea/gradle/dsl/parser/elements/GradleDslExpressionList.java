@@ -136,7 +136,7 @@ public final class GradleDslExpressionList extends GradleDslElementImpl implemen
     }
   }
 
-  public void replaceExpression(@NotNull GradleDslSimpleExpression oldExpression, @NotNull GradleDslSimpleExpression newExpression) {
+  public void replaceExpression(@NotNull GradleDslExpression oldExpression, @NotNull GradleDslExpression newExpression) {
     assert oldExpression.getFullName().equals(newExpression.getFullName());
     int index = myUnsavedExpressions.indexOf(oldExpression);
     assert index != -1;
@@ -284,7 +284,7 @@ public final class GradleDslExpressionList extends GradleDslElementImpl implemen
   }
 
   @Override
-  @NotNull
+  @Nullable
   public PsiElement getExpression() {
     return getPsiElement();
   }

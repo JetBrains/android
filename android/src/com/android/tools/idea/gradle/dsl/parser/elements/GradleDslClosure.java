@@ -32,8 +32,8 @@ public class GradleDslClosure extends GradlePropertiesDslElement implements Grad
     return true;
   }
 
-  @Nullable
   @Override
+  @Nullable
   public PsiElement getExpression() {
     return getPsiElement();
   }
