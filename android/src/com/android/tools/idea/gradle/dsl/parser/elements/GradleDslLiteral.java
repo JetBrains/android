@@ -51,12 +51,6 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
     myUnsavedConfigBlock = configBlock;
   }
 
-  @Nullable
-  public String getRawText() {
-    PsiElement element = getCurrentElement();
-    return element == null ? null : element.getText();
-  }
-
   @Override
   @Nullable
   public Object getValue() {

@@ -481,7 +481,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
         if (element.getPsiElement() == null) {
           return null;
         }
-        value = element.getPsiElement().getText();
+        value = GradleDslElementImpl.getPsiText(element.getPsiElement());
       }
       else {
         value = element.getFullName();

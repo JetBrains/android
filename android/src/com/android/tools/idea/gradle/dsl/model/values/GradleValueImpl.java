@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.api.values.GradleValue;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
@@ -74,7 +75,7 @@ public abstract class GradleValueImpl<T> implements GradleValue<T> {
   @Override
   public String getDslText() {
     PsiElement psiElement = getPsiElement();
-    return psiElement != null ? psiElement.getText() : null;
+    return psiElement != null ? GradleDslElementImpl.getPsiText(psiElement) : null;
   }
 
   @Override
