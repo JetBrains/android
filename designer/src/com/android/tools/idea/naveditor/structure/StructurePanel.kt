@@ -22,6 +22,8 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Factory
+import com.intellij.ui.TitledSeparator
+import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -40,12 +42,26 @@ class StructurePanel : AdtSecondaryPanel(BorderLayout()), ToolContent<DesignSurf
       remove(it)
       Disposer.dispose(it)
     }
-    if (toolContext != null) {
-      val dl = DestinationList(this, toolContext as NavDesignSurface)
+    if (toolContext is NavDesignSurface) {
+      val hostPanel = AdtSecondaryPanel(BorderLayout())
+      val hostSeparator = TitledSeparator("HOST")
+      hostSeparator.isEnabled = false
+      hostSeparator.border = JBUI.Borders.empty(5)
+      hostPanel.add(hostSeparator, BorderLayout.NORTH)
+      hostPanel.add(HostPanel(toolContext), BorderLayout.SOUTH)
+      add(hostPanel, BorderLayout.NORTH)
+
+      val dl = DestinationList(this, toolContext)
       destinationList = dl
+      val graphHeader = AdtSecondaryPanel(BorderLayout())
+      val graphSeparator = TitledSeparator("GRAPH")
+      graphSeparator.isEnabled = false
+      graphSeparator.border = JBUI.Borders.empty(5)
+      graphHeader.add(graphSeparator, BorderLayout.NORTH)
       backPanel = BackPanel(toolContext, dl::updateComponentList, this)
+      graphHeader.add(backPanel, BorderLayout.SOUTH)
       val bottomPanel = JPanel(BorderLayout())
-      bottomPanel.add(backPanel, BorderLayout.NORTH)
+      bottomPanel.add(graphHeader, BorderLayout.NORTH)
       bottomPanel.add(destinationList, BorderLayout.CENTER)
       add(bottomPanel, BorderLayout.CENTER)
     }
