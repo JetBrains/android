@@ -21,18 +21,22 @@ import com.intellij.credentialStore.Credentials
 import com.intellij.ide.passwordSafe.PasswordSafe
 import com.intellij.testFramework.IdeaTestCase
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_PASSWORD_KEY
+import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.concurrency.Promise
 import org.jetbrains.concurrency.resolvedPromise
 import org.junit.Assert.assertArrayEquals
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
+import org.mockito.Mockito.*
+import java.util.*
 
 class KeystoreStepTest : IdeaTestCase() {
   private lateinit var ideComponents: IdeComponents
-
+  private lateinit var facets: List<AndroidFacet>
   override fun setUp() {
     super.setUp()
     ideComponents = IdeComponents(myProject)
+    val mockFacet = mock(AndroidFacet::class.java, RETURNS_DEEP_STUBS)
+    facets = mutableListOf(mockFacet)
+
   }
 
   fun testRememberPasswords() {
@@ -54,7 +58,7 @@ class KeystoreStepTest : IdeaTestCase() {
     val wizard = mock(ExportSignedPackageWizard::class.java)
     `when`(wizard.project).thenReturn(myProject)
 
-    val keystoreStep = KeystoreStep(wizard, true)
+    val keystoreStep = KeystoreStep(wizard, true, facets)
     assertEquals(testKeyStorePath, keystoreStep.keyStorePathField.text)
     assertEquals(testKeyAlias, keystoreStep.keyAliasField.text)
     assertEquals(0, keystoreStep.keyStorePasswordField.password.size)
@@ -66,7 +70,7 @@ class KeystoreStepTest : IdeaTestCase() {
     keystoreStep.commitForNext()
 
     // Assert that the passwords are persisted and a new form instance fields populated as necessary.
-    val keystoreStep2 = KeystoreStep(wizard, true)
+    val keystoreStep2 = KeystoreStep(wizard, true, facets)
     assertEquals(testKeyStorePath, keystoreStep2.keyStorePathField.text)
     assertEquals(testKeyAlias, keystoreStep2.keyAliasField.text)
     assertArrayEquals(testKeyStorePassword.toCharArray(), keystoreStep2.keyStorePasswordField.password)
@@ -97,7 +101,7 @@ class KeystoreStepTest : IdeaTestCase() {
     val wizard = mock(ExportSignedPackageWizard::class.java)
     `when`(wizard.project).thenReturn(myProject)
 
-    val keystoreStep = KeystoreStep(wizard, true)
+    val keystoreStep = KeystoreStep(wizard, true, facets)
     assertEquals(testKeyStorePath, keystoreStep.keyStorePathField.text)
     assertEquals(testKeyAlias, keystoreStep.keyAliasField.text)
     // Yes, it's weird but before the fix for b/64995008 this was exactly the observed behavior: the keystore password would
