@@ -43,7 +43,7 @@ public class AndroidRenderscriptFileType extends LanguageFileType {
   @NotNull
   @Override
   public String getDescription() {
-    return "Android RenderScript files";
+    return "Android RenderScript";
   }
 
   @NotNull
