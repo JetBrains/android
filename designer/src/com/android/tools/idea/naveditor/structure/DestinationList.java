@@ -95,6 +95,7 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
     Disposer.register(parentDisposable, this);
     setLayout(new BorderLayout());
     myList = new JBList<>(myListModel);
+    myList.getEmptyText().setText("");
     myList.setName("DestinationList");
     myList.setCellRenderer(new ColoredListCellRenderer<NlComponent>() {
       @Override
