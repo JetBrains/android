@@ -17,6 +17,8 @@ package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
@@ -44,6 +46,7 @@ public final class ComponentTreeTest {
   public final GuiTestRule myGuiTest = new GuiTestRule();
 
   @Test
+  @RunIn(TestGroup.UNRELIABLE) // b/77708241
   public void testDropThatOpensDialog() throws IOException {
     WizardUtils.createNewProject(myGuiTest);
     Path activityMainXmlRelativePath = FileSystems.getDefault().getPath("app", "src", "main", "res", "layout", "activity_main.xml");
