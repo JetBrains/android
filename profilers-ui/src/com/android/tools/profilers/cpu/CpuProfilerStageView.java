@@ -75,6 +75,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
@@ -219,18 +220,55 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       details.add(eventsView.getComponent(), new TabularLayout.Constraint(0, 0));
     }
 
-    final JPanel overlayPanel = new JBPanel(new BorderLayout());
-    configureOverlayPanel(overlayPanel, overlay);
-
     final JPanel monitorPanel = new JBPanel(new TabularLayout("*", "*"));
     monitorPanel.setOpaque(false);
     monitorPanel.setBorder(MONITOR_BORDER);
+    monitorPanel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
+    if (!getStage().hasUserUsedCpuCapture() && !getStage().isImportTraceMode()) {
+      installProfilingInstructions(monitorPanel);
+    }
 
-    final JPanel axisPanel = new JBPanel(new BorderLayout());
-    configureAxisPanel(axisPanel);
+    if (myStage.isImportTraceMode()) {
+      final JPanel tipPanel = new JBPanel(new BorderLayout());
+      configureImportTipPanel(tipPanel);
 
-    final JPanel lineChartPanel = new JBPanel(new BorderLayout());
-    configureLineChart(lineChartPanel, overlay);
+      final AxisComponent timeAxisGuide = new AxisComponent(myStage.getTimeAxisGuide(), AxisComponent.AxisOrientation.BOTTOM);
+      configureImportAxisPanel(timeAxisGuide, monitorPanel);
+
+      final JPanel overlayPanel = new JBPanel(new TabularLayout("*", "*"));
+      configureImportOverlayPanel(overlayPanel, overlay);
+
+      // Order is important
+      monitorPanel.add(timeAxisGuide, new TabularLayout.Constraint(0, 0));
+      monitorPanel.add(overlay, new TabularLayout.Constraint(0, 0));
+      monitorPanel.add(mySelection, new TabularLayout.Constraint(0, 0));
+      monitorPanel.add(tipPanel, new TabularLayout.Constraint(0, 0));
+      monitorPanel.add(overlayPanel, new TabularLayout.Constraint(0, 0));
+    }
+    else {
+      final JPanel axisPanel = new JBPanel(new BorderLayout());
+      configureAxisPanel(axisPanel);
+
+      final JPanel legendPanel = new JBPanel(new BorderLayout());
+      configureLegendPanel(legendPanel);
+
+      final JPanel overlayPanel = new JBPanel(new BorderLayout());
+      configureOverlayPanel(overlayPanel, overlay);
+
+      final JPanel lineChartPanel = new JBPanel(new BorderLayout());
+      configureLineChart(lineChartPanel, overlay);
+
+      // Panel that represents the cpu utilization.
+      // Order is important
+      monitorPanel.add(axisPanel, new TabularLayout.Constraint(0, 0));
+      monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
+      monitorPanel.add(overlayPanel, new TabularLayout.Constraint(0, 0));
+      monitorPanel.add(mySelection, new TabularLayout.Constraint(0, 0));
+      monitorPanel.add(lineChartPanel, new TabularLayout.Constraint(0, 0));
+    }
+
+    JComponent timeAxis = buildTimeAxis(myStage.getStudioProfilers());
+    ProfilerScrollbar scrollbar = new ProfilerScrollbar(timeline, details);
 
     TabularLayout monitorCpuThreadsLayout = new TabularLayout("*");
     // The cpu monitor takes up 40%.
@@ -244,22 +282,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     monitorCpuThreadsPanel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
     configureCpuPanel(monitorCpuThreadsPanel, monitorCpuThreadsLayout);
     configureThreadsPanel(monitorCpuThreadsPanel, monitorCpuThreadsLayout);
-
-    final JPanel legendPanel = new JBPanel(new BorderLayout());
-    configureLegendPanel(legendPanel);
-
-    JComponent timeAxis = buildTimeAxis(myStage.getStudioProfilers());
-    ProfilerScrollbar scrollbar = new ProfilerScrollbar(timeline, details);
-
-    if (!getStage().hasUserUsedCpuCapture()) {
-      installProfilingInstructions(monitorPanel);
-    }
-    // Panel that represents the cpu utilization.
-    monitorPanel.add(axisPanel, new TabularLayout.Constraint(0, 0));
-    monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
-    monitorPanel.add(overlayPanel, new TabularLayout.Constraint(0, 0));
-    monitorPanel.add(mySelection, new TabularLayout.Constraint(0, 0));
-    monitorPanel.add(lineChartPanel, new TabularLayout.Constraint(0, 0));
     monitorCpuThreadsPanel.add(monitorPanel, new TabularLayout.Constraint(MONITOR_PANEL_ROW, 0));
 
     // Panel that represents all of L2
@@ -450,6 +472,46 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       .setColors(JBColor.foreground(), null)
       .build();
     myHelpTipPanel.add(infoMessage, BorderLayout.CENTER);
+  }
+
+  @SuppressWarnings("UseJBColor")
+  private void configureImportTipPanel(JPanel panel) {
+    panel.setOpaque(false);
+    panel.setBackground(new Color(0, 0, 0, 0));
+    InstructionsPanel infoMessage = new InstructionsPanel.Builder(
+      new TextInstruction(INFO_MESSAGE_HEADER_FONT, "Cpu usage details unavailable"))
+      .setColors(JBColor.foreground(), null)
+      .build();
+    panel.add(infoMessage);
+  }
+
+  private void configureImportAxisPanel(AxisComponent timeAxisGuide, JPanel monitorPanel) {
+    timeAxisGuide.setShowAxisLine(false);
+    timeAxisGuide.setShowLabels(false);
+    timeAxisGuide.setHideTickAtMin(true);
+    timeAxisGuide.setMarkerColor(ProfilerColors.CPU_AXIS_GUIDE_COLOR);
+    monitorPanel.addComponentListener(new ComponentAdapter() {
+      @Override
+      public void componentResized(ComponentEvent e) {
+        timeAxisGuide.setMarkerLengths(monitorPanel.getHeight(), 0);
+      }
+    });
+  }
+
+  @SuppressWarnings("UseJBColor")
+  private void configureImportOverlayPanel(JPanel overlay, OverlayComponent overlayComponent) {
+    overlay.setOpaque(false);
+    LineChart lineChart = new LineChart(new ArrayList<>());
+    DurationDataRenderer<CpuTraceInfo> traceRenderer =
+      new DurationDataRenderer.Builder<>(getStage().getTraceDurations(), ProfilerColors.CPU_CAPTURE_EVENT)
+        .setDurationBg(CPU_CAPTURE_BACKGROUND)
+        .setLabelProvider(this::formatCaptureLabel)
+        .setLabelColors(ProfilerColors.CPU_DURATION_LABEL_BACKGROUND, Color.BLACK, Color.lightGray, Color.WHITE)
+        .setClickHander(traceInfo -> getStage().setAndSelectCapture(traceInfo.getTraceId()))
+        .build();
+    overlayComponent.addDurationDataRenderer(traceRenderer);
+    lineChart.addCustomRenderer(traceRenderer);
+    overlay.add(lineChart, new TabularLayout.Constraint(0, 0));
   }
 
   private void configureAxisPanel(JPanel axisPanel) {
