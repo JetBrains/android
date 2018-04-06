@@ -305,6 +305,12 @@ public class AppResourceRepository extends MultiResourceRepository {
     return myLibraries;
   }
 
+  /**
+   * Returns the names of all resources of type {@link ResourceType#ID} available in a non-namespaced application. This means reading the
+   * R.txt files from libraries, as we don't scan layouts etc. in AARs for "@+id" declarations.
+   *
+   * TODO(namespaces): remove the dependency on R.txt
+   */
   @NotNull
   private Set<String> getAllIds() {
     long currentModCount = getModificationCount();
@@ -338,7 +344,7 @@ public class AppResourceRepository extends MultiResourceRepository {
   public Collection<String> getItemsOfType(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
     synchronized (ITEM_MAP_LOCK) {
       // TODO(namespaces): store all ID resources in the repositories and stop reading R.txt.
-      return type == ResourceType.ID ? getAllIds() : super.getItemsOfType(namespace, type);
+      return type == ResourceType.ID && namespace == ResourceNamespace.RES_AUTO ? getAllIds() : super.getItemsOfType(namespace, type);
     }
   }
 
