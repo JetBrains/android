@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu
 
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.adtui.instructions.InstructionsPanel
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.profiler.proto.Common
@@ -223,6 +224,28 @@ class CpuProfilerStageViewTest {
     // Verify when we reset the capture our splitter value goes back to default.
     myStage.capture = null
     assertThat(splitter.proportion).isWithin(0.0001f).of(SPLITTER_DEFAULT_RATIO)
+  }
+
+  @Test
+  fun importTraceModeShouldShowInstructionsPanel() {
+    // Enable import trace and sessions view, both of which are required for import-trace-mode.
+    myIdeServices.enableImportTrace(true)
+    myIdeServices.enableSessionsView(true)
+    var cpuStageView = CpuProfilerStageView(myProfilersView, myStage)
+    var panelList = TreeWalker(cpuStageView.component).descendants().filterIsInstance(InstructionsPanel::class.java).toList()
+    // When we are not in import mode we only have one Instruction panel.
+    // This panel is the panel that appears in the L3 view telling users how to do their recording.
+    // "Click [record icon] to start method profiling"
+    assertThat(panelList).hasSize(1)
+    assertThat((panelList[0] as InstructionsPanel).getRenderInstructionsForComponent(0)).hasSize(3)
+    myStage = CpuProfilerStage(myStage.studioProfilers, File("FakePathToTraceFile.trace"))
+    // Create a CpuProfilerStageView. We don't need its value, so we don't store it in a variable.
+    cpuStageView = CpuProfilerStageView(myProfilersView, myStage)
+    panelList = TreeWalker(cpuStageView.component).descendants().filterIsInstance(InstructionsPanel::class.java).toList()
+    // We cannot get the string due to privacy of InstructionsComponent.
+    // This panel is the panel that appears in the Cpu Usage area indicating we have no cpu usage data.
+    assertThat(panelList).hasSize(1)
+    assertThat((panelList[0] as InstructionsPanel).getRenderInstructionsForComponent(0)).hasSize(1)
   }
 
   /**
