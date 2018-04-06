@@ -96,6 +96,7 @@ public class JavaModuleModelFactoryTest {
 
     when(moduleLibrary.getName()).thenReturn("lib2");
     when(moduleLibrary.getProject()).thenReturn(":lib2");
+    when(moduleLibrary.getBuildId()).thenReturn("/mock/project");
 
     when(compileJarLibrary.getJarFile()).thenReturn(compileJarFile);
     when(testJarLibrary.getJarFile()).thenReturn(testJarFile);
@@ -117,6 +118,7 @@ public class JavaModuleModelFactoryTest {
     assertThat(javaModuleDependencies).hasSize(1);
     JavaModuleDependency javaModuleDependency = Iterables.get(javaModuleDependencies, 0);
     assertEquals("lib2", javaModuleDependency.getModuleName());
+    assertEquals("/mock/project::lib2", javaModuleDependency.getModuleId());
     assertEquals("COMPILE", javaModuleDependency.getScope());
 
     // Verify jar dependency

@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.gradle.model.java;
 
+import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.idea.IdeaDependencyScope;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaModuleDependency;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.io.Serializable;
 
+import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 /**
@@ -30,9 +34,10 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
  */
 public class JavaModuleDependency implements Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 2L;
 
   @NotNull private final String myModuleName;
+  @NotNull private final String myModuleId;
   @Nullable private final String myScope;
   private final boolean myExported;
 
@@ -45,13 +50,28 @@ public class JavaModuleDependency implements Serializable {
       if (originalScope != null) {
         scope = originalScope.getScope();
       }
-      return new JavaModuleDependency(module.getName(), scope, original.getExported());
+      GradleProject gradleProject = module.getGradleProject();
+      File projectFolder;
+      try {
+        projectFolder = gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir();
+      }
+      catch (UnsupportedMethodException ex) {
+        // Old version of Gradle doesn't support getProjectIdentifier, find folder path of the root project.
+        GradleProject rootGradleProject = gradleProject;
+        while (rootGradleProject.getParent() != null) {
+          rootGradleProject = rootGradleProject.getParent();
+        }
+        projectFolder = rootGradleProject.getProjectDirectory();
+      }
+      String moduleId = createUniqueModuleId(projectFolder, gradleProject.getPath());
+      return new JavaModuleDependency(module.getName(), moduleId, scope, original.getExported());
     }
     return null;
   }
 
-  public JavaModuleDependency(@NotNull String moduleName, @Nullable String scope, boolean exported) {
+  public JavaModuleDependency(@NotNull String moduleName, @NotNull String moduleId, @Nullable String scope, boolean exported) {
     myModuleName = moduleName;
+    myModuleId = moduleId;
     myScope = scope;
     myExported = exported;
   }
@@ -59,6 +79,11 @@ public class JavaModuleDependency implements Serializable {
   @NotNull
   public String getModuleName() {
     return myModuleName;
+  }
+
+  @NotNull
+  public String getModuleId() {
+    return myModuleId;
   }
 
   @Nullable
