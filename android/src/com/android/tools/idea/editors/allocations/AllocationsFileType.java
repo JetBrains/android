@@ -36,7 +36,7 @@ public class AllocationsFileType implements FileType {
   @NotNull
   @Override
   public String getDescription() {
-    return "Memory allocations capture file";
+    return "Memory allocations capture";
   }
 
   @NotNull
