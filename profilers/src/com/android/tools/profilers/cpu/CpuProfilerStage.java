@@ -62,6 +62,11 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
    */
   static final ProfilingConfiguration CONFIG_SEPARATOR_ENTRY = new ProfilingConfiguration();
 
+  /**
+   * Percentage of space on either side of an imported trace.
+   */
+  static final double IMPORTED_TRACE_VIEW_EXPAND_PERCENTAGE = 0.1;
+
   private static final long INVALID_CAPTURE_START_TIME = Long.MAX_VALUE;
 
   @VisibleForTesting
@@ -637,13 +642,26 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     Consumer<CpuCapture> parsingCallback = (parsedCapture) -> {
       if (parsedCapture != null) {
         ProfilerTimeline timeline = getStudioProfilers().getTimeline();
+        Range captureRangeNs = new Range(TimeUnit.MICROSECONDS.toNanos((long)parsedCapture.getRange().getMin()),
+                                         TimeUnit.MICROSECONDS.toNanos((long)parsedCapture.getRange().getMax()));
         // Give some room to the end of the timeline, so we can properly use the handle to select the capture.
-        long endTimestampNs = TimeUnit.MICROSECONDS.toNanos((long)parsedCapture.getRange().getMax()) + TimeUnit.SECONDS.toNanos(5);
-        timeline.reset(TimeUnit.MICROSECONDS.toNanos((long)parsedCapture.getRange().getMin()), endTimestampNs);
+        double expandAmountNs = IMPORTED_TRACE_VIEW_EXPAND_PERCENTAGE * captureRangeNs.getLength();
+        // Reset expects time in Ns and will convert to Us internally
+        timeline.reset((long)(captureRangeNs.getMin()), (long)(captureRangeNs.getMax() + expandAmountNs));
         timeline.setIsPaused(true);
 
         setCaptureState(CaptureState.IDLE);
         setAndSelectCapture(parsedCapture);
+        // We need to expand the end of the data range. Giving us the padding on the right side to show the view. If we don't do this
+        // and only expand the view we end up with the trace aligned to the right.
+        // [] = view range
+        // - = data range
+        // [    ---------]
+        // This is not the intended result as we want equal spacing on both sides of the
+        // capture. However in the current model we need to expand the data range.
+        double expandAmountUs = TimeUnit.NANOSECONDS.toMicros((long)expandAmountNs);
+        timeline.getViewRange().set(parsedCapture.getRange().getMin() - expandAmountUs,
+                                    parsedCapture.getRange().getMax() + expandAmountUs);
         myThreadsStates.buildImportedTraceThreads(parsedCapture);
         setCaptureDetails(DEFAULT_CAPTURE_DETAILS);
         // Save trace info if not already saved
@@ -1072,7 +1090,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
      * Updater is running 60 times per second, which is too frequent for checking capture state which
      * requires a RPC call. Therefore, we check the state less often.
      */
-    private final int UPDATE_COUNT_TO_CALL_CALLBACK = 6;
+    private static final int UPDATE_COUNT_TO_CALL_CALLBACK = 6;
     private int myUpdateCount = UPDATE_COUNT_TO_CALL_CALLBACK - 1;
 
     public CpuCaptureStateUpdatable(@NotNull Runnable callback) {
