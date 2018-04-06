@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EnergyEventComponent extends AnimatedComponent {
-  private static final int HIGHLIGHT_WIDTH = 2;
+  protected static final int HIGHLIGHT_WIDTH = 2;
   /**
    * Cache the result of filtering events from a single duration that match the range.
    */
