@@ -21,6 +21,7 @@ import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import io.grpc.stub.StreamObserver;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -75,6 +76,8 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
   private long myOngoingCaptureStartTimestamp;
 
+  private CpuProfiler.TraceInitiationType myOngoingCaptureInitiationType;
+
   private int myTraceId = FAKE_TRACE_ID;
 
   private CpuProfiler.CpuProfilerType myProfilerType = CpuProfiler.CpuProfilerType.ART;
@@ -98,6 +101,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
       myProfilerConfiguration = request.getConfiguration();
       myIsAppBeingProfiled = true;
       myProfilerType = request.getConfiguration().getProfilerType();
+      myOngoingCaptureInitiationType = CpuProfiler.TraceInitiationType.INITIATED_BY_UI;
     }
 
     responseObserver.onNext(response.build());
@@ -148,7 +152,8 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     CpuProfiler.ProfilingStateResponse.Builder response = CpuProfiler.ProfilingStateResponse.newBuilder();
     response.setBeingProfiled(myIsAppBeingProfiled);
     if (myIsAppBeingProfiled) {
-      response.setConfiguration(myProfilerConfiguration).setStartTimestamp(myOngoingCaptureStartTimestamp);
+      response.setConfiguration(myProfilerConfiguration).setStartTimestamp(myOngoingCaptureStartTimestamp)
+              .setInitiationType(myOngoingCaptureInitiationType);
       myProfilerType = myProfilerConfiguration.getProfilerType();
     }
 
@@ -156,13 +161,24 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     responseObserver.onCompleted();
   }
 
+  public void setAppBeingProfiled(boolean profiled) {
+    myIsAppBeingProfiled = profiled;
+  }
+
   /**
    * Receives a {@link CpuProfiler.CpuProfilerConfiguration} and sets the state of the service to be profiling using such configuration.
    * If the configuration passed is null, {@link #myIsAppBeingProfiled} should be set to false.
    */
   public void setOngoingCaptureConfiguration(@Nullable CpuProfiler.CpuProfilerConfiguration configuration, long startTimestamp) {
+    setOngoingCaptureConfiguration(configuration, startTimestamp, CpuProfiler.TraceInitiationType.INITIATED_BY_UI);
+  }
+
+  public void setOngoingCaptureConfiguration(@Nullable CpuProfiler.CpuProfilerConfiguration configuration,
+                                             long startTimestamp,
+                                             @NotNull CpuProfiler.TraceInitiationType initiationType) {
     myProfilerConfiguration = configuration;
     myOngoingCaptureStartTimestamp = startTimestamp;
+    myOngoingCaptureInitiationType = initiationType;
     myIsAppBeingProfiled = configuration != null;
   }
 
