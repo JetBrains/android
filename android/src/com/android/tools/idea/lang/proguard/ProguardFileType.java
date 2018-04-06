@@ -44,7 +44,7 @@ public class ProguardFileType extends LanguageFileType {
   @NotNull
   @Override
   public String getDescription() {
-    return "ProGuard Rules Language File";
+    return "ProGuard Rules";
   }
 
   @NotNull

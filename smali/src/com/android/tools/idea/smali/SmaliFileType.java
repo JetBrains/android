@@ -45,7 +45,7 @@ public class SmaliFileType extends LanguageFileType {
   @Override
   @NotNull
   public String getDescription() {
-    return "Smali file";
+    return "Smali";
   }
 
   @Override
