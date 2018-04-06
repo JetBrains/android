@@ -61,7 +61,7 @@ public class StudioCrashReporterTest {
 
 
   @Test
-  public void checkUploadNonGracefulExit() throws Exception {
+  public void serializeNonGracefulExit() throws Exception {
     CrashReport report =
       new StudioCrashReport.Builder()
         .setDescriptions(Lists.newArrayList("1.2.3.4\n1.8.0_152-release-1136-b01"))
@@ -72,16 +72,12 @@ public class StudioCrashReporterTest {
     HttpEntity httpEntity = builder.build();
     String content = new String(ByteStreams.toByteArray(httpEntity.getContent()), Charset.defaultCharset());
 
-    assertTrue("Request should report NonGracefulExitException in excetion_info. Full request body: " + content,
-               content.contains("Content-Disposition: form-data; name=\"exception_info\"\r\n" +
-                                       "Content-Type: text/plain; charset=ISO-8859-1\r\n" +
-                                       "Content-Transfer-Encoding: 8bit\r\n" +
-                                       "\r\n" +
-                                       "com.android.tools.idea.diagnostics.crash.exception.NonGracefulExitException"));
+    assertRequestContainsField(content, "exception_info",
+                               "com.android.tools.idea.diagnostics.crash.exception.NonGracefulExitException");
   }
 
   @Test
-  public void checkUploadJvmCrash() throws Exception {
+  public void serializeJvmCrash() throws Exception {
     CrashReport report =
       new StudioCrashReport.Builder()
         .setDescriptions(Lists.newArrayList("1.2.3.4\n1.8.0_152-release-1136-b01"))
@@ -93,12 +89,8 @@ public class StudioCrashReporterTest {
     HttpEntity httpEntity = builder.build();
     String request = new String(ByteStreams.toByteArray(httpEntity.getContent()), Charset.defaultCharset());
 
-    assertTrue("Request should report JvmCrashException in excetion_info. Full request body: " + request,
-               request.contains("Content-Disposition: form-data; name=\"exception_info\"\r\n" +
-                                "Content-Type: text/plain; charset=ISO-8859-1\r\n" +
-                                "Content-Transfer-Encoding: 8bit\r\n" +
-                                "\r\n" +
-                                "com.android.tools.idea.diagnostics.crash.exception.JvmCrashException"));
+    assertRequestContainsField(request, "exception_info",
+                               "com.android.tools.idea.diagnostics.crash.exception.JvmCrashException");
   }
 
   @Test
@@ -126,12 +118,49 @@ public class StudioCrashReporterTest {
 
   private static void assertRequestContainsField(final String requestBody, final String name, final String value) {
     assertThat(requestBody, new RegexMatcher(
-      "(?s).*\r\nContent-Disposition: form-data; name=\"" + Pattern.quote(name) + "\"\r\n" +
-      "Content-Type: .*?\r\n" +
-      "Content-Transfer-Encoding: 8bit\r\n" +
-      "\r\n" +
-      Pattern.quote(value) + "\r\n.*"
+      "(?s).*\r?\nContent-Disposition: form-data; name=\"" + Pattern.quote(name) + "\"\r?\n" +
+      "Content-Type: .*?\r?\n" +
+      "Content-Transfer-Encoding: 8bit\r?\n" +
+      "\r?\n" +
+      Pattern.quote(value) + "\r?\n.*"
     ));
+  }
+
+  @Test
+  public void serializePerformanceReportInvalidThreadDump() throws Exception {
+    CrashReport report =
+      new StudioPerformanceWatcherReport.Builder()
+        .setFile("threadDump.txt")
+        .setThreadDump("Not a thread dump")
+        .build();
+
+    MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+    report.serialize(builder);
+    HttpEntity httpEntity = builder.build();
+    String request = new String(ByteStreams.toByteArray(httpEntity.getContent()), Charset.defaultCharset());
+
+    assertRequestContainsField(request, "exception_info", "com.android.ApplicationNotResponding: ");
+  }
+
+  @Test
+  public void serializePerformanceReportValidThreadDump() throws Exception {
+    CrashReport report =
+      new StudioPerformanceWatcherReport.Builder()
+        .setFile("threadDump.txt")
+        .setThreadDump("\"AWT-EventQueue-0 2.3#__BUILD_NUMBER__ Studio, eap:true, os:Linux 3.13.0-93-generic\" prio=0 tid=0x0 nid=0x0 waiting on condition\n" +
+                       "     java.lang.Thread.State: WAITING\n" +
+                       " on java.util.concurrent.FutureTask@12345678\n" +
+                       "\tat sun.misc.Unsafe.park(Native Method)\n\n")
+        .build();
+
+    MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+    report.serialize(builder);
+    HttpEntity httpEntity = builder.build();
+    String request = new String(ByteStreams.toByteArray(httpEntity.getContent()), Charset.defaultCharset());
+
+    assertRequestContainsField(request, "exception_info",
+                                "com.android.ApplicationNotResponding: AWT-EventQueue-0 WAITING on java.util.concurrent.FutureTask@12345678\n" +
+                                "\tat sun.misc.Unsafe.park(Native Method)");
   }
 
   public static void main(String[] args) {

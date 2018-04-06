@@ -19,12 +19,17 @@ package com.android.tools.idea.diagnostics.crash;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.google.common.base.Charsets;
+import com.intellij.diagnostic.ThreadDumper;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 
 import java.util.Map;
 
 public class StudioPerformanceWatcherReport extends BaseStudioReport {
+  private static final String EMPTY_ANR_STACKTRACE =
+    "com.android.ApplicationNotResponding: \n" +
+    "\tat " + StudioPerformanceWatcherReport.class.getName() + ".missingEdtStack(Unknown source)";
+
   @NonNull private final String fileName;
   @NonNull private final String threadDump;
 
@@ -39,6 +44,10 @@ public class StudioPerformanceWatcherReport extends BaseStudioReport {
 
   @Override
   protected void serializeTo(@NonNull MultipartEntityBuilder builder) {
+    String edtStack = ThreadDumper.getEdtStackForCrash(threadDump);
+
+    builder.addTextBody(StudioExceptionReport.KEY_EXCEPTION_INFO,
+                        edtStack != null ? edtStack : EMPTY_ANR_STACKTRACE);
     builder.addTextBody(fileName, threadDump, ContentType.create("text/plain", Charsets.UTF_8));
   }
 
