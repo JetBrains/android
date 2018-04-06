@@ -126,6 +126,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myStartupCpuProfilingEnabled = false;
 
   /**
+   * Can toggle for tests via {@link #enableCpuApiTracing(boolean)}, but each test starts with this defaulted to false.
+   */
+  private boolean myIsCpuApiTracingEnabled = false;
+
+  /**
    * List of custom CPU profiling configurations.
    */
   private final List<ProfilingConfiguration> myCustomProfilingConfigurations = new ArrayList<>();
@@ -282,7 +287,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
       @Override
       public boolean isCpuApiTracingEnabled() {
-        return true;
+        return myIsCpuApiTracingEnabled;
       }
     };
   }
@@ -438,6 +443,10 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   public void enableStartupCpuProfiling(boolean enabled) {
+    myStartupCpuProfilingEnabled = enabled;
+  }
+
+  public void enableCpuApiTracing(boolean enabled) {
     myStartupCpuProfilingEnabled = enabled;
   }
 

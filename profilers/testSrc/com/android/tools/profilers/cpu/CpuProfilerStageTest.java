@@ -775,7 +775,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void exitingStateAndEnteringAgainShouldPreserveCaptureState() throws IOException {
+  public void exitingStageAndEnteringAgainShouldPreserveCaptureState() throws IOException {
     assertThat(myCpuService.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
     ProfilingConfiguration config1 = new ProfilingConfiguration("My Config",
                                                                 CpuProfiler.CpuProfilerType.SIMPLEPERF,
@@ -806,6 +806,85 @@ public class CpuProfilerStageTest extends AspectObserver {
       ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastCpuCaptureMetadata().getProfilingConfiguration();
     assertThat(trackedConfig.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLEPERF);
     assertThat(trackedConfig.getMode()).isEqualTo(CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
+  }
+
+  @Test
+  public void apiInitiatedCaptureShouldShowSpecialConfig() throws IOException {
+    assertThat(myCpuService.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
+    ProfilingConfiguration config1 = new ProfilingConfiguration("My Config",
+                                                                CpuProfiler.CpuProfilerType.SIMPLEPERF,
+                                                                CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
+    myStage.setProfilingConfiguration(config1);
+
+    // Verify non-API-initiated config before the API tracing starts.
+    assertThat(myStage.getProfilingConfiguration()).isEqualTo(config1);
+    assertThat(myStage.getProfilingConfigurations().size()).isGreaterThan(1);
+
+    // API-initiated tracing starts.
+    CpuProfiler.CpuProfilerConfiguration apiTracingconfig =
+      CpuProfiler.CpuProfilerConfiguration.newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.ART).build();
+    long startTimestamp = 100;
+    myCpuService.setOngoingCaptureConfiguration(apiTracingconfig, startTimestamp, CpuProfiler.TraceInitiationType.INITIATED_BY_API);
+    myStage.updateProfilingState();
+
+    // Verify the configuration is set to the special config properly.
+    assertThat(myStage.getProfilingConfiguration().getName()).isEqualTo("Debug API (Java)");
+    assertThat(myStage.getProfilingConfiguration().getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
+    assertThat(myStage.getProfilingConfigurations().size()).isEqualTo(1);
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
+
+    // API-initiated tracing ends.
+    myCpuService.setAppBeingProfiled(false);
+    myStage.updateProfilingState();
+
+    // Verify the configuration is set back to the config before API-initiated tracing.
+    assertThat(myStage.getProfilingConfiguration()).isEqualTo(config1);
+    assertThat(myStage.getProfilingConfigurations().size()).isGreaterThan(1);
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
+  }
+
+  @Test
+  public void apiInitiatedCaptureShouldPreserveNonIdelNonCapturingState() {
+    myStage.setCaptureState(CpuProfilerStage.CaptureState.PARSING);
+
+    // API-initiated tracing starts.
+    CpuProfiler.CpuProfilerConfiguration apiTracingconfig =
+      CpuProfiler.CpuProfilerConfiguration.newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.ART).build();
+    long startTimestamp = 100;
+    myCpuService.setOngoingCaptureConfiguration(apiTracingconfig, startTimestamp, CpuProfiler.TraceInitiationType.INITIATED_BY_API);
+
+    // Verify the parsing state isn't changed due to API tracing.
+    myStage.updateProfilingState();
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.PARSING);
+
+    // Simulate the parsing of prior capture (the one being parsed when entering the test) is done.
+    myStage.setCaptureState(CpuProfilerStage.CaptureState.IDLE);
+
+    // Verify API-initiated tracing is shown as capturing.
+    myStage.updateProfilingState();
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
+  }
+
+  @Test
+  public void apiInitiatedCaptureRespectCpuApiTracingFlag() {
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
+
+    // API-initiated tracing starts.
+    CpuProfiler.CpuProfilerConfiguration apiTracingconfig =
+      CpuProfiler.CpuProfilerConfiguration.newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.ART).build();
+    long startTimestamp = 100;
+    myCpuService.setOngoingCaptureConfiguration(apiTracingconfig, startTimestamp, CpuProfiler.TraceInitiationType.INITIATED_BY_API);
+
+    // Verify that when cpu.api.tracing is off, an API-initiated tracing doesn't update stage's capture state.
+    myServices.enableCpuApiTracing(false);
+    myStage.getStudioProfilers().getUpdater().onTick(1);
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
+
+    // Verify that when cpu.api.tracing is on, an API-initiated tracing does update stage's capture state.
+    myServices.enableCpuApiTracing(true);
+    CpuProfilerStage stage = new CpuProfilerStage(myStage.getStudioProfilers());
+    stage.getStudioProfilers().getUpdater().onTick(1);
+    assertThat(stage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
   }
 
   @Test

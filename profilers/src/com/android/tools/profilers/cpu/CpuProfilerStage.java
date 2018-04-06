@@ -63,6 +63,13 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   static final ProfilingConfiguration CONFIG_SEPARATOR_ENTRY = new ProfilingConfiguration();
 
   /**
+   * A fake configuration shown when an API-initiated tracing is in progress. It exists for UX purpose only and isn't something
+   * we want to perserve across stages. Therefore, it exists inside {@link CpuProfilerStage}.
+   */
+  private final ProfilingConfiguration API_INITIATED_TRACING_PROFILING_CONFIG =
+    new ProfilingConfiguration("Debug API (Java)", CpuProfilerType.ART, CpuProfiler.CpuProfilerConfiguration.Mode.UNSTATED);
+
+  /**
    * Percentage of space on either side of an imported trace.
    */
   static final double IMPORTED_TRACE_VIEW_EXPAND_PERCENTAGE = 0.1;
@@ -759,33 +766,55 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   /**
    * Communicate with the device to retrieve the profiling state.
    * Update the capture state and the capture start time (if there is a capture in progress) accordingly.
-   * This method should be called from the constructor.
+   * This method puts the stage in the correct mode when being called from the constructor; it's also called by
+   * {@link CpuCaptureStateUpdatable} to respond to API tracing status.
    */
-  private void updateProfilingState() {
+  @VisibleForTesting
+  void updateProfilingState() {
     CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
     ProfilingStateRequest request = ProfilingStateRequest.newBuilder()
-      .setSession(getStudioProfilers().getSession())
-      .build();
+                                                         .setSession(getStudioProfilers().getSession())
+                                                         .build();
     ProfilingStateResponse response = cpuService.checkAppProfilingState(request);
 
     if (response.getBeingProfiled()) {
-      // Set myInProgressTraceInitiationType before calling setCaptureState() because the latter may fire an
-      // aspect that depends on the former.
-      myInProgressTraceInitiationType = response.getInitiationType();
-      setCaptureState(CaptureState.CAPTURING);
-      myCaptureStartTimeNs = response.getStartTimestamp();
-      myInProgressTraceSeries.clear();
-      myInProgressTraceSeries.add(TimeUnit.NANOSECONDS.toMicros(myCaptureStartTimeNs), new DefaultDurationData(Long.MAX_VALUE));
-      // We should jump to live data when there is an ongoing recording.
-      getStudioProfilers().getTimeline().setStreaming(true);
+      // Update capture state only if it was idle to avoid disrupting state that's invisible to device such as STOPPING.
+      if (myCaptureState == CaptureState.IDLE) {
+        // Set myInProgressTraceInitiationType before calling setCaptureState() because the latter may fire an
+        // aspect that depends on the former.
+        myInProgressTraceInitiationType = response.getInitiationType();
+        setCaptureState(CaptureState.CAPTURING);
+        myCaptureStartTimeNs = response.getStartTimestamp();
+        myInProgressTraceSeries.clear();
+        myInProgressTraceSeries.add(TimeUnit.NANOSECONDS.toMicros(myCaptureStartTimeNs), new DefaultDurationData(Long.MAX_VALUE));
+        // We should jump to live data when there is an ongoing recording.
+        getStudioProfilers().getTimeline().setStreaming(true);
 
-      // Sets the properties of myActiveConfig
-      CpuProfilerConfiguration configuration = response.getConfiguration();
-      myProfilerModel.setActiveConfig(ProfilingConfiguration.fromProto(configuration));
+        if (myInProgressTraceInitiationType == TraceInitiationType.INITIATED_BY_API) {
+          // For API-initiated tracing, we want to update the config combo box to show API_INITIATED_TRACING_PROFILING_CONFIG.
+          // Don't update the myProfilerModel. First, this config is by definition transitory. Passing the reference outside
+          // CpuProfilerStage may indicate a longer life span. Second, it is not a real configuration. For example, each
+          // configuration's name should be unique, but all API-initiated captures should show the the same text even if they
+          // are different such as in sample interval.
+          myAspect.changed(CpuProfilerAspect.PROFILING_CONFIGURATION);
+        }
+        else {
+          // Sets the properties of myActiveConfig
+          CpuProfilerConfiguration configuration = response.getConfiguration();
+          myProfilerModel.setActiveConfig(ProfilingConfiguration.fromProto(configuration));
+        }
+      }
     }
     else {
-      setCaptureState(CaptureState.IDLE);
-      myInProgressTraceSeries.clear();
+      // Update capture state only if it was capturing to avoid disrupting state that's invisible to device such as PARSING.
+      if (myCaptureState == CaptureState.CAPTURING) {
+        setCaptureState(CaptureState.IDLE);
+        myInProgressTraceSeries.clear();
+        // When API-initiated tracing ends, we want to update the config combo box back to the entry before API tracing.
+        // This is done by fire aspect PROFILING_CONFIGURATION. Don't fire the aspect while the user is using the combo box
+        // because otherwise the dropdown menu would be flashing.
+        myAspect.changed(CpuProfilerAspect.PROFILING_CONFIGURATION);
+      }
     }
   }
 
@@ -904,8 +933,10 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   public void setCaptureState(@NotNull CaptureState captureState) {
     if (!myCaptureState.equals(captureState)) {
       myCaptureState = captureState;
-      // invalidate the capture start time when setting the capture state
-      myCaptureStartTimeNs = INVALID_CAPTURE_START_TIME;
+      if (captureState != CaptureState.CAPTURING) {
+        // invalidate the capture start time when setting the capture state
+        myCaptureStartTimeNs = INVALID_CAPTURE_START_TIME;
+      }
       myAspect.changed(CpuProfilerAspect.CAPTURE_STATE);
     }
   }
@@ -961,6 +992,10 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   @NotNull
   public ProfilingConfiguration getProfilingConfiguration() {
+    // Show fake, short-lived API_INITIATED_TRACING_PROFILING_CONFIG while API-initiated tracing is in progress.
+    if (isApiInitiatedTracingInProgress()) {
+      return API_INITIATED_TRACING_PROFILING_CONFIG;
+    }
     return myProfilerModel.getProfilingConfiguration();
   }
 
@@ -977,6 +1012,11 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   @NotNull
   public List<ProfilingConfiguration> getProfilingConfigurations() {
     ArrayList<ProfilingConfiguration> configs = new ArrayList<>();
+    // Show fake, short-lived API_INITIATED_TRACING_PROFILING_CONFIG while API-initiated tracing is in progress.
+    if (isApiInitiatedTracingInProgress()) {
+      configs.add(API_INITIATED_TRACING_PROFILING_CONFIG);
+      return configs;
+    }
     configs.add(EDIT_CONFIGURATIONS_ENTRY);
 
     List<ProfilingConfiguration> customEntries = myProfilerModel.getCustomProfilingConfigurationsDeviceFiltered();
@@ -987,6 +1027,10 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     configs.add(CONFIG_SEPARATOR_ENTRY);
     configs.addAll(myProfilerModel.getDefaultProfilingConfigurations());
     return configs;
+  }
+
+  public boolean isApiInitiatedTracingInProgress() {
+    return myCaptureState == CaptureState.CAPTURING && getCaptureInitiationType().equals(TraceInitiationType.INITIATED_BY_API);
   }
 
   @NotNull

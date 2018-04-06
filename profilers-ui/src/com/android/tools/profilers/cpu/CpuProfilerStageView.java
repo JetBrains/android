@@ -960,11 +960,19 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     toolbar.add(myCaptureStatus);
 
     SessionsManager sessions = getStage().getStudioProfilers().getSessionsManager();
-    sessions.addDependency(this).onChange(SessionAspect.SELECTED_SESSION, () -> myCaptureButton.setEnabled(sessions.isSessionAlive()));
-    myCaptureButton.setEnabled(sessions.isSessionAlive());
+    sessions.addDependency(this).onChange(SessionAspect.SELECTED_SESSION, () -> myCaptureButton.setEnabled(shouldEnableCaptureButton()));
+    myCaptureButton.setEnabled(shouldEnableCaptureButton());
 
     panel.add(toolbar, BorderLayout.WEST);
     return panel;
+  }
+
+  /**
+   * Should enable the capture button for recording and stopping only when session is alive and no API-initiated tracing is
+   * in progress.
+   */
+  private boolean shouldEnableCaptureButton() {
+    return myStage.getStudioProfilers().getSessionsManager().isSessionAlive() && !myStage.isApiInitiatedTracingInProgress();
   }
 
   @Override
@@ -976,11 +984,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     Range range = getStage().getStudioProfilers().getTimeline().getDataRange();
     long min = (long)(info.getRange().getMin() - range.getMin());
     long max = (long)(info.getRange().getMax() - range.getMin());
-    String automatedTextOrEmpty = "";
-    if (info.getInitiationType().equals(TraceInitiationType.INITIATED_BY_API)) {
-      automatedTextOrEmpty = "(automated) ";
-    }
-    return String.format("%s%s - %s", automatedTextOrEmpty, TimeAxisFormatter.DEFAULT.getClockFormattedString(min),
+    return String.format("%s - %s", TimeAxisFormatter.DEFAULT.getClockFormattedString(min),
                          TimeAxisFormatter.DEFAULT.getClockFormattedString(max));
   }
 
@@ -1065,12 +1069,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   private void updateCaptureElapsedTime() {
     if (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING) {
       long elapsedTimeUs = myStage.getCaptureElapsedTimeUs();
-      String automatedTextOrEmpty = "";
-      if (myStage.getCaptureInitiationType().equals(TraceInitiationType.INITIATED_BY_API)) {
-        automatedTextOrEmpty = " (automated)";
-      }
       String text =
-        String.format("Recording%s - %s", automatedTextOrEmpty, TimeAxisFormatter.DEFAULT.getClockFormattedString(elapsedTimeUs));
+        String.format("Recording - %s", TimeAxisFormatter.DEFAULT.getClockFormattedString(elapsedTimeUs));
       myCaptureStatus.setText(text);
     }
   }
