@@ -578,6 +578,43 @@ public class RepositoryUrlManager {
     return version -> version.toString().startsWith(prefix);
   }
 
+
+  @Nullable
+  public GradleVersion findHighestAndroidxSupportVersion(@Nullable Module module) {
+    if (module == null) {
+      return null;
+    }
+    // Take from the resolved versions
+    GradleVersion highest = null;
+    AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
+    for (GoogleMavenArtifactId artifactId : GoogleMavenArtifactId.values()) {
+      // Only consider Androidx
+      if (artifactId.isAndroidxPlatformLibrary()) {
+        GoogleMavenArtifactVersion artifactVersion = moduleSystem.getResolvedVersion(artifactId);
+        GradleVersion version = artifactVersion != null ? artifactVersion.getMavenVersion() : null;
+        if (version != null) {
+          if (highest == null || version.compareTo(highest) > 0) {
+            highest = version;
+          }
+        }
+      }
+    }
+    return highest;
+  }
+
+  @Nullable
+  public Predicate<GradleVersion> findExistingAndroidxSupportVersionFilter(@Nullable GradleVersion highest) {
+    if (highest == null) {
+      return null;
+    }
+    String raw = highest.toString();
+    if (highest.isPreview() || highest.isSnapshot() || !raw.endsWith("+")) {
+      return version -> version.equals(highest);
+    }
+    String prefix = raw.substring(0, raw.length() - 1);
+    return version -> version.toString().startsWith(prefix);
+  }
+
   @Nullable
   private static String findExistingExplicitVersion(@NotNull Collection<GradleCoordinate> dependencies) {
     Optional<GradleCoordinate> highest = dependencies.stream()

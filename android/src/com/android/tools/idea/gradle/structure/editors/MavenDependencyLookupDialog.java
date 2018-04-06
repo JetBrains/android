@@ -20,7 +20,6 @@ import com.android.builder.model.ApiVersion;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.gradle.eclipse.ImportModule;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.templates.RepositoryUrlManager;
@@ -225,33 +224,10 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
       }
     });
 
-    boolean preview = false;
-    if (module != null) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null) {
-        AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
-        if (androidModel != null) {
-          ApiVersion minSdkVersion = androidModel.getSelectedVariant().getMergedFlavor().getMinSdkVersion();
-          if (minSdkVersion != null) {
-            preview = new AndroidVersion(minSdkVersion.getApiLevel(), minSdkVersion.getCodename()).isPreview();
-          }
-        }
-      }
-    }
-
-    RepositoryUrlManager manager = RepositoryUrlManager.get();
-    Predicate<GradleVersion> supportLibraryFilter = manager.findExistingSupportVersionFilter(module);
-    for (GoogleMavenArtifactId id : GoogleMavenArtifactId.values()) {
-      // Note: Only the old style support library have version dependencies, so explicitly check the group ID:
-      Predicate<GradleVersion> filter = id.getMavenGroupId().equals(ImportModule.SUPPORT_GROUP_ID) ? supportLibraryFilter : null;
-      String artifactCoordinate = manager.getArtifactStringCoordinate(id, filter, true);
-      if (artifactCoordinate != null) {
-        Artifact artifact = Artifact.fromCoordinate(artifactCoordinate);
-        if (artifact != null) {
-          myAndroidSdkLibraries.add(artifactCoordinate);
-          myShownItems.add(artifact);
-        }
-      }
+    List<Artifact> mavenArtifacts = getAvailableGoogleMavenArtifacts(module);
+    for (Artifact artifact : mavenArtifacts) {
+      myAndroidSdkLibraries.add(artifact.getCoordinates());
+      myShownItems.add(artifact);
     }
     myShownItems.addAll(COMMON_LIBRARIES);
     myResultList.setModel(new CollectionComboBoxModel(myShownItems, null));
@@ -286,6 +262,65 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
       }
     };
     init();
+  }
+
+  @NotNull
+  private static ImmutableList<Artifact> getAvailableGoogleMavenArtifacts(@Nullable Module module) {
+    ImmutableList.Builder<Artifact> result = new ImmutableList.Builder<>();
+
+    // Use preview versions?
+    boolean preview = isMinSdkVersionPreview(module);
+
+    // Generate filters depending if Androidx is being used
+    RepositoryUrlManager manager = RepositoryUrlManager.get();
+    GradleVersion highestAndroidx = manager.findHighestAndroidxSupportVersion(module);
+    Predicate<GradleVersion> supportVersionFilter;
+    Predicate<GoogleMavenArtifactId> useAndroidxFilter;
+    if (highestAndroidx != null) {
+      // Take Androidx libraries and non Androidx libraries that does not have an equivalent
+      useAndroidxFilter = id -> id.isAndroidxLibrary() || (!id.hasAndroidxEquivalent());
+      // and match libraries with the highest version in use
+      supportVersionFilter = manager.findExistingAndroidxSupportVersionFilter(highestAndroidx);
+    }
+    else {
+      // Take only non Androidx libraries
+      useAndroidxFilter = id -> !id.isAndroidxLibrary();
+      // and match existing support version
+      supportVersionFilter = manager.findExistingSupportVersionFilter(module);
+    }
+
+    // Generate list depending on the filters
+    for (GoogleMavenArtifactId id : GoogleMavenArtifactId.values()) {
+      if (!useAndroidxFilter.test(id)) {
+        continue;
+      }
+      // Apply version filter only to support libraries
+      Predicate<GradleVersion> filter = id.isPlatformSupportLibrary() ? supportVersionFilter : null;
+      String artifactCoordinate = manager.getArtifactStringCoordinate(id, filter, preview);
+      if (artifactCoordinate != null) {
+        Artifact artifact = Artifact.fromCoordinate(artifactCoordinate);
+        if (artifact != null) {
+          result.add(artifact);
+        }
+      }
+    }
+    return result.build();
+  }
+
+  private static boolean isMinSdkVersionPreview(@Nullable Module module) {
+    if (module != null) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
+        if (androidModel != null) {
+          ApiVersion minSdkVersion = androidModel.getSelectedVariant().getMergedFlavor().getMinSdkVersion();
+          if (minSdkVersion != null) {
+            return new AndroidVersion(minSdkVersion.getApiLevel(), minSdkVersion.getCodename()).isPreview();
+          }
+        }
+      }
+    }
+    return false;
   }
 
   private static boolean isKnownLocalArtifact(@NotNull String text) {
@@ -467,7 +502,7 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
           }
           return Collections.emptyList();
         }
-      }, Collections.<String>emptyList(), LOG);
+      }, Collections.emptyList(), LOG);
   }
 
   @Override
