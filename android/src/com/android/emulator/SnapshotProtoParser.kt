@@ -27,26 +27,25 @@ class SnapshotProtoException(message: String, cause: Throwable? = null) : Except
  *
  * Throws {@link SnapshotProtoException} if the protobuf does not exist or is invalid
  */
-class SnapshotProtoParser(snapshotProtobufFile: File, private val fileName: String) {
+class SnapshotProtoParser
+@Throws(SnapshotProtoException::class)
+constructor(snapshotProtobufFile: File, private val fileName: String) {
   private val snapshot: SnapshotOuterClass.Snapshot
 
   val logicalName: String
     get() = snapshot.logicalName.nullize() ?: fileName
+
+  val creationTime: Long
+    get() = snapshot.creationTime
 
   init {
     if (!snapshotProtobufFile.isFile) {
       throw SnapshotProtoException(
         "Snapshot file " + snapshotProtobufFile.absolutePath + " does not exist.")
     }
-    try {
-      snapshot = FileInputStream(snapshotProtobufFile).use {
-        SnapshotOuterClass.Snapshot.parseFrom(it)
-      }
+    snapshot = FileInputStream(snapshotProtobufFile).use {
+      SnapshotOuterClass.Snapshot.parseFrom(it)
     }
-    catch (exception: IOException) {
-      throw SnapshotProtoException("Snapshot protobuf is corrupted.", exception)
-    }
-
     if (snapshot.imagesCount <= 0) {
       // Treat a degenerate protobuf as invalid
       throw SnapshotProtoException("Snapshot protobuf is empty.")
