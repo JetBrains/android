@@ -523,8 +523,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
             cpuConfigInfo.setType(CpuProfilingConfig.Type.SIMPLE_PERF);
             break;
           case ATRACE:
-            // TODO: Setup config for ATRACE, this needs logs access.
-            //cpuConfigInfo.setType(CpuProfilingConfig.Type.ATRACE);
+            cpuConfigInfo.setType(CpuProfilingConfig.Type.ATRACE);
             break;
           case UNSPECIFIED_PROFILER:
           case UNRECOGNIZED:
