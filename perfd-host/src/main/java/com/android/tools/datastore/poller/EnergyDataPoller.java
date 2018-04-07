@@ -120,7 +120,7 @@ public final class EnergyDataPoller extends PollRunner {
       if (event.hasLocationChanged()) {
         myBatteryModel.handleEvent(
           event.getTimestamp(),
-          BatteryModel.Event.LOCATION_USAGE,
+          BatteryModel.Event.LOCATION_UPDATE,
           new PowerProfile.LocationEvent(
             event.getEventId(), PowerProfile.LocationType.from(event.getLocationChanged().getLocation().getProvider())));
       }
