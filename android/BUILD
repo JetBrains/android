@@ -120,6 +120,7 @@ iml_module(
         "//tools/idea/.idea/libraries:batik",
         "//tools/idea/.idea/libraries:xml-apis-ext",
         "//tools/analytics-library/crash:analytics-crash[module]",
+        "//tools/idea/.idea/libraries:aapt-proto-jarjar",
     ],
 )
 
@@ -256,6 +257,7 @@ iml_module(
         "//tools/adt/idea/android/lib:instantapps-api-1.0",
         "//tools/analytics-library/crash:analytics-crash[module, test]",
         "//tools/idea/.idea/libraries:commons-io",
+        "//tools/idea/.idea/libraries:aapt-proto-jarjar",
     ],
 )
 
@@ -276,6 +278,14 @@ filegroup(
 )
 
 filegroup(
+    name = "aapt-proto-artifacts",
+    srcs = [
+        "//tools/base/sdk-common/aapt-proto-jar-generator:jarjar.jar",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
     name = "aia-artifacts",
     srcs = [
         "//tools/base/sdk-common/aia-manifest-jar-generator:jarjar.jar",
@@ -287,6 +297,7 @@ filegroup(
 filegroup(
     name = "artifacts",
     srcs = [
+        ":aapt-proto-artifacts",
         ":aia-artifacts",
         ":profiler-artifacts",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
