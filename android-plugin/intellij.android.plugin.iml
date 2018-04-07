@@ -7,11 +7,18 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="intellij.platform.util" />
-    <orderEntry type="module" module-name="intellij.platform.ide" />
-    <orderEntry type="module" module-name="intellij.platform.lang.impl" />
-    <orderEntry type="module" module-name="intellij.java.ui" />
-    <orderEntry type="module" module-name="intellij.xml.impl" />
+    <orderEntry type="module" module-name="intellij.android" />
+    <orderEntry type="module" module-name="intellij.android.sdkUpdates" />
+    <orderEntry type="module" module-name="intellij.android.designer" />
+    <orderEntry type="module" module-name="intellij.android.profilersAndroid" />
+    <orderEntry type="module" module-name="android-adb" />
+    <orderEntry type="module" module-name="android-debuggers" />
+    <orderEntry type="module" module-name="android-lang" />
+    <orderEntry type="module" module-name="project-system" />
+    <orderEntry type="module" module-name="project-system-gradle" />
+    <orderEntry type="module" module-name="android-layout-inspector" />
+    <orderEntry type="module" module-name="assistant" />
+    <orderEntry type="module" module-name="connection-assistant" />
+    <orderEntry type="module" module-name="whats-new-assistant" />
   </component>
 </module>
-
