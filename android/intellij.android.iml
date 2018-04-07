@@ -112,5 +112,6 @@
     <orderEntry type="library" name="batik" level="project" />
     <orderEntry type="library" name="xml-apis-ext" level="project" />
     <orderEntry type="module" module-name="analytics-crash" />
+    <orderEntry type="library" name="aapt-proto-jarjar" level="project" />
   </component>
 </module>
