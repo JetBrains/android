@@ -20,6 +20,7 @@ import com.android.tools.datastore.energy.PowerProfile.LocationStats;
 import com.android.tools.datastore.energy.PowerProfile.LocationType;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergySample;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -28,19 +29,19 @@ import java.util.function.Function;
 /**
  * A battery model is an modeled representation of a battery's state over time. It can be queried
  * for for an estimate of how much energy was being drawn from the battery at any given time.
- *
+ * <p>
  * Externally, someone should feed relevant events into the battery model using
  * {@link #handleEvent(long, Event, Object)}. Each {@link Event} takes an argument; read the
  * enumeration's comment to see what it expects.
- *
+ * <p>
  * Once events have been added, use {@link #getSamplesBetween(long, long)} to retrieve
  * all energy values between two times. Samples will automatically be bucketed at a regular
  * interval - that is, the results will give the appearance of being sampled periodically and
  * discretely, as opposed to returning exact timestamps that an event happened at.
- *
+ * <p>
  * Note that this means, if a couple of events happen within microseconds of each other,
  * they can be merged into a single bucket.
- *
+ * <p>
  * TODO(b/73538823): Move battery model out of the datastore
  */
 public final class BatteryModel {
@@ -48,6 +49,7 @@ public final class BatteryModel {
 
   private static final long GPS_LOCK_DURATION_NS = TimeUnit.SECONDS.toNanos(7);
   private static final long NETWORK_SCAN_DURATION_NS = TimeUnit.MILLISECONDS.toNanos(500);
+  // The total number of forward smoothing samples we will use to amortize the cost of the GPS energy use.
   private static final int LOCATION_SMOOTHING_SAMPLES = 4;
 
   /**
@@ -66,8 +68,10 @@ public final class BatteryModel {
   private long myReceivingBps;
   private long mySendingBps;
 
-  private Map<Integer, Long> myLocationEventToTimestampMap = new HashMap<>();
+  private Map<Integer, Long> myGpsLockonMap = new HashMap<>(); // event ID -> initial GPS location request timestamp
+  private Map<Integer, EnergySample> myLocationSmoothingMap = new HashMap<>(); // event ID -> event/smoothing start sample
   private long myLastNetworkLocationOffTime = 0;
+  private final long mySmoothingEndDeltaTime;
   private long myLastGpsOffTime = 0;
 
   public BatteryModel() {
@@ -78,13 +82,14 @@ public final class BatteryModel {
   public BatteryModel(@NotNull PowerProfile powerProfile, long sampleIntervalNs) {
     myPowerProfile = powerProfile;
     mySampleIntervalNs = sampleIntervalNs;
+    mySmoothingEndDeltaTime = LOCATION_SMOOTHING_SAMPLES * mySampleIntervalNs;
     mySparseSamples.add(0, EnergySample.getDefaultInstance());
   }
 
   /**
    * Round {@code originalValue} to the nearest {@code alignment}. For example,
    * with an alignment of 200:
-   *
+   * <p>
    * 193  -> 200
    * 299  -> 200
    * 301  -> 400
@@ -104,7 +109,7 @@ public final class BatteryModel {
 
   /**
    * Handle an {@link Event} that occurred at some time {@code timestampNs}.
-   *
+   * <p>
    * Each event is expected to handle a typed {@code eventArg}. See each event's javadoc comment
    * to see what the right arg type is.
    */
@@ -135,59 +140,23 @@ public final class BatteryModel {
       case LOCATION_REGISTER:
         locationEvent = (PowerProfile.LocationEvent)eventArg;
         if (locationEvent.myLocationType == LocationType.GPS) {
-          myLocationEventToTimestampMap.put(locationEvent.myEventId, timestampNs);
+          // TODO(b/77588320) Remove forward charging and associated data structures.
+          myGpsLockonMap.put(locationEvent.myEventId, timestampNs);
           addNewLocationSample(timestampNs + mySampleIntervalNs, new LocationStats(LocationType.GPS_ACQUIRE, 0, mySampleIntervalNs));
         }
         break;
 
       case LOCATION_UNREGISTER:
         locationEvent = (PowerProfile.LocationEvent)eventArg;
-        Long timestamp = myLocationEventToTimestampMap.remove(locationEvent.myEventId);
+        Long timestamp = myGpsLockonMap.remove(locationEvent.myEventId);
         if (timestamp != null) {
           // This should only be entered if the location event is GPS, and the first location fix hasn't been entered.
           addNewLocationSample(timestampNs + mySampleIntervalNs, new LocationStats(LocationType.NONE, 0, mySampleIntervalNs));
         }
         break;
 
-      case LOCATION_USAGE:
-        locationEvent = (PowerProfile.LocationEvent)eventArg;
-        switch (locationEvent.myLocationType) {
-          case GPS:
-            if (myLocationEventToTimestampMap.containsKey(locationEvent.myEventId)) {
-              myLocationEventToTimestampMap.remove(locationEvent.myEventId);
-              addNewLocationSample(timestampNs, new LocationStats(LocationType.NONE, 0, mySampleIntervalNs));
-            }
-            else {
-              addNewLocationSample(
-                timestampNs,
-                new LocationStats(
-                  LocationType.GPS,
-                  Math.min(GPS_LOCK_DURATION_NS, timestampNs - myLastGpsOffTime),
-                  mySampleIntervalNs * LOCATION_SMOOTHING_SAMPLES));
-              addNewLocationSample(timestampNs + LOCATION_SMOOTHING_SAMPLES * mySampleIntervalNs,
-                                   new LocationStats(LocationType.NONE, 0, mySampleIntervalNs));
-            }
-            myLastGpsOffTime = timestampNs;
-            break;
-          case NETWORK:
-            addNewLocationSample(
-              timestampNs,
-              new LocationStats(
-                LocationType.NETWORK,
-                Math.min(NETWORK_SCAN_DURATION_NS, timestampNs - myLastNetworkLocationOffTime),
-                mySampleIntervalNs * LOCATION_SMOOTHING_SAMPLES));
-            addNewLocationSample(timestampNs + LOCATION_SMOOTHING_SAMPLES * mySampleIntervalNs,
-                                 new LocationStats(LocationType.NONE, 0, mySampleIntervalNs));
-            myLastNetworkLocationOffTime = timestampNs;
-            break;
-          case PASSIVE:
-            addNewLocationSample(timestampNs, new LocationStats(LocationType.PASSIVE, 0, mySampleIntervalNs));
-            break;
-          case NONE:
-            // fall through
-          default:
-            addNewLocationSample(timestampNs, new LocationStats(LocationType.NONE, 0, mySampleIntervalNs));
-        }
+      case LOCATION_UPDATE:
+        handleLocationUpdateEvent(timestampNs, (PowerProfile.LocationEvent)eventArg);
         break;
     }
   }
@@ -232,12 +201,18 @@ public final class BatteryModel {
     addNewSample(timestampNs, sample -> sample.setNetworkUsage(myPowerProfile.getNetworkUsage(networkStats)));
   }
 
-  private void addNewLocationSample(long timestampNs, @NotNull PowerProfile.LocationStats locationStats) {
-    addNewSample(timestampNs, sample -> sample.setLocationUsage(myPowerProfile.getLocationUsage(locationStats)));
+  @NotNull
+  private EnergySample addNewLocationSample(long timestampNs, @NotNull LocationStats locationStats) {
+    return addNewSample(timestampNs, sample -> sample.setLocationUsage(myPowerProfile.getLocationUsage(locationStats)));
   }
 
-  private void addNewSample(long timestampNs,
-                            @NotNull Function<EnergySample.Builder, EnergySample.Builder> produceNewSample) {
+  private void removeLocationSample(long timestampNs) {
+    removeDataFromSample(timestampNs, sample -> sample.setLocationUsage(0));
+  }
+
+  @NotNull
+  private EnergySample addNewSample(long timestampNs,
+                                    @NotNull Function<EnergySample.Builder, EnergySample.Builder> produceNewSample) {
     timestampNs = alignToSampleInterval(timestampNs);
 
     int prevSampleIndex = getSampleIndexFor(timestampNs);
@@ -264,6 +239,89 @@ public final class BatteryModel {
         mySparseSamples.add(prevSampleIndex + 1, newSample);
       }
     }
+
+    return newSample;
+  }
+
+  private void removeDataFromSample(long timestampNs, @NotNull Function<EnergySample.Builder, EnergySample.Builder> resetSample) {
+    timestampNs = alignToSampleInterval(timestampNs);
+
+    int sampleIndex = getSampleIndexFor(timestampNs);
+    EnergySample originalSample = mySparseSamples.get(sampleIndex);
+    if (timestampNs != originalSample.getTimestamp()) {
+      // There were no valid samples at this timestamp, so just ignore.
+      return;
+    }
+
+    EnergySample updatedSample = resetSample.apply(originalSample.toBuilder().setTimestamp(timestampNs)).build();
+
+    // If the sample usage amounts are all the default values, we want to remove the sample.
+    // This is easiest done by removing the time value and comparing against the default EnergySample.
+    EnergySample updatedSampleNoTime = updatedSample.toBuilder().setTimestamp(0).build();
+
+    if (updatedSampleNoTime.equals(EnergySample.getDefaultInstance())) {
+      mySparseSamples.remove(sampleIndex);
+    }
+    else {
+      mySparseSamples.set(sampleIndex, updatedSample);
+    }
+  }
+
+  private void handleLocationUpdateEvent(long timestampNs, @NotNull PowerProfile.LocationEvent locationEvent) {
+    switch (locationEvent.myLocationType) {
+      case GPS:
+        if (myGpsLockonMap.containsKey(locationEvent.myEventId)) {
+          myGpsLockonMap.remove(locationEvent.myEventId);
+          addNewLocationSample(timestampNs, new LocationStats(LocationType.NONE, 0, mySampleIntervalNs));
+        }
+        else {
+          // TODO(b/77588320) Since we don't have a power-on time for the GPS (and associativity information for why the GPS was powered
+          // on, we can't properly associate the time the GPS was on to our samples. Therefore, as a hack, we forward amortize the
+          // accumulated power cost of the GPS into the GPS event's future samples. As we do this, we will have to assume certain
+          // accounting as to how samples are retrieved, as well as allowing modification of events that have occurred. To fix this,
+          // we will need to implement a way to tentatively associate GPS power information to the app, and only when we get a GPS event
+          // do we actually charge the power cost to the app.
+          EnergySample previousSample = myLocationSmoothingMap.get(locationEvent.myEventId);
+          long residualTime = calculateResidualSmoothingTime(previousSample, timestampNs);
+          if (residualTime > 0) {
+            // Remove stale smoothing end sample.
+            removeLocationSample(previousSample.getTimestamp() + mySmoothingEndDeltaTime);
+          }
+          EnergySample eventSample = addNewLocationSample(
+            timestampNs,
+            // Use the minimum of the time since the last GPS sample or the estimated time it takes the GPS to lock.
+            // This basically means that if the time since the last sample is longer than the average lock time, we assume the OS turned
+            // the GPS off to conserve battery, and we only incur the cost of a lock on.
+            new LocationStats(
+              LocationType.GPS,
+              Math.min(GPS_LOCK_DURATION_NS, timestampNs - myLastGpsOffTime) + residualTime,
+              mySampleIntervalNs * LOCATION_SMOOTHING_SAMPLES));
+          myLocationSmoothingMap.put(locationEvent.myEventId, eventSample);
+          // Add an artificial end time for GPS energy forward smoothing.
+          addNewLocationSample(timestampNs + mySmoothingEndDeltaTime,
+                               new LocationStats(LocationType.NONE, 0, mySampleIntervalNs));
+        }
+        myLastGpsOffTime = timestampNs;
+        break;
+      case NETWORK:
+        addNewLocationSample(
+          timestampNs,
+          // Similar to the GPS, we assume that the OS knows to not constantly keep the wireless network adapter scanning beyond
+          // NETWORK_SCAN_DURATION_NS time.
+          new LocationStats(
+            LocationType.NETWORK,
+            Math.min(NETWORK_SCAN_DURATION_NS, timestampNs - myLastNetworkLocationOffTime),
+            mySampleIntervalNs * LOCATION_SMOOTHING_SAMPLES));
+        addNewLocationSample(timestampNs + LOCATION_SMOOTHING_SAMPLES * mySampleIntervalNs,
+                             new LocationStats(LocationType.NONE, 0, mySampleIntervalNs));
+        myLastNetworkLocationOffTime = timestampNs;
+        break;
+      case PASSIVE: // fall through
+      case NONE: // fall through
+      default:
+        addNewLocationSample(timestampNs, new LocationStats(locationEvent.myLocationType, 0, mySampleIntervalNs));
+        break;
+    }
   }
 
   /**
@@ -271,6 +329,14 @@ public final class BatteryModel {
    */
   private long alignToSampleInterval(long timestampNs) {
     return align(timestampNs, mySampleIntervalNs);
+  }
+
+  private long calculateResidualSmoothingTime(@Nullable EnergySample previousSample, long currentTime) {
+    if (previousSample == null) {
+      return 0;
+    }
+
+    return Math.max(0, alignToSampleInterval(previousSample.getTimestamp() + mySmoothingEndDeltaTime) - alignToSampleInterval(currentTime));
   }
 
   public enum Event {
@@ -302,6 +368,6 @@ public final class BatteryModel {
      * A location update has occurred.
      * arg: A {@link PowerProfile.LocationEvent} indicating the event ID and the source of location fix.
      */
-    LOCATION_USAGE,
+    LOCATION_UPDATE,
   }
 }
