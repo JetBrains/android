@@ -5,6 +5,7 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.guiTestFramework.iml"],
     tags = ["managed"],
+    test_runtime_deps = ["//tools/vendor/intellij/cidr:intellij.c.doxygen"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
