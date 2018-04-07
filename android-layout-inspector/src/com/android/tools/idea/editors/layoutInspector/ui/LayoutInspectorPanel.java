@@ -236,6 +236,11 @@ public class LayoutInspectorPanel extends JPanel implements DataProvider, ImageC
     }
 
     @Override
+    public void setZoomLevelChanged(boolean value) {
+      // TODO(kelvinhanma): implement this method added by commit 6f5623c
+    }
+
+    @Override
     public boolean canZoomOut() {
       return myScrollPane.getHorizontalScrollBar().isVisible() || myScrollPane.getVerticalScrollBar().isVisible();
     }
