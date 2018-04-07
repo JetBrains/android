@@ -86,7 +86,7 @@ java_test(
     size = "large",
     data = COMMON_DATA + glob(["testData/SimpleLocalApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.framework.GuiTestRuleTest"],
-    tags = COMMON_TAGS + ["manual"],  # fails after IDEA 181.3263.15 merge
+    tags = COMMON_TAGS,
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -101,7 +101,7 @@ java_test(
         "testData/DatabindingMethodsTest/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editing.DataBindingTest"],
-    tags = COMMON_TAGS + ["manual"],  # fails after IDEA 181.3263.15 merge
+    tags = COMMON_TAGS,
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -111,10 +111,7 @@ java_test(
     size = "large",
     data = COMMON_DATA + glob(["testData/SimpleLocalApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.ApkViewerTest"],
-    tags = COMMON_TAGS + [
-        "no_psq",  # b/74906386
-        "manual",  # fails after IDEA 181.3263.15 merge
-    ],
+    tags = COMMON_TAGS + ["no_psq"],  # b/74906386
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -191,10 +188,7 @@ java_test(
         "testData/SimpleLocalApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.NewModuleTest"],
-    tags = COMMON_TAGS + [
-        "no_psq",  #sanity test passing, some other test method failed for UI
-        "manual",  # fails after IDEA 181.3263.15 merge
-    ],
+    tags = COMMON_TAGS + ["no_psq"],  #sanity test passing, some other test method failed for UI
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -249,7 +243,7 @@ java_test(
         "testData/SimpleLocalApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.webp.FilterIconTest"],
-    tags = COMMON_TAGS + ["manual"],  # fails after IDEA 181.3263.15 merge
+    tags = COMMON_TAGS + ["no_psq"],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -260,7 +254,7 @@ java_test(
         "testData/LintTest/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.lint.LintTest"],
-    tags = COMMON_TAGS + ["manual"],  # fails after IDEA 181.3263.15 merge
+    tags = COMMON_TAGS + ["no_psq"],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
