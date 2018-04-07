@@ -13,6 +13,7 @@ iml_module(
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
+        "//tools/vendor/intellij/cidr:intellij.c.doxygen",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
