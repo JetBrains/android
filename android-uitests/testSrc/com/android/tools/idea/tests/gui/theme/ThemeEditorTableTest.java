@@ -291,6 +291,7 @@ public class ThemeEditorTableTest {
   /**
    * @see com.android.tools.idea.editors.theme.attributes.ShowJavadocAction
    */
+  @RunIn(TestGroup.UNRELIABLE)  // b/77752282
   @Test
   public void testShowDocumentation() throws IOException {
     guiTest.importSimpleApplication();
