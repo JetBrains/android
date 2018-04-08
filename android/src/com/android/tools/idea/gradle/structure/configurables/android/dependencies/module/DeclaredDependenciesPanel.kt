@@ -140,7 +140,7 @@ internal class DeclaredDependenciesPanel(
 
   override fun getSelection(): PsAndroidDependency? = dependenciesTable.selectionIfSingle
 
-  override fun setSelection(selection: PsAndroidDependency?) {
+  override fun setSelection(selection: PsAndroidDependency?): ActionCallback {
     skipSelectionChangeNotification = true
     if (selection == null) {
       dependenciesTable.clearSelection()
@@ -150,6 +150,7 @@ internal class DeclaredDependenciesPanel(
     }
     updateDetailsAndIssues()
     skipSelectionChangeNotification = false
+    return ActionCallback.DONE
   }
 
   private fun updateDetailsAndIssues() {

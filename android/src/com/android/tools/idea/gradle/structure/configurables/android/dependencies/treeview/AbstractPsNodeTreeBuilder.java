@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.treeView.AbstractTreeUi;
 import com.intellij.ide.util.treeView.TreeVisitor;
+import com.intellij.openapi.util.ActionCallback;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -96,54 +97,61 @@ public abstract class AbstractPsNodeTreeBuilder extends AbstractBaseTreeBuilder 
     return null;
   }
 
-  public void selectMatchingNodes(@NotNull PsModel model, boolean scroll) {
-    collectMatchingNodes(model, null, true, scroll);
+  public ActionCallback selectMatchingNodes(@NotNull PsModel model, boolean scroll) {
+    return collectMatchingNodes(model, null, true, scroll);
   }
 
-  private void collectMatchingNodes(@NotNull PsModel model,
-                                    @Nullable MatchingNodeCollector collector,
-                                    boolean selectMatch,
-                                    boolean scroll) {
-    getInitialized().doWhenDone(() -> {
-      List<AbstractPsModelNode> toSelect = Lists.newArrayList();
-      accept(AbstractPsModelNode.class, new TreeVisitor<AbstractPsModelNode>() {
-        @Override
-        public boolean visit(@NotNull AbstractPsModelNode node) {
-          if (node.matches(model)) {
-            toSelect.add(node);
-            if (collector != null) {
-              collector.onMatchingNodeFound(node);
+  private ActionCallback collectMatchingNodes(@NotNull PsModel model,
+                                              @Nullable MatchingNodeCollector collector,
+                                              boolean selectMatch,
+                                              boolean scroll) {
+    ActionCallback result = new ActionCallback();
+    getInitialized()
+      .doWhenDone(() -> {
+        List<AbstractPsModelNode> toSelect = Lists.newArrayList();
+        accept(AbstractPsModelNode.class, new TreeVisitor<AbstractPsModelNode>() {
+          @Override
+          public boolean visit(@NotNull AbstractPsModelNode node) {
+            if (node.matches(model)) {
+              toSelect.add(node);
+              if (collector != null) {
+                collector.onMatchingNodeFound(node);
+              }
             }
+            return false;
           }
-          return false;
-        }
-      });
+        });
 
-      if (!selectMatch) {
-        if (collector != null) {
-          collector.done(collector.matchingNodes);
+        if (!selectMatch) {
+          if (collector != null) {
+            collector.done(collector.matchingNodes);
+          }
+          result.setDone();
+          return;
         }
-        return;
-      }
 
-      if (isDisposed()) {
-        if (collector != null) {
-          collector.done(Collections.emptyList());
+        if (isDisposed()) {
+          if (collector != null) {
+            collector.done(Collections.emptyList());
+          }
+          result.setRejected();
+          return;
         }
-        return;
-      }
-      // Expand the parents of all selected nodes, so they can be visible to the user.
-      Runnable onDone = () -> {
-        expandParents(toSelect);
-        if (collector != null) {
-          collector.done(collector.matchingNodes);
-        }
-        if (scroll) {
-          scrollToFirstSelectedRow();
-        }
-      };
-      getUi().userSelect(toSelect.toArray(), new UserRunnable(onDone), false, false);
-    });
+        // Expand the parents of all selected nodes, so they can be visible to the user.
+        Runnable onDone = () -> {
+          expandParents(toSelect);
+          if (collector != null) {
+            collector.done(collector.matchingNodes);
+          }
+          if (scroll) {
+            scrollToFirstSelectedRow();
+          }
+          result.setDone();
+        };
+        getUi().userSelect(toSelect.toArray(), new UserRunnable(onDone), false, false);
+      })
+      .doWhenRejected(() -> result.setRejected());
+    return result;
   }
 
   protected class UserRunnable implements Runnable {

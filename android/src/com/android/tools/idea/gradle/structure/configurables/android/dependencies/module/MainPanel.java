@@ -17,9 +17,10 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractMainDependenciesPanel;
-import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
+import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader;
 import com.android.tools.idea.gradle.structure.model.PsModule;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
@@ -42,6 +43,8 @@ class MainPanel extends AbstractMainDependenciesPanel {
   @NotNull private final ResolvedDependenciesPanel myResolvedDependenciesPanel;
   @NotNull private final JPanel myAltPanel;
 
+  private int myQueuedSelectionCounter = 0;
+
   MainPanel(@NotNull PsAndroidModule module, @NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
     super(context, extraTopModules);
 
@@ -57,9 +60,22 @@ class MainPanel extends AbstractMainDependenciesPanel {
     add(myVerticalSplitter, BorderLayout.CENTER);
 
     myDeclaredDependenciesPanel.updateTableColumnSizes();
-    myDeclaredDependenciesPanel.add(myResolvedDependenciesPanel::setSelection);
+    myDeclaredDependenciesPanel.add(new SelectionChangeListener<PsAndroidDependency>() {
+      @Override
+      public void selectionChanged(@Nullable PsAndroidDependency newSelection) {
+        myQueuedSelectionCounter++;
+        myResolvedDependenciesPanel.setSelection(newSelection).doWhenProcessed(() -> myQueuedSelectionCounter--);
+      }
+    });
 
-    myResolvedDependenciesPanel.add(myDeclaredDependenciesPanel::setSelection);
+    myResolvedDependenciesPanel.add(new SelectionChangeListener<PsAndroidDependency>() {
+      @Override
+      public void selectionChanged(@Nullable PsAndroidDependency newSelection) {
+        if (myQueuedSelectionCounter == 0) {
+          myDeclaredDependenciesPanel.setSelection(newSelection);
+        }
+      }
+    });
 
     JPanel minimizedContainerPanel = myResolvedDependenciesPanel.getMinimizedPanel();
     assert minimizedContainerPanel != null;
