@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.assistant
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.editor.AnimationToolbar
-import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutHandler
+import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutComponentHelper
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import java.awt.BorderLayout
 import javax.swing.JPanel
@@ -30,7 +30,7 @@ class TransitionLayoutAssistantPanel(val designSurface: DesignSurface, val compo
   init {
     layout = BorderLayout()
 
-    val helper = MotionLayoutHandler.MotionLayoutComponentHelper(component)
+    val helper = MotionLayoutComponentHelper(component)
     val maxTimeMs = helper.maxTimeMs
     toolbar = AnimationToolbar.createAnimationToolbar({}, { timeMs ->
       val sceneManager = designSurface.sceneManager as? LayoutlibSceneManager

@@ -15,35 +15,88 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion;
 
+import com.android.SdkConstants;
+import com.android.resources.ResourceFolderType;
+import com.android.resources.ResourceType;
+import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
+import com.android.tools.idea.uibuilder.handlers.motion.timeline.Gantt;
+import com.android.tools.idea.uibuilder.handlers.motion.timeline.GanttCommands;
+import com.android.tools.idea.uibuilder.handlers.motion.timeline.GanttEventListener;
+import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
+import com.android.utils.Pair;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-class MotionLayoutTimelinePanel implements AccessoryPanelInterface {
+import static com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutTimelinePanel.State.*;
+
+/**
+ * The Timeline Accessory Panel for MotionLayout editing
+ */
+class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventListener {
 
   private final ViewGroupHandler.AccessoryPanelVisibility myVisibilityCallback;
-  private final NlComponent myMotionLayout;
-  private boolean show = false;
-  private JPanel myPanel;
+  private final DesignSurface mySurface;
+  private NlComponent myMotionLayout;
+  private MotionLayoutComponentHelper myMotionLayoutComponentHelper;
+  private Gantt myPanel;
+  private GanttCommands mGanttCommands;
+  private Timer myPositionTimer;
+  private float myLastPos;
+  private NlComponent mySelection;
+  MotionLayoutAttributePanel myMotionLayoutAttributePanel;
+  private boolean myInStateChange;
 
-  public MotionLayoutTimelinePanel(@NotNull NlComponent parent, @NotNull ViewGroupHandler.AccessoryPanelVisibility visibility) {
+  public State getCurrentState() {
+    return myCurrentState;
+  }
+
+  enum State {TL_UNKNOWN, TL_START, TL_PLAY, TL_PAUSE, TL_TRANSITION, TL_END}
+
+  private State myCurrentState = TL_UNKNOWN;
+
+  public static final String TIMELINE = "Timeline";
+
+  public MotionLayoutTimelinePanel(@NotNull DesignSurface surface,
+                                   @NotNull NlComponent parent,
+                                   @NotNull ViewGroupHandler.AccessoryPanelVisibility visibility) {
+    mySurface = surface;
     myMotionLayout = parent;
     myVisibilityCallback = visibility;
+
+    myMotionLayoutComponentHelper = new MotionLayoutComponentHelper(myMotionLayout);
+    parent.putClientProperty(TIMELINE, this);
   }
 
   @Override
   @NotNull
   public JPanel getPanel() {
     if (myPanel == null) {
-      myPanel = createPanel(AccessoryPanel.Type.SOUTH_PANEL);
+      myPanel = (Gantt)createPanel(AccessoryPanel.Type.SOUTH_PANEL);
     }
     return myPanel;
   }
@@ -51,46 +104,405 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface {
   @Override
   @NotNull
   public JPanel createPanel(AccessoryPanel.Type type) {
-    JPanel panel = new JPanel(new BorderLayout()) {
-      {
-        setPreferredSize(new Dimension(300, 250));
-      }
-    };
-
-    JButton button = new JButton("Toggle Panel");
-    JLabel label = new JLabel("ConstraintLayout");
-
-    button.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        toggle();
-        if (show) {
-          label.setText("MotionLayout " + this.hashCode() + " we have " + myMotionLayout.getChildCount() + " children");
-        } else {
-          label.setText("ConstraintLayout " + this.hashCode() + " we have " + myMotionLayout.getChildCount() + " children");
-        }
-      }
-    });
-
-    panel.add(button, BorderLayout.NORTH);
-    panel.add(label, BorderLayout.CENTER);
+    JPanel panel = new Gantt(this);
+    panel.setPreferredSize(new Dimension(0, 300));
     return panel;
+  }
+
+  @Nullable
+  public MotionSceneModel.KeyFrame getSelectedKeyframe() {
+    return myPanel.getSelectedKey(mySelection.getId());
   }
 
   @Override
   public void updateAccessoryPanelWithSelection(@NotNull AccessoryPanel.Type type,
                                                 @NotNull List<NlComponent> selection) {
-    myVisibilityCallback.show(AccessoryPanel.Type.EAST_PANEL, show);
+    myVisibilityCallback.show(AccessoryPanel.Type.EAST_PANEL, false);
+    myCurrentState = TL_UNKNOWN;
+
+    if (selection.isEmpty()) {
+      mySelection = null;
+      return;
+    }
+
+    NlComponent component = selection.get(0);
+    mySelection = component;
+    if (!NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.CLASS_MOTION_LAYOUT)) {
+      component = component.getParent();
+      if (component != null && !NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.CLASS_MOTION_LAYOUT)) {
+        return; // not found
+      }
+    }
+
+    // component is a motion layout
+    myMotionLayout = component;
+    loadMotionScene();
   }
 
-  private void toggle() {
-    // will switch panels
-    show = !show;
-    myVisibilityCallback.show(AccessoryPanel.Type.EAST_PANEL, show);
+  private void loadMotionScene() {
+    if (myMotionLayout != null) {
+      String referencedFile =
+        myMotionLayout.getAttribute(SdkConstants.AUTO_URI, "transition"); // TODO SdkConstants.ATTR_MOTION_SCENE_REFERENCE);
+      parseMotionScene(myMotionLayout, referencedFile);
+    }
+    switch (myPanel.getMode()) {
+      case START:
+        setState(TL_START);
+        break;
+      case PLAY:
+        setState(TL_PLAY);
+        break;
+      case PAUSE:
+        setState(TL_PAUSE);
+        break;
+      case TRANSITION:
+        float position = myPanel.getChart().getProgress();
+        framePosition(position);
+        break;
+      case END:
+        setState(TL_END);
+        break;
+      case UNKNOWN:
+        setState(TL_UNKNOWN);
+        break;
+      default:
+    }
+  }
+
+  private void parseMotionScene(@NotNull NlComponent component, @NotNull String file) {
+    if (file == null) {
+      return;
+    }
+    int index = file.lastIndexOf("@xml/");
+    String fileName = file.substring(index + 5);
+    if (fileName == null || fileName.isEmpty()) {
+      return;
+    }
+
+    // let's open the file
+    Project project = component.getModel().getProject();
+    AndroidFacet facet = component.getModel().getFacet();
+    ResourceFolderType folderType = AndroidResourceUtil.XML_FILE_RESOURCE_TYPES.get(ResourceType.XML);
+
+    List<VirtualFile> resourcesXML = AndroidResourceUtil.getResourceSubdirs(folderType, facet.getAllResourceDirectories());
+    if (resourcesXML.isEmpty()) {
+      return;
+    }
+    VirtualFile directory = resourcesXML.get(0);
+    VirtualFile virtualFile = directory.findFileByRelativePath(fileName + ".xml");
+
+    XmlFile xmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(project, virtualFile);
+
+    MotionSceneModel motionSceneModel = MotionSceneModel.parse(component.getModel(), project, virtualFile, xmlFile);
+    myPanel.setMotionScene(motionSceneModel);
   }
 
   @Override
   public void deactivate() {
     myVisibilityCallback.show(AccessoryPanel.Type.EAST_PANEL, false);
+    stopPlaying();
+  }
+
+  @Override
+  public void updateAfterModelDerivedDataChanged() {
+    loadMotionScene();
+    if (myMotionLayoutAttributePanel != null) {
+      // make sure this happens after our update.
+      myMotionLayoutAttributePanel.updateAfterModelDerivedDataChanged();
+    }
+  }
+
+  @Override
+  public void framePosition(float percent) {
+    if (!myMotionLayoutComponentHelper.setValue(percent)) {
+      myMotionLayoutComponentHelper = new MotionLayoutComponentHelper(myMotionLayout);
+    }
+    if (myCurrentState != TL_PLAY) {
+      setState(TL_TRANSITION);
+    }
+  }
+
+  private void setState(State state) {
+    if (myCurrentState == state || myInStateChange) {
+      return;
+    }
+    myInStateChange = true;
+
+    switch (state) {
+      case TL_START:
+        mGanttCommands.setMode(GanttCommands.Mode.START);
+        stopPlaying();
+        importFullConstraintSet(myMotionLayout, "@+id/start");
+        setInTransition(myMotionLayout, false);
+        myVisibilityCallback.show(AccessoryPanel.Type.EAST_PANEL, false);
+        mGanttCommands.setProgress(0);
+        break;
+      case TL_END:
+        mGanttCommands.setMode(GanttCommands.Mode.END);
+        stopPlaying();
+        importFullConstraintSet(myMotionLayout, "@+id/end");
+        setInTransition(myMotionLayout, false);
+        myVisibilityCallback.show(AccessoryPanel.Type.EAST_PANEL, false);
+        mGanttCommands.setProgress(1);
+        break;
+      case TL_PLAY:
+        setInTransition(myMotionLayout, true);
+        mGanttCommands.setMode(GanttCommands.Mode.PLAY);
+
+        myVisibilityCallback.show(AccessoryPanel.Type.EAST_PANEL, true);
+        startPlaying();
+        break;
+      case TL_PAUSE:
+        stopPlaying();
+        mGanttCommands.setMode(GanttCommands.Mode.PAUSE);
+        break;
+      case TL_TRANSITION:
+        stopPlaying();
+        mGanttCommands.setMode(GanttCommands.Mode.TRANSITION);
+        setInTransition(myMotionLayout, true);
+        myVisibilityCallback.show(AccessoryPanel.Type.EAST_PANEL, true);
+    }
+    myCurrentState = state;
+    myInStateChange = false;
+  }
+
+  private void startPlaying() {
+    if (myPositionTimer != null) {
+      myPositionTimer.stop();
+    }
+    myPositionTimer = new Timer(0, e -> {
+      float value = myLastPos + 1;
+      if (value > 100) {
+        value = 0;
+      }
+      myLastPos = value;
+      if (!myMotionLayoutComponentHelper.setValue(value / 100f)) {
+        myMotionLayoutComponentHelper = new MotionLayoutComponentHelper(myMotionLayout);
+      }
+      if (mGanttCommands != null) {
+        mGanttCommands.setProgress(value / 100f);
+      }
+    });
+    myPositionTimer.setRepeats(true);
+    myPositionTimer.setDelay(16);
+    myPositionTimer.start();
+  }
+
+  private void stopPlaying() {
+    if (myCurrentState == TL_PLAY) {
+      if (myPositionTimer != null) {
+        myPositionTimer.stop();
+      }
+    }
+  }
+
+  @Override
+  public void buttonPressed(ActionEvent e, Actions action) {
+    switch (action) {
+      case START_ACTION:
+        setState(State.TL_START);
+        break;
+      case END_ACTION:
+        setState(State.TL_END);
+        break;
+      case PLAY_ACTION:
+        if (myCurrentState == TL_PLAY) {
+          setState(State.TL_PAUSE);
+        }
+        else {
+          setState(State.TL_PLAY);
+        }
+        break;
+        default:
+    }
+  }
+
+  @Override
+  public void selectionEvent() {
+    if (myMotionLayoutAttributePanel != null) {
+      myMotionLayoutAttributePanel.updateSelection();
+    }
+    String selectedElementName = myPanel.getChart().getSelectedKeyView();
+    if (selectedElementName != null) {
+      List<NlComponent> selection = getSelectionFrom(myMotionLayout, selectedElementName);
+      mySurface.getSelectionModel().setSelection(selection);
+    }
+  }
+
+  private List<NlComponent> getSelectionFrom(@NotNull NlComponent component, @NotNull String id) {
+    if (component.getId().equals(id)) {
+      return Arrays.asList(component);
+    }
+    for (NlComponent child : component.getChildren()) {
+      if (child.getId().equals(id)) {
+        return Arrays.asList(child);
+      }
+    }
+    return new ArrayList<>();
+  }
+
+  @Override
+  public void transitionDuration(int duration) {
+    // TODO set in transition
+  }
+
+  @Override
+  public void motionLayoutAccess(int cmd, String type, float[] in, int inLength, float[] out, int outLength) {
+    myMotionLayoutComponentHelper.motionLayoutAccess(cmd, type, null, in, inLength, out, outLength);
+  }
+
+  @Override
+  public void onInit(GanttCommands commands) {
+    mGanttCommands = commands;
+  }
+
+  // TODO: merge with the above parse function
+  @Nullable
+  private XmlFile getTransitionFile(@NotNull NlComponent component) {
+    // get the parent if need be
+    if (!NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.MOTION_LAYOUT)) {
+      component = component.getParent();
+      if (component == null || !NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.MOTION_LAYOUT)) {
+        return null;
+      }
+    }
+    String file = component.getAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_TRANSITION);
+    if (file == null) {
+      return null;
+    }
+    int index = file.lastIndexOf("@xml/");
+    String fileName = file.substring(index + 5);
+    if (fileName == null || fileName.isEmpty()) {
+      return null;
+    }
+    Project project = component.getModel().getProject();
+    AndroidFacet facet = component.getModel().getFacet();
+    ResourceFolderType folderType = AndroidResourceUtil.XML_FILE_RESOURCE_TYPES.get(ResourceType.XML);
+    List<VirtualFile> resourcesXML = AndroidResourceUtil.getResourceSubdirs(folderType, facet.getAllResourceDirectories());
+    if (resourcesXML.isEmpty()) {
+      return null;
+    }
+    VirtualFile directory = resourcesXML.get(0);
+    VirtualFile virtualFile = directory.findFileByRelativePath(fileName + ".xml");
+
+    return (XmlFile)AndroidPsiUtils.getPsiFileSafely(project, virtualFile);
+  }
+
+  @Nullable
+  private XmlTag getConstraintSet(XmlFile file, String constraintSetId) {
+    XmlTag[] children = file.getRootTag().findSubTags("ConstraintSet");
+    for (int i = 0; i < children.length; i++) {
+      XmlAttribute attribute = children[i].getAttribute("android:id");
+      if (attribute != null) {
+        if (attribute.getValue().equalsIgnoreCase(constraintSetId)) {
+          return children[i];
+        }
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  private XmlTag getConstrainView(XmlTag constraintSet, String id) {
+    XmlTag[] children = constraintSet.getSubTags();
+    for (int i = 0; i < children.length; i++) {
+      XmlAttribute attribute = children[i].getAttribute("android:id");
+      if (attribute != null) {
+        String value = attribute.getValue();
+        int index = value.lastIndexOf("id/");
+        value = value.substring(index + 3);
+        if (value != null && value.equalsIgnoreCase(id)) {
+          return children[i];
+        }
+      }
+    }
+    return null;
+  }
+
+  public void importFullConstraintSet(NlComponent component, String constraintSetId) {
+    // let's first find the constraint set
+
+    XmlFile xmlFile = getTransitionFile(component);
+    Project project = component.getModel().getProject();
+    XmlTag constraintSet = getConstraintSet(xmlFile, constraintSetId);
+    if (constraintSet == null) {
+      return;
+    }
+    List<NlComponent> components = null;
+    if (component.getParent() == null) {
+      components = component.getChildren();
+    }
+    else {
+      components = component.getParent().getChildren();
+    }
+
+    final List<NlComponent> finalComponents = components;
+    new WriteCommandAction(project, "Copy ConstraintSet", xmlFile) {
+      @Override
+      protected void run(@NotNull Result result) throws Throwable {
+        // iterate on the constraints and write them on the component
+        for (NlComponent component : finalComponents) {
+          XmlTag constrainView = getConstrainView(constraintSet, component.getId());
+          if (constrainView == null) {
+            continue;
+          }
+          XmlAttribute[] attributes = constrainView.getAttributes();
+          AttributesTransaction transaction = component.startAttributeTransaction();
+          for (Pair<String, String> attribute : ConstraintComponentUtilities.ourLayoutAttributes) {
+            transaction.setAttribute(attribute.getFirst(), attribute.getSecond(), null);
+          }
+          for (int i = 0; i < attributes.length; i++) {
+            String qname = attributes[i].getName();
+
+            if (qname.equalsIgnoreCase("android:id")) {
+              continue;
+            }
+            int separatorIndex = qname.indexOf(':');
+            if (separatorIndex == -1) {
+              continue;
+            }
+            String namespace = qname.substring(0, separatorIndex);
+            if (namespace.equalsIgnoreCase("android")) {
+              namespace = SdkConstants.ANDROID_URI;
+            }
+            else if (namespace.equalsIgnoreCase("motion")) {
+              namespace = SdkConstants.AUTO_URI;
+            }
+            else if (namespace.equalsIgnoreCase("app")) {
+              namespace = SdkConstants.AUTO_URI;
+            }
+            String name = qname.substring(separatorIndex + 1);
+            String value = attributes[i].getValue();
+            transaction.setAttribute(namespace, name, value);
+          }
+          transaction.commit();
+        }
+      }
+    }.execute();
+    NlModel model = component.getModel();
+    model.notifyModified(NlModel.ChangeType.EDIT);
+  }
+
+  public void setInTransition(@NotNull NlComponent component, boolean inTransition) {
+    if (!NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.MOTION_LAYOUT)) {
+      component = component.getParent();
+      if (component == null || !NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.MOTION_LAYOUT)) {
+        return;
+      }
+    }
+    NlModel myModel = component.getModel();
+    NlComponent finalComponent = component;
+    new WriteCommandAction(myModel.getProject(), "Set In Transition", myModel.getFile()) {
+      @Override
+      protected void run(@NotNull Result result) throws Throwable {
+        finalComponent.setAttribute(SdkConstants.AUTO_URI, "applyTransition", Boolean.toString(inTransition));
+      }
+    }.execute();
+    NlModel model = component.getModel();
+    model.notifyModified(NlModel.ChangeType.EDIT);
+  }
+
+  public void setMotionLayoutAttributePanel(MotionLayoutAttributePanel panel) {
+    myMotionLayoutAttributePanel = panel;
   }
 }

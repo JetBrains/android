@@ -34,6 +34,8 @@ import java.util.List;
 
 public class AccessoryPanel extends JPanel implements DesignSurfaceListener, ModelListener {
 
+  private final boolean myHandlesVisibility;
+
   public enum Type { SOUTH_PANEL, EAST_PANEL }
 
   private NlDesignSurface mySurface;
@@ -42,9 +44,10 @@ public class AccessoryPanel extends JPanel implements DesignSurfaceListener, Mod
   private HashMap<NlComponent, AccessoryPanelInterface> myPanels =  new HashMap<>();
   private Type myType = Type.SOUTH_PANEL;
 
-  public AccessoryPanel(@NotNull Type type) {
+  public AccessoryPanel(@NotNull Type type, boolean handlesVisibility) {
     super(new BorderLayout());
     myType = type;
+    myHandlesVisibility = handlesVisibility;
   }
 
   public void setSurface(@Nullable NlDesignSurface surface) {
@@ -65,6 +68,9 @@ public class AccessoryPanel extends JPanel implements DesignSurfaceListener, Mod
   @Override
   public void modelDerivedDataChanged(@NotNull NlModel model) {
     updatePanel(model);
+    if (myCachedPanel != null) {
+      myCachedPanel.updateAfterModelDerivedDataChanged();
+    }
   }
 
   @Override
@@ -76,9 +82,9 @@ public class AccessoryPanel extends JPanel implements DesignSurfaceListener, Mod
     if (mySurface == null) {
       return;
     }
-    if (mySurface.getSelectionModel().isEmpty()) {
-      componentSelectionChanged(mySurface, model.getComponents());
-    }
+    //if (!mySurface.getSelectionModel().isEmpty()) {
+    //  componentSelectionChanged(mySurface, mySurface.getSelectionModel().getSelection()); //model.getComponents());
+    //}
   }
 
   public void setModel(@Nullable NlModel model) {
@@ -131,7 +137,7 @@ public class AccessoryPanel extends JPanel implements DesignSurfaceListener, Mod
       AccessoryPanelInterface panel = myPanels.get(parent);
       if (panel == null) {
         ViewGroupHandler.AccessoryPanelVisibility visibilityCallback = mySurface;
-        panel = viewGroupHandler.createAccessoryPanel(myType, parent, visibilityCallback);
+        panel = viewGroupHandler.createAccessoryPanel(surface, myType, parent, visibilityCallback);
         myPanels.put(parent, panel);
       }
 
@@ -142,7 +148,9 @@ public class AccessoryPanel extends JPanel implements DesignSurfaceListener, Mod
       }
 
       panel.updateAccessoryPanelWithSelection(myType, newSelection);
-      setVisible(true);
+      if (myHandlesVisibility) {
+        setVisible(true);
+      }
     }
   }
 
@@ -152,7 +160,9 @@ public class AccessoryPanel extends JPanel implements DesignSurfaceListener, Mod
       myCachedPanel.deactivate();
       myCachedPanel = null;
     }
-    setVisible(false);
+    if (myHandlesVisibility) {
+      setVisible(false);
+    }
   }
 
 }

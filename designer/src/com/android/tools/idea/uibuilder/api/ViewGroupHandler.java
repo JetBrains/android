@@ -24,6 +24,7 @@ import com.android.tools.idea.common.model.NlComponentDelegate;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.ComponentProvider;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
 import com.android.tools.idea.uibuilder.model.SegmentType;
@@ -271,12 +272,15 @@ public class ViewGroupHandler extends ViewHandler {
 
   /**
    * Returns a AccessoryPanelInterface used as an accessory panel
+   *
+   * @param surface
    * @param type type of accessory panel
    * @param parent The NLComponent that triggered the request.
    * @return
    */
   @Nullable
-  public AccessoryPanelInterface createAccessoryPanel(@NotNull AccessoryPanel.Type type,
+  public AccessoryPanelInterface createAccessoryPanel(@NotNull DesignSurface surface,
+                                                      @NotNull AccessoryPanel.Type type,
                                                       @NotNull NlComponent parent,
                                                       @NotNull AccessoryPanelVisibility callback) {
     return null;

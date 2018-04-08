@@ -1,0 +1,428 @@
+/*
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.uibuilder.handlers.motion.timeline;
+
+import com.intellij.openapi.ui.popup.JBPopup;
+import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.ui.popup.JBPopupListener;
+import com.intellij.openapi.ui.popup.LightweightWindowEvent;
+import com.intellij.ui.awt.RelativePoint;
+import com.intellij.ui.components.JBList;
+import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.ui.JBUI;
+
+import javax.swing.*;
+import javax.swing.border.MatteBorder;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.plaf.basic.BasicButtonUI;
+import javax.swing.plaf.basic.BasicTreeUI;
+import javax.swing.tree.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+
+import static com.android.tools.idea.uibuilder.handlers.motion.timeline.TimeLineIcons.ADD_KEYFRAME;
+
+class ViewList extends JPanel implements Gantt.ChartElement {
+  private static final int TREE_PANEL_WIDTH = JBUI.scale(170);
+  DefaultMutableTreeNode myRootNode = new DefaultMutableTreeNode();
+  JTree myTree = new Tree(myRootNode);
+  Chart myChart;
+  boolean myInternal;
+  private Color myBackground;
+
+  Icon mySpacerIcon = new Icon() {
+
+    @Override
+    public void paintIcon(Component c, Graphics g, int x, int y) {
+    }
+
+    @Override
+    public int getIconWidth() {
+      return 0;
+    }
+
+    @Override
+    public int getIconHeight() {
+      return Chart.ourGraphHeight;
+    }
+  };
+
+
+  JPanel myAddPanel = new JPanel(null) {
+    @Override
+    public void doLayout() {
+      if (mySelectedView == null) {
+        myAddButton.setVisible(false);
+      }
+      else {
+        myAddButton.setVisible(true);
+        myAddButton.setLocation(0, mySelectedView.getViewElement().myYStart);
+        myAddButton.setSize(16, 16);
+      }
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+      super.paintComponent(g);
+    }
+  };
+  JButton myAddButton = new JButton(ADD_KEYFRAME);
+  private ViewNode mySelectedView;
+
+  ViewList(Chart chart) {
+    super(new BorderLayout(2, 2));
+    myChart = chart;
+    myTree.setRootVisible(false);
+    myTree.setCellRenderer(cellRenderer);
+    update(Reason.CONSTRUCTION);
+    setBorder(new MatteBorder(0, 0, 0, 1, Color.BLACK));
+    myChart.add(this);
+    myAddPanel.add(myAddButton);
+    myAddButton.setUI(new BasicButtonUI());
+    myAddButton.setMargin(null);
+    myAddButton.setBorderPainted(false);
+    myAddButton.setOpaque(false);
+    myAddButton.addActionListener((e) -> keyFramePopup(e));
+    myAddPanel.setPreferredSize(new Dimension(16, 20));
+    add(myTree, BorderLayout.CENTER);
+    add(myAddPanel, BorderLayout.EAST);
+    JPanel space = new JPanel();
+    space.setPreferredSize(new Dimension(Chart.ourViewListWidth, 0));
+    add(space, BorderLayout.NORTH);
+
+    myTree.setUI(new CustomTreeUI());
+    myTree.addTreeExpansionListener(new TreeExpansionListener() {
+      @Override
+      public void treeExpanded(TreeExpansionEvent event) {
+        myInternal = true;
+        if (event.getPath().getPathCount() == 3) {
+          CategoryNode categoryNode = (CategoryNode)(event.getPath().getPathComponent(2));
+        }
+        myChart.update(Reason.RESIZE);
+        myInternal = false;
+      }
+
+      @Override
+      public void treeCollapsed(TreeExpansionEvent event) {
+        myInternal = true;
+        myChart.update(Reason.RESIZE);
+        myInternal = false;
+      }
+    });
+    myTree.getSelectionModel().addTreeSelectionListener(new TreeSelectionListener() {
+      @Override
+      public void valueChanged(TreeSelectionEvent e) {
+        myInternal = true;
+        treeSelection(e);
+        myInternal = false;
+      }
+    });
+  }
+
+  private void keyFramePopup(ActionEvent e) {
+    String[] list = {"Path Cartesian", "Path Relative", "Attributes", "Cycles"};
+    final JList<String> displayedList = new JBList<String>(list);
+    JBPopupListener listener = new JBPopupListener.Adapter() {
+      @Override
+      public void onClosed(LightweightWindowEvent event) {
+        JBPopup popup = event.asPopup();
+        createKeyFrame(displayedList.getSelectedIndex());
+      }
+    };
+    JBPopup popup = JBPopupFactory.getInstance()
+                                  .createListPopupBuilder(displayedList)
+                                  .setTitle("Create KeyFrame")
+                                  .addListener(listener)
+                                  .createPopup();
+
+    JComponent component = ((JComponent)e.getSource());
+
+    popup.show(new RelativePoint(component, new Point(0, 0)));
+  }
+
+  void createKeyFrame(int frameType) {
+    Gantt.ViewElement v = mySelectedView.getViewElement();
+
+    String name = v.myName;
+    MotionSceneModel model = v.mKeyFrames.myModel;
+    int fpos = (int)(myChart.myTimeCursorMs * 100 / myChart.myAnimationTotalTimeMs);
+    String type = (new String[]{"KeyPositionCartesian", "KeyPositonPath", "KeyAttributes", "KeyCycles"})[frameType];
+
+    v.mKeyFrames.myModel.createKeyFrame(type, fpos, name);
+  }
+
+  void treeSelection(TreeSelectionEvent e) {
+    mySelectedView = null;
+    if (e.getPath().getPath().length > 1) {
+      mySelectedView = (ViewNode)(e.getPath().getPath()[1]);
+      myChart.mySelectedKeyView = e.getPath().getPath()[1].toString();
+      myChart.update(Reason.SELECTION_CHANGED);
+    }
+    myAddPanel.doLayout();
+  }
+
+  private void graph(Chart.GraphElements toGraph) {
+    myChart.myGraphElements = toGraph;
+    myChart.update(Reason.GRAPH_SELECTED);
+  }
+
+  /* ========================Create the look of the tree============================= */
+
+  public class CustomTreeUI extends BasicTreeUI {
+
+    @Override
+    protected AbstractLayoutCache.NodeDimensions createNodeDimensions() {
+      return new NodeDimensionsHandler() {
+        @Override
+        public Rectangle getNodeDimensions(
+          Object value, int row, int depth, boolean expanded,
+          Rectangle size) {
+          Rectangle dimensions = super.getNodeDimensions(value, row,
+                                                         depth, expanded, size);
+          dimensions.width =
+            getWidth() - getRowX(row, depth) - 1;
+          return dimensions;
+        }
+      };
+    }
+
+    @Override
+    protected void paintHorizontalLine(Graphics g, JComponent c,
+                                       int y, int left, int right) {
+      // do nothing.
+    }
+
+    @Override
+    protected void paintVerticalPartOfLeg(Graphics g, Rectangle clipBounds,
+                                          Insets insets, TreePath path) {
+      // do nothing.
+    }
+  }
+
+  TreeCellRenderer cellRenderer = new DefaultTreeCellRenderer() {
+
+    @Override
+    public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel,
+                                                  boolean expanded, boolean leaf, int row, boolean hasFocus) {
+      DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
+
+      JComponent c = (JComponent)super
+        .getTreeCellRendererComponent(tree, (node.getChildCount() == 0) ? "" : value, sel, expanded, leaf, row, hasFocus);
+
+      Object root = tree.getModel().getRoot();
+
+      c.setOpaque(true);
+     // c.setBackground(myBackground);
+      setIcon(TimeLineIcons.EMPTY);
+
+      if (root.equals(node)) {
+        return c;
+      }
+
+      if (node.getParent() == root) {
+        setIcon(TimeLineIcons.VIEW);
+      }
+      if (node instanceof GraphMode) {
+        setIcon(mySpacerIcon);
+      }
+      if (sel) {
+        setBackground(Color.LIGHT_GRAY);
+      }
+      setText(node.getUserObject().toString());
+
+      return c;
+    }
+  };
+
+  @Override
+  public void setBackground(Color bg) {
+    myBackground = bg;
+    super.setBackground(bg);
+    if (myAddButton != null) {
+      myAddPanel.setBackground(bg);
+    }
+    if (myTree != null) {
+      myTree.setBackground(bg);
+    }
+
+
+  }
+
+  /* ========================================================== */
+  static class CategoryNode extends DefaultMutableTreeNode {
+    enum Type {
+      Position,
+      Attributes,
+      Cycles
+    }
+
+    Type myType;
+    Gantt.ViewElement myView;
+    ArrayList<? extends MotionSceneModel.KeyFrame> myKeyList;
+
+    CategoryNode(Gantt.ViewElement viewElement, ArrayList<? extends MotionSceneModel.KeyFrame> keyList, Type type) {
+      super((type == Type.Position) ? "Position" : ((type == Type.Attributes) ? "Attributes" : "Cycles"));
+      myKeyList = keyList;
+      myView = viewElement;
+      myType = type;
+      String[] list = MotionSceneModel.getGraphAttributes(keyList);
+      Arrays.sort(list);
+      switch (type) {
+        case Position:
+          viewElement.myHasPosition = true;
+          break;
+        case Attributes:
+          viewElement.myHasAttribute = true;
+          break;
+        case Cycles:
+          viewElement.myHasCycle = true;
+          break;
+      }
+      for (int i = 0; i < list.length; i++) {
+        String name = list[i];
+        add(new GraphMode(MotionSceneModel.filterList(keyList, name), type, name));
+      }
+    }
+  }
+  /* ========================================================== */
+
+  static class GraphMode extends DefaultMutableTreeNode {
+    ArrayList<MotionSceneModel.KeyFrame> myKeyList;
+
+    GraphMode(ArrayList<MotionSceneModel.KeyFrame> keyList, CategoryNode.Type type, String name) {
+      super(name);
+      myKeyList = keyList;
+    }
+  }
+  /* ========================================================== */
+
+  static class ViewNode extends DefaultMutableTreeNode {
+
+    public ViewNode(Gantt.ViewElement element) {
+      super(element);
+    }
+
+    Gantt.ViewElement getViewElement() {
+      return (Gantt.ViewElement)super.userObject;
+    }
+  }
+  /* ========================================================== */
+
+  @Override
+  public void update(Reason reason) {
+    // TODO change a graph to be size of graph I want
+    // TODO Change graph to be size from here
+    if (reason == Reason.SELECTION_CHANGED) {
+      return;
+    }
+    if (reason == Reason.ZOOM) {
+      return;
+    }
+    if (!myInternal && reason == Reason.ADDVIEW) {
+      HashSet<String> expanded = new HashSet<>();
+      for (int i = 0; i < myTree.getRowCount() - 1; i++) {
+        TreePath currPath = myTree.getPathForRow(i);
+        TreePath nextPath = myTree.getPathForRow(i + 1);
+        if (currPath.isDescendant(nextPath)) {
+          expanded.add(Arrays.toString(currPath.getPath()));
+        }
+      }
+      reload();
+      for (int i = 0; i < myTree.getRowCount() - 1; i++) {
+        TreePath currPath = myTree.getPathForRow(i);
+        String s = Arrays.toString(currPath.getPath());
+        if (expanded.contains(s)) {
+          myTree.expandPath(currPath);
+        }
+      }
+    }
+    int count = myRootNode.getChildCount();
+
+    int viewNo = 0;
+    Gantt.ViewElement viewElement = null;
+    CategoryNode categoryNode;
+
+    for (int i = 0; i < myTree.getRowCount(); i++) {
+      TreePath path = myTree.getPathForRow(i);
+      Rectangle rectangle = myTree.getPathBounds(path);
+      Object last = path.getLastPathComponent();
+      if (last instanceof ViewNode) {
+        viewElement = ((ViewNode)last).getViewElement();
+        viewElement.myYStart = rectangle.y;
+        viewElement.myHeight = rectangle.height;
+        viewElement.myHeightView = rectangle.height;
+        viewElement.myHeightCycle = 0;
+        viewElement.myHeightAttribute = 0;
+        viewElement.myHeightPosition = 0;
+      }
+      else if (last instanceof CategoryNode) {
+        categoryNode = (CategoryNode)last;
+        switch (categoryNode.myType) {
+          case Cycles:
+            viewElement.myHeightCycle = rectangle.height;
+            break;
+          case Attributes:
+            viewElement.myHeightAttribute = rectangle.height;
+            break;
+          case Position:
+            viewElement.myHeightPosition = rectangle.height;
+            break;
+        }
+      }
+
+      if (rectangle != null) {
+        if (!(last instanceof ViewNode)) {
+          viewElement.myHeight += rectangle.height;
+        }
+      }
+    }
+    TreePath[] selection = myTree.getSelectionPaths();
+    if (selection != null && selection.length > 0 && selection[0].getPath().length > 1) {
+      mySelectedView = (ViewNode)(selection[0].getPath()[1]);
+    }
+    else {
+      mySelectedView = null;
+    }
+    myAddPanel.doLayout();
+  }
+
+  void reload() {
+    myRootNode.removeAllChildren();
+    DefaultMutableTreeNode node = myRootNode;
+    DefaultTreeModel model = (DefaultTreeModel)myTree.getModel();
+
+    for (Gantt.ViewElement viewElement : myChart.myViewElements) {
+      myRootNode.add(node = new ViewNode(viewElement));
+      if (!viewElement.mKeyFrames.myKeyPositions.isEmpty()) {
+        node.add(new CategoryNode(viewElement, viewElement.mKeyFrames.myKeyPositions, CategoryNode.Type.Position));
+      }
+      if (!viewElement.mKeyFrames.myKeyAttributes.isEmpty()) {
+        node.add(new CategoryNode(viewElement, viewElement.mKeyFrames.myKeyAttributes, CategoryNode.Type.Attributes));
+      }
+      if (!viewElement.mKeyFrames.myKeyCycles.isEmpty()) {
+        node.add(new CategoryNode(viewElement, viewElement.mKeyFrames.myKeyCycles, CategoryNode.Type.Cycles));
+      }
+    }
+
+    model.reload();
+  }
+}

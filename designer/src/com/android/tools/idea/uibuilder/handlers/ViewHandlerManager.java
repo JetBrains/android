@@ -412,7 +412,9 @@ public class ViewHandlerManager implements ProjectComponent {
       return new GridLayoutV7Handler();
     }
     else if (MOTION_LAYOUT.isEquals(viewTag)) {
-      return new MotionLayoutHandler();
+      if (StudioFlags.NELE_MOTION_LAYOUT_EDITOR.get()) {
+        return new MotionLayoutHandler();
+      }
     }
     else if (NAVIGATION_VIEW.isEquals(viewTag)) {
       return new NavigationViewHandler();

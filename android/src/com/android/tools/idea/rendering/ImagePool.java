@@ -11,11 +11,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 import java.awt.image.ImageObserver;
 import java.awt.image.WritableRaster;
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.util.*;
+import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiFunction;
@@ -70,9 +72,10 @@ public class ImagePool {
    * every time that a new cache is needed for a given (width, height) -> (imageType).
    * The return value from calling that function will be the size of the EvictingQueue used for caching the pooled
    * images.
-   * @param bucketSizes Array containing a list of the allowed bucket sizes. The images will be allocated into a bucket that fits its two
-   *                    dimensions. If an image contains one dimension bigger than the biggest given bucket size, the image won't be
-   *                    allocated into the pool.
+   *
+   * @param bucketSizes        Array containing a list of the allowed bucket sizes. The images will be allocated into a bucket that fits its two
+   *                           dimensions. If an image contains one dimension bigger than the biggest given bucket size, the image won't be
+   *                           allocated into the pool.
    * @param bucketSizingPolicy Function that returns the maximum size for a given bucket. The bucket is defined by width, height and image
    *                           type. If the returned size is 0, no pooling will be done for that bucket size.
    */
@@ -84,6 +87,7 @@ public class ImagePool {
     Arrays.sort(myBucketSizes);
     myBucketSizingPolicy = bucketSizingPolicy;
   }
+
   private boolean isDisposed = false;
 
   /**
@@ -182,6 +186,7 @@ public class ImagePool {
       while ((image = imageRef.get()) == null) {
         imageRef = bucket.remove();
       }
+
       if (DEBUG) {
         long totalSize = image.getWidth() * image.getHeight();
         double wasted = (totalSize - w * h);
@@ -191,10 +196,15 @@ public class ImagePool {
                           (int)((wasted / totalSize) * 100));
       }
       // Clear the image
-      Graphics2D g = image.createGraphics();
-      g.setComposite(AlphaComposite.Clear);
-      g.fillRect(0, 0, w, h);
-      g.dispose();
+      if (image.getRaster().getDataBuffer().getDataType() == java.awt.image.DataBuffer.TYPE_INT) {
+        Arrays.fill(((DataBufferInt)image.getRaster().getDataBuffer()).getData(), 0);
+      }
+      else {
+        Graphics2D g = image.createGraphics();
+        g.setComposite(AlphaComposite.Clear);
+        g.fillRect(0, 0, w, h);
+        g.dispose();
+      }
     }
     catch (NoSuchElementException e) {
       if (DEBUG) {
@@ -211,6 +221,7 @@ public class ImagePool {
       public void finalizeReferent() {
         // This method might be called twice if the user has manually called the free() method. The second call will have no effect.
         if (myReferences.remove(this)) {
+
           boolean accepted = bucket.offer(new SoftReference<>(imagePointer));
           if (DEBUG) {
             System.out.printf("%s image (%dx%d-%d) in bucket (%dx%d)\n",
@@ -240,7 +251,7 @@ public class ImagePool {
       myMinHeight = minHeight;
       myDelegate = maxSize == 0 ?
                    EvictingQueue.create(0)
-                   : new ArrayBlockingQueue<SoftReference<BufferedImage>>(maxSize);
+                                : new ArrayBlockingQueue<SoftReference<BufferedImage>>(maxSize);
     }
 
     @Override
@@ -330,7 +341,8 @@ public class ImagePool {
       Graphics g = destination.getGraphics();
       try {
         drawImageTo(g, 0, 0, destination.getWidth(), destination.getHeight());
-      } finally {
+      }
+      finally {
         g.dispose();
       }
     }
@@ -401,7 +413,8 @@ public class ImagePool {
       Graphics2D g = myBuffer.createGraphics();
       try {
         command.accept(g);
-      } finally {
+      }
+      finally {
         g.dispose();
       }
     }
@@ -451,7 +464,8 @@ public class ImagePool {
       Graphics g = myBuffer.getGraphics();
       try {
         g.drawImage(origin, 0, 0, null);
-      } finally {
+      }
+      finally {
         g.dispose();
       }
     }

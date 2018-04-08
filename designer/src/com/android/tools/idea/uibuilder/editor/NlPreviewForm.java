@@ -32,7 +32,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.common.error.IssuePanelSplitter;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
-import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutHandler;
+import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutComponentHelper;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.palette2.PaletteDefinition;
@@ -391,9 +391,9 @@ public class NlPreviewForm implements Disposable, CaretListener {
         .filter(component -> NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.MOTION_LAYOUT))
         .findAny()
         .orElse(null);
-      MotionLayoutHandler.MotionLayoutComponentHelper helper = transitionLayout != null ?
-                                                               new MotionLayoutHandler.MotionLayoutComponentHelper(transitionLayout) :
-                                                               null;
+      MotionLayoutComponentHelper helper = transitionLayout != null ?
+                                           new MotionLayoutComponentHelper(transitionLayout) :
+                                           null;
       long maxTimeMs = helper != null ? helper.getMaxTimeMs() : -1;
 
 

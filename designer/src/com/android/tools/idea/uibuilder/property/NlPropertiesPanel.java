@@ -89,7 +89,7 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
   private PropertiesViewMode myPropertiesViewMode;
   private Runnable myRestoreToolWindowCallback;
 
-  private AccessoryPanel myAccessoryPanel = new AccessoryPanel(AccessoryPanel.Type.EAST_PANEL);
+  private AccessoryPanel myAccessoryPanel = new AccessoryPanel(AccessoryPanel.Type.EAST_PANEL, false);
 
 
   public NlPropertiesPanel(@NotNull NlPropertiesManager propertiesManager) {
@@ -134,6 +134,9 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
 
     myCardLayout = new JBCardLayout();
     myCardPanel = new JPanel(myCardLayout);
+
+    myCardPanel.add(PropertiesViewMode.ACCESSORY.name(), myAccessoryPanel);
+
     JScrollPane scrollPane = ScrollPaneFactory.createScrollPane(myInspectorPanel,
                                                                 ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                                                                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
@@ -145,7 +148,6 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
     tableScrollPane.setBorder(BorderFactory.createEmptyBorder());
     myCardPanel.add(PropertiesViewMode.TABLE.name(), tableScrollPane);
 
-    myCardPanel.add(PropertiesViewMode.ACCESSORY.name(), myAccessoryPanel);
     myPropertiesViewMode = getPropertiesViewModeInitially();
     myCardLayout.show(myCardPanel, myPropertiesViewMode.name());
     myComponents = Collections.emptyList();
@@ -358,7 +360,7 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
 
   @Override
   public boolean isAccessoryPanelVisible() {
-    return myAccessoryPanel.isVisible();
+    return myPropertiesViewMode == PropertiesViewMode.ACCESSORY;
   }
 
   private void setAllPropertiesPanelVisibleInternal(boolean viewAllProperties, @Nullable Runnable onDone) {
@@ -368,8 +370,12 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
   }
 
   public void showAccessoryPanel(boolean show) {
-    String name = show ? PropertiesViewMode.ACCESSORY.name() : myPropertiesViewMode.name();
-    myCardLayout.swipe(myCardPanel, name, JBCardLayout.SwipeDirection.AUTO, null);
+    if (!show && myPropertiesViewMode != PropertiesViewMode.ACCESSORY) {
+      return;
+    }
+    myPropertiesViewMode = show ? PropertiesViewMode.ACCESSORY : PropertiesViewMode.INSPECTOR;
+    Component next = show ? myAccessoryPanel : myInspectorPanel;
+    myCardLayout.swipe(myCardPanel, myPropertiesViewMode.name(), JBCardLayout.SwipeDirection.AUTO, next::requestFocus);
   }
 
   @NotNull
