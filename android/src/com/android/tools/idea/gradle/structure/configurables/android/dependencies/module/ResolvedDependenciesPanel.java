@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDependency;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.ui.PopupHandler;
@@ -230,14 +231,19 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
   }
 
   @Override
-  public void setSelection(@Nullable PsAndroidDependency selection) {
+  public ActionCallback setSelection(@Nullable PsAndroidDependency selection) {
     if (selection == null) {
       myTreeBuilder.clearSelection();
+      return ActionCallback.DONE;
     }
     else {
       myIgnoreTreeSelectionEvents = true;
-      myTreeBuilder.selectMatchingNodes(selection, true);
-      myIgnoreTreeSelectionEvents = false;
+      try {
+        return myTreeBuilder.selectMatchingNodes(selection, true);
+      }
+      finally {
+        myIgnoreTreeSelectionEvents = false;
+      }
     }
   }
 
@@ -258,7 +264,7 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
     }
     return null;
   }
-  
+
   @Nullable
   private AbstractPsModelNode getSelectionIfSingle() {
     Set<AbstractPsModelNode> selection = myTreeBuilder.getSelectedElements(AbstractPsModelNode.class);

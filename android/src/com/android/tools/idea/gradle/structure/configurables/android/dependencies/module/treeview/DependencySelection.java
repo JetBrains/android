@@ -16,11 +16,12 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview;
 
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
+import com.intellij.openapi.util.ActionCallback;
 import org.jetbrains.annotations.Nullable;
 
 public interface DependencySelection {
   @Nullable
   PsAndroidDependency getSelection();
 
-  void setSelection(@Nullable PsAndroidDependency selection);
+  ActionCallback setSelection(@Nullable PsAndroidDependency selection);
 }
