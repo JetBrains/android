@@ -314,6 +314,20 @@ public class StudioIcons {
     }
   }
 
+  public static class MotionLayoutUI {
+    public static final Icon ADD_KEYFRAME = load("/studio/icons/layout-editor/motion/add-keyframe.png"); // 16x16
+    public static final Icon CIRCLE_PLAY = load("/studio/icons/layout-editor/motion/circle-play.png"); // 16x16
+    public static final Icon BACKWARD = load("/studio/icons/layout-editor/motion/skip-previous.png"); // 16x16
+    public static final Icon PLAY = load("/studio/icons/layout-editor/motion/play.png"); // 16x16
+    public static final Icon FORWARD = load("/studio/icons/layout-editor/motion/skip-next.png"); // 16x16
+    public static final Icon LOOP = load("/studio/icons/layout-editor/motion/loop.png"); // 16x16
+    public static final Icon VIEW = load("/studio/icons/layout-editor/motion/motion_view_icon.png"); // 16x16
+    public static final Icon CHART = load("/studio/icons/layout-editor/motion/chart-line.png"); // 16x16
+    public static final Icon START = load("/studio/icons/layout-editor/motion/start-graphic.png"); // 16x16
+    public static final Icon END = load("/studio/icons/layout-editor/motion/end-graphic.png"); // 16x16
+    public static final Icon PAUSE = load("/studio/icons/layout-editor/motion/pause.png"); // 16x16
+  }
+
   public static class LayoutInspector {
     public static final Icon CLEAR_OVERLAY = load("/studio/icons/layout-inspector/clear-overlay.png"); // 16x16
     public static final Icon COLOR_PICKER = load("/studio/icons/layout-inspector/color-picker.png"); // 16x16

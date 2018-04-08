@@ -50,4 +50,6 @@ public interface AccessoryPanelInterface {
    * Called to inform the Panel that it is no longer in use.
    */
   void deactivate();
+
+  void updateAfterModelDerivedDataChanged();
 }

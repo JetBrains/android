@@ -184,6 +184,10 @@ public final class StudioFlags {
     NELE, "animated.motion.layout", "Show preview animations toolbar for MotionLayout",
     "Show an animations bar that allows playback of MotionLayout animations.",
     false);
+  public static final Flag<Boolean> NELE_MOTION_LAYOUT_EDITOR = Flag.create(
+    NELE, "animated.motion.editor", "Show motion editor for MotionLayout",
+    "Show the motion editor UI for MotionLayout.",
+    false);
   public static final Flag<Boolean> NELE_MOCKUP_EDITOR = Flag.create(
     NELE, "mockup.editor", "Enable the Mockup Editor",
     "Enable the Mockup Editor to ease the creation of Layouts from a design file.",
