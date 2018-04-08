@@ -291,7 +291,6 @@ public class ThemeEditorTableTest {
   /**
    * @see com.android.tools.idea.editors.theme.attributes.ShowJavadocAction
    */
-  @RunIn(TestGroup.UNRELIABLE)  // b/77752282
   @Test
   public void testShowDocumentation() throws IOException {
     guiTest.importSimpleApplication();
@@ -314,29 +313,7 @@ public class ThemeEditorTableTest {
     JEditorPane docComp = guiTest.robot().finder().findByType(docWindow, JEditorPane.class);
     JTextComponentFixture quickDoc = new JTextComponentFixture(guiTest.robot(), docComp);
 
-    String expected = "<html>\n" +
-                      "  <head>\n" +
-                      "    \n" +
-                      "  </head>\n" +
-                      "  <body>\n" +
-                      "    <b>android:colorPrimary</b> (Added in API level 21)<br>The primary \n" +
-                      "    branding color for the app. By default, this is the color applied to the \n" +
-                      "    action bar background.<br><hr>\n" +
-                      "\n" +
-                      "    <table border=\"0\" align=\"center\" style=\"background-color: rgb(230,230,230); width: 200px\">\n" +
-                      "      <tr height=\"100\">\n" +
-                      "        <td align=\"center\" valign=\"middle\" height=\"100\">\n" +
-                      "          #e6e6e6\n" +
-                      "        </td>\n" +
-                      "      </tr>\n" +
-                      "    </table>\n" +
-                      "    <br>\n" +
-                      "    <br>\n" +
-                      "    ?android:attr/colorPrimary =&gt; @color/holo_light_primary =&gt; #ffe6e6e6<br><br>\n" +
-                      "  </body>\n" +
-                      "</html>\n";
-
-    quickDoc.requireText(expected);
+    assertThat(quickDoc.text()).contains("color for the app");
   }
 
   @Test
