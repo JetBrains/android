@@ -43,7 +43,6 @@ import com.intellij.packaging.impl.run.BuildArtifactsBeforeRunTaskProvider;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.components.JBTextField;
-import com.intellij.ui.table.JBTable;
 import org.jetbrains.android.compiler.artifact.AndroidApplicationArtifactType;
 import org.jetbrains.annotations.NotNull;
 
@@ -69,7 +68,7 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
   private ComboBox myLaunchOptionCombo;
   private ConfigurableCardPanel myLaunchOptionsCardPanel;
   private LabeledComponent<JBTextField> myAmOptionsLabeledComponent;
-  private LabeledComponent<JBTable> myDynamicFeaturesLabeledComponent;
+  private JComponent myDynamicFeaturesParametersComponent;
 
   private final Project myProject;
   private final ConfigurationModuleSelector myModuleSelector;
@@ -119,7 +118,7 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
 
   private void createUIComponents() {
     myDynamicFeaturesParameters = new DynamicFeaturesParameters();
-    myDynamicFeaturesLabeledComponent = myDynamicFeaturesParameters.getComponent();
+    myDynamicFeaturesParametersComponent = myDynamicFeaturesParameters.getComponent();
   }
 
   @Override

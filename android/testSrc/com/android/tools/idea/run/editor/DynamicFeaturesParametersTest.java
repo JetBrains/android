@@ -57,7 +57,7 @@ public class DynamicFeaturesParametersTest {
   @Test
   public void featureListWorks() {
     DynamicFeaturesParameters parameters = new DynamicFeaturesParameters();
-    JTable table = parameters.getComponent().getComponent();
+    JTable table = parameters.getTableComponent();
     table.setUI(new HeadlessTableUI());
 
     // Initialize UI
