@@ -47,14 +47,11 @@
           <text value="&amp;Artifact"/>
         </properties>
       </component>
-      <component id="388cf" class="com.intellij.openapi.ui.LabeledComponent" binding="myDynamicFeaturesLabeledComponent" custom-create="true">
+      <component id="388cf" class="com.intellij.ui.components.JBScrollPane" binding="myDynamicFeaturesParametersComponent" custom-create="true">
         <constraints>
           <grid row="3" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="2" use-parent-layout="false"/>
         </constraints>
-        <properties>
-          <labelLocation value="West"/>
-          <text value="&amp;Dynamic features"/>
-        </properties>
+        <properties/>
       </component>
       <component id="38c16" class="com.intellij.openapi.ui.LabeledComponent" binding="myPmOptionsLabeledComponent">
         <constraints>
@@ -76,7 +73,7 @@
       </component>
       <component id="4f350" class="com.intellij.ui.components.JBLabel">
         <constraints>
-          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="2" use-parent-layout="false"/>
+          <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="2" use-parent-layout="false"/>
         </constraints>
         <properties>
           <text value="&amp;Launch:"/>

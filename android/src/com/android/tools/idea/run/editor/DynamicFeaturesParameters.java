@@ -15,17 +15,18 @@
  */
 package com.android.tools.idea.run.editor;
 
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.ui.LabeledComponent;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.TableUtil;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import javax.swing.table.*;
@@ -35,66 +36,77 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.android.tools.idea.run.editor.DynamicFeaturesParameters.DynamicFeaturesTableModel.FEATURE_NAME;
-
 public class DynamicFeaturesParameters {
+  private static final int PREFERRED_HEIGHT_IN_ROWS = 4;
+
   @NotNull
   private final DynamicFeaturesTableModel myTableModel = new DynamicFeaturesTableModel();
   @NotNull
-  private final LabeledComponent<JBTable> myDynamicFeaturesLabeledComponent = new LabeledComponent<>();
-  @NotNull
   private final Set<String> myDisabledDynamicFeatures = new HashSet<>();
 
+  private JPanel myRootPanel;
+  private JBScrollPane myTableScrollPane;
+  private JBTable myTable;
+  private JBLabel myAdditionalTextLabel;
+
   public DynamicFeaturesParameters() {
-    JBTable table = new JBTable(myTableModel);
+    // Additional text should show as "gray"
+    myAdditionalTextLabel.setForeground(UIUtil.getInactiveTextColor());
 
-    myDynamicFeaturesLabeledComponent.setLabelLocation(BorderLayout.WEST);
-    myDynamicFeaturesLabeledComponent.getLabel().setVerticalAlignment(SwingConstants.TOP);
-    myDynamicFeaturesLabeledComponent.setText("Dynamic features:");
-    myDynamicFeaturesLabeledComponent.setComponent(table);
+    // Setup table: custom mode, ensure table header/grid/separators are not displayed
+    myTable.setModel(myTableModel);
+    myTable.setTableHeader(null);
+    myTableScrollPane.setColumnHeaderView(null);
+    myTable.setShowGrid(false);
+    myTable.setIntercellSpacing(new Dimension(0, 0));
+    myTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+    myTable.setColumnSelectionAllowed(false);
 
-    table.setShowGrid(false);
-    table.setIntercellSpacing(new Dimension(0, 0));
-    table.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
-    table.setColumnSelectionAllowed(false);
-    table
-      .setPreferredScrollableViewportSize(new Dimension(200, table.getRowHeight() * JBTable.PREFERRED_SCROLLABLE_VIEWPORT_HEIGHT_IN_ROWS));
+    // Setup column rendering: First column is a check box, second column is a label (i.e. the feature name)
+    TableColumnModel columnModel = myTable.getColumnModel();
+    TableColumn checkMarkColumn = columnModel.getColumn(DynamicFeaturesTableModel.CHECK_MARK_COLUMN_INDEX);
+    checkMarkColumn.setCellRenderer(new EnabledCellRenderer(myTable.getDefaultRenderer(Boolean.class)));
+    TableUtil.setupCheckboxColumn(myTable, DynamicFeaturesTableModel.CHECK_MARK_COLUMN_INDEX);
+    columnModel.getColumn(DynamicFeaturesTableModel.FEATURE_NAME_COLUMN_INDEX).setCellRenderer(new FeatureNameCellRenderer());
 
-    TableColumnModel columnModel = table.getColumnModel();
-    TableColumn column = columnModel.getColumn(DynamicFeaturesTableModel.CHECK_MARK);
-    column.setCellRenderer(new EnabledCellRenderer(table.getDefaultRenderer(Boolean.class)));
-    TableUtil.setupCheckboxColumn(column);
-    columnModel.getColumn(FEATURE_NAME).setCellRenderer(new FeatureNameCellRenderer());
-
+    // By default, the component should not be visible
     disable();
   }
 
+
+  /**
+   * Returns the root component of this form, to be used into its container
+   */
   @NotNull
-  public LabeledComponent<JBTable> getComponent() {
-    return myDynamicFeaturesLabeledComponent;
+  public JComponent getComponent() {
+    return myRootPanel;
   }
 
+  @TestOnly
+  JTable getTableComponent() {
+    return myTable;
+  }
+
+  /**
+   * Returns the list of disabled feature names
+   */
   @NotNull
   public List<String> getDisabledDynamicFeatures() {
     return ImmutableList.copyOf(myDisabledDynamicFeatures);
   }
 
-  public void setDisabledDynamicFeatures(List<String> disabledDynamicFeatures) {
-    myDisabledDynamicFeatures.clear();
-    myDisabledDynamicFeatures.addAll(disabledDynamicFeatures);
-
-    // Update enabled/disabled state of features in active model
-    myTableModel.myFeatures.forEach(x -> x.isChecked = isFeatureEnabled(x.name));
-    myTableModel.fireTableDataChanged();
-  }
-
+  /**
+   * Update the list of features after a new {@link Module} is activated
+   * @param module
+   */
   public void setActiveModule(@Nullable Module module) {
+    setDisabledDynamicFeatures(new ArrayList<>());
     if (module == null) {
       disable();
       return;
     }
 
-    List<Module> features = DynamicAppUtils.getDependentFeatureModules(module);
+    java.util.List<Module> features = DynamicAppUtils.getDependentFeatureModules(module);
     if (features.isEmpty()) {
       disable();
       return;
@@ -103,13 +115,29 @@ public class DynamicFeaturesParameters {
     setFeatureList(features);
   }
 
+  /**
+   * Set the list of features from a list of {@link Module modules}
+   */
   public void setFeatureList(@NotNull List<Module> features) {
     myTableModel.clear();
     features.stream()
-      .sorted((o1, o2) -> StringUtil.compare(o1.getName(), o2.getName(), true))
-      .map(f -> new DynamicFeatureRow(f.getName(), isFeatureEnabled(f.getName())))
-      .forEach(row -> myTableModel.addRow(row));
+            .sorted((o1, o2) -> StringUtil.compare(o1.getName(), o2.getName(), true))
+            .map(f -> new DynamicFeatureRow(f.getName(), isFeatureEnabled(f.getName())))
+            .forEach(row -> myTableModel.addRow(row));
     enable();
+  }
+
+  /**
+   * Set the list of disabled features, update the UI so that checkboxes are enabled/disabled
+   * depending on this new list.
+   */
+  public void setDisabledDynamicFeatures(@NotNull List<String> disabledDynamicFeatures) {
+    myDisabledDynamicFeatures.clear();
+    myDisabledDynamicFeatures.addAll(disabledDynamicFeatures);
+
+    // Update enabled/disabled state of features in active model
+    myTableModel.myFeatures.forEach(x -> x.isChecked = isFeatureEnabled(x.name));
+    myTableModel.fireTableDataChanged();
   }
 
   private boolean isFeatureEnabled(@NotNull String name) {
@@ -118,17 +146,23 @@ public class DynamicFeaturesParameters {
 
   private void enable() {
     myTableModel.fireTableDataChanged();
-    myDynamicFeaturesLabeledComponent.setVisible(true);
+    // Set minimum size now that we have real data
+    Insets insets = myTableScrollPane.getInsets();
+    int minHeight = insets.top +
+                    myTable.getRowHeight() * PREFERRED_HEIGHT_IN_ROWS +
+                    insets.bottom;
+    myTableScrollPane.setMinimumSize(new Dimension(200, minHeight));
+    myRootPanel.setVisible(true);
   }
 
   private void disable() {
     myTableModel.clear();
     myTableModel.fireTableDataChanged();
-    myDynamicFeaturesLabeledComponent.setVisible(false);
+    myRootPanel.setVisible(false);
   }
 
-  public static class DynamicFeatureRow {
-    public String name;
+  private static class DynamicFeatureRow {
+    @NotNull public final String name;
     public boolean isChecked;
 
     public DynamicFeatureRow(@NotNull String name, boolean isChecked) {
@@ -137,9 +171,9 @@ public class DynamicFeaturesParameters {
     }
   }
 
-  public class DynamicFeaturesTableModel extends AbstractTableModel {
-    public static final int CHECK_MARK = 0;
-    public static final int FEATURE_NAME = 1;
+  private class DynamicFeaturesTableModel extends AbstractTableModel {
+    public static final int CHECK_MARK_COLUMN_INDEX = 0;
+    public static final int FEATURE_NAME_COLUMN_INDEX = 1;
 
     private List<DynamicFeatureRow> myFeatures = new ArrayList<>();
 
@@ -167,10 +201,10 @@ public class DynamicFeaturesParameters {
     @Override
     @Nullable
     public Object getValueAt(int rowIndex, int columnIndex) {
-      if (columnIndex == CHECK_MARK) {
+      if (columnIndex == CHECK_MARK_COLUMN_INDEX) {
         return myFeatures.get(rowIndex).isChecked;
       }
-      else if (columnIndex == FEATURE_NAME) {
+      else if (columnIndex == FEATURE_NAME_COLUMN_INDEX) {
         return myFeatures.get(rowIndex).name;
       }
       return null;
@@ -179,12 +213,14 @@ public class DynamicFeaturesParameters {
     @Override
     public void setValueAt(@Nullable Object aValue, int rowIndex, int columnIndex) {
       DynamicFeatureRow row = myFeatures.get(rowIndex);
-      if (columnIndex == CHECK_MARK) {
+      if (columnIndex == CHECK_MARK_COLUMN_INDEX) {
         row.isChecked = aValue == null || ((Boolean)aValue).booleanValue();
-        if (row.isChecked)
+        if (row.isChecked) {
           myDisabledDynamicFeatures.remove(row.name);
-        else
+        }
+        else {
           myDisabledDynamicFeatures.add(row.name);
+        }
       }
       fireTableRowsUpdated(rowIndex, rowIndex);
     }
@@ -192,7 +228,7 @@ public class DynamicFeaturesParameters {
     @Override
     @NotNull
     public Class getColumnClass(int columnIndex) {
-      if (columnIndex == CHECK_MARK) {
+      if (columnIndex == CHECK_MARK_COLUMN_INDEX) {
         return Boolean.class;
       }
       return super.getColumnClass(columnIndex);
@@ -200,14 +236,25 @@ public class DynamicFeaturesParameters {
 
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-      if (columnIndex == CHECK_MARK) {
+      if (columnIndex == CHECK_MARK_COLUMN_INDEX) {
         return true;
       }
       return false;
     }
   }
 
-  private class FeatureNameCellRenderer extends DefaultTableCellRenderer {
+  private static class StripedRowCellRenderer extends DefaultTableCellRenderer {
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+      Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+      if (!isSelected) {
+        component.setBackground(row % 2 == 0 ? UIUtil.getDecoratedRowColor() : UIUtil.getTableBackground());
+      }
+      return component;
+    }
+  }
+
+  private class FeatureNameCellRenderer extends StripedRowCellRenderer {
     @Override
     @NotNull
     public Component getTableCellRendererComponent(@NotNull JTable table, @Nullable Object value,
@@ -226,7 +273,7 @@ public class DynamicFeaturesParameters {
   }
 
 
-  private static class EnabledCellRenderer extends DefaultTableCellRenderer {
+  private static class EnabledCellRenderer extends StripedRowCellRenderer {
     private final TableCellRenderer myDelegate;
 
     public EnabledCellRenderer(TableCellRenderer delegate) {
