@@ -23,7 +23,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceValueMap;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
-import com.android.ide.common.util.LazyUnionMap;
+import com.android.ide.common.util.DisjointUnionMap;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
@@ -139,7 +139,7 @@ public class ResourceResolverCache {
 
       // Resource Resolver
       Map<ResourceNamespace, Map<ResourceType, ResourceValueMap>> allResources =
-        new LazyUnionMap<>(Collections.singletonMap(ResourceNamespace.ANDROID, frameworkResources), configuredAppRes.rowMap());
+          new DisjointUnionMap<>(Collections.singletonMap(ResourceNamespace.ANDROID, frameworkResources), configuredAppRes.rowMap());
 
       assert themeStyle.startsWith(PREFIX_RESOURCE_REF) : themeStyle;
 
