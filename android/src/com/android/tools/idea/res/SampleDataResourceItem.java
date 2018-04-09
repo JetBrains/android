@@ -101,6 +101,13 @@ public class SampleDataResourceItem implements ResourceItem {
   }
 
   /**
+   * Invalidates contents of the sample data cache.
+   */
+  public static void invalidateCache() {
+    sSampleDataCache.invalidateAll();
+  }
+
+  /**
    * Returns a {@link SampleDataResourceItem} from the given static content generator. Static content generators can be cached indefinitely
    * since the never change.
    */

@@ -29,6 +29,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
+import com.intellij.util.ui.UIUtil;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -47,6 +48,15 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      SampleDataResourceItem.invalidateCache();
+    } finally {
+      super.tearDown();
+    }
   }
 
   @NotNull
@@ -275,8 +285,8 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
     myFixture.addFileToProject("sampledata/images/image2.png", "\n");
     myFixture.addFileToProject("sampledata/images/image3.png", "\n");
 
-    List<ResourceItem> items = AppResourceRepository.getOrCreateInstance(myFacet)
-                                                    .getResourceItems(ResourceNamespace.TODO, ResourceType.SAMPLE_DATA);
+    AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(myFacet);
+    List<ResourceItem> items = repository.getResourceItems(ResourceNamespace.TODO, ResourceType.SAMPLE_DATA);
     assertSize(1, items);
     assertEquals("images", items.get(0).getName());
     SampleDataResourceItem item = (SampleDataResourceItem)items.get(0);
