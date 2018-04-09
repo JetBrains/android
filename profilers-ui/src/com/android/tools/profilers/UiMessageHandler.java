@@ -17,6 +17,7 @@ package com.android.tools.profilers;
 
 import com.intellij.util.Consumer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
@@ -28,5 +29,5 @@ public interface UiMessageHandler {
    * @return true if ok. false if cancelled.
    */
   boolean displayOkCancelMessage(@NotNull String title, @NotNull String message, @NotNull String okText, @NotNull String cancelText,
-                                 @NotNull Icon icon, @NotNull String doNotShowMessage, @NotNull Consumer<Boolean> doNotShowSettingSaver);
+                                 @Nullable Icon icon, @NotNull String doNotShowMessage, @NotNull Consumer<Boolean> doNotShowSettingSaver);
 }
