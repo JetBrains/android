@@ -56,8 +56,8 @@ object GuiTestLauncher {
 
   var process: Process? = null
 
-  private const val TEST_GUI_FRAMEWORK_MODULE_NAME = "uitest-framework"
-  private const val STUDIO_UITESTS_MAIN_MODULE_NAME = "android-uitests"
+  private const val TEST_GUI_FRAMEWORK_MODULE_NAME = "intellij.android.guiTestFramework"
+  private const val STUDIO_UITESTS_MAIN_MODULE_NAME = "intellij.android.guiTests"
   private const val MAIN_CLASS_NAME = "com.intellij.idea.Main"
 
   init {
