@@ -39,7 +39,8 @@ public class AndroidShowThemeEditor extends AnAction {
       e.getPresentation().setVisible(false);
       return;
     }
-    e.getPresentation().setEnabled(e.getProject() != null);
+    Project project = e.getProject();
+    e.getPresentation().setEnabled(project != null && ThemeEditorUtils.findAndroidModules(project).findAny().isPresent());
   }
 
   @Override

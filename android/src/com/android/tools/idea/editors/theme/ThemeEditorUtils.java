@@ -226,18 +226,11 @@ public class ThemeEditorUtils {
   }
 
   @NotNull
-  public static ImmutableList<Module> findAndroidModules(@NotNull Project project) {
+  public static Stream<Module> findAndroidModules(@NotNull Project project) {
     final ModuleManager manager = ModuleManager.getInstance(project);
 
-    final ImmutableList.Builder<Module> builder = ImmutableList.builder();
-    for (Module module : manager.getModules()) {
-      final AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null) {
-        builder.add(module);
-      }
-    }
-
-    return builder.build();
+    return Arrays.stream(manager.getModules())
+          .filter(module -> AndroidFacet.getInstance(module) != null);
   }
 
   @NotNull
