@@ -299,10 +299,6 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
   }
 
   @Override
-  public void selectDependency(@Nullable String dependency) {
-  }
-
-  @Override
   public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
     // TODO implement
     return ActionCallback.DONE;
