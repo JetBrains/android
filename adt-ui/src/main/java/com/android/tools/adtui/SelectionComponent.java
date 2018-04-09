@@ -25,6 +25,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
+import java.util.function.Consumer;
 
 /**
  * A component for performing/rendering selection.
@@ -271,6 +272,21 @@ public final class SelectionComponent extends AnimatedComponent {
         // NO-OP: Keep current mouse cursor.
         break;
     }
+  }
+
+  /**
+   * This listens on the selection range finishes update changes. Because the selection model fires the selection aspect
+   * when the mouse is not released, cannot listen on the selection model side.
+   */
+  public void addSelectionUpdatedListener(final Consumer<Range> listener) {
+    addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseReleased(MouseEvent e) {
+        if (SwingUtilities.isLeftMouseButton(e)) {
+          listener.accept(myModel.getSelectionRange());
+        }
+      }
+    });
   }
 
   @Override

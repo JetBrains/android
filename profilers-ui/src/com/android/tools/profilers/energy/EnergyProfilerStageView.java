@@ -19,6 +19,7 @@ import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.SelectionListener;
+import com.android.tools.profiler.proto.EnergyProfiler;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.*;
 import com.intellij.ui.JBSplitter;
@@ -29,6 +30,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS;
@@ -175,6 +178,18 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
       @Override
       public void selectionCreationFailure() {
         myEventsPanel.setVisible(false);
+      }
+    });
+    // Clears the selected duration when the new selection range does not overlap with it.
+    selection.addSelectionUpdatedListener(selectionRange -> {
+      if (getStage().getSelectedDuration() != null) {
+        List<EnergyProfiler.EnergyEvent> eventList = getStage().getSelectedDuration().getEventList();
+        long detailsStartNs = TimeUnit.NANOSECONDS.toMicros(eventList.get(0).getTimestamp());
+        EnergyProfiler.EnergyEvent lastEvent = eventList.get(eventList.size() - 1);
+        long detailsEndNs = lastEvent.getIsTerminal() ? TimeUnit.NANOSECONDS.toMicros(lastEvent.getTimestamp()) : Long.MAX_VALUE;
+        if (selectionRange.getMax() < detailsStartNs || selectionRange.getMin() > detailsEndNs) {
+          getStage().setSelectedDuration(null);
+        }
       }
     });
 
