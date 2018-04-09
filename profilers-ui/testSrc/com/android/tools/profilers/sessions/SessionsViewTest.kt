@@ -50,12 +50,12 @@ class SessionsViewTest {
 
   @get:Rule
   var myGrpcChannel = FakeGrpcChannel(
-      "SessionsViewTestChannel",
-      myProfilerService,
-      myMemoryService,
-      myCpuService,
-      FakeEventService(),
-      FakeNetworkService.newBuilder().build()
+    "SessionsViewTestChannel",
+    myProfilerService,
+    myMemoryService,
+    myCpuService,
+    FakeEventService(),
+    FakeNetworkService.newBuilder().build()
   )
 
   private lateinit var myTimer: FakeTimer
@@ -135,10 +135,12 @@ class SessionsViewTest {
       .setDeviceId(2).setManufacturer("Manufacturer2").setModel("Model2").setState(Common.Device.State.ONLINE).build()
     val process1 = Common.Process.newBuilder()
       .setPid(10).setDeviceId(1).setName("Process1").setState(Common.Process.State.ALIVE).build()
-    val process2 = Common.Process.newBuilder()
-      .setPid(20).setDeviceId(1).setName("Process2").setState(Common.Process.State.ALIVE).build()
-    val process3 = Common.Process.newBuilder()
-      .setPid(10).setDeviceId(2).setName("Process3").setState(Common.Process.State.ALIVE).build()
+    val otherProcess1 = Common.Process.newBuilder()
+      .setPid(20).setDeviceId(1).setName("Other1").setState(Common.Process.State.ALIVE).build()
+    val otherProcess2 = Common.Process.newBuilder()
+      .setPid(30).setDeviceId(2).setName("Other2").setState(Common.Process.State.ALIVE).build()
+    // Process* is preferred, Other* should be in the other processes flyout.
+    myProfilers.preferredProcessName = "Process"
 
     var selectionAction = mySessionsView.processSelectionAction
     assertThat(selectionAction.childrenActionCount).isEqualTo(3)
@@ -167,44 +169,54 @@ class SessionsViewTest {
 
     myProfilerService.addProcess(device1, process1)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    myProfilers.process = process1
     assertThat(selectionAction.childrenActionCount).isEqualTo(3)
     deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
     assertThat(deviceAction1.isSelected).isTrue()
     assertThat(deviceAction1.isEnabled).isTrue()
     assertThat(deviceAction1.childrenActionCount).isEqualTo(1)
-    var processAction1 = deviceAction1.childrenActions.first { c -> c.text == "Process1" }
+    var processAction1 = deviceAction1.childrenActions.first { c -> c.text == "Process1 (10)" }
     assertThat(processAction1.isSelected).isTrue()
     assertThat(processAction1.childrenActionCount).isEqualTo(0)
 
-    myProfilerService.addProcess(device1, process2)
+    myProfilerService.addProcess(device1, otherProcess1)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     assertThat(selectionAction.childrenActionCount).isEqualTo(3)
     deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
     assertThat(deviceAction1.isSelected).isTrue()
     assertThat(deviceAction1.isEnabled).isTrue()
-    assertThat(deviceAction1.childrenActionCount).isEqualTo(2)
-    processAction1 = deviceAction1.childrenActions.first { c -> c.text == "Process1" }
+    assertThat(deviceAction1.childrenActionCount).isEqualTo(3)  // process1 + separator + "other processes"
+    processAction1 = deviceAction1.childrenActions.first { c -> c.text == "Process1 (10)" }
     assertThat(processAction1.isSelected).isTrue()
-    var processAction2 = deviceAction1.childrenActions.first { c -> c.text == "Process2" }
+    assertThat(deviceAction1.childrenActions[1]).isInstanceOf(CommonAction.SeparatorAction::class.java)
+    var processAction2 = deviceAction1.childrenActions
+      .first { c -> c.text == "Other processes" }.childrenActions
+      .first { c -> c.text == "Other1 (20)" }
     assertThat(processAction2.isSelected).isFalse()
 
+    // Test the reverse case of having only "other" processes
     myProfilerService.addDevice(device2)
-    myProfilerService.addProcess(device2, process3)
+    myProfilerService.addProcess(device2, otherProcess2)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     assertThat(selectionAction.childrenActionCount).isEqualTo(4)
     deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
     assertThat(deviceAction1.isSelected).isTrue()
     assertThat(deviceAction1.isEnabled).isTrue()
-    assertThat(deviceAction1.childrenActionCount).isEqualTo(2)
-    processAction1 = deviceAction1.childrenActions.first { c -> c.text == "Process1" }
+    assertThat(deviceAction1.childrenActionCount).isEqualTo(3)  // process1 + separator + "other processes"
+    processAction1 = deviceAction1.childrenActions.first { c -> c.text == "Process1 (10)" }
     assertThat(processAction1.isSelected).isTrue()
-    processAction2 = deviceAction1.childrenActions.first { c -> c.text == "Process2" }
+    assertThat(deviceAction1.childrenActions[1]).isInstanceOf(CommonAction.SeparatorAction::class.java)
+    processAction2 = deviceAction1.childrenActions
+      .first { c -> c.text == "Other processes" }.childrenActions
+      .first { c -> c.text == "Other1 (20)" }
     assertThat(processAction2.isSelected).isFalse()
     var deviceAction2 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer2 Model2" }
     assertThat(deviceAction2.isSelected).isFalse()
     assertThat(deviceAction2.isEnabled).isTrue()
-    assertThat(deviceAction2.childrenActionCount).isEqualTo(1)
-    var processAction3 = deviceAction2.childrenActions.first { c -> c.text == "Process3" }
+    assertThat(deviceAction2.childrenActionCount).isEqualTo(1) // There should be no separator in this case.
+    var processAction3 = deviceAction2.childrenActions
+      .first { c -> c.text == "Other processes" }.childrenActions
+      .first { c -> c.text == "Other2 (30)" }
     assertThat(processAction3.isSelected).isFalse()
   }
 
@@ -222,6 +234,10 @@ class SessionsViewTest {
       .setPid(30).setDeviceId(2).setName("Process3").setState(Common.Process.State.DEAD).build()
     val aliveProcess2 = Common.Process.newBuilder()
       .setPid(40).setDeviceId(2).setName("Process4").setState(Common.Process.State.ALIVE).build()
+    val deadProcess3 = Common.Process.newBuilder()
+      .setPid(50).setDeviceId(2).setName("Dead").setState(Common.Process.State.DEAD).build()
+    // Also test processes that can be grouped in the fly-out menu.
+    myProfilers.preferredProcessName = "Process4"
 
     myProfilerService.addDevice(deadDevice)
     myProfilerService.addDevice(onlineDevice)
@@ -229,6 +245,7 @@ class SessionsViewTest {
     myProfilerService.addProcess(deadDevice, aliveProcess1)
     myProfilerService.addProcess(onlineDevice, deadProcess2)
     myProfilerService.addProcess(onlineDevice, aliveProcess2)
+    myProfilerService.addProcess(onlineDevice, deadProcess3)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
     var selectionAction = mySessionsView.processSelectionAction
@@ -236,7 +253,7 @@ class SessionsViewTest {
     val aliveDeviceAction = selectionAction.childrenActions.first { c -> c.text == "Manufacturer2 Model2" }
     assertThat(aliveDeviceAction.isSelected).isTrue()
     assertThat(aliveDeviceAction.childrenActionCount).isEqualTo(1)
-    var processAction1 = aliveDeviceAction.childrenActions.first { c -> c.text == "Process4" }
+    var processAction1 = aliveDeviceAction.childrenActions.first { c -> c.text == "Process4 (40)" }
     assertThat(processAction1.isSelected).isTrue()
     assertThat(processAction1.childrenActionCount).isEqualTo(0)
   }
@@ -253,19 +270,19 @@ class SessionsViewTest {
       .setPid(20).setDeviceId(1).setName("Process2").setState(Common.Process.State.ALIVE).build()
     val process3 = Common.Process.newBuilder()
       .setPid(10).setDeviceId(2).setName("Process3").setState(Common.Process.State.ALIVE).build()
+    // Mark all process as preferred processes as we are not testing the other processes flyout here.
+    myProfilers.preferredProcessName = "Process"
 
     myProfilerService.addDevice(device1)
     myProfilerService.addProcess(device1, process1)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    assertThat(myProfilers.device).isEqualTo(device1)
-    assertThat(myProfilers.process).isEqualTo(process1)
 
     myProfilerService.addProcess(device1, process2)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     var selectionAction = mySessionsView.processSelectionAction
     var processAction2 = selectionAction.childrenActions
       .first { c -> c.text == "Manufacturer1 Model1" }.childrenActions
-      .first { c -> c.text == "Process2" }
+      .first { c -> c.text == "Process2 (20)" }
     processAction2.actionPerformed(ActionEvent(processAction2, 0, ""))
     assertThat(myProfilers.device).isEqualTo(device1)
     assertThat(myProfilers.process).isEqualTo(process2)
@@ -275,7 +292,7 @@ class SessionsViewTest {
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     var processAction3 = selectionAction.childrenActions
       .first { c -> c.text == "Manufacturer2 Model2" }.childrenActions
-      .first { c -> c.text == "Process3" }
+      .first { c -> c.text == "Process3 (10)" }
     processAction3.actionPerformed(ActionEvent(processAction3, 0, ""))
     assertThat(myProfilers.device).isEqualTo(device2)
     assertThat(myProfilers.process).isEqualTo(process3)
@@ -486,7 +503,7 @@ class SessionsViewTest {
     // Because we do not provide valid data for heap dump, memory stage would fail to load and set selectedCapture back to null.
     // To prevent the loading function from getting called, we register the session change listener with a FakeCaptureObjectLoader.
     myProfilers.registerSessionChangeListener(
-        Common.SessionMetaData.SessionType.MEMORY_CAPTURE, {
+      Common.SessionMetaData.SessionType.MEMORY_CAPTURE, {
       myProfilers.stage = MemoryProfilerStage(myProfilers, FakeCaptureObjectLoader())
     }
     )

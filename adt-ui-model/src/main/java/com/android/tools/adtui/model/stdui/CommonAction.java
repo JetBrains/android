@@ -21,11 +21,13 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
  * An action that supports nested children actions.
- *
+ * <p>
  * TODO include mnemonic + accelator keys info.
  * TODO include enable/disable listeners.
  */
@@ -106,10 +108,12 @@ public class CommonAction extends AbstractAction {
   }
 
   public void addChildrenActions(@NotNull CommonAction... actions) {
+    addChildrenActions(Arrays.asList(actions));
+  }
+
+  public void addChildrenActions(@NotNull List<CommonAction> actions) {
     List<CommonAction> oldActions = new ArrayList<>(myChildrenActions);
-    for (CommonAction action : actions) {
-      myChildrenActions.add(action);
-    }
+    myChildrenActions.addAll(actions);
     firePropertyChange(CHILDREN_ACTION_CHANGED, oldActions, myChildrenActions);
   }
 

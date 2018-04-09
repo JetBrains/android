@@ -27,6 +27,7 @@ import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.StudioProfilers;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Ordering;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
@@ -41,9 +42,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
@@ -374,8 +374,10 @@ public class SessionsView extends AspectObserver {
           deviceAction.addChildrenActions(noProcessAction);
         }
         else {
+          List<CommonAction> preferredProcessActions = new ArrayList<>();
+          List<CommonAction> otherProcessActions = new ArrayList<>();
           for (Common.Process process : processes) {
-            CommonAction processAction = new CommonAction(process.getName(), null);
+            CommonAction processAction = new CommonAction(String.format("%s (%d)", process.getName(), process.getPid()), null);
             processAction.setAction(() -> {
               myProfilers.setDevice(device);
               myProfilers.setProcess(process);
@@ -383,7 +385,32 @@ public class SessionsView extends AspectObserver {
                                                                                   SessionsManager.SessionCreationSource.MANUAL);
             });
             processAction.setSelected(process.equals(selectedProcess));
-            deviceAction.addChildrenActions(processAction);
+
+            String preferredProcess = myProfilers.getPreferredProcessName();
+            // Do a prefix instead of exact match as they could be multiple candidates from the same project.
+            if (preferredProcess != null && process.getName().startsWith(preferredProcess)) {
+              preferredProcessActions.add(processAction);
+            }
+            else {
+              otherProcessActions.add(processAction);
+            }
+          }
+
+          if (!preferredProcessActions.isEmpty()) {
+            preferredProcessActions.sort(Comparator.comparing(CommonAction::getText, Ordering.natural()));
+            deviceAction.addChildrenActions(preferredProcessActions);
+          }
+
+          if (!otherProcessActions.isEmpty()) {
+            // Only add the separator if there are preferred processes added.
+            if (deviceAction.getChildrenActionCount() != 0) {
+              deviceAction.addChildrenActions(new CommonAction.SeparatorAction());
+            }
+
+            CommonAction otherProcessesFlyout = new CommonAction("Other processes", null);
+            otherProcessActions.sort(Comparator.comparing(CommonAction::getText, Ordering.natural()));
+            otherProcessesFlyout.addChildrenActions(otherProcessActions);
+            deviceAction.addChildrenActions(otherProcessesFlyout);
           }
         }
         deviceAction.setSelected(device.equals(selectedDevice));
