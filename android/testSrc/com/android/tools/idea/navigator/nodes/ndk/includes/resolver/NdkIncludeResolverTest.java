@@ -49,6 +49,28 @@ public class NdkIncludeResolverTest {
     }
   }
 
+
+  @Test
+  public void testNdkPackageSysroot() {
+    List<SimpleIncludeValue> resolutions = ResolverTests.resolvedIncludes(
+      new NdkIncludeResolver(new File(PATH_TO_NDK)),
+      "-isystem{ndkPath}/sysroot/usr/include/aarch64-linux-android");
+    assertThat(resolutions).hasSize(1);
+    SimpleIncludeValue resolution = resolutions.get(0);
+    assertThat(resolution).isNotNull();
+    assertThat(resolution.getPackageType()).isEqualTo(PackageType.NdkComponent);
+    assertThat(resolution.mySimplePackageName).isEqualTo("Android Sysroot");
+    assertThat(resolution.myRelativeIncludeSubFolder).isEqualTo(
+      "/sysroot/usr/include/aarch64-linux-android/");
+
+    // Figure out the path for the current OS
+    String pathToNdkWithFileSystemSlashes = (File.separatorChar == '\\')
+                                            ? "\\path\\to\\ndk-bundle"
+                                            : "/path/to/ndk-bundle";
+
+    assertThat(resolution.getPackagingFamilyBaseFolderNameRelativeToHome()).isEqualTo(pathToNdkWithFileSystemSlashes);
+  }
+
   /*
   This function tests getPackagingFamilyBaseFolderNameRelativeToHome() which involves OS-specific path separator
   (forward-slash on Linux\Mac and back-slash on Windows.
