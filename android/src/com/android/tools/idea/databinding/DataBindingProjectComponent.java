@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.databinding;
 
-import com.android.SdkConstants;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -64,17 +63,26 @@ public class DataBindingProjectComponent implements ModificationTracker {
     }, false);
 
     myBindingAdapterAnnotations = CachedValuesManager.getManager(project).createParameterizedCachedValue(module -> {
-      JavaPsiFacade facade = JavaPsiFacade.getInstance(myProject);
-      PsiClass aClass = facade
-        .findClass(SdkConstants.BINDING_ADAPTER_ANNOTATION, module.getModuleWithDependenciesAndLibrariesScope(false));
-
-      Collection<? extends PsiModifierListOwner> psiElements = null;
-      if (aClass == null) {
+      AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+      final PsiClass adapterClass;
+      if (androidFacet != null) {
+        JavaPsiFacade facade = JavaPsiFacade.getInstance(myProject);
+        DataBindingMode mode = ModuleDataBinding.getInstance(androidFacet).getDataBindingMode();
+        if (mode == DataBindingMode.NONE) {
+          adapterClass = null;
+        } else {
+          adapterClass = facade.findClass(mode.bindingAdapter, module.getModuleWithDependenciesAndLibrariesScope(false));
+        }
+      } else {
+        adapterClass = null;
+      }
+      Collection<? extends PsiModifierListOwner> psiElements;
+      if (adapterClass == null) {
         psiElements = Collections.emptyList();
       }
       else {
         // ProjectScope used. ModuleWithDepencies does not seem to work
-        psiElements = AnnotatedElementsSearch.searchElements(aClass, ProjectScope.getAllScope(myProject), PsiMethod.class).findAll();
+        psiElements = AnnotatedElementsSearch.searchElements(adapterClass, ProjectScope.getAllScope(myProject), PsiMethod.class).findAll();
       }
 
       // Cached value that will be refreshed in every Java change

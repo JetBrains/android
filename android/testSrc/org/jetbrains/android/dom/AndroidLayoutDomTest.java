@@ -1,6 +1,7 @@
 package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.idea.databinding.ModuleDataBinding;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.codeInsight.completion.CompletionType;
@@ -264,18 +265,21 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   }
 
   public void testDataBindingHighlighting1() throws Throwable {
-    ModuleDataBinding.getInstance(myFacet).setEnabled(true);
+    // TODO test w/ X
+    ModuleDataBinding.getInstance(myFacet).setMode(DataBindingMode.SUPPORT);
     copyFileToProject("DataBindingHighlighting1.java", "src/p1/p2/DataBindingHighlighting1.java");
     doTestHighlighting("databinding_highlighting1.xml");
   }
 
   public void testDataBindingHighlighting2() throws Throwable {
-    ModuleDataBinding.getInstance(myFacet).setEnabled(true);
+    // TODO test w/ X
+    ModuleDataBinding.getInstance(myFacet).setMode(DataBindingMode.SUPPORT);
     doTestHighlighting("databinding_highlighting2.xml");
   }
 
   public void testDataBindingHighlighting3() throws Throwable {
-    ModuleDataBinding.getInstance(myFacet).setEnabled(true);
+    // TODO test w/ X
+    ModuleDataBinding.getInstance(myFacet).setMode(DataBindingMode.SUPPORT);
     copyFileToProject("DataBindingHighlighting3.java", "src/p1/p2/DataBindingHighlighting3.java");
     doTestHighlighting("databinding_highlighting3.xml");
   }

@@ -19,6 +19,7 @@ import android.databinding.tool.reflection.Callable;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.ModelMethod;
 import com.android.ide.common.resources.DataBindingResourceType;
+import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.databinding.ModuleDataBinding;
 import com.android.tools.idea.lang.databinding.model.PsiModelClass;
@@ -91,7 +92,7 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
         Module module = ModuleUtilCore.findModuleForPsiElement(element);
         if (module != null) {
           AndroidFacet facet = AndroidFacet.getInstance(module);
-          if (facet != null && ModuleDataBinding.getInstance(facet).isEnabled()) {
+          if (facet != null && ModuleDataBinding.getInstance(facet).getDataBindingMode() != DataBindingMode.NONE) {
             LocalResourceRepository moduleResources = ModuleResourceRepository.getOrCreateInstance(facet);
             PsiFile topLevelFile = InjectedLanguageUtil.getTopLevelFile(element);
             if (topLevelFile != null) {

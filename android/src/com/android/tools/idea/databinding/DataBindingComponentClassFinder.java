@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.databinding;
 
-import com.android.SdkConstants;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.psi.PsiClass;
@@ -55,27 +54,27 @@ public class DataBindingComponentClassFinder extends PsiElementFinder {
   @Nullable
   @Override
   public PsiClass findClass(@NotNull String qualifiedName, @NotNull final GlobalSearchScope scope) {
-    if (!isEnabled() || !SdkConstants.CLASS_DATA_BINDING_COMPONENT.equals(qualifiedName)) {
+    if (!isEnabled()) {
       return null;
     }
-    return Iterables.tryFind(myClasses.getValue(), input -> check(input, scope)).orNull();
+    return Iterables.tryFind(myClasses.getValue(), input -> check(input, qualifiedName, scope)).orNull();
   }
 
   @NotNull
   @Override
   public PsiClass[] findClasses(@NotNull String qualifiedName, @NotNull final GlobalSearchScope scope) {
-    if (!isEnabled() || !SdkConstants.CLASS_DATA_BINDING_COMPONENT.equals(qualifiedName)) {
+    if (!isEnabled()) {
       return PsiClass.EMPTY_ARRAY;
     }
-    Iterable<PsiClass> filtered = Iterables.filter(myClasses.getValue(), input -> check(input, scope));
+    Iterable<PsiClass> filtered = Iterables.filter(myClasses.getValue(), input -> check(input, qualifiedName, scope));
     if (filtered.iterator().hasNext()) {
       return Iterables.toArray(filtered, PsiClass.class);
     }
     return PsiClass.EMPTY_ARRAY;
   }
 
-  private static boolean check(@Nullable PsiClass psiClass, @NotNull GlobalSearchScope scope) {
-    return psiClass != null && psiClass.getProject() == scope.getProject();
+  private static boolean check(@Nullable PsiClass psiClass, @NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
+    return psiClass != null && psiClass.getProject() == scope.getProject() && qualifiedName.equals(psiClass.getQualifiedName());
   }
 
   private boolean isEnabled() {

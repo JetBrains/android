@@ -19,7 +19,6 @@ import com.android.tools.idea.model.AndroidModel;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetManagerAdapter;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleServiceManager;
 import com.intellij.util.messages.MessageBusConnection;
@@ -29,7 +28,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class ModuleDataBinding {
   @Nullable private LightBrClass myLightBrClass;
-  private boolean myEnabled;
+  @NotNull
+  private DataBindingMode myDataBindingMode = DataBindingMode.NONE;
   private Module myModule;
 
   @NotNull
@@ -59,20 +59,29 @@ public class ModuleDataBinding {
     if (facet != null) {
       AndroidModel androidModel = facet.getConfiguration().getModel();
       if (androidModel != null) {
-        setEnabled(androidModel.getDataBindingEnabled());
+        setMode(androidModel.getDataBindingMode());
       }
     }
   }
 
-  public void setEnabled(boolean enabled) {
-    if (enabled != myEnabled) {
-      myEnabled = enabled;
+  public void setMode(@NotNull DataBindingMode mode) {
+    if (myDataBindingMode != mode) {
+      myDataBindingMode = mode;
       DataBindingUtil.incrementModificationCount();
     }
   }
 
+  @NotNull
+  public DataBindingMode getDataBindingMode() {
+    return myDataBindingMode;
+  }
+
+  /**
+   * Convenience method to check if data binding is enabled for the project (covers but support and androidX namespaces).
+   * @return
+   */
   public boolean isEnabled() {
-    return myEnabled;
+    return myDataBindingMode != DataBindingMode.NONE;
   }
 
   /**

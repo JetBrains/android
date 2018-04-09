@@ -21,6 +21,7 @@ import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.idea.gradle.AndroidGradleClassJarProvider;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.model.AndroidModel;
@@ -52,6 +53,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.*;
 
+import static com.android.SdkConstants.ANDROIDX_DATA_BINDING_LIB_ARTIFACT;
 import static com.android.SdkConstants.DATA_BINDING_LIB_ARTIFACT;
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
@@ -844,8 +846,15 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   @Override
-  public boolean getDataBindingEnabled() {
-    return dependsOn(this, DATA_BINDING_LIB_ARTIFACT);
+  @NotNull
+  public DataBindingMode getDataBindingMode() {
+    if (dependsOn(this, ANDROIDX_DATA_BINDING_LIB_ARTIFACT)) {
+      return DataBindingMode.ANDROIDX;
+    }
+    if (dependsOn(this, DATA_BINDING_LIB_ARTIFACT)) {
+      return DataBindingMode.SUPPORT;
+    }
+    return DataBindingMode.NONE;
   }
 
   @Override

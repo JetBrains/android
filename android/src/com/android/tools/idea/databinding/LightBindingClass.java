@@ -64,6 +64,7 @@ public class LightBindingClass extends AndroidLightClassBase {
   private final AndroidFacet myFacet;
   private static Lexer ourJavaLexer;
   private PsiFile myVirtualPsiFile;
+  private final DataBindingMode myMode;
   private final Object myLock = new Object();
 
   protected LightBindingClass(final AndroidFacet facet, @NotNull PsiManager psiManager, DataBindingInfo info) {
@@ -72,6 +73,7 @@ public class LightBindingClass extends AndroidLightClassBase {
     myFacet = facet;
     // TODO we should create a virtual one not use the XML.
     myVirtualPsiFile = info.getPsiFile();
+    myMode = ModuleDataBinding.getInstance(facet).getDataBindingMode();
 
     CachedValuesManager cachedValuesManager = CachedValuesManager.getManager(info.getProject());
     myAliasCache =
@@ -209,7 +211,7 @@ public class LightBindingClass extends AndroidLightClassBase {
   @Override
   public PsiClass getSuperClass() {
     DataBindingInfo mergedInfo = myInfo.getMergedInfo();
-    String superClassName = mergedInfo == null ? SdkConstants.CLASS_DATA_BINDING_BASE_BINDING : mergedInfo.getQualifiedName();
+    String superClassName = mergedInfo == null ? myMode.viewDataBinding : mergedInfo.getQualifiedName();
     return JavaPsiFacade.getInstance(myInfo.getProject())
       .findClass(superClassName, myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(false));
   }
@@ -235,7 +237,7 @@ public class LightBindingClass extends AndroidLightClassBase {
   public PsiClassType[] getExtendsListTypes() {
     if (myExtendsListTypes == null) {
       DataBindingInfo mergedInfo = myInfo.getMergedInfo();
-      String superClassName = mergedInfo == null ? SdkConstants.CLASS_DATA_BINDING_BASE_BINDING : mergedInfo.getQualifiedName();
+      String superClassName = mergedInfo == null ? myMode.viewDataBinding : mergedInfo.getQualifiedName();
       myExtendsListTypes = new PsiClassType[]{
         PsiType.getTypeByName(superClassName, myInfo.getProject(),
                               myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(false))};
@@ -392,7 +394,7 @@ public class LightBindingClass extends AndroidLightClassBase {
                      myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(true));
     PsiClassType layoutInflaterType = PsiType.getTypeByName(SdkConstants.CLASS_LAYOUT_INFLATER, myInfo.getProject(),
                                                             myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(true));
-    PsiClassType dataBindingComponent = PsiType.getTypeByName(SdkConstants.CLASS_DATA_BINDING_COMPONENT, myInfo.getProject(),
+    PsiClassType dataBindingComponent = PsiType.getTypeByName(myMode.dataBindingComponent, myInfo.getProject(),
                                                               myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(true));
     PsiClassType viewType = PsiType
       .getTypeByName(SdkConstants.CLASS_VIEW, myInfo.getProject(), myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(true));
