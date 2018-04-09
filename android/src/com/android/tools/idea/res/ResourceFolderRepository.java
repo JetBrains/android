@@ -1927,7 +1927,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                           // Found the relevant item: delete it and create a new one in a new location
                           map.remove(oldName, item);
                           if (!StringUtil.isEmpty(newName)) {
-                            ResourceItem newItem = PsiResourceItem.forXmlTag(newName, type, myNamespace, xmlTag, false);
+                            ResourceItem newItem = PsiResourceItem.forXmlTag(newName, type, myNamespace, xmlTag, true);
                             map.put(newName, newItem);
                             ResourceItemSource<? extends ResourceItem> resFile = sources.get(psiFile.getVirtualFile());
                             if (resFile != null) {
