@@ -20,6 +20,7 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.util.Consumer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
@@ -34,7 +35,7 @@ public class IntellijUiMessageHandler implements UiMessageHandler {
                                      @NotNull String message,
                                      @NotNull String okText,
                                      @NotNull String cancelText,
-                                     @NotNull Icon icon,
+                                     @Nullable Icon icon,
                                      @NotNull String doNotShowMessage,
                                      @NotNull Consumer<Boolean> doNotShowSettingSaver) {
     return Messages.OK == Messages.showOkCancelDialog(message, title, okText, cancelText, icon, new DialogWrapper.DoNotAskOption.Adapter() {

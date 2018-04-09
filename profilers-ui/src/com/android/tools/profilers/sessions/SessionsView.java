@@ -146,7 +146,7 @@ public class SessionsView extends AspectObserver {
             "Are you sure you want to end the current profiler session?",
             "End",
             "Cancel",
-            StudioIllustrations.Common.DISCONNECT_PROFILER,
+            null,
             "Do not ask me again",
             result -> myProfilers.getIdeServices().getTemporaryProfilerPreferences().setBoolean(HIDE_STOP_PROMPT, result)
           );
