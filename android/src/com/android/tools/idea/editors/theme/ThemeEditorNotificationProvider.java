@@ -58,6 +58,10 @@ public class ThemeEditorNotificationProvider extends EditorNotifications.Provide
       return null;
     }
 
+    if (!ThemeEditorUtils.findAndroidModules(myProject).findAny().isPresent()) {
+      return null;
+    }
+
     final InfoPanel panel = new InfoPanel();
     panel.setText("Edit all themes in the project in the theme editor.");
     panel.createActionLabel("Open editor", new Runnable() {
