@@ -67,6 +67,9 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
   private JCheckBox myV1JarSignatureCheckBox;
   private JCheckBox myV2FullAPKSignatureCheckBox;
   private JBLabel mySignatureHelpLabel;
+  private JBLabel myProGuardLabel;
+  private JBLabel mySignatureLabel;
+  private JPanel mySignaturePanel;
 
   private final ExportSignedPackageWizard myWizard;
   private final DefaultListModel myFlavorsListModel = new DefaultListModel();
@@ -92,7 +95,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
     String lastSelectedBuildType = properties.getValue(PROPERTY_BUILD_TYPE);
 
     myBuildTypeComboModel.removeAllElements();
-    Set<String> buildTypes = myAndroidModel == null ? Collections.<String>emptySet() : myAndroidModel.getBuildTypes();
+    Set<String> buildTypes = myAndroidModel == null ? Collections.emptySet() : myAndroidModel.getBuildTypes();
     for (String buildType : buildTypes) {
       myBuildTypeComboModel.addElement(buildType);
 
@@ -117,7 +120,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
 
     TIntArrayList lastSelectedIndices = new TIntArrayList(productFlavors.size());
     String[] flavors = properties.getValues(PROPERTY_FLAVORS);
-    Set<String> lastSelectedFlavors = flavors == null ? Collections.<String>emptySet() : Sets.newHashSet(flavors);
+    Set<String> lastSelectedFlavors = flavors == null ? Collections.emptySet() : Sets.newHashSet(flavors);
 
     for (int i = 0; i < productFlavors.size(); i++) {
       String flavor = productFlavors.get(i);
@@ -146,11 +149,21 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
     FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
     myApkPathField.addBrowseFolderListener("Select APK Destination Folder", null, myWizard.getProject(), descriptor);
 
-    GradleVersion modelVersion = null;
-    if (myAndroidModel != null) {
-      modelVersion = myAndroidModel.getModelVersion();
+    boolean isBundle = myWizard.getTargetType().equals("bundle");
+    mySignaturePanel.setVisible(!isBundle);
+    mySignatureLabel.setVisible(!isBundle);
+    myProGuardLabel.setVisible(!isBundle);
+    myV1JarSignatureCheckBox.setEnabled(!isBundle);
+    if (!isBundle) {
+      GradleVersion modelVersion = null;
+      if (myAndroidModel != null) {
+        modelVersion = myAndroidModel.getModelVersion();
+      }
+      initSignaturePanel(properties, modelVersion);
     }
+  }
 
+  private void initSignaturePanel(PropertiesComponent properties, GradleVersion modelVersion) {
     boolean enabled = modelVersion != null && modelVersion.compareIgnoringQualifiers(MIN_SIGNATURE_SELECTION_VERSION) >= 0;
     myV1JarSignatureCheckBox.setEnabled(enabled);
     myV1JarSignatureCheckBox.setSelected(properties.getBoolean(PROPERTY_V1_SIGN));
@@ -197,7 +210,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
 
     final String apkFolder = myApkPathField.getText().trim();
     if (apkFolder.isEmpty()) {
-      throw new CommitStepException(AndroidBundle.message("android.apk.sign.gradle.missing.destination"));
+      throw new CommitStepException(AndroidBundle.message("android.apk.sign.gradle.missing.destination", myWizard.getTargetType()));
     }
 
     File f = new File(apkFolder);
@@ -210,11 +223,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
       throw new CommitStepException(AndroidBundle.message("android.apk.sign.gradle.missing.flavors"));
     }
 
-    Object[] selectedFlavors = myFlavorsList.getSelectedValues();
-    List<String> flavors = new ArrayList<String>(selectedFlavors.length);
-    for (int i = 0; i < selectedFlavors.length; i++) {
-      flavors.add((String)selectedFlavors[i]);
-    }
+    List flavors = myFlavorsList.getSelectedValuesList();
 
     boolean isV1 = myV1JarSignatureCheckBox.isSelected();
     boolean isV2 = myV2FullAPKSignatureCheckBox.isSelected();
