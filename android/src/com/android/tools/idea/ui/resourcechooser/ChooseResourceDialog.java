@@ -484,7 +484,8 @@ public class ChooseResourceDialog extends DialogWrapper {
         type = resValue.getResourceType();
       }
       // panel is null if the reference is incorrect, e.g. "@sdfgsdfgs" (user error).
-      if (type != null) {
+      // Also Sample Data does not have it's own panel and it's included as part of other panels.
+      if (type != null && type != ResourceType.SAMPLE_DATA) {
         panel = getPanel(myTabbedPane, type);
         if (panel != null) {
           if (myTabbedPane != null) {
@@ -1323,7 +1324,7 @@ public class ChooseResourceDialog extends DialogWrapper {
       CompletableFuture.runAsync(() -> {
         List<ResourceChooserGroup> groups = Lists.newArrayListWithCapacity(4);
         if (showSampleDataPicker && StudioFlags.NELE_SAMPLE_DATA_UI.get()) {
-          ResourceChooserGroup sampleDataItems = ResourceChooserGroups.createSampleDataGroup(myType, myFacet);
+          ResourceChooserGroup sampleDataItems = ResourceChooserGroups.createSampleDataGroup(type, myFacet);
           if (!sampleDataItems.isEmpty()) {
             groups.add(sampleDataItems);
           }
@@ -1338,7 +1339,7 @@ public class ChooseResourceDialog extends DialogWrapper {
         if (!frameworkItems.isEmpty()) {
           groups.add(frameworkItems);
         }
-        ResourceChooserGroup themeItems = ResourceChooserGroups.createThemeAttributesGroup(myType, myFacet, attrs);
+        ResourceChooserGroup themeItems = ResourceChooserGroups.createThemeAttributesGroup(type, myFacet, attrs);
         if (!themeItems.isEmpty()) {
           groups.add(themeItems);
         }
