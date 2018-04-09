@@ -92,4 +92,10 @@ public class PackagingFamilyViewNode extends IncludeViewNode<PackageFamilyValue>
     }
     return false;
   }
+
+  @NotNull
+  @Override
+  public String toString() {
+    return getValue().toString();
+  }
 }

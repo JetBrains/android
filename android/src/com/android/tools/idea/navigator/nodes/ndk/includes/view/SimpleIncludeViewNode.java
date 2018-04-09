@@ -138,4 +138,10 @@ public class SimpleIncludeViewNode extends IncludeViewNode<SimpleIncludeValue> {
     }
     return "[icon-m]" + value.getSortKey();
   }
+
+  @NotNull
+  @Override
+  public String toString() {
+    return getValue().toString();
+  }
 }
