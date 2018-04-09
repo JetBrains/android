@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.xml.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
+import com.android.xml.XmlBuilder;
+import com.google.common.collect.ImmutableList;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 import static com.android.SdkConstants.*;
 
@@ -27,6 +30,42 @@ import static com.android.SdkConstants.*;
  * Handler for the {@code <TextInputLayout>} layout
  */
 public class TextInputLayoutHandler extends LinearLayoutHandler {
+
+  @Override
+  @NotNull
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(
+      ATTR_TEXT_COLOR_HINT,
+      ATTR_HINT,
+      ATTR_HINT_ENABLED,
+      ATTR_HINT_ANIMATION_ENABLED,
+      ATTR_ERROR_ENABLED,
+      ATTR_ERROR_TEXT_APPEARANCE,
+      ATTR_COUNTER_ENABLED,
+      ATTR_COUNTER_MAX_LENGTH,
+      ATTR_COUNTER_TEXT_APPEARANCE,
+      ATTR_COUNTER_OVERFLOW_TEXT_APPEARANCE,
+      ATTR_PASSWORD_TOGGLE_ENABLED,
+      ATTR_PASSWORD_TOGGLE_DRAWABLE,
+      ATTR_PASSWORD_TOGGLE_CONTENT_DESCRIPTION,
+      ATTR_PASSWORD_TOGGLE_TINT,
+      ATTR_PASSWORD_TOGGLE_TINT_MODE,
+      ATTR_BOX_BACKGROUND_MODE,
+      ATTR_BOX_PADDING_LEFT,
+      ATTR_BOX_COLLAPSED_PADDING_TOP,
+      ATTR_EXPANDED_PADDING_TOP,
+      ATTR_BOX_PADDING_RIGHT,
+      ATTR_BOX_COLLAPSED_PADDING_BOTTOM,
+      ATTR_BOX_CORNER_RADIUS_TOP_LEFT,
+      ATTR_BOX_CORNER_RADIUS_TOP_RIGHT,
+      ATTR_BOX_CORNER_RADIUS_BOTTOM_LEFT,
+      ATTR_BOX_CORNER_RADIUS_BOTTOM_RIGHT,
+      ATTR_BOX_EXPANDED_PADDING_BOTTOM,
+      ATTR_BOX_STROKE_COLOR,
+      ATTR_BOX_BACKGROUND_COLOR,
+      ATTR_BOX_STROKE_WIDTH
+    );
+  }
 
   @Override
   @Language("XML")

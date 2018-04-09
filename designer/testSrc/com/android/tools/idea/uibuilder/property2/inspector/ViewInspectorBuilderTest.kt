@@ -29,15 +29,14 @@ class ViewInspectorBuilderTest: AndroidTestCase() {
     val builder = ViewInspectorBuilder(project, util.editorProvider)
     addButtonProperties(util)
     builder.attachToInspector(util.inspector, util.properties)
-    assertThat(util.inspector.lines).hasSize(8)
+    assertThat(util.inspector.lines).hasSize(7)
     assertThat(util.inspector.lines[0].type).isEqualTo(LineType.SEPARATOR)
     assertThat(util.inspector.lines[1].type).isEqualTo(LineType.TITLE)
-    assertThat(util.inspector.lines[2].editorModel?.property?.name).isEqualTo(ATTR_BACKGROUND)
-    assertThat(util.inspector.lines[3].editorModel?.property?.name).isEqualTo(ATTR_BACKGROUND_TINT)
-    assertThat(util.inspector.lines[4].editorModel?.property?.name).isEqualTo(ATTR_STATE_LIST_ANIMATOR)
-    assertThat(util.inspector.lines[5].editorModel?.property?.name).isEqualTo(ATTR_ELEVATION)
-    assertThat(util.inspector.lines[6].editorModel?.property?.name).isEqualTo(ATTR_VISIBILITY)
-    assertThat(util.inspector.lines[7].editorModel?.property?.name).isEqualTo(ATTR_ON_CLICK)
+    assertThat(util.inspector.lines[2].editorModel?.property?.name).isEqualTo(ATTR_STATE_LIST_ANIMATOR)
+    assertThat(util.inspector.lines[3].editorModel?.property?.name).isEqualTo(ATTR_ON_CLICK)
+    assertThat(util.inspector.lines[4].editorModel?.property?.name).isEqualTo(ATTR_ELEVATION)
+    assertThat(util.inspector.lines[5].editorModel?.property?.name).isEqualTo(ATTR_BACKGROUND)
+    assertThat(util.inspector.lines[6].editorModel?.property?.name).isEqualTo(ATTR_BACKGROUND_TINT)
   }
 
   fun testButtonWithSomeMissingProperties() {
@@ -51,9 +50,9 @@ class ViewInspectorBuilderTest: AndroidTestCase() {
     assertThat(util.inspector.lines).hasSize(5)
     assertThat(util.inspector.lines[0].type).isEqualTo(LineType.SEPARATOR)
     assertThat(util.inspector.lines[1].type).isEqualTo(LineType.TITLE)
-    assertThat(util.inspector.lines[2].editorModel?.property?.name).isEqualTo(ATTR_BACKGROUND)
-    assertThat(util.inspector.lines[3].editorModel?.property?.name).isEqualTo(ATTR_STATE_LIST_ANIMATOR)
-    assertThat(util.inspector.lines[4].editorModel?.property?.name).isEqualTo(ATTR_ELEVATION)
+    assertThat(util.inspector.lines[2].editorModel?.property?.name).isEqualTo(ATTR_STATE_LIST_ANIMATOR)
+    assertThat(util.inspector.lines[3].editorModel?.property?.name).isEqualTo(ATTR_ELEVATION)
+    assertThat(util.inspector.lines[4].editorModel?.property?.name).isEqualTo(ATTR_BACKGROUND)
   }
 
   private fun addButtonProperties(util: InspectorTestUtil) {
@@ -62,7 +61,6 @@ class ViewInspectorBuilderTest: AndroidTestCase() {
     util.addProperty(ANDROID_URI, ATTR_BACKGROUND_TINT, NelePropertyType.COLOR)
     util.addProperty(ANDROID_URI, ATTR_STATE_LIST_ANIMATOR, NelePropertyType.STRING)
     util.addProperty(ANDROID_URI, ATTR_ELEVATION, NelePropertyType.DIMENSION)
-    util.addProperty(ANDROID_URI, ATTR_VISIBILITY, NelePropertyType.STRING)
     util.addProperty(ANDROID_URI, ATTR_ON_CLICK, NelePropertyType.STRING)
   }
 }

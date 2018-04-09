@@ -72,9 +72,15 @@ public class DataModel {
     // This filter will hide or display the androidx.* components in the palette depending on whether the
     // project supports the androidx libraries.
     Condition<Palette.Item> androidxFilter = item -> {
-      boolean isAndroidxTag = item.getTagName().startsWith(ANDROIDX_PKG) ||
-        item.getTagName().startsWith(MATERIAL2_PKG);
-      boolean isOldSupportLibTag = !isAndroidxTag && item.getTagName().startsWith(ANDROID_SUPPORT_PKG_PREFIX);
+      String tagName = item.getTagName();
+      if (tagName.startsWith(MATERIAL1_PKG)) {
+        return !myDependencyManager.usingMaterial2Theme();
+      }
+      if (tagName.startsWith(MATERIAL2_PKG)) {
+        return myDependencyManager.usingMaterial2Theme();
+      }
+      boolean isAndroidxTag = tagName.startsWith(ANDROIDX_PKG) || tagName.startsWith(MATERIAL2_PKG);
+      boolean isOldSupportLibTag = !isAndroidxTag && tagName.startsWith(ANDROID_SUPPORT_PKG_PREFIX);
       if (!isAndroidxTag && !isOldSupportLibTag) {
         return true;
       }
@@ -95,14 +101,14 @@ public class DataModel {
     return myItemModel;
   }
 
-  public void setLayoutType(@NotNull AndroidFacet facet, @NotNull NlLayoutType layoutType) {
-    if (myLayoutType.equals(layoutType)) {
+  public void setLayoutType(@NotNull AndroidFacet facet, @NotNull NlLayoutType layoutType, boolean usingMaterial2Theme) {
+    if (myLayoutType.equals(layoutType) && usingMaterial2Theme == myDependencyManager.usingMaterial2Theme()) {
       return;
     }
     NlPaletteModel paletteModel = NlPaletteModel.get(facet);
     myPalette = paletteModel.getPalette(layoutType);
     myLayoutType = layoutType;
-    myDependencyManager.setPalette(myPalette, facet.getModule());
+    myDependencyManager.setPalette(myPalette, facet.getModule(), usingMaterial2Theme);
     update();
   }
 

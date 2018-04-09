@@ -234,13 +234,19 @@ public class ViewHandlerManager implements ProjectComponent {
         return new AdViewHandler();
       case AUTO_COMPLETE_TEXT_VIEW:
         return new AutoCompleteTextViewHandler();
+      case BOTTOM_APP_BAR:
+        return new BottomAppBarHandler();
       case BUTTON:
+      case MATERIAL_BUTTON:
         return new ButtonHandler();
       case CHECKED_TEXT_VIEW:
         return new CheckedTextViewHandler();
       case CHECK_BOX:
+      case CHIP:
       case RADIO_BUTTON:
         return new CheckBoxHandler();
+      case CHIP_GROUP:
+        return new ChipGroupHandler();
       case CHRONOMETER:
         return new ChronometerHandler();
       case DIALER_FILTER:
