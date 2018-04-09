@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ConnectionDraw;
 import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintWidget;
@@ -191,10 +192,10 @@ public class SingleWidgetView extends JPanel {
     mRightKill.addActionListener(e -> rightKill());
     mBottomKill.addActionListener(e -> bottomKill());
     mBaselineKill.addActionListener(e -> baselineKill());
-    mTopConnect.addActionListener(e -> connectConstraintTop());
-    mLeftConnect.addActionListener(e -> connectConstraintLeft());
-    mRightConnect.addActionListener(e -> connectConstraintRight());
-    mBottomConnect.addActionListener(e -> connectConstraintBottom());
+    mTopConnect.addActionListener(e -> connectConstraint(Scout.Arrange.ConnectTop));
+    mLeftConnect.addActionListener(e -> connectConstraint(Scout.Arrange.ConnectStart));
+    mRightConnect.addActionListener(e -> connectConstraint(Scout.Arrange.ConnectEnd));
+    mBottomConnect.addActionListener(e -> connectConstraint(Scout.Arrange.ConnectBottom));
     mAspectButton.addActionListener(e -> toggleAspect());
     mAspectText.addActionListener(e -> setAspectString());
     mAspectText.addFocusListener(new FocusAdapter() {
@@ -336,28 +337,13 @@ public class SingleWidgetView extends JPanel {
     update();
   }
 
-  private void connectConstraintTop() {
-    Scout.arrangeWidgets(Scout.Arrange.ConnectTop, Collections.singletonList(mWidgetConstraintPanel.mComponent), false);
-    NlWriteCommandAction
-      .run(mWidgetConstraintPanel.mComponent, "Connecting", () -> mWidgetConstraintPanel.mComponent.startAttributeTransaction().commit());
-  }
-
-  private void connectConstraintLeft() {
-    Scout.arrangeWidgets(Scout.Arrange.ConnectStart, Collections.singletonList(mWidgetConstraintPanel.mComponent), false);
-    NlWriteCommandAction
-      .run(mWidgetConstraintPanel.mComponent, "Connecting", () -> mWidgetConstraintPanel.mComponent.startAttributeTransaction().commit());
-  }
-
-  private void connectConstraintRight() {
-    Scout.arrangeWidgets(Scout.Arrange.ConnectEnd, Collections.singletonList(mWidgetConstraintPanel.mComponent), false);
-    NlWriteCommandAction
-      .run(mWidgetConstraintPanel.mComponent, "Connecting", () -> mWidgetConstraintPanel.mComponent.startAttributeTransaction().commit());
-  }
-
-  private void connectConstraintBottom() {
-    Scout.arrangeWidgets(Scout.Arrange.ConnectBottom, Collections.singletonList(mWidgetConstraintPanel.mComponent), false);
-    NlWriteCommandAction
-      .run(mWidgetConstraintPanel.mComponent, "Connecting", () -> mWidgetConstraintPanel.mComponent.startAttributeTransaction().commit());
+  private void connectConstraint(Scout.Arrange bottom) {
+    NlComponent component = mWidgetConstraintPanel.mComponent;
+    if (component != null) {
+      Scout.arrangeWidgets(bottom, Collections.singletonList(component), false);
+      NlWriteCommandAction
+        .run(component, "Connecting", () -> component.startAttributeTransaction().commit());
+    }
   }
 
   static int baselinePos(int height) {
@@ -381,7 +367,7 @@ public class SingleWidgetView extends JPanel {
     mRightMargin.setBounds(boxRight + DROPDOWN_OFFSET, (mHeight - DROPDOWN_HEIGHT) / 2, DROP_DOWN_WIDTH, DROPDOWN_HEIGHT);
     mBottomMargin.setBounds(mWidth / 2 - DROP_DOWN_WIDTH / 2, boxTop + mBoxSize + DROPDOWN_OFFSET, DROP_DOWN_WIDTH, DROPDOWN_HEIGHT);
     int rad = KillButton.sCircleRadius;
-    int size = rad * 2 ;
+    int size = rad * 2;
     int centerX = boxLeft + mBoxSize / 2;
     int centerY = boxTop + mBoxSize / 2;
     mTopKill.setBounds(centerX - rad, boxTop - rad, size, size);
