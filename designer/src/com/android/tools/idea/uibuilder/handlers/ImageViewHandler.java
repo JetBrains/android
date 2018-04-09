@@ -97,9 +97,16 @@ public class ImageViewHandler extends ViewHandler {
   }
 
   private boolean showImageChooser(@NotNull ViewEditor editor, @NotNull NlComponent component) {
-    String src = editor.displayResourceInput(EnumSet.of(ResourceType.DRAWABLE));
+    String src = editor.displayResourceInput(EnumSet.of(ResourceType.DRAWABLE), true);
     if (src != null) {
-      setSrcAttribute(component, src);
+      // If the selected item was a sample data item, set in the tools attributes src and not in the regular attribute
+      if (src.startsWith(SAMPLE_PREFIX) || src.startsWith(TOOLS_SAMPLE_PREFIX )) {
+        setToolsSrc(component, src);
+        setSrcAttribute(component, null);
+      }
+      else {
+        setSrcAttribute(component, src);
+      }
       return true;
     }
 
@@ -120,7 +127,7 @@ public class ImageViewHandler extends ViewHandler {
     return "@android:drawable/btn_star"; //$NON-NLS-1$
   }
 
-  public void setSrcAttribute(@NotNull NlComponent component, @NotNull String imageSource) {
+  public void setSrcAttribute(@NotNull NlComponent component, @Nullable String imageSource) {
     NlWriteCommandAction.run(component, "", () -> {
       if (shouldUseSrcCompat(component.getModel())) {
         component.setAttribute(ANDROID_URI, ATTR_SRC, null);
@@ -133,23 +140,23 @@ public class ImageViewHandler extends ViewHandler {
     });
   }
 
-  public void setSampleSrc(@NotNull NlComponent component, @Nullable SampleDataResourceItem item, int resourceValueIndex) {
+  public void setToolsSrc(@NotNull NlComponent component, @Nullable SampleDataResourceItem item, int resourceValueIndex) {
     if (item != null) {
       String suffix = resourceValueIndex >= 0 ? "[" + resourceValueIndex + "]" : "";
-      setSampleSrc(component, getResourcePrefix(item.getNamespace()) + item.getName() + suffix);
+      setToolsSrc(component, getResourcePrefix(item.getNamespace()) + item.getName() + suffix);
     }
     else {
-      setSampleSrc(component, null);
+      setToolsSrc(component, null);
     }
   }
 
-  public void setSampleSrc(@NotNull NlComponent component, String value) {
+  public void setToolsSrc(@NotNull NlComponent component, @NotNull String value) {
     String attr = shouldUseSrcCompat(component.getModel()) ? ATTR_SRC_COMPAT : ATTR_SRC;
     NlWriteCommandAction.run(component, "Set sample source", () -> component.setAttribute(TOOLS_URI, attr, value));
   }
 
   @Nullable
-  public String getSampleSrc(@NotNull NlComponent component) {
+  public String getToolsSrc(@NotNull NlComponent component) {
     String attr = shouldUseSrcCompat(component.getModel()) ? ATTR_SRC_COMPAT : ATTR_SRC;
     return component.getAttribute(TOOLS_URI, attr);
   }

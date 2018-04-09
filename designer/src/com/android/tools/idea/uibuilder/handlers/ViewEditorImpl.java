@@ -192,12 +192,13 @@ public class ViewEditorImpl extends ViewEditor {
 
   @Nullable
   @Override
-  public String displayResourceInput(@NotNull String title, @NotNull EnumSet<ResourceType> types) {
+  public String displayResourceInput(@NotNull String title, @NotNull EnumSet<ResourceType> types, boolean includeSampleData) {
     NlModel model = myModel;
     ChooseResourceDialog dialog = ChooseResourceDialog.builder()
       .setModule(model.getModule())
       .setTypes(types)
       .setConfiguration(model.getConfiguration())
+      .setShowSampleDataPicker(includeSampleData)
       .build();
 
     if (!title.isEmpty()) {
