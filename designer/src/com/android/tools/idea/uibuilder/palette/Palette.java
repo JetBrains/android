@@ -51,13 +51,10 @@ public class Palette {
   private final List<BaseItem> myItems;
   // @formatter:on
 
-  private final Set<String> myGradleCoordinateIds;
-
   private final Map<String, Item> myItemsById;
 
   private Palette() {
     myItems = new ArrayList<>();
-    myGradleCoordinateIds = new HashSet<>();
     myItemsById = new HashMap<>();
   }
 
@@ -96,7 +93,9 @@ public class Palette {
 
   @NotNull
   public Set<String> getGradleCoordinateIds() {
-    return myGradleCoordinateIds;
+    Set<String> gradleCoordinateIds = new HashSet<>();
+    accept(item -> item.addGradleCoordinateId(gradleCoordinateIds));
+    return gradleCoordinateIds;
   }
 
   private static Palette unMarshal(@NotNull Reader xmlReader) throws JAXBException {
@@ -374,7 +373,6 @@ public class Palette {
     void setUp(@NotNull Palette palette, @NotNull ViewHandlerManager manager) {
       resolve();
       initHandler(manager);
-      addGradleCoordinateId(palette.myGradleCoordinateIds);
       palette.myItemsById.put(getId(), this);
     }
 
