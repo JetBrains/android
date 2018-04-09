@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsDependencyComparator;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
-import com.android.tools.idea.gradle.structure.model.PsDependency;
 import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependencyCollection;
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
@@ -78,6 +78,7 @@ public class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryAndro
   @NotNull
   private String getText(@NotNull PsLibraryAndroidDependency dependency) {
     PsArtifactDependencySpec resolvedSpec = dependency.getSpec();
+    // TODO(b/74948244): Display POM dependency promotions correctly.
     if (dependency.hasPromotedVersion() && !(getParent() instanceof LibraryDependencyNode)) {
       // Show only "promoted" version for declared nodes.
       // TODO(b/74424544): Find a better representation for multiple versions here.
@@ -110,13 +111,32 @@ public class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryAndro
 
   @Override
   public boolean matches(@NotNull PsModel model) {
-    if (model instanceof PsLibraryAndroidDependency) {
+    // Only top level LibraryDependencyNodes can match declared dependencies.
+    if (model instanceof PsLibraryAndroidDependency && !(getParent() instanceof LibraryDependencyNode)) {
       PsLibraryAndroidDependency other = (PsLibraryAndroidDependency)model;
 
       List<PsLibraryAndroidDependency> models = getModels();
-      for (PsLibraryAndroidDependency dependency : models) {
-        if (dependency.getSpec().equals(other.getSpec())) {
-          return true;
+      for (PsLibraryAndroidDependency resolvedDependency : models) {
+        for (DependencyModel resolvedFromParsedDependency : resolvedDependency.getParsedModels()) {
+          // other.getParsedModels() always contains just one model since it is a declared dependency.
+          if (other
+            .getParsedModels()
+            .stream()
+            .anyMatch(it ->
+                      {
+                        if (it instanceof ArtifactDependencyModel && resolvedFromParsedDependency instanceof ArtifactDependencyModel) {
+                          ArtifactDependencyModel theirs = (ArtifactDependencyModel)it;
+                          ArtifactDependencyModel ours = (ArtifactDependencyModel)resolvedFromParsedDependency;
+                          return
+                            it.configurationName().equals(resolvedFromParsedDependency.configurationName())
+                            && theirs.compactNotation().equals(ours.compactNotation());
+                        }
+                        else {
+                          return false;
+                        }
+                      })) {
+            return true;
+          }
         }
       }
     }
