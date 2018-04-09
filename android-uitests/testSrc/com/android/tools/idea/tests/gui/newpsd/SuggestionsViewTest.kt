@@ -111,6 +111,7 @@ class SuggestionsViewTest {
   }
 
   @Test
+  @Ignore("b/74443500")
   fun filtersMessagesByModule() {
     val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("PsdSimple")
 
