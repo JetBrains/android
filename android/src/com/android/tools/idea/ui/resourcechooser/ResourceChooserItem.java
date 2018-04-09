@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.ui.resourcechooser;
 
-import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.SampleDataResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.SampleDataResourceItem;
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -193,7 +190,14 @@ public abstract class ResourceChooserItem {
     @NotNull
     @Override
     public String getResourceUrl() {
-      return PREFIX_RESOURCE_REF + myType.getName() + '/' + myName;
+      StringBuilder builder = new StringBuilder(PREFIX_RESOURCE_REF);
+      if (isFramework()) {
+        builder.append(ANDROID_NS_NAME_PREFIX);
+      }
+      return builder.append(myType.getName())
+                    .append('/')
+                    .append(myName)
+                    .toString();
     }
 
     @Override
