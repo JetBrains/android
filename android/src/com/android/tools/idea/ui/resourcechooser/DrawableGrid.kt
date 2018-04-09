@@ -32,7 +32,7 @@ import javax.swing.*
 
 private const val ITEM_BORDER_WIDTH = 4
 private const val ITEM_SELECTED_BORDER_WIDTH = 2
-private const val DEFAULT_CACHE_SIZE = 12L
+private const val DEFAULT_CACHE_SIZE = 128L
 private val DEFAULT_IMAGE_SIZE = JBUI.scale(48)
 private val EMPTY_ICON_COLOR = JBColor(Color(0xAA, 0xAA, 0xAA, 0x33),
                                        Color(0xAA, 0xAA, 0xAA, 0x33))
@@ -45,20 +45,21 @@ private val ITEM_BORDER_SELECTED = JBUI.Borders.merge(
 /**
  * Component that displays [ResourceValue] in a grid.
  */
-class DrawableGrid(val module: Module,
-                   model: ListModel<ResourceValue>)
+open class DrawableGrid(val module: Module,
+                   model: ListModel<ResourceValue>,
+                   imageSize: Int = DEFAULT_IMAGE_SIZE,
+                   private val cacheSize: Long = DEFAULT_CACHE_SIZE)
   : JList<ResourceValue>(model) {
-
-
-  var drawableSize = DEFAULT_IMAGE_SIZE
-    set(value) {
-      fixedCellWidth = value + ITEM_BORDER_WIDTH * 2
-      fixedCellHeight = fixedCellWidth
-      cellRenderer = DrawableCellRenderer(module, drawableSize)
-    }
 
   init {
     layoutOrientation = HORIZONTAL_WRAP
+    setImageSize(imageSize)
+  }
+
+  fun setImageSize(drawableSize: Int) {
+    fixedCellWidth = drawableSize + ITEM_BORDER_WIDTH * 2
+    fixedCellHeight = fixedCellWidth
+    cellRenderer = DrawableCellRenderer(module, drawableSize, cacheSize)
   }
 
   fun resetCache() {
@@ -67,13 +68,15 @@ class DrawableGrid(val module: Module,
 }
 
 internal class DrawableCellRenderer(private val module: Module,
-                                    private val imageSize: Int)
+                                    private val imageSize: Int,
+                                    cacheSize: Long = DEFAULT_CACHE_SIZE)
   : ListCellRenderer<ResourceValue> {
 
   private var emptyIcon = ColorIcon(imageSize, EMPTY_ICON_COLOR)
   private val disabledComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f)
   private val cache = CacheBuilder.newBuilder()
-    .maximumSize(DEFAULT_CACHE_SIZE)
+    .softValues()
+    .maximumSize(cacheSize)
     .build<ResourceValue, Icon>()
   private val label = JLabel()
 
@@ -103,13 +106,13 @@ internal class DrawableCellRenderer(private val module: Module,
         label.icon = icon
         return label
       }
+      else {
+        label.icon = emptyIcon
+        label.disabledIcon = emptyIcon
+      }
     }
 
-    val file = VfsUtil.findFileByIoFile(File(value.value), true)
-    if (file == null) {
-      label.icon = emptyIcon
-      return label
-    }
+    val file = VfsUtil.findFileByIoFile(File(value.value), true) ?: return label
 
     val image = DesignAssetRendererManager.getInstance()
       .getViewer(file)
@@ -118,7 +121,13 @@ internal class DrawableCellRenderer(private val module: Module,
     image.addListener(Runnable {
       if (!image.isCancelled) {
         cache.put(value, ImageIcon(image.get()))
-        list.repaint(list.getCellBounds(index, index))
+        val cellBounds = list.getCellBounds(index, index)
+        if (cellBounds != null) {
+          list.repaint(cellBounds)
+        }
+        else {
+          list.repaint()
+        }
       }
     }, EdtExecutor.INSTANCE)
     return label
