@@ -44,7 +44,6 @@ import java.util.Set;
  * The light class that represents a data binding BR file
  */
 public class LightBrClass extends AndroidLightClassBase {
-  private static final String BINDABLE_QUALIFIED_NAME = "android.databinding.Bindable";
   private final AndroidFacet myFacet;
   private CachedValue<PsiField[]> myFieldCache;
   @NotNull
@@ -103,7 +102,8 @@ public class LightBrClass extends AndroidLightClassBase {
 
   private Set<String> collectVariableNamesFromBindables() {
     JavaPsiFacade facade = JavaPsiFacade.getInstance(myFacet.getModule().getProject());
-    PsiClass aClass = facade.findClass(BINDABLE_QUALIFIED_NAME, myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(false));
+    DataBindingMode mode = ModuleDataBinding.getInstance(myFacet).getDataBindingMode();
+    PsiClass aClass = facade.findClass(mode.bindable, myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(false));
     if (aClass == null) {
       return null;
     }

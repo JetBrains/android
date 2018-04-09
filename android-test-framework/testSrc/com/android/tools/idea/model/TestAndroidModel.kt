@@ -18,6 +18,7 @@ package com.android.tools.idea.model
 import com.android.builder.model.AaptOptions
 import com.android.builder.model.SourceProvider
 import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.databinding.DataBindingMode
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
@@ -38,7 +39,7 @@ open class TestAndroidModel @JvmOverloads constructor(
   private val classJarProvider: ClassJarProvider? = null,
   private val overridesManifestPackage: Boolean = false,
   private val debuggable: Boolean = false,
-  private val dataBindingEnabled: Boolean = false,
+  private val dataBindingMode: DataBindingMode = DataBindingMode.NONE,
   private val versionCode: Int? = null,
   private val rootDir: VirtualFile? = null,
   private val namespacing: AaptOptions.Namespacing = AaptOptions.Namespacing.DISABLED
@@ -63,7 +64,7 @@ open class TestAndroidModel @JvmOverloads constructor(
   override fun getRuntimeMinSdkVersion(): AndroidVersion? = runtimeMinSdkVersion
   override fun getTargetSdkVersion(): AndroidVersion? = targetSdkVersion
   override fun getVersionCode(): Int? = versionCode
-  override fun getDataBindingEnabled(): Boolean = dataBindingEnabled
+  override fun getDataBindingMode(): DataBindingMode = dataBindingMode
   override fun getClassJarProvider(): ClassJarProvider = classJarProvider ?: error("classJarProvider not set")
   override fun getNamespacing(): AaptOptions.Namespacing = namespacing
 

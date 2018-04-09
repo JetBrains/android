@@ -18,6 +18,7 @@ package com.android.tools.idea.model;
 import com.android.builder.model.AaptOptions;
 import com.android.builder.model.SourceProvider;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.databinding.DataBindingMode;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -143,9 +144,10 @@ public interface AndroidModel {
   VirtualFile getRootDir();
 
   /**
-   * @return Whether data binding is enabled for this model.
+   * @return Whether data binding is enabled for this model and whether it is support or X versions.
    */
-  boolean getDataBindingEnabled();
+  @NotNull
+  DataBindingMode getDataBindingMode();
 
   /**
    * @return A provider for finding .class output files and external .jars.

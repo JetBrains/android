@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.databinding;
 
+import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.idea.databinding.ModuleDataBinding;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -35,7 +36,7 @@ public class DataBindingScopeTest extends AndroidGradleTestCase {
     GradleInvocationResult assembleDebug = invokeGradleTasks(getProject(), "assembleDebug");
     GradleSyncState syncState = GradleSyncState.getInstance(getProject());
     assertFalse(syncState.isSyncNeeded().toBoolean());
-    assertTrue(ModuleDataBinding.getInstance(myAndroidFacet).isEnabled());
+    assertTrue(ModuleDataBinding.getInstance(myAndroidFacet).getDataBindingMode() == DataBindingMode.SUPPORT);
     assertTrue(myModules.hasModule("lib"));
     assertTrue(myModules.hasModule("lib2"));
     // app depends on lib depends on lib2

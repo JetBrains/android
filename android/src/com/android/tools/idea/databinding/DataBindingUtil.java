@@ -24,7 +24,6 @@ import com.android.tools.idea.lang.databinding.DbFile;
 import com.android.tools.idea.lang.databinding.psi.DbTokenTypes;
 import com.android.tools.idea.lang.databinding.psi.PsiDbConstantValue;
 import com.android.tools.idea.lang.databinding.psi.PsiDbDefaults;
-import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.res.DataBindingInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -216,7 +215,8 @@ public class DataBindingUtil {
       } else if (SdkConstants.VIEW_INCLUDE.equals(elementName)) {
         return getViewClassNameFromInclude(tag, facet);
       } else if (SdkConstants.VIEW_STUB.equals(elementName)) {
-        return SdkConstants.DATA_BINDING_VIEW_STUB_PROXY;
+        DataBindingMode mode = ModuleDataBinding.getInstance(facet).getDataBindingMode();
+        return mode.viewStubProxy;
       }
       return SdkConstants.WIDGET_PKG_PREFIX + elementName;
     } else {
