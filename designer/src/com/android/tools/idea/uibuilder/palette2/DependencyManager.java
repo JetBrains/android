@@ -16,10 +16,9 @@
 package com.android.tools.idea.uibuilder.palette2;
 
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.intellij.openapi.Disposable;
@@ -27,8 +26,11 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.JComponent;
-import java.util.*;
+import javax.swing.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
