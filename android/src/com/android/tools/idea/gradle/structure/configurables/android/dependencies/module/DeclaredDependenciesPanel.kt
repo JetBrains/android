@@ -181,9 +181,8 @@ internal class DeclaredDependenciesPanel(
     displayIssues(issues)
   }
 
-  override fun selectDependency(dependency: String?) {
+  fun selectDependency(dependency: String?) {
     if (isEmpty(dependency)) {
-      dependenciesTable.requestFocusInWindow()
       dependenciesTable.clearSelection()
       return
     }
@@ -196,6 +195,7 @@ internal class DeclaredDependenciesPanel(
       if (path is String) {
         val pathText = path as String?
         if (!pathText!!.isEmpty()) {
+          dependenciesTable.requestFocusInWindow()
           doSelectDependency(pathText)
         }
       }

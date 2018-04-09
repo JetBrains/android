@@ -181,7 +181,6 @@ public class DeclaredDependenciesTableView<T extends PsDependency> extends Table
   }
 
   public void selectDependency(@NotNull String toSelect) {
-    requestFocusInWindow();
     for (T dependency : getItems()) {
       String dependencyAsText = dependency.toText(FOR_NAVIGATION);
       if (toSelect.equals(dependencyAsText)) {

@@ -148,6 +148,8 @@ public abstract class AbstractPsNodeTreeBuilder extends AbstractBaseTreeBuilder 
           }
           result.setDone();
         };
+        // NOTE: This is a non-deferred select operation which may fail with a stack overflow
+        //       if multiple items are selected on a really large tree.
         getUi().userSelect(toSelect.toArray(), new UserRunnable(onDone), false, false);
       })
       .doWhenRejected(() -> result.setRejected());

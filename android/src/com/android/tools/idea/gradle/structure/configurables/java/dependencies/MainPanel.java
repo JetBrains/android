@@ -145,16 +145,6 @@ class MainPanel extends AbstractDependenciesPanel {
   }
 
   @Override
-  public void selectDependency(@Nullable String dependency) {
-    if (isEmpty(dependency)) {
-      myDependenciesTable.requestFocusInWindow();
-      myDependenciesTable.clearSelection();
-      return;
-    }
-    doSelectDependency(dependency);
-  }
-
-  @Override
   public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
     if (place != null) {
       Object path = place.getPath(myPlaceName);
@@ -169,6 +159,7 @@ class MainPanel extends AbstractDependenciesPanel {
   }
 
   private void doSelectDependency(@NotNull String toSelect) {
+    myDependenciesTable.requestFocusInWindow();
     myDependenciesTable.selectDependency(toSelect);
   }
 

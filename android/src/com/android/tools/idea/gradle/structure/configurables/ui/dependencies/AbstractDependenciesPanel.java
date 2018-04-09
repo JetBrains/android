@@ -283,8 +283,6 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
   @NotNull
   protected abstract String getPlaceName();
 
-  public abstract void selectDependency(@Nullable String dependency);
-
   private class AddLibraryDependencyAction extends AbstractAddDependencyAction {
     AddLibraryDependencyAction() {
       super(AddLibraryDependencyDialog.TITLE, "Library Dependency", LIBRARY_ICON, 1);
