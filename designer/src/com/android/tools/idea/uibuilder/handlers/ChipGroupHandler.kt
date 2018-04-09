@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,19 @@
 package com.android.tools.idea.uibuilder.handlers
 
 import com.android.SdkConstants.*
-import com.android.tools.idea.uibuilder.handlers.frame.FrameLayoutHandler
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler
 
-class BottomNavigationViewHandler : FrameLayoutHandler() {
+class ChipGroupHandler : ViewGroupHandler() {
 
   override fun getInspectorProperties(): List<String> {
     return listOf(
-      ATTR_ITEM_HORIZONTAL_TRANSLATION,
-      ATTR_LABEL_VISIBILITY_MODE,
-      ATTR_ITEM_ICON_TINT,
-      ATTR_MENU,
-      ATTR_ITEM_BACKGROUND,
-      ATTR_ITEM_TEXT_COLOR,
-      ATTR_ELEVATION)
+      ATTR_CHIP_GROUP_STYLE,
+      ATTR_CHIP_SPACING,
+      ATTR_CHIP_SPACING_HORIZONTAL,
+      ATTR_CHIP_SPACING_VERTICAL,
+      ATTR_SINGLE_LINE,
+      ATTR_SINGLE_SELECTION,
+      ATTR_CHECKED_CHIP
+    )
   }
 }

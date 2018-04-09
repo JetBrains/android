@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.common.model;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
@@ -28,6 +31,7 @@ import com.android.tools.idea.naveditor.model.NavComponentHelper;
 import com.android.tools.idea.rendering.RefreshRenderAction;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.common.api.DragType;
@@ -54,6 +58,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.ThreeState;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,12 +70,14 @@ import java.util.stream.Stream;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.STYLE_RESOURCE_PREFIX;
 
 /**
  * Model for an XML file
  */
 public class NlModel implements Disposable, ResourceChangeListener, ModificationTracker {
   private static final boolean CHECK_MODEL_INTEGRITY = false;
+  private static final String MATERIAL2_BASE_THEME = STYLE_RESOURCE_PREFIX + "Platform.MaterialComponents";
   private final Set<String> myPendingIds = Sets.newHashSet();
 
   @NotNull private final AndroidFacet myFacet;
@@ -85,6 +92,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private final ModelVersion myModelVersion = new ModelVersion();
   private final NlLayoutType myType;
   private long myConfigurationModificationCount;
+  private ThreeState myUsingMaterial2Theme = ThreeState.UNSURE;
 
   // Variable to track what triggered the latest render (if known)
   private ChangeType myModificationTrigger;
@@ -148,6 +156,45 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         myConfiguration.setTheme(myConfiguration.getConfigurationManager().computePreferredTheme(myConfiguration));
       }
     }
+    myUsingMaterial2Theme = ThreeState.UNSURE;
+  }
+
+  public boolean usingMaterial2Theme() {
+    if (myUsingMaterial2Theme == ThreeState.UNSURE) {
+      myUsingMaterial2Theme = checkUsingMaterial2Theme();
+    }
+    return myUsingMaterial2Theme == ThreeState.YES;
+  }
+
+  private ThreeState checkUsingMaterial2Theme() {
+    StyleResourceValue material2Theme = findTheme(MATERIAL2_BASE_THEME);
+    StyleResourceValue appTheme = findTheme(myConfiguration.getTheme());
+    ResourceResolver resolver = myConfiguration.getResourceResolver();
+    if (resolver == null || material2Theme == null || appTheme == null) {
+      return ThreeState.NO;
+    }
+    return ThreeState.fromBoolean(resolver.themeIsParentOf(material2Theme, appTheme));
+  }
+
+  @Nullable
+  private StyleResourceValue findTheme(@NotNull String name) {
+    ResourceUrl style = ResourceUrl.parse(name);
+    if (style == null) {
+      return null;
+    }
+    ResourceNamespace.Resolver namespaceResolver = ResourceNamespace.Resolver.EMPTY_RESOLVER;
+    if (myRootComponent != null) {
+      namespaceResolver = ResourceHelper.getNamespaceResolver(myRootComponent.getTag());
+    }
+    ResourceReference reference = style.resolve(ResourceNamespace.TODO, namespaceResolver);
+    if (reference == null) {
+      return null;
+    }
+    ResourceResolver resolver = myConfiguration.getResourceResolver();
+    if (resolver == null) {
+      return null;
+    }
+    return resolver.getStyle(reference);
   }
 
   private void deactivate() {

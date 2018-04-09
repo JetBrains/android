@@ -194,6 +194,8 @@
   <group name="Buttons">
     <item tag="Button" suggested="true" materialReference="https://material.io/guidelines/components/buttons.html"/>
     <item tag="ImageButton" suggested="true"/>
+    <item tag="com.google.android.material.chip.ChipGroup" suggested="true"  meta="material"/>
+    <item tag="com.google.android.material.chip.Chip" suggested="true" meta="material"/>
     <item tag="CheckBox" suggested="true" materialReference="https://material.io/guidelines/components/selection-controls.html"/>
     <item tag="RadioGroup" materialReference="https://material.io/guidelines/selection-controls.html#selection-controls-radio-button"/>
     <item tag="RadioButton" suggested="true" materialReference="https://material.io/guidelines/components/selection-controls.html"/>
@@ -380,6 +382,7 @@
     <item tag="androidx.viewpager.widget.ViewPager" id="Tabs2" title="Tabs"/>
     <item tag="android.support.design.widget.AppBarLayout" suggested="true"/>
     <item tag="com.google.android.material.appbar.AppBarLayout" suggested="true"/>
+    <item tag="com.google.android.material.bottomappbar.BottomAppBar" suggested="true" meta="material"/>
     <item tag="android.support.design.widget.NavigationView" suggested="true"/>
     <item tag="com.google.android.material.navigation.NavigationView" suggested="true"/>
     <item tag="android.support.design.widget.BottomNavigationView" suggested="true"/>

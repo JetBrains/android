@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,39 +23,17 @@ import java.util.List;
 
 import static com.android.SdkConstants.*;
 
-public class ButtonHandler extends TextViewHandler {
+public class BottomAppBarHandler extends ViewHandler {
   @Override
   @NotNull
   public List<String> getInspectorProperties() {
     return ImmutableList.of(
-      ATTR_STYLE,
-      ATTR_MATERIAL_BUTTON_STYLE,
-      ATTR_STATE_LIST_ANIMATOR,
-      ATTR_ON_CLICK,
-      ATTR_ELEVATION,
-      ATTR_PADDING,
-      ATTR_PADDING_LEFT,
-      ATTR_PADDING_RIGHT,
-      ATTR_PADDING_START,
-      ATTR_PADDING_END,
-      ATTR_PADDING_TOP,
-      ATTR_PADDING_BOTTOM,
-      ATTR_INSET_LEFT,
-      ATTR_INSET_RIGHT,
-      ATTR_INSET_TOP,
-      ATTR_INSET_BOTTOM,
-      ATTR_BACKGROUND,
       ATTR_BACKGROUND_TINT,
-      ATTR_BACKGROUND_TINT_MODE,
-      ATTR_ICON,
-      ATTR_ICON_PADDING,
-      ATTR_ICON_TINT,
-      ATTR_ICON_TINT_MODE,
-      ATTR_ADDITIONAL_PADDING_LEFT_FOR_ICON,
-      ATTR_ADDITIONAL_PADDING_RIGHT_FOR_ICON,
-      ATTR_STROKE_COLOR,
-      ATTR_STROKE_WIDTH,
-      ATTR_CORNER_RADIUS,
-      ATTR_RIPPLE_COLOR);
+      ATTR_FAB_ALIGNMENT_MODE,
+      ATTR_FAB_ATTACHED,
+      ATTR_FAB_CRADLE_DIAMETER,
+      ATTR_FAB_CRADLE_ROUNDED_CORNER_RADIUS,
+      ATTR_FAB_CRADLE_VERTICAL_OFFSET,
+      ATTR_BOTTOM_APP_BAR_STYLE);
   }
 }

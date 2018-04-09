@@ -43,13 +43,14 @@ import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT
  * a missing dependency via the {@link #needsLibraryLoad(Palette.Item)} method.
  *
  * The set of missing dependencies is recomputed each time the project is synced (in case new dependencies have
- * been added to the palette's module) and each time the associated palette changes (see {@link #setPalette(Palette, Module)}).
+ * been added to the palette's module) and each time the associated palette changes (see {@link #setPalette}).
  */
 public class DependencyManager {
   private final Project myProject;
   private final Set<String> myMissingLibraries;
   private Module myModule;
   private Palette myPalette;
+  private boolean myUsingMaterial2Theme;
 
   public DependencyManager(@NotNull Project project) {
     myProject = project;
@@ -57,9 +58,10 @@ public class DependencyManager {
     myPalette = Palette.EMPTY;
   }
 
-  public void setPalette(@NotNull Palette palette, @NotNull Module module) {
+  public void setPalette(@NotNull Palette palette, @NotNull Module module, boolean usingMaterial2Theme) {
     myPalette = palette;
     myModule = module;
+    myUsingMaterial2Theme = usingMaterial2Theme;
     checkForNewMissingDependencies();
   }
 
@@ -113,5 +115,9 @@ public class DependencyManager {
 
   public boolean useAndroidxDependencies() {
     return !DependencyManagementUtil.dependsOnOldSupportLib(myModule) && StudioFlags.NELE_USE_ANDROIDX_DEFAULT.get();
+  }
+
+  public boolean usingMaterial2Theme() {
+    return myUsingMaterial2Theme;
   }
 }
