@@ -151,4 +151,10 @@ public class IncludeSet {
       myAppendUsrInclude = appendUsrInclude;
     }
   }
+
+  @NotNull
+  @Override
+  public String toString() {
+    return myIncludes.toString();
+  }
 }
