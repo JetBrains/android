@@ -41,6 +41,9 @@ public class ResourceChooserGroups {
   // instead. For now, we just filter them out:
   private static final boolean FILTER_OUT_PRIVATE_ITEMS = true;
 
+  // List of namespaces to search sample data into
+  private static ImmutableList<ResourceNamespace> SAMPLE_DATA_NS = ImmutableList.of(ResourceNamespace.TOOLS, ResourceNamespace.TODO);
+
   /**
    * Default comparator used for ResourceChooserGroups. Framework attributes are displayed at the bottom.
    */
@@ -192,12 +195,12 @@ public class ResourceChooserGroups {
 
     Predicate<SampleDataResourceItem> filter = IMAGE_RESOURCE_TYPES.contains(type) ? ONLY_IMAGES_FILTER : NOT_IMAGES_FILTER;
     ImmutableList<ResourceChooserItem> items =
-      ResourceRepositoryManager.getAppResources(facet).getItemsOfType(ResourceNamespace.TOOLS, ResourceType.SAMPLE_DATA).stream()
-        .map(itemName -> (SampleDataResourceItem)repository.getResourceItems(ResourceNamespace.TOOLS,
-                                                                             ResourceType.SAMPLE_DATA, itemName).get(0))
-        .filter(filter)
-        .map(item -> new ResourceChooserItem.SampleDataItem(item))
-        .collect(ImmutableList.toImmutableList());
+      SAMPLE_DATA_NS.stream()
+                    .flatMap(namespace -> repository.getResourceItems(namespace, ResourceType.SAMPLE_DATA).stream())
+                    .map(item -> (SampleDataResourceItem)item)
+                    .filter(filter)
+                    .map(item -> new ResourceChooserItem.SampleDataItem(item))
+                    .collect(ImmutableList.toImmutableList());
     return new ResourceChooserGroup("Sample data", ResourceType.SAMPLE_DATA, ImmutableList.sortedCopyOf(ITEM_COMPARATOR, items));
   }
 }
