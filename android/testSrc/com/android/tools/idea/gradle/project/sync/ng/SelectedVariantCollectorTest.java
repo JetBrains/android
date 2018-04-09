@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.ng;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.ng.SelectedVariantCollector.SelectedVariant;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.IdeaTestCase;
@@ -47,16 +48,18 @@ public class SelectedVariantCollectorTest extends IdeaTestCase {
   public void testAddSelectedVariantWithAndroidModule() {
     Module module = getModule();
 
+    GradleModuleModel gradleModel = mock(GradleModuleModel.class);
+    File rootPath = getBaseDirPath(getProject());
+    when(gradleModel.getRootFolderPath()).thenReturn(rootPath);
+    when(gradleModel.getGradlePath()).thenReturn(":app");
+
     GradleFacet facet = createAndAddGradleFacet(module);
-    facet.getConfiguration().GRADLE_PROJECT_PATH = ":app";
+    facet.setGradleModuleModel(gradleModel);
 
     IdeVariant variant = mock(IdeVariant.class);
     when(variant.getName()).thenReturn("release");
     AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
     when(androidModel.getSelectedVariant()).thenReturn(variant);
-
-    File moduleRootPath = getBaseDirPath(getProject());
-    when(androidModel.getRootDirPath()).thenReturn(moduleRootPath);
 
     AndroidFacet androidFacet = createAndAddAndroidFacet(module);
     androidFacet.getConfiguration().setModel(androidModel);
@@ -64,7 +67,7 @@ public class SelectedVariantCollectorTest extends IdeaTestCase {
     SelectedVariant selectedVariant = myCollector.findSelectedVariant(module);
     assertNotNull(selectedVariant);
 
-    assertEquals(createUniqueModuleId(moduleRootPath, ":app"), selectedVariant.moduleId);
+    assertEquals(createUniqueModuleId(rootPath, ":app"), selectedVariant.moduleId);
     assertEquals("release", selectedVariant.variantName);
   }
 

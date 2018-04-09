@@ -17,12 +17,15 @@ package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.io.File;
 
 import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
 
@@ -50,9 +53,12 @@ class SelectedVariantCollector {
   SelectedVariant findSelectedVariant(@NotNull Module module) {
     GradleFacet gradleFacet = GradleFacet.getInstance(module);
     if (gradleFacet != null) {
-      AndroidModuleModel androidModel = AndroidModuleModel.get(module);
-      if (androidModel != null) {
-        return new SelectedVariant(androidModel, gradleFacet.getConfiguration().GRADLE_PROJECT_PATH);
+      GradleModuleModel gradleModel = gradleFacet.getGradleModuleModel();
+      if (gradleModel != null) {
+        AndroidModuleModel androidModel = AndroidModuleModel.get(module);
+        if (androidModel != null) {
+          return new SelectedVariant(androidModel, gradleModel.getRootFolderPath(), gradleFacet.getConfiguration().GRADLE_PROJECT_PATH);
+        }
       }
     }
     return null;
@@ -63,8 +69,8 @@ class SelectedVariantCollector {
     @NotNull final String moduleId;
     @NotNull final String variantName;
 
-    SelectedVariant(@NotNull AndroidModuleModel androidModel, @NotNull String gradlePath) {
-      this.moduleId = createUniqueModuleId(androidModel.getRootDirPath(), gradlePath);
+    SelectedVariant(@NotNull AndroidModuleModel androidModel, @NotNull File rootFolderPath, @NotNull String gradlePath) {
+      this.moduleId = createUniqueModuleId(rootFolderPath, gradlePath);
       this.variantName = androidModel.getSelectedVariant().getName();
     }
   }

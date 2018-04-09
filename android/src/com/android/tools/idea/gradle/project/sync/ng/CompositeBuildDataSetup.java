@@ -48,7 +48,7 @@ public class CompositeBuildDataSetup {
                                       @NotNull Project project) {
     // Key: build id of included build
     Map<String, BuildParticipant> compositeParticipants = new HashMap<>();
-    for (SyncModuleModels moduleModels : projectModels.getSyncModuleModels()) {
+    for (SyncModuleModels moduleModels : projectModels.getModuleModels()) {
       GradleProject gradleProject = moduleModels.findModel(GradleProject.class);
       BuildIdentifier moduleBuildId = moduleModels.getBuildId();
       if (gradleProject == null || moduleBuildId == projectModels.getRootBuildId()) {

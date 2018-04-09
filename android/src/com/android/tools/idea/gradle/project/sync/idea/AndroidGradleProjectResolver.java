@@ -326,7 +326,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     for (IdeaModule ideaModule : rootIdeaProject.getChildren()) {
       GradleProject gradleProject = ideaModule.getGradleProject();
       if (gradleProject != null) {
-        String rootBuildId = gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir().getAbsolutePath();
+        String rootBuildId = gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir().getPath();
         myDependenciesFactory.setRootBuildId(rootBuildId);
         break;
       }
@@ -341,7 +341,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         GradleProject gradleProject = ideaModule.getGradleProject();
         if (gradleProject != null) {
           try {
-            String buildId = gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir().getAbsolutePath();
+            String buildId = gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir().getPath();
             myDependenciesFactory.findAndAddBuildFolderPath(buildId, gradleProject.getPath(), gradleProject.getBuildDirectory());
           }
           catch (UnsupportedOperationException exception) {

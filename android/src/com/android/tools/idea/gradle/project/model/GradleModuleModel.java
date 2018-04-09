@@ -36,11 +36,12 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
  */
 public class GradleModuleModel implements ModuleModel {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 2L;
 
   @NotNull private final String myModuleName;
   @NotNull private final List<String> myTaskNames;
   @NotNull private final String myGradlePath;
+  @NotNull private final File myRootFolderPath;
 
   @Nullable private final File myBuildFilePath;
   @Nullable private final String myGradleVersion;
@@ -55,7 +56,8 @@ public class GradleModuleModel implements ModuleModel {
                            @NotNull GradleProject gradleProject,
                            @Nullable File buildFilePath,
                            @Nullable String gradleVersion) {
-    this(moduleName, getTaskNames(gradleProject), gradleProject.getPath(), buildFilePath, gradleVersion);
+    this(moduleName, getTaskNames(gradleProject), gradleProject.getPath(),
+         gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir(), buildFilePath, gradleVersion);
   }
 
   @NotNull
@@ -77,11 +79,13 @@ public class GradleModuleModel implements ModuleModel {
   public GradleModuleModel(@NotNull String moduleName,
                            @NotNull List<String> taskNames,
                            @NotNull String gradlePath,
+                           @NotNull File rootFolderPath,
                            @Nullable File buildFilePath,
                            @Nullable String gradleVersion) {
     myModuleName = moduleName;
     myTaskNames = taskNames;
     myGradlePath = gradlePath;
+    myRootFolderPath = rootFolderPath;
     myBuildFilePath = buildFilePath;
     myGradleVersion = gradleVersion;
   }
@@ -98,6 +102,11 @@ public class GradleModuleModel implements ModuleModel {
   @NotNull
   public String getGradlePath() {
     return myGradlePath;
+  }
+
+  @NotNull
+  public File getRootFolderPath() {
+    return myRootFolderPath;
   }
 
   @NotNull

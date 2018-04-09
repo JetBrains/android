@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.ng;
 import com.android.tools.idea.Projects;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -83,7 +84,9 @@ public class SelectedVariantCollectorIntegrationTest extends AndroidGradleTestCa
       if (androidModel != null) {
         GradleFacet gradleFacet = GradleFacet.getInstance(module);
         assertNotNull(gradleFacet);
-        String moduleId = createUniqueModuleId(androidModel.getRootDirPath(), gradleFacet.getConfiguration().GRADLE_PROJECT_PATH);
+        GradleModuleModel gradleModel = gradleFacet.getGradleModuleModel();
+        assertNotNull(gradleModel);
+        String moduleId = createUniqueModuleId(gradleModel.getRootFolderPath(), gradleFacet.getConfiguration().GRADLE_PROJECT_PATH);
         expectedVariantPerModule.put(moduleId, androidModel.getSelectedVariant().getName());
       }
     }

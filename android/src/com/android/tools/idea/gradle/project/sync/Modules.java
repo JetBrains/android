@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import org.gradle.tooling.model.GradleProject;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -23,29 +24,35 @@ public final class Modules {
   private Modules() {
   }
 
-  /**
-   * This method creates a unique string identifier for a module, the value is project id plus Gradle path.
-   * For example: "/path/to/project1:lib", or "/path/to/project1:lib1".
-   *
-   * @param folderPath path to project root folder.
-   * @param gradlePath gradle path of a module.
-   * @return a unique identifier for a module, i.e. project folder path + Gradle path.
-   */
   @NotNull
-  public static String createUniqueModuleId(@NotNull File folderPath, @NotNull String gradlePath) {
-    return createUniqueModuleId(folderPath.getPath(), gradlePath);
+  public static String createUniqueModuleId(@NotNull GradleProject gradleProject) {
+    File rootProjectFolderPath = gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir();
+    return createUniqueModuleId(rootProjectFolderPath.getPath(), gradleProject.getPath());
   }
 
   /**
    * This method creates a unique string identifier for a module, the value is project id plus Gradle path.
    * For example: "/path/to/project1:lib", or "/path/to/project1:lib1".
    *
-   * @param folderPath path to project root folder.
-   * @param gradlePath gradle path of a module.
+   * @param rootProjectFolderPath path to project root folder.
+   * @param gradlePath            Gradle path of a module.
    * @return a unique identifier for a module, i.e. project folder path + Gradle path.
    */
   @NotNull
-  public static String createUniqueModuleId(@NotNull String folderPath, @NotNull String gradlePath) {
-    return folderPath + ':' + gradlePath;
+  public static String createUniqueModuleId(@NotNull File rootProjectFolderPath, @NotNull String gradlePath) {
+    return createUniqueModuleId(rootProjectFolderPath.getPath(), gradlePath);
+  }
+
+  /**
+   * This method creates a unique string identifier for a module, the value is project id plus Gradle path.
+   * For example: "/path/to/project1:lib", or "/path/to/project1:lib1".
+   *
+   * @param rootProjectFolderPath path to project root folder.
+   * @param gradlePath            Gradle path of a module.
+   * @return a unique identifier for a module, i.e. project folder path + Gradle path.
+   */
+  @NotNull
+  public static String createUniqueModuleId(@NotNull String rootProjectFolderPath, @NotNull String gradlePath) {
+    return rootProjectFolderPath + ':' + gradlePath;
   }
 }

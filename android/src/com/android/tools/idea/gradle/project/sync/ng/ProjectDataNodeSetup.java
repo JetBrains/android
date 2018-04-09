@@ -51,7 +51,7 @@ public class ProjectDataNodeSetup {
     assert projectFolder != null;
     ProjectData projectData = new ProjectData(SYSTEM_ID, project.getName(), projectFolder, projectFolder);
     DataNode<ProjectData> projectDataNode = new DataNode<>(ProjectKeys.PROJECT, projectData, null);
-    for (GradleModuleModels moduleModels : projectModels.getSyncModuleModels()) {
+    for (GradleModuleModels moduleModels : projectModels.getModuleModels()) {
       DataNode<ModuleData> moduleData = createModuleDataNode(moduleModels, projectDataNode);
       createTaskDataNode(moduleModels, moduleData);
     }

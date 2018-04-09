@@ -85,7 +85,7 @@ public class CompositeBuildDataSetupTest extends IdeaTestCase {
     // Modules for project2.
     moduleModels.addAll(createSyncModuleModels("/path/to/project2", false));
 
-    when(mySyncProjectModels.getSyncModuleModels()).thenReturn(moduleModels);
+    when(mySyncProjectModels.getModuleModels()).thenReturn(moduleModels);
 
     CachedProjectModels.Factory cacheFactory = new CachedProjectModels.Factory();
     CachedProjectModels cache = cacheFactory.createNew();

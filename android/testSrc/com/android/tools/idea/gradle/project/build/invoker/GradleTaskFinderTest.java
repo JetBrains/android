@@ -19,6 +19,7 @@ import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.tools.idea.Projects;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
@@ -316,11 +317,13 @@ public class GradleTaskFinderTest extends IdeaTestCase {
     setUpModuleAsGradleModule(module);
   }
 
-  private static void setUpModuleAsGradleModule(Module module) {
+  private static void setUpModuleAsGradleModule(@NotNull Module module) {
     GradleFacet gradleFacet = createAndAddGradleFacet(module);
     gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = GRADLE_PATH_SEPARATOR + module.getName();
 
-    GradleModuleModel model = new GradleModuleModel(module.getName(), Collections.emptyList(), GRADLE_PATH_SEPARATOR + module.getName(), null, null);
+    String gradlePath = GRADLE_PATH_SEPARATOR + module.getName();
+    GradleModuleModel model = new GradleModuleModel(module.getName(), Collections.emptyList(), gradlePath,
+                                                    getBaseDirPath(module.getProject()), null, null);
     gradleFacet.setGradleModuleModel(model);
   }
 }
