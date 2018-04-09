@@ -54,18 +54,18 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   private static final String HORIZONTAL_TOOL_TIP_TEXT = "Horizontal Bias";
   private static final String VERTICAL_TOOL_TIP_TEXT = "Vertical Bias";
   private static final Color mSliderColor = new JBColor(0xC9C9C9, 0x242627);
-  private final SingleWidgetView mMain;
+  @NotNull private final SingleWidgetView mMain;
   private final JSlider mVerticalSlider = new JSlider(SwingConstants.VERTICAL);
   private final JSlider mHorizontalSlider = new JSlider(SwingConstants.HORIZONTAL);
   private boolean mConfiguringUI = false;
-  NlComponent mComponent;
+  @Nullable NlComponent mComponent;
   private static final int UNCONNECTED = -1;
   private Runnable myWriteAction;
   private final static int SLIDER_DEFAULT = 50;
   public final static String VERTICAL_BIAS_SLIDER = "verticalBiasSlider";
   public final static String HORIZONTAL_BIAS_SLIDER = "horizontalBiasSlider";
   private final static int DELAY_BEFORE_COMMIT = 400; // ms
-  private Timer myTimer = new Timer(DELAY_BEFORE_COMMIT, (c) -> {
+  @Nullable private final Timer myTimer = new Timer(DELAY_BEFORE_COMMIT, (c) -> {
     if (myWriteAction != null) {
       ApplicationManager.getApplication().invokeLater(myWriteAction);
     }
@@ -76,7 +76,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
    * This is usually set when the panel is being updated from the widget so there is no need to
    * feed the changes back to the widget.
    */
-  private ChangeListener myChangeLiveListener = e -> configureUI();
+  @NotNull private final ChangeListener myChangeLiveListener = e -> configureUI();
 
   public void setAspect(String aspect) {
     setSherpaAttribute(SdkConstants.ATTR_LAYOUT_DIMENSION_RATIO, aspect);
@@ -88,7 +88,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
       mDrawWidgetInfos = true;
       mInspectorBackgroundColor = StudioColorsKt.getSecondaryPanelBackground();
       mInspectorFillColor = StudioColorsKt.getSecondaryPanelBackground();
-      mInspectorHighlightsStrokeColor = new JBColor(0xB0B0B0,0x6F7171);
+      mInspectorHighlightsStrokeColor = new JBColor(0xB0B0B0, 0x6F7171);
       mInspectorStrokeColor = new JBColor(0x8A8A8A, 0x808080);
       mInspectorConstraintColor = new JBColor(0x4481d8, 0x4880c8);
     }
@@ -152,7 +152,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   }
 
   // Reset mouse on double click
-  MouseListener mDoubleClickListener = new MouseAdapter() {
+  @NotNull MouseListener mDoubleClickListener = new MouseAdapter() {
     @Override
     public void mouseClicked(MouseEvent e) {
       if (e.getClickCount() == 2) {
@@ -171,7 +171,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   private static final int CONNECTION_BOTTOM = 3;
   private static final int CONNECTION_BASELINE = 4;
 
-  private static String[][] ourConstraintString_ltr = {{
+  private static final String[][] ourConstraintString_ltr = {{
     SdkConstants.ATTR_LAYOUT_START_TO_START_OF,
     SdkConstants.ATTR_LAYOUT_START_TO_END_OF,
     SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF,
@@ -190,7 +190,8 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   }, {
     SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF
   }};
-  private static String[][] ourConstraintString_rtl = {{
+
+  private static final String[][] ourConstraintString_rtl = {{
     SdkConstants.ATTR_LAYOUT_END_TO_START_OF,
     SdkConstants.ATTR_LAYOUT_END_TO_END_OF,
     SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF,
@@ -209,19 +210,19 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF
   }};
 
-  private static String[][] ourMarginString_ltr = {
+  private static final String[][] ourMarginString_ltr = {
     {SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, SdkConstants.ATTR_LAYOUT_MARGIN_START},
     {SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, SdkConstants.ATTR_LAYOUT_MARGIN_END},
     {SdkConstants.ATTR_LAYOUT_MARGIN_TOP},
     {SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM},
   };
-  private static String[][] ourMarginString_rtl = {
+  private static final String[][] ourMarginString_rtl = {
     {SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, SdkConstants.ATTR_LAYOUT_MARGIN_END},
     {SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, SdkConstants.ATTR_LAYOUT_MARGIN_START},
     {SdkConstants.ATTR_LAYOUT_MARGIN_TOP},
     {SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM},
   };
-  private static String[][] ourDeleteAttributes = {
+  private static final String[][] ourDeleteAttributes = {
     {
       SdkConstants.ATTR_LAYOUT_START_TO_START_OF,
       SdkConstants.ATTR_LAYOUT_START_TO_END_OF,
@@ -249,7 +250,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     {SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF}
   };
 
-  private static String[][] ourDeleteNamespace = {
+  private static final String[][] ourDeleteNamespace = {
     {SdkConstants.SHERPA_URI,
       SdkConstants.SHERPA_URI,
       SdkConstants.SHERPA_URI,
@@ -276,6 +277,9 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   };
 
   private int getMargin(int type) {
+    if (mComponent == null) {
+      return 0;
+    }
     boolean rtl = ConstraintUtilities.isInRTL(mComponent);
 
     String[][] marginsAttr = rtl ? ourMarginString_rtl : ourMarginString_ltr;
@@ -358,7 +362,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     mConfiguringUI = false;
   }
 
-  private static float parseFloat(String string, float defaultValue) {
+  private static float parseFloat(@Nullable String string, float defaultValue) {
     if (string != null && !string.isEmpty()) {
       try {
         return Float.parseFloat(string);
@@ -371,15 +375,18 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   }
 
 
-  private static int getDimension(NlComponent component, String nameSpace, String attribute) {
-    String v = component.getLiveAttribute(nameSpace, attribute);
-    if ("wrap_content".equalsIgnoreCase(v)) {
+  private static int getDimension(@NotNull NlComponent component, @NotNull String attribute) {
+    String v = component.getLiveAttribute(SdkConstants.ANDROID_URI, attribute);
+    if (SdkConstants.VALUE_WRAP_CONTENT.equalsIgnoreCase(v)) {
       return -1;
     }
     return ConstraintUtilities.getDpValue(component, v);
   }
 
-  private void setDimension(NlComponent component, String attribute, int currentValue) {
+  private void setDimension(@Nullable NlComponent component, @Nullable String attribute, int currentValue) {
+    if (component == null) {
+      return;
+    }
     attribute = ConstraintComponentUtilities.mapStartEndStrings(component, attribute);
     String marginString = component.getLiveAttribute(SdkConstants.ANDROID_URI, attribute);
     int marginValue = -1;
@@ -395,19 +402,21 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     }
   }
 
-  private void setAndroidAttribute(String attribute, String value) {
+  private void setAndroidAttribute(@NotNull String attribute, @Nullable String value) {
     setAttribute(SdkConstants.ANDROID_URI, attribute, value);
   }
 
-  private void setSherpaAttribute(String attribute, String value) {
+  private void setSherpaAttribute(@NotNull String attribute, @Nullable String value) {
     setAttribute(SdkConstants.SHERPA_URI, attribute, value);
   }
 
-  private void setAttribute(String nameSpace, String attribute, String value) {
-    setAttribute(mComponent, nameSpace, attribute, value);
+  private void setAttribute(@NotNull String nameSpace, @NotNull String attribute, @Nullable String value) {
+    if (mComponent != null) {
+      setAttribute(mComponent, nameSpace, attribute, value);
+    }
   }
 
-  private void setAttribute(NlComponent component, String nameSpace, String attribute, String value) {
+  private void setAttribute(@NotNull NlComponent component, @NotNull String nameSpace, @NotNull String attribute, @Nullable String value) {
     if (mConfiguringUI) {
       return;
     }
@@ -429,6 +438,9 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   }
 
   private void removeAttribute(int type) {
+    if (mComponent == null) {
+      return;
+    }
     String label = "Constraint Disconnected";
     String[] attribute = ourDeleteAttributes[type];
     String[] namespace = ourDeleteNamespace[type];
@@ -454,8 +466,11 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
    *
    * @return
    */
-  private int convertFromNL(String attribute) {
-    int dimen = getDimension(mComponent, SdkConstants.ANDROID_URI, attribute);
+  private int convertFromNL(@NotNull String attribute) {
+    if (mComponent == null) {
+      return SingleWidgetView.WRAP_CONTENT;
+    }
+    int dimen = getDimension(mComponent, attribute);
     switch (dimen) {
       default:
         return SingleWidgetView.FIXED;
@@ -472,11 +487,8 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
    * @return
    */
   private boolean hasBaseline() {
-    return null != getSherpaAttribute(SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF);
-  }
-
-  private String getSherpaAttribute(String attr) {
-    return mComponent.getLiveAttribute(SdkConstants.SHERPA_URI, attr);
+    return mComponent != null &&
+           mComponent.getLiveAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF) != null;
   }
 
   private void updateComponent(@Nullable NlComponent component) {
@@ -486,12 +498,6 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     mComponent = isApplicable(component) ? component : null;
     if (mComponent != null) {
       mComponent.addLiveChangeListener(myChangeLiveListener);
-      //mComponent.getModel().getSelectionModel().addListener(new SelectionListener() {
-      //  @Override
-      //  public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
-      //    widgetChanged();
-      //  }
-      //});
       configureUI();
     }
   }
@@ -530,6 +536,9 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   }
 
   private void setHorizontalBias() {
+    if (mComponent == null) {
+      return;
+    }
     int biasVal = mHorizontalSlider.getValue();
     float bias = (biasVal / 100f);
     String biasString = (biasVal == 50) ? null : Float.toString(bias);
@@ -542,7 +551,8 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     }
   }
 
-  private static NlComponent findInHorizontalChain(NlComponent component) {
+  @Nullable
+  private static NlComponent findInHorizontalChain(@NotNull NlComponent component) {
     if (ConstraintComponentUtilities
           .isInChain(ConstraintComponentUtilities.ourRightAttributes, ConstraintComponentUtilities.ourLeftAttributes, component)
         ||
@@ -563,7 +573,8 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     return null;
   }
 
-  private static NlComponent findInVerticalChain(NlComponent component) {
+  @Nullable
+  private static NlComponent findInVerticalChain(@NotNull NlComponent component) {
     if (ConstraintComponentUtilities
           .isInChain(ConstraintComponentUtilities.ourBottomAttributes, ConstraintComponentUtilities.ourTopAttributes, component)
         ||
@@ -576,6 +587,9 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   }
 
   private void setVerticalBias() {
+    if (mComponent == null) {
+      return;
+    }
     int biasVal = mVerticalSlider.getValue();
     float bias = 1f - (biasVal / 100f);
     String biasString = (biasVal == 50) ? null : Float.toString(bias);
@@ -628,6 +642,9 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   }
 
   public void setHorizontalConstraint(int horizontalConstraint) {
+    if (mComponent == null) {
+      return;
+    }
     String width = mComponent.getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH);
     assert width != null;
 
@@ -652,6 +669,9 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   }
 
   public void setVerticalConstraint(int verticalConstraint) {
+    if (mComponent == null) {
+      return;
+    }
     String height = mComponent.getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT);
     assert height != null;
 
@@ -681,7 +701,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
 
   static class WidgetSliderUI extends BasicSliderUI {
     static final int thumbSize = 18;
-    private static Font sSmallFont = new Font("Helvetica", Font.PLAIN, 10);
+    @NotNull private static Font sSmallFont = new Font("Helvetica", Font.PLAIN, 10);
     ColorSet mColorSet;
 
     WidgetSliderUI(JSlider s, ColorSet colorSet) {
@@ -689,6 +709,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
       mColorSet = colorSet;
     }
 
+    @NotNull
     @Override
     protected Dimension getThumbSize() {
       return new Dimension(thumbSize, thumbSize);
@@ -720,6 +741,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
       return mColorSet.getInspectorStrokeColor();
     }
 
+    @NotNull
     @Override
     protected Color getFocusColor() {
       return new Color(0, 0, 0, 0);
