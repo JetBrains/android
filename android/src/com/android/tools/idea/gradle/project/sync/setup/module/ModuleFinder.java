@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
 import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
 import static com.google.common.base.Strings.nullToEmpty;
 
@@ -75,14 +76,14 @@ public class ModuleFinder {
 
   public void addModule(@NotNull Module module, @NotNull String gradlePath) {
     myModulesByGradlePath.put(gradlePath, module);
-    File folderPath = getProjectFolder(module);
+    File folderPath = getProjectRootFolder(module);
     if (folderPath != null) {
-      myModulesByModuleId.put(Modules.createUniqueModuleId(folderPath, gradlePath), module);
+      myModulesByModuleId.put(createUniqueModuleId(folderPath, gradlePath), module);
     }
   }
 
   @Nullable
-  private File getProjectFolder(@NotNull Module module) {
+  private File getProjectRootFolder(@NotNull Module module) {
     File moduleFolder = findModuleRootFolderPath(module);
     if (moduleFolder != null) {
       String modulePath = moduleFolder.getPath();

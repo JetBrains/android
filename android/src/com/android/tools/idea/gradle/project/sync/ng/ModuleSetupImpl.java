@@ -232,7 +232,7 @@ class ModuleSetupImpl extends ModuleSetup {
     String projectRootFolderPath = nullToEmpty(myProject.getBasePath());
 
     ModuleFinder moduleFinder = myModuleFinderFactory.create(myProject);
-    for (GradleModuleModels moduleModels : projectModels.getSyncModuleModels()) {
+    for (GradleModuleModels moduleModels : projectModels.getModuleModels()) {
       Module module = myModuleFactory.createModule(moduleModels);
 
       // This is needed by GradleOrderEnumeratorHandler#addCustomModuleRoots. Without this option, sync will fail.
@@ -259,11 +259,11 @@ class ModuleSetupImpl extends ModuleSetup {
    */
   private void populateModuleBuildFolders(@NotNull SyncProjectModels projectModels) {
     myDependenciesFactory.setRootBuildId(projectModels.getRootBuildId().getRootDir().getAbsolutePath());
-    for (GradleModuleModels moduleModels : projectModels.getSyncModuleModels()) {
+    for (GradleModuleModels moduleModels : projectModels.getModuleModels()) {
       GradleProject gradleProject = moduleModels.findModel(GradleProject.class);
       if (gradleProject != null) {
         try {
-          String buildId = gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir().getAbsolutePath();
+          String buildId = gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir().getPath();
           myDependenciesFactory.findAndAddBuildFolderPath(buildId, gradleProject.getPath(), gradleProject.getBuildDirectory());
         }
         catch (UnsupportedOperationException exception) {

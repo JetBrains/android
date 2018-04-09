@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.level2.GlobalLibraryMap;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.BuildIdentifier;
@@ -28,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.Serializable;
 import java.util.*;
 
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
 
@@ -38,18 +40,28 @@ public class SyncProjectModels implements Serializable {
   @NotNull private final Set<Class<?>> myExtraAndroidModelTypes;
   @NotNull private final Set<Class<?>> myExtraJavaModelTypes;
   @NotNull private final SyncActionOptions myOptions;
+  @NotNull private final SelectedVariantChooser myVariantChooser;
 
   // List of SyncModuleModels for modules in root build and included builds.
-  @NotNull private final List<SyncModuleModels> mySyncModuleModels = new ArrayList<>();
+  @NotNull private final List<SyncModuleModels> myModuleModels = new ArrayList<>();
   @NotNull private final List<GlobalLibraryMap> myGlobalLibraryMaps = new ArrayList<>();
   private BuildIdentifier myRootBuildId;
 
   public SyncProjectModels(@NotNull Set<Class<?>> extraAndroidModelTypes,
                            @NotNull Set<Class<?>> extraJavaModelTypes,
                            @NotNull SyncActionOptions options) {
+    this(extraAndroidModelTypes, extraJavaModelTypes, options, new SelectedVariantChooser());
+  }
+
+  @VisibleForTesting
+  SyncProjectModels(@NotNull Set<Class<?>> extraAndroidModelTypes,
+                    @NotNull Set<Class<?>> extraJavaModelTypes,
+                    @NotNull SyncActionOptions options,
+                    @NotNull SelectedVariantChooser variantChooser) {
     myExtraAndroidModelTypes = extraAndroidModelTypes;
     myExtraJavaModelTypes = extraJavaModelTypes;
     myOptions = options;
+    myVariantChooser = variantChooser;
   }
 
   public void populate(@NotNull BuildController controller) {
@@ -70,6 +82,16 @@ public class SyncProjectModels implements Serializable {
     deduplicateModuleNames();
     // Request for GlobalLibraryMap model.
     populateGlobalLibraryMap(controller);
+
+    if (myOptions.isSingleVariantSyncEnabled()) {
+      SelectedVariants variants = myOptions.getSelectedVariants();
+      requireNonNull(variants);
+
+      if (variants.size() == 0) {
+        // First time syncing project, we need to automatically choose the "selected" variant.
+        myVariantChooser.chooseSelectedVariants(myModuleModels, controller);
+      }
+    }
   }
 
   private void populateModelsForModule(@Nullable GradleProject project,
@@ -80,7 +102,7 @@ public class SyncProjectModels implements Serializable {
     }
     SyncModuleModels models = new SyncModuleModels(project, buildId, myExtraAndroidModelTypes, myExtraJavaModelTypes, myOptions);
     models.populate(project, controller);
-    mySyncModuleModels.add(models);
+    myModuleModels.add(models);
 
     for (GradleProject child : project.getChildren()) {
       populateModelsForModule(child, controller, buildId);
@@ -89,8 +111,8 @@ public class SyncProjectModels implements Serializable {
 
   // If there are duplicated module names, update module name to include project name.
   private void deduplicateModuleNames() {
-    Map<String, Long> nameCount = mySyncModuleModels.stream().collect(groupingBy(m -> m.getModuleName(), counting()));
-    for (SyncModuleModels moduleModel : mySyncModuleModels) {
+    Map<String, Long> nameCount = myModuleModels.stream().collect(groupingBy(m -> m.getModuleName(), counting()));
+    for (SyncModuleModels moduleModel : myModuleModels) {
       String moduleName = moduleModel.getModuleName();
       if (nameCount.get(moduleName) > 1) {
         moduleModel.deduplicateModuleName();
@@ -102,7 +124,7 @@ public class SyncProjectModels implements Serializable {
     // GlobalLibraryMap can only be requested by android module.
     // Each included project has an instance of GlobalLibraryMap, so the model needs to be requested once for each included project.
     Set<BuildIdentifier> visitedBuildId = new HashSet<>();
-    for (SyncModuleModels moduleModels : mySyncModuleModels) {
+    for (SyncModuleModels moduleModels : myModuleModels) {
       AndroidProject androidProject = moduleModels.findModel(AndroidProject.class);
       BuildIdentifier buildId = moduleModels.getBuildId();
       if (androidProject != null && !visitedBuildId.contains(buildId)) {
@@ -116,8 +138,8 @@ public class SyncProjectModels implements Serializable {
   }
 
   @NotNull
-  public List<SyncModuleModels> getSyncModuleModels() {
-    return ImmutableList.copyOf(mySyncModuleModels);
+  public List<SyncModuleModels> getModuleModels() {
+    return ImmutableList.copyOf(myModuleModels);
   }
 
   /**

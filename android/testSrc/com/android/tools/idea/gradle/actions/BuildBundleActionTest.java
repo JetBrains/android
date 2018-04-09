@@ -39,6 +39,7 @@ import org.mockito.Mock;
 import java.util.Collections;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -107,10 +108,11 @@ public class BuildBundleActionTest extends IdeaTestCase {
 
   private static void setUpModuleAsGradleModule(@NotNull Module module) {
     GradleFacet gradleFacet = createAndAddGradleFacet(module);
-    gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = GRADLE_PATH_SEPARATOR + module.getName();
+    String gradlePath = GRADLE_PATH_SEPARATOR + module.getName();
+    gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = gradlePath;
 
-    GradleModuleModel
-      model = new GradleModuleModel(module.getName(), Collections.emptyList(), GRADLE_PATH_SEPARATOR + module.getName(), null, null);
+    GradleModuleModel model = new GradleModuleModel(module.getName(), Collections.emptyList(), gradlePath,
+                                                    getBaseDirPath(module.getProject()), null, null);
     gradleFacet.setGradleModuleModel(model);
   }
 }

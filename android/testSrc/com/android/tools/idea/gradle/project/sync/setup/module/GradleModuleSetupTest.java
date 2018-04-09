@@ -36,6 +36,7 @@ import org.mockito.Mock;
 
 import java.io.File;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
 import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
 import static com.android.tools.idea.testing.FileSubject.file;
@@ -73,7 +74,7 @@ public class GradleModuleSetupTest extends IdeaTestCase {
     myBuildFile = new File(findModuleRootFolderPath(myModule), SdkConstants.FN_BUILD_GRADLE);
     createIfNotExists(myBuildFile);
 
-    myGradleProject = new GradleProjectStub("app", ":app", myBuildFile, "assemble");
+    myGradleProject = new GradleProjectStub("app", ":app", getBaseDirPath(project), myBuildFile, "assemble");
 
     mySyncSummary = new GradleSyncSummary(project);
     when(mySyncState.getSummary()).thenReturn(mySyncSummary);

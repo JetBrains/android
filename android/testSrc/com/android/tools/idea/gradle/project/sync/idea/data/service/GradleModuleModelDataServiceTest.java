@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
+import com.android.tools.idea.Projects;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.GradleModuleSetup;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -27,6 +28,7 @@ import org.mockito.Mock;
 import java.util.Collection;
 import java.util.Collections;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -56,7 +58,8 @@ public class GradleModuleModelDataServiceTest extends IdeaTestCase {
   public void testImportData() {
     String appModuleName = "app";
     Module appModule = createModule(appModuleName);
-    GradleModuleModel model = new GradleModuleModel(appModuleName, Collections.emptyList(), ":app", null, null);
+    GradleModuleModel model = new GradleModuleModel(appModuleName, Collections.emptyList(), ":app", getBaseDirPath(getProject()), null,
+                                                    null);
 
     DataNode<GradleModuleModel> dataNode = new DataNode<>(GRADLE_MODULE_MODEL, model, null);
     Collection<DataNode<GradleModuleModel>> dataNodes = Collections.singleton(dataNode);

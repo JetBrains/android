@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
+import static java.util.Objects.requireNonNull;
 
 public class SyncModuleModels implements GradleModuleModels {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
@@ -86,28 +87,27 @@ public class SyncModuleModels implements GradleModuleModels {
   private AndroidProject findAndAddAndroidProject(@NotNull GradleProject gradleProject, @NotNull BuildController controller) {
     if (myOptions.isSingleVariantSyncEnabled()) {
       SelectedVariants variants = myOptions.getSelectedVariants();
-      if (variants.size() == 0) {
-        // syncing project for the first time. We need to pick the selected variant.
-        throw new UnsupportedOperationException(); // TODO add support for automatically picking a variant
-      }
-      String moduleId = createUniqueModuleId(gradleProject.getProjectDirectory(), gradleProject.getPath());
+      requireNonNull(variants);
+      String moduleId = createUniqueModuleId(gradleProject);
       String selectedVariant = variants.getSelectedVariant(moduleId);
-      if (selectedVariant != null) {
-        try {
-          AndroidProject androidProject = controller.getModel(gradleProject, AndroidProject.class, ModelBuilderParameter.class,
-                                                              parameter -> parameter.setShouldBuildVariant(false));
-          if (androidProject != null) {
-            // TODO: what does it mean if we get a null AndroidProject?
-            myModelsByType.put(AndroidProject.class, androidProject);
+      try {
+        AndroidProject androidProject = controller.getModel(gradleProject, AndroidProject.class, ModelBuilderParameter.class,
+                                                            parameter -> parameter.setShouldBuildVariant(false));
+        if (androidProject != null) {
+          myModelsByType.put(AndroidProject.class, androidProject);
+          if (selectedVariant != null) {
             Variant variant = controller.getModel(gradleProject, Variant.class, ModelBuilderParameter.class,
                                                   parameter -> parameter.setVariantName(selectedVariant));
-            myModelsByType.put(Variant.class, variant);
-            return androidProject;
+            if (variant != null) {
+              addVariant(variant);
+            }
           }
+
+          return androidProject;
         }
-        catch (UnsupportedVersionException e) {
-          // Using old version of Gradle.
-        }
+      }
+      catch (UnsupportedVersionException e) {
+        // Using old version of Gradle.
       }
     }
     return findAndAddModel(gradleProject, controller, AndroidProject.class);
@@ -153,5 +153,9 @@ public class SyncModuleModels implements GradleModuleModels {
       return modelType.cast(model);
     }
     return null;
+  }
+
+  void addVariant(@NotNull Variant variant) {
+    myModelsByType.put(Variant.class, variant);
   }
 }

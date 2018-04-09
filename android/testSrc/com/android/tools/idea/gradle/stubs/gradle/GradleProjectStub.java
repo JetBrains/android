@@ -30,13 +30,19 @@ import java.util.List;
 public class GradleProjectStub implements GradleProject {
   @NotNull private final String myName;
   @NotNull private final String myPath;
+  @NotNull private final ProjectIdentifierStub myProjectIdentifier;
   @NotNull private final GradleScriptStub myScript;
   @NotNull private final List<GradleTaskStub> myTasks;
 
-  public GradleProjectStub(@NotNull String name, @NotNull String path, @Nullable File projectFile, @NotNull String... tasks) {
+  public GradleProjectStub(@NotNull String name,
+                           @NotNull String path,
+                           @NotNull File rootDir,
+                           @NotNull File projectFile,
+                           @NotNull String... tasks) {
     myName = name;
     myPath = path;
     myScript = new GradleScriptStub(projectFile);
+    myProjectIdentifier = new ProjectIdentifierStub(rootDir);
     myTasks = Lists.newArrayList();
     for (String taskName : tasks) {
       GradleTaskStub task = new GradleTaskStub(taskName, this);
@@ -99,5 +105,5 @@ public class GradleProjectStub implements GradleProject {
   }
 
   @Override
-  public ProjectIdentifier getProjectIdentifier() { throw new UnsupportedOperationException(); }
+  public ProjectIdentifier getProjectIdentifier() { return myProjectIdentifier; }
 }

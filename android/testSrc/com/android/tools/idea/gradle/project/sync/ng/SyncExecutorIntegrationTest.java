@@ -33,12 +33,12 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
 import static com.android.tools.idea.testing.AndroidGradleTests.replaceRegexGroup;
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH1_DOT5;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
+import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
 import static com.google.common.io.Files.write;
 import static com.google.common.truth.Truth.assertThat;
 import static java.util.concurrent.TimeUnit.MINUTES;
@@ -92,18 +92,44 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
     syncListener.propagateFailureIfAny();
 
     SyncProjectModels models = syncListener.getModels();
-    Map<String, SyncModuleModels> modelsByModule = indexByModuleName(models.getSyncModuleModels());
+    Map<String, SyncModuleModels> modelsByModule = indexByModuleName(models.getModuleModels());
     assertThat(modelsByModule).hasSize(2);
 
-    SyncModuleModels appModels = modelsByModule.get("app");
-    AndroidProject androidProject = appModels.findModel(AndroidProject.class);
+    verifySelectedSingleVariant(modelsByModule.get("app"), "release");
+  }
+
+  public void testSyncProjectWithSingleVariantSyncOnFirstTime() throws Throwable {
+    StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
+
+    prepareProjectForImport(TRANSITIVE_DEPENDENCIES);
+
+    Project project = getProject();
+
+    SyncExecutor syncExecutor = new SyncExecutor(project);
+
+    SyncListener syncListener = new SyncListener();
+    syncExecutor.syncProject(new MockProgressIndicator(), syncListener);
+    syncListener.await();
+
+    syncListener.propagateFailureIfAny();
+
+    SyncProjectModels models = syncListener.getModels();
+    Map<String, SyncModuleModels> modelsByModule = indexByModuleName(models.getModuleModels());
+
+    verifySelectedSingleVariant(modelsByModule.get("app"), "debug");
+    verifySelectedSingleVariant(modelsByModule.get("library1"), "debug");
+    verifySelectedSingleVariant(modelsByModule.get("library2"), "debug");
+  }
+
+  private static void verifySelectedSingleVariant(@NotNull SyncModuleModels moduleModels, @NotNull String selectedVariant) {
+    AndroidProject androidProject = moduleModels.findModel(AndroidProject.class);
     assertNotNull(androidProject);
     Collection<Variant> variants = androidProject.getVariants();
     assertThat(variants).isEmpty();
 
-    Variant variant = appModels.findModel(Variant.class);
+    Variant variant = moduleModels.findModel(Variant.class);
     assertNotNull(variant);
-    assertEquals("release", variant.getName());
+    assertEquals(selectedVariant, variant.getName());
   }
 
   public void testSingleVariantSyncWithOldGradleVersion() throws Throwable {
@@ -137,7 +163,7 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
 
     syncListener.propagateFailureIfAny();
     SyncProjectModels models = syncListener.getModels();
-    Map<String, SyncModuleModels> modelsByModule = indexByModuleName(models.getSyncModuleModels());
+    Map<String, SyncModuleModels> modelsByModule = indexByModuleName(models.getModuleModels());
     assertThat(modelsByModule).hasSize(2);
 
     SyncModuleModels appModels = modelsByModule.get("app");
@@ -149,14 +175,12 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
 
   @NotNull
   private SelectedVariantCollector simulateSelectedVariant(@NotNull String moduleName, @NotNull String selectedVariant) {
-    File moduleFolderPath = new File(getProjectFolderPath(), moduleName);
-    assertTrue("Path for module '" + moduleName + "' not found", moduleFolderPath.isDirectory());
     return new SelectedVariantCollector(getProject()) {
       @Override
       @NotNull
       SelectedVariants collectSelectedVariants() {
         SelectedVariants selectedVariants = new SelectedVariants();
-        String moduleId = createUniqueModuleId(moduleFolderPath, ":" + moduleName);
+        String moduleId = createUniqueModuleId(getProjectFolderPath(), ":" + moduleName);
         selectedVariants.addSelectedVariant(moduleId, selectedVariant);
         return selectedVariants;
       }
@@ -174,14 +198,13 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
 
   private static class SyncListener extends SyncExecutionCallback {
     @NotNull private final CountDownLatch myCountDownLatch = new CountDownLatch(1);
-    @NotNull private final AtomicBoolean myFailed = new AtomicBoolean();
+    private boolean myFailed;
 
     SyncListener() {
       doWhenDone(() -> myCountDownLatch.countDown());
 
-      AtomicBoolean failed = new AtomicBoolean();
       doWhenRejected(s -> {
-        failed.set(true);
+        myFailed = true;
         myCountDownLatch.countDown();
       });
     }
@@ -191,7 +214,7 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
     }
 
     void propagateFailureIfAny() throws Throwable {
-      if (myFailed.get()) {
+      if (myFailed) {
         Throwable error = getSyncError();
         if (error != null) {
           throw error;
