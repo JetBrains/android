@@ -57,7 +57,7 @@ class ImageViewAssistant(
 
   private var selectedSampleItem: SampleDataResourceItem? = null
 
-  private val originalValue = imageHandler.getSampleSrc(nlComponent)
+  private val originalValue = imageHandler.getToolsSrc(nlComponent)
 
   private val itemNameLabel = assistantLabel(getSampleItemDisplayName(originalValue))
 
@@ -192,7 +192,7 @@ class ImageViewAssistant(
     val useAll = resourceValueIndex < 0
     val itemName = if (item != null) item.name + if (useAll) "" else "[${resourceValueIndex}]" else ""
     itemDisplayName = itemName
-    imageHandler.setSampleSrc(nlComponent, item, resourceValueIndex)
+    imageHandler.setToolsSrc(nlComponent, item, resourceValueIndex)
   }
 
   private fun pickFromResourceDialog() {
@@ -205,7 +205,7 @@ class ImageViewAssistant(
       .build()
 
     if (dialog.showAndGet()) {
-      imageHandler.setSampleSrc(nlComponent, dialog.resourceName)
+      imageHandler.setToolsSrc(nlComponent, dialog.resourceName)
       context.doClose(false)
     }
   }

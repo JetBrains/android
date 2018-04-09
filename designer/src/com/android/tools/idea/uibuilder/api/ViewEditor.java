@@ -155,7 +155,17 @@ public abstract class ViewEditor {
   }
 
   @Nullable
-  public abstract String displayResourceInput(@NotNull String title, @NotNull EnumSet<ResourceType> types);
+  public final String displayResourceInput(@NotNull EnumSet<ResourceType> types, boolean includeSampleData) {
+    return displayResourceInput("", types, includeSampleData);
+  }
+
+  @Nullable
+  public String displayResourceInput(@NotNull String title, @NotNull EnumSet<ResourceType> types) {
+    return displayResourceInput(title, types, false);
+  }
+
+  @Nullable
+  public abstract String displayResourceInput(@NotNull String title, @NotNull EnumSet<ResourceType> types, boolean includeSampleData);
 
   /**
    * Open a dialog to pick a class among classes derived from a specified set of super classes.
