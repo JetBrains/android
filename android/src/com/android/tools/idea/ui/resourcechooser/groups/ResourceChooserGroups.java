@@ -198,6 +198,6 @@ public class ResourceChooserGroups {
         .filter(filter)
         .map(item -> new ResourceChooserItem.SampleDataItem(item))
         .collect(ImmutableList.toImmutableList());
-    return new ResourceChooserGroup("Sample data", type, ImmutableList.sortedCopyOf(ITEM_COMPARATOR, items));
+    return new ResourceChooserGroup("Sample data", ResourceType.SAMPLE_DATA, ImmutableList.sortedCopyOf(ITEM_COMPARATOR, items));
   }
 }

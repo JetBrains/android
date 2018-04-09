@@ -42,10 +42,7 @@ import com.android.tools.idea.res.*;
 import com.android.tools.idea.ui.resourcechooser.groups.ResourceChooserGroup;
 import com.android.tools.idea.ui.resourcechooser.groups.ResourceChooserGroups;
 import com.android.tools.idea.ui.resourcechooser.icons.IconFactory;
-import com.android.tools.idea.ui.resourcechooser.preview.EditResourcePanel;
-import com.android.tools.idea.ui.resourcechooser.preview.ResourceDrawablePanel;
-import com.android.tools.idea.ui.resourcechooser.preview.ResourceEditorTab;
-import com.android.tools.idea.ui.resourcechooser.preview.ResourceTablePanel;
+import com.android.tools.idea.ui.resourcechooser.preview.*;
 import com.android.tools.idea.ui.resourcechooser.util.SimpleTabUI;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.ImmutableMap;
@@ -120,7 +117,7 @@ import static com.android.SdkConstants.*;
 
 /**
  * Resource Chooser, with previews. Based on ResourceDialog in the android-designer.
- * <P>
+ * <p>
  * TODO: Perform validation (such as cyclic layout resource detection for layout selection)
  */
 public class ChooseResourceDialog extends DialogWrapper {
@@ -1289,6 +1286,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     private static final String EDITOR = "Editor";
     private static final String DRAWABLE = "Bitmap";
     private static final String TABLE = "Table";
+    private static final String SAMPLE_DRAWABLE = "Sample Data";
 
     @NotNull public final JBSplitter myComponent;
     @Nullable private TreeGrid<ResourceChooserItem> myList;
@@ -1299,6 +1297,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     private JTextPane myHtmlTextArea;
     private EditResourcePanel myEditorPanel;
     @Nullable private ResourceDrawablePanel myDrawablePanel;
+    @Nullable private SampleDrawablePanel mySampleImagePanel;
     @Nullable private ResourceTablePanel myTablePanel;
 
     private ResourceComponent myReferenceComponent;
@@ -1351,10 +1350,10 @@ public class ChooseResourceDialog extends DialogWrapper {
         myComponent.setFirstComponent(firstComponent);
         Disposer.dispose(animationDisposable);
       }, PooledThreadExecutor.INSTANCE)
-        .thenRunAsync(() -> {
-          updateFilter();
-          select(mySelectedValue);
-        }, EdtExecutorService.getInstance());
+                       .thenRunAsync(() -> {
+                         updateFilter();
+                         select(mySelectedValue);
+                       }, EdtExecutorService.getInstance());
 
       myPreviewPanel = new JPanel(new CardLayout());
       myPreviewPanel.setPreferredSize(JBUI.size(400, 600));
@@ -1583,6 +1582,16 @@ public class ChooseResourceDialog extends DialogWrapper {
       CardLayout layout = (CardLayout)myPreviewPanel.getLayout();
       myDrawablePanel.select(item);
       layout.show(myPreviewPanel, DRAWABLE);
+    }
+
+    private void showSampleItem(@NotNull ResourceChooserItem.SampleDataItem item) {
+      if (mySampleImagePanel == null) {
+        mySampleImagePanel = new SampleDrawablePanel(myFacet.getModule());
+        myPreviewPanel.add(mySampleImagePanel, SAMPLE_DRAWABLE);
+      }
+      mySampleImagePanel.select(item);
+      CardLayout layout = (CardLayout)myPreviewPanel.getLayout();
+      layout.show(myPreviewPanel, SAMPLE_DRAWABLE);
     }
 
     private void showTableItem(ResourceChooserItem item) {
@@ -1854,6 +1863,11 @@ public class ChooseResourceDialog extends DialogWrapper {
         return;
       }
 
+      if (element.getType() == ResourceType.SAMPLE_DATA && element instanceof ResourceChooserItem.SampleDataItem) {
+        showSampleItem((ResourceChooserItem.SampleDataItem)element);
+        return;
+      }
+
       switch (myType) {
         case DRAWABLE:
         case MIPMAP:
@@ -1900,7 +1914,7 @@ public class ChooseResourceDialog extends DialogWrapper {
 
           if (stateList.getType() != myStateListPickerPanel.getLocationSettings().getType()) {
             Logger.getInstance(ChooseResourceDialog.class)
-              .warn("StateList type mismatch " + stateList.getType() + " " + myStateListPickerPanel.getLocationSettings().getType());
+                  .warn("StateList type mismatch " + stateList.getType() + " " + myStateListPickerPanel.getLocationSettings().getType());
             showPreview(getSelectedItem(), false);
             return;
           }

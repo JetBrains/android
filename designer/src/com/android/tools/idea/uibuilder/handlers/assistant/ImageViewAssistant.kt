@@ -113,11 +113,12 @@ class ImageViewAssistant(
   }
 
   private fun createItemList() = DrawableGrid(nlComponent.model.facet.module,
-                                              DefaultListModel<ResourceValue>()).apply {
+                                              DefaultListModel<ResourceValue>(),
+                                              IMAGE_SIZE,
+                                              ITEM_COUNT.toLong()).apply {
     isOpaque = false
     isEnabled = originalValue != null && !isSampleValueAll(originalValue)
     visibleRowCount = 3
-    drawableSize = IMAGE_SIZE
     addListSelectionListener { _ ->
       applySampleItem(selectedSampleItem, if (useAll) -1 else selectedIndex)
     }
