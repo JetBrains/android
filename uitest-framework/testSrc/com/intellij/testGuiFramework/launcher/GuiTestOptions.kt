@@ -17,12 +17,14 @@ package com.intellij.testGuiFramework.launcher
 
 import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem
 import com.intellij.openapi.application.PathManager
+import java.io.File
 
 object GuiTestOptions {
 
   const val SEGMENT_INDEX = "idea.gui.test.segment.index"
   const val NUM_TEST_SEGMENTS_KEY = "idea.gui.test.segments"
   const val REMOTE_IDE_PATH_KEY = "idea.gui.test.remote.ide.path"
+  const val REMOTE_IDE_VM_OPTIONS_PATH_KEY = "idea.gui.test.remote.ide.vmoptions"
   const val IS_RUNNING_ON_RELEASE = "idea.gui.test.running.on.release"
 
   var buildSystem = TargetBuildSystem.BuildSystem.GRADLE
@@ -38,6 +40,7 @@ object GuiTestOptions {
   fun getSegmentIndex(): Int = getSystemProperty(SEGMENT_INDEX, 0)
   fun getNumTestSegments(): Int = getSystemProperty(NUM_TEST_SEGMENTS_KEY, 1)
   fun getRemoteIdePath(): String = getSystemProperty(REMOTE_IDE_PATH_KEY, "undefined")
+  fun getVmOptionsFilePath(): String = getSystemProperty(REMOTE_IDE_VM_OPTIONS_PATH_KEY, File(File(getRemoteIdePath()).parent, "studio64.vmoptions").canonicalPath)
   fun isRunningOnRelease(): Boolean = getSystemProperty(IS_RUNNING_ON_RELEASE, false)
 
   inline fun <reified ReturnType> getSystemProperty(key: String, defaultValue: ReturnType): ReturnType {

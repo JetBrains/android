@@ -62,11 +62,9 @@ class GuiTestStarter : IdeaApplication.IdeStarter(), ApplicationStarter {
   private fun processArgs(args: Array<String>) {
     val hostArg: String? = args.find { arg -> arg.toLowerCase().startsWith("host") }?.substringAfter("host=") ?: HOST_LOCALHOST
     System.setProperty(GUI_TEST_HOST, hostArg!!.removeSurrounding("\""))
-    val portArg: String? = args.find { arg -> arg.toLowerCase().startsWith("port") }?.substringAfter("port=") ?: PORT_UNDEFINED
+    val portArg: String? = args.find { arg -> arg.toLowerCase().startsWith("port") }?.substringAfter("port=")
     if (portArg != null)
       System.setProperty(GUI_TEST_PORT, portArg.removeSurrounding("\""))
-    else
-      System.setProperty(GUI_TEST_PORT, PORT_UNDEFINED)
 
     LOG.info("Set GUI tests host: $hostArg")
     LOG.info("Set GUI tests port: $portArg")

@@ -19,6 +19,7 @@ import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.testGuiFramework.impl.GuiTestStarter
+import com.intellij.testGuiFramework.remote.server.JUnitServerHolder
 import org.apache.log4j.Level
 import org.apache.log4j.Logger
 import org.jetbrains.jps.model.JpsElementFactory
@@ -31,7 +32,6 @@ import java.io.File
 import java.net.URL
 import java.nio.file.Paths
 import java.util.*
-import kotlin.concurrent.thread
 
 /**
  * [GuiTestLauncher] handles the mechanics of preparing to launch the client IDE and forking the process. It can do this two ways:
@@ -55,6 +55,7 @@ object GuiTestLauncher {
   private val LOG = Logger.getLogger("#com.intellij.testGuiFramework.launcher.GuiTestLauncher")
 
   var process: Process? = null
+  private var vmOptionsFile: File? = null
 
   private const val TEST_GUI_FRAMEWORK_MODULE_NAME = "intellij.android.guiTestFramework"
   private const val STUDIO_UITESTS_MAIN_MODULE_NAME = "intellij.android.guiTests"
@@ -85,34 +86,48 @@ object GuiTestLauncher {
     if (path == "undefined") {
       startIdeProcess(createArgs(port))
     } else {
-      startIdeProcess(createArgsByPath(path, port))
+      if (vmOptionsFile == null) {
+        vmOptionsFile = createAugmentedVMOptionsFile(File(GuiTestOptions.getVmOptionsFilePath()), port)
+      }
+      startIdeProcess(createArgsByPath(path))
     }
   }
 
   private fun startIdeProcess(args: List<String>) {
-    thread(start = true, name = "IdeaTestThread") {
-      process = ProcessBuilder().inheritIO().command(args).start()
+    val processBuilder = ProcessBuilder().inheritIO().command(args)
+    vmOptionsFile?.let {
+      processBuilder.environment()["STUDIO_VM_OPTIONS"] = it.canonicalPath
     }
+    process = processBuilder.start()
   }
+
+  /**
+   * Creates a copy of the given VM options file in the temp directory, appending the options to set the application starter and port.
+   * This is necessary to run the IDE via a native launcher, which doesn't accept command-line arguments.
+   */
+  private fun createAugmentedVMOptionsFile(originalFile: File, port: Int) =
+    FileUtil.createTempFile("studio_uitests.vmoptions", "", true).apply {
+      FileUtil.writeToFile(this, """${originalFile.readText()}
+-Didea.gui.test.port=$port
+-Didea.application.starter.command=${GuiTestStarter.COMMAND_NAME}""")
+    }
 
   private fun createArgs(port: Int): List<String> {
     val args = listOf<String>()
         .plus(getCurrentJavaExec())
-        .plus(getVmOptions())
+        .plus(getVmOptions(port))
         .plus("-classpath")
         .plus(getFullClasspath(STUDIO_UITESTS_MAIN_MODULE_NAME))
         .plus(MAIN_CLASS_NAME)
-        .plus(GuiTestStarter.COMMAND_NAME)
-        .plus("port=$port")
     return args
   }
 
-  private fun createArgsByPath(path: String, port: Int): List<String> = listOf(path, GuiTestStarter.COMMAND_NAME, "port=$port")
+  private fun createArgsByPath(path: String): List<String> = listOf(path)
 
   /**
    * Default VM options to start IntelliJ IDEA (or IDEA-based IDE). To customize options use com.intellij.testGuiFramework.launcher.GuiTestOptions
    */
-  private fun getVmOptions(): List<String> {
+  private fun getVmOptions(port: Int): List<String> {
     // TODO(b/77341383): avoid having to sync manually with studio64.vmoptions
     var options = mutableListOf<String>()
       /* studio64.vmoptions */
@@ -141,6 +156,8 @@ object GuiTestLauncher {
       .plus("-Dplugin.path=${GuiTestOptions.getPluginPath()}")
       .plus("-Ddisable.android.first.run=true")
       .plus("-Ddisable.config.import=true")
+      .plus("-Didea.application.starter.command=${GuiTestStarter.COMMAND_NAME}")
+      .plus("-Didea.gui.test.port=$port")
     /* debugging options */
     if (GuiTestOptions.isDebug()) {
       options = options.plus("-Didea.debug.mode=true")
