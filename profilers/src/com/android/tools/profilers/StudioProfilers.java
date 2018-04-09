@@ -88,6 +88,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   @Nullable
   private String myPreferredProcessName;
 
+  /**
+   * Whether the profiler should wait and select the preferred process when it is detected.
+   */
+  private boolean myProfilePreferredProcess;
+
   private Common.Device myDevice;
 
   /**
@@ -228,11 +233,17 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     setDevice(findPreferredDevice());
   }
 
+  @Nullable
+  public String getPreferredProcessName() {
+    return myPreferredProcessName;
+  }
+
   /**
    * Tells the profiler to select and profile the process of the same name next time it is detected.
    */
   public void setPreferredProcessName(@Nullable String name) {
     myPreferredProcessName = name;
+    myProfilePreferredProcess = true;
     // Checks whether we can switch immediately if the process is already there.
     setProcess(null);
   }
@@ -403,7 +414,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       // The user wants to select a different process explicitly.
       // If the user intentionally selects something else, the profiler should not switch
       // back to the preferred process in any cases.
-      myPreferredProcessName = null;
+      myProfilePreferredProcess = false;
     }
 
     // Even if the process stays as null, the selected session could be changed.
@@ -518,8 +529,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     if (processes == null || processes.isEmpty()) {
       return null;
     }
+
+    boolean waitingForPreferredProcess = myProfilePreferredProcess && myPreferredProcessName != null;
     // Prefer the project's app if available.
-    if (myPreferredProcessName != null) {
+    if (waitingForPreferredProcess) {
       for (Common.Process process : processes) {
         if (process.getName().equals(myPreferredProcessName) && process.getState() == Common.Process.State.ALIVE) {
           return process;
@@ -537,7 +550,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
 
     // No preferred candidate. Choose a new process if we are not already waiting for the preferred process.
-    return myPreferredProcessName == null ? processes.get(0) : null;
+    return !waitingForPreferredProcess ? processes.get(0) : null;
   }
 
   @NotNull
