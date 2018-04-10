@@ -13,18 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.model;
+package com.android.tools.idea.gradle.structure.model
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-public interface PsModuleDependency extends PsBaseDependency {
-  @NotNull
-  String getGradlePath();
-
-  @Nullable
-  String getConfigurationName();
-
-  @NotNull
-  String getName();
+interface PsModuleDependency : PsBaseDependency {
+  val gradlePath: String
+  val configurationName: String?
+  val name: String
 }

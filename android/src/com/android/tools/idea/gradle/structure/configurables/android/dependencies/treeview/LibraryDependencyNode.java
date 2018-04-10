@@ -32,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
@@ -62,11 +63,10 @@ public class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryAndro
     myName = getText(dependency);
     // TODO(b/74380202): Setup children from Pom dependencies without a PsAndroidDependencyCollection.
     if (collection != null) {
-      ImmutableCollection<PsLibraryAndroidDependency> transitiveDependencies = dependency.getTransitiveDependencies(collection);
+      Set<PsLibraryAndroidDependency> transitiveDependencies = dependency.getTransitiveDependencies(collection);
 
-      transitiveDependencies.stream().filter(transitive -> transitive instanceof PsLibraryAndroidDependency)
-        .forEach(transitive -> {
-          PsLibraryAndroidDependency transitiveLibrary = (PsLibraryAndroidDependency)transitive;
+      transitiveDependencies.stream().filter(transitive -> transitive != null)
+        .forEach(transitiveLibrary -> {
           LibraryDependencyNode child = new LibraryDependencyNode(this, collection, transitiveLibrary);
           myChildren.add(child);
         });

@@ -22,12 +22,12 @@ import com.android.tools.idea.gradle.structure.model.meta.*
 import java.io.File
 
 open class PsProductFlavor(
-  parent: PsAndroidModule,
-  private val resolvedModel: ProductFlavor?,
+  final override val parent: PsAndroidModule,
+  final override val resolvedModel: ProductFlavor?,
   private val parsedModel: ProductFlavorModel?
 ) : PsChildModel(parent), PsAndroidModel {
 
-  private var name = when {
+  override val name = when {
     resolvedModel != null -> resolvedModel.name
     parsedModel != null -> parsedModel.name()
     else -> ""
@@ -48,11 +48,8 @@ open class PsProductFlavor(
   var manifestPlaceholders by ProductFlavorDescriptors.manifestPlaceholders
   var testInstrumentationRunnerArguments by ProductFlavorDescriptors.testInstrumentationRunnerArguments
 
-  override fun getName(): String = name
-  override fun getParent(): PsAndroidModule = super.getParent() as PsAndroidModule
-  override fun isDeclared(): Boolean = parsedModel != null
-  override fun getResolvedModel(): ProductFlavor? = resolvedModel
-  override fun getGradleModel(): AndroidModuleModel = parent.gradleModel
+  override val isDeclared: Boolean get() = parsedModel != null
+  override val gradleModel: AndroidModuleModel = parent.gradleModel
 
   object ProductFlavorDescriptors : ModelDescriptor<PsProductFlavor, ProductFlavor, ProductFlavorModel> {
     override fun getResolved(model: PsProductFlavor): ProductFlavor? = model.resolvedModel

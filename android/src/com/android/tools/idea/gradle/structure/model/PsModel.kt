@@ -13,20 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.model;
+package com.android.tools.idea.gradle.structure.model
 
-import org.jetbrains.annotations.NotNull;
+import javax.swing.Icon
 
-public abstract class PsChildModel extends PsModel {
-  protected PsChildModel(@NotNull PsModel parent) {
-    super(parent);
-  }
+abstract class PsModel protected constructor(open val parent: PsModel?) {
 
-  @Override
-  @NotNull
-  public PsModel getParent() {
-    PsModel parent = super.getParent();
-    assert parent != null;
-    return parent;
-  }
+  open var isModified: Boolean = false
+    set(value) {
+      field = value
+      if (value) {
+        parent?.isModified = true
+      }
+    }
+
+  abstract val name: String
+
+  abstract val isDeclared: Boolean
+
+  abstract val resolvedModel: Any?
+
+  open val icon: Icon? get() = null
+
+  override fun toString(): String = name
 }
