@@ -16,6 +16,7 @@
 package com.android.tools.profilers.energy;
 
 import com.android.tools.adtui.AxisComponent;
+import com.android.tools.adtui.TableUtils;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.event.EventAction;
@@ -27,7 +28,6 @@ import com.android.tools.profilers.BorderlessTableCellRenderer;
 import com.android.tools.profilers.HoverRowTable;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerLayout;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 
@@ -125,7 +125,10 @@ public final class EnergyEventsView {
     myEventsTable.getColumnModel().getColumn(Column.CALLED_BY.ordinal()).setCellRenderer(new CalledByRenderer(myStage));
     myEventsTable.getColumnModel().getColumn(Column.TIMELINE.ordinal()).setCellRenderer(
       new TimelineRenderer(myEventsTable, myStage.getStudioProfilers().getTimeline().getSelectionRange()));
-    myEventsTable.setTableHeaderBorder(ProfilerLayout.TABLE_COLUMN_HEADER_BORDER);
+    TableUtils.setTableHeaderBorder(myEventsTable, ProfilerLayout.TABLE_COLUMN_HEADER_BORDER);
+
+    myEventsTable.getEmptyText().setText("No system events for the selected range.");
+    myEventsTable.getEmptyText().getComponent().setFont(myEventsTable.getFont().deriveFont(15f));
 
     myEventsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myEventsTable.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
@@ -189,7 +192,7 @@ public final class EnergyEventsView {
   private static final class EventsTableModel extends AbstractTableModel {
     @NotNull private List<EnergyDuration> myList = new ArrayList<>();
 
-    private EventsTableModel(EnergyEventsFetcher fetcher) {
+    private EventsTableModel(@NotNull EnergyEventsFetcher fetcher) {
       fetcher.addListener(list -> {
         myList = list;
         fireTableDataChanged();
