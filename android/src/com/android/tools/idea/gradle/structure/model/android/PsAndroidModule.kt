@@ -35,7 +35,7 @@ class PsAndroidModule(
   parent: PsProject,
   resolvedModel: Module,
   gradlePath: String,
-  private val gradleModel: AndroidModuleModel,
+  override val gradleModel: AndroidModuleModel,
   parsedModel: GradleBuildModel
 ) : PsModule(parent, resolvedModel, gradlePath, parsedModel), PsAndroidModel {
   private var buildTypeCollection: PsBuildTypeCollection? = null
@@ -75,9 +75,7 @@ class PsAndroidModule(
     // 'module' is either a Java library or an AAR module.
     (module as? PsAndroidModule)?.isLibrary == true
 
-  override fun getGradleModel(): AndroidModuleModel = gradleModel
-
-  override fun getIcon(): Icon? = getAndroidModuleIcon(gradleModel)
+  override val icon: Icon? get() = getAndroidModuleIcon(gradleModel)
 
   override fun populateRepositories(repositories: MutableList<ArtifactRepository>) {
     super.populateRepositories(repositories)

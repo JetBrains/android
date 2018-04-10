@@ -13,14 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.model;
+package com.android.tools.idea.gradle.structure.model
 
-import org.jetbrains.annotations.NotNull;
-
-public interface PsBaseDependency {
-  @NotNull
-  String toText(@NotNull PsDependency.TextType type);
-
-  @NotNull
-  String getJoinedConfigurationNames();
-}
+abstract class PsChildModel protected constructor(override val parent: PsModel) : PsModel(parent)

@@ -126,16 +126,6 @@ public class PsProject extends PsModel {
   }
 
   @Override
-  public boolean isModified() {
-    return myModified;
-  }
-
-  @Override
-  public void setModified(boolean value) {
-    myModified = value;
-  }
-
-  @Override
   @Nullable
   public Icon getIcon() {
     return null;

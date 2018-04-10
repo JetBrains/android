@@ -13,18 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.model;
+package com.android.tools.idea.gradle.structure.model.android
 
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 
-public interface PsLibraryDependency extends PsBaseDependency {
-  @NotNull
-  PsModule getParent();
-
-  boolean hasPromotedVersion();
-
-  @NotNull
-  PsArtifactDependencySpec getSpec();
-
-  void setModified(boolean value);
+interface PsAndroidModel {
+  val gradleModel: AndroidModuleModel
 }

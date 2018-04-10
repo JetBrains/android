@@ -25,12 +25,12 @@ import com.android.tools.idea.gradle.structure.model.meta.*
 import java.io.File
 
 class PsSigningConfig(
-  parent: PsAndroidModule,
-  private val resolvedModel: SigningConfig?,
+  override val parent: PsAndroidModule,
+  override val resolvedModel: SigningConfig?,
   private val parsedModel: SigningConfigModel?
 ) : PsChildModel(parent), PsAndroidModel {
 
-  private var name = when {
+  override val name = when {
     resolvedModel != null -> resolvedModel.name
     parsedModel != null -> parsedModel.name()
     else -> ""
@@ -42,11 +42,8 @@ class PsSigningConfig(
   var keyAlias by SigningConfigDescriptors.keyAlias
   var keyPassword by SigningConfigDescriptors.keyPassword
 
-  override fun getName(): String = name
-  override fun getParent(): PsAndroidModule = super.getParent() as PsAndroidModule
-  override fun isDeclared(): Boolean = parsedModel != null
-  override fun getResolvedModel(): SigningConfig? = resolvedModel
-  override fun getGradleModel(): AndroidModuleModel = parent.gradleModel
+  override val isDeclared: Boolean get() = parsedModel != null
+  override val gradleModel: AndroidModuleModel = parent.gradleModel
 
   object SigningConfigDescriptors : ModelDescriptor<PsSigningConfig, SigningConfig, SigningConfigModel> {
     override fun getResolved(model: PsSigningConfig): SigningConfig? = model.resolvedModel
