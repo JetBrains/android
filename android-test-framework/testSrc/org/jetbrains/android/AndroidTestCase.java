@@ -187,8 +187,12 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       }
     }
     finally {
-      myFixture.tearDown();
-      super.tearDown();
+      try {
+        myFixture.tearDown();
+      }
+      finally {
+        super.tearDown();
+      }
     }
   }
 
