@@ -128,7 +128,7 @@ public class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryAndro
                           ArtifactDependencyModel theirs = (ArtifactDependencyModel)it;
                           ArtifactDependencyModel ours = (ArtifactDependencyModel)resolvedFromParsedDependency;
                           return
-                            it.configurationName().equals(resolvedFromParsedDependency.configurationName())
+                            theirs.configurationName().equals(ours.configurationName())
                             && theirs.compactNotation().equals(ours.compactNotation());
                         }
                         else {

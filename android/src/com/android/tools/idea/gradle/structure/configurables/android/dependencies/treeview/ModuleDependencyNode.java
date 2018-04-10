@@ -80,7 +80,7 @@ public class ModuleDependencyNode extends AbstractDependencyNode<PsModuleAndroid
                           ModuleDependencyModel theirs = (ModuleDependencyModel)it;
                           ModuleDependencyModel ours = (ModuleDependencyModel)resolvedFromParsedDependency;
                           return
-                            it.configurationName().equals(resolvedFromParsedDependency.configurationName())
+                            theirs.configurationName().equals(ours.configurationName())
                             && theirs.name().equals(ours.name());
                         }
                         else {
