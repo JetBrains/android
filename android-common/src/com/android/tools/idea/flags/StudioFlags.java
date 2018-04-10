@@ -305,7 +305,7 @@ public final class StudioFlags {
     "If enabled, show the action in the refactoring menu", true);
   public static final Flag<Boolean> MIGRATE_TO_ANDROID_X_REFACTORING_ENABLED = Flag.create(
     REFACTORINGS, "migrateto.androidx.enabled", "Enable the Migrate to AndroidX refactoring feature",
-    "If enabled, show the action in the refactoring menu", false);
+    "If enabled, show the action in the refactoring menu", true);
 
   private static final FlagGroup IOT = new FlagGroup(FLAGS, "iot", "IoT features");
   public static final Flag<Boolean> UNINSTALL_LAUNCHER_APPS_ENABLED = Flag.create(
