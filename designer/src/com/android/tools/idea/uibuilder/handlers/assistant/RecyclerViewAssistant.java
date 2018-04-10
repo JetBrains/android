@@ -19,9 +19,11 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.HorizontalSpinner;
+import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.uibuilder.property.assistant.AssistantPopupPanel;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory.Context;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
@@ -30,13 +32,13 @@ import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.ui.JBIntSpinner;
 import com.intellij.ui.components.JBList;
-import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -44,7 +46,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collections;
@@ -52,7 +56,8 @@ import java.util.List;
 
 import static com.android.SdkConstants.*;
 
-public class RecyclerViewAssistant extends JPanel {
+public class RecyclerViewAssistant extends AssistantPopupPanel {
+  private static final int ITEM_COUNT_DEFAULT = 10;
   private static Logger LOG = Logger.getInstance(RecyclerViewAssistant.class);
 
   private static final ImmutableList<Template> TEMPLATES = ImmutableList.of(
@@ -77,10 +82,12 @@ public class RecyclerViewAssistant extends JPanel {
   private final Project myProject;
   private final String myResourceName;
   private final HorizontalSpinner<Template> mySpinner;
+  private final JBIntSpinner myItemCount;
   @Nullable private PsiFile myCreatedFile;
 
+
   public RecyclerViewAssistant(@NotNull Context context) {
-    super(new BorderLayout());
+    super();
 
     myComponent = context.getComponent();
     AndroidFacet facet = myComponent.getModel().getFacet();
@@ -100,18 +107,44 @@ public class RecyclerViewAssistant extends JPanel {
       fireSelectionUpdated();
     });
 
-    JLabel label = AssistantUiKt.assistantLabel("Item template", SwingConstants.LEADING);
-    label.setBorder(JBUI.Borders.emptyBottom(5));
+    String itemCountAttribute = myComponent.getAttribute(TOOLS_URI, ATTR_ITEM_COUNT);
+    int count = parseItemCountAttribute(itemCountAttribute);
 
-    add(label, BorderLayout.NORTH);
-    add(mySpinner, BorderLayout.CENTER);
+    myItemCount = new JBIntSpinner(count, 0, 50);
+    myItemCount.setOpaque(false);
+    myItemCount.addChangeListener(new ChangeListener() {
 
-    setBorder(JBUI.Borders.empty(10));
+      @Override
+      public void stateChanged(ChangeEvent e) {
+        setItemCount(myComponent, myItemCount.getNumber());
+      }
+    });
+    ((JSpinner.NumberEditor)myItemCount.getEditor()).getTextField().setEditable(false);
+    ((JSpinner.NumberEditor)myItemCount.getEditor()).getTextField().setHorizontalAlignment(SwingConstants.LEADING);
 
-    setBackground(UIUtil.getListBackground());
+    JPanel content = new JPanel(new VerticalFlowLayout());
+    content.setOpaque(false);
+
+    content.add(AssistantUiKt.assistantLabel("Item template"));
+    content.add(mySpinner);
+    content.add(AssistantUiKt.assistantLabel("Item count"));
+    content.add(myItemCount);
+
     myOriginalListItemValue = myComponent.getAttribute(TOOLS_URI, ATTR_LISTITEM);
 
+    addContent(content);
+
     ApplicationManager.getApplication().invokeLater(this::fireSelectionUpdated);
+  }
+
+  private static int parseItemCountAttribute(@Nullable String attribute) {
+    if (attribute != null) {
+      try {
+        return Integer.parseInt(attribute);
+      } catch(NumberFormatException ignore) {
+      }
+    }
+    return ITEM_COUNT_DEFAULT;
   }
 
   private void fireSelectionUpdated() {
@@ -169,6 +202,16 @@ public class RecyclerViewAssistant extends JPanel {
       CommandProcessor.getInstance().addAffectedFiles(project, component.getTag().getContainingFile().getVirtualFile());
 
       return PsiManager.getInstance(project).findFile(file);
+    });
+  }
+
+  /**
+   * Set the design-time itemCount attribute in the given component
+   */
+  private static void setItemCount(@NotNull NlComponent component, int newCount) {
+    NlWriteCommandAction.run(component, "Set itemCount", () -> {
+      String itemCountNewValue = ITEM_COUNT_DEFAULT == newCount ? null : Integer.toString(newCount);
+      component.setAttribute(TOOLS_URI, ATTR_ITEM_COUNT, itemCountNewValue);
     });
   }
 
