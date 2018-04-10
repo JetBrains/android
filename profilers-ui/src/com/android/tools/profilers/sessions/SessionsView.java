@@ -153,9 +153,10 @@ public class SessionsView extends AspectObserver {
         }
 
         if (confirmed) {
-          mySessionsManager.endCurrentSession();
-          // Unselect the device and process, which avoids them from appearing to be selected in the process selection dropdown even
-          // after the session has stopped.
+          // We should not start auto-profiling other things if the user manually stops a session.
+          myProfilers.setAutoProfilingEnabled(false);
+          // Unselect the device and process which stops the session. This also avoids them from appearing to be selected in the process
+          // selection dropdown even after the session has stopped.
           myProfilers.setDevice(null);
           myProfilers.getIdeServices().getFeatureTracker().trackStopSession();
         }

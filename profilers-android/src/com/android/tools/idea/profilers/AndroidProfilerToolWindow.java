@@ -58,7 +58,7 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
 
     // By default, we only auto-profile the app associated with the project.
     StartupManager.getInstance(project)
-      .runWhenProjectIsInitialized(() -> myProfilers.setPreferredProcessName(getPreferredProcessName(myProject)));
+      .runWhenProjectIsInitialized(() -> myProfilers.setPreferredDeviceAndProcessNames(null, getPreferredProcessName(myProject)));
 
     myView = new StudioProfilersView(myProfilers, new IntellijProfilerComponents(myProject));
     myLayeredPane = new ProfilerLayeredPane();
@@ -93,8 +93,7 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
    * @param device  The target {@link IDevice} that the app will launch in.
    */
   public void profileProject(@NotNull Project project, @NotNull IDevice device) {
-    myProfilers.setPreferredDeviceName(getDeviceDisplayName(device));
-    myProfilers.setPreferredProcessName(getPreferredProcessName(project));
+    myProfilers.setPreferredDeviceAndProcessNames(getDeviceDisplayName(device), getPreferredProcessName(project));
   }
 
   public void updateToolWindow() {

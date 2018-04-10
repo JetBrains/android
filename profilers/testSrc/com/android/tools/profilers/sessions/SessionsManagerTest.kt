@@ -231,6 +231,25 @@ class SessionsManagerTest {
   }
 
   @Test
+  fun testSetSessionStopsAutoProfiling() {
+    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
+    val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
+    val process2 = Common.Process.newBuilder().setPid(20).setState(Common.Process.State.ALIVE).build()
+
+    // Create a finished session and a ongoing profiling session.
+    myManager.beginSession(device, process1)
+    myManager.endCurrentSession()
+    val session1 = myManager.selectedSession
+    myManager.beginSession(device, process2)
+    val session2 = myManager.selectedSession
+    assertThat(myProfilers.autoProfilingEnabled).isTrue()
+
+    myManager.setSession(session1)
+    assertThat(myManager.selectedSession).isEqualTo(session1)
+    assertThat(myProfilers.autoProfilingEnabled).isFalse()
+  }
+
+  @Test
   fun testSwitchingNonProfilingSession() {
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()

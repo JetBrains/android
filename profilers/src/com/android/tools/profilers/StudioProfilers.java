@@ -41,6 +41,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -88,11 +89,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   @Nullable
   private String myPreferredProcessName;
 
-  /**
-   * Whether the profiler should wait and select the preferred process when it is detected.
-   */
-  private boolean myProfilePreferredProcess;
-
   private Common.Device myDevice;
 
   /**
@@ -117,6 +113,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   private long myRefreshDevices;
 
   private final Map<Common.SessionMetaData.SessionType, Runnable> mySessionChangeListener;
+
+  /**
+   * Whether the profiler should auto-select a process to profile.
+   */
+  private boolean myAutoProfilingEnabled = true;
 
   public StudioProfilers(ProfilerClient client, @NotNull IdeProfilerServices ideServices) {
     this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE));
@@ -225,12 +226,15 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   /**
-   * Tells the profiler to select and profile the device of the same name next time it is detected.
+   * Tells the profiler to select and profile the device+process combo of the same name next time it is detected.
    */
-  public void setPreferredDeviceName(@Nullable String name) {
-    myPreferredDeviceName = name;
+  public void setPreferredDeviceAndProcessNames(@Nullable String deviceName, @Nullable String processName) {
+    myPreferredDeviceName = deviceName;
+    myPreferredProcessName = processName;
+    myAutoProfilingEnabled = true;
     // Checks whether we can switch immediately if the device is already there.
     setDevice(findPreferredDevice());
+    setProcess(null);
   }
 
   @Nullable
@@ -239,13 +243,21 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   /**
-   * Tells the profiler to select and profile the process of the same name next time it is detected.
+   * Enable/disable auto device+process selection, which looks for the preferred device + process combination and starts profiling. If no
+   * preference has been set (via {@link #setPreferredDeviceAndProcessNames(String, String)}, then we profiling any online device+process
+   * combo.
    */
-  public void setPreferredProcessName(@Nullable String name) {
-    myPreferredProcessName = name;
-    myProfilePreferredProcess = true;
-    // Checks whether we can switch immediately if the process is already there.
-    setProcess(null);
+  public void setAutoProfilingEnabled(boolean enabled) {
+    myAutoProfilingEnabled = enabled;
+    if (myAutoProfilingEnabled) {
+      setDevice(findPreferredDevice());
+      setProcess(null);
+    }
+  }
+
+  @TestOnly
+  public boolean getAutoProfilingEnabled() {
+    return myAutoProfilingEnabled;
   }
 
   @Override
@@ -321,7 +333,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       devices.stream().filter(device -> device.getState().equals(Common.Device.State.ONLINE)).collect(Collectors.toSet());
 
     // We have a preferred device, try not to select anything else.
-    if (myPreferredDeviceName != null) {
+    if (myAutoProfilingEnabled && myPreferredDeviceName != null) {
       for (Common.Device device : onlineDevices) {
         if (myPreferredDeviceName.equals(buildDeviceName(device))) {
           return device;
@@ -340,7 +352,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
     // No preferred candidate. Choose any device that has online processes
     Common.Device anyDevice = devices.isEmpty() ? null : devices.iterator().next();
-    return myPreferredDeviceName == null ?
+    return myAutoProfilingEnabled && myPreferredDeviceName == null ?
            devices.stream().filter(this::deviceHasAliveProcesses).findAny().orElse(anyDevice) : null;
   }
 
@@ -414,7 +426,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       // The user wants to select a different process explicitly.
       // If the user intentionally selects something else, the profiler should not switch
       // back to the preferred process in any cases.
-      myProfilePreferredProcess = false;
+      myAutoProfilingEnabled = false;
     }
 
     // Even if the process stays as null, the selected session could be changed.
@@ -530,9 +542,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       return null;
     }
 
-    boolean waitingForPreferredProcess = myProfilePreferredProcess && myPreferredProcessName != null;
     // Prefer the project's app if available.
-    if (waitingForPreferredProcess) {
+    if (myAutoProfilingEnabled && myPreferredProcessName != null) {
       for (Common.Process process : processes) {
         if (process.getName().equals(myPreferredProcessName) && process.getState() == Common.Process.State.ALIVE) {
           return process;
@@ -550,7 +561,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
 
     // No preferred candidate. Choose a new process if we are not already waiting for the preferred process.
-    return !waitingForPreferredProcess ? processes.get(0) : null;
+    return myAutoProfilingEnabled && myPreferredProcessName == null ? processes.get(0) : null;
   }
 
   @NotNull
