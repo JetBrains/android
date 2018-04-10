@@ -27,7 +27,6 @@ import static com.android.testutils.TestUtils.getWorkspaceFile;
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses({
   com.android.tools.idea.IdeaTestSuite.class,  // a suite mustn't contain itself
-  com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildTargetProviderTest.class,  // fails after IDEA 181.3494.3 merge
   com.android.tools.idea.rendering.RenderSecurityManagerTest.class,  // calls System.setSecurityManager
   com.android.tools.idea.testing.TestProjectPathsGeneratorTest.class, // This is for a standalone, test-only application
   com.android.tools.idea.templates.TemplateTest.CoverageChecker.class, // Inner class is used to test TemplateTest covers all templates
