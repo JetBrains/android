@@ -182,7 +182,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
     errors.addAll(getDeployTargetContext().getCurrentDeployTargetState().validate(facet));
 
-    errors.addAll(getApkProvider(facet, getApplicationIdProvider(facet)).validate());
+    errors.addAll(getApkProvider(facet, getApplicationIdProvider(facet), new ArrayList<>()).validate());
 
     errors.addAll(checkConfiguration(facet));
     AndroidDebuggerState androidDebuggerState = myAndroidDebuggerContext.getAndroidDebuggerState();
@@ -379,7 +379,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
                                                                       @NotNull LaunchOptions launchOptions,
                                                                       @Nullable InstantRunContext instantRunContext,
                                                                       @Nullable ProcessHandler processHandler) {
-    return new AndroidLaunchTasksProviderFactory(this, env, facet, applicationIdProvider, getApkProvider(facet, applicationIdProvider),
+    return new AndroidLaunchTasksProviderFactory(this, env, facet, applicationIdProvider,
+                                                 getApkProvider(facet, applicationIdProvider, deviceFutures.getDevices()),
                                                  deviceFutures, launchOptions,
                                                  processHandler, instantRunContext);
   }
@@ -625,7 +626,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   @NotNull
-  protected abstract ApkProvider getApkProvider(@NotNull AndroidFacet facet, @NotNull ApplicationIdProvider applicationIdProvider);
+  protected abstract ApkProvider getApkProvider(@NotNull AndroidFacet facet,
+                                                @NotNull ApplicationIdProvider applicationIdProvider,
+                                                @NotNull List<AndroidDevice> targetDevices);
 
   @NotNull
   protected abstract ConsoleProvider getConsoleProvider();

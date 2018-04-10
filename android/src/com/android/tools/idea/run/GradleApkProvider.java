@@ -46,15 +46,12 @@ import com.intellij.openapi.util.Computable;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
@@ -68,27 +65,35 @@ public class GradleApkProvider implements ApkProvider {
   @NotNull private final PostBuildModelProvider myOutputModelProvider;
   @NotNull private final BestOutputFinder myBestOutputFinder;
   private final boolean myTest;
-  private boolean mySelectApksOutput;
+  private Computable<OutputKind> myOutputKindProvider;
+
+  /** Specify where to look for build output APKs */
+  public enum OutputKind {
+    /** Default behavior: Look for build output in the regular Gradle Model output */
+    Default,
+    /** Bundle behavior: Look for build output in the Bundle task output model */
+    AppBundleOutputModel,
+  }
 
   public GradleApkProvider(@NotNull AndroidFacet facet,
                            @NotNull ApplicationIdProvider applicationIdProvider,
                            boolean test) {
-    this(facet, applicationIdProvider, () -> null, test, false);
+    this(facet, applicationIdProvider, () -> null, test, () -> OutputKind.Default);
   }
 
   public GradleApkProvider(@NotNull AndroidFacet facet,
                            @NotNull ApplicationIdProvider applicationIdProvider,
                            @NotNull PostBuildModelProvider outputModelProvider,
                            boolean test) {
-    this(facet, applicationIdProvider, outputModelProvider, new BestOutputFinder(), test, false);
+    this(facet, applicationIdProvider, outputModelProvider, new BestOutputFinder(), test, () -> OutputKind.Default);
   }
 
   public GradleApkProvider(@NotNull AndroidFacet facet,
                            @NotNull ApplicationIdProvider applicationIdProvider,
                            @NotNull PostBuildModelProvider outputModelProvider,
                            boolean test,
-                           boolean selectApksOutput) {
-    this(facet, applicationIdProvider, outputModelProvider, new BestOutputFinder(), test, selectApksOutput);
+                           @NotNull Computable<OutputKind> outputKindProvider) {
+    this(facet, applicationIdProvider, outputModelProvider, new BestOutputFinder(), test, outputKindProvider);
   }
 
   @VisibleForTesting
@@ -97,13 +102,13 @@ public class GradleApkProvider implements ApkProvider {
                     @NotNull PostBuildModelProvider outputModelProvider,
                     @NotNull BestOutputFinder bestOutputFinder,
                     boolean test,
-                    boolean selectApksOutput) {
+                    Computable<OutputKind> outputKindProvider) {
     myFacet = facet;
     myApplicationIdProvider = applicationIdProvider;
     myOutputModelProvider = outputModelProvider;
     myBestOutputFinder = bestOutputFinder;
     myTest = test;
-    mySelectApksOutput = selectApksOutput;
+    myOutputKindProvider = outputKindProvider;
   }
 
   @Override
@@ -128,21 +133,25 @@ public class GradleApkProvider implements ApkProvider {
         return Collections.emptyList();
       }
 
-      if (mySelectApksOutput) {
-        ApkInfo apkInfo = DynamicAppUtils.collectSelectApksOutput(myFacet.getModule(), myOutputModelProvider, pkgName);
-        if (apkInfo != null) {
-          apkList.add(apkInfo);
-        }
-      } else {
-        // Collect the base (or single) APK file, then collect the dependent dynamic features for dynamic
-        // apps (assuming the androidModel is the base split).
-        //
-        // Note: For instant apps, "getApk" currently returns a ZIP to be provisioned on the device instead of
-        //       a .apk file, the "collectDependentFeaturesApks" is a no-op for instant apps.
-        List<ApkFileUnit> apkFileList = new ArrayList<>();
-        apkFileList.add(new ApkFileUnit(androidModel.getModuleName(), getApk(selectedVariant, device, myFacet, false)));
-        apkFileList.addAll(collectDependentFeaturesApks(androidModel, device));
-        apkList.add(new ApkInfo(apkFileList, pkgName));
+      switch(myOutputKindProvider.compute()) {
+        case Default:
+          // Collect the base (or single) APK file, then collect the dependent dynamic features for dynamic
+          // apps (assuming the androidModel is the base split).
+          //
+          // Note: For instant apps, "getApk" currently returns a ZIP to be provisioned on the device instead of
+          //       a .apk file, the "collectDependentFeaturesApks" is a no-op for instant apps.
+          List<ApkFileUnit> apkFileList = new ArrayList<>();
+          apkFileList.add(new ApkFileUnit(androidModel.getModuleName(), getApk(selectedVariant, device, myFacet, false)));
+          apkFileList.addAll(collectDependentFeaturesApks(androidModel, device));
+          apkList.add(new ApkInfo(apkFileList, pkgName));
+          break;
+
+        case AppBundleOutputModel:
+          ApkInfo apkInfo = DynamicAppUtils.collectAppBundleOutput(myFacet.getModule(), myOutputModelProvider, pkgName);
+          if (apkInfo != null) {
+            apkList.add(apkInfo);
+          }
+          break;
       }
     }
 

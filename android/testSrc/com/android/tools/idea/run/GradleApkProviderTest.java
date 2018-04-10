@@ -138,7 +138,8 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
     File apkFolder = FileUtil.createTempDirectory("apk-output", null);
     createApkFiles(apkFolder, "base-master.apk", "feature1-master.apk", "feature2-test-master.apk");
     PostBuildModelProviderStub outputProvider = new PostBuildModelProviderStub();
-    GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), outputProvider, false, true);
+    GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet),
+                                                       outputProvider, false, () -> GradleApkProvider.OutputKind.AppBundleOutputModel);
     outputProvider.setAppBundleProjectBuildOutput(myAndroidFacet, createAppBundleBuildOutputMock("debug", apkFolder));
     Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
     assertSize(1, apks);

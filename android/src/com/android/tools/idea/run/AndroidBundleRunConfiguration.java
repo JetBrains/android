@@ -15,14 +15,8 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.tools.idea.apk.ApkFacet;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
 
 /**
  * Run Configuration used for running Android Apps locally on a device/emulator via the "bundle" gradle tasks.
@@ -30,14 +24,5 @@ import java.io.File;
 public class AndroidBundleRunConfiguration extends AndroidAppRunConfigurationBase {
   public AndroidBundleRunConfiguration(Project project, ConfigurationFactory factory) {
     super(project, factory);
-  }
-
-  @Override
-  @NotNull
-  protected ApkProvider getApkProvider(@NotNull AndroidFacet facet, @NotNull ApplicationIdProvider applicationIdProvider) {
-    if (facet.getConfiguration().getModel() != null && facet.getConfiguration().getModel() instanceof AndroidModuleModel) {
-      return new GradleApkProvider(facet, applicationIdProvider, myOutputProvider, false, true);
-    }
-    return super.getApkProvider(facet, applicationIdProvider);
   }
 }

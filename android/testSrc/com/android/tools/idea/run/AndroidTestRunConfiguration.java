@@ -51,7 +51,9 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase {
 
   @NotNull
   @Override
-  protected ApkProvider getApkProvider(@NotNull AndroidFacet facet, @NotNull ApplicationIdProvider applicationIdProvider) {
+  protected ApkProvider getApkProvider(@NotNull AndroidFacet facet,
+                                       @NotNull ApplicationIdProvider applicationIdProvider,
+                                       @NotNull List<AndroidDevice> devices) {
     return null;
   }
 

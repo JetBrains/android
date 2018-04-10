@@ -18,15 +18,19 @@ package com.android.tools.idea.gradle.util;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.AppBundleProjectBuildOutput;
 import com.android.builder.model.AppBundleVariantBuildOutput;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
+import com.android.tools.idea.run.AndroidBundleRunConfiguration;
+import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
 import com.google.common.collect.ImmutableList;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -137,9 +141,9 @@ public class DynamicAppUtils {
    * in case of unexpected error.
    */
   @Nullable
-  public static ApkInfo collectSelectApksOutput(@NotNull Module module,
-                                                @NotNull PostBuildModelProvider outputModelProvider,
-                                                @NotNull String pkgName) {
+  public static ApkInfo collectAppBundleOutput(@NotNull Module module,
+                                               @NotNull PostBuildModelProvider outputModelProvider,
+                                               @NotNull String pkgName) {
     AndroidModuleModel androidModel = AndroidModuleModel.get(module);
     if (androidModel == null) {
       getLogger().warn("Android model is null. Sync might have failed");
@@ -177,6 +181,25 @@ public class DynamicAppUtils {
 
     getLogger().warn("Bundle variant build output model has no entries. Build may have failed.");
     return null;
+  }
+
+  /**
+   * Returns {@code true} if a module should be built using the "select apks from bundle" task
+   */
+  public static boolean useSelectApksFromBundleBuilder(@NotNull Module module,
+                                                       @NotNull RunConfiguration configuration,
+                                                       @NotNull List<AndroidDevice> targetDevices) {
+    if (configuration instanceof AndroidBundleRunConfiguration) {
+      return true;
+    }
+
+    // If any device is pre-L *and* module has a dynamic feature, we need to use the bundle tool
+    if (targetDevices.stream().anyMatch(device -> device.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.LOLLIPOP) &&
+        !getDependentFeatureModules(module).isEmpty()) {
+      return true;
+    }
+
+    return false;
   }
 
 

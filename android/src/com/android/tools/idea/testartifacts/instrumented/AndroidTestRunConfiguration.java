@@ -200,7 +200,9 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
   @Override
   @NotNull
-  protected ApkProvider getApkProvider(@NotNull AndroidFacet facet, @NotNull ApplicationIdProvider applicationIdProvider) {
+  protected ApkProvider getApkProvider(@NotNull AndroidFacet facet,
+                                       @NotNull ApplicationIdProvider applicationIdProvider,
+                                       @NotNull List<AndroidDevice> targetDevices) {
     if (facet.getConfiguration().getModel() != null && facet.getConfiguration().getModel() instanceof AndroidModuleModel) {
       return new GradleApkProvider(facet, applicationIdProvider, myOutputProvider, true);
     }

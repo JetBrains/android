@@ -45,10 +45,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.DefaultJDOMExternalizer;
-import com.intellij.openapi.util.InvalidDataException;
-import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.WriteExternalException;
+import com.intellij.openapi.util.*;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
@@ -144,9 +141,19 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
 
   @Override
   @NotNull
-  protected ApkProvider getApkProvider(@NotNull AndroidFacet facet, @NotNull ApplicationIdProvider applicationIdProvider) {
+  protected ApkProvider getApkProvider(@NotNull AndroidFacet facet,
+                                       @NotNull ApplicationIdProvider applicationIdProvider,
+                                       @NotNull List<AndroidDevice> targetDevices) {
     if (facet.getConfiguration().getModel() != null && facet.getConfiguration().getModel() instanceof AndroidModuleModel) {
-      return new GradleApkProvider(facet, applicationIdProvider, myOutputProvider, false);
+      Computable<GradleApkProvider.OutputKind> outputKindProvider = () -> {
+        if (DynamicAppUtils.useSelectApksFromBundleBuilder(facet.getModule(), this, targetDevices)) {
+          return GradleApkProvider.OutputKind.AppBundleOutputModel;
+        }
+        else {
+          return GradleApkProvider.OutputKind.Default;
+        }
+      };
+      return new GradleApkProvider(facet, applicationIdProvider, myOutputProvider, false, outputKindProvider);
     }
     ApkFacet apkFacet = ApkFacet.getInstance(facet.getModule());
     if (apkFacet != null) {
