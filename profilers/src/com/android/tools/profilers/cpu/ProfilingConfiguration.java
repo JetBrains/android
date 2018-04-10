@@ -39,9 +39,17 @@ public class ProfilingConfiguration {
    * TODO(b/76152657): when getDefaultConfigName supports both mode and profiler type, remove this field.
    */
   @VisibleForTesting
-  static final String ART = "Java";
+  static final String ART_ARTIFACT = "Method Trace (Java)";
 
   public static final String SIMPLEPERF = "Sampled (Native)";
+
+  /**
+   * Naming scheme for Simpleperf to match the format of {@link #ART_ARTIFACT}.
+   * TODO(b/76152657): until we can get both mode and profiler type from an ART trace, this string is a compromise to have more consistent
+   * names to display in the Sessions panel.
+   */
+  @VisibleForTesting
+  public static final String SIMPLEPERF_ARTIFACT = "Method Trace (Native)";
 
   public static final String ATRACE = "System Trace";
 
@@ -123,9 +131,9 @@ public class ProfilingConfiguration {
   public static String getDefaultConfigName(CpuProfilerType profilerType) {
     switch (profilerType) {
       case ART:
-        return ART;
+        return ART_ARTIFACT;
       case SIMPLEPERF:
-        return SIMPLEPERF;
+        return SIMPLEPERF_ARTIFACT;
       case ATRACE:
         return ATRACE;
       default:
