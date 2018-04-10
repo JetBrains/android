@@ -75,10 +75,14 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
     Template.fromStream("Three lines",
                         RecyclerViewAssistant.class.getResourceAsStream("templates/three_lines.xml")),
     Template.fromStream("Three lines w/ avatar",
-                        RecyclerViewAssistant.class.getResourceAsStream("templates/three_lines_avatar.xml")));
+                        RecyclerViewAssistant.class.getResourceAsStream("templates/three_lines_avatar.xml")),
+    Template.fromStream("Grid",
+                        RecyclerViewAssistant.class.getResourceAsStream("templates/avatar.xml"), true));
 
   private final NlComponent myComponent;
   private final String myOriginalListItemValue;
+  private final String myOriginalLayoutManager;
+  private final String myOriginalSpanCountValue;
   private final Project myProject;
   private final String myResourceName;
   private final HorizontalSpinner<Template> mySpinner;
@@ -131,6 +135,8 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
     content.add(myItemCount);
 
     myOriginalListItemValue = myComponent.getAttribute(TOOLS_URI, ATTR_LISTITEM);
+    myOriginalSpanCountValue = myComponent.getAttribute(TOOLS_URI, ATTR_SPAN_COUNT);
+    myOriginalLayoutManager = myComponent.getAttribute(TOOLS_URI, ATTR_LAYOUT_MANAGER);
 
     addContent(content);
 
@@ -153,7 +159,7 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
       setOriginalState();
     }
     else {
-      myCreatedFile = setTemplate(myProject, myComponent, myResourceName, template.getMyTemplate());
+      myCreatedFile = setTemplate(myProject, myComponent, myResourceName, template);
     }
   }
 
@@ -176,7 +182,8 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
   private static PsiFile setTemplate(@NotNull Project project,
                                      @NotNull NlComponent component,
                                      @NotNull String resourceName,
-                                     @NotNull String content) {
+                                     @NotNull Template template) {
+    String content = template.getMyTemplate();
     AndroidFacet facet = component.getModel().getFacet();
     VirtualFile resourceDir = ResourceFolderManager.getInstance(facet).getPrimaryFolder();
     assert resourceDir != null;
@@ -199,6 +206,8 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
         LOG.debug(e);
       }
       component.setAttribute(TOOLS_URI, ATTR_LISTITEM, LAYOUT_RESOURCE_PREFIX + resourceName);
+      component.setAttribute(TOOLS_URI, ATTR_SPAN_COUNT, template.isGrid() ? "5" : null);
+      component.setAttribute(TOOLS_URI, "layoutManager", template.isGrid() ? "GridLayoutManager" : null);
       CommandProcessor.getInstance().addAffectedFiles(project, component.getTag().getContainingFile().getVirtualFile());
 
       return PsiManager.getInstance(project).findFile(file);
@@ -228,6 +237,8 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
       myCreatedFile.delete();
       myCreatedFile = null;
       myComponent.setAttribute(TOOLS_URI, ATTR_LISTITEM, myOriginalListItemValue);
+      myComponent.setAttribute(TOOLS_URI, "spanCount", myOriginalSpanCountValue);
+      myComponent.setAttribute(TOOLS_URI, ATTR_LAYOUT_MANAGER, myOriginalLayoutManager);
       CommandProcessor.getInstance().addAffectedFiles(project, myComponent.getTag().getContainingFile().getVirtualFile());
     }));
   }
