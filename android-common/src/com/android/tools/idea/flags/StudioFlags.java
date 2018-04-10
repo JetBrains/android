@@ -62,8 +62,13 @@ public final class StudioFlags {
     false);
 
   public static final Flag<Boolean> NPW_DYNAMIC_APPS = Flag.create(
-    NPW, "dynamic.apps", "New Project/Module Dynamic Apps flow",
-    "Use new Dynamic Apps flow when creating a New Mobile Project/Module",
+    NPW, "dynamic.apps", "New Dynamic App Project flow",
+    "Use new Dynamic App flow when creating a New Mobile Project",
+    false);
+
+  public static final Flag<Boolean> NPW_DYNAMIC_APP_MODULE = Flag.create(
+    NPW, "dynamic.app.module", "New Dynamic App Module flow",
+    "Adds entry in File > New Module to create a new Dynamic App Module",
     false);
 
   public static final Flag<Boolean> NPW_USE_HOME_FOLDER_AS_EXTRA_TEMPLATE_ROOT_FOLDER = Flag.create(
