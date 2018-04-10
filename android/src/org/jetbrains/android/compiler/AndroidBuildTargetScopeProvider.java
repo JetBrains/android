@@ -4,7 +4,6 @@ import com.android.tools.idea.project.AndroidProjectInfo;
 import com.intellij.compiler.impl.BuildTargetScopeProvider;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.compiler.CompileScope;
-import com.intellij.openapi.compiler.CompilerFilter;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.packaging.artifacts.Artifact;
@@ -59,8 +58,7 @@ public class AndroidBuildTargetScopeProvider extends BuildTargetScopeProvider {
 
   @NotNull
   @Override
-  public List<TargetTypeBuildScope> getBuildTargetScopes(@NotNull CompileScope baseScope, @NotNull CompilerFilter filter,
-                                                         @NotNull Project project, boolean forceBuild) {
+  public List<TargetTypeBuildScope> getBuildTargetScopes(@NotNull CompileScope baseScope, @NotNull Project project, boolean forceBuild) {
     if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID) ||
         AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
       return Collections.emptyList();

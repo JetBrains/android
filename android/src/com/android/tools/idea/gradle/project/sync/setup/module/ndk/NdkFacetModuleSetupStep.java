@@ -35,17 +35,14 @@ public class NdkFacetModuleSetupStep extends NdkModuleSetupStep {
     IdeModifiableModelsProvider ideModelsProvider = context.getIdeModelsProvider();
 
     NdkFacet facet = findFacet(module, ideModelsProvider, NdkFacet.getFacetTypeId());
-    if (facet != null) {
-      configureFacet(facet, ndkModuleModel);
-    }
-    else {
+    if (facet == null) {
       // Module does not have Native Android facet. Create one and add it.
       ModifiableFacetModel model = ideModelsProvider.getModifiableFacetModel(module);
       NdkFacetType facetType = NdkFacet.getFacetType();
       facet = facetType.createFacet(module, NdkFacet.getFacetName(), facetType.createDefaultConfiguration(), null);
       model.addFacet(facet);
-      configureFacet(facet, ndkModuleModel);
     }
+    configureFacet(facet, ndkModuleModel);
   }
 
   private static void configureFacet(@NotNull NdkFacet facet, @NotNull NdkModuleModel model) {

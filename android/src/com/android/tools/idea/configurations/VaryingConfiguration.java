@@ -382,11 +382,8 @@ public class VaryingConfiguration extends NestedConfiguration {
     NightMode nightMode = myParent.getNightMode();
     if (isAlternatingNightMode()) {
       nightMode = nightMode == NightMode.NIGHT ? NightMode.NOTNIGHT : NightMode.NIGHT;
-      return nightMode;
     }
-    else {
-      return nightMode;
-    }
+    return nightMode;
   }
 
   @Override
@@ -402,11 +399,8 @@ public class VaryingConfiguration extends NestedConfiguration {
       // layout)
       UiMode[] values = UiMode.values();
       uiMode = values[(uiMode.ordinal() + 1) % values.length];
-      return uiMode;
     }
-    else {
-      return uiMode;
-    }
+    return uiMode;
   }
 
   @Override
