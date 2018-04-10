@@ -23,22 +23,23 @@ import java.io.InputStreamReader
 /**
  * Holder class for the templates information
  */
-internal data class Template(private val myTemplateName: String, val myTemplate: String) {
+internal data class Template(private val myTemplateName: String, val myTemplate: String, val isGrid: Boolean) {
   override fun toString(): String {
     return myTemplateName
   }
 
   companion object {
     @JvmField
-    val NONE_TEMPLATE = Template("None", "")
+    val NONE_TEMPLATE = Template("None", "", false)
 
     /**
      * Returns a new template using the contents from the given stream
      */
     @JvmStatic
-    fun fromStream(name: String, stream: InputStream): Template {
+    @JvmOverloads
+    fun fromStream(name: String, stream: InputStream, isGrid: Boolean = false): Template {
       val content = Streams.readFully(InputStreamReader(stream))
-      return Template(name, content)
+      return Template(name, content, isGrid)
     }
   }
 }
