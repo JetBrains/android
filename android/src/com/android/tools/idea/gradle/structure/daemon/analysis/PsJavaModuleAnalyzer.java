@@ -30,8 +30,9 @@ public class PsJavaModuleAnalyzer extends PsModuleAnalyzer<PsJavaModule> {
   protected void doAnalyze(@NotNull PsJavaModule module, @NotNull PsIssueCollection issueCollection) {
     module.forEachDependency(dependency -> {
       if (dependency instanceof PsLibraryDependency && dependency.isDeclared()) {
-        PsLibraryDependency libraryDependency = (PsLibraryDependency)dependency;
-        analyzeDeclaredDependency(libraryDependency, issueCollection);
+        // TODO(b/77848741): Fix promotion analysis.
+        //PsLibraryDependency libraryDependency = (PsLibraryDependency)dependency;
+        //analyzeDeclaredDependency(libraryDependency, issueCollection);
       }
     });
   }
