@@ -20,7 +20,6 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
-import com.android.tools.idea.gradle.structure.model.PsDependency;
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
@@ -104,7 +103,6 @@ public class PsLibraryAndroidDependency extends PsAndroidDependency implements P
   public String toText(@NotNull TextType type) {
     switch (type) {
       case PLAIN_TEXT:
-        return mySpec.toString();
       case FOR_NAVIGATION:
         return mySpec.toString();
       default:

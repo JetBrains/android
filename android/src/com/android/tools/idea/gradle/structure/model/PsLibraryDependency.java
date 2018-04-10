@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.model;
 
-import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import org.jetbrains.annotations.NotNull;
 
 public interface PsLibraryDependency extends PsBaseDependency {
@@ -26,14 +25,6 @@ public interface PsLibraryDependency extends PsBaseDependency {
 
   @NotNull
   PsArtifactDependencySpec getSpec();
-
-  @NotNull
-  default PsArtifactDependencySpec createSpec(@NotNull ArtifactDependencyModel parsedModel) {
-    String compactNotation = parsedModel.compactNotation();
-    PsArtifactDependencySpec spec = PsArtifactDependencySpec.create(compactNotation);
-    assert spec != null;
-    return spec;
-  }
 
   void setModified(boolean value);
 }
