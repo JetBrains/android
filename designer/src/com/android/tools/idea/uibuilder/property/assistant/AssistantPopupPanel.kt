@@ -15,36 +15,56 @@
  */
 package com.android.tools.idea.uibuilder.property.assistant
 
+import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
+import java.awt.Component
 import java.awt.Font
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.SwingConstants
 
 
-private val CONTENT_BORDER = JBUI.Borders.empty(5, 5, 7, 5)
+private const val LEFT_PADDING = 5
+private val CONTENT_BORDER = JBUI.Borders.empty(5, LEFT_PADDING, 7, 5)
 
 /**
  * Base panel for Assistant that applies the correct margin the the provided [content]
  * and displays a title label.
  */
-class AssistantPopupPanel(title: String, val content: JComponent) : JPanel(BorderLayout()) {
+open class AssistantPopupPanel @JvmOverloads constructor(title: String = "DESIGN-TIME ATTRIBUTES", val content: JComponent? = null) : JPanel(
+  VerticalFlowLayout()) {
 
-  private val titleLabel = JLabel(title).apply {
+  private val titleLabel = JLabel(title, SwingConstants.LEADING).apply {
     border = JBUI.Borders.merge(
-      JBUI.Borders.empty(8, 12, 8, 12),
+      JBUI.Borders.empty(8, LEFT_PADDING, 8, 12),
       JBUI.Borders.customLine(com.android.tools.adtui.common.border, 0, 0, 1, 0), true)
     font = font.deriveFont(Font.BOLD, 10f)
+    isOpaque = false
   }
 
-  private val contentWrapper = JPanel().apply {
+  private val contentWrapper = JPanel(BorderLayout()).apply {
     border = CONTENT_BORDER
-    add(content)
+    isOpaque = false
+    if (content != null) {
+      add(content)
+    }
   }
 
   init {
-    add(titleLabel, BorderLayout.NORTH)
+    add(titleLabel)
     add(contentWrapper)
+    background = UIUtil.getListBackground()
+  }
+
+  fun addContent(content: JComponent) {
+    contentWrapper.removeAll()
+    contentWrapper.add(content)
+  }
+
+  final override fun add(comp: Component?): Component {
+    return super.add(comp)
   }
 }

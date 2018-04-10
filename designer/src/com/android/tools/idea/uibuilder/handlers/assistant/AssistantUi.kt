@@ -33,6 +33,7 @@ fun setAssistantFont(component: JComponent, foregroundColor: Color? = null) = co
   }
 }
 
+@JvmOverloads
 fun assistantLabel(text: String, alignment: Int = SwingConstants.LEADING): JLabel = JLabel(text, alignment).apply {
   setAssistantFont(this, AdtUiUtils.DEFAULT_FONT_COLOR)
   isOpaque = false
