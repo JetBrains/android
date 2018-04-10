@@ -84,7 +84,7 @@ public class NlEditorTest {
    *   1. Create a new project
    *   2. Open the layout xml file
    *   3. Switch to design view
-   *   4. Drag and drop components TextView, Button
+   *   4. Drag and drop components TableRow, Button
    *   5. Switch back to Text view
    *   Verification:
    *   1. The added component shows up in the xml
@@ -102,14 +102,17 @@ public class NlEditorTest {
 
     assertThat(editorFixture.canInteractWithSurface()).isTrue();
 
-    editorFixture.dragComponentToSurface("Text", "TextView")
-      .dragComponentToSurface("Buttons", "Button");
+    editorFixture
+      .dragComponentToSurface("Layouts", "TableRow")
+      .waitForRenderToFinish()
+      .dragComponentToSurface("Buttons", "Button")
+      .waitForRenderToFinish();
 
     String layoutFileContents = guiTest.ideFrame()
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
       .getCurrentFileContents();
-    assertThat(layoutFileContents).contains("<TextView");
+    assertThat(layoutFileContents).contains("<TableRow");
     assertThat(layoutFileContents).contains("<Button");
   }
 
