@@ -27,9 +27,10 @@ import javax.swing.JComponent
  * An [ActionTarget] that displays a popup displaying a [JComponent]
  * provided by [ComponentAssistantFactory].
  */
+// TODO: Replace icon with the final version
 class ComponentAssistantActionTarget(
   private val panelFactory: ComponentAssistantFactory
-) : ActionTarget(null, NlIcon(StudioIcons.Menu.MENU, StudioIcons.Menu.MENU), null) {
+) : ActionTarget(null, NlIcon(StudioIcons.Shell.ToolWindows.BUILD, StudioIcons.Shell.ToolWindows.BUILD), null) {
 
   private var onClose: (cancelled: Boolean) -> Unit = {}
   private var popup: LightCalloutPopup = LightCalloutPopup(closedCallback = this::fireCloseEvent, cancelCallBack = this::fireCancelEvent)
