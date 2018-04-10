@@ -29,6 +29,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.util.*
 import java.util.concurrent.TimeUnit
+import javax.swing.JPanel
 import javax.swing.JTextPane
 
 class EnergyDetailsViewTest {
@@ -40,7 +41,6 @@ class EnergyDetailsViewTest {
   private val wakeLockAcquireEvent = EnergyEvent.newBuilder()
     .setTimestamp(TimeUnit.MILLISECONDS.toNanos(200))
     .setWakeLockAcquired(wakeLockAcquired)
-    .setTraceId("traceId")
     .setEventId(123)
     .build()
   private val wakeLockReleased = EnergyProfiler.WakeLockReleased.newBuilder().setIsHeld(false).build()
@@ -165,10 +165,11 @@ class EnergyDetailsViewTest {
 
   @Test
   fun callstackIsProperlyRendered() {
+    val eventWithTrace = wakeLockAcquireEvent.toBuilder().setTraceId("traceId").build()
     profilerService.addFile("traceId", ByteString.copyFromUtf8(callstackText))
-    view.setDuration(EnergyDuration(Arrays.asList(wakeLockAcquireEvent)))
+    view.setDuration(EnergyDuration(Arrays.asList(eventWithTrace)))
     val nonEmptyView = TreeWalker(view).descendants().filterIsInstance<EnergyCallstackView>().first()
-    assertThat(nonEmptyView.components).isNotEmpty()
+    assertThat(nonEmptyView.components.any { c -> c is JPanel }).isTrue()
     view.setDuration(null)
     val emptyView = TreeWalker(view).descendants().filterIsInstance<EnergyCallstackView>().first()
     assertThat(emptyView.components).isEmpty()
