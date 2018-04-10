@@ -143,6 +143,9 @@ public class AvdWizardUtils {
   /** Maximum amount of RAM to *default* an AVD to, if the physical RAM on the device is higher */
   private static final int MAX_RAM_MB = 1536;
 
+  private static final Revision MIN_SNAPSHOT_MANAGEMENT_VERSION = new Revision(27, 2, 5);
+  private static final Revision MIN_WEBP_VERSION = new Revision(25, 2, 3);
+
   private static Map<String, HardwareProperties.HardwareProperty> ourHardwareProperties; // Hardware Properties
 
   private static Logger getLog() {
@@ -365,21 +368,22 @@ public class AvdWizardUtils {
 
   @VisibleForTesting
   static boolean emulatorSupportsWebp(@NotNull AndroidSdkHandler sdkHandler) {
+    return emulatorVersionIsAtLeast(sdkHandler, MIN_WEBP_VERSION);
+  }
+
+  static boolean emulatorSupportsSnapshotManagement(@NotNull AndroidSdkHandler sdkHandler) {
+    return emulatorVersionIsAtLeast(sdkHandler, MIN_SNAPSHOT_MANAGEMENT_VERSION);
+  }
+
+  private static boolean emulatorVersionIsAtLeast(@NotNull AndroidSdkHandler sdkHandler, Revision minRevision) {
     ProgressIndicator log = new StudioLoggerProgressIndicator(AvdWizardUtils.class);
     LocalPackage sdkPackage = sdkHandler.getLocalPackage(FD_EMULATOR, log);
     if (sdkPackage == null) {
       sdkPackage = sdkHandler.getLocalPackage(FD_TOOLS, log);
     }
     if (sdkPackage != null) {
-      Revision version = sdkPackage.getVersion();
-      // >= 25.2.3?
-      if (version.getMajor() > 25 ||
-          version.getMajor() == 25 && (version.getMinor() > 2 ||
-                                       version.getMinor() == 2 && version.getMicro() >= 3)) {
-        return true;
-      }
+      return sdkPackage.getVersion().compareTo(minRevision) >= 0;
     }
-
     return false;
   }
 
