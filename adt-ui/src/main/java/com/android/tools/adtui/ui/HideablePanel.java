@@ -15,7 +15,6 @@
  */
 package com.android.tools.adtui.ui;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.TabularLayout;
 import com.intellij.icons.AllIcons;
 import com.intellij.util.ui.JBEmptyBorder;
@@ -82,6 +81,8 @@ public class HideablePanel extends JPanel {
     // If we have a separator we want it to be centered vertically so we wrap it in a panel.
     if (builder.myShowSeparator) {
       JPanel verticalAlignPanel = new JPanel(new BorderLayout());
+      // The separator panel background should inherit the parent component's background.
+      verticalAlignPanel.setBackground(null);
       verticalAlignPanel.add(new JSeparator(), BorderLayout.CENTER);
       verticalAlignPanel.setBorder(BorderFactory.createEmptyBorder(2, 6, 0, 3));
       myTitlePanel.add(verticalAlignPanel, new TabularLayout.Constraint(0, 1));

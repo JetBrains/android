@@ -26,10 +26,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 public final class EnergyCallstackView extends JPanel {
 
@@ -57,13 +55,9 @@ public final class EnergyCallstackView extends JPanel {
       }
 
       String callstackString = myStageView.getStage().requestBytes(event.getTraceId()).toStringUtf8();
-      List<CodeLocation> codeLocationList = Arrays.stream(callstackString.split("\\n"))
-        .filter(line -> !line.trim().isEmpty())
-        .map(line -> new StackFrameParser(line).toCodeLocation())
-        .collect(Collectors.toList());
       StackTraceModel model = new StackTraceModel(myStageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator());
       StackTraceView stackTraceView = myStageView.getIdeComponents().createStackView(model);
-      stackTraceView.getModel().setStackFrames(ThreadId.INVALID_THREAD_ID, codeLocationList);
+      stackTraceView.getModel().setStackFrames(callstackString);
       JComponent traceComponent = stackTraceView.getComponent();
       if (traceComponent instanceof JScrollPane) {
         ((JScrollPane) traceComponent).setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
@@ -73,6 +67,8 @@ public final class EnergyCallstackView extends JPanel {
       String description = time + "&nbsp;&nbsp;" + getMetadataName(event.getMetadataCase());
       HideablePanel hideablePanel = new HideablePanel.Builder(description, traceComponent).build();
       hideablePanel.setBorder(new JBEmptyBorder(0, 0, 5, 0));
+      // Make the call stack hideable panel use the parent component's background.
+      hideablePanel.setBackground(null);
       callstackList.add(hideablePanel);
     }
     if (callstackList.size() > 2) {
