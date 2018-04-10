@@ -19,23 +19,18 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
-import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
 
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 
 public class PsLibraryJavaDependency extends PsJavaDependency implements PsLibraryDependency {
-  @NotNull private final List<PsArtifactDependencySpec> myPomDependencies = Lists.newArrayList();
   @NotNull private PsArtifactDependencySpec mySpec;
 
   @Nullable private final JarLibraryDependency myResolvedModel;
-  @Nullable private PsArtifactDependencySpec myDeclaredSpec;
 
   protected PsLibraryJavaDependency(@NotNull PsJavaModule parent,
                                     @NotNull PsArtifactDependencySpec spec,
@@ -44,10 +39,6 @@ public class PsLibraryJavaDependency extends PsJavaDependency implements PsLibra
     super(parent, parsedModels);
     mySpec = spec;
     myResolvedModel = resolvedModel;
-    Optional<ArtifactDependencyModel> firstParsedModel = parsedModels.stream().findFirst();
-    if (firstParsedModel.isPresent()) {
-      setDeclaredSpec(createSpec(firstParsedModel.get()));
-    }
   }
 
   @Override
@@ -66,25 +57,11 @@ public class PsLibraryJavaDependency extends PsJavaDependency implements PsLibra
   public String toText(@NotNull TextType type) {
     switch (type) {
       case PLAIN_TEXT:
-        return mySpec.toString();
       case FOR_NAVIGATION:
-        PsArtifactDependencySpec spec = myDeclaredSpec;
-        if (spec == null) {
-          spec = mySpec;
-        }
-        return spec.toString();
+        return mySpec.toString();
       default:
         return "";
     }
-  }
-
-  void setDependenciesFromPomFile(@NotNull List<PsArtifactDependencySpec> pomDependencies) {
-    myPomDependencies.clear();
-    myPomDependencies.addAll(pomDependencies);
-  }
-
-  private void setDeclaredSpec(@NotNull PsArtifactDependencySpec spec) {
-    myDeclaredSpec = spec;
   }
 
   @Override
