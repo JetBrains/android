@@ -16,6 +16,7 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.AxisComponent;
+import com.android.tools.adtui.TableUtils;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TooltipComponent;
 import com.android.tools.adtui.model.AspectObserver;
@@ -160,7 +161,7 @@ final class ConnectionsView {
     myConnectionsTable.getColumnModel().getColumn(Column.TIME.ordinal()).setCellRenderer(new TimeRenderer());
     myConnectionsTable.getColumnModel().getColumn(Column.TIMELINE.ordinal()).setCellRenderer(
       new TimelineRenderer(myConnectionsTable, myStage.getStudioProfilers().getTimeline().getSelectionRange()));
-    myConnectionsTable.setTableHeaderBorder(TABLE_COLUMN_HEADER_BORDER);
+    TableUtils.setTableHeaderBorder(myConnectionsTable, TABLE_COLUMN_HEADER_BORDER);
 
     myConnectionsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myConnectionsTable.getSelectionModel().addListSelectionListener(e -> {

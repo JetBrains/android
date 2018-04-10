@@ -16,6 +16,7 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.AxisComponent;
+import com.android.tools.adtui.TableUtils;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TooltipComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
@@ -86,7 +87,7 @@ final class ThreadsView {
         myThreadsTable.getColumnModel().getColumn(1).setPreferredWidth((int)(myThreadsTable.getWidth() * 7.0 / 8));
       }
     });
-    myThreadsTable.setTableHeaderBorder(TABLE_COLUMN_HEADER_BORDER);
+    TableUtils.setTableHeaderBorder(myThreadsTable, TABLE_COLUMN_HEADER_BORDER);
 
     TableRowSorter<ThreadsTableModel> sorter = new TableRowSorter<>(model);
     sorter.setComparator(0, Comparator.comparing(String::toString));
