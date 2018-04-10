@@ -32,10 +32,7 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.util.AndroidGradleSettings;
-import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
-import com.android.tools.idea.gradle.util.GradleVersions;
+import com.android.tools.idea.gradle.util.*;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.editor.ProfilerState;
@@ -278,6 +275,9 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       return true;
     }
 
+    // Compute modules to build
+    Module[] modules = getModules(myProject, context, configuration);
+
     // Note: this before run task provider may be invoked from a context such as Java unit tests, in which case it doesn't have
     // the android run config context
     AndroidRunConfigContext runConfigContext = env.getCopyableUserData(AndroidRunConfigContext.KEY);
@@ -285,7 +285,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     List<AndroidDevice> targetDevices = deviceFutures == null ? Collections.emptyList() : deviceFutures.getDevices();
     List<String> cmdLineArgs;
     try {
-      cmdLineArgs = getCommonArguments(configuration, targetDevices);
+      cmdLineArgs = getCommonArguments(modules, configuration, targetDevices);
     }
     catch (Exception e) {
       getLog().warn("Error generating command line arguments for Gradle task", e);
@@ -293,7 +293,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     }
 
     BeforeRunBuilder builder =
-      createBuilder(env, getModules(myProject, context, configuration), configuration, runConfigContext, task.getGoal());
+      createBuilder(env, modules, configuration, runConfigContext, targetDevices, task.getGoal());
 
     GradleTaskRunner.DefaultGradleTaskRunner runner = myTaskRunnerFactory.createTaskRunner(configuration);
 
@@ -333,22 +333,26 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
    * Returns the list of arguments to Gradle that are common to both instant and non-instant builds.
    */
   @NotNull
-  private static List<String> getCommonArguments(@NotNull RunConfiguration configuration, @NotNull List<AndroidDevice> targetDevices) throws IOException {
+  private static List<String> getCommonArguments(@NotNull Module[] modules,
+                                                 @NotNull RunConfiguration configuration,
+                                                 @NotNull List<AndroidDevice> targetDevices) throws IOException {
     List<String> cmdLineArgs = new ArrayList<>();
-    cmdLineArgs.addAll(getDeviceSpecificArguments(configuration, targetDevices));
+    cmdLineArgs.addAll(getDeviceSpecificArguments(modules, configuration, targetDevices));
     cmdLineArgs.addAll(getProfilingOptions(configuration, targetDevices));
     return cmdLineArgs;
   }
 
   @NotNull
-  public static List<String> getDeviceSpecificArguments(@NotNull RunConfiguration configuration, @NotNull List<AndroidDevice> devices) throws IOException {
+  public static List<String> getDeviceSpecificArguments(@NotNull Module[] modules,
+                                                        @NotNull RunConfiguration configuration,
+                                                        @NotNull List<AndroidDevice> devices) throws IOException {
     AndroidDeviceSpec deviceSpec = AndroidDeviceSpec.create(devices);
     if (deviceSpec == null) {
       return Collections.emptyList();
     }
 
     List<String> properties = new ArrayList<>(2);
-    if (configuration instanceof AndroidBundleRunConfiguration) {
+    if (useSelectApksFromBundleBuilder(modules, configuration, devices)) {
       // For the bundle tool, we create a temporary json file with the device spec and
       // pass the file path to the gradle task.
       File deviceSpecFile = deviceSpec.writeToJsonTempFile();
@@ -403,10 +407,12 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     return arguments;
   }
 
+  @NotNull
   private static BeforeRunBuilder createBuilder(@NotNull ExecutionEnvironment env,
                                                 @NotNull Module[] modules,
                                                 @NotNull RunConfiguration configuration,
                                                 @Nullable AndroidRunConfigContext runConfigContext,
+                                                @NotNull List<AndroidDevice> targetDevices,
                                                 @Nullable String userGoal) {
     if (modules.length == 0) {
       throw new IllegalStateException("Unable to determine list of modules to build");
@@ -432,19 +438,23 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     }
 
     InstantRunContext irContext = env.getCopyableUserData(InstantRunContext.KEY);
-    DeviceFutures deviceFutures = runConfigContext == null ? null : runConfigContext.getTargetDevices();
-    if (deviceFutures == null || irContext == null) {
+    if (targetDevices.isEmpty() || irContext == null) {
       // Use the "select apks from bundle" task if using a "AndroidBundleRunConfiguration".
       // Note: This is very ad-hoc, and it would be nice to have a better abstraction for this special case.
-      if (configuration instanceof AndroidBundleRunConfiguration) {
+      if (useSelectApksFromBundleBuilder(modules, configuration, targetDevices)) {
         return new DefaultGradleBuilder(gradleTasksProvider.getTasksFor(BuildMode.APK_FROM_BUNDLE, testCompileType), BuildMode.APK_FROM_BUNDLE);
       }
       return new DefaultGradleBuilder(gradleTasksProvider.getTasksFor(BuildMode.ASSEMBLE, testCompileType), BuildMode.ASSEMBLE);
     }
 
-    List<AndroidDevice> targetDevices = deviceFutures.getDevices();
     assert targetDevices.size() == 1 : "instant run context available, but deploying to > 1 device";
     return new InstantRunBuilder(getLaunchedDevice(targetDevices.get(0)), irContext, runConfigContext, gradleTasksProvider);
+  }
+
+  private static boolean useSelectApksFromBundleBuilder(@NotNull Module[] modules,
+                                                        @NotNull RunConfiguration configuration,
+                                                        @NotNull List<AndroidDevice> targetDevices) {
+    return Arrays.stream(modules).anyMatch(module -> DynamicAppUtils.useSelectApksFromBundleBuilder(module, configuration, targetDevices));
   }
 
   @NotNull
