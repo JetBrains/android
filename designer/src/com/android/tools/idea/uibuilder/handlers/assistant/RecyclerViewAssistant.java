@@ -19,7 +19,6 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.HorizontalSpinner;
-import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory.Context;
@@ -37,8 +36,6 @@ import com.intellij.psi.PsiManager;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import kotlin.Unit;
-import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -104,25 +101,14 @@ public class RecyclerViewAssistant extends JPanel {
 
     JLabel label = AssistantUiKt.assistantLabel("Item template", SwingConstants.LEADING);
     label.setBorder(JBUI.Borders.emptyBottom(5));
-    CommonButton apply = new CommonButton("Apply");
-    JPanel applyPanel = new JPanel(new BorderLayout());
-    applyPanel.setOpaque(false);
-    applyPanel.setBorder(JBUI.Borders.emptyTop(10));
-    applyPanel.add(apply, BorderLayout.CENTER);
-    apply.addActionListener(e -> {
-      context.getDoClose().invoke(false);
-    });
 
     add(label, BorderLayout.NORTH);
     add(mySpinner, BorderLayout.CENTER);
-    add(applyPanel, BorderLayout.SOUTH);
 
     setBorder(JBUI.Borders.empty(10));
 
     setBackground(UIUtil.getListBackground());
     myOriginalListItemValue = myComponent.getAttribute(TOOLS_URI, ATTR_LISTITEM);
-
-    context.setOnClose(this::onClosed);
 
     ApplicationManager.getApplication().invokeLater(this::fireSelectionUpdated);
   }
@@ -200,19 +186,6 @@ public class RecyclerViewAssistant extends JPanel {
       myComponent.setAttribute(TOOLS_URI, ATTR_LISTITEM, myOriginalListItemValue);
       CommandProcessor.getInstance().addAffectedFiles(project, myComponent.getTag().getContainingFile().getVirtualFile());
     }));
-  }
-
-  /**
-   * Method called if the user has closed the popup
-   */
-  @Nullable
-  private Unit onClosed(Boolean cancelled) {
-    if (!cancelled) {
-      return null;
-    }
-
-    setOriginalState();
-    return null;
   }
 
   @NotNull
