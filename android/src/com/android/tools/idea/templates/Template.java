@@ -101,6 +101,7 @@ public class Template {
   public static final String CATEGORY_PROJECTS = "gradle-projects";
   public static final String CATEGORY_OTHER = "other";
   public static final String CATEGORY_APPLICATION = "Application";
+  public static final String ANDROID_MODULE_TEMPLATE = "Android Module";
 
   /**
    * Highest supported format; templates with a higher number will be skipped
@@ -262,7 +263,7 @@ public class Template {
     switch (title) {
       case "":
         return TemplateRenderer.UNKNOWN_TEMPLATE_RENDERER;
-      case "Android Module":
+      case ANDROID_MODULE_TEMPLATE:
         return TemplateRenderer.ANDROID_MODULE;
       case "Android Project":
         return TemplateRenderer.ANDROID_PROJECT;

@@ -28,7 +28,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.IconUtil;
-import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,6 +42,12 @@ import static org.jetbrains.android.util.AndroidBundle.message;
  * This step allows the user to select which type of module they want to create.
  */
 public class ChooseModuleTypeStep extends ModelWizardStep.WithoutModel {
+  public static final String ANDROID_WEAR_MODULE_NAME = "Android Wear Module";
+  public static final String ANDROID_TV_MODULE_NAME = "Android TV Module";
+  public static final String ANDROID_THINGS_MODULE_NAME = "Android Things Module";
+  public static final String JAVA_LIBRARY_MODULE_NAME = "Java Library";
+  public static final String GOOGLE_CLOUD_MODULE_NAME = "Google Cloud Module";
+
   private final List<ModuleGalleryEntry> myModuleGalleryEntryList;
   private final JComponent myRootPanel;
   private final Project myProject;
@@ -130,9 +135,12 @@ public class ChooseModuleTypeStep extends ModelWizardStep.WithoutModel {
   static List<ModuleGalleryEntry> sortModuleEntries(@NotNull List<ModuleGalleryEntry> moduleTypesProviders) {
     // To have a sequence specified by design, we hardcode the sequence. Everything else is added at the end (sorted by name)
     String[] orderedNames = {
-      "Phone & Tablet Module", "Android Library", "Instant App", "Feature Module", "Android Wear Module", "Android TV Module",
-      "Android Things Module", "Import Gradle Project", "Import Eclipse ADT Project", "Import .JAR/.AAR Package", "Java Library",
-      "Google Cloud Module",
+      message("android.wizard.module.new.mobile"), message("android.wizard.module.new.library"),
+      message("android.wizard.module.new.dynamic.module"), message("android.wizard.module.new.instant.app"),
+      message("android.wizard.module.new.feature.module"), ANDROID_WEAR_MODULE_NAME, ANDROID_TV_MODULE_NAME,
+      ANDROID_THINGS_MODULE_NAME, message("android.wizard.module.import.gradle.title"),
+      message("android.wizard.module.import.eclipse.title"), message("android.wizard.module.import.title"),
+      JAVA_LIBRARY_MODULE_NAME, GOOGLE_CLOUD_MODULE_NAME,
     };
     Map<String, ModuleGalleryEntry> entryMap = moduleTypesProviders.stream().collect(toMap(ModuleGalleryEntry::getName, c -> c));
 

@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.npw.module;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.instantapp.InstantAppSdks;
+import com.android.tools.idea.npw.dynamicapp.NewDynamicAppModuleDescriptionProvider;
 import com.android.tools.idea.npw.importing.ImportModuleGalleryEntryProvider;
 import com.android.tools.idea.npw.instantapp.NewInstantAppModuleDescriptionProvider;
 import com.android.tools.idea.npw.java.NewJavaModuleDescriptionProvider;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
+import com.google.common.collect.Lists;
 import org.hamcrest.Matcher;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
@@ -75,17 +78,23 @@ public class ChooseModuleTypeStepTest extends AndroidGradleTestCase {
     ArrayList<ModuleGalleryEntry> moduleDescriptions = new ArrayList<>();
     moduleDescriptions.addAll(new ImportModuleGalleryEntryProvider().getDescriptions());
     moduleDescriptions.addAll(new NewAndroidModuleDescriptionProvider().getDescriptions());
+    moduleDescriptions.addAll(new NewDynamicAppModuleDescriptionProvider().getDescriptions());
     moduleDescriptions.addAll(new NewInstantAppModuleDescriptionProvider().getDescriptions());
     moduleDescriptions.addAll(new NewJavaModuleDescriptionProvider().getDescriptions());
 
     List<String> sortedEntries = ChooseModuleTypeStep.sortModuleEntries(moduleDescriptions).stream()
       .map(ModuleGalleryEntry::getName).collect(Collectors.toList());
-    Assert.assertThat(
-      sortedEntries,
-      equalToList("Phone & Tablet Module", "Android Library", "Instant App", "Feature Module", "Android Wear Module",
-                  "Android TV Module", "Android Things Module", "Import Gradle Project", "Import Eclipse ADT Project",
-                  "Import .JAR/.AAR Package", "Java Library")
+
+    List<String> expectedEntries = Lists.newArrayList(
+      "Phone & Tablet Module", "Android Library", "Dynamic Module", "Instant App", "Feature Module", "Android Wear Module",
+      "Android TV Module", "Android Things Module", "Import Gradle Project", "Import Eclipse ADT Project",
+      "Import .JAR/.AAR Package", "Java Library"
     );
+    if (!StudioFlags.NPW_DYNAMIC_APP_MODULE.get()) {
+      expectedEntries.remove("Dynamic Module");
+    }
+
+    Assert.assertThat(sortedEntries, equalTo(expectedEntries));
   }
 
   @NotNull

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.instantapp;
+package com.android.tools.idea.npw.dynamicapp;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.model.NewModuleModel;
-import com.android.tools.idea.npw.module.*;
+import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
+import com.android.tools.idea.npw.module.ModuleGalleryEntry;
+import com.android.tools.idea.npw.module.ModuleTemplateGalleryEntry;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
@@ -28,20 +31,20 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
-import static com.android.tools.idea.npw.model.NewProjectModel.getSuggestedProjectPackage;
 import static com.android.tools.idea.templates.Template.ANDROID_MODULE_TEMPLATE;
 import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
-public class NewInstantAppModuleDescriptionProvider implements ModuleDescriptionProvider {
+public class NewDynamicAppModuleDescriptionProvider implements ModuleDescriptionProvider {
   @Override
   public Collection<ModuleGalleryEntry> getDescriptions() {
-    return Arrays.asList(
-      new FeatureTemplateGalleryEntry(),
-      new ApplicationTemplateGalleryEntry());
+    if (!StudioFlags.NPW_DYNAMIC_APP_MODULE.get()) {
+      return Collections.emptyList();
+    }
+    return Collections.singletonList(new FeatureTemplateGalleryEntry());
   }
 
   private static class FeatureTemplateGalleryEntry implements ModuleTemplateGalleryEntry {
@@ -56,13 +59,14 @@ public class NewInstantAppModuleDescriptionProvider implements ModuleDescription
     @Nullable
     @Override
     public Icon getIcon() {
+      // TODO: This is just a placeholder. New icon: http://b/77840752
       return AndroidIcons.ModuleTemplates.FeatureModule;
     }
 
     @NotNull
     @Override
     public String getName() {
-      return message("android.wizard.module.new.feature.module");
+      return message("android.wizard.module.new.dynamic.module");
     }
 
     @Nullable
@@ -90,57 +94,18 @@ public class NewInstantAppModuleDescriptionProvider implements ModuleDescription
 
     @Override
     public boolean isLibrary() {
-      return true;
+      return false;
     }
 
     @Override
     public boolean isInstantApp() {
-      return true;
+      return false;
     }
 
     @NotNull
     @Override
     public SkippableWizardStep createStep(@NotNull NewModuleModel model) {
-      String basePackage = getSuggestedProjectPackage(model.getProject().getValue(), true);
-      return new ConfigureAndroidModuleStep(model, FormFactor.MOBILE, myTemplateMetadata.getMinSdk(), basePackage, true, true,
-                                            getDescription());
-    }
-  }
-
-  private static class ApplicationTemplateGalleryEntry implements ModuleGalleryEntry {
-    @NotNull private TemplateHandle myTemplateHandle;
-
-    ApplicationTemplateGalleryEntry() {
-      myTemplateHandle = new TemplateHandle(TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, "Instant App"));
-    }
-
-    @Nullable
-    @Override
-    public Icon getIcon() {
-      return AndroidIcons.ModuleTemplates.InstantAppModule;
-    }
-
-    @NotNull
-    @Override
-    public String getName() {
-      return myTemplateHandle.getMetadata().getTitle();
-    }
-
-    @Nullable
-    @Override
-    public String getDescription() {
-      return myTemplateHandle.getMetadata().getDescription();
-    }
-
-    @Override
-    public String toString() {
-      return getName();
-    }
-
-    @NotNull
-    @Override
-    public SkippableWizardStep createStep(@NotNull NewModuleModel model) {
-      return new ConfigureInstantAppModuleStep(new NewInstantAppModuleModel(model.getProject().getValue(), myTemplateHandle), getName());
+      return new ConfigureDynamicModuleStep(model, getName());
     }
   }
 }
