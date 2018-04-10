@@ -79,6 +79,7 @@ iml_module(
         "//tools/adt/idea/uitest-framework-gradle[module, test]",
         "//tools/adt/idea/uitest-framework-bazel[module, test]",
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
+        "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module]",
     ],
 )
 

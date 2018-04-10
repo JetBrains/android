@@ -101,69 +101,6 @@ public class InstantAppRunTest {
     runWindow.waitForStopClick();
   }
 
-
-  /**
-   * Verify created instant apps can be deployed to an emulator running API 26 or newer.
-   *
-   * <p>TT ID: 84f8150d-0319-4e7e-b510-8227890aca3f
-   *
-   * <pre>
-   *   Test steps:
-   *   1. Create an instant app project.
-   *   2. Set up an emulator running API 26.
-   *   3. Run the instantapp run configuration.
-   *   Verify:
-   *   1. Check if the run tool window appears.
-   *   2. Check if the "Connected to process" message appears in the run tool window.
-   * </pre>
-   */
-  @Test
-  @RunIn(TestGroup.SANITY)
-  public void createAndRunInstantApp() throws Exception {
-    String runConfigName = "instantapp";
-    long deviceProvisioningSeconds = TimeUnit.MINUTES.toSeconds(3);
-    NewProjectWizardFixture newProj = guiTest.welcomeFrame().createNewProject();
-
-    newProj.clickNext();
-    newProj.getConfigureFormFactorStep()
-      .selectMinimumSdkApi(FormFactor.MOBILE, "23")
-      .findInstantAppCheckbox(FormFactor.MOBILE)
-      .select();
-
-    newProj.clickNext()
-      .clickNext()
-      .clickNext()
-      .clickFinish();
-
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-    // TODO remove the following workaround wait to workaround http://b/72666461
-    guiTest.testSystem().waitForProjectSyncToFinish(ideFrame);
-
-    String avdName = EmulatorGenerator.ensureAvdIsCreated(
-      ideFrame.invokeAvdManager(),
-      new AvdSpec.Builder()
-        .setSystemImageGroup(AvdSpec.SystemImageGroups.X86)
-        .setSystemImageSpec(O_AVD_IMAGE)
-        .build()
-    );
-
-    // Stuff can be happening again in the background while the emulator is being created.
-    // We should wait for it to finish.
-    guiTest.waitForBackgroundTasks();
-
-    ideFrame.runApp(runConfigName)
-      .selectDevice(avdName)
-      .clickOk();
-
-    // Starting the device and provisioning the device can take a very long time
-    ExecutionToolWindowFixture runWindow = ideFrame.getRunToolWindow();
-    runWindow.activate(deviceProvisioningSeconds);
-    ExecutionToolWindowFixture.ContentFixture runWindowContent = runWindow.findContent(runConfigName);
-    emulator.waitForProcessToStart(runWindowContent);
-
-    runWindowContent.waitForStopClick();
-  }
-
   /**
    * Verifies instant apps can be launched from the command line
    *
