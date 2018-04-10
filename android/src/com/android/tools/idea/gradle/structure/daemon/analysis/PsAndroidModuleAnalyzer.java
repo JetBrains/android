@@ -67,8 +67,8 @@ public class PsAndroidModuleAnalyzer extends PsModuleAnalyzer<PsAndroidModule> {
           PsIssue issue = createIssueFrom(syncIssue, path);
           issueCollection.add(issue);
         }
-
-        analyzeDeclaredDependency(libraryDependency, issueCollection);
+        // TODO(b/77848741): Fix promotion analysis.
+        //analyzeDeclaredDependency(libraryDependency, issueCollection);
       }
     });
   }
