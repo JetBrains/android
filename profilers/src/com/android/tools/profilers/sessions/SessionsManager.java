@@ -158,9 +158,16 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   }
 
   /**
-   * Change the current selected session.
+   * Change the current selected session explicitly, such as when importing an old session or caputre files, or the user manually navigate
+   * to a different session via the sessions panel.
+   * This has the effect of disabling the auto-process selection logic. Also see {@link StudioProfilers#setAutoProfilingEnabled(boolean)}.
    */
   public void setSession(@NotNull Common.Session session) {
+    myProfilers.setAutoProfilingEnabled(false);
+    setSessionInternal(session);
+  }
+
+  private void setSessionInternal(@NotNull Common.Session session) {
     if (session.equals(mySelectedSession)) {
       return;
     }
@@ -196,7 +203,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     // No process is specified, starts a default empty session.
     if (process == null) {
       setProfilingSession(Common.Session.getDefaultInstance());
-      setSession(myProfilingSession);
+      setSessionInternal(myProfilingSession);
       return;
     }
 
@@ -206,20 +213,22 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     }
 
     BeginSessionRequest.Builder requestBuilder = BeginSessionRequest.newBuilder()
-      .setDeviceId(device.getDeviceId())
-      .setPid(process.getPid())
-      .setSessionName(buildSessionName(device, process))
-      .setRequestTimeEpochMs(System.currentTimeMillis());
+                                                                    .setDeviceId(device.getDeviceId())
+                                                                    .setPid(process.getPid())
+                                                                    .setSessionName(buildSessionName(device, process))
+                                                                    .setRequestTimeEpochMs(System.currentTimeMillis());
     // Attach agent for advanced profiling if JVMTI is enabled
     if (device.getFeatureLevel() >= AndroidVersion.VersionCodes.O &&
         myProfilers.getIdeServices().getFeatureConfig().isJvmtiAgentEnabled()) {
       // If an agent has been previously attached, Perfd will only re-notify the existing agent of the updated grpc target instead
       // of re-attaching an agent. See ProfilerService::AttachAgent on the Perfd side for more details.
       requestBuilder.setJvmtiConfig(BeginSessionRequest.JvmtiConfig.newBuilder()
-                                      .setAttachAgent(true)
-                                      .setAgentLibFileName(String.format("libperfa_%s.so", process.getAbiCpuArch()))
-                                      .setLiveAllocationEnabled(myProfilers.getIdeServices().getFeatureConfig().isLiveAllocationsEnabled())
-                                      .build());
+                                                                   .setAttachAgent(true)
+                                                                   .setAgentLibFileName(
+                                                                     String.format("libperfa_%s.so", process.getAbiCpuArch()))
+                                                                   .setLiveAllocationEnabled(myProfilers.getIdeServices().getFeatureConfig()
+                                                                                                        .isLiveAllocationsEnabled())
+                                                                   .build());
     }
 
     BeginSessionResponse response = myProfilers.getClient().getProfilerClient().beginSession(requestBuilder.build());
@@ -227,7 +236,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
 
     setProfilingSession(session);
     updateSessionItems(Collections.singletonList(session));
-    setSession(session);
+    setSessionInternal(session);
   }
 
   /**
@@ -239,16 +248,18 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     }
 
     EndSessionResponse response = myProfilers.getClient().getProfilerClient().endSession(EndSessionRequest.newBuilder()
-                                                                                           .setDeviceId(myProfilingSession.getDeviceId())
-                                                                                           .setSessionId(myProfilingSession.getSessionId())
-                                                                                           .build());
+                                                                                                          .setDeviceId(myProfilingSession
+                                                                                                                         .getDeviceId())
+                                                                                                          .setSessionId(myProfilingSession
+                                                                                                                          .getSessionId())
+                                                                                                          .build());
     boolean selectedSessionIsProfilingSession = myProfilingSession.equals(mySelectedSession);
     setProfilingSession(Common.Session.getDefaultInstance());
 
     Common.Session session = response.getSession();
     updateSessionItems(Collections.singletonList(session));
     if (selectedSessionIsProfilingSession) {
-      setSession(session);
+      setSessionInternal(session);
     }
   }
 
@@ -266,17 +277,17 @@ public class SessionsManager extends AspectModel<SessionAspect> {
                                               long endTimestampNs,
                                               long startTimestampEpochMs) {
     Common.Session session = Common.Session.newBuilder()
-      .setSessionId(generateUniqueSessionId())
-      .setStartTimestamp(startTimestampNs)
-      .setEndTimestamp(endTimestampNs)
-      .build();
+                                           .setSessionId(generateUniqueSessionId())
+                                           .setStartTimestamp(startTimestampNs)
+                                           .setEndTimestamp(endTimestampNs)
+                                           .build();
 
     Profiler.ImportSessionRequest sessionRequest = Profiler.ImportSessionRequest.newBuilder()
-      .setSession(session)
-      .setSessionName(sessionName)
-      .setSessionType(sessionType)
-      .setStartTimestampEpochMs(startTimestampEpochMs)
-      .build();
+                                                                                .setSession(session)
+                                                                                .setSessionName(sessionName)
+                                                                                .setSessionType(sessionType)
+                                                                                .setStartTimestampEpochMs(startTimestampEpochMs)
+                                                                                .build();
     myProfilers.getClient().getProfilerClient().importSession(sessionRequest);
     return session;
   }
