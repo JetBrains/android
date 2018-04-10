@@ -59,7 +59,7 @@ class ImageViewAssistant(
 
   private val originalValue = imageHandler.getSampleSrc(nlComponent)
 
-  private val itemNameLabel = JLabel(getSampleItemDisplayName(originalValue))
+  private val itemNameLabel = assistantLabel(getSampleItemDisplayName(originalValue))
 
   private var itemDisplayName: String?
     get() = itemNameLabel.text
@@ -78,13 +78,12 @@ class ImageViewAssistant(
 
   private val useAllCheckBox = createUseAllCheckBox()
 
-  val component = AssistantPopupPanel(
-    "DESIGN TIME ATTRIBUTES",
-    createContent(nlComponent.model.facet))
+  val component = AssistantPopupPanel(content = createContent(nlComponent.model.facet))
 
   private fun isSampleValueAll(value: String?) = value?.endsWith(']')?.not() ?: false
 
   private fun createContent(facet: AndroidFacet) = JPanel(BorderLayout()).apply {
+    isOpaque = false
     add(createHeaderControls(facet), BorderLayout.NORTH)
     add(itemList)
     add(createBottomBar(), BorderLayout.SOUTH)
@@ -92,8 +91,9 @@ class ImageViewAssistant(
 
   private fun createHeaderControls(facet: AndroidFacet): JPanel {
     return JPanel(BorderLayout()).apply {
+      isOpaque = false
       val sampleItems = fetchSampleItems(facet)
-      add(JLabel("srcCompat"), BorderLayout.NORTH)
+      add(assistantLabel("srcCompat"), BorderLayout.NORTH)
       add(createComboBox(sampleItems))
       add(useAllCheckBox, BorderLayout.EAST)
       border = Borders.emptyBottom(2)
@@ -106,7 +106,7 @@ class ImageViewAssistant(
     add(Box.createHorizontalGlue())
     add(ClickableLabel("Browse").apply {
       border = null
-      background = null
+      isOpaque = false
       foreground = JBColor.link()
       addActionListener { pickFromResourceDialog() }
     })
@@ -114,6 +114,7 @@ class ImageViewAssistant(
 
   private fun createItemList() = DrawableGrid(nlComponent.model.facet.module,
                                               DefaultListModel<ResourceValue>()).apply {
+    isOpaque = false
     isEnabled = originalValue != null && !isSampleValueAll(originalValue)
     visibleRowCount = 3
     drawableSize = IMAGE_SIZE
@@ -123,7 +124,9 @@ class ImageViewAssistant(
   }
 
   private fun createUseAllCheckBox() = JBCheckBox("All").apply {
+    setAssistantFont(this@apply)
     isSelected = useAll
+    isOpaque = false
     addActionListener { event -> useAll = (event.source as JBCheckBox).isSelected }
   }
 
