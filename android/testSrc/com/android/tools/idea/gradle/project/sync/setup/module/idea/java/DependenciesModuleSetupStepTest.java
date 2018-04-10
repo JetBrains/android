@@ -100,6 +100,7 @@ public class DependenciesModuleSetupStepTest extends IdeaTestCase {
   private void createGradleFacetWithModuleModel() {
     GradleFacet facet = createAndAddGradleFacet(myModule);
     GradleModuleModel gradleModuleModel = mock(GradleModuleModel.class);
+    when(gradleModuleModel.getGradlePath()).thenReturn(":" + myModule.getName());
     facet.setGradleModuleModel(gradleModuleModel);
   }
 }
