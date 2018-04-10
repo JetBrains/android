@@ -18,6 +18,7 @@ import com.android.ide.common.gradle.model.IdeAndroidProject
 import com.android.ide.common.gradle.model.IdeBaseArtifact
 import com.android.ide.common.gradle.model.IdeVariant
 import com.android.ide.common.gradle.model.ModelCache
+import com.android.ide.common.util.PathString
 import com.android.projectmodel.*
 import com.android.projectmodel.AndroidProject
 import com.android.projectmodel.Variant
@@ -183,17 +184,17 @@ class GradleModelConverter(
   fun convert(sourceProvider: SourceProvider): SourceSet =
       compute(sourceProvider) {
         SourceSet(mapOf(
-            AndroidPathType.MANIFEST to listOf(PathString(sourceProvider.manifestFile)),
-            AndroidPathType.JAVA to filesToPathStrings(sourceProvider.javaDirectories),
-            AndroidPathType.RESOURCE to filesToPathStrings(sourceProvider.resourcesDirectories),
-            AndroidPathType.AIDL to filesToPathStrings(sourceProvider.aidlDirectories),
-            AndroidPathType.RENDERSCRIPT to filesToPathStrings(sourceProvider.renderscriptDirectories),
-            AndroidPathType.C to filesToPathStrings(sourceProvider.cDirectories),
-            AndroidPathType.CPP to filesToPathStrings(sourceProvider.cppDirectories),
-            AndroidPathType.RES to filesToPathStrings(sourceProvider.resDirectories),
-            AndroidPathType.ASSETS to filesToPathStrings(sourceProvider.assetsDirectories),
-            AndroidPathType.JNI_LIBS to filesToPathStrings(sourceProvider.jniLibsDirectories),
-            AndroidPathType.SHADERS to filesToPathStrings(sourceProvider.shadersDirectories)
+          AndroidPathType.MANIFEST to listOf(PathString(sourceProvider.manifestFile)),
+          AndroidPathType.JAVA to filesToPathStrings(sourceProvider.javaDirectories),
+          AndroidPathType.RESOURCE to filesToPathStrings(sourceProvider.resourcesDirectories),
+          AndroidPathType.AIDL to filesToPathStrings(sourceProvider.aidlDirectories),
+          AndroidPathType.RENDERSCRIPT to filesToPathStrings(sourceProvider.renderscriptDirectories),
+          AndroidPathType.C to filesToPathStrings(sourceProvider.cDirectories),
+          AndroidPathType.CPP to filesToPathStrings(sourceProvider.cppDirectories),
+          AndroidPathType.RES to filesToPathStrings(sourceProvider.resDirectories),
+          AndroidPathType.ASSETS to filesToPathStrings(sourceProvider.assetsDirectories),
+          AndroidPathType.JNI_LIBS to filesToPathStrings(sourceProvider.jniLibsDirectories),
+          AndroidPathType.SHADERS to filesToPathStrings(sourceProvider.shadersDirectories)
         ))
       }
 

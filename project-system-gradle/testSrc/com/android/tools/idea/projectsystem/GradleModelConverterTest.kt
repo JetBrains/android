@@ -15,10 +15,9 @@ package com.android.tools.idea.projectsystem
 
 import com.android.ide.common.gradle.model.IdeAndroidProject
 import com.android.ide.common.gradle.model.IdeVariant
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.util.PathString
 import com.android.projectmodel.AndroidPathType
 import com.android.projectmodel.AndroidProject
-import com.android.projectmodel.PathString
 import com.android.projectmodel.matchArtifactsWith
 import com.android.tools.idea.projectsystem.gradle.MAIN_ARTIFACT_NAME
 import com.android.tools.idea.projectsystem.gradle.filesToPathStrings
@@ -134,7 +133,7 @@ class GradleModelConverterTest : AndroidGradleTestCase() {
       with (mainArtifact) {
         assertThat(name).isEqualTo(MAIN_ARTIFACT_NAME)
         assertThat(classFolders).isEqualTo(
-            listOf(PathString(originalArtifact.classesFolder)) + filesToPathStrings(originalArtifact.additionalClassesFolders))
+          listOf(PathString(originalArtifact.classesFolder)) + filesToPathStrings(originalArtifact.additionalClassesFolders))
         assertThat(packageName).isEqualTo(project.defaultConfig.productFlavor.applicationId)
         with(resolved) {
           assertThat(usingSupportLibVectors).isFalse()
