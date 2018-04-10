@@ -71,7 +71,7 @@ class SliceGroupBuilder {
             get() = _name!!
             set(value) { _name = value }
 
-        override val runningSlices: List<SchedSlice>
+        override val scheduledSlices: List<SchedSlice>
             get() = _scheduledSlices!!
 
         override val children: List<SliceGroup>
