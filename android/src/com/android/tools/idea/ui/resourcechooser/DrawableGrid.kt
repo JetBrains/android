@@ -25,10 +25,7 @@ import com.intellij.ui.JBColor
 import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import java.awt.AlphaComposite
-import java.awt.Component
-import java.awt.Graphics
-import java.awt.Graphics2D
+import java.awt.*
 import java.io.File
 import javax.swing.*
 
@@ -37,7 +34,8 @@ private const val ITEM_BORDER_WIDTH = 4
 private const val ITEM_SELECTED_BORDER_WIDTH = 2
 private const val DEFAULT_CACHE_SIZE = 12L
 private val DEFAULT_IMAGE_SIZE = JBUI.scale(48)
-private val EMPTY_ICON_COLOR = JBColor.foreground()
+private val EMPTY_ICON_COLOR = JBColor(Color(0xAA, 0xAA, 0xAA, 0x33),
+                                       Color(0xAA, 0xAA, 0xAA, 0x33))
 private val ITEM_BORDER = JBUI.Borders.empty(ITEM_BORDER_WIDTH)
 private val ITEM_BORDER_SELECTED = JBUI.Borders.merge(
   JBUI.Borders.customLine(UIUtil.getListBackground(true), ITEM_SELECTED_BORDER_WIDTH),
