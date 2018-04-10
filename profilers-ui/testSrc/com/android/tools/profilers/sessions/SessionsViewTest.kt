@@ -401,7 +401,7 @@ class SessionsViewTest {
     assertThat(sessionItem.session).isEqualTo(session)
     assertThat(cpuCaptureItem.session).isEqualTo(session)
     assertThat(cpuCaptureItem.isOngoingCapture).isFalse()
-    assertThat(cpuCaptureItem.name).isEqualTo(ProfilingConfiguration.SIMPLEPERF)
+    assertThat(cpuCaptureItem.name).isEqualTo(ProfilingConfiguration.SIMPLEPERF_ARTIFACT)
 
     // Prepare FakeCpuService to return a valid trace.
     myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)

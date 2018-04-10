@@ -57,10 +57,10 @@ class ProfilingConfigurationTest {
   @Test
   fun defaultConfigName() {
     var profilerType = CpuProfiler.CpuProfilerType.ART
-    assertThat(ProfilingConfiguration.getDefaultConfigName(profilerType)).isEqualTo(ProfilingConfiguration.ART)
+    assertThat(ProfilingConfiguration.getDefaultConfigName(profilerType)).isEqualTo(ProfilingConfiguration.ART_ARTIFACT)
 
     profilerType = CpuProfiler.CpuProfilerType.SIMPLEPERF
-    assertThat(ProfilingConfiguration.getDefaultConfigName(profilerType)).isEqualTo(ProfilingConfiguration.SIMPLEPERF)
+    assertThat(ProfilingConfiguration.getDefaultConfigName(profilerType)).isEqualTo(ProfilingConfiguration.SIMPLEPERF_ARTIFACT)
 
     profilerType = CpuProfiler.CpuProfilerType.ATRACE
     assertThat(ProfilingConfiguration.getDefaultConfigName(profilerType)).isEqualTo(ProfilingConfiguration.ATRACE)
