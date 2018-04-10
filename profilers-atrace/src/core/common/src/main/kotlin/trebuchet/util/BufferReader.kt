@@ -96,6 +96,17 @@ class MatchResult(val reader: BufferReader) {
         return reader.stringTo { index = endAt }
     }
 
+    fun slice(group: Int): DataSlice {
+        reader.index = startIndex + matcher!!.start(group)
+        val endAt = startIndex + matcher!!.end(group)
+        return reader.sliceTo { index = endAt }
+    }
+
+    fun reader(group: Int): BufferReader {
+        reader.index = startIndex + matcher!!.start(group)
+        return reader
+    }
+
     fun <T> read(group: Int, cb: PreviewReader.() -> T): T {
         val tempPreview = reader.tempPreview
         tempPreview.buffer = reader.buffer

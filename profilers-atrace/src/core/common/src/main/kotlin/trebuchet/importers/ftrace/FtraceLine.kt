@@ -21,9 +21,10 @@ import trebuchet.io.asSlice
 import trebuchet.model.InvalidId
 import trebuchet.util.BufferReader
 import trebuchet.util.StringCache
+import java.util.regex.Pattern
 
 @Suppress("unused")
-const val FtraceLineRE = """^ *(.{1,16})-(\d+) +(?:\( *([\d-]+)\) )?\[(\d+)] (?:[dX.]...)? *([\d.]*): ([^:]*): (.*)$"""
+const val FtraceLineRE = """^*(.{1,16})-(\d+) +(?:\( *(\d+)?-*\) )?\[(\d+)] (?:[dX.]...)? *([\d.]*): ?([^:]*): (.*)$"""
 
 class FtraceLine private constructor() {
     private var _task: String? = null
@@ -65,6 +66,23 @@ class FtraceLine private constructor() {
         private val NullTaskName = stringCache.stringFor("<...>".asSlice())
         private val ftraceLine = FtraceLine()
         private val _reader = BufferReader()
+        private val matcher = Pattern.compile(FtraceLineRE).matcher("")
+
+        fun parseLine_new(line: DataSlice, callback: (FtraceLine) -> Unit) =
+                _reader.read(line, stringCache) {
+            match(matcher) {
+                ftraceLine.set(
+                        string(1),
+                        int(2),
+                        if (matcher!!.start(3) == -1) InvalidId else int(3),
+                        int(4),
+                        double(5),
+                        slice(6),
+                        reader(7)
+                )
+                callback(ftraceLine)
+            }
+        }
 
         fun parseLine(line: DataSlice, callback: (FtraceLine) -> Unit) =
                 _reader.read(line, stringCache) {
