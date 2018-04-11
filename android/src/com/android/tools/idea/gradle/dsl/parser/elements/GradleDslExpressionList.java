@@ -140,6 +140,7 @@ public final class GradleDslExpressionList extends GradleDslElementImpl implemen
     assert oldExpression.getFullName().equals(newExpression.getFullName());
     int index = myUnsavedExpressions.indexOf(oldExpression);
     assert index != -1;
+    newExpression.setParent(this);
     myUnsavedExpressions.set(index, newExpression);
     updateDependenciesOnReplaceElement(oldExpression, newExpression);
   }
