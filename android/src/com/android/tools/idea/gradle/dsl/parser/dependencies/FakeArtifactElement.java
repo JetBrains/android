@@ -86,6 +86,18 @@ public class FakeArtifactElement extends FakeElement {
   }
 
   @Nullable
+  @Override
+  public Object getRawValue() {
+    return getUnresolvedValue();
+  }
+
+  @NotNull
+  @Override
+  public GradleDslSimpleExpression copy() {
+    return new FakeArtifactElement(myParent, GradleNameElement.copy(myFakeName), myRealExpression, myGetter, mySetter, myCanDelete);
+  }
+
+  @Nullable
   private static ArtifactDependencySpec getSpec(@NotNull GradleDslSimpleExpression element) {
     Object val = element.getUnresolvedValue();
     assert val instanceof String;

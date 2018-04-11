@@ -171,6 +171,24 @@ public final class GradleDslMethodCall extends GradleDslSimpleExpression {
     valueChanged();
   }
 
+  @Nullable
+  @Override
+  public Object getRawValue() {
+    return getUnresolvedValue();
+  }
+
+  @NotNull
+  @Override
+  public GradleDslMethodCall copy() {
+    assert myParent != null;
+    GradleDslMethodCall methodCall = new GradleDslMethodCall(myParent, GradleNameElement.copy(myName), myMethodName);
+    Object v = getRawValue();
+    if (v != null) {
+      methodCall.setValue(v);
+    }
+    return methodCall;
+  }
+
   private void setFileValue(@NotNull File file) {
     if (!myMethodName.equals("file")) {
       return;

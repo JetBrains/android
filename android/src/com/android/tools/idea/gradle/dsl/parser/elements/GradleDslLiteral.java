@@ -25,6 +25,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr;
+
 /**
  * Represents a literal element.
  */
@@ -109,6 +111,37 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
       ApplicationManager.getApplication().runReadAction((Computable<PsiElement>)() -> getDslFile().getParser().convertToPsiElement(value));
     setUnsavedValue(element);
     valueChanged();
+  }
+
+  @Nullable
+  @Override
+  public Object getRawValue() {
+    PsiElement currentElement = getCurrentElement();
+    if (currentElement == null) {
+      return null;
+    }
+
+    return ApplicationManager.getApplication()
+                             .runReadAction((Computable<Object>)() -> {
+                               boolean shouldInterpolate = getDslFile().getParser().shouldInterpolate(this);
+                               Object val = getDslFile().getParser().extractValue(this, currentElement, false);
+                               if (val instanceof String && shouldInterpolate) {
+                                 return iStr((String)val);
+                               }
+                               return val;
+                             });
+  }
+
+  @NotNull
+  @Override
+  public GradleDslLiteral copy() {
+    assert myParent != null;
+    GradleDslLiteral literal = new GradleDslLiteral(myParent, GradleNameElement.copy(myName));
+    Object v = getRawValue();
+    if (v != null) {
+      literal.setValue(v);
+    }
+    return literal;
   }
 
   public void setConfigBlock(@NotNull PsiElement block) {

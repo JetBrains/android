@@ -132,6 +132,20 @@ public final class GradlePropertiesFile extends GradleDslFile {
       valueChanged();
     }
 
+    @Nullable
+    @Override
+    public Object getRawValue() {
+      return getUnresolvedValue();
+    }
+
+    @NotNull
+    @Override
+    public GradleDslSimpleExpression copy() {
+      GradlePropertyElement element = new GradlePropertyElement(myParent, GradleNameElement.copy(myName));
+      element.myValue = myValue;
+      return element;
+    }
+
     @Override
     @NotNull
     public Collection<GradleDslElement> getChildren() {

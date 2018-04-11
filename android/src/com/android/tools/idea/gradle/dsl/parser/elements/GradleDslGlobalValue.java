@@ -63,6 +63,19 @@ public class GradleDslGlobalValue extends GradleDslSimpleExpression {
     valueChanged();
   }
 
+  @Nullable
+  @Override
+  public Object getRawValue() {
+    return getUnresolvedValue();
+  }
+
+  @NotNull
+  @Override
+  public GradleDslGlobalValue copy() {
+    assert myParent != null;
+    return new GradleDslGlobalValue(myParent, getUnresolvedValue());
+  }
+
   @Override
   @NotNull
   public Collection<GradleDslElement> getChildren() {

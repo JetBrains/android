@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 
 import com.android.tools.idea.Projects;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.model.GradleSettingsModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
@@ -85,6 +87,22 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
   public abstract <T> T getUnresolvedValue(@NotNull Class<T> clazz);
 
   public abstract void setValue(@NotNull Object value);
+
+  /**
+   * @return an object representing the raw value, this can be passed into {@link GradlePropertyModel#setValue(Object)} to set the value
+   * correctly. That is, this method will return a {@link ReferenceTo} if needed where as {@link #getUnresolvedValue()} will not.
+   * It will also correctly wrap any string that should be interpolated with double quotes.
+   */
+  @Nullable
+  public abstract Object getRawValue();
+
+  /**
+   * @return a new object that is based on this one but has no backing PsiElement or parent.
+   * This means that it can be used to duplicate the element and use it elsewhere in the tree without the danger that the PsiElement will
+   * be deleted from use elsewhere.
+   */
+  @NotNull
+  public abstract GradleDslSimpleExpression copy();
 
   /**
    * This should be overwritten by subclasses if they require different behaviour, such as getting the dependencies of
