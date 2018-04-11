@@ -97,6 +97,7 @@ public class StudioIcons {
       public static final Icon ANALOG_CLOCK = load("/studio/icons/layout-editor/palette/analog-clock.png"); // 16x16
       public static final Icon APP_BAR_LAYOUT = load("/studio/icons/layout-editor/palette/app-bar-layout.png"); // 16x16
       public static final Icon AUTO_COMPLETE_TEXT_VIEW = load("/studio/icons/layout-editor/palette/auto-complete-text-view.png"); // 16x16
+      public static final Icon BOTTOM_APP_BAR = load("/studio/icons/layout-editor/palette/bottom-app-bar.png"); // 16x16
       public static final Icon BOTTOM_NAVIGATION_VIEW = load("/studio/icons/layout-editor/palette/bottom-navigation-view.png"); // 16x16
       public static final Icon BUTTON = load("/studio/icons/layout-editor/palette/button.png"); // 16x16
       public static final Icon CALENDAR_VIEW = load("/studio/icons/layout-editor/palette/calendar-view.png"); // 16x16
