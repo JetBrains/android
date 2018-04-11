@@ -16,24 +16,29 @@
 package com.android.tools.idea.gradle.dsl.model.ext.transforms;
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
-import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*;
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.createOrReplaceBasicExpression;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.createBasicExpression;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.removeElement;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.replaceElement;
 
 /**
  * <p>This transform used for single argument method calls which have a preceding property name.</p>
- *
+ * <p>
  * <p>For example this transforms will allow a {@link GradlePropertyModel} to work on the &lt;value&gt; within:</p>
- *   <code>storeFile file(&lt;value&gt;)</code><br>
+ * <code>storeFile file(&lt;value&gt;)</code><br>
  * or<br>
- *   <code>storePassword System.console().readLine(&lt;value&gt;)</code><br>
- *
+ * <code>storePassword System.console().readLine(&lt;value&gt;)</code><br>
+ * <p>
  * <p>Note: It does not work when there is no preceding property name such as:</p>
- *   <code>jcenter()</code><br>
- *
+ * <code>jcenter()</code><br>
+ * <p>
  * <p>When no arguments are present the resulting {@link ValueType} of the model will be {@link ValueType#NONE}.</p>
  */
 public class SingleArgumentMethodTransform extends PropertyTransform {
@@ -73,7 +78,6 @@ public class SingleArgumentMethodTransform extends PropertyTransform {
   }
 
   /**
-   *
    * @param holder     the parent of the property being represented by the {@link GradlePropertyModel}
    * @param oldElement the old element being represented by the {@link GradlePropertyModel}, if this is {@code null} then the
    *                   {@link GradleDslElement} returned will have to be created, otherwise it may be possible to reuse some elements
@@ -84,31 +88,42 @@ public class SingleArgumentMethodTransform extends PropertyTransform {
    */
   @NotNull
   @Override
-  public GradleDslElement bind(@NotNull GradleDslElement holder,
-                               @Nullable GradleDslElement oldElement,
-                               @NotNull Object value,
-                               @NotNull String name) {
+  public GradleDslExpression bind(@NotNull GradleDslElement holder,
+                                  @Nullable GradleDslElement oldElement,
+                                  @NotNull Object value,
+                                  @NotNull String name) {
+    return createBasicExpression(holder, value, GradleNameElement.empty());
+  }
+
+  @Override
+  @NotNull
+  public GradleDslExpression replace(@NotNull GradleDslElement holder,
+                                     @Nullable GradleDslElement oldElement,
+                                     @NotNull GradleDslExpression newElement,
+                                     @NotNull String name) {
     GradleDslMethodCall methodCall;
-    GradleNameElement nameElement = GradleNameElement.create(name);
     if (oldElement instanceof GradleDslMethodCall) {
       // This cast is safe, we are guaranteed to have test(e) return true.
       methodCall = (GradleDslMethodCall)oldElement;
       if (methodCall.getMethodName().equals(myMethodName)) {
         GradleDslElement baseElement = transform(oldElement);
-        if (baseElement != null) {
-          GradleDslSimpleExpression newBaseElement = createOrReplaceBasicExpression(methodCall, baseElement, value, nameElement);
-          if (baseElement != newBaseElement) {
-            methodCall.remove(baseElement);
-            methodCall.addNewArgument(newBaseElement);
-          }
-          return oldElement;
-        }
+        replaceElement(methodCall, baseElement, newElement);
+        return methodCall;
       }
     }
 
+    GradleNameElement nameElement = GradleNameElement.create(name);
     methodCall = new GradleDslMethodCall(holder, nameElement, myMethodName);
-    GradleDslSimpleExpression argument = createOrReplaceBasicExpression(methodCall, null, value, nameElement);
-    methodCall.addNewArgument(argument);
+    methodCall.addNewArgument(newElement);
+    replaceElement(holder, oldElement, methodCall);
     return methodCall;
+  }
+
+  @Override
+  @Nullable
+  public GradleDslElement delete(@NotNull GradleDslElement holder, @NotNull GradleDslElement oldElement,
+                                 @NotNull GradleDslElement transformedElement) {
+    removeElement(oldElement);
+    return null;
   }
 }

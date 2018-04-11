@@ -17,8 +17,11 @@ package com.android.tools.idea.gradle.dsl.model.ext.transforms;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.FakeElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.replaceElement;
 
 /**
  * Transform for fake elements, the main purpose of this transform is to ensure that
@@ -42,14 +45,33 @@ public final class FakeElementTransform extends PropertyTransform {
 
   @Override
   @NotNull
-  public GradleDslElement bind(@NotNull GradleDslElement holder,
-                               @Nullable GradleDslElement oldElement,
-                               @NotNull Object value,
-                               @NotNull String name) {
+  public GradleDslExpression bind(@NotNull GradleDslElement holder,
+                                  @Nullable GradleDslElement oldElement,
+                                  @NotNull Object value,
+                                  @NotNull String name) {
     if (oldElement instanceof FakeElement) {
       ((FakeElement)oldElement).setValue(value);
-      return oldElement;
+      return (FakeElement)oldElement;
     }
     throw new IllegalStateException("Must be a fake element");
+  }
+
+  @Override
+  @NotNull
+  public GradleDslExpression replace(@NotNull GradleDslElement holder,
+                                  @Nullable GradleDslElement oldElement,
+                                  @NotNull GradleDslExpression newElement,
+                                  @NotNull String name) {
+    replaceElement(holder, oldElement, newElement);
+    return newElement;
+  }
+
+  @Override
+  @Nullable
+  public GradleDslElement delete(@NotNull GradleDslElement holder, @NotNull GradleDslElement oldElement,
+                                 @NotNull GradleDslElement transformedElement) {
+    // This element must be a fake element, we don't need to remove of from it's holder.
+    oldElement.delete();
+    return null;
   }
 }

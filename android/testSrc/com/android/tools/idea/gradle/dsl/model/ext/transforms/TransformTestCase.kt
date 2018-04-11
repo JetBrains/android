@@ -25,7 +25,7 @@ import org.junit.Test
 
 
 open class TransformTestCase : GradleFileModelTestCase() {
-  protected val gradleDslFile : GradleDslFile by lazy {
+  protected val gradleDslFile: GradleDslFile by lazy {
     // This is in order to get a valid GradleDslFile object so that we can
     // create fake GradleDslElements. We initialize this lazily since we need
     // everything to be set up before we can call getGradleBuildModel().
@@ -36,7 +36,7 @@ open class TransformTestCase : GradleFileModelTestCase() {
   /**
    * We use this method to copy strings to ensure that bugs to do with using "==" aren't present.
    */
-  protected fun String.copy() : String {
+  protected fun String.copy(): String {
     return "" + this
   }
 
@@ -47,15 +47,17 @@ open class TransformTestCase : GradleFileModelTestCase() {
     assertThat(str, equalTo(str.copy()))
   }
 
-  protected fun createLiteral(name : String = "fake") : GradleDslLiteral {
-    return GradleDslLiteral(gradleDslFile, GradleNameElement.create(name.copy()))
+  protected fun createLiteral(name: String = "fake", parent: GradleDslElement = gradleDslFile): GradleDslLiteral {
+    return GradleDslLiteral(parent, GradleNameElement.create(name.copy()))
   }
 
-  protected fun createReference(name : String = "fake") : GradleDslReference {
-    return GradleDslReference(gradleDslFile, GradleNameElement.create("fake"))
+  protected fun createReference(name: String = "fake", parent: GradleDslElement = gradleDslFile): GradleDslReference {
+    return GradleDslReference(parent, GradleNameElement.create("fake"))
   }
 
-  protected fun createMethodCall(methodName : String, statement : String = "unusedStatement") : GradleDslMethodCall {
+  protected fun createMethodCall(methodName: String,
+                                 statement: String = "unusedStatement",
+                                 parent: GradleDslElement = gradleDslFile): GradleDslMethodCall {
     return GradleDslMethodCall(gradleDslFile, GradleNameElement.create(statement.copy()), methodName.copy())
   }
 }

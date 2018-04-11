@@ -3468,7 +3468,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       try {
         listItem.rename("listItemName")
         fail()
-      } catch (e: IllegalStateException) {
+      } catch (e: UnsupportedOperationException) {
         // Expected
       }
 
