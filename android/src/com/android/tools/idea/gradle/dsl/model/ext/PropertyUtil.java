@@ -53,17 +53,22 @@ public class PropertyUtil {
         name = oldElement.getNameElement();
       }
 
-      GradleDslSimpleExpression newElement;
-      if (!isReference) {
-        newElement = new GradleDslLiteral(parent, name);
-      }
-      else {
-        newElement = new GradleDslReference(parent, name);
-      }
-
-      newElement.setValue(value);
-      return newElement;
+      return createBasicExpression(parent, value, name);
     }
+  }
+
+  @NotNull
+  public static GradleDslSimpleExpression createBasicExpression(@NotNull GradleDslElement parent, @NotNull Object value, @NotNull GradleNameElement name) {
+    GradleDslSimpleExpression newElement;
+    if (value instanceof ReferenceTo) {
+      newElement = new GradleDslReference(parent, name);
+    }
+    else {
+      newElement = new GradleDslLiteral(parent, name);
+    }
+
+    newElement.setValue(value);
+    return newElement;
   }
 
   public static void replaceElement(@NotNull GradleDslElement holder,
