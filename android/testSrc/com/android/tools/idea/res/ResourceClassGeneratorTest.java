@@ -17,7 +17,6 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.MergerResourceRepository;
@@ -40,7 +39,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
@@ -257,8 +255,8 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
       "public static final int my.test.pkg.R$styleable.Styleable_with_underscore_app_attr1\n" +
       "public static final int my.test.pkg.R$styleable.Styleable_with_underscore_app_attr2\n" +
       "public static final int my.test.pkg.R$styleable.Styleable_with_underscore_app_attr3\n" +
-      "public static final int my.test.pkg.R$styleable.Styleable_with_underscore_android_framework_attr1\n" +
-      "public static final int my.test.pkg.R$styleable.Styleable_with_underscore_android_framework_attr2\n" +
+      "public static final int my.test.pkg.R$styleable.Styleable_with_underscore_android_colorForeground\n" +
+      "public static final int my.test.pkg.R$styleable.Styleable_with_underscore_android_icon\n" +
       "public static final int[] my.test.pkg.R$styleable.Styleable_with_dots\n" +
       "public static final int my.test.pkg.R$styleable.Styleable_with_dots_some_attr\n" + // Duplicated attr
       "public static final int my.test.pkg.R$styleable.Styleable_with_dots_app_declared_attr\n" +
@@ -280,22 +278,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
 
   @NotNull
   private ResourceClassGenerator buildGenerator(AppResourceRepository appResources) {
-    ResourceIdManager idManager = ResourceIdManager.get(myModule);
-
-    ResourceClassGenerator.NumericIdProvider idProvider = new ResourceClassGenerator.NumericIdProvider() {
-      @Override
-      public int getOrGenerateId(@NotNull ResourceReference resourceReference) {
-        return idManager.getOrGenerateId(resourceReference);
-      }
-
-      @Nullable
-      @Override
-      public Integer[] getDeclaredArrayValues(@NotNull List<AttrResourceValue> attrs, @NotNull String styleableName) {
-        return idManager.getDeclaredArrayValues(appResources.getLibraries(), attrs, styleableName);
-      }
-    };
-
-    return ResourceClassGenerator.create(idProvider, appResources, RES_AUTO);
+    return ResourceClassGenerator.create(ResourceIdManager.get(myModule), appResources, RES_AUTO);
   }
 
   public void testIndexOverflow() throws Exception {
@@ -458,10 +441,10 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     Field styleable3 = clz.getDeclaredField("Styleable_with_underscore");
     assertSame(int[].class, styleable3.getType());
     int[] array = (int[])styleable3.get(null);
-    int idx = (Integer)clz.getDeclaredField("Styleable_with_underscore_android_framework_attr1").get(null);
-    assertEquals(0x01010125, array[idx]);
-    idx = (Integer)clz.getDeclaredField("Styleable_with_underscore_android_framework_attr2").get(null);
-    assertEquals(0x01010142, array[idx]);
+    int idx = (Integer)clz.getDeclaredField("Styleable_with_underscore_android_icon").get(null);
+    assertEquals(0x01010002, array[idx]);
+    idx = (Integer)clz.getDeclaredField("Styleable_with_underscore_android_colorForeground").get(null);
+    assertEquals(0x01010030, array[idx]);
   }
 
   @Nullable
