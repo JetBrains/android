@@ -73,7 +73,9 @@ public class StudioExceptionReport extends BaseStudioReport {
     try {
       IdeaPluginDescriptor[] pluginDescriptors = PluginManagerCore.getPlugins();
       return Arrays.stream(pluginDescriptors)
-                   .filter(d -> d.getPluginId().getIdString().equals("org.jetbrains.kotlin"))
+                   .filter(d -> d.getPluginId() != null &&
+                                d.getPluginId().getIdString().equals("org.jetbrains.kotlin") &&
+                                d.isEnabled())
                    .findFirst()
                    .map(d -> d.getVersion())
                    .orElse("pluginNotLoaded");
