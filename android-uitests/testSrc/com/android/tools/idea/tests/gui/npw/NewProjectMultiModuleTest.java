@@ -69,6 +69,7 @@ public class NewProjectMultiModuleTest {
       .createNewProject();
 
     newProjectWizard.getConfigureAndroidProjectStep()
+      .setCppSupport(false) // The setting is saved and restored by NewProjectModel, so can't be presumed disabled.
       .enterApplicationName("TestApp")
       .enterCompanyDomain("my.test.domain")
       .enterPackageName("my.test");
