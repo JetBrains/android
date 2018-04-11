@@ -569,14 +569,14 @@ public class GroovyDslParser implements GradleDslParser {
                                             @NotNull String methodName) {
     GradleDslMethodCall methodCall = new GradleDslMethodCall(parentElement, psiElement, propertyName, methodName);
     GradleDslExpressionList arguments =
-      getExpressionList(methodCall, argumentList, propertyName,
+      getExpressionList(methodCall, argumentList, GradleNameElement.empty(),
                         Arrays.asList(argumentList.getExpressionArguments()), false);
     methodCall.setParsedArgumentList(arguments);
 
     GrNamedArgument[] namedArguments = argumentList.getNamedArguments();
     if (namedArguments.length > 0) {
       methodCall.addParsedExpression(
-        getExpressionMap(methodCall, psiElement.getArgumentList(), propertyName, Arrays.asList(namedArguments), false));
+        getExpressionMap(methodCall, psiElement.getArgumentList(), GradleNameElement.empty(), Arrays.asList(namedArguments), false));
     }
 
     return methodCall;
@@ -617,7 +617,7 @@ public class GroovyDslParser implements GradleDslParser {
                                                     boolean isLiteral) {
     GradleDslExpressionList expressionList = new GradleDslExpressionList(parentElement, listPsiElement, isLiteral, propertyName);
     for (GrExpression expression : propertyExpressions) {
-      GradleDslExpression expressionElement = createExpressionElement(expressionList, expression, propertyName, expression);
+      GradleDslExpression expressionElement = createExpressionElement(expressionList, expression, GradleNameElement.empty(), expression);
       if (expressionElement instanceof GradleDslClosure) {
         // Only the last closure will count.
         parentElement.setParsedClosureElement((GradleDslClosure)expressionElement);

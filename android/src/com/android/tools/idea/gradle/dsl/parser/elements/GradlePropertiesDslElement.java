@@ -411,6 +411,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
    */
   @NotNull
   public GradleDslElement setNewElement(@NotNull GradleDslElement newElement) {
+    assert !newElement.getName().isEmpty();
     newElement.setParent(this);
     addPropertyInternal(newElement, TO_BE_ADDED);
     setModified(true);
@@ -419,6 +420,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
 
   @VisibleForTesting
   public void addNewElementAt(int index, @NotNull GradleDslElement newElement) {
+    assert !newElement.getName().isEmpty();
     newElement.setParent(this);
     addPropertyInternal(index, newElement, TO_BE_ADDED);
     setModified(true);
@@ -426,12 +428,14 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
 
   @VisibleForTesting
   public void moveElementTo(int index, @NotNull GradleDslElement newElement) {
+    assert !newElement.getName().isEmpty();
     assert newElement.getParent() == this;
     myProperties.moveElementToIndex(newElement, index);
   }
 
   @NotNull
   public GradleDslElement replaceElement(@NotNull GradleDslElement oldElement, @NotNull GradleDslElement newElement) {
+    assert !oldElement.getName().isEmpty() && !newElement.getName().isEmpty();
     List<GradlePropertiesDslElement> holders = new ArrayList<>();
     holders.add(this);
     holders.addAll(oldElement.getHolders());

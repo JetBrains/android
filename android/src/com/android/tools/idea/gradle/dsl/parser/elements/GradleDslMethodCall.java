@@ -49,7 +49,7 @@ public final class GradleDslMethodCall extends GradleDslSimpleExpression {
   public GradleDslMethodCall(@NotNull GradleDslElement parent, @NotNull GradleNameElement name, @NotNull String methodName) {
     super(parent, null, name, null);
     myMethodName = methodName;
-    myArguments = new GradleDslExpressionList(this, name, false);
+    myArguments = new GradleDslExpressionList(this, GradleNameElement.empty(), false);
   }
 
   public GradleDslMethodCall(@NotNull GradleDslElement parent,
@@ -58,7 +58,7 @@ public final class GradleDslMethodCall extends GradleDslSimpleExpression {
                              @NotNull String methodName) {
     super(parent, methodCall, name, methodCall);
     myMethodName = methodName;
-    myArguments = new GradleDslExpressionList(this, name, false);
+    myArguments = new GradleDslExpressionList(this, GradleNameElement.empty(), false);
   }
 
   public void setParsedArgumentList(@NotNull GradleDslExpressionList arguments) {
