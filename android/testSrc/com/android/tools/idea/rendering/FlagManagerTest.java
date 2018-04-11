@@ -187,14 +187,20 @@ public class FlagManagerTest extends TestCase {
     assertNotNull(icon);
     assertSame(AndroidIcons.EmptyFlag, icon);
 
+    boolean oldValue = IconLoader.STRICT;
     IconLoader.STRICT = true;
-    icon = FlagManager.get().getFlag("AQ");
-    assertNotNull(icon);
-    assertSame(AndroidIcons.EmptyFlag, icon);
+    try {
+      icon = FlagManager.get().getFlag("AQ");
+      assertNotNull(icon);
+      assertSame(AndroidIcons.EmptyFlag, icon);
 
-    icon = FlagManager.get().getFlag("WO"); // Not used in ISO 3166-1
-    assertNotNull(icon);
-    assertSame(AndroidIcons.EmptyFlag, icon);
+      icon = FlagManager.get().getFlag("WO"); // Not used in ISO 3166-1
+      assertNotNull(icon);
+      assertSame(AndroidIcons.EmptyFlag, icon);
+    }
+    finally {
+      IconLoader.STRICT = oldValue;
+    }
   }
 
   public void testKnownFlag() {
