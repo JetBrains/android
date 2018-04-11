@@ -28,6 +28,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
+
 public class DependenciesModelImpl extends GradleDslBlockModel implements DependenciesModel {
   public DependenciesModelImpl(@NotNull DependenciesDslElement dslElement) {
     super(dslElement);
@@ -53,7 +55,10 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
           dependencies.addAll(FileDependencyModelImpl.create(configurationName, methodCall));
         }
         else if (methodCall.getMethodName().equals(FileTreeDependencyModelImpl.FILE_TREE)) {
-          dependencies.addAll(FileTreeDependencyModelImpl.create(configurationName, methodCall));
+          FileTreeDependencyModel model = FileTreeDependencyModelImpl.create(myDslElement, methodCall, configurationName);
+          if (model != null && model.dir().getValueType() != NONE) {
+            dependencies.add(model);
+          }
         }
       }
     }
@@ -154,7 +159,10 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
   public List<FileTreeDependencyModel> fileTrees() {
     List<FileTreeDependencyModel> dependencies = Lists.newArrayList();
     for (GradleDslMethodCall element : myDslElement.getPropertyElements(GradleDslMethodCall.class)) {
-      dependencies.addAll(FileTreeDependencyModelImpl.create(element.getName(), element));
+      FileTreeDependencyModel model = FileTreeDependencyModelImpl.create(myDslElement, element, element.getName());
+      if (model != null && model.dir().getValueType() != NONE) {
+        dependencies.add(model);
+      }
     }
     return dependencies;
   }
