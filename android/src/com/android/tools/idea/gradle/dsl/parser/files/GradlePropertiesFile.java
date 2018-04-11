@@ -49,6 +49,7 @@ public final class GradlePropertiesFile extends GradleDslFile {
   }
 
   @Override
+  @NotNull
   public List<GradleDslElement> getContainedElements(boolean includeProperties) {
     return new ArrayList<>(getPropertyElements().values());
   }

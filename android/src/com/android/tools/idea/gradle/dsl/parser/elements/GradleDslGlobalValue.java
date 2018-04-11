@@ -34,13 +34,13 @@ public class GradleDslGlobalValue extends GradleDslSimpleExpression {
   }
 
   @Override
-  @Nullable
+  @NotNull
   public Object getValue() {
     return myFakeValue;
   }
 
   @Override
-  @Nullable
+  @NotNull
   public Object getUnresolvedValue() {
     return getValue();
   }
