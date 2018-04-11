@@ -44,7 +44,7 @@ class DependenciesTest : GradleFileModelTestCase() {
     run {
       val dep = deps[0] as FileTreeDependencyModel
       assertThat(dep.configurationName(), equalTo("api"))
-      assertThat(dep.dir().value(), equalTo("libs"))
+      assertThat(dep.dir().toString(), equalTo("libs"))
     }
     run {
       val dep = deps[1] as ArtifactDependencyModel

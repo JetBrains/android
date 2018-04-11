@@ -231,9 +231,9 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
     List<? extends FileTreeDependencyModel> fileTrees = dependencies.fileTrees();
     assertThat(fileTrees).hasSize(1);
     FileTreeDependencyModel fileTreeModel = fileTrees.get(0);
-    assertEquals("lib", fileTreeModel.dir().value());
-    assertThat(fileTreeModel.includes()).hasSize(1);
-    assertEquals("*.jar", fileTreeModel.includes().get(0).value());
+    assertEquals("lib", fileTreeModel.dir().toString());
+    assertThat(fileTreeModel.includes().toList()).hasSize(1);
+    assertEquals("*.jar", fileTreeModel.includes().toList().get(0).toString());
   }
 
   private static void assertHasAddedModuleDependency(@NotNull GradleBuildModel model) {
