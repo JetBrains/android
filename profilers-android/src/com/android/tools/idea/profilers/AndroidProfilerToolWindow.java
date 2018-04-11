@@ -89,11 +89,11 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
   /**
    * Sets the profiler's auto-profiling process in case it has been unset.
    *
-   * @param project The project being profiled.
+   * @param module The module being profiled.
    * @param device  The target {@link IDevice} that the app will launch in.
    */
-  public void profileProject(@NotNull Project project, @NotNull IDevice device) {
-    myProfilers.setPreferredDeviceAndProcessNames(getDeviceDisplayName(device), getPreferredProcessName(project));
+  public void profileProject(@NotNull Module module, @NotNull IDevice device) {
+    myProfilers.setPreferredDeviceAndProcessNames(getDeviceDisplayName(device), getModuleName(module));
   }
 
   public void updateToolWindow() {
@@ -133,14 +133,23 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
   }
 
   @Nullable
-  private static String getPreferredProcessName(Project project) {
+  private static String getPreferredProcessName(@NotNull Project project) {
     for (Module module : ModuleManager.getInstance(project).getModules()) {
-      AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(module);
-      if (moduleInfo != null) {
-        String pkg = moduleInfo.getPackage();
-        if (pkg != null) {
-          return pkg;
-        }
+      String moduleName = getModuleName(module);
+      if (moduleName != null) {
+        return moduleName;
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  private static String getModuleName(@NotNull Module module) {
+    AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(module);
+    if (moduleInfo != null) {
+      String pkg = moduleInfo.getPackage();
+      if (pkg != null) {
+        return pkg;
       }
     }
     return null;

@@ -59,7 +59,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
   @NotNull
   @Override
   public LaunchTask getTask(@NotNull Module module, @NotNull String applicationId, @NotNull LaunchOptions launchOptions) {
-    return new AndroidProfilerToolWindowLaunchTask(module.getProject());
+    return new AndroidProfilerToolWindowLaunchTask(module);
   }
 
   @NotNull
@@ -244,10 +244,10 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
   }
 
   public static final class AndroidProfilerToolWindowLaunchTask implements LaunchTask {
-    @NotNull private final Project myProject;
+    @NotNull private final Module myModule;
 
-    public AndroidProfilerToolWindowLaunchTask(@NotNull Project project) {
-      myProject = project;
+    public AndroidProfilerToolWindowLaunchTask(@NotNull Module module) {
+      myModule = module;
     }
 
     @NotNull
@@ -265,12 +265,13 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
       ApplicationManager.getApplication().invokeLater(
         () -> {
-          ToolWindow window = ToolWindowManagerEx.getInstanceEx(myProject).getToolWindow(AndroidProfilerToolWindowFactory.ID);
+          Project project = myModule.getProject();
+          ToolWindow window = ToolWindowManagerEx.getInstanceEx(project).getToolWindow(AndroidProfilerToolWindowFactory.ID);
           if (window != null) {
             window.setShowStripeButton(true);
-            AndroidProfilerToolWindow profilerToolWindow = AndroidProfilerToolWindowFactory.getProfilerTooWindow(myProject);
+            AndroidProfilerToolWindow profilerToolWindow = AndroidProfilerToolWindowFactory.getProfilerTooWindow(project);
             if (profilerToolWindow != null) {
-              profilerToolWindow.profileProject(myProject, device);
+              profilerToolWindow.profileProject(myModule, device);
             }
           }
         });
