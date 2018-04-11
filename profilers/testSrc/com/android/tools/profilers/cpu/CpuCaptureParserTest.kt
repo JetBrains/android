@@ -184,7 +184,7 @@ class CpuCaptureParserTest {
   fun parsingAtraceFilesShouldProduceCpuCaptureIfFlagEnabled() {
     val services = FakeIdeProfilerServices()
     val parser = CpuCaptureParser(services)
-    val traceFile = CpuProfilerTestUtils.getTraceFile("atrace.ctrace")
+    val traceFile = CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace")
 
     // First, try to parse the capture with the flag disabled.
     services.enableAtrace(false)
