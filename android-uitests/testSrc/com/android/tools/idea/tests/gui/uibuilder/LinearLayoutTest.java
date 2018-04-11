@@ -20,7 +20,7 @@ import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
-import com.android.tools.idea.uibuilder.structure.StructureTreeDecorator;
+import com.android.tools.idea.uibuilder.structure.TreeSearchUtil;
 import com.android.xml.XmlBuilder;
 import icons.StudioIcons;
 import org.fest.swing.fixture.JTreeFixture;
@@ -163,7 +163,7 @@ public final class LinearLayoutTest {
     JTreeFixture treeFixture = editor.getComponentTree();
 
     treeFixture.replaceCellReader((tree, value) -> {
-      return StructureTreeDecorator.toString((NlComponent)value);
+      return TreeSearchUtil.toString((NlComponent)value);
     });
 
     return treeFixture;

@@ -551,7 +551,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       }
 
       Object component = ((TreePath)element).getLastPathComponent();
-      return compare(component instanceof NlComponent ? StructureTreeDecorator.toString((NlComponent)component) : "", pattern);
+      return compare(component instanceof NlComponent ? TreeSearchUtil.toString((NlComponent)component) : "", pattern);
     }
   }
 
