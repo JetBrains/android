@@ -19,22 +19,60 @@ import com.android.builder.model.level2.Library
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
-import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
-import com.android.tools.idea.gradle.structure.model.PsDependency
+import com.android.tools.idea.gradle.structure.model.*
 import com.android.tools.idea.gradle.structure.model.PsDependency.TextType.PLAIN_TEXT
-import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
 import com.google.common.collect.ImmutableSet
 import com.intellij.util.PlatformIcons.LIBRARY_ICON
 import javax.swing.Icon
 
-open class PsLibraryAndroidDependency internal constructor(
+open class PsDeclaredLibraryAndroidDependency(
+  parent: PsAndroidModule,
+  spec: PsArtifactDependencySpec,
+  containers: Collection<PsAndroidArtifact>,
+  final override val parsedModel: ArtifactDependencyModel
+) : PsLibraryAndroidDependency(parent, spec, containers), PsDeclaredDependency {
+  override val resolvedModel: Any? = null
+  override val isDeclared: Boolean = true
+  final override val configurationName: String = parsedModel.configurationName()
+  override val joinedConfigurationNames: String = configurationName
+}
+
+open class PsResolvedLibraryAndroidDependency(
+  parent: PsAndroidModule,
+  spec: PsArtifactDependencySpec,
+  containers: Collection<PsAndroidArtifact>,
+  override val resolvedModel: Library,
+  private val parsedModels: Collection<ArtifactDependencyModel>
+) : PsLibraryAndroidDependency(parent, spec, containers), PsResolvedDependency, PsResolvedLibraryDependency {
+  override val isDeclared: Boolean get() = !parsedModels.isEmpty()
+  override val joinedConfigurationNames: String get() = parsedModels.joinToString(separator = ", ") { it.configurationName()}
+
+  override fun getParsedModels(): List<DependencyModel> = parsedModels.toList()
+
+  override fun hasPromotedVersion(): Boolean {
+    val declaredSpecs = getParsedModels().map {
+      PsArtifactDependencySpec.create(it as ArtifactDependencyModel)
+    }
+    for (declaredSpec in declaredSpecs) {
+      if (spec.version != null && declaredSpec.version != null) {
+        val declaredVersion = GradleVersion.tryParse(declaredSpec.version!!)
+        if (declaredVersion != null && declaredVersion < spec.version!!) {
+          return true
+        }
+      }
+    }
+    return false
+  }
+
+}
+
+abstract class PsLibraryAndroidDependency internal constructor(
   parent: PsAndroidModule,
   override val spec: PsArtifactDependencySpec,
-  containers: Collection<PsAndroidArtifact>,
-  override val resolvedModel: Library?,
-  parsedModels: Collection<ArtifactDependencyModel>
-) : PsAndroidDependency(parent, containers, parsedModels), PsLibraryDependency {
+  containers: Collection<PsAndroidArtifact>
+) : PsAndroidDependency(parent, containers), PsLibraryDependency {
   private val pomDependencies = mutableListOf<PsArtifactDependencySpec>()
+
 
   internal fun setDependenciesFromPomFile(value: List<PsArtifactDependencySpec>) {
     pomDependencies.clear()
@@ -52,32 +90,11 @@ open class PsLibraryAndroidDependency internal constructor(
     return transitive.build()
   }
 
-  override fun addParsedModel(parsedModel: DependencyModel) {
-    assert(parsedModel is ArtifactDependencyModel)
-    super.addParsedModel(parsedModel)
-  }
-
   override val name: String get() = spec.name
 
   override val icon: Icon get() = LIBRARY_ICON
 
   override fun toText(type: PsDependency.TextType): String = spec.toString()
-
-  override fun hasPromotedVersion(): Boolean {
-    // TODO(solodkyy): Review usages in the case of declared dependencies.
-    val declaredSpecs = parsedModels.map {
-      PsArtifactDependencySpec.create(it as ArtifactDependencyModel)
-    }
-    for (declaredSpec in declaredSpecs) {
-      if (spec.version != null && declaredSpec.version != null) {
-        val declaredVersion = GradleVersion.tryParse(declaredSpec.version!!)
-        if (declaredVersion != null && declaredVersion < spec.version!!) {
-          return true
-        }
-      }
-    }
-    return false
-  }
 
   override fun toString(): String = toText(PLAIN_TEXT)
 }

@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode;
+import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency;
 import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifact;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDependency;
@@ -64,30 +65,22 @@ public class ModuleDependencyNode extends AbstractDependencyNode<PsModuleAndroid
   @Override
   public boolean matches(@NotNull PsModel model) {
     // Only top level LibraryDependencyNodes can match declared dependencies.
-    if (model instanceof PsModuleAndroidDependency) {
-      PsModuleAndroidDependency other = (PsModuleAndroidDependency)model;
+    if (model instanceof PsDeclaredDependency) {
+      PsDeclaredDependency other = (PsDeclaredDependency)model;
 
       List<PsModuleAndroidDependency> models = getModels();
-      for (PsModuleAndroidDependency resolvedDependency : models) {
-        for (DependencyModel resolvedFromParsedDependency : resolvedDependency.getParsedModels()) {
+      for (PsModuleAndroidDependency ourModel : models) {
+        List<DependencyModel> ourParsedModels = getDependencyParsedModels(ourModel);
+        if (ourParsedModels == null) continue;
+        for (DependencyModel resolvedFromParsedDependency : ourParsedModels) {
           // other.getParsedModels() always contains just one model since it is a declared dependency.
-          if (other
-            .getParsedModels()
-            .stream()
-            .anyMatch(it ->
-                      {
-                        if (it instanceof ModuleDependencyModel && resolvedFromParsedDependency instanceof ModuleDependencyModel) {
-                          ModuleDependencyModel theirs = (ModuleDependencyModel)it;
-                          ModuleDependencyModel ours = (ModuleDependencyModel)resolvedFromParsedDependency;
-                          return
-                            theirs.configurationName().equals(ours.configurationName())
-                            && theirs.name().equals(ours.name());
-                        }
-                        else {
-                          return false;
-                        }
-                      })) {
-            return true;
+          if (other.getParsedModel()
+                instanceof ModuleDependencyModel && resolvedFromParsedDependency instanceof ModuleDependencyModel) {
+            ModuleDependencyModel theirs = (ModuleDependencyModel)other.getParsedModel();
+            ModuleDependencyModel ours = (ModuleDependencyModel)resolvedFromParsedDependency;
+            return
+              theirs.configurationName().equals(ours.configurationName())
+              && theirs.name().equals(ours.name());
           }
         }
       }

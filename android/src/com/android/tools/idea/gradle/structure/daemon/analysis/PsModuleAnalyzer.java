@@ -32,7 +32,7 @@ public abstract class PsModuleAnalyzer<T extends PsModule> extends PsModelAnalyz
     myContext = context;
   }
 
-  protected void analyzeDeclaredDependency(@NotNull PsLibraryDependency dependency,
+  protected void analyzeDeclaredDependency(@NotNull PsResolvedLibraryDependency dependency,
                                            @NotNull PsIssueCollection issueCollection) {
     PsArtifactDependencySpec resolvedSpec = dependency.getSpec();
     PsPath path = new PsLibraryDependencyNavigationPath(dependency);

@@ -20,7 +20,9 @@ interface PsLibraryDependency : PsBaseDependency {
 
   val spec: PsArtifactDependencySpec
 
-  fun hasPromotedVersion(): Boolean
-
   var isModified: Boolean
+}
+
+interface PsResolvedLibraryDependency : PsLibraryDependency, PsResolvedDependency {
+  fun hasPromotedVersion(): Boolean
 }

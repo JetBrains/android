@@ -17,28 +17,16 @@ package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 
-abstract class PsDependency protected constructor(
-  parent: PsModule,
-  parsedModels: Collection<DependencyModel>
-) : PsChildModel(parent), PsBaseDependency {
-  private val parsedModelCollection = LinkedHashSet(parsedModels)
+interface PsDeclaredDependency {
+  val parsedModel: DependencyModel
+  val configurationName: String
+}
 
-  override val joinedConfigurationNames: String get() = configurationNames.joinToString(separator = ", ")
+interface PsResolvedDependency {
+  fun getParsedModels(): List<DependencyModel>
+}
 
-  val configurationNames: List<String> get() = parsedModels.map { it.configurationName() }.distinct()
-
-  override val isDeclared: Boolean get() = !parsedModels.isEmpty()
-
-  val parsedModels: Set<DependencyModel> get() = parsedModelCollection
-
-  init {
-    parsedModelCollection.addAll(parsedModels)
-  }
-
-  open fun addParsedModel(parsedModel: DependencyModel) {
-    parsedModelCollection.add(parsedModel)
-  }
-
+abstract class PsDependency protected constructor(parent: PsModule) : PsChildModel(parent), PsBaseDependency {
   enum class TextType {
     PLAIN_TEXT, FOR_NAVIGATION
   }

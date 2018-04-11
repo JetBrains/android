@@ -20,11 +20,14 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsDependencyComparator;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
+import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency;
 import com.android.tools.idea.gradle.structure.model.PsModel;
+import com.android.tools.idea.gradle.structure.model.PsResolvedDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependencyCollection;
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsResolvedLibraryAndroidDependency;
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
@@ -66,10 +69,10 @@ public class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryAndro
       Set<PsLibraryAndroidDependency> transitiveDependencies = dependency.getTransitiveDependencies(collection);
 
       transitiveDependencies.stream().filter(transitive -> transitive != null)
-        .forEach(transitiveLibrary -> {
-          LibraryDependencyNode child = new LibraryDependencyNode(this, collection, transitiveLibrary);
-          myChildren.add(child);
-        });
+                            .forEach(transitiveLibrary -> {
+                              LibraryDependencyNode child = new LibraryDependencyNode(this, collection, transitiveLibrary);
+                              myChildren.add(child);
+                            });
 
       Collections.sort(myChildren, myDependencyNodeComparator);
     }
@@ -79,14 +82,16 @@ public class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryAndro
   private String getText(@NotNull PsLibraryAndroidDependency dependency) {
     PsArtifactDependencySpec resolvedSpec = dependency.getSpec();
     // TODO(b/74948244): Display POM dependency promotions correctly.
-    if (dependency.hasPromotedVersion() && !(getParent() instanceof LibraryDependencyNode)) {
+    if (dependency instanceof PsResolvedLibraryAndroidDependency &&
+        ((PsResolvedLibraryAndroidDependency)dependency).hasPromotedVersion() &&
+        !(getParent() instanceof LibraryDependencyNode)) {
       // Show only "promoted" version for declared nodes.
       // TODO(b/74424544): Find a better representation for multiple versions here.
       String declaredSpecs =
         Joiner.on(",")
-          .join(dependency.getParsedModels().stream().filter(m -> m instanceof ArtifactDependencyModel)
-                  .map(m -> ((ArtifactDependencyModel)m).version().toString())
-                  .collect(Collectors.toList()));
+              .join(((PsResolvedDependency)dependency).getParsedModels().stream().filter(m -> m instanceof ArtifactDependencyModel)
+                                                      .map(m -> ((ArtifactDependencyModel)m).version().toString())
+                                                      .collect(Collectors.toList()));
       String version = declaredSpecs + "→" + resolvedSpec.getVersion();
       return getTextForSpec(resolvedSpec.getName(), version, resolvedSpec.getGroup(),
                             getUiSettings().DECLARED_DEPENDENCIES_SHOW_GROUP_ID);
@@ -112,30 +117,22 @@ public class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryAndro
   @Override
   public boolean matches(@NotNull PsModel model) {
     // Only top level LibraryDependencyNodes can match declared dependencies.
-    if (model instanceof PsLibraryAndroidDependency && !(getParent() instanceof LibraryDependencyNode)) {
-      PsLibraryAndroidDependency other = (PsLibraryAndroidDependency)model;
+    if (model instanceof PsDeclaredDependency && !(getParent() instanceof LibraryDependencyNode)) {
+      PsDeclaredDependency other = (PsDeclaredDependency)model;
 
       List<PsLibraryAndroidDependency> models = getModels();
-      for (PsLibraryAndroidDependency resolvedDependency : models) {
-        for (DependencyModel resolvedFromParsedDependency : resolvedDependency.getParsedModels()) {
-          // other.getParsedModels() always contains just one model since it is a declared dependency.
-          if (other
-            .getParsedModels()
-            .stream()
-            .anyMatch(it ->
-                      {
-                        if (it instanceof ArtifactDependencyModel && resolvedFromParsedDependency instanceof ArtifactDependencyModel) {
-                          ArtifactDependencyModel theirs = (ArtifactDependencyModel)it;
-                          ArtifactDependencyModel ours = (ArtifactDependencyModel)resolvedFromParsedDependency;
-                          return
-                            theirs.configurationName().equals(ours.configurationName())
-                            && theirs.compactNotation().equals(ours.compactNotation());
-                        }
-                        else {
-                          return false;
-                        }
-                      })) {
-            return true;
+      for (PsLibraryAndroidDependency ourModel : models) {
+        List<DependencyModel> ourParsedModels = getDependencyParsedModels(ourModel);
+        if (other.getParsedModel() instanceof ArtifactDependencyModel) {
+          ArtifactDependencyModel theirs = (ArtifactDependencyModel)other.getParsedModel();
+          for (DependencyModel resolvedFromParsedDependency : ourParsedModels) {
+            if (resolvedFromParsedDependency instanceof ArtifactDependencyModel) {
+              ArtifactDependencyModel ours = (ArtifactDependencyModel)resolvedFromParsedDependency;
+              if (theirs.configurationName().equals(ours.configurationName())
+                  && theirs.compactNotation().equals(ours.compactNotation())) {
+                return true;
+              }
+            }
           }
         }
       }

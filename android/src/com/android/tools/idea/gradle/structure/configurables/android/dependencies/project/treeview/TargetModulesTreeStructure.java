@@ -89,35 +89,32 @@ class TargetModulesTreeStructure extends AbstractBaseTreeStructure {
       }
 
       declaredDependencyNodes.forEach(declaredDependencyNode -> {
-        List<PsAndroidDependency> declaredDependencies = getDeclaredDependencies(declaredDependencyNode);
+        List<PsDeclaredLibraryAndroidDependency> declaredDependencies = getDeclaredDependencies(declaredDependencyNode);
 
         declaredDependencies.forEach(declaredDependency -> {
-          List<String> configurationNames = declaredDependency.getConfigurationNames();
-          assert !configurationNames.isEmpty();
           PsAndroidModule module = declaredDependency.getParent();
           String moduleName = module.getName();
 
           for (PsDependencyContainer container : declaredDependency.getContainers()) {
             PsAndroidArtifact artifact = container.findArtifact(module, false);
 
-            for (String configurationName : configurationNames) {
-              if (artifact != null && artifact.containsConfigurationName(configurationName)) {
-                boolean transitive = declaredDependencyNode != node;
+            String configurationName = declaredDependency.getConfigurationName();
+            if (artifact != null && artifact.containsConfigurationName(configurationName)) {
+              boolean transitive = declaredDependencyNode != node;
 
-                Collection<Configuration> configurations = configurationNamesByModule.get(moduleName);
-                boolean found = false;
-                for (Configuration configuration : configurations) {
-                  if (configuration.getName().equals(configurationName)) {
-                    configuration.addType(transitive);
-                    found = true;
-                    break;
-                  }
+              Collection<Configuration> configurations = configurationNamesByModule.get(moduleName);
+              boolean found = false;
+              for (Configuration configuration : configurations) {
+                if (configuration.getName().equals(configurationName)) {
+                  configuration.addType(transitive);
+                  found = true;
+                  break;
                 }
+              }
 
-                if (!found) {
-                  Icon icon = artifact.getIcon();
-                  configurationNamesByModule.put(moduleName, new Configuration(configurationName, icon, transitive));
-                }
+              if (!found) {
+                Icon icon = artifact.getIcon();
+                configurationNamesByModule.put(moduleName, new Configuration(configurationName, icon, transitive));
               }
             }
           }
@@ -167,7 +164,11 @@ class TargetModulesTreeStructure extends AbstractBaseTreeStructure {
   }
 
   @NotNull
-  private static List<PsAndroidDependency> getDeclaredDependencies(AbstractDependencyNode<? extends PsAndroidDependency> node) {
-    return node.getModels().stream().filter(PsAndroidDependency::isDeclared).collect(Collectors.toList());
+  private static List<PsDeclaredLibraryAndroidDependency>
+  getDeclaredDependencies(AbstractDependencyNode<? extends PsAndroidDependency> node) {
+    return
+      node.getModels().stream()
+          .filter(it -> it instanceof PsDeclaredLibraryAndroidDependency)
+               .map(it -> (PsDeclaredLibraryAndroidDependency)it).filter(PsAndroidDependency::isDeclared).collect(Collectors.toList());
   }
 }

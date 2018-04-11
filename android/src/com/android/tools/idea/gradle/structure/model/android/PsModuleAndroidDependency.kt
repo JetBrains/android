@@ -18,42 +18,64 @@ package com.android.tools.idea.gradle.structure.model.android
 import com.android.builder.model.AndroidProject.ARTIFACT_MAIN
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel
+import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
 import com.android.tools.idea.gradle.structure.model.PsDependency
 import com.android.tools.idea.gradle.structure.model.PsModuleDependency
+import com.android.tools.idea.gradle.structure.model.PsResolvedDependency
 import com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon
 import com.intellij.openapi.module.Module
 import icons.StudioIcons.Shell.Filetree.ANDROID_MODULE
 import javax.swing.Icon
 
-class PsModuleAndroidDependency internal constructor(
+class PsDeclaredModuleAndroidDependency internal constructor(
+  parent: PsAndroidModule,
+  gradlePath: String,
+  artifacts: Collection<PsAndroidArtifact>,
+  configurationName: String,
+  moduleVariant: String?,
+  override val parsedModel: ModuleDependencyModel
+) : PsModuleAndroidDependency(
+  parent, gradlePath, artifacts, configurationName, moduleVariant
+), PsDeclaredDependency {
+  override val name: String = parsedModel.name()
+  override val resolvedModel: Any? = null
+  override val isDeclared: Boolean = true
+  override val joinedConfigurationNames: String = configurationName
+  override val icon: Icon? get() = ANDROID_MODULE
+}
+
+class PsResolvedModuleAndroidDependency internal constructor(
+  parent: PsAndroidModule,
+  gradlePath: String,
+  artifacts: Collection<PsAndroidArtifact>,
+  configurationName: String,
+  moduleVariant: String?,
+  override val resolvedModel: Module,
+  private val parsedModels: Collection<ModuleDependencyModel>
+) : PsModuleAndroidDependency(
+  parent, gradlePath, artifacts, configurationName, moduleVariant
+), PsResolvedDependency {
+  override val name: String = resolvedModel.name
+  override val isDeclared: Boolean get() = !parsedModels.isEmpty()
+  override val joinedConfigurationNames: String get() = parsedModels.joinToString(separator = ", ") { it.configurationName()}
+  override fun getParsedModels(): List<DependencyModel> = parsedModels.toList()
+  override val icon: Icon? get() = getModuleIcon(resolvedModel)
+}
+
+abstract class PsModuleAndroidDependency internal constructor(
   parent: PsAndroidModule,
   override val gradlePath: String,
   artifacts: Collection<PsAndroidArtifact>,
-  override val configurationName: String?,
-  override val resolvedModel: Module?,
-  parsedModels: Collection<ModuleDependencyModel>
-) : PsAndroidDependency(parent, artifacts, parsedModels), PsModuleDependency {
-
-  override val name: String = resolvedModel?.name ?: parsedModels.firstOrNull()?.name()!!
-
-  override val icon: Icon?
-    get() = if (resolvedModel != null) {
-      getModuleIcon(resolvedModel)
-    }
-    else ANDROID_MODULE
-
-  override fun addParsedModel(parsedModel: DependencyModel) {
-    assert(parsedModel is ModuleDependencyModel)
-    super.addParsedModel(parsedModel)
-  }
+  override val configurationName: String,
+  private val moduleVariant: String?
+) : PsAndroidDependency(parent, artifacts), PsModuleDependency {
 
   override fun toText(type: PsDependency.TextType): String = name
 
   fun findReferredArtifact(): PsAndroidArtifact? {
     val referred = parent.parent.findModuleByGradlePath(gradlePath)
-    val moduleVariantName = configurationName
-    if (moduleVariantName != null && referred is PsAndroidModule) {
-      val moduleVariant = referred.findVariant(moduleVariantName)
+    if (moduleVariant != null && referred is PsAndroidModule) {
+      val moduleVariant = referred.findVariant(moduleVariant)
       if (moduleVariant != null) {
         return moduleVariant.findArtifact(ARTIFACT_MAIN)
       }

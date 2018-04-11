@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.structure.model;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
-import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository;
@@ -121,12 +120,11 @@ public abstract class PsModule extends PsChildModel {
     }
   }
 
-  protected void removeDependencyFromParsedModel(@NotNull PsDependency dependency) {
+  protected void removeDependencyFromParsedModel(@NotNull PsDeclaredDependency dependency) {
     GradleBuildModel parsedModel = getParsedModel();
     if (parsedModel != null) {
-      for (DependencyModel dependencyParsedModel : dependency.getParsedModels()) {
-        getParsedModel().dependencies().remove(dependencyParsedModel);
-      }
+
+      getParsedModel().dependencies().remove(dependency.getParsedModel());
 
       getParsedDependencies().reset(getParsedModel());
     }
@@ -144,11 +142,11 @@ public abstract class PsModule extends PsChildModel {
     myDependenciesChangeEventDispatcher.getMulticaster().dependencyChanged(new ModuleDependencyAddedEvent(modulePath));
   }
 
-  public void fireDependencyModifiedEvent(@NotNull PsDependency dependency) {
+  public void fireDependencyModifiedEvent(@NotNull PsDeclaredDependency dependency) {
     myDependenciesChangeEventDispatcher.getMulticaster().dependencyChanged(new DependencyModifiedEvent(dependency));
   }
 
-  public void fireDependencyRemovedEvent(@NotNull PsDependency dependency) {
+  public void fireDependencyRemovedEvent(@NotNull PsDeclaredDependency dependency) {
     myDependenciesChangeEventDispatcher.getMulticaster().dependencyChanged(new DependencyRemovedEvent(dependency));
   }
 
@@ -241,7 +239,7 @@ public abstract class PsModule extends PsChildModel {
 
   public abstract void addLibraryDependency(@NotNull String library, @NotNull List<String> scopesNames);
   public abstract void addModuleDependency(@NotNull String modulePath, @NotNull List<String> scopesNames);
-  public abstract void removeDependency(@NotNull PsDependency dependency);
+  public abstract void removeDependency(@NotNull PsDeclaredDependency dependency);
   public abstract void setLibraryDependencyVersion(@NotNull PsArtifactDependencySpec spec,
                                                    @NotNull String configurationName,
                                                    @NotNull String newVersion);
@@ -280,27 +278,27 @@ public abstract class PsModule extends PsChildModel {
   }
 
   public static class DependencyModifiedEvent implements DependencyChangedEvent {
-    @NotNull private final PsDependency myDependency;
+    @NotNull private final PsDeclaredDependency myDependency;
 
-    DependencyModifiedEvent(@NotNull PsDependency dependency) {
+    DependencyModifiedEvent(@NotNull PsDeclaredDependency dependency) {
       myDependency = dependency;
     }
 
     @NotNull
-    public PsDependency getDependency() {
+    public PsDeclaredDependency getDependency() {
       return myDependency;
     }
   }
 
   public static class DependencyRemovedEvent implements DependencyChangedEvent {
-    @NotNull private final PsDependency myDependency;
+    @NotNull private final PsDeclaredDependency myDependency;
 
-    DependencyRemovedEvent(@NotNull PsDependency dependency) {
+    DependencyRemovedEvent(@NotNull PsDeclaredDependency dependency) {
       myDependency = dependency;
     }
 
     @NotNull
-    public PsDependency getDependency() {
+    public PsDeclaredDependency getDependency() {
       return myDependency;
     }
   }

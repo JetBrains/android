@@ -22,10 +22,7 @@ import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer
 import com.android.tools.idea.gradle.structure.configurables.issues.SingleModuleIssuesRenderer;
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.AbstractDependenciesPanel;
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.DeclaredDependenciesTableView;
-import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
-import com.android.tools.idea.gradle.structure.model.PsDependency;
-import com.android.tools.idea.gradle.structure.model.PsIssue;
-import com.android.tools.idea.gradle.structure.model.PsModule;
+import com.android.tools.idea.gradle.structure.model.*;
 import com.android.tools.idea.gradle.structure.model.java.PsJavaDependency;
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule;
 import com.intellij.openapi.util.ActionCallback;
@@ -42,7 +39,6 @@ import java.awt.*;
 import java.util.Collections;
 import java.util.List;
 
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 
@@ -82,7 +78,7 @@ class MainPanel extends AbstractDependenciesPanel {
         toSelect = myDependenciesTableModel.findDependency(spec);
       }
       else if (event instanceof PsModule.DependencyModifiedEvent) {
-        PsDependency dependency = ((PsModule.DependencyModifiedEvent)event).getDependency();
+        PsDeclaredDependency dependency = ((PsModule.DependencyModifiedEvent)event).getDependency();
         if (dependency instanceof PsJavaDependency) {
           toSelect = (PsJavaDependency)dependency;
         }
