@@ -15,16 +15,20 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.ide.common.rendering.api.*;
+import com.android.ide.common.rendering.api.DeclareStyleableResourceValue;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Computable;
+import gnu.trove.TIntArrayList;
 import gnu.trove.TObjectIntHashMap;
-import gnu.trove.TObjectIntProcedure;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,7 +36,6 @@ import org.jetbrains.org.objectweb.asm.ClassWriter;
 import org.jetbrains.org.objectweb.asm.MethodVisitor;
 import org.jetbrains.org.objectweb.asm.Type;
 
-import java.io.File;
 import java.util.*;
 
 import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
@@ -71,21 +74,11 @@ public class ResourceClassGenerator {
 
   interface NumericIdProvider {
     int getOrGenerateId(@NotNull ResourceReference resourceReference);
-
-    /**
-     * Returns the numeric ids of attributes defined in the given styleable, in the order defined by {@code attrs}.
-     *
-     * <p>Returns null if the styleable is not found. The array may contain nulls if the attributes are not found.
-     *
-     * @see RDotTxtParser#getDeclareStyleableArray(File, List, String)
-     */
-    @Nullable
-    Integer[] getDeclaredArrayValues(@NotNull List<AttrResourceValue> attrs, @NotNull String styleableName);
   }
 
   private Map<ResourceType, TObjectIntHashMap<String>> myCache;
   /** For int[] in styleables. The ints in styleables are stored in {@link #myCache}. */
-  private Map<String, List<Integer>> myStyleableCache;
+  private Map<String, TIntArrayList> myStyleableCache;
   @NotNull private final AbstractResourceRepository myResources;
   @NotNull private final NumericIdProvider myIdProvider;
   @NotNull private final ResourceNamespace myNamespace;
@@ -138,16 +131,15 @@ public class ResourceClassGenerator {
       }
       if (type == ResourceType.STYLEABLE) {
         if (myStyleableCache == null) {
-          TObjectIntHashMap<String> styleableIntCache = new TObjectIntHashMap<>();
-          myCache.put(type, styleableIntCache);
+          myCache.put(ResourceType.STYLEABLE, new TObjectIntHashMap<>());
           myStyleableCache = Maps.newHashMap();
-          generateStyleable(cw, styleableIntCache, className);
+          generateStyleable(cw, className);
         }
         else {
-          TObjectIntHashMap<String> styleableIntCache = myCache.get(type);
-          assert styleableIntCache != null;
-          generateFields(cw, styleableIntCache);
-          generateIntArrayFromCache(cw, className, myStyleableCache);
+          TObjectIntHashMap<String> indexFieldsCache = myCache.get(ResourceType.STYLEABLE);
+          assert indexFieldsCache != null;
+          generateFields(cw, indexFieldsCache);
+          generateIntArraysFromCache(cw, className);
         }
       } else {
         TObjectIntHashMap<String> typeCache = myCache.get(type);
@@ -195,26 +187,29 @@ public class ResourceClassGenerator {
   }
 
   /**
-   * Returns the list of {@link AttrResourceValue} attributes declared in the given styleable resource item.
+   * Returns the list of {@link ResourceReference} to attributes declared in the given styleable resource item.
    */
   @NotNull
-  private static List<AttrResourceValue> getStyleableAttributes(@NotNull ResourceItem item) {
+  private static List<ResourceReference> getStyleableAttributes(@NotNull ResourceItem item) {
     ResourceValue resourceValue = ApplicationManager.getApplication().runReadAction(
       (Computable<ResourceValue>)() -> item.getResourceValue());
     assert resourceValue instanceof DeclareStyleableResourceValue;
     DeclareStyleableResourceValue dv = (DeclareStyleableResourceValue)resourceValue;
-    return dv.getAllAttributes();
+    return Lists.transform(dv.getAllAttributes(), ResourceValue::asReference);
   }
 
-  private void generateStyleable(@NotNull ClassWriter cw, @NotNull TObjectIntHashMap<String> styleableIntCache, String className) {
+  private void generateStyleable(@NotNull ClassWriter cw, String className) {
     if (LOG.isDebugEnabled()) {
       LOG.debug(String.format("generateStyleable(%s)", anonymizeClassName(className)));
     }
-
     boolean debug = LOG.isDebugEnabled() && isPublicClass(className);
-    Collection<String> declaredStyleables = myResources.getItemsOfType(myNamespace, ResourceType.DECLARE_STYLEABLE);
+
+    TObjectIntHashMap<String> indexFieldsCache = myCache.get(ResourceType.STYLEABLE);
+    Collection<String> styleableNames = myResources.getItemsOfType(myNamespace, ResourceType.DECLARE_STYLEABLE);
+    List<MergedStyleable> mergedStyleables = new ArrayList<>(styleableNames.size());
+
     // Generate all declarations - both int[] and int for the indices into the array.
-    for (String styleableName : declaredStyleables) {
+    for (String styleableName : styleableNames) {
       List<ResourceItem> items = myResources.getResourceItems(myNamespace, ResourceType.DECLARE_STYLEABLE, styleableName);
       if (items.isEmpty()) {
         if (debug) {
@@ -228,24 +223,20 @@ public class ResourceClassGenerator {
         LOG.debug("  Defined styleable " + fieldName);
       }
 
-      // Merge all the styleables with the same name
-      List<AttrResourceValue> mergedAttributes = new ArrayList<>();
+      // Merge all the styleables with the same name, to compute the sum of all attrs defined in them.
+      LinkedHashSet<ResourceReference> mergedAttributes = new LinkedHashSet<>();
       for (ResourceItem item : items) {
         mergedAttributes.addAll(getStyleableAttributes(item));
       }
 
-      int idx = 0;
-      HashSet<String> styleablesEntries = new HashSet<>();
-      for (AttrResourceValue value : mergedAttributes) {
-        String styleableEntryName = getResourceName(fieldName, value);
-        // Because we are merging styleables from multiple sources, we could have duplicates
-        if (!styleablesEntries.add(styleableEntryName)) {
-          continue;
-        }
+      mergedStyleables.add(new MergedStyleable(styleableName, mergedAttributes));
 
-        Integer initialValue = idx++;
-        cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, styleableEntryName, "I", null, initialValue);
-        styleableIntCache.put(styleableEntryName, initialValue);
+      int idx = 0;
+      for (ResourceReference attr : mergedAttributes) {
+        String styleableEntryName = getResourceName(fieldName, attr);
+        int fieldValue = idx++;
+        cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, styleableEntryName, "I", null, fieldValue);
+        indexFieldsCache.put(styleableEntryName, fieldValue);
         if (debug) {
           LOG.debug("  Defined styleable " + styleableEntryName);
         }
@@ -255,49 +246,13 @@ public class ResourceClassGenerator {
     // Generate class initializer block to initialize the arrays declared above.
     MethodVisitor mv = cw.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null);
     mv.visitCode();
-    for (String styleableName : declaredStyleables) {
-      List<ResourceItem> items = myResources.getResourceItems(myNamespace, ResourceType.DECLARE_STYLEABLE, styleableName);
-      if (items.isEmpty()) {
-        continue;
+    for (MergedStyleable mergedStyleable : mergedStyleables) {
+      String fieldName = AndroidResourceUtil.getFieldNameByResourceName(mergedStyleable.name);
+      TIntArrayList values = new TIntArrayList();
+      for (ResourceReference attr : mergedStyleable.attrs) {
+        values.add(myIdProvider.getOrGenerateId(attr));
       }
-
-      // IDs of attrs in the styleable. The list is initialized by looking for this styleable in R.txt of all dependencies. The ids of
-      // framework attributes are assumed to be correct and ready to use, for non-framework attrs we pick new ids below.
-      List<Integer> values = new ArrayList<>();
-
-      List<AttrResourceValue> mergedAttributes = new ArrayList<>();
-      String fieldName = AndroidResourceUtil.getFieldNameByResourceName(styleableName);
       myStyleableCache.put(fieldName, values);
-      for (ResourceItem item : items) {
-        List<AttrResourceValue> attributes = getStyleableAttributes(item);
-        if (attributes.isEmpty()) {
-          continue;
-        }
-        mergedAttributes.addAll(attributes);
-        Integer[] valuesArray = myIdProvider.getDeclaredArrayValues(attributes, styleableName);
-        if (valuesArray == null) {
-          valuesArray = new Integer[attributes.size()];
-        }
-        Collections.addAll(values, valuesArray);
-      }
-
-      HashSet<String> styleableEntries = new HashSet<>();
-      int idx = -1;
-      for (AttrResourceValue attr : mergedAttributes) {
-        idx++;
-        // If the table was
-        if (values.get(idx) == null || !attr.isFramework()) {
-          String name = attr.getName();
-          if (!styleableEntries.add(name)) {
-            // This is a duplicate, remove
-            values.remove(idx);
-            idx--;
-          }
-          else {
-            values.set(idx, myIdProvider.getOrGenerateId(attr.asReference()));
-          }
-        }
-      }
       generateArrayInitialization(mv, className, fieldName, values);
     }
     mv.visitInsn(RETURN);
@@ -306,12 +261,9 @@ public class ResourceClassGenerator {
   }
 
   private static void generateFields(@NotNull final ClassWriter cw, @NotNull TObjectIntHashMap<String> values) {
-    values.forEachEntry(new TObjectIntProcedure<String>() {
-      @Override
-      public boolean execute(String name, int value) {
-        generateField(cw, name, value);
-        return true;
-      }
+    values.forEachEntry((name, value) -> {
+      generateField(cw, name, value);
+      return true;
     });
   }
 
@@ -319,21 +271,18 @@ public class ResourceClassGenerator {
     cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, name, "I", null, value).visitEnd();
   }
 
-  private static void generateIntArrayFromCache(@NotNull ClassWriter cw, String className, Map<String, List<Integer>> styleableCache) {
+  private void generateIntArraysFromCache(@NotNull ClassWriter cw, String className) {
     // Generate the field declarations.
-    for (String name : styleableCache.keySet()) {
+    for (String name : myStyleableCache.keySet()) {
       cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, name, "[I", null, null);
     }
 
     // Generate class initializer block to initialize the arrays declared above.
     MethodVisitor mv = cw.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null);
     mv.visitCode();
-    for (Map.Entry<String, List<Integer>> entry : styleableCache.entrySet()) {
-      List<Integer> values = entry.getValue();
-      if (!values.isEmpty()) {
-        generateArrayInitialization(mv, className, entry.getKey(), values);
-      }
-    }
+    myStyleableCache.forEach((arrayName, values) -> {
+      generateArrayInitialization(mv, className, arrayName, values);
+    });
     mv.visitInsn(RETURN);
     mv.visitMaxs(4, 0);
     mv.visitEnd();
@@ -359,19 +308,17 @@ public class ResourceClassGenerator {
    * @param mv the class initializer's MethodVisitor (&lt;clinit&gt;)
    */
   private static void generateArrayInitialization(@NotNull MethodVisitor mv, String className, String fieldName,
-                                                  @NotNull List<Integer> values) {
+                                                  @NotNull TIntArrayList values) {
     if (values.isEmpty()) {
       return;
     }
     pushIntValue(mv, values.size());
     mv.visitIntInsn(NEWARRAY, T_INT);
-    int idx = 0;
-    for (Integer value : values) {
+    for (int idx = 0; idx < values.size(); idx++) {
       mv.visitInsn(DUP);
       pushIntValue(mv, idx);
-      mv.visitLdcInsn(value);
+      mv.visitLdcInsn(values.get(idx));
       mv.visitInsn(IASTORE);
-      idx++;
     }
     mv.visitFieldInsn(PUTSTATIC, className, fieldName, "[I");
   }
@@ -387,7 +334,7 @@ public class ResourceClassGenerator {
     mv.visitEnd();
   }
 
-  public String getResourceName(String styleableName, @NotNull AttrResourceValue value) {
+  public String getResourceName(String styleableName, @NotNull ResourceReference value) {
     StringBuilder sb = new StringBuilder(30);
     sb.append(styleableName);
     sb.append('_');
@@ -411,6 +358,16 @@ public class ResourceClassGenerator {
       } else {
         sb.append(c);
       }
+    }
+  }
+
+  private static class MergedStyleable {
+    @NotNull final String name;
+    @NotNull final LinkedHashSet<ResourceReference> attrs;
+
+    private MergedStyleable(@NotNull String name, @NotNull LinkedHashSet<ResourceReference> attrs) {
+      this.name = name;
+      this.attrs = attrs;
     }
   }
 }

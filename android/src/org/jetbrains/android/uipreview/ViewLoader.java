@@ -19,17 +19,13 @@ package org.jetbrains.android.uipreview;
 import android.view.Gravity;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.LayoutLog;
-import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.layoutlib.bridge.MockView;
-import com.android.resources.ResourceType;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.rendering.IRenderLogger;
 import com.android.tools.idea.rendering.InconvertibleClassError;
 import com.android.tools.idea.rendering.RenderProblem;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.res.ResourceIdManager;
-import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Maps;
@@ -47,8 +43,6 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashSet;
-import gnu.trove.TIntObjectHashMap;
-import gnu.trove.TObjectIntHashMap;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
@@ -56,9 +50,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.Set;
 
@@ -126,70 +118,6 @@ public class ViewLoader {
       final String packageName = manifest.getPackage().getValue();
       return packageName == null ? null : packageName + '.' + R_CLASS;
     });
-  }
-
-  private static boolean parseClass(@NotNull Class<?> rClass,
-                                    @NotNull ResourceNamespace namespace,
-                                    @NotNull TIntObjectHashMap<ResourceReference> id2res,
-                                    @NotNull TObjectIntHashMap<ResourceReference> res2id) throws ClassNotFoundException {
-    try {
-      final Class<?>[] nestedClasses;
-      try {
-        nestedClasses = rClass.getDeclaredClasses();
-      }
-      catch (LinkageError e) {
-        final Throwable cause = e.getCause();
-
-        LOG.debug(e);
-        if (cause instanceof ClassNotFoundException) {
-          throw (ClassNotFoundException)cause;
-        }
-        throw e;
-      }
-      for (Class<?> resClass : nestedClasses) {
-        final ResourceType resType = ResourceType.getEnum(resClass.getSimpleName());
-        if (resType == null) {
-          if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format("  '%s' is not a valid resource type", anonymizeClassName(resClass.getSimpleName())));
-          }
-          continue;
-        }
-        if (LOG.isDebugEnabled()) {
-          LOG.debug(String.format("  Defining resource type '%s'", anonymizeClassName(resClass.getSimpleName())));
-        }
-
-        for (Field field : resClass.getDeclaredFields()) {
-          if (!Modifier.isStatic(field.getModifiers())) { // May not be final in library projects
-            if (LOG.isDebugEnabled()) {
-              LOG.debug(String.format("  '%s' field is not static, skipping", field.getName()));
-            }
-
-            continue;
-          }
-
-          final Class<?> type = field.getType();
-          if (type == int.class) {
-            final Integer value = (Integer)field.get(null);
-            ResourceReference reference = new ResourceReference(namespace, resType, field.getName());
-            id2res.put(value, reference);
-            res2id.put(reference, value);
-            if (LOG.isDebugEnabled()) {
-              LOG.debug(String.format("  '%s' defined as int", field.getName()));
-            }
-          }
-          else if (type != int[].class) {
-            // styleables are represented as arrays in the R class.
-            LOG.error("Unknown field type in R class: " + type);
-          }
-        }
-      }
-    }
-    catch (IllegalAccessException e) {
-      LOG.info(e);
-      return false;
-    }
-
-    return true;
   }
 
   /**
@@ -646,14 +574,9 @@ public class ViewLoader {
     }
 
     if (aClass != null) {
-      final TObjectIntHashMap<ResourceReference> res2id = new TObjectIntHashMap<>();
-      final TIntObjectHashMap<ResourceReference> id2res = new TIntObjectHashMap<>();
-
       AndroidFacet facet = AndroidFacet.getInstance(myModule);
       if (facet != null) {
-        if (parseClass(aClass, ResourceRepositoryManager.getOrCreateInstance(facet).getNamespace(), id2res, res2id)) {
-          idManager.setCompiledIds(res2id, id2res);
-        }
+        idManager.loadCompiledIds(aClass);
       }
     }
     if (LOG.isDebugEnabled()) {

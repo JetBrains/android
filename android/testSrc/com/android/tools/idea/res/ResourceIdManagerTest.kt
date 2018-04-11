@@ -15,14 +15,10 @@
  */
 package com.android.tools.idea.res
 
-import com.android.ide.common.rendering.api.AttrResourceValue
-import com.android.ide.common.rendering.api.ResourceNamespace.ANDROID
 import com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase
-import gnu.trove.TIntObjectHashMap
-import gnu.trove.TObjectIntHashMap
 import org.jetbrains.android.AndroidFacetProjectDescriptor
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Assert.assertNotEquals
@@ -38,35 +34,6 @@ class ResourceIdManagerTest : LightCodeInsightFixtureTestCase() {
     super.setUp()
     facet = AndroidFacet.getInstance(module)!!
     idManager = ResourceIdManager.get(module)
-  }
-
-  fun testGetDeclaredArrayValues() {
-    val appResources = createTestAppResourceRepository(facet)
-    val libraries = (appResources as AppResourceRepository).libraries
-
-    val attrList = mutableListOf(AttrResourceValue(ResourceReference(RES_AUTO, ResourceType.ATTR, "some-attr"), null))
-    assertOrderedEquals(idManager.getDeclaredArrayValues(libraries, attrList, "Styleable1")!!, 0x7f010000)
-
-    // Declared styleables mismatch
-    attrList += AttrResourceValue(ResourceReference(RES_AUTO, ResourceType.ATTR, "some-attr"), null)
-    attrList += AttrResourceValue(ResourceReference(RES_AUTO, ResourceType.ATTR, "other-attr"), null)
-
-    assertNull(idManager.getDeclaredArrayValues(libraries, attrList, "Styleable1"))
-
-    assertOrderedEquals(
-      idManager.getDeclaredArrayValues(
-        libraries,
-        listOf(
-          AttrResourceValue(ResourceReference(RES_AUTO, ResourceType.ATTR, "app_attr1"), null),
-          AttrResourceValue(ResourceReference(RES_AUTO, ResourceType.ATTR, "app_attr2"), null),
-          AttrResourceValue(ResourceReference(ANDROID, ResourceType.ATTR, "framework-attr1"), null),
-          AttrResourceValue(ResourceReference(RES_AUTO, ResourceType.ATTR, "app_attr3"), null),
-          AttrResourceValue(ResourceReference(ANDROID, ResourceType.ATTR, "framework_attr2"), null)
-        ),
-        "Styleable_with_underscore"
-      )!!,
-      0x7f010000, 0x7f010068, 0x01010125, 0x7f010069, 0x01010142
-    )
   }
 
   fun testDynamicIds() {
@@ -107,30 +74,20 @@ class ResourceIdManagerTest : LightCodeInsightFixtureTestCase() {
     assertNotEquals(id2, idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.STRING, "string2")))
   }
 
-  fun testSetCompiledResources() {
+  fun testLoadCompiledResources() {
     val stringId = idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.STRING, "string"))
     val styleId = idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.STYLE, "style"))
     val layoutId = idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.LAYOUT, "layout"))
 
-    val id2res = TIntObjectHashMap<ResourceReference>()
-    id2res.put(0x7F000000, ResourceReference(RES_AUTO, ResourceType.STRING, "string"))
-    id2res.put(0x7F010000, ResourceReference(RES_AUTO, ResourceType.STYLE, "style"))
-    id2res.put(0x7F020000, ResourceReference(RES_AUTO, ResourceType.LAYOUT, "layout"))
-
-    val res2id = TObjectIntHashMap<ResourceReference>()
-    res2id.put(ResourceReference(RES_AUTO, ResourceType.STRING, "string"), 0x7F000000)
-    res2id.put(ResourceReference(RES_AUTO, ResourceType.STYLE, "style"), 0x7F010000)
-    res2id.put(ResourceReference(RES_AUTO, ResourceType.LAYOUT, "layout"), 0x7F020000)
-
-    idManager.setCompiledIds(res2id, id2res)
+    idManager.loadCompiledIds(R::class.java)
 
     // Compiled resources should replace the dynamic IDs.
     assertNotEquals(stringId, idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.STRING, "string")))
-    assertEquals(Integer.valueOf(0x7F000000), idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.STRING, "string")))
+    assertEquals(Integer.valueOf(0x7F000001), idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.STRING, "string")))
     assertNotEquals(styleId, idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.STYLE, "style")))
-    assertEquals(Integer.valueOf(0x7F010000), idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.STYLE, "style")))
+    assertEquals(Integer.valueOf(0x7F010001), idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.STYLE, "style")))
     assertNotEquals(layoutId, idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.LAYOUT, "layout")))
-    assertEquals(Integer.valueOf(0x7F020000), idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.LAYOUT, "layout")))
+    assertEquals(Integer.valueOf(0x7F020001), idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.LAYOUT, "layout")))
 
     // Dynamic IDs should still resolve though.
     assertEquals(ResourceReference(RES_AUTO, ResourceType.STRING, "string"), idManager.findById(stringId))
@@ -142,5 +99,24 @@ class ResourceIdManagerTest : LightCodeInsightFixtureTestCase() {
     assertNull(idManager.findById(stringId))
     assertNull(idManager.findById(styleId))
     assertNull(idManager.findById(layoutId))
+  }
+
+  class R {
+    class string {
+      companion object {
+        const val string: Int = 0x7f000001
+      }
+    }
+    class style {
+      companion object {
+        const val style: Int = 0x7f010001
+      }
+    }
+
+    class layout {
+      companion object {
+        const val layout: Int = 0x7f020001
+      }
+    }
   }
 }

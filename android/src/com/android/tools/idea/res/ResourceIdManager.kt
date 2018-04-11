@@ -15,19 +15,20 @@
  */
 package com.android.tools.idea.res
 
-import com.android.annotations.VisibleForTesting
 import com.android.annotations.concurrency.GuardedBy
 import com.android.builder.model.AaptOptions
-import com.android.ide.common.rendering.api.AttrResourceValue
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
+import com.android.resources.ResourceType.*
+import com.android.tools.idea.experimental.codeanalysis.datastructs.Modifier
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleServiceManager
 import gnu.trove.TIntObjectHashMap
 import gnu.trove.TObjectIntHashMap
 import org.jetbrains.android.facet.AndroidFacet
+import java.lang.reflect.Field
 import java.util.*
 
 private const val FIRST_PACKAGE_ID: Byte = 0x02
@@ -49,8 +50,8 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
    * Class for generating dynamic ids with the given byte as the "package id" part of the 32-bit resource id.
    *
    * The generated ids follow the aapt PPTTEEEE format: 1 byte for package, 1 byte for type, 2 bytes for entry id. The entry IDs are
-   * assigned sequentially, starting with the highest possible value and going down. This should mean they won't conflict with "compiled ids"
-   * assigned by real aapt in a normal-size project (although there is no mechanism to check that). See [compiledToIdMap].
+   * assigned sequentially, starting with the highest possible value and going down. This should mean they won't conflict with
+   * [compiledIds] assigned by real aapt in a normal-size project (although there is no mechanism to check that).
    */
   class IdProvider(private val packageByte: Byte) {
     private val counters: ShortArray = ShortArray(ResourceType.values().size, { 0xffff.toShort() })
@@ -85,7 +86,7 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
   /**
    * Ids assigned by this class, on-the-fly. May not be the same as ids chosen by aapt.
    *
-   * "Compiled ids" take precedence over these, if known. See [compiledToIdMap].
+   * [compiledIds] take precedence over these, if known.
    */
   @GuardedBy("this")
   private val dynamicToIdMap = TObjectIntHashMap<ResourceReference>()
@@ -101,11 +102,10 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
    * These are only read when we know the custom views are compiled against an R class with fields marked as final. See [finalIdsUsed].
    */
   @GuardedBy("this")
-  private var compiledToIdMap = TObjectIntHashMap<ResourceReference>()
+  private var compiledIds: SingleNamespaceIdMapping? = null
 
-  /** Inverse of [compiledToIdMap]. */
   @GuardedBy("this")
-  private var compiledFromIdMap = TIntObjectHashMap<ResourceReference>()
+  private var frameworkIds: SingleNamespaceIdMapping = loadFrameworkIds()
 
   /**
    * Whether R classes with final ids are used for compiling custom views.
@@ -113,7 +113,7 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
   val finalIdsUsed: Boolean
     get() {
       return facet.configuration.isAppProject
-          && ResourceRepositoryManager.getOrCreateInstance(facet).namespacing == AaptOptions.Namespacing.DISABLED
+             && ResourceRepositoryManager.getOrCreateInstance(facet).namespacing == AaptOptions.Namespacing.DISABLED
     }
 
   /**
@@ -135,55 +135,30 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
       .any()
   }
 
-  /**
-   * Checks R.txt files of all AARs in the project, looking for the numeric ids of attributes in a styleable of the given name.
-   *
-   * TODO(namespaces): stop reading R.txt, keep track of the IDs of framework resources and use them.
-   */
-  override fun getDeclaredArrayValues(attrs: List<AttrResourceValue>, styleableName: String): Array<Int?>? {
-    @Suppress("UNCHECKED_CAST") // Until we get rid of R.txt parsing, we rely on the right type of library repositories.
-    return getDeclaredArrayValues(
-      ResourceRepositoryManager.getOrCreateInstance(facet).libraries as MutableList<FileResourceRepository>,
-      attrs,
-      styleableName
-    )
-  }
-
-  @VisibleForTesting
-  fun getDeclaredArrayValues(
-    aarLibraries: List<FileResourceRepository>,
-    attrs: List<AttrResourceValue>,
-    styleableName: String
-  ): Array<Int?>? {
-    for (repo in aarLibraries) {
-      try {
-        return RDotTxtParser.getDeclareStyleableArray(repo.resourceTextFile ?: continue, attrs, styleableName) ?: continue
-        // TODO(b/76207181): This code used to reorder the aarLibraries list (which is stored in the repository), in an effort to find
-        // related styleables faster next time. This caused concurrent modification exceptions, but we need to evaluate the performance
-        // impact of removing this.
-      } catch (e: Exception) {
-        assert(false) { e.message ?: "failed to parse R.txt" }
-        LOG.warn("Error while parsing R.txt", e)
-      }
-    }
-    return null
-  }
-
   @Synchronized
-  fun findById(id: Int): ResourceReference? = compiledFromIdMap[id] ?: dynamicFromIdMap[id]
+  fun findById(id: Int): ResourceReference? = compiledIds?.findById(id) ?: dynamicFromIdMap[id]
 
   /**
    * Returns the compiled id of the given resource, if known.
    *
-   * See [compiledToIdMap] for an explanation of what this means.
+   * See [compiledIds] for an explanation of what this means for project resources. For framework resources, this will return the value
+   * read from [com.android.internal.R].
    */
   @Synchronized
-  fun getCompiledId(resource: ResourceReference): Int? = compiledToIdMap[resource].let { if (it == 0) null else it }
+  fun getCompiledId(resource: ResourceReference): Int? {
+    val knownIds = when (resource.namespace) {
+      ResourceNamespace.ANDROID -> frameworkIds
+      ResourceNamespace.RES_AUTO -> compiledIds
+      else -> null
+    }
+
+    return knownIds?.getId(resource)?.let { id -> if (id == 0) null else id }
+  }
 
   /**
-   *  Returns the compiled id if known, otherwise returns the dynamic id of the resource (which may need to be generated).
+   * Returns the compiled id if known, otherwise returns the dynamic id of the resource (which may need to be generated).
    *
-   *  See [compiledToIdMap] and [dynamicToIdMap] for an explanation of what this means.
+   * See [getCompiledId] and [dynamicToIdMap] for an explanation of what this means.
    */
   @Synchronized
   override fun getOrGenerateId(resource: ResourceReference): Int {
@@ -207,17 +182,146 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
   }
 
   @Synchronized
-  fun setCompiledIds(toIdMap: TObjectIntHashMap<ResourceReference>, fromIdMap: TIntObjectHashMap<ResourceReference>) {
-    compiledToIdMap = toIdMap
-    compiledFromIdMap = fromIdMap
-  }
-
-  @Synchronized
   fun resetDynamicIds() {
     ResourceClassRegistry.get(module.project).clearCache()
 
     resetProviders()
     dynamicToIdMap.clear()
     dynamicFromIdMap.clear()
+  }
+
+  @Synchronized
+  fun loadCompiledIds(klass: Class<*>) {
+    val mapping = SingleNamespaceIdMapping(ResourceNamespace.RES_AUTO)
+    loadIdsFromResourceClass(klass, into = mapping)
+    compiledIds = mapping
+  }
+
+  private fun loadFrameworkIds(): SingleNamespaceIdMapping {
+    val frameworkIds = SingleNamespaceIdMapping(ResourceNamespace.ANDROID).apply {
+      // These are the counts around the P time frame, to allocate roughly the right amount of space upfront.
+      toIdMap[ANIM] = TObjectIntHashMap(70)
+      toIdMap[ATTR] = TObjectIntHashMap(1624)
+      toIdMap[ARRAY] = TObjectIntHashMap(113)
+      toIdMap[BOOL] = TObjectIntHashMap(217)
+      toIdMap[COLOR] = TObjectIntHashMap(70)
+      toIdMap[DIMEN] = TObjectIntHashMap(184)
+      toIdMap[DRAWABLE] = TObjectIntHashMap(450)
+      toIdMap[ID] = TObjectIntHashMap(423)
+      toIdMap[INTEGER] = TObjectIntHashMap(212)
+      toIdMap[LAYOUT] = TObjectIntHashMap(203)
+      toIdMap[PLURALS] = TObjectIntHashMap(34)
+      toIdMap[STRING] = TObjectIntHashMap(1254)
+      toIdMap[STYLE] = TObjectIntHashMap(781)
+    }
+
+    loadIdsFromResourceClass(com.android.internal.R::class.java, into = frameworkIds, lookForAttrsInStyleables = true)
+
+    return frameworkIds
+  }
+
+  /**
+   * Reads numeric ids from the given R class (using reflection) and stores them in the supplied [SingleNamespaceIdMapping].
+   *
+   * @param klass the R class to read ids from
+   * @param into the result [SingleNamespaceIdMapping]
+   * @param lookForAttrsInStyleables whether to get attr ids by looking at `R.styleable`. Aapt has a feature where a whitelist of all
+   *                                 resources to be put in the R class can be supplied at build time (to reduce the size of the R class).
+   *                                 In this case the numeric ids of attr resources can still "leak" into bytecode in the `styleable` class.
+   *                                 If this argument is set to `true`, names of the attrs are inferred from corresponding fields in the
+   *                                 `styleable` class and their numeric ids are saved. This is applicable mostly to the internal android
+   *                                 R class.
+   */
+  private fun loadIdsFromResourceClass(
+    klass: Class<*>,
+    into: SingleNamespaceIdMapping,
+    lookForAttrsInStyleables: Boolean = false) {
+    assert(klass.simpleName == "R") { "Numeric ids can only be loaded from top-level R classes." }
+
+    // Comparator for fields, which makes them appear in the same order as in the R class source code. This means that in R.styleable,
+    // indices come after corresponding array and before other arrays, e.g. "ActionBar_logo" comes after "ActionBar" but before
+    // "ActionBar_LayoutParams". This allows the invariant that int fields are indices into the last seen array field.
+    val fieldOrdering: Comparator<Field> = Comparator { f1, f2 ->
+      val name1 = f1.name
+      val name2 = f2.name
+
+      for(i in 0 until minOf(name1.length, name2.length)) {
+        val c1 = name1[i]
+        val c2 = name2[i]
+
+        if (c1 != c2) {
+          return@Comparator when {
+            c1 == '_' -> -1
+            c2 == '_' -> 1
+            c1.isLowerCase() && c2.isUpperCase() -> -1
+            c1.isUpperCase() && c2.isLowerCase() -> 1
+            else -> c1 - c2
+          }
+        }
+      }
+
+      name1.length - name2.length
+    }
+
+    for (innerClass in klass.declaredClasses) {
+      val type = ResourceType.getEnum(innerClass.simpleName) ?: continue
+      when {
+        type != STYLEABLE -> {
+          val toIdMap = into.toIdMap.getOrPut(type, { TObjectIntHashMap() })
+          val fromIdMap = into.fromIdMap
+
+          for (field in innerClass.declaredFields) {
+            if (field.type != Int::class.java || !Modifier.isStatic(field.modifiers)) continue
+            val id = field.getInt(null)
+            val name = field.name
+            toIdMap.put(name, id)
+            fromIdMap.put(id, Pair(type, name))
+          }
+        }
+        type == STYLEABLE && lookForAttrsInStyleables -> {
+          val toIdMap = into.toIdMap.getOrPut(ATTR, { TObjectIntHashMap() })
+          val fromIdMap = into.fromIdMap
+
+          // We process fields by name, so that arrays come before indices into them. currentArray is initialized to a dummy value.
+          var currentArray = IntArray(0)
+          var currentStyleable = ""
+
+          val sortedFields = innerClass.fields.sortedArrayWith(fieldOrdering)
+          for (field in sortedFields) {
+            if (field.type.isArray) {
+              currentArray = field.get(null) as IntArray
+              currentStyleable = field.name
+            }
+            else {
+              val attrName: String = field.name.substring(currentStyleable.length + 1)
+              val attrId = currentArray[field.getInt(null)]
+              toIdMap.put(attrName, attrId)
+              fromIdMap.put(attrId, Pair(ATTR, attrName))
+            }
+          }
+        }
+        else -> {
+          // No interesting information in the styleable class, if we're not trying to infer attr ids from it.
+        }
+      }
+    }
+  }
+
+  /**
+   * Keeps a bidirectional mapping between type+name and a numeric id, for a known namespace.
+   */
+  class SingleNamespaceIdMapping(val namespace: ResourceNamespace) {
+    var toIdMap = EnumMap<ResourceType, TObjectIntHashMap<String>>(ResourceType::class.java)
+    var fromIdMap = TIntObjectHashMap<Pair<ResourceType, String>>()
+
+    /**
+     * Returns the id of the given resource or 0 if not known.
+     */
+    fun getId(resourceReference: ResourceReference): Int = toIdMap[resourceReference.resourceType]?.get(resourceReference.name) ?: 0
+
+    /**
+     * Returns the [ResourceReference] for the given id, if known.
+     */
+    fun findById(id: Int): ResourceReference? = fromIdMap[id]?.let { (type, name) -> ResourceReference(namespace, type, name) }
   }
 }
