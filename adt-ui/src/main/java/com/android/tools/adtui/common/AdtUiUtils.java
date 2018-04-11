@@ -69,6 +69,14 @@ public final class AdtUiUtils {
   }
 
   /**
+   * Similar to {@link #shrinkToFit(String, Predicate<String>)},
+   * but instead of a predicate to fit space it uses the font metrics compared to available space.
+   */
+  public static String shrinkToFit(String text, FontMetrics metrics, float availableSpace, ShrinkToFitOptions options) {
+    return shrinkToFit(text, s -> metrics.stringWidth(s) <= availableSpace, options);
+  }
+
+  /**
    * Similar to {@link #shrinkToFit(String, FontMetrics, ShrinkToFitOptions)},
    * but takes a predicate method to determine whether the text should fit or not.
    * The default option are {@link ShrinkToFitOptions.NONE}
