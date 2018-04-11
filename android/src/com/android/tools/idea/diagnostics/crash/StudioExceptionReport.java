@@ -18,11 +18,16 @@ package com.android.tools.idea.diagnostics.crash;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.annotations.VisibleForTesting;
+import com.android.annotations.VisibleForTesting.Visibility;
 import com.android.tools.idea.diagnostics.crash.exception.NoPiiException;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
+import com.intellij.ide.plugins.IdeaPluginDescriptor;
+import com.intellij.ide.plugins.PluginManagerCore;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 
+import java.util.Arrays;
 import java.util.Map;
 
 public class StudioExceptionReport extends BaseStudioReport {
@@ -52,6 +57,30 @@ public class StudioExceptionReport extends BaseStudioReport {
   @Override
   protected void serializeTo(@NonNull MultipartEntityBuilder builder) {
     builder.addTextBody(KEY_EXCEPTION_INFO, exceptionInfo);
+    // Capture kotlin version for kotlin exceptions.
+    if (isKotlinOnStack()) {
+      builder.addTextBody("kotlinVersion", getKotlinPluginVersionDescription());
+    }
+  }
+
+  private boolean isKotlinOnStack() {
+    return exceptionInfo.contains("\tat org.jetbrains.kotlin");
+  }
+
+  @VisibleForTesting(visibility = Visibility.PRIVATE)
+  @NonNull
+  protected String getKotlinPluginVersionDescription() {
+    try {
+      IdeaPluginDescriptor[] pluginDescriptors = PluginManagerCore.getPlugins();
+      return Arrays.stream(pluginDescriptors)
+                   .filter(d -> d.getPluginId().getIdString().equals("org.jetbrains.kotlin"))
+                   .findFirst()
+                   .map(d -> d.getVersion())
+                   .orElse("pluginNotLoaded");
+    }
+    catch (Exception ignored) {
+      return "exceptionWhenReadingVersion";
+    }
   }
 
   public static class Builder extends BaseBuilder<StudioExceptionReport, Builder> {

@@ -24,6 +24,7 @@ import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.hamcrest.core.SubstringMatcher;
 import org.junit.Test;
 
 import java.io.PrintWriter;
@@ -40,6 +41,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 
 public class StudioCrashReporterTest {
   public static final String STACK_TRACE =
@@ -96,6 +99,39 @@ public class StudioCrashReporterTest {
                                 "Content-Transfer-Encoding: 8bit\r\n" +
                                 "\r\n" +
                                 "com.android.tools.idea.diagnostics.crash.exception.JvmCrashException"));
+  }
+
+  @Test
+  public void serializeKotlinException() throws Exception {
+    final String exceptionWithKotlinString =
+      "java.lang.RuntimeException: Kotlin message\n" +
+      "\tat com.intellij.util.UniqueResultsQuery.forEach(UniqueResultsQuery.java:57)\n" +
+      "\tat org.jetbrains.kotlin.idea.inspections.UnusedSymbolInspection$hasReferences$referenceUsed$2.invoke(UnusedSymbolInspection.kt:268)\n" +
+      "\tat org.jetbrains.kotlin.idea.inspections.UnusedSymbolInspection$hasReferences$referenceUsed$2.invoke(UnusedSymbolInspection.kt:74)\n" +
+      "\tat kotlin.SynchronizedLazyImpl.getValue(Lazy.kt:131)\n";
+    StudioExceptionReport report = spy(
+      new StudioExceptionReport.Builder()
+        .setThrowable(createExceptionFromDesc(exceptionWithKotlinString, null))
+        .build());
+
+    doReturn("1.2.3.4").when(report).getKotlinPluginVersionDescription();
+
+    MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+    report.serialize(builder);
+    HttpEntity httpEntity = builder.build();
+    String request = new String(ByteStreams.toByteArray(httpEntity.getContent()), Charset.defaultCharset());
+
+    assertRequestContainsField(request, "kotlinVersion", "1.2.3.4");
+  }
+
+  private static void assertRequestContainsField(final String requestBody, final String name, final String value) {
+    assertThat(requestBody, new RegexMatcher(
+      "(?s).*\r\nContent-Disposition: form-data; name=\"" + Pattern.quote(name) + "\"\r\n" +
+      "Content-Type: .*?\r\n" +
+      "Content-Transfer-Encoding: 8bit\r\n" +
+      "\r\n" +
+      Pattern.quote(value) + "\r\n.*"
+    ));
   }
 
   public static void main(String[] args) {
@@ -226,5 +262,25 @@ public class StudioCrashReporterTest {
     }
 
     return stringWriter.toString().replace("\r", "");
+  }
+
+  private static class RegexMatcher extends SubstringMatcher {
+
+    private Pattern myPattern;
+
+    public RegexMatcher(@NonNull String patternString) {
+      super(patternString);
+      myPattern = Pattern.compile(patternString);
+    }
+
+    @Override
+    protected boolean evalSubstringOf(String string) {
+      return myPattern.matcher(string).matches();
+    }
+
+    @Override
+    protected String relationship() {
+      return "matches regular expression";
+    }
   }
 }
