@@ -33,7 +33,7 @@ public class FileTreeDependencyModelImpl extends DependencyModelImpl implements 
   private static final Logger LOG = Logger.getInstance(FileTreeDependencyModelImpl.class);
 
   @NonNls public static final String FILE_TREE = "fileTree";
-  @NonNls private static final String DIR = "dir";
+  @NonNls public static final String DIR = "dir";
   @NonNls private static final String INCLUDE = "include";
   @NonNls private static final String EXCLUDE = "exclude";
 
