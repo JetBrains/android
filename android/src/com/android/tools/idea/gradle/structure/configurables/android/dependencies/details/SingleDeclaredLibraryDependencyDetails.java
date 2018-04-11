@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.details;
 
-import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
-import com.android.tools.idea.gradle.structure.model.PsDependency;
-import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.*;
 import com.intellij.ui.components.JBLabel;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +25,7 @@ import javax.swing.*;
 
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-public class SingleLibraryDependencyDetails implements DependencyDetails {
+public class SingleDeclaredLibraryDependencyDetails implements DependencyDetails {
   private JPanel myMainPanel;
 
   private JXLabel myGroupIdLabel;
@@ -36,7 +34,7 @@ public class SingleLibraryDependencyDetails implements DependencyDetails {
   private JXLabel myScopeLabel;
   private JBLabel myRequestedVersionLabel;
 
-  @Nullable private PsLibraryDependency myDependency;
+  @Nullable private PsDeclaredLibraryDependency myDependency;
 
   @Override
   @NotNull
@@ -46,7 +44,7 @@ public class SingleLibraryDependencyDetails implements DependencyDetails {
 
   @Override
   public void display(@NotNull PsDependency dependency) {
-    myDependency = (PsLibraryDependency)dependency;
+    myDependency = (PsDeclaredLibraryDependency)dependency;
     PsArtifactDependencySpec spec = myDependency.getSpec();
 
     myGroupIdLabel.setText(spec.getGroup());
@@ -61,8 +59,8 @@ public class SingleLibraryDependencyDetails implements DependencyDetails {
 
   @Override
   @NotNull
-  public Class<PsLibraryDependency> getSupportedModelType() {
-    return PsLibraryDependency.class;
+  public Class<PsDeclaredLibraryDependency> getSupportedModelType() {
+    return PsDeclaredLibraryDependency.class;
   }
 
   @Override
