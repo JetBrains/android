@@ -55,7 +55,7 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
       myTestClass = new TestClass(ideClassLoader.loadClass(getTestClass().getJavaClass().getName()));
       methodFromClassLoader = myTestClass.getJavaClass().getMethod(method.getName());
     }
-    catch (Exception e) {
+    catch (Throwable e) {
       return new Fail(e);
     }
 
