@@ -74,6 +74,7 @@ public class PermissionUsageInspection extends GlobalInspectionTool {
 
 
 
+  @NotNull
   @Override
   public String getDisplayName() {
     return DISPLAY_NAME;
@@ -96,6 +97,7 @@ public class PermissionUsageInspection extends GlobalInspectionTool {
     });
   }
 
+  @NotNull
   @Override
   public String getShortName() {
     return SHORT_NAME;
