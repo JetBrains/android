@@ -13,21 +13,15 @@
 // limitations under the License.
 package com.android.tools.idea.tests.gui.java8;
 
-import com.android.tools.idea.tests.gui.emulator.EmulatorGenerator;
-import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
+import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.AndroidToolWindowFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.regex.Pattern;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -35,12 +29,9 @@ import static com.google.common.truth.Truth.assertThat;
 public class CompileWithJava8Test {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule(false);
-
-  private static final String CONF_NAME = "app";
 
   /**
-   * Verifies that Compile a project with Java 8.
+   * Verifies a project can be compiled with Java 8.
    * <p>
    * This is run to qualify releases. Please involve the test team in substantial changes.
    * <p>
@@ -54,11 +45,9 @@ public class CompileWithJava8Test {
    *      new Thread(() ->{
    *          Log.d("TAG", "Hello World from Lambda Expression");
    *      }).start();
-   *   2. Create an emulator.
-   *   3. Run Build -> Rebuild Project (Project should build successfully).
-   *   4. Run this activity on emulator.
+   *   2. Run Build -> Make Project
    *   Verify:
-   *   1. Verify if statement prints "D/TAG: Hello World from Lambda Expression" on logcat.
+   *   1. Verify project compiled successfully.
    *   </pre>
    */
   @Test
@@ -66,23 +55,7 @@ public class CompileWithJava8Test {
   public void compileWithJava8() throws Exception {
     IdeFrameFixture ideFrameFixture =
       guiTest.importProjectAndWaitForProjectSyncToFinish("MinSdk24App");
-
-    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
-
-    ideFrameFixture.runApp(CONF_NAME)
-      .selectDevice(avdName)
-      .clickOk();
-
-    Pattern CONNECTED_APP_PATTERN = Pattern.compile(".*Connected to process.*", Pattern.DOTALL);
-    String printedLog = "D/TAG: Hello World from Lambda Expression";
-    Pattern LOG_PATTERN = Pattern.compile(".*" + printedLog + ".*", Pattern.DOTALL);
-    ExecutionToolWindowFixture.ContentFixture runWindow = ideFrameFixture.getRunToolWindow().findContent(CONF_NAME);
-    runWindow.waitForOutput(new PatternTextMatcher(CONNECTED_APP_PATTERN), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
-    runWindow.waitForOutput(new PatternTextMatcher(LOG_PATTERN), 60);
-
-    // Verify statement prints "D/TAG: Hello World from Lambda Expression" on logcat.
-    AndroidToolWindowFixture androidToolWindow = ideFrameFixture.getAndroidToolWindow().selectDevicesTab().selectProcess("android.com.app");
-    String logcatPrint = androidToolWindow.getLogcatPrint();
-    assertThat(logcatPrint).contains(printedLog);
+    GradleInvocationResult result = ideFrameFixture.invokeProjectMake();
+    assertThat(result.isBuildSuccessful()).isTrue();
   }
 }
