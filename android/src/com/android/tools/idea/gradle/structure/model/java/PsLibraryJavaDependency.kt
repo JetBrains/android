@@ -16,10 +16,9 @@
 package com.android.tools.idea.gradle.structure.model.java
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency
-import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
-import com.android.tools.idea.gradle.structure.model.PsDependency
-import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
+import com.android.tools.idea.gradle.structure.model.*
 import com.intellij.util.PlatformIcons.LIBRARY_ICON
 import javax.swing.Icon
 
@@ -27,8 +26,15 @@ class PsLibraryJavaDependency(
   parent: PsJavaModule,
   override val spec: PsArtifactDependencySpec,
   override val resolvedModel: JarLibraryDependency?,
-  parsedModels: Collection<ArtifactDependencyModel>
-) : PsJavaDependency(parent, parsedModels), PsLibraryDependency {
+  override val parsedModel: ArtifactDependencyModel
+) : PsJavaDependency(parent), PsLibraryDependency, PsDeclaredDependency, PsResolvedDependency, PsResolvedLibraryDependency {
+  override val configurationName: String = parsedModel.configurationName()
+
+  override fun getParsedModels(): List<DependencyModel> = listOf(parsedModel)
+
+  override val isDeclared: Boolean = true
+
+  override val joinedConfigurationNames: String = configurationName
 
   override val name: String get() = spec.name
 

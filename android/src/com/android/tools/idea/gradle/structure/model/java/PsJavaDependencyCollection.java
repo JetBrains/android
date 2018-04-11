@@ -49,9 +49,11 @@ class PsJavaDependencyCollection implements PsModelCollection<PsJavaDependency> 
         PsArtifactDependencySpec spec = PsArtifactDependencySpec.create(moduleVersion);
         List<ArtifactDependencyModel>
           parsed = parsedDependencies.findLibraryDependencies(moduleVersion.getGroup(), moduleVersion.getName());
-        PsLibraryJavaDependency dependency =
-          new PsLibraryJavaDependency(myParent, spec, libraryDependency, parsed);
-        myLibraryDependenciesBySpec.put(spec.toString(), dependency);
+        if (!parsed.isEmpty()) {
+          PsLibraryJavaDependency dependency =
+            new PsLibraryJavaDependency(myParent, spec, libraryDependency, parsed.stream().findFirst().orElse(null));
+          myLibraryDependenciesBySpec.put(spec.toString(), dependency);
+        }
       }
     }
   }

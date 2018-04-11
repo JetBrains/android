@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies
 
-import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
-import com.android.tools.idea.gradle.structure.model.PsDependency
-import com.android.tools.idea.gradle.structure.model.PsModule
-import com.android.tools.idea.gradle.structure.model.PsProject
+import com.android.tools.idea.gradle.structure.model.*
 
 open class PsAllModulesFakeModule(override val parent: PsProject) : PsModule(parent, "<All Modules>") {
 
@@ -34,7 +31,7 @@ open class PsAllModulesFakeModule(override val parent: PsProject) : PsModule(par
 
   override fun addModuleDependency(modulePath: String, scopesNames: List<String>) = throw UnsupportedOperationException()
 
-  override fun removeDependency(dependency: PsDependency) = throw UnsupportedOperationException()
+  override fun removeDependency(dependency: PsDeclaredDependency) = throw UnsupportedOperationException()
 
   override fun setLibraryDependencyVersion(spec: PsArtifactDependencySpec,
                                            configurationName: String,

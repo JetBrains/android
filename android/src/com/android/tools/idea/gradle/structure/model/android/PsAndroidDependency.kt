@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.structure.model.PsDependency
 
 abstract class PsAndroidDependency internal constructor(
   final override val parent: PsAndroidModule,
-  containers: Collection<PsAndroidArtifact>,
-  parsedModels: Collection<DependencyModel>
-) : PsDependency(parent, parsedModels), PsAndroidModel {
+  containers: Collection<PsAndroidArtifact>
+) : PsDependency(parent), PsAndroidModel {
 
   private val containerCollection = mutableSetOf<PsDependencyContainer>()
   val containers: Collection<PsDependencyContainer> = containerCollection

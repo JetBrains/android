@@ -48,8 +48,8 @@ class DependencyManagementTest : DependencyTestCase() {
       val libModule = project.findModuleByName("mainModule") as PsAndroidModule
       val lib10 = libModule.dependencies.findLibraryDependency("com.example.libs:lib1:1.0")
       val lib091 = libModule.dependencies.findLibraryDependency("com.example.libs:lib1:0.9.1")
-      assertThat(lib10.testScopes(), hasItems("implementation", "debugImplementation"))
-      assertThat(lib091.testScopes(), hasItems("releaseImplementation"))
+      assertThat(lib10.testDeclaredScopes(), hasItems("implementation", "debugImplementation"))
+      assertThat(lib091.testDeclaredScopes(), hasItems("releaseImplementation"))
       assertThat(libModule.dependencies.findLibraryDependency("com.example.libs:lib2:1.0"), nullValue())
       assertThat(libModule.dependencies.findLibraryDependency("com.example.jlib:lib3:1.0"), nullValue())
       assertThat(libModule.dependencies.findLibraryDependency("com.example.jlib:lib4:1.0"), nullValue())
@@ -57,7 +57,7 @@ class DependencyManagementTest : DependencyTestCase() {
     run {
       val libModule = project.findModuleByName("modulePlus") as PsAndroidModule
       val lib1 = libModule.dependencies.findLibraryDependency("com.example.libs:lib1:0.+")
-      assertThat(lib1.testScopes(), hasItems("implementation"))
+      assertThat(lib1.testDeclaredScopes(), hasItems("implementation"))
     }
   }
 
@@ -99,7 +99,7 @@ class DependencyManagementTest : DependencyTestCase() {
     val dependencies = artifact!!.dependencies
     val lib1 = dependencies.findLibraryDependency("com.example.libs:lib1:1.0")
     assertThat(lib1.testDeclared(), hasItems(true))
-    assertThat(lib1.testScopes(), hasItems("implementation:debugImplementation"))
+    assertThat(lib1.testMatchingScopes(), hasItems("implementation:debugImplementation"))
   }
 
   fun testPromotedParsedModelMatching() {
@@ -113,7 +113,7 @@ class DependencyManagementTest : DependencyTestCase() {
     assertThat(lib1.testDeclared(), hasItems(true))
     // Despite requesting a different version the 'releaseImplementation' configuration should be included in the promoted
     // version of the resolved dependency since it is where it tries to contribute to.
-    assertThat(lib1.testScopes(), hasItems("implementation:releaseImplementation"))
+    assertThat(lib1.testMatchingScopes(), hasItems("implementation:releaseImplementation"))
   }
 
   fun testPlusParsedModelMatching() {
@@ -124,7 +124,7 @@ class DependencyManagementTest : DependencyTestCase() {
     val dependencies = artifact!!.dependencies
     val lib1 = dependencies.findLibraryDependency("com.example.libs:lib1:0.9.1")
     assertThat(lib1.testDeclared(), hasItems(true))
-    assertThat(lib1.testScopes(), hasItems("implementation"))
+    assertThat(lib1.testMatchingScopes(), hasItems("implementation"))
   }
 
   fun testParsedDependencyPromotions() {
@@ -135,7 +135,6 @@ class DependencyManagementTest : DependencyTestCase() {
       val lib3 = libModule.dependencies.findLibraryDependency("com.example.jlib:lib3:1.0")
       val lib4 = libModule.dependencies.findLibraryDependency("com.example.jlib:lib4:1.0")
       assertThat(lib1.testDeclared(), hasItems(true))
-      assertThat(lib1.testHasPromotedVersion(), hasItems(false))
       assertThat(lib2, nullValue())
       assertThat(lib3, nullValue())
       assertThat(lib4, nullValue())
@@ -353,16 +352,33 @@ class DependencyManagementTest : DependencyTestCase() {
   }
 }
 
-private fun PsAndroidDependencyCollection.findLibraryDependency(compactNotation: String): List<PsLibraryAndroidDependency>? =
+private fun PsAndroidModuleDependencyCollection.findLibraryDependency(compactNotation: String): List<PsDeclaredLibraryAndroidDependency>? =
   PsArtifactDependencySpec.create(compactNotation)?.let { spec ->
     findLibraryDependencies(
       spec.group,
       spec.name
     )
       .filter { it.spec.version == spec.version }
+      .map { it as PsDeclaredLibraryAndroidDependency }
       .let { if (it.isEmpty()) null else it }
   }
 
-private fun List<PsLibraryAndroidDependency>?.testScopes(): List<String> = orEmpty().map { it.configurationNames.joinToString(":") }
+private fun PsAndroidArtifactDependencyCollection.findLibraryDependency(compactNotation: String): List<PsResolvedLibraryAndroidDependency>? =
+  PsArtifactDependencySpec.create(compactNotation)?.let { spec ->
+    findLibraryDependencies(
+      spec.group,
+      spec.name
+    )
+      .filter { it.spec.version == spec.version }
+      .map { it as PsResolvedLibraryAndroidDependency }
+      .let { if (it.isEmpty()) null else it }
+  }
+
+private fun List<PsResolvedLibraryAndroidDependency>?.testMatchingScopes(): List<String> = orEmpty().map {
+  it.getParsedModels().joinToString(":") { it.configurationName() }
+}
+
+private fun List<PsDeclaredLibraryAndroidDependency>?.testDeclaredScopes(): List<String> = orEmpty().map { it.parsedModel.configurationName() }
+
 private fun List<PsLibraryAndroidDependency>?.testDeclared() : List<Boolean> = orEmpty().map { it.isDeclared }
-private fun List<PsLibraryAndroidDependency>?.testHasPromotedVersion() : List<Boolean> = orEmpty().map { it.hasPromotedVersion() }
+private fun List<PsResolvedLibraryAndroidDependency>?.testHasPromotedVersion(): List<Boolean> = orEmpty().map { it.hasPromotedVersion() }

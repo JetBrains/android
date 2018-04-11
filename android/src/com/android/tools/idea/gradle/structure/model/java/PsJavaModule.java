@@ -113,7 +113,7 @@ public class PsJavaModule extends PsModule {
   }
 
   @Override
-  public void removeDependency(@NotNull PsDependency dependency) {
+  public void removeDependency(@NotNull PsDeclaredDependency dependency) {
     throw new UnsupportedOperationException();
   }
 

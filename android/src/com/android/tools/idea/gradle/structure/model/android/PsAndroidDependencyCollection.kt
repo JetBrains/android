@@ -72,20 +72,18 @@ class PsAndroidModuleDependencyCollection(parent: PsAndroidModule) : PsAndroidDe
       )
       val artifacts = artifactsByConfigurationNames[libraryDependency.configurationName()] ?: listOf()
       libraryDependenciesBySpec.put(
-        spec.toLibraryKey(), PsLibraryAndroidDependency(
-          parent, spec, artifacts, null, listOf(libraryDependency)
+        spec.toLibraryKey(), PsDeclaredLibraryAndroidDependency(
+          parent, spec, artifacts, libraryDependency
         )
       )
     }
     parsedDependencies.forEachModuleDependency { moduleDependency ->
       val gradlePath = moduleDependency.path().value()
       val artifacts = artifactsByConfigurationNames[moduleDependency.configurationName()] ?: listOf()
-      val resolvedModule = parent.parent.findModuleByGradlePath(gradlePath)?.resolvedModel
       moduleDependenciesByGradlePath.put(
-        gradlePath, PsModuleAndroidDependency(
-          parent, gradlePath, artifacts.toList(), null,
-          resolvedModule, listOf(moduleDependency)
-        )
+        gradlePath, PsDeclaredModuleAndroidDependency(
+        parent, gradlePath, artifacts.toList(), moduleDependency.configurationName(), null,
+        moduleDependency)
       )
     }
   }
@@ -147,7 +145,7 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact) :
           .filter { artifact.contains(it) }
       // TODO(b/74425541): Reconsider duplicates.
       parsedModels.addAll(matchingParsedDependencies)
-      val androidDependency = PsLibraryAndroidDependency(parent, spec, listOf(artifact), library, parsedModels)
+      val androidDependency = PsResolvedLibraryAndroidDependency(parent, spec, listOf(artifact), library, parsedModels)
       androidDependency.setDependenciesFromPomFile(findDependenciesInPomFile(library.artifact))
       libraryDependenciesBySpec.put(androidDependency.spec.toLibraryKey(), androidDependency)
     }
@@ -160,15 +158,19 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact) :
         .findModuleDependency(gradlePath) { parsedDependency: DependencyModel -> artifact.contains(parsedDependency) }
     val module = parent.parent.findModuleByGradlePath(gradlePath)
     val resolvedModule = module?.resolvedModel
-    val dependency =
-      PsModuleAndroidDependency(
-        parent,
-        gradlePath,
-        ImmutableList.of(artifact),
-        projectVariant,
-        resolvedModule,
-        matchingParsedDependency.wrapInList())
-    moduleDependenciesByGradlePath.put(gradlePath, dependency)
+    if (resolvedModule != null) {
+      val dependency =
+        PsResolvedModuleAndroidDependency(
+          parent,
+          gradlePath,
+          ImmutableList.of(artifact),
+          matchingParsedDependency?.configurationName() ?: "",
+          projectVariant,
+          resolvedModule,
+          matchingParsedDependency.wrapInList())
+      moduleDependenciesByGradlePath.put(gradlePath, dependency)
+    }
+    // else we have a resolved dependency on a removed module (or composite build etc.).
   }
 }
 

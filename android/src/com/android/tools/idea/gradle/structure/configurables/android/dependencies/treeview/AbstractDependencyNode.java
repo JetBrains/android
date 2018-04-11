@@ -15,13 +15,17 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode;
+import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency;
 import com.android.tools.idea.gradle.structure.model.PsDependency;
+import com.android.tools.idea.gradle.structure.model.PsResolvedDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependencyCollection;
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDependency;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,5 +63,18 @@ public abstract class AbstractDependencyNode<T extends PsAndroidDependency> exte
       }
     }
     return false;
+  }
+
+  @NotNull
+  protected static List<DependencyModel> getDependencyParsedModels(@NotNull PsDependency model) {
+    List<DependencyModel> ourParsedModels;
+    if ((model instanceof PsResolvedDependency)) {
+      ourParsedModels = ((PsResolvedDependency)model).getParsedModels();
+    } else if ((model instanceof PsDeclaredDependency)) {
+      ourParsedModels = ImmutableList.of(((PsDeclaredDependency)model).getParsedModel());
+    } else {
+      return ImmutableList.of();
+    }
+    return ourParsedModels;
   }
 }

@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeL
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.AbstractDependenciesPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.DeclaredDependenciesTableView
 import com.android.tools.idea.gradle.structure.daemon.PsAnalyzerDaemon
+import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
 import com.android.tools.idea.gradle.structure.model.PsIssue
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency
@@ -226,7 +227,7 @@ internal class DeclaredDependenciesPanel(
             "Remove Dependency",
             Messages.getQuestionIcon()
           ) == Messages.YES) {
-          module.removeDependency(dependency)
+          module.removeDependency(dependency as PsDeclaredDependency)
           dependenciesTable.selectFirstRow()
         }
       }

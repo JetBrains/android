@@ -19,10 +19,7 @@ import com.android.builder.model.AndroidProject.PROJECT_TYPE_APP
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
-import com.android.tools.idea.gradle.structure.model.PsDependency
-import com.android.tools.idea.gradle.structure.model.PsModule
-import com.android.tools.idea.gradle.structure.model.PsProject
+import com.android.tools.idea.gradle.structure.model.*
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepositories
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
@@ -41,7 +38,7 @@ class PsAndroidModule(
   private var buildTypeCollection: PsBuildTypeCollection? = null
   private var productFlavorCollection: PsProductFlavorCollection? = null
   private var variantCollection: PsVariantCollection? = null
-  private var dependencyCollection: PsAndroidDependencyCollection? = null
+  private var dependencyCollection: PsAndroidModuleDependencyCollection? = null
   private var signingConfigCollection: PsSigningConfigCollection? = null
 
   val isLibrary: Boolean get() = gradleModel.androidProject.projectType != PROJECT_TYPE_APP
@@ -49,7 +46,7 @@ class PsAndroidModule(
   val buildTypes: List<PsBuildType> get() = getOrCreateBuildTypeCollection().items()
   val productFlavors: List<PsProductFlavor> get() = getOrCreateProductFlavorCollection().items()
   val variants: List<PsVariant> get() = getOrCreateVariantCollection().items()
-  val dependencies: PsAndroidDependencyCollection get() = getOrCreateDependencyCollection()
+  val dependencies: PsAndroidModuleDependencyCollection get() = getOrCreateDependencyCollection()
   val signingConfigs: List<PsSigningConfig> get() = getOrCreateSigningConfigCollection().items()
   val defaultConfig = PsAndroidModuleDefaultConfig(this)
   val flavorDimensions: Collection<String>
@@ -148,7 +145,7 @@ class PsAndroidModule(
     isModified = true
   }
 
-  override fun removeDependency(dependency: PsDependency) {
+  override fun removeDependency(dependency: PsDeclaredDependency) {
     removeDependencyFromParsedModel(dependency)
 
     resetDependencies()
@@ -165,18 +162,18 @@ class PsAndroidModule(
     var modified = false
     val matchingDependencies = dependencies
       .findLibraryDependencies(spec.group, spec.name)
-      .filter { it -> it.spec == spec && it.configurationNames.contains(configurationName) }
+      .filter { it -> it.spec == spec }
+      .map { it as PsDeclaredDependency }
+      .filter { it.configurationName == configurationName }
     // Usually there should be only one item in the matchingDependencies list. However, if there are duplicate entries in the config file
     // it might differ. We update all of them.
 
     for (dependency in matchingDependencies) {
-      assert(dependency.parsedModels.size == 1)
-      for (parsedDependency in dependency.parsedModels) {
-        assert(parsedDependency is ArtifactDependencyModel)
-        val artifactDependencyModel = parsedDependency as ArtifactDependencyModel
-        artifactDependencyModel.version().setValue(newVersion)
-        modified = true
-      }
+      val parsedDependency = dependency.parsedModel
+      assert(parsedDependency is ArtifactDependencyModel)
+      val artifactDependencyModel = parsedDependency as ArtifactDependencyModel
+      artifactDependencyModel.version().setValue(newVersion)
+      modified = true
     }
     if (modified) {
       resetDependencies()
@@ -227,7 +224,7 @@ class PsAndroidModule(
   private fun getOrCreateVariantCollection(): PsVariantCollection =
     variantCollection ?: PsVariantCollection(this).also { variantCollection = it }
 
-  private fun getOrCreateDependencyCollection(): PsAndroidDependencyCollection =
+  private fun getOrCreateDependencyCollection(): PsAndroidModuleDependencyCollection =
     dependencyCollection ?: PsAndroidModuleDependencyCollection(this).also { dependencyCollection = it }
 
   private fun getOrCreateSigningConfigCollection(): PsSigningConfigCollection =
