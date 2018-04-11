@@ -73,6 +73,10 @@ public final class GradleDslMethodCall extends GradleDslSimpleExpression {
     myArguments.addNewExpression(argument);
   }
 
+  public void replaceArgument(@NotNull GradleDslExpression oldElement, @NotNull GradleDslExpression newElement) {
+    myArguments.replaceExpression(oldElement, newElement);
+  }
+
   @Nullable
   public PsiElement getArgumentListPsiElement() {
     return myArguments.getPsiElement();

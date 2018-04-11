@@ -94,7 +94,15 @@ public class PropertyUtil {
       }
     }
     else if (holder instanceof GradleDslMethodCall) {
-      throw new UnsupportedOperationException("Replacing elements in argument lists is not currently supported");
+      assert newElement instanceof GradleDslExpression;
+      GradleDslMethodCall methodCall = (GradleDslMethodCall)holder;
+      if (oldElement != null) {
+        assert oldElement instanceof GradleDslExpression;
+        methodCall.replaceArgument((GradleDslExpression)oldElement, (GradleDslExpression)newElement);
+      }
+      else {
+        methodCall.addNewArgument((GradleDslExpression)newElement);
+      }
     }
     else {
       throw new IllegalStateException("Property holder has unknown type, " + holder);
