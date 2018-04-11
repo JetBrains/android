@@ -26,10 +26,6 @@ public interface DependencyDetails {
   @NotNull
   JPanel getPanel();
 
-  default void display(@NotNull PsDependency dependency, @Nullable String configurationNames) {
-    display(dependency);
-  }
-
   void display(@NotNull PsDependency dependency);
 
   @NotNull

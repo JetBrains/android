@@ -128,17 +128,12 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
   }
 
   protected void updateDetails(@Nullable PsDependency selected) {
-    String scope = selected != null ? selected.getJoinedConfigurationNames() : null;
-    updateDetails(selected, scope);
-  }
-
-  protected void updateDetails(@Nullable PsDependency selected, @Nullable String configurationNames) {
     if (selected != null) {
       myCurrentDependencyDetails = findDetails(selected);
       if (myCurrentDependencyDetails != null) {
         myInfoPanel.setDependencyDetails(myCurrentDependencyDetails);
         myInfoScrollPane.setViewportView(myInfoPanel.getPanel());
-        myCurrentDependencyDetails.display(selected, configurationNames);
+        myCurrentDependencyDetails.display(selected);
         return;
       }
     }
