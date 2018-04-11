@@ -172,7 +172,7 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
         ?.getSchema()
   }
 
-  override fun processQuery(queryParameters: ReferencesSearch.SearchParameters, consumer: Processor<PsiReference>) {
+  override fun processQuery(queryParameters: ReferencesSearch.SearchParameters, consumer: Processor<in PsiReference>) {
     val element = queryParameters.elementToSearch
 
     val nameDefinition = when (element) {
