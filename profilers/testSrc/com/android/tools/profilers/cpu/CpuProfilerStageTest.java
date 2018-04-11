@@ -663,25 +663,33 @@ public class CpuProfilerStageTest extends AspectObserver {
   @Test
   public void testElapsedTime() {
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
-    // When there is no capture in progress, elapsed time is set to Long.MAX_VALUE.
-    // As a result CpuProfilerStage#getCaptureElapsedTimeUs should return a negative value.
-    assertThat(myStage.getCaptureElapsedTimeUs()).isLessThan((long)0);
+    // Before we capture, elapsed time should be unset (default set to 0)
+    assertThat(myStage.getCaptureElapsedTimeUs()).isEqualTo(0);
 
     // Start capturing
     startCapturingSuccess();
     // Increment 3 seconds on data range
     Range dataRange = myStage.getStudioProfilers().getTimeline().getDataRange();
-    dataRange.setMax(dataRange.getMax() + TimeUnit.SECONDS.toMicros(3));
+    double currentMax = dataRange.getMax() + TimeUnit.SECONDS.toMicros(3);
+    dataRange.setMax(currentMax);
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
-
     // Check that we're capturing for three seconds
     assertThat(myStage.getCaptureElapsedTimeUs()).isEqualTo(TimeUnit.SECONDS.toMicros(3));
 
     myCpuService.setValidTrace(true);
     stopCapturing();
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
-    // Capture has finished. CpuProfilerStage#getCaptureElapsedTimeUs should return a negative value.
-    assertThat(myStage.getCaptureElapsedTimeUs()).isLessThan((long)0);
+
+    currentMax += TimeUnit.SECONDS.toMicros(2);
+    dataRange.setMax(currentMax);
+    // Start capturing again, this time for 10 seconds
+    startCapturingSuccess();
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
+    currentMax += TimeUnit.SECONDS.toMicros(10);
+    dataRange.setMax(currentMax);
+
+    // Check that we're capturing for 10 seconds.
+    assertThat(myStage.getCaptureElapsedTimeUs()).isEqualTo(TimeUnit.SECONDS.toMicros(10));
   }
 
   @Test
@@ -952,6 +960,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     // Capture with FAKE_TRACE_ID doesn't exist yet. myStage.getCapture(...) will parse it.
     CpuCapture capture = myStage.getCaptureFuture(FakeCpuService.FAKE_TRACE_ID).get();
     assertThat(capture).isNotNull();
+    myStage.setCaptureState(CpuProfilerStage.CaptureState.IDLE);
 
     captureSuccessfully();
     // Capture should be the same as the one obtained by myStage.getCapture(...),
@@ -973,6 +982,66 @@ public class CpuProfilerStageTest extends AspectObserver {
     // Capture should be the same as the one created by stopCapturing(),
     // because we should not parse the trace into another CpuCapture object.
     assertThat(myStage.getCaptureFuture(FakeCpuService.FAKE_TRACE_ID).get()).isEqualTo(capture);
+  }
+
+  @Test
+  public void getCaptureFutureShouldSetStateToParsing() {
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
+    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
+
+    myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS);
+    myCpuService.setValidTrace(true);
+    myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
+    myStage.getCaptureFuture(FakeCpuService.FAKE_TRACE_ID);
+
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.PARSING);
+    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
+  }
+
+  @Test
+  public void setCaptureWhileCapturingShouldParseAndReturnToCapturing() {
+    // Start capturing
+    myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
+    int traceId1 = 1;
+    myCpuService.setTraceId(traceId1);
+    myStage.startCapturing();
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
+
+    // Sequence of states that should happen when selecting a different capture while capturing. We should parse the selected capture and
+    // then go back to the capturing state.
+    Iterator<CpuProfilerStage.CaptureState> captureStates = Iterators.forArray(CpuProfilerStage.CaptureState.PARSING,
+                                                                               CpuProfilerStage.CaptureState.CAPTURING);
+    // Listen to CAPTURE_STATE changes and check if the new state is equal to what we expect.
+    AspectObserver observer = new AspectObserver();
+    myStage.getAspect().addDependency(observer).onChange(
+      CpuProfilerAspect.CAPTURE_STATE, () -> assertThat(myStage.getCaptureState()).isEqualTo(captureStates.next()));
+
+    // Select another capture
+    int traceId2 = 2;
+    myCpuService.setTraceId(traceId2);
+    myStage.setAndSelectCapture(traceId2);
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
+  }
+
+  @Test
+  public void setCaptureWhileIdleShouldParseAndReturnToIdle() {
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
+
+    // Sequence of states that should happen when selecting a capture while idle. We should parse the selected capture an then go back
+    // to the idle state.
+    Iterator<CpuProfilerStage.CaptureState> captureStates = Iterators.forArray(CpuProfilerStage.CaptureState.PARSING,
+                                                                               CpuProfilerStage.CaptureState.IDLE);
+    // Listen to CAPTURE_STATE changes and check if the new state is equal to what we expect.
+    AspectObserver observer = new AspectObserver();
+    myStage.getAspect().addDependency(observer).onChange(
+      CpuProfilerAspect.CAPTURE_STATE, () -> assertThat(myStage.getCaptureState()).isEqualTo(captureStates.next()));
+
+    // Select a capture
+    int traceId1 = 1;
+    myCpuService.setTraceId(traceId1);
+    myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
+    myStage.setAndSelectCapture(traceId1);
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
   }
 
   @Test
@@ -1470,6 +1539,8 @@ public class CpuProfilerStageTest extends AspectObserver {
       // First, the main executor is going to be called to execute stopCapturingCallback,
       // which should set the capture state to PARSING
       assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.PARSING);
+      // Whenever the capture is being parsed, profiler mode should be set to EXPANDED
+      assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
       // Then, the next time the main executor is called, it will parse the capture successfully
       // and set the capture state to IDLE
       myServices.setOnExecute(() -> {

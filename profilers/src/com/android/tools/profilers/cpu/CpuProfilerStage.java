@@ -74,8 +74,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
    */
   static final double IMPORTED_TRACE_VIEW_EXPAND_PERCENTAGE = 0.1;
 
-  private static final long INVALID_CAPTURE_START_TIME = Long.MAX_VALUE;
-
   @VisibleForTesting
   static final String PARSING_FAILURE_BALLOON_TITLE = "Trace data was not recorded";
   @VisibleForTesting
@@ -279,7 +277,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
     myInstructionsEaseOutModel = new EaseOutModel(profilers.getUpdater(), PROFILING_INSTRUCTIONS_EASE_OUT_NS);
 
-    myCaptureStartTimeNs = INVALID_CAPTURE_START_TIME;
     myCaptureState = CaptureState.IDLE;
     myCaptureElapsedTimeUpdatable = new CaptureElapsedTimeUpdatable();
     myCaptureStateUpdatable = new CpuCaptureStateUpdatable(() -> updateProfilingState());
@@ -646,13 +643,15 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
    */
   private void parseAndSelectImportedTrace(File traceFile) {
     assert myIsImportTraceMode;
+    // We set the capture state to PARSING before senting out the parse instruction to the CaptureParser, so users can see the UI feedback
+    // immediately.
+    setCaptureState(CaptureState.PARSING);
     CompletableFuture<CpuCapture> capture = myCaptureParser.parse(traceFile);
     if (capture == null) {
       // User aborted the capture, or the model received an invalid file (e.g. from tests) canceled. Log and return early.
       getLogger().info("Imported trace file was not parsed.");
       return;
     }
-    setCaptureState(CaptureState.PARSING);
     // TODO: add usage tracking
     Consumer<CpuCapture> parsingCallback = (parsedCapture) -> {
       if (parsedCapture != null) {
@@ -802,6 +801,17 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   }
 
   /**
+   * Requests the current profiling state of the device and returns the resulting {@link ProfilingStateResponse}.
+   */
+  private ProfilingStateResponse checkProfilingState() {
+    CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
+    ProfilingStateRequest request = ProfilingStateRequest.newBuilder()
+                                                         .setSession(getStudioProfilers().getSession())
+                                                         .build();
+    return cpuService.checkAppProfilingState(request);
+  }
+
+  /**
    * Communicate with the device to retrieve the profiling state.
    * Update the capture state and the capture start time (if there is a capture in progress) accordingly.
    * This method puts the stage in the correct mode when being called from the constructor; it's also called by
@@ -809,11 +819,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
    */
   @VisibleForTesting
   void updateProfilingState() {
-    CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
-    ProfilingStateRequest request = ProfilingStateRequest.newBuilder()
-                                                         .setSession(getStudioProfilers().getSession())
-                                                         .build();
-    ProfilingStateResponse response = cpuService.checkAppProfilingState(request);
+    ProfilingStateResponse response = checkProfilingState();
 
     if (response.getBeingProfiled()) {
       // Update capture state only if it was idle to avoid disrupting state that's invisible to device such as STOPPING.
@@ -898,6 +904,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     CompletableFuture<CpuCapture> future = getCaptureFuture(traceId);
     if (future != null) {
       future.handleAsync((capture, exception) -> {
+        setCaptureState(checkProfilingState().getBeingProfiled() ? CaptureState.CAPTURING : CaptureState.IDLE);
         setCapture(capture);
         return capture;
       }, getStudioProfilers().getIdeServices().getMainExecutor());
@@ -908,6 +915,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     CompletableFuture<CpuCapture> future = getCaptureFuture(traceId);
     if (future != null) {
       future.handleAsync((capture, exception) -> {
+        setCaptureState(checkProfilingState().getBeingProfiled() ? CaptureState.CAPTURING : CaptureState.IDLE);
         setAndSelectCapture(capture);
         return capture;
       }, getStudioProfilers().getIdeServices().getMainExecutor());
@@ -971,11 +979,12 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   public void setCaptureState(@NotNull CaptureState captureState) {
     if (!myCaptureState.equals(captureState)) {
       myCaptureState = captureState;
-      if (captureState != CaptureState.CAPTURING) {
-        // invalidate the capture start time when setting the capture state
-        myCaptureStartTimeNs = INVALID_CAPTURE_START_TIME;
-      }
       myAspect.changed(CpuProfilerAspect.CAPTURE_STATE);
+
+      if (captureState == CaptureState.PARSING) {
+        // When going to parsing state, we should make sure the profiler mode is set to EXPANDED
+        setProfilerMode(ProfilerMode.EXPANDED);
+      }
     }
   }
 
@@ -1086,12 +1095,14 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
    * @return completableFuture from {@link CpuCaptureParser}.
    * If {@link CpuCaptureParser} doesn't manage the trace, this method will start parsing it.
    */
+  @VisibleForTesting
   @Nullable
-  public CompletableFuture<CpuCapture> getCaptureFuture(int traceId) {
+  CompletableFuture<CpuCapture> getCaptureFuture(int traceId) {
     CompletableFuture<CpuCapture> capture = myCaptureParser.getCapture(traceId);
     if (capture == null) {
-      // Parser doesn't have any information regarding the capture. We need to request
-      // trace data from CPU service and tell the parser to start parsing it.
+      // Parser doesn't have any information regarding the capture. We need to request trace data from CPU service and tell the parser
+      // to start parsing it. Capture state is set to parsing and it's responsibility of the caller to update it afterwards.
+      setCaptureState(CaptureState.PARSING);
       GetTraceRequest request = GetTraceRequest.newBuilder()
         .setSession(getStudioProfilers().getSession())
         .setTraceId(traceId)
