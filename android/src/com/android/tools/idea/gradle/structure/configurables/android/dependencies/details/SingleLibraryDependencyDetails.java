@@ -46,11 +46,6 @@ public class SingleLibraryDependencyDetails implements DependencyDetails {
 
   @Override
   public void display(@NotNull PsDependency dependency) {
-    display(dependency, dependency.getJoinedConfigurationNames());
-  }
-
-  @Override
-  public void display(@NotNull PsDependency dependency, @Nullable String configurationNames) {
     myDependency = (PsLibraryDependency)dependency;
     PsArtifactDependencySpec spec = myDependency.getSpec();
 
@@ -61,8 +56,7 @@ public class SingleLibraryDependencyDetails implements DependencyDetails {
 
     myRequestedVersionLabel.setText(spec.getVersion());
 
-    String scopeToDisplay = isNotEmpty(configurationNames) ? configurationNames : dependency.getJoinedConfigurationNames();
-    myScopeLabel.setText(scopeToDisplay);
+    myScopeLabel.setText(dependency.getJoinedConfigurationNames());
   }
 
   @Override
