@@ -17,7 +17,7 @@
           <component id="2714a" class="com.intellij.ui.components.JBLabel">
             <constraints border-constraint="West"/>
             <properties>
-              <text value="Dynamic modules to deploy:"/>
+              <text value="Dynamic features to deploy:"/>
             </properties>
           </component>
           <grid id="382f6" layout-manager="BorderLayout" hgap="0" vgap="0">
@@ -30,7 +30,7 @@
               <component id="885a6" class="com.intellij.ui.components.JBLabel" binding="myAdditionalTextLabel">
                 <constraints border-constraint="Center"/>
                 <properties>
-                  <text value="(for devices that support dynamic modules)"/>
+                  <text value="(for devices that support dynamic features)"/>
                 </properties>
               </component>
             </children>
