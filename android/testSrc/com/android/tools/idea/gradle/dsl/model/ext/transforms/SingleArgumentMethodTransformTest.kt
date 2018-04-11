@@ -33,25 +33,29 @@ class SingleArgumentMethodTransformTest : TransformTestCase() {
 
   @Test
   fun testConditionOnNoneMethodCall() {
-    val inputElement = createLiteral()
+    val inputElement = createLiteral(name = "boo")
+    gradleDslFile.setNewElement(inputElement)
     assertFalse(transform.test(inputElement))
   }
 
   @Test
   fun testConditionOnWrongMethodCall() {
     val inputElement = createMethodCall("wrongMethod")
+    gradleDslFile.setNewElement(inputElement)
     assertFalse(transform.test(inputElement))
   }
 
   @Test
   fun testConditionOnCorrectMethodCallNoArguments() {
     val inputElement = createMethodCall(methodName)
+    gradleDslFile.setNewElement(inputElement)
     assertFalse(transform.test(inputElement))
   }
 
   @Test
   fun testConditionOnWrongMethodCallOneArgument() {
     val inputElement = createMethodCall("wrongMethod")
+    gradleDslFile.setNewElement(inputElement)
     inputElement.addParsedExpression(createLiteral())
     assertFalse(transform.test(inputElement))
   }
@@ -59,6 +63,7 @@ class SingleArgumentMethodTransformTest : TransformTestCase() {
   @Test
   fun testConditionOnCorrectMethodCallOneArgument() {
     val inputElement = createMethodCall(methodName)
+    gradleDslFile.setNewElement(inputElement)
     inputElement.addParsedExpression(createLiteral())
     assertTrue(transform.test(inputElement))
   }
@@ -66,6 +71,7 @@ class SingleArgumentMethodTransformTest : TransformTestCase() {
   @Test
   fun testTransformOnCorrectForm() {
     val inputElement = createMethodCall(methodName)
+    gradleDslFile.setNewElement(inputElement)
     val literal = createLiteral()
     inputElement.addParsedExpression(literal)
     assertThat(transform.transform(inputElement), equalTo(literal as GradleDslElement))
@@ -74,6 +80,7 @@ class SingleArgumentMethodTransformTest : TransformTestCase() {
   @Test
   fun testTransformOnMapForm() {
     val inputElement = createMethodCall(methodName)
+    gradleDslFile.setNewElement(inputElement)
     val expressionMap = GradleDslExpressionMap(inputElement, GradleNameElement.create("unusedListName"))
     inputElement.addParsedExpression(expressionMap)
     assertThat(transform.transform(inputElement), equalTo(expressionMap as GradleDslElement))
@@ -82,47 +89,50 @@ class SingleArgumentMethodTransformTest : TransformTestCase() {
   @Test
   fun testBindCreatesNewElement() {
     val inputElement = null
-    val resultElement = transform.bind(gradleDslFile, inputElement, true, "statementName") as GradleDslMethodCall
+    val boundElement = transform.bind(gradleDslFile, inputElement, true, "statementName")
+    val resultElement = transform.replace(gradleDslFile, inputElement, boundElement, "statementName") as GradleDslMethodCall
     assertThat(resultElement.name, equalTo("statementName"))
     assertThat(resultElement.methodName, equalTo(methodName))
     assertThat(resultElement.arguments.size, equalTo(1))
     val argumentElement = resultElement.arguments[0] as GradleDslLiteral
     assertThat(argumentElement.value as Boolean, equalTo(true))
-    assertThat(argumentElement.name, equalTo("statementName"))
+    assertThat(argumentElement.name, equalTo(""))
     assertThat(argumentElement.parent?.parent as GradleDslMethodCall, equalTo(resultElement))
   }
 
   @Test
   fun testBindReplacesMapFormCreateNewElement() {
     val inputElement = createMethodCall(methodName)
-    val expressionMap = GradleDslExpressionMap(inputElement, GradleNameElement.create("unusedListName"))
+    gradleDslFile.setNewElement(inputElement)
+    val expressionMap = GradleDslExpressionMap(inputElement, GradleNameElement.empty())
     inputElement.addParsedExpression(expressionMap)
-    val resultElement = transform.bind(gradleDslFile, inputElement, "32", "statementName") as GradleDslMethodCall
+    val boundElement = transform.bind(gradleDslFile, inputElement, "32", "statementName")
+    val resultElement = transform.replace(gradleDslFile, inputElement, boundElement, "statementName") as GradleDslMethodCall
     // Method call element name doesn't change, we result the same element
     assertThat(resultElement.name, equalTo("unusedStatement"))
     assertThat(resultElement.methodName, equalTo(methodName))
     assertThat(resultElement.arguments.size, equalTo(1))
     val argumentElement = resultElement.arguments[0] as GradleDslLiteral
     assertThat(argumentElement.value as String, equalTo("32"))
-    assertThat(argumentElement.name, equalTo("unusedListName"))
+    assertThat(argumentElement.name, equalTo(""))
     assertThat(argumentElement.parent?.parent as GradleDslMethodCall, equalTo(resultElement))
   }
 
   @Test
   fun testBindElementReplacesArgumentValue() {
     val inputElement = createMethodCall(methodName, "statement")
+    gradleDslFile.setNewElement(inputElement)
     val literal = createLiteral("")
     literal.setValue(78)
     inputElement.addParsedExpression(literal)
-    val resultElement = transform.bind(gradleDslFile, inputElement, "32", "newName") as GradleDslMethodCall
+    val boundElement = transform.bind(gradleDslFile, inputElement, "32", "newName")
+    val resultElement = transform.replace(gradleDslFile, inputElement, boundElement, "newName") as GradleDslMethodCall
     assertThat(resultElement, sameInstance(inputElement))
     // Method call element name doesn't change, we are re-using the element
     assertThat(resultElement.name, equalTo("statement"))
     assertThat(resultElement.methodName, equalTo(methodName))
     assertThat(resultElement.arguments.size, equalTo(1))
     val argumentElement = resultElement.arguments[0] as GradleDslLiteral
-    // Element instance should be reused.
-    assertThat(argumentElement, sameInstance(literal))
     assertThat(argumentElement.value as String, equalTo("32"))
     // Name is kept form the literal.
     assertTrue(argumentElement.nameElement.isEmpty)
@@ -132,10 +142,12 @@ class SingleArgumentMethodTransformTest : TransformTestCase() {
   @Test
   fun testBindReferenceReplaceArgumentElement() {
     val inputElement = createMethodCall(methodName, "statement")
-    val literal = createLiteral("")
+    gradleDslFile.setNewElement(inputElement)
+    val literal = createLiteral(parent = inputElement)
     literal.setValue("Hello")
     inputElement.addParsedExpression(literal)
-    val resultElement = transform.bind(gradleDslFile, inputElement, ReferenceTo("prop"), "newName") as GradleDslMethodCall
+    val boundElement = transform.bind(gradleDslFile, inputElement, ReferenceTo("prop"), "newName")
+    val resultElement = transform.replace(gradleDslFile, inputElement, boundElement, "newName") as GradleDslMethodCall
     assertThat(resultElement, sameInstance(inputElement))
     // Method call element name doesn't change, we are re-using the element instance
     assertThat(resultElement.name, equalTo("statement"))

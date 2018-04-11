@@ -137,7 +137,6 @@ public final class GradleDslExpressionList extends GradleDslElementImpl implemen
   }
 
   public void replaceExpression(@NotNull GradleDslExpression oldExpression, @NotNull GradleDslExpression newExpression) {
-    assert oldExpression.getFullName().equals(newExpression.getFullName());
     int index = myUnsavedExpressions.indexOf(oldExpression);
     assert index != -1;
     newExpression.setParent(this);

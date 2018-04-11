@@ -110,14 +110,11 @@ public class PropertyUtil {
   }
 
   public static void removeElement(@NotNull GradleDslElement element) {
-    if (element instanceof FakeElement) {
-      // Fake elements don't actually exist in the tree and therefore can't be removed from
-      // their holders.
-      ((FakeElement)element).delete();
+    GradleDslElement holder = element.getParent();
+    if (holder == null) {
+      // Element is already attached.
       return;
     }
-
-    GradleDslElement holder = element.getParent();
 
     if (holder instanceof GradlePropertiesDslElement) {
       ((GradlePropertiesDslElement)holder).removeProperty(element);

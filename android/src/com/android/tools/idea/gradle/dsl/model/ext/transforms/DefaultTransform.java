@@ -17,11 +17,13 @@ package com.android.tools.idea.gradle.dsl.model.ext.transforms;
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.createOrReplaceBasicExpression;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.replaceElement;
 
 /**
  * The default transform used by {@link GradlePropertyModel}.
@@ -42,10 +44,20 @@ public class DefaultTransform extends PropertyTransform {
 
   @NotNull
   @Override
-  public GradleDslElement bind(@NotNull GradleDslElement holder,
-                               @Nullable GradleDslElement oldElement,
-                               @NotNull Object value,
-                               @NotNull String name) {
+  public GradleDslExpression bind(@NotNull GradleDslElement holder,
+                                  @Nullable GradleDslElement oldElement,
+                                  @NotNull Object value,
+                                  @NotNull String name) {
     return createOrReplaceBasicExpression(holder, oldElement, value, GradleNameElement.create(name));
+  }
+
+  @Override
+  @NotNull
+  public GradleDslExpression replace(@NotNull GradleDslElement holder,
+                                     @Nullable GradleDslElement oldElement,
+                                     @NotNull GradleDslExpression newElement,
+                                     @NotNull String name) {
+    replaceElement(holder, oldElement, newElement);
+    return newElement;
   }
 }

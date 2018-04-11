@@ -51,6 +51,4 @@ public class SigningConfigPropertyModelImpl extends ResolvedPropertyModelImpl im
       return new SigningConfigModelImpl((SigningConfigDslElement)element);
     }
   }
-
-
 }

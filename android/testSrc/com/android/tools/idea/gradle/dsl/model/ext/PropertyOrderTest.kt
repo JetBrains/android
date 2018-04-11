@@ -18,8 +18,7 @@ package com.android.tools.idea.gradle.dsl.model.ext
 import com.android.tools.idea.gradle.dsl.api.GradleFileModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*
-import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
-import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel
@@ -809,7 +808,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     val fileModel = configModel.storeFile()
     val passwordModel = configModel.storePassword()
 
-    verifyPropertyModel(fileModel, STRING_TYPE, "goodbye", STRING, REGULAR, 1, "storeFile")
+    verifyPropertyModel(fileModel, STRING_TYPE, "goodbye", STRING, DERIVED, 1, "0")
     verifyPropertyModel(passwordModel.resolve(), STRING_TYPE, "off", STRING, REGULAR, 1, "storePassword")
   }
 
