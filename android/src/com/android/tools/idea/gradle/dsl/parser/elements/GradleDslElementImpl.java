@@ -297,11 +297,13 @@ public abstract class GradleDslElementImpl implements GradleDslElement {
   protected abstract void reset();
 
   @Override
+  @NotNull
   public List<GradleDslElement> getContainedElements(boolean includeProperties) {
     return Collections.emptyList();
   }
 
   @Override
+  @NotNull
   public Map<String, GradleDslElement> getInScopeElements() {
     Map<String, GradleDslElement> results = new LinkedHashMap<>();
 
@@ -434,7 +436,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement {
     }
   }
 
-  @NotNull
+  @Nullable
   public static String getPsiText(@NotNull PsiElement psiElement) {
     return ApplicationManager.getApplication().runReadAction((Computable<String>)() -> psiElement.getText());
   }

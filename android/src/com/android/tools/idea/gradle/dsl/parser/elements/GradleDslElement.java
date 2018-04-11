@@ -34,37 +34,45 @@ import java.util.Map;
 public interface GradleDslElement extends AnchorProvider {
   void setParsedClosureElement(@NotNull GradleDslClosure closure);
 
+  @Nullable
   GradleDslClosure getClosureElement();
 
   /**
    * Returns the name of this element at the lowest scope. I.e the text after the last dot ('.').
    */
+  @NotNull
   String getName();
 
   /**
    * Returns the full and qualified name of this {@link GradleDslElement}, this will be the name of this element appended to the
    * qualified name of this elements parent.
    */
+  @NotNull
   String getQualifiedName();
 
   /**
    * Returns the full name of the element. For elements where it makes sense, this will be the text of the
    * PsiElement in the build file.
    */
+  @NotNull
   String getFullName();
 
+  @NotNull
   GradleNameElement getNameElement();
 
   void rename(@NotNull String newName);
 
+  @Nullable
   GradleDslElement getParent();
 
+  @NotNull
   List<GradlePropertiesDslElement> getHolders();
 
   void addHolder(@NotNull GradlePropertiesDslElement holder);
 
   void setParent(@NotNull GradleDslElement parent);
 
+  @Nullable
   PsiElement getPsiElement();
 
   void setPsiElement(@Nullable PsiElement psiElement);
@@ -73,14 +81,18 @@ public interface GradleDslElement extends AnchorProvider {
 
   void setUseAssignment(boolean useAssignment);
 
+  @NotNull
   PropertyType getElementType();
 
   void setElementType(@NotNull PropertyType propertyType);
 
+  @NotNull
   GradleDslFile getDslFile();
 
+  @NotNull
   List<GradleReferenceInjection> getResolvedVariables();
 
+  @Nullable
   GradleDslElement getAnchor();
 
   /**
@@ -91,8 +103,18 @@ public interface GradleDslElement extends AnchorProvider {
    * <p>Returns the final {@link PsiElement} corresponds to this element or {@code null} when failed to create the
    * {@link PsiElement}.
    */
+  @Nullable
   PsiElement create();
 
+  /**
+   * Triggers the moving of the element if required. Repositions the element within the build file based on
+   * its parent. After a call to this method, if the element should be moved, the element will be placed
+   * after the {@link PsiElement} obtained from calling {@link #requestAnchor(GradleDslElement)} on its parent.
+   *
+   * @return the new PsiElement of the moved element, null if the element is not attached to a tree or if
+   * no PsiElement currently exists for it.
+   */
+  @Nullable
   PsiElement move();
 
   /**
@@ -115,6 +137,7 @@ public interface GradleDslElement extends AnchorProvider {
    */
   boolean isInsignificantIfEmpty();
 
+  @NotNull
   Collection<GradleDslElement> getChildren();
 
   void resetState();
@@ -125,11 +148,13 @@ public interface GradleDslElement extends AnchorProvider {
    * Computes a list of properties and variables that are declared or assigned to in this scope.
    * Override in subclasses to return meaningful values.
    */
+  @NotNull
   List<GradleDslElement> getContainedElements(boolean includeProperties);
 
   /**
    * Computes a list of properties and variables that are visible from this GradleDslElement.
    */
+  @NotNull
   Map<String, GradleDslElement> getInScopeElements();
 
   /**
@@ -139,6 +164,7 @@ public interface GradleDslElement extends AnchorProvider {
    * @param <T>  type of the notification
    * @return the instance of the notification in the build model.
    */
+  @NotNull
   <T extends BuildModelNotification> T notification(@NotNull NotificationTypeReference<T> type);
 
   void registerDependent(@NotNull GradleReferenceInjection injection);
@@ -150,11 +176,13 @@ public interface GradleDslElement extends AnchorProvider {
   /**
    * @return all things that depend on this element.
    */
+  @NotNull
   List<GradleReferenceInjection> getDependents();
 
   /**
    * @return all resolved and unresolved dependencies.
    */
+  @NotNull
   List<GradleReferenceInjection> getDependencies();
 
   void updateDependenciesOnAddElement(@NotNull GradleDslElement newElement);

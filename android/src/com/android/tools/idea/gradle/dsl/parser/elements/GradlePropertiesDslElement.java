@@ -573,6 +573,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   }
 
   @Override
+  @NotNull
   public List<GradleDslElement> getContainedElements(boolean includeProperties) {
     List<GradleDslElement> result = new ArrayList<>();
     if (includeProperties) {
