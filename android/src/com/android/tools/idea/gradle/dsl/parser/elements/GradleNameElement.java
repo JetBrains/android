@@ -56,7 +56,8 @@ public class GradleNameElement {
   @Nullable
   private String myUnsavedName;
 
-  @Nullable String myFakeName; // Used for names that do not require a file element.
+  @Nullable
+  private String myFakeName; // Used for names that do not require a file element.
 
   /**
    * Requires read access.
@@ -68,7 +69,7 @@ public class GradleNameElement {
 
   @NotNull
   public static GradleNameElement empty() {
-    return new GradleNameElement(null);
+    return new GradleNameElement((PsiElement)null);
   }
 
   @NotNull
@@ -80,6 +81,9 @@ public class GradleNameElement {
   public static GradleNameElement fake(@NotNull String name) {
     return new GradleNameElement(name, true);
   }
+
+  @NotNull
+  public static GradleNameElement copy(@NotNull GradleNameElement element) { return new GradleNameElement(element); }
 
   /**
    * Requires read access.
@@ -95,6 +99,12 @@ public class GradleNameElement {
     else {
       myUnsavedName = name;
     }
+  }
+
+  private GradleNameElement(@NotNull GradleNameElement element) {
+    mySavedName = element.mySavedName;
+    myUnsavedName = element.myUnsavedName;
+    myFakeName = element.myFakeName;
   }
 
   /**

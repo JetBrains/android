@@ -33,9 +33,18 @@ public final class GradleDslNewExpression extends GradleDslSimpleExpression {
   private final @NotNull List<GradleDslExpression> myArguments = Lists.newArrayList();
   private final @NotNull GradleNameElement myInvokedConstructor;
 
-  public GradleDslNewExpression(@NotNull GradleDslElement parent, @NotNull PsiElement newExpression, @NotNull GradleNameElement name,
+  public GradleDslNewExpression(@NotNull GradleDslElement parent,
+                                @NotNull PsiElement newExpression,
+                                @NotNull GradleNameElement name,
                                 @NotNull GradleNameElement invokedConstructor) {
     super(parent, newExpression, name, newExpression);
+    myInvokedConstructor = invokedConstructor;
+  }
+
+  private GradleDslNewExpression(@NotNull GradleDslElement parent,
+                                 @NotNull GradleNameElement name,
+                                 @NotNull GradleNameElement invokedConstructor) {
+    super(parent, null, name, null);
     myInvokedConstructor = invokedConstructor;
   }
 
@@ -137,6 +146,20 @@ public final class GradleDslNewExpression extends GradleDslSimpleExpression {
   @Override
   public void setValue(@NotNull Object value) {
     // TODO: Add support to set the full expression definition as a String.
+  }
+
+  @Nullable
+  @Override
+  public Object getRawValue() {
+    // TODO: Add support to get the raw value when there is a use case for it.
+    throw new UnsupportedOperationException("Raw values of new expressions not currently supported");
+  }
+
+  @Override
+  @NotNull
+  public GradleDslNewExpression copy() {
+    assert myParent != null;
+    return new GradleDslNewExpression(myParent, GradleNameElement.copy(myName), GradleNameElement.copy(myInvokedConstructor));
   }
 
   @Override

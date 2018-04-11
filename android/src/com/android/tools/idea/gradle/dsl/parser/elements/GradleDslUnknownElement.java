@@ -24,7 +24,6 @@ import java.util.Collection;
 import java.util.Collections;
 
 public class GradleDslUnknownElement extends GradleDslSimpleExpression {
-
   public GradleDslUnknownElement(@NotNull GradleDslElement parent, @NotNull PsiElement expression, @NotNull GradleNameElement name) {
     super(parent, expression, name, expression);
   }
@@ -80,5 +79,18 @@ public class GradleDslUnknownElement extends GradleDslSimpleExpression {
   @Override
   public void setValue(@NotNull Object value) {
     throw new UnsupportedOperationException("Can't set the value of an unknown element");
+  }
+
+  @Nullable
+  @Override
+  public Object getRawValue() {
+    return getUnresolvedValue();
+  }
+
+  @NotNull
+  @Override
+  public GradleDslUnknownElement copy() {
+    assert myParent != null && myExpression != null;
+    return new GradleDslUnknownElement(myParent, myExpression, GradleNameElement.copy(myName));
   }
 }

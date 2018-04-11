@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
@@ -106,6 +107,20 @@ public final class GradleDslReference extends GradleDslSettableExpression {
       ApplicationManager.getApplication().runReadAction((Computable<PsiElement>)() -> getDslFile().getParser().convertToPsiElement(value));
     setUnsavedValue(element);
     valueChanged();
+  }
+
+  @Nullable
+  @Override
+  public ReferenceTo getRawValue() {
+    String text = getReferenceText();
+    return text == null ? null : new ReferenceTo(text);
+  }
+
+  @NotNull
+  @Override
+  public GradleDslReference copy() {
+    assert myParent != null;
+    return new GradleDslReference(myParent, GradleNameElement.copy(myName));
   }
 
   @Override
