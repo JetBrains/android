@@ -47,6 +47,7 @@ import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -104,7 +105,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   private final static String ADD_LAYER = "Add Layer";
   private final static String ADD_GROUP = "Add Group";
   private final static String ADD_CONSTRAINTS_SET = "Add set of Constraints";
-  private static final String EDIT_BASELINE_ACTION_TOOLTIP = "Edit Baseline";
+  @VisibleForTesting
+  public static final String EDIT_BASELINE_ACTION_TOOLTIP = "Edit Baseline";
 
   private static HashMap<String, Boolean> ourVisibilityFlags = new HashMap<>();
 
@@ -400,7 +402,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       new ConstraintAnchorTarget(AnchorTarget.Type.BOTTOM, true)
     );
 
-    ActionTarget previousAction = new ClearConstraintsTarget(null);
+    ActionTarget previousAction = new ClearConstraintsTarget();
     listBuilder.add(previousAction);
 
     int baseline = NlComponentHelperKt.getBaseline(childComponent.getNlComponent());
@@ -411,7 +413,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     if (baseline > 0) {
       listBuilder.add(new ConstraintAnchorTarget(AnchorTarget.Type.BASELINE, true));
       ActionTarget baselineActionTarget =
-        new ActionTarget(previousAction, BASELINE_ICON, (SceneComponent c) -> c.setShowBaseline(!c.canShowBaseline())) {
+        new ActionTarget(BASELINE_ICON, (SceneComponent c) -> c.setShowBaseline(!c.canShowBaseline())) {
           @NotNull
           @Override
           public String getToolTipText() {
@@ -419,9 +421,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           }
         };
       listBuilder.add(baselineActionTarget);
-      previousAction = baselineActionTarget;
     }
-    listBuilder.add(new ChainCycleTarget(previousAction, null));
+    listBuilder.add(new ChainCycleTarget(null));
 
     return listBuilder.build();
   }

@@ -30,7 +30,7 @@ import javax.swing.JComponent
 // TODO: Replace icon with the final version
 class ComponentAssistantActionTarget(
   private val panelFactory: ComponentAssistantFactory
-) : ActionTarget(null, NlIcon(StudioIcons.Shell.ToolWindows.BUILD, StudioIcons.Shell.ToolWindows.BUILD), null) {
+) : ActionTarget(NlIcon(StudioIcons.Shell.ToolWindows.BUILD, StudioIcons.Shell.ToolWindows.BUILD), null) {
 
   private var onClose: (cancelled: Boolean) -> Unit = {}
   private var popup: LightCalloutPopup = LightCalloutPopup(closedCallback = this::fireCloseEvent, cancelCallBack = this::fireCancelEvent)

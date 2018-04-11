@@ -35,7 +35,6 @@ public class ActionTarget extends BaseTarget {
 
   final static int mySize = 12;
   final static int myGap = 4;
-  final ActionTarget myPreviousActionTarget;
   @Nullable private Action myAction;
   @NotNull private final NlIcon myIcon;
   protected boolean myIsVisible = true;
@@ -44,8 +43,7 @@ public class ActionTarget extends BaseTarget {
     void apply(SceneComponent component);
   }
 
-  public ActionTarget(@Nullable ActionTarget previous, @NotNull NlIcon icon, @Nullable Action action) {
-    myPreviousActionTarget = previous;
+  public ActionTarget(@NotNull NlIcon icon, @Nullable Action action) {
     myIcon = icon;
     myAction = action;
   }
@@ -64,6 +62,14 @@ public class ActionTarget extends BaseTarget {
     return Target.ACTION_LEVEL;
   }
 
+  public float getRight() {
+    return myRight;
+  }
+
+  public boolean isVisible() {
+    return myIsVisible;
+  }
+
   @Override
   public boolean layout(@NotNull SceneContext sceneTransform,
                         @AndroidDpCoordinate int l,
@@ -74,23 +80,12 @@ public class ActionTarget extends BaseTarget {
     if (ratio > 2) {
       ratio = 2;
     }
-    if (myPreviousActionTarget == null) {
-      myLeft = l;
-    }
-    else {
-      if (!myPreviousActionTarget.myIsVisible) {
-        myLeft = myPreviousActionTarget.myRight;
-      }
-      else {
-        myLeft = myPreviousActionTarget.myRight + (myGap * ratio);
-      }
-    }
+    myLeft = l;
     float size = (mySize * ratio);
     myTop = b + (myGap * ratio);
     myRight = myLeft + size;
     myBottom = myTop + size;
     if (!myIsVisible) {
-      myLeft = (myPreviousActionTarget == null) ? myLeft : myPreviousActionTarget.myRight;
       myRight = myLeft;
     }
     return false;
