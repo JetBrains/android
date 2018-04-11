@@ -15,13 +15,17 @@
  */
 package com.android.tools.profilers.cpu.atrace;
 
-import com.google.common.base.Charsets;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
+import com.google.common.base.Charsets;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.Nullable;
 import trebuchet.io.BufferProducer;
 import trebuchet.io.DataSlice;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.zip.DataFormatException;
@@ -49,6 +53,10 @@ public class AtraceDecompressor implements BufferProducer {
    */
   public static final ByteString HEADER = ByteString.copyFrom("TRACE:\n", Charsets.UTF_8);
 
+  private static Logger getLogger() {
+    return Logger.getInstance(AtraceDecompressor.class);
+  }
+
   public AtraceDecompressor(FileInputStream inputStream) throws IOException {
     myInputStream = inputStream;
     myInflater = new Inflater();
@@ -64,7 +72,7 @@ public class AtraceDecompressor implements BufferProducer {
     this(new FileInputStream(file));
   }
 
-  private void verifyHeader() throws IOException {
+  private void verifyHeader() {
     for (int i = 0; i < HEADER.size(); i++) {
       assert HEADER.byteAt(i) == myInputBuffer[myInputBufferOffset];
       myInputBufferOffset++;
@@ -154,7 +162,7 @@ public class AtraceDecompressor implements BufferProducer {
 
       // Add each line to our queue and keep track of our partial line for the next time we decompress more info.
       for (int i = 0; i < lines.length - 1; i++) {
-        myLineQueue.add(lines[i]);
+        myLineQueue.add(lines[i].trim());
       }
 
       myLastPartialLine = myLastPartialLine.substring(myLastPartialLine.lastIndexOf('\n') + 1);
@@ -172,7 +180,7 @@ public class AtraceDecompressor implements BufferProducer {
       myInputStream.close();
     }
     catch (IOException ex) {
-      ex.printStackTrace();
+      getLogger().warn(ex);
     }
   }
 
@@ -186,12 +194,14 @@ public class AtraceDecompressor implements BufferProducer {
     try {
       String line = getNextLine();
       if (line != null) {
-        byte[] data = String.format("%s\n", line).getBytes();
+        // Due to a bug in StreamingLineReader we need to truncate all lines to 1023 characters including the \n appended to the end.
+        // For more details see (b/77846431)
+        byte[] data = String.format("%s\n", line.substring(0, Math.min(1022, line.length()))).getBytes();
         return new DataSlice(data, 0, data.length);
       }
     }
     catch (IOException | DataFormatException ex) {
-      ex.printStackTrace();
+      getLogger().error(ex);
     }
     return null;
   }
