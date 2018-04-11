@@ -25,8 +25,8 @@ import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 public class Projects {
   @NotNull
   public static File getBaseDirPath(@NotNull Project project) {
+    if (project.isDefault()) return new File("");
     String basePath = project.getBasePath();
-    assert basePath != null;
     return new File(toCanonicalPath(basePath));
   }
 }
