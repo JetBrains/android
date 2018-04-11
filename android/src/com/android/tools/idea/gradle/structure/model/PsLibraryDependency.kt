@@ -23,6 +23,8 @@ interface PsLibraryDependency : PsBaseDependency {
   var isModified: Boolean
 }
 
+interface PsDeclaredLibraryDependency: PsLibraryDependency, PsDeclaredDependency
+
 interface PsResolvedLibraryDependency : PsLibraryDependency, PsResolvedDependency {
   fun hasPromotedVersion(): Boolean
 }

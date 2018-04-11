@@ -30,7 +30,7 @@ open class PsDeclaredLibraryAndroidDependency(
   spec: PsArtifactDependencySpec,
   containers: Collection<PsAndroidArtifact>,
   final override val parsedModel: ArtifactDependencyModel
-) : PsLibraryAndroidDependency(parent, spec, containers), PsDeclaredDependency {
+) : PsLibraryAndroidDependency(parent, spec, containers), PsDeclaredDependency, PsDeclaredLibraryDependency {
   override val resolvedModel: Any? = null
   override val isDeclared: Boolean = true
   final override val configurationName: String = parsedModel.configurationName()
