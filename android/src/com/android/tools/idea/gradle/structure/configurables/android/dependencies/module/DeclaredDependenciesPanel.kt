@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleDependencyDetails
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.SingleLibraryDependencyDetails
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.SingleDeclaredLibraryDependencyDetails
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.DependencySelection
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer
 import com.android.tools.idea.gradle.structure.configurables.issues.SingleModuleIssuesRenderer
@@ -112,7 +112,7 @@ internal class DeclaredDependenciesPanel(
   private fun createPlaceName(moduleName: String): String = "dependencies.$moduleName.place"
 
   private fun initializeDependencyDetails() {
-    addDetails(SingleLibraryDependencyDetails())
+    addDetails(SingleDeclaredLibraryDependencyDetails())
     addDetails(ModuleDependencyDetails(context, true))
   }
 

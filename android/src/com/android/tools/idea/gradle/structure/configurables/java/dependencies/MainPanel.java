@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.java.dependencies;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleDependencyDetails;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.SingleLibraryDependencyDetails;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.SingleDeclaredLibraryDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
 import com.android.tools.idea.gradle.structure.configurables.issues.SingleModuleIssuesRenderer;
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.AbstractDependenciesPanel;
@@ -105,7 +105,7 @@ class MainPanel extends AbstractDependenciesPanel {
   }
 
   private void initializeDependencyDetails() {
-    addDetails(new SingleLibraryDependencyDetails());
+    addDetails(new SingleDeclaredLibraryDependencyDetails());
     addDetails(new ModuleDependencyDetails(getContext(), true));
   }
 
