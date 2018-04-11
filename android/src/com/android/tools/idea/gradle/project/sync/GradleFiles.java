@@ -102,6 +102,7 @@ public class GradleFiles {
       }
     };
 
+    if (myProject.isDefault()) return;
 
     // Add a listener to see when gradle files are being edited.
     myProject.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, myFileEditorListener);
@@ -112,7 +113,7 @@ public class GradleFiles {
     if (myProject.isInitialized()) {
       updateFileHashes();
     }
-    else if (!myProject.isDefault()) {
+    else {
       StartupManager.getInstance(myProject).registerPostStartupActivity(this::updateFileHashes);
     }
   }
