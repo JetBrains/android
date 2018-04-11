@@ -157,7 +157,6 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
     myHyperlinkSupport = new NodeHyperlinkSupport<>(myTree, ModuleDependencyNode.class, myContext, true);
 
     PsModule.DependenciesChangeListener dependenciesChangeListener = event -> {
-      fakeModule.setModified(true);
       if (event instanceof PsModule.LibraryDependencyAddedEvent) {
         PsArtifactDependencySpec spec = ((PsModule.LibraryDependencyAddedEvent)event).getSpec();
         myTreeBuilder.reset(() -> {
