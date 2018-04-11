@@ -68,20 +68,36 @@ public class EventDataPollerTest extends DataStorePollerTest {
         .build()
     ).build();
   private static final EventProfiler.ActivityData ACTIVITY_DATA_UPDATE = EventProfiler.ActivityData.newBuilder()
-    .setPid(TEST_APP_ID)
-    .setName(ACTIVITY_NAME)
-    .setHash(ACTIVITY_HASH)
-    .addStateChanges(
+                                                                                                   .setPid(TEST_APP_ID)
+                                                                                                   .setName(ACTIVITY_NAME)
+                                                                                                   .setHash(ACTIVITY_HASH)
+                                                                                                   .addStateChanges(
       EventProfiler.ActivityStateData.newBuilder()
         .setState(EventProfiler.ActivityStateData.ActivityState.STARTED)
         .setTimestamp(START_TIME + ONE_SECOND)
         .build())
-    .addStateChanges(
+                                                                                                   .addStateChanges(
       EventProfiler.ActivityStateData.newBuilder()
         .setState(EventProfiler.ActivityStateData.ActivityState.PAUSED)
         .setTimestamp(START_TIME + ONE_SECOND * 2)
         .build())
-    .build();
+                                                                                                   .addStateChanges(
+                                                                                                     EventProfiler.ActivityStateData
+                                                                                                       .newBuilder()
+                                                                                                       .setState(
+                                                                                                         EventProfiler.ActivityStateData.ActivityState.RESUMED)
+                                                                                                       .setTimestamp(
+                                                                                                         START_TIME + ONE_SECOND * 3)
+                                                                                                       .build())
+                                                                                                   .addStateChanges(
+                                                                                                     EventProfiler.ActivityStateData
+                                                                                                       .newBuilder()
+                                                                                                       .setState(
+                                                                                                         EventProfiler.ActivityStateData.ActivityState.PAUSED)
+                                                                                                       .setTimestamp(
+                                                                                                         START_TIME + ONE_SECOND * 4)
+                                                                                                       .build())
+                                                                                                   .build();
 
   private DataStoreService myDataStoreService = mock(DataStoreService.class);
   private EventService myEventDataPoller = new EventService(myDataStoreService, getPollTicker()::run);
@@ -129,7 +145,7 @@ public class EventDataPollerTest extends DataStorePollerTest {
   }
 
   @Test
-  public void testGetSystemDataInRange() throws Exception {
+  public void testGetSystemDataInRange() {
     EventProfiler.EventDataRequest request = EventProfiler.EventDataRequest.newBuilder()
       .setSession(SESSION)
       .setStartTimestamp(START_TIME - ONE_SECOND)
@@ -145,7 +161,7 @@ public class EventDataPollerTest extends DataStorePollerTest {
   }
 
   @Test
-  public void testGetSystemDataNoEnd() throws Exception {
+  public void testGetSystemDataNoEnd() {
     EventProfiler.EventDataRequest request = EventProfiler.EventDataRequest.newBuilder()
       .setSession(DataStorePollerTest.SESSION)
       .setStartTimestamp(START_TIME + ONE_SECOND * 2)
@@ -161,7 +177,7 @@ public class EventDataPollerTest extends DataStorePollerTest {
   }
 
   @Test
-  public void testGetSystemDataInvalidSession() throws Exception {
+  public void testGetSystemDataInvalidSession() {
     EventProfiler.EventDataRequest request = EventProfiler.EventDataRequest.newBuilder()
       .setSession(Common.Session.getDefaultInstance())
       .setStartTimestamp(Long.MIN_VALUE)
@@ -176,7 +192,7 @@ public class EventDataPollerTest extends DataStorePollerTest {
   }
 
   @Test
-  public void testGetActivityDataInRange() throws Exception {
+  public void testGetActivityDataInRange() {
     EventProfiler.EventDataRequest request = EventProfiler.EventDataRequest.newBuilder()
       .setSession(SESSION)
       .setStartTimestamp(START_TIME - ONE_SECOND)
@@ -184,12 +200,8 @@ public class EventDataPollerTest extends DataStorePollerTest {
       .build();
     EventProfiler.ActivityDataResponse expectedResponse = EventProfiler.ActivityDataResponse.newBuilder()
       .addData(SIMPLE_ACTIVITY_DATA.toBuilder()
-                 .addStateChanges(EventProfiler.ActivityStateData.newBuilder()
-                                    .setState(EventProfiler.ActivityStateData.ActivityState.STARTED)
-                                    .setTimestamp(START_TIME + ONE_SECOND)
-                                    .build())
-                 .setFragmentData(EventProfiler.FragmentData.getDefaultInstance())
-                 .build())
+                                   .setFragmentData(EventProfiler.FragmentData.getDefaultInstance())
+                                   .build())
       .build();
 
     StreamObserver<EventProfiler.ActivityDataResponse> observer = mock(StreamObserver.class);
@@ -198,7 +210,71 @@ public class EventDataPollerTest extends DataStorePollerTest {
   }
 
   @Test
-  public void testGetActivityDataInvalidSession() throws Exception {
+  public void testGetActivityDataBetweenTwoStates() {
+    EventProfiler.EventDataRequest request = EventProfiler.EventDataRequest.newBuilder()
+                                                                           .setSession(SESSION)
+                                                                           .setStartTimestamp(START_TIME + ONE_SECOND + 1)
+                                                                           .setEndTimestamp(START_TIME + ONE_SECOND + 2)
+                                                                           .build();
+    EventProfiler.ActivityDataResponse expectedResponse = EventProfiler.ActivityDataResponse.newBuilder()
+                                                                                            .addData(SIMPLE_ACTIVITY_DATA.toBuilder()
+                                                                                                                         .addStateChanges(
+                                                                                                                           EventProfiler.ActivityStateData
+                                                                                                                             .newBuilder()
+                                                                                                                             .setState(
+                                                                                                                               EventProfiler.ActivityStateData.ActivityState.STARTED)
+                                                                                                                             .setTimestamp(
+                                                                                                                               START_TIME +
+                                                                                                                               ONE_SECOND)
+                                                                                                                             .build())
+                                                                                                                         .setFragmentData(
+                                                                                                                           EventProfiler.FragmentData
+                                                                                                                             .getDefaultInstance())
+                                                                                                                         .build())
+                                                                                            .build();
+
+    StreamObserver<EventProfiler.ActivityDataResponse> observer = mock(StreamObserver.class);
+    myEventDataPoller.getActivityData(request, observer);
+    validateResponse(observer, expectedResponse);
+  }
+
+  @Test
+  public void testGetStatesBeforeStartRange() {
+    EventProfiler.EventDataRequest request = EventProfiler.EventDataRequest.newBuilder()
+       .setSession(SESSION)
+       // Ensure our start / end time are past our start.
+       .setStartTimestamp(START_TIME + ONE_SECOND * 10)
+       .setEndTimestamp(START_TIME + ONE_SECOND * 10)
+       .build();
+    EventProfiler.ActivityDataResponse expectedResponse = EventProfiler.ActivityDataResponse.newBuilder()
+      .addData(SIMPLE_ACTIVITY_DATA.toBuilder()
+                                   .clearStateChanges()
+                                   .addStateChanges(
+                                      EventProfiler.ActivityStateData.newBuilder()
+                                                                     .setState(EventProfiler.ActivityStateData.ActivityState.PAUSED)
+                                                                     .setTimestamp(START_TIME + ONE_SECOND * 2)
+                                                                     .build())
+                                   .addStateChanges(
+                                      EventProfiler.ActivityStateData.newBuilder()
+                                                                     .setState(EventProfiler.ActivityStateData.ActivityState.RESUMED)
+                                                                     .setTimestamp(START_TIME + ONE_SECOND * 3)
+                                                                     .build())
+                                   .addStateChanges(
+                                     EventProfiler.ActivityStateData.newBuilder()
+                                                                    .setState(EventProfiler.ActivityStateData.ActivityState.PAUSED)
+                                                                    .setTimestamp(START_TIME + ONE_SECOND * 4)
+                                                                    .build())
+                                   .setFragmentData(EventProfiler.FragmentData.getDefaultInstance())
+                                   .build())
+      .build();
+
+    StreamObserver<EventProfiler.ActivityDataResponse> observer = mock(StreamObserver.class);
+    myEventDataPoller.getActivityData(request, observer);
+    validateResponse(observer, expectedResponse);
+  }
+
+  @Test
+  public void testGetActivityDataInvalidSession() {
     EventProfiler.EventDataRequest request = EventProfiler.EventDataRequest.newBuilder()
       .setSession(Common.Session.getDefaultInstance())
       .setStartTimestamp(Long.MIN_VALUE)
