@@ -15,15 +15,19 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.details;
 
-import com.android.tools.idea.gradle.structure.model.*;
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditor;
+import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
+import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.PsDependency;
+import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBLabel;
+import kotlin.Unit;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class SingleDeclaredLibraryDependencyDetails implements DependencyDetails {
   private JPanel myMainPanel;
@@ -32,9 +36,11 @@ public class SingleDeclaredLibraryDependencyDetails implements DependencyDetails
   private JXLabel myArtifactNameLabel;
   private JBLabel myResolvedVersionLabel;
   private JXLabel myScopeLabel;
-  private JBLabel myRequestedVersionLabel;
+  private JPanel myRequestedVersion;
 
   @Nullable private PsDeclaredLibraryDependency myDependency;
+  @Nullable private ModelPropertyEditor<Unit, ?> myVersionPropertyEditor;
+  @Nullable private JComponent myEditorComponent;
 
   @Override
   @NotNull
@@ -52,7 +58,19 @@ public class SingleDeclaredLibraryDependencyDetails implements DependencyDetails
     // TODO(b/74430831): Retrieve and display all the resolved versions.
     myResolvedVersionLabel.setText("");
 
-    myRequestedVersionLabel.setText(spec.getVersion());
+    if (myVersionPropertyEditor != null) {
+      if (myEditorComponent != null) {
+        myRequestedVersion.remove(myEditorComponent);
+      }
+      Disposer.dispose(myVersionPropertyEditor);
+    }
+    myVersionPropertyEditor =
+      DeclaredLibraryDependencyUiProperties.INSTANCE.makeVersionUiProperty(myDependency)
+                                                    .createEditor(myDependency.getParent().getParent(),
+                                                                  myDependency.getParent(),
+                                                                  Unit.INSTANCE);
+    myEditorComponent = myVersionPropertyEditor.getComponent();
+    myRequestedVersion.add(myEditorComponent);
 
     myScopeLabel.setText(dependency.getJoinedConfigurationNames());
   }
