@@ -73,8 +73,8 @@ public class IdeTestApplication implements Disposable {
     System.setProperty("native.mac.file.chooser.enabled", "false");
 
     if (!isLoaded()) {
-      ourInstance = new IdeTestApplication();
       recreateDirectory(configDirPath);
+      ourInstance = new IdeTestApplication();
 
       File newProjectsRootDirPath = getProjectCreationDirPath(null);
       recreateDirectory(newProjectsRootDirPath);
