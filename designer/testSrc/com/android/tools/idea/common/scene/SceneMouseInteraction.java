@@ -19,9 +19,13 @@ import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.android.tools.idea.common.scene.target.Target;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
  * Encapsulates basic mouse interaction on a Scene
@@ -39,6 +43,38 @@ public class SceneMouseInteraction {
 
   public float getLastX() { return myLastX; }
   public float getLastY() { return myLastY; }
+
+  @NotNull
+  private Optional<Target> findTarget(@Nullable SceneComponent component, @NotNull Predicate<Target> selector) {
+    if (component == null) {
+      return Optional.empty();
+    }
+
+    return component.getTargets()
+             .stream()
+             .filter(selector)
+             .findFirst();
+  }
+
+  /**
+   * Simulate a click on a given resize handle of the {@link SceneComponent} component
+   *
+   * @param component   the component we want to click on
+   * @param selector    predicate used to find which target to click
+   */
+  public void mouseDown(@Nullable SceneComponent component, @NotNull Predicate<Target> selector) {
+    findTarget(component, selector).ifPresent(target -> mouseDown(target.getCenterX(), target.getCenterY()));
+  }
+
+  /**
+   * Simulate a click on a given resize handle of the component with componentId
+   *
+   * @param componentId the id of the component we want to click on
+   * @param selector    predicate used to find which target to click
+   */
+  public void mouseDown(String componentId, @NotNull Predicate<Target> selector) {
+    mouseDown(myScene.getSceneComponent(componentId), selector);
+  }
 
   /**
    * Simulate a click on a given resize handle of the {@link SceneComponent} component
@@ -140,6 +176,27 @@ public class SceneMouseInteraction {
     SceneContext transform = SceneContext.get();
     myScene.mouseDown(transform, (int)myLastX, (int)myLastY);
     repaint();
+  }
+
+  /**
+   * Simulate releasing the mouse above the given anchor of the {@link SceneComponent} component
+   *
+   * @param component   the component we want to click on
+   * @param selector    predicate used to find which target to click
+   */
+  public void mouseRelease(@Nullable SceneComponent component, @NotNull Predicate<Target> selector) {
+    findTarget(component, selector).ifPresent(target -> mouseRelease(target.getCenterX(), target.getCenterY()));
+  }
+
+  /**
+   * Simulate releasing the mouse above the given anchor of the component
+   * with the given componentId
+   *
+   * @param componentId the id of the component we will release the mouse above
+   * @param selector    predicate used to find which target to click
+   */
+  public void mouseRelease(String componentId, @NotNull Predicate<Target> selector) {
+    mouseRelease(myScene.getSceneComponent(componentId), selector);
   }
 
   /**

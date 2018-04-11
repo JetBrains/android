@@ -21,6 +21,7 @@ import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
 import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.scene.target.ActionTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
@@ -734,11 +735,30 @@ public class SceneComponent {
     needsRebuildDisplayList |= animating;
 
     ImmutableList<Target> targets = getTargets();
+    int actionTargetLeft = myCurrentLeft;
+    int actionTargetTop = myCurrentTop;
+    float ratio = 1f / (float)sceneTransform.getScale();
+    if (ratio > 2) {
+      ratio = 2;
+    }
+    float actionTargetGap = ratio * 4;
     int num = targets.size();
     for (int i = 0; i < num; i++) {
       Target target = targets.get(i);
-      needsRebuildDisplayList |= target.layout(sceneTransform, myCurrentLeft, myCurrentTop, myCurrentRight, myCurrentBottom);
+
+      // ActionTargets are laid out separately
+      if (target instanceof ActionTarget) {
+        ActionTarget actionTarget = (ActionTarget)target;
+        needsRebuildDisplayList |= target.layout(sceneTransform, actionTargetLeft, actionTargetTop, myCurrentRight, myCurrentBottom);
+        if (actionTarget.isVisible()) {
+          actionTargetLeft = (int)(actionTarget.getRight() + actionTargetGap);
+        }
+      }
+      else {
+        needsRebuildDisplayList |= target.layout(sceneTransform, myCurrentLeft, myCurrentTop, myCurrentRight, myCurrentBottom);
+      }
     }
+
     int childCount = myChildren.size();
     for (int i = 0; i < childCount; i++) {
       SceneComponent child = myChildren.get(i);

@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler.EDIT_BASELINE_ACTION_TOOLTIP;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
@@ -96,8 +97,8 @@ public class SceneBasicConnectionsTest extends SceneTest {
 
   public void testConnectBaseline() {
     myInteraction.select("button2", true);
-    myInteraction.mouseDown("button2", ActionTarget.class, 1);
-    myInteraction.mouseRelease("button2", ActionTarget.class, 1);
+    myInteraction.mouseDown("button2", target -> EDIT_BASELINE_ACTION_TOOLTIP.equals(target.getToolTipText()));
+    myInteraction.mouseRelease("button2", target -> EDIT_BASELINE_ACTION_TOOLTIP.equals(target.getToolTipText()));
     myInteraction.mouseDown("button2", AnchorTarget.Type.BASELINE);
     myInteraction.mouseRelease("button", AnchorTarget.Type.BASELINE);
     myScreen.get("@id/button2")
@@ -131,8 +132,8 @@ public class SceneBasicConnectionsTest extends SceneTest {
     }
     assertThat(noIdComponent).isNotNull();
     myInteraction.select(noIdComponent, true);
-    myInteraction.mouseDown(noIdComponent, ActionTarget.class, 1);
-    myInteraction.mouseRelease(noIdComponent, ActionTarget.class, 1);
+    myInteraction.mouseDown(noIdComponent, target -> EDIT_BASELINE_ACTION_TOOLTIP.equals(target.getToolTipText()));
+    myInteraction.mouseRelease(noIdComponent, target -> EDIT_BASELINE_ACTION_TOOLTIP.equals(target.getToolTipText()));
     myInteraction.mouseDown(noIdComponent, AnchorTarget.Type.BASELINE);
     myInteraction.mouseRelease("button", AnchorTarget.Type.BASELINE);
     assertThat(noIdComponent.getNlComponent().getTag().getText())

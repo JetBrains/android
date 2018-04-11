@@ -38,8 +38,8 @@ public class ChainCycleTarget extends ActionTarget {
 
   private ChainChecker myChainChecker = new ChainChecker();
 
-  public ChainCycleTarget(ActionTarget previous, Action action) {
-    super(previous, CHAIN_ICON, action);
+  public ChainCycleTarget(Action action) {
+    super(CHAIN_ICON, action);
   }
 
   @Override
