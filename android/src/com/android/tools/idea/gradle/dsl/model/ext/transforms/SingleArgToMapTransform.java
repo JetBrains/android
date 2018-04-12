@@ -23,18 +23,21 @@ import org.jetbrains.annotations.Nullable;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.createBasicExpression;
 
 /**
- * This transform is specific to the FileTreeDependencyModel. It is used to convert from the single argument form, to one with uses a map.
+ * This transform is used to convert from the single argument form, to one with uses a map.
  * For example:
  * compile fileTree('libs') -> compile fileTree(dir: 'libs', include: ['*.jar'], exclude: ['*.aar'])
  * This transformation should occur whenever include or exclude is set. To achieve this, this transform should be added to the models that
  * represent "include" and "exclude".
  */
-public class FileTreeTransform extends PropertyTransform {
+public class SingleArgToMapTransform extends PropertyTransform {
+  @NotNull
+  private final String mySingleArgName;
   @NotNull
   private final String myFieldName;
 
-  public FileTreeTransform(@NotNull String fieldName) {
+  public SingleArgToMapTransform(@NotNull String singleArgName, @NotNull String fieldName) {
     myFieldName = fieldName;
+    mySingleArgName = singleArgName;
   }
 
   @Override
@@ -101,7 +104,7 @@ public class FileTreeTransform extends PropertyTransform {
         // Create the new map.
         GradleDslExpressionMap expressionMap = new GradleDslExpressionMap(methodCall, GradleNameElement.empty());
         // Add the other elements.
-        argument.rename(FileTreeDependencyModelImpl.DIR);
+        argument.rename(mySingleArgName);
         expressionMap.setNewElement(argument.copy());
         expressionMap.setNewElement(newElement);
 
