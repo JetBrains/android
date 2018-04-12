@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.theme;
 
+import com.android.tools.idea.ui.MaterialColors;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 

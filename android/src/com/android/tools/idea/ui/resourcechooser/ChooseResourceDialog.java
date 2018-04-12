@@ -39,6 +39,7 @@ import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.rendering.HtmlBuilderHelper;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.*;
+import com.android.tools.idea.ui.MaterialColors;
 import com.android.tools.idea.ui.resourcechooser.groups.ResourceChooserGroup;
 import com.android.tools.idea.ui.resourcechooser.groups.ResourceChooserGroups;
 import com.android.tools.idea.ui.resourcechooser.icons.IconFactory;
