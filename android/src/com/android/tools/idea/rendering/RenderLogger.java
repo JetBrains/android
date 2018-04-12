@@ -26,6 +26,7 @@ import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -64,7 +65,8 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
    * in case we need to ask bug submitters to generate full, raw exceptions.
    */
   @SuppressWarnings("UseOfArchaicSystemPropertyAccessors")
-  private static final boolean LOG_ALL = Boolean.getBoolean("adt.renderLog");
+  private static final boolean LOG_ALL = Boolean.getBoolean("adt.renderLog") ||
+                                         ApplicationManager.getApplication().isUnitTestMode();
   private static Set<String> ourIgnoredFidelityWarnings;
   private static boolean ourIgnoreAllFidelityWarnings;
   private static boolean ourIgnoreFragments;
