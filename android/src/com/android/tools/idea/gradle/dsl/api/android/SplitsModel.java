@@ -25,18 +25,14 @@ public interface SplitsModel extends GradleDslModel {
   @NotNull
   AbiModel abi();
 
-  @NotNull
-  SplitsModel removeAbi();
+  void removeAbi();
 
-  @NotNull
   DensityModel density();
 
-  @NotNull
-  SplitsModel removeDensity();
+  void removeDensity();
 
   @NotNull
   LanguageModel language();
 
-  @NotNull
-  SplitsModel removeLanguage();
+  void removeLanguage();
 }
