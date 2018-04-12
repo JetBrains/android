@@ -54,20 +54,20 @@ fun <PropertyT : Any> ParsedValue<PropertyT>.renderTo(textRenderer: TextRenderer
       value is ParsedValue.Set.Parsed && value.dslText?.mode == DslMode.REFERENCE -> {
         textRenderer.append(value.getText(), variableNameAttributes)
         if (value.value != null) {
-          textRenderer.append(" = ", regularAttributes)
+          textRenderer.append(" : ", commentAttributes)
           val valueDescription = knownValues[value.value]
           if (valueDescription != null) {
-            valueDescription.renderTo(textRenderer)
+            valueDescription.renderTo(makeCommentRenderer(textRenderer))
           }
           else {
-            textRenderer.append(value.value.toString(), regularAttributes)
+            textRenderer.append(value.value.toString(), commentAttributes)
           }
         }
       }
       value is ParsedValue.Set.Parsed && value.dslText?.mode == DslMode.INTERPOLATED_STRING -> {
         textRenderer.append(value.getText(), variableNameAttributes)
         if (value.value != null) {
-          textRenderer.append(" = \"${value.value}\"", regularAttributes)
+          textRenderer.append(" : \"${value.value}\"", commentAttributes)
         }
       }
       value is ParsedValue.Set.Parsed && value.dslText?.mode == DslMode.OTHER_UNPARSED_DSL_TEXT -> {
@@ -119,4 +119,13 @@ fun <PropertyT : Any> buildKnownValueRenderers(
     })
   }
   return result.associate { it.first to it.second }
+}
+
+fun makeCommentRenderer(textRenderer: TextRenderer) = object : TextRenderer {
+  // Replace 'regular' text color with 'comment' text color.
+  override fun append(text: String, attributes: SimpleTextAttributes) =
+    textRenderer.append(
+      text,
+      if (attributes.fgColor == regularAttributes.fgColor) attributes.derive(0, commentAttributes.fgColor, null, null) else attributes
+    )
 }

@@ -104,9 +104,9 @@ class ParsedValueRendererTest {
   @Test
   fun testRenderParsedValue_setReference() {
     val var1 = ParsedValue.Set.Parsed(1, DslText(DslMode.REFERENCE, "var1"))
-    assertThat(var1.testRenderWith<Int>(buildKnownValueRenderers(listOf(), null)), equalTo("<b><var>\$var1</b><nocolor> = 1"))
+    assertThat(var1.testRenderWith<Int>(buildKnownValueRenderers(listOf(), null)), equalTo("<b><var>\$var1</b><comment> : 1"))
     assertThat(var1.testRenderWith<Int>(buildKnownValueRenderers(listOf(ValueDescriptor(1, "One")), null)),
-               equalTo("<b><var>\$var1</b><nocolor> = 1 <comment>(One)"))
+               equalTo("<b><var>\$var1</b><comment> : 1 (One)"))
   }
 
   @Test
@@ -114,9 +114,9 @@ class ParsedValueRendererTest {
     val interpolated = ParsedValue.Set.Parsed("a nd b", DslText(DslMode.INTERPOLATED_STRING, "\$var1 and \$var2"))
     // TODO(b/77618752): Variable references should be highlighted separately.
     assertThat(interpolated.testRenderWith<String>(buildKnownValueRenderers(listOf(), null)),
-               equalTo("<b><var>\"\$var1 and \$var2\"</b><nocolor> = \"a nd b\""))
+               equalTo("<b><var>\"\$var1 and \$var2\"</b><comment> : \"a nd b\""))
     assertThat(interpolated.testRenderWith<String>(buildKnownValueRenderers(listOf(ValueDescriptor("a and b", "does not matter")), null)),
-               equalTo("<b><var>\"\$var1 and \$var2\"</b><nocolor> = \"a nd b\""))
+               equalTo("<b><var>\"\$var1 and \$var2\"</b><comment> : \"a nd b\""))
   }
 
   @Test
