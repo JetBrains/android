@@ -216,6 +216,7 @@ public class StudioIcons {
       public static final Icon TEXT_STYLE_ITALIC = load("/studio/icons/layout-editor/properties/text-style-italic.png"); // 16x16
       public static final Icon TEXT_STYLE_UPPERCASE = load("/studio/icons/layout-editor/properties/text-style-uppercase.png"); // 16x16
       public static final Icon TOGGLE_PROPERTIES = load("/studio/icons/layout-editor/properties/toggle-properties.png"); // 16x16
+      public static final Icon TOOLS_ATTRIBUTE = load("/studio/icons/layout-editor/properties/tools-attribute.png"); // 12x12
     }
 
     public static class Toolbar {
