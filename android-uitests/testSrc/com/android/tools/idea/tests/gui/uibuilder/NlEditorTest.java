@@ -119,7 +119,7 @@ public class NlEditorTest {
 
   @TargetBuildSystem({TargetBuildSystem.BuildSystem.BAZEL})
   @Test
-  @Ignore("b/77955344")
+  @Ignore("b/77974117")
   public void designEditorUnavailableIfInProgressBazelSyncFailed() throws Exception {
     // Add a bad dependency to app/BUILD. This will cause the next sync to fail.
     guiTest.importSimpleLocalApplication()
@@ -144,7 +144,6 @@ public class NlEditorTest {
 
   @TargetBuildSystem({TargetBuildSystem.BuildSystem.BAZEL})
   @Test
-  @Ignore("b/77955344")
   public void designEditorUnavailableIfLastBazelSyncFailed() throws Exception {
     // Add a bad dependency to app/BUILD. This will cause the next sync to fail.
     guiTest.importSimpleLocalApplication()
