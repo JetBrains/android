@@ -24,6 +24,7 @@ import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.util.PathString;
 import com.android.manifmerger.Actions;
 import com.android.repository.Revision;
 import com.android.repository.api.RemotePackage;
@@ -573,7 +574,7 @@ public class LintIdeClient extends LintClient implements Disposable {
   }
 
   @Override
-  public boolean isGradleProject(com.android.tools.lint.detector.api.Project project) {
+  public boolean isGradleProject(@NotNull com.android.tools.lint.detector.api.Project project) {
     Module module = getModule();
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -715,27 +716,25 @@ public class LintIdeClient extends LintClient implements Disposable {
                        @NonNull String message,
                        @NonNull TextFormat format,
                        @Nullable LintFix quickfixData) {
-      if (location != null) {
-        final File file = location.getFile();
-        final VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
+      File file = location.getFile();
+      VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
 
-        if (myState.getMainFile().equals(vFile)) {
-          final Position start = location.getStart();
-          final Position end = location.getEnd();
+      if (myState.getMainFile().equals(vFile)) {
+        Position start = location.getStart();
+        Position end = location.getEnd();
 
-          final TextRange textRange = start != null && end != null && start.getOffset() <= end.getOffset()
-                                      ? new TextRange(start.getOffset(), end.getOffset())
-                                      : TextRange.EMPTY_RANGE;
+        TextRange textRange = start != null && end != null && start.getOffset() <= end.getOffset()
+                                    ? new TextRange(start.getOffset(), end.getOffset())
+                                    : TextRange.EMPTY_RANGE;
 
-          Severity configuredSeverity = severity != issue.getDefaultSeverity() ? severity : null;
-          message = format.convertTo(message, RAW);
-          myState.getProblems().add(new ProblemData(issue, message, textRange, configuredSeverity, quickfixData));
-        }
+        Severity configuredSeverity = severity != issue.getDefaultSeverity() ? severity : null;
+        message = format.convertTo(message, RAW);
+        myState.getProblems().add(new ProblemData(issue, message, textRange, configuredSeverity, quickfixData));
+      }
 
-        Location secondary = location.getSecondary();
-        if (secondary != null && myState.getMainFile().equals(LocalFileSystem.getInstance().findFileByIoFile(secondary.getFile()))) {
-          reportSecondary(context, issue, severity, location, message, format, quickfixData);
-        }
+      Location secondary = location.getSecondary();
+      if (secondary != null && myState.getMainFile().equals(LocalFileSystem.getInstance().findFileByIoFile(secondary.getFile()))) {
+        reportSecondary(context, issue, severity, location, message, format, quickfixData);
       }
     }
 
@@ -969,7 +968,7 @@ public class LintIdeClient extends LintClient implements Disposable {
 
   @Nullable
   @Override
-  public AbstractResourceRepository getResourceRepository(com.android.tools.lint.detector.api.Project project,
+  public AbstractResourceRepository getResourceRepository(@NotNull com.android.tools.lint.detector.api.Project project,
                                                           boolean includeModuleDependencies,
                                                           boolean includeLibraries) {
     final Module module = findModuleForLintProject(myProject, project);
@@ -1007,18 +1006,21 @@ public class LintIdeClient extends LintClient implements Disposable {
   }
 
   @Override
+  @NotNull
   public ClassLoader createUrlClassLoader(@NonNull URL[] urls, @NonNull ClassLoader parent) {
     return UrlClassLoader.build().parent(parent).urls(urls).get();
   }
 
-  @NonNull
   @Override
+  @NonNull
   public Location.Handle createResourceItemHandle(@NonNull ResourceItem item) {
     XmlTag tag = LocalResourceRepository.getItemTag(myProject, item);
     if (tag != null) {
-      File source = item.getFile();
+      PathString source = item.getSource();
       assert source != null : item;
-      return new LocationHandle(source, tag);
+      File file = source.toFile();
+      assert file != null : item;
+      return new LocationHandle(file, tag);
     }
     return super.createResourceItemHandle(item);
   }

@@ -544,7 +544,7 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
           }
 
           if (resourceMergerItem.getSourceType() != DataFile.FileType.SINGLE_FILE) {
-            ResourceFile resourceFile = resourceMergerItem.getSource();
+            ResourceFile resourceFile = resourceMergerItem.getSourceFile();
             if (resourceFile != null) {
               File file = resourceFile.getFile();
               if (!multiResourceFileIndexes.containsKey(file)) {
@@ -609,7 +609,7 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
             for (ResourceItem resourceItem : resourceItems) {
               ResourceMergerItem resourceMergerItem = (ResourceMergerItem)resourceItem;
               out.writeNode(resourceMergerItem.getValue());
-              ResourceFile resourceFile = resourceMergerItem.getSource();
+              ResourceFile resourceFile = resourceMergerItem.getSourceFile();
               assert resourceFile != null;
               ResourceItemType itemType;
               if (resourceItem.isFileBased()) {

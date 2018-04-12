@@ -22,12 +22,14 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceMergerItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
+import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceFolderRegistry;
 import com.android.tools.idea.res.ResourceFolderRepository;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.lint.checks.ApiDetector;
 import com.android.tools.lint.detector.api.LintFix;
 import com.google.common.base.Joiner;
@@ -42,7 +44,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.psi.PsiBinaryExpression;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -212,7 +213,6 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
     private static void mergeResourceFolder(@NotNull Project project, @NotNull VirtualFile dir,
                                             @NotNull String targetDir, @NotNull LocalResourceRepository repository) {
       Object requestor = AndroidLintInspectionBase.class;
-      VirtualFileSystem fileSystem = StandardFileSystems.local();
 
       FolderConfiguration oldConfig = FolderConfiguration.getConfigForFolder(dir.getName());
       FolderConfiguration newConfig = FolderConfiguration.getConfigForFolder(targetDir);
@@ -229,12 +229,7 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
           }
           FolderConfiguration configuration = item.getConfiguration();
           if (oldConfig.equals(configuration)) {
-            File source = item.getFile();
-            if (source == null) {
-              continue;
-            }
-
-            VirtualFile sourceFile = fileSystem.findFileByPath(source.getPath());
+            VirtualFile sourceFile = ResourceHelper.getSourceAsVirtualFile(item);
             if (sourceFile != null && dir.equals(sourceFile.getParent())) {
               srcItems.add(item);
             }
@@ -259,39 +254,42 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
 
           boolean isInDest = destFolderResources.containsEntry(item.getName(), item.getType());
 
-          // Already checked above
-          //noinspection ConstantConditions
-          if (item.getFile().getParentFile().getName().startsWith(SdkConstants.FD_RES_VALUES)) {
-            // Merge XML values
-            String textValue = null;
-            ResourceValue resourceValue = item.getResourceValue();
-            if (resourceValue != null) {
-              textValue = resourceValue.getValue();
-            }
-            textValue = StringUtil.notNullize(textValue);
+          PathString source = item.getSource();
+          // Already checked above.
+          if (source != null) {
+            String dirName = source.getParentFileName();
+            if (dirName != null && dirName.startsWith(SdkConstants.FD_RES_VALUES)) {
+              // Merge XML values
+              String textValue = null;
+              ResourceValue resourceValue = item.getResourceValue();
+              if (resourceValue != null) {
+                textValue = resourceValue.getValue();
+              }
+              textValue = StringUtil.notNullize(textValue);
 
-            File source = item.getFile();
-            String fileName = source != null ? source.getName() : "values.xml";
-            List<String> dirNames = Collections.singletonList(targetDir);
-            if (isInDest) {
-              AndroidResourceUtil.changeValueResource(project, res, item.getName(), item.getType(), textValue, fileName, dirNames, false);
+              String fileName = source.getFileName();
+              List<String> dirNames = Collections.singletonList(targetDir);
+              if (isInDest) {
+                AndroidResourceUtil.changeValueResource(project, res, item.getName(), item.getType(), textValue, fileName, dirNames,
+                                                        false);
+              }
+              else {
+                AndroidResourceUtil.createValueResource(project, res, item.getName(), item.getType(), fileName, dirNames, textValue);
+              }
             }
             else {
-              AndroidResourceUtil.createValueResource(project, res, item.getName(), item.getType(), fileName,
-                                                      dirNames, textValue);
-            }
-          }
-          else {
-            VirtualFile source = fileSystem.findFileByPath(item.getFile().getPath());
-            if (source != null) {
-              VirtualFile existing = destDir.findChild(source.getName());
-              if (existing != null) {
-                existing.delete(requestor);
+              VirtualFile virtualFile = ResourceHelper.getSourceAsVirtualFile(item);
+              if (virtualFile != null) {
+                VirtualFile existing = destDir.findChild(virtualFile.getName());
+                if (existing != null) {
+                  existing.delete(requestor);
+                }
+                VfsUtilCore.copyFile(requestor, virtualFile, destDir);
               }
-              VfsUtilCore.copyFile(requestor, source, destDir);
-            } else {
-              // Something went wrong; couldn't copy file, so skip out (so we don't delete sources)
-              return;
+              else {
+                // Something went wrong; couldn't copy file, so skip out (so we don't delete sources)
+                return;
+              }
             }
           }
         }

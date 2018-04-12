@@ -19,7 +19,6 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceMergerItem
 import com.android.ide.common.resources.configuration.DensityQualifier
-import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.ide.common.resources.configuration.ResourceQualifier
 import com.android.resources.ResourceType
 import com.android.tools.idea.resourceExplorer.importer.QualifierMatcher
@@ -42,8 +41,8 @@ data class DesignAsset(
 
 ) {
   constructor(resourceItem: ResourceItem) : this(
-    file = VfsUtil.findFileByIoFile(resourceItem.file!!, true)!!, // TODO handle assertion
-    qualifiers = resourceItem.configuration?.qualifiers?.toList() ?: emptyList(),
+    file = VfsUtil.findFileByIoFile(resourceItem.source?.toFile()!!, true)!!, // TODO handle assertion
+    qualifiers = resourceItem.configuration.qualifiers.toList(),
     type = resourceItem.type,
     name = resourceItem.name,
     resourceItem = resourceItem

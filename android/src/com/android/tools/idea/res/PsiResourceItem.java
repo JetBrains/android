@@ -20,6 +20,7 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.ide.common.util.PathString;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -39,7 +40,6 @@ import com.intellij.reference.SoftReference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.Collections;
 
 import static com.android.SdkConstants.*;
@@ -49,7 +49,7 @@ public class PsiResourceItem implements ResourceItem {
   @NotNull private final ResourceType myType;
   @NotNull private final ResourceNamespace myNamespace;
   @Nullable private ResourceValue myResourceValue;
-  @Nullable private PsiResourceFile mySource;
+  @Nullable private PsiResourceFile mySourceFile;
   @Nullable private final SoftReference<XmlTag> myOriginalTag;
   @NotNull private final SoftReference<PsiFile> myOriginalFile;
   @Nullable private final Object smartPsiPointerLock;
@@ -174,7 +174,7 @@ public class PsiResourceItem implements ResourceItem {
   @Override
   @NotNull
   public FolderConfiguration getConfiguration() {
-    PsiResourceFile source = getSource();
+    PsiResourceFile source = getSourceFile();
     assert source != null : "getConfiguration called on a PsiResourceItem with no source";
     return source.getFolderConfiguration();
   }
@@ -191,9 +191,9 @@ public class PsiResourceItem implements ResourceItem {
   }
 
   @Nullable
-  public PsiResourceFile getSource() {
-    if (mySource != null) {
-      return mySource;
+  public PsiResourceFile getSourceFile() {
+    if (mySourceFile != null) {
+      return mySourceFile;
     }
 
     PsiFile psiFile = getPsiFile();
@@ -221,8 +221,8 @@ public class PsiResourceItem implements ResourceItem {
     return new PsiResourceFile(psiFile, Collections.singletonList(this), folderType, configuration);
   }
 
-  public void setSource(@Nullable PsiResourceFile source) {
-    mySource = source;
+  public void setSourceFile(@Nullable PsiResourceFile sourceFile) {
+    mySourceFile = sourceFile;
   }
 
   /**
@@ -235,7 +235,7 @@ public class PsiResourceItem implements ResourceItem {
     if (myResourceValue == null) {
       XmlTag tag = getTag();
       if (tag == null) {
-        PsiResourceFile source = getSource();
+        PsiResourceFile source = getSourceFile();
         assert source != null : "getResourceValue called on a PsiResourceItem with no source";
         // Density based resource value?
         ResourceType type = getType();
@@ -258,14 +258,14 @@ public class PsiResourceItem implements ResourceItem {
 
   @Override
   @Nullable
-  public File getFile() {
+  public PathString getSource() {
     PsiFile psiFile = getPsiFile();
     if (psiFile == null) {
       return null;
     }
 
     VirtualFile virtualFile = psiFile.getVirtualFile();
-    return virtualFile == null ? null : VfsUtilCore.virtualToIoFile(virtualFile);
+    return virtualFile == null ? null : new PathString(VfsUtilCore.virtualToIoFile(virtualFile));
   }
 
   @Override

@@ -26,6 +26,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.sampledata.SampleDataCsvParser;
 import com.android.ide.common.resources.sampledata.SampleDataHolder;
 import com.android.ide.common.resources.sampledata.SampleDataJsonParser;
+import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.sampledata.datasource.HardcodedContent;
 import com.google.common.base.Charsets;
@@ -154,12 +155,13 @@ public class SampleDataResourceItem implements ResourceItem {
     VirtualFile directory = directoryPointer.getVirtualFile();
     // For directories, at this point, we always consider them images since it's the only type we handle for them
     return new SampleDataResourceItem(directory.getName(), ResourceNamespace.TODO, output -> {
-      PrintStream printStream = new PrintStream(output);
-      Arrays.stream(directory.getChildren())
-        .filter(child -> !child.isDirectory())
-        .sorted(Comparator.comparing(VirtualFile::getName))
-        .forEach(file -> printStream.println(file.getPath()));
-      return null;
+      try (PrintStream printStream = new PrintStream(output)) {
+        Arrays.stream(directory.getChildren())
+              .filter(child -> !child.isDirectory())
+              .sorted(Comparator.comparing(VirtualFile::getName))
+              .forEach(file -> printStream.println(file.getPath()));
+        return null;
+      }
     }, () -> directory.getModificationStamp() + 1, directoryPointer, ContentType.IMAGE);
   }
 
@@ -291,50 +293,50 @@ public class SampleDataResourceItem implements ResourceItem {
     return content != null ? new String(content, Charsets.UTF_8) : null;
   }
 
-  @NonNull
   @Override
+  @NonNull
   public String getName() {
     return myName;
   }
 
-  @NonNull
   @Override
+  @NonNull
   public ResourceType getType() {
     return ResourceType.SAMPLE_DATA;
   }
 
-  @Nullable
   @Override
+  @Nullable
   public String getLibraryName() {
     return null;
   }
 
-  @NonNull
   @Override
+  @NonNull
   public ResourceNamespace getNamespace() {
     return myNamespace;
   }
 
-  @NonNull
   @Override
+  @NonNull
   public ResourceReference getReferenceToSelf() {
     return new ResourceReference(getNamespace(), getType(), getName());
   }
 
-  @NonNull
   @Override
+  @NonNull
   public FolderConfiguration getConfiguration() {
     return new FolderConfiguration();
   }
 
-  @NonNull
   @Override
+  @NonNull
   public String getKey() {
     return getType() + "/" + getName();
   }
 
-  @NotNull
   @Override
+  @NotNull
   public ResourceValue getResourceValue() {
     byte[] content = getContent(() -> myResourceValue = null);
     if (myResourceValue == null) {
@@ -343,9 +345,9 @@ public class SampleDataResourceItem implements ResourceItem {
     return myResourceValue;
   }
 
-  @Nullable
   @Override
-  public File getFile() {
+  @Nullable
+  public PathString getSource() {
     return null;
   }
 

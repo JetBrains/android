@@ -29,7 +29,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
-import java.io.File;
 import java.util.*;
 import java.util.List;
 
@@ -109,15 +108,15 @@ public class EditResourcePanel extends JBScrollPane {
     if (resources.size() > 1) {
       resources = Lists.newArrayList(resources);
       Collections.sort(resources, (element1, element2) -> {
-        File directory1 = element1.getFile().getParentFile();
-        File directory2 = element2.getFile().getParentFile();
-        return directory1.getName().compareTo(directory2.getName());
+        String dirName1 = element1.getSource().getParentFileName();
+        String dirName2 = element2.getSource().getParentFileName();
+        return dirName1.compareTo(dirName2);
       });
 
       DefaultComboBoxModel model = new DefaultComboBoxModel();
       String defaultSelection = null;
       for (ResourceItem resource : resources) {
-        String name = resource.getFile().getParentFile().getName();
+        String name = resource.getSource().getParentFileName();
         model.addElement(name);
         if (defaultSelection == null && resource == defaultValue) {
           defaultSelection = name;

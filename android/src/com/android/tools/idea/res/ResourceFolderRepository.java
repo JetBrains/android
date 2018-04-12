@@ -263,7 +263,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     Map<ResourceType, ListMultimap<String, ResourceItem>> result = new HashMap<>();
 
     for (ResourceMergerItem item: dataSet.getDataMap().values()) {
-      ResourceFile file = item.getSource();
+      ResourceFile file = item.getSourceFile();
       if (file != null) {
         if (!resourceFiles.contains(file)) {
           VirtualFile vFile = VfsUtil.findFileByIoFile(file.getFile(), false);
@@ -621,7 +621,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     List<ResourceItem> resourceItems = getResourceItems(myNamespace, ResourceType.LAYOUT, layoutName);
     for (ResourceItem item : resourceItems) {
       if (item instanceof PsiResourceItem) {
-        PsiResourceFile source = ((PsiResourceItem)item).getSource();
+        PsiResourceFile source = ((PsiResourceItem)item).getSourceFile();
         if (source != null) {
           return source.getDataBindingInfo();
         }
@@ -1175,7 +1175,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                 if (mapItems != null && !mapItems.isEmpty()) {
                   List<ResourceItem> toDelete = new ArrayList<>(mapItems.size());
                   for (ResourceItem mapItem : mapItems) {
-                    if (mapItem instanceof PsiResourceItem && ((PsiResourceItem)mapItem).getSource() == psiResourceFile) {
+                    if (mapItem instanceof PsiResourceItem && ((PsiResourceItem)mapItem).getSourceFile() == psiResourceFile) {
                       toDelete.add(mapItem);
                     }
                   }
@@ -2428,7 +2428,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
             }
           }
           else {
-            ResourceFile resourceFile = ((ResourceMergerItem)item).getSource();
+            ResourceFile resourceFile = ((ResourceMergerItem)item).getSourceFile();
             if (resourceFile != null && FileUtil.filesEqual(resourceFile.getFile(), ioFile)) {
               return item;
             }
@@ -2513,7 +2513,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
               return false;
             }
 
-            if (Objects.equals(item.getFile(), otherItem.getFile())) {
+            if (Objects.equals(item.getSource(), otherItem.getSource())) {
               // Items with the same references and same files should produce equal ResourceValues, including DensityResourceValues.
               ResourceValue resourceValue = item.getResourceValue();
               ResourceValue otherResourceValue = otherItem.getResourceValue();

@@ -27,7 +27,7 @@ import com.android.ide.common.resources.AbstractResourceRepository
 import com.android.ide.common.resources.AbstractResourceRepository.MAX_RESOURCE_INDIRECTION
 import com.android.ide.common.resources.ResourceFile
 import com.android.ide.common.resources.ResourceItem
-import com.android.ide.common.resources.ResourceMergerItem.*
+import com.android.ide.common.resources.ResourceItem.*
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.ide.common.xml.AndroidManifestParser
 import com.android.io.FileWrapper
@@ -47,6 +47,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.*
 import com.intellij.psi.search.GlobalSearchScope
@@ -238,6 +239,18 @@ fun getResourceVariations(file: VirtualFile?, includeSelf: Boolean): List<Virtua
   }
 
   return variations
+}
+
+/**
+ * Returns the [VirtualFile] representing the source of the given resource item, or null
+ * if the source of the resource item is unknown or there is no VirtualFile for it.
+ */
+fun ResourceItem.getSourceAsVirtualFile(): VirtualFile? {
+  if (this is PsiResourceItem) {
+    return psiFile?.virtualFile
+  }
+  val path = source?.nativePath
+  return if (path == null) null else StandardFileSystems.local().findFileByPath(path)
 }
 
 /**
@@ -779,8 +792,8 @@ private fun addFrameworkItems(
   val items = frameworkResources.getPublicResourcesOfType(type)
   for (item in items) {
     if (!includeFileResources) {
-      val sourceFile = item.file
-      if (sourceFile != null && !sourceFile.parent.startsWith(FD_RES_VALUES)) {
+      val dirName = item.source?.parentFileName
+      if (dirName != null && !dirName.startsWith(FD_RES_VALUES)) {
         continue
       }
     }

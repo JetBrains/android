@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
@@ -2006,17 +2007,15 @@ public class ChooseResourceDialog extends DialogWrapper {
     }
 
     private void setLocationFromResourceItem(@NotNull ResourceItem item) {
-      if (item.getFile() == null) {
-        assert false : "item.getFile can not be null when selecting a resource item";
+      VirtualFile virtualFile = ResourceHelper.getSourceAsVirtualFile(item);
+      if (virtualFile == null) {
+        assert false : "Item's source can not be null when selecting a resource item";
         return;
       }
-
-      VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(item.getFile());
-      assert file != null;
       // TODO as we only show variants that are specific to the folderType, and we have different folderTypes for different Editor tabs, reset does not always work.
       // TODO CreateXmlResourcePanel should show all variants irrespective of folderType and we should have just 1 CreateXmlResourcePanel per EditResourcePanel.
       for (ResourceEditorTab editor : myEditorPanel.getAllTabs()) {
-        editor.getLocationSettings().resetFromFile(file, myModule.getProject());
+        editor.getLocationSettings().resetFromFile(virtualFile, myModule.getProject());
       }
     }
 

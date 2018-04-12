@@ -17,6 +17,7 @@ package com.android.tools.idea.refactoring.modularize;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceFolderRegistry;
@@ -302,10 +303,10 @@ public class AndroidModularizeProcessor extends BaseRefactoringProcessor {
         String packageName = ((PsiJavaFile)(element).getContainingFile()).getPackageName();
 
         MoveClassesOrPackagesUtil.doMoveClass(
-          (PsiClass)element,
-          RefactoringUtil
-            .createPackageDirectoryInSourceRoot(new PackageWrapper(PsiManager.getInstance(myProject), packageName), javaTargetDir),
-          true);
+            (PsiClass)element,
+            RefactoringUtil
+                .createPackageDirectoryInSourceRoot(new PackageWrapper(PsiManager.getInstance(myProject), packageName), javaTargetDir),
+            true);
       }
     }
 
@@ -318,12 +319,13 @@ public class AndroidModularizeProcessor extends BaseRefactoringProcessor {
   @Nullable
   private PsiDirectory getOrCreateTargetDirectory(ResourceFolderRepository base, ResourceItem resourceItem) {
     PsiManager manager = PsiManager.getInstance(myProject);
-    if (resourceItem.getFile() != null) {
-      ResourceFolderType folderType = ResourceFolderType.getFolderType(resourceItem.getFile().getParentFile().getName());
+    PathString itemFile = resourceItem.getSource();
+    if (itemFile != null) {
+      ResourceFolderType folderType = ResourceFolderType.getFolderType(itemFile.getParentFileName());
       if (folderType != null) {
         try {
           return manager.findDirectory(
-            VfsUtil.createDirectoryIfMissing(base.getResourceDir(), resourceItem.getConfiguration().getFolderName(folderType)));
+              VfsUtil.createDirectoryIfMissing(base.getResourceDir(), resourceItem.getConfiguration().getFolderName(folderType)));
         }
         catch (Exception ex) {
           LOGGER.debug(ex);
@@ -336,9 +338,10 @@ public class AndroidModularizeProcessor extends BaseRefactoringProcessor {
 
   @Nullable
   private PsiFile getOrCreateTargetValueFile(ResourceFolderRepository base, ResourceItem resourceItem) {
-    if (resourceItem.getFile() != null) {
+    PathString itemFile = resourceItem.getSource();
+    if (itemFile != null) {
       try {
-        String name = resourceItem.getFile().getName();
+        String name = itemFile.getFileName();
         PsiDirectory dir = getOrCreateTargetDirectory(base, resourceItem);
         if (dir != null) {
           PsiFile result = dir.findFile(name);
