@@ -123,7 +123,8 @@ public class GradleSpecificInitializer implements Runnable {
       checkAndSetAndroidSdkSources();
     }
 
-    registerAppClosing();
+    // The Gradle plugin takes care of shutting down daemons in GradleCleanupService
+    //registerAppClosing();
 
     // Always reset the Default scheme to match Android standards
     // User modifications won't be lost since they are made in a separate scheme (copied off of this default scheme)
