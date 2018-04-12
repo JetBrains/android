@@ -121,8 +121,12 @@ class HorizontalSpinner<T> private constructor(_model: ListModel<T>) : AdtPrimar
     get() = _selectedIndex
 
   private var _selectedIndex: Int = -1
-  private val leftButton = JButton(AllIcons.Actions.Left)
-  private val rightButton = JButton(AllIcons.Actions.Right)
+  private val leftButton = JButton(AllIcons.Actions.Left).apply {
+    name = "prev"
+  }
+  private val rightButton = JButton(AllIcons.Actions.Right).apply {
+    name = "next"
+  }
   private var cell: Component? = null
   private val dataListener = object : ListDataListener {
     override fun contentsChanged(e: ListDataEvent?) = innerSetSelectedIndex(_selectedIndex)
