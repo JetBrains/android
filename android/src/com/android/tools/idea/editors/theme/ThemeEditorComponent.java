@@ -36,6 +36,7 @@ import com.android.tools.idea.editors.theme.preview.ThemePreviewComponent;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
+import com.android.tools.idea.ui.MaterialColors;
 import com.google.common.collect.*;
 import com.intellij.find.FindManager;
 import com.intellij.openapi.Disposable;

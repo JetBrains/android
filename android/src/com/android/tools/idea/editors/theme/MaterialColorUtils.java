@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.theme;
 
+import com.android.tools.idea.ui.MaterialColors;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
@@ -410,7 +411,7 @@ public class MaterialColorUtils {
    * taken from: http://www.compuphase.com/cmetric.htm
    */
   public static float colorDistance(Color c1, Color c2) {
-    double rmean = (c1.getRed() + c2.getRed()) / 2;
+    double rmean = (c1.getRed() + c2.getRed()) / 2.0;
     int r = c1.getRed() - c2.getRed();
     int g = c1.getGreen() - c2.getGreen();
     int b = c1.getBlue() - c2.getBlue();
