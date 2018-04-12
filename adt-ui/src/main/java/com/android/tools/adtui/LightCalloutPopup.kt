@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui
 
+import com.android.tools.adtui.common.secondaryPanelBackground
 import com.intellij.openapi.ui.popup.Balloon
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.JBPopupListener
@@ -62,7 +63,8 @@ class LightCalloutPopup(
         override fun onClosed(event: LightweightWindowEvent?) {
           if (event?.isOk == true) {
             closedCallback?.invoke()
-          } else {
+          }
+          else {
             cancelCallBack?.invoke()
           }
         }
@@ -83,9 +85,9 @@ class LightCalloutPopup(
 
   private fun createPopup(component: JComponent) =
     JBPopupFactory.getInstance().createBalloonBuilder(component)
-      .setFillColor(JBColor.WHITE)
+      .setFillColor(secondaryPanelBackground)
       .setBorderColor(JBColor.border())
-      .setBorderInsets(JBUI.insets(2))
+      .setBorderInsets(JBUI.insets(1))
       .setAnimationCycle(Registry.intValue("ide.tooltip.animationCycle"))
       .setShowCallout(true)
       .setPositionChangeYShift(2)
