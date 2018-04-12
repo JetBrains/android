@@ -57,7 +57,9 @@ public class EnergyDetailsView extends JPanel {
     detailsPanel.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     myDetailsOverview.setBackground(null);
     myCallstackView.setBackground(null);
-    myTabsPanel.addTab("Details", new JBScrollPane(detailsPanel));
+    JBScrollPane detailsScrollPane = new JBScrollPane(detailsPanel);
+    detailsScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+    myTabsPanel.addTab("Details", detailsScrollPane);
 
     CloseButton closeButton = new CloseButton(e -> stageView.getStage().setSelectedDuration(null));
     rootPanel.add(closeButton, new TabularLayout.Constraint(0, 1));

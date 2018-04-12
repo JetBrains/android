@@ -16,6 +16,7 @@
 package com.android.tools.profilers.network.details;
 
 import com.android.tools.adtui.TreeWalker;
+import com.android.tools.adtui.ui.BreakWordWrapHtmlTextPane;
 import com.android.tools.adtui.ui.HideablePanel;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.components.JBScrollPane;
@@ -132,7 +133,7 @@ final class TabUiUtils {
     htmlTextPane.setBackground(null);
     htmlTextPane.setEditable(false);
     htmlTextPane.setContentType("text/html");
-    HTMLEditorKit editorKit = new BreakWordWrapHTMLEditorKit();
+    HTMLEditorKit editorKit = new BreakWordWrapHtmlTextPane.BreakWordWrapHTMLEditorKit();
     htmlTextPane.setEditorKit(editorKit);
     StyleSheet styleSheet = editorKit.getStyleSheet();
     Font labelFont = UIManager.getFont("Label.font");
@@ -269,66 +270,6 @@ final class TabUiUtils {
                                  e.getScrollType(),
                                  e.getScrollAmount(),
                                  e.getWheelRotation());
-    }
-  }
-
-  /**
-   * Customized HTML editor kit for {@link JEditorPane}, which make words content can be wrapped in the middle of word instead of space.
-   *
-   * See <a href="http://java-sl.com/tip_html_letter_wrap.html">this article</a> for more details.
-   */
-  private static class BreakWordWrapHTMLEditorKit extends HTMLEditorKit {
-
-    @Override
-    public ViewFactory getViewFactory() {
-      return new HTMLFactory() {
-
-        @Override
-        public View create(Element e) {
-          View v = super.create(e);
-          if (v instanceof InlineView) {
-            return new InlineView(e) {
-              @Override
-              public int getBreakWeight(int axis, float pos, float len) {
-                return GoodBreakWeight;
-              }
-
-              @Override
-              public View breakView(int axis, int p0, float pos, float len) {
-                if (axis == View.X_AXIS) {
-                  checkPainter();
-                  int p1 = getGlyphPainter().getBoundedPosition(this, p0, pos, len);
-                  if (p0 == getStartOffset() && p1 == getEndOffset()) {
-                    return this;
-                  }
-                  return createFragment(p0, p1);
-                }
-                return this;
-              }
-            };
-          }
-          else if (v instanceof ParagraphView) {
-            return new ParagraphView(e) {
-
-              @Override
-              protected SizeRequirements calculateMinorAxisRequirements(int axis, SizeRequirements r) {
-                if (r == null) {
-                  r = new SizeRequirements();
-                }
-                float pref = layoutPool.getPreferredSpan(axis);
-                float min = layoutPool.getMinimumSpan(axis);
-                // Don't include insets, Box.getXXXSpan will include them.
-                r.minimum = (int)min;
-                r.preferred = Math.max(r.minimum, (int)pref);
-                r.maximum = Integer.MAX_VALUE;
-                r.alignment = 0.5f;
-                return r;
-              }
-            };
-          }
-          return v;
-        }
-      };
     }
   }
 }

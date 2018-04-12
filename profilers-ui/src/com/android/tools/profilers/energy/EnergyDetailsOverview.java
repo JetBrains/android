@@ -15,8 +15,8 @@
  */
 package com.android.tools.profilers.energy;
 
+import com.android.tools.adtui.ui.BreakWordWrapHtmlTextPane;
 import com.android.tools.profiler.proto.EnergyProfiler;
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ui.JBEmptyBorder;
@@ -24,27 +24,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.text.html.HTMLDocument;
-import javax.swing.text.html.StyleSheet;
 import java.awt.*;
 import java.util.concurrent.TimeUnit;
 
 final class EnergyDetailsOverview extends JPanel {
 
-  @NotNull private final JTextPane myTextPane = new JTextPane();
+  @NotNull private final JTextPane myTextPane;
 
   public EnergyDetailsOverview() {
     super(new BorderLayout());
     setBorder(new JBEmptyBorder(5, 5, 5, 0));
-
-    myTextPane.setContentType("text/html");
-    myTextPane.setBackground(null);
-    myTextPane.setBorder(null);
-    myTextPane.setEditable(false);
-    Font labelFont = UIManager.getFont("Label.font");
-    StyleSheet styleSheet = ((HTMLDocument)myTextPane.getDocument()).getStyleSheet();
-    styleSheet.addRule("body { font-family: " + labelFont.getFamily() + "; font-size: 13pt; }");
-    styleSheet.addRule("p { margin: 4 0 4 0; }");
+    myTextPane = new BreakWordWrapHtmlTextPane();
     add(myTextPane);
   }
 
