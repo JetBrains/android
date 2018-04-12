@@ -68,10 +68,10 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     SplitsModel splits = android.splits();
 
     AbiModel abi = splits.abi();
-    abi.setEnable(false);
-    abi.replaceExclude("abi-exclude-2", "abi-exclude-3");
-    abi.replaceInclude("abi-include-2", "abi-include-3");
-    abi.setUniversalApk(true);
+    abi.enable().setValue(false);
+    abi.exclude().getListValue("abi-exclude-2").setValue("abi-exclude-3");
+    abi.include().getListValue("abi-include-2").setValue("abi-include-3");
+    abi.universalApk().setValue(true);
 
     DensityModel density = splits.density();
     density.setAuto(true);
@@ -123,10 +123,13 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     SplitsModel splits = android.splits();
 
     AbiModel abi = splits.abi();
-    abi.setEnable(true);
-    abi.addExclude("abi-exclude");
-    abi.addInclude("abi-include");
-    abi.setUniversalApk(false);
+    abi.enable().setValue(true);
+    abi.exclude().addListValue().setValue("abi-exclude");
+    abi.include().addListValue().setValue("abi-include");
+    abi.universalApk().setValue(false);
+
+    abi.exclude().setValue("abi-exclude");
+
 
     DensityModel density = splits.density();
     density.setAuto(false);
@@ -175,10 +178,10 @@ public class SplitsModelTest extends GradleFileModelTestCase {
 
     AbiModel abi = splits.abi();
     assertTrue(hasPsiElement(abi));
-    abi.removeEnable();
-    abi.removeAllExclude();
-    abi.removeAllInclude();
-    abi.removeUniversalApk();
+    abi.enable().delete();
+    abi.exclude().delete();
+    abi.include().delete();
+    abi.universalApk().delete();
 
     DensityModel density = splits.density();
     assertTrue(hasPsiElement(density));
@@ -230,10 +233,10 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     SplitsModel splits = android.splits();
 
     AbiModel abi = splits.abi();
-    assertNull("enable", abi.enable());
-    assertNull("exclude", abi.exclude());
-    assertNull("include", abi.include());
-    assertNull("universalApk", abi.universalApk());
+    assertMissingProperty("enable", abi.enable());
+    assertMissingProperty("exclude", abi.exclude());
+    assertMissingProperty("include", abi.include());
+    assertMissingProperty("universalApk", abi.universalApk());
     assertFalse(hasPsiElement(abi));
 
     DensityModel density = splits.density();
@@ -326,8 +329,8 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     LanguageModel language = splits.language();
     assertEquals("include", ImmutableList.of("language-include-1", "language-include-2"), language.include());
 
-    abi.removeExclude("abi-exclude-1");
-    abi.removeInclude("abi-include-2");
+    abi.exclude().getListValue("abi-exclude-1").delete();
+    abi.include().getListValue("abi-include-2").delete();
     density.removeCompatibleScreen("screen1");
     density.removeExclude("density-exclude-2");
     density.removeInclude("density-include-1");
@@ -393,8 +396,8 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     assertTrue(hasPsiElement(language));
     assertEquals("include", ImmutableList.of("language-include"), language.include());
 
-    abi.removeExclude("abi-exclude");
-    abi.removeInclude("abi-include");
+    abi.exclude().getListValue("abi-exclude").delete();
+    abi.include().getListValue("abi-include").delete();
     density.removeCompatibleScreen("screen");
     density.removeExclude("density-exclude");
     density.removeInclude("density-include");
@@ -406,8 +409,8 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     splits = android.splits();
 
     abi = splits.abi();
-    assertNull("exclude", abi.exclude());
-    assertNull("include", abi.include());
+    assertMissingProperty("exclude", abi.exclude());
+    assertMissingProperty("include", abi.include());
     assertFalse(hasPsiElement(abi));
 
     density = splits.density();
@@ -442,7 +445,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
     SplitsModel splits = android.splits();
-    assertNull("abi-include", splits.abi().include());
+    assertMissingProperty("abi-include", splits.abi().include());
     assertNull("density-include", splits.density().include());
   }
 
@@ -525,7 +528,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     android = buildModel.android();
     assertNotNull(android);
     splits = android.splits();
-    assertNull("abi-include", splits.abi().include());
+    assertMissingProperty("abi-include", splits.abi().include());
     assertNull("density-include", splits.density().include());
   }
 
@@ -550,7 +553,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     AndroidModel android = buildModel.android();
     assertNotNull(android);
     SplitsModel splits = android.splits();
-    assertNull("abi-include", splits.abi().include());
+    assertMissingProperty("abi-include", splits.abi().include());
     assertNull("density-include", splits.density().include());
 
     splits.abi().removeReset();
