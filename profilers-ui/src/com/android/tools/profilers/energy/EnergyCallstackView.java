@@ -20,11 +20,13 @@ import com.android.tools.adtui.ui.HideablePanel;
 import com.android.tools.profiler.proto.EnergyProfiler;
 import com.android.tools.profilers.stacktrace.*;
 import com.intellij.openapi.ui.VerticalFlowLayout;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBEmptyBorder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -50,7 +52,7 @@ public final class EnergyCallstackView extends JPanel {
     List<HideablePanel> callstackList = new ArrayList<>();
     long startTimeNs = myStageView.getStage().getStudioProfilers().getSession().getStartTimestamp();
     for (EnergyProfiler.EnergyEvent event : duration.getEventList()) {
-      if (event.getTraceId().isEmpty() || getMetadataName(event.getMetadataCase()).isEmpty()) {
+      if (event.getTraceId().isEmpty() || EnergyDuration.getMetadataName(event.getMetadataCase()).isEmpty()) {
         continue;
       }
 
@@ -59,14 +61,25 @@ public final class EnergyCallstackView extends JPanel {
       StackTraceView stackTraceView = myStageView.getIdeComponents().createStackView(model);
       stackTraceView.getModel().setStackFrames(callstackString);
       JComponent traceComponent = stackTraceView.getComponent();
+      // Sets a border on the ListView so the horizontal scroll bar doesn't hide the bottom of the content. Also the ListView cannot resize
+      // properly when the scroll pane resize, wrap it in a JPanel. So move the list view out of the original scroll pane.
       if (traceComponent instanceof JScrollPane) {
-        ((JScrollPane) traceComponent).setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+        traceComponent = (JComponent) ((JScrollPane)traceComponent).getViewport().getComponent(0);
+        traceComponent.setBorder(new JBEmptyBorder(0, 0, 10, 0));
+        JPanel wrapperPanel = new JPanel(new BorderLayout());
+        wrapperPanel.add(traceComponent, BorderLayout.CENTER);
+        wrapperPanel.setBackground(traceComponent.getBackground());
+        traceComponent = new JBScrollPane(wrapperPanel,
+                                          ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
       }
 
       String time = TimeAxisFormatter.DEFAULT.getClockFormattedString(TimeUnit.NANOSECONDS.toMicros(event.getTimestamp() - startTimeNs));
-      String description = time + "&nbsp;&nbsp;" + getMetadataName(event.getMetadataCase());
-      HideablePanel hideablePanel = new HideablePanel.Builder(description, traceComponent).build();
-      hideablePanel.setBorder(new JBEmptyBorder(0, 0, 5, 0));
+      String description = time + "&nbsp;&nbsp;" + EnergyDuration.getMetadataName(event.getMetadataCase());
+      HideablePanel hideablePanel = new HideablePanel.Builder(description, traceComponent)
+        .setContentBorder(new JBEmptyBorder(5, 0, 0, 0))
+        .setPanelBorder(new JBEmptyBorder(0, 0, 0, 0))
+        .setTitleRightPadding(0)
+        .build();
       // Make the call stack hideable panel use the parent component's background.
       hideablePanel.setBackground(null);
       callstackList.add(hideablePanel);
@@ -79,29 +92,5 @@ public final class EnergyCallstackView extends JPanel {
     label.setBorder(new JBEmptyBorder(0, 0, 5, 0));
     add(label);
     callstackList.forEach(c -> add(c));
-  }
-
-  @NotNull
-  private static String getMetadataName(EnergyProfiler.EnergyEvent.MetadataCase metadataCase) {
-    switch (metadataCase) {
-      case WAKE_LOCK_ACQUIRED:
-        return "Acquired";
-      case WAKE_LOCK_RELEASED:
-        return "Released";
-      case ALARM_SET:
-        return "Set";
-      case ALARM_CANCELLED:
-        return "Cancelled";
-      case JOB_SCHEDULED:
-        return "Scheduled";
-      case JOB_FINISHED:
-        return "Finished";
-      case LOCATION_UPDATE_REQUESTED:
-        return "Requested";
-      case LOCATION_UPDATE_REMOVED:
-        return "Removed";
-      default:
-        return "";
-    }
   }
 }
