@@ -333,6 +333,17 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
+java_test(
+    name = "CompileWithJava8Test",
+    data = COMMON_DATA + glob([
+        "testData/MinSdk24App/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.java8.CompileWithJava8Test"],
+    tags = COMMON_TAGS + ["no_psq"],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
 genrule(
     name = "aswb_plugin",
     srcs = ["@blaze//third_party/intellij/bazel/plugin/aswb:aswb_bazel_zip"],
