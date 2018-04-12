@@ -145,7 +145,7 @@ public class NlXmlPropertyBuilder {
   @Nullable
   private static ResourceItem findUserDefinedResourceItem(@NotNull LocalResourceRepository resourceRepository,
                                                           @NotNull ResourceValue resource) {
-    if (resource.isFramework() || resource.getLibraryName() != null || resource.getResourceType() == null) {
+    if (resource.isFramework() || resource.getLibraryName() != null) {
       return null;
     }
     List<ResourceItem> items = resourceRepository.getResourceItem(resource.getResourceType(), resource.getName());
@@ -163,15 +163,15 @@ public class NlXmlPropertyBuilder {
   @NotNull
   private static String generateHeader(@NotNull ResourceValue resource, @Nullable ResourceItem item) {
     ResourceType resourceType = resource.getResourceType();
-    String type = resourceType != null ? "<" + resource.getResourceType().getName() + ">" : "<style>";
+    String type = "<" + resource.getResourceType().getName() + ">";
     if (resource.isFramework()) {
       return "android " + type;
     }
     if (!StringUtil.isEmpty(resource.getLibraryName())) {
       return formatLibraryName(resource.getLibraryName()) + " " + type;
     }
-    if (item != null && item.getFile() != null) {
-      return generateFileHeader(item.getFile().getPath());
+    if (item != null && item.getSource() != null) {
+      return generateFileHeader(item.getSource().getNativePath());
     }
     return type;
   }

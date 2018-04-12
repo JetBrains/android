@@ -25,12 +25,12 @@ import com.android.ide.common.resources.ResourceItemResolver;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.ide.common.util.PathString;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
@@ -275,9 +275,12 @@ public class AndroidColorAnnotator implements Annotator {
               if (densityQualifier != null) {
                 Density density = densityQualifier.getValue();
                 if (density != null && density.isValidValueForDevice()) {
-                  File bitmap = item.getFile();
-                  if (bitmap != null && bitmap.isFile()) {
-                    return bitmap;
+                  PathString itemFile = item.getSource();
+                  if (itemFile != null) {
+                    File bitmap = itemFile.toFile();
+                    if (bitmap != null && bitmap.isFile()) {
+                      return bitmap;
+                    }
                   }
                 }
               }

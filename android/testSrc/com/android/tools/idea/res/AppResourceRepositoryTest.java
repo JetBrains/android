@@ -155,7 +155,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
       assertTrue(appResources.hasResourceItem(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
       assertTrue(projectResources.hasResourceItem(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
       ResourceItem newItem = ModuleResourceRepositoryTest.getFirstItem(appResources, ResourceType.ID, "btn_title_refresh");
-      assertNotNull(newItem.getFile());
+      assertNotNull(newItem.getSource());
       // However, should be a different item
       assertNotSame(item, newItem);
     });

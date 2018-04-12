@@ -147,7 +147,8 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
       List<ResourceItem> publicResources2 = new ArrayList<>(fromCache.getPublicResourcesOfType(type));
       assertEquals("Number of public resources doesn't match for type " + type.getName(),
                    publicResources.size(), publicResources2.size());
-      Comparator<ResourceItem> comparator = Comparator.comparing(ResourceItem::getName).thenComparing(ResourceItem::getFile);
+      Comparator<ResourceItem> comparator =
+          Comparator.comparing(ResourceItem::getName).thenComparing((ResourceItem item) -> item.getSource().getNativePath());
       publicResources.sort(comparator);
       publicResources2.sort(comparator);
       for (int i = 0; i < publicResources.size(); i++) {
@@ -172,8 +173,8 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
     if (!Objects.equals(item1.getLibraryName(), item2.getLibraryName())) {
       return false;
     }
-    DataFile source1 = item1.getSource();
-    DataFile source2 = item2.getSource();
+    DataFile source1 = item1.getSourceFile();
+    DataFile source2 = item2.getSourceFile();
     if (source1 == source2) {
       return true;
     }

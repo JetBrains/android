@@ -26,6 +26,7 @@ import com.android.ide.common.resources.ResourceFile;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceTable;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.ide.common.util.PathString;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -341,16 +342,10 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
             }
           }
         }
-        if (match instanceof PsiResourceItem) {
-          VirtualFile virtualFile = ((PsiResourceItem)match).getPsiFile().getVirtualFile();
-          if (virtualFile != null) {
-            output.add(virtualFile);
-          }
-        } else {
-          File ioFile = match.getFile();
-          if (ioFile != null) {
-            output.add(VfsUtil.findFileByIoFile(ioFile, false));
-          }
+
+        VirtualFile virtualFile = ResourceHelper.getSourceAsVirtualFile(match);
+        if (virtualFile != null) {
+          output.add(virtualFile);
         }
       }
     }
@@ -395,32 +390,13 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
       return psiResourceItem.getPsiFile();
     }
 
-    File file = item.getFile();
-    if (file != null) {
-      VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(file);
-      if (virtualFile != null) {
-        PsiManager psiManager = PsiManager.getInstance(project);
-        return psiManager.findFile(virtualFile);
-      }
+    VirtualFile virtualFile = ResourceHelper.getSourceAsVirtualFile(item);
+    if (virtualFile != null) {
+      PsiManager psiManager = PsiManager.getInstance(project);
+      return psiManager.findFile(virtualFile);
     }
 
     return null;
-  }
-
-  /** Returns the {@link VirtualFile} corresponding to the source of the given resource item, if possible. */
-  @Nullable
-  public static VirtualFile getItemVirtualFile(@NonNull ResourceItem item) {
-    if (item instanceof PsiResourceItem) {
-      PsiFile psiFile = ((PsiResourceItem)item).getPsiFile();
-      return psiFile == null ? null : psiFile.getVirtualFile();
-    }
-
-    File source = item.getFile();
-    if (source == null) { // Most likely a merged resource or a dynamically defined value.
-      return null;
-    }
-
-    return LocalFileSystem.getInstance().findFileByIoFile(source);
   }
 
   /**

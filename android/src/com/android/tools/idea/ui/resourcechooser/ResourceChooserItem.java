@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.SampleDataResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.SampleDataResourceItem;
 import com.google.common.collect.Iterables;
@@ -29,7 +30,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -68,7 +68,7 @@ public abstract class ResourceChooserItem {
   }
 
   @Nullable
-  public File getFile() {
+  public PathString getFile() {
     return null;
   }
 
@@ -161,15 +161,15 @@ public abstract class ResourceChooserItem {
 
     @Override
     @Nullable
-    public File getFile() {
-      return !myResourceItems.isEmpty() ? myResourceItems.get(0).getFile() : null;
+    public PathString getFile() {
+      return !myResourceItems.isEmpty() ? myResourceItems.get(0).getSource() : null;
     }
 
     @Override
     @Nullable
     public String getPath() {
-      File file = getFile();
-      return file != null ? file.getPath() : null;
+      PathString file = getFile();
+      return file != null ? file.getNativePath() : null;
     }
 
     @Override
@@ -177,9 +177,9 @@ public abstract class ResourceChooserItem {
     public String getFileForQualifiers(String qualifiers) {
       for (ResourceItem item : myResourceItems) {
         if (qualifiers.equals(item.getConfiguration().getQualifierString())) {
-          File file = item.getFile();
+          PathString file = item.getSource();
           if (file != null) {
-            return file.getPath();
+            return file.getNativePath();
           }
         }
       }

@@ -26,6 +26,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.ResourceQualifier;
+import com.android.ide.common.util.PathString;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
@@ -87,7 +88,8 @@ public class AndroidJavaDocRenderer {
 
   /** Renders the Javadoc for a resource of given type and name. If configuration is not null, it will be used to resolve the resource.  */
   @Nullable
-  public static String render(@NotNull Module module, @Nullable Configuration configuration, @NotNull ResourceType type, @NotNull String name, boolean framework) {
+  public static String render(@NotNull Module module, @Nullable Configuration configuration, @NotNull ResourceType type,
+                              @NotNull String name, boolean framework) {
     return render(module, configuration, ResourceUrl.create(type, name, framework));
   }
 
@@ -108,7 +110,7 @@ public class AndroidJavaDocRenderer {
 
     String valueDoc = renderer.render(url);
     if (url.isTheme()) {
-      String attrDoc = renderAttributeDoc(module, configuration, (url.isFramework() ? SdkConstants.ANDROID_NS_NAME_PREFIX : "") + url.name);
+      String attrDoc = renderAttributeDoc(module, configuration, (url.isFramework() ? ANDROID_NS_NAME_PREFIX : "") + url.name);
       if (valueDoc == null) {
         return attrDoc;
       }
@@ -428,10 +430,13 @@ public class AndroidJavaDocRenderer {
       ResourceNamespace namespace = isFramework ? ResourceNamespace.ANDROID : ResourceNamespace.TODO;
       List<ResourceItem> items = resources.getResourceItems(namespace, type, name);
       for (ResourceItem item : items) {
-        String folderName = "?";
-        File source = item.getFile();
+        String folderName = null;
+        PathString source = item.getSource();
         if (source != null) {
-          folderName = source.getParentFile().getName();
+          folderName = source.getParentFileName();
+        }
+        if (folderName == null) {
+          folderName = "?";
         }
         String folder = renderFolderName(folderName);
         ResourceValue value = item.getResourceValue();

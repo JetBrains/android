@@ -61,16 +61,16 @@ class PsiResourceFile constructor(
   override val folderConfiguration get() = _folderConfiguration
   override val virtualFile: VirtualFile? get() = _psiFile.virtualFile
   override fun iterator(): Iterator<PsiResourceItem> = _items.values().iterator()
-  override fun isSourceOf(item: ResourceItem): Boolean = (item as? PsiResourceItem)?.source == this
+  override fun isSourceOf(item: ResourceItem): Boolean = (item as? PsiResourceItem)?.sourceFile == this
 
   override fun addItem(item: PsiResourceItem) {
     // Setting the source first is important, since an item's key gets the folder configuration from the source (i.e. this).
-    item.source = this
+    item.sourceFile = this
     _items.put(item.key, item)
   }
 
   override fun removeItem(item: PsiResourceItem) {
-    item.source = null
+    item.sourceFile = null
     _items.remove(item.key, item)
   }
 
@@ -99,5 +99,5 @@ internal class ResourceFileAdapter(
   override fun iterator(): Iterator<ResourceMergerItem> = resourceFile.items.iterator()
   override fun addItem(item: ResourceMergerItem) = resourceFile.addItem(item)
   override fun removeItem(item: ResourceMergerItem) = resourceFile.removeItem(item)
-  override fun isSourceOf(item: ResourceItem): Boolean = (item as? ResourceMergerItem)?.source == resourceFile
+  override fun isSourceOf(item: ResourceItem): Boolean = (item as? ResourceMergerItem)?.sourceFile == resourceFile
 }

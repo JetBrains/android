@@ -20,6 +20,7 @@ import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItemResolver;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -177,9 +178,9 @@ public class ResourceDrawablePanel extends JBScrollPane implements ActionListene
       return ResourceType.MIPMAP.getDisplayName().toUpperCase(Locale.US); // uppercase for symmetry with other file types
     }
 
-    File file = item.getFile();
+    PathString file = item.getFile();
     if (file != null && item.getType() != ResourceType.COLOR) {
-      String extension = Files.getFileExtension(file.getName());
+      String extension = Files.getFileExtension(file.getFileName());
       if (!extension.isEmpty()) {
         return extension.toUpperCase(Locale.US);
       }

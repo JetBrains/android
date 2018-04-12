@@ -18,6 +18,7 @@ package org.jetbrains.android;
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.util.PathString;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -710,43 +711,45 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
         if (libraries == null) {
           libraries = ResourceRepositoryManager.findAarLibraries(facet);
         }
-        File sourceFile = item.getFile();
-        if (sourceFile != null) {
-
-          // TODO: Look up the corresponding AAR artifact, and then use library.getRequestedCoordinates() or
-          // library.getResolvedCoordinates() here and append the coordinate. However, until b.android.com/77341
-          // is fixed this doesn't work.
-          /*
-          // Attempt to find the corresponding AAR artifact
-          AndroidLibrary library = null;
-          for (AndroidLibrary l : libraries) {
-            File res = l.getResFolder();
-            if (res.exists() && FileUtil.isAncestor(res, sourceFile, true)) {
-              library = l;
-              break;
+        PathString source = item.getSource();
+        if (source != null) {
+          File sourceFile = source.toFile();
+          if (sourceFile != null) {
+            // TODO: Look up the corresponding AAR artifact, and then use library.getRequestedCoordinates() or
+            // library.getResolvedCoordinates() here and append the coordinate. However, until b.android.com/77341
+            // is fixed this doesn't work.
+            /*
+            // Attempt to find the corresponding AAR artifact
+            AndroidLibrary library = null;
+            for (AndroidLibrary l : libraries) {
+              File res = l.getResFolder();
+              if (res.exists() && FileUtil.isAncestor(res, sourceFile, true)) {
+                library = l;
+                break;
+              }
             }
-          }
-          */
+            */
 
-          // Look for exploded-aar and strip off the prefix path to it
-          File localRoot = root;
-          File prev = sourceFile;
-          File current = sourceFile.getParentFile();
-          while (current != null) {
-            String name = current.getName();
-            if (FilenameConstants.EXPLODED_AAR.equals(name)) {
-              localRoot = prev;
-              break;
+            // Look for exploded-aar and strip off the prefix path to it
+            File localRoot = root;
+            File prev = sourceFile;
+            File current = sourceFile.getParentFile();
+            while (current != null) {
+              String name = current.getName();
+              if (FilenameConstants.EXPLODED_AAR.equals(name)) {
+                localRoot = prev;
+                break;
+              }
+              prev = current;
+              current = current.getParentFile();
             }
-            prev = current;
-            current = current.getParentFile();
-          }
 
-          if (FileUtil.isAncestor(localRoot, sourceFile, true)) {
-            descriptions.add(FileUtil.getRelativePath(localRoot, sourceFile));
-          }
-          else {
-            descriptions.add(sourceFile.getPath());
+            if (FileUtil.isAncestor(localRoot, sourceFile, true)) {
+              descriptions.add(FileUtil.getRelativePath(localRoot, sourceFile));
+            }
+            else {
+              descriptions.add(sourceFile.getPath());
+            }
           }
         }
       }

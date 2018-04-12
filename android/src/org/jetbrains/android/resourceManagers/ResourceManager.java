@@ -21,7 +21,7 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.application.ApplicationManager;
@@ -32,7 +32,6 @@ import com.intellij.psi.*;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.containers.HashSet;
 import com.intellij.util.containers.Predicate;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.resources.ResourceElement;
@@ -243,7 +242,7 @@ public abstract class ResourceManager {
     for (AbstractResourceRepository repository : getLeafResourceRepositories()) {
       List<ResourceItem> items = repository.getResourceItems(namespace, ResourceType.ID, id);
       for (ResourceItem item : items) {
-        VirtualFile file = LocalResourceRepository.getItemVirtualFile(item);
+        VirtualFile file = ResourceHelper.getSourceAsVirtualFile(item);
         if (file != null) {
           files.add(file);
         }
@@ -379,7 +378,7 @@ public abstract class ResourceManager {
         items = repository.getResourceItems(namespace, resourceType, name -> AndroidUtils.equal(resourceName, name, false));
       }
       for (ResourceItem item : items) {
-        VirtualFile file = LocalResourceRepository.getItemVirtualFile(item);
+        VirtualFile file = ResourceHelper.getSourceAsVirtualFile(item);
         if (file != null && isValueResourceFile(file)) {
           result.add(new ValueResourceInfoImpl(item, file, myProject));
         }

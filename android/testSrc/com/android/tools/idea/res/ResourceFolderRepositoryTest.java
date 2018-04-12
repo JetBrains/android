@@ -446,7 +446,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(items);
     assertEquals(1, items.size());
     ResourceItem item = items.get(0);
-    assertEquals("myvalues.xml", item.getFile().getName());
+    assertEquals("myvalues.xml", item.getSource().getFileName());
 
     // We need to make sure there is a document. PsiVFSListener uses createFileCopyWithNewName
     // to populate the new Psi file with the old Psi file's content. However, by the time that runs,
@@ -474,7 +474,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(items);
     assertEquals(1, items.size());
     item = items.get(0);
-    assertEquals("renamedvalues.xml", item.getFile().getName());
+    assertEquals("renamedvalues.xml", item.getSource().getFileName());
 
     // TODO: Optimize this such that there's no modification change for this. It's tricky because
     // for file names we get separate notification from the old file deletion (beforePropertyChanged)
@@ -529,7 +529,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceItem item = getOnlyItem(resources, ResourceType.LAYOUT, "layout1");
     assertEquals("land", item.getConfiguration().getQualifierString());
     ResourceItem idItem = getOnlyItem(resources, ResourceType.ID, "btn_title_refresh");
-    assertEquals("layout-land", idItem.getFile().getParentFile().getName());
+    assertEquals("layout-land", idItem.getSource().getParentFileName());
 
     long generation = resources.getModificationCount();
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
@@ -549,7 +549,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     item = getOnlyItem(resources, ResourceType.LAYOUT, "layout1");
     assertEquals("port", item.getConfiguration().getQualifierString());
     idItem = getOnlyItem(resources, ResourceType.ID, "btn_title_refresh");
-    assertEquals("layout-port", idItem.getFile().getParentFile().getName());
+    assertEquals("layout-port", idItem.getSource().getParentFileName());
   }
 
   public void testMoveValueResourceFileToNewConfiguration() {
@@ -659,7 +659,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResourceItem(ResourceType.MENU, "layout1"));
     assertFalse(resources.hasResourceItem(ResourceType.LAYOUT, "layout1"));
     ResourceItem item = getOnlyItem(resources, ResourceType.MENU, "layout1");
-    assertSame(ResourceFolderType.MENU, ((PsiResourceItem)item).getSource().getFolderType());
+    assertSame(ResourceFolderType.MENU, ((PsiResourceItem)item).getSourceFile().getFolderType());
   }
 
   public void testMoveOutOfResourceFolder() {
