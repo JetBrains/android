@@ -81,7 +81,7 @@ class PsAndroidModuleDependencyCollection(parent: PsAndroidModule) : PsAndroidDe
       libraryDependenciesBySpec.put(declaredDependency.spec.toLibraryKey(), declaredDependency)
     }
     parsedDependencies.forEachModuleDependency { moduleDependency ->
-      val gradlePath = moduleDependency.path().value()
+      val gradlePath = moduleDependency.path().forceString()
       val artifacts = artifactsByConfigurationNames[moduleDependency.configurationName()] ?: listOf()
       moduleDependenciesByGradlePath.put(
         gradlePath, PsDeclaredModuleAndroidDependency(

@@ -56,11 +56,9 @@ public class GradleProjectDependencyParser {
       Set<String> result = Sets.newHashSet();
       GradleBuildModel buildModel = parseBuildFile(buildFile, project);
       DependenciesModel dependenciesModel = buildModel.dependencies();
-      if (dependenciesModel != null) {
-        for (ModuleDependencyModel dependency : dependenciesModel.modules()) {
-          String modulePath = dependency.path().value();
-          result.add(modulePath);
-        }
+      for (ModuleDependencyModel dependency : dependenciesModel.modules()) {
+        String modulePath = dependency.path().forceString();
+        result.add(modulePath);
       }
       return result;
     }
