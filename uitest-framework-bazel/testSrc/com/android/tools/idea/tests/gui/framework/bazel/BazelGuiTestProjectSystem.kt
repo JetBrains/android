@@ -84,7 +84,7 @@ class BazelGuiTestProjectSystem : GuiTestProjectSystem {
   }
 
   override fun requestProjectSync(ideFrameFixture: IdeFrameFixture): GuiTestProjectSystem {
-    BazelConsoleToolWindowFixture(ideFrameFixture.project, ideFrameFixture.robot()).clearBazelConsole()
+    BazelConsoleToolWindowFixture(ideFrameFixture.project, ideFrameFixture.robot()).clearBazelConsole(ideFrameFixture)
 
     logger.info("Requesting project sync.")
     ideFrameFixture.invokeMenuPath("Bazel", "Sync", "Sync Project with BUILD Files")

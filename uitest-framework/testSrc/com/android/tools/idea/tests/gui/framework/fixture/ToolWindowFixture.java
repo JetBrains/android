@@ -148,8 +148,12 @@ public abstract class ToolWindowFixture {
 
   protected ToolWindowFixture waitUntilIsVisible(long secondsToWait) {
     Wait.seconds(secondsToWait).expecting("ToolWindow '" + myToolWindowId + "' to be visible")
-      .until(() -> GuiQuery.getNonNull(
-        () -> myToolWindow.isVisible() && myToolWindow.getComponent().isVisible() && myToolWindow.getComponent().isShowing()));
+      .until(this::isVisible);
     return this;
+  }
+
+  protected  boolean isVisible() {
+    return GuiQuery.getNonNull(
+      () -> myToolWindow.isVisible() && myToolWindow.getComponent().isVisible() && myToolWindow.getComponent().isShowing());
   }
 }

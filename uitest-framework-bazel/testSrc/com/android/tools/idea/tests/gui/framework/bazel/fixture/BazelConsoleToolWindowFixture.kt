@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.bazel.fixture
 
 import com.android.tools.idea.tests.gui.framework.GuiTests
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.google.common.base.Verify
@@ -58,9 +59,11 @@ class BazelConsoleToolWindowFixture(project: Project, robot: Robot) :  ToolWindo
     false
   }
 
-  fun clearBazelConsole() {
-    activate()
-    waitUntilIsVisible()
+  fun clearBazelConsole(ideFrame: IdeFrameFixture) {
+    if (!isVisible) {
+      ideFrame.invokeMenuPath("View", "Tool Windows", "Bazel Console")
+      waitUntilIsVisible()
+    }
     myRobot.rightClick(content.component)
     myRobot.click(GuiTests.waitUntilShowing(myRobot, null, Matchers.byText(JMenuItem::class.java, "Clear All")))
   }
