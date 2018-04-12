@@ -17,11 +17,11 @@ package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.builder.model.AndroidProject.ARTIFACT_MAIN
 import com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST
+import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.openapi.project.Project
-import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.CoreMatchers.notNullValue
+import org.hamcrest.CoreMatchers.*
 import org.junit.Assert.assertThat
 
 class PsModuleAndroidDependencyTest : DependencyTestCase() {
@@ -68,5 +68,25 @@ class PsModuleAndroidDependencyTest : DependencyTestCase() {
     assertThat(referredArtifact, notNullValue())
     assertThat(referredArtifact!!.parent.name, equalTo("freeRelease"))
     assertThat(referredArtifact.resolvedName, equalTo(ARTIFACT_MAIN))
+  }
+
+  fun testDeclaredDependenciesReindexed() {
+    val appModule = project.findModuleByName("mainModule") as PsAndroidModule
+
+    fun findLib(name: String, version: String) =
+      appModule.dependencies
+        .findLibraryDependencies("com.example.libs", name)
+        .find { (it as? PsLibraryDependency)?.spec?.version == version } as? PsDeclaredLibraryAndroidDependency
+
+    val releaseImplementationLib1 = findLib("lib1", "0.9.1")
+
+    assertThat(releaseImplementationLib1, notNullValue())
+
+    // Make a change that requires re-indexing.
+    releaseImplementationLib1!!.parsedModel.name().setValue("lib2")
+    appModule.dependencies.reindex()
+
+    assertThat(findLib("lib1", "0.9.1"), nullValue())
+    assertThat(findLib("lib2", "0.9.1"), notNullValue())
   }
 }

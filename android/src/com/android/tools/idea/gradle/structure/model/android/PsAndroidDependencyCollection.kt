@@ -62,20 +62,23 @@ class PsAndroidModuleDependencyCollection(parent: PsAndroidModule) : PsAndroidDe
     collectParsedDependencies(parent.parsedDependencies)
   }
 
+  fun reindex() {
+    val libraryDependencies = libraryDependenciesBySpec.values().toList()
+    val moduleDependencies = moduleDependenciesByGradlePath.values().toList()
+
+    libraryDependenciesBySpec.clear()
+    libraryDependencies.forEach { libraryDependenciesBySpec.put(it.spec.toLibraryKey(), it) }
+
+    moduleDependenciesByGradlePath.clear()
+    moduleDependencies.forEach { moduleDependenciesByGradlePath.put(it.gradlePath, it) }
+  }
+
   private fun collectParsedDependencies(parsedDependencies: PsParsedDependencies) {
     val artifactsByConfigurationNames = buildArtifactsByConfigurations()
     parsedDependencies.forEachLibraryDependency { libraryDependency ->
-      val spec = PsArtifactDependencySpec(
-        libraryDependency.name().toString(),
-        libraryDependency.group().toString(),
-        libraryDependency.version().toString()
-      )
       val artifacts = artifactsByConfigurationNames[libraryDependency.configurationName()] ?: listOf()
-      libraryDependenciesBySpec.put(
-        spec.toLibraryKey(), PsDeclaredLibraryAndroidDependency(
-          parent, spec, artifacts, libraryDependency
-        )
-      )
+      val declaredDependency = PsDeclaredLibraryAndroidDependency(parent, artifacts, libraryDependency)
+      libraryDependenciesBySpec.put(declaredDependency.spec.toLibraryKey(), declaredDependency)
     }
     parsedDependencies.forEachModuleDependency { moduleDependency ->
       val gradlePath = moduleDependency.path().value()
