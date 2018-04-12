@@ -231,7 +231,15 @@ class PsAndroidModule(
     signingConfigCollection ?: PsSigningConfigCollection(this).also { signingConfigCollection = it }
 
   private fun resetDependencies() {
-    dependencyCollection = null
+    resetDeclaredDependencies()
+    resetResolvedDependencies()
+  }
+
+  internal fun resetResolvedDependencies() {
     variants.forEach { variant -> variant.forEachArtifact { artifact -> artifact.resetDependencies() } }
+  }
+
+  private fun resetDeclaredDependencies() {
+    dependencyCollection = null
   }
 }

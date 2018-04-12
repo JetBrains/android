@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
+import com.android.tools.idea.gradle.structure.model.meta.ModelSimpleProperty
+
 interface PsLibraryDependency : PsBaseDependency {
   val parent: PsModule
 
@@ -23,7 +25,9 @@ interface PsLibraryDependency : PsBaseDependency {
   var isModified: Boolean
 }
 
-interface PsDeclaredLibraryDependency: PsLibraryDependency, PsDeclaredDependency
+interface PsDeclaredLibraryDependency: PsLibraryDependency, PsDeclaredDependency {
+  val versionProperty: ModelSimpleProperty<Unit, String>
+}
 
 interface PsResolvedLibraryDependency : PsLibraryDependency, PsResolvedDependency {
   fun hasPromotedVersion(): Boolean
