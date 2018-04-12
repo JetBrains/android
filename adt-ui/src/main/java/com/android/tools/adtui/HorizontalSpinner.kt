@@ -42,8 +42,8 @@ private fun setupArrowUI(button: JButton, newBorder: Border, icon: Icon): JButto
     isContentAreaFilled = false
     isFocusPainted = false
     isOpaque = false
-    minimumSize = JBUI.size(icon.iconWidth + 10)
-    preferredSize = JBUI.size(icon.iconWidth + 10)
+    minimumSize = JBUI.size(icon.iconWidth)
+    preferredSize = JBUI.size(icon.iconWidth)
     border = newBorder
   }
 
