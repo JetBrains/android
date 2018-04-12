@@ -17,9 +17,8 @@ package com.android.tools.idea.res;
 
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.resources.DataFile;
+import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.ResourceMergerItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
@@ -28,7 +27,6 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
@@ -122,45 +120,51 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
     }
   }
 
-  private static void compareContents(@NotNull FrameworkResourceRepository fromSourceFiles,
-                                      @NotNull FrameworkResourceRepository fromCache) {
-    @SuppressWarnings("unchecked") // We know that items in FrameworkResourceRepository are ResourceMergerItems.
-    List<ResourceMergerItem> resourceItems = (List) fromSourceFiles.getAllResourceItems();
+  private static void compareContents(@NotNull AbstractResourceRepository expected, @NotNull AbstractResourceRepository actual) {
+    List<ResourceItem> expectedItems = new ArrayList<>(expected.getAllResourceItems());
+    List<ResourceItem> actualItems = new ArrayList<>(actual.getAllResourceItems());
 
-    @SuppressWarnings("unchecked") // We know that items in FrameworkResourceRepository are ResourceMergerItems.
-    List<ResourceMergerItem> cacheResourceItems = (List) fromCache.getAllResourceItems();
-
-    Collections.sort(resourceItems);
-    Collections.sort(cacheResourceItems);
-    assertEquals(resourceItems.size(), cacheResourceItems.size());
-    for (int i = 0; i < resourceItems.size(); i++) {
-      ResourceMergerItem withoutCache = resourceItems.get(i);
-      ResourceMergerItem withCache = cacheResourceItems.get(i);
-      assertTrue("Different ResourceMergerItem at position " + i, isEquivalentResourceItem(withoutCache, withCache));
-      assertEquals("Different FolderConfiguration at position " + i, withoutCache.getConfiguration(), withCache.getConfiguration());
-      assertEquals("Different ResourceValue at position " + i,
-                   withoutCache.getResourceValue(), withCache.getResourceValue());
+    Comparator<ResourceItem> comparator = (item1, item2) -> {
+      int comp = item1.getType().compareTo(item2.getType());
+      if (comp != 0) {
+        return comp;
+      }
+      comp = item1.getNamespace().compareTo(item2.getNamespace());
+      if (comp != 0) {
+        return comp;
+      }
+      comp = item1.getName().compareTo(item2.getName());
+      if (comp != 0) {
+        return comp;
+      }
+      return item1.getSource().compareTo(item2.getSource());
+    };
+    expectedItems.sort(comparator);
+    actualItems.sort(comparator);
+    assertEquals(expectedItems.size(), actualItems.size());
+    for (int i = 0; i < expectedItems.size(); i++) {
+      ResourceItem expectedItem = expectedItems.get(i);
+      ResourceItem actualItem = actualItems.get(i);
+      assertTrue("Different ResourceMergerItem at position " + i, areEquivalent(expectedItem, actualItem));
+      assertEquals("Different FolderConfiguration at position " + i, expectedItem.getConfiguration(), actualItem.getConfiguration());
+      assertEquals("Different ResourceValue at position " + i, expectedItem.getResourceValue(), actualItem.getResourceValue());
     }
 
     for (ResourceType type : ResourceType.values()) {
-      List<ResourceItem> publicResources = new ArrayList<>(fromSourceFiles.getPublicResourcesOfType(type));
-      List<ResourceItem> publicResources2 = new ArrayList<>(fromCache.getPublicResourcesOfType(type));
-      assertEquals("Number of public resources doesn't match for type " + type.getName(),
-                   publicResources.size(), publicResources2.size());
-      Comparator<ResourceItem> comparator =
-          Comparator.comparing(ResourceItem::getName).thenComparing((ResourceItem item) -> item.getSource().getNativePath());
-      publicResources.sort(comparator);
-      publicResources2.sort(comparator);
-      for (int i = 0; i < publicResources.size(); i++) {
-        ResourceMergerItem withoutCache = (ResourceMergerItem)publicResources.get(i);
-        ResourceMergerItem withCache = (ResourceMergerItem)publicResources2.get(i);
-        assertTrue("Public resource difference at position " + i + " for type " + type.getName(),
-                   isEquivalentResourceItem(withoutCache, withCache));
+      List<ResourceItem> expectedPublic = new ArrayList<>(expected.getPublicResourcesOfType(type));
+      List<ResourceItem> actualPublic = new ArrayList<>(actual.getPublicResourcesOfType(type));
+      assertEquals("Number of public resources doesn't match for type " + type.getName(), expectedPublic.size(), actualPublic.size());
+      expectedPublic.sort(comparator);
+      actualPublic.sort(comparator);
+      for (int i = 0; i < expectedPublic.size(); i++) {
+        ResourceItem expectedItem = expectedPublic.get(i);
+        ResourceItem actualItem = actualPublic.get(i);
+        assertTrue("Public resource difference at position " + i + " for type " + type.getName(), areEquivalent(expectedItem, actualItem));
       }
     }
   }
 
-  private static boolean isEquivalentResourceItem(@NotNull ResourceMergerItem item1, @NotNull ResourceMergerItem item2) {
+  private static boolean areEquivalent(@NotNull ResourceItem item1, @NotNull ResourceItem item2) {
     if (!item1.getType().equals(item2.getType())) {
       return false;
     }
@@ -173,15 +177,7 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
     if (!Objects.equals(item1.getLibraryName(), item2.getLibraryName())) {
       return false;
     }
-    DataFile source1 = item1.getSourceFile();
-    DataFile source2 = item2.getSourceFile();
-    if (source1 == source2) {
-      return true;
-    }
-    if ((source1 == null) != (source2 == null)) {
-      return false;
-    }
-    return FileUtil.filesEqual(source1.getFile(), source2.getFile());
+    return Objects.equals(item1.getSource(), item2.getSource());
   }
 
   private static void checkContents(@NotNull FrameworkResourceRepository repository) {
