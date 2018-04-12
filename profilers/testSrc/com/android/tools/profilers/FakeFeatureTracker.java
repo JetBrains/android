@@ -31,6 +31,11 @@ public final class FakeFeatureTracker implements FeatureTracker {
    */
   private CpuCaptureMetadata myLastCpuCaptureMetadata;
 
+  /**
+   * Stores the last {@link FilterMetadata} passed to the tracker.
+   */
+  private FilterMetadata myLastFilterMetadata;
+
   @Override
   public void trackEnterStage(@NotNull Class<? extends Stage> stage) {
 
@@ -261,6 +266,10 @@ public final class FakeFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackFilterMetadata(@NotNull FilterMetadata filterMetadata) {
+    myLastFilterMetadata = filterMetadata;
+  }
 
+  public FilterMetadata getLastFilterMetadata() {
+    return myLastFilterMetadata;
   }
 }
