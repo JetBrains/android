@@ -27,10 +27,16 @@ import javax.swing.Icon
 
 open class PsDeclaredLibraryAndroidDependency(
   parent: PsAndroidModule,
-  spec: PsArtifactDependencySpec,
   containers: Collection<PsAndroidArtifact>,
   final override val parsedModel: ArtifactDependencyModel
-) : PsLibraryAndroidDependency(parent, spec, containers), PsDeclaredDependency, PsDeclaredLibraryDependency {
+) : PsLibraryAndroidDependency(parent, containers),
+    PsDeclaredDependency, PsDeclaredLibraryDependency {
+  override val spec: PsArtifactDependencySpec
+    get() = PsArtifactDependencySpec(
+      parsedModel.name().forceString(),
+      parsedModel.group().toString(),
+      parsedModel.version().toString()
+    )
   override val resolvedModel: Any? = null
   override val isDeclared: Boolean = true
   final override val configurationName: String = parsedModel.configurationName()
@@ -39,11 +45,11 @@ open class PsDeclaredLibraryAndroidDependency(
 
 open class PsResolvedLibraryAndroidDependency(
   parent: PsAndroidModule,
-  spec: PsArtifactDependencySpec,
+  override val spec: PsArtifactDependencySpec,
   containers: Collection<PsAndroidArtifact>,
   override val resolvedModel: Library,
   private val parsedModels: Collection<ArtifactDependencyModel>
-) : PsLibraryAndroidDependency(parent, spec, containers), PsResolvedDependency, PsResolvedLibraryDependency {
+) : PsLibraryAndroidDependency(parent, containers), PsResolvedDependency, PsResolvedLibraryDependency {
   override val isDeclared: Boolean get() = !parsedModels.isEmpty()
   override val joinedConfigurationNames: String get() = parsedModels.joinToString(separator = ", ") { it.configurationName()}
 
@@ -68,7 +74,6 @@ open class PsResolvedLibraryAndroidDependency(
 
 abstract class PsLibraryAndroidDependency internal constructor(
   parent: PsAndroidModule,
-  override val spec: PsArtifactDependencySpec,
   containers: Collection<PsAndroidArtifact>
 ) : PsAndroidDependency(parent, containers), PsLibraryDependency {
   private val pomDependencies = mutableListOf<PsArtifactDependencySpec>()
