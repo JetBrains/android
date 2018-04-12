@@ -55,7 +55,7 @@ public class GradleBuildModelFixture {
   public void requireDependency(@NotNull ExpectedModuleDependency expected) {
     DependenciesModel dependenciesModel = myTarget.dependencies();
     for (final ModuleDependencyModel dependency : dependenciesModel.modules()) {
-      String path = GuiQuery.getNonNull(() -> dependency.path().value());
+      String path = GuiQuery.getNonNull(() -> dependency.path().forceString());
       if (expected.path.equals(path) && expected.configurationName.equals(dependency.configurationName())) {
         return;
       }

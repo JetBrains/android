@@ -16,15 +16,18 @@
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
-import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValueImpl;
-import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValueImpl;
-import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
+import com.android.tools.idea.gradle.dsl.model.ext.transforms.MapMethodTransform;
+import com.android.tools.idea.gradle.dsl.model.ext.transforms.SingleArgToMapTransform;
+import com.android.tools.idea.gradle.dsl.model.ext.transforms.SingleArgumentMethodTransform;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,44 +39,23 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getPathSegments;
 
 public class ModuleDependencyModelImpl extends DependencyModelImpl implements
                                                                    ModuleDependencyModel {
-  private static final Logger LOG = Logger.getInstance(ModuleDependencyModelImpl.class);
-
   @NonNls public static final String PROJECT = "project";
   @NonNls private static final String PATH = "path";
   @NonNls private static final String CONFIGURATION = "configuration";
 
   @NotNull private String myConfigurationName;
   @NotNull private GradleDslMethodCall myDslElement;
-  @NotNull private GradleDslSimpleExpression myPath;
 
-  @Nullable private GradleDslSimpleExpression myConfiguration;
-
-  @NotNull
-  static List<ModuleDependencyModel> create(@NotNull String configurationName, @NotNull GradleDslMethodCall methodCall) {
-    List<ModuleDependencyModel> result = Lists.newArrayList();
+  @Nullable
+  static ModuleDependencyModel create(@NotNull String configurationName, @NotNull GradleDslMethodCall methodCall) {
     if (PROJECT.equals(methodCall.getMethodName())) {
-      for (GradleDslElement argument : methodCall.getArguments()) {
-        if (argument instanceof GradleDslSimpleExpression) {
-          result.add(new ModuleDependencyModelImpl(configurationName, methodCall, (GradleDslSimpleExpression)argument, null));
-        }
-        else if (argument instanceof GradleDslExpressionMap) {
-          GradleDslExpressionMap dslMap = (GradleDslExpressionMap)argument;
-          GradleDslSimpleExpression pathElement = dslMap.getPropertyElement(PATH, GradleDslSimpleExpression.class);
-          if (pathElement == null) {
-            assert methodCall.getPsiElement() != null;
-            String msg = String.format("'%1$s' is not a valid module dependency", methodCall.getPsiElement().getText());
-            LOG.warn(msg);
-            continue;
-          }
-          GradleDslSimpleExpression configuration = dslMap.getPropertyElement(CONFIGURATION, GradleDslSimpleExpression.class);
-          result.add(new ModuleDependencyModelImpl(configurationName, methodCall, pathElement, configuration));
-        }
-      }
+      return new ModuleDependencyModelImpl(configurationName, methodCall);
     }
-    return result;
+    return null;
   }
 
-  static void create(@NotNull GradlePropertiesDslElement parent,
+  @NotNull
+  static ModuleDependencyModel create(@NotNull GradlePropertiesDslElement parent,
                      @NotNull String configurationName,
                      @NotNull String path,
                      @Nullable String config) {
@@ -86,16 +68,13 @@ public class ModuleDependencyModelImpl extends DependencyModelImpl implements
     }
     methodCall.addNewArgument(mapArguments);
     parent.setNewElement(methodCall);
+    return  new ModuleDependencyModelImpl(configurationName, methodCall);
   }
 
   private ModuleDependencyModelImpl(@NotNull String configurationName,
-                                    @NotNull GradleDslMethodCall dslElement,
-                                    @NotNull GradleDslSimpleExpression path,
-                                    @Nullable GradleDslSimpleExpression configuration) {
+                                    @NotNull GradleDslMethodCall dslElement) {
     myConfigurationName = configurationName;
     myDslElement = dslElement;
-    myPath = path;
-    myConfiguration = configuration;
   }
 
   @Override
@@ -113,7 +92,7 @@ public class ModuleDependencyModelImpl extends DependencyModelImpl implements
   @Override
   @NotNull
   public String name() {
-    List<String> pathSegments = getPathSegments(path().value());
+    List<String> pathSegments = getPathSegments(path().forceString());
     int segmentCount = pathSegments.size();
     return segmentCount > 0 ? pathSegments.get(segmentCount - 1) : "";
   }
@@ -121,9 +100,10 @@ public class ModuleDependencyModelImpl extends DependencyModelImpl implements
   @Override
   public void setName(@NotNull String name) {
     String newPath;
+    ResolvedPropertyModel path = path();
 
     // Keep empty spaces, needed when putting the path back together
-    List<String> segments = Splitter.on(GRADLE_PATH_SEPARATOR).splitToList(path().value());
+    List<String> segments = Splitter.on(GRADLE_PATH_SEPARATOR).splitToList(path.forceString());
     List<String> modifiableSegments = Lists.newArrayList(segments);
     int segmentCount = modifiableSegments.size();
     if (segmentCount == 0) {
@@ -133,62 +113,20 @@ public class ModuleDependencyModelImpl extends DependencyModelImpl implements
       modifiableSegments.set(segmentCount - 1, name);
       newPath = Joiner.on(GRADLE_PATH_SEPARATOR).join(modifiableSegments);
     }
-    setPath(newPath);
+    path.setValue(newPath);
   }
 
   @Override
   @NotNull
-  public GradleNotNullValue<String> path() {
-    String path = myPath.getValue(String.class);
-    assert path != null;
-    return new GradleNotNullValueImpl<>(myPath, path);
-  }
-
-  @Override
-  public void setPath(@NotNull String path) {
-    myPath.setValue(path);
+  public ResolvedPropertyModel path() {
+    return GradlePropertyModelBuilder.create(myDslElement).asMethod(true).addTransform(new MapMethodTransform(PROJECT, PATH))
+                                     .addTransform(new SingleArgumentMethodTransform(PROJECT)).buildResolved();
   }
 
   @Override
   @NotNull
-  public GradleNullableValue<String> configuration() {
-    if (myConfiguration == null) {
-      return new GradleNullableValueImpl<>(myDslElement, null);
-    }
-    return new GradleNullableValueImpl<>(myConfiguration, myConfiguration.getValue(String.class));
-  }
-
-  @Override
-  public void setConfiguration(@NotNull String configuration) {
-    if (myConfiguration != null) {
-      myConfiguration.setValue(configuration);
-      return;
-    }
-
-    GradleDslElement parent = myPath.getParent();
-    if (parent instanceof GradleDslExpressionMap) {
-      ((GradleDslExpressionMap)parent).setNewLiteral(CONFIGURATION, configuration);
-    }
-    else {
-      String path = path().value();
-      if (myPath instanceof GradleDslLiteral) { // TODO: support copying non string literal path values into map form.
-        GradleDslExpressionMap newMapArgument = new GradleDslExpressionMap(myDslElement, GradleNameElement.create(PROJECT));
-        newMapArgument.setNewLiteral(PATH, path);
-        newMapArgument.setNewLiteral(CONFIGURATION, configuration);
-        myDslElement.remove(myPath);
-        myDslElement.addNewArgument(newMapArgument);
-      }
-    }
-  }
-
-  @Override
-  public void removeConfiguration() {
-    if (myConfiguration != null) {
-      GradleDslElement parent = myConfiguration.getParent();
-      if (parent instanceof GradleDslExpressionMap) {
-        ((GradleDslExpressionMap)parent).removeProperty(CONFIGURATION);
-        myConfiguration = null;
-      }
-    }
+  public ResolvedPropertyModel configuration() {
+    return GradlePropertyModelBuilder.create(myDslElement).asMethod(true).addTransform(new SingleArgToMapTransform(PATH, CONFIGURATION))
+                                     .addTransform(new MapMethodTransform(PROJECT, CONFIGURATION)).buildResolved();
   }
 }

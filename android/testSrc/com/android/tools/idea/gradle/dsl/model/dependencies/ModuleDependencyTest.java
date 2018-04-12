@@ -263,7 +263,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
   private static void assertMatches(@NotNull ExpectedModuleDependency expected, @NotNull ModuleDependencyModel actual) {
     assertEquals("configurationName", expected.configurationName, actual.configurationName());
-    assertEquals("path", expected.path, actual.path());
-    assertEquals("configuration", expected.configuration, actual.configuration());
+    assertEquals("path", expected.path, actual.path().forceString());
+    assertEquals("configuration", expected.configuration, actual.configuration().toString());
   }
 }

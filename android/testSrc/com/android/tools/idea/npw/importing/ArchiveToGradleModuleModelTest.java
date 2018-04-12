@@ -243,7 +243,7 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
     List<? extends ModuleDependencyModel> modules = dependencies.modules();
 
     assertThat(modules).hasSize(1);
-    assertEquals(":library", modules.get(0).path().value());
+    assertEquals(":library", modules.get(0).path().forceString());
   }
 
   @NotNull

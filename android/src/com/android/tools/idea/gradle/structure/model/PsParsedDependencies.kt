@@ -42,7 +42,7 @@ class PsParsedDependencies(parsedModel: GradleBuildModel?) {
         for (parsedDependency in parsedModel.dependencies().all()) {
           when (parsedDependency) {
             is ArtifactDependencyModel -> parsedArtifactDependencies.put(createIdFrom(parsedDependency), parsedDependency)
-            is ModuleDependencyModel -> parsedModuleDependencies.put(parsedDependency.path().value(), parsedDependency)
+            is ModuleDependencyModel -> parsedModuleDependencies.put(parsedDependency.path().forceString(), parsedDependency)
           }
         }
       }
