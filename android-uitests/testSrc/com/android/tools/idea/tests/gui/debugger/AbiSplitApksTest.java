@@ -125,26 +125,25 @@ public class AbiSplitApksTest extends DebuggerTestBase {
     String avdName = "";
     if (abiType.equals(ABI_TYPE_X86)) {
       expectedApkName = "app-x86-debug.apk";
-      avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrame.invokeAvdManager());
     } else if (abiType.equals(ABI_TYPE_X86_64)) {
       expectedApkName = "app-x86_64-debug.apk";
-
-      ChooseSystemImageStepFixture.SystemImage systemImageSpec = new ChooseSystemImageStepFixture.SystemImage(
-        "Marshmallow",
-        "23",
-        "x86_64",
-        "Android 6.0 (Google APIs)"
-      );
-      avdName = EmulatorGenerator.ensureAvdIsCreated(
-        ideFrame.invokeAvdManager(),
-        new AvdSpec.Builder()
-          .setSystemImageGroup(AvdSpec.SystemImageGroups.X86)
-          .setSystemImageSpec(systemImageSpec)
-          .build()
-      );
     } else {
       throw new RuntimeException("Not supported ABI type provided: " + abiType);
     }
+
+    ChooseSystemImageStepFixture.SystemImage systemImageSpec = new ChooseSystemImageStepFixture.SystemImage(
+      "Nougat",
+      "24",
+      abiType,
+      "Android 7.0 (Google APIs)"
+    );
+    avdName = EmulatorGenerator.ensureAvdIsCreated(
+      ideFrame.invokeAvdManager(),
+      new AvdSpec.Builder()
+        .setSystemImageGroup(AvdSpec.SystemImageGroups.X86)
+        .setSystemImageSpec(systemImageSpec)
+        .build()
+    );
 
     DebuggerTestUtil.debugAppAndWaitForSessionToStart(ideFrame, guiTest, DEBUG_CONFIG_NAME, avdName);
 
