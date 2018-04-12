@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,43 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.java;
+package com.android.tools.idea.npw.dynamicapp;
 
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
-import com.android.tools.idea.templates.Template;
-import com.android.tools.idea.templates.TemplateMetadata;
-import com.android.tools.idea.templates.TemplateUtils;
-import com.android.tools.idea.templates.recipe.RenderingContext;
-import com.android.tools.idea.observable.core.BoolProperty;
-import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.OptionalProperty;
+import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
+import com.android.tools.idea.templates.Template;
+import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import static org.jetbrains.android.util.AndroidBundle.message;
 
-public final class NewJavaModuleModel extends WizardModel {
+public class DynamicModuleModel extends WizardModel {
   @NotNull private final Project myProject;
   @NotNull private final TemplateHandle myTemplateHandle;
 
-  @NotNull private final StringProperty myLibraryName = new StringValueProperty("lib");
+  @NotNull private final StringProperty myModuleName = new StringValueProperty("dynamic-feature");
   @NotNull private final StringProperty myPackageName = new StringValueProperty();
-  @NotNull private final StringProperty myClassName = new StringValueProperty("MyClass");
-  @NotNull private final BoolProperty myCreateGitIgnore = new BoolValueProperty(true);
+  @NotNull private final OptionalProperty<AndroidVersionsInfo.VersionItem> myAndroidSdkInfo = new OptionalValueProperty<>();
+  @NotNull private final OptionalProperty<Module> myBaseApplication = new OptionalValueProperty<>();
 
-  public NewJavaModuleModel(@NotNull Project project,
+  public DynamicModuleModel(@NotNull Project project,
                             @NotNull TemplateHandle templateHandle) {
     myProject = project;
     myTemplateHandle = templateHandle;
@@ -61,8 +59,13 @@ public final class NewJavaModuleModel extends WizardModel {
   }
 
   @NotNull
-  public StringProperty libraryNameName() {
-    return myLibraryName;
+  public TemplateHandle getTemplateHandle() {
+    return myTemplateHandle;
+  }
+
+  @NotNull
+  public StringProperty moduleName() {
+    return myModuleName;
   }
 
   @NotNull
@@ -70,29 +73,33 @@ public final class NewJavaModuleModel extends WizardModel {
     return myPackageName;
   }
 
-  @NotNull
-  public StringProperty className() {
-    return myClassName;
+  public OptionalProperty<Module> baseApplication() {
+    return myBaseApplication;
   }
 
-  @NotNull
-  public BoolProperty createGitIgnore() {
-    return myCreateGitIgnore;
+  public OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo() {
+    return myAndroidSdkInfo;
   }
 
   @Override
   protected void handleFinished() {
-    File moduleRoot = new File(myProject.getBasePath(), libraryNameName().get());
+    File moduleRoot = new File(myProject.getBasePath(), moduleName().get());
     Map<String, Object> myTemplateValues = Maps.newHashMap();
 
     new TemplateValueInjector(myTemplateValues)
       .setModuleRoots(GradleAndroidModuleTemplate.createDefaultTemplateAt(moduleRoot).getPaths(), packageName().get())
-      .setJavaVersion(myProject);
+      .setBuildVersion(androidSdkInfo().getValue(), myProject);
 
-    myTemplateValues.put(TemplateMetadata.ATTR_CLASS_NAME, className().get());
-    myTemplateValues.put(TemplateMetadata.ATTR_MAKE_IGNORE, createGitIgnore().get());
+    Module base = baseApplication().getValue();
+    AndroidModuleModel moduleModel = AndroidModuleModel.get(base);
+    assert moduleModel != null;
+    File baseModuleRoot = moduleModel.getRootDirPath();
+
+    myTemplateValues.put(TemplateMetadata.ATTR_BASE_FEATURE_DIR, baseModuleRoot.getPath());
+    myTemplateValues.put(TemplateMetadata.ATTR_BASE_FEATURE_NAME, base.getName());
+    myTemplateValues.put(TemplateMetadata.ATTR_MAKE_IGNORE, true);
     myTemplateValues.put(TemplateMetadata.ATTR_IS_NEW_PROJECT, true);
-    myTemplateValues.put(TemplateMetadata.ATTR_IS_LIBRARY_MODULE, true);
+    myTemplateValues.put(TemplateMetadata.ATTR_IS_LIBRARY_MODULE, false);
 
     if (doDryRun(moduleRoot, myTemplateValues)) {
       render(moduleRoot, myTemplateValues);
@@ -100,23 +107,17 @@ public final class NewJavaModuleModel extends WizardModel {
   }
 
   private boolean doDryRun(@NotNull File moduleRoot, @NotNull Map<String, Object> templateValues) {
-    return renderTemplate(true, myProject, moduleRoot, templateValues, null);
+    return renderTemplate(true, myProject, moduleRoot, templateValues);
   }
 
   private void render(@NotNull File moduleRoot, @NotNull Map<String, Object> templateValues) {
-    List<File> filesToOpen = new ArrayList<>();
-    boolean success = renderTemplate(false, myProject, moduleRoot, templateValues, filesToOpen);
-    if (success) {
-      // calling smartInvokeLater will make sure that files are open only when the project is ready
-      DumbService.getInstance(myProject).smartInvokeLater(() -> TemplateUtils.openEditors(myProject, filesToOpen, true));
-    }
+    renderTemplate(false, myProject, moduleRoot, templateValues);
   }
 
   private boolean renderTemplate(boolean dryRun,
                                  @NotNull Project project,
                                  @NotNull File moduleRoot,
-                                 @NotNull Map<String, Object> templateValues,
-                                 @Nullable List<File> filesToOpen) {
+                                 @NotNull Map<String, Object> templateValues) {
     Template template = myTemplateHandle.getTemplate();
 
     // @formatter:off
@@ -126,7 +127,6 @@ public final class NewJavaModuleModel extends WizardModel {
       .withShowErrors(true)
       .withModuleRoot(moduleRoot)
       .withParams(templateValues)
-      .intoOpenFiles(filesToOpen)
       .build();
     // @formatter:on
 
