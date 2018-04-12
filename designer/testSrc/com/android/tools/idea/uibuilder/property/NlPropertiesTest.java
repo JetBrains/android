@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.adtui.ptable.StarState;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
@@ -43,6 +44,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 public class NlPropertiesTest extends PropertyTestCase {
+  private static final String APPCOMPAT_IMAGE_VIEW = "android.support.v7.widget.AppCompatImageView";
+  private static final String APPCOMPAT_TEXT_VIEW = "android.support.v7.widget.AppCompatTextView";
   private static final String CUSTOM_NAMESPACE = "http://schemas.android.com/apk/res/com.example";
   private static final String[] NO_NAMESPACE_VIEW_ATTRS = {"style"};
   private static final String[] ANDROID_VIEW_ATTRS = {"id", "padding", "visibility", "textAlignment", "translationZ", "elevation"};
@@ -64,26 +67,42 @@ public class NlPropertiesTest extends PropertyTestCase {
     when(androidModuleSystem.getResolvedVersion(eq(GoogleMavenArtifactId.APP_COMPAT_V7))).thenReturn(version);
     registerProjectComponentImplementation(ProjectSystemComponent.class, projectSystem);
     myFixture.addFileToProject("src/android/support/v7/app/AppCompatImageView.java", APPCOMPAT_ACTIVITY);
-    myFixture.addFileToProject("src/android/support/v7/widget/AppCompatImageView.java", APPCOMPAT_IMAGEVIEW);
-    myFixture.addFileToProject("src/android/support/v7/widget/AppCompatTextView.java", APPCOMPAT_TEXTVIEW);
+    myFixture.addFileToProject("src/android/support/v7/widget/AppCompatImageView.java", APPCOMPAT_IMAGE_VIEW_SOURCE);
+    myFixture.addFileToProject("src/android/support/v7/widget/AppCompatTextView.java", APPCOMPAT_TEXT_VIEW_SOURCE);
     myFixture.addFileToProject("res/values/attrs.xml", APPCOMPAT_ATTRS);
     myFixture.addFileToProject("src/com/example/MyActivity.java", MY_ACTIVITY);
   }
 
   public void testFontFamilyFromAppCompatForMinApi14() {
     setUpAppCompat();
+    NlModel model = model("example.xml",
+                          component(TEXT_VIEW)
+                            .withBounds(0, 0, 1000, 1500)
+                            .id("@id/text")
+                            .matchParentWidth()
+                            .matchParentHeight()
+                            .viewObjectClassName(APPCOMPAT_TEXT_VIEW)).build();
+
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(myTextView));
-    assertPresent(myTextView.getTagName(), properties, AUTO_URI, ATTR_FONT_FAMILY);
-    assertAbsent(myTextView.getTagName(), properties, ANDROID_URI, ATTR_FONT_FAMILY);
+      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, model.getComponents());
+    assertPresent(TEXT_VIEW, properties, AUTO_URI, ATTR_FONT_FAMILY);
+    assertAbsent(TEXT_VIEW, properties, ANDROID_URI, ATTR_FONT_FAMILY);
   }
 
   public void testFontFamilyFromAndroidForMinApi16() {
     setUpAppCompat();
+    NlModel model = model("example.xml",
+                          component(TEXT_VIEW)
+                            .withBounds(0, 0, 1000, 1500)
+                            .id("@id/text")
+                            .matchParentWidth()
+                            .matchParentHeight()
+                            .viewObjectClassName(APPCOMPAT_TEXT_VIEW)).build();
+
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(myTextView));
-    assertAbsent(myTextView.getTagName(), properties, AUTO_URI, ATTR_FONT_FAMILY);
-    assertPresent(myTextView.getTagName(), properties, ANDROID_URI, ATTR_FONT_FAMILY);
+      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, model.getComponents());
+    assertAbsent(TEXT_VIEW, properties, AUTO_URI, ATTR_FONT_FAMILY);
+    assertPresent(TEXT_VIEW, properties, ANDROID_URI, ATTR_FONT_FAMILY);
   }
 
   public void testViewAttributes() {
@@ -352,9 +371,16 @@ public class NlPropertiesTest extends PropertyTestCase {
 
   public void testSrcCompatIncludedWhenUsingAppCompat() {
     setUpAppCompat();
+    NlModel model = model("example.xml",
+                          component(IMAGE_VIEW)
+                            .withBounds(0, 0, 1000, 1500)
+                            .id("@id/image")
+                            .matchParentWidth()
+                            .matchParentHeight()
+                            .viewObjectClassName(APPCOMPAT_IMAGE_VIEW)).build();
 
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(myImageView));
+      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, model.getComponents());
 
     assertPresent("ImageView", properties, ANDROID_URI, ATTR_SRC);
     assertPresent("ImageView", properties, AUTO_URI, ATTR_SRC_COMPAT);
@@ -394,7 +420,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     "}";
 
   @Language("Java")
-  private static final String APPCOMPAT_IMAGEVIEW =
+  private static final String APPCOMPAT_IMAGE_VIEW_SOURCE =
     "package android.support.v7.widget;\n" +
     "\n" +
     "import android.content.Context;\n" +
@@ -417,7 +443,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     "}\n";
 
   @Language("Java")
-  private static final String APPCOMPAT_TEXTVIEW =
+  private static final String APPCOMPAT_TEXT_VIEW_SOURCE =
     "package android.support.v7.widget;\n" +
     "\n" +
     "import android.content.Context;\n" +
