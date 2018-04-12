@@ -15,15 +15,13 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.adtui.model.FakeTimer;
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.*;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.analytics.FilterMetadata;
 import com.android.tools.profilers.cpu.atrace.AtraceParser;
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
 import com.android.tools.profilers.event.FakeEventService;
@@ -42,6 +40,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -1412,6 +1411,31 @@ public class CpuProfilerStageTest extends AspectObserver {
     myStage.getSelectionModel().clear();
     assertThat(myStage.getStudioProfilers().getTimeline().getSelectionRange().getMin()).isEqualTo(capture.getRange().getMin());
     assertThat(myStage.getStudioProfilers().getTimeline().getSelectionRange().getMax()).isEqualTo(capture.getRange().getMax());
+  }
+
+  @Test
+  public void testCaptureFilterFeatureTrack() {
+    final FakeFeatureTracker tracker = (FakeFeatureTracker)myServices.getFeatureTracker();
+
+    // Capture a trace to apply filter on.
+    captureSuccessfully();
+
+    myStage.setCaptureFilter(Pattern.compile(""), new FilterModel());
+
+    FilterMetadata filterMetadata = tracker.getLastFilterMetadata();
+    assertThat(filterMetadata).isNotNull();
+    assertThat(filterMetadata.getFilterTextLength()).isEqualTo(0);
+    assertThat(filterMetadata.getFeaturesUsed()).isEqualTo(0);
+
+    // Test with some filter features and non empty text
+    FilterModel filterModel = new FilterModel();
+    filterModel.setIsMatchCase(true);
+    filterModel.setIsRegex(true);
+    myStage.setCaptureFilter(Pattern.compile("some"), filterModel);
+    filterMetadata = tracker.getLastFilterMetadata();
+    assertThat(filterMetadata).isNotNull();
+    assertThat(filterMetadata.getFilterTextLength()).isEqualTo(4);
+    assertThat(filterMetadata.getFeaturesUsed()).isEqualTo(FilterMetadata.MATCH_CASE | FilterMetadata.IS_REGEX);
   }
 
   private void addAndSetDevice(int featureLevel, String serial) {

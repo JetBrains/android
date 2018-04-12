@@ -979,12 +979,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     }
   }
 
-  public void setCaptureFilter(@Nullable Pattern filter) {
-    myCaptureModel.setFilter(filter);
-  }
-
   public void setCaptureFilter(@Nullable Pattern filter, @NotNull FilterModel model) {
-    setCaptureFilter(filter);
+    myCaptureModel.setFilter(filter);
     trackFilterUsage(filter, model);
   }
 

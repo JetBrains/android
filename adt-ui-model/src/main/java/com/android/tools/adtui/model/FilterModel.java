@@ -15,7 +15,6 @@
  */
 package com.android.tools.adtui.model;
 
-import com.intellij.util.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

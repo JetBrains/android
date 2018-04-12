@@ -149,7 +149,7 @@ class CpuCaptureView {
       toolbar.add(new FlatSeparator());
       toolbar.add(filterButton);
 
-      myFilterComponent.addOnFilterChange((pattern, model) -> myView.getStage().setCaptureFilter(pattern));
+      myFilterComponent.addOnFilterChange((pattern, model) -> myView.getStage().setCaptureFilter(pattern, model));
       myFilterComponent.setVisible(false);
       myFilterComponent.setBorder(DEFAULT_BOTTOM_BORDER);
       FilterComponent.configureKeyBindingAndFocusBehaviors(myPanel, myFilterComponent, filterButton);
