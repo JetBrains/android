@@ -170,6 +170,13 @@ public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>>
     event.consume();
   }
 
+  public void expandGroup(@NotNull JLabel label) {
+    ExpandableGroup group = myLabel2GroupMap.get(label);
+    if (group != null) {
+      group.setExpanded(true, true);
+    }
+  }
+
   private void updateAfterFilterChange() {
     if (myFilter.isEmpty()) {
       restoreGroups();
@@ -344,6 +351,7 @@ public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>>
     addLineComponent(panel, myRow++);
     myLabel2ComponentMap.put(myDefaultLabel, panel);
     startGroup(label, true, null);
+    myLabel2GroupMap.put(label, myGroup);
     return label;
   }
 

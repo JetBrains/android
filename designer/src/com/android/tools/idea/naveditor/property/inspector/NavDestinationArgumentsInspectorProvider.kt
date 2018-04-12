@@ -46,6 +46,7 @@ import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.util.*
 import javax.swing.BorderFactory
+import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTable
 import javax.swing.table.TableCellRenderer
@@ -90,6 +91,7 @@ class NavDestinationArgumentsInspectorProvider : InspectorProvider<NavProperties
     private lateinit var argumentProperty: NavDestinationArgumentsProperty
     private val components = mutableListOf<NlComponent>()
     private var surface: NavDesignSurface? = null
+    private var label: JLabel? = null
 
     override fun updateProperties(components: List<NlComponent>,
                                   properties: Map<String, NlProperty>,
@@ -161,8 +163,9 @@ class NavDestinationArgumentsInspectorProvider : InspectorProvider<NavProperties
         table.cellEditor?.stopCellEditing()
         argumentProperty.addRow()
         tableModel.fireTableDataChanged()
+        label?.let { inspector.expandGroup(it) }
       }
-      inspector.addTitle("Arguments", plus)
+      label = inspector.addTitle("Arguments", plus)
       inspector.addPanel(panel)
     }
 

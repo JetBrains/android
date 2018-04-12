@@ -98,6 +98,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
     private var surface: NavDesignSurface? = null
     private val attachListeners = mutableListOf<(JBList<NlProperty>) -> Unit>()
     lateinit var list: JBList<NlProperty>
+    private var label: JLabel? = null
 
     fun addAttachListener(listener: (JBList<NlProperty>) -> Unit) = attachListeners.add(listener)
 
@@ -176,6 +177,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
         @Suppress("UnnecessaryVariable")
         val event = it
         surface?.let { plusClicked(event, components, it) }
+        label?.let { inspector.expandGroup(it) }
         refresh()
       }
 
@@ -184,7 +186,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
       plusPanel.isOpaque = false
 
       val title = getTitle(components, surface)
-      inspector.addTitle(title, plusPanel)
+      label = inspector.addTitle(title, plusPanel)
       inspector.addPanel(panel)
     }
 
