@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android.splits;
 
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
@@ -25,56 +26,18 @@ import java.util.List;
 
 public interface AbiModel extends GradleDslModel {
   @NotNull
-  GradleNullableValue<Boolean> enable();
+  ResolvedPropertyModel enable();
 
   @NotNull
-  AbiModel setEnable(boolean enable);
+  ResolvedPropertyModel exclude();
 
   @NotNull
-  AbiModel removeEnable();
+  ResolvedPropertyModel include();
 
-  @Nullable
-  List<GradleNotNullValue<String>> exclude();
+  void addReset();
 
-  @NotNull
-  AbiModel addExclude(@NotNull String exclude);
+  void removeReset();
 
   @NotNull
-  AbiModel removeExclude(@NotNull String exclude);
-
-  @NotNull
-  AbiModel removeAllExclude();
-
-  @NotNull
-  AbiModel replaceExclude(@NotNull String oldExclude, @NotNull String newExclude);
-
-  @Nullable
-  List<GradleNotNullValue<String>> include();
-
-  @NotNull
-  AbiModel addInclude(@NotNull String include);
-
-  @NotNull
-  AbiModel removeInclude(@NotNull String include);
-
-  @NotNull
-  AbiModel removeAllInclude();
-
-  @NotNull
-  AbiModel replaceInclude(@NotNull String oldInclude, @NotNull String newInclude);
-
-  @NotNull
-  AbiModel addReset();
-
-  @NotNull
-  AbiModel removeReset();
-
-  @NotNull
-  GradleNullableValue<Boolean> universalApk();
-
-  @NotNull
-  AbiModel setUniversalApk(boolean universalApk);
-
-  @NotNull
-  AbiModel removeUniversalApk();
+  ResolvedPropertyModel universalApk();
 }

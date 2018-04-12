@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.dsl.api.dependencies;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import org.jetbrains.annotations.NotNull;
 
 public interface FileDependencyModel extends DependencyModel {
