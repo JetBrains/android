@@ -150,7 +150,7 @@ public class ImageViewHandler extends ViewHandler {
     }
   }
 
-  public void setToolsSrc(@NotNull NlComponent component, @NotNull String value) {
+  public void setToolsSrc(@NotNull NlComponent component, @Nullable String value) {
     String attr = shouldUseSrcCompat(component.getModel()) ? ATTR_SRC_COMPAT : ATTR_SRC;
     NlWriteCommandAction.run(component, "Set sample source", () -> component.setAttribute(TOOLS_URI, attr, value));
   }
