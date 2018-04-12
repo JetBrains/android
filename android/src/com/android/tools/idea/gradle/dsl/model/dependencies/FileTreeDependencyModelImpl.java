@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.FileTreeDependencyMode
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
-import com.android.tools.idea.gradle.dsl.model.ext.transforms.FileTreeTransform;
+import com.android.tools.idea.gradle.dsl.model.ext.transforms.SingleArgToMapTransform;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.MapMethodTransform;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.SingleArgumentMethodTransform;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
@@ -105,14 +105,14 @@ public class FileTreeDependencyModelImpl extends DependencyModelImpl implements 
   @Override
   @NotNull
   public ResolvedPropertyModel includes() {
-    return GradlePropertyModelBuilder.create(myDslElement).addTransform(new FileTreeTransform(INCLUDE))
+    return GradlePropertyModelBuilder.create(myDslElement).addTransform(new SingleArgToMapTransform(DIR ,INCLUDE))
                                      .addTransform(new MapMethodTransform(FILE_TREE, INCLUDE)).asMethod(true).buildResolved();
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel excludes() {
-    return GradlePropertyModelBuilder.create(myDslElement).addTransform(new FileTreeTransform(EXCLUDE))
+    return GradlePropertyModelBuilder.create(myDslElement).addTransform(new SingleArgToMapTransform(DIR, EXCLUDE))
                                      .addTransform(new MapMethodTransform(FILE_TREE, EXCLUDE)).asMethod(true).buildResolved();
   }
 }

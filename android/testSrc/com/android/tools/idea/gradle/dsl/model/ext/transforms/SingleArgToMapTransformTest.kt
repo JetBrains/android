@@ -25,11 +25,11 @@ import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
-class FileTreeTransformTest : TransformTestCase() {
+class SingleArgToMapTransformTest : TransformTestCase() {
   private val dirName = FileTreeDependencyModelImpl.DIR // This transform is tied to this field name.
   private val fieldName = "include"
   private val methodName = "methodName"
-  private val transform = FileTreeTransform(fieldName)
+  private val transform = SingleArgToMapTransform(dirName, fieldName)
 
   @Test
   fun testRejectOnNull() {
