@@ -49,7 +49,7 @@ iml_module(
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module, test]",
         "//tools/base/ninepatch:studio.android.sdktools.ninepatch[module]",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
-        "//tools/base/flags:studio.intellij.android.flags[module]",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/idea/platform/projectModel-api:intellij.platform.projectModel[module]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/adt-testutils[module, test]",

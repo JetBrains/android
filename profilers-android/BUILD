@@ -39,7 +39,7 @@ iml_module(
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
         "//tools/analytics-library/protos:analytics-protos[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
-        "//tools/base/flags:studio.intellij.android.flags[module]",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/android-adb[module]",

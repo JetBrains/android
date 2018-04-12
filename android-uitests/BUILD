@@ -66,7 +66,7 @@ iml_module(
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module, test]",
         "//tools/idea/platform/xdebugger-impl:intellij.platform.debugger.impl[module, test]",
         "//tools/adt/idea/designer:intellij.android.designer[module, test]",
-        "//tools/base/flags:studio.intellij.android.flags[module, test]",
+        "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/analytics-library/shared:analytics-shared[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",

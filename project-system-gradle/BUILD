@@ -24,7 +24,7 @@ iml_module(
         "//tools/adt/idea/android:intellij.android[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
-        "//tools/base/apkparser/analyzer:studio.intellij.android.analyzer[module]",
+        "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer[module]",
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
         "//tools/analytics-library/protos:analytics-protos[module]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
