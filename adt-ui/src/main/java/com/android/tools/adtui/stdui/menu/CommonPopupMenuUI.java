@@ -16,6 +16,8 @@
 package com.android.tools.adtui.stdui.menu;
 
 import com.android.tools.adtui.stdui.StandardColors;
+import com.intellij.ide.ui.laf.intellij.WinIntelliJPopupBorder;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -33,7 +35,8 @@ public class CommonPopupMenuUI extends PopupMenuUI {
 
     Border border = component.getBorder();
     if (border == null || border instanceof UIResource) {
-      component.setBorder(new BorderUIResource.EmptyBorderUIResource(0, 0, 0, 0));
+      component.setBorder(
+        UIUtil.isUnderWin10LookAndFeel() ? new WinIntelliJPopupBorder() : new BorderUIResource.EmptyBorderUIResource(0, 0, 0, 0));
     }
 
     Color background = component.getBackground();
