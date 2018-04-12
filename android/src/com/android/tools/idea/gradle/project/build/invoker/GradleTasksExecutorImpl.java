@@ -121,11 +121,6 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
   }
 
   @Override
-  public String getProcessId() {
-    return "GradleTaskInvocation";
-  }
-
-  @Override
   @Nullable
   public NotificationInfo getNotificationInfo() {
     return new NotificationInfo(myErrorCount > 0 ? "Gradle Invocation (errors)" : "Gradle Invocation (success)",
