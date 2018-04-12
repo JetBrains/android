@@ -52,6 +52,7 @@ class SampleDrawablePanel(val module: Module) : JPanel(BorderLayout()) {
   private val resourceNameLabel = JLabel()
 
   private val drawableGrid = DrawableGrid(module, listModel, IMAGE_SIZE).apply {
+    isOpaque = false
     isEnabled = false
     visibleRowCount = 0
     minimumSize = JBUI.size(IMAGE_SIZE)
