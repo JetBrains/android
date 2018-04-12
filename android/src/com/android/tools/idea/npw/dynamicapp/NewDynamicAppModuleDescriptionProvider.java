@@ -23,8 +23,8 @@ import com.android.tools.idea.npw.module.ModuleGalleryEntry;
 import com.android.tools.idea.npw.module.ModuleTemplateGalleryEntry;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.templates.TemplateManager;
-import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
+import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,11 +34,13 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 
-import static com.android.tools.idea.templates.Template.ANDROID_MODULE_TEMPLATE;
+import static com.android.tools.idea.npw.model.NewProjectModel.getSuggestedProjectPackage;
 import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 public class NewDynamicAppModuleDescriptionProvider implements ModuleDescriptionProvider {
+  public static final String DYNAMIC_FEATURE_TEMPLATE = "Dynamic Feature";
+
   @Override
   public Collection<ModuleGalleryEntry> getDescriptions() {
     if (!StudioFlags.NPW_DYNAMIC_APP_MODULE.get()) {
@@ -49,11 +51,11 @@ public class NewDynamicAppModuleDescriptionProvider implements ModuleDescription
 
   private static class FeatureTemplateGalleryEntry implements ModuleTemplateGalleryEntry {
     @NotNull private final File myTemplateFile;
-    @NotNull private TemplateMetadata myTemplateMetadata;
+    @NotNull private TemplateHandle myTemplateHandle;
 
     FeatureTemplateGalleryEntry() {
-      myTemplateFile = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, ANDROID_MODULE_TEMPLATE);
-      myTemplateMetadata = new TemplateHandle(myTemplateFile).getMetadata();
+      myTemplateFile = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, DYNAMIC_FEATURE_TEMPLATE);
+      myTemplateHandle = new TemplateHandle(myTemplateFile);
     }
 
     @Nullable
@@ -72,7 +74,7 @@ public class NewDynamicAppModuleDescriptionProvider implements ModuleDescription
     @Nullable
     @Override
     public String getDescription() {
-      return myTemplateMetadata.getDescription();
+      return myTemplateHandle.getMetadata().getDescription();
     }
 
     @Override
@@ -105,7 +107,9 @@ public class NewDynamicAppModuleDescriptionProvider implements ModuleDescription
     @NotNull
     @Override
     public SkippableWizardStep createStep(@NotNull NewModuleModel model) {
-      return new ConfigureDynamicModuleStep(model, getName());
+      Project project = model.getProject().getValue();
+      String basePackage = getSuggestedProjectPackage(project, false);
+      return new ConfigureDynamicModuleStep(new DynamicModuleModel(project, myTemplateHandle), basePackage);
     }
   }
 }

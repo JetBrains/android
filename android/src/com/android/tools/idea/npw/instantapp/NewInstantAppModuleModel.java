@@ -42,7 +42,7 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 
 public final class NewInstantAppModuleModel extends WizardModel {
   @NotNull private final Project myProject;
-  @NotNull final private TemplateHandle myTemplateHandle;
+  @NotNull private final TemplateHandle myTemplateHandle;
 
   @NotNull private final StringProperty myModuleName = new StringValueProperty("instantapp");
   @NotNull private final BoolProperty myCreateGitIgnore = new BoolValueProperty(true);
