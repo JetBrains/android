@@ -38,7 +38,8 @@ public class ExportSignedPackageTest extends AndroidGradleTestCase {
     // debug and release
     assertEquals(2, androidProject.getVariants().size());
 
-    List<String> assembleTasks = ExportSignedPackageWizard.getAssembleTasks("", androidProject, "release", Collections.<String>emptyList());
+    List<String> assembleTasks = ExportSignedPackageWizard
+      .getGradleTasks("", androidProject, "release", Collections.emptyList(), ExportSignedPackageWizard.APK);
     assertEquals(1, assembleTasks.size());
     assertEquals(":assembleRelease", assembleTasks.get(0));
   }
@@ -52,7 +53,8 @@ public class ExportSignedPackageTest extends AndroidGradleTestCase {
     assertEquals(8, androidProject.getVariants().size());
 
     Set<String> assembleTasks =
-      Sets.newHashSet(ExportSignedPackageWizard.getAssembleTasks("", androidProject, "release", Lists.newArrayList("pro-x86", "free-arm")));
+      Sets.newHashSet(ExportSignedPackageWizard.getGradleTasks("", androidProject, "release", Lists.newArrayList("pro-x86", "free-arm"),
+                                                               ExportSignedPackageWizard.APK));
     assertEquals(2, assembleTasks.size());
     assertTrue(assembleTasks.contains(":assembleProX86Release"));
     assertTrue(assembleTasks.contains(":assembleFreeArmRelease"));
@@ -61,5 +63,35 @@ public class ExportSignedPackageTest extends AndroidGradleTestCase {
   public void testApkLocationCorrect() {
     // This test guarantees user is taken to the folder with the selected build type outputs
     assertEquals(toSystemDependentName("path/to/folder/release"), ExportSignedPackageWizard.getApkLocation("path/to/folder", "release").toString());
+  }
+
+  public void testBundleNoFlavors() throws Exception {
+    loadProject(SIGNAPK_NO_FLAVORS);
+    AndroidProject androidProject = getModel().getAndroidProject();
+    assertNotNull(androidProject);
+
+    // debug and release
+    assertEquals(2, androidProject.getVariants().size());
+
+    List<String> assembleTasks = ExportSignedPackageWizard
+      .getGradleTasks("", androidProject, "release", Collections.emptyList(), ExportSignedPackageWizard.BUNDLE);
+    assertEquals(1, assembleTasks.size());
+    assertEquals(":bundleRelease", assembleTasks.get(0));
+  }
+
+  public void testBundleFlavors() throws Exception {
+    loadProject(SIGNAPK_MULTIFLAVOR);
+    AndroidProject androidProject = getModel().getAndroidProject();
+    assertNotNull(androidProject);
+
+    // (free,pro) x (arm,x86) x (debug,release) = 8
+    assertEquals(8, androidProject.getVariants().size());
+
+    Set<String> assembleTasks =
+      Sets.newHashSet(ExportSignedPackageWizard.getGradleTasks("", androidProject, "release", Lists.newArrayList("pro-x86", "free-arm"),
+                                                               ExportSignedPackageWizard.BUNDLE));
+    assertEquals(2, assembleTasks.size());
+    assertTrue(assembleTasks.contains(":bundleProX86Release"));
+    assertTrue(assembleTasks.contains(":bundleFreeArmRelease"));
   }
 }

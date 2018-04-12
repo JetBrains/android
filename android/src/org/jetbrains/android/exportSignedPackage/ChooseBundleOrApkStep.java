@@ -47,7 +47,7 @@ public class ChooseBundleOrApkStep extends ExportSignedPackageWizardStep {
 
   @Override
   protected void commitForNext() {
-    myWizard.setTargetType(myBundleButton.isSelected() ? "bundle" : "apk");
+    myWizard.setTargetType(myBundleButton.isSelected() ? ExportSignedPackageWizard.BUNDLE : ExportSignedPackageWizard.APK);
   }
 
   @Override

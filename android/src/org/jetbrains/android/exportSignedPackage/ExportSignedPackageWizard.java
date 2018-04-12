@@ -41,13 +41,11 @@ import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -78,6 +76,8 @@ import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
  */
 public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackageWizardStep> {
   private static final Logger LOG = Logger.getInstance(ExportSignedPackageWizard.class);
+  public static final String BUNDLE = "bundle";
+  public static final String APK = "apk";
 
   @NotNull private final Project myProject;
 
@@ -178,7 +178,12 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
           return;
         }
 
-        List<String> assembleTasks = getAssembleTasks(gradleProjectPath, androidModel.getAndroidProject(), myBuildType, myFlavors);
+        // should have been set by previous steps
+        if (myBuildType == null || myFlavors == null || myTargetType == null) {
+          LOG.error("Unable to find required information. Please check the previous steps are completed.");
+          return;
+        }
+        List<String> gradleTasks = getGradleTasks(gradleProjectPath, androidModel.getAndroidProject(), myBuildType, myFlavors, myTargetType);
 
         List<String> projectProperties = Lists.newArrayList();
         projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_STORE_FILE, myGradleSigningInfo.keyStoreFilePath));
@@ -198,10 +203,10 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
         GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(myProject);
         gradleBuildInvoker.add(new GoToApkLocationTask(appModulesToOutputs, "Generate Signed APK"));
-        gradleBuildInvoker.executeTasks(new File(rootProjectPath), assembleTasks, projectProperties);
+        gradleBuildInvoker.executeTasks(new File(rootProjectPath), gradleTasks, projectProperties);
 
         LOG.info("Export APK command: " +
-                 Joiner.on(',').join(assembleTasks) +
+                 Joiner.on(',').join(gradleTasks) +
                  ", destination: " +
                  createProperty(AndroidProject.PROPERTY_APK_LOCATION, myApkPath));
       }
@@ -220,10 +225,11 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
   @VisibleForTesting
   @NotNull
-  public static List<String> getAssembleTasks(String gradleProjectPath,
-                                               AndroidProject androidProject,
-                                               String buildType,
-                                               List<String> flavors) {
+  public static List<String> getGradleTasks(@NotNull String gradleProjectPath,
+                                            @NotNull AndroidProject androidProject,
+                                            @NotNull String buildType,
+                                            @NotNull List<String> flavors,
+                                            @NotNull String targetType) {
     Map<String,Variant> variantsByFlavor = Maps.newHashMapWithExpectedSize(flavors.size());
     for (Variant v : androidProject.getVariants()) {
       if (!v.getBuildType().equals(buildType)) {
@@ -237,7 +243,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
       // if there are no flavors defined, then the default merged flavor name is empty..
       Variant v = variantsByFlavor.get("");
       if (v != null) {
-        String taskName = v.getMainArtifact().getAssembleTaskName();
+        String taskName = getTaskName(v, targetType);
         return Collections.singletonList(GradleTaskFinder.getInstance().createBuildTask(gradleProjectPath, taskName));
       } else {
         LOG.error("Unable to find default variant");
@@ -249,12 +255,20 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     for (String flavor : flavors) {
       Variant v = variantsByFlavor.get(flavor);
       if (v != null) {
-        String taskName = v.getMainArtifact().getAssembleTaskName();
+        String taskName = getTaskName(v,targetType);
         assembleTasks.add(GradleTaskFinder.getInstance().createBuildTask(gradleProjectPath, taskName));
       }
     }
 
     return assembleTasks;
+  }
+
+  private static String getTaskName(Variant v, String targetType) {
+    if (targetType.equals(BUNDLE)) {
+      return v.getMainArtifact().getBundleTaskName();
+    } else {
+      return v.getMainArtifact().getAssembleTaskName();
+    }
   }
 
   public static String getMergedFlavorName(Variant variant) {
