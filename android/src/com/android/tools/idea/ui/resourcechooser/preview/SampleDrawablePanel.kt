@@ -34,7 +34,7 @@ import kotlin.properties.Delegates
 
 private const val IMAGE_SIZE = 64
 private const val SAMPLE_DATA_DOC_URL = "https://developer.android.com/studio/write/tool-attributes.html#design-time_view_attributes"
-private const val INFO_TEXT = "This sample resource will be used as a design-time attribute."
+private const val INFO_TEXT = "This sample resource will be used at design-time."
 private const val LEARN_MORE_LINK_TEXT = "Learn More."
 private val learnMoreLinkListener = LinkListener<String> { _, _ ->
   BrowserUtil.browse(SAMPLE_DATA_DOC_URL)
