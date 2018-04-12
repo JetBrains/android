@@ -33,7 +33,7 @@ iml_module(
     deps = [
         "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
-        "//tools/base/flags:studio.intellij.android.flags[module]",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/android-adb[module]",
         "//tools/idea/.idea/libraries:Guava",

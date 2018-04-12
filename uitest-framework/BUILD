@@ -39,7 +39,7 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/studio/google/cloud/testing/test-recorder[module, test]",
-        "//tools/base/flags:studio.intellij.android.flags[module, test]",
+        "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/adt/idea/project-system[module, test]",

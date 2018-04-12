@@ -25,7 +25,7 @@ iml_module(
         "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
         "//tools/idea/.idea/libraries:Guava",
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
-        "//tools/base/apkparser/analyzer:studio.intellij.android.analyzer[module]",
+        "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer[module]",
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/base/apkparser:studio.android.sdktools.binary-resources[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
