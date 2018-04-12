@@ -19,6 +19,8 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency
 import com.android.tools.idea.gradle.structure.model.*
+import com.android.tools.idea.gradle.structure.model.helpers.parseString
+import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.util.PlatformIcons.LIBRARY_ICON
 import javax.swing.Icon
 
@@ -44,4 +46,28 @@ class PsLibraryJavaDependency(
   override fun hasPromotedVersion(): Boolean = false
 
   override fun toText(type: PsDependency.TextType): String = spec.toString()
+
+  var version by PsLibraryJavaDependency.Descriptor.version
+
+  override val versionProperty: ModelSimpleProperty<Unit, String> get() = PsLibraryJavaDependency.Descriptor.version.bind(this)
+
+  object Descriptor : ModelDescriptor<PsLibraryJavaDependency, Nothing, ArtifactDependencyModel> {
+    override fun getResolved(model: PsLibraryJavaDependency): Nothing? = null
+
+    override fun getParsed(model: PsLibraryJavaDependency): ArtifactDependencyModel? = model.parsedModel
+
+    // TODO(solodkyy): Ensure setModified refreshes the resolved dependency collection when required.
+    override fun setModified(model: PsLibraryJavaDependency) {
+      model.isModified = true
+    }
+
+    val version: ModelSimpleProperty<PsLibraryJavaDependency, String> = property(
+      "Version",
+      getResolvedValue = { null },
+      getParsedProperty = { this.version() },
+      getter = { asString() },
+      setter = { setValue(it) },
+      parse = { parseString(it) }
+    )
+  }
 }

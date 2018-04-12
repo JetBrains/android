@@ -21,6 +21,8 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.structure.model.*
 import com.android.tools.idea.gradle.structure.model.PsDependency.TextType.PLAIN_TEXT
+import com.android.tools.idea.gradle.structure.model.helpers.parseString
+import com.android.tools.idea.gradle.structure.model.meta.*
 import com.google.common.collect.ImmutableSet
 import com.intellij.util.PlatformIcons.LIBRARY_ICON
 import javax.swing.Icon
@@ -41,6 +43,33 @@ open class PsDeclaredLibraryAndroidDependency(
   override val isDeclared: Boolean = true
   final override val configurationName: String = parsedModel.configurationName()
   override val joinedConfigurationNames: String = configurationName
+
+  var version by Descriptor.version
+  override val versionProperty: ModelSimpleProperty<Unit, String> get() = Descriptor.version.bind(this)
+
+  object Descriptor : ModelDescriptor<PsDeclaredLibraryAndroidDependency, Nothing, ArtifactDependencyModel> {
+    override fun getResolved(model: PsDeclaredLibraryAndroidDependency): Nothing? = null
+
+    override fun getParsed(model: PsDeclaredLibraryAndroidDependency): ArtifactDependencyModel? = model.parsedModel
+
+    // TODO(solodkyy): Ensure setModified refreshes the resolved dependency collection when required.
+    override fun setModified(model: PsDeclaredLibraryAndroidDependency) {
+      // NOTE: There is no need to re-index the declared dependency collection. Version is not a part of the key.
+      model.isModified = true
+      // TODO(solodkyy): Make setModified() customizable at the property level since some properties will need to call resetDependencies().
+      model.parent.resetResolvedDependencies()
+      model.parent.fireDependencyModifiedEvent(model)
+    }
+
+    val version: ModelSimpleProperty<PsDeclaredLibraryAndroidDependency, String> = property(
+      "Version",
+      getResolvedValue = { null },
+      getParsedProperty = { this.version() },
+      getter = { asString() },
+      setter = { setValue(it) },
+      parse = { parseString(it) }
+    )
+  }
 }
 
 open class PsResolvedLibraryAndroidDependency(
@@ -103,3 +132,4 @@ abstract class PsLibraryAndroidDependency internal constructor(
 
   override fun toString(): String = toText(PLAIN_TEXT)
 }
+
