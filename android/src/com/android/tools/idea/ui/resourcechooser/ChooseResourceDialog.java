@@ -1866,7 +1866,9 @@ public class ChooseResourceDialog extends DialogWrapper {
         return;
       }
 
-      if (element.getType() == ResourceType.SAMPLE_DATA && element instanceof ResourceChooserItem.SampleDataItem) {
+      if (element.getType() == ResourceType.SAMPLE_DATA
+          && element instanceof ResourceChooserItem.SampleDataItem
+          && ((ResourceChooserItem.SampleDataItem)element).getResourceItem().getContentType() == SampleDataResourceItem.ContentType.IMAGE) {
         showSampleItem((ResourceChooserItem.SampleDataItem)element);
         return;
       }
