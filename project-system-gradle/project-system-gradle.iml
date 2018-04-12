@@ -12,7 +12,7 @@
     <orderEntry type="module" module-name="intellij.android" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
-    <orderEntry type="module" module-name="intellij.android.analyzer" />
+    <orderEntry type="module" module-name="android.sdktools.analyzer" />
     <orderEntry type="module" module-name="intellij.platform.lang" />
     <orderEntry type="module" module-name="analytics-protos" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
