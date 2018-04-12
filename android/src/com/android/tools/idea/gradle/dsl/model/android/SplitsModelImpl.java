@@ -50,10 +50,8 @@ public class SplitsModelImpl extends GradleDslBlockModel implements SplitsModel 
   }
 
   @Override
-  @NotNull
-  public SplitsModel removeAbi() {
+  public void removeAbi() {
     myDslElement.removeProperty(ABI_BLOCK_NAME);
-    return this;
   }
 
 
@@ -69,10 +67,8 @@ public class SplitsModelImpl extends GradleDslBlockModel implements SplitsModel 
   }
 
   @Override
-  @NotNull
-  public SplitsModel removeDensity() {
+  public void removeDensity() {
     myDslElement.removeProperty(DENSITY_BLOCK_NAME);
-    return this;
   }
 
   @Override
@@ -87,9 +83,7 @@ public class SplitsModelImpl extends GradleDslBlockModel implements SplitsModel 
   }
 
   @Override
-  @NotNull
-  public SplitsModel removeLanguage() {
+  public void removeLanguage() {
     myDslElement.removeProperty(LANGUAGE_BLOCK_NAME);
-    return this;
   }
 }
