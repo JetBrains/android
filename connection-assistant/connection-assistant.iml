@@ -21,6 +21,6 @@
     <orderEntry type="module" module-name="intellij.android" />
     <orderEntry type="module" module-name="android-adb" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
-    <orderEntry type="module" module-name="intellij.android.flags" />
+    <orderEntry type="module" module-name="android.sdktools.flags" />
   </component>
 </module>

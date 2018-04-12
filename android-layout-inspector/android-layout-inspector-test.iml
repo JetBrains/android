@@ -15,13 +15,13 @@
     <orderEntry type="module" module-name="analytics-protos" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
-    <orderEntry type="module" module-name="intellij.android.layoutInspector" />
+    <orderEntry type="module" module-name="android.sdktools.layoutinspector" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="module" module-name="intellij.platform.ide.impl" />
     <orderEntry type="module" module-name="intellij.platform.images" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.observable" />
-    <orderEntry type="module" module-name="intellij.android.flags" />
+    <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.xml.psi.impl" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />

@@ -20,7 +20,7 @@
     <orderEntry type="module" module-name="intellij.platform.ide.impl" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.ninepatch" />
     <orderEntry type="module" module-name="android.sdktools.sdklib" />
-    <orderEntry type="module" module-name="intellij.android.flags" />
+    <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.platform.projectModel" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module" module-name="adt-testutils" scope="TEST" />
