@@ -34,14 +34,14 @@ private val CONTENT_BORDER = JBUI.Borders.empty(5, LEFT_PADDING, 7, 5)
  * Base panel for Assistant that applies the correct margin the the provided [content]
  * and displays a title label.
  */
-open class AssistantPopupPanel @JvmOverloads constructor(title: String = "DESIGN-TIME ATTRIBUTES", val content: JComponent? = null) : JPanel(
+open class AssistantPopupPanel @JvmOverloads constructor(title: String = "Design-time View Attributes", val content: JComponent? = null) : JPanel(
   VerticalFlowLayout()) {
 
   private val titleLabel = JLabel(title, SwingConstants.LEADING).apply {
     border = JBUI.Borders.merge(
       JBUI.Borders.empty(8, LEFT_PADDING, 8, 12),
       JBUI.Borders.customLine(com.android.tools.adtui.common.border, 0, 0, 1, 0), true)
-    font = font.deriveFont(Font.BOLD, 10f)
+    font = font.deriveFont(10f)
     isOpaque = false
   }
 
