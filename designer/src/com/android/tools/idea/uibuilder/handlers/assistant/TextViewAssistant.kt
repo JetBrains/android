@@ -19,40 +19,29 @@ import com.android.SdkConstants.*
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
-import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.SampleDataResourceItem
+import com.android.tools.idea.uibuilder.property.assistant.AssistantPopupPanel
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory.Context
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
-import com.intellij.util.ui.JBUI
-import java.awt.BorderLayout
 import java.awt.GridLayout
 import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-class TextViewAssistant(private val context: Context) : JPanel(BorderLayout()) {
+class TextViewAssistant(private val context: Context) : AssistantPopupPanel() {
   private val myComponent: NlComponent = context.component
   private val myOriginalTextValue: String?
   private val myAppResources = ResourceRepositoryManager.getAppResources(context.component.model.facet)
 
-  private var myProject: Project
+  private var myProject: Project = context.component.model.facet.module.project
 
   init {
-    background = MAIN_PANEL_BACKGROUND
-    border = MAIN_PANEL_BORDER
-
-    myProject = context.component.model.facet.module.project
-
-    val label = assistantLabel("Tools attributes")
-    label.border = JBUI.Borders.customLine(AdtUiUtils.DEFAULT_BORDER_COLOR, 0, 0, 1, 0)
-
     val mainPanel = JPanel(GridLayout(0, 1)).apply {
-      border = JBUI.Borders.emptyTop(5)
       isOpaque = false
       add(assistantLabel("Text"))
 
@@ -81,8 +70,7 @@ class TextViewAssistant(private val context: Context) : JPanel(BorderLayout()) {
       add(combo)
     }
 
-    add(label, BorderLayout.NORTH)
-    add(mainPanel, BorderLayout.CENTER)
+    addContent(mainPanel)
 
     myOriginalTextValue = myComponent.getAttribute(TOOLS_URI, ATTR_TEXT)
 
