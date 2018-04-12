@@ -34,45 +34,6 @@
           included in this update.
           ]]>
       </description>
-      <step label="C/C++ IDE Features">
-        <stepElement>
-          <section>
-            <![CDATA[
-
-          <img src="https://d.android.com/studio/releases/assistant/3.2.0/cpp-features-overview.gif">
-
-          <br><br>
-          Android Studio now includes the following features for developing and
-          debugging your C/C++ libraries:
-
-          <br><br>
-          <div style="margin-bottom:0px;">
-          <ul>
-            <li><b>Smart editor features for CMake scripts</b>:
-            Perform safe refactoring, code completion,
-            code reformatting, and other smart editor actions when editing CMake
-            build scripts.
-            <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#cmake-editor">
-            Learn more</a></li>
-
-            <li><b>Inspect JNI references</b>:
-            Inspect memory allocations for your app’s JNI code when you deploy
-            to a device running Android 8.0 (API level 26) or higher.
-            <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#jni_memory">
-            Learn more</a>.</li>
-
-            <li><b>Navigate external header files</b>:
-            In the <b>Project</b> window, view and inspect header
-            files from external C/C++ library dependencies that you import into
-            your project.
-            <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#navigate_headers">
-            Learn more</li>
-          </ul>
-          </div>
-           ]]>
-          </section>
-        </stepElement>
-      </step>
       <step label="New Profiler Features">
         <stepElement>
           <section>
@@ -102,7 +63,6 @@
             <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#system_trace">
             Learn more</a></li>
 
-
             <li><b>Record a method trace during app startup:</b>
             Enable the feature by selecting
             <b>Run &gt; Edit Configurations</b> from the main menu
@@ -113,7 +73,46 @@
             selecting <b>Run &gt; Profile</b>.
             <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#trace_startup">
             Learn more</a></li>
+
+            <li><b>Inspect JNI references</b>:
+            Inspect memory allocations for your app’s JNI code when you deploy
+            to a device running Android 8.0 (API level 26) or higher.
+            <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#jni_memory">
+            Learn more</a>.</li>
           </ul>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="C/C++ IDE Features">
+        <stepElement>
+          <section>
+            <![CDATA[
+
+          <img src="https://d.android.com/studio/releases/assistant/3.2.0/cpp-features-overview.gif">
+
+          <br><br>
+          Android Studio now includes the following features for developing and
+          debugging your C/C++ libraries:
+
+          <br><br>
+          <div style="margin-bottom:0px;">
+          <ul>
+            <li><b>Smart editor features for CMake scripts</b>:
+            Perform safe refactoring, code completion,
+            code reformatting, and other smart editor actions when editing CMake
+            build scripts.
+            <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#cmake-editor">
+            Learn more</a></li>
+
+            <li><b>Navigate external header files</b>:
+            In the <b>Project</b> window, view and inspect header
+            files from external C/C++ library dependencies that you import into
+            your project using CMake.
+            <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#navigate_headers">
+            Learn more</li>
+          </ul>
+          </div>
            ]]>
           </section>
         </stepElement>
@@ -133,6 +132,23 @@
             <br><br>
             <div style="border: solid gray 1px; padding-left: 10px;">
             <pre>android.enableR8 = true</pre>
+            </div>
+            </li>
+
+            <li><b>Lint checks for Java/Kotlin interoperability:</b>
+            To enable new lint checks that enforce best practices described
+            in the
+            <a href="https://d.android.com/r/studio-wna/java-kotlin-interop.html">
+            Kotlin Interop Guide</a>, add the following to your module's
+            <code>build.gradle</code>:
+
+            <br><br>
+            <div style="border: solid gray 1px; padding-left: 10px;">
+            <pre>android {
+    lintOptions {
+        check 'Interoperability'
+    }
+}</pre>
             </div>
             </li>
 
