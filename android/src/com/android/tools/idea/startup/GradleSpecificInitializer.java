@@ -52,8 +52,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.codeStyle.CodeStyleScheme;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
-import com.intellij.util.messages.MessageBusConnection;
-import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -124,7 +122,6 @@ public class GradleSpecificInitializer implements Runnable {
       checkAndSetAndroidSdkSources();
     }
 
-    registerAppClosing();
     modifyCodeStyleSettings();
   }
 
@@ -438,23 +435,6 @@ public class GradleSpecificInitializer implements Runnable {
     catch (IOException e) {
       return null;
     }
-  }
-
-  // Registers a callback that gets notified when the IDE is closing.
-  private static void registerAppClosing() {
-    Application app = ApplicationManager.getApplication();
-    MessageBusConnection connection = app.getMessageBus().connect(app);
-    connection.subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener() {
-      @Override
-      public void appClosing() {
-        try {
-          DefaultGradleConnector.close();
-        }
-        catch (RuntimeException e) {
-          LOG.info("Failed to stop Gradle daemons during IDE shutdown", e);
-        }
-      }
-    });
   }
 
   @VisibleForTesting
