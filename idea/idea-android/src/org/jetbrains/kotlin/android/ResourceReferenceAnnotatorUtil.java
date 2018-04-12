@@ -25,7 +25,6 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.res.AppResourceRepository;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.ui.resourcechooser.ColorPicker;
 import com.android.utils.XmlUtils;
@@ -147,7 +146,7 @@ public class ResourceReferenceAnnotatorUtil {
             }
             return items.get(0).getResourceValue(true);
         } else {
-            LocalResourceRepository appResources = AppResourceRepository.getOrCreateInstance(module);
+            AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(module);
             if (appResources == null) {
                 return null;
             }
