@@ -400,7 +400,7 @@ public class SceneComponent {
   /**
    * Set the position of this {@link SceneComponent} and begin the animation to the given
    * position at the given time.
-   *
+   * <p>
    * The position of the underlying NlComponent is set immediately.
    *
    * @param dx          The X position to animate the component to
@@ -441,7 +441,7 @@ public class SceneComponent {
   /**
    * Set the size of this {@link SceneComponent} and begin the animation to the given
    * position at the given time.
-   *
+   * <p>
    * The size of the underlying NlComponent is set immediately.
    *
    * @param width       The width to animate the component to
@@ -737,11 +737,6 @@ public class SceneComponent {
     ImmutableList<Target> targets = getTargets();
     int actionTargetLeft = myCurrentLeft;
     int actionTargetTop = myCurrentTop;
-    float ratio = 1f / (float)sceneTransform.getScale();
-    if (ratio > 2) {
-      ratio = 2;
-    }
-    float actionTargetGap = ratio * 4;
     int num = targets.size();
     for (int i = 0; i < num; i++) {
       Target target = targets.get(i);
@@ -751,7 +746,7 @@ public class SceneComponent {
         ActionTarget actionTarget = (ActionTarget)target;
         needsRebuildDisplayList |= target.layout(sceneTransform, actionTargetLeft, actionTargetTop, myCurrentRight, myCurrentBottom);
         if (actionTarget.isVisible()) {
-          actionTargetLeft = (int)(actionTarget.getRight() + actionTargetGap);
+          actionTargetLeft = (int)(actionTarget.getRight() + actionTarget.getGap());
         }
       }
       else {
