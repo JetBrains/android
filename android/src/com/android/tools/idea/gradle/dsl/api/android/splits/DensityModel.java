@@ -24,23 +24,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public interface DensityModel extends GradleDslModel {
+public interface DensityModel extends BaseSplitOptionsModel {
   @NotNull
   ResolvedPropertyModel auto();
 
   @NotNull
   ResolvedPropertyModel compatibleScreens();
-
-  @NotNull
-  ResolvedPropertyModel enable();
-
-  @Nullable
-  ResolvedPropertyModel exclude();
-
-  @Nullable
-  ResolvedPropertyModel include();
-
-  void addReset();
-
-  void removeReset();
 }

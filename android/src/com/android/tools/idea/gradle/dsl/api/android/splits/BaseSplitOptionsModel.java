@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,20 @@
 package com.android.tools.idea.gradle.dsl.api.android.splits;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import org.jetbrains.annotations.NotNull;
 
-public interface AbiModel extends BaseSplitOptionsModel {
+public interface BaseSplitOptionsModel extends GradleDslModel {
   @NotNull
-  ResolvedPropertyModel universalApk();
+  ResolvedPropertyModel enable();
+
+  @NotNull
+  ResolvedPropertyModel exclude();
+
+  @NotNull
+  ResolvedPropertyModel include();
+
+  boolean reset();
+
+  void setReset(boolean bool);
 }

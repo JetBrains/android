@@ -335,16 +335,26 @@ public class GroovyDslWriter implements GradleDslWriter {
       return null;
     }
 
+    GradleDslElement anchorAfter = methodCall.getAnchor();
+
+    // If the parent doesn't have a psi element, the anchor will be used to create the parent in getParentPsi.
+    // In this case we want to be placed in the newly made parent so we ignore our anchor.
+    if (needToCreateParent(methodCall)) {
+      anchorAfter = null;
+    }
+
     PsiElement parentPsiElement = methodCall.getParent().create();
     if (parentPsiElement == null) {
       return null;
     }
 
+    PsiElement anchor = getPsiElementForAnchor(parentPsiElement, anchorAfter);
+
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(parentPsiElement.getProject());
     String statementText =
       (!methodCall.getFullName().isEmpty() ? methodCall.getFullName() + " " : "") + methodCall.getMethodName() + "()";
     GrStatement statement = factory.createStatementFromText(statementText);
-    PsiElement addedElement = parentPsiElement.addBefore(statement, parentPsiElement.getLastChild());
+    PsiElement addedElement = parentPsiElement.addAfter(statement, anchor);
 
     if (addedElement instanceof GrApplicationStatement) {
       GrExpression[] expressionArguments = ((GrApplicationStatement)addedElement).getArgumentList().getExpressionArguments();
