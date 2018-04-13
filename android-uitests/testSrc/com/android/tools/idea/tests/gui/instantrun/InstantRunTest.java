@@ -101,6 +101,8 @@ public class InstantRunTest {
       .selectDevice(avdName)
       .clickOk();
 
+    guiTest.waitForBackgroundTasks();
+
     ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
     contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
     String pid = extractPidFromOutput(contentFixture.getOutput(10), RUN_OUTPUT);
