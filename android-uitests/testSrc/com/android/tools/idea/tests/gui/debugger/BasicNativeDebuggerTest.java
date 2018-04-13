@@ -205,7 +205,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.QA_UNRELIABLE)  // b/77970753
   public void testDualDebuggerBreakpoints() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 

@@ -91,7 +91,7 @@ public class NlEditorTest {
    *   1. The added component shows up in the xml
    * </pre>
    */
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.QA_UNRELIABLE)  // b/77856035
   @TargetBuildSystem({TargetBuildSystem.BuildSystem.GRADLE, TargetBuildSystem.BuildSystem.BAZEL})
   @Test
   public void basicLayoutEdit() throws Exception {
