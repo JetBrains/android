@@ -16,9 +16,11 @@
 package com.android.tools.idea.common.scene.target
 
 import com.android.tools.adtui.LightCalloutPopup
+import com.android.tools.adtui.canShowBelow
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.uibuilder.graphics.NlIcon
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory
+import com.intellij.openapi.ui.popup.Balloon
 import icons.StudioIcons
 import java.awt.Point
 import javax.swing.JComponent
@@ -38,8 +40,9 @@ class ComponentAssistantActionTarget(
   override fun mouseRelease(x: Int, y: Int, closestTargets: MutableList<Target>) {
     val designSurface = component.scene.designSurface
     val context = SceneContext.get(designSurface.currentSceneView)
-    val position = Point(context.getSwingXDip(centerX), context.getSwingYDip(myTop))
-    val assistantContext = ComponentAssistantFactory.Context(component.nlComponent,
+    val position = Point(context.getSwingXDip(centerX), context.getSwingYDip(myBottom))
+    val assistantContext = ComponentAssistantFactory.Context(
+      component.nlComponent,
       { cancel ->
         if (cancel) popup.cancel() else popup.close()
       })
@@ -51,7 +54,15 @@ class ComponentAssistantActionTarget(
       onClose = {} // One-off trigger. Disable the callback
       assistantContext.onClose(cancelled)
     }
-    popup.show(component, designSurface, position)
+
+    val parentComponent = designSurface.layeredPane
+    if (canShowBelow(parentComponent, position, component)) {
+      popup.show(component, parentComponent, position)
+    }
+    else {
+      val location = Point(context.getSwingXDip(centerX), context.getSwingYDip(myTop))
+      popup.show(component, parentComponent, location, Balloon.Position.above)
+    }
   }
 
   private fun fireCloseEvent() {

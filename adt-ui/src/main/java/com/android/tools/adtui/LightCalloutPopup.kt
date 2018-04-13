@@ -23,7 +23,9 @@ import com.intellij.openapi.util.registry.Registry
 import com.intellij.ui.JBColor
 import com.intellij.ui.awt.RelativePoint
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import java.awt.Point
+import java.awt.Rectangle
 import javax.swing.JComponent
 
 /**
@@ -42,7 +44,8 @@ class LightCalloutPopup(
   fun show(
     content: JComponent,
     parentComponent: JComponent,
-    location: Point
+    location: Point,
+    position: Balloon.Position = Balloon.Position.below
   ) {
 
     // Let's cancel any previous balloon shown by this instance of ScenePopup
@@ -64,7 +67,9 @@ class LightCalloutPopup(
           }
         }
       })
-      show(RelativePoint(parentComponent, location), Balloon.Position.above)
+
+      val relativePoint = RelativePoint(parentComponent, location)
+      show(relativePoint, position)
     }
   }
 
@@ -89,4 +94,18 @@ class LightCalloutPopup(
       .setRequestFocus(true)
       .setDialogMode(false)
       .createBalloon()
+}
+
+private val emptyRectangle = Rectangle(0, 0, 0, 0)
+
+/**
+ * Return true if there is enough space in the application window below [location]
+ * in the [parentComponent] coordinates to show [content].
+ */
+fun canShowBelow(parentComponent: JComponent,
+                 location: Point,
+                 content: JComponent): Boolean {
+  val relativePoint = RelativePoint(parentComponent, location)
+  val windowBounds = UIUtil.getWindow(parentComponent)?.bounds ?: emptyRectangle
+  return relativePoint.screenPoint.y + content.preferredSize.height < windowBounds.y + windowBounds.height
 }
