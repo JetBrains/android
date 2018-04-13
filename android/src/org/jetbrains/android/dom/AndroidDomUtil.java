@@ -90,7 +90,7 @@ public class AndroidDomUtil {
     addSpecialResourceType(ResourceType.DRAWABLE, ATTR_ICON, ATTR_SRC);
     addSpecialResourceType(ResourceType.COLOR, ATTR_SRC);
     addSpecialResourceType(ResourceType.STYLE, ATTR_THEME, ATTR_STYLE);
-    addSpecialResourceType(ResourceType.ANIM, "animation");
+    addSpecialResourceType(ResourceType.ANIM, "animation", ATTR_SHOW_MOTION_SPEC, ATTR_HIDE_MOTION_SPEC);
     addSpecialResourceType(ResourceType.ID, ATTR_ID, ATTR_LAYOUT_TO_RIGHT_OF, ATTR_LAYOUT_TO_LEFT_OF, ATTR_LAYOUT_ABOVE,
                            ATTR_LAYOUT_BELOW, ATTR_LAYOUT_ALIGN_BASELINE, ATTR_LAYOUT_ALIGN_LEFT, ATTR_LAYOUT_ALIGN_TOP,
                            ATTR_LAYOUT_ALIGN_RIGHT, ATTR_LAYOUT_ALIGN_BOTTOM, ATTR_LAYOUT_ALIGN_START, ATTR_LAYOUT_ALIGN_END,
@@ -101,6 +101,7 @@ public class AndroidDomUtil {
                            ATTR_LAYOUT_BOTTOM_TO_TOP_OF, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF);
     addSpecialResourceType(ResourceType.LAYOUT, ATTR_LISTITEM, ATTR_LAYOUT);
     addSpecialResourceType(ResourceType.FONT, ATTR_FONT_FAMILY);
+    addSpecialResourceType(ResourceType.MENU, ATTR_MENU);
 
     // Nav editor
     addSpecialResourceType(ResourceType.ID, NavigationSchema.ATTR_DESTINATION);
