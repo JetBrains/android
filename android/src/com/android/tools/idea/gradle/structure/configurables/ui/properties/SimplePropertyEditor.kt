@@ -94,7 +94,7 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
 
   private fun getKnowValues(): Map<PropertyT?, ValueRenderer> {
     val defaultValue = property.getDefaultValue(model)
-    val knownValues = property.getKnownValues(model)
+    val knownValues = property.getKnownValues(model).get()
     return buildKnownValueRenderers(knownValues, defaultValue)
   }
 

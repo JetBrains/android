@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.tools.idea.gradle.structure.model.helpers.*
 import com.android.tools.idea.gradle.structure.model.meta.*
+import com.google.common.util.concurrent.Futures.immediateFuture
 import java.io.File
 
 open class PsProductFlavor(
@@ -76,7 +77,7 @@ open class PsProductFlavor(
       getter = { asString() },
       setter = { setValue(it) },
       parse = { parseString(it) },
-      getKnownValues = { it.parent.flavorDimensions.map { ValueDescriptor(it, it) } }
+      getKnownValues = { immediateFuture(it.parent.flavorDimensions.map { ValueDescriptor(it, it) }) }
     )
 
     val maxSdkVersion: ModelSimpleProperty<PsProductFlavor, Int> = property(

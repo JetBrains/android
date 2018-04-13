@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.structure.model.meta
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
+import com.google.common.util.concurrent.Futures.immediateFuture
+import com.google.common.util.concurrent.ListenableFuture
 import kotlin.reflect.KProperty
 
 fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT, ValueT : Any> T.listProperty(
@@ -27,7 +29,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT
   itemValueSetter: ResolvedPropertyModel.(ValueT) -> Unit,
   getParsedProperty: ParsedT.() -> ResolvedPropertyModel,
   parse: (String) -> ParsedValue<ValueT>,
-  getKnownValues: ((ModelT) -> List<ValueDescriptor<ValueT>>)? = null
+  getKnownValues: ((ModelT) -> ListenableFuture<List<ValueDescriptor<ValueT>>>)? = null
 ) =
   ModelListPropertyImpl(
     this,
@@ -40,7 +42,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT
     { getParsedProperty().delete() },
     { getParsedProperty().setDslText(it) },
     { if (it.isBlank()) ParsedValue.NotSet else parse(it.trim()) },
-    { if (getKnownValues != null) getKnownValues(it) else null }
+    { if (getKnownValues != null) getKnownValues(it) else immediateFuture(listOf()) }
   )
 
 class ModelListPropertyImpl<in ModelT, out ResolvedT, ParsedT, ValueT : Any>(
@@ -54,7 +56,7 @@ class ModelListPropertyImpl<in ModelT, out ResolvedT, ParsedT, ValueT : Any>(
   override val clearParsedValue: ParsedT.() -> Unit,
   override val setParsedRawValue: (ParsedT.(DslText) -> Unit),
   override val parser: (String) -> ParsedValue<ValueT>,
-  override val knownValuesGetter: (ModelT) -> List<ValueDescriptor<ValueT>>?
+  override val knownValuesGetter: (ModelT) -> ListenableFuture<List<ValueDescriptor<ValueT>>>
 ) : ModelCollectionPropertyBase<ModelT, ResolvedT, ParsedT, List<ValueT>, ValueT>(), ModelListProperty<ModelT, ValueT> {
 
   override fun getEditableValues(model: ModelT): List<ModelPropertyCore<Unit, ValueT>> =

@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.structure.model.meta
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
+import com.google.common.util.concurrent.Futures.immediateFuture
+import com.google.common.util.concurrent.ListenableFuture
 import kotlin.reflect.KProperty
 
 /**
@@ -47,7 +49,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   getter: ResolvedPropertyModelT.() -> PropertyT?,
   setter: ResolvedPropertyModelT.(PropertyT) -> Unit,
   parse: (String) -> ParsedValue<PropertyT>,
-  getKnownValues: ((ModelT) -> List<ValueDescriptor<PropertyT>>)? = null
+  getKnownValues: ((ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>)? = null
 ) =
   ModelSimplePropertyImpl(
     this,
@@ -59,7 +61,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
     { if (it != null) getParsedProperty().setter(it) else getParsedProperty().delete() },
     { getParsedProperty().setDslText(it) },
     { if (it.isBlank()) ParsedValue.NotSet else parse(it.trim()) },
-    { if (getKnownValues != null) getKnownValues(it) else null }
+    { if (getKnownValues != null) getKnownValues(it) else immediateFuture(listOf()) }
   )
 
 /**
@@ -88,7 +90,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT
     setParsedRawValue: (ParsedT.(DslText) -> Unit)? = null,
     clearParsedValue: ParsedT.() -> Unit,
     parse: (String) -> ParsedValue<PropertyT>,
-    getKnownValues: ((ModelT) -> List<ValueDescriptor<PropertyT>>)? = null
+    getKnownValues: ((ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>)? = null
 ) =
     ModelSimplePropertyImpl(
         this,
@@ -108,7 +110,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT
           }
         },
         { if (it.isBlank()) ParsedValue.NotSet else parse(it.trim()) },
-        { if (getKnownValues != null) getKnownValues(it) else null }
+        { if (getKnownValues != null) getKnownValues(it) else immediateFuture(listOf()) }
     )
 
 class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
@@ -121,7 +123,7 @@ class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
     private val setParsedValue: (ParsedT.(PropertyT?) -> Unit),
     private val setParsedRawValue: (ParsedT.(DslText) -> Unit),
     private val parser: (String) -> ParsedValue<PropertyT>,
-    private val knownValuesGetter: (ModelT) -> List<ValueDescriptor<PropertyT>>?
+    private val knownValuesGetter: (ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>
 ) : ModelSimpleProperty<ModelT, PropertyT> {
   override fun getValue(thisRef: ModelT, property: KProperty<*>): ParsedValue<PropertyT> = getParsedValue(thisRef)
 
@@ -167,7 +169,7 @@ class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
 
   override fun parse(value: String): ParsedValue<PropertyT> = parser(value)
 
-  override fun getKnownValues(model: ModelT): List<ValueDescriptor<PropertyT>>? = knownValuesGetter(model)
+  override fun getKnownValues(model: ModelT): ListenableFuture<List<ValueDescriptor<PropertyT>>> = knownValuesGetter(model)
 
   private fun ModelT.setModified() = modelDescriptor.setModified(this)
 }

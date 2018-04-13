@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.meta
 
+import com.google.common.util.concurrent.ListenableFuture
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
@@ -57,7 +58,8 @@ interface ModelProperty<in ModelT, PropertyT : Any> :
   fun getDefaultValue(model: ModelT): PropertyT?
 }
 
-interface ModelPropertyContext<in ModelT, out ValueT : Any> {
+@Suppress("AddVarianceModifier")  // PSQ erroneously reports AddVarianceModifier on ValueT here.
+interface ModelPropertyContext<in ModelT, ValueT : Any> {
   /**
    * Parses the text representation of type [ValueT].
    *
@@ -68,7 +70,7 @@ interface ModelPropertyContext<in ModelT, out ValueT : Any> {
   /**
    * Returns a list of well-known values (constants) with their short human-readable descriptions that are applicable to the property.
    */
-  fun getKnownValues(model: ModelT): List<ValueDescriptor<ValueT>>?
+  fun getKnownValues(model: ModelT): ListenableFuture<List<ValueDescriptor<ValueT>>>
 }
 
 /**
@@ -83,7 +85,7 @@ interface ModelSimpleProperty<in ModelT, PropertyT : Any> :
 /**
  * A UI descriptor of a collection property.
  */
-interface ModelCollectionProperty<in ModelT, CollectionT : Any, out ValueT : Any>
+interface ModelCollectionProperty<in ModelT, CollectionT : Any, ValueT : Any>
   : ModelProperty<ModelT, CollectionT>,
     ModelPropertyContext<ModelT, ValueT>
 
@@ -126,6 +128,6 @@ fun <ModelT, PropertyT : Any> ModelSimpleProperty<ModelT, PropertyT>.bind(boundM
 
     override fun parse(value: String): ParsedValue<PropertyT> = it.parse(value)
 
-    override fun getKnownValues(model: Unit): List<ValueDescriptor<PropertyT>>? = it.getKnownValues(boundModel)
+    override fun getKnownValues(model: Unit): ListenableFuture<List<ValueDescriptor<PropertyT>>> = it.getKnownValues(boundModel)
   }
 }
