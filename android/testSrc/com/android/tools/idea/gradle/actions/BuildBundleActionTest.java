@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.actions;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
@@ -28,9 +29,12 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.run.OutputBuildAction;
 import com.android.tools.idea.testing.Facets;
 import com.android.tools.idea.testing.IdeComponents;
+import com.android.tools.idea.testing.TestMessagesDialog;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.ui.TestDialog;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -41,6 +45,7 @@ import java.util.Collections;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -56,7 +61,9 @@ public class BuildBundleActionTest extends IdeaTestCase {
   @Mock private IdeAndroidProject myIdeAndroidProject;
   @Mock private IdeVariant myIdeVariant;
   @Mock private IdeAndroidArtifact myMainArtifact;
+  @Mock private AndroidPluginVersionUpdater myAndroidPluginVersionUpdater;
   private BuildBundleAction myAction;
+  private TestDialog myDefaultTestDialog;
 
   @Override
   protected void setUp() throws Exception {
@@ -66,7 +73,19 @@ public class BuildBundleActionTest extends IdeaTestCase {
     new IdeComponents(myProject).replaceProjectService(GradleBuildInvoker.class, myBuildInvoker);
     new IdeComponents(myProject).replaceProjectService(GradleProjectInfo.class, myGradleProjectInfo);
     new IdeComponents(myProject).replaceProjectService(ProjectStructure.class, myProjectStructure);
+    new IdeComponents(myProject).replaceProjectService(AndroidPluginVersionUpdater.class, myAndroidPluginVersionUpdater);
     myAction = new BuildBundleAction();
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      if (myDefaultTestDialog != null) {
+        Messages.setTestDialog(myDefaultTestDialog);
+      }
+    } finally {
+      super.tearDown();
+    }
   }
 
   public void testActionPerformed() {
@@ -85,6 +104,60 @@ public class BuildBundleActionTest extends IdeaTestCase {
     myAction.actionPerformed(event);
 
     verify(myBuildInvoker).bundle(eq(appModules), eq(Collections.emptyList()), any(OutputBuildAction.class));
+  }
+
+  public void testUpdateGradlePluginNotification() {
+    Module appModule = createModule("app1");
+    setUpModuleAsAndroidModule(appModule, myAndroidModel, myIdeAndroidProject, myIdeVariant, myMainArtifact);
+    when(myMainArtifact.getBundleTaskName()).thenReturn(null);
+    // Ignore return value, as we just want to make sure the "bundle" action does not apply to all modules
+    createModule("app2");
+
+    Module[] appModules = {appModule};
+    when(myProjectStructure.getAppModules()).thenReturn(ImmutableList.copyOf(appModules));
+    when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
+
+    AnActionEvent event = mock(AnActionEvent.class);
+    when(event.getProject()).thenReturn(getProject());
+
+    @SuppressWarnings("MagicConstant") // Using custom button IDs
+    TestMessagesDialog testDialog = new TestMessagesDialog(1 /* Update*/);
+    myDefaultTestDialog = Messages.setTestDialog(testDialog);
+    myAction.actionPerformed(event);
+
+    assertThat(testDialog.getDisplayedMessage()).isEqualTo(getHtmlUpdateMessage());
+    verify(myAndroidPluginVersionUpdater).updatePluginVersion(any(), any());
+  }
+
+  public void testUpdateGradlePluginCanceledNotification() {
+    Module appModule = createModule("app1");
+    setUpModuleAsAndroidModule(appModule, myAndroidModel, myIdeAndroidProject, myIdeVariant, myMainArtifact);
+    when(myMainArtifact.getBundleTaskName()).thenReturn(null);
+    // Ignore return value, as we just want to make sure the "bundle" action does not apply to all modules
+    createModule("app2");
+
+    Module[] appModules = {appModule};
+    when(myProjectStructure.getAppModules()).thenReturn(ImmutableList.copyOf(appModules));
+    when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
+
+    AnActionEvent event = mock(AnActionEvent.class);
+    when(event.getProject()).thenReturn(getProject());
+
+    @SuppressWarnings("MagicConstant") // Using custom button IDs
+    TestMessagesDialog testDialog = new TestMessagesDialog(0 /* Cancel*/);
+    myDefaultTestDialog = Messages.setTestDialog(testDialog);
+    myAction.actionPerformed(event);
+
+    assertThat(testDialog.getDisplayedMessage()).isEqualTo(getHtmlUpdateMessage());
+    verify(myAndroidPluginVersionUpdater, never()).updatePluginVersion(any(), any());
+  }
+
+  private static String getHtmlUpdateMessage() {
+    return "<html><body>Building Bundles requires you to update to the latest version of the Android Gradle Plugin.<BR/>" +
+           "<A HREF=\"https://d.android.com/r/studio-ui/dynamic-delivery/overview.html\">Learn More</A><BR/><BR/>" +
+           "Bundles allow you to support multiple device configurations from a single build artifact.<BR/>" +
+           "App stores that support the bundle format use it to build and sign your APKs for you, and<BR/>" +
+           "serve those APKs to users as needed.<BR/><BR/></body></html>";
   }
 
   private static void setUpModuleAsAndroidModule(@NotNull Module module,
