@@ -42,7 +42,7 @@ class BazelConsoleToolWindowFixture(project: Project, robot: Robot) :  ToolWindo
     .text
 
   fun hasSyncStarted() = try {
-    getConsoleText().contains("Syncing project:")
+    getConsoleText().contains("Syncing project: Sync (incremental)...")
   } catch (e: ComponentLookupException) {
     false
   }

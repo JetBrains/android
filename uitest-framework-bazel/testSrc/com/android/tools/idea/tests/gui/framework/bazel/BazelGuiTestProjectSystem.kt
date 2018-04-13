@@ -91,13 +91,20 @@ class BazelGuiTestProjectSystem : GuiTestProjectSystem {
     return this
   }
 
-  override fun waitForProjectSyncToFinish(ideFrameFixture: IdeFrameFixture) {
+  override fun waitForProjectSyncToStart(ideFrameFixture: IdeFrameFixture) {
+    val consoleFixture = BazelConsoleToolWindowFixture(ideFrameFixture.project, ideFrameFixture.robot())
+
     logger.info("Waiting for sync to start.")
+    Wait.seconds(300).expecting("Bazel sync to start").until(consoleFixture::hasSyncStarted)
+    logger.info("Sync in progress.")
+  }
+
+  override fun waitForProjectSyncToFinish(ideFrameFixture: IdeFrameFixture) {
+    waitForProjectSyncToStart(ideFrameFixture)
 
     val consoleFixture = BazelConsoleToolWindowFixture(ideFrameFixture.project, ideFrameFixture.robot())
-    Wait.seconds(300).expecting("Bazel sync to start").until(consoleFixture::hasSyncStarted)
 
-    logger.info("Sync in progress; waiting for sync to finish.")
+    logger.info("Waiting for sync to finish.")
     Wait.seconds(300).expecting("Bazel sync to finish").until(consoleFixture::hasSyncFinished)
 
     logger.info("Sync complete; waiting for background tasks to finish.")
