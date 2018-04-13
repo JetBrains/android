@@ -47,7 +47,6 @@ public class AndroidIcons {
   public static final Icon Themes = load("/icons/themes.png"); // 16x16
   public static final Icon ThemesPreview = load("/icons/themesPreview.png"); // 13x13
   public static final Icon Sunburst = load("/icons/sunburst.png"); // 16x16
-  public static final Icon PlayStore = load("/icons/play_store.png");
 
   public static final Icon EmptyFlag = load("/icons/flags/flag_empty.png"); // 16x16
 
@@ -77,13 +76,6 @@ public class AndroidIcons {
 
   // Form factors
   public static class FormFactors {
-    public static final Icon Wear_16 = load("/icons/wear.png");                          // 16x16
-    public static final Icon Car_16 = load("/icons/car.png");                            // 16x16
-    public static final Icon Glass_16 = load("/icons/glass.png");                        // 16x16
-    public static final Icon Mobile_16 = load("/icons/mobile.png");                      // 16x16
-    public static final Icon Tv_16 = load("/icons/tv.png");                              // 16x16
-    public static final Icon Things_16 = load("/icons/things.png");                      // 16x16
-
     public static final Icon Wear_32 = load("/icons/formfactors/wear_32.png");           // 32x32
     public static final Icon Car_32 = load("/icons/formfactors/car_32.png");             // 32x32
     public static final Icon Glass_32 = load("/icons/formfactors/glass_32.png");         // 32x32
