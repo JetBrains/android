@@ -39,6 +39,10 @@ public class TextInputLayoutHandler extends LinearLayoutHandler {
       ATTR_HINT,
       ATTR_HINT_ENABLED,
       ATTR_HINT_ANIMATION_ENABLED,
+      ATTR_HINT_TEXT_APPEARANCE,
+      ATTR_HELPER_TEXT,
+      ATTR_HELPER_TEXT_ENABLED,
+      ATTR_HELPER_TEXT_TEXT_APPEARANCE,
       ATTR_ERROR_ENABLED,
       ATTR_ERROR_TEXT_APPEARANCE,
       ATTR_COUNTER_ENABLED,
@@ -71,10 +75,10 @@ public class TextInputLayoutHandler extends LinearLayoutHandler {
   @Language("XML")
   @NotNull
   public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
-    boolean isAndroidxTag = tagName.startsWith(ANDROIDX_PKG_PREFIX);
+    boolean isMaterial2 = tagName.startsWith(MATERIAL2_PKG);
     switch (xmlType) {
       case COMPONENT_CREATION:
-        String textInputEditTextTag = isAndroidxTag ? TEXT_INPUT_EDIT_TEXT.newName() : TEXT_INPUT_EDIT_TEXT.oldName();
+        String textInputEditTextTag = isMaterial2 ? TEXT_INPUT_EDIT_TEXT.newName() : TEXT_INPUT_EDIT_TEXT.oldName();
         return new XmlBuilder()
           .startTag(tagName)
           .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT)
