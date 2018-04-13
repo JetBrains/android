@@ -40,6 +40,7 @@ iml_module(
         "//tools/base/templates",
     ],
     test_srcs = ["testSrc"],
+    test_tags = ["slow"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
