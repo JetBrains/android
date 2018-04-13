@@ -77,7 +77,7 @@
     <orderEntry type="library" name="baksmali" level="project" />
     <orderEntry type="library" name="dexlib2" level="project" />
     <orderEntry type="module" module-name="android.sdktools.binary-resources" />
-    <orderEntry type="module" module-name="intellij.android.analyzer" />
+    <orderEntry type="module" module-name="android.sdktools.analyzer" />
     <orderEntry type="module" module-name="android.sdktools.pixelprobe" />
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="analytics-protos" />
@@ -89,10 +89,10 @@
     <orderEntry type="module" module-name="intellij.android.wizard.model" />
     <orderEntry type="library" name="commons-io" level="project" />
     <orderEntry type="module" module-name="intellij.android.smali" />
-    <orderEntry type="module" module-name="intellij.android.javaLibModel" />
-    <orderEntry type="module" module-name="intellij.android.javaLibModel.builder" />
+    <orderEntry type="module" module-name="android.sdktools.java-lib-model" />
+    <orderEntry type="module" module-name="android.sdktools.java-lib-model-builder" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
-    <orderEntry type="module" module-name="intellij.android.flags" />
+    <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.platform.lang" />
     <orderEntry type="module" module-name="intellij.android.observable.ui" />
     <orderEntry type="module" module-name="intellij.android.artwork" />

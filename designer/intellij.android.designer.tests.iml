@@ -27,9 +27,9 @@
     <orderEntry type="module" module-name="analytics-shared" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.branding" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.sdkUpdates" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.layoutInspector" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.layoutinspector" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="Gradle" level="project" />
-    <orderEntry type="module" module-name="intellij.android.flags" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.flags" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
     <orderEntry type="module" module-name="project-system" scope="TEST" />
