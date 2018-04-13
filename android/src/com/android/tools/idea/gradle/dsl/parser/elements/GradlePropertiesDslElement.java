@@ -418,7 +418,6 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     return newElement;
   }
 
-  @VisibleForTesting
   public void addNewElementAt(int index, @NotNull GradleDslElement newElement) {
     assert !newElement.getName().isEmpty();
     newElement.setParent(this);

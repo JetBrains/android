@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.android.splits.DensityModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
+import com.android.tools.idea.gradle.dsl.parser.android.splits.DensityDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
@@ -26,15 +27,11 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DensityModelImpl extends GradleDslBlockModel implements DensityModel {
+public class DensityModelImpl extends BaseSplitOptionsModelImpl implements DensityModel {
   @NonNls private static final String AUTO = "auto";
   @NonNls private static final String COMPATIBLE_SCREENS = "compatibleScreens";
-  @NonNls private static final String ENABLE = "enable";
-  @NonNls private static final String EXCLUDE = "exclude";
-  @NonNls private static final String INCLUDE = "include";
-  @NonNls private static final String RESET = "reset";
 
-  public DensityModelImpl(@NotNull GradlePropertiesDslElement dslElement) {
+  public DensityModelImpl(@NotNull DensityDslElement dslElement) {
     super(dslElement);
   }
 
@@ -48,34 +45,5 @@ public class DensityModelImpl extends GradleDslBlockModel implements DensityMode
   @NotNull
   public ResolvedPropertyModel compatibleScreens() {
     return GradlePropertyModelBuilder.create(myDslElement, COMPATIBLE_SCREENS).asMethod(true).buildResolved();
-  }
-
-  @Override
-  @NotNull
-  public ResolvedPropertyModel enable() {
-    return GradlePropertyModelBuilder.create(myDslElement, ENABLE).asMethod(true).buildResolved();
-  }
-
-  @Override
-  @NotNull
-  public ResolvedPropertyModel exclude() {
-    return GradlePropertyModelBuilder.create(myDslElement, EXCLUDE).asMethod(true).buildResolved();
-  }
-
-  @Override
-  @Nullable
-  public ResolvedPropertyModel include() {
-    return GradlePropertyModelBuilder.create(myDslElement, INCLUDE).asMethod(true).buildResolved();
-  }
-
-  @Override
-  public void addReset() {
-    GradleDslMethodCall resetMethod = new GradleDslMethodCall(myDslElement, GradleNameElement.empty(), RESET);
-    myDslElement.setNewElement(resetMethod); // TODO: reset include
-  }
-
-  @Override
-  public void removeReset() {
-    myDslElement.removeProperty(RESET);
   }
 }

@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.api.android.splits.DensityModel;
 import com.android.tools.idea.gradle.dsl.api.android.splits.LanguageModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
+import org.gradle.internal.impldep.org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
 /**
@@ -519,17 +520,17 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
     SplitsModel splits = android.splits();
     assertEquals("abi-include", ImmutableList.of("abi-include-1", "abi-include-2"), splits.abi().include());
-    assertEquals("density-include", ImmutableList.of("density-include-1", "density-include-2"), splits.density().include());
 
-    splits.abi().addReset();
-    splits.density().addReset();
+    splits.abi().setReset(true);
+    splits.density().setReset(true);
 
     applyChangesAndReparse(buildModel);
+
     android = buildModel.android();
     assertNotNull(android);
     splits = android.splits();
-    assertMissingProperty("abi-include", splits.abi().include());
-    assertMissingProperty("density-include", splits.density().include());
+    assertEquals("abi-include", ImmutableList.of("abi-include-1", "abi-include-2"), splits.abi().include());
+    assertEquals("density-include", ImmutableList.of("density-include-1", "density-include-2"), splits.density().include());
   }
 
   @Test
@@ -556,8 +557,8 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     assertMissingProperty("abi-include", splits.abi().include());
     assertMissingProperty("density-include", splits.density().include());
 
-    splits.abi().removeReset();
-    splits.density().removeReset();
+    splits.abi().setReset(false);
+    splits.density().setReset(false);
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
