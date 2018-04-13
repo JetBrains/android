@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.project
 
+import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.projectsystem.*
@@ -82,6 +83,8 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
       override fun getResolvedVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion? = null
 
       override fun getDeclaredVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion? = null
+
+      override fun getDeclaredDependency(coordinate: GradleCoordinate): GradleCoordinate? = null
 
       override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
         return emptyList()

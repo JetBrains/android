@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.projectsystem
 
+import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.google.common.collect.HashMultimap
 import com.google.common.util.concurrent.Futures
@@ -32,7 +33,10 @@ import java.nio.file.Path
 class TestProjectSystem(val project: Project) : AndroidProjectSystem, AndroidProjectSystemProvider {
   data class Artifact(val id: GoogleMavenArtifactId, val version: GoogleMavenArtifactVersion)
 
-  data class TestDependencyVersion(override val mavenVersion: GradleVersion?) : GoogleMavenArtifactVersion
+  data class TestDependencyVersion(override val mavenVersion: GradleVersion?) : GoogleMavenArtifactVersion {
+    override fun equals(other: Any?) = other is GoogleMavenArtifactVersion && other.mavenVersion?.equals(mavenVersion) ?: false
+    override fun hashCode() = mavenVersion?.hashCode() ?: 0
+  }
 
   companion object {
     val TEST_VERSION_LATEST = TestDependencyVersion(null)
@@ -65,6 +69,11 @@ class TestProjectSystem(val project: Project) : AndroidProjectSystem, AndroidPro
 
       override fun getDeclaredVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion? {
         return dependenciesByModule[module].firstOrNull { it.id == artifactId }?.version
+      }
+
+      override fun getDeclaredDependency(coordinate: GradleCoordinate): GradleCoordinate? {
+        val version = dependenciesByModule[module].firstOrNull { it.id.getCoordinate("+").matches(coordinate) }?.version ?: return null
+        return GradleCoordinate.parseCoordinateString("${coordinate.groupId}:${coordinate.artifactId}:${version.mavenVersion}")
       }
 
       override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
