@@ -57,7 +57,7 @@ public class AndroidDbManager extends BasicDbPsiManager<AndroidDataSource> {
     if (!(element instanceof AndroidDataSource)) throw new UnsupportedOperationException();
     final AndroidDataSource dataSource = (AndroidDataSource)element;
     dataSource.setName(name);
-    myPublisher.dataSourceChanged(this, element);
+    updateDataSource((AndroidDataSource)element);
   }
 
   @Override
@@ -130,14 +130,12 @@ public class AndroidDbManager extends BasicDbPsiManager<AndroidDataSource> {
     AndroidDataSourceStorage storage = AndroidDataSourceStorage.getInstance(project);
     storage.removeDataSource(dataSource);
     detachDataSource(dataSource);
-    myPublisher.dataSourceRemoved(this, dataSource);
   }
 
   private void addDataSourceInner(final Project project, final AndroidDataSource dataSource) {
     AndroidDataSourceStorage storage = AndroidDataSourceStorage.getInstance(project);
     storage.addDataSource(dataSource);
     attachDataSource(dataSource);
-    myPublisher.dataSourceAdded(this, dataSource);
   }
 
   @Override
