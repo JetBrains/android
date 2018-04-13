@@ -334,10 +334,14 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   @Override
   public void setValue(@Nullable Object value) {
     String strValue = value == null ? null : value.toString();
-    if (StringUtil.isEmpty(strValue) || isDefaultValue(strValue)) {
+    if (StringUtil.isEmpty(strValue) || (isDefaultValue(strValue) && !isBooleanEditor())) {
       strValue = null;
     }
     setValueIgnoreDefaultValue(strValue, null);
+  }
+
+  private boolean isBooleanEditor() {
+    return myDefinition != null && myDefinition.getFormats().contains(AttributeFormat.Boolean);
   }
 
   protected void setValueIgnoreDefaultValue(@Nullable String attrValue, @Nullable Runnable valueUpdated) {

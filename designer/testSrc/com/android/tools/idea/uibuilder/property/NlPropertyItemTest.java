@@ -244,6 +244,14 @@ public class NlPropertyItemTest extends PropertyTestCase {
     verify(myUsageTracker).logPropertyChange(text, PropertiesViewMode.INSPECTOR, -1);
   }
 
+  public void testSetValueWithDefaultValue() {
+    NlPropertyItem auto = createFrom(myTextView, ATTR_AUTO_TEXT);
+    auto.setDefaultValue(new PropertiesMap.Property("true", "true"));
+    auto.setValue("true");
+    UIUtil.dispatchAllInvocationEvents();
+    assertThat(myTextView.getAttribute(ANDROID_URI, ATTR_AUTO_TEXT)).isEqualTo("true");
+  }
+
   public void testSetValueParentTagOnMergeTagAddsOrientationProperty() {
     int originalUpdateCount = myPropertiesManager.getUpdateCount();
 
