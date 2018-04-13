@@ -29,7 +29,9 @@ class VisibleDestinationsEditorTest: NavTestCase() {
         fragment("f1", label = "fragment1")
         activity("activity1")
         navigation("subnav1") {
-          fragment("f2", label = "fragment2")
+          fragment("f2", label = "fragment2") {
+            action("action")
+          }
           fragment("f3")
         }
         navigation("subnav2") {
@@ -41,7 +43,7 @@ class VisibleDestinationsEditorTest: NavTestCase() {
       }
     }
     val property = mock(NlProperty::class.java)
-    `when`(property.components).thenReturn(listOf(model.find("f2")))
+    `when`(property.components).thenReturn(listOf(model.find("action")))
 
     EnumEditorFixture.create(::VisibleDestinationsEditor).use {
       it.setProperty(property)
