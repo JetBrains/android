@@ -22,6 +22,7 @@ import com.android.tools.idea.profilers.perfd.ProfilerServiceProxy;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.sessions.SessionAspect;
+import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -31,6 +32,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,11 +47,14 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
   @NotNull
   private final StudioProfilers myProfilers;
   @NotNull
+  private final ToolWindow myWindow;
+  @NotNull
   private final Project myProject;
   @NotNull
   private final ProfilerLayeredPane myLayeredPane;
 
-  public AndroidProfilerToolWindow(@NotNull final Project project) {
+  public AndroidProfilerToolWindow(@NotNull ToolWindow window, @NotNull Project project) {
+    myWindow = window;
     myProject = project;
 
     ProfilerService service = ProfilerService.getInstance(myProject);
@@ -58,7 +63,8 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
 
     // By default, we only auto-profile the app associated with the project.
     StartupManager.getInstance(project)
-      .runWhenProjectIsInitialized(() -> myProfilers.setPreferredDeviceAndProcessNames(null, getPreferredProcessName(myProject)));
+                  .runWhenProjectIsInitialized(
+                    () -> myProfilers.setPreferredDeviceAndProcessNames(null, getPreferredProcessName(myProject)));
 
     myView = new StudioProfilersView(myProfilers, new IntellijProfilerComponents(myProject));
     myLayeredPane = new ProfilerLayeredPane();
@@ -67,10 +73,16 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
     Disposer.register(this, myView);
 
     myProfilers.addDependency(this)
-      .onChange(ProfilerAspect.MODE, this::updateToolWindow)
-      .onChange(ProfilerAspect.STAGE, this::updateToolWindow);
+               .onChange(ProfilerAspect.MODE, this::modeChanged)
+               .onChange(ProfilerAspect.STAGE, this::stageChanged);
     myProfilers.getSessionsManager().addDependency(this)
-      .onChange(SessionAspect.SELECTED_SESSION, this::updateToolWindow);
+               .onChange(SessionAspect.SELECTED_SESSION, this::selectedSessionChanged)
+               .onChange(SessionAspect.PROFILING_SESSION, this::profilingSessionChanged);
+  }
+
+  @NotNull
+  StudioProfilers getProfilers() {
+    return myProfilers;
   }
 
   private void initializeUi() {
@@ -90,35 +102,45 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
    * Sets the profiler's auto-profiling process in case it has been unset.
    *
    * @param module The module being profiled.
-   * @param device  The target {@link IDevice} that the app will launch in.
+   * @param device The target {@link IDevice} that the app will launch in.
    */
   public void profileProject(@NotNull Module module, @NotNull IDevice device) {
     myProfilers.setPreferredDeviceAndProcessNames(getDeviceDisplayName(device), getModuleName(module));
   }
 
-  public void updateToolWindow() {
+  private void modeChanged() {
     ToolWindowManager manager = ToolWindowManager.getInstance(myProject);
-    ToolWindow window = manager.getToolWindow(AndroidProfilerToolWindowFactory.ID);
-    if (window == null) {
-      return;
+    boolean maximize = myProfilers.getMode() == ProfilerMode.EXPANDED;
+    if (maximize != manager.isMaximized(myWindow)) {
+      manager.setMaximized(myWindow, maximize);
     }
+  }
 
+  private void stageChanged() {
+    if (myProfilers.isStopped()) {
+      AndroidProfilerToolWindowFactory.removeContent(myWindow);
+    }
+  }
+
+  private void selectedSessionChanged() {
     String sessionName = myProfilers.getSessionDisplayName();
     if (sessionName.isEmpty()) {
-      window.setTitle("");
+      myWindow.setTitle("");
     }
     else {
       // setTitle appends to the ToolWindow's existing name (i.e. "Profiler"), hence we only
       // need to create and set the string for "- SESSION_NAME".
-      window.setTitle(String.format("- %s", sessionName));
+      myWindow.setTitle(String.format("- %s", sessionName));
     }
+  }
 
-    boolean maximize = myProfilers.getMode() == ProfilerMode.EXPANDED;
-    if (maximize != manager.isMaximized(window)) {
-      manager.setMaximized(window, maximize);
+  private void profilingSessionChanged() {
+    Common.Session profilingSession = myProfilers.getSessionsManager().getProfilingSession();
+    if (profilingSession.getEndTimestamp() == Long.MAX_VALUE) {
+      myWindow.setIcon(ExecutionUtil.getLiveIndicator(StudioIcons.Shell.ToolWindows.ANDROID_PROFILER));
     }
-    if (myProfilers.isStopped()) {
-      AndroidProfilerToolWindowFactory.removeContent(myProject, window);
+    else {
+      myWindow.setIcon(StudioIcons.Shell.ToolWindows.ANDROID_PROFILER);
     }
   }
 
