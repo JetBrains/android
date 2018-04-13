@@ -20,12 +20,8 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
-import com.android.tools.idea.observable.core.OptionalProperty;
-import com.android.tools.idea.observable.core.OptionalValueProperty;
-import com.android.tools.idea.observable.core.StringProperty;
-import com.android.tools.idea.observable.core.StringValueProperty;
+import com.android.tools.idea.observable.core.*;
 import com.android.tools.idea.templates.Template;
-import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Maps;
@@ -34,8 +30,11 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Map;
 
+import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
+import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 public class DynamicModuleModel extends WizardModel {
@@ -43,9 +42,12 @@ public class DynamicModuleModel extends WizardModel {
   @NotNull private final TemplateHandle myTemplateHandle;
 
   @NotNull private final StringProperty myModuleName = new StringValueProperty("dynamic-feature");
+  @NotNull private final StringProperty myFeatureTitle = new StringValueProperty("Module Title");
   @NotNull private final StringProperty myPackageName = new StringValueProperty();
   @NotNull private final OptionalProperty<AndroidVersionsInfo.VersionItem> myAndroidSdkInfo = new OptionalValueProperty<>();
   @NotNull private final OptionalProperty<Module> myBaseApplication = new OptionalValueProperty<>();
+  @NotNull private final BoolProperty myFeatureOnDemand = new BoolValueProperty(true);
+  @NotNull private final BoolProperty myFeatureFusing = new BoolValueProperty(true);
 
   public DynamicModuleModel(@NotNull Project project,
                             @NotNull TemplateHandle templateHandle) {
@@ -69,6 +71,11 @@ public class DynamicModuleModel extends WizardModel {
   }
 
   @NotNull
+  public StringProperty featureTitle() {
+    return myFeatureTitle;
+  }
+
+  @NotNull
   public StringProperty packageName() {
     return myPackageName;
   }
@@ -79,6 +86,14 @@ public class DynamicModuleModel extends WizardModel {
 
   public OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo() {
     return myAndroidSdkInfo;
+  }
+
+  public BoolProperty featureOnDemand() {
+    return myFeatureOnDemand;
+  }
+
+  public BoolProperty featureFusing() {
+    return myFeatureFusing;
   }
 
   @Override
@@ -95,11 +110,20 @@ public class DynamicModuleModel extends WizardModel {
     assert moduleModel != null;
     File baseModuleRoot = moduleModel.getRootDirPath();
 
-    myTemplateValues.put(TemplateMetadata.ATTR_BASE_FEATURE_DIR, baseModuleRoot.getPath());
-    myTemplateValues.put(TemplateMetadata.ATTR_BASE_FEATURE_NAME, base.getName());
-    myTemplateValues.put(TemplateMetadata.ATTR_MAKE_IGNORE, true);
-    myTemplateValues.put(TemplateMetadata.ATTR_IS_NEW_PROJECT, true);
-    myTemplateValues.put(TemplateMetadata.ATTR_IS_LIBRARY_MODULE, false);
+    Collection<File> resDirectories = moduleModel.getDefaultSourceProvider().getResDirectories();
+    assert !resDirectories.isEmpty();
+    File baseModuleResourceRoot = resDirectories.iterator().next(); // Put the new resources in any of the available res directories
+
+    myTemplateValues.put(ATTR_BASE_FEATURE_DIR, baseModuleRoot.getPath());
+    myTemplateValues.put(ATTR_BASE_FEATURE_RES_DIR, baseModuleResourceRoot.getPath());
+    myTemplateValues.put(ATTR_BASE_FEATURE_NAME, base.getName());
+    myTemplateValues.put(ATTR_MODULE_SIMPLE_NAME, toPackagePart(moduleName().get()));
+    myTemplateValues.put(ATTR_DYNAMIC_FEATURE_TITLE, featureTitle().get());
+    myTemplateValues.put(ATTR_DYNAMIC_FEATURE_ON_DEMAND, featureOnDemand().get());
+    myTemplateValues.put(ATTR_DYNAMIC_FEATURE_FUSING, featureFusing().get());
+    myTemplateValues.put(ATTR_MAKE_IGNORE, true);
+    myTemplateValues.put(ATTR_IS_NEW_PROJECT, true);
+    myTemplateValues.put(ATTR_IS_LIBRARY_MODULE, false);
 
     if (doDryRun(moduleRoot, myTemplateValues)) {
       render(moduleRoot, myTemplateValues);

@@ -25,7 +25,6 @@ import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.intellij.openapi.project.Project;
-import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,6 +34,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 import static com.android.tools.idea.npw.model.NewProjectModel.getSuggestedProjectPackage;
+import static com.android.tools.idea.npw.ui.ActivityGallery.getTemplateImage;
 import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
@@ -61,8 +61,7 @@ public class NewDynamicAppModuleDescriptionProvider implements ModuleDescription
     @Nullable
     @Override
     public Icon getIcon() {
-      // TODO: This is just a placeholder. New icon: http://b/77840752
-      return AndroidIcons.ModuleTemplates.FeatureModule;
+      return new ImageIcon(getTemplateImage(myTemplateHandle, false));
     }
 
     @NotNull
