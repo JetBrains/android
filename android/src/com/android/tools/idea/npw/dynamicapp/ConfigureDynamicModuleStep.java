@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.dynamicapp;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
@@ -25,6 +26,7 @@ import com.android.tools.idea.npw.project.DomainToPackageExpression;
 import com.android.tools.idea.npw.project.FormFactorSdkControls;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.ui.ActivityGallery;
+import com.android.tools.idea.npw.validator.ModuleValidator;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.*;
@@ -35,9 +37,11 @@ import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
+import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.components.JBScrollPane;
@@ -46,6 +50,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Collection;
+import java.util.Collections;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.tools.adtui.validation.Validator.Result.OK;
@@ -94,14 +100,23 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicModul
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }
 
+  @NotNull
+  @Override
+  protected Collection<? extends ModelWizardStep> createDependentSteps() {
+    return Collections.singletonList(new ConfigureDynamicDeliveryStep(getModel()));
+  }
+
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    myBindings.bindTwoWay(new TextProperty(myModuleName), getModel().moduleName());
+    StringProperty modelName = getModel().moduleName();
+    Project project = getModel().getProject();
+
+    myBindings.bindTwoWay(new TextProperty(myModuleName), modelName);
 
     StringProperty companyDomain = new StringValueProperty(NewProjectModel.getInitialDomain(false));
     String basePackage = new DomainToPackageExpression(companyDomain, new StringValueProperty("")).get();
 
-    Expression<String> computedPackageName = getModel().moduleName()
+    Expression<String> computedPackageName = modelName
       .transform(appName -> format("%s.%s", basePackage, toPackagePart(appName)));
     TextProperty packageNameText = new TextProperty(myPackageName);
     BoolProperty isPackageNameSynced = new BoolValueProperty(true);
@@ -112,14 +127,15 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicModul
     OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo = getModel().androidSdkInfo();
     myFormFactorSdkControls.init(androidSdkInfo, this);
 
-    AndroidProjectInfo androidProjectInfo = AndroidProjectInfo.getInstance(getModel().getProject());
-    for (Module module : androidProjectInfo.getAllModulesOfProjectType(PROJECT_TYPE_APP)) {
-      myBaseApplication.addItem(module);
-    }
+    AndroidProjectInfo.getInstance(project).getAllModulesOfProjectType(PROJECT_TYPE_APP)
+      .stream()
+      .filter(module -> AndroidModuleModel.get(module) != null)
+      .forEach(module -> myBaseApplication.addItem(module));
+
     OptionalProperty<Module> baseApplication = getModel().baseApplication();
     myBindings.bind(baseApplication, new SelectedItemProperty<>(myBaseApplication));
 
-    myValidatorPanel.registerValidator(getModel().moduleName(), value ->
+    myValidatorPanel.registerValidator(modelName, value ->
       value.isEmpty() ? new Validator.Result(ERROR, message("android.wizard.validate.empty.module.name")) : OK);
 
     myValidatorPanel.registerValidator(getModel().packageName(),
@@ -130,6 +146,10 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicModul
 
     myValidatorPanel.registerValidator(baseApplication, value ->
       value.isPresent() ? OK : new Validator.Result(ERROR, message("android.wizard.module.new.dynamic.select.base")));
+
+    ModuleValidator moduleValidator = new ModuleValidator(project);
+    modelName.set(WizardUtils.getUniqueName(modelName.get(), moduleValidator));
+    myValidatorPanel.registerValidator(modelName, new ModuleValidator(project));
   }
 
   @Override
@@ -179,8 +199,13 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicModul
     myBaseApplication.setRenderer(new ListCellRendererWrapper<Module>() {
       @Override
       public void customize(JList list, Module module, int index, boolean selected, boolean hasFocus) {
-        setIcon(ModuleType.get(module).getIcon());
-        setText(module.getName());
+        if (module == null) {
+          setText(message("android.wizard.module.config.new.base.missing"));
+        }
+        else {
+          setIcon(ModuleType.get(module).getIcon());
+          setText(module.getName());
+        }
       }
     });
 

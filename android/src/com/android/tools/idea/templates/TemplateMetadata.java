@@ -79,6 +79,7 @@ public class TemplateMetadata {
   public static final String ATTR_APPLICATION_PACKAGE = "applicationPackage";
   public static final String ATTR_SOURCE_PROVIDER_NAME = "sourceProviderName";
   public static final String ATTR_MODULE_NAME = "projectName";
+  public static final String ATTR_MODULE_SIMPLE_NAME = "projectSimpleName"; // Same as ATTR_MODULE_NAME but no spaces or other symbols
   public static final String ATTR_CREATE_ACTIVITY = "createActivity";
   public static final String ATTR_INCLUDE_FORM_FACTOR = "included";
   public static final String ATTR_IS_LOW_MEMORY = "isLowMemory";
@@ -88,6 +89,10 @@ public class TemplateMetadata {
   public static final String ATTR_CPP_FLAGS = "cppFlags";
   public static final String ATTR_CPP_SUPPORT = "includeCppSupport";
   public static final String ATTR_DEPENDENCIES_MULTIMAP = "dependenciesMultimap";
+
+  public static final String ATTR_DYNAMIC_FEATURE_TITLE = "dynamicFeatureTitle";
+  public static final String ATTR_DYNAMIC_FEATURE_ON_DEMAND = "dynamicFeatureOnDemand";
+  public static final String ATTR_DYNAMIC_FEATURE_FUSING = "dynamicFeatureFusing";
 
   public static final String ATTR_IS_INSTANT_APP = "isInstantApp";
   public static final String ATTR_HAS_INSTANT_APP_WRAPPER = "hasInstantAppWrapper";
