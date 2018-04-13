@@ -69,6 +69,11 @@ interface GuiTestProjectSystem {
   fun waitForProjectSyncToFinish(ideFrameFixture: IdeFrameFixture)
 
   /**
+   * Waits for the project sync to start using build system specific waiting logic.
+   */
+  fun waitForProjectSyncToStart(ideFrameFixture: IdeFrameFixture)
+
+  /**
    * Returns a [VirtualFile] corresponding to the given [project]'s root directory (i.e. the top-level directory containing all
    * source files related to this project). This may be (but is not necessarily) the same as the [project]'s base directory
    * (i.e. the directory containing .idea/ ).

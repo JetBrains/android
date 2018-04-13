@@ -77,5 +77,9 @@ class GradleGuiTestProjectSystem : GuiTestProjectSystem {
     ideFrameFixture.waitForGradleProjectSyncToFinish()
   }
 
+  override fun waitForProjectSyncToStart(ideFrameFixture: IdeFrameFixture) {
+    ideFrameFixture.waitForGradleProjectSyncToStart()
+  }
+
   override fun getProjectRootDirectory(project: Project) = project.baseDir!!
 }

@@ -30,7 +30,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.fixture.JPopupMenuFixture;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -117,7 +116,6 @@ public class NlEditorTest {
 
   @TargetBuildSystem({TargetBuildSystem.BuildSystem.BAZEL})
   @Test
-  @Ignore("b/77974117")
   public void designEditorUnavailableIfInProgressBazelSyncFailed() throws Exception {
     // Add a bad dependency to app/BUILD. This will cause the next sync to fail.
     guiTest.importSimpleLocalApplication()
@@ -126,7 +124,9 @@ public class NlEditorTest {
       .moveBetween("deps = [", "")
       .enterText("\n\":bogus_dependency\",");
 
-    guiTest.testSystem().requestProjectSync(guiTest.ideFrame());
+    guiTest.testSystem()
+           .requestProjectSync(guiTest.ideFrame())
+           .waitForProjectSyncToStart(guiTest.ideFrame());
 
     // Open design editor while sync is in progress. We should see a loading panel
     // while the sync is taking place. Then, once the sync fails, the loading
