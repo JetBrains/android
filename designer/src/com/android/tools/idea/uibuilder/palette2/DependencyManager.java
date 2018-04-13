@@ -50,7 +50,6 @@ public class DependencyManager {
   private final Set<String> myMissingLibraries;
   private Module myModule;
   private Palette myPalette;
-  private boolean myUsingMaterial2Theme;
 
   public DependencyManager(@NotNull Project project) {
     myProject = project;
@@ -58,15 +57,18 @@ public class DependencyManager {
     myPalette = Palette.EMPTY;
   }
 
-  public void setPalette(@NotNull Palette palette, @NotNull Module module, boolean usingMaterial2Theme) {
+  public void setPalette(@NotNull Palette palette, @NotNull Module module) {
     myPalette = palette;
     myModule = module;
-    myUsingMaterial2Theme = usingMaterial2Theme;
     checkForNewMissingDependencies();
   }
 
   public boolean needsLibraryLoad(@NotNull Palette.Item item) {
     return myMissingLibraries.contains(item.getGradleCoordinateId());
+  }
+
+  public boolean dependsOn(@NotNull GoogleMavenArtifactId artifactId) {
+    return DependencyManagementUtil.dependsOn(myModule, artifactId);
   }
 
   private boolean checkForNewMissingDependencies() {
@@ -115,9 +117,5 @@ public class DependencyManager {
 
   public boolean useAndroidxDependencies() {
     return !DependencyManagementUtil.dependsOnOldSupportLib(myModule) && StudioFlags.NELE_USE_ANDROIDX_DEFAULT.get();
-  }
-
-  public boolean usingMaterial2Theme() {
-    return myUsingMaterial2Theme;
   }
 }

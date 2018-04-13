@@ -55,7 +55,7 @@ class DependencyManagerTest : AndroidTestCase() {
 
     myManager = DependencyManager(project)
     myManager!!.registerDependencyUpdates(myPanel!!, myDisposable!!)
-    myManager!!.setPalette(myPalette!!, myModule, true)
+    myManager!!.setPalette(myPalette!!, myModule)
   }
 
   @Throws(Exception::class)
