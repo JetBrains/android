@@ -18,6 +18,7 @@ package com.android.tools.idea.templates.recipe;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.manifmerger.XmlElement;
 import com.android.resources.ResourceFolderType;
+import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
@@ -29,6 +30,10 @@ import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingExcept
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException;
 import com.android.tools.idea.templates.RecipeMergeUtils;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.google.common.base.Function;
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
 import com.intellij.diff.comparison.ComparisonManager;
 import com.intellij.diff.comparison.ComparisonPolicy;
@@ -503,7 +508,7 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
         dependencies.append("  ")
           .append(dependency.getKey())
           .append(" ");
-        final String dependencyValue = dependency.getValue();
+        final String dependencyValue = convertToAndroidX(dependency.getValue());
         // Interpolated values need to be in double quotes
         boolean isInterpolated = dependencyValue.contains("$");
         dependencies.append(isInterpolated ? '"' : '\'')
@@ -514,6 +519,14 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
     }
     dependencies.append("}\n");
     return dependencies.toString();
+  }
+
+  private String convertToAndroidX(String dep) {
+    Integer buildApi = (Integer) getParamMap().get(ATTR_BUILD_API);
+    if (buildApi >= 28) {
+      return AndroidxNameUtils.getVersionedCoordinateMapping(dep);
+    }
+    return dep;
   }
 
   /**
