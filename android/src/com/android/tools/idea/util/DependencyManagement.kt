@@ -19,6 +19,7 @@ package com.android.tools.idea.util
 
 import com.android.SdkConstants
 import com.android.annotations.VisibleForTesting
+import com.android.ide.common.repository.GradleVersion
 import com.android.support.AndroidxName
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.projectsystem.*
@@ -112,9 +113,16 @@ fun Module.addDependencies(artifactIds: List<GoogleMavenArtifactId>, promptUserB
   val artifactsNotAdded = mutableListOf<GoogleMavenArtifactId>()
   val platformSupportLibVersion: GoogleMavenArtifactVersion? by lazy {
     GoogleMavenArtifactId.values()
-        .filter { it.isPlatformSupportLibrary }
-        .mapNotNull { moduleSystem.getDeclaredVersion(it) }
-        .firstOrNull()
+      .filter { it.isPlatformSupportLibrary }
+      .mapNotNull {
+        moduleSystem.getDeclaredDependency(it.getCoordinate("+"))
+      }
+      .mapNotNull {
+        //TODO This object creation here is a very temporary solution and will be replaced with GradleVersion with other parts
+        //     of project-system's dependency management also uses GradleVersion.
+        DependencyVersion(it.version)
+      }
+      .firstOrNull()
   }
 
   for (id in distinctArtifactIds) {
@@ -137,6 +145,11 @@ fun Module.addDependencies(artifactIds: List<GoogleMavenArtifactId>, promptUserB
   }
 
   return artifactsNotAdded
+}
+
+private data class DependencyVersion(override val mavenVersion: GradleVersion?) : GoogleMavenArtifactVersion {
+  override fun equals(other: Any?) = other is GoogleMavenArtifactVersion && other.mavenVersion == mavenVersion
+  override fun hashCode() = mavenVersion?.hashCode() ?: 0
 }
 
 private fun userWantsToAdd(project: Project, artifactIds: List<GoogleMavenArtifactId>): Boolean {

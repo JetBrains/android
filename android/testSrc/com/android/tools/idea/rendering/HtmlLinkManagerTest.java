@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.projectsystem.*;
 import com.intellij.openapi.vfs.VirtualFile;
 import junit.framework.TestCase;
@@ -93,6 +94,12 @@ public class HtmlLinkManagerTest extends TestCase {
       @Nullable
       @Override
       public GoogleMavenArtifactVersion getDeclaredVersion(@NotNull GoogleMavenArtifactId artifactId) throws DependencyManagementException {
+        return null;
+      }
+
+      @Nullable
+      @Override
+      public GradleCoordinate getDeclaredDependency(@NotNull GradleCoordinate coordinate) throws DependencyManagementException {
         return null;
       }
 

@@ -95,6 +95,18 @@ class GradleModuleSystem(val module: Module, @TestOnly private val mavenReposito
     }
   }
 
+  override fun getDeclaredDependency(coordinate: GradleCoordinate): GradleCoordinate? {
+    // Check for compile dependencies from the gradle build file
+    val configurationName = GradleUtil.mapConfigurationName(CommonConfigurationNames.COMPILE,
+                                                            GradleUtil.getAndroidGradleModelVersionInUse(module), false)
+    return GradleBuildModel.get(module)?.let {
+      it.dependencies().artifacts(configurationName)
+        .asSequence()
+        .mapNotNull { GradleCoordinate.parseCoordinateString("${it.group()}:${it.name().forceString()}:${it.version()}") }
+        .find { it.matches(coordinate) }
+    }
+  }
+
   override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
     return GradleAndroidModuleTemplate.getModuleTemplates(module, targetDirectory)
   }
