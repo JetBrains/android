@@ -19,6 +19,7 @@ import com.android.resources.Density
 import com.android.tools.idea.run.AndroidDevice
 import com.google.common.collect.Ordering
 import com.google.gson.stream.JsonWriter
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.io.FileUtil
 import java.io.*
 import java.util.*
@@ -111,17 +112,21 @@ data class AndroidDeviceSpec(
     }
   }
 
+  private val log: Logger
+    get() = Logger.getInstance(AndroidDeviceSpec::class.java)
+
   @Throws(IOException::class)
   fun writeToJsonTempFile(): File {
+    val jsonString = StringWriter().use {
+      writeJson(it)
+      it.flush()
+      it.toString()
+    }
+    log.info("Device spec file generated: $jsonString")
+
     // TODO: It'd be nice to clean this up sooner than at exit.
     val tempFile = FileUtil.createTempFile("device-spec", ".json", true)
-    FileOutputStream(tempFile).use {
-      OutputStreamWriter(it).use {
-        BufferedWriter(it).use {
-          writeJson(it)
-        }
-      }
-    }
+    FileUtil.writeToFile(tempFile, jsonString)
     return tempFile
   }
 }
