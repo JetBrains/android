@@ -26,6 +26,7 @@ COMMON_TAGS = [
     "no_mac",
     "no_windows",
     "cpu:3",
+    "slow",
 ]
 
 iml_module(
