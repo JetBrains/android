@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.ui.properties
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.idea.gradle.structure.model.VariablesProvider
 import com.android.tools.idea.gradle.structure.model.meta.*
+import com.google.common.util.concurrent.Futures.immediateFuture
 import org.hamcrest.CoreMatchers.*
 import org.junit.Assert.assertThat
 import org.junit.Assume.assumeThat
@@ -77,7 +78,7 @@ class SimplePropertyEditorTest {
         else -> ParsedValue.Set.Parsed(value = it)
       }
     },
-    knownValuesGetter = { wellKnownValues })
+    knownValuesGetter = { immediateFuture(wellKnownValues) })
 
   @Test
   fun loadsValue() {

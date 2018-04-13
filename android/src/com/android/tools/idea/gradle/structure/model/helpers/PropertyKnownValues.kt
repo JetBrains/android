@@ -16,21 +16,23 @@
 package com.android.tools.idea.gradle.structure.model.helpers
 
 import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
+import com.google.common.util.concurrent.Futures.immediateFuture
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.pom.java.LanguageLevel
 
-fun booleanValues(): List<ValueDescriptor<Boolean>> =
-  listOf(ValueDescriptor(value = false), ValueDescriptor(value = true))
+fun booleanValues(): ListenableFuture<List<ValueDescriptor<Boolean>>> =
+  immediateFuture(listOf(ValueDescriptor(value = false), ValueDescriptor(value = true)))
 
-fun installedSdksAsStrings(): List<ValueDescriptor<String>> =
-    installedSdksAsInts().map { ValueDescriptor(it.value.toString(), it.description) }
+fun installedSdksAsStrings(): ListenableFuture<List<ValueDescriptor<String>>> =
+  immediateFuture(installedEnvironments().androidSdks.map { ValueDescriptor(it.value.toString(), it.description) })
 
-fun installedSdksAsInts() = installedEnvironments().androidSdks
-fun installedBuildTools() = installedEnvironments().buildTools
-fun installedCompiledApis() = installedEnvironments().compiledApis
+fun installedSdksAsInts(): ListenableFuture<List<ValueDescriptor<Int>>> = immediateFuture(installedEnvironments().androidSdks)
+fun installedBuildTools(): ListenableFuture<List<ValueDescriptor<String>>> = immediateFuture(installedEnvironments().buildTools)
+fun installedCompiledApis(): ListenableFuture<List<ValueDescriptor<String>>> = immediateFuture(installedEnvironments().compiledApis)
 
-fun languageLevels() = listOf(
+fun languageLevels(): ListenableFuture<List<ValueDescriptor<LanguageLevel>>> = immediateFuture(listOf(
     ValueDescriptor(value = LanguageLevel.JDK_1_6, description = "1.6"),
     ValueDescriptor(value = LanguageLevel.JDK_1_7, description = "1.7"),
     ValueDescriptor(value = LanguageLevel.JDK_1_8, description = "1.8")
-)
+))
 

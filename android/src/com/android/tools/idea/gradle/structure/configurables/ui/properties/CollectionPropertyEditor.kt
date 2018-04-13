@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.structure.configurables.ui.properties
 import com.android.tools.idea.gradle.structure.configurables.ui.toRenderer
 import com.android.tools.idea.gradle.structure.model.VariablesProvider
 import com.android.tools.idea.gradle.structure.model.meta.*
+import com.google.common.util.concurrent.Futures.immediateFuture
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.actionSystem.ActionToolbarPosition
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.ToolbarDecorator
@@ -48,7 +50,7 @@ abstract class CollectionPropertyEditor<ModelT, out ModelPropertyT : ModelCollec
   val statusComponent: JComponent? = null
   private var beingLoaded = false
   protected var tableModel: DefaultTableModel? = null ; private set
-  private val knownValueRenderers: Map<ValueT?, ValueRenderer> = buildKnownValueRenderers(property.getKnownValues(model), null)
+  private val knownValueRenderers: Map<ValueT?, ValueRenderer> = buildKnownValueRenderers(property.getKnownValues(model).get(), null)
 
   protected val table: JBTable = JBTable()
     .apply {
@@ -151,7 +153,7 @@ abstract class CollectionPropertyEditor<ModelT, out ModelPropertyT : ModelCollec
       override fun setParsedValue(model: Unit, value: ParsedValue<ValueT>) = setValueAt(currentRow, value)
       override fun getDefaultValue(model: Unit): ValueT? = null
       override fun parse(value: String): ParsedValue<ValueT> = property.parse(value)
-      override fun getKnownValues(model: Unit): List<ValueDescriptor<ValueT>>? =
+      override fun getKnownValues(model: Unit): ListenableFuture<List<ValueDescriptor<ValueT>>> =
         property.getKnownValues(this@CollectionPropertyEditor.model)
 
       override fun getValue(thisRef: Unit, property: KProperty<*>): ParsedValue<ValueT> =
@@ -172,5 +174,5 @@ class SimplePropertyStub<ValueT : Any> : ModelSimpleProperty<Unit, ValueT> {
   override fun getValue(thisRef: Unit, property: KProperty<*>): ParsedValue<ValueT> = ParsedValue.NotSet
   override fun setValue(thisRef: Unit, property: KProperty<*>, value: ParsedValue<ValueT>) = Unit
   override fun parse(value: String): ParsedValue<ValueT> = ParsedValue.NotSet
-  override fun getKnownValues(model: Unit): List<ValueDescriptor<ValueT>>? = null
+  override fun getKnownValues(model: Unit): ListenableFuture<List<ValueDescriptor<ValueT>>> = immediateFuture(listOf())
 }

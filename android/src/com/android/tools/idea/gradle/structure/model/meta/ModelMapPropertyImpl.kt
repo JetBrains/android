@@ -20,6 +20,8 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.OBJECT_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
+import com.google.common.util.concurrent.Futures.immediateFuture
+import com.google.common.util.concurrent.ListenableFuture
 import kotlin.reflect.KProperty
 
 
@@ -30,7 +32,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT
   itemValueSetter: ResolvedPropertyModel.(ValueT) -> Unit,
   getParsedProperty: ParsedT.() -> ResolvedPropertyModel,
   parse: (String) -> ParsedValue<ValueT>,
-  getKnownValues: ((ModelT) -> List<ValueDescriptor<ValueT>>)? = null
+  getKnownValues: ((ModelT) -> ListenableFuture<List<ValueDescriptor<ValueT>>>)? = null
 ) =
   ModelMapPropertyImpl(
     this,
@@ -44,7 +46,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT
     { getParsedProperty().delete() },
     { getParsedProperty().setDslText(it) },
     { if (it.isBlank()) ParsedValue.NotSet else parse(it.trim()) },
-    { if (getKnownValues != null) getKnownValues(it) else null }
+    { if (getKnownValues != null) getKnownValues(it) else immediateFuture(listOf()) }
   )
 
 class ModelMapPropertyImpl<in ModelT, ResolvedT, ParsedT, ValueT : Any>(
@@ -59,7 +61,7 @@ class ModelMapPropertyImpl<in ModelT, ResolvedT, ParsedT, ValueT : Any>(
   override val clearParsedValue: ParsedT.() -> Unit,
   override val setParsedRawValue: (ParsedT.(DslText) -> Unit),
   override val parser: (String) -> ParsedValue<ValueT>,
-  override val knownValuesGetter: (ModelT) -> List<ValueDescriptor<ValueT>>?
+  override val knownValuesGetter: (ModelT) -> ListenableFuture<List<ValueDescriptor<ValueT>>>
 ) : ModelCollectionPropertyBase<ModelT, ResolvedT, ParsedT, Map<String, ValueT>, ValueT>(), ModelMapProperty<ModelT, ValueT> {
 
   override fun getEditableValues(model: ModelT): Map<String, ModelPropertyCore<Unit, ValueT>> {

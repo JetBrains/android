@@ -16,13 +16,14 @@
 package com.android.tools.idea.gradle.structure.model.meta
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
+import com.google.common.util.concurrent.ListenableFuture
 
 abstract class ModelCollectionPropertyBase<in ModelT, out ResolvedT, ParsedT, in CollectionT, ValueT : Any> {
   abstract val modelDescriptor: ModelDescriptor<ModelT, ResolvedT, ParsedT>
   abstract val clearParsedValue: ParsedT.() -> Unit
   abstract val setParsedRawValue: (ParsedT.(DslText) -> Unit)
   abstract val parser: (String) -> ParsedValue<ValueT>
-  abstract val knownValuesGetter: (ModelT) -> List<ValueDescriptor<ValueT>>?
+  abstract val knownValuesGetter: (ModelT) -> ListenableFuture<List<ValueDescriptor<ValueT>>>
 
   fun setParsedValue(model: ModelT, value: ParsedValue<CollectionT>) {
     val parsedModel = modelDescriptor.getParsed(model) ?: throw IllegalStateException()
@@ -48,7 +49,7 @@ abstract class ModelCollectionPropertyBase<in ModelT, out ResolvedT, ParsedT, in
 
   fun parse(value: String): ParsedValue<ValueT> = parser(value)
 
-  fun getKnownValues(model: ModelT): List<ValueDescriptor<ValueT>>? = knownValuesGetter(model)
+  fun getKnownValues(model: ModelT): ListenableFuture<List<ValueDescriptor<ValueT>>> = knownValuesGetter(model)
 
   protected fun ModelPropertyCore<Unit, ValueT>.makeSetModifiedAware(updatedModel: ModelT) = let {
     object : ModelPropertyCore<Unit, ValueT> by it {
