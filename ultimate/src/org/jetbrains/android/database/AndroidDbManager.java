@@ -170,10 +170,6 @@ public class AndroidDbManager extends BasicDbPsiManager<AndroidDataSource> {
   }
 
   @Override
-  public void fireDataSourceUpdated(DbDataSource element) {
-  }
-
-  @Override
   public void addDataSource(@NotNull AndroidDataSource dataSource) {
     processAddOrRemove(dataSource, true);
   }
