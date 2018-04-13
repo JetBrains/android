@@ -71,7 +71,7 @@ public class IdAnalyzerTest extends LayoutTestCase {
     NlProperty property = createFrom(ATTR_LAYOUT_ALIGN_START, button2);
     IdAnalyzer analyzer = new IdAnalyzer(property);
     List<String> ids = analyzer.findIds();
-    assertEquals(ImmutableList.of("button4", "button5", "group1"), ids);
+    assertThat(ids).containsExactly("button4", "button5", "group1", "chip_group1");
   }
 
   public void testRadioGroup() {
@@ -81,7 +81,17 @@ public class IdAnalyzerTest extends LayoutTestCase {
     NlProperty property = createFrom(ATTR_CHECKED_BUTTON, group);
     IdAnalyzer analyzer = new IdAnalyzer(property);
     List<String> ids = analyzer.findIds();
-    assertEquals(ImmutableList.of("radio_button1", "radio_button2", "radio_button3"), ids);
+    assertThat(ids).containsExactly("radio_button1", "radio_button2", "radio_button3");
+  }
+
+  public void testChipGroup() {
+    ModelBuilder modelBuilder = createRelativeLayout();
+    NlModel model = modelBuilder.build();
+    NlComponent group = findById(model, "chip_group1");
+    NlProperty property = createFrom(ATTR_CHECKED_CHIP, group);
+    IdAnalyzer analyzer = new IdAnalyzer(property);
+    List<String> ids = analyzer.findIds();
+    assertThat(ids).containsExactly("chip1", "chip2", "chip3");
   }
 
   public void testButton1() {
@@ -91,15 +101,20 @@ public class IdAnalyzerTest extends LayoutTestCase {
     NlProperty labelFor = createFrom(ATTR_LABEL_FOR, button1);
     IdAnalyzer analyzer = new IdAnalyzer(labelFor);
     List<String> ids = analyzer.findIds();
-    assertEquals(ImmutableList.of("button2",
-                                  "button3",
-                                  "button4",
-                                  "button5",
-                                  "group1",
-                                  "radio_button1",
-                                  "radio_button2",
-                                  "radio_button3",
-                                  "text_view1"), ids);
+    assertThat(ids).containsExactly(
+      "button2",
+      "button3",
+      "button4",
+      "button5",
+      "group1",
+      "radio_button1",
+      "radio_button2",
+      "radio_button3",
+      "chip_group1",
+      "chip1",
+      "chip2",
+      "chip3",
+      "text_view1");
   }
 
   public void testButton1And2() {
@@ -110,14 +125,19 @@ public class IdAnalyzerTest extends LayoutTestCase {
     NlProperty accessibility = createFrom(ATTR_ACCESSIBILITY_TRAVERSAL_BEFORE, button1, button2);
     IdAnalyzer analyzer = new IdAnalyzer(accessibility);
     List<String> ids = analyzer.findIds();
-    assertEquals(ImmutableList.of("button3",
-                                  "button4",
-                                  "button5",
-                                  "group1",
-                                  "radio_button1",
-                                  "radio_button2",
-                                  "radio_button3",
-                                  "text_view1"), ids);
+    assertThat(ids).containsExactly(
+      "button3",
+      "button4",
+      "button5",
+      "group1",
+      "radio_button1",
+      "radio_button2",
+      "radio_button3",
+      "chip_group1",
+      "chip1",
+      "chip2",
+      "chip3",
+      "text_view1");
   }
 
   private ModelBuilder createConstraintLayout() {
@@ -165,7 +185,7 @@ public class IdAnalyzerTest extends LayoutTestCase {
 
   private ModelBuilder createRelativeLayout() {
     return model("relative.xml", component(RELATIVE_LAYOUT)
-      .withBounds(0, 0, 1000, 1000)
+      .withBounds(0, 0, 1000, 2000)
       .matchParentWidth()
       .matchParentHeight()
       .children(
@@ -226,6 +246,27 @@ public class IdAnalyzerTest extends LayoutTestCase {
             component(RADIO_BUTTON)
               .withBounds(100, 900, 100, 100)
               .id("@+id/radio_button3")
+              .wrapContentWidth()
+              .wrapContentHeight()),
+        component(CHIP_GROUP)
+          .withBounds(100, 1000, 100, 400)
+          .id("@id/chip_group1")
+          .wrapContentWidth()
+          .wrapContentHeight()
+          .children(
+            component(CHIP)
+              .withBounds(100, 1000, 100, 100)
+              .id("@id/chip1")
+              .wrapContentWidth()
+              .wrapContentHeight(),
+            component(CHIP)
+              .withBounds(100, 1100, 100, 100)
+              .id("@id/chip2")
+              .wrapContentWidth()
+              .wrapContentHeight(),
+            component(CHIP)
+              .withBounds(100, 1200, 100, 100)
+              .id("@id/chip3")
               .wrapContentWidth()
               .wrapContentHeight())
       ));
