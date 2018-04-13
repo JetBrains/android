@@ -163,7 +163,7 @@ java_test(
         "testData/SimpleLocalApplication/**",
     ]) + glob(["testData/LayoutLocalTest/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.NlEditorTest"],
-    tags = COMMON_TAGS + ["manual"],  #BasicLayoutTest failed for UI reason
+    tags = COMMON_TAGS + ["no_psq"],  #BasicLayoutTest failed for UI reason
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -197,7 +197,7 @@ java_test(
         "testData/SimpleBazelApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editing.AswbGotoDeclarationTest"],
-    tags = COMMON_TAGS + ["manual"],
+    tags = COMMON_TAGS + ["no_psq"],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
