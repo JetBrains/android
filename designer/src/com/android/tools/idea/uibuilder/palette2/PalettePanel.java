@@ -27,6 +27,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
@@ -358,13 +359,11 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
   public void setToolContext(@Nullable DesignSurface designSurface) {
     assert designSurface == null || designSurface instanceof NlDesignSurface;
     Module module = getModule(designSurface);
-    NlModel model = designSurface != null ? designSurface.getModel() : null;
-    boolean usingMaterial2Theme = model != null && model.usingMaterial2Theme();
     if (designSurface != null && module != null && myLayoutType != designSurface.getLayoutType()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       assert facet != null;
       myLayoutType = designSurface.getLayoutType();
-      myDataModel.setLayoutType(facet, myLayoutType, usingMaterial2Theme);
+      myDataModel.setLayoutType(facet, myLayoutType, AndroidModuleInfo.getInstance(facet).getBuildSdkVersion());
       if (myDataModel.getCategoryListModel().hasExplicitGroups()) {
         setCategoryListVisible(true);
         myCategoryList.setSelectedIndex(0);
