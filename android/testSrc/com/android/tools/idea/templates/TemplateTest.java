@@ -808,6 +808,12 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
+  public void testNewAppActionsResourceFile() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "AppActionsResourceFile");
+  }
+
+  @TemplateCheck
   public void testAndroidAutoMediaService() throws Exception {
     checkCreateTemplate("other", "AndroidAutoMediaService");
   }
