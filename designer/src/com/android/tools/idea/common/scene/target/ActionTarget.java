@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.common.scene.target;
 
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.ScenePicker;
@@ -33,8 +35,8 @@ import java.util.List;
  */
 public class ActionTarget extends BaseTarget {
 
-  final static int mySize = 12;
-  final static int myGap = 4;
+  @SwingCoordinate private static final int SWING_DIMENSION = 25;
+  @SwingCoordinate private static final int SWING_GAP = 6;
   @Nullable private Action myAction;
   @NotNull private final NlIcon myIcon;
   protected boolean myIsVisible = true;
@@ -76,19 +78,25 @@ public class ActionTarget extends BaseTarget {
                         @AndroidDpCoordinate int t,
                         @AndroidDpCoordinate int r,
                         @AndroidDpCoordinate int b) {
-    float ratio = 1f / (float)sceneTransform.getScale();
-    if (ratio > 2) {
-      ratio = 2;
-    }
     myLeft = l;
-    float size = (mySize * ratio);
-    myTop = b + (myGap * ratio);
+    float size = getAndroidDpSize(SWING_DIMENSION);
+    myTop = b + getAndroidDpSize(SWING_GAP);
     myRight = myLeft + size;
     myBottom = myTop + size;
     if (!myIsVisible) {
       myRight = myLeft;
     }
     return false;
+  }
+
+  @AndroidDpCoordinate
+  private int getAndroidDpSize(@SwingCoordinate int dimension) {
+    return Coordinates.getAndroidDimensionDip(myComponent.getScene().getSceneManager().getSceneView(), dimension);
+  }
+
+  @AndroidDpCoordinate
+  public int getGap() {
+    return getAndroidDpSize(SWING_GAP);
   }
 
   @Override
