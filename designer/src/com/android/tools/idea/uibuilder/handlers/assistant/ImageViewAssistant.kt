@@ -37,6 +37,7 @@ import com.intellij.util.ui.JBUI.Borders
 import com.intellij.util.ui.JBUI.scale
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
+import java.awt.Dimension
 import java.util.*
 import javax.swing.*
 
@@ -142,6 +143,7 @@ class ImageViewAssistant(
       isEditable = false
       isOpaque = false
       selectedItem = selected
+      preferredSize = Dimension(itemList.preferredSize.width - useAllCheckBox.preferredSize.width, preferredSize.height)
       selectedSampleItem = sampleItemsWithNull[selectedIndex]
       displayResourceValues(selectedSampleItem, -1)
       addActionListener { event ->
