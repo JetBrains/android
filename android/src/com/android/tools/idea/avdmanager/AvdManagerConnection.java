@@ -40,6 +40,7 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.utils.ILogger;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
@@ -400,6 +401,14 @@ public class AvdManagerConnection {
     commandLine.setExePath(emulatorBinary.getPath());
 
     addParameters(info, commandLine);
+
+    // The AVD Manager UI does not allow for passing additional command line parameters.
+    // For now, this environment variable allows users to specify any such parameters they need
+    //   e.g. export studio.emu.params=-dns-server,8.8.8.8 && studio.sh
+    String additionalParams = System.getenv("studio.emu.params");
+    if (additionalParams != null) {
+      commandLine.addParameters(Splitter.on(',').splitToList(additionalParams));
+    }
 
     EmulatorRunner runner = new EmulatorRunner(commandLine, info);
     addListeners(runner);
