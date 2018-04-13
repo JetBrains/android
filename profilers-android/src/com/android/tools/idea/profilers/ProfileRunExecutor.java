@@ -17,6 +17,9 @@ package com.android.tools.idea.profilers;
 
 import com.android.tools.idea.run.ExecutorIconProvider;
 import com.android.tools.idea.run.LaunchOptionsProvider;
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.StudioProfilersView;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.execution.Executor;
 import com.intellij.execution.ExecutorRegistry;
@@ -25,6 +28,7 @@ import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.ui.content.Content;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -89,10 +93,15 @@ public class ProfileRunExecutor extends DefaultRunExecutor implements ExecutorIc
   @Nullable
   @Override
   public Icon getExecutorIcon(@NotNull Project project, @NotNull Executor executor) {
-    ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(AndroidProfilerToolWindowFactory.ID);
-    if (toolWindow != null && toolWindow.getContentManager().getContentCount() > 0) {
-      return ExecutionUtil.getLiveIndicator(getIcon());
+    AndroidProfilerToolWindow profilerToolWindow = AndroidProfilerToolWindowFactory.getProfilerToolWindow(project);
+    if (profilerToolWindow != null) {
+      StudioProfilers profilers = profilerToolWindow.getProfilers();
+      Common.Session profilingSession = profilers.getSessionsManager().getProfilingSession();
+      if (profilingSession.getEndTimestamp() == Long.MAX_VALUE) {
+        return ExecutionUtil.getLiveIndicator(getIcon());
+      }
     }
+
     return getIcon();
   }
 
