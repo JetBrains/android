@@ -56,6 +56,7 @@ class EnergyAxisFormatterTest {
     assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(700.0, 600.0, false)).isEqualTo("Heavy")
     assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(700.0, 300.0, false)).isEqualTo("Medium")
     assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(700.0, 200.0, false)).isEqualTo("Light")
+    assertThat(EnergyAxisFormatter.LEGEND_FORMATTER.getFormattedString(700.0, 700.0, false)).isEqualTo("Heavy")
   }
 
   @Test
@@ -64,6 +65,7 @@ class EnergyAxisFormatterTest {
     assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(800.0, 800.0, false)).isEqualTo("")
     assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(800.0, 600.0, false)).isEqualTo("Heavy")
     assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(800.0, 300.0, false)).isEqualTo("Medium")
+    assertThat(EnergyAxisFormatter.LEGEND_FORMATTER.getFormattedString(800.0, 800.0, false)).isEqualTo("Heavy")
   }
 
   @Test

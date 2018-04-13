@@ -234,11 +234,11 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
 
     EnergyUsageLegends(DetailedEnergyUsage detailedUsage, Range range) {
       super(ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS);
-      myCpuLegend = new SeriesLegend(detailedUsage.getCpuUsageSeries(), EnergyAxisFormatter.DEFAULT, range, "CPU",
+      myCpuLegend = new SeriesLegend(detailedUsage.getCpuUsageSeries(), EnergyAxisFormatter.LEGEND_FORMATTER, range, "CPU",
                                      Interpolatable.SegmentInterpolator);
-      myNetworkLegend = new SeriesLegend(detailedUsage.getNetworkUsageSeries(), EnergyAxisFormatter.DEFAULT, range, "Network",
+      myNetworkLegend = new SeriesLegend(detailedUsage.getNetworkUsageSeries(), EnergyAxisFormatter.LEGEND_FORMATTER, range, "Network",
                                          Interpolatable.SegmentInterpolator);
-      myLocationLegend = new SeriesLegend(detailedUsage.getLocationUsageSeries(), EnergyAxisFormatter.DEFAULT, range, "Location",
+      myLocationLegend = new SeriesLegend(detailedUsage.getLocationUsageSeries(), EnergyAxisFormatter.LEGEND_FORMATTER, range, "Location",
                                      Interpolatable.SegmentInterpolator);
 
       add(myCpuLegend);

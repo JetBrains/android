@@ -22,7 +22,20 @@ public class EnergyAxisFormatter extends BaseAxisFormatter {
   static final int DEFAULT_MAJOR_INTERVAL = 200;
   public static final String[] LABELS = {"Light", "Medium", "Heavy"};
 
+  // Default formatter for the Energy Axis value. As the Axis may display a label at the max value, this formatter would not show duplicate
+  // labels at the max value and second max value.
   public static final EnergyAxisFormatter DEFAULT = new EnergyAxisFormatter(0, LABELS.length, 1);
+  // Energy legend formatter that displays the value independent of the axis markers.
+  public static final EnergyAxisFormatter LEGEND_FORMATTER = new EnergyAxisFormatter(0, LABELS.length, 1) {
+    @NotNull
+    @Override
+    public String getFormattedString(double globalRange, double value, boolean includeUnit) {
+      if (value < DEFAULT_MAJOR_INTERVAL * LABELS.length) {
+        return super.getFormattedString(globalRange, value, includeUnit);
+      }
+      return LABELS[LABELS.length -1];
+    }
+  };
 
   private EnergyAxisFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold) {
     super(maxMinorTicks, maxMajorTicks, switchThreshold);
