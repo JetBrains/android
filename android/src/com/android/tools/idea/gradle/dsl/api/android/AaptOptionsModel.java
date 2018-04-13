@@ -15,78 +15,26 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android;
 
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public interface AaptOptionsModel extends GradleDslModel {
-  @Nullable
-  List<GradleNotNullValue<String>> additionalParameters();
+  @NotNull
+  ResolvedPropertyModel additionalParameters();
 
   @NotNull
-  AaptOptionsModel addAdditionalParameter(@NotNull String additionalParameter);
+  ResolvedPropertyModel ignoreAssets();
 
   @NotNull
-  AaptOptionsModel removeAdditionalParameter(@NotNull String additionalParameter);
+  ResolvedPropertyModel failOnMissingConfigEntry();
 
   @NotNull
-  AaptOptionsModel removeAllAdditionalParameters();
+  ResolvedPropertyModel cruncherProcesses();
 
   @NotNull
-  AaptOptionsModel replaceAdditionalParameter(@NotNull String oldAdditionalParameter, @NotNull String newAdditionalParameter);
+  ResolvedPropertyModel cruncherEnabled();
 
   @NotNull
-  GradleNullableValue<String> ignoreAssets();
-
-  @NotNull
-  AaptOptionsModel setIgnoreAssets(@NotNull String ignoreAssets);
-
-  @NotNull
-  AaptOptionsModel removeIgnoreAssets();
-
-  @NotNull
-  GradleNullableValue<Boolean> failOnMissingConfigEntry();
-
-  @NotNull
-  AaptOptionsModel setFailOnMissingConfigEntry(boolean failOnMissingConfigEntry);
-
-  @NotNull
-  AaptOptionsModel removeFailOnMissingConfigEntry();
-
-  @NotNull
-  GradleNullableValue<Integer> cruncherProcesses();
-
-  @NotNull
-  AaptOptionsModel setCruncherProcesses(int cruncherProcesses);
-
-  @NotNull
-  AaptOptionsModel removeCruncherProcesses();
-
-  @NotNull
-  GradleNullableValue<Boolean> cruncherEnabled();
-
-  @NotNull
-  AaptOptionsModel setCruncherEnabled(boolean cruncherEnabled);
-
-  @NotNull
-  AaptOptionsModel removeCruncherEnabled();
-
-  @Nullable
-  List<GradleNotNullValue<String>> noCompress();
-
-  @NotNull
-  AaptOptionsModel addNoCompress(@NotNull String noCompress);
-
-  @NotNull
-  AaptOptionsModel removeNoCompress(@NotNull String noCompress);
-
-  @NotNull
-  AaptOptionsModel removeAllNoCompress();
-
-  @NotNull
-  AaptOptionsModel replaceNoCompress(@NotNull String oldNoCompress, @NotNull String newNoCompress);
+  ResolvedPropertyModel noCompress();
 }
