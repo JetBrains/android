@@ -17,7 +17,7 @@
     <orderEntry type="module" module-name="usb-devices" />
     <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module" module-name="android.sdktools.ddmlib" />
-    <orderEntry type="module" module-name="intellij.android" />
+    <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="android-adb" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
     <orderEntry type="module" module-name="android.sdktools.flags" />

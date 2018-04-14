@@ -19,7 +19,7 @@ iml_module(
     ],
     # do not sort: must match IML order
     deps = [
-        "//tools/adt/idea/android:intellij.android[module]",
+        "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates[module]",
         "//tools/adt/idea/designer:intellij.android.designer[module]",
         "//tools/adt/idea/profilers-android:intellij.android.profilersAndroid[module]",

@@ -23,6 +23,6 @@ iml_module(
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
         "//tools/idea/platform/core-api:intellij.platform.core[module]",
         "//tools/idea/.idea/libraries:jna",
-        "//tools/adt/idea/android:intellij.android[module]",
+        "//tools/adt/idea/android:intellij.android.core[module]",
     ],
 )

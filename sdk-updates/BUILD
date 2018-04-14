@@ -19,7 +19,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
-        "//tools/adt/idea/android:intellij.android[module]",
+        "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/analytics-library/protos:analytics-protos[module]",
@@ -60,7 +60,7 @@ iml_module(
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
         "//tools/base/repository:studio.android.sdktools.repository[module, test]",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module, test]",
-        "//tools/adt/idea/android:intellij.android[module, test]",
+        "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",

@@ -21,7 +21,7 @@ iml_module(
     deps = [
         "//tools/adt/idea/assistant[module]",
         "//tools/idea/platform/core-api:intellij.platform.core[module]",
-        "//tools/adt/idea/android:intellij.android[module]",
+        "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
@@ -56,7 +56,7 @@ iml_module(
     deps = [
         "//tools/adt/idea/assistant[module]",
         "//tools/idea/platform/core-api:intellij.platform.core[module]",
-        "//tools/adt/idea/android:intellij.android[module]",
+        "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",

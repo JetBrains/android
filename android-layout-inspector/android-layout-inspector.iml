@@ -24,6 +24,6 @@
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.xml.psi.impl" />
     <orderEntry type="module" module-name="android.sdktools.ddmlib" />
-    <orderEntry type="module" module-name="intellij.android" />
+    <orderEntry type="module" module-name="intellij.android.core" />
   </component>
 </module>

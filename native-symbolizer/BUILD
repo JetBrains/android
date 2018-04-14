@@ -28,7 +28,7 @@ iml_module(
     deps = [
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
         "//tools/idea/platform/core-api:intellij.platform.core[module]",
-        "//tools/adt/idea/android:intellij.android[module]",
+        "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/idea/platform/projectModel-api:intellij.platform.projectModel[module]",
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",

@@ -20,7 +20,7 @@ iml_module(
     deps = [
         "//tools/idea/platform/extensions:intellij.platform.extensions[module]",
         "//tools/idea/platform/core-api:intellij.platform.core[module]",
-        "//tools/adt/idea/android:intellij.android[module]",
+        "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/idea/platform/editor-ui-api:intellij.platform.editor[module]",
         "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
@@ -60,7 +60,7 @@ iml_module(
     deps = [
         "//tools/idea/platform/extensions:intellij.platform.extensions[module]",
         "//tools/idea/platform/core-api:intellij.platform.core[module]",
-        "//tools/adt/idea/android:intellij.android[module]",
+        "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/idea/platform/editor-ui-api:intellij.platform.editor[module]",
         "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
