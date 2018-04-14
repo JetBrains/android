@@ -24,6 +24,7 @@ import com.android.tools.profiler.proto.EnergyProfiler;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import sun.swing.SwingUtilities2;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -31,6 +32,10 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class EnergyEventsTableTooltipInfoComponent extends AnimatedComponent {
+  private final FontMetrics BOLD_FONT_METRICS = SwingUtilities2.getFontMetrics(this, mDefaultFontMetrics.getFont().deriveFont(Font.BOLD));
+  private final FontMetrics ITALIC_FONT_METRICS =
+    SwingUtilities2.getFontMetrics(this, mDefaultFontMetrics.getFont().deriveFont(Font.ITALIC));
+
   private final int VERTICAL_MARGIN_PX = JBUI.scale(8);
   private final int VERTICAL_PADDING_PX = VERTICAL_MARGIN_PX;
   private final int BOTTOM_RIGHT_EXTRA_MARGIN_PX = JBUI.scale(4);
@@ -68,7 +73,7 @@ public class EnergyEventsTableTooltipInfoComponent extends AnimatedComponent {
     }
     // Display error message when no tooltip data is available.
     if (myInstructions.isEmpty()) {
-      myInstructions.add(new TextInstruction(getFont(), "No data."));
+      myInstructions.add(new TextInstruction(mDefaultFontMetrics, "No data."));
     }
     // Remove the extra last line.
     if (myInstructions.get(myInstructions.size() - 1) instanceof NewRowInstruction) {
@@ -78,14 +83,14 @@ public class EnergyEventsTableTooltipInfoComponent extends AnimatedComponent {
 
   private void renderText(@Nullable String string) {
     if (string != null) {
-      myInstructions.add(new TextInstruction(getFont(), string));
+      myInstructions.add(new TextInstruction(mDefaultFontMetrics, string));
       myInstructions.add(new NewRowInstruction(VERTICAL_MARGIN_PX));
     }
   }
 
   private void renderNameValuePair(@NotNull String name, @NotNull String value) {
-    myInstructions.add(new TextInstruction(getFont().deriveFont(Font.BOLD), name + ": "));
-    myInstructions.add(new TextInstruction(getFont(), value));
+    myInstructions.add(new TextInstruction(BOLD_FONT_METRICS, name + ": "));
+    myInstructions.add(new TextInstruction(mDefaultFontMetrics, value));
     myInstructions.add(new NewRowInstruction(VERTICAL_MARGIN_PX));
   }
 
@@ -102,20 +107,20 @@ public class EnergyEventsTableTooltipInfoComponent extends AnimatedComponent {
     EnergyProfiler.EnergyEvent firstEvent = myModel.getDuration().getEventList().get(0);
     if (firstEvent.hasAlarmSet()) {
       if (firstEvent.getAlarmSet().hasOperation()) {
-        myInstructions.add(new TextInstruction(getFont().deriveFont(Font.BOLD), "Intent: "));
+        myInstructions.add(new TextInstruction(BOLD_FONT_METRICS, "Intent: "));
         String packageString = firstEvent.getAlarmSet().getOperation().getCreatorPackage();
         packageString = packageString.substring(packageString.lastIndexOf('.') + 1);
         int uid = firstEvent.getAlarmSet().getOperation().getCreatorUid();
-        myInstructions.add(new TextInstruction(getFont(), packageString));
-        myInstructions.add(new TextInstruction(getFont().deriveFont(Font.ITALIC), " (" + uid + ")"));
+        myInstructions.add(new TextInstruction(mDefaultFontMetrics, packageString));
+        myInstructions.add(new TextInstruction(ITALIC_FONT_METRICS, " (" + uid + ")"));
         myInstructions.add(new NewRowInstruction(VERTICAL_MARGIN_PX));
       }
 
       long triggerTimeUs = TimeUnit.NANOSECONDS.toMicros(firstEvent.getTimestamp());
       long triggerTimeMs = TimeUnit.NANOSECONDS.toMillis(firstEvent.getTimestamp());
-      myInstructions.add(new TextInstruction(getFont().deriveFont(Font.BOLD), "Created: "));
-      myInstructions.add(new TextInstruction(getFont(), myModel.getDateFormattedString(triggerTimeMs)));
-      myInstructions.add(new TextInstruction(getFont().deriveFont(Font.ITALIC), " (" + myModel.getFormattedString(triggerTimeUs) + ")"));
+      myInstructions.add(new TextInstruction(BOLD_FONT_METRICS, "Created: "));
+      myInstructions.add(new TextInstruction(mDefaultFontMetrics, myModel.getDateFormattedString(triggerTimeMs)));
+      myInstructions.add(new TextInstruction(ITALIC_FONT_METRICS, " (" + myModel.getFormattedString(triggerTimeUs) + ")"));
       myInstructions.add(new NewRowInstruction(VERTICAL_MARGIN_PX));
 
       long frequency = TimeUnit.MILLISECONDS.toMicros(firstEvent.getAlarmSet().getIntervalMs());

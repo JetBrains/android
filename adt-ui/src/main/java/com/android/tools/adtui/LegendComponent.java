@@ -25,6 +25,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
+import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
 import java.awt.*;
@@ -181,9 +182,9 @@ public class LegendComponent extends AnimatedComponent {
         name += ": ";
       }
 
-      myInstructions.add(new TextInstruction(getFont(), name));
+      myInstructions.add(new TextInstruction(SwingUtilities2.getFontMetrics(this, getFont()), name));
       if (StringUtil.isNotEmpty(value)) {
-        TextInstruction valueInstruction = new TextInstruction(getFont(), value);
+        TextInstruction valueInstruction = new TextInstruction(SwingUtilities2.getFontMetrics(this, getFont()), value);
         myInstructions.add(valueInstruction);
         if (myOrientation != Orientation.VERTICAL) {
           // In order to prevent one legend's value changing causing the other legends from jumping

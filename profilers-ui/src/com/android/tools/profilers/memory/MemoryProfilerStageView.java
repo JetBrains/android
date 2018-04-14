@@ -49,6 +49,7 @@ import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
 import java.awt.*;
@@ -515,25 +516,26 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
                         ? IconUtil.darker(StudioIcons.Profiler.Toolbar.HEAP_DUMP, 6)
                         : IconUtil.brighter(StudioIcons.Profiler.Toolbar.HEAP_DUMP, 6);
     RenderInstruction[] instructions;
+    FontMetrics metrics = SwingUtilities2.getFontMetrics(parent, PROFILING_INSTRUCTIONS_FONT);
     if (getStage().useLiveAllocationTracking()) {
       RenderInstruction[] liveAllocInstructions = {
-        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "Select a range to inspect allocations"),
+        new TextInstruction(metrics, "Select a range to inspect allocations"),
         new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "or click "),
+        new TextInstruction(metrics, "or click "),
         new IconInstruction(heapDumpIcon, PROFILING_INSTRUCTIONS_ICON_PADDING, null),
-        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, " for a heap dump")
+        new TextInstruction(metrics, " for a heap dump")
       };
       instructions = liveAllocInstructions;
     }
     else {
       RenderInstruction[] legacyInstructions = {
-        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "Click "),
+        new TextInstruction(metrics, "Click "),
         new IconInstruction(recordIcon, PROFILING_INSTRUCTIONS_ICON_PADDING, null),
-        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, " to record allocations"),
+        new TextInstruction(metrics, " to record allocations"),
         new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "or "),
+        new TextInstruction(metrics, "or "),
         new IconInstruction(heapDumpIcon, PROFILING_INSTRUCTIONS_ICON_PADDING, null),
-        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, " for a heap dump")
+        new TextInstruction(metrics, " for a heap dump")
       };
       instructions = legacyInstructions;
     }

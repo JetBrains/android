@@ -37,6 +37,7 @@ import com.intellij.util.PlatformIcons;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableColumnModel;
@@ -107,15 +108,15 @@ final class MemoryClassifierView extends AspectObserver {
     myLoadingPanel.setLoadingText("");
 
     myStage.getAspect().addDependency(this)
-      .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::loadCapture)
-      .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::refreshCapture)
-      .onChange(MemoryProfilerAspect.CURRENT_HEAP, this::refreshHeapSet)
-      .onChange(MemoryProfilerAspect.CURRENT_HEAP_UPDATING, this::startHeapLoadingUi)
-      .onChange(MemoryProfilerAspect.CURRENT_HEAP_UPDATED, this::stopHeapLoadingUi)
-      .onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, this::refreshTree)
-      .onChange(MemoryProfilerAspect.CURRENT_CLASS, this::refreshClassSet)
-      .onChange(MemoryProfilerAspect.CLASS_GROUPING, this::refreshGrouping)
-      .onChange(MemoryProfilerAspect.CURRENT_FILTER, this::refreshFilter);
+           .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::loadCapture)
+           .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::refreshCapture)
+           .onChange(MemoryProfilerAspect.CURRENT_HEAP, this::refreshHeapSet)
+           .onChange(MemoryProfilerAspect.CURRENT_HEAP_UPDATING, this::startHeapLoadingUi)
+           .onChange(MemoryProfilerAspect.CURRENT_HEAP_UPDATED, this::stopHeapLoadingUi)
+           .onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, this::refreshTree)
+           .onChange(MemoryProfilerAspect.CURRENT_CLASS, this::refreshClassSet)
+           .onChange(MemoryProfilerAspect.CLASS_GROUPING, this::refreshGrouping)
+           .onChange(MemoryProfilerAspect.CURRENT_FILTER, this::refreshFilter);
 
     myAttributeColumns.put(
       ClassifierAttribute.LABEL,
@@ -347,17 +348,19 @@ final class MemoryClassifierView extends AspectObserver {
 
     if (myStage.getSelectedCapture().isExportable()) {
       myHelpTipPanel = new InstructionsPanel.Builder(
-        new TextInstruction(INFO_MESSAGE_HEADER_FONT, HELP_TIP_HEADER_EXPLICIT_CAPTURE),
+        new TextInstruction(SwingUtilities2.getFontMetrics(myClassifierPanel, INFO_MESSAGE_HEADER_FONT), HELP_TIP_HEADER_EXPLICIT_CAPTURE),
         new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-        new TextInstruction(INFO_MESSAGE_DESCRIPTION_FONT, HELP_TIP_DESCRIPTION_EXPLICIT_CAPTURE))
+        new TextInstruction(SwingUtilities2.getFontMetrics(myClassifierPanel, INFO_MESSAGE_DESCRIPTION_FONT),
+                            HELP_TIP_DESCRIPTION_EXPLICIT_CAPTURE))
         .setColors(JBColor.foreground(), null)
         .build();
     }
     else {
       myHelpTipPanel = new InstructionsPanel.Builder(
-        new TextInstruction(INFO_MESSAGE_HEADER_FONT, HELP_TIP_HEADER_LIVE_ALLOCATION),
+        new TextInstruction(SwingUtilities2.getFontMetrics(myClassifierPanel, INFO_MESSAGE_HEADER_FONT), HELP_TIP_HEADER_LIVE_ALLOCATION),
         new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-        new TextInstruction(INFO_MESSAGE_DESCRIPTION_FONT, HELP_TIP_DESCRIPTION_LIVE_ALLOCATION))
+        new TextInstruction(SwingUtilities2.getFontMetrics(myClassifierPanel, INFO_MESSAGE_DESCRIPTION_FONT),
+                            HELP_TIP_DESCRIPTION_LIVE_ALLOCATION))
         .setColors(JBColor.foreground(), null)
         .build();
     }

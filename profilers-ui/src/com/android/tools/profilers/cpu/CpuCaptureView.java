@@ -48,6 +48,7 @@ import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.tree.TreeModelAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -309,9 +310,10 @@ class CpuCaptureView {
     protected static JPanel getNoDataForThread() {
       String message = "No data available for the selected thread.";
       JPanel panel = new JPanel(new BorderLayout());
-      InstructionsPanel info = new InstructionsPanel.Builder(new TextInstruction(INFO_MESSAGE_HEADER_FONT, message))
-        .setColors(JBColor.foreground(), null)
-        .build();
+      InstructionsPanel info =
+        new InstructionsPanel.Builder(new TextInstruction(SwingUtilities2.getFontMetrics(panel, INFO_MESSAGE_HEADER_FONT), message))
+          .setColors(JBColor.foreground(), null)
+          .build();
       panel.add(info, BorderLayout.CENTER);
       return panel;
     }
@@ -319,9 +321,10 @@ class CpuCaptureView {
     protected static JComponent getNoDataForRange() {
       String message = "No data available for the selected time frame.";
       JPanel panel = new JPanel(new BorderLayout());
-      InstructionsPanel info = new InstructionsPanel.Builder(new TextInstruction(INFO_MESSAGE_HEADER_FONT, message))
-        .setColors(JBColor.foreground(), null)
-        .build();
+      InstructionsPanel info =
+        new InstructionsPanel.Builder(new TextInstruction(SwingUtilities2.getFontMetrics(panel, INFO_MESSAGE_HEADER_FONT), message))
+          .setColors(JBColor.foreground(), null)
+          .build();
       panel.add(info, BorderLayout.CENTER);
       return panel;
     }
