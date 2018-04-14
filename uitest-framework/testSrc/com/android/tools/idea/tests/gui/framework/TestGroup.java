@@ -29,6 +29,7 @@ public enum TestGroup {
   QA_UNRELIABLE,
   SANITY,
   SANITY_BAZEL,
+  SANITY_NO_UI,
   FAT,
   UNRELIABLE,
   /** Assigned implicitly where group is unspecified; not intended to be specified explicitly. */
