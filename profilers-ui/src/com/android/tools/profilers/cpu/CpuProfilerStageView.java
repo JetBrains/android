@@ -64,6 +64,7 @@ import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
 import javax.swing.event.ListDataEvent;
@@ -185,11 +186,11 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     ProfilerTimeline timeline = getTimeline();
 
     stage.getAspect().addDependency(this)
-      .onChange(CpuProfilerAspect.CAPTURE_STATE, this::updateCaptureState)
-      .onChange(CpuProfilerAspect.CAPTURE_SELECTION, this::updateCaptureSelection)
-      .onChange(CpuProfilerAspect.SELECTED_THREADS, this::updateThreadSelection)
-      .onChange(CpuProfilerAspect.CAPTURE_DETAILS, this::updateCaptureDetails)
-      .onChange(CpuProfilerAspect.CAPTURE_ELAPSED_TIME, this::updateCaptureElapsedTime);
+         .onChange(CpuProfilerAspect.CAPTURE_STATE, this::updateCaptureState)
+         .onChange(CpuProfilerAspect.CAPTURE_SELECTION, this::updateCaptureSelection)
+         .onChange(CpuProfilerAspect.SELECTED_THREADS, this::updateThreadSelection)
+         .onChange(CpuProfilerAspect.CAPTURE_DETAILS, this::updateCaptureDetails)
+         .onChange(CpuProfilerAspect.CAPTURE_ELAPSED_TIME, this::updateCaptureElapsedTime);
 
     getTooltipBinder().bind(CpuUsageTooltip.class, CpuUsageTooltipView::new);
     getTooltipBinder().bind(CpuKernelTooltip.class, CpuKernelTooltipView::new);
@@ -336,7 +337,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   /**
    * This function handles the layout and rendering of the cpu kernel panel. This panel represents
    * each core found in an atrace file and the state associated with each core.
-   * @param monitorCpuThreadsPanel panel that is assumed to contain the Kernel list, as well as the Threads List.
+   *
+   * @param monitorCpuThreadsPanel  panel that is assumed to contain the Kernel list, as well as the Threads List.
    * @param monitorCpuThreadsLayout the layout of the panel containing the two list.
    */
   private void configureCpuPanel(JPanel monitorCpuThreadsPanel, TabularLayout monitorCpuThreadsLayout) {
@@ -462,14 +464,16 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   }
 
   private void configureHelpTipPanel() {
+    FontMetrics headerMetrics = SwingUtilities2.getFontMetrics(myHelpTipPanel, INFO_MESSAGE_HEADER_FONT);
+    FontMetrics bodyMetrics = SwingUtilities2.getFontMetrics(myHelpTipPanel, INFO_MESSAGE_DESCRIPTION_FONT);
     InstructionsPanel infoMessage = new InstructionsPanel.Builder(
-      new TextInstruction(INFO_MESSAGE_HEADER_FONT, "Thread details unavailable"),
+      new TextInstruction(headerMetrics, "Thread details unavailable"),
       new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-      new TextInstruction(INFO_MESSAGE_DESCRIPTION_FONT, "Click the record button "),
+      new TextInstruction(bodyMetrics, "Click the record button "),
       new IconInstruction(StudioIcons.Profiler.Toolbar.RECORD, PROFILING_INSTRUCTIONS_ICON_PADDING, null),
-      new TextInstruction(INFO_MESSAGE_DESCRIPTION_FONT, " to start CPU profiling"),
+      new TextInstruction(bodyMetrics, " to start CPU profiling"),
       new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-      new TextInstruction(INFO_MESSAGE_DESCRIPTION_FONT, "or select a capture in the timeline."))
+      new TextInstruction(bodyMetrics, "or select a capture in the timeline."))
       .setColors(JBColor.foreground(), null)
       .build();
     myHelpTipPanel.add(infoMessage, BorderLayout.CENTER);
@@ -480,7 +484,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     panel.setOpaque(false);
     panel.setBackground(new Color(0, 0, 0, 0));
     InstructionsPanel infoMessage = new InstructionsPanel.Builder(
-      new TextInstruction(INFO_MESSAGE_HEADER_FONT, "Cpu usage details unavailable"))
+      new TextInstruction(SwingUtilities2.getFontMetrics(panel, INFO_MESSAGE_HEADER_FONT), "Cpu usage details unavailable"))
       .setColors(JBColor.foreground(), null)
       .build();
     panel.add(infoMessage);
@@ -633,19 +637,19 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       .setShowSeparator(false)
       .build();
     hideablePanel.addStateChangedListener((actionEvent) -> {
-        // On expanded set row sizing to initial ratio.
-        if (hideablePanel.isExpanded()) {
-          threadsMonitorPanelLayout.setRowSizing(THREADS_PANEL_ROW, PanelSpacing.HIDEABLE_PANEL_EXPANDED.toString());
-        }
-        else {
-          // On collapse have monitor panel take any left over space.
-          threadsMonitorPanelLayout.setRowSizing(THREADS_PANEL_ROW, PanelSpacing.HIDEABLE_PANEL_COLLAPSED.toString());
-        }
-      });
+      // On expanded set row sizing to initial ratio.
+      if (hideablePanel.isExpanded()) {
+        threadsMonitorPanelLayout.setRowSizing(THREADS_PANEL_ROW, PanelSpacing.HIDEABLE_PANEL_EXPANDED.toString());
+      }
+      else {
+        // On collapse have monitor panel take any left over space.
+        threadsMonitorPanelLayout.setRowSizing(THREADS_PANEL_ROW, PanelSpacing.HIDEABLE_PANEL_COLLAPSED.toString());
+      }
+    });
     // Clear border set by default on the hideable panel.
-    hideablePanel.setBorder(new JBEmptyBorder(0,0,0,0));
+    hideablePanel.setBorder(new JBEmptyBorder(0, 0, 0, 0));
     hideablePanel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
-    threads.setBorder(new JBEmptyBorder(0,0,0,0));
+    threads.setBorder(new JBEmptyBorder(0, 0, 0, 0));
     threadsPanel.add(hideablePanel, new TabularLayout.Constraint(THREADS_PANEL_ROW, 0));
   }
 
@@ -899,9 +903,10 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     Icon recordIcon = UIUtil.isUnderDarcula()
                       ? IconUtil.darker(StudioIcons.Profiler.Toolbar.RECORD, 3)
                       : IconUtil.brighter(StudioIcons.Profiler.Toolbar.RECORD, 3);
-    InstructionsPanel panel = new InstructionsPanel.Builder(new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "Click "),
+    FontMetrics metrics = SwingUtilities2.getFontMetrics(parent, PROFILING_INSTRUCTIONS_FONT);
+    InstructionsPanel panel = new InstructionsPanel.Builder(new TextInstruction(metrics, "Click "),
                                                             new IconInstruction(recordIcon, PROFILING_INSTRUCTIONS_ICON_PADDING, null),
-                                                            new TextInstruction(PROFILING_INSTRUCTIONS_FONT, " to start method profiling"))
+                                                            new TextInstruction(metrics, " to start method profiling"))
       .setEaseOut(getStage().getInstructionsEaseOutModel(), instructionsPanel -> parent.remove(instructionsPanel))
       .setBackgroundCornerRadius(PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER, PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER)
       .build();

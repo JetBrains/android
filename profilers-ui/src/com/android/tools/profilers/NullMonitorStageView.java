@@ -20,10 +20,12 @@ import com.intellij.ui.JBColor;
 import icons.StudioIcons;
 import icons.StudioIllustrations;
 import org.jetbrains.annotations.NotNull;
+import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.List;
 
 import static com.android.tools.profilers.ProfilerLayout.PROFILING_INSTRUCTIONS_ICON_PADDING;
 
@@ -117,23 +119,24 @@ public class NullMonitorStageView extends StageView<NullMonitorStage> {
 
   public RenderInstruction[] getMessageInstructions() {
     Font font = myTitle.getFont().deriveFont(12.0f);
-    java.util.List<RenderInstruction> instructions = new ArrayList<>();
+    List<RenderInstruction> instructions = new ArrayList<>();
+    FontMetrics metrics = SwingUtilities2.getFontMetrics(myInstructionsWrappingPanel, font);
     if (myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isSessionsEnabled()) {
-      instructions.add(new TextInstruction(font, "Click "));
+      instructions.add(new TextInstruction(metrics, "Click "));
       instructions.add(new IconInstruction(StudioIcons.Common.ADD, PROFILING_INSTRUCTIONS_ICON_PADDING, null));
-      instructions.add(new TextInstruction(font, " to attach a process or load a capture."));
+      instructions.add(new TextInstruction(metrics, " to attach a process or load a capture."));
     }
     else {
       switch (myStage.getType()) {
         case NO_DEVICE:
-          instructions.add(new TextInstruction(font, NO_DEVICE_MESSAGE));
+          instructions.add(new TextInstruction(metrics, NO_DEVICE_MESSAGE));
           break;
         case UNSUPPORTED_DEVICE:
-          instructions.add(new TextInstruction(font, DEVICE_NOT_SUPPORTED_MESSAGE));
+          instructions.add(new TextInstruction(metrics, DEVICE_NOT_SUPPORTED_MESSAGE));
           break;
         case NO_DEBUGGABLE_PROCESS:
         default:
-          instructions.add(new TextInstruction(font, NO_DEBUGGABLE_PROCESS_MESSAGE));
+          instructions.add(new TextInstruction(metrics, NO_DEBUGGABLE_PROCESS_MESSAGE));
           break;
       }
     }

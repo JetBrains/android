@@ -37,6 +37,7 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
+import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
 import java.awt.*;
@@ -61,7 +62,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     super(profilersView, stage);
 
     getStage().getAspect().addDependency(this)
-      .onChange(NetworkProfilerAspect.SELECTED_CONNECTION, this::updateConnectionDetailsView);
+              .onChange(NetworkProfilerAspect.SELECTED_CONNECTION, this::updateConnectionDetailsView);
 
     getTooltipBinder().bind(NetworkRadioTooltip.class, NetworkRadioTooltipView::new);
     getTooltipBinder().bind(NetworkTrafficTooltip.class, NetworkTrafficTooltipView::new);
@@ -93,9 +94,11 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
         int selectedIndex = connectionsTab.getSelectedIndex();
         if (selectedIndex == 0) {
           getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectNetworkConnectionsView();
-        } else if (selectedIndex == 1) {
+        }
+        else if (selectedIndex == 1) {
           getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectNetworkThreadsView();
-        } else {
+        }
+        else {
           throw new IllegalStateException("Missing tracking for tab " + connectionsTab.getTitleAt(selectedIndex));
         }
       });
@@ -109,9 +112,10 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
 
     JPanel infoPanel = new JPanel(new BorderLayout());
     InstructionsPanel infoMessage = new InstructionsPanel.Builder(
-      new TextInstruction(INFO_MESSAGE_HEADER_FONT, "Network profiling data unavailable"),
+      new TextInstruction(SwingUtilities2.getFontMetrics(infoPanel, INFO_MESSAGE_HEADER_FONT), "Network profiling data unavailable"),
       new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-      new TextInstruction(INFO_MESSAGE_DESCRIPTION_FONT, "There is no information for the network traffic you've selected."),
+      new TextInstruction(SwingUtilities2.getFontMetrics(infoPanel, INFO_MESSAGE_DESCRIPTION_FONT),
+                          "There is no information for the network traffic you've selected."),
       new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
       new UrlInstruction(INFO_MESSAGE_DESCRIPTION_FONT, "Learn More",
                          "https://developer.android.com/r/studio-ui/network-profiler-troubleshoot-connections.html"))
@@ -280,7 +284,8 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
   private void installProfilingInstructions(@NotNull JPanel parent) {
     assert parent.getLayout().getClass() == TabularLayout.class;
     InstructionsPanel panel =
-      new InstructionsPanel.Builder(new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "Select a range to inspect network traffic"))
+      new InstructionsPanel.Builder(new TextInstruction(SwingUtilities2.getFontMetrics(parent, PROFILING_INSTRUCTIONS_FONT),
+                                                        "Select a range to inspect network traffic"))
         .setEaseOut(getStage().getInstructionsEaseOutModel(), instructionsPanel -> parent.remove(instructionsPanel))
         .setBackgroundCornerRadius(PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER, PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER)
         .build();

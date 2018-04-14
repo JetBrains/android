@@ -27,6 +27,7 @@ import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
+import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
 import java.awt.*;
@@ -74,7 +75,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     getComponent().add(splitter, BorderLayout.CENTER);
 
     getStage().getAspect().addDependency(this)
-      .onChange(EnergyProfilerAspect.SELECTED_EVENT_DURATION, this::updateSelectedDurationView);
+              .onChange(EnergyProfilerAspect.SELECTED_EVENT_DURATION, this::updateSelectedDurationView);
   }
 
   @NotNull
@@ -231,7 +232,8 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
   private void installProfilingInstructions(@NotNull JPanel parent) {
     assert parent.getLayout().getClass() == TabularLayout.class;
     InstructionsPanel panel =
-      new InstructionsPanel.Builder(new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "Select a range to inspect energy events"))
+      new InstructionsPanel.Builder(
+        new TextInstruction(SwingUtilities2.getFontMetrics(parent, PROFILING_INSTRUCTIONS_FONT), "Select a range to inspect energy events"))
         .setEaseOut(getStage().getInstructionsEaseOutModel(), instructionPanel -> parent.remove(instructionPanel))
         .setBackgroundCornerRadius(PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER, PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER)
         .build();
