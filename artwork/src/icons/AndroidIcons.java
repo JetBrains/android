@@ -206,20 +206,6 @@ public class AndroidIcons {
     public static final Icon Include = load("/icons/palette/include-advanced.png"); // 16x16
   }
 
-  public static class ModuleTemplates {
-    public static final Icon Wear = load("/icons/module_templates/wear_module.png"); // 512x512
-    public static final Icon Car = load("/icons/module_templates/car_module.png"); // 512x512
-    public static final Icon Things = load("/icons/module_templates/things_module.png"); // 512x512
-    public static final Icon Glass = load("/icons/module_templates/glass_module.png"); // 512x512
-    public static final Icon Mobile = load("/icons/module_templates/mobile_module.png"); // 512x512
-    public static final Icon Tv = load("/icons/module_templates/tv_module.png"); // 512x512
-    public static final Icon Android = load("/icons/module_templates/android_module.png"); // 512x512
-    public static final Icon EclipseModule = load("/icons/module_templates/eclipse_module.png"); // 512x512
-    public static final Icon GradleModule = load("/icons/module_templates/gradle_module.png"); // 512x512
-    public static final Icon FeatureModule = load("/icons/module_templates/feature_module.png"); // 512x512
-    public static final Icon InstantAppModule = load("/icons/module_templates/instant_app_module.png"); // 512x512
-  }
-
   public static class ToolWindows {
     public static final Icon HeapAnalysis = IconLoader.getIcon("/icons/toolwindows/toolWindowHeapAnalysis.png"); // 13x13
     public static final Icon Warning = IconLoader.getIcon("/icons/toolwindows/toolWindowWarning.png"); // 13x13
