@@ -3,7 +3,7 @@ load("//tools/base/bazel:maven.bzl", "maven_repo")
 load("//tools/base/bazel:maven.bzl", "maven_java_library")
 
 iml_module(
-    name = "intellij.android",
+    name = "intellij.android.core",
     # do not sort: must match IML order
     srcs = [
         "resources",
@@ -20,7 +20,7 @@ iml_module(
     ] + glob([
         "build.xml",
     ]),
-    iml_files = ["intellij.android.iml"],
+    iml_files = ["intellij.android.core.iml"],
     javacopts = ["-Xep:MissingCasesInEnumSwitch:WARN"],
     tags = ["managed"],
     visibility = ["//visibility:public"],
@@ -125,8 +125,8 @@ iml_module(
 )
 
 iml_module(
-    name = "intellij.android.tests",
-    iml_files = ["intellij.android.tests.iml"],
+    name = "intellij.android.core.tests",
+    iml_files = ["intellij.android.core.tests.iml"],
     javacopts = ["-XepAllErrorsAsWarnings"],
     tags = ["managed"],
     test_class = "com.android.tools.idea.IdeaTestSuite",
@@ -195,7 +195,7 @@ iml_module(
     deps = [
         "//tools/idea/platform/lang-impl:intellij.platform.lang.impl[module, test]",
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
-        "//tools/adt/idea/android:intellij.android[module, test]",
+        "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/idea/spellchecker:intellij.spellchecker[module, test]",
         "//tools/idea/xml/xml-psi-api:intellij.xml.psi[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",

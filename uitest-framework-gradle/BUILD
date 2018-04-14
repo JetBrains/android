@@ -22,7 +22,7 @@ iml_module(
         "//tools/idea/plugins/gradle:intellij.gradle[module, test]",
         "//tools/adt/idea/uitest-framework:intellij.android.guiTestFramework[module, test]",
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module, test]",
-        "//tools/adt/idea/android:intellij.android[module, test]",
+        "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/swing-testing/fest-swing[module, test]",
     ],
 )

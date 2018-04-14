@@ -17,6 +17,6 @@
     <orderEntry type="module" module-name="intellij.xml.langInjection" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.java.uast" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
   </component>
 </module>

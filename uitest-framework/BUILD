@@ -21,7 +21,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/base/common:studio.android.sdktools.common[module, test]",
-        "//tools/adt/idea/android:intellij.android[module]",
+        "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/idea/platform/platform-api:intellij.platform.ide[module, test]",
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module, test]",
         "//tools/swing-testing/fest-swing[module, test]",

@@ -30,7 +30,7 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-profiler-grpc-1.0-jarjar",
         "//tools/idea/.idea/libraries:Guava",
         "//tools/idea/java/java-psi-api:intellij.java.psi[module]",
-        "//tools/adt/idea/android:intellij.android[module]",
+        "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",

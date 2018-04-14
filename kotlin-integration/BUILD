@@ -49,7 +49,7 @@ iml_module(
     ],
     # do not sort: must match IML order
     deps = [
-        "//tools/adt/idea/android:intellij.android[module, test]",
+        "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/idea/uast/uast-common:intellij.platform.uast[module, test]",
         "//tools/idea/java/openapi:intellij.java[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",

@@ -35,7 +35,7 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/idea/xml/xml-psi-impl:intellij.xml.psi.impl[module]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
-        "//tools/adt/idea/android:intellij.android[module]",
+        "//tools/adt/idea/android:intellij.android.core[module]",
     ],
 )
 
@@ -88,7 +88,7 @@ iml_module(
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
-        "//tools/adt/idea/android:intellij.android[module]",
+        "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils[module, test]",
         "//tools/adt/idea/android-layout-inspector[module, test]",

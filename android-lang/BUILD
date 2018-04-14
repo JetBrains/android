@@ -83,6 +83,6 @@ iml_module(
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/adt-testutils[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
-        "//tools/adt/idea/android:intellij.android[module, test]",
+        "//tools/adt/idea/android:intellij.android.core[module, test]",
     ],
 )
