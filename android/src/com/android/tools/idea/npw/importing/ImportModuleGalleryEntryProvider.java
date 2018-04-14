@@ -20,7 +20,7 @@ import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
 import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.google.common.collect.ImmutableList;
-import icons.AndroidIcons;
+import icons.StudioIllustrations;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,10 +34,10 @@ public class ImportModuleGalleryEntryProvider implements ModuleDescriptionProvid
     return ImmutableList.of(
       new SourceImportModuleGalleryEntry(AndroidBundle.message("android.wizard.module.import.eclipse.title"),
                                          AndroidBundle.message("android.wizard.module.import.eclipse.description"),
-                                         AndroidIcons.ModuleTemplates.EclipseModule),
+                                         StudioIllustrations.ModuleTemplates.ECLIPSE_MODULE),
       new SourceImportModuleGalleryEntry(AndroidBundle.message("android.wizard.module.import.gradle.title"),
                                          AndroidBundle.message("android.wizard.module.import.gradle.description"),
-                                         AndroidIcons.ModuleTemplates.GradleModule),
+                                         StudioIllustrations.ModuleTemplates.GRADLE_MODULE),
       new ArchiveImportModuleGalleryEntry()
     );
   }
@@ -84,7 +84,7 @@ public class ImportModuleGalleryEntryProvider implements ModuleDescriptionProvid
     @Nullable
     @Override
     public Icon getIcon() {
-      return AndroidIcons.ModuleTemplates.Android;
+      return StudioIllustrations.ModuleTemplates.ANDROID_MODULE;
     }
 
     @NotNull
