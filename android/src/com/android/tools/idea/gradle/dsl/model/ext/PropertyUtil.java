@@ -32,7 +32,8 @@ import java.util.Set;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.REFERENCE;
 
 public class PropertyUtil {
-  @NonNls private static final String FILE_METHOD_NAME = "file";
+  @NonNls public static final String FILE_METHOD_NAME = "file";
+  @NonNls public static final String FILE_CONSTRUCTOR_NAME = "File";
 
   @NotNull
   public static GradleDslSimpleExpression createOrReplaceBasicExpression(@NotNull GradleDslElement parent,
@@ -170,5 +171,28 @@ public class PropertyUtil {
       expression = next;
     }
     return expression;
+  }
+
+  @Nullable
+  public static String getFileValue(@NotNull GradleDslMethodCall methodCall) {
+    if (!(methodCall.getMethodName().equals(FILE_METHOD_NAME) && !methodCall.isConstructor() ||
+          methodCall.getMethodName().equals(FILE_CONSTRUCTOR_NAME) && methodCall.isConstructor())) {
+      return null;
+    }
+
+    StringBuilder builder = new StringBuilder();
+    for (GradleDslExpression expression : methodCall.getArguments()) {
+      if (expression instanceof GradleDslSimpleExpression) {
+        String value = ((GradleDslSimpleExpression)expression).getValue(String.class);
+        if (value != null) {
+          if (builder.length() != 0) {
+            builder.append("/");
+          }
+          builder.append(value);
+        }
+      }
+    }
+    String result = builder.toString();
+    return result.isEmpty() ? null : result;
   }
 }
