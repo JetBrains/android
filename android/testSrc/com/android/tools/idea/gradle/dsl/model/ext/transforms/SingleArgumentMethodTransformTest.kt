@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.model.ext.transforms
 
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.parser.elements.*
+import junit.framework.TestCase
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
@@ -24,7 +25,8 @@ import org.junit.Test
 
 class SingleArgumentMethodTransformTest : TransformTestCase() {
   private val methodName = "method"
-  private val transform = SingleArgumentMethodTransform(methodName)
+  private val otherMethodName = "otherMethodName"
+  private val transform = SingleArgumentMethodTransform(methodName, "otherMethodName")
 
   @Test
   fun testConditionOnNull() {
@@ -58,6 +60,14 @@ class SingleArgumentMethodTransformTest : TransformTestCase() {
     gradleDslFile.setNewElement(inputElement)
     inputElement.addParsedExpression(createLiteral())
     assertFalse(transform.test(inputElement))
+  }
+
+  @Test
+  fun testConditionOnOtherMethodCall() {
+    val inputElement = createMethodCall(otherMethodName)
+    gradleDslFile.setNewElement(inputElement)
+    inputElement.addParsedExpression(createLiteral())
+    assertTrue(transform.test(inputElement))
   }
 
   @Test
