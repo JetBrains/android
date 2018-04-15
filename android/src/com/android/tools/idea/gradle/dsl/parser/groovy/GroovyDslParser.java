@@ -289,7 +289,7 @@ public class GroovyDslParser implements GradleDslParser {
     if (argumentList.getAllArguments().length > 0 || closureArguments.length == 0) {
       // This element is a method call with arguments and an optional closure associated with it.
       // ex: compile("dependency") {}
-      GradleDslSimpleExpression methodCall = getMethodCall(dslElement, expression, name, argumentList, name.fullName());
+      GradleDslSimpleExpression methodCall = getMethodCall(dslElement, expression, name, argumentList, name.fullName(), false);
       if (closureArguments.length > 0) {
         methodCall.setParsedClosureElement(getClosureElement(methodCall, closureArguments[0], name));
       }
@@ -531,7 +531,7 @@ public class GroovyDslParser implements GradleDslParser {
         String methodName = callReferenceExpression.getText();
         if (!methodName.isEmpty()) {
           GrArgumentList argumentList = methodCall.getArgumentList();
-          return getMethodCall(parentElement, methodCall, propertyName, argumentList, methodName);
+          return getMethodCall(parentElement, methodCall, propertyName, argumentList, methodName, false);
         }
       }
     }
@@ -563,11 +563,12 @@ public class GroovyDslParser implements GradleDslParser {
 
   @NotNull
   private GradleDslMethodCall getMethodCall(@NotNull GradleDslElement parentElement,
-                                            @NotNull GrMethodCallExpression psiElement,
+                                            @NotNull PsiElement psiElement,
                                             @NotNull GradleNameElement propertyName,
                                             @NotNull GrArgumentList argumentList,
-                                            @NotNull String methodName) {
-    GradleDslMethodCall methodCall = new GradleDslMethodCall(parentElement, psiElement, propertyName, methodName);
+                                            @NotNull String methodName,
+                                            boolean isConstructor) {
+    GradleDslMethodCall methodCall = new GradleDslMethodCall(parentElement, psiElement, propertyName, methodName, isConstructor);
     GradleDslExpressionList arguments =
       getExpressionList(methodCall, argumentList, GradleNameElement.empty(),
                         Arrays.asList(argumentList.getExpressionArguments()), false);
@@ -576,7 +577,7 @@ public class GroovyDslParser implements GradleDslParser {
     GrNamedArgument[] namedArguments = argumentList.getNamedArguments();
     if (namedArguments.length > 0) {
       methodCall.addParsedExpression(
-        getExpressionMap(methodCall, psiElement.getArgumentList(), GradleNameElement.empty(), Arrays.asList(namedArguments), false));
+        getExpressionMap(methodCall, argumentList, GradleNameElement.empty(), Arrays.asList(namedArguments), false));
     }
 
     return methodCall;
