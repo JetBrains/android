@@ -20,13 +20,15 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.intellij.util.containers.hash.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
+import java.util.Set;
+
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType;
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.createBasicExpression;
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.removeElement;
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.replaceElement;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.*;
 
 /**
  * <p>This transform used for single argument method calls which have a preceding property name.</p>
@@ -43,10 +45,19 @@ import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.replaceEl
  */
 public class SingleArgumentMethodTransform extends PropertyTransform {
   @NotNull
-  private String myMethodName;
+  private final Set<String> myRecognizedNames = new HashSet<>();
+  @NotNull
+  private final String myWriteBackName;
 
   public SingleArgumentMethodTransform(@NotNull String methodName) {
-    myMethodName = methodName;
+    myRecognizedNames.add(methodName);
+    myWriteBackName = methodName;
+  }
+
+  public SingleArgumentMethodTransform(@NotNull String methodName, @NotNull String... methodNames) {
+    myRecognizedNames.addAll(Arrays.asList(methodNames));
+    myRecognizedNames.add(methodName);
+    myWriteBackName = methodName;
   }
 
   @Override
@@ -56,17 +67,16 @@ public class SingleArgumentMethodTransform extends PropertyTransform {
       return true;
     }
 
-    if (!(e instanceof GradleDslMethodCall)) {
-      return false;
+    if (e instanceof GradleDslMethodCall) {
+      GradleDslMethodCall methodCall = (GradleDslMethodCall)e;
+      if (!myRecognizedNames.contains(methodCall.getMethodName()) ||
+          methodCall.getArguments().isEmpty()) {
+        return false;
+      }
+      return true;
     }
 
-    GradleDslMethodCall methodCall = (GradleDslMethodCall)e;
-    if (!methodCall.getMethodName().equals(myMethodName) ||
-        methodCall.getArguments().isEmpty()) {
-      return false;
-    }
-
-    return true;
+    return false;
   }
 
   @Nullable
@@ -105,7 +115,7 @@ public class SingleArgumentMethodTransform extends PropertyTransform {
     if (oldElement instanceof GradleDslMethodCall) {
       // This cast is safe, we are guaranteed to have test(e) return true.
       methodCall = (GradleDslMethodCall)oldElement;
-      if (methodCall.getMethodName().equals(myMethodName)) {
+      if (myRecognizedNames.contains(methodCall.getMethodName())) {
         GradleDslElement baseElement = transform(oldElement);
         replaceElement(methodCall, baseElement, newElement);
         return methodCall;
@@ -113,7 +123,7 @@ public class SingleArgumentMethodTransform extends PropertyTransform {
     }
 
     GradleNameElement nameElement = GradleNameElement.create(name);
-    methodCall = new GradleDslMethodCall(holder, nameElement, myMethodName);
+    methodCall = new GradleDslMethodCall(holder, nameElement, myWriteBackName);
     methodCall.addNewArgument(newElement);
     replaceElement(holder, oldElement, methodCall);
     return methodCall;
