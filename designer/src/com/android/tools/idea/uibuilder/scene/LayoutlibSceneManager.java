@@ -244,6 +244,9 @@ public class LayoutlibSceneManager extends SceneManager {
       }
       myRenderResultLock.writeLock().lock();
       try {
+        if (myRenderResult != null) {
+          myRenderResult.dispose();
+        }
         myRenderResult = null;
       }
       finally {
@@ -772,6 +775,9 @@ public class LayoutlibSceneManager extends SceneManager {
     updateHierarchy(result);
     myRenderResultLock.writeLock().lock();
     try {
+      if (myRenderResult != null) {
+        myRenderResult.dispose();
+      }
       myRenderResult = result;
     }
     finally {
@@ -868,6 +874,9 @@ public class LayoutlibSceneManager extends SceneManager {
     }
     myRenderResultLock.writeLock().lock();
     try {
+      if (myRenderResult != null) {
+        myRenderResult.dispose();
+      }
       myRenderResult = result;
       // Downgrade the write lock to read lock
       myRenderResultLock.readLock().lock();
