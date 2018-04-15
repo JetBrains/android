@@ -15,10 +15,7 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.profilers.stacktrace.DataViewer;
-import com.android.tools.profilers.stacktrace.LoadingPanel;
-import com.android.tools.profilers.stacktrace.StackTraceModel;
-import com.android.tools.profilers.stacktrace.StackTraceView;
+import com.android.tools.profilers.stacktrace.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -43,7 +40,13 @@ public interface IdeProfilerComponents {
   LoadingPanel createLoadingPanel(int delayMs);
 
   @NotNull
-  StackTraceView createStackView(@NotNull StackTraceModel model);
+  StackTraceGroup createStackGroup();
+
+  @NotNull
+  default StackTraceView createStackView(@NotNull StackTraceModel model) {
+    // Delegate to StackTraceGroup to simply create a stack trace view of group size 1
+    return createStackGroup().createStackView(model);
+  }
 
   @NotNull
   ContextMenuInstaller createContextMenuInstaller();

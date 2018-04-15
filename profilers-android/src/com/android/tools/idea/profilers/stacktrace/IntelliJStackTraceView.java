@@ -37,6 +37,7 @@ import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -170,7 +171,6 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
       });
   }
 
-  @Override
   public void installNavigationContextMenu(@NotNull ContextMenuInstaller contextMenuInstaller) {
     contextMenuInstaller.installNavigationContextMenu(myListView, myModel.getCodeNavigator(), () -> {
       int index = myListView.getSelectedIndex();
@@ -191,6 +191,18 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
   @Override
   public JComponent getComponent() {
     return myScrollPane;
+  }
+
+  public void addListSelectionListener(@NotNull ListSelectionListener listener) {
+    myListView.addListSelectionListener(listener);
+  }
+
+  public void clearSelection() {
+    myListView.clearSelection();
+  }
+
+  public int getSelectedIndex() {
+    return myListView.getSelectedIndex();
   }
 
   @VisibleForTesting

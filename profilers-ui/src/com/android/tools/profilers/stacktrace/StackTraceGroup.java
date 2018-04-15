@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,15 @@ package com.android.tools.profilers.stacktrace;
 
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-
 /**
- * A component that shows an interactive callstack, where interacting with it can jump the user to
- * the relevant location in code.
+ * A class for creating a list of associated {@link StackTraceView}s, so that when any single one
+ * of them are interacted with, the other views clear their own state.
+ *
+ * This is useful to avoid confusing behavior, for example, if you have many related callstack
+ * views in a vertical list (e.g. one callstack per event in a list of events). Clicking on one
+ * of the views should clear any selections from any others, so only one feels active at a time.
  */
-public interface StackTraceView {
+public interface StackTraceGroup {
   @NotNull
-  StackTraceModel getModel();
-
-  @NotNull
-  JComponent getComponent();
+  StackTraceView createStackView(@NotNull StackTraceModel model);
 }

@@ -18,7 +18,9 @@ package com.android.tools.profilers.energy;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.ui.HideablePanel;
 import com.android.tools.profiler.proto.EnergyProfiler;
-import com.android.tools.profilers.stacktrace.*;
+import com.android.tools.profilers.stacktrace.StackTraceGroup;
+import com.android.tools.profilers.stacktrace.StackTraceModel;
+import com.android.tools.profilers.stacktrace.StackTraceView;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBEmptyBorder;
@@ -50,6 +52,7 @@ public final class EnergyCallstackView extends JPanel {
     }
 
     List<HideablePanel> callstackList = new ArrayList<>();
+    StackTraceGroup stackTraceGroup = myStageView.getIdeComponents().createStackGroup();
     long startTimeNs = myStageView.getStage().getStudioProfilers().getSession().getStartTimestamp();
     for (EnergyProfiler.EnergyEvent event : duration.getEventList()) {
       if (event.getTraceId().isEmpty() || EnergyDuration.getMetadataName(event.getMetadataCase()).isEmpty()) {
@@ -58,7 +61,7 @@ public final class EnergyCallstackView extends JPanel {
 
       String callstackString = myStageView.getStage().requestBytes(event.getTraceId()).toStringUtf8();
       StackTraceModel model = new StackTraceModel(myStageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator());
-      StackTraceView stackTraceView = myStageView.getIdeComponents().createStackView(model);
+      StackTraceView stackTraceView = stackTraceGroup.createStackView(model);
       stackTraceView.getModel().setStackFrames(callstackString);
       JComponent traceComponent = stackTraceView.getComponent();
       // Sets a border on the ListView so the horizontal scroll bar doesn't hide the bottom of the content. Also the ListView cannot resize
