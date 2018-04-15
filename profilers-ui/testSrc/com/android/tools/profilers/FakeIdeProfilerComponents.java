@@ -70,8 +70,8 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
 
   @NotNull
   @Override
-  public StackTraceView createStackView(@NotNull StackTraceModel model) {
-    return new StackTraceViewStub(model);
+  public StackTraceGroup createStackGroup() {
+    return new StackTraceGroupStub();
   }
 
   @NotNull
@@ -214,6 +214,14 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
     };
   }
 
+  public static final class StackTraceGroupStub implements StackTraceGroup {
+    @NotNull
+    @Override
+    public StackTraceView createStackView(@NotNull StackTraceModel model) {
+      return new StackTraceViewStub(model);
+    }
+  }
+
   public static final class StackTraceViewStub implements StackTraceView {
     private StackTraceModel myModel;
 
@@ -233,10 +241,6 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
     @Override
     public JComponent getComponent() {
       return myComponent;
-    }
-
-    @Override
-    public void installNavigationContextMenu(@NotNull ContextMenuInstaller contextMenuInstaller) {
     }
   }
 }

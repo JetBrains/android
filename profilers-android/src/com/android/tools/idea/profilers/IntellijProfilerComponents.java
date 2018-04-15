@@ -15,14 +15,11 @@
  */
 package com.android.tools.idea.profilers;
 
-import com.android.tools.idea.profilers.stacktrace.IntelliJStackTraceView;
+import com.android.tools.idea.profilers.stacktrace.IntelliJStackTraceGroup;
 import com.android.tools.profilers.*;
-import com.android.tools.profilers.ExportDialog;
-import com.android.tools.profilers.ImportDialog;
 import com.android.tools.profilers.stacktrace.DataViewer;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
-import com.android.tools.profilers.stacktrace.StackTraceModel;
-import com.android.tools.profilers.stacktrace.StackTraceView;
+import com.android.tools.profilers.stacktrace.StackTraceGroup;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.fileTypes.FileType;
@@ -99,10 +96,8 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
 
   @NotNull
   @Override
-  public StackTraceView createStackView(@NotNull StackTraceModel model) {
-    IntelliJStackTraceView stackTraceView = new IntelliJStackTraceView(myProject, model);
-    stackTraceView.installNavigationContextMenu(createContextMenuInstaller());
-    return stackTraceView;
+  public StackTraceGroup createStackGroup() {
+    return new IntelliJStackTraceGroup(myProject);
   }
 
   @NotNull
