@@ -274,7 +274,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     checkForValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl::class.java)
     val cmake = externalNativeBuild.cmake()
     checkForValidPsiElement(cmake, CMakeModelImpl::class.java)
-    assertEquals("path", File("foo/bar"), cmake.path())
+    assertEquals("path", "foo/bar", cmake.path())
   }
 
   @Test

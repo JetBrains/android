@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android.externalNativeBuild;
 
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import org.jetbrains.annotations.NotNull;
@@ -23,11 +24,5 @@ import java.io.File;
 
 public interface AbstractBuildModel extends GradleDslModel {
   @NotNull
-  GradleNullableValue<File> path();
-
-  @NotNull
-  AbstractBuildModel setPath(@NotNull File path);
-
-  @NotNull
-  AbstractBuildModel removePath();
+  ResolvedPropertyModel path();
 }

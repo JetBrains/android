@@ -20,12 +20,18 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.externalNativeBuild.CMakeModel;
 import com.android.tools.idea.gradle.dsl.api.android.externalNativeBuild.NdkBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType;
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.CMakeModelImpl;
 import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.NdkBuildModelImpl;
+import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
-import java.io.File;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*;
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*;
 
 /**
  * Tests for {@link ExternalNativeBuildModelImpl}.
@@ -50,7 +56,7 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     checkForValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
     CMakeModel cmake = externalNativeBuild.cmake();
     checkForValidPsiElement(cmake, CMakeModelImpl.class);
-    assertEquals("path", new File("foo/bar"), cmake.path());
+    assertEquals("path", "foo/bar", cmake.path());
   }
 
   @Test
@@ -72,7 +78,7 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     checkForValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
     CMakeModel cmake = externalNativeBuild.cmake();
     checkForValidPsiElement(cmake, CMakeModelImpl.class);
-    assertEquals("path", new File("foo/bar"), cmake.path());
+    assertEquals("path", "foo/bar", cmake.path());
   }
 
   @Test
@@ -152,13 +158,13 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
 
     ExternalNativeBuildModel externalNativeBuild = android.externalNativeBuild();
     CMakeModel cmake = externalNativeBuild.cmake();
-    assertNull(cmake.path());
+    assertMissingProperty(cmake.path());
 
-    cmake.setPath(new File("foo/bar"));
-    assertEquals("path", new File("foo/bar"), cmake.path());
+    cmake.path().setValue("foo/bar");
+    assertEquals("path", "foo/bar", cmake.path());
 
     buildModel.resetState();
-    assertNull(cmake.path());
+    assertMissingProperty(cmake.path());
   }
 
   @Test
@@ -173,20 +179,20 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     CMakeModel cmake = android.externalNativeBuild().cmake();
-    assertNull(cmake.path());
+    assertMissingProperty(cmake.path());
 
-    cmake.setPath(new File("foo/bar"));
-    assertEquals("path", new File("foo/bar"), cmake.path());
+    cmake.path().setValue("foo/bar");
+    assertEquals("path", "foo/bar", cmake.path());
 
     applyChanges(buildModel);
-    assertEquals("path", new File("foo/bar"), cmake.path());
+    assertEquals("path", "foo/bar", cmake.path());
 
     buildModel.reparse();
     android = buildModel.android();
     assertNotNull(android);
 
     cmake = android.externalNativeBuild().cmake();
-    assertEquals("path", new File("foo/bar"), cmake.path());
+    assertEquals("path", "foo/bar", cmake.path());
   }
 
   @Test
@@ -208,7 +214,7 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     checkForValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
     NdkBuildModel ndkBuild = externalNativeBuild.ndkBuild();
     checkForValidPsiElement(ndkBuild, NdkBuildModelImpl.class);
-    assertEquals("path", new File("foo/Android.mk"), ndkBuild.path());
+    assertEquals("path", "foo/Android.mk", ndkBuild.path());
   }
 
   @Test
@@ -230,7 +236,7 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     checkForValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
     NdkBuildModel ndkBuild = externalNativeBuild.ndkBuild();
     checkForValidPsiElement(ndkBuild, NdkBuildModelImpl.class);
-    assertEquals("path", new File("foo/Android.mk"), ndkBuild.path());
+    assertEquals("path", "foo/Android.mk", ndkBuild.path());
   }
 
   @Test
@@ -309,13 +315,13 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     NdkBuildModel ndkBuild = android.externalNativeBuild().ndkBuild();
-    assertNull(ndkBuild.path());
+    assertMissingProperty(ndkBuild.path());
 
-    ndkBuild.setPath(new File("foo/Android.mk"));
-    assertEquals("path", new File("foo/Android.mk"), ndkBuild.path());
+    ndkBuild.path().setValue("foo/Android.mk");
+    assertEquals("path", "foo/Android.mk", ndkBuild.path());
 
     buildModel.resetState();
-    assertNull(ndkBuild.path());
+    assertMissingProperty(ndkBuild.path());
   }
 
   @Test
@@ -330,19 +336,45 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     NdkBuildModel ndkBuild = android.externalNativeBuild().ndkBuild();
-    assertNull(ndkBuild.path());
+    assertMissingProperty(ndkBuild.path());
 
-    ndkBuild.setPath(new File("foo/Android.mk"));
-    assertEquals("path", new File("foo/Android.mk"), ndkBuild.path());
+    ndkBuild.path().setValue("foo/Android.mk");
+    assertEquals("path", "foo/Android.mk", ndkBuild.path());
 
     applyChanges(buildModel);
-    assertEquals("path", new File("foo/Android.mk"), ndkBuild.path());
+    assertEquals("path", "foo/Android.mk", ndkBuild.path());
 
     buildModel.reparse();
     android = buildModel.android();
     assertNotNull(android);
 
     ndkBuild = android.externalNativeBuild().ndkBuild();
-    assertEquals("path", new File("foo/Android.mk"), ndkBuild.path());
+    assertEquals("path", "foo/Android.mk", ndkBuild.path());
+  }
+
+  @Test
+  public void testSetConstructorToFunction() throws Exception {
+    String text = "android {\n" +
+                  "  externalNativeBuild {\n" +
+                  "    ndkBuild {\n" +
+                  "      path new File(\"foo\", \"Android.mk\")\n" +
+                  "    }\n" +
+                  "  }\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
+    NdkBuildModel ndkBuildModel = android.externalNativeBuild().ndkBuild();
+    ndkBuildModel.path().setValue("foo/bar/file.txt");
+    applyChangesAndReparse(buildModel);
+
+    android = buildModel.android();
+    assertNotNull(android);
+
+    ndkBuildModel = android.externalNativeBuild().ndkBuild();
+    verifyPropertyModel(ndkBuildModel.path(), STRING_TYPE, "foo/bar/file.txt", STRING, DERIVED, 0, "0");
   }
 }

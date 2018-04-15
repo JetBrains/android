@@ -21,20 +21,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
+/**
+ * This model is incomplete.
+ */
 public class CMakeModelImpl extends AbstractBuildModelImpl implements CMakeModel {
   public CMakeModelImpl(@NotNull CMakeDslElement dslElement) {
     super(dslElement);
-  }
-
-  @Override
-  @NotNull
-  public CMakeModel setPath(@NotNull File path) {
-    return (CMakeModelImpl)super.setPath(path);
-  }
-
-  @Override
-  @NotNull
-  public CMakeModel removePath() {
-    return (CMakeModelImpl)super.removePath();
   }
 }
