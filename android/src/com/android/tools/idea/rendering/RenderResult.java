@@ -62,6 +62,12 @@ public class RenderResult {
     myDefaultProperties = defaultProperties;
   }
 
+  public void dispose() {
+    if (myImage != null) {
+      myImage.dispose();
+    }
+  }
+
   /**
    * Creates a new {@link RenderResult} from a given RenderTask and RenderSession
    */
