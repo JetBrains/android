@@ -21,20 +21,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
+/**
+ * This model is incomplete.
+ */
 public class NdkBuildModelImpl extends AbstractBuildModelImpl implements NdkBuildModel {
   public NdkBuildModelImpl(@NotNull NdkBuildDslElement dslElement) {
     super(dslElement);
-  }
-
-  @Override
-  @NotNull
-  public NdkBuildModel setPath(@NotNull File path) {
-    return (NdkBuildModelImpl)super.setPath(path);
-  }
-
-  @Override
-  @NotNull
-  public NdkBuildModel removePath() {
-    return (NdkBuildModelImpl)super.removePath();
   }
 }

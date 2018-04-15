@@ -544,12 +544,12 @@ public class GroovyDslParser implements GradleDslParser {
       GrNewExpression newExpression = (GrNewExpression)propertyExpression;
       GrCodeReferenceElement referenceElement = newExpression.getReferenceElement();
       if (referenceElement != null) {
-        GradleNameElement objectName = GradleNameElement.from(referenceElement);
-        if (!objectName.isEmpty()) {
+        String objectName = referenceElement.getReferenceName();
+        if (objectName != null && !objectName.isEmpty()) {
           GrArgumentList argumentList = newExpression.getArgumentList();
           if (argumentList != null) {
             if (argumentList.getAllArguments().length > 0) {
-              return getNewExpression(parentElement, newExpression, propertyName, argumentList, objectName);
+              return getMethodCall(parentElement, newExpression, propertyName, argumentList, objectName, true);
             }
           }
         }
@@ -581,33 +581,6 @@ public class GroovyDslParser implements GradleDslParser {
     }
 
     return methodCall;
-  }
-
-  @NotNull
-  private GradleDslNewExpression getNewExpression(@NotNull GradleDslElement parentElement,
-                                                  @NotNull GrNewExpression psiElement,
-                                                  @NotNull GradleNameElement propertyName,
-                                                  @NotNull GrArgumentList argumentList,
-                                                  @NotNull GradleNameElement objectName) {
-    GradleDslNewExpression newExpression = new GradleDslNewExpression(parentElement, psiElement, propertyName, objectName);
-
-    for (GrExpression expression : argumentList.getExpressionArguments()) {
-      if (expression instanceof GrListOrMap) {
-        GrListOrMap listOrMap = (GrListOrMap)expression;
-        if (!listOrMap.isMap()) {
-          for (GrExpression grExpression : listOrMap.getInitializers()) {
-            GradleDslExpression dslExpression = createExpressionElement(newExpression, expression, propertyName, grExpression);
-            newExpression.addParsedExpression(dslExpression);
-          }
-        }
-      }
-      else {
-        GradleDslExpression dslExpression = createExpressionElement(newExpression, expression, propertyName, expression);
-        newExpression.addParsedExpression(dslExpression);
-      }
-    }
-
-    return newExpression;
   }
 
   @NotNull
