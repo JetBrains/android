@@ -17,10 +17,7 @@ package com.android.tools.idea.tests.gui.uibuilder;
 
 import android.view.View;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.tests.gui.framework.BuildSpecificGuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
@@ -52,6 +49,7 @@ import static org.junit.Assert.assertNotNull;
 @Parameterized.UseParametersRunnerFactory(BuildSpecificGuiTestRunner.Factory.class)
 public class NlEditorTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final ScreenshotsDuringTest movieRule = new ScreenshotsDuringTest();
 
   @Parameterized.Parameters(name="{0}")
   public static TargetBuildSystem.BuildSystem[] data() {
