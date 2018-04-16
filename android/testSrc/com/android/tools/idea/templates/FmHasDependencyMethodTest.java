@@ -51,17 +51,29 @@ public class FmHasDependencyMethodTest extends TestCase {
     check(false, "com.android.support:support-v4", createMap());
   }
 
-  public void testProvidedDependencies() throws Exception {
+  public void testProvidedDependencies_compile() throws Exception {
+    testProvidedDependencies(SdkConstants.GRADLE_COMPILE_CONFIGURATION);
+  }
+
+  public void testProvidedDependencies_implementation() throws Exception {
+    testProvidedDependencies(SdkConstants.GRADLE_IMPLEMENTATION_CONFIGURATION);
+  }
+
+  public void testProvidedDependencies_api() throws Exception {
+    testProvidedDependencies(SdkConstants.GRADLE_API_CONFIGURATION);
+  }
+
+  private void testProvidedDependencies(String configuration) throws Exception {
     SetMultimap<String, String> dependencies = LinkedHashMultimap.create();
-    dependencies.put(SdkConstants.GRADLE_COMPILE_CONFIGURATION, "com.android.support:appcompat-v7:21.0.0");
+    dependencies.put(configuration, "com.android.support:appcompat-v7:21.0.0");
 
     check(false,
           "com.android.support:support-v4",
           createMap(TemplateMetadata.ATTR_DEPENDENCIES_MULTIMAP, dependencies));
 
     dependencies.clear();
-    dependencies.put(SdkConstants.GRADLE_COMPILE_CONFIGURATION, "com.android.support:appcompat-v7:21.0.0");
-    dependencies.put(SdkConstants.GRADLE_COMPILE_CONFIGURATION, "com.android.support:support-v4:v21.+");
+    dependencies.put(configuration, "com.android.support:appcompat-v7:21.0.0");
+    dependencies.put(configuration, "com.android.support:support-v4:v21.+");
 
     check(true,
           "com.android.support:support-v4",

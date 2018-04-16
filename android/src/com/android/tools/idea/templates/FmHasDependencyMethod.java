@@ -32,7 +32,7 @@ import java.util.Map;
  * <p>Arguments:
  * <ol>
  *   <li>Maven group and artifact IDs, e.g. {@code "com.android.support:appcompat-v7"}
- *   <li>(Optional) Name of the Gradle configuration to check. Defaults to {@code "compile"}.
+ *   <li>(Optional) Name of the Gradle configuration to check. Defaults to {@code "compile"}, {@code "api"} or {@code "implementation"}.
  * </ol>
  * <p>Example usage: {@code espresso=hasDependency('com.android.support.test.espresso:espresso-core', 'androidTestCompile')}.
  */
@@ -53,19 +53,28 @@ public class FmHasDependencyMethod implements TemplateMethodModelEx {
       return TemplateBooleanModel.FALSE;
     }
 
-    // Determine the configuration to check, based on the second argument passed to the function. Defaults to "compile".
-    String configuration = SdkConstants.GRADLE_COMPILE_CONFIGURATION;
+    // Determine the configuration to check, based on the second argument passed to the function. Defaults to
+    // "compile" and "implementation and "api".
+    String[] configurations;
     if (args.size() > 1) {
-      configuration = ((TemplateScalarModel)args.get(1)).getAsString();
+      configurations = new String[] {(((TemplateScalarModel)args.get(1)).getAsString())};
+    } else {
+      configurations = new String[] {
+        SdkConstants.GRADLE_COMPILE_CONFIGURATION,
+        SdkConstants.GRADLE_IMPLEMENTATION_CONFIGURATION,
+        SdkConstants.GRADLE_API_CONFIGURATION
+      };
     }
 
     if (myParamMap.containsKey(TemplateMetadata.ATTR_DEPENDENCIES_MULTIMAP)) {
       Object untyped = myParamMap.get(TemplateMetadata.ATTR_DEPENDENCIES_MULTIMAP);
       if (untyped instanceof SetMultimap) {
         @SuppressWarnings("unchecked") SetMultimap<String, String> dependencies = (SetMultimap<String, String>)untyped;
-        for (String dependency : dependencies.get(configuration)) {
-          if (dependency.contains(artifact)) {
-            return TemplateBooleanModel.TRUE;
+        for (String configuration : configurations) {
+          for (String dependency : dependencies.get(configuration)) {
+            if (dependency.contains(artifact)) {
+              return TemplateBooleanModel.TRUE;
+            }
           }
         }
       }
@@ -82,17 +91,21 @@ public class FmHasDependencyMethod implements TemplateMethodModelEx {
           AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
           if (androidModel != null) {
             boolean dependsOn;
-            switch (configuration) {
-              case SdkConstants.GRADLE_COMPILE_CONFIGURATION:
-                dependsOn = GradleUtil.dependsOn(androidModel, artifact) ||
-                            GradleUtil.dependsOnJavaLibrary(androidModel, artifact); // For Kotlin dependencies
-                break;
-              case SdkConstants.GRADLE_ANDROID_TEST_COMPILE_CONFIGURATION:
-                dependsOn = GradleUtil.dependsOnAndroidTest(androidModel, artifact);
-                break;
-              default:
-                throw new TemplateModelException("Unknown dependency configuration " + configuration);
-            }
+              switch (configurations[0]) {
+                case SdkConstants.GRADLE_COMPILE_CONFIGURATION:
+                case SdkConstants.GRADLE_IMPLEMENTATION_CONFIGURATION:
+                case SdkConstants.GRADLE_API_CONFIGURATION:
+                  dependsOn = GradleUtil.dependsOn(androidModel, artifact) ||
+                              GradleUtil.dependsOnJavaLibrary(androidModel, artifact); // For Kotlin dependencies
+                  break;
+                case SdkConstants.GRADLE_ANDROID_TEST_COMPILE_CONFIGURATION:
+                case SdkConstants.GRADLE_ANDROID_TEST_IMPLEMENTATION_CONFIGURATION:
+                case SdkConstants.GRADLE_ANDROID_TEST_API_CONFIGURATION:
+                  dependsOn = GradleUtil.dependsOnAndroidTest(androidModel, artifact);
+                  break;
+                default:
+                  throw new TemplateModelException("Unknown dependency configuration " + configurations[0]);
+              }
             return dependsOn ? TemplateBooleanModel.TRUE : TemplateBooleanModel.FALSE;
           }
         }
