@@ -30,7 +30,7 @@ public class AtraceCpuCapture extends CpuCapture {
   private final AtraceParser myParser;
 
   public AtraceCpuCapture(AtraceParser parser, int traceId) {
-    super(parser, traceId, CpuProfiler.CpuProfilerType.ATRACE);
+    super(parser, traceId, CpuProfiler.CpuProfilerType.ATRACE, parser.getMainThreadName());
     myParser = parser;
   }
 
@@ -46,8 +46,8 @@ public class AtraceCpuCapture extends CpuCapture {
   }
 
   /**
-   * @param cpu The cpu index to get {@link CpuProcess} series for.
-   * @return A series of {@link CpuProcess} information. The information is computed from the
+   * @param cpu The cpu index to get {@link CpuThreadInfo} series for.
+   * @return A series of {@link CpuThreadInfo} information. The information is computed from the
    * sched_switch trace line reported by atrace.
    */
   @NotNull

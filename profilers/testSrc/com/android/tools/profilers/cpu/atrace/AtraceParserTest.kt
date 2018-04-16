@@ -16,10 +16,10 @@
 package com.android.tools.profilers.cpu.atrace
 
 import com.android.tools.adtui.model.Range
+import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.CpuThreadInfo
-import com.android.tools.profilers.cpu.nodemodel.AtraceNodeModel
 import com.google.common.collect.Iterables
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -28,10 +28,11 @@ import org.junit.Test
 class AtraceParserTest {
 
   val myParser = AtraceParser(TEST_PID)
+  lateinit var myCapture: CpuCapture
 
   @Before
   fun setup() {
-    myParser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
+    myCapture = myParser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
   }
 
   @Test
@@ -45,6 +46,12 @@ class AtraceParserTest {
   }
 
   @Test
+  fun testCaptureMainThreadHasNameOfParserMainThread() {
+    val captureNodeName = myCapture.getCaptureNode(myCapture.mainThreadId)!!.data.name
+    assertThat(captureNodeName).isEqualTo(myParser.mainThreadName)
+  }
+
+  @Test
   fun testGetCaptureTrees() {
     val range = myParser.range
     val result = myParser.captureTrees
@@ -53,9 +60,10 @@ class AtraceParserTest {
     assertThat(cpuThreadInfo.id).isEqualTo(TEST_PID)
     // Atrace only contains the last X characters, in the log file.
     assertThat(cpuThreadInfo.name).isEqualTo("splayingbitmaps")
+    assertThat(myParser.mainThreadName).isEqualTo(cpuThreadInfo.name)
 
     // Base node is a root node that is equivlant to the length of capture.
-    var captureNode = result.get(cpuThreadInfo)!!
+    val captureNode = result.get(cpuThreadInfo)!!
     assertThat(captureNode.startGlobal).isEqualTo(range.min.toLong())
     assertThat(captureNode.endGlobal).isEqualTo(range.max.toLong())
     assertThat(captureNode.childCount).isEqualTo(EXPECTED_CHILD_COUNT)
@@ -92,9 +100,9 @@ class AtraceParserTest {
     assertThat(dataSeries[THREAD_ID]!!.size).isEqualTo(THREAD_STATE_SIZE)
     assertThat(dataSeries[THREAD_ID]!!.get(0).x).isGreaterThan(EXPECTED_MIN_RANGE.toLong())
     // Waking / Runnable = RUNNABLE.
-    assertThat(dataSeries[THREAD_ID]!!.get(0).value).isEqualTo(CpuProfilerStage.ThreadState.RUNNABLE_CAPTURED);
+    assertThat(dataSeries[THREAD_ID]!!.get(0).value).isEqualTo(CpuProfilerStage.ThreadState.RUNNABLE_CAPTURED)
     // Running = RUNNING
-    assertThat(dataSeries[THREAD_ID]!!.get(1).value).isEqualTo(CpuProfilerStage.ThreadState.RUNNING_CAPTURED);
+    assertThat(dataSeries[THREAD_ID]!!.get(1).value).isEqualTo(CpuProfilerStage.ThreadState.RUNNING_CAPTURED)
   }
 
   @Test
