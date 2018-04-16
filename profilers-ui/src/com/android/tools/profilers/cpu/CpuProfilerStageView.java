@@ -346,6 +346,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     JScrollPane scrollingCpus = new MyScrollPane();
     scrollingCpus.setBorder(MONITOR_BORDER);
     scrollingCpus.setViewportView(myCpus);
+    scrollingCpus.addMouseWheelListener(new CpuMouseWheelListener(monitorCpuThreadsPanel));
     myCpus.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
     myCpus.setCellRenderer(new CpuKernelCellRenderer(myStage.getStudioProfilers().getSession().getPid(),
                                                      myStage.getUpdatableManager(), myCpus, myThreads));
@@ -568,6 +569,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   private void configureThreadsPanel(JPanel threadsPanel, TabularLayout threadsMonitorPanelLayout) {
     final JScrollPane scrollingThreads = new MyScrollPane();
+    scrollingThreads.addMouseWheelListener(new CpuMouseWheelListener(threadsPanel));
+
     // TODO(b/62447834): Make a decision on how we want to handle thread selection.
     myThreads.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
@@ -1132,6 +1135,34 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       // Overrides it because, when not on mac, JBViewport adds the width of the scrollbar to the right inset of the border,
       // which would consequently misplace the threads state chart.
       return new JViewport();
+    }
+  }
+
+  /**
+   * Class to help dispatch mouse events that would otherwise be consumed by the JScrollPane.
+   * Refer to implementation in {@link javax.swing.plaf.basic.BasicScrollPaneUI.Handler#mouseWheelMoved}
+   * Note: We cannot override the {@link JScrollPane#processMouseEvent} method as dispatching an event
+   * to the view will result in a loop since our controls do not consume events.
+   */
+  private static class CpuMouseWheelListener implements MouseWheelListener {
+    @NotNull
+    private final JComponent myDispatchComponent;
+
+    public CpuMouseWheelListener(@NotNull JComponent dispatchComponent) {
+      myDispatchComponent = dispatchComponent;
+    }
+
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent e) {
+      // If we have the modifier keys down then pass the event on to the parent control. Otherwise
+      // the JScrollPane will consume the event.
+      boolean isMenuKeyDown = SystemInfo.isMac ? e.isMetaDown() : e.isControlDown();
+      // The shift key modifier is used when making the determination if we are panning vs scrolling vertically when the mouse
+      // wheel is triggered.
+      boolean isShiftKeyDown = e.isShiftDown();
+      if (isMenuKeyDown || isShiftKeyDown) {
+        myDispatchComponent.dispatchEvent(e);
+      }
     }
   }
 }

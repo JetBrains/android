@@ -91,6 +91,31 @@ public class ProfilerTimelineTest {
   }
 
   @Test
+  public void testZoomingAdjustStreamingMode() {
+    Updater updater = new Updater(new FakeTimer());
+    ProfilerTimeline timeline = new ProfilerTimeline(updater);
+    Range dataRange = timeline.getDataRange();
+    Range viewRange = timeline.getViewRange();
+    timeline.reset(0, TimeUnit.MICROSECONDS.toNanos(100));
+    viewRange.set(50, 100);
+    //put timeline in streaming mode, zooming should take it out, if our view range is less than data range.
+    assertTrue(timeline.isStreaming());
+    timeline.zoom(-10, .5);
+    assertEquals(55, viewRange.getMin(), DELTA);
+    assertEquals(95, viewRange.getMax(), DELTA);
+    assertFalse(timeline.isStreaming());
+
+    //our timeline should continue streaming if our view range is greater than our data range, and we were initially streaming.
+    timeline.reset(0, TimeUnit.MICROSECONDS.toNanos(100));
+    viewRange.set(-100, 100);
+    assertTrue(timeline.isStreaming());
+    timeline.zoom(-10, .5);
+    assertEquals(-95, viewRange.getMin(), DELTA);
+    assertEquals(100, viewRange.getMax(), DELTA);
+    assertTrue(timeline.isStreaming());
+  }
+
+  @Test
   public void testZoomOut() {
     FakeTimer timer = new FakeTimer();
     Updater updater = new Updater(timer);

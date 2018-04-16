@@ -81,20 +81,17 @@ public final class ProfilerScrollbar extends JBScrollBar {
       }
     });
     zoomPanComponent.addMouseWheelListener(e -> {
-      if (isScrollable()) {
-        int count = e.getWheelRotation();
-        double deltaUs = getWheelDelta() * count;
-        boolean isMenuKeyDown = SystemInfo.isMac ? e.isMetaDown() : e.isControlDown();
-        if (isMenuKeyDown) {
-          double anchor = ((float)e.getX() / e.getComponent().getWidth());
-          myTimeline.zoom(deltaUs, anchor);
-          myCheckStream = deltaUs > 0;
-        }
-        else {
-          myTimeline.pan(deltaUs);
-        }
-        myCheckStream = deltaUs > 0;
+      int count = e.getWheelRotation();
+      double deltaUs = getWheelDelta() * count;
+      boolean isMenuKeyDown = SystemInfo.isMac ? e.isMetaDown() : e.isControlDown();
+      if (isMenuKeyDown) {
+        double anchor = ((float)e.getX() / e.getComponent().getWidth());
+        myTimeline.zoom(deltaUs, anchor);
       }
+      else if (isScrollable()) {
+        myTimeline.pan(deltaUs);
+      }
+      myCheckStream = deltaUs > 0;
     });
 
     // Ensure the scrollbar is set to the correct initial state.
@@ -144,7 +141,8 @@ public final class ProfilerScrollbar extends JBScrollBar {
     myCheckStream = false;
   }
 
-  private boolean isScrollable() {
+  @VisibleForTesting
+  public boolean isScrollable() {
     Range viewRange = myTimeline.getViewRange();
     Range dataRange = myTimeline.getDataRange();
     return viewRange.getMin() >= dataRange.getMin() && viewRange.getMax() <= dataRange.getMax();
