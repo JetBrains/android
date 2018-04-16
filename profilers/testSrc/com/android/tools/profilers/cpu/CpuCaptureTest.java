@@ -134,10 +134,7 @@ public class CpuCaptureTest {
       // It should be caused by an expected IllegalStateException thrown while parsing the trace bytes.
       Throwable executionExceptionCause = e.getCause();
       assertThat(executionExceptionCause).isInstanceOf(IllegalStateException.class);
-
-      // Expected BufferUnderflowException to be thrown in SimpleperfTraceParser.
-      assertThat(executionExceptionCause.getCause()).isInstanceOf(BufferUnderflowException.class);
-      // CpuCaptureParser#traceBytesToCapture  catches the BufferUnderflowException and throw an IllegalStateException instead.
+      assertThat(executionExceptionCause.getMessage()).contains("magic number mismatch");
     }
   }
 
