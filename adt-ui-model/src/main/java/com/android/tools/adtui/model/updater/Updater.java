@@ -147,6 +147,6 @@ public class Updater implements StopwatchTimer.TickHandler {
   }
 
   public static double lerp(double a, double b, float factor) {
-    return a * (1.0f - factor) + b * factor;
+    return a + (b - a) * factor;
   }
 }

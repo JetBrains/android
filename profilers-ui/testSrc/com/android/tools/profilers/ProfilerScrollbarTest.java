@@ -37,7 +37,7 @@ public class ProfilerScrollbarTest {
   private FakeUi myUi;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     Updater updater = new Updater(new FakeTimer());
     myTimeline = new ProfilerTimeline(updater);
     myPanel = new JPanel();
@@ -109,6 +109,29 @@ public class ProfilerScrollbarTest {
     myUi.mouse.wheel(50, 50, 1);
     assertEquals(0 + (delta + delta2 - delta3) * 0.5, myTimeline.getViewRange().getMin(), EPSILON);
     assertEquals(5000 - (delta + delta2 - delta3) * 0.5, myTimeline.getViewRange().getMax(), EPSILON);
+  }
+
+  @Test
+  public void testCanZoomWhenNotScrollable() {
+    int initialMax = 10000;
+    myTimeline.getDataRange().set(0, initialMax);
+    myTimeline.getViewRange().set(0, initialMax);
+    // Zoom in
+    double delta = myScrollbar.getWheelDelta();
+    myUi.keyboard.press(FakeKeyboard.MENU_KEY); // Menu+wheel == zoom
+
+    assertTrue(myScrollbar.isScrollable());
+    myUi.mouse.wheel(50, 50, -1);
+    assertEquals(0 + delta * 0.5, myTimeline.getViewRange().getMin(), EPSILON);
+    assertEquals(initialMax - delta * 0.5, myTimeline.getViewRange().getMax(), EPSILON);
+
+    myTimeline.getDataRange().setMin(myTimeline.getViewRange().getMin() + 100);
+    assertFalse(myScrollbar.isScrollable());
+    // Zoom in again
+    double delta2 = myScrollbar.getWheelDelta() * 2;
+    myUi.mouse.wheel(50, 50, -2);
+    assertEquals(0 + (delta + delta2) * 0.5, myTimeline.getViewRange().getMin(), EPSILON);
+    assertEquals(initialMax, myTimeline.getViewRange().getMax(), EPSILON);
   }
 
   @Test
@@ -212,17 +235,12 @@ public class ProfilerScrollbarTest {
     myTimeline.getDataRange().set(0, 100);
     myTimeline.getViewRange().set(-100, 200);
 
-    double delta = myScrollbar.getWheelDelta();
-    myUi.keyboard.press(FakeKeyboard.MENU_KEY); // Menu+wheel == zoom
+    assertFalse(myScrollbar.isScrollable());
 
-    // Zoom out should work but does nothing.
+    // We should not be able to pan if we are not scrollable.
     myUi.mouse.wheel(50, 50, 1);
     assertEquals(-100, myTimeline.getViewRange().getMin(), EPSILON);
-    assertEquals(200, myTimeline.getViewRange().getMax(), EPSILON);
-
-    // Zoom in should still work
-    myUi.mouse.wheel(50, 50, -1);
-    assertEquals(-100, myTimeline.getViewRange().getMin(), EPSILON);
+    // View range should never be greater than data range.
     assertEquals(200, myTimeline.getViewRange().getMax(), EPSILON);
   }
 }

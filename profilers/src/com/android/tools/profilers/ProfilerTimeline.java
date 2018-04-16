@@ -265,23 +265,28 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
     if (deltaUs == 0.0) {
       return;
     }
-    if (deltaUs < 0 && percent < 1.0) {
+    if (deltaUs < 0 && percent < 1.0 && myViewRangeUs.getMin() >= myDataRangeUs.getMin()) {
       setStreaming(false);
     }
     double minUs = myViewRangeUs.getMin() - deltaUs * percent;
     double maxUs = myViewRangeUs.getMax() + deltaUs * (1 - percent);
     // When the view range is not fully covered, reset minUs to data range could change zoomLeft from zero to a large number.
-    boolean isDataRangeCoverViewRange = myDataRangeUs.getMin() <= myViewRangeUs.getMin();
-    if (isDataRangeCoverViewRange && minUs < myDataRangeUs.getMin()) {
+    boolean isDataRangeFullyCoveredByViewRange = myDataRangeUs.getMin() <= myViewRangeUs.getMin();
+    if (isDataRangeFullyCoveredByViewRange && minUs < myDataRangeUs.getMin()) {
       maxUs += myDataRangeUs.getMin() - minUs;
       minUs = myDataRangeUs.getMin();
+    }
+    // If our new view range is less than our data range then lock our max view so we
+    // don't expand it beyond the data range max.
+    if (!isDataRangeFullyCoveredByViewRange && minUs < myDataRangeUs.getMin()) {
+      maxUs = myDataRangeUs.getMax();
     }
     if (maxUs > myDataRangeUs.getMax()) {
       minUs -= maxUs - myDataRangeUs.getMax();
       maxUs = myDataRangeUs.getMax();
     }
     // minUs could have gone past again.
-    if (isDataRangeCoverViewRange) {
+    if (isDataRangeFullyCoveredByViewRange) {
       minUs = Math.max(minUs, myDataRangeUs.getMin());
     }
     myViewRangeUs.set(minUs, maxUs);
