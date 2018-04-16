@@ -535,7 +535,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   private void startCapturingCallback(CpuProfilingAppStartResponse response,
                                       ProfilingConfiguration profilingConfiguration) {
     if (response.getStatus().equals(CpuProfilingAppStartResponse.Status.SUCCESS)) {
-      myProfilerConfigModel.setActiveConfig(profilingConfiguration);
+      myProfilerConfigModel.setProfilingConfiguration(profilingConfiguration);
       setCaptureState(CaptureState.CAPTURING);
       myCaptureStartTimeNs = currentTimeNs();
       myInProgressTraceSeries.clear();
@@ -557,7 +557,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   public void stopCapturing() {
     CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
     CpuProfilingAppStopRequest request = CpuProfilingAppStopRequest.newBuilder()
-      .setProfilerType(myProfilerConfigModel.getActiveConfig().getProfilerType())
+      .setProfilerType(myProfilerConfigModel.getProfilingConfiguration().getProfilerType())
       .setSession(getStudioProfilers().getSession())
       .build();
 
@@ -617,7 +617,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   }
 
   private void stopCapturingCallback(CpuProfilingAppStopResponse response) {
-    CpuCaptureMetadata captureMetadata = new CpuCaptureMetadata(myProfilerConfigModel.getActiveConfig());
+    CpuCaptureMetadata captureMetadata = new CpuCaptureMetadata(myProfilerConfigModel.getProfilingConfiguration());
     if (!response.getStatus().equals(CpuProfilingAppStopResponse.Status.SUCCESS)) {
       getLogger().warn("Unable to stop tracing: " + response.getStatus());
       getLogger().warn(response.getErrorMessage());
@@ -711,7 +711,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     long beforeParsingTime = System.currentTimeMillis();
     CompletableFuture<CpuCapture> capture =
       myCaptureParser
-        .parse(getStudioProfilers().getSession(), traceId, traceBytes, myProfilerConfigModel.getActiveConfig().getProfilerType());
+        .parse(getStudioProfilers().getSession(), traceId, traceBytes, myProfilerConfigModel.getProfilingConfiguration().getProfilerType());
     if (capture == null) {
       // Capture parsing was cancelled. Return to IDLE state and don't change the current capture.
       setCaptureState(CaptureState.IDLE);
@@ -844,9 +844,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
           myAspect.changed(CpuProfilerAspect.PROFILING_CONFIGURATION);
         }
         else {
-          // Sets the properties of myActiveConfig
+          // Updates myProfilerConfigModel to the ongoing profiler configuration.
           CpuProfilerConfiguration configuration = response.getConfiguration();
-          myProfilerConfigModel.setActiveConfig(ProfilingConfiguration.fromProto(configuration));
+          myProfilerConfigModel.setProfilingConfiguration(ProfilingConfiguration.fromProto(configuration));
         }
       }
     }

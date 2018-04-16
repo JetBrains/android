@@ -936,6 +936,26 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
+  public void configurationShouldBeTheOnGoingProfilingAfterExitAndEnter() {
+    ProfilingConfiguration testConfig = new ProfilingConfiguration(ProfilingConfiguration.SIMPLEPERF,
+                                                                         CpuProfiler.CpuProfilerType.SIMPLEPERF,
+                                                                         CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
+    myStage.setProfilingConfiguration(testConfig);
+    startCapturingSuccess();
+    assertThat(myStage.getProfilingConfiguration()).isEqualTo(testConfig);
+    myStage.exit();
+
+    // Enter CpuProfilerStage again.
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), myServices, myTimer);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    CpuProfilerStage newStage = new CpuProfilerStage(profilers);
+    newStage.getStudioProfilers().setStage(newStage);
+
+    assertThat(newStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
+    assertThat(newStage.getProfilingConfiguration()).isEqualTo(testConfig);
+  }
+
+  @Test
   public void selectARangeWithNoCapturesShouldKeepCurrentCaptureSelected() {
     assertThat(myStage.getCapture()).isNull();
     captureSuccessfully();
