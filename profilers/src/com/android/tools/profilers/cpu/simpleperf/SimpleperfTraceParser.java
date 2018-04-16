@@ -46,6 +46,11 @@ import java.util.concurrent.TimeUnit;
 public class SimpleperfTraceParser implements TraceParser {
 
   /**
+   * Magic string that should appear in the very beginning of the simpleperf trace.
+   */
+  private static final String MAGIC = "SIMPLEPERF";
+
+  /**
    * When the name of a function (symbol) is not found in the symbol table, the symbol_id field is set to -1.
    */
   private static final int INVALID_SYMBOL_ID = -1;
@@ -56,6 +61,11 @@ public class SimpleperfTraceParser implements TraceParser {
    * "/data/app/com.google.sample.tunnel-qpKipbnc0pE6uQs6gxAmbQ=="
    */
   private static final String DATA_APP_DIR = "/data/app";
+
+  /**
+   * Version of the trace file to be parsed. Should be obtained from the file itself.
+   */
+  private int myTraceVersion;
 
   /**
    * Maps a file id to its correspondent {@link SimpleperfReport.File}.
@@ -187,6 +197,8 @@ public class SimpleperfTraceParser implements TraceParser {
 
   /**
    * Parses the trace file, which should have the following format:
+   * char magic[10] = "SIMPLEPERF";
+   * LittleEndian16(version) = 1;
    * LittleEndian32(record_size_0)
    * SimpleperfReport.Record (having record_size_0 bytes)
    * LittleEndian32(record_size_1)
@@ -201,6 +213,9 @@ public class SimpleperfTraceParser implements TraceParser {
   @VisibleForTesting
   void parseTraceFile(File trace) throws IOException {
     ByteBuffer buffer = byteBufferFromFile(trace, ByteOrder.LITTLE_ENDIAN);
+    verifyMagicNumber(buffer);
+    parseVersionNumber(buffer);
+
     // Read the first record size
     int recordSize = buffer.getInt();
 
@@ -245,6 +260,25 @@ public class SimpleperfTraceParser implements TraceParser {
     if (mySamples.size() != mySampleCount) {
       // TODO: create a trace file to test this exception is thrown when it should.
       throw new IllegalStateException("Samples count doesn't match the number of samples read.");
+    }
+  }
+
+  /**
+   * Parses the next 16-bit number of the given {@link ByteBuffer} as the trace version.
+   */
+  private void parseVersionNumber(ByteBuffer buffer) {
+    myTraceVersion = buffer.getShort();
+  }
+
+  /**
+   * Verifies the first 10 characters of the given {@link ByteBuffer} are {@code SIMPLEPERF}.
+   * Throws an {@link IllegalStateException} otherwise.
+   */
+  private static void verifyMagicNumber(ByteBuffer buffer) {
+    byte[] magic = new byte[MAGIC.length()];
+    buffer.get(magic);
+    if (!(new String(magic)).equals(MAGIC)) {
+      throw new IllegalStateException("Simpleperf trace could not be parsed due to magic number mismatch.");
     }
   }
 

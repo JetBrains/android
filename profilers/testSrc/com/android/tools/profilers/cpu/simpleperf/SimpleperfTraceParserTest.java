@@ -52,8 +52,8 @@ public class SimpleperfTraceParserTest {
   @Test
   public void samplesAndLostCountShouldMatchSimpleperfReport() throws IOException {
     myParser.parseTraceFile(myTraceFile);
-    assertEquals(32844, myParser.getSampleCount());
-    assertEquals(10396, myParser.getLostSampleCount());
+    assertEquals(23487, myParser.getSampleCount());
+    assertEquals(93, myParser.getLostSampleCount());
   }
 
   @Test
@@ -77,10 +77,10 @@ public class SimpleperfTraceParserTest {
 
     // Studio:Heartbeat
     int studioHeartbeatCount = 0;
-    // displayingbitmaps
-    int displayingBitmapsCount = 0;
-    // Studio:Agent
-    int studioAgentCount = 0;
+    // Studio:MemoryAgent
+    int studioMemoryAgentCount = 0;
+    // Studio:Socket
+    int studioSocketCount = 0;
     // JVMTI Agent thread
     int jvmtiAgentCount = 0;
 
@@ -91,29 +91,29 @@ public class SimpleperfTraceParserTest {
       if ("Studio:Heartbeat".contains(thread)) {
         studioHeartbeatCount++;
         // libperfa should be the entry point
-        assertTrue(tree.getValue().getChildAt(0).getData().getName().startsWith("libperfa.so"));
+        validateRootNodesAndGetEntryPoint(tree.getValue(),"libperfa_arm64.so");
       }
-      else if ("displayingbitmaps".contains(thread)) {
-        displayingBitmapsCount++;
+      else if ("Studio:MemoryAgent".contains(thread)) {
+        studioMemoryAgentCount++;
         // libperfa should be the entry point
-        assertTrue(tree.getValue().getChildAt(0).getData().getName().startsWith("libperfa.so"));
+        validateRootNodesAndGetEntryPoint(tree.getValue(),"libperfa_arm64.so");
       }
-      else if ("Studio:Agent".contains(thread)) {
-        studioAgentCount++;
+      else if ("Studio:Socket".contains(thread)) {
+        studioSocketCount++;
         // libperfa should be the entry point
-        assertTrue(tree.getValue().getChildAt(0).getData().getName().startsWith("libperfa.so"));
+        validateRootNodesAndGetEntryPoint(tree.getValue(),"libperfa_arm64.so");
       }
       else if ("JVMTI Agent thread".contains(thread)) {
         jvmtiAgentCount++;
-        // libperfa should be the entry point
-        assertTrue(tree.getValue().getChildAt(0).getData().getName().startsWith("libperfa.so"));
+        // openjdkjvmti should be the entry point
+        validateRootNodesAndGetEntryPoint(tree.getValue(),"openjdkjvmti::AgentCallback");
       }
     }
 
     assertEquals(1, studioHeartbeatCount);
-    assertEquals(1, displayingBitmapsCount);
-    assertEquals(1, studioAgentCount);
-    assertEquals(1, jvmtiAgentCount);
+    assertEquals(1, studioMemoryAgentCount);
+    assertEquals(1, studioSocketCount);
+    assertEquals(2, jvmtiAgentCount);
   }
 
   @Test
@@ -137,15 +137,16 @@ public class SimpleperfTraceParserTest {
   public void mainProcessShouldBePresent() throws IOException {
     myParser.parse(myTraceFile, 0);
     CaptureNode mainThread = myParser.getCaptureTrees().entrySet().stream()
-      .filter(entry -> entry.getKey().getId() == 24358 /* App pid */)
+      .filter(entry -> entry.getKey().getId() == 8589 /* App pid */)
       .map(Map.Entry::getValue)
       .findAny()
       .orElse(null);
     assertNotNull(mainThread);
+    assertTrue("displayingbitmaps".contains(mainThread.getData().getName()));
   }
 
   @Test
-  public void fileIdsShouldBeMappedToAnExistingFile() throws IOException {
+  public void invalidFileShouldFailDueToMagicNumberMismatch() throws IOException {
     ByteString traceBytes = traceFileToByteString("simpleperf_malformed.trace");
     File trace = FileUtil.createTempFile("cpu_trace", ".trace");
     try (FileOutputStream out = new FileOutputStream(trace)) {
@@ -157,7 +158,7 @@ public class SimpleperfTraceParserTest {
       myParser.parse(trace, 0);
       fail("IllegalStateException should have been thrown due to missing file.");
     } catch (IllegalStateException e) {
-      assertTrue(e.getMessage().contains("Malformed trace file"));
+      assertTrue(e.getMessage().contains("magic number mismatch"));
       // Do nothing. Expected exception.
     }
   }
@@ -170,5 +171,16 @@ public class SimpleperfTraceParserTest {
     Range expected = new Range(startTimeUs, endTimeUs);
     assertEquals(expected.getMin(), myParser.getRange().getMin(), 0);
     assertEquals(expected.getMax(), myParser.getRange().getMax(), 0);
+  }
+
+  /**
+   * Checks that a {@link CaptureNode} tree starts with "__start_thread -> __pthread_start", then verifies the node just after then.
+   */
+  private static void validateRootNodesAndGetEntryPoint(CaptureNode tree, String entryPoint) {
+    CaptureNode startThread = tree.getChildAt(0);
+    assertTrue(startThread.getData().getFullName().startsWith("__start_thread"));
+    CaptureNode pThreadStart = startThread.getChildAt(0);
+    assertTrue(pThreadStart.getData().getFullName().startsWith("__pthread_start"));
+    assertTrue(pThreadStart.getChildAt(0).getData().getFullName().startsWith(entryPoint));
   }
 }
