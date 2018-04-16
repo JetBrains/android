@@ -321,9 +321,13 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
 
   private void initializeInputMap() {
     getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), ACTION_ZOOM_IN);
+    getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_W, 0), ACTION_ZOOM_IN);
     getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), ACTION_ZOOM_OUT);
+    getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_S, 0), ACTION_ZOOM_OUT);
     getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), ACTION_MOVE_LEFT);
+    getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_A, 0), ACTION_MOVE_LEFT);
     getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), ACTION_MOVE_RIGHT);
+    getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_D, 0), ACTION_MOVE_RIGHT);
 
     getActionMap().put(ACTION_ZOOM_IN, new AbstractAction() {
       @Override
