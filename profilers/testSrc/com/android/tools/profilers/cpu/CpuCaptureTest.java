@@ -21,6 +21,7 @@ import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.FakeTraceParser;
 import com.android.tools.profilers.cpu.art.ArtTraceParser;
 import com.android.tools.profilers.cpu.atrace.AtraceParser;
+import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import com.android.tools.profilers.cpu.simpleperf.SimpleperfTraceParser;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
@@ -67,13 +68,42 @@ public class CpuCaptureTest {
   }
 
   @Test
+  public void invalidMainName() {
+    CpuThreadInfo info = new CpuThreadInfo(10, "Thread1");
+    Range range = new Range(0, 30);
+    Map<CpuThreadInfo, CaptureNode> captureTrees =
+      new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>().put(info, new CaptureNode(new SingleNameModel("Thread1"))).build();
+    CpuCapture capture =
+      new CpuCapture(new FakeTraceParser(range, captureTrees, true), 20, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER, "Invalid");
+    // Test if we don't have a main thread, and we pass in an invalid name we still get a main thread id.
+    assertThat(capture.getMainThreadId()).isEqualTo(10);
+    assertThat(capture.getCaptureNode(10).getData().getName()).isEqualTo("Thread1");
+  }
+
+  @Test
+  public void validThreadNameOtherThanMain() {
+    CpuThreadInfo valid = new CpuThreadInfo(10, "Valid");
+    CpuThreadInfo other = new CpuThreadInfo(11, "Other");
+    Range range = new Range(0, 30);
+    Map<CpuThreadInfo, CaptureNode> captureTrees =
+      new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>().put(valid, new CaptureNode(new SingleNameModel("Valid")))
+                                                            .put(other, new CaptureNode(new SingleNameModel("Other"))).build();
+    CpuCapture capture =
+      new CpuCapture(new FakeTraceParser(range, captureTrees, true), 20, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER, "Valid");
+    // Test if we don't have a main thread, and we pass in an invalid name we still get a main thread id.
+    assertThat(capture.getMainThreadId()).isEqualTo(10);
+    assertThat(capture.getCaptureNode(10).getData().getName()).isEqualTo("Valid");
+  }
+
+  @Test
   public void corruptedTraceFileThrowsException() throws IOException, InterruptedException {
     CpuCapture capture = null;
     try {
       ByteString corruptedTrace = CpuProfilerTestUtils.traceFileToByteString("corrupted_trace.trace"); // Malformed trace file.
       capture = CpuProfilerTestUtils.getCapture(corruptedTrace, CpuProfiler.CpuProfilerType.ART);
       fail();
-    } catch (ExecutionException e) {
+    }
+    catch (ExecutionException e) {
       // An ExecutionException should happen when trying to get a capture.
       // It should be caused by an expected IllegalStateException thrown while parsing the trace bytes.
       Throwable executionExceptionCause = e.getCause();
@@ -93,7 +123,8 @@ public class CpuCaptureTest {
       ByteString emptyTrace = CpuProfilerTestUtils.traceFileToByteString("empty_trace.trace");
       capture = CpuProfilerTestUtils.getCapture(emptyTrace, CpuProfiler.CpuProfilerType.ART);
       fail();
-    } catch (ExecutionException e) {
+    }
+    catch (ExecutionException e) {
       // An ExecutionException should happen when trying to get a capture.
       // It should be caused by an expected IllegalStateException thrown while parsing the trace bytes.
       Throwable executionExceptionCause = e.getCause();
@@ -129,7 +160,8 @@ public class CpuCaptureTest {
       // Try to create a capture by passing an ART trace and simpleperf profiler type
       CpuProfilerTestUtils.getCapture(CpuProfilerTestUtils.readValidTrace() /* Valid ART trace */, CpuProfiler.CpuProfilerType.SIMPLEPERF);
       fail();
-    } catch (ExecutionException e) {
+    }
+    catch (ExecutionException e) {
       // An ExecutionException should happen when trying to get a capture.
       // It should be caused by an expected IllegalStateException thrown while parsing the trace bytes.
       Throwable executionExceptionCause = e.getCause();

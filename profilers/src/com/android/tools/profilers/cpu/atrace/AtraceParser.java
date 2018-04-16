@@ -21,7 +21,6 @@ import com.android.tools.profilers.cpu.*;
 import com.android.tools.profilers.cpu.nodemodel.AtraceNodeModel;
 import org.jetbrains.annotations.NotNull;
 import trebuchet.model.*;
-import trebuchet.model.base.Slice;
 import trebuchet.model.base.SliceGroup;
 import trebuchet.task.ImportTask;
 import trebuchet.util.PrintlnImportFeedback;
@@ -332,5 +331,10 @@ public class AtraceParser implements TraceParser {
 
   private long convertToUserTimeUs(double offsetTime) {
     return (long)secondsToUs((offsetTime - myModel.getBeginTimestamp()) + myModel.getParentTimestamp());
+  }
+
+  @NotNull
+  public String getMainThreadName() {
+    return myProcessModel.getName();
   }
 }

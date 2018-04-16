@@ -49,6 +49,10 @@ public class CpuCapture implements ConfigurableDurationData {
   private final CpuProfiler.CpuProfilerType myType;
 
   public CpuCapture(@NotNull TraceParser parser, int traceId, CpuProfiler.CpuProfilerType type) {
+    this(parser, traceId, type, MAIN_THREAD_NAME);
+  }
+
+  public CpuCapture(@NotNull TraceParser parser, int traceId, CpuProfiler.CpuProfilerType type, @NotNull String mainThreadName) {
     myParser = parser;
     myTraceId = traceId;
     myType = type;
@@ -59,7 +63,7 @@ public class CpuCapture implements ConfigurableDurationData {
     boolean foundMainThread = false;
 
     for (Map.Entry<CpuThreadInfo, CaptureNode> entry : myParser.getCaptureTrees().entrySet()) {
-      if (entry.getKey().getName().equals(MAIN_THREAD_NAME)) {
+      if (entry.getKey().getName().equals(mainThreadName)) {
         main = entry;
         foundMainThread = true;
       }
@@ -67,7 +71,7 @@ public class CpuCapture implements ConfigurableDurationData {
         main = entry;
       }
     }
-    // If there is no thread named "main", the trace file is not valid.
+    // If there is no thread named "main", and the trace does not have a main thread id defined then the trace file is not valid.
     // In this case, we would have caught a BufferUnderflowException from VmTraceParser above and rethrown it as IllegalStateException.
     // If a thread named "main" is not required in the future, we need to double-check the object value for null here instead of asserting.
     assert main != null;
