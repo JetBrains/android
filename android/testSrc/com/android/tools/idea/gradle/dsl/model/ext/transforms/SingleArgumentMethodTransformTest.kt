@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.dsl.model.ext.transforms
 
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.parser.elements.*
-import junit.framework.TestCase
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat

@@ -16,15 +16,12 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.api.android.externalNativeBuild.AdbOptionsModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public class AdbOptionsModelImpl extends GradleDslBlockModel implements AdbOptionsModel {
   @NonNls private static final String INSTALL_OPTIONS = "installOptions";
@@ -35,56 +32,14 @@ public class AdbOptionsModelImpl extends GradleDslBlockModel implements AdbOptio
   }
 
   @Override
-  @Nullable
-  public List<GradleNotNullValue<String>> installOptions() {
-    return myDslElement.getListProperty(INSTALL_OPTIONS, String.class);
+  @NotNull
+  public ResolvedPropertyModel installOptions() {
+    return GradlePropertyModelBuilder.create(myDslElement, INSTALL_OPTIONS).asMethod(true).buildResolved();
   }
 
   @Override
   @NotNull
-  public AdbOptionsModel addInstallOption(@NotNull String installOption) {
-    myDslElement.addToNewLiteralList(INSTALL_OPTIONS, installOption);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public AdbOptionsModel removeInstallOption(@NotNull String installOption) {
-    myDslElement.removeFromExpressionList(INSTALL_OPTIONS, installOption);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public AdbOptionsModel removeAllInstallOptions() {
-    myDslElement.removeProperty(INSTALL_OPTIONS);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public AdbOptionsModel replaceInstallOption(@NotNull String oldInstallOption, @NotNull String newInstallOption) {
-    myDslElement.replaceInExpressionList(INSTALL_OPTIONS, oldInstallOption, newInstallOption);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public GradleNullableValue<Integer> timeOutInMs() {
-    return myDslElement.getLiteralProperty(TIME_OUT_IN_MS, Integer.class);
-  }
-
-  @Override
-  @NotNull
-  public AdbOptionsModel setTimeOutInMs(int timeOutInMs) {
-    myDslElement.setNewLiteral(TIME_OUT_IN_MS, timeOutInMs);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public AdbOptionsModel removeTimeOutInMs() {
-    myDslElement.removeProperty(TIME_OUT_IN_MS);
-    return this;
+  public ResolvedPropertyModel timeOutInMs() {
+    return GradlePropertyModelBuilder.create(myDslElement, TIME_OUT_IN_MS).asMethod(true).buildResolved();
   }
 }

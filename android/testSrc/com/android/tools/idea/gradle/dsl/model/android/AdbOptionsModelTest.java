@@ -83,9 +83,8 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("installOptions", ImmutableList.of("abcd", "efgh"), adbOptions.installOptions());
     assertEquals("timeOutInMs", Integer.valueOf(200), adbOptions.timeOutInMs());
 
-    adbOptions
-      .replaceInstallOption("efgh", "xyz")
-      .setTimeOutInMs(300);
+    adbOptions.installOptions().getListValue("efgh").setValue("xyz");
+    adbOptions.timeOutInMs().setValue(300);
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
@@ -110,11 +109,11 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     AdbOptionsModel adbOptions = android.adbOptions();
-    assertNull("installOptions", adbOptions.installOptions());
-    assertNull("timeOutInMs", adbOptions.timeOutInMs());
+    assertMissingProperty("installOptions", adbOptions.installOptions());
+    assertMissingProperty("timeOutInMs", adbOptions.timeOutInMs());
 
-    adbOptions.addInstallOption("abcd");
-    adbOptions.setTimeOutInMs(100);
+    adbOptions.installOptions().addListValue().setValue("abcd");
+    adbOptions.timeOutInMs().setValue(100);
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
@@ -145,9 +144,8 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("installOptions", ImmutableList.of("abcd", "efgh"), adbOptions.installOptions());
     assertEquals("timeOutInMs", Integer.valueOf(200), adbOptions.timeOutInMs());
 
-    adbOptions
-      .removeAllInstallOptions()
-      .removeTimeOutInMs();
+    adbOptions.installOptions().delete();
+    adbOptions.timeOutInMs().delete();
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
@@ -155,8 +153,8 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
 
     adbOptions = android.adbOptions();
     checkForInValidPsiElement(adbOptions, AdbOptionsModelImpl.class);
-    assertNull("installOptions", adbOptions.installOptions());
-    assertNull("timeOutInMs", adbOptions.timeOutInMs());
+    assertMissingProperty("installOptions", adbOptions.installOptions());
+    assertMissingProperty("timeOutInMs", adbOptions.timeOutInMs());
   }
 
   @Test
@@ -176,7 +174,7 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
     AdbOptionsModel adbOptions = android.adbOptions();
     assertEquals("installOptions", ImmutableList.of("abcd", "efgh"), adbOptions.installOptions());
 
-    adbOptions.removeInstallOption("abcd");
+    adbOptions.installOptions().getListValue("abcd").delete();
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
@@ -204,7 +202,7 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
     checkForValidPsiElement(adbOptions, AdbOptionsModelImpl.class);
     assertEquals("installOptions", ImmutableList.of("abcd"), adbOptions.installOptions());
 
-    adbOptions.removeInstallOption("abcd");
+    adbOptions.installOptions().getListValue("abcd").delete();
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
@@ -212,6 +210,6 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
 
     adbOptions = android.adbOptions();
     checkForInValidPsiElement(adbOptions, AdbOptionsModelImpl.class);
-    assertNull("installOptions", adbOptions.installOptions());
+    assertMissingProperty("installOptions", adbOptions.installOptions());
   }
 }
