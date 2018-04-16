@@ -23,6 +23,7 @@ import com.android.tools.profilers.ProfilerLayout;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBEmptyBorder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,7 +53,7 @@ public class EnergyDetailsView extends JPanel {
     titlePanel.setBorder(AdtUiUtils.DEFAULT_BOTTOM_BORDER);
     myTitleLabel = new JLabel();
     myTitleLabel.setFont(AdtUiUtils.DEFAULT_FONT.deriveFont(12.0f));
-    myTitleLabel.setBorder(ProfilerLayout.TOOLBAR_LABEL_BORDER);
+    myTitleLabel.setBorder(new JBEmptyBorder(6, 10, 6, 3));
     titlePanel.add(myTitleLabel, BorderLayout.WEST);
 
     myDetailsOverview = new EnergyDetailsOverview();
@@ -68,6 +69,7 @@ public class EnergyDetailsView extends JPanel {
     detailsScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
     CloseButton closeButton = new CloseButton(e -> stageView.getStage().setSelectedDuration(null));
+    closeButton.setAlignmentY(CENTER_ALIGNMENT);
     rootPanel.add(closeButton, new TabularLayout.Constraint(0, 1));
     rootPanel.add(titlePanel, new TabularLayout.Constraint(0, 0, 1, 2));
     rootPanel.add(detailsPanel, new TabularLayout.Constraint(1, 0, 1, 2));
