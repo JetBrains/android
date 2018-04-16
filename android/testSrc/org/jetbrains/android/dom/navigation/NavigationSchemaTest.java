@@ -46,9 +46,9 @@ public class NavigationSchemaTest extends AndroidTestCase {
   private static final String[] GROUPS = new String[] {"navigation", "navigation_sub"};
 
   private static final String[] PREBUILT_AAR_PATHS = {
-    "../../prebuilts/tools/common/m2/repository/androidx/navigation/runtime/0.7.0-alpha1/runtime-0.7.0-alpha1.aar",
-    "../../prebuilts/tools/common/m2/repository/androidx/navigation/fragment/0.7.0-alpha1/fragment-0.7.0-alpha1.aar",
-    "../../prebuilts/tools/common/m2/repository/androidx/navigation/common/0.7.0-alpha1/common-0.7.0-alpha1.aar"
+    "../../prebuilts/tools/common/m2/repository/androidx/navigation/navigation-runtime/1.0.0-alpha01/navigation-runtime-1.0.0-alpha01.aar",
+    "../../prebuilts/tools/common/m2/repository/androidx/navigation/navigation-fragment/1.0.0-alpha01/navigation-fragment-1.0.0-alpha01.aar",
+    "../../prebuilts/tools/common/m2/repository/androidx/navigation/navigation-common/1.0.0-alpha01/navigation-common-1.0.0-alpha01.aar"
   };
 
   @Override
