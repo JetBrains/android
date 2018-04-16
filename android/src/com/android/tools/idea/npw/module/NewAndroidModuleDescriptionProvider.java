@@ -21,7 +21,7 @@ import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
-import icons.AndroidIcons;
+import icons.StudioIllustrations;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,10 +57,10 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
         // Hidden if not installed
       }
       else if (formFactor.equals(FormFactor.MOBILE)) {
-        res.add(new AndroidModuleTemplateGalleryEntry(templateFile, formFactor, minSdk, false, AndroidIcons.ModuleTemplates.Mobile,
+        res.add(new AndroidModuleTemplateGalleryEntry(templateFile, formFactor, minSdk, false, StudioIllustrations.ModuleTemplates.MOBILE_MODULE,
                                                       message("android.wizard.module.new.mobile"), metadata.getTitle()));
 
-        res.add(new AndroidModuleTemplateGalleryEntry(templateFile, formFactor, minSdk, true, AndroidIcons.ModuleTemplates.Android,
+        res.add(new AndroidModuleTemplateGalleryEntry(templateFile, formFactor, minSdk, true, StudioIllustrations.ModuleTemplates.ANDROID_MODULE,
                                                       message("android.wizard.module.new.library"), metadata.getDescription()));
       }
       else {
@@ -75,17 +75,17 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
   private static Icon getModuleTypeIcon(@NotNull FormFactor enumValue) {
     switch (enumValue) {
       case CAR:
-        return AndroidIcons.ModuleTemplates.Car;
+        return StudioIllustrations.ModuleTemplates.CAR_MODULE;
       case GLASS:
-        return AndroidIcons.ModuleTemplates.Glass;
+        return StudioIllustrations.ModuleTemplates.GLASS_MODULE;
       case MOBILE:
-        return AndroidIcons.ModuleTemplates.Mobile;
+        return StudioIllustrations.ModuleTemplates.MOBILE_MODULE;
       case TV:
-        return AndroidIcons.ModuleTemplates.Tv;
+        return StudioIllustrations.ModuleTemplates.TV_MODULE;
       case WEAR:
-        return AndroidIcons.ModuleTemplates.Wear;
+        return StudioIllustrations.ModuleTemplates.WEAR_MODULE;
       case THINGS:
-        return AndroidIcons.ModuleTemplates.Things;
+        return StudioIllustrations.ModuleTemplates.THINGS_MODULE;
       default:
         throw new IllegalArgumentException(enumValue.name());
     }
