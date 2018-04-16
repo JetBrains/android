@@ -85,11 +85,13 @@ class CommonBorder(private val cornerRadius: Float,
       UIUtil.TRANSPARENT_COLOR -> rect.applyInset(OUTER_BORDER_WIDTH)
       innerColor -> adjustedInnerWidth += OUTER_BORDER_WIDTH
       else -> {
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF)
         drawRoundedRect(g2, rect, outerColor, OUTER_BORDER_WIDTH, cornerRadius + INNER_BORDER_WIDTH)
         rect.applyInset(OUTER_BORDER_WIDTH)
       }
     }
 
+    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
     drawRoundedRect(g2, rect, innerColor, adjustedInnerWidth, cornerRadius, component.background)
   }
 
@@ -110,13 +112,12 @@ class CommonBorder(private val cornerRadius: Float,
                               cornerRadius: Float,
                               backgroundColor: Color = UIUtil.TRANSPARENT_COLOR) {
     val inset = INNER_BORDER_WIDTH + OUTER_BORDER_WIDTH
-    val builder = PathBuilder(rect, stroke, cornerRadius, paddingTop.toFloat(), paddingBottom.toFloat(), inset + paddingLeft, inset + paddingRight)
+    val builder = PathBuilder(UIUtil.isJreHiDPI(g2), rect, stroke, cornerRadius, paddingTop.toFloat(), paddingBottom.toFloat(), inset + paddingLeft, inset + paddingRight)
 
     if (backgroundColor != UIUtil.TRANSPARENT_COLOR) {
       g2.color = backgroundColor
       g2.fill(builder.makeLeftMargin())
       g2.fill(builder.makeRightMargin())
-      g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF)
       if (paddingTop > 0) {
         g2.fill(builder.makeTopMargin())
       }
@@ -126,12 +127,12 @@ class CommonBorder(private val cornerRadius: Float,
     }
 
     g2.color = borderColor
-    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
     g2.stroke = BasicStroke(stroke)
     g2.draw(builder.makeRoundedRect())
   }
 
-  private class PathBuilder(rect: Rectangle2D.Float,
+  private class PathBuilder(hiDpi: Boolean,
+                            rect: Rectangle2D.Float,
                             stroke: Float,
                             cornerRadius: Float,
                             private val marginTop: Float,
@@ -141,14 +142,21 @@ class CommonBorder(private val cornerRadius: Float,
 
     private val left: Float
     private val top: Float
-    private val right: Float
-    private val bottom: Float
+    private var right: Float
+    private var bottom: Float
     private val corner: Float
     private val curve1: Float
     private val curve2: Float
 
     init {
-      rect.applyInset(stroke / 2f)
+      if (stroke > 1f || hiDpi) {
+        rect.applyInset(stroke / 2f)
+      }
+      else {
+        rect.width -= 1f
+        rect.height -= 1f
+      }
+
       left = rect.x
       top = rect.y
       right = rect.x + rect.width
@@ -156,7 +164,13 @@ class CommonBorder(private val cornerRadius: Float,
       corner = cornerRadius + stroke / 2f
       curve1 = cornerRadius / 2f
       curve2 = cornerRadius - cornerRadius * Math.sqrt(3.0).toFloat() / 2f
-      rect.applyInset(-stroke / 2f)
+      if (stroke > 1f || hiDpi) {
+        rect.applyInset(-stroke / 2f)
+      }
+      else {
+        rect.width += 1f
+        rect.height += 1f
+      }
     }
 
     fun makeRoundedRect(): Shape {

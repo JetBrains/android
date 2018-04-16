@@ -24,26 +24,26 @@ import java.awt.*;
  * Standard UI color constants used in various components.
  */
 public class StandardColors {
-  public static Color INNER_BORDER_COLOR = new JBColor(0xBEBEBE, 0x646464);
-  public static Color FOCUSED_INNER_BORDER_COLOR = new JBColor(0x97C3F3, 0x5781C6);
-  public static Color FOCUSED_OUTER_BORDER_COLOR = new JBColor(0xCBE1F9, 0x466190);
-  public static Color DISABLED_INNER_BORDER_COLOR = new JBColor(0xDFDFDF, 0x484848);
-  public static Color PLACEHOLDER_INNER_BORDER_COLOR = new JBColor(0xDFDFDF, 0x484848);
-  public static Color TEXT_COLOR = new JBColor(0x1D1D1D, 0xBFBFBF);
-  public static Color SELECTED_TEXT_COLOR = new JBColor(0x000000, 0xFFFFFF);
-  public static Color DISABLED_TEXT_COLOR = new JBColor(0x8E8E8E, 0x757575);
-  public static Color PLACEHOLDER_TEXT_COLOR = new JBColor(0x7F7F7F, 0x8A8C8C);
-  public static Color BACKGROUND_COLOR = new JBColor(0xFFFFFF, 0x45494A);
-  public static Color MENU_BACKGROUND_COLOR = new JBColor(new Color(0xFFFFFF), new Color(0x313335));
-  public static Color SELECTED_BACKGROUND_COLOR = new JBColor(0xA4CDFF, 0x2F65CA);
-  public static Color ERROR_INNER_BORDER_COLOR = new JBColor(0xFF8787, 0xC86969);
-  public static Color ERROR_OUTER_BORDER_COLOR = ERROR_INNER_BORDER_COLOR;
-  public static Color DROPDOWN_ARROW_COLOR = new JBColor(0x000000, 0xBFBFBF);
-  public static Color TAB_HOVER_COLOR = new JBColor(0xd3d3d3, 0x323232);
-  public static Color TAB_SELECTED_COLOR = new JBColor(0x397FE4, 0x7CAEFE);
-  public static Color TAB_BORDER_COLOR = new JBColor(Gray._201, Gray._40);
+  public static final Color INNER_BORDER_COLOR = new JBColor(0xBEBEBE, 0x646464);
+  public static final Color FOCUSED_INNER_BORDER_COLOR = new JBColor(0x90AADC, 0x5781C6);
+  public static final Color FOCUSED_OUTER_BORDER_COLOR = new JBColor(0xB2CCFB, 0x395D82);
+  public static final Color DISABLED_INNER_BORDER_COLOR = new JBColor(0xDFDFDF, 0x484848);
+  public static final Color PLACEHOLDER_INNER_BORDER_COLOR = new JBColor(0xDFDFDF, 0x484848);
+  public static final Color TEXT_COLOR = new JBColor(0x1D1D1D, 0xBFBFBF);
+  public static final Color SELECTED_TEXT_COLOR = new JBColor(0x000000, 0xFFFFFF);
+  public static final Color DISABLED_TEXT_COLOR = new JBColor(0x8E8E8E, 0x757575);
+  public static final Color PLACEHOLDER_TEXT_COLOR = new JBColor(0x7F7F7F, 0x8A8C8C);
+  public static final Color BACKGROUND_COLOR = new JBColor(0xFFFFFF, 0x45494A);
+  public static final Color MENU_BACKGROUND_COLOR = new JBColor(new Color(0xFFFFFF), new Color(0x313335));
+  public static final Color SELECTED_BACKGROUND_COLOR = new JBColor(0xA4CDFF, 0x2F65CA);
+  public static final Color ERROR_INNER_BORDER_COLOR = new JBColor(0xFF8787, 0xC86969);
+  public static final Color ERROR_OUTER_BORDER_COLOR = ERROR_INNER_BORDER_COLOR;
+  public static final Color DROPDOWN_ARROW_COLOR = new JBColor(0x000000, 0xBFBFBF);
+  public static final Color TAB_HOVER_COLOR = new JBColor(0xd3d3d3, 0x323232);
+  public static final Color TAB_SELECTED_COLOR = new JBColor(0x397FE4, 0x7CAEFE);
+  public static final Color TAB_BORDER_COLOR = new JBColor(Gray._201, Gray._40);
 
-  public static Color ERROR_BUBBLE_TEXT_COLOR = TEXT_COLOR;
-  public static Color ERROR_BUBBLE_FILL_COLOR = new JBColor(0xF5E6E7, 0x593D41);
-  public static Color ERROR_BUBBLE_BORDER_COLOR = new JBColor(0xE0A8A9, 0x73454B);
+  public static final Color ERROR_BUBBLE_TEXT_COLOR = TEXT_COLOR;
+  public static final Color ERROR_BUBBLE_FILL_COLOR = new JBColor(0xF5E6E7, 0x593D41);
+  public static final Color ERROR_BUBBLE_BORDER_COLOR = new JBColor(0xE0A8A9, 0x73454B);
 }
