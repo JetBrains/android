@@ -103,11 +103,9 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
     init();
 
     setUpAsHtmlLabel(myMessagePane);
-    String msg = "To take advantage of all the latest features (such as " +
-                 "<b><a href='https://developer.android.com/studio/run/index.html#instant-run\"'>Instant Run</a></b>), improvements and " +
-                 "security fixes, we strongly recommend that you update the Android Gradle plugin to version " +
-                 recommended + " and Gradle to version " + GRADLE_LATEST_VERSION + ".<br/><br/>" +
-                 "You can learn more about this version of the plugin from the " +
+    String msg = "To take advantage of all the latest features, improvements and security fixes, we strongly recommend" +
+                 " that you update the Android Gradle plugin to version " + recommended + " and Gradle to version " +
+                 GRADLE_LATEST_VERSION + ".<br/><br/>" + "You can learn more about this version of the plugin from the " +
                  "<a href='http://developer.android.com/tools/revisions/gradle-plugin.html'>release notes</a>.<br/><br/>";
     myMessagePane.setText(msg);
     myMessagePane.addHyperlinkListener(new HyperlinkAdapter() {
