@@ -34,6 +34,12 @@ import java.util.stream.Collectors;
  * {@link CpuProfilerStage} and CpuProfilingConfigurationsDialog.
  */
 public class CpuProfilerConfigModel {
+  /**
+   * Represents the selected configuration or the configuration being used in the case of ongoing trace recording.
+   * While a trace recording in progress, it is not possible to change {@link #myProfilingConfiguration}, i.e it is achieved
+   * by disabling the dropdown in UI. Thus, in most cases the selected configuration is the same as
+   * the configuration used for the ongoing recording.
+   */
   private ProfilingConfiguration myProfilingConfiguration;
 
   /**
@@ -56,15 +62,6 @@ public class CpuProfilerConfigModel {
   @NotNull
   private List<ProfilingConfiguration> myDefaultProfilingConfigurations;
 
-  /**
-   * {@link ProfilingConfiguration} object that stores the data (profiler type, profiling mode, sampling interval and buffer size limit)
-   * that should be used in the next stopProfiling call. This field is required because stopProfiling should receive the same profiler type
-   * as the one passed to startProfiling. Also, in stopProfiling we track the configurations used to capture.
-   * We can't use {@link #myProfilingConfiguration} because it can be changed when we exit the Stage or change its value using the combobox.
-   * Using a separate field, we can retrieve the relevant data from device in {@link #updateProfilingState()}.
-   */
-  private ProfilingConfiguration myActiveConfig;
-
   @NotNull
   private final StudioProfilers myProfilers;
 
@@ -79,14 +76,6 @@ public class CpuProfilerConfigModel {
 
     profilerStage.getAspect().addDependency(myAspectObserver)
       .onChange(CpuProfilerAspect.PROFILING_CONFIGURATION, this::updateProfilingConfigurations);
-  }
-
-  public void setActiveConfig(ProfilingConfiguration configuration) {
-    myActiveConfig = configuration;
-  }
-
-  public ProfilingConfiguration getActiveConfig() {
-    return myActiveConfig;
   }
 
   @NotNull
