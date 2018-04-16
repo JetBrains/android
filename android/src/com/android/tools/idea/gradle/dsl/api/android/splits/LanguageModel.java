@@ -17,17 +17,12 @@ package com.android.tools.idea.gradle.dsl.api.android.splits;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public interface LanguageModel extends GradleDslModel {
   @NotNull
   ResolvedPropertyModel enable();
 
-  @Nullable
+  @NotNull
   ResolvedPropertyModel include();
 }

@@ -20,18 +20,14 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.externalNativeBuild.CMakeModel;
 import com.android.tools.idea.gradle.dsl.api.android.externalNativeBuild.NdkBuildModel;
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType;
-import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.CMakeModelImpl;
 import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.NdkBuildModelImpl;
-import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*;
-import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
 
 /**
  * Tests for {@link ExternalNativeBuildModelImpl}.

@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.CMakeModelImpl
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import java.io.File
 
 /**
  * Tests for [AndroidModelImpl].
@@ -991,7 +990,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     var sourceSets = android.sourceSets()
     assertThat(sourceSets).hasSize(1)
     var sourceSet = sourceSets[0]
-    sourceSet.setRoot("source")
+    sourceSet.root().setValue("source")
 
     sourceSets = android.sourceSets()
     assertThat(sourceSets).hasSize(1)

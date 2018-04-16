@@ -18,7 +18,8 @@ package com.android.tools.idea.gradle.dsl.model.util
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.replaceElement
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.TransformTestCase
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
-import org.hamcrest.CoreMatchers.*
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 

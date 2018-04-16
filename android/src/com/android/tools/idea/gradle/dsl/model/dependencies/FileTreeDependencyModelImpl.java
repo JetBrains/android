@@ -19,8 +19,8 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.FileTreeDependencyMode
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
-import com.android.tools.idea.gradle.dsl.model.ext.transforms.SingleArgToMapTransform;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.MapMethodTransform;
+import com.android.tools.idea.gradle.dsl.model.ext.transforms.SingleArgToMapTransform;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.SingleArgumentMethodTransform;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;

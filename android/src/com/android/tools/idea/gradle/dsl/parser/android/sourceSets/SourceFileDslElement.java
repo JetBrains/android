@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class SourceFileDslElement extends GradleDslBlockElement {
   public SourceFileDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {

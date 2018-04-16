@@ -24,12 +24,10 @@ public interface ExternalNativeBuildOptionsModel extends GradleDslModel {
   @NotNull
   CMakeOptionsModel cmake();
 
-  @NotNull
-  ExternalNativeBuildOptionsModel removeCMake();
+  void removeCMake();
 
   @NotNull
   NdkBuildOptionsModel ndkBuild();
 
-  @NotNull
-  ExternalNativeBuildOptionsModel removeNdkBuild();
+  void removeNdkBuild();
 }

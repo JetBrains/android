@@ -25,7 +25,6 @@ import com.android.tools.idea.testing.TestProjectPaths;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.VirtualFile;
-import one.util.streamex.MoreCollectors;
 import org.hamcrest.Matcher;
 
 import java.util.List;
@@ -69,7 +68,7 @@ public class PsModuleTest extends AndroidGradleTestCase {
     List<String> mavenRepositories =
       psAppModule.getParsedModel().repositories().repositories().stream()
         .filter(it -> it.getType() == RepositoryModel.RepositoryType.MAVEN)
-        .map(it -> ((MavenRepositoryModel)(it)).url().value())
+        .map(it -> ((MavenRepositoryModel)(it)).url().toString())
         .collect(toList());
     Iterable<Matcher<? super String>> localRepositoryMatchers =
       AndroidGradleTests

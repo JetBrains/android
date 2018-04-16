@@ -16,14 +16,11 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.api.android.PackagingOptionsModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.parser.android.PackagingOptionsDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public class PackagingOptionsModelImpl extends GradleDslBlockModel implements PackagingOptionsModel {
   @NonNls private static final String EXCLUDES = "excludes";
@@ -35,104 +32,20 @@ public class PackagingOptionsModelImpl extends GradleDslBlockModel implements Pa
   }
 
   @Override
-  @Nullable
-  public List<GradleNotNullValue<String>> excludes() {
-    return myDslElement.getListProperty(EXCLUDES, String.class);
+  @NotNull
+  public ResolvedPropertyModel excludes() {
+    return getModelForProperty(EXCLUDES, true);
   }
 
   @Override
   @NotNull
-  public PackagingOptionsModel addExclude(@NotNull String exclude) {
-    myDslElement.addToNewLiteralList(EXCLUDES, exclude);
-    return this;
+  public ResolvedPropertyModel merges() {
+    return getModelForProperty(MERGES, true);
   }
 
   @Override
   @NotNull
-  public PackagingOptionsModel removeExclude(@NotNull String exclude) {
-    myDslElement.removeFromExpressionList(EXCLUDES, exclude);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public PackagingOptionsModel removeAllExclude() {
-    myDslElement.removeProperty(EXCLUDES);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public PackagingOptionsModel replaceExclude(@NotNull String oldExclude, @NotNull String newExclude) {
-    myDslElement.replaceInExpressionList(EXCLUDES, oldExclude, newExclude);
-    return this;
-  }
-
-  @Override
-  @Nullable
-  public List<GradleNotNullValue<String>> merges() {
-    return myDslElement.getListProperty(MERGES, String.class);
-  }
-
-  @Override
-  @NotNull
-  public PackagingOptionsModel addMerge(@NotNull String merge) {
-    myDslElement.addToNewLiteralList(MERGES, merge);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public PackagingOptionsModel removeMerge(@NotNull String merge) {
-    myDslElement.removeFromExpressionList(MERGES, merge);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public PackagingOptionsModel removeAllMerges() {
-    myDslElement.removeProperty(MERGES);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public PackagingOptionsModel replaceMerge(@NotNull String oldMerge, @NotNull String newMerge) {
-    myDslElement.replaceInExpressionList(MERGES, oldMerge, newMerge);
-    return this;
-  }
-
-  @Override
-  @Nullable
-  public List<GradleNotNullValue<String>> pickFirsts() {
-    return myDslElement.getListProperty(PICK_FIRSTS, String.class);
-  }
-
-  @Override
-  @NotNull
-  public PackagingOptionsModel addPickFirst(@NotNull String pickFirst) {
-    myDslElement.addToNewLiteralList(PICK_FIRSTS, pickFirst);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public PackagingOptionsModel removePickFirst(@NotNull String pickFirst) {
-    myDslElement.removeFromExpressionList(PICK_FIRSTS, pickFirst);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public PackagingOptionsModel removeAllPickFirsts() {
-    myDslElement.removeProperty(PICK_FIRSTS);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public PackagingOptionsModel replacePickFirst(@NotNull String oldPickFirst, @NotNull String newPickFirst) {
-    myDslElement.replaceInExpressionList(PICK_FIRSTS, oldPickFirst, newPickFirst);
-    return this;
+  public ResolvedPropertyModel pickFirsts() {
+    return getModelForProperty(PICK_FIRSTS, true);
   }
 }

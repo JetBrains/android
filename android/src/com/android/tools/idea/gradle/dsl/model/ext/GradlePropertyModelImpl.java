@@ -349,10 +349,11 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   @Nullable
   @Override
   public PsiElement getPsiElement() {
-    if (myElement == null) {
+    GradleDslElement element = getElement();
+    if (element == null) {
       return null;
     }
-    return myElement.getPsiElement();
+    return element.getPsiElement();
   }
 
   @Override

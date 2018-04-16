@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android.sourceSets;
 
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import org.jetbrains.annotations.NotNull;
 
 public interface SourceFileModel extends GradleDslModel {
@@ -24,11 +24,5 @@ public interface SourceFileModel extends GradleDslModel {
   String name();
 
   @NotNull
-  GradleNullableValue<String> srcFile();
-
-  @NotNull
-  SourceFileModel setSrcFile(@NotNull String srcFile);
-
-  @NotNull
-  SourceFileModel removeSrcFile();
+  ResolvedPropertyModel srcFile();
 }

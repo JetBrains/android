@@ -98,9 +98,9 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("merges", ImmutableList.of("merge1", "merge2", "merge3"), packagingOptions.merges());
     assertEquals("pickFirsts", ImmutableList.of("pickFirst1", "pickFirst2", "pickFirst3"), packagingOptions.pickFirsts());
 
-    packagingOptions.replaceExclude("exclude1", "excludeX");
-    packagingOptions.replaceMerge("merge2", "mergeX");
-    packagingOptions.replacePickFirst("pickFirst3", "pickFirstX");
+    packagingOptions.excludes().getListValue("exclude1").setValue("excludeX");
+    packagingOptions.merges().getListValue("merge2").setValue("mergeX");
+    packagingOptions.pickFirsts().getListValue("pickFirst3").setValue("pickFirstX");
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
@@ -126,13 +126,13 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     PackagingOptionsModel packagingOptions = android.packagingOptions();
-    assertNull("excludes", packagingOptions.excludes());
-    assertNull("merges", packagingOptions.merges());
-    assertNull("pickFirsts", packagingOptions.pickFirsts());
+    assertMissingProperty("excludes", packagingOptions.excludes());
+    assertMissingProperty("merges", packagingOptions.merges());
+    assertMissingProperty("pickFirsts", packagingOptions.pickFirsts());
 
-    packagingOptions.addExclude("exclude");
-    packagingOptions.addMerge("merge");
-    packagingOptions.addPickFirst("pickFirst");
+    packagingOptions.excludes().addListValue().setValue("exclude");
+    packagingOptions.merges().addListValue().setValue("merge");
+    packagingOptions.pickFirsts().addListValue().setValue("pickFirst");
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
@@ -165,9 +165,9 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("merges", ImmutableList.of("merge1"), packagingOptions.merges());
     assertEquals("pickFirsts", ImmutableList.of("pickFirst1"), packagingOptions.pickFirsts());
 
-    packagingOptions.addExclude("exclude2");
-    packagingOptions.addMerge("merge2");
-    packagingOptions.addPickFirst("pickFirst2");
+    packagingOptions.excludes().addListValue().setValue("exclude2");
+    packagingOptions.merges().addListValue().setValue("merge2");
+    packagingOptions.pickFirsts().addListValue().setValue("pickFirst2");
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
@@ -204,9 +204,9 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("merges", ImmutableList.of("merge1", "merge2", "merge3"), packagingOptions.merges());
     assertEquals("pickFirsts", ImmutableList.of("pickFirst1", "pickFirst2", "pickFirst3"), packagingOptions.pickFirsts());
 
-    packagingOptions.removeAllExclude();
-    packagingOptions.removeAllMerges();
-    packagingOptions.removeAllPickFirsts();
+    packagingOptions.excludes().delete();
+    packagingOptions.merges().delete();
+    packagingOptions.pickFirsts().delete();
 
     applyChangesAndReparse(buildModel);
 
@@ -214,9 +214,9 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     packagingOptions = android.packagingOptions();
-    assertNull("excludes", packagingOptions.excludes());
-    assertNull("merges", packagingOptions.merges());
-    assertNull("pickFirsts", packagingOptions.pickFirsts());
+    assertMissingProperty("excludes", packagingOptions.excludes());
+    assertMissingProperty("merges", packagingOptions.merges());
+    assertMissingProperty("pickFirsts", packagingOptions.pickFirsts());
   }
 
   @Test
@@ -243,9 +243,9 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("merges", ImmutableList.of("merge1", "merge2", "merge3"), packagingOptions.merges());
     assertEquals("pickFirsts", ImmutableList.of("pickFirst1", "pickFirst2", "pickFirst3"), packagingOptions.pickFirsts());
 
-    packagingOptions.removeExclude("exclude1");
-    packagingOptions.removeMerge("merge2");
-    packagingOptions.removePickFirst("pickFirst3");
+    packagingOptions.excludes().getListValue("exclude1").delete();
+    packagingOptions.merges().getListValue("merge2").delete();
+    packagingOptions.pickFirsts().getListValue("pickFirst3").delete();
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
@@ -279,17 +279,17 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("merges", ImmutableList.of("merge"), packagingOptions.merges());
     assertEquals("pickFirsts", ImmutableList.of("pickFirst"), packagingOptions.pickFirsts());
 
-    packagingOptions.removeExclude("exclude");
-    packagingOptions.removeMerge("merge");
-    packagingOptions.removePickFirst("pickFirst");
+    packagingOptions.excludes().getListValue("exclude").delete();
+    packagingOptions.merges().getListValue("merge").delete();
+    packagingOptions.pickFirsts().getListValue("pickFirst").delete();
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
     assertNotNull(android);
 
     packagingOptions = android.packagingOptions();
-    assertNull("excludes", packagingOptions.excludes());
-    assertSize(0, packagingOptions.merges());
-    assertNull("pickFirsts", packagingOptions.pickFirsts());
+    assertMissingProperty("excludes", packagingOptions.excludes());
+    assertEmpty("merges", packagingOptions.merges().toList());
+    assertMissingProperty("pickFirsts", packagingOptions.pickFirsts());
   }
 }

@@ -51,32 +51,32 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
       if (element instanceof GradleDslMethodCall) {
         String methodName = ((GradleDslMethodCall)element).getMethodName();
         if (MAVEN_CENTRAL_METHOD_NAME.equals(methodName)) {
-          result.add(new MavenCentralRepositoryModel(null));
+          result.add(new MavenCentralRepositoryModel(myDslElement, element));
         }
         else if (JCENTER_METHOD_NAME.equals(methodName)) {
-          result.add(new JCenterDefaultRepositoryModel());
+          result.add(new JCenterDefaultRepositoryModel(myDslElement, element));
         }
         else if (GOOGLE_METHOD_NAME.equals(methodName)) {
-          result.add(new GoogleDefaultRepositoryModelImpl());
+          result.add(new GoogleDefaultRepositoryModelImpl(myDslElement, element));
         }
       }
       else if (element instanceof MavenRepositoryDslElement) {
         if (MAVEN_BLOCK_NAME.equals(element.getName())) {
-          result.add(new MavenRepositoryModelImpl((MavenRepositoryDslElement)element));
+          result.add(new MavenRepositoryModelImpl(myDslElement, (MavenRepositoryDslElement)element));
         }
         else if (JCENTER_BLOCK_NAME.equals(element.getName())) {
-          result.add(new JCenterRepositoryModel((MavenRepositoryDslElement)element));
+          result.add(new JCenterRepositoryModel(myDslElement, (MavenRepositoryDslElement)element));
         }
       }
       else if (element instanceof FlatDirRepositoryDslElement) {
-        result.add(new FlatDirRepositoryModel((FlatDirRepositoryDslElement)element));
+        result.add(new FlatDirRepositoryModel(myDslElement, (FlatDirRepositoryDslElement)element));
       }
       else if (element instanceof GradleDslExpressionMap) {
         if (MAVEN_CENTRAL_METHOD_NAME.equals(element.getName())) {
-          result.add(new MavenCentralRepositoryModel((GradleDslExpressionMap)element));
+          result.add(new MavenCentralRepositoryModel(myDslElement, element));
         }
         else if (FLAT_DIR_ATTRIBUTE_NAME.equals(element.getName())) {
-          result.add(new FlatDirRepositoryModel((GradlePropertiesDslElement)element));
+          result.add(new FlatDirRepositoryModel(myDslElement ,(GradlePropertiesDslElement)element));
         }
       }
     }
@@ -107,13 +107,13 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
     List<FlatDirRepositoryDslElement> flatDirElements = myDslElement.getPropertyElements(FlatDirRepositoryDslElement.class);
     if (!flatDirElements.isEmpty()) {
       // A repository already exists
-      new FlatDirRepositoryModel(flatDirElements.get(0)).addDir(dirName);
+      new FlatDirRepositoryModel(myDslElement, flatDirElements.get(0)).dirs().addListValue().setValue(dirName);
     }
     else {
       // We need to create one
       GradlePropertiesDslElement gradleDslElement = new FlatDirRepositoryDslElement(myDslElement);
       myDslElement.setNewElement(gradleDslElement);
-      new FlatDirRepositoryModel(gradleDslElement).addDir(dirName);
+      new FlatDirRepositoryModel(myDslElement, gradleDslElement).dirs().addListValue().setValue(dirName);
     }
   }
 

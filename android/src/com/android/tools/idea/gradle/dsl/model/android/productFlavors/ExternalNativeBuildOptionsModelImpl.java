@@ -47,10 +47,8 @@ public class ExternalNativeBuildOptionsModelImpl extends GradleDslBlockModel imp
   }
 
   @Override
-  @NotNull
-  public ExternalNativeBuildOptionsModel removeCMake() {
+  public void removeCMake() {
     myDslElement.removeProperty(CMAKE_BLOCK_NAME);
-    return this;
   }
 
   @Override
@@ -66,9 +64,7 @@ public class ExternalNativeBuildOptionsModelImpl extends GradleDslBlockModel imp
   }
 
   @Override
-  @NotNull
-  public ExternalNativeBuildOptionsModel removeNdkBuild() {
+  public void removeNdkBuild() {
     myDslElement.removeProperty(NDK_BUILD_BLOCK_NAME);
-    return this;
   }
 }

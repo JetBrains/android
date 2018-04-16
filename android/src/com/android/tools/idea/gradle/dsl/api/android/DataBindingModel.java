@@ -15,35 +15,17 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android;
 
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import org.jetbrains.annotations.NotNull;
 
 public interface DataBindingModel extends GradleDslModel {
   @NotNull
-  GradleNullableValue<Boolean> addDefaultAdapters();
+  ResolvedPropertyModel addDefaultAdapters();
 
   @NotNull
-  DataBindingModel setAddDefaultAdapters(boolean addDefaultAdapters);
+  ResolvedPropertyModel enabled();
 
   @NotNull
-  DataBindingModel removeAddDefaultAdapters();
-
-  @NotNull
-  GradleNullableValue<Boolean> enabled();
-
-  @NotNull
-  DataBindingModel setEnabled(boolean enabled);
-
-  @NotNull
-  DataBindingModel removeEnabled();
-
-  @NotNull
-  GradleNullableValue<String> version();
-
-  @NotNull
-  DataBindingModel setVersion(@NotNull String version);
-
-  @NotNull
-  DataBindingModel removeVersion();
+  ResolvedPropertyModel version();
 }

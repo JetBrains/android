@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model.repositories;
 
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenCredentialsDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -31,12 +32,12 @@ public class MavenCredentialsModel {
   }
 
   @NotNull
-  public GradleNullableValue<String> username() {
-    return myDslElement.getLiteralProperty(USERNAME, String.class);
+  public ResolvedPropertyModel username() {
+    return GradlePropertyModelBuilder.create(myDslElement, USERNAME).asMethod(true).buildResolved();
   }
 
   @NotNull
-  public GradleNullableValue<String> password() {
-    return myDslElement.getLiteralProperty(PASSWORD, String.class);
+  public ResolvedPropertyModel password() {
+    return GradlePropertyModelBuilder.create(myDslElement, PASSWORD).asMethod(true).buildResolved();
   }
 }
