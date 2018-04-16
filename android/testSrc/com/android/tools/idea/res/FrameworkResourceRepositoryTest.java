@@ -145,7 +145,7 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
     for (int i = 0; i < expectedItems.size(); i++) {
       ResourceItem expectedItem = expectedItems.get(i);
       ResourceItem actualItem = actualItems.get(i);
-      assertTrue("Different ResourceMergerItem at position " + i, areEquivalent(expectedItem, actualItem));
+      assertTrue("Different ResourceItem at position " + i, areEquivalent(expectedItem, actualItem));
       assertEquals("Different FolderConfiguration at position " + i, expectedItem.getConfiguration(), actualItem.getConfiguration());
       assertEquals("Different ResourceValue at position " + i, expectedItem.getResourceValue(), actualItem.getResourceValue());
     }
