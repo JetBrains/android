@@ -22,7 +22,7 @@ import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
-import icons.StudioIllustrations;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,7 +56,7 @@ public class NewInstantAppModuleDescriptionProvider implements ModuleDescription
     @Nullable
     @Override
     public Icon getIcon() {
-      return StudioIllustrations.ModuleTemplates.FEATURE_MODULE;
+      return AndroidIcons.ModuleTemplates.FeatureModule;
     }
 
     @NotNull
@@ -117,7 +117,7 @@ public class NewInstantAppModuleDescriptionProvider implements ModuleDescription
     @Nullable
     @Override
     public Icon getIcon() {
-      return StudioIllustrations.ModuleTemplates.INSTANT_APP_MODULE;
+      return AndroidIcons.ModuleTemplates.InstantAppModule;
     }
 
     @NotNull
