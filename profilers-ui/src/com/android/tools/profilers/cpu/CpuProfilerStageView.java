@@ -788,7 +788,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
    * Installs both {@link ContextMenuItem} corresponding to the CPU capture navigation feature on {@link #mySelection}.
    */
   private void installCaptureNavigationMenuItems(ContextMenuInstaller contextMenuInstaller) {
-    int shortcutModifier = (SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK) | SHIFT_DOWN_MASK;
+    int shortcutModifier = AdtUiUtils.getActionMask() | SHIFT_DOWN_MASK;
 
     ProfilerAction navigateNext =
       new ProfilerAction.Builder("Next capture")
@@ -839,7 +839,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
                      ? StudioIcons.Profiler.Toolbar.STOP_RECORDING : StudioIcons.Profiler.Toolbar.RECORD)
       .setEnableBooleanSupplier(() -> !myStage.isImportTraceMode() && (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING
                                                                        || myStage.getCaptureState() == CpuProfilerStage.CaptureState.IDLE))
-      .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_R, SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK))
+      .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_R, AdtUiUtils.getActionMask()))
       .setActionRunnable(() -> capture())
       .build();
 
@@ -1156,7 +1156,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     public void mouseWheelMoved(MouseWheelEvent e) {
       // If we have the modifier keys down then pass the event on to the parent control. Otherwise
       // the JScrollPane will consume the event.
-      boolean isMenuKeyDown = SystemInfo.isMac ? e.isMetaDown() : e.isControlDown();
+      boolean isMenuKeyDown = AdtUiUtils.isActionKeyDown(e);
       // The shift key modifier is used when making the determination if we are panning vs scrolling vertically when the mouse
       // wheel is triggered.
       boolean isShiftKeyDown = e.isShiftDown();

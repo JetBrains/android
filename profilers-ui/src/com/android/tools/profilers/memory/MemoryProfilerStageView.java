@@ -127,7 +127,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       new ProfilerAction.Builder("Force garbage collection")
         .setIcon(myForceGarbageCollectionButton.getIcon())
         .setActionRunnable(() -> myForceGarbageCollectionButton.doClick(0))
-        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_G, SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK)).build();
+        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_G, AdtUiUtils.getActionMask())).build();
     myForceGarbageCollectionButton.setToolTipText(myForceGarbageCollectionAction.getDefaultToolTipText());
 
 
@@ -141,7 +141,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       new ProfilerAction.Builder("Dump Java heap")
         .setIcon(myHeapDumpButton.getIcon())
         .setActionRunnable(() -> myHeapDumpButton.doClick(0))
-        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_H, SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK)).build();
+        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_H, AdtUiUtils.getActionMask())).build();
     myHeapDumpButton.setToolTipText(myHeapDumpAction.getDefaultToolTipText());
 
     myCaptureElapsedTime = new JLabel("");
@@ -164,13 +164,13 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         .setIcon(StudioIcons.Profiler.Toolbar.RECORD)
         .setEnableBooleanSupplier(() -> !getStage().isTrackingAllocations())
         .setActionRunnable(() -> myAllocationButton.doClick(0)).
-        setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_R, SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK)).build();
+        setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_R, AdtUiUtils.getActionMask())).build();
     myStopAllocationAction =
       new ProfilerAction.Builder("Stop recording")
         .setIcon(StudioIcons.Profiler.Toolbar.STOP_RECORDING)
         .setEnableBooleanSupplier(() -> getStage().isTrackingAllocations())
         .setActionRunnable(() -> myAllocationButton.doClick(0)).
-        setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_S, SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK)).build();
+        setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_S, AdtUiUtils.getActionMask())).build();
 
     getStage().getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::captureObjectChanged)

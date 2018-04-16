@@ -15,17 +15,22 @@
  */
 package com.android.tools.adtui.common;
 
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.JBUI;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
+import java.awt.event.InputEvent;
 import java.util.function.Predicate;
 
 import static com.intellij.util.ui.SwingHelper.ELLIPSIS;
+import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
+import static java.awt.event.InputEvent.META_DOWN_MASK;
 
 /**
  * ADT-UI utility class to hold constants and function used across the ADT-UI framework.
@@ -144,5 +149,20 @@ public final class AdtUiUtils {
       Math.round(background.getRed() * (1 - foregroundOpacity) + forground.getRed() * foregroundOpacity),
       Math.round(background.getGreen() * (1 - foregroundOpacity) + forground.getGreen() * foregroundOpacity),
       Math.round(background.getBlue() * (1 - foregroundOpacity) + forground.getBlue() * foregroundOpacity));
+  }
+
+  /**
+   * Returns if the action key is held by the user for the given event. The action key is defined as the
+   * meta key on mac, and control on other platforms.
+   */
+  public static boolean isActionKeyDown(@NotNull InputEvent event) {
+    return SystemInfo.isMac ? event.isMetaDown() : event.isControlDown();
+  }
+
+  /**
+   * returns the action mask for the current platform. On mac it's {@link META_DOWN_MASK} everything else is {@link CTRL_DOWN_MASK}.
+   */
+  public static int getActionMask() {
+    return SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK;
   }
 }

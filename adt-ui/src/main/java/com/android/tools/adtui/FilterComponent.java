@@ -16,6 +16,7 @@
 package com.android.tools.adtui;
 
 
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.android.tools.adtui.model.FilterModel;
 import com.intellij.openapi.keymap.KeymapUtil;
@@ -45,7 +46,7 @@ import static java.awt.event.InputEvent.META_DOWN_MASK;
 public class FilterComponent extends JPanel {
   static final String OPEN_AND_FOCUS_ACTION = "OpenAndFocusSearchAction";
   static final String CLOSE_ACTION = "CloseSearchAction";
-  static final KeyStroke FILTER_KEY_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_F, SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK);
+  static final KeyStroke FILTER_KEY_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_F, AdtUiUtils.getActionMask());
 
   private static final String REGEX = "Regex";
   private static final String MATCH_CASE = "Match Case";
