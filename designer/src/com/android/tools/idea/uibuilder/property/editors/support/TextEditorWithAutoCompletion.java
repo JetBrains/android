@@ -17,6 +17,8 @@ package com.android.tools.idea.uibuilder.property.editors.support;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
+import com.android.tools.adtui.model.stdui.DefaultCommonBorderModel;
+import com.android.tools.adtui.stdui.CommonBorder;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.codeInsight.completion.PrefixMatcher;
@@ -24,7 +26,6 @@ import com.intellij.codeInsight.completion.impl.CamelHumpMatcher;
 import com.intellij.codeInsight.lookup.Lookup;
 import com.intellij.codeInsight.lookup.LookupListener;
 import com.intellij.codeInsight.lookup.LookupManager;
-import com.intellij.ide.ui.laf.darcula.ui.DarculaEditorTextFieldBorder;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.undo.UndoConstants;
 import com.intellij.openapi.editor.Editor;
@@ -43,7 +44,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.plaf.InsetsUIResource;
 import java.awt.*;
 import java.awt.event.MouseWheelListener;
 import java.beans.PropertyChangeEvent;
@@ -53,10 +53,10 @@ import java.util.List;
 
 public class TextEditorWithAutoCompletion extends TextFieldWithAutoCompletion<String> {
   private final TextAttributes myTextAttributes;
-  private final Insets myEditorInsets;
   private final CompletionProvider myCompletionProvider;
   private final PropertyChangeListener myPropertyChangeListener;
   private final List<LookupListener> myLookupListeners;
+  private final Insets myEditorInsets;
 
   public static TextEditorWithAutoCompletion create(@NotNull Project project, @NotNull Insets editorInsets) {
     CompletionProvider completionProvider = new CompletionProvider();
@@ -83,12 +83,7 @@ public class TextEditorWithAutoCompletion extends TextFieldWithAutoCompletion<St
     editor.getColorsScheme().setAttributes(HighlighterColors.TEXT, myTextAttributes);
     editor.setHighlighter(new EmptyEditorHighlighter(myTextAttributes));
     editor.getDocument().putUserData(UndoConstants.DONT_RECORD_UNDO, true);
-    editor.setBorder(new DarculaEditorTextFieldBorder() {
-      @Override
-      public Insets getBorderInsets(Component component) {
-        return new InsetsUIResource(myEditorInsets.top, myEditorInsets.left, myEditorInsets.bottom, myEditorInsets.right);
-      }
-    });
+    editor.setBorder(new CommonBorder(1, new DefaultCommonBorderModel(), myEditorInsets.top, myEditorInsets.left, myEditorInsets.bottom, myEditorInsets.right));
     LookupManager.getInstance(getProject()).addPropertyChangeListener(myPropertyChangeListener);
   }
 

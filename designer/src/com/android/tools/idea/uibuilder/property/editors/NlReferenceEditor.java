@@ -159,7 +159,9 @@ public class NlReferenceEditor extends BaseComponentEditor {
     myBrowsePanel = browsePanel;
     myPanel.add(myTextEditorWithAutoCompletion, BorderLayout.CENTER);
     if (browsePanel != null) {
-      myBrowsePanel.setBorder(JBUI.Borders.emptyLeft(HORIZONTAL_COMPONENT_GAP));
+      if (includeBorder) {
+        myBrowsePanel.setBorder(JBUI.Borders.empty(4, 1));
+      }
       myPanel.add(myBrowsePanel, BorderLayout.LINE_END);
     }
     myPanel.addComponentListener(new ComponentAdapter() {
