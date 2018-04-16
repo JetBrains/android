@@ -34,12 +34,12 @@ public class VectorDrawablesOptionsModelImpl extends GradleDslBlockModel impleme
   @NotNull
   @Override
   public ResolvedPropertyModel generatedDensities() {
-    return getModelForProperty(GENERATED_DENSITIES);
+    return getModelForProperty(GENERATED_DENSITIES, true);
   }
 
   @NotNull
   @Override
   public ResolvedPropertyModel useSupportLibrary() {
-    return getModelForProperty(USE_SUPPORT_LIBRARY);
+    return getModelForProperty(USE_SUPPORT_LIBRARY, true);
   }
 }

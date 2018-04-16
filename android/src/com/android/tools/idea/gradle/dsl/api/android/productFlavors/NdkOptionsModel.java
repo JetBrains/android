@@ -15,26 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android.productFlavors;
 
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public interface NdkOptionsModel extends GradleDslModel {
-  @Nullable
-  List<GradleNotNullValue<String>> abiFilters();
-
   @NotNull
-  NdkOptionsModel addAbiFilter(@NotNull String abiFilter);
-
-  @NotNull
-  NdkOptionsModel removeAbiFilter(@NotNull String abiFilter);
-
-  @NotNull
-  NdkOptionsModel removeAllAbiFilters();
-
-  @NotNull
-  NdkOptionsModel replaceAbiFilter(@NotNull String oldAbiFilter, @NotNull String newAbiFilter);
+  ResolvedPropertyModel abiFilters();
 }

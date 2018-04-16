@@ -17,18 +17,12 @@ package com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild;
 
 import com.android.tools.idea.gradle.dsl.api.android.externalNativeBuild.AbstractBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil;
-import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValueImpl;
-import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
-
-import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 
 
 /**

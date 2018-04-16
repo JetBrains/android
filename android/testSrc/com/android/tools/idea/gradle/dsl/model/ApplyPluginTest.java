@@ -22,7 +22,7 @@ import com.intellij.psi.PsiElement;
 import org.junit.Test;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 import static com.google.common.truth.Truth.assertThat;

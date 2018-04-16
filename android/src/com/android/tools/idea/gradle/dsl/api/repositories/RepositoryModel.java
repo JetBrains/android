@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.api.repositories;
 
-import com.android.tools.idea.gradle.dsl.api.values.GradleDefaultValue;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import org.jetbrains.annotations.NotNull;
 
 public interface RepositoryModel {
@@ -28,7 +28,7 @@ public interface RepositoryModel {
   }
 
   @NotNull
-  GradleDefaultValue<String> name();
+  ResolvedPropertyModel name();
 
   @NotNull
   RepositoryType getType();

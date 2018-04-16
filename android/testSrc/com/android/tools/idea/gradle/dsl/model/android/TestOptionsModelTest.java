@@ -49,9 +49,9 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     TestOptionsModel testOptions = android.testOptions();
-    testOptions.setReportDir("otherReportDir");
-    testOptions.setResultsDir("otherResultsDir");
-    testOptions.unitTests().setReturnDefaultValues(false);
+    testOptions.reportDir().setValue("otherReportDir");
+    testOptions.resultsDir().setValue("otherResultsDir");
+    testOptions.unitTests().returnDefaultValues().setValue(false);
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
@@ -78,9 +78,9 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     TestOptionsModel testOptions = android.testOptions();
-    testOptions.setReportDir("reportDirectory");
-    testOptions.setResultsDir("resultsDirectory");
-    testOptions.unitTests().setReturnDefaultValues(true);
+    testOptions.reportDir().setValue("reportDirectory");
+    testOptions.resultsDir().setValue("resultsDirectory");
+    testOptions.unitTests().returnDefaultValues().setValue(true);
 
     applyChangesAndReparse(buildModel);
     verifyTestOptionsValues();
@@ -97,9 +97,9 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
 
     TestOptionsModel testOptions = android.testOptions();
     assertTrue(hasPsiElement(testOptions));
-    testOptions.removeReportDir();
-    testOptions.removeResultsDir();
-    testOptions.unitTests().removeReturnDefaultValues();
+    testOptions.reportDir().delete();
+    testOptions.resultsDir().delete();
+    testOptions.unitTests().returnDefaultValues().delete();
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
@@ -125,8 +125,8 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     TestOptionsModel testOptions = android.testOptions();
-    assertNull("reportDir", testOptions.reportDir());
-    assertNull("resultsDir", testOptions.resultsDir());
-    assertNull("unitTests.returnDefaultValues", testOptions.unitTests().returnDefaultValues());
+    assertMissingProperty("reportDir", testOptions.reportDir());
+    assertMissingProperty("resultsDir", testOptions.resultsDir());
+    assertMissingProperty("unitTests.returnDefaultValues", testOptions.unitTests().returnDefaultValues());
   }
 }

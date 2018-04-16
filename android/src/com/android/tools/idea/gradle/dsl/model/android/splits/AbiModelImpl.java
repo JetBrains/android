@@ -17,15 +17,10 @@ package com.android.tools.idea.gradle.dsl.model.android.splits;
 
 import com.android.tools.idea.gradle.dsl.api.android.splits.AbiModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.parser.android.splits.AbiDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 public class AbiModelImpl extends BaseSplitOptionsModelImpl implements AbiModel {
   @NonNls private static final String UNIVERSAL_APK = "universalApk";

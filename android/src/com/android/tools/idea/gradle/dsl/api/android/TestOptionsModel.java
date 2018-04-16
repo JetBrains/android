@@ -16,28 +16,16 @@
 package com.android.tools.idea.gradle.dsl.api.android;
 
 import com.android.tools.idea.gradle.dsl.api.android.testOptions.UnitTestsModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import org.jetbrains.annotations.NotNull;
 
 public interface TestOptionsModel extends GradleDslModel {
   @NotNull
-  GradleNullableValue<String> reportDir();
+  ResolvedPropertyModel reportDir();
 
   @NotNull
-  TestOptionsModel setReportDir(@NotNull String reportDir);
-
-  @NotNull
-  TestOptionsModel removeReportDir();
-
-  @NotNull
-  GradleNullableValue<String> resultsDir();
-
-  @NotNull
-  TestOptionsModel setResultsDir(@NotNull String resultsDir);
-
-  @NotNull
-  TestOptionsModel removeResultsDir();
+  ResolvedPropertyModel resultsDir();
 
   @NotNull
   UnitTestsModel unitTests();

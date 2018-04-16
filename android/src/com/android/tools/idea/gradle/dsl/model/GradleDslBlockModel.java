@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
+import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -54,14 +55,14 @@ public abstract class GradleDslBlockModel implements GradleDslModel {
   @NotNull
   public Map<String, GradlePropertyModel> getInScopeProperties() {
     return myDslElement.getInScopeElements().entrySet().stream()
-      .collect(Collectors.toMap(e -> e.getKey(), e -> new GradlePropertyModelImpl(e.getValue())));
+                       .collect(Collectors.toMap(e -> e.getKey(), e -> new GradlePropertyModelImpl(e.getValue())));
   }
 
   @Override
   @NotNull
   public List<GradlePropertyModel> getDeclaredProperties() {
     return myDslElement.getContainedElements(true).stream().filter(e -> !(e instanceof GradlePropertiesDslElement))
-      .map(e -> new GradlePropertyModelImpl(e)).collect(Collectors.toList());
+                       .map(e -> new GradlePropertyModelImpl(e)).collect(Collectors.toList());
   }
 
   @NotNull
@@ -77,5 +78,11 @@ public abstract class GradleDslBlockModel implements GradleDslModel {
   @NotNull
   protected ResolvedPropertyModel getModelForProperty(@NotNull String property, boolean isMethod) {
     return GradlePropertyModelBuilder.create(myDslElement, property).asMethod(isMethod).buildResolved();
+  }
+
+  @NotNull
+  protected ResolvedPropertyModel getFileModelForProperty(@NotNull String property, boolean isMethod) {
+    return GradlePropertyModelBuilder.create(myDslElement, property).asMethod(isMethod).addTransform(PropertyUtil.FILE_TRANSFORM)
+                                     .buildResolved();
   }
 }

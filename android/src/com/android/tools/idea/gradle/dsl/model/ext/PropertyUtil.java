@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.DefaultTransform;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.FileTransform;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
-import com.android.tools.idea.gradle.dsl.model.ext.transforms.SingleArgumentMethodTransform;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import org.jetbrains.annotations.NonNls;

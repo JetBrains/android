@@ -66,7 +66,7 @@ public class SourceFileModelTest extends GradleFileModelTestCase {
 
     AndroidModel android = buildModel.android();
     assertNotNull(android);
-    android.sourceSets().get(0).manifest().setSrcFile("otherSource.xml");
+    android.sourceSets().get(0).manifest().srcFile().setValue("otherSource.xml");
     verifySourceFile(buildModel, "otherSource.xml");
 
     buildModel.resetState();
@@ -91,7 +91,7 @@ public class SourceFileModelTest extends GradleFileModelTestCase {
 
     AndroidModel android = buildModel.android();
     assertNotNull(android);
-    android.sourceSets().get(0).manifest().setSrcFile("otherSource.xml");
+    android.sourceSets().get(0).manifest().srcFile().setValue("otherSource.xml");
     verifySourceFile(buildModel, "otherSource.xml");
 
     applyChangesAndReparse(buildModel);
@@ -115,7 +115,7 @@ public class SourceFileModelTest extends GradleFileModelTestCase {
 
     AndroidModel android = buildModel.android();
     assertNotNull(android);
-    android.sourceSets().get(0).manifest().setSrcFile("mainSource.xml");
+    android.sourceSets().get(0).manifest().srcFile().setValue("mainSource.xml");
     verifySourceFile(buildModel, "mainSource.xml");
 
     buildModel.resetState();
@@ -139,7 +139,7 @@ public class SourceFileModelTest extends GradleFileModelTestCase {
 
     AndroidModel android = buildModel.android();
     assertNotNull(android);
-    android.sourceSets().get(0).manifest().setSrcFile("mainSource.xml");
+    android.sourceSets().get(0).manifest().srcFile().setValue("mainSource.xml");
     verifySourceFile(buildModel, "mainSource.xml");
 
     applyChangesAndReparse(buildModel);
@@ -164,7 +164,7 @@ public class SourceFileModelTest extends GradleFileModelTestCase {
 
     AndroidModel android = buildModel.android();
     assertNotNull(android);
-    android.sourceSets().get(0).manifest().removeSrcFile();
+    android.sourceSets().get(0).manifest().srcFile().delete();
     verifySourceFile(buildModel, null);
 
     buildModel.resetState();
@@ -189,7 +189,7 @@ public class SourceFileModelTest extends GradleFileModelTestCase {
 
     AndroidModel android = buildModel.android();
     assertNotNull(android);
-    android.sourceSets().get(0).manifest().removeSrcFile();
+    android.sourceSets().get(0).manifest().srcFile().delete();
     verifySourceFile(buildModel, null);
 
     applyChangesAndReparse(buildModel);

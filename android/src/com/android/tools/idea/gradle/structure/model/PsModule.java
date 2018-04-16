@@ -220,13 +220,13 @@ public abstract class PsModule extends PsChildModel {
 
   @Nullable
   private static LocalMavenRepository maybeCreateLocalMavenRepository(MavenRepositoryModel mavenRepositoryModel) {
-    String repositoryUrl = mavenRepositoryModel.url().value();
+    String repositoryUrl = mavenRepositoryModel.url().forceString();
     Url parsedRepositoryUrl = Urls.parse(repositoryUrl, false);
     if (parsedRepositoryUrl != null && parsedRepositoryUrl.isInLocalFileSystem()) {
       String repositoryPath = parsedRepositoryUrl.getPath();
       File repositoryRootFile = new File(repositoryPath);
       if (repositoryRootFile.isAbsolute()) {
-        return new LocalMavenRepository(repositoryRootFile, mavenRepositoryModel.name().value());
+        return new LocalMavenRepository(repositoryRootFile, mavenRepositoryModel.name().forceString());
       }
     }
     return null;

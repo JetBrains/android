@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -137,8 +138,10 @@ public abstract class MultiTypePropertyModelImpl<T extends Enum<T>> extends Grad
         throw new UnsupportedOperationException("Can't convert " + oldValueType + " property to new type " + type);
       }
       else {
+        GradleDslElement element = getElement();
+        assert element instanceof GradleDslSimpleExpression;
         // TODO: This always saves as a literal string, this means any interpolated strings won't copy properly.
-        newValue = getRawValue(OBJECT_TYPE);
+        newValue = ((GradleDslSimpleExpression)element).getRawValue();
       }
     }
 

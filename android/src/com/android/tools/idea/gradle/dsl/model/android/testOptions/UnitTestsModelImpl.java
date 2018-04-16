@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.android.testOptions;
 
 import com.android.tools.idea.gradle.dsl.api.android.testOptions.UnitTestsModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.parser.android.testOptions.UnitTestsDslElement;
 import org.jetbrains.annotations.NonNls;
@@ -31,21 +31,7 @@ public class UnitTestsModelImpl extends GradleDslBlockModel implements UnitTests
 
   @Override
   @NotNull
-  public GradleNullableValue<Boolean> returnDefaultValues() {
-    return myDslElement.getLiteralProperty(RETURN_DEFAULT_VALUES, Boolean.class);
-  }
-
-  @Override
-  @NotNull
-  public UnitTestsModel setReturnDefaultValues(boolean returnDefaultValues) {
-    myDslElement.setNewLiteral(RETURN_DEFAULT_VALUES, returnDefaultValues);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public UnitTestsModel removeReturnDefaultValues() {
-    myDslElement.removeProperty(RETURN_DEFAULT_VALUES);
-    return this;
+  public ResolvedPropertyModel returnDefaultValues() {
+    return getModelForProperty(RETURN_DEFAULT_VALUES, true);
   }
 }

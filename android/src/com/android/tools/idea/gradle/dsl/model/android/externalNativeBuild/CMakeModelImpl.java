@@ -19,8 +19,6 @@ import com.android.tools.idea.gradle.dsl.api.android.externalNativeBuild.CMakeMo
 import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.CMakeDslElement;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-
 /**
  * This model is incomplete.
  */

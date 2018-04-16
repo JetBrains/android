@@ -17,15 +17,10 @@ package com.android.tools.idea.gradle.dsl.model.android.splits;
 
 import com.android.tools.idea.gradle.dsl.api.android.splits.DensityModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.parser.android.splits.DensityDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class DensityModelImpl extends BaseSplitOptionsModelImpl implements DensityModel {
   @NonNls private static final String AUTO = "auto";

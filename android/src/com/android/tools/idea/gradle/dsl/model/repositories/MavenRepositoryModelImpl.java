@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.gradle.dsl.model.repositories;
 
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenCredentialsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement;
-import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenCredentialsDslElement.CREDENTIALS_BLOCK_NAME;
 
@@ -32,29 +31,32 @@ import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenCredent
  * Represents a repository defined with maven {}.
  */
 public class MavenRepositoryModelImpl extends UrlBasedRepositoryModelImpl implements MavenRepositoryModel {
+  @NotNull
+  private GradlePropertiesDslElement myPropertiesDslElement;
+
   @NonNls private static final String ARTIFACT_URLS = "artifactUrls";
 
-  public MavenRepositoryModelImpl(@NotNull MavenRepositoryDslElement dslElement) {
-    this(dslElement, "maven", "https://repo1.maven.org/maven2/");
+  public MavenRepositoryModelImpl(@NotNull GradlePropertiesDslElement holder, @NotNull MavenRepositoryDslElement dslElement) {
+    this(holder, dslElement, "maven", "https://repo1.maven.org/maven2/");
+    myPropertiesDslElement = dslElement;
   }
 
-  protected MavenRepositoryModelImpl(@NotNull MavenRepositoryDslElement dslElement,
+  protected MavenRepositoryModelImpl(@NotNull GradlePropertiesDslElement holder,
+                                     @NotNull MavenRepositoryDslElement dslElement,
                                      @NotNull String defaultRepoName,
                                      @NotNull String defaultRepoUrl) {
-    super(dslElement, defaultRepoName, defaultRepoUrl);
+    super(holder, dslElement, defaultRepoName, defaultRepoUrl);
+    myPropertiesDslElement = dslElement;
   }
 
   @NotNull
-  public List<GradleNotNullValue<String>> artifactUrls() {
-    assert myDslElement != null;
-    List<GradleNotNullValue<String>> artifactUrls = myDslElement.getListProperty(ARTIFACT_URLS, String.class);
-    return artifactUrls != null ? artifactUrls : ImmutableList.of();
+  public ResolvedPropertyModel artifactUrls() {
+    return GradlePropertyModelBuilder.create(myPropertiesDslElement, ARTIFACT_URLS).asMethod(true).buildResolved();
   }
 
   @Nullable
   public MavenCredentialsModel credentials() {
-    assert myDslElement != null;
-    MavenCredentialsDslElement credentials = myDslElement.getPropertyElement(CREDENTIALS_BLOCK_NAME, MavenCredentialsDslElement.class);
+    MavenCredentialsDslElement credentials = myPropertiesDslElement.getPropertyElement(CREDENTIALS_BLOCK_NAME, MavenCredentialsDslElement.class);
     return credentials != null ? new MavenCredentialsModel(credentials) : null;
   }
 

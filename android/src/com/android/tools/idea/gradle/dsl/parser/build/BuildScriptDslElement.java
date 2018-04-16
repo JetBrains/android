@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class BuildScriptDslElement extends GradleDslBlockElement {
   @NonNls public static final String BUILDSCRIPT_BLOCK_NAME = "buildscript";
