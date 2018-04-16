@@ -59,7 +59,7 @@ public class NinePatchEditor implements FileEditor, ImageViewer.PatchUpdateListe
     myProject = project;
 
     // Listen for 'Save All' events
-    FileDocumentManagerListener saveListener = new FileDocumentManagerAdapter() {
+    FileDocumentManagerListener saveListener = new FileDocumentManagerListener() {
       @Override
       public void beforeAllDocumentsSaving() {
         saveFile();
