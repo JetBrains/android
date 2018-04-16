@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.property.editors;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.uibuilder.property.editors.BrowsePanel;
@@ -105,6 +104,9 @@ abstract public class EnumEditor extends BaseComponentEditor implements NlCompon
 
     myPanel.add(myCombo, BorderLayout.CENTER);
     if (browsePanel != null) {
+      if (includeBorder) {
+        browsePanel.setBorder(JBUI.Borders.empty(4, 1));
+      }
       myPanel.add(browsePanel, BorderLayout.LINE_END);
     }
 
@@ -479,7 +481,7 @@ abstract public class EnumEditor extends BaseComponentEditor implements NlCompon
     @Override
     protected Insets getInsets() {
       // Minimize the vertical padding used in the UI
-      return JBUI.insets(VERTICAL_PADDING, HORIZONTAL_PADDING, VERTICAL_PADDING, 4).asUIResource();
+      return JBUI.insets(VERTICAL_PADDING, HORIZONTAL_ENUM_PADDING, VERTICAL_PADDING, 4).asUIResource();
     }
 
     @Override

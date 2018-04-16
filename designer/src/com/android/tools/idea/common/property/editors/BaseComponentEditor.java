@@ -40,7 +40,10 @@ public abstract class BaseComponentEditor implements NlComponentEditor, BrowsePa
   public static final int VERTICAL_SPACING = 2;
 
   /** Horizontal padding inside the edit control */
-  public static final int HORIZONTAL_PADDING = 7;
+  public static final int HORIZONTAL_PADDING = 3;
+
+  /** Horizontal spacing inside the combobox editor */
+  public static final int HORIZONTAL_ENUM_PADDING = 7;
 
   /** Vertical padding inside the edit control */
   public static final int VERTICAL_PADDING = 2;
