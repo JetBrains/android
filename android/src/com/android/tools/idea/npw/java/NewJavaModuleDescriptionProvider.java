@@ -22,7 +22,7 @@ import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
-import icons.StudioIllustrations;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,7 +46,7 @@ public class NewJavaModuleDescriptionProvider implements ModuleDescriptionProvid
     @Nullable
     @Override
     public Icon getIcon() {
-      return StudioIllustrations.ModuleTemplates.ANDROID_MODULE;
+      return AndroidIcons.ModuleTemplates.Android;
     }
 
     @NotNull
