@@ -96,9 +96,9 @@ abstract class NavTestCase : AndroidTestCase() {
 
     val TAG_NAVIGATION = "navigation"
     private val PREBUILT_AAR_PATHS = arrayOf(
-      "../../prebuilts/tools/common/m2/repository/androidx/navigation/runtime/0.7.0-alpha1/runtime-0.7.0-alpha1.aar",
-      "../../prebuilts/tools/common/m2/repository/androidx/navigation/common/0.7.0-alpha1/common-0.7.0-alpha1.aar",
-      "../../prebuilts/tools/common/m2/repository/androidx/navigation/fragment/0.7.0-alpha1/fragment-0.7.0-alpha1.aar",
+      "../../prebuilts/tools/common/m2/repository/androidx/navigation/navigation-runtime/1.0.0-alpha01/navigation-runtime-1.0.0-alpha01.aar",
+      "../../prebuilts/tools/common/m2/repository/androidx/navigation/navigation-common/1.0.0-alpha01/navigation-common-1.0.0-alpha01.aar",
+      "../../prebuilts/tools/common/m2/repository/androidx/navigation/navigation-fragment/1.0.0-alpha01/navigation-fragment-1.0.0-alpha01.aar",
       "../../prebuilts/tools/common/m2/repository/com/android/support/support-fragment/27.0.2/support-fragment-27.0.2.aar")
 
     val testDataPath: String
