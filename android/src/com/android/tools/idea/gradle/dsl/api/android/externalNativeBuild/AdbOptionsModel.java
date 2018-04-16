@@ -15,36 +15,14 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android.externalNativeBuild;
 
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public interface AdbOptionsModel extends GradleDslModel {
-  @Nullable
-  List<GradleNotNullValue<String>> installOptions();
+  @NotNull
+  ResolvedPropertyModel installOptions();
 
   @NotNull
-  AdbOptionsModel addInstallOption(@NotNull String installOption);
-
-  @NotNull
-  AdbOptionsModel removeInstallOption(@NotNull String installOption);
-
-  @NotNull
-  AdbOptionsModel removeAllInstallOptions();
-
-  @NotNull
-  AdbOptionsModel replaceInstallOption(@NotNull String oldInstallOption, @NotNull String newInstallOption);
-
-  @NotNull
-  GradleNullableValue<Integer> timeOutInMs();
-
-  @NotNull
-  AdbOptionsModel setTimeOutInMs(int timeOutInMs);
-
-  @NotNull
-  AdbOptionsModel removeTimeOutInMs();
+  ResolvedPropertyModel timeOutInMs();
 }
