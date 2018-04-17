@@ -87,7 +87,14 @@ public class EnergyEventsFetcher implements Updatable {
           .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)myRange.getMax()))
           .build();
         List<EnergyEvent> eventList = myClient.getEvents(request).getEventsList();
-        myDurationList = EnergyDuration.groupById(eventList);
+        List<EnergyDuration> partialDurations = EnergyDuration.groupById(eventList);
+        for (EnergyDuration partialDuration : partialDurations) {
+          EnergyProfiler.EnergyEventGroupRequest eventGroupRequest = EnergyProfiler.EnergyEventGroupRequest.newBuilder()
+            .setSession(mySession)
+            .setEventId(partialDuration.getEventList().get(0).getEventId())
+            .build();
+          myDurationList.add(new EnergyDuration(myClient.getEventGroup(eventGroupRequest).getEventsList()));
+        }
       }
 
       fireListeners(myDurationList);

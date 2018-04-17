@@ -158,14 +158,7 @@ public final class EnergyEventsView {
       }
       int row = myEventsTable.getSelectedRow();
       if (row >= 0 && row < myEventsTable.getRowCount()) {
-        EnergyDuration partialDuration = myTableModel.getValue(myEventsTable.convertRowIndexToModel(row));
-        EnergyProfiler.EnergyEventGroupRequest request = EnergyProfiler.EnergyEventGroupRequest.newBuilder()
-          .setSession(myStage.getStudioProfilers().getSession())
-          .setEventId(partialDuration.getEventList().get(0).getEventId())
-          .build();
-        EnergyDuration completeDuration =
-          new EnergyDuration(myStage.getStudioProfilers().getClient().getEnergyClient().getEventGroup(request).getEventsList());
-        myStage.setSelectedDuration(completeDuration);
+        myStage.setSelectedDuration(myTableModel.getValue(myEventsTable.convertRowIndexToModel(row)));
       }
     });
     createTooltip();

@@ -24,6 +24,7 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
 import java.util.*
+import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
 
 class EnergyEventsFetcherTest {
@@ -57,20 +58,40 @@ class EnergyEventsFetcherTest {
 
     val firstDuration = result[0]
     assertThat(firstDuration.eventList.size).isEqualTo(2)
-    assertThat(firstDuration.eventList[0].timestamp).isEqualTo(1000)
-    assertThat(firstDuration.eventList[1].timestamp).isEqualTo(1300)
+    assertThat(firstDuration.eventList[0].timestamp).isEqualTo(TimeUnit.MICROSECONDS.toNanos(1000))
+    assertThat(firstDuration.eventList[1].timestamp).isEqualTo(TimeUnit.MICROSECONDS.toNanos(1300))
     val secondDuration = result[1]
     assertThat(secondDuration.eventList.size).isEqualTo(1)
-    assertThat(secondDuration.eventList[0].timestamp).isEqualTo(1200)
+    assertThat(secondDuration.eventList[0].timestamp).isEqualTo(TimeUnit.MICROSECONDS.toNanos(1200))
     val thirdDuration = result[2]
     assertThat(thirdDuration.eventList.size).isEqualTo(2)
-    assertThat(thirdDuration.eventList[0].timestamp).isEqualTo(1300)
-    assertThat(thirdDuration.eventList[1].timestamp).isEqualTo(1400)
+    assertThat(thirdDuration.eventList[0].timestamp).isEqualTo(TimeUnit.MICROSECONDS.toNanos(1300))
+    assertThat(thirdDuration.eventList[1].timestamp).isEqualTo(TimeUnit.MICROSECONDS.toNanos(1400))
+  }
+
+  @Test
+  fun testFetchCompleteDurations() {
+    val session = Common.Session.newBuilder().setSessionId(1234L).build()
+    val fetcher = EnergyEventsFetcher(grpcChannel.client.energyClient, session, Range(1299.0, 2000.0))
+    var result: List<EnergyDuration> = ArrayList()
+    val listener = EnergyEventsFetcher.Listener { list -> result = list }
+    fetcher.addListener(listener)
+
+    assertThat(result.size).isEqualTo(2)
+    val firstDuration = result[0]
+    assertThat(firstDuration.eventList.size).isEqualTo(2)
+    assertThat(firstDuration.eventList[0].timestamp).isEqualTo(TimeUnit.MICROSECONDS.toNanos(1000))
+    assertThat(firstDuration.eventList[1].timestamp).isEqualTo(TimeUnit.MICROSECONDS.toNanos(1300))
+    val secondDuration = result[1]
+    assertThat(secondDuration.eventList.size).isEqualTo(2)
+    assertThat(secondDuration.eventList[0].timestamp).isEqualTo(TimeUnit.MICROSECONDS.toNanos(1300))
+    assertThat(secondDuration.eventList[1].timestamp).isEqualTo(TimeUnit.MICROSECONDS.toNanos(1400))
   }
 
   // Build an immutable list of default events with the same ID.
   private fun newEnergyEventGroup(id: Int, timeList: List<Long>): List<EnergyProfiler.EnergyEvent> {
-    return timeList.stream().map { time -> EnergyProfiler.EnergyEvent.newBuilder().setTimestamp(time).setEventId(id).build() }
+    return timeList.stream()
+      .map { time -> EnergyProfiler.EnergyEvent.newBuilder().setTimestamp(TimeUnit.MICROSECONDS.toNanos(time)).setEventId(id).build() }
       .collect(ImmutableList.toImmutableList())
   }
 }
