@@ -265,6 +265,21 @@ public final class FakeFeatureTracker implements FeatureTracker {
   }
 
   @Override
+  public void trackSelectCpuKernelElement() {
+
+  }
+
+  @Override
+  public void trackToggleCpuKernelHideablePanel() {
+
+  }
+
+  @Override
+  public void trackToggleCpuThreadsHideablePanel() {
+
+  }
+
+  @Override
   public void trackFilterMetadata(@NotNull FilterMetadata filterMetadata) {
     myLastFilterMetadata = filterMetadata;
   }
