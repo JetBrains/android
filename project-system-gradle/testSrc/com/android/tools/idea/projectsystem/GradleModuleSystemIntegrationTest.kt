@@ -58,7 +58,28 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
     assertThat(moduleSystem.getDeclaredDependency(GradleCoordinate("a", "BAD", "4.5.6"))).isNull()
   }
 
+  @Throws(Exception::class)
+  fun testGetResolvedMatchingDependencies() {
+    loadSimpleApplication()
+    val moduleSystem = myModules.appModule.getModuleSystem()
+    val appCompatDependency = GradleCoordinate("com.android.support", "appcompat-v7", "27.+")
+
+    val wildcardVersionResolution =
+      moduleSystem.getResolvedDependency(GradleCoordinate("com.android.support", "appcompat-v7", "27.+"))
+    assertThat(wildcardVersionResolution).isNotNull()
+    assertThat(wildcardVersionResolution!!.matches(appCompatDependency)).isTrue()
+  }
+
+  @Throws(Exception::class)
+  fun testGetResolvedNonMatchingDependencies() {
+    loadSimpleApplication()
+    val moduleSystem = myModules.appModule.getModuleSystem()
+
+    assertThat(moduleSystem.getResolvedDependency(GradleCoordinate("com.android.support", "appcompat-v7", "26.+"))).isNull()
+    assertThat(moduleSystem.getResolvedDependency(GradleCoordinate("com.android.support", "appcompat-v7", "99.9.0"))).isNull()
+    assertThat(moduleSystem.getResolvedDependency(GradleCoordinate("com.android.support", "appcompat-v7", "99.+"))).isNull()
+  }
+
   private fun isSameArtifact(first: GradleCoordinate?, second: GradleCoordinate?) =
     GradleCoordinate.COMPARE_PLUS_LOWER.compare(first, second) == 0
-
 }

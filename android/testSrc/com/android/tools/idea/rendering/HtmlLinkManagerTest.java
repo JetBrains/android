@@ -109,6 +109,12 @@ public class HtmlLinkManagerTest extends TestCase {
         return null;
       }
 
+      @Nullable
+      @Override
+      public GradleCoordinate getResolvedDependency(@NotNull GradleCoordinate coordinate) throws DependencyManagementException {
+        return null;
+      }
+
       @NotNull
       @Override
       public List<NamedModuleTemplate> getModuleTemplates(@Nullable VirtualFile targetDirectory) {

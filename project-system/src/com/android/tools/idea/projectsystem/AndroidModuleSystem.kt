@@ -67,6 +67,17 @@ interface AndroidModuleSystem {
   fun getDeclaredDependency(coordinate: GradleCoordinate): GradleCoordinate?
 
   /**
+   * Returns the dependency accessible to sources contained in this module referenced by its [GradleCoordinate].
+   * This method will resolve version information to what is resolved. For example:
+   * Query coordinate a:b:+ will return a:b:123 if version 123 of that artifact is a resolved dependency.
+   * Query coordinate a:b:123 will return a:b:123 if version 123 of that artifact is a resolved dependency.
+   * Query coordinate a:b:456 will return null if version 123 is a resolved dependency but not version 456.
+   * Use [AndroidModuleSystem.getDeclaredDependency] if you want the declared version.
+   */
+  @Throws(DependencyManagementException::class)
+  fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate?
+
+  /**
    * Adds an artifact of given [artifactId] as a dependency available to the sources contained in this module.
    * The caller may specify a specific [version] of the artifact to add.  If no [version] is passed or the passed [version] is null,
    * the artifact added will be of the latest version supported by the underlying build system of this project.
