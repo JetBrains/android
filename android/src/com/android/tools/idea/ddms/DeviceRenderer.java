@@ -90,7 +90,7 @@ public class DeviceRenderer {
       }
     }
     if (avdName == null) {
-      avdName = "unknown";
+      avdName = d.getSerialNumber();
     }
     return String.format("%1$s %2$s ", AndroidBundle.message("android.emulator"), avdName);
   }
