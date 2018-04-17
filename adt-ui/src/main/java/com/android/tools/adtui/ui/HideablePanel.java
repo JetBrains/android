@@ -183,18 +183,27 @@ public class HideablePanel extends JPanel {
       return this;
     }
 
+    /**
+     * Sets the content child component's border inside the hideable panel.
+     */
     @NotNull
     public Builder setContentBorder(@NotNull Border border) {
       myContentBorder = border;
       return this;
     }
 
+    /**
+     * Sets this hideable panel's border.
+     */
     @NotNull
     public Builder setPanelBorder(@NotNull Border border) {
       myPanelBorder = border;
       return this;
     }
 
+    /**
+     * Sets the title bar padding on the right.
+     */
     @NotNull
     public Builder setTitleRightPadding(int rightPadding) {
       myTitleRightPadding = rightPadding;

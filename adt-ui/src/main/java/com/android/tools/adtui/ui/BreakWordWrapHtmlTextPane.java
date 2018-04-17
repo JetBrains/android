@@ -22,6 +22,9 @@ import javax.swing.text.ViewFactory;
 import javax.swing.text.html.*;
 import java.awt.*;
 
+/**
+ * A {@link JTextPane} of HTML type whose text can be selected and can be wrapped even in the middle of words.
+ */
 public class BreakWordWrapHtmlTextPane extends JTextPane {
 
   public BreakWordWrapHtmlTextPane() {
