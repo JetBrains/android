@@ -204,6 +204,8 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
       installProfilingInstructions(monitorPanel);
     }
 
+    getProfilersView().installCommonMenuItems(selection);
+
     monitorPanel.add(axisPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(lineChartPanel, new TabularLayout.Constraint(0, 0));
