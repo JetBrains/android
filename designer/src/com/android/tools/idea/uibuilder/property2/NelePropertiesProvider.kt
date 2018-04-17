@@ -20,8 +20,8 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property2.api.PropertiesTable
 import com.android.tools.idea.lint.LintIdeClient
 import com.android.tools.idea.model.AndroidModuleInfo
-import com.android.tools.idea.uibuilder.model.hasNlComponentInfo
-import com.android.tools.idea.uibuilder.model.viewInfo
+import com.android.tools.idea.uibuilder.model.currentActivityIsDerivedFromAppCompatActivity
+import com.android.tools.idea.uibuilder.model.moduleDependsOnAppCompat
 import com.android.tools.idea.uibuilder.property2.support.TypeResolver
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.ImmutableTable
@@ -30,15 +30,11 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiManager
-import com.intellij.psi.util.ClassUtil
 import com.intellij.psi.xml.XmlTag
 import com.intellij.xml.NamespaceAwareXmlAttributeDescriptor
 import com.intellij.xml.XmlAttributeDescriptor
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
 import org.jetbrains.android.dom.attrs.AttributeDefinition
-import org.jetbrains.android.dom.attrs.AttributeDefinitions
 import org.jetbrains.android.dom.attrs.AttributeFormat
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import java.awt.EventQueue
@@ -51,8 +47,8 @@ import java.util.*
  * the components have in common. Only attributes that are available for
  * all versions down to and including minSdkVersion will be included.
  *
- * If layoutlib inflated a different view class, add the attributes from
- * that view as well (unless an existing framework attribute exists).
+ * If this module uses AppCompat, the AppCompat attributes are added to the
+ * available properties (unless an existing framework attribute exists).
  *
  * There are special exceptions for the srcCompat attribute and attributes
  * on an AutoCompleteTextView widget.
@@ -85,6 +81,8 @@ class NelePropertiesProvider(private val model: NelePropertiesModel) {
     val project = model.facet.module.project
     val apiLookup = LintIdeClient.getApiLookup(project)
     val minApi = AndroidModuleInfo.getInstance(model.facet).minSdkVersion.featureLevel
+    val nlModel = components[0].model
+    val appCompatUsed = nlModel.moduleDependsOnAppCompat() && nlModel.currentActivityIsDerivedFromAppCompatActivity()
 
     val localAttrDefs = localResourceManager.attributeDefinitions
     val systemAttrDefs = systemResourceManager.attributeDefinitions
@@ -116,19 +114,24 @@ class NelePropertiesProvider(private val model: NelePropertiesModel) {
         properties.put(namespace, name, property)
       }
 
-      val tagClass = elementDescriptor.declaration as? PsiClass
-      val className = tagClass?.qualifiedName
-      if (className != null && component.hasNlComponentInfo) {
-        val viewClassName = component.viewInfo?.className
-        if (viewClassName != className && viewClassName != null) {
-          addAttributesFromInflatedStyleable(properties, localAttrDefs, tagClass, viewClassName, components)
+      if (appCompatUsed && tag.localName.indexOf('.') < 0) {
+        val styleable = localAttrDefs.getStyleableByName("AppCompat" + tag.localName)
+        if (styleable != null) {
+          for (attrDef in styleable.attributes) {
+            if (properties.contains(NS_RESOURCES, attrDef.name)) {
+              // If the corresponding framework attribute is supported, prefer the framework attribute.
+              continue
+            }
+            val namePair = getPropertyName(attrDef)
+            val property = createProperty(namePair.first, namePair.second, attrDef, components)
+            properties.put(property.namespace, property.name, property)
+          }
         }
-      }
-
-      // Exception: Always prefer ATTR_SRC_COMPAT over ATTR_SRC:
-      if (properties.contains(AUTO_URI, ATTR_SRC_COMPAT)) {
-        properties.remove(ANDROID_URI, ATTR_SRC)
-        properties.remove(AUTO_URI, ATTR_SRC)
+        // Exception: Always prefer ATTR_SRC_COMPAT over ATTR_SRC:
+        if (properties.contains(AUTO_URI, ATTR_SRC_COMPAT)) {
+          properties.remove(ANDROID_URI, ATTR_SRC)
+          properties.remove(AUTO_URI, ATTR_SRC)
+        }
       }
 
       // Exceptions:
@@ -151,30 +154,6 @@ class NelePropertiesProvider(private val model: NelePropertiesModel) {
     }
 
     return combinedProperties ?: emptyTable
-  }
-
-  private fun addAttributesFromInflatedStyleable(properties: Table<String, String, NelePropertyItem>,
-                                                 localAttrDefs: AttributeDefinitions,
-                                                 xmlClass: PsiClass,
-                                                 inflatedClassName: String,
-                                                 components: List<NlComponent>) {
-    var inflatedClass = ClassUtil.findPsiClass(PsiManager.getInstance(xmlClass.project), inflatedClassName)
-    while (inflatedClass != null && inflatedClass != xmlClass) {
-      val styleable = inflatedClass.name?.let { localAttrDefs.getStyleableByName(it) }
-      if (styleable != null) {
-        for (attrDef in styleable.attributes) {
-          if (properties.contains(NS_RESOURCES, attrDef.name)) {
-            // If the corresponding framework attribute is supported, prefer the framework attribute.
-            continue
-          }
-          val namePair = getPropertyName(attrDef)
-          val property = createProperty(namePair.first, namePair.second, attrDef, components)
-          properties.put(property.namespace, property.name, property)
-        }
-      }
-
-      inflatedClass = inflatedClass.superClass
-    }
   }
 
   private fun createProperty(namespace: String, name: String, attr: AttributeDefinition?, components: List<NlComponent>): NelePropertyItem {

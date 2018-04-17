@@ -18,8 +18,6 @@ package com.android.tools.idea.uibuilder.property2
 import com.android.SdkConstants.*
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property2.api.PropertiesTable
-import com.android.tools.idea.uibuilder.property2.testutils.APPCOMPAT_IMAGE_VIEW
-import com.android.tools.idea.uibuilder.property2.testutils.APPCOMPAT_TEXT_VIEW
 import com.android.tools.idea.uibuilder.property2.testutils.MockAppCompat
 import com.android.tools.idea.uibuilder.property2.testutils.PropertyTestCase
 import com.google.common.truth.Truth.assertThat
@@ -73,7 +71,7 @@ class NelePropertiesProviderTest : PropertyTestCase() {
   fun testFontFamilyFromAppCompatForMinApi14() {
     setUpAppCompat()
     val provider = createProvider()
-    val properties = provider.getProperties(createComponents(component(TEXT_VIEW).viewObjectClassName(APPCOMPAT_TEXT_VIEW)))
+    val properties = provider.getProperties(createComponents(component(TEXT_VIEW)))
     assertThat(properties.contains(AUTO_URI, ATTR_FONT_FAMILY)).isTrue()
     assertThat(properties.doesNotContain(ANDROID_URI, ATTR_FONT_FAMILY)).isTrue()
   }
@@ -81,7 +79,7 @@ class NelePropertiesProviderTest : PropertyTestCase() {
   fun testFontFamilyFromAndroidForMinApi16() {
     setUpAppCompat()
     val provider = createProvider()
-    val properties = provider.getProperties(createComponents(component(TEXT_VIEW).viewObjectClassName(APPCOMPAT_TEXT_VIEW)))
+    val properties = provider.getProperties(createComponents(component(TEXT_VIEW)))
     assertThat(properties.doesNotContain(AUTO_URI, ATTR_FONT_FAMILY)).isTrue()
     assertThat(properties.contains(ANDROID_URI, ATTR_FONT_FAMILY)).isTrue()
   }
@@ -89,7 +87,7 @@ class NelePropertiesProviderTest : PropertyTestCase() {
   fun testSrcCompatIncludedWhenUsingAppCompat() {
     setUpAppCompat()
     val provider = createProvider()
-    val properties = provider.getProperties(createComponents(component(IMAGE_VIEW).viewObjectClassName(APPCOMPAT_IMAGE_VIEW)))
+    val properties = provider.getProperties(createComponents(component(IMAGE_VIEW)))
     assertThat(properties.doesNotContain(ANDROID_URI, ATTR_SRC)).isTrue()
     assertThat(properties.contains(AUTO_URI, ATTR_SRC_COMPAT)).isTrue()
   }
