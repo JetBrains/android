@@ -53,7 +53,7 @@ public class ThemeEditorTableTest {
 
   @Test
   public void testParentValueCell() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
@@ -72,7 +72,7 @@ public class ThemeEditorTableTest {
     // 6. -- Separator
     // 7. Show all themes
     assertThat(parentsList).hasSize(8);
-    assertThat(parentsList.get(0)).isEqualTo("android:Theme.Holo.Light.DarkActionBar");
+    assertThat(parentsList.get(0)).isEqualTo("Theme.AppCompat.Light.DarkActionBar");
     assertThat(parentsList.get(1)).startsWith("javax.swing.JSeparator");
     assertThat(parentsList.get(2)).isEqualTo("android:Theme.Material.Light.NoActionBar");
     assertThat(parentsList.get(3)).isEqualTo("android:Theme.Material.NoActionBar");
@@ -91,7 +91,7 @@ public class ThemeEditorTableTest {
       .robot().finder().findByType((JComponent)parentEditor, JComboBox.class));
     parentComboBox.selectItem(6);
     parentCellFixture.stopEditing();
-    assertEquals("android:Theme.Holo.Light.DarkActionBar", themeEditorTable.getComboBoxSelectionAt(parentCell));
+    assertEquals("Theme.AppCompat.Light.DarkActionBar", themeEditorTable.getComboBoxSelectionAt(parentCell));
 
     // Selects a new parent
     final String newParent = "Theme.AppCompat.NoActionBar";
@@ -102,7 +102,7 @@ public class ThemeEditorTableTest {
     assertEquals(newParent, themeEditorTable.getComboBoxSelectionAt(parentCell));
 
     guiTest.ideFrame().invokeMenuPath("Edit", "Undo Updating Parent to Theme.AppCo...");
-    assertEquals("android:Theme.Holo.Light.DarkActionBar", themeEditorTable.getComboBoxSelectionAt(parentCell));
+    assertEquals("Theme.AppCompat.Light.DarkActionBar", themeEditorTable.getComboBoxSelectionAt(parentCell));
 
     guiTest.ideFrame().invokeMenuPath("Edit", "Redo Updating Parent to Theme.AppCo...");
     assertEquals(newParent, themeEditorTable.getComboBoxSelectionAt(parentCell));
@@ -137,16 +137,15 @@ public class ThemeEditorTableTest {
   @RunIn(TestGroup.UNRELIABLE)  // b/72471564
   @Test
   public void testSettingColorAttribute() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
     TableCell cell = row(1).column(0);
-
     FontFixture cellFont = themeEditorTable.fontAt(cell);
-    cellFont.requireNotBold();
-    assertEquals("android:colorPrimary", themeEditorTable.attributeNameAt(cell));
-    assertEquals("@android:color/holo_light_primary", themeEditorTable.valueAt(cell));
+    cellFont.requireBold();
+    assertEquals("colorPrimary", themeEditorTable.attributeNameAt(cell));
+    assertEquals("@color/colorPrimary", themeEditorTable.valueAt(cell));
 
     JTableCellFixture colorCell = themeEditorTable.cell(cell);
     ResourceComponentFixture resourceComponent = new ResourceComponentFixture(guiTest.robot(), (ResourceComponent)colorCell.editor());
@@ -159,16 +158,16 @@ public class ThemeEditorTableTest {
     dialog.clickOK();
     colorCell.stopEditing();
 
-    themeEditorTable.requireValueAt(cell, "@color/holo_light_primary");
+    themeEditorTable.requireValueAt(cell, "@color/colorPrimary");
     cellFont = themeEditorTable.fontAt(cell);
     cellFont.requireBold();
-    assertEquals("android:colorPrimary", themeEditorTable.attributeNameAt(cell));
+    assertEquals("colorPrimary", themeEditorTable.attributeNameAt(cell));
 
     EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/values/colors.xml");
-    editor.moveBetween("", "holo");
+    editor.moveBetween("", "colorPrimary");
     assertThat(editor.getCurrentLine().trim())
-      .isEqualTo("<color name=\"holo_light_primary\">" + ResourceHelper.colorToString(color) + "</color>");
+      .isEqualTo("<color name=\"colorPrimary\">" + ResourceHelper.colorToString(color) + "</color>");
   }
 
   /**
@@ -176,7 +175,7 @@ public class ThemeEditorTableTest {
    */
   @Test
   public void testStateListPicker() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
@@ -261,13 +260,13 @@ public class ThemeEditorTableTest {
   @RunIn(TestGroup.UNRELIABLE)  // b/73729624
   @Test
   public void testResettingColorAttribute() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
     final ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
     final TableCell cell = row(1).column(0);
-    assertEquals("android:colorPrimary", themeEditorTable.attributeNameAt(cell));
-    assertEquals("@android:color/holo_light_primary", themeEditorTable.valueAt(cell));
+    assertEquals("colorPrimary", themeEditorTable.attributeNameAt(cell));
+    assertEquals("@color/colorPrimary", themeEditorTable.valueAt(cell));
 
     JTableCellFixture colorCell = themeEditorTable.cell(cell);
     ResourceComponentFixture resourceComponent = new ResourceComponentFixture(guiTest.robot(), (ResourceComponent)colorCell.editor());
@@ -279,14 +278,15 @@ public class ThemeEditorTableTest {
     dialog.getColorPicker().setColorWithIntegers(color);
     dialog.clickOK();
 
-    themeEditorTable.requireValueAt(cell, "@color/holo_light_primary");
+    themeEditorTable.requireValueAt(cell, "@color/colorPrimary");
 
     colorCell.startEditing();
     JPopupMenuFixture popupMenu = resourceComponent.showPopupMenu();
 
     popupMenu.menuItemWithPath("Reset value").click();
 
-    themeEditorTable.requireValueAt(cell, "@android:color/holo_light_primary");
+    // The original value is removed. We are left with the default for the parent theme
+    themeEditorTable.requireValueAt(cell, "@color/primary_material_dark");
   }
 
   /**
@@ -294,13 +294,13 @@ public class ThemeEditorTableTest {
    */
   @Test
   public void testShowDocumentation() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
     TableCell cell = row(1).column(0);
-    assertEquals("android:colorPrimary", themeEditorTable.attributeNameAt(cell));
-    assertEquals("@android:color/holo_light_primary", themeEditorTable.valueAt(cell));
+    assertEquals("colorPrimary", themeEditorTable.attributeNameAt(cell));
+    assertEquals("@color/colorPrimary", themeEditorTable.valueAt(cell));
 
     JTableCellFixture colorCell = themeEditorTable.cell(cell);
     ResourceComponentFixture resourceComponent = new ResourceComponentFixture(guiTest.robot(), (ResourceComponent)colorCell.editor());
@@ -313,13 +313,12 @@ public class ThemeEditorTableTest {
 
     JEditorPane docComp = guiTest.robot().finder().findByType(docWindow, JEditorPane.class);
     JTextComponentFixture quickDoc = new JTextComponentFixture(guiTest.robot(), docComp);
-
-    assertThat(quickDoc.text()).contains("color for the app");
+    assertThat(quickDoc.text()).contains("?attr/colorPrimary =&gt; @color/colorPrimary =&gt; #008577");
   }
 
   @Test
   public void testTabSwitchingWhileEditing() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
     final ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
