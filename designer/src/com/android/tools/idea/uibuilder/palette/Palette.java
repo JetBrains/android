@@ -254,10 +254,6 @@ public class Palette {
     @Nullable
     private String myMaterialReference;
 
-    @XmlAttribute(name = "info")
-    @Nullable
-    private String myInfo;
-
     @XmlElement(name = "xml", type = XmlValuePart.class)
     private XmlValuePart myXmlValuePart;
 
@@ -338,11 +334,6 @@ public class Palette {
     @Nullable
     public String getMaterialReference() {
       return myMaterialReference;
-    }
-
-    @Nullable
-    public String getInfo() {
-      return myInfo;
     }
 
     @NotNull

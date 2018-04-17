@@ -17,13 +17,10 @@ package com.android.tools.idea.uibuilder.palette2;
 
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.common.model.NlLayoutType;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.idea.uibuilder.palette.Palette;
 import com.intellij.ide.util.PropertiesComponent;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.ArgumentMatchers;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
@@ -42,25 +39,23 @@ public class DataModelTest extends AndroidTestCase {
   private CategoryListModel myCategoryListModel;
   private ItemListModel myItemListModel;
   private DependencyManager myDependencyManager;
-  private List<GoogleMavenArtifactId> myDependencies;
   private boolean myHasAndroidxDeps;
+  private boolean myUsingMaterial2Theme;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myDependencies = new ArrayList<>();
     myDependencyManager = mock(DependencyManager.class);
     when(myDependencyManager.useAndroidxDependencies()).thenAnswer(new Answer<Boolean>() {
       @Override
-      public Boolean answer(@NotNull InvocationOnMock invocation) {
+      public Boolean answer(InvocationOnMock invocation) {
         return myHasAndroidxDeps;
       }
     });
-    when(myDependencyManager.dependsOn(ArgumentMatchers.any())).thenAnswer(new Answer<Boolean>() {
+    when(myDependencyManager.usingMaterial2Theme()).thenAnswer(new Answer<Boolean>() {
       @Override
-      public Boolean answer(@NotNull InvocationOnMock invocation) {
-        GoogleMavenArtifactId artifactId = invocation.getArgument(0);
-        return myDependencies.contains(artifactId);
+      public Boolean answer(InvocationOnMock invocation) {
+        return myUsingMaterial2Theme;
       }
     });
     myDataModel = new DataModel(myDependencyManager);
@@ -77,7 +72,6 @@ public class DataModelTest extends AndroidTestCase {
     myItemListModel = null;
     myDependencyManager = null;
     myHasAndroidxDeps = false;
-    myDependencies = null;
   }
 
   public void testEmptyModelHoldsUsableListModels() {
@@ -86,7 +80,7 @@ public class DataModelTest extends AndroidTestCase {
   }
 
   public void testCommonLayoutGroup() {
-    myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT);
+    myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT, true);
     assertThat(myCategoryListModel.getSize()).isEqualTo(8);
     assertThat(myCategoryListModel.getElementAt(0)).isEqualTo(DataModel.COMMON);
     assertThat(getElementsAsStrings(myItemListModel)).isEmpty();
@@ -97,13 +91,13 @@ public class DataModelTest extends AndroidTestCase {
   }
 
   public void testAddFavorite() {
-    myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT);
+    myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT, true);
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(2));
-    myDataModel.addFavoriteItem(myDataModel.getPalette().getItemById(FLOATING_ACTION_BUTTON.newName()));
+    myDataModel.addFavoriteItem(myDataModel.getPalette().getItemById(FLOATING_ACTION_BUTTON.defaultName()));
 
     assertThat(PropertiesComponent.getInstance().getValues(FAVORITE_ITEMS)).asList()
       .containsExactly(TEXT_VIEW, BUTTON, IMAGE_VIEW, RECYCLER_VIEW.oldName(), RECYCLER_VIEW.newName(), VIEW_FRAGMENT, SCROLL_VIEW, SWITCH,
-                       FLOATING_ACTION_BUTTON.newName()).inOrder();
+                       FLOATING_ACTION_BUTTON.defaultName()).inOrder();
 
     myDataModel.categorySelectionChanged(DataModel.COMMON);
     assertThat(getElementsAsStrings(myItemListModel))
@@ -111,7 +105,7 @@ public class DataModelTest extends AndroidTestCase {
   }
 
   public void testRemoveFavorite() {
-    myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT);
+    myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT, true);
 
     myDataModel.categorySelectionChanged(DataModel.COMMON);
     myDataModel.removeFavoriteItem(myDataModel.getPalette().getItemById("Button"));
@@ -124,19 +118,18 @@ public class DataModelTest extends AndroidTestCase {
   }
 
   public void testButtonsGroup() {
-    myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT);
+    myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT, true);
     assertThat(myCategoryListModel.getSize()).isEqualTo(8);
     assertThat(myCategoryListModel.getElementAt(2).getName()).isEqualTo("Buttons");
     assertThat(myCategoryListModel.hasMatchCounts()).isFalse();
 
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(2));
     assertThat(getElementsAsStrings(myItemListModel)).containsExactly(
-      "Button", "ImageButton", "ChipGroup", "Chip", "CheckBox", "RadioGroup", "RadioButton", "ToggleButton", "Switch",
-      "FloatingActionButton").inOrder();
+      "Button", "ImageButton", "CheckBox", "RadioGroup", "RadioButton", "ToggleButton", "Switch", "FloatingActionButton").inOrder();
   }
 
   public void testContainersGroup() {
-    myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT);
+    myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT, true);
     assertThat(myCategoryListModel.getSize()).isEqualTo(8);
     assertThat(myCategoryListModel.getElementAt(5).getName()).isEqualTo("Containers");
     assertThat(myCategoryListModel.hasMatchCounts()).isFalse();
@@ -151,7 +144,7 @@ public class DataModelTest extends AndroidTestCase {
   }
 
   public void testSearch() {
-    myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT);
+    myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT, false);
     myDataModel.setFilterPattern("ima");
 
     assertThat(getElementsAsStrings(myCategoryListModel))
@@ -176,78 +169,41 @@ public class DataModelTest extends AndroidTestCase {
     assertThat(getMatchCounts()).containsExactly(1, 1).inOrder();
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(0));
     assertThat(getElementsAsStrings(myItemListModel)).containsExactly("FloatingActionButton").inOrder();
-    assertThat(myItemListModel.getElementAt(0).getTagName()).isEqualTo(FLOATING_ACTION_BUTTON.newName());
+    assertThat(myItemListModel.getElementAt(0).getTagName()).isEqualTo("android.support.design.widget.FloatingActionButton");
 
-    myDependencies.add(GoogleMavenArtifactId.DESIGN);
+    myHasAndroidxDeps = true;
+    myUsingMaterial2Theme = true;
     myDataModel.setFilterPattern("Floating");
     assertThat(getMatchCounts()).containsExactly(1, 1).inOrder();
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(0));
     assertThat(getElementsAsStrings(myItemListModel)).containsExactly("FloatingActionButton").inOrder();
-    assertThat(myItemListModel.getElementAt(0).getTagName()).isEqualTo(FLOATING_ACTION_BUTTON.oldName());
+    assertThat(myItemListModel.getElementAt(0).getTagName()).isEqualTo("com.google.android.material.floatingactionbutton.FloatingActionButton");
   }
 
   public void testMetaSearch() {
-    myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT);
+    myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT, true);
     myDataModel.setFilterPattern("material");
 
     assertThat(getElementsAsStrings(myCategoryListModel))
       .containsExactly(DataModel.RESULTS.getName(), "Text", "Buttons", "Containers").inOrder();
-    assertThat(getMatchCounts()).containsExactly(10, 1, 3, 6).inOrder();
+    assertThat(getMatchCounts()).containsExactly(4, 1, 1, 2).inOrder();
 
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(0));
-    assertThat(getElementsAsStrings(myItemListModel)).containsExactly(
-      "TextInputLayout", "ChipGroup", "Chip", "FloatingActionButton", "AppBarLayout", "BottomAppBar", "NavigationView",
-      "BottomNavigationView", "TabLayout", "TabItem").inOrder();
+    assertThat(getElementsAsStrings(myItemListModel))
+      .containsExactly("TextInputLayout", "FloatingActionButton", "TabLayout", "TabItem").inOrder();
 
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(1));
     assertThat(getElementsAsStrings(myItemListModel)).containsExactly("TextInputLayout");
-    assertThat(getElementsAsTagNames(myItemListModel)).containsExactly(TEXT_INPUT_LAYOUT.newName());
 
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(2));
-    assertThat(getElementsAsStrings(myItemListModel)).containsExactly("ChipGroup", "Chip", "FloatingActionButton").inOrder();
-    assertThat(getElementsAsTagNames(myItemListModel)).containsExactly(CHIP_GROUP, CHIP, FLOATING_ACTION_BUTTON.newName());
+    assertThat(getElementsAsStrings(myItemListModel)).containsExactly("FloatingActionButton");
 
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(3));
-    assertThat(getElementsAsStrings(myItemListModel)).containsExactly(
-      "AppBarLayout", "BottomAppBar", "NavigationView", "BottomNavigationView", "TabLayout", "TabItem").inOrder();
-    assertThat(getElementsAsTagNames(myItemListModel)).containsExactly(
-      APP_BAR_LAYOUT.newName(), BOTTOM_APP_BAR, NAVIGATION_VIEW.newName(), BOTTOM_NAVIGATION_VIEW.newName(), TAB_LAYOUT.newName(),
-      TAB_ITEM.newName()).inOrder();
-  }
-
-  public void testMetaSearchWithMaterial1() {
-    myDependencies.add(GoogleMavenArtifactId.DESIGN);
-
-    myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT);
-    myDataModel.setFilterPattern("material");
-
-    assertThat(getElementsAsStrings(myCategoryListModel))
-      .containsExactly(DataModel.RESULTS.getName(), "Text", "Buttons", "Containers").inOrder();
-    assertThat(getMatchCounts()).containsExactly(10, 1, 3, 6).inOrder();
-
-    myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(0));
-    assertThat(getElementsAsStrings(myItemListModel)).containsExactly(
-      "TextInputLayout", "ChipGroup", "Chip", "FloatingActionButton", "AppBarLayout", "BottomAppBar", "NavigationView",
-      "BottomNavigationView", "TabLayout", "TabItem").inOrder();
-
-    myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(1));
-    assertThat(getElementsAsStrings(myItemListModel)).containsExactly("TextInputLayout");
-    assertThat(getElementsAsTagNames(myItemListModel)).containsExactly(TEXT_INPUT_LAYOUT.oldName());
-
-    myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(2));
-    assertThat(getElementsAsStrings(myItemListModel)).containsExactly("ChipGroup", "Chip", "FloatingActionButton").inOrder();
-    assertThat(getElementsAsTagNames(myItemListModel)).containsExactly(CHIP_GROUP, CHIP, FLOATING_ACTION_BUTTON.oldName());
-
-    myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(3));
-    assertThat(getElementsAsStrings(myItemListModel)).containsExactly(
-      "AppBarLayout", "BottomAppBar", "NavigationView", "BottomNavigationView", "TabLayout", "TabItem").inOrder();
-    assertThat(getElementsAsTagNames(myItemListModel)).containsExactly(
-      APP_BAR_LAYOUT.oldName(), BOTTOM_APP_BAR, NAVIGATION_VIEW.oldName(), BOTTOM_NAVIGATION_VIEW.oldName(), TAB_LAYOUT.oldName(),
-      TAB_ITEM.oldName()).inOrder();
+    assertThat(getElementsAsStrings(myItemListModel)).containsExactly("TabLayout", "TabItem").inOrder();
   }
 
   public void testMenuType() {
-    myDataModel.setLayoutType(myFacet, NlLayoutType.MENU);
+    myDataModel.setLayoutType(myFacet, NlLayoutType.MENU, true);
 
     assertThat(myCategoryListModel.getSize()).isEqualTo(1);
     myDataModel.categorySelectionChanged(DataModel.COMMON);
@@ -256,9 +212,10 @@ public class DataModelTest extends AndroidTestCase {
   }
 
   public void testUsingAndroidxDependencies() {
-    myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT);
+    myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT, true);
 
     myHasAndroidxDeps = true;
+    myUsingMaterial2Theme = true;
     myDataModel.setFilterPattern("Floating");
     assertThat(getMatchCounts()).containsExactly(1, 1).inOrder();
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(0));
@@ -279,15 +236,6 @@ public class DataModelTest extends AndroidTestCase {
     List<String> elements = new ArrayList<>();
     for (int index = 0; index < model.getSize(); index++) {
       elements.add(model.getElementAt(index).toString());
-    }
-    return elements;
-  }
-
-  @NotNull
-  private static List<String> getElementsAsTagNames(@NotNull ListModel<Palette.Item> model) {
-    List<String> elements = new ArrayList<>();
-    for (int index = 0; index < model.getSize(); index++) {
-      elements.add(model.getElementAt(index).getTagName());
     }
     return elements;
   }

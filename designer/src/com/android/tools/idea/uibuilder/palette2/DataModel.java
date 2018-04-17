@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.palette2;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlLayoutType;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.uibuilder.palette.NlPaletteModel;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.google.common.collect.Lists;
@@ -75,13 +74,10 @@ public class DataModel {
     Condition<Palette.Item> androidxFilter = item -> {
       String tagName = item.getTagName();
       if (tagName.startsWith(MATERIAL1_PKG)) {
-        return myDependencyManager.dependsOn(GoogleMavenArtifactId.DESIGN) &&
-               !myDependencyManager.dependsOn(GoogleMavenArtifactId.ANDROIDX_DESIGN);
+        return !myDependencyManager.usingMaterial2Theme();
       }
       if (tagName.startsWith(MATERIAL2_PKG)) {
-        return "new-m2".equals(item.getInfo()) ||
-               !myDependencyManager.dependsOn(GoogleMavenArtifactId.DESIGN) ||
-               myDependencyManager.dependsOn(GoogleMavenArtifactId.ANDROIDX_DESIGN);
+        return myDependencyManager.usingMaterial2Theme();
       }
       boolean isAndroidxTag = tagName.startsWith(ANDROIDX_PKG) || tagName.startsWith(MATERIAL2_PKG);
       boolean isOldSupportLibTag = !isAndroidxTag && tagName.startsWith(ANDROID_SUPPORT_PKG_PREFIX);
@@ -105,14 +101,14 @@ public class DataModel {
     return myItemModel;
   }
 
-  public void setLayoutType(@NotNull AndroidFacet facet, @NotNull NlLayoutType layoutType) {
-    if (myLayoutType.equals(layoutType)) {
+  public void setLayoutType(@NotNull AndroidFacet facet, @NotNull NlLayoutType layoutType, boolean usingMaterial2Theme) {
+    if (myLayoutType.equals(layoutType) && usingMaterial2Theme == myDependencyManager.usingMaterial2Theme()) {
       return;
     }
     NlPaletteModel paletteModel = NlPaletteModel.get(facet);
     myPalette = paletteModel.getPalette(layoutType);
     myLayoutType = layoutType;
-    myDependencyManager.setPalette(myPalette, facet.getModule());
+    myDependencyManager.setPalette(myPalette, facet.getModule(), usingMaterial2Theme);
     update();
   }
 
