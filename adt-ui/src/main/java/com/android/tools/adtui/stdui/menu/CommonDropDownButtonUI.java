@@ -63,6 +63,7 @@ public class CommonDropDownButtonUI extends BasicButtonUI {
   @Override
   protected void installDefaults(@NotNull AbstractButton button) {
     super.installDefaults(button);
+    LookAndFeel.installProperty(button, "opaque", false);
     Border border = button.getBorder();
     if (border == null || border instanceof UIResource) {
       button.setBorder(new BorderUIResource(JBUI.Borders.empty(4)));
