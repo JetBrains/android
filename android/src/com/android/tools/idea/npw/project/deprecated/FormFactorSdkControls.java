@@ -80,7 +80,6 @@ final class FormFactorSdkControls {
       myStatsPanel.setVisible(false);
     }
 
-    myMinSdkCombobox.setName(myFormFactor.id + ".minSdk");
     myInstantAppCheckbox.setName(myFormFactor.id + ".instantApp");
     myInstantAppCheckbox.setVisible((myFormFactor.equals(MOBILE)));
     myStatsLoadFailedLabel.setForeground(JBColor.GRAY);
