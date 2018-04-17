@@ -358,11 +358,13 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
   public void setToolContext(@Nullable DesignSurface designSurface) {
     assert designSurface == null || designSurface instanceof NlDesignSurface;
     Module module = getModule(designSurface);
+    NlModel model = designSurface != null ? designSurface.getModel() : null;
+    boolean usingMaterial2Theme = model != null && model.usingMaterial2Theme();
     if (designSurface != null && module != null && myLayoutType != designSurface.getLayoutType()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       assert facet != null;
       myLayoutType = designSurface.getLayoutType();
-      myDataModel.setLayoutType(facet, myLayoutType);
+      myDataModel.setLayoutType(facet, myLayoutType, usingMaterial2Theme);
       if (myDataModel.getCategoryListModel().hasExplicitGroups()) {
         setCategoryListVisible(true);
         myCategoryList.setSelectedIndex(0);
