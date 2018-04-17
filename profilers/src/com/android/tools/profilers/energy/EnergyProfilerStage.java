@@ -111,6 +111,7 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
     getStudioProfilers().getUpdater().register(myUpdatable);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
+    getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
   }
 
   @Override
