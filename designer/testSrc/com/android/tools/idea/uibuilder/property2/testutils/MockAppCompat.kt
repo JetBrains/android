@@ -24,15 +24,12 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 
-const val APPCOMPAT_IMAGE_VIEW = "android.support.v7.widget.AppCompatImageView"
-const val APPCOMPAT_TEXT_VIEW = "android.support.v7.widget.AppCompatTextView"
-
 private const val APPCOMPAT_ACTIVITY = """
 package android.support.v7.app;
 public class AppCompatActivity {}
 """
 
-private const val APPCOMPAT_IMAGE_VIEW_SOURCE = """
+private const val APPCOMPAT_IMAGE_VIEW = """
 package android.support.v7.widget;
 
 import android.content.Context;
@@ -55,7 +52,7 @@ public class AppCompatImageView extends ImageView {
 }
 """
 
-private const val APPCOMPAT_TEXT_VIEW_SOURCE = """
+private const val APPCOMPAT_TEXT_VIEW = """
 package android.support.v7.widget;
 
 import android.content.Context;
@@ -166,8 +163,8 @@ object MockAppCompat {
     )
     test.registerProjectComponentImplementation<ProjectSystemComponent>(ProjectSystemComponent::class.java, projectSystem)
     fixture.addFileToProject("src/android/support/v7/app/AppCompatImageView.java", APPCOMPAT_ACTIVITY)
-    fixture.addFileToProject("src/android/support/v7/widget/AppCompatImageView.java", APPCOMPAT_IMAGE_VIEW_SOURCE)
-    fixture.addFileToProject("src/android/support/v7/widget/AppCompatTextView.java", APPCOMPAT_TEXT_VIEW_SOURCE)
+    fixture.addFileToProject("src/android/support/v7/widget/AppCompatImageView.java", APPCOMPAT_IMAGE_VIEW)
+    fixture.addFileToProject("src/android/support/v7/widget/AppCompatTextView.java", APPCOMPAT_TEXT_VIEW)
     fixture.addFileToProject("res/values/attrs.xml", APPCOMPAT_ATTRS)
     fixture.addFileToProject("src/com/example/MyActivity.java", MY_ACTIVITY)
   }
