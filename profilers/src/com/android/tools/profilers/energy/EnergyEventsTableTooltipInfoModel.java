@@ -87,25 +87,7 @@ public class EnergyEventsTableTooltipInfoModel extends AspectModel<EnergyEventsT
 
   @Nullable
   public String getStatusString() {
-    if (myCurrentSelectedEvent == null) {
-      return "Active";
-    }
-    switch (myCurrentSelectedEvent.getMetadataCase()) {
-      case WAKE_LOCK_ACQUIRED:
-        return "Acquired";
-      case WAKE_LOCK_RELEASED:
-        return "Released";
-      case JOB_SCHEDULED:
-        return "Scheduled";
-      case JOB_STARTED:
-        return "Started";
-      case JOB_STOPPED:
-        return "Stopped";
-      case JOB_FINISHED:
-        return "Finished";
-      default:
-        return null;
-    }
+    return myCurrentSelectedEvent == null ? "Active" : EnergyDuration.getMetadataName(myCurrentSelectedEvent.getMetadataCase());
   }
 
   public String getDateFormattedString(long timestampMs) {
@@ -128,7 +110,20 @@ public class EnergyEventsTableTooltipInfoModel extends AspectModel<EnergyEventsT
     EnergyProfiler.EnergyEvent firstEvent = myDuration.getEventList().get(0);
     EnergyProfiler.EnergyEvent lastEvent = myDuration.getEventList().get(myDuration.getEventList().size() - 1);
     String startTime = getFormattedString(TimeUnit.NANOSECONDS.toMicros(firstEvent.getTimestamp()));
-    String endTime = lastEvent.getIsTerminal() ? getFormattedString(TimeUnit.NANOSECONDS.toMicros(lastEvent.getTimestamp())) : "unknown";
+    String unknownString;
+    switch (myDuration.getKind()) {
+      case WAKE_LOCK:
+        unknownString = "Unreleased";
+        break;
+      case JOB:
+        unknownString = "Unfinished";
+        break;
+      default:
+        unknownString = "Alive";
+    }
+
+    String endTime =
+      lastEvent.getIsTerminal() ? getFormattedString(TimeUnit.NANOSECONDS.toMicros(lastEvent.getTimestamp())) : unknownString;
     return startTime + " - " + endTime;
   }
 
