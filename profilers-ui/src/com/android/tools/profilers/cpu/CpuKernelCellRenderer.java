@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.statechart.StateChart;
+import com.android.tools.adtui.chart.statechart.StateChartColorProvider;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.updater.UpdatableManager;
 import com.android.tools.profilers.ProfilerColors;
@@ -114,26 +115,30 @@ public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuSta
       return myStateCharts.get(cpuId).getChart();
     }
     // The state chart corresponding to the thread is not stored on the map. Create a new one.
-    StateChart<CpuThreadInfo> stateChart = new StateChart<>(model, (threadInfo) -> {
-      CpuThreadsModel.RangedCpuThread selectedThread = myThreadsList.getSelectedValue();
-      Color color = ProfilerColors.DEFAULT_BACKGROUND;
+    StateChart<CpuThreadInfo> stateChart = new StateChart<>(model, new StateChartColorProvider<CpuThreadInfo>() {
+      @NotNull
+      @Override
+      public Color getColor(boolean isMouseOver, @NotNull CpuThreadInfo value) {
+        CpuThreadsModel.RangedCpuThread selectedThread = myThreadsList.getSelectedValue();
+        Color color = ProfilerColors.DEFAULT_BACKGROUND;
 
-      // If the thread data we are about to render is part of our process set the color to match the CPU chart.
-      if (threadInfo.getProcessId() == myProcessId) {
-        color = ProfilerColors.CPU_USAGE_CAPTURED;
-      }
-      // Otherwise if we have thread info that is not empty use the other processes CPU color.
-      else if (threadInfo != CpuThreadInfo.NULL_THREAD) {
-        color = ProfilerColors.CPU_OTHER_USAGE_CAPTURED;
-      }
-
-      // If we have a selected thread and its thread id does not match our thread info id fade it, making our selected thread elements pop.
-      if (selectedThread != null && threadInfo != CpuThreadInfo.NULL_THREAD) {
-        if (selectedThread.getThreadId() != threadInfo.getId()) {
-          color = ColorUtil.withAlpha(color, 0.4);
+        // If the thread data we are about to render is part of our process set the color to match the CPU chart.
+        if (value.getProcessId() == myProcessId) {
+          color = ProfilerColors.CPU_USAGE_CAPTURED;
         }
+        // Otherwise if we have thread info that is not empty use the other processes CPU color.
+        else if (value != CpuThreadInfo.NULL_THREAD) {
+          color = ProfilerColors.CPU_OTHER_USAGE_CAPTURED;
+        }
+
+        // If we have a selected thread and its thread id does not match our thread info id fade it, making our selected thread elements pop.
+        if (selectedThread != null && value != CpuThreadInfo.NULL_THREAD) {
+          if (selectedThread.getThreadId() != value.getId()) {
+            color = ColorUtil.withAlpha(color, 0.4);
+          }
+        }
+        return color;
       }
-      return color;
     }, (threadInfo) -> threadInfo.getName());
     stateChart.setRenderMode(StateChart.RenderMode.TEXT);
     CpuCellRenderer.StateChartData<CpuThreadInfo> data = new CpuCellRenderer.StateChartData<>(stateChart, model);

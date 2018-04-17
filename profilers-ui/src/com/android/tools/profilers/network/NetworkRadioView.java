@@ -20,6 +20,7 @@ import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.statechart.DefaultStateChartReducer;
 import com.android.tools.adtui.chart.statechart.StateChart;
+import com.android.tools.adtui.chart.statechart.StateChartColorProvider;
 import com.android.tools.adtui.chart.statechart.StateChartConfig;
 import com.android.tools.adtui.model.legend.FixedLegend;
 import com.android.tools.adtui.model.legend.Legend;
@@ -55,9 +56,15 @@ public class NetworkRadioView {
   @NotNull private final JComponent myComponent;
 
   public NetworkRadioView(@NotNull NetworkProfilerStageView stageView) {
-    StateChartConfig config =
-      new StateChartConfig(new DefaultStateChartReducer(), STATE_CHART_HEIGHT_RATIO, STATE_CHART_OVER_HEIGHT_RATIO, STATE_CHART_OFFSET);
-    myRadioChart = new StateChart<>(stageView.getStage().getRadioState(), RADIO_STATE_COLOR, config);
+    StateChartConfig<RadioState> config =
+      new StateChartConfig<>(new DefaultStateChartReducer<>(), STATE_CHART_HEIGHT_RATIO, STATE_CHART_OVER_HEIGHT_RATIO, STATE_CHART_OFFSET);
+    myRadioChart = new StateChart<>(stageView.getStage().getRadioState(), config, new StateChartColorProvider<RadioState>() {
+      @NotNull
+      @Override
+      public Color getColor(boolean isMouseOver, @NotNull RadioState value) {
+        return RADIO_STATE_COLOR.get(value);
+      }
+    });
 
     myComponent = new JPanel();
     myComponent.setBackground(ProfilerColors.DEFAULT_BACKGROUND);

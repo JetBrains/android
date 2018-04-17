@@ -16,6 +16,7 @@
 package com.android.tools.profilers.energy;
 
 import com.android.tools.adtui.chart.statechart.StateChart;
+import com.android.tools.adtui.chart.statechart.StateChartColorProvider;
 import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.Range;
@@ -23,6 +24,7 @@ import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
@@ -41,6 +43,17 @@ public final class EnergyEventStateChart {
     .add(EnergyDuration.Kind.UNKNOWN, TRANSPARENT_COLOR)
     .build();
 
+  private static final StateChartColorProvider<EnergyEvent> DURATION_STATE_COLOR_PROVIDER = new StateChartColorProvider<EnergyEvent>() {
+    @NotNull
+    @Override
+    public Color getColor(boolean isMouseOver, @NotNull EnergyEvent value) {
+      if (value.getIsTerminal()) {
+        return TRANSPARENT_COLOR;
+      }
+      return DURATION_STATE_ENUM_COLORS.getColor(EnergyDuration.Kind.from(value));
+    }
+  };
+
   @NotNull
   public static StateChart<EnergyEvent> create(@NotNull EnergyDuration duration, @NotNull Range range) {
     DefaultDataSeries<EnergyEvent> series = new DefaultDataSeries<>();
@@ -54,8 +67,6 @@ public final class EnergyEventStateChart {
 
   @NotNull
   public static StateChart<EnergyEvent> create(@NotNull StateChartModel<EnergyEvent> model) {
-    return new StateChart<>(model, evt -> !evt.getIsTerminal()
-                                          ? DURATION_STATE_ENUM_COLORS.getColor(EnergyDuration.Kind.from(evt))
-                                          : TRANSPARENT_COLOR);
+    return new StateChart<>(model, DURATION_STATE_COLOR_PROVIDER);
   }
 }

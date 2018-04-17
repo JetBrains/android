@@ -31,7 +31,6 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 /**
  * A chart component that renders series of state change events as rectangles.
@@ -48,10 +47,10 @@ public final class StateChart<T> extends MouseAdapterComponent<T> {
   private StateChartModel<T> myModel;
 
   /**
-   * A function that maps between a type T, and a color to be used in the StateChart, all values of T should return a valid color.
+   * An object that maps between a type T, and a color to be used in the StateChart, all values of T should return a valid color.
    */
   @NotNull
-  private Function<T, Color> myColorMapper;
+  private final StateChartColorProvider<T> myColorProvider;
 
   private float myHeightGap;
 
@@ -59,7 +58,7 @@ public final class StateChart<T> extends MouseAdapterComponent<T> {
   private RenderMode myRenderMode;
 
   @NotNull
-  private StateChartConfig<T> myConfig;
+  private final StateChartConfig<T> myConfig;
 
   private boolean myRender;
 
@@ -71,28 +70,38 @@ public final class StateChart<T> extends MouseAdapterComponent<T> {
    */
   @VisibleForTesting
   public StateChart(@NotNull StateChartModel<T> model, @NotNull Map<T, Color> colors) {
-    this(model, colors::get);
+    this(model, new StateChartColorProvider<T>() {
+      @Override
+      @NotNull
+      public Color getColor(boolean isMouseOver, T value) {
+        Color color = colors.get(value);
+        return isMouseOver ? ColorUtil.brighter(color, 2) : color;
+      }
+    });
   }
 
-  public StateChart(@NotNull StateChartModel<T> model, @NotNull Function<T, Color> colorMapping) {
+  public StateChart(@NotNull StateChartModel<T> model, @NotNull StateChartColorProvider<T> colorMapping) {
     this(model, new StateChartConfig<>(new DefaultStateChartReducer<>()), colorMapping, (val) -> val.toString());
   }
 
-  public StateChart(@NotNull StateChartModel<T> model, @NotNull Function<T, Color> colorMapping, StateChartTextConverter<T> textConverter) {
+  public StateChart(@NotNull StateChartModel<T> model,
+                    @NotNull StateChartColorProvider<T> colorMapping,
+                    StateChartTextConverter<T> textConverter) {
     this(model, new StateChartConfig<>(new DefaultStateChartReducer<>()), colorMapping, textConverter);
   }
 
-  @VisibleForTesting
-  public StateChart(@NotNull StateChartModel<T> model, @NotNull Map<T, Color> colors, @NotNull StateChartConfig<T> config) {
-    this(model, config, (val) -> colors.get(val), (val) -> val.toString());
+  public StateChart(@NotNull StateChartModel<T> model,
+                    @NotNull StateChartConfig<T> config,
+                    @NotNull StateChartColorProvider<T> colorMapping) {
+    this(model, config, colorMapping, (val) -> val.toString());
   }
 
   @VisibleForTesting
   public StateChart(@NotNull StateChartModel<T> model,
                     @NotNull StateChartConfig<T> config,
-                    @NotNull Function<T, Color> colorMapping,
+                    @NotNull StateChartColorProvider<T> colorMapping,
                     @NotNull StateChartTextConverter<T> textConverter) {
-    myColorMapper = colorMapping;
+    myColorProvider = colorMapping;
     myRenderMode = RenderMode.BAR;
     myConfig = config;
     myRender = true;
@@ -127,11 +136,6 @@ public final class StateChart<T> extends MouseAdapterComponent<T> {
    */
   public void setHeightGap(float gap) {
     myHeightGap = gap;
-  }
-
-  @NotNull
-  public Color getColor(T value) {
-    return myColorMapper.apply(value);
   }
 
   private void render() {
@@ -235,19 +239,15 @@ public final class StateChart<T> extends MouseAdapterComponent<T> {
       Shape shape = transformedShapes.get(i);
       T value = transformedValues.get(i);
       Rectangle2D rect = shape.getBounds2D();
-      Color color = getColor(value);
-      // If the mouse is over the current rectangle lighten the color a bit to show.
-      if (isMouseOverRectangle(rect)) {
-        // Keep the alpha value of the passed in element.
-        color = ColorUtil.withAlpha(ColorUtil.brighter(color, 2), color.getAlpha() / 255.0);
-      }
+      boolean isMouseOver = isMouseOverRectangle(rect);
+      Color color = myColorProvider.getColor(isMouseOver, value);
       g2d.setColor(color);
       g2d.fill(shape);
       if (myRenderMode == RenderMode.TEXT) {
         String valueText = myTextConverter.convertToString(value);
         String text = AdtUiUtils.shrinkToFit(valueText, mDefaultFontMetrics, (float)rect.getWidth() - TEXT_PADDING * 2);
         if (!text.isEmpty()) {
-          g2d.setColor(AdtUiUtils.DEFAULT_FONT_COLOR);
+          g2d.setColor(myColorProvider.getFontColor(isMouseOver, value));
           float textOffset = (float)(rect.getY() + (rect.getHeight() - mDefaultFontMetrics.getHeight()) / 2.0);
           textOffset += mDefaultFontMetrics.getAscent();
           g2d.drawString(text, (float)(rect.getX() + TEXT_PADDING), textOffset);

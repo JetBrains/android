@@ -23,7 +23,6 @@ import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.EventModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
-import com.android.tools.profiler.proto.EnergyProfiler;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
 import com.android.tools.profilers.*;
 import com.intellij.ui.components.JBPanel;
