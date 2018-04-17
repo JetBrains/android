@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValueImpl;
 import com.google.common.collect.Maps;
 import com.intellij.psi.PsiElement;
@@ -30,6 +28,12 @@ import java.util.Map;
  * Represents an element which consists of a map from properties of type {@link String} and values of type {@link GradleDslSimpleExpression}.
  */
 public final class GradleDslExpressionMap extends GradlePropertiesDslElement implements GradleDslExpression {
+  // This boolean controls whether of not the empty map element should be deleted on a call to delete in one of
+  // its children. For non-literal maps (e.g func key: 'val', key1: 'val') #shouldBeDeleted() always returns true since we
+  // never want to preserve these maps. However literal maps (e.g prop = [key: 'merge1', key1: 'merge2']) should only be deleted
+  // if the #delete() method on the map element is called, not when there are no more elements left. This is due to
+  // prop = [:] possibly having important semantic meaning.
+  private boolean myShouldBeDeleted;
 
   public GradleDslExpressionMap(@Nullable GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, null, name);
@@ -87,6 +91,12 @@ public final class GradleDslExpressionMap extends GradlePropertiesDslElement imp
   }
 
   @Override
+  public void delete() {
+    myShouldBeDeleted = true;
+    super.delete();
+  }
+
+  @Override
   public void apply() {
     getDslFile().getWriter().applyDslExpressionMap(this);
     super.apply();
@@ -100,5 +110,9 @@ public final class GradleDslExpressionMap extends GradlePropertiesDslElement imp
   @Nullable
   public PsiElement getExpression() {
     return getPsiElement();
+  }
+
+  public boolean shouldBeDeleted() {
+    return !isLiteralMap() || myShouldBeDeleted;
   }
 }

@@ -3526,6 +3526,86 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     verifyPropertyModel(debugProperties[1], BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0, "minifyEnabled")
   }
 
+  @Test
+  fun testDeleteItemsFromList() {
+    val text = """
+               ext {
+                 prop = [1]
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop")
+      verifyListProperty(propertyModel, "ext.prop", listOf(1))
+      val itemModel = propertyModel.toList()!![0]
+      itemModel.delete()
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    verifyListProperty(buildModel.ext().findProperty("prop"), "ext.prop", listOf())
+  }
+
+  @Test
+  fun testDeleteListWithItems() {
+    val text = """
+               ext {
+                 prop = [1]
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop")
+      propertyModel.delete()
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    assertMissingProperty(buildModel.ext().findProperty("prop"))
+  }
+
+  @Test
+  fun testDeleteItemsInMap() {
+    val text = """
+               ext {
+                 prop = [key: 1]
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop")
+      verifyMapProperty(propertyModel, mapOf("key" to 1))
+      val itemModel = propertyModel.toMap()!!["key"]!!
+      itemModel.delete()
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    verifyMapProperty(buildModel.ext().findProperty("prop"), mapOf())
+  }
+
+  @Test
+  fun testDeleteMapWithItems() {
+    val text = """
+               ext {
+                 prop = ["key": 1]
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop")
+      propertyModel.delete()
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    assertMissingProperty(buildModel.ext().findProperty("prop"))
+  }
+
   private fun runSetPropertyTest(text: String, type: PropertyType) {
     writeToBuildFile(text)
 
