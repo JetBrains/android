@@ -61,7 +61,7 @@ class ClearResourceCacheAfterFirstBuild(project: Project) : AbstractProjectCompo
    * cache has been cleared.
    *
    * In the event that source generation fails, [onSourceGenerationError] will be executed. This gives callers the opportunity
-   * to notify the user that whatever feature [onCacheClean] supports will be unavailable until after a successful build.
+   * to notify the user that whatever feature [onCacheClean] supports will be unavailable until after a successful project sync.
    * The execution of [onSourceGenerationError] does not stop the later execution of [onCacheClean] once source generation is
    * complete and the resource cache has been validated.
    *
