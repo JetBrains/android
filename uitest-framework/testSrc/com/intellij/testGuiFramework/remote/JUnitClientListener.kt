@@ -44,11 +44,13 @@ class JUnitClientListener(val sendObjectFun: (JUnitInfo) -> Unit) : RunListener(
 
   override fun testAssumptionFailure(failure: Failure?) {
     sendObjectFun(JUnitInfo(Type.ASSUMPTION_FAILURE, failure.friendlySerializable(), JUnitInfo.getClassAndMethodName(failure!!.description)))
+    if (!isLastRun()) sendObjectFun(JUnitInfo(Type.FINISHED, failure.description, JUnitInfo.getClassAndMethodName(failure.description)))
   }
 
   override fun testFailure(failure: Failure?) {
     sendObjectFun(JUnitInfo(Type.FAILURE, failure!!.exception, JUnitInfo.getClassAndMethodName(failure.description)))
     LOG.error(failure.exception)
+    if (!isLastRun()) sendObjectFun(JUnitInfo(Type.FINISHED, failure.description, JUnitInfo.getClassAndMethodName(failure.description)))
   }
 
   override fun testFinished(description: Description?) {
