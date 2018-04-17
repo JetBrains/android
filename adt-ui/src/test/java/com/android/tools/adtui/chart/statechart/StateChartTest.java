@@ -17,14 +17,15 @@ package com.android.tools.adtui.chart.statechart;
 
 import com.android.tools.adtui.model.*;
 import com.google.common.collect.ImmutableList;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.awt.*;
 import java.util.EnumMap;
 import java.util.HashMap;
 
-import static org.mockito.Mockito.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 public class StateChartTest {
 
@@ -50,7 +51,13 @@ public class StateChartTest {
                                                                  new SeriesData<>(1000, 2));
 
     model.addSeries(new RangedSeries<>(new Range(0, 100), dataSeries));
-    StateChart<Integer> stateChart = new StateChart<>(model, (state) -> Color.BLACK, (value) -> "123");
+    StateChart<Integer> stateChart = new StateChart<>(model, new StateChartColorProvider<Integer>() {
+      @NotNull
+      @Override
+      public Color getColor(boolean isMouseOver, Integer value) {
+        return Color.BLACK;
+      }
+    }, (value) -> "123");
     stateChart.setSize(100, 100);
     stateChart.setRenderMode(StateChart.RenderMode.TEXT);
 
@@ -68,7 +75,13 @@ public class StateChartTest {
       new SeriesData<>(1000, new ToStringTestClass("Test2")));
 
     model.addSeries(new RangedSeries<>(new Range(0, 100), dataSeries));
-    StateChart<ToStringTestClass> stateChart = new StateChart<>(model, (state) -> Color.BLACK);
+    StateChart<ToStringTestClass> stateChart = new StateChart<>(model, new StateChartColorProvider<ToStringTestClass>() {
+      @NotNull
+      @Override
+      public Color getColor(boolean isMouseOver, @NotNull ToStringTestClass value) {
+        return Color.BLACK;
+      }
+    });
     stateChart.setSize(100, 100);
     stateChart.setRenderMode(StateChart.RenderMode.TEXT);
 
@@ -105,7 +118,7 @@ public class StateChartTest {
     colorMap.put(2L, Color.BLUE);
 
     model.addSeries(new RangedSeries<>(new Range(0, Long.MAX_VALUE), dataSeries));
-    StateChart<Long> stateChart = new StateChart<>(model, colorMap::get);
+    StateChart<Long> stateChart = new StateChart<>(model, colorMap);
     stateChart.setSize(100, 100);
     Graphics2D fakeGraphics = mock(Graphics2D.class);
     when(fakeGraphics.create()).thenReturn(fakeGraphics);

@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.statechart.StateChart;
+import com.android.tools.adtui.chart.statechart.StateChartColorProvider;
 import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.updater.UpdatableManager;
@@ -111,10 +112,19 @@ public class ThreadCellRenderer extends CpuCellRenderer<CpuThreadsModel.RangedCp
     }
     // The state chart corresponding to the thread is not stored on the map. Create a new one.
     EnumColors<CpuProfilerStage.ThreadState> enumColors = ProfilerColors.THREAD_STATES.build();
-    StateChart<CpuProfilerStage.ThreadState> stateChart = new StateChart<>(model, enumColors::getColor);
+    StateChart<CpuProfilerStage.ThreadState> stateChart =
+      new StateChart<>(model,
+                       new StateChartColorProvider<CpuProfilerStage.ThreadState>() {
+                         @NotNull
+                         @Override
+                         public Color getColor(boolean isMouseOver,
+                                               @NotNull CpuProfilerStage.ThreadState value) {
+                           return enumColors.getColor(value);
+                         }
+                       });
     StateChartData<CpuProfilerStage.ThreadState> data = new StateChartData<>(stateChart, model);
     // Our size in pixels is 19 and we want a 3 pixel gap.
-    stateChart.setHeightGap(3.0f/SIZE_IN_PIXELS);
+    stateChart.setHeightGap(3.0f / SIZE_IN_PIXELS);
     myStateCharts.put(tid, data);
     myColors.put(stateChart, enumColors);
     myUpdatableManager.register(model);
