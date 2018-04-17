@@ -77,7 +77,7 @@ class AswbGotoDeclarationTest {
         .canonicalPath
     val resourceId = "R.style.Base_Highlight"
     try {
-      openFile(srcPath).gotoDeclaration(resourceId).waitUntilCurrentFileIs(2, targetResourcePath!!)
+      openFile(srcPath).gotoDeclaration(resourceId).waitUntilCurrentFileIs(20, targetResourcePath!!)
     } catch(e: Exception) {
       // Time out exception due to b/71820265, try-catch should be removed after fixing it.
       Assert.assertThat(e, instanceOf(WaitTimedOutError::class.java))
@@ -93,6 +93,6 @@ class AswbGotoDeclarationTest {
         .findFileByRelativePath("../SimpleBazelApplication/java/com/foo/gallery/activities/res/menu/settings.xml", true)!!
         .canonicalPath
     val resourceId = "R.menu.settings"
-    openFile(srcPath).gotoDeclaration(resourceId).waitUntilCurrentFileIs(2, targetResourcePath!!)
+    openFile(srcPath).gotoDeclaration(resourceId).waitUntilCurrentFileIs(20, targetResourcePath!!)
   }
 }
