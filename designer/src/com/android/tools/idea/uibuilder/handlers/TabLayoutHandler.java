@@ -36,7 +36,7 @@ public class TabLayoutHandler extends HorizontalScrollViewHandler {
   @NotNull
   public List<String> getInspectorProperties() {
     return ImmutableList.of(
-      ATTR_TAB_STYLE,
+      ATTR_STYLE,
       ATTR_TAB_INDICATOR_COLOR,
       ATTR_TAB_INDICATOR_HEIGHT,
       ATTR_TAB_CONTENT_START,
