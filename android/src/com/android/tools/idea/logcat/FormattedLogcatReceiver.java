@@ -29,9 +29,13 @@ abstract class FormattedLogcatReceiver implements AndroidLogcatService.LogcatLis
 
   @Override
   public final void onLogLineReceived(@NotNull LogCatMessage line) {
-    if (!line.getHeader().equals(myActiveHeader)) {
-      myActiveHeader = line.getHeader();
-      receiveFormattedLogLine(myFormatter.formatMessageFull(myActiveHeader, line.getMessage()));
+    LogCatHeader header = line.getHeader();
+
+    // We want the if branch whenever logcat prints a header, even if it has the same value as the previous one. Check the reference values
+    // (with !=) and not the object values (with equals) here because we get a new instance every time logcat prints a header.
+    if (myActiveHeader != header) {
+      myActiveHeader = header;
+      receiveFormattedLogLine(myFormatter.formatMessageFull(header, line.getMessage()));
     }
     else {
       String message = AndroidLogcatFormatter.formatContinuation(line.getMessage());
@@ -39,5 +43,5 @@ abstract class FormattedLogcatReceiver implements AndroidLogcatService.LogcatLis
     }
   }
 
-  protected abstract void receiveFormattedLogLine(@NotNull String line);
+  abstract void receiveFormattedLogLine(@NotNull String line);
 }

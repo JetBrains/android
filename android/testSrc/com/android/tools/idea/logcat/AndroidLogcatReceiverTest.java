@@ -18,11 +18,8 @@ package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.IDevice;
 import org.easymock.EasyMock;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.time.ZoneId;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -44,24 +41,7 @@ public class AndroidLogcatReceiverTest {
 
   @Before
   public void setUp() {
-    AndroidLogcatFormatter formatter = new AndroidLogcatFormatter(ZoneId.of("America/Los_Angeles"), new AndroidLogcatPreferences());
-
-    myLogcatListener = new FormattedLogcatReceiver(formatter) {
-      private final StringBuilder myBuilder = new StringBuilder();
-
-      @Override
-      protected void receiveFormattedLogLine(@NotNull String line) {
-        myBuilder
-          .append(line)
-          .append('\n');
-      }
-
-      @Override
-      public String toString() {
-        return myBuilder.toString();
-      }
-    };
-
+    myLogcatListener = new TestFormattedLogcatReceiver();
     myReceiver = new AndroidLogcatReceiver(createMockDevice(), myLogcatListener);
   }
 
