@@ -67,7 +67,7 @@ public class IdeControl extends TestWatcher {
   * after a test got a chance to run. Instead the test just sets restartMessage, and we actually send the message here.
   */
   @Override
-  public void finished(Description description) {
+  public void succeeded(Description description) {
     if (restartMessage != null) {
       JUnitClient client = GuiTestThread.Companion.getClient();
       if (client != null) {
