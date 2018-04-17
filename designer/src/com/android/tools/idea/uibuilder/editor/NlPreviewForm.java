@@ -356,7 +356,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
 
   // Build was either cancelled or there was an error
   private void buildError() {
-    myWorkBench.loadingStopped("Preview is unavailable until a successful build");
+    myWorkBench.loadingStopped("Preview is unavailable until after a successful project sync");
   }
 
   private void initPreviewFormAfterBuildOnEventDispatchThread() {

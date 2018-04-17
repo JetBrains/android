@@ -378,7 +378,7 @@ public class AppBarConfigurationDialog extends JDialog {
   }
 
   private void onBuildError() {
-    myPreview.setText("Preview is unavailable until after a successful build");
+    myPreview.setText("Preview is unavailable until after a successful project sync");
     myPreview.setIcon(AllIcons.General.Warning);
     myCollapsedLabel.setVisible(false);
     myExpandedLabel.setVisible(false);

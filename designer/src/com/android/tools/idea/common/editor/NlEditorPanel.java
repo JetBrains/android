@@ -60,7 +60,7 @@ import java.util.concurrent.CompletableFuture;
  * Assembles a designer editor from various components
  */
 public class NlEditorPanel extends JPanel implements Disposable {
-  private static final String DESIGN_UNAVAILABLE_MESSAGE = "Design editor is unavailable until a successful build";
+  private static final String DESIGN_UNAVAILABLE_MESSAGE = "Design editor is unavailable until after a successful project sync";
 
   private final NlEditor myEditor;
   private final Project myProject;
