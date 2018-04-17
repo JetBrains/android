@@ -67,7 +67,7 @@ import static com.google.common.collect.Sets.newLinkedHashSetWithExpectedSize;
  */
 public final class FrameworkResourceRepository extends FileResourceRepository {
   private static final ResourceNamespace ANDROID_NAMESPACE = ResourceNamespace.ANDROID;
-  private static final String CACHE_DIRECTORY = "framework_resource_cache";
+  private static final String CACHE_DIRECTORY = "caches/framework_resources";
   private static final String CACHE_FILE_HEADER = "Framework resource cache";
   private static final String CACHE_FILE_FORMAT_VERSION = "2";
   private static final String ANDROID_PLUGIN_ID = "org.jetbrains.android";
