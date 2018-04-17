@@ -54,8 +54,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
       .put(CpuProfilerStage.class, AndroidProfilerEvent.Stage.CPU_STAGE)
       .put(MemoryProfilerStage.class, AndroidProfilerEvent.Stage.MEMORY_STAGE)
       .put(NetworkProfilerStage.class, AndroidProfilerEvent.Stage.NETWORK_STAGE)
-      // TODO(b/74004663): Add following line when enum is ready
-      // .put(EnergyProfilerStage.class, AndroidProfilerEvent.Stage.ENERGY_STAGE)
+      .put(EnergyProfilerStage.class, AndroidProfilerEvent.Stage.ENERGY_STAGE)
       .build();
 
   private final ImmutableMap<Common.SessionMetaData.SessionType, ProfilerSessionCreationMetaData.SessionType> SESSION_TYPE_MAP =
