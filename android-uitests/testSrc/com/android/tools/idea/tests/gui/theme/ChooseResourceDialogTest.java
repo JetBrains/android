@@ -151,8 +151,8 @@ public class ChooseResourceDialogTest {
 
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
-    // Cell (1,0) should be some color
-    JTableCellFixture colorCell = themeEditorTable.cell(row(1).column(0));
+    // Cell (8,0) should be some color
+    JTableCellFixture colorCell = themeEditorTable.cell(row(8).column(0));
 
     // click on a color
     ResourceComponentFixture resourceComponent = new ResourceComponentFixture(guiTest.robot(), (ResourceComponent)colorCell.editor());
@@ -293,11 +293,11 @@ public class ChooseResourceDialogTest {
     // Get property sheet, find srcCompat property, open customizer
     NlPropertyInspectorFixture fixture = layout.getPropertiesPanel().openAsInspector();
 
-    NlPropertyFixture property = fixture.findProperty("src");  // Temporary should be srcCompat after b/78173263 is fixed
+    NlPropertyFixture property = fixture.findProperty("srcCompat");
 
     ChooseResourceDialogFixture dialog = property.clickCustomizer();
     JTabbedPaneFixture tabs = dialog.getTabs();
-    tabs.requireTabTitles("Drawable", "Color");
+    tabs.requireTabTitles("Drawable", "Color", "Array", "ID", "String", "Style");
 
     dialog.getSearchField().enterText("che");
     JListFixture projectList = dialog.getList("Project");
@@ -356,11 +356,11 @@ public class ChooseResourceDialogTest {
     // Get property sheet, find srcCompat property, open customizer
     NlPropertyInspectorFixture fixture = layout.getPropertiesPanel().openAsInspector();
 
-    NlPropertyFixture property = fixture.findProperty("src");  // Temporary should be srcCompat after b/78173263 is fixed
+    NlPropertyFixture property = fixture.findProperty("srcCompat");
 
     ChooseResourceDialogFixture dialog = property.clickCustomizer();
     JTabbedPaneFixture tabs = dialog.getTabs();
-    tabs.requireTabTitles("Drawable", "Color");
+    tabs.requireTabTitles("Drawable", "Color", "Array", "ID", "String", "Style");
     dialog.clickOnTab("Color");
 
     dialog.getSearchField().enterText("actionMenuTextColor");
@@ -390,7 +390,6 @@ public class ChooseResourceDialogTest {
     textView.click();
     assertThat(layout.getSelection()).containsExactly(textView.getComponent());
 
-    // Get property sheet, find srcCompat property, open customizer
     NlPropertyInspectorFixture fixture = layout.getPropertiesPanel().openAsInspector();
 
     NlPropertyFixture property = fixture.findProperty("backgroundTint");
@@ -422,11 +421,11 @@ public class ChooseResourceDialogTest {
     // Get property sheet, find srcCompat property, open customizer
     NlPropertyInspectorFixture fixture = layout.getPropertiesPanel().openAsInspector();
 
-    NlPropertyFixture property = fixture.findProperty("src");  // Temporary should be srcCompat after b/78173263 is fixed
+    NlPropertyFixture property = fixture.findProperty("srcCompat");
 
     ChooseResourceDialogFixture dialog = property.clickCustomizer();
     JTabbedPaneFixture tabs = dialog.getTabs();
-    tabs.requireTabTitles("Drawable", "Color");
+    tabs.requireTabTitles("Drawable", "Color", "Array", "ID", "String", "Style");
 
     dialog.getSearchField().enterText("ic_launcher ");
     JListFixture projectList = dialog.getList("Project");
