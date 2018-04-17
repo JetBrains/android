@@ -35,8 +35,6 @@ import java.util.List;
  */
 public class ActionTarget extends BaseTarget {
 
-  @SwingCoordinate private static final int SWING_DIMENSION = 25;
-  @SwingCoordinate private static final int SWING_GAP = 6;
   @Nullable private Action myAction;
   @NotNull private final NlIcon myIcon;
   protected boolean myIsVisible = true;
@@ -69,7 +67,7 @@ public class ActionTarget extends BaseTarget {
   }
 
   public boolean isVisible() {
-    return myIsVisible;
+    return myComponent.isSelected() && myIsVisible;
   }
 
   @Override
@@ -79,24 +77,10 @@ public class ActionTarget extends BaseTarget {
                         @AndroidDpCoordinate int r,
                         @AndroidDpCoordinate int b) {
     myLeft = l;
-    float size = getAndroidDpSize(SWING_DIMENSION);
-    myTop = b + getAndroidDpSize(SWING_GAP);
-    myRight = myLeft + size;
-    myBottom = myTop + size;
-    if (!myIsVisible) {
-      myRight = myLeft;
-    }
+    myRight = r;
+    myTop = t;
+    myBottom = b;
     return false;
-  }
-
-  @AndroidDpCoordinate
-  private int getAndroidDpSize(@SwingCoordinate int dimension) {
-    return Coordinates.getAndroidDimensionDip(myComponent.getScene().getSceneManager().getSceneView(), dimension);
-  }
-
-  @AndroidDpCoordinate
-  public int getGap() {
-    return getAndroidDpSize(SWING_GAP);
   }
 
   @Override
@@ -108,7 +92,7 @@ public class ActionTarget extends BaseTarget {
     if (myIsVisible) {
       Rectangle src = new Rectangle();
       myComponent.fillRect(src);
-      DrawAction.add(list, sceneContext, myLeft, myTop, myRight, myBottom, src, myIcon, mIsOver);
+      DrawAction.add(list, sceneContext, myLeft, myTop, myRight, myBottom, myIcon, mIsOver);
     }
   }
 
@@ -129,16 +113,6 @@ public class ActionTarget extends BaseTarget {
       return !component.isDragging();
     }
     return false;
-  }
-
-  @Override
-  public void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
-    // Do nothing
-  }
-
-  @Override
-  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTarget) {
-    // Do nothing
   }
 
   @Override

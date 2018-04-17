@@ -20,7 +20,10 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.ActionTarget;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
+import com.android.tools.idea.common.scene.target.Target;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.function.Predicate;
 
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
@@ -31,6 +34,8 @@ import static com.google.common.truth.Truth.assertThat;
  * Test basic connection interactions
  */
 public class SceneBasicConnectionsTest extends SceneTest {
+
+  private static final Predicate<Target> BASELINE_ACTION_SELECTOR = target -> EDIT_BASELINE_ACTION_TOOLTIP.equals(target.getToolTipText());
 
   public void testConnectLeft() {
     myInteraction.select("button", true);
@@ -97,8 +102,7 @@ public class SceneBasicConnectionsTest extends SceneTest {
 
   public void testConnectBaseline() {
     myInteraction.select("button2", true);
-    myInteraction.mouseDown("button2", target -> EDIT_BASELINE_ACTION_TOOLTIP.equals(target.getToolTipText()));
-    myInteraction.mouseRelease("button2", target -> EDIT_BASELINE_ACTION_TOOLTIP.equals(target.getToolTipText()));
+    myInteraction.clickAction("button2", BASELINE_ACTION_SELECTOR);
     myInteraction.mouseDown("button2", AnchorTarget.Type.BASELINE);
     myInteraction.mouseRelease("button", AnchorTarget.Type.BASELINE);
     myScreen.get("@id/button2")
@@ -132,8 +136,7 @@ public class SceneBasicConnectionsTest extends SceneTest {
     }
     assertThat(noIdComponent).isNotNull();
     myInteraction.select(noIdComponent, true);
-    myInteraction.mouseDown(noIdComponent, target -> EDIT_BASELINE_ACTION_TOOLTIP.equals(target.getToolTipText()));
-    myInteraction.mouseRelease(noIdComponent, target -> EDIT_BASELINE_ACTION_TOOLTIP.equals(target.getToolTipText()));
+    myInteraction.clickAction(noIdComponent, BASELINE_ACTION_SELECTOR);
     myInteraction.mouseDown(noIdComponent, AnchorTarget.Type.BASELINE);
     myInteraction.mouseRelease("button", AnchorTarget.Type.BASELINE);
     assertThat(noIdComponent.getNlComponent().getTag().getText())

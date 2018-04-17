@@ -21,6 +21,7 @@ import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
 import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.scene.target.ActionGroupTarget;
 import com.android.tools.idea.common.scene.target.ActionTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
@@ -79,6 +80,7 @@ public class SceneComponent {
 
   @GuardedBy("myTargets")
   private final ArrayList<Target> myTargets = new ArrayList<>();
+  private final ActionGroupTarget myActionTargets = new ActionGroupTarget(this);
 
   @GuardedBy("myTargets")
   @Nullable private ImmutableList<Target> myCachedTargetList;
@@ -679,6 +681,11 @@ public class SceneComponent {
 
   public void addTarget(@NotNull Target target) {
     target.setComponent(this);
+    if (target instanceof ActionTarget) {
+      // Action Targets are laid out by the ActionTargetGroup
+      myActionTargets.addAction((ActionTarget)target);
+      return;
+    }
     synchronized (myTargets) {
       myCachedTargetList = null;
       myTargets.add(target);
@@ -735,23 +742,10 @@ public class SceneComponent {
     needsRebuildDisplayList |= animating;
 
     ImmutableList<Target> targets = getTargets();
-    int actionTargetLeft = myCurrentLeft;
-    int actionTargetTop = myCurrentTop;
     int num = targets.size();
     for (int i = 0; i < num; i++) {
       Target target = targets.get(i);
-
-      // ActionTargets are laid out separately
-      if (target instanceof ActionTarget) {
-        ActionTarget actionTarget = (ActionTarget)target;
-        needsRebuildDisplayList |= target.layout(sceneTransform, actionTargetLeft, actionTargetTop, myCurrentRight, myCurrentBottom);
-        if (actionTarget.isVisible()) {
-          actionTargetLeft = (int)(actionTarget.getRight() + actionTarget.getGap());
-        }
-      }
-      else {
-        needsRebuildDisplayList |= target.layout(sceneTransform, myCurrentLeft, myCurrentTop, myCurrentRight, myCurrentBottom);
-      }
+      needsRebuildDisplayList |= target.layout(sceneTransform, myCurrentLeft, myCurrentTop, myCurrentRight, myCurrentBottom);
     }
 
     int childCount = myChildren.size();
@@ -861,6 +855,8 @@ public class SceneComponent {
     synchronized (myTargets) {
       myCachedTargetList = null;
       myTargets.clear();
+      myActionTargets.clear();
+      myTargets.add(myActionTargets);
     }
 
     // update the Targets created by parent's TargetProvider

@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.common.scene;
 
-import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
+import com.android.tools.idea.common.scene.target.ActionGroupTarget;
+import com.android.tools.idea.common.scene.target.ActionTarget;
+import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -324,6 +326,22 @@ public class SceneMouseInteraction {
       }
       repaint();
     }
+  }
+
+  public void clickAction(@NotNull String componentId, @NotNull Predicate<Target> selector) {
+    clickAction(myScene.getSceneComponent(componentId), selector);
+  }
+
+  public void clickAction(@NotNull SceneComponent component, @NotNull Predicate<Target> selector) {
+    ActionTarget actionTarget =
+      component.getTargets().stream()
+               .filter(target -> target instanceof ActionGroupTarget)
+               .map(target -> (ActionGroupTarget)target)
+               .flatMap(target -> target.getActionTargets().stream())
+               .filter(selector::test)
+               .findFirst().orElseThrow(() -> new NullPointerException("No action matching predicate for " + component));
+    mouseDown(actionTarget.getCenterX(), actionTarget.getCenterY());
+    mouseRelease(actionTarget.getCenterX(), actionTarget.getCenterY());
   }
 
   /**
