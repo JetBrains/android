@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.scene;
 
 import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.ClearConstraintsTarget;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
@@ -27,9 +28,8 @@ import static com.android.SdkConstants.TEXT_VIEW;
 public class SceneDeleteActionTest extends SceneTest {
 
   public void testDeleteLeft() {
-    myScene.getSceneComponent("button").setSelected(true);
-    myInteraction.mouseDown("button", -45, 25);
-    myInteraction.mouseRelease("button", -45, 25);
+    myInteraction.select("button", true);
+    myInteraction.clickAction("button", target -> target instanceof ClearConstraintsTarget);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
                  "        android:id=\"@id/button\"\n" +
