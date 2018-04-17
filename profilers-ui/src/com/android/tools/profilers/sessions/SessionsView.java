@@ -25,6 +25,11 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.ViewBinder;
+import com.android.tools.profilers.cpu.CpuCaptureArtifactView;
+import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
+import com.android.tools.profilers.memory.HprofArtifactView;
+import com.android.tools.profilers.memory.HprofSessionArtifact;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
@@ -32,12 +37,9 @@ import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
-import icons.StudioIllustrations;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -48,7 +50,6 @@ import java.util.stream.Collectors;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 import static com.android.tools.profilers.StudioProfilers.buildDeviceName;
-import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
 
 /**
  * A collapsible panel which lets users see the list of and interact with their profiling sessions.
@@ -87,8 +88,8 @@ public class SessionsView extends AspectObserver {
   @NotNull private final JButton myStopProfilingButton;
   @NotNull private final CommonAction myProcessSelectionAction;
   @NotNull private final CommonDropDownButton myProcessSelectionDropDown;
-  @NotNull private final SessionsList mySessionsList;
-  @NotNull private final DefaultListModel<SessionArtifact> mySessionsListModel;
+  @NotNull private final JPanel mySessionsPanel;
+  @NotNull ViewBinder<SessionArtifactView.ArtifactDrawInfo, SessionArtifact, SessionArtifactView> mySessionArtifactViewBinder;
 
   @NotNull
   private final IdeProfilerComponents myIdeProfilerComponents;
@@ -173,33 +174,37 @@ public class SessionsView extends AspectObserver {
                .onChange(ProfilerAspect.DEVICES, this::refreshProcessDropdown)
                .onChange(ProfilerAspect.PROCESSES, this::refreshProcessDropdown);
 
-    mySessionsListModel = new DefaultListModel<>();
-    mySessionsList = new SessionsList(mySessionsListModel);
-    mySessionsList.setOpaque(false);
-    mySessionsList.setSelectionMode(SINGLE_SELECTION);
-    mySessionsList.addListSelectionListener(new ListSelectionListener() {
-      @Override
-      public void valueChanged(ListSelectionEvent e) {
-        SessionArtifact artifact = mySessionsList.getSelectedValue();
-        if (artifact != null) {
-          artifact.onSelect();
-        }
-      }
-    });
     mySessionsManager.addDependency(this)
                      .onChange(SessionAspect.SESSIONS, this::refreshSessions)
                      .onChange(SessionAspect.PROFILING_SESSION, () -> myStopProfilingButton
                        .setEnabled(!Common.Session.getDefaultInstance().equals(mySessionsManager.getProfilingSession())));
 
-    myScrollPane = new JBScrollPane(mySessionsList);
+    // Sessions artifacts are vertically stacked in a single column.
+    // We are using a scrollable JPanel instead of an JList because JList's cell renderer are not designed to support the animation and
+    // interaction we want to support within each list item (e.g. spinning icons, nested buttons, etc)
+    mySessionsPanel = new JPanel();
+    mySessionsPanel.setLayout(new TabularLayout("*"));
+    mySessionsPanel.setOpaque(false);
+
+    myScrollPane = new JBScrollPane(mySessionsPanel);
     myScrollPane.getViewport().setOpaque(false);
     myScrollPane.setOpaque(false);
     myScrollPane.setBorder(BorderFactory.createEmptyBorder());
     myScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
     myScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
 
+    mySessionArtifactViewBinder = new ViewBinder<>();
+    mySessionArtifactViewBinder.bind(SessionItem.class, SessionItemView::new);
+    mySessionArtifactViewBinder.bind(HprofSessionArtifact.class, HprofArtifactView::new);
+    mySessionArtifactViewBinder.bind(CpuCaptureSessionArtifact.class, CpuCaptureArtifactView::new);
+
     initializeUI();
     refreshProcessDropdown();
+  }
+
+  @NotNull
+  public StudioProfilers getProfilers() {
+    return myProfilers;
   }
 
   @NotNull
@@ -219,8 +224,8 @@ public class SessionsView extends AspectObserver {
 
   @VisibleForTesting
   @NotNull
-  JList<SessionArtifact> getSessionsList() {
-    return mySessionsList;
+  JComponent getSessionsPanel() {
+    return mySessionsPanel;
   }
 
   @VisibleForTesting
@@ -322,11 +327,15 @@ public class SessionsView extends AspectObserver {
 
   private void refreshSessions() {
     List<SessionArtifact> sessionItems = mySessionsManager.getSessionArtifacts();
-    mySessionsListModel.clear();
+    mySessionsPanel.removeAll();
     for (int i = 0; i < sessionItems.size(); i++) {
       SessionArtifact item = sessionItems.get(i);
-      mySessionsListModel.addElement(item);
+      SessionArtifactView.ArtifactDrawInfo drawInfo = new SessionArtifactView.ArtifactDrawInfo(this, i);
+      mySessionsPanel.add(mySessionArtifactViewBinder.build(drawInfo, item), new TabularLayout.Constraint(i, 0));
     }
+
+    mySessionsPanel.revalidate();
+    mySessionsPanel.repaint();
   }
 
   private void addImportAction() {

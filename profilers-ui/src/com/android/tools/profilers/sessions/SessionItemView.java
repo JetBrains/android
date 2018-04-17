@@ -16,15 +16,12 @@
 package com.android.tools.profilers.sessions;
 
 import com.android.tools.adtui.TabularLayout;
-import com.android.tools.adtui.stdui.CommonButton;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
-import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -43,48 +40,41 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
   private static final Font SESSION_TIME_FONT =
     TITLE_FONT.deriveFont(Collections.singletonMap(TextAttribute.WEIGHT, TextAttribute.WEIGHT_BOLD));
 
-  @NotNull private final JComponent myComponent;
-
-  public SessionItemView(@NotNull ArtifactDrawInfo drawInfo, @NotNull SessionItem artifact) {
-    super(drawInfo, artifact);
+  public SessionItemView(@NotNull ArtifactDrawInfo artifactDrawInfo, @NotNull SessionItem artifact) {
+    super(artifactDrawInfo, artifact);
 
     // 1st column reserved for the Session's title (time), 2nd column for the live session icon.
     // 1st row for showing session start time, 2nd row for name, 3rd row for duration
-    myComponent = new JPanel(new TabularLayout("Fit-,Fit-,*", "Fit-,Fit-,Fit-"));
-    if (isHovered()) {
-      myComponent.setBackground(HOVERED_SESSION_COLOR);
-    }
-    Border selectionBorder = isSessionSelected() ?
-                             JBUI.Borders.merge(SELECTED_BORDER, COMPONENT_PADDING, false) :
-                             JBUI.Borders.merge(UNSELECTED_BORDER, COMPONENT_PADDING, false);
-    // Skip the top border for the first entry as that would duplicate with the toolbar's border
-    myComponent.setBorder(getIndex() == 0 ? selectionBorder : JBUI.Borders.merge(DIVIDER_BORDER, selectionBorder, false));
+    setLayout(new TabularLayout("Fit-,Fit-,*", "Fit-,Fit-,Fit-"));
 
     // TODO b\73780379 add duration.
     DateFormat timeFormat = new SimpleDateFormat("hh:mm a");
     JLabel startTime = new JLabel(timeFormat.format(new Date(getArtifact().getSessionMetaData().getStartTimestampEpochMs())));
     startTime.setBorder(LABEL_PADDING);
     startTime.setFont(SESSION_TIME_FONT);
-    myComponent.add(startTime, new TabularLayout.Constraint(0, 0));
+    add(startTime, new TabularLayout.Constraint(0, 0));
     // Session is ongoing.
     if (getArtifact().getSession().getEndTimestamp() == Long.MAX_VALUE) {
       JPanel liveDotWrapper = new JPanel();
       liveDotWrapper.setOpaque(false);
       LiveSessionDot liveDot = new LiveSessionDot();
       liveDotWrapper.add(liveDot, BorderLayout.CENTER);
-      myComponent.add(liveDotWrapper, new TabularLayout.Constraint(0, 1));
+      add(liveDotWrapper, new TabularLayout.Constraint(0, 1));
     }
 
     JLabel sessionName = new JLabel(getArtifact().getName());
     sessionName.setBorder(LABEL_PADDING);
     sessionName.setFont(STATUS_FONT);
-    myComponent.add(sessionName, new TabularLayout.Constraint(1, 0, 1, 3));
+    add(sessionName, new TabularLayout.Constraint(1, 0, 1, 3));
   }
 
-  @NotNull
   @Override
-  public JComponent getComponent() {
-    return myComponent;
+  protected void selectedSessionChanged() {
+    Border selectionBorder = isSessionSelected() ?
+                             JBUI.Borders.merge(SELECTED_BORDER, COMPONENT_PADDING, false) :
+                             JBUI.Borders.merge(UNSELECTED_BORDER, COMPONENT_PADDING, false);
+    // Skip the top border for the first entry as that would duplicate with the toolbar's border
+    setBorder(getIndex() == 0 ? selectionBorder : JBUI.Borders.merge(DIVIDER_BORDER, selectionBorder, false));
   }
 
   /**
