@@ -23,37 +23,26 @@ import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
-
-import static com.android.tools.profilers.ProfilerColors.HOVERED_SESSION_COLOR;
 
 /**
  * A {@link SessionArtifactView} that represents a heap dump object.
  */
 public final class HprofArtifactView extends SessionArtifactView<HprofSessionArtifact> {
 
-  @NotNull private final JPanel myComponent;
-
-  public HprofArtifactView(@NotNull ArtifactDrawInfo drawInfo, @NotNull HprofSessionArtifact artifact) {
-    super(drawInfo, artifact);
+  public HprofArtifactView(@NotNull ArtifactDrawInfo artifactDrawInfo, @NotNull HprofSessionArtifact artifact) {
+    super(artifactDrawInfo, artifact);
 
     // 1st column for artifact's icon, 2nd column for texts
     // 1st row for showing name, 2nd row for time.
-    myComponent = new JPanel(new TabularLayout("Fit-,*", "Fit-,Fit-"));
-    if (isHovered()) {
-      myComponent.setBackground(HOVERED_SESSION_COLOR);
-    }
-    myComponent.setBorder(isSessionSelected() ?
-                          BorderFactory.createCompoundBorder(SELECTED_BORDER, ARTIFACT_PADDING) :
-                          BorderFactory.createCompoundBorder(UNSELECTED_BORDER, ARTIFACT_PADDING));
+    setLayout(new TabularLayout("Fit-,*", "Fit-,Fit-"));
 
     JLabel icon = new JLabel(StudioIcons.Profiler.Sessions.HEAP);
     icon.setBorder(ARTIFACT_ICON_BORDER);
-    myComponent.add(icon, new TabularLayout.Constraint(0, 0));
+    add(icon, new TabularLayout.Constraint(0, 0));
 
     JLabel artifactName = new JLabel(getArtifact().getName());
     artifactName.setBorder(LABEL_PADDING);
@@ -70,13 +59,14 @@ public final class HprofArtifactView extends SessionArtifactView<HprofSessionArt
     }
     artifactTime.setBorder(LABEL_PADDING);
     artifactTime.setFont(STATUS_FONT);
-    myComponent.add(artifactName, new TabularLayout.Constraint(0, 1));
-    myComponent.add(artifactTime, new TabularLayout.Constraint(1, 1));
+    add(artifactName, new TabularLayout.Constraint(0, 1));
+    add(artifactTime, new TabularLayout.Constraint(1, 1));
   }
 
-  @NotNull
   @Override
-  public JComponent getComponent() {
-    return myComponent;
+  protected void selectedSessionChanged() {
+    setBorder(isSessionSelected() ?
+              BorderFactory.createCompoundBorder(SELECTED_BORDER, ARTIFACT_PADDING) :
+              BorderFactory.createCompoundBorder(UNSELECTED_BORDER, ARTIFACT_PADDING));
   }
 }

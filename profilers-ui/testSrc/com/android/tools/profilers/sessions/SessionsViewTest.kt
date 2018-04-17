@@ -18,20 +18,15 @@ package com.android.tools.profilers.sessions
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.stdui.CommonAction
+import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profiler.proto.MemoryProfiler
 import com.android.tools.profiler.protobuf3jarjar.ByteString
 import com.android.tools.profilers.*
-import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
-import com.android.tools.profilers.cpu.CpuProfilerStage
-import com.android.tools.profilers.cpu.FakeCpuService
-import com.android.tools.profilers.cpu.ProfilingConfiguration
+import com.android.tools.profilers.cpu.*
 import com.android.tools.profilers.event.FakeEventService
-import com.android.tools.profilers.memory.FakeCaptureObjectLoader
-import com.android.tools.profilers.memory.FakeMemoryService
-import com.android.tools.profilers.memory.HprofSessionArtifact
-import com.android.tools.profilers.memory.MemoryProfilerStage
+import com.android.tools.profilers.memory.*
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject
 import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
@@ -73,8 +68,8 @@ class SessionsViewTest {
 
   @Test
   fun testSessionsListUpToDate() {
-    val sessionArtifacts = mySessionsView.sessionsList.model
-    assertThat(sessionArtifacts.size).isEqualTo(0)
+    val sessionsPanel = mySessionsView.sessionsPanel
+    assertThat(sessionsPanel.componentCount).isEqualTo(0)
 
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
@@ -83,25 +78,25 @@ class SessionsViewTest {
     myProfilerService.setTimestampNs(1)
     mySessionsManager.beginSession(device, process1)
     var session1 = mySessionsManager.selectedSession
-    assertThat(sessionArtifacts.size).isEqualTo(1)
-    var sessionItem0 = sessionArtifacts.getElementAt(0) as SessionItem
-    assertThat(sessionItem0.session).isEqualTo(session1)
+    assertThat(sessionsPanel.componentCount).isEqualTo(1)
+    var sessionItem0 = sessionsPanel.getComponent(0) as SessionItemView
+    assertThat(sessionItem0.artifact.session).isEqualTo(session1)
 
     mySessionsManager.endCurrentSession()
     session1 = mySessionsManager.selectedSession
-    assertThat(sessionArtifacts.size).isEqualTo(1)
-    sessionItem0 = sessionArtifacts.getElementAt(0) as SessionItem
-    assertThat(sessionItem0.session).isEqualTo(session1)
+    assertThat(sessionsPanel.componentCount).isEqualTo(1)
+    sessionItem0 = sessionsPanel.getComponent(0) as SessionItemView
+    assertThat(sessionItem0.artifact.session).isEqualTo(session1)
 
     myProfilerService.setTimestampNs(2)
     mySessionsManager.beginSession(device, process2)
     val session2 = mySessionsManager.selectedSession
-    assertThat(sessionArtifacts.size).isEqualTo(2)
+    assertThat(sessionsPanel.componentCount).isEqualTo(2)
     // Sessions are sorted in descending order.
-    sessionItem0 = sessionArtifacts.getElementAt(0) as SessionItem
-    var sessionItem1 = sessionArtifacts.getElementAt(1) as SessionItem
-    assertThat(sessionItem0.session).isEqualTo(session2)
-    assertThat(sessionItem1.session).isEqualTo(session1)
+    sessionItem0 = sessionsPanel.getComponent(0) as SessionItemView
+    var sessionItem1 = sessionsPanel.getComponent(1) as SessionItemView
+    assertThat(sessionItem0.artifact.session).isEqualTo(session2)
+    assertThat(sessionItem1.artifact.session).isEqualTo(session1)
 
     // Add the heap dump and CPU capture, expand the first session and make sure the artifacts are shown in the list
     val heapDumpTimestamp = 10L
@@ -112,19 +107,19 @@ class SessionsViewTest {
     myCpuService.addTraceInfo(cpuTraceInfo)
     mySessionsManager.update()
 
-    assertThat(sessionArtifacts.size).isEqualTo(6)
-    sessionItem0 = sessionArtifacts.getElementAt(0) as SessionItem
-    val cpuCaptureItem0 = sessionArtifacts.getElementAt(1) as CpuCaptureSessionArtifact
-    val hprofItem0 = sessionArtifacts.getElementAt(2) as HprofSessionArtifact
-    sessionItem1 = sessionArtifacts.getElementAt(3) as SessionItem
-    val cpuCaptureItem1 = sessionArtifacts.getElementAt(4) as CpuCaptureSessionArtifact
-    val hprofItem1 = sessionArtifacts.getElementAt(5) as HprofSessionArtifact
-    assertThat(sessionItem0.session).isEqualTo(session2)
-    assertThat(hprofItem0.session).isEqualTo(session2)
-    assertThat(cpuCaptureItem0.session).isEqualTo(session2)
-    assertThat(sessionItem1.session).isEqualTo(session1)
-    assertThat(hprofItem1.session).isEqualTo(session1)
-    assertThat(cpuCaptureItem1.session).isEqualTo(session1)
+    assertThat(sessionsPanel.componentCount).isEqualTo(6)
+    sessionItem0 = sessionsPanel.getComponent(0) as SessionItemView
+    val cpuCaptureItem0 = sessionsPanel.getComponent(1) as CpuCaptureArtifactView
+    val hprofItem0 = sessionsPanel.getComponent(2) as HprofArtifactView
+    sessionItem1 = sessionsPanel.getComponent(3) as SessionItemView
+    val cpuCaptureItem1 = sessionsPanel.getComponent(4) as CpuCaptureArtifactView
+    val hprofItem1 = sessionsPanel.getComponent(5) as HprofArtifactView
+    assertThat(sessionItem0.artifact.session).isEqualTo(session2)
+    assertThat(hprofItem0.artifact.session).isEqualTo(session2)
+    assertThat(cpuCaptureItem0.artifact.session).isEqualTo(session2)
+    assertThat(sessionItem1.artifact.session).isEqualTo(session1)
+    assertThat(hprofItem1.artifact.session).isEqualTo(session1)
+    assertThat(cpuCaptureItem1.artifact.session).isEqualTo(session1)
   }
 
   @Test
@@ -326,20 +321,20 @@ class SessionsViewTest {
 
   @Test
   fun testImportSessionsFromHprofFile() {
-    val sessionArtifacts = mySessionsView.sessionsList.model
-    assertThat(sessionArtifacts.size).isEqualTo(0)
+    val sessionsPanel = mySessionsView.sessionsPanel
+    assertThat(sessionsPanel.componentCount).isEqualTo(0)
 
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
     mySessionsManager.beginSession(device, process1)
     val session1 = mySessionsManager.selectedSession
-    assertThat(sessionArtifacts.size).isEqualTo(1)
-    assertThat(sessionArtifacts.getElementAt(0).session).isEqualTo(session1)
+    assertThat(sessionsPanel.componentCount).isEqualTo(1)
+    assertThat((sessionsPanel.getComponent(0) as SessionItemView).artifact.session).isEqualTo(session1)
 
     val session = mySessionsManager.createImportedSession("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE, 0, 0, 0)
     mySessionsManager.update()
     mySessionsManager.setSession(session)
-    assertThat(sessionArtifacts.size).isEqualTo(2)
+    assertThat(sessionsPanel.componentCount).isEqualTo(2)
 
     val selectedSession = mySessionsManager.selectedSession
     assertThat(session).isEqualTo(selectedSession)
@@ -348,9 +343,9 @@ class SessionsViewTest {
 
   @Test
   fun testSessionItemSelection() {
-    val sessionsList = mySessionsView.sessionsList
-    val sessionArtifacts = sessionsList.model
-    assertThat(sessionArtifacts.size).isEqualTo(0)
+    val sessionsPanel = mySessionsView.sessionsPanel
+    sessionsPanel.setSize(200, 200)
+    val ui = FakeUi(sessionsPanel)
 
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
@@ -369,32 +364,33 @@ class SessionsViewTest {
     mySessionsManager.endCurrentSession()
     val session2 = mySessionsManager.selectedSession
 
-    assertThat(sessionArtifacts.size).isEqualTo(6)
+    assertThat(sessionsPanel.componentCount).isEqualTo(6)
     // Sessions are sorted in descending order.
-    var sessionItem0 = sessionArtifacts.getElementAt(0) as SessionItem
-    val cpuCaptureItem0 = sessionArtifacts.getElementAt(1) as CpuCaptureSessionArtifact
-    val hprofItem0 = sessionArtifacts.getElementAt(2) as HprofSessionArtifact
-    var sessionItem1 = sessionArtifacts.getElementAt(3) as SessionItem
-    var cpuCaptureItem1 = sessionArtifacts.getElementAt(4) as CpuCaptureSessionArtifact
-    var hprofItem1 = sessionArtifacts.getElementAt(5) as HprofSessionArtifact
-    assertThat(sessionItem0.session).isEqualTo(session2)
-    assertThat(hprofItem0.session).isEqualTo(session2)
-    assertThat(cpuCaptureItem0.session).isEqualTo(session2)
-    assertThat(sessionItem1.session).isEqualTo(session1)
-    assertThat(hprofItem1.session).isEqualTo(session1)
-    assertThat(cpuCaptureItem1.session).isEqualTo(session1)
+    var sessionItem0 = sessionsPanel.getComponent(0) as SessionItemView
+    val cpuCaptureItem0 = sessionsPanel.getComponent(1) as CpuCaptureArtifactView
+    val hprofItem0 = sessionsPanel.getComponent(2) as HprofArtifactView
+    var sessionItem1 = sessionsPanel.getComponent(3) as SessionItemView
+    var cpuCaptureItem1 = sessionsPanel.getComponent(4) as CpuCaptureArtifactView
+    var hprofItem1 = sessionsPanel.getComponent(5) as HprofArtifactView
+    assertThat(sessionItem0.artifact.session).isEqualTo(session2)
+    assertThat(hprofItem0.artifact.session).isEqualTo(session2)
+    assertThat(cpuCaptureItem0.artifact.session).isEqualTo(session2)
+    assertThat(sessionItem1.artifact.session).isEqualTo(session1)
+    assertThat(hprofItem1.artifact.session).isEqualTo(session1)
+    assertThat(cpuCaptureItem1.artifact.session).isEqualTo(session1)
 
     // Selecting on the second item should select the session.
     assertThat(mySessionsManager.selectedSession).isEqualTo(session2)
-    sessionsList.selectedIndex = 3
+    ui.layout()
+    ui.mouse.click(sessionItem1.bounds.x + 1, sessionItem1.bounds.y + 1)
     assertThat(mySessionsManager.selectedSession).isEqualTo(session1)
   }
 
   @Test
   fun testCpuCaptureItemSelection() {
-    val sessionsList = mySessionsView.sessionsList
-    val sessionArtifacts = sessionsList.model
-    assertThat(sessionArtifacts.size).isEqualTo(0)
+    val sessionsPanel = mySessionsView.sessionsPanel
+    sessionsPanel.setSize(200, 200)
+    val ui = FakeUi(sessionsPanel)
 
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
@@ -412,13 +408,13 @@ class SessionsViewTest {
     mySessionsManager.endCurrentSession()
     val session = mySessionsManager.selectedSession
 
-    assertThat(sessionArtifacts.size).isEqualTo(2)
-    val sessionItem = sessionArtifacts.getElementAt(0) as SessionItem
-    val cpuCaptureItem = sessionArtifacts.getElementAt(1) as CpuCaptureSessionArtifact
-    assertThat(sessionItem.session).isEqualTo(session)
-    assertThat(cpuCaptureItem.session).isEqualTo(session)
-    assertThat(cpuCaptureItem.isOngoingCapture).isFalse()
-    assertThat(cpuCaptureItem.name).isEqualTo(ProfilingConfiguration.SIMPLEPERF_ARTIFACT)
+    assertThat(sessionsPanel.componentCount).isEqualTo(2)
+    val sessionItem = sessionsPanel.getComponent(0) as SessionItemView
+    val cpuCaptureItem = sessionsPanel.getComponent(1) as CpuCaptureArtifactView
+    assertThat(sessionItem.artifact.session).isEqualTo(session)
+    assertThat(cpuCaptureItem.artifact.session).isEqualTo(session)
+    assertThat(cpuCaptureItem.artifact.isOngoingCapture).isFalse()
+    assertThat(cpuCaptureItem.artifact.name).isEqualTo(ProfilingConfiguration.SIMPLEPERF_ARTIFACT)
 
     // Prepare FakeCpuService to return a valid trace.
     myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)
@@ -428,7 +424,8 @@ class SessionsViewTest {
 
     assertThat(myProfilers.stage).isInstanceOf(StudioMonitorStage::class.java) // Makes sure we're in monitor stage
     // Selecting the CpuCaptureSessionArtifact should open CPU profiler and select the capture
-    sessionsList.selectedIndex = 1
+    ui.layout()
+    ui.mouse.click(cpuCaptureItem.bounds.x + 1, cpuCaptureItem.bounds.y + 1)
     assertThat(myProfilers.stage).isInstanceOf(CpuProfilerStage::class.java) // Makes sure CPU profiler stage is now open
     val selectedCapture = (myProfilers.stage as CpuProfilerStage).capture
     // Makes sure that there is a capture selected and it's the one we clicked.
@@ -439,9 +436,9 @@ class SessionsViewTest {
 
   @Test
   fun testCpuOngoingCaptureItemSelection() {
-    val sessionsList = mySessionsView.sessionsList
-    val sessionArtifacts = sessionsList.model
-    assertThat(sessionArtifacts.size).isEqualTo(0)
+    val sessionsPanel = mySessionsView.sessionsPanel
+    sessionsPanel.setSize(200, 200)
+    val ui = FakeUi(sessionsPanel)
 
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
@@ -455,17 +452,18 @@ class SessionsViewTest {
     mySessionsManager.beginSession(device, process)
     val session = mySessionsManager.selectedSession
 
-    assertThat(sessionArtifacts.size).isEqualTo(2)
-    val sessionItem = sessionArtifacts.getElementAt(0) as SessionItem
-    val cpuCaptureItem = sessionArtifacts.getElementAt(1) as CpuCaptureSessionArtifact
-    assertThat(sessionItem.session).isEqualTo(session)
-    assertThat(cpuCaptureItem.session).isEqualTo(session)
-    assertThat(cpuCaptureItem.isOngoingCapture).isTrue()
-    assertThat(cpuCaptureItem.name).isEqualTo(ProfilingConfiguration.ATRACE)
+    assertThat(sessionsPanel.componentCount).isEqualTo(2)
+    val sessionItem = sessionsPanel.getComponent(0) as SessionItemView
+    val cpuCaptureItem = sessionsPanel.getComponent(1) as CpuCaptureArtifactView
+    assertThat(sessionItem.artifact.session).isEqualTo(session)
+    assertThat(cpuCaptureItem.artifact.session).isEqualTo(session)
+    assertThat(cpuCaptureItem.artifact.isOngoingCapture).isTrue()
+    assertThat(cpuCaptureItem.artifact.name).isEqualTo(ProfilingConfiguration.ATRACE)
 
     assertThat(myProfilers.stage).isInstanceOf(StudioMonitorStage::class.java) // Makes sure we're in monitor stage
     // Selecting on the CpuCaptureSessionArtifact should open CPU profiler and select the capture
-    sessionsList.selectedIndex = 1
+    ui.layout()
+    ui.mouse.click(cpuCaptureItem.bounds.x + 1, cpuCaptureItem.bounds.y + 1)
     assertThat(myProfilers.stage).isInstanceOf(CpuProfilerStage::class.java) // Makes sure CPU profiler stage is now open
     val selectedCapture = (myProfilers.stage as CpuProfilerStage).capture
     // Makes sure that there is no capture selected, because the ongoing capture was not generated by a trace just yet.
@@ -475,9 +473,9 @@ class SessionsViewTest {
 
   @Test
   fun testMemoryItemSelection() {
-    val sessionsList = mySessionsView.sessionsList
-    val sessionArtifacts = sessionsList.model
-    assertThat(sessionArtifacts.size).isEqualTo(0)
+    val sessionsPanel = mySessionsView.sessionsPanel
+    sessionsPanel.setSize(200, 200)
+    val ui = FakeUi(sessionsPanel)
 
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
@@ -490,11 +488,11 @@ class SessionsViewTest {
     mySessionsManager.endCurrentSession()
     val session = mySessionsManager.selectedSession
 
-    assertThat(sessionArtifacts.size).isEqualTo(2)
-    var sessionItem = sessionArtifacts.getElementAt(0) as SessionItem
-    var hprofItem = sessionArtifacts.getElementAt(1) as HprofSessionArtifact
-    assertThat(sessionItem.session).isEqualTo(session)
-    assertThat(hprofItem.session).isEqualTo(session)
+    assertThat(sessionsPanel.componentCount).isEqualTo(2)
+    var sessionItem = sessionsPanel.getComponent(0) as SessionItemView
+    var hprofItem = sessionsPanel.getComponent(1) as HprofArtifactView
+    assertThat(sessionItem.artifact.session).isEqualTo(session)
+    assertThat(hprofItem.artifact.session).isEqualTo(session)
 
     myMemoryService.setExplicitHeapDumpInfo(10, 11)
     myMemoryService.setExplicitSnapshotBuffer(ByteArray(0))
@@ -511,7 +509,8 @@ class SessionsViewTest {
     // Makes sure we're in monitor stage.
     assertThat(myProfilers.stage).isInstanceOf(StudioMonitorStage::class.java)
     // Selecting on the HprofSessionArtifact should open Memory profiler and select the capture.
-    sessionsList.selectedIndex = 1
+    ui.layout()
+    ui.mouse.click(hprofItem.bounds.x + 1, hprofItem.bounds.y + 1)
     // Makes sure memory profiler stage is now open.
     assertThat(myProfilers.stage).isInstanceOf(MemoryProfilerStage::class.java)
     // Makes sure a HeapDumpCaptureObject is loaded.

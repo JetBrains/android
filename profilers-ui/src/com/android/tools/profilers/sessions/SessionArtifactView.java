@@ -16,19 +16,22 @@
 package com.android.tools.profilers.sessions;
 
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.model.AspectObserver;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
+import java.awt.event.*;
 
+import static com.android.tools.profilers.ProfilerColors.HOVERED_SESSION_COLOR;
 import static com.android.tools.profilers.ProfilerColors.SELECTED_SESSION_COLOR;
 
 /**
- * A view for showing different {@link SessionArtifact}'s in the list's cell content.
+ * A view for showing different {@link SessionArtifact}'s in the sessions panel.
  */
-public abstract class SessionArtifactView<T extends SessionArtifact> {
+public abstract class SessionArtifactView<T extends SessionArtifact> extends JPanel {
 
   private static final int EXPAND_ICON_RIGHT_PADDING = JBUI.scale(8);
   private static final int EXPAND_ICON_VERTICAL_PADDING = JBUI.scale(4);
@@ -51,17 +54,56 @@ public abstract class SessionArtifactView<T extends SessionArtifact> {
 
   @NotNull private final T myArtifact;
   @NotNull private final ArtifactDrawInfo myArtifactDrawInfo;
+  @NotNull private final AspectObserver myObserver;
 
-  public SessionArtifactView(@NotNull ArtifactDrawInfo drawInfo, @NotNull T artifact) {
+  public SessionArtifactView(@NotNull ArtifactDrawInfo artifactDrawInfo, @NotNull T artifact) {
+    setBackground(HOVERED_SESSION_COLOR);
+    setOpaque(false);
+    myArtifactDrawInfo = artifactDrawInfo;
     myArtifact = artifact;
-    myArtifactDrawInfo = drawInfo;
+    myObserver = new AspectObserver();
+    initializeListeners();
+
+    // Listen to selected session changed so we can update the selection visuals accordingly.
+    myArtifactDrawInfo.mySessionsView.getProfilers().getSessionsManager().addDependency(myObserver)
+                                     .onChange(SessionAspect.SELECTED_SESSION, () -> {
+                                       selectedSessionChanged();
+                                       // Selection states have possibly changed for this artifact, re-render.
+                                       revalidate();
+                                       repaint();
+                                     });
+    selectedSessionChanged();
   }
 
-  /**
-   * @return the component to be rendered in the JList for an {@link SessionArtifact}.
-   */
-  @NotNull
-  public abstract JComponent getComponent();
+  private void initializeListeners() {
+    // Mouse listener to handle selection and hover effects.
+    addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        myArtifact.onSelect();
+      }
+
+      @Override
+      public void mouseEntered(MouseEvent e) {
+        showHoverState(true);
+      }
+
+      @Override
+      public void mouseExited(MouseEvent e) {
+        showHoverState(false);
+      }
+    });
+
+    addComponentListener(new ComponentAdapter() {
+      @Override
+      public void componentResized(ComponentEvent e) {
+        // When a component is first constructed, we need to check whether the mouse is already hovered. If so, draw the hover effect.
+        Point mousePosition = MouseInfo.getPointerInfo().getLocation();
+        SwingUtilities.convertPointFromScreen(mousePosition, SessionArtifactView.this);
+        showHoverState(SessionArtifactView.this.contains(mousePosition));
+      }
+    });
+  }
 
   @NotNull
   public T getArtifact() {
@@ -76,28 +118,23 @@ public abstract class SessionArtifactView<T extends SessionArtifact> {
     return myArtifactDrawInfo.myIndex;
   }
 
-  public boolean isSelected() {
-    return myArtifactDrawInfo.mySelected;
-  }
+  protected abstract void selectedSessionChanged();
 
-  public boolean isHovered() {
-    return myArtifactDrawInfo.myHovered;
+  private void showHoverState(boolean hoever) {
+    setOpaque(hoever);
+    repaint();
   }
 
   /**
    * Helper object to wrap information related to the states of the cell in which a {@link SessionArtifactView} belongs.
    */
   public static class ArtifactDrawInfo {
+    @NotNull final SessionsView mySessionsView;
     final int myIndex;
-    final boolean mySelected;
-    final boolean myHovered;
-    final boolean myCellHasFocus;
 
-    ArtifactDrawInfo(int index, boolean isSelected, boolean isHovered, boolean cellHasFocus) {
+    ArtifactDrawInfo(@NotNull SessionsView sessionsView, int index) {
+      mySessionsView = sessionsView;
       myIndex = index;
-      mySelected = isSelected;
-      myHovered = isHovered;
-      myCellHasFocus = cellHasFocus;
     }
   }
 }
