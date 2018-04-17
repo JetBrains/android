@@ -51,14 +51,14 @@ class AnimationEditor(listener: NlEditingListener, comboBox: CustomComboBox) : E
   }
 }
 
-fun getAnimatorsPopupContent(repoManager: ResourceRepositoryManager, isFragment: Boolean): List<ValueWithDisplayString> {
+fun getAnimatorsPopupContent(repoManager: ResourceRepositoryManager, includeAnimators: Boolean): List<ValueWithDisplayString> {
   // TODO: filter out interpolators
   val appResources = repoManager.getAppResources(true)!!
   val visibilityLookup = repoManager.resourceVisibility
   val result = appResources
     .getResourceItems(ResourceNamespace.TODO, ResourceType.ANIM, visibilityLookup, ResourceVisibility.PUBLIC)
     .map { ValueWithDisplayString(it, "@${ResourceType.ANIM.getName()}/$it") }.toMutableList()
-  if (isFragment) {
+  if (includeAnimators) {
     appResources
       .getResourceItems(ResourceNamespace.TODO, ResourceType.ANIMATOR, visibilityLookup, ResourceVisibility.PUBLIC)
       .mapTo(result) { ValueWithDisplayString(it, "@${ResourceType.ANIMATOR.getName()}/$it") }

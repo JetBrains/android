@@ -30,10 +30,10 @@ import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.util.Computable
 import com.intellij.ui.ListCellRendererWrapper
 import org.jetbrains.android.dom.navigation.NavigationSchema
-import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_ENTER_ANIM
-import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_EXIT_ANIM
+import org.jetbrains.android.dom.navigation.NavigationSchema.*
 import org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.FRAGMENT
 import java.awt.Font
+import java.awt.event.ActionEvent
 import java.awt.event.ItemEvent
 import java.awt.event.ItemListener
 import javax.swing.Action
@@ -88,6 +88,14 @@ open class AddActionDialog(
   // Open for testing
   open val isInclusive: Boolean
     get() = dialog.myInclusiveCheckBox.isSelected
+
+  // Open for testing
+  open val popEnterTransition: String?
+    get() = (dialog.myPopEnterComboBox.selectedItem as ValueWithDisplayString?)?.value
+
+  // Open for testing
+  open val popExitTransition: String?
+    get() = (dialog.myPopExitComboBox.selectedItem as ValueWithDisplayString?)?.value
 
   // Open for testing
   open val isSingleTop: Boolean
@@ -204,7 +212,6 @@ open class AddActionDialog(
 
     val destination = existingAction.actionDestinationId
     if (destination != null) {
-
       dialog.myDestinationComboBox.addItem(
           DestinationListEntry(existingAction.parent!!.findVisibleDestination(destination))
       )
@@ -216,6 +223,8 @@ open class AddActionDialog(
     dialog.myInclusiveCheckBox.isSelected = existingAction.inclusive
     selectItem(dialog.myEnterComboBox, { it.value }, ATTR_ENTER_ANIM, AUTO_URI, existingAction)
     selectItem(dialog.myExitComboBox, { it.value }, ATTR_EXIT_ANIM, AUTO_URI, existingAction)
+    selectItem(dialog.myPopEnterComboBox, { it.value }, ATTR_POP_ENTER_ANIM, AUTO_URI, existingAction)
+    selectItem(dialog.myPopExitComboBox, { it.value }, ATTR_POP_EXIT_ANIM, AUTO_URI, existingAction)
     dialog.mySingleTopCheckBox.isSelected = existingAction.singleTop
     dialog.myDocumentCheckBox.isSelected = existingAction.document
     dialog.myClearTaskCheckBox.isSelected = existingAction.clearTask
@@ -308,6 +317,12 @@ open class AddActionDialog(
       dialog.myExitComboBox.removeAllItems()
       dialog.myEnterComboBox.addItem(ValueWithDisplayString("None", null))
       dialog.myExitComboBox.addItem(ValueWithDisplayString("None", null))
+
+      dialog.myPopEnterComboBox.removeAllItems()
+      dialog.myPopExitComboBox.removeAllItems()
+      dialog.myPopEnterComboBox.addItem(ValueWithDisplayString("None", null))
+      dialog.myPopExitComboBox.addItem(ValueWithDisplayString("None", null))
+
       val component = (event.item as DestinationListEntry?)?.component
       var isFragment = false
       if (component != null) {
@@ -318,6 +333,8 @@ open class AddActionDialog(
           .forEach { item ->
             dialog.myEnterComboBox.addItem(item)
             dialog.myExitComboBox.addItem(item)
+            dialog.myPopEnterComboBox.addItem(item)
+            dialog.myPopExitComboBox.addItem(item)
           }
       }
     }
@@ -346,6 +363,8 @@ open class AddActionDialog(
 
     dialog.myEnterComboBox.addItem(ValueWithDisplayString("None", null))
     dialog.myExitComboBox.addItem(ValueWithDisplayString("None", null))
+    dialog.myPopEnterComboBox.addItem(ValueWithDisplayString("None", null))
+    dialog.myPopExitComboBox.addItem(ValueWithDisplayString("None", null))
 
     populatePopTo()
     dialog.myPopToComboBox.renderer = destinationRenderer
@@ -383,6 +402,8 @@ open class AddActionDialog(
         exitAnimation = exitTransition
         popUpTo = popTo
         inclusive = isInclusive
+        popEnterAnimation = popEnterTransition
+        popExitAnimation = popExitTransition
         singleTop = isSingleTop
         document = isDocument
         clearTask = isClearTask
