@@ -28,7 +28,6 @@ public class ButtonHandler extends TextViewHandler {
   public List<String> getInspectorProperties() {
     return ImmutableList.of(
       ATTR_STYLE,
-      ATTR_MATERIAL_BUTTON_STYLE,
       ATTR_STATE_LIST_ANIMATOR,
       ATTR_ON_CLICK,
       ATTR_ELEVATION,

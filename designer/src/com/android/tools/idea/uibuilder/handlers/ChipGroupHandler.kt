@@ -22,7 +22,7 @@ class ChipGroupHandler : ViewGroupHandler() {
 
   override fun getInspectorProperties(): List<String> {
     return listOf(
-      ATTR_CHIP_GROUP_STYLE,
+      ATTR_STYLE,
       ATTR_CHIP_SPACING,
       ATTR_CHIP_SPACING_HORIZONTAL,
       ATTR_CHIP_SPACING_VERTICAL,

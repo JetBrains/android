@@ -36,7 +36,7 @@ public class FloatingActionButtonHandler extends ImageViewHandler {
   public List<String> getInspectorProperties() {
     return ImmutableList.of(
       ATTR_SRC,
-      ATTR_FLOATING_ACTION_BUTTON_STYLE,
+      ATTR_STYLE,
       ATTR_BACKGROUND_TINT,
       ATTR_BACKGROUND_TINT_MODE,
       ATTR_RIPPLE_COLOR,

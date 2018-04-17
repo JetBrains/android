@@ -28,12 +28,12 @@ public class BottomAppBarHandler extends ViewHandler {
   @NotNull
   public List<String> getInspectorProperties() {
     return ImmutableList.of(
+      ATTR_STYLE,
       ATTR_BACKGROUND_TINT,
       ATTR_FAB_ALIGNMENT_MODE,
       ATTR_FAB_ATTACHED,
       ATTR_FAB_CRADLE_DIAMETER,
       ATTR_FAB_CRADLE_ROUNDED_CORNER_RADIUS,
-      ATTR_FAB_CRADLE_VERTICAL_OFFSET,
-      ATTR_BOTTOM_APP_BAR_STYLE);
+      ATTR_FAB_CRADLE_VERTICAL_OFFSET);
   }
 }
