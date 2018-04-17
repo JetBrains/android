@@ -86,6 +86,8 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
 
       override fun getDeclaredDependency(coordinate: GradleCoordinate): GradleCoordinate? = null
 
+      override fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate? = null
+
       override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
         return emptyList()
       }

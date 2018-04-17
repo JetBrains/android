@@ -19,6 +19,7 @@ package com.android.tools.idea.util
 
 import com.android.SdkConstants
 import com.android.annotations.VisibleForTesting
+import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.support.AndroidxName
 import com.android.support.AndroidxNameUtils
@@ -40,7 +41,9 @@ import com.intellij.openapi.util.text.StringUtil
  */
 fun Module.dependsOn(artifactId: GoogleMavenArtifactId): Boolean {
   try {
-    return project.getProjectSystem().getModuleSystem(this).getResolvedVersion(artifactId) != null
+    // TODO this artifact to coordinate translation is temporary and will be removed when GradleCoordinates are swapped in for GoogleMavenArtifactId.
+    val coordinate = GradleCoordinate(artifactId.mavenGroupId, artifactId.mavenArtifactId, "+")
+    return getModuleSystem().getResolvedDependency(coordinate) != null
   }
   catch (e: DependencyManagementException) {
     Logger.getInstance(this.javaClass.name).warn(e.message)

@@ -76,6 +76,11 @@ class TestProjectSystem(val project: Project) : AndroidProjectSystem, AndroidPro
         return GradleCoordinate.parseCoordinateString("${coordinate.groupId}:${coordinate.artifactId}:${version.mavenVersion}")
       }
 
+      override fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate? {
+        val version = dependenciesByModule[module].firstOrNull { it.id.getCoordinate("+").matches(coordinate) }?.version ?: return null
+        return GradleCoordinate.parseCoordinateString("${coordinate.groupId}:${coordinate.artifactId}:${version.mavenVersion}")
+      }
+
       override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
         return emptyList()
       }
