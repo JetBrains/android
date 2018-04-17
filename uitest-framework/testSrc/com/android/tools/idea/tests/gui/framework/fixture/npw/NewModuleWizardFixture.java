@@ -91,6 +91,14 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
   }
 
   @NotNull
+  public ConfigureDynamicFeatureStepFixture<NewModuleWizardFixture> clickNextToDynamicFeature() {
+    chooseModuleType("Dynamic Module");
+    clickNext();
+    JRootPane rootPane = findStepWithTitle("Configure your new module");
+    return new ConfigureDynamicFeatureStepFixture<>(this, rootPane);
+  }
+
+  @NotNull
   public NewModuleWizardFixture clickNextToStep(String name) {
     GuiTests.findAndClickButton(this, "Next");
     Wait.seconds(5).expecting("next step to appear").until(
