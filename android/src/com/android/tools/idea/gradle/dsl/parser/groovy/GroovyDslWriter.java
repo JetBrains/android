@@ -207,7 +207,7 @@ public class GroovyDslWriter implements GradleDslWriter {
     PsiElement parent = psiElement.getParent();
     psiElement.delete();
 
-    deleteIfEmpty(parent);
+    maybeDeleteIfEmpty(parent, element);
 
     // Now we have deleted all empty PsiElements in the Psi tree, we also need to make sure
     // to clear any invalid PsiElements in the GradleDslElement tree otherwise we will
@@ -269,7 +269,7 @@ public class GroovyDslWriter implements GradleDslWriter {
     }
     PsiElement parent = expression.getParent();
     expression.delete();
-    deleteIfEmpty(parent);
+    maybeDeleteIfEmpty(parent, literal);
     removePsiIfInvalid(literal);
   }
 
@@ -320,7 +320,7 @@ public class GroovyDslWriter implements GradleDslWriter {
     }
     PsiElement parent = expression.getParent();
     expression.delete();
-    deleteIfEmpty(parent);
+    maybeDeleteIfEmpty(parent, reference);
     removePsiIfInvalid(reference);
   }
 

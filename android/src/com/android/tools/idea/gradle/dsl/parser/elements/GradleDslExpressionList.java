@@ -36,6 +36,12 @@ public final class GradleDslExpressionList extends GradleDslElementImpl implemen
   @NotNull private final List<GradleDslExpression> myUnsavedExpressions = Lists.newArrayList();
 
   private final boolean myAppendToArgumentListWithOneElement;
+  // This boolean controls whether of not the empty list element should be deleted on a call to delete in one of
+  // its children. For non-literal lists (e.g merges "merge1", "merge2") #shouldBeDeleted() always returns true since we
+  // never want to preserve these lists. However literal lists (e.g merges = ['merge1', 'merge2']) should only be deleted
+  // if the #delete() method on the list element is called, not when there are no more elements left. This is due to
+  // merges = [] possibly having important semantic meaning.
+  private boolean myShouldBeDeleted;
 
   // Is this GradleDslExpressionList being used as an actual list. This is used when creating the element to
   // work out whether we need to wrap this list in brackets. For example expression lists are used for literals lists
@@ -214,6 +220,12 @@ public final class GradleDslExpressionList extends GradleDslElementImpl implemen
   }
 
   @Override
+  public void delete() {
+    myShouldBeDeleted = true;
+    super.delete();
+  }
+
+  @Override
   protected void apply() {
     PsiElement psiElement = create();
 
@@ -287,5 +299,9 @@ public final class GradleDslExpressionList extends GradleDslElementImpl implemen
   @Nullable
   public PsiElement getExpression() {
     return getPsiElement();
+  }
+
+  public boolean shouldBeDeleted() {
+    return !isLiteralList() || myShouldBeDeleted;
   }
 }

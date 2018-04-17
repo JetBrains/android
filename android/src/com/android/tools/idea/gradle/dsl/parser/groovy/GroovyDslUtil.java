@@ -145,14 +145,27 @@ public final class GroovyDslUtil {
     return true;
   }
 
-  static void deleteIfEmpty(@Nullable PsiElement element) {
+  static void maybeDeleteIfEmpty(@Nullable PsiElement element, @NotNull GradleDslElement dslElement) {
+    GradleDslElement parentDslElement = dslElement.getParent();
+    if (parentDslElement instanceof GradleDslExpressionList && !((GradleDslExpressionList)parentDslElement).shouldBeDeleted() ||
+        parentDslElement instanceof GradleDslExpressionMap  && !((GradleDslExpressionMap)parentDslElement).shouldBeDeleted()) {
+      // Don't delete parent if empty.
+      return;
+    }
+    deleteIfEmpty(element);
+  }
+
+  private static void deleteIfEmpty(@Nullable PsiElement element) {
     if (element == null) {
       return;
     }
 
     PsiElement parent = element.getParent();
 
-    if (element instanceof GrAssignmentExpression) {
+    if (!element.isValid()) {
+      // Skip deleting
+    }
+    else if (element instanceof GrAssignmentExpression) {
       if (((GrAssignmentExpression)element).getRValue() == null) {
         element.delete();
       }
@@ -228,6 +241,15 @@ public final class GroovyDslUtil {
       GrVariable variable = (GrVariable)element;
       if (variable.getInitializerGroovy() == null) {
         variable.delete();
+      }
+    }
+    else if (element instanceof GrListOrMap) {
+      GrListOrMap listOrMap = (GrListOrMap)element;
+      if (listOrMap.isMap() && listOrMap.getNamedArguments().length == 0) {
+        listOrMap.delete();
+      }
+      else if (listOrMap.getInitializers().length == 0) {
+        listOrMap.delete();
       }
     }
 

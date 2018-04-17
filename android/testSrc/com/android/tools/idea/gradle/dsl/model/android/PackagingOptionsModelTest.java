@@ -209,12 +209,13 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     packagingOptions.removeAllPickFirsts();
 
     applyChangesAndReparse(buildModel);
+
     android = buildModel.android();
     assertNotNull(android);
 
     packagingOptions = android.packagingOptions();
     assertNull("excludes", packagingOptions.excludes());
-    assertSize(0, packagingOptions.merges());
+    assertNull("merges", packagingOptions.merges());
     assertNull("pickFirsts", packagingOptions.pickFirsts());
   }
 
