@@ -271,4 +271,19 @@ public interface FeatureTracker {
    * Track when the user uses the filter component in the profilers.
    */
   void trackFilterMetadata(@NotNull FilterMetadata filterMetadata);
+
+  /**
+   * Track when the user selects a thread via the cpu kernel list.
+   */
+  void trackSelectCpuKernelElement();
+
+  /**
+   * Track when a user expands or collapses the cpu kernel view.
+   */
+  void trackToggleCpuKernelHideablePanel();
+
+  /**
+   * Track when a user expands or collapses the cpu threads view.
+   */
+  void trackToggleCpuThreadsHideablePanel();
 }

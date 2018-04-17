@@ -185,6 +185,21 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
+  public void trackSelectCpuKernelElement() {
+    track(AndroidProfilerEvent.Type.KERNEL_VIEW_CLICKED);
+  }
+
+  @Override
+  public void trackToggleCpuKernelHideablePanel() {
+    track(AndroidProfilerEvent.Type.KERNEL_VIEW_TOGGLED);
+  }
+
+  @Override
+  public void trackToggleCpuThreadsHideablePanel() {
+    track(AndroidProfilerEvent.Type.THREADS_VIEW_TOGGLED);
+  }
+
+  @Override
   public void trackSelectRange() {
     // We set the device when tracking range selection because we need to distinguish selections made on pre-O and post-O devices.
     newTracker(AndroidProfilerEvent.Type.SELECT_RANGE).setDevice(myActiveDevice).track();

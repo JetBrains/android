@@ -82,7 +82,7 @@ import java.util.List;
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
 import static com.android.tools.profilers.ProfilerColors.CPU_CAPTURE_BACKGROUND;
 import static com.android.tools.profilers.ProfilerLayout.*;
-import static java.awt.event.InputEvent.*;
+import static java.awt.event.InputEvent.SHIFT_DOWN_MASK;
 
 public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   private enum PanelSpacing {
@@ -358,6 +358,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       @Override
       public void mouseClicked(MouseEvent e) {
         cpuKernelRunningStateSelected(cpuModel);
+        getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectCpuKernelElement();
       }
     });
 
@@ -424,6 +425,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     // Clear border set by default on the hideable panel.
     hideableCpus.setBorder(JBUI.Borders.empty());
     hideableCpus.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
+    hideableCpus.addStateChangedListener(
+      (e) -> getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackToggleCpuKernelHideablePanel());
     scrollingCpus.setBorder(JBUI.Borders.empty());
     monitorCpuThreadsPanel.add(hideableCpus, new TabularLayout.Constraint(KERNEL_PANEL_ROW, 0));
   }
@@ -641,6 +644,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       .setShowSeparator(false)
       .build();
     hideablePanel.addStateChangedListener((actionEvent) -> {
+      getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackToggleCpuThreadsHideablePanel();
       // On expanded set row sizing to initial ratio.
       if (hideablePanel.isExpanded()) {
         threadsMonitorPanelLayout.setRowSizing(THREADS_PANEL_ROW, PanelSpacing.HIDEABLE_PANEL_EXPANDED.toString());
