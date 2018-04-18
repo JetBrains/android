@@ -39,7 +39,7 @@ public final class FakeElementTransform extends PropertyTransform {
 
   @Override
   @NotNull
-  public GradleDslElement transform(@NotNull GradleDslElement e) {
+  public GradleDslElement transform(@Nullable GradleDslElement e) {
     return e;
   }
 
@@ -59,9 +59,9 @@ public final class FakeElementTransform extends PropertyTransform {
   @Override
   @NotNull
   public GradleDslExpression replace(@NotNull GradleDslElement holder,
-                                  @Nullable GradleDslElement oldElement,
-                                  @NotNull GradleDslExpression newElement,
-                                  @NotNull String name) {
+                                     @Nullable GradleDslElement oldElement,
+                                     @NotNull GradleDslExpression newElement,
+                                     @NotNull String name) {
     replaceElement(holder, oldElement, newElement);
     return newElement;
   }

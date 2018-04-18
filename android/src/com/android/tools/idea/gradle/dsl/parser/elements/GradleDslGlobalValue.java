@@ -33,6 +33,11 @@ public class GradleDslGlobalValue extends GradleDslSimpleExpression {
     myFakeValue = value;
   }
 
+  public GradleDslGlobalValue(@NotNull GradleDslElement parent, @NotNull Object value, @NotNull String name) {
+    super(parent, null, GradleNameElement.fake(name), null);
+    myFakeValue = value;
+  }
+
   @Override
   @NotNull
   public Object getValue() {

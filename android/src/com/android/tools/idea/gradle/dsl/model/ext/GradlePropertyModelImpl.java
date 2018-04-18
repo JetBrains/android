@@ -545,12 +545,12 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       throw new UnsupportedOperationException("Can't bind from a fake element!");
     }
 
-    newElement = getTransform().replace(myPropertyHolder, myElement, newElement, myName);
-    newElement.setElementType(myPropertyType);
-    newElement.setUseAssignment(!myIsMethodCall);
+    GradleDslElement element = getTransform().replace(myPropertyHolder, myElement, newElement, myName);
+    element.setElementType(myPropertyType);
+    element.setUseAssignment(!myIsMethodCall);
     // We need to ensure the parent will be modified so this change takes effect.
-    newElement.setModified(true);
-    myElement = newElement;
+    element.setModified(true);
+    myElement = element;
   }
 
   /**
@@ -559,9 +559,6 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
    */
   @Nullable
   GradleDslElement getElement() {
-    if (myElement == null) {
-      return null;
-    }
     return getTransform().transform(myElement);
   }
 

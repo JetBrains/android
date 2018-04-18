@@ -734,4 +734,20 @@ public final class GroovyDslUtil {
     }
     return injections;
   }
+
+  static void createAndAddClosure(@NotNull GradleDslClosure closure, @NotNull GradleDslElement element) {
+    GroovyPsiElement psiElement = ensureGroovyPsi(element.getPsiElement());
+    if (psiElement == null) {
+      return;
+    }
+
+    GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(psiElement.getProject());
+    GrClosableBlock block = factory.createClosureFromText("{ }");
+    psiElement.addAfter(factory.createWhiteSpace(), psiElement.getLastChild());
+    PsiElement newElement = psiElement.addAfter(block, psiElement.getLastChild());
+    closure.setPsiElement(newElement);
+    closure.applyChanges();
+    element.setParsedClosureElement(closure);
+    element.setNewClosureElement(null);
+  }
 }

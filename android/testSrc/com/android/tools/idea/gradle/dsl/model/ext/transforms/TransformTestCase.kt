@@ -67,10 +67,14 @@ open class TransformTestCase : GradleFileModelTestCase() {
   protected fun createMethodCall(methodName: String,
                                  statement: String = "unusedStatement",
                                  parent: GradleDslElement = gradleDslFile): GradleDslMethodCall {
-    return GradleDslMethodCall(gradleDslFile, GradleNameElement.create(statement.copy()), methodName.copy())
+    return GradleDslMethodCall(parent, GradleNameElement.create(statement.copy()), methodName.copy())
   }
 
   protected fun createExpressionMap(name : GradleNameElement = GradleNameElement.empty()) : GradleDslExpressionMap {
     return GradleDslExpressionMap(gradleDslFile, name, false)
+  }
+
+  protected fun createClosure(parent: GradleDslElement) : GradleDslClosure {
+    return GradleDslClosure(parent, null, GradleNameElement.empty())
   }
 }

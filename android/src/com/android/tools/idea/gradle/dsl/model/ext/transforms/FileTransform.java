@@ -27,8 +27,12 @@ public class FileTransform extends SingleArgumentMethodTransform {
 
   @Nullable
   @Override
-  public GradleDslElement transform(@NotNull GradleDslElement e) {
-    GradleDslMethodCall methodCall = (GradleDslMethodCall) e;
+  public GradleDslElement transform(@Nullable GradleDslElement e) {
+    if (e == null) {
+      return null;
+    }
+
+    GradleDslMethodCall methodCall = (GradleDslMethodCall)e;
     if (methodCall.getArguments().size() == 1) {
       return methodCall.getArguments().get(0);
     }

@@ -39,7 +39,6 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.*;
-import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.maybeTrimForParent;
 import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mASSIGN;
 
 public class GroovyDslWriter implements GradleDslWriter {
@@ -196,6 +195,7 @@ public class GroovyDslWriter implements GradleDslWriter {
         element.setPsiElement(addedElement);
       }
     }
+
     return element.getPsiElement();
   }
 
@@ -377,6 +377,11 @@ public class GroovyDslWriter implements GradleDslWriter {
     if (addedElement instanceof GrMethodCallExpression) {
       methodCall.setPsiElement(addedElement);
       methodCall.getArgumentsElement().setPsiElement(((GrMethodCallExpression)addedElement).getArgumentList());
+
+      if (methodCall.getUnsavedClosure() != null) {
+        createAndAddClosure(methodCall.getUnsavedClosure(), methodCall);
+      }
+
       return methodCall.getPsiElement();
     }
 
@@ -387,6 +392,9 @@ public class GroovyDslWriter implements GradleDslWriter {
   public void applyDslMethodCall(@NotNull GradleDslMethodCall element) {
     maybeUpdateName(element);
     element.getArgumentsElement().applyChanges();
+    if (element.getUnsavedClosure() != null) {
+      createAndAddClosure(element.getUnsavedClosure(), element);
+    }
   }
 
   @Override
