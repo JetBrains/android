@@ -157,7 +157,11 @@ public final class EnergyEventsView {
       }
       int row = myEventsTable.getSelectedRow();
       if (row >= 0 && row < myEventsTable.getRowCount()) {
-        myStage.setSelectedDuration(myTableModel.getValue(myEventsTable.convertRowIndexToModel(row)));
+        // There may be durations that finish between the time the table was first populated and when the event was selected,
+        // so update the duration again, just in case.
+        EnergyDuration duration = myTableModel.getValue(myEventsTable.convertRowIndexToModel(row));
+        duration = myStage.updateDuration(duration);
+        myStage.setSelectedDuration(duration);
       }
     });
     createTooltip();

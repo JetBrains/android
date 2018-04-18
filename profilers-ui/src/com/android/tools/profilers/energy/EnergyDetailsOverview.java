@@ -33,7 +33,7 @@ final class EnergyDetailsOverview extends JPanel {
 
   public EnergyDetailsOverview() {
     super(new BorderLayout());
-    setBorder(new JBEmptyBorder(5, 5, 5, 0));
+    setBorder(new JBEmptyBorder(3, 0, 5, 0));
     myTextPane = new BreakWordWrapHtmlTextPane();
     add(myTextPane);
   }
