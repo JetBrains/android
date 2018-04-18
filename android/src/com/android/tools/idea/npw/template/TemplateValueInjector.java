@@ -27,6 +27,7 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -63,6 +64,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
 import static com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommendedBuildToolsRevision;
 import static com.android.tools.idea.npw.model.JavaToKotlinHandler.getJavaToKotlinConversionProvider;
@@ -101,7 +103,8 @@ public final class TemplateValueInjector {
     String appTheme = MergedManifest.get(facet).getManifestTheme();
     myTemplateValues.put(ATTR_HAS_APPLICATION_THEME, appTheme != null);
 
-    AndroidPlatform platform = AndroidPlatform.getInstance(facet.getModule());
+    Module module = facet.getModule();
+    AndroidPlatform platform = AndroidPlatform.getInstance(module);
     if (platform != null) {
       IAndroidTarget target = platform.getTarget();
       myTemplateValues.put(ATTR_BUILD_API, target.getVersion().getFeatureLevel());
@@ -119,12 +122,16 @@ public final class TemplateValueInjector {
     myTemplateValues.put(ATTR_TARGET_API, moduleInfo.getTargetSdkVersion().getApiLevel());
     myTemplateValues.put(ATTR_MIN_API_LEVEL, minSdkVersion.getFeatureLevel());
 
-    Project project = facet.getModule().getProject();
+    Project project = module.getProject();
     addGradleVersions(project);
     addKotlinVersion();
 
-    if (facet.getConfiguration().getProjectType() == PROJECT_TYPE_FEATURE) {
-      setInstantAppSupport(true, project, facet.getModule().getName());
+    int projectType = facet.getConfiguration().getProjectType();
+    if (projectType == PROJECT_TYPE_FEATURE) {
+      setInstantAppSupport(true, project, module.getName());
+    }
+    else if (projectType == PROJECT_TYPE_DYNAMIC_FEATURE) {
+      setDynamicFeatureSupport(module);
     }
 
     return this;
@@ -315,8 +322,9 @@ public final class TemplateValueInjector {
     File projectRoot = new File(projectPath);
     File baseModuleRoot = new File(projectRoot, "base");
     File baseModuleResourceRoot = new File(baseModuleRoot, defaultResourceSuffix);
+    Module baseFeature = null;
     if (isExistingProject) {
-      Module baseFeature = InstantApps.findBaseFeature(project);
+      baseFeature = InstantApps.findBaseFeature(project);
       if (baseFeature == null) {
         baseModuleRoot = new File(projectRoot, moduleName);
         baseModuleResourceRoot = new File(baseModuleRoot, defaultResourceSuffix);
@@ -326,15 +334,38 @@ public final class TemplateValueInjector {
           myTemplateValues.put(ATTR_MONOLITHIC_MODULE_NAME, monolithicModuleName);
         }
       }
-      else {
-        AndroidModuleModel moduleModel = AndroidModuleModel.get(baseFeature);
-        assert moduleModel != null;
-        baseModuleRoot = moduleModel.getRootDirPath();
-        Collection<File> resDirectories = moduleModel.getDefaultSourceProvider().getResDirectories();
-        assert !resDirectories.isEmpty();
-        baseModuleResourceRoot = resDirectories.iterator().next();
-      }
     }
+
+    if (baseFeature == null) {
+      myTemplateValues.put(ATTR_BASE_FEATURE_NAME, baseModuleRoot.getName());
+      myTemplateValues.put(ATTR_BASE_FEATURE_DIR, baseModuleRoot.getPath());
+      myTemplateValues.put(ATTR_BASE_FEATURE_RES_DIR, baseModuleResourceRoot.getPath());
+    }
+    else {
+      setBaseFeature(baseFeature);
+    }
+
+    return this;
+  }
+
+  public TemplateValueInjector setDynamicFeatureSupport(@NotNull Module module) {
+    myTemplateValues.put(ATTR_IS_DYNAMIC_FEATURE, true);
+
+    Module baseFeature = DynamicAppUtils.getBaseFeature(module);
+    if (baseFeature == null) {
+      throw new RuntimeException("Dynamic Feature Module '" + module.getName() + "' has no Base Feature Module");
+    }
+
+    return setBaseFeature(baseFeature);
+  }
+
+  public TemplateValueInjector setBaseFeature(@NotNull Module baseFeature) {
+    AndroidModuleModel moduleModel = AndroidModuleModel.get(baseFeature);
+    assert moduleModel != null;
+    File baseModuleRoot = moduleModel.getRootDirPath();
+    Collection<File> resDirectories = moduleModel.getDefaultSourceProvider().getResDirectories();
+    assert !resDirectories.isEmpty();
+    File baseModuleResourceRoot = resDirectories.iterator().next(); // Put the new resources in any of the available res directories
 
     myTemplateValues.put(ATTR_BASE_FEATURE_NAME, baseModuleRoot.getName());
     myTemplateValues.put(ATTR_BASE_FEATURE_DIR, baseModuleRoot.getPath());

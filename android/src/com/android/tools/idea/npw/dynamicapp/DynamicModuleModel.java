@@ -103,20 +103,10 @@ public class DynamicModuleModel extends WizardModel {
 
     new TemplateValueInjector(myTemplateValues)
       .setModuleRoots(GradleAndroidModuleTemplate.createDefaultTemplateAt(moduleRoot).getPaths(), packageName().get())
-      .setBuildVersion(androidSdkInfo().getValue(), myProject);
+      .setBuildVersion(androidSdkInfo().getValue(), myProject)
+      .setBaseFeature(baseApplication().getValue());
 
-    Module base = baseApplication().getValue();
-    AndroidModuleModel moduleModel = AndroidModuleModel.get(base);
-    assert moduleModel != null;
-    File baseModuleRoot = moduleModel.getRootDirPath();
-
-    Collection<File> resDirectories = moduleModel.getDefaultSourceProvider().getResDirectories();
-    assert !resDirectories.isEmpty();
-    File baseModuleResourceRoot = resDirectories.iterator().next(); // Put the new resources in any of the available res directories
-
-    myTemplateValues.put(ATTR_BASE_FEATURE_DIR, baseModuleRoot.getPath());
-    myTemplateValues.put(ATTR_BASE_FEATURE_RES_DIR, baseModuleResourceRoot.getPath());
-    myTemplateValues.put(ATTR_BASE_FEATURE_NAME, base.getName());
+    myTemplateValues.put(ATTR_IS_DYNAMIC_FEATURE, true);
     myTemplateValues.put(ATTR_MODULE_SIMPLE_NAME, toPackagePart(moduleName().get()));
     myTemplateValues.put(ATTR_DYNAMIC_FEATURE_TITLE, featureTitle().get());
     myTemplateValues.put(ATTR_DYNAMIC_FEATURE_ON_DEMAND, featureOnDemand().get());
