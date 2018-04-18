@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.energy;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
@@ -35,14 +36,19 @@ public class EnergyEventsTableTooltipInfoModel extends AspectModel<EnergyEventsT
 
   @NotNull final private Range myGlobalRange;
   @NotNull final private TimeAxisFormatter myFormatter = new TimeAxisFormatter(1, 4, 1);
-  final private long systemTimeDelta;
+  final private long mySystemTimeDelta;
 
   @Nullable private EnergyDuration myDuration;
   @Nullable private EnergyProfiler.EnergyEvent myCurrentSelectedEvent;
 
-  public EnergyEventsTableTooltipInfoModel(@NotNull Range globalRange) {
+  @VisibleForTesting
+  EnergyEventsTableTooltipInfoModel(@NotNull Range globalRange, long systemTimeDelta) {
     myGlobalRange = globalRange;
-    systemTimeDelta = TimeUnit.MICROSECONDS.toMillis((long)myGlobalRange.getMax()) - System.currentTimeMillis();
+    mySystemTimeDelta = systemTimeDelta;
+  }
+
+  public EnergyEventsTableTooltipInfoModel(@NotNull Range globalRange) {
+    this(globalRange, TimeUnit.MICROSECONDS.toMillis((long)globalRange.getMax()) - System.currentTimeMillis());
   }
 
   public void update(@NotNull EnergyDuration duration, @NotNull Range range) {
@@ -92,7 +98,7 @@ public class EnergyEventsTableTooltipInfoModel extends AspectModel<EnergyEventsT
 
   public String getDateFormattedString(long timestampMs) {
     DateFormat timeFormat = new SimpleDateFormat("hh:mm a");
-    return timeFormat.format(new Date(timestampMs - systemTimeDelta));
+    return timeFormat.format(new Date(timestampMs - mySystemTimeDelta));
   }
 
   public String getFormattedString(double timestampUs) {
