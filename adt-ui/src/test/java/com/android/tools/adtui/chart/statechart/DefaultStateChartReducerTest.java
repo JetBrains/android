@@ -18,9 +18,7 @@ package com.android.tools.adtui.chart.statechart;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
-import java.awt.*;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -76,14 +74,15 @@ public class DefaultStateChartReducerTest {
   /**
    * Tests {@link DefaultStateChartReducer} whether it returns {@code expected} rectangles and {@code expectValues} values,
    * if it is arguments are {@code given} as rectangles and {@code givenValues} as values.
-   * @param given given in format {xMin, yMin, xMax, yMax}.
+   *
+   * @param given    given in format {xMin, yMin, xMax, yMax}.
    * @param expected given in format {xMin, yMin, xMax, yMax}.
    */
   private void check(float[][] given, ColorState[] givenValues, float[][] expected, ColorState[] expectedValues) {
     assert given.length == givenValues.length;
     assert expected.length == expectedValues.length;
 
-    List<Shape> rectangles = convertToRectangles(given);
+    List<Rectangle2D.Float> rectangles = convertToRectangles(given);
     List<ColorState> values = new ArrayList<>(Arrays.asList(givenValues));
     myReducer.reduce(rectangles, values);
 
@@ -92,24 +91,24 @@ public class DefaultStateChartReducerTest {
   }
 
   @NotNull
-  private static List<Shape> convertToRectangles(@NotNull float[][] coordinates) {
-    List<Shape> results = new ArrayList<>();
+  private static List<Rectangle2D.Float> convertToRectangles(@NotNull float[][] coordinates) {
+    List<Rectangle2D.Float> results = new ArrayList<>();
 
-    for (float[] rect: coordinates) {
+    for (float[] rect : coordinates) {
       assert rect.length == 4;
       float xMin = rect[0], yMin = rect[1];
       float xMax = rect[2], yMax = rect[3];
-      results.add(new RoundRectangle2D.Float(xMin, yMin, xMax - xMin, yMax - yMin, 0, 0));
+      results.add(new Rectangle2D.Float(xMin, yMin, xMax - xMin, yMax - yMin));
     }
     return results;
   }
 
-  private static void assertRectanglesEquals(@NotNull List<Shape> expected, @NotNull List<Shape> actual) {
+  private static void assertRectanglesEquals(@NotNull List<Rectangle2D.Float> expected, @NotNull List<Rectangle2D.Float> actual) {
     assertThat(actual.size()).isEqualTo(expected.size());
 
     for (int i = 0; i < expected.size(); ++i) {
-      Rectangle2D expectedRect = expected.get(i).getBounds2D();
-      Rectangle2D actualRect = actual.get(i).getBounds2D();
+      Rectangle2D.Float expectedRect = expected.get(i);
+      Rectangle2D.Float actualRect = actual.get(i);
       assertThat(expectedRect).isEqualTo(actualRect);
     }
   }

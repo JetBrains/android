@@ -32,6 +32,7 @@ public interface FeatureConfig {
   boolean isMemorySnapshotEnabled();
   boolean isNetworkRequestPayloadEnabled();
   boolean isNetworkThreadViewEnabled();
+  boolean isPerformanceMonitoringEnabled();
   boolean isSessionsEnabled();
   boolean isSessionImportEnabled();
   boolean isSimpleperfEnabled();

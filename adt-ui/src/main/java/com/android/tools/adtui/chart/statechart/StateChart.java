@@ -22,6 +22,7 @@ import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.StateChartModel;
+import com.android.tools.adtui.model.Stopwatch;
 import com.intellij.ui.ColorUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -60,10 +61,15 @@ public final class StateChart<T> extends MouseAdapterComponent<T> {
   @NotNull
   private final StateChartConfig<T> myConfig;
 
-  private boolean myRender;
+  private boolean myNeedsTransform;
 
   @NotNull
   private final StateChartTextConverter<T> myTextConverter;
+
+  private final List<Rectangle2D.Float> myRectangles = new ArrayList<>();
+  private final List<T> myRectangleValues = new ArrayList<>();
+
+  private float myRectHeight = 1.0f;
 
   /**
    * @param colors map of a state to corresponding color
@@ -73,7 +79,7 @@ public final class StateChart<T> extends MouseAdapterComponent<T> {
     this(model, new StateChartColorProvider<T>() {
       @Override
       @NotNull
-      public Color getColor(boolean isMouseOver, T value) {
+      public Color getColor(boolean isMouseOver, @NotNull T value) {
         Color color = colors.get(value);
         return isMouseOver ? ColorUtil.brighter(color, 2) : color;
       }
@@ -104,7 +110,7 @@ public final class StateChart<T> extends MouseAdapterComponent<T> {
     myColorProvider = colorMapping;
     myRenderMode = RenderMode.BAR;
     myConfig = config;
-    myRender = true;
+    myNeedsTransform = true;
     myTextConverter = textConverter;
     setFont(AdtUiUtils.DEFAULT_FONT);
     setModel(model);
@@ -116,12 +122,12 @@ public final class StateChart<T> extends MouseAdapterComponent<T> {
       myModel.removeDependencies(myAspectObserver);
     }
     myModel = model;
-    myModel.addDependency(myAspectObserver).onChange(StateChartModel.Aspect.STATE_CHART, this::modelChanged);
+    myModel.addDependency(myAspectObserver).onChange(StateChartModel.Aspect.MODEL_CHANGED, this::modelChanged);
     modelChanged();
   }
 
   private void modelChanged() {
-    myRender = true;
+    myNeedsTransform = true;
     opaqueRepaint();
   }
 
@@ -138,8 +144,41 @@ public final class StateChart<T> extends MouseAdapterComponent<T> {
     myHeightGap = gap;
   }
 
-  private void render() {
-    long renderTime = System.nanoTime();
+  private void clearRectangles() {
+    myRectangles.clear();
+    myRectangleValues.clear();
+  }
+
+  /**
+   * Creates a rectangle with the supplied dimensions. This function will normalize the x, and width values, then store
+   * the rectangle off using its key value as a lookup.
+   *
+   * @param value     value used to associate with the created rectangle..
+   * @param previousX value used to determine the x position and width of the rectangle. This value should be relative to the currentX param.
+   * @param currentX  value used to determine the width of the rectangle. This value should be relative to the previousX param.
+   * @param minX      minimum value of the range total range used to normalize the x position and width of the rectangle.
+   * @param maxX      maximum value of the range total range used to normalize the x position and width of the rectangle.
+   * @param rectY     rectangle height offset from max growth of rectangle. This value is expressed as a percentage from 0-1
+   * @param vGap      height offset from bottom of rectangle. This value is expressed as percentage from 0-1
+   */
+  private void addRectangleDelta(@NotNull T value, double previousX, double currentX, double minX, double maxX, float rectY, double vGap) {
+    // Because we start our activity line from the bottom and grow up we offset the height from the bottom of the component
+    // instead of the top by subtracting our height from 1.
+    Rectangle2D.Float rect = new Rectangle2D.Float(
+      (float)((previousX - minX) / (maxX - minX)),
+      rectY,
+      (float)((currentX - previousX) / (maxX - minX)),
+      (float)((1.0 - vGap) * myRectHeight));
+    myRectangles.add(rect);
+    myRectangleValues.add(value);
+  }
+
+  private void transform() {
+    if (!myNeedsTransform) {
+      return;
+    }
+
+    myNeedsTransform = false;
 
     List<RangedSeries<T>> series = myModel.getSeries();
     int seriesSize = series.size();
@@ -148,39 +187,42 @@ public final class StateChart<T> extends MouseAdapterComponent<T> {
     }
 
     // TODO support adding series on the fly and interpolation.
-    float height = 1f / seriesSize;
-    float gap = height * myHeightGap;
-    setHeightFactor(height);
+    myRectHeight = 1.0f / seriesSize;
+    float gap = myRectHeight * myHeightGap;
 
-    int seriesIndex = 0;
     clearRectangles();
-    for (RangedSeries<T> data : series) {
+
+    for (int seriesIndex = 0; seriesIndex < series.size(); seriesIndex++) {
+      RangedSeries<T> data = series.get(seriesIndex);
+
       double min = data.getXRange().getMin();
       double max = data.getXRange().getMax();
-      float startHeight = 1 - (height * (seriesIndex + 1));
+      float startHeight = 1.0f - (myRectHeight * (seriesIndex + 1));
+
+      List<SeriesData<T>> seriesDataList = data.getSeries();
+      if (seriesDataList.isEmpty()) {
+        continue;
+      }
 
       // Construct rectangles.
-      long previousX = -1;
-      T previousValue = null;
-      for (SeriesData<T> seriesData : data.getSeries()) {
+      long previousX = seriesDataList.get(0).x;
+      T previousValue = seriesDataList.get(0).value;
+      for (int i = 1; i < seriesDataList.size(); i++) {
+        SeriesData<T> seriesData = seriesDataList.get(i);
         long x = seriesData.x;
         T value = seriesData.value;
 
         if (value.equals(previousValue)) {
-          // Ignore repeated values
+          // Ignore repeated values.
           continue;
         }
 
+        assert previousValue != null;
+
         // Don't draw if this block doesn't intersect with [min..max]
-        if (previousValue != null && x >= min) {
+        if (x >= min) {
           // Draw the previous block.
-          setRectangleData(previousValue,
-                           Math.max(min, previousX),
-                           Math.min(max, x),
-                           min,
-                           max,
-                           startHeight + gap * 0.5f,
-                           gap);
+          addRectangleDelta(previousValue, Math.max(min, previousX), Math.min(max, x), min, max, startHeight + gap * 0.5f, gap);
         }
 
         // Start a new block.
@@ -194,35 +236,29 @@ public final class StateChart<T> extends MouseAdapterComponent<T> {
       }
       // The last data point continues till max
       if (previousX < max && previousValue != null) {
-        setRectangleData(previousValue,
-                         Math.max(min, previousX),
-                         max,
-                         min,
-                         max,
-                         startHeight + gap * 0.5f,
-                         gap);
+        addRectangleDelta(previousValue, Math.max(min, previousX), max, min, max, startHeight + gap * 0.5f, gap);
       }
-      seriesIndex++;
     }
-
-    addDebugInfo("Render time: %.2fms", (System.nanoTime() - renderTime) / 1000000.f);
   }
 
   @Override
   protected void draw(Graphics2D g2d, Dimension dim) {
-    if (myRender) {
-      render();
-      myRender = false;
-    }
-    long drawTime = System.nanoTime();
+    Stopwatch stopwatch = new Stopwatch().start();
+
+    transform();
+
+    long transformTime = stopwatch.getElapsedSinceLastDeltaNs();
 
     g2d.setFont(getFont());
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-    List<Shape> transformedShapes = new ArrayList<>(getRectangleCount());
-    List<T> transformedValues = new ArrayList<>(getRectangleCount());
+    assert myRectangles.size() == myRectangleValues.size();
+    List<Rectangle2D.Float> transformedShapes = new ArrayList<>(myRectangles.size());
+    List<T> transformedValues = new ArrayList<>(myRectangleValues.size());
+
     AffineTransform scale = AffineTransform.getScaleInstance(dim.getWidth(), dim.getHeight());
-    for (Rectangle2D.Float rectangle : getRectangles()) {
+    for (int i = 0; i < myRectangles.size(); i++) {
+      Rectangle2D.Float rectangle = myRectangles.get(i);
       // Manually scaling the rectangle results in ~6x performance improvement over
       // calling AffineTransform::createTransformedShape. The reason for this is the shape created is a Point2D.Double
       // this shape has to support all types of points as such cannot be rendered as efficiently as a
@@ -231,18 +267,23 @@ public final class StateChart<T> extends MouseAdapterComponent<T> {
                                                   (float)(rectangle.getY() * scale.getScaleY()),
                                                   (float)(rectangle.getWidth() * scale.getScaleX()),
                                                   (float)(rectangle.getHeight() * scale.getScaleY())));
-      transformedValues.add(getRectangleValue(rectangle));
+      transformedValues.add(myRectangleValues.get(i));
     }
+
+    long scalingTime = stopwatch.getElapsedSinceLastDeltaNs();
+
     myConfig.getReducer().reduce(transformedShapes, transformedValues);
     assert transformedShapes.size() == transformedValues.size();
+
+    long reducerTime = stopwatch.getElapsedSinceLastDeltaNs();
+
     for (int i = 0; i < transformedShapes.size(); i++) {
-      Shape shape = transformedShapes.get(i);
       T value = transformedValues.get(i);
-      Rectangle2D rect = shape.getBounds2D();
+      Rectangle2D rect = transformedShapes.get(i);
       boolean isMouseOver = isMouseOverRectangle(rect);
       Color color = myColorProvider.getColor(isMouseOver, value);
       g2d.setColor(color);
-      g2d.fill(shape);
+      g2d.fill(rect);
       if (myRenderMode == RenderMode.TEXT) {
         String valueText = myTextConverter.convertToString(value);
         String text = AdtUiUtils.shrinkToFit(valueText, mDefaultFontMetrics, (float)rect.getWidth() - TEXT_PADDING * 2);
@@ -255,7 +296,11 @@ public final class StateChart<T> extends MouseAdapterComponent<T> {
       }
     }
 
-    addDebugInfo("Draw time: %.2fms", (System.nanoTime() - drawTime) / 1000000.f);
+    long drawTime = stopwatch.getElapsedSinceLastDeltaNs();
+
+    addDebugInfo("XS ms: %.2fms, %.2fms", transformTime / 1000000.f, scalingTime / 1000000.f);
+    addDebugInfo("RDT ms: %.2f, %.2f, %.2f", reducerTime / 1000000.f, drawTime / 1000000.f,
+                 (scalingTime + reducerTime + drawTime) / 1000000.f);
     addDebugInfo("# of drawn rects: %d", transformedShapes.size());
   }
 }

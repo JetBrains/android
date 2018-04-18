@@ -348,7 +348,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     scrollingCpus.setViewportView(myCpus);
     scrollingCpus.addMouseWheelListener(new CpuMouseWheelListener(monitorCpuThreadsPanel));
     myCpus.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
-    myCpus.setCellRenderer(new CpuKernelCellRenderer(myStage.getStudioProfilers().getSession().getPid(),
+    myCpus.setCellRenderer(new CpuKernelCellRenderer(getStage().getStudioProfilers().getIdeServices().getFeatureConfig(),
+                                                     myStage.getStudioProfilers().getSession().getPid(),
                                                      myStage.getUpdatableManager(), myCpus, myThreads));
 
     // Handle selection.

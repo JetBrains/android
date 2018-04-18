@@ -266,6 +266,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
+      public boolean isPerformanceMonitoringEnabled() {
+        return false;
+      }
+
+      @Override
       public boolean isSessionsEnabled() {
         return mySessionsViewEnabled;
       }

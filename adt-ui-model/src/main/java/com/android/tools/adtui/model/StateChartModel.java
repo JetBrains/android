@@ -24,7 +24,7 @@ import java.util.List;
 public class StateChartModel<E> extends AspectModel<StateChartModel.Aspect> implements Updatable {
 
   public enum Aspect {
-    STATE_CHART
+    MODEL_CHANGED
   }
 
   @NotNull
@@ -40,11 +40,11 @@ public class StateChartModel<E> extends AspectModel<StateChartModel.Aspect> impl
 
   @Override
   public void update(long elapsedNs) {
-    changed(Aspect.STATE_CHART);
+    changed(Aspect.MODEL_CHANGED);
   }
 
   public void addSeries(@NotNull RangedSeries<E> series) {
     mSeriesList.add(series);
-    changed(Aspect.STATE_CHART);
+    changed(Aspect.MODEL_CHANGED);
   }
 }
