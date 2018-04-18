@@ -15,16 +15,18 @@
  */
 package com.android.tools.idea.profilers.stacktrace;
 
+import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.profilers.TraceSignatureConverter;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.google.common.base.Strings;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.pom.Navigatable;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiManager;
@@ -39,17 +41,24 @@ import com.jetbrains.cidr.lang.symbols.symtable.OCGlobalProjectSymbolsCache;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.file.Paths;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A {@link CodeNavigator} with logic to jump to code inside of an IntelliJ code editor.
  */
 public final class IntellijCodeNavigator extends CodeNavigator {
+  @NotNull
   private final Project myProject;
+  @NotNull
+  private final Map<String, String> myApkSrcDirMap;
 
   public IntellijCodeNavigator(@NotNull Project project, @NotNull FeatureTracker featureTracker) {
     super(featureTracker);
     myProject = project;
+    myApkSrcDirMap = getApkSourceDirMap();
   }
 
   @Override
@@ -70,6 +79,11 @@ public final class IntellijCodeNavigator extends CodeNavigator {
     if (!Strings.isNullOrEmpty(location.getFileName()) &&
         location.getLineNumber() != CodeLocation.INVALID_LINE_NUMBER) {
       Navigatable navigatable = getExplicitLocationNavigable(location);
+      if (navigatable != null) {
+        return navigatable;
+      }
+
+      navigatable = getApkMappingNavigable(location);
       if (navigatable != null) {
         return navigatable;
       }
@@ -124,6 +138,46 @@ public final class IntellijCodeNavigator extends CodeNavigator {
       return null;
     }
     return new OpenFileDescriptor(myProject, sourceFile, location.getLineNumber(), 0);
+  }
+
+  /**
+   * Returns a navigation to a file and a line explicitly specified in the location
+   * after applying APK source mapping to it.
+   */
+  @Nullable
+  private Navigatable getApkMappingNavigable(@NotNull CodeLocation location) {
+    LocalFileSystem fileSystem = LocalFileSystem.getInstance();
+    for (Map.Entry<String, String> entry : myApkSrcDirMap.entrySet()) {
+      if (location.getFileName().startsWith(entry.getKey())) {
+        String pathTailAfterPrefix = location.getFileName().substring(entry.getKey().length());
+        String newFileName = Paths.get(entry.getValue(), pathTailAfterPrefix).toString();
+        VirtualFile sourceFile = fileSystem.findFileByPath(newFileName);
+        if (sourceFile != null && sourceFile.exists()) {
+          return new OpenFileDescriptor(myProject, sourceFile, location.getLineNumber(), 0);
+        }
+      }
+    }
+
+    return null;
+  }
+
+  @NotNull
+  private Map<String, String> getApkSourceDirMap() {
+    // Using LinkedHashMap here to preserve order from getSymbolFolderPathMappings and imitate LLDB's behavior.
+    Map<String, String> sourceMap = new LinkedHashMap<>();
+    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+      ApkFacet apkFacet = ApkFacet.getInstance(module);
+      if (apkFacet != null) {
+        for (Map.Entry<String, String> entry : apkFacet.getConfiguration().getSymbolFolderPathMappings().entrySet()) {
+          // getSymbolFolderPathMappings() has a lot of path records which are not mapped, they need
+          // to be filtered out.
+          if (!entry.getValue().isEmpty() && !entry.getKey().equals(entry.getValue())) {
+            sourceMap.put(entry.getKey(), entry.getValue());
+          }
+        }
+      }
+    }
+    return sourceMap;
   }
 
   /**
