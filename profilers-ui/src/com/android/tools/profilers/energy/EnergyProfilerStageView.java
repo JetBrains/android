@@ -31,7 +31,6 @@ import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
@@ -184,11 +183,17 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     // Clears the selected duration when the new selection range does not overlap with it.
     selection.addSelectionUpdatedListener(selectionRange -> {
       if (getStage().getSelectedDuration() != null) {
-        List<EnergyProfiler.EnergyEvent> eventList = getStage().getSelectedDuration().getEventList();
-        long detailsStartNs = TimeUnit.NANOSECONDS.toMicros(eventList.get(0).getTimestamp());
-        EnergyProfiler.EnergyEvent lastEvent = eventList.get(eventList.size() - 1);
-        long detailsEndNs = lastEvent.getIsTerminal() ? TimeUnit.NANOSECONDS.toMicros(lastEvent.getTimestamp()) : Long.MAX_VALUE;
-        if (selectionRange.getMax() < detailsStartNs || selectionRange.getMin() > detailsEndNs) {
+        EnergyDuration selectedDuration = getStage().getSelectedDuration();
+        long detailsStartUs = TimeUnit.NANOSECONDS.toMicros(selectedDuration.getEventList().get(0).getTimestamp());
+        long detailsEndUs = detailsStartUs;
+        if (detailsEndUs < selectionRange.getMin()) {
+          // Updates the end timestamp when last event is not terminal at the details select time. When a new selection range happened,
+          // the previous opened details could have terminated and the end time is not Long.MAX_VALUE.
+          selectedDuration = getStage().updateDuration(selectedDuration);
+          EnergyProfiler.EnergyEvent lastEvent = selectedDuration.getEventList().get(selectedDuration.getEventList().size() - 1);
+          detailsEndUs = lastEvent.getIsTerminal() ? TimeUnit.NANOSECONDS.toMicros(lastEvent.getTimestamp()) : Long.MAX_VALUE;
+        }
+        if (selectionRange.getMax() < detailsStartUs || selectionRange.getMin() > detailsEndUs) {
           getStage().setSelectedDuration(null);
         }
       }

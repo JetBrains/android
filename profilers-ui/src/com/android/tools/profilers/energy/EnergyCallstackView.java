@@ -24,6 +24,7 @@ import com.android.tools.profilers.stacktrace.StackTraceView;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBEmptyBorder;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,7 +39,7 @@ public final class EnergyCallstackView extends JPanel {
   @NotNull private final EnergyProfilerStageView myStageView;
 
   public EnergyCallstackView(@NotNull EnergyProfilerStageView stageView) {
-    super(new VerticalFlowLayout());
+    super(new VerticalFlowLayout(0, JBUI.scale(5)));
     myStageView = stageView;
   }
 
@@ -68,7 +69,7 @@ public final class EnergyCallstackView extends JPanel {
       // properly when the scroll pane resize, wrap it in a JPanel. So move the list view out of the original scroll pane.
       if (traceComponent instanceof JScrollPane) {
         traceComponent = (JComponent) ((JScrollPane)traceComponent).getViewport().getComponent(0);
-        traceComponent.setBorder(new JBEmptyBorder(0, 0, 10, 0));
+        traceComponent.setBorder(new JBEmptyBorder(0, 0, 12, 0));
         JPanel wrapperPanel = new JPanel(new BorderLayout());
         wrapperPanel.add(traceComponent, BorderLayout.CENTER);
         wrapperPanel.setBackground(traceComponent.getBackground());

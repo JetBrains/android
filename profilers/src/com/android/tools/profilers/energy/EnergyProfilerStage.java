@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.adtui.model.updater.Updatable;
+import com.android.tools.profiler.proto.EnergyProfiler;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
@@ -220,6 +221,21 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
 
     Profiler.BytesResponse response = getStudioProfilers().getClient().getProfilerClient().getBytes(request);
     return response.getContents();
+  }
+
+  /**
+   * Refresh this duration, which is a no-op if it is already terminate, or it fetches latest values if the duration was still in progress.
+   */
+  @NotNull
+  public EnergyDuration updateDuration(@NotNull EnergyDuration duration) {
+    if (duration.getEventList().get(duration.getEventList().size() - 1).getIsTerminal()) {
+      return duration;
+    }
+    EnergyProfiler.EnergyEventGroupRequest request = EnergyProfiler.EnergyEventGroupRequest.newBuilder()
+      .setSession(getStudioProfilers().getSession())
+      .setEventId(duration.getEventList().get(0).getEventId())
+      .build();
+    return new EnergyDuration(getStudioProfilers().getClient().getEnergyClient().getEventGroup(request).getEventsList());
   }
 
   @Override

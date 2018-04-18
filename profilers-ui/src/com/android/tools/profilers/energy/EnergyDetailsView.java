@@ -19,11 +19,11 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.profilers.CloseButton;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerLayout;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBEmptyBorder;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,7 +58,8 @@ public class EnergyDetailsView extends JPanel {
 
     myDetailsOverview = new EnergyDetailsOverview();
     myCallstackView = new EnergyCallstackView(stageView);
-    JPanel detailsPanel = new JPanel(new VerticalFlowLayout());
+    JPanel detailsPanel = new JPanel(new VerticalFlowLayout(0, JBUI.scale(5)));
+    detailsPanel.setBorder(new JBEmptyBorder(0, 10, 0, 5));
     detailsPanel.add(myDetailsOverview);
     detailsPanel.add(new JSeparator(SwingConstants.HORIZONTAL));
     detailsPanel.add(myCallstackView);

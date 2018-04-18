@@ -81,11 +81,11 @@ public class HideablePanel extends JPanel {
     myTitlePanel.add(label, new TabularLayout.Constraint(0, 0));
     // If we have a separator we want it to be centered vertically so we wrap it in a panel.
     if (builder.myShowSeparator) {
-      JPanel verticalAlignPanel = new JPanel(new BorderLayout());
+      JPanel verticalAlignPanel = new JPanel(new TabularLayout("*", "*,Fit,*"));
       // The separator panel background should inherit the parent component's background.
       verticalAlignPanel.setBackground(null);
-      verticalAlignPanel.add(new JSeparator(), BorderLayout.CENTER);
-      verticalAlignPanel.setBorder(new JBEmptyBorder(3, 6, 0, builder.myTitleRightPadding));
+      verticalAlignPanel.add(new JSeparator(), new TabularLayout.Constraint(1, 0));
+      verticalAlignPanel.setBorder(new JBEmptyBorder(0, 10, 0, builder.myTitleRightPadding));
       myTitlePanel.add(verticalAlignPanel, new TabularLayout.Constraint(0, 1));
     }
     // If we have a north east component we add that last it will only take up as much space as it needs.
