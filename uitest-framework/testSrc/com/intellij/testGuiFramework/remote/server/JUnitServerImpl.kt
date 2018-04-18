@@ -28,6 +28,7 @@ import org.junit.runner.notification.RunNotifier
 import java.io.InvalidClassException
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
+import java.net.InetAddress
 import java.net.ServerSocket
 import java.net.Socket
 import java.net.SocketException
@@ -47,7 +48,7 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
   private val receivingMessages: BlockingQueue<MessageFromClient> = LinkedBlockingQueue()
   private val LOG = Logger.getLogger("#com.intellij.testGuiFramework.remote.server.JUnitServerImpl")
 
-  private val serverSocket = ServerSocket(0)
+  private val serverSocket = ServerSocket(0, 50, InetAddress.getLoopbackAddress())
   lateinit private var serverSendThread: ServerSendThread
   lateinit private var serverReceiveThread: ServerReceiveThread
   lateinit private var connection: Socket
