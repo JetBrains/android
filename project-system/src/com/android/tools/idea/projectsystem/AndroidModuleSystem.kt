@@ -54,25 +54,28 @@ interface AndroidModuleSystem {
   fun getDeclaredVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion?
 
   /**
-   * Returns the dependency accessible to sources contained in this module referenced by its [GradleCoordinate] as declared to the build
-   * system (e.g. build.gradle for Gradle, BUILD for bazel, etc).  Build systems such as Gradle allow users to specify a dependency such
-   * as x.y.+, which it will resolve to a specific version at build time. This method returns the version declared in the build script.
+   * Returns the dependency accessible to sources contained in this module referenced by its [GradleCoordinate] as registered with the
+   * build system (e.g. build.gradle for Gradle, BUILD for bazel, etc). Build systems such as Gradle allow users to specify a dependency
+   * such as x.y.+, which it will resolve to a specific version at sync time. This method returns the version registered in the build
+   * script.
+   * <p>
    * This method will find a dependency that matches the given query coordinate. For example:
-   * Query coordinate a:b:+ will return a:b:+ if declared.
-   * Query coordinate a:b:+ will return a:b:123 if declared.
-   * Query coordinate a:b:456 will return null if version 456 of that artifact is not declared, even when version 123 is.
-   * Use [AndroidModuleSystem.getResolvedDependency] if you want the resolved version.
+   * Query coordinate a:b:+ will return a:b:+ if a:b:+ is registered with the build system.
+   * Query coordinate a:b:+ will return a:b:123 if a:b:123 is registered with the build system.
+   * Query coordinate a:b:456 will return null if a:b:456 is not registered, even if a:b:123 is.
+   * Use [AndroidModuleSystem.getResolvedDependency] if you want the resolved dependency.
    */
   @Throws(DependencyManagementException::class)
-  fun getDeclaredDependency(coordinate: GradleCoordinate): GradleCoordinate?
+  fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate?
 
   /**
    * Returns the dependency accessible to sources contained in this module referenced by its [GradleCoordinate].
+   * <p>
    * This method will resolve version information to what is resolved. For example:
    * Query coordinate a:b:+ will return a:b:123 if version 123 of that artifact is a resolved dependency.
    * Query coordinate a:b:123 will return a:b:123 if version 123 of that artifact is a resolved dependency.
    * Query coordinate a:b:456 will return null if version 123 is a resolved dependency but not version 456.
-   * Use [AndroidModuleSystem.getDeclaredDependency] if you want the declared version.
+   * Use [AndroidModuleSystem.getRegisteredDependency] if you want the registered dependency.
    */
   @Throws(DependencyManagementException::class)
   fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate?
@@ -89,6 +92,12 @@ interface AndroidModuleSystem {
   @Throws(DependencyManagementException::class)
   fun addDependencyWithoutSync(artifactId: GoogleMavenArtifactId, version: GoogleMavenArtifactVersion? = null,
                                includePreview: Boolean = false)
+
+  /**
+   * Register a requested dependency with the build system. Note that the requested dependency won't be available (a.k.a. resolved)
+   * until the next sync. To ensure the dependency is resolved and available for use, sync the project after calling this function.
+   */
+  fun registerDependency(coordinate: GradleCoordinate)
 
   /**
    * Determines whether or not the underlying build system is capable of generating a PNG

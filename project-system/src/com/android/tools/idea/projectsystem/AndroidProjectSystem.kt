@@ -17,6 +17,7 @@
 
 package com.android.tools.idea.projectsystem
 
+import com.android.ide.common.repository.GradleCoordinate
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -57,6 +58,14 @@ interface AndroidProjectSystem {
    * Returns an interface for interacting with the given module.
    */
   fun getModuleSystem(module: Module): AndroidModuleSystem
+
+  /**
+   * Returns the [GradleCoordinate] of a dependency that matches the given query coordinate if possible. One can also use this function to
+   * check if a coordinate can be added and synced afterwards without error.  For example:
+   * If a:b:123 is a dependency that is available, then calling this function with "a:b:+" will return "a:b:123".  It also means that
+   * adding "a:b:+" as a dependency won't cause sync related issues where the artifact cannot be found.
+   */
+  fun getAvailableDependency(coordinate: GradleCoordinate, includePreview: Boolean = false): GradleCoordinate?
 
   /**
    * Attempts to upgrade the project to support instant run. If the project already supported

@@ -106,11 +106,7 @@ public class DependencyManager {
       GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(item.getGradleCoordinateId() + ":+");
 
       if (coordinate != null) {
-        GoogleMavenArtifactId artifactId = GoogleMavenArtifactId.forCoordinate(coordinate);
-
-        if (artifactId != null) {
-          DependencyManagementUtil.addDependencies(myModule, Collections.singletonList(artifactId), true);
-        }
+        DependencyManagementUtil.addDependencies(myModule, Collections.singletonList(coordinate), true);
       }
     }
   }
