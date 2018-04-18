@@ -305,8 +305,18 @@ public class NavDesignSurface extends DesignSurface {
   }
 
   @Override
+  protected double getMaxScale() {
+    return isEmpty() ? 1.0 : 3.0;
+  }
+
+  @Override
   public boolean canZoomToFit() {
     return !isEmpty();
+  }
+
+  @Override
+  protected double getFitScale(boolean fitInto) {
+    return Math.min(super.getFitScale(fitInto), 1.0);
   }
 
   private boolean isEmpty() {

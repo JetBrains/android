@@ -1135,4 +1135,62 @@ class NavSceneTest : NavTestCase() {
     )
     assertTrue(sceneManager.isEmpty)
   }
+
+  fun testZoomIn() {
+    zoomTest(3.0, "Clip,0,0,5259,5568\n" +
+                  "DrawRectangle,1,2400x2400x459x768,ffa7a7a7,1,0\n" +
+                  "DrawPreviewUnavailable,2401x2401x457x766\n" +
+                  "DrawTruncatedText,3,fragment1,2400x2340x459x30,ff656565,Default:0:36,false\n" +
+                  "\n" +
+                  "UNClip\n")
+  }
+
+  fun testZoomOut() {
+    zoomTest(0.25, "Clip,0,0,438,464\n" +
+                   "DrawRectangle,1,200x200x38x64,ffa7a7a7,1,0\n" +
+                   "DrawPreviewUnavailable,201x201x36x62\n" +
+                   "DrawTruncatedText,3,fragment1,200x195x38x2,ff656565,Default:0:5,false\n" +
+                   "\n" +
+                   "UNClip\n")
+  }
+
+  fun testZoomToFit() {
+    zoomTest(1.0, "Clip,0,0,1753,1856\n" +
+                  "DrawRectangle,1,800x800x153x256,ffa7a7a7,1,0\n" +
+                  "DrawPreviewUnavailable,801x801x151x254\n" +
+                  "DrawTruncatedText,3,fragment1,800x780x153x10,ff656565,Default:0:12,false\n" +
+                  "\n" +
+                  "UNClip\n")
+  }
+
+  private fun zoomTest(newScale: Double, serialized: String) {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1")
+      }
+    }
+
+    val list = DisplayList()
+    val surface = model.surface
+    val scene = surface.scene!!
+
+    scene.layout(0, SceneContext.get())
+    scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
+    assertEquals(
+      "Clip,0,0,876,928\n" +
+      "DrawRectangle,1,400x400x76x128,ffa7a7a7,1,0\n" +
+      "DrawPreviewUnavailable,401x401x74x126\n" +
+      "DrawTruncatedText,3,fragment1,400x390x76x5,ff656565,Default:0:9,false\n" +
+      "\n" +
+      "UNClip\n", list.serialize()
+    )
+
+    list.clear()
+
+    `when`(surface.scale).thenReturn(newScale)
+
+    scene.layout(0, SceneContext.get())
+    scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
+    assertEquals(serialized, list.serialize())
+  }
 }
