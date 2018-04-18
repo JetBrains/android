@@ -32,18 +32,16 @@ import java.nio.file.Path
  * to stub project system functionalities.
  */
 class TestProjectSystem(val project: Project) : AndroidProjectSystem, AndroidProjectSystemProvider {
-  data class Artifact(val id: GoogleMavenArtifactId, val version: GoogleMavenArtifactVersion)
-
   data class TestDependencyVersion(override val mavenVersion: GradleVersion?) : GoogleMavenArtifactVersion {
     override fun equals(other: Any?) = other is GoogleMavenArtifactVersion && other.mavenVersion?.equals(mavenVersion) ?: false
     override fun hashCode() = mavenVersion?.hashCode() ?: 0
   }
 
   companion object {
-    val TEST_VERSION_LATEST = TestDependencyVersion(null)
+    val TEST_VERSION_LATEST = TestDependencyVersion(GradleVersion.parse("+"))
   }
 
-  private val dependenciesByModule: HashMultimap<Module, Artifact> = HashMultimap.create()
+  private val myDependenciesByModule: HashMultimap<Module, GradleCoordinate> = HashMultimap.create()
 
   override val id: String = "com.android.tools.idea.projectsystem.TestProjectSystem"
 
@@ -52,35 +50,37 @@ class TestProjectSystem(val project: Project) : AndroidProjectSystem, AndroidPro
   override fun isApplicable(): Boolean = true
 
   fun addDependency(artifactId: GoogleMavenArtifactId, module: Module, mavenVersion: GradleVersion) {
-    dependenciesByModule.put(module, Artifact(artifactId, TestDependencyVersion(mavenVersion)))
+    val coordinate = artifactId.getCoordinate(mavenVersion.toString())
+    myDependenciesByModule.put(module, coordinate)
   }
+
+  override fun getAvailableDependency(coordinate: GradleCoordinate, includePreview: Boolean): GradleCoordinate? = coordinate
 
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
     return object : AndroidModuleSystem {
-      override fun getDependencies(): Sequence<GoogleMavenArtifactId> = dependenciesByModule[module].asSequence().mapNotNull { it.id }
+      override fun registerDependency(coordinate: GradleCoordinate) {
+        myDependenciesByModule.put(module, coordinate)
+      }
+
+      override fun getDependencies(): Sequence<GoogleMavenArtifactId> =
+        myDependenciesByModule[module].asSequence().mapNotNull { GoogleMavenArtifactId.forCoordinate(it) }
 
       override fun addDependencyWithoutSync(artifactId: GoogleMavenArtifactId, version: GoogleMavenArtifactVersion?, includePreview: Boolean) {
         val versionToAdd = version ?: TEST_VERSION_LATEST
-        dependenciesByModule.put(module, Artifact(artifactId, versionToAdd))
+        myDependenciesByModule.put(module, artifactId.getCoordinate(versionToAdd.mavenVersion.toString()))
       }
 
-      override fun getResolvedVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion? {
-        return dependenciesByModule[module].firstOrNull { it.id == artifactId }?.version
-      }
+      override fun getResolvedVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion? =
+        TestDependencyVersion(myDependenciesByModule[module].firstOrNull { GoogleMavenArtifactId.forCoordinate(it) == artifactId }?.version)
 
-      override fun getDeclaredVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion? {
-        return dependenciesByModule[module].firstOrNull { it.id == artifactId }?.version
-      }
+      override fun getDeclaredVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion? =
+        TestDependencyVersion(myDependenciesByModule[module].firstOrNull { GoogleMavenArtifactId.forCoordinate(it) == artifactId }?.version)
 
-      override fun getDeclaredDependency(coordinate: GradleCoordinate): GradleCoordinate? {
-        val version = dependenciesByModule[module].firstOrNull { it.id.getCoordinate("+").matches(coordinate) }?.version ?: return null
-        return GradleCoordinate.parseCoordinateString("${coordinate.groupId}:${coordinate.artifactId}:${version.mavenVersion}")
-      }
+      override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? =
+        myDependenciesByModule[module].firstOrNull { it.matches(coordinate) }
 
-      override fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate? {
-        val version = dependenciesByModule[module].firstOrNull { it.id.getCoordinate("+").matches(coordinate) }?.version ?: return null
-        return GradleCoordinate.parseCoordinateString("${coordinate.groupId}:${coordinate.artifactId}:${version.mavenVersion}")
-      }
+      override fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate? =
+        myDependenciesByModule[module].firstOrNull { it.matches(coordinate) }
 
       override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
         return emptyList()

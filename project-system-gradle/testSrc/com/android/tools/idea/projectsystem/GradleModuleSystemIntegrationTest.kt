@@ -22,28 +22,25 @@ import com.google.common.truth.Truth.assertThat
 
 
 /**
- * Integration tests for [GradleDependencyManager]; contains tests that require a working gradle project.
+ * Integration tests for [GradleModuleSystem]; contains tests that require a working gradle project.
  */
 class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
-
   @Throws(Exception::class)
-  fun testGetDeclaredMatchingDependencies() {
+  fun testRegisterDependency() {
     loadSimpleApplication()
     val moduleSystem = myModules.appModule.getModuleSystem()
     val dependencyManager = GradleDependencyManager.getInstance(project)
-    val dummyDependency = GradleCoordinate("a", "b", "4.5.6")
+    val dummyDependency = GradleCoordinate("a", "b", "+")
+    val anotherDummyDependency = GradleCoordinate("hello", "world", "1.2.3")
 
-    // Setup: Ensure the above dummy dependency is present in the build.gradle file.
-    assertThat(dependencyManager.addDependenciesWithoutSync(myModules.appModule, listOf(dummyDependency))).isTrue()
-    assertThat(dependencyManager.findMissingDependencies(myModules.appModule, listOf(dummyDependency))).isEmpty()
+    moduleSystem.registerDependency(dummyDependency)
+    moduleSystem.registerDependency(anotherDummyDependency)
 
-    assertThat(isSameArtifact(moduleSystem.getDeclaredDependency(GradleCoordinate("a", "b", "4.5.6")), dummyDependency)).isTrue()
-    assertThat(isSameArtifact(moduleSystem.getDeclaredDependency(GradleCoordinate("a", "b", "4.5.+")), dummyDependency)).isTrue()
-    assertThat(isSameArtifact(moduleSystem.getDeclaredDependency(GradleCoordinate("a", "b", "+")), dummyDependency)).isTrue()
+    assertThat(dependencyManager.findMissingDependencies(myModules.appModule, listOf(dummyDependency, anotherDummyDependency))).isEmpty()
   }
 
   @Throws(Exception::class)
-  fun testGetDeclaredNonMatchingDependencies() {
+  fun testGetRegisteredMatchingDependencies() {
     loadSimpleApplication()
     val moduleSystem = myModules.appModule.getModuleSystem()
     val dependencyManager = GradleDependencyManager.getInstance(project)
@@ -53,9 +50,25 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
     assertThat(dependencyManager.addDependenciesWithoutSync(myModules.appModule, listOf(dummyDependency))).isTrue()
     assertThat(dependencyManager.findMissingDependencies(myModules.appModule, listOf(dummyDependency))).isEmpty()
 
-    assertThat(moduleSystem.getDeclaredDependency(GradleCoordinate("a", "b", "4.5.7"))).isNull()
-    assertThat(moduleSystem.getDeclaredDependency(GradleCoordinate("a", "b", "4.99.+"))).isNull()
-    assertThat(moduleSystem.getDeclaredDependency(GradleCoordinate("a", "BAD", "4.5.6"))).isNull()
+    assertThat(isSameArtifact(moduleSystem.getRegisteredDependency(GradleCoordinate("a", "b", "4.5.6")), dummyDependency)).isTrue()
+    assertThat(isSameArtifact(moduleSystem.getRegisteredDependency(GradleCoordinate("a", "b", "4.5.+")), dummyDependency)).isTrue()
+    assertThat(isSameArtifact(moduleSystem.getRegisteredDependency(GradleCoordinate("a", "b", "+")), dummyDependency)).isTrue()
+  }
+
+  @Throws(Exception::class)
+  fun testGetRegisteredNonMatchingDependencies() {
+    loadSimpleApplication()
+    val moduleSystem = myModules.appModule.getModuleSystem()
+    val dependencyManager = GradleDependencyManager.getInstance(project)
+    val dummyDependency = GradleCoordinate("a", "b", "4.5.6")
+
+    // Setup: Ensure the above dummy dependency is present in the build.gradle file.
+    assertThat(dependencyManager.addDependenciesWithoutSync(myModules.appModule, listOf(dummyDependency))).isTrue()
+    assertThat(dependencyManager.findMissingDependencies(myModules.appModule, listOf(dummyDependency))).isEmpty()
+
+    assertThat(moduleSystem.getRegisteredDependency(GradleCoordinate("a", "b", "4.5.7"))).isNull()
+    assertThat(moduleSystem.getRegisteredDependency(GradleCoordinate("a", "b", "4.99.+"))).isNull()
+    assertThat(moduleSystem.getRegisteredDependency(GradleCoordinate("a", "BAD", "4.5.6"))).isNull()
   }
 
   @Throws(Exception::class)

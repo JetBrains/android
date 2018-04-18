@@ -341,7 +341,7 @@ public class AppBarConfigurationDialog extends JDialog {
                                      GoogleMavenArtifactId.ANDROIDX_DESIGN :
                                      GoogleMavenArtifactId.DESIGN;
     boolean designAdded = DependencyManagementUtil
-      .addDependencies(module, Collections.singletonList(artifact), true, false)
+      .addDependencies(module, Collections.singletonList(artifact.getCoordinate("+")), true, false)
       .isEmpty();
 
     if (!designAdded) {

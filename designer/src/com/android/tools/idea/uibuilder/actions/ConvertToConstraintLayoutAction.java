@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.actions;
 
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
@@ -162,8 +163,8 @@ public class ConvertToConstraintLayoutAction extends AnAction {
                                      GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT :
                                      GoogleMavenArtifactId.CONSTRAINT_LAYOUT;
     // Step #2: Ensure ConstraintLayout is available in the project
-    List<GoogleMavenArtifactId> notAdded = DependencyManagementUtil
-      .addDependencies(screenView.getModel().getModule(), Collections.singletonList(artifact), false);
+    List<GradleCoordinate> notAdded = DependencyManagementUtil
+      .addDependencies(screenView.getModel().getModule(), Collections.singletonList(artifact.getCoordinate("+")), false);
     if (!notAdded.isEmpty()) {
       return;
     }

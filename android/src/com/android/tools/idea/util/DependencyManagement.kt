@@ -88,7 +88,7 @@ fun Module.mapGradleCoordinateToAndroidx(coordinate: String): String {
 }
 
 /**
- * Add artifacts with given artifact ids as dependencies; this method will show a dialog prompting the user for confirmation if
+ * Add libraries with given [GradleCoordinate] as dependencies; this method will show a dialog prompting the user for confirmation if
  * [promptUserBeforeAdding] is set to true and return with no-op if user chooses to not add the dependencies. If any of the dependencies
  * are added successfully and [requestSync] is set to true, this method will request a sync to make sure the artifacts are resolved.
  * In this case, the sync will happen asynchronously and this method will not wait for it to finish before returning.
@@ -98,73 +98,69 @@ fun Module.mapGradleCoordinateToAndroidx(coordinate: String): String {
  * @return list of artifacts that were not successfully added. i.e. If the returned list is empty, then all were added successfully.
  */
 @JvmOverloads
-fun Module.addDependencies(artifactIds: List<GoogleMavenArtifactId>, promptUserBeforeAdding: Boolean, requestSync: Boolean = true,
+fun Module.addDependencies(coordinates: List<GradleCoordinate>, promptUserBeforeAdding: Boolean, requestSync: Boolean = true,
                            includePreview: Boolean = false)
-    : List<GoogleMavenArtifactId> {
+  : List<GradleCoordinate> {
 
-  if (artifactIds.isEmpty()) {
+  if (coordinates.isEmpty()) {
     return listOf()
   }
 
-  val distinctArtifactIds = artifactIds.distinct()
-
-  if (promptUserBeforeAdding && !userWantsToAdd(project, distinctArtifactIds)) {
-    return distinctArtifactIds
-  }
-
   val moduleSystem = getModuleSystem()
-  val artifactsNotAdded = mutableListOf<GoogleMavenArtifactId>()
-  val platformSupportLibVersion: GoogleMavenArtifactVersion? by lazy {
-    GoogleMavenArtifactId.values()
-      .filter { it.isPlatformSupportLibrary }
-      .mapNotNull {
-        moduleSystem.getDeclaredDependency(it.getCoordinate("+"))
-      }
-      .mapNotNull {
-        //TODO This object creation here is a very temporary solution and will be replaced with GradleVersion with other parts
-        //     of project-system's dependency management also uses GradleVersion.
-        DependencyVersion(it.version)
-      }
-      .firstOrNull()
+  val distinctCoordinates = coordinates.distinctBy { Pair(it.groupId, it.artifactId) }
+  val unavailableDependencies = distinctCoordinates.filter { project.getProjectSystem().getAvailableDependency(it, includePreview) == null }
+
+  if (unavailableDependencies.isNotEmpty()) {
+    return unavailableDependencies
   }
 
-  for (id in distinctArtifactIds) {
-    try {
-      if (id.isPlatformSupportLibrary) {
-        moduleSystem.addDependencyWithoutSync(id, platformSupportLibVersion)
-      }
-      else {
-        moduleSystem.addDependencyWithoutSync(id, null, includePreview)
-      }
-    }
-    catch (e: DependencyManagementException) {
-      Logger.getInstance(this.javaClass.name).warn(e.message)
-      artifactsNotAdded.add(id)
-    }
+  if (promptUserBeforeAdding && !userWantsToAdd(project, distinctCoordinates)) {
+    return distinctCoordinates
   }
 
-  if (requestSync && distinctArtifactIds.size != artifactsNotAdded.size) {
+  distinctCoordinates.forEach { moduleSystem.registerDependency(transformVersionIfNeeded(it, moduleSystem)) }
+
+  if (requestSync) {
     project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true)
   }
 
-  return artifactsNotAdded
+  return emptyList()
 }
 
-private data class DependencyVersion(override val mavenVersion: GradleVersion?) : GoogleMavenArtifactVersion {
-  override fun equals(other: Any?) = other is GoogleMavenArtifactVersion && other.mavenVersion == mavenVersion
-  override fun hashCode() = mavenVersion?.hashCode() ?: 0
+private fun transformVersionIfNeeded(coordinate: GradleCoordinate, moduleSystem: AndroidModuleSystem): GradleCoordinate {
+  // Platform support libraries must all use the same version.
+  if (!isPlatformSupportLibrary(coordinate)) {
+    return coordinate
+  }
+
+  val version = getExistingPlatformSupportLibraryVersion(moduleSystem) ?: return coordinate
+
+  val coordinateString = "${coordinate.groupId}:${coordinate.artifactId}:$version"
+  return GradleCoordinate.parseCoordinateString(coordinateString) ?: throw RuntimeException(
+    "Could not parse gradle coordinate string $coordinateString")
 }
 
-private fun userWantsToAdd(project: Project, artifactIds: List<GoogleMavenArtifactId>): Boolean {
+private fun isPlatformSupportLibrary(coordinate: GradleCoordinate) =
+  GoogleMavenArtifactId.forCoordinate(coordinate)?.isPlatformSupportLibrary ?: false
+
+private fun getExistingPlatformSupportLibraryVersion(moduleSystem: AndroidModuleSystem): GradleVersion? =
+  GoogleMavenArtifactId.values()
+    .asSequence()
+    .filter { it.isPlatformSupportLibrary }
+    .mapNotNull { moduleSystem.getRegisteredDependency(it.getCoordinate("+")) }
+    .mapNotNull { it.version }
+    .firstOrNull()
+
+private fun userWantsToAdd(project: Project, coordinates: List<GradleCoordinate>): Boolean {
   if (ApplicationManager.getApplication().isUnitTestMode) {
     return true
   }
-  return Messages.OK == Messages.showOkCancelDialog(project, createAddDependencyMessage(artifactIds), "Add Project Dependency", Messages.getErrorIcon())
+  return Messages.OK == Messages.showOkCancelDialog(project, createAddDependencyMessage(coordinates), "Add Project Dependency", Messages.getErrorIcon())
 }
 
 @VisibleForTesting
-fun createAddDependencyMessage(artifactIds: List<GoogleMavenArtifactId>): String {
-  val libraryNames = artifactIds.joinToString(", ") { it.toString() }
-  return "This operation requires the ${StringUtil.pluralize("library", artifactIds.size)} $libraryNames. \n\n" +
-      "Would you like to add ${StringUtil.pluralize("this", artifactIds.size)} now?"
+fun createAddDependencyMessage(coordinates: List<GradleCoordinate>): String {
+  val libraryNames = coordinates.joinToString(", ") { it.toString() }
+  return "This operation requires the ${StringUtil.pluralize("library", coordinates.size)} $libraryNames. \n\n" +
+      "Would you like to add ${StringUtil.pluralize("this", coordinates.size)} now?"
 }

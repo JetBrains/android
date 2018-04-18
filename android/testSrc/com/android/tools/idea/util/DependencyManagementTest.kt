@@ -38,16 +38,19 @@ class DependencyManagementTest : IdeaTestCase() {
   }
 
   fun testUserConfirmationMultipleArtifactsMessage() {
-    val artifacts = listOf(GoogleMavenArtifactId.DESIGN, GoogleMavenArtifactId.APP_COMPAT_V7)
-    val correctMessage = "This operation requires the libraries com.android.support:design, " +
-        "com.android.support:appcompat-v7. \n\nWould you like to add these now?"
+    val artifacts = listOf(
+      GoogleMavenArtifactId.DESIGN.getCoordinate("+"),
+      GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")
+    )
+    val correctMessage = "This operation requires the libraries com.android.support:design:+, " +
+        "com.android.support:appcompat-v7:+. \n\nWould you like to add these now?"
 
     Truth.assertThat(createAddDependencyMessage(artifacts)).isEqualTo(correctMessage)
   }
 
   fun testUserConfirmationSingleArtifactsMessage() {
-    val artifacts = listOf(GoogleMavenArtifactId.DESIGN)
-    val correctMessage = "This operation requires the library com.android.support:design. \n\n" +
+    val artifacts = listOf(GoogleMavenArtifactId.DESIGN.getCoordinate("+"))
+    val correctMessage = "This operation requires the library com.android.support:design:+. \n\n" +
         "Would you like to add this now?"
 
     Truth.assertThat(createAddDependencyMessage(artifacts)).isEqualTo(correctMessage)
@@ -76,9 +79,11 @@ class DependencyManagementTest : IdeaTestCase() {
   fun testAddNonPlatformSupportDependency() {
     projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myModule, GradleVersion(1337, 600613))
 
-    val dependenciesNotAdded = myModule.addDependencies(Collections.singletonList(GoogleMavenArtifactId.CONSTRAINT_LAYOUT), false)
+    val dependenciesNotAdded = myModule.addDependencies(
+      Collections.singletonList(GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")), false)
 
-    Truth.assertThat(myModule.getModuleSystem().getDeclaredVersion(GoogleMavenArtifactId.CONSTRAINT_LAYOUT)).isEqualTo(TestProjectSystem.TEST_VERSION_LATEST)
+    Truth.assertThat(myModule.getModuleSystem().getDeclaredVersion(GoogleMavenArtifactId.CONSTRAINT_LAYOUT)).isEqualTo(
+      TestProjectSystem.TEST_VERSION_LATEST)
     Truth.assertThat(dependenciesNotAdded.isEmpty()).isTrue()
   }
 
@@ -86,10 +91,11 @@ class DependencyManagementTest : IdeaTestCase() {
     // Add a platform support lib artifact to the list of existing dependencies.
     projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myModule, GradleVersion(1337, 600613))
 
-    val dependenciesNotAdded = myModule.addDependencies(Collections.singletonList(GoogleMavenArtifactId.DESIGN), false)
+    val dependenciesNotAdded = myModule.addDependencies(Collections.singletonList(GoogleMavenArtifactId.DESIGN.getCoordinate("+")), false)
 
     // Version of design lib should match the version of previously added appcompat.
-    Truth.assertThat(myModule.getModuleSystem().getResolvedVersion(GoogleMavenArtifactId.DESIGN)).isEqualTo(TestProjectSystem.TestDependencyVersion(GradleVersion(1337, 600613)))
+    Truth.assertThat(myModule.getModuleSystem().getResolvedVersion(GoogleMavenArtifactId.DESIGN)).isEqualTo(
+      TestProjectSystem.TestDependencyVersion(GradleVersion(1337, 600613)))
     Truth.assertThat(dependenciesNotAdded).isEmpty()
   }
 
@@ -97,10 +103,11 @@ class DependencyManagementTest : IdeaTestCase() {
     // Add a non-platform support lib artifact to the list of existing dependencies.
     projectSystem.addDependency(GoogleMavenArtifactId.ESPRESSO_CORE, myModule, GradleVersion(1337, 600613))
 
-    val dependenciesNotAdded = myModule.addDependencies(Collections.singletonList(GoogleMavenArtifactId.DESIGN), false)
+    val dependenciesNotAdded = myModule.addDependencies(Collections.singletonList(GoogleMavenArtifactId.DESIGN.getCoordinate("+")), false)
 
     // Version of design lib should be [TestProjectSystem.TEST_VERSION_LATEST] because there does not already exist a platform support lib.
-    Truth.assertThat(myModule.getModuleSystem().getResolvedVersion(GoogleMavenArtifactId.DESIGN)).isEqualTo(TestProjectSystem.TEST_VERSION_LATEST)
+    Truth.assertThat(myModule.getModuleSystem().getResolvedVersion(GoogleMavenArtifactId.DESIGN)).isEqualTo(
+      TestProjectSystem.TEST_VERSION_LATEST)
     Truth.assertThat(dependenciesNotAdded).isEmpty()
   }
 
@@ -108,11 +115,14 @@ class DependencyManagementTest : IdeaTestCase() {
     // Add a non-platform support lib artifact to the list of existing dependencies.
     projectSystem.addDependency(GoogleMavenArtifactId.ESPRESSO_CORE, myModule, GradleVersion(1337, 600613))
 
-    val dependenciesNotAdded = myModule.addDependencies(listOf(GoogleMavenArtifactId.DESIGN, GoogleMavenArtifactId.LEANBACK_V17), false)
+    val dependenciesNotAdded = myModule.addDependencies(
+      listOf(GoogleMavenArtifactId.DESIGN.getCoordinate("+"), GoogleMavenArtifactId.LEANBACK_V17.getCoordinate("+")), false)
 
     // Version of both libraries should be [TestProjectSystem.TEST_VERSION_LATEST] because there does not already exist a platform support lib.
-    Truth.assertThat(myModule.getModuleSystem().getResolvedVersion(GoogleMavenArtifactId.DESIGN)).isEqualTo(TestProjectSystem.TEST_VERSION_LATEST)
-    Truth.assertThat(myModule.getModuleSystem().getResolvedVersion(GoogleMavenArtifactId.LEANBACK_V17)).isEqualTo(TestProjectSystem.TEST_VERSION_LATEST)
+    Truth.assertThat(myModule.getModuleSystem().getResolvedVersion(GoogleMavenArtifactId.DESIGN)).isEqualTo(
+      TestProjectSystem.TEST_VERSION_LATEST)
+    Truth.assertThat(myModule.getModuleSystem().getResolvedVersion(GoogleMavenArtifactId.LEANBACK_V17)).isEqualTo(
+      TestProjectSystem.TEST_VERSION_LATEST)
     Truth.assertThat(dependenciesNotAdded).isEmpty()
   }
 
@@ -120,11 +130,14 @@ class DependencyManagementTest : IdeaTestCase() {
     // Add a platform support lib artifact to the list of existing dependencies.
     projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myModule, GradleVersion(1337, 600613))
 
-    val dependenciesNotAdded = myModule.addDependencies(listOf(GoogleMavenArtifactId.DESIGN, GoogleMavenArtifactId.LEANBACK_V17), false)
+    val dependenciesNotAdded = myModule.addDependencies(
+      listOf(GoogleMavenArtifactId.DESIGN.getCoordinate("+"), GoogleMavenArtifactId.LEANBACK_V17.getCoordinate("+")), false)
 
     // Version of both libraries should match version of AppCompat GradleVersion(1337, 600613) added above.
-    Truth.assertThat(myModule.getModuleSystem().getResolvedVersion(GoogleMavenArtifactId.DESIGN)).isEqualTo(TestProjectSystem.TestDependencyVersion(GradleVersion(1337, 600613)))
-    Truth.assertThat(myModule.getModuleSystem().getResolvedVersion(GoogleMavenArtifactId.LEANBACK_V17)).isEqualTo(TestProjectSystem.TestDependencyVersion(GradleVersion(1337, 600613)))
+    Truth.assertThat(myModule.getModuleSystem().getResolvedVersion(GoogleMavenArtifactId.DESIGN)).isEqualTo(
+      TestProjectSystem.TestDependencyVersion(GradleVersion(1337, 600613)))
+    Truth.assertThat(myModule.getModuleSystem().getResolvedVersion(GoogleMavenArtifactId.LEANBACK_V17)).isEqualTo(
+      TestProjectSystem.TestDependencyVersion(GradleVersion(1337, 600613)))
     Truth.assertThat(dependenciesNotAdded).isEmpty()
   }
 }

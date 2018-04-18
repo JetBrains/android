@@ -90,7 +90,7 @@ enum class GoogleMavenArtifactId(val mavenGroupId: String, val mavenArtifactId: 
   ;
 
   fun getCoordinate(revision: String): GradleCoordinate =
-      GradleCoordinate(mavenGroupId, mavenArtifactId, GradleCoordinate.StringComponent(revision))
+      GradleCoordinate(mavenGroupId, mavenArtifactId, revision)
 
   fun isAndroidxLibrary(): Boolean = mavenGroupId.startsWith("androidx.")
 
