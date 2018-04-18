@@ -23,7 +23,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -41,22 +40,7 @@ import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
 /**
  * @see ResourceRepositoryManager#getAppResources(boolean)
  */
-@VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE) // Left visible for Kotlin binary compatibility.
-public class AppResourceRepository extends MultiResourceRepository {
-
-  @VisibleForTesting // Left for Kotlin binary compatibility, do not use.
-  @Nullable
-  public static AppResourceRepository getOrCreateInstance(@NotNull Module module) {
-    return (AppResourceRepository)ResourceRepositoryManager.getAppResources(module);
-  }
-
-  @VisibleForTesting // Left for Kotlin binary compatibility, do not use.
-  @SuppressWarnings("unused")
-  @Nullable
-  public static AppResourceRepository findExistingInstance(@NotNull Module module) {
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(module);
-    return repositoryManager == null ? null : (AppResourceRepository)repositoryManager.getAppResources(false);
-  }
+class AppResourceRepository extends MultiResourceRepository {
 
   private static final Logger LOG = Logger.getInstance(AppResourceRepository.class);
   static final Key<Boolean> TEMPORARY_RESOURCE_CACHE = Key.create("TemporaryResourceCache");
