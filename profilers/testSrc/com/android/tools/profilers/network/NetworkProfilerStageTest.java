@@ -245,7 +245,7 @@ public class NetworkProfilerStageTest {
 
     final boolean[] radioStateUpdated = {false};
     myStage.getRadioState().addDependency(observer).onChange(
-      StateChartModel.Aspect.STATE_CHART, () -> radioStateUpdated[0] = true);
+      StateChartModel.Aspect.MODEL_CHANGED, () -> radioStateUpdated[0] = true);
 
     final boolean[] networkUsageUpdated = {false};
     myStage.getDetailedNetworkUsage().addDependency(observer).onChange(
@@ -284,7 +284,7 @@ public class NetworkProfilerStageTest {
 
     final boolean[] radioStateUpdated = {false};
     myStage.getRadioState().addDependency(observer).onChange(
-      StateChartModel.Aspect.STATE_CHART, () -> radioStateUpdated[0] = true);
+      StateChartModel.Aspect.MODEL_CHANGED, () -> radioStateUpdated[0] = true);
 
     final boolean[] networkUsageUpdated = {false};
     myStage.getDetailedNetworkUsage().addDependency(observer).onChange(

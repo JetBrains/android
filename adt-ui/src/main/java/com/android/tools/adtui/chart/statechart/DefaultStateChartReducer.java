@@ -17,8 +17,7 @@ package com.android.tools.adtui.chart.statechart;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
-import java.awt.geom.*;
+import java.awt.geom.Rectangle2D;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,49 +28,52 @@ import java.util.Map;
  */
 public class DefaultStateChartReducer<T> implements StateChartReducer<T> {
   @Override
-  public void reduce(@NotNull List<Shape> rectangles,
-                     @NotNull List<T> values) {
+  public void reduce(@NotNull List<Rectangle2D.Float> rectangles, @NotNull List<T> values) {
     int index = 0, keepIndex = 0;
+    Map<T, Float> occurrenceWidth = new HashMap<>();
+
     while (index < rectangles.size()) {
-      Shape shape = rectangles.get(index);
       T value = values.get(index);
-      Rectangle2D bounds = shape.getBounds2D();
+      Rectangle2D.Float rect = rectangles.get(index);
 
       // Crossing several pixels, let's just keep it
-      if (Math.floor(bounds.getMinX()) < Math.floor(bounds.getMaxX())) {
-        rectangles.set(keepIndex, shape);
+      if (Math.floor(rect.x) < Math.floor(rect.x + rect.width)) {
+        rectangles.set(keepIndex, rect);
         values.set(keepIndex, value);
         ++keepIndex;
         ++index;
         continue;
       }
+
+      occurrenceWidth.clear();
+
       // Whole rectangle is within the pixel
+      float pixelStart = (float)Math.floor(rect.x);
+      float pixelEnd = pixelStart + 1.0f;
 
-      int pixel = (int)(Math.floor(bounds.getMaxX()));
-
-      Map<T, Float> occurrenceWidth = new HashMap<>();
-      float minX = (float)bounds.getMinX(), maxX = Float.MIN_VALUE;
-      float minY = (float)bounds.getMinY(), maxY = (float)bounds.getMaxY();
+      float minX = rect.x;
+      float maxX = Float.MIN_VALUE;
+      float minY = rect.y;
+      float maxY = rect.y + rect.height;
 
       while (index < rectangles.size()) {
-        shape = rectangles.get(index);
-        value = values.get(index);
-        bounds = shape.getBounds2D();
+        rect = rectangles.get(index);
 
-        if ((int)(Math.floor(bounds.getMinX())) != pixel || (int)(Math.floor(bounds.getMaxX())) != pixel) {
+        if (rect.x < pixelStart || rect.x > pixelEnd || rect.x + rect.width >= pixelEnd) {
           // Crossed different pixel
           break;
         }
-        maxX = (float)bounds.getMaxX();
+        maxX = rect.x + rect.width;
 
+        value = values.get(index);
         Float width = occurrenceWidth.get(value);
-        occurrenceWidth.put(value, (width == null ? 0: width) + (float)bounds.getWidth());
+        occurrenceWidth.put(value, (width == null ? 0 : width) + rect.width);
         ++index;
       }
 
       T mostOccurred = null;
       float mostOccurredWidth = -1;
-      for (Map.Entry<T, Float> entry: occurrenceWidth.entrySet()) {
+      for (Map.Entry<T, Float> entry : occurrenceWidth.entrySet()) {
         if (entry.getValue() > mostOccurredWidth) {
           mostOccurredWidth = entry.getValue().floatValue();
           mostOccurred = entry.getKey();

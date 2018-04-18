@@ -20,6 +20,7 @@ import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.chart.statechart.StateChartColorProvider;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.updater.UpdatableManager;
+import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.ProfilerColors;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.ColorUtil;
@@ -37,6 +38,8 @@ public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuSta
    */
   private final JList<CpuThreadsModel.RangedCpuThread> myThreadsList;
 
+  private final boolean myDebugRenderingEnabled;
+
   /**
    * Current process id so we can highlight user process threads as a different color.
    */
@@ -53,13 +56,15 @@ public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuSta
    * @param cpuStateList     list to be passed to the base cell renderer.
    * @param threadsList      list containing thread elements to keep selection in sync between the two list.
    */
-  public CpuKernelCellRenderer(int processId,
+  public CpuKernelCellRenderer(@NotNull FeatureConfig featureConfig,
+                               int processId,
                                @NotNull UpdatableManager updatableManager,
                                @NotNull JList<CpuKernelModel.CpuState> cpuStateList,
                                @NotNull JList<CpuThreadsModel.RangedCpuThread> threadsList) {
     super(cpuStateList, updatableManager);
     myProcessId = processId;
     myThreadsList = threadsList;
+    myDebugRenderingEnabled = featureConfig.isPerformanceMonitoringEnabled();
   }
 
   @Override
@@ -92,6 +97,7 @@ public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuSta
       myUpdatableManager.unregister(myStateCharts.get(cpuId).getModel());
     }
     StateChart<CpuThreadInfo> stateChart = getOrCreateStateChart(cpuId, model);
+    stateChart.setDrawDebugInfo(myDebugRenderingEnabled);
     stateChart.setOpaque(true);
 
     if (myHoveredIndex == index) {

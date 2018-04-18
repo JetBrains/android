@@ -15,15 +15,10 @@
  */
 package com.android.tools.adtui;
 
-import com.intellij.util.containers.ContainerUtil;
-
-import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.Rectangle2D;
-import java.util.HashMap;
-import java.util.Set;
 
 /**
  * Class to build and manipulate rectangles to be drawn in the profiler's UI. This class is not responsible
@@ -39,14 +34,11 @@ public abstract class MouseAdapterComponent<T> extends AnimatedComponent impleme
   // Initializing the normalized mouse x position to be -1. This is the clear value because we are checking
   // valid rectangles from 0 to 1, as such using a negative number as a clear value will never result in a false overlap.
   private double myNormalizedMouseX = -1;
-  private double myHeightFactor = 1;
-  private final HashMap<Rectangle2D.Float, T> myRectangles;
 
   /**
    * Default constructor for a MouseAdapterComponent, the constructor attaches mouse listeners.
    */
   public MouseAdapterComponent() {
-    myRectangles = new HashMap<>();
     attach();
   }
 
@@ -59,45 +51,6 @@ public abstract class MouseAdapterComponent<T> extends AnimatedComponent impleme
   public void detach() {
     removeMouseListener(this);
     removeMouseMotionListener(this);
-  }
-
-  /**
-   * Function responsible for creating rectangles to be drawn in the UI
-   *
-   * @param xPercent     the width of the rectangle represented as a percentage of total width from 0-1
-   * @param widthPercent the width of a rectangle represented as a percentage of total width from 0-1
-   * @param vGap         the spacing added to the height of the rectangle to offset it from the bottom of the control.
-   */
-  private Rectangle2D.Float buildRectangle(double xPercent, double yPercent, double widthPercent, double vGap) {
-    // If we are less than the max height of our line, then increase the height.
-    Rectangle2D.Float rect = new Rectangle2D.Float();
-    // Because we start our activity line from the bottom and grow up we offset the height from the bottom of the component
-    // instead of the top by subtracting our height from 1.
-    rect.setRect(xPercent, yPercent, widthPercent, (1 - vGap) * myHeightFactor);
-    return rect;
-  }
-
-  /**
-   * @return a copy of the keys defining rectangles currently tracked.
-   */
-  public Set<Rectangle2D.Float> getRectangles() {
-    return ContainerUtil.newHashSet(myRectangles.keySet());
-  }
-
-  public void clearRectangles() {
-    myRectangles.clear();
-  }
-
-  public int getRectangleCount() {
-    return myRectangles.size();
-  }
-
-  public T getRectangleValue(Rectangle2D.Float rect) {
-    return myRectangles.get(rect);
-  }
-
-  public void setHeightFactor(double factor) {
-    myHeightFactor = factor;
   }
 
   @Override
@@ -153,7 +106,7 @@ public abstract class MouseAdapterComponent<T> extends AnimatedComponent impleme
 
   /**
    * Returns whether the mouse is over a given rectangle.
-   *
+   * <p>
    * Note: The input rectangle is assumed to be scaled to screen space.
    *
    * @param rectangleScreenSpace The rectangle scaled to be in screen space.
@@ -162,33 +115,5 @@ public abstract class MouseAdapterComponent<T> extends AnimatedComponent impleme
   public boolean isMouseOverRectangle(Rectangle2D rectangleScreenSpace) {
     return myNormalizedMouseX >= rectangleScreenSpace.getX() &&
            myNormalizedMouseX <= rectangleScreenSpace.getWidth() + rectangleScreenSpace.getX();
-  }
-
-  /**
-   * Creates a rectangle with the supplied dimensions. This function will normalize the x, and width values, then store
-   * the rectangle off using its key value as a lookup.
-   *
-   * @param value     value used to associate with the created rectangle..
-   * @param previousX value used to determine the x position and width of the rectangle. This value should be relative to the currentX param.
-   * @param currentX  value used to determine the width of the rectangle. This value should be relative to the previousX param.
-   * @param minX      minimum value of the range total range used to normalize the x position and width of the rectangle.
-   * @param maxX      maximum value of the range total range used to normalize the x position and width of the rectangle.
-   * @param rectY     rectangle height offset from max growth of rectangle. This value is expressed as a percentage from 0-1
-   * @param vGap      height offset from bottom of rectangle. This value is expressed as percentage from 0-1
-   * @return
-   */
-  protected final Rectangle2D.Float setRectangleData(T value,
-                                                     double previousX,
-                                                     double currentX,
-                                                     double minX,
-                                                     double maxX,
-                                                     float rectY,
-                                                     double vGap) {
-    Rectangle2D.Float rectangle = buildRectangle((previousX - minX) / (maxX - minX),
-                                                 rectY,
-                                                 (currentX - previousX) / (maxX - minX),
-                                                 vGap);
-    myRectangles.put(rectangle, value);
-    return rectangle;
   }
 }

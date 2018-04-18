@@ -169,6 +169,12 @@ public final class StudioFlags {
     "For Android O or newer, JNI references are tracked in Memory Profiler and shown in JNI heap.",
     true);
 
+  public static final Flag<Boolean> PROFILER_PERFORMANCE_MONITORING = Flag.create(
+    PROFILER, "performance.monitoring", "Enable Profiler Performance Monitoring Options",
+    "Toggles if profiler performance metrics options are enabled.",
+    false
+  );
+
   private static final FlagGroup NELE = new FlagGroup(FLAGS, "nele", "Layout Editor");
   public static final Flag<Boolean> NELE_ANIMATIONS_PREVIEW = Flag.create(
     NELE, "animated.preview", "Show preview animations toolbar",

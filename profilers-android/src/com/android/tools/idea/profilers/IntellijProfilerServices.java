@@ -226,6 +226,11 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       }
 
       @Override
+      public boolean isPerformanceMonitoringEnabled() {
+        return StudioFlags.PROFILER_PERFORMANCE_MONITORING.get();
+      }
+
+      @Override
       public boolean isSessionsEnabled() {
         return StudioFlags.PROFILER_SHOW_SESSIONS.get();
       }

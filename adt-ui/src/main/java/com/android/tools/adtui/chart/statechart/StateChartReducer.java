@@ -17,7 +17,7 @@ package com.android.tools.adtui.chart.statechart;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
+import java.awt.geom.Rectangle2D;
 import java.util.List;
 
 /**
@@ -29,10 +29,10 @@ public interface StateChartReducer<T> {
    * Classes implementing the interface need to modify {@code rectangles} and {@code values}, so that the number of states to draw is
    * reduced. When the {@link StateChart} is drawn using modified {@code rectangles} and {@code values}, it should be visually similar
    * as if it was drawn without reducing.
-   *
+   * <p>
    * {@link StateChart} will throw an {@link AssertionError} if the reducer does not ensure that the
    * length of {@code values} is the same as the length of {@code rectangles}.
    */
-  void reduce(@NotNull List<Shape> rectangles,
+  void reduce(@NotNull List<Rectangle2D.Float> rectangles,
               @NotNull List<T> values);
 }
