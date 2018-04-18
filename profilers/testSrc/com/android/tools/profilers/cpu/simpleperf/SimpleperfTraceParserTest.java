@@ -46,7 +46,7 @@ public class SimpleperfTraceParserTest {
       out.write(traceBytes.toByteArray());
     }
     myTraceFile = trace;
-    myParser = new SimpleperfTraceParser("some.app.id");
+    myParser = new SimpleperfTraceParser();
   }
 
   @Test
@@ -142,7 +142,10 @@ public class SimpleperfTraceParserTest {
       .findAny()
       .orElse(null);
     assertNotNull(mainThread);
-    assertTrue("displayingbitmaps".contains(mainThread.getData().getName()));
+
+    String mainThreadName = myParser.getMainThreadName();
+    assertNotNull(mainThreadName);
+    assertEquals(mainThreadName, mainThread.getData().getName());
   }
 
   @Test
@@ -152,7 +155,7 @@ public class SimpleperfTraceParserTest {
     try (FileOutputStream out = new FileOutputStream(trace)) {
       out.write(traceBytes.toByteArray());
     }
-    myParser = new SimpleperfTraceParser("some.app.id");
+    myParser = new SimpleperfTraceParser();
 
     try {
       myParser.parse(trace, 0);
