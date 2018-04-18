@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext.transforms;
 
-import com.android.tools.idea.gradle.dsl.model.dependencies.FileTreeDependencyModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -53,7 +52,7 @@ public class SingleArgToMapTransform extends PropertyTransform {
 
   @Nullable
   @Override
-  public GradleDslElement transform(@NotNull GradleDslElement e) {
+  public GradleDslElement transform(@Nullable GradleDslElement e) {
     return null; // If this transform is active then we don't have a value for this property yet.
   }
 

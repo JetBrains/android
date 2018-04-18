@@ -38,7 +38,7 @@ public class DefaultTransform extends PropertyTransform {
 
   @Nullable
   @Override
-  public GradleDslElement transform(@NotNull GradleDslElement e) {
+  public GradleDslElement transform(@Nullable GradleDslElement e) {
     return e;
   }
 
@@ -53,10 +53,10 @@ public class DefaultTransform extends PropertyTransform {
 
   @Override
   @NotNull
-  public GradleDslExpression replace(@NotNull GradleDslElement holder,
-                                     @Nullable GradleDslElement oldElement,
-                                     @NotNull GradleDslExpression newElement,
-                                     @NotNull String name) {
+  public GradleDslElement replace(@NotNull GradleDslElement holder,
+                                  @Nullable GradleDslElement oldElement,
+                                  @NotNull GradleDslExpression newElement,
+                                  @NotNull String name) {
     replaceElement(holder, oldElement, newElement);
     return newElement;
   }

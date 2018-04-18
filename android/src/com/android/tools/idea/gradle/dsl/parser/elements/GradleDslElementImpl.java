@@ -45,6 +45,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement {
   @Nullable private PsiElement myPsiElement;
 
   @Nullable private GradleDslClosure myClosureElement;
+  @Nullable private GradleDslClosure myUnsavedClosure;
 
   private volatile boolean myModified;
 
@@ -92,9 +93,21 @@ public abstract class GradleDslElementImpl implements GradleDslElement {
   }
 
   @Override
+  public void setNewClosureElement(@Nullable GradleDslClosure closureElement) {
+    myUnsavedClosure = closureElement;
+    setModified(true);
+  }
+
+  @Override
+  @Nullable
+  public GradleDslClosure getUnsavedClosure() {
+    return myUnsavedClosure;
+  }
+
+  @Override
   @Nullable
   public GradleDslClosure getClosureElement() {
-    return myClosureElement;
+    return myUnsavedClosure == null ? myClosureElement : myUnsavedClosure;
   }
 
   @Override

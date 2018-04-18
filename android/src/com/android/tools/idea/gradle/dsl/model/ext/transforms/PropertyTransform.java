@@ -62,7 +62,7 @@ public abstract class PropertyTransform {
    * if the transform can't correctly transform the element then {@code null} should be returned.
    */
   @Nullable
-  public abstract GradleDslElement transform(@NotNull GradleDslElement e);
+  public abstract GradleDslElement transform(@Nullable GradleDslElement e);
 
   /**
    * A function used to bind a value to a new {@link GradleDslElement}.
@@ -125,10 +125,10 @@ public abstract class PropertyTransform {
    * @return the new element that should be assigned to the {@link GradlePropertyModel}.
    */
   @NotNull
-  public abstract GradleDslExpression replace(@NotNull GradleDslElement holder,
-                                              @Nullable GradleDslElement oldElement,
-                                              @NotNull GradleDslExpression newElement,
-                                              @NotNull String name);
+  public abstract GradleDslElement replace(@NotNull GradleDslElement holder,
+                                           @Nullable GradleDslElement oldElement,
+                                           @NotNull GradleDslExpression newElement,
+                                           @NotNull String name);
 
   /**
    * A function to handle the removal as elements from a property model. This method is called on the active transform if the model is

@@ -34,6 +34,18 @@ import java.util.Map;
 public interface GradleDslElement extends AnchorProvider {
   void setParsedClosureElement(@NotNull GradleDslClosure closure);
 
+  void setNewClosureElement(@Nullable GradleDslClosure closureElement);
+
+  /**
+   * @return the closure that should be added to the element on the next call to {@link #applyChanges()}, null is no closure has been set.
+   */
+  @Nullable
+  GradleDslClosure getUnsavedClosure();
+
+  /**
+   * @return the current closure element, either {@link #getUnsavedClosure()} if non-null or the closure that was parsed from the build
+   * file. Null is both of these are absent.
+   */
   @Nullable
   GradleDslClosure getClosureElement();
 

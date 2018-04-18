@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.*;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.createBasicExpression;
 
 /**
  * This transform allows for the editing of properties that are tied to map elements within method calls.
@@ -69,7 +69,11 @@ public class MapMethodTransform extends PropertyTransform {
 
   @Nullable
   @Override
-  public GradleDslElement transform(@NotNull GradleDslElement e) {
+  public GradleDslElement transform(@Nullable GradleDslElement e) {
+    if (e == null) {
+      return null;
+    }
+
     assert e instanceof GradleDslMethodCall;
     GradleDslMethodCall methodCall = (GradleDslMethodCall)e;
     if (methodCall.getArguments().isEmpty()) {

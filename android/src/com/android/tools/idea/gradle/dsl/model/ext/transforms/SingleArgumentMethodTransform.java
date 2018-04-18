@@ -94,7 +94,11 @@ public class SingleArgumentMethodTransform extends PropertyTransform {
 
   @Nullable
   @Override
-  public GradleDslElement transform(@NotNull GradleDslElement e) {
+  public GradleDslElement transform(@Nullable GradleDslElement e) {
+    if (e == null) {
+      return null;
+    }
+
     // This cast is safe, we are guaranteed to have test(e) return true.
     GradleDslMethodCall methodCall = (GradleDslMethodCall)e;
     return methodCall.getArguments().get(0);
