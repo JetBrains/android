@@ -41,17 +41,19 @@ public class LintInspectionDescriptionLinkHandler extends TooltipLinkHandler {
       // already added <br> as well) so strip these out
       html = html.replace("\n", "");
 
+      StringBuilder sb = new StringBuilder(html);
+
+      sb.append("<br><br>Issue id: ").append(issue.getId());
+
       List<String> urls = issue.getMoreInfo();
       if (!urls.isEmpty()) {
-        StringBuilder sb = new StringBuilder(html);
         sb.append("<br><br>More info:<br>");
         for (String url : urls) {
           sb.append("<a href=\"").append(url).append("\">").append(url).append("</a><br>");
         }
-        html = sb.toString();
       }
 
-      return html;
+      return sb.toString();
     }
 
     return null;

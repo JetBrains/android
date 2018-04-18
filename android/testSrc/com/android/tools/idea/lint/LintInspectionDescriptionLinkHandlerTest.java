@@ -19,7 +19,6 @@ import com.android.tools.lint.checks.ApiDetector;
 import com.android.tools.lint.detector.api.*;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
-import junit.framework.TestCase;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 
@@ -52,7 +51,7 @@ public class LintInspectionDescriptionLinkHandlerTest extends AndroidTestCase {
     String issueExplanation = "You should set an icon for the application as whole because there is no default. " +
                               "This attribute must be set as a reference to a drawable resource containing the image " +
                               "(for example <code>@drawable/icon</code>)." +
-                              "<br><br>More info:<br><a href=\"" +
+                              "<br><br>Issue id: MissingApplicationIcon<br><br>More info:<br><a href=\"" +
                               "http://developer.android.com/tools/publishing/preparing.html#publishing-configure" +
                               "\">http://developer.android.com/tools/publishing/preparing.html#publishing-configure</a><br>";
     assertThat(handler.getDescription("MissingApplicationIcon", editor)).isEqualTo(issueExplanation);
@@ -70,6 +69,6 @@ public class LintInspectionDescriptionLinkHandlerTest extends AndroidTestCase {
       Category.CORRECTNESS, 6, Severity.WARNING, new Implementation(ApiDetector.class, Scope.JAVA_FILE_SCOPE));
     AndroidLintInspectionBase.getInspectionShortNameByIssue(project, testIssue);
 
-    assertThat(handler.getDescription("TestThirdPartyIssue", editor)).isEqualTo(explanation);
+    assertThat(handler.getDescription("TestThirdPartyIssue", editor)).isEqualTo(explanation + "<br><br>Issue id: TestThirdPartyIssue");
   }
 }

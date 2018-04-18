@@ -518,6 +518,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     sb.append(myIssue.getBriefDescription(HTML));
     sb.append("<br><br>");
     sb.append(myIssue.getExplanation(HTML));
+    sb.append("<br><br>Issue id: ").append(myIssue.getId());
     List<String> urls = myIssue.getMoreInfo();
     if (!urls.isEmpty()) {
       boolean separated = false;
