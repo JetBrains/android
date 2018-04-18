@@ -18,20 +18,16 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.chart.statechart.StateChartColorProvider;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.updater.UpdatableManager;
 import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.ProfilerColors;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.ui.ColorUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-
-import static com.android.tools.profilers.ProfilerColors.CPU_OTHER_USAGE_CAPTURED;
-import static com.android.tools.profilers.ProfilerColors.CPU_USAGE_CAPTURED;
-import static com.android.tools.profilers.ProfilerColors.DEFAULT_BACKGROUND;
 
 /**
  * This class is responsible for the layout of each row of the cpu process rendering.
@@ -97,14 +93,6 @@ public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuSta
     StateChart<CpuThreadInfo> stateChart = getOrCreateStateChart(cpuId, model);
     stateChart.setDrawDebugInfo(myDebugRenderingEnabled);
     stateChart.setOpaque(true);
-
-    if (myHoveredIndex == index) {
-      // Cell is hovered. Draw the hover overlay over it.
-      JPanel overlay = new JPanel();
-      overlay.setBackground(ProfilerColors.DEFAULT_HOVER_COLOR);
-      panel.add(overlay, new TabularLayout.Constraint(0, 0, 2));
-    }
-
     panel.add(myLabel, new TabularLayout.Constraint(0, 0));
     panel.add(stateChart, new TabularLayout.Constraint(0, 0, 2));
     return panel;
@@ -120,34 +108,53 @@ public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuSta
     }
     // The state chart corresponding to the thread is not stored on the map. Create a new one.
     StateChart<CpuThreadInfo> stateChart = new StateChart<>(model, new StateChartColorProvider<CpuThreadInfo>() {
-      private final Color CPU_USAGE_CAPTURED_HIGHLIGHTED =
-        ColorUtil.withAlpha(ColorUtil.brighter(CPU_USAGE_CAPTURED, 2), CPU_USAGE_CAPTURED.getAlpha() / 255.0);
-      private final Color CPU_OTHER_USAGE_CAPTURED_HIGHLIGHTED = ColorUtil
-        .withAlpha(ColorUtil.brighter(CPU_OTHER_USAGE_CAPTURED, 2),
-                   CPU_OTHER_USAGE_CAPTURED.getAlpha() / 255.0);
-
       @NotNull
       @Override
       public Color getColor(boolean isMouseOver, @NotNull CpuThreadInfo value) {
+        // On the null thread return the background color.
+        if (value == CpuThreadInfo.NULL_THREAD) {
+          return ProfilerColors.DEFAULT_BACKGROUND;
+        }
+        // Return other process colors.
+        if (value.getProcessId() != myProcessId) {
+          return isMouseOver ? ProfilerColors.CPU_KERNEL_OTHER_HOVER : ProfilerColors.CPU_KERNEL_OTHER;
+        }
+        // Test and return our process color.
         CpuThreadsModel.RangedCpuThread selectedThread = myThreadsList.getSelectedValue();
-        Color color = DEFAULT_BACKGROUND;
-
-        // If the thread data we are about to render is part of our process set the color to match the CPU chart.
-        if (value.getProcessId() == myProcessId) {
-          color = isMouseOver ? CPU_USAGE_CAPTURED_HIGHLIGHTED : CPU_USAGE_CAPTURED;
+        boolean isSelected = selectedThread != null && selectedThread.getThreadId() == value.getId();
+        if (isMouseOver) {
+          return ProfilerColors.CPU_KERNEL_APP_HOVER;
         }
-        // Otherwise if we have thread info that is not empty use the other processes CPU color.
-        else if (value != CpuThreadInfo.NULL_THREAD) {
-          color = isMouseOver ? CPU_OTHER_USAGE_CAPTURED_HIGHLIGHTED : CPU_OTHER_USAGE_CAPTURED;
+        else if (isSelected) {
+          return ProfilerColors.CPU_KERNEL_APP_SELECTED;
         }
-
-        // If we have a selected thread and its thread id does not match our thread info id fade it, making our selected thread elements pop.
-        if (selectedThread != null && value != CpuThreadInfo.NULL_THREAD) {
-          if (selectedThread.getThreadId() != value.getId()) {
-            color = ColorUtil.withAlpha(color, 0.4);
-          }
+        else {
+          return ProfilerColors.CPU_KERNEL_APP;
         }
-        return color;
+      }
+      @NotNull
+      @Override
+      public Color getFontColor(boolean isMouseOver, @NotNull CpuThreadInfo value) {
+        // On the null thread return the background color.
+        if (value == CpuThreadInfo.NULL_THREAD) {
+          return AdtUiUtils.DEFAULT_FONT_COLOR;
+        }
+        // Return other process color.
+        if (value.getProcessId() != myProcessId) {
+          return isMouseOver ? ProfilerColors.CPU_KERNEL_OTHER_TEXT_HOVER : ProfilerColors.CPU_KERNEL_OTHER_TEXT;
+        }
+        // Test and return our process color.
+        CpuThreadsModel.RangedCpuThread selectedThread = myThreadsList.getSelectedValue();
+        boolean isSelected = selectedThread != null && selectedThread.getThreadId() == value.getId();
+        if (isMouseOver) {
+          return ProfilerColors.CPU_KERNEL_APP_TEXT_HOVER;
+        }
+        else if (isSelected) {
+          return ProfilerColors.CPU_KERNEL_APP_TEXT_SELECTED;
+        }
+        else {
+          return ProfilerColors.CPU_KERNEL_APP_TEXT;
+        }
       }
     }, (threadInfo) -> threadInfo.getName());
     stateChart.setRenderMode(StateChart.RenderMode.TEXT);
