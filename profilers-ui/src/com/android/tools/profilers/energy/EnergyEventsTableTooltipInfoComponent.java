@@ -21,6 +21,7 @@ import com.android.tools.adtui.instructions.NewRowInstruction;
 import com.android.tools.adtui.instructions.RenderInstruction;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.profiler.proto.EnergyProfiler;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -182,6 +183,12 @@ public class EnergyEventsTableTooltipInfoComponent extends AnimatedComponent {
         }
       }
     }
+  }
+
+  @VisibleForTesting
+  @NotNull
+  List<RenderInstruction> getInstructions() {
+    return myInstructions;
   }
 
   @Override
