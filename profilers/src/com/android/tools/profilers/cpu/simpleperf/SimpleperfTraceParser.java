@@ -297,7 +297,7 @@ public class SimpleperfTraceParser implements TraceParser {
     // Split the samples per thread.
     Map<Integer, List<SimpleperfReport.Sample>> threadSamples = splitSamplesPerThread();
 
-    // Process the sampels for each thread
+    // Process the samples for each thread
     for (Map.Entry<Integer, List<SimpleperfReport.Sample>> threadSamplesEntry : threadSamples.entrySet()) {
       parseThreadSamples(threadSamplesEntry.getKey(), threadSamplesEntry.getValue());
     }
