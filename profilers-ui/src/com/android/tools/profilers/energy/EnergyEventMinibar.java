@@ -15,13 +15,16 @@
  */
 package com.android.tools.profilers.energy;
 
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.profiler.proto.EnergyProfiler;
 import com.android.tools.profilers.ProfilerColors;
-import com.intellij.openapi.ui.VerticalFlowLayout;
+import com.intellij.ui.ColorUtil;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 import static com.android.tools.profilers.ProfilerLayout.MONITOR_BORDER;
@@ -44,19 +47,24 @@ public final class EnergyEventMinibar {
 
   @NotNull
   private JPanel createUi(@NotNull StateChart<EnergyProfiler.EnergyEvent> eventChart) {
-    JPanel root = new JPanel(new VerticalFlowLayout(VerticalFlowLayout.TOP, 0, 0, true, true));
-    root.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
+    JPanel root = new JPanel(new TabularLayout("Fit,*", "*"));
     root.setBorder(MONITOR_BORDER);
 
     JPanel labelContainer = new JPanel(new BorderLayout());
-    labelContainer.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
-    JLabel label = new JLabel("SYSTEM EVENTS");
-    label.setBorder(MONITOR_LABEL_PADDING);
-    label.setVerticalAlignment(SwingConstants.TOP);
-    labelContainer.add(label, BorderLayout.WEST);
+    labelContainer.setBackground(ColorUtil.withAlpha(ProfilerColors.DEFAULT_BACKGROUND, 0.75));
+    labelContainer.setBorder(MONITOR_LABEL_PADDING);
+    JLabel label = new JLabel("SYSTEM");
+    label.setVerticalAlignment(SwingConstants.CENTER);
+    // TODO(b/77921079): Add help icon and tooltip for this area
+    labelContainer.add(label);
 
-    root.add(labelContainer);
-    root.add(eventChart);
+    JPanel eventChartContainer = new JPanel(new BorderLayout());
+    eventChartContainer.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
+    eventChartContainer.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+    eventChartContainer.add(eventChart);
+
+    root.add(labelContainer, new TabularLayout.Constraint(0, 0));
+    root.add(eventChartContainer, new TabularLayout.Constraint(0, 0, 2));
 
     return root;
   }
