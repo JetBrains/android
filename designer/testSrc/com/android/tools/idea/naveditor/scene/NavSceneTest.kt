@@ -471,21 +471,21 @@ class NavSceneTest : NavTestCase() {
 
     assertEquals(
         "Clip,0,0,960,928\n" +
-            "DrawRectangle,1,400x400x76x128,ffa7a7a7,1,0\n" +
-            "DrawNavScreen,401,401,74,126\n" +
-            "DrawAction,SELF,400x400x76x128,400x400x76x128,NORMAL\n" +
-            "DrawArrow,2,UP,457x532x6x5,b2a7a7a7\n" +
-            "DrawIcon,400x389x7x7,START_DESTINATION\n" +
-            "DrawTruncatedText,3,fragment1,408x390x68x5,ff656565,Default:0:9,false\n" +
-            "\n" +
-            "DrawFilledRectangle,1,490x400x70x19,fffafafa,6\n" +
-            "DrawRectangle,1,490x400x70x19,ffa7a7a7,1,6\n" +
-            "DrawTruncatedText,3,Nested Graph,490x400x70x19,ffa7a7a7,Default:1:9,true\n" +
-            "DrawAction,SELF,490x400x70x19,490x400x70x19,NORMAL\n" +
-            "DrawArrow,2,UP,541x422x6x5,b2a7a7a7\n" +
-            "DrawTruncatedText,3,nav1,490x390x70x5,ff656565,Default:0:9,false\n" +
-            "\n" +
-            "UNClip\n", list.serialize()
+        "DrawRectangle,1,400x400x76x128,ffa7a7a7,1,0\n" +
+        "DrawNavScreen,401,401,74,126\n" +
+        "DrawArrow,2,UP,457x532x6x5,b2a7a7a7\n" +
+        "DrawSelfAction,476x464,460x536,b2a7a7a7\n" +
+        "DrawIcon,400x389x7x7,START_DESTINATION\n" +
+        "DrawTruncatedText,3,fragment1,408x390x68x5,ff656565,Default:0:9,false\n" +
+        "\n" +
+        "DrawFilledRectangle,1,490x400x70x19,fffafafa,6\n" +
+        "DrawRectangle,1,490x400x70x19,ffa7a7a7,1,6\n" +
+        "DrawTruncatedText,3,Nested Graph,490x400x70x19,ffa7a7a7,Default:1:9,true\n" +
+        "DrawArrow,2,UP,541x422x6x5,b2a7a7a7\n" +
+        "DrawSelfAction,560x409,544x426,b2a7a7a7\n" +
+        "DrawTruncatedText,3,nav1,490x390x70x5,ff656565,Default:0:9,false\n" +
+        "\n" +
+        "UNClip\n", list.serialize()
     )
   }
 
@@ -829,35 +829,35 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
         "Clip,0,0,1086,928\n" +
-            "DrawRectangle,1,490x400x76x128,ffa7a7a7,1,0\n" +
-            "DrawPreviewUnavailable,491x401x74x126\n" +
-            "DrawTruncatedText,3,fragment1,490x390x76x5,ff656565,Default:0:9,false\n" +
-            "DrawLine,2,477x464,481x464,b2a7a7a7,3:0:1\n" +
-            "DrawArrow,2,RIGHT,481x461x5x6,b2a7a7a7\n" +
-            "\n" +
-            "DrawRectangle,1,610x400x76x128,ffa7a7a7,1,0\n" +
-            "DrawPreviewUnavailable,611x401x74x126\n" +
-            "DrawAction,NORMAL,610x400x76x128,400x400x76x128,NORMAL\n" +
-            "DrawArrow,2,UP,435x532x6x5,b2a7a7a7\n" +
-            "DrawAction,SELF,610x400x76x128,610x400x76x128,NORMAL\n" +
-            "DrawArrow,2,UP,667x532x6x5,b2a7a7a7\n" +
-            "DrawTruncatedText,3,fragment2,610x390x76x5,ff656565,Default:0:9,false\n" +
-            "DrawLine,2,597x455,601x455,b2a7a7a7,3:0:1\n" +
-            "DrawArrow,2,RIGHT,601x452x5x6,b2a7a7a7\n" +
-            "DrawLine,2,597x464,601x464,b2a7a7a7,3:0:1\n" +
-            "DrawArrow,2,RIGHT,601x461x5x6,b2a7a7a7\n" +
-            "\n" +
-            "DrawRectangle,1,400x400x76x128,ffa7a7a7,1,0\n" +
-            "DrawPreviewUnavailable,401x401x74x126\n" +
-            "DrawTruncatedText,3,fragment3,400x390x76x5,ff656565,Default:0:9,false\n" +
-            "DrawLine,2,387x446,391x446,b2a7a7a7,3:0:1\n" +
-            "DrawArrow,2,RIGHT,391x443x5x6,b2a7a7a7\n" +
-            "DrawLine,2,387x455,391x455,b2a7a7a7,3:0:1\n" +
-            "DrawArrow,2,RIGHT,391x452x5x6,b2a7a7a7\n" +
-            "DrawLine,2,387x473,391x473,b2a7a7a7,3:0:1\n" +
-            "DrawArrow,2,RIGHT,391x470x5x6,b2a7a7a7\n" +
-            "\n" +
-            "UNClip\n", list.serialize()
+        "DrawRectangle,1,490x400x76x128,ffa7a7a7,1,0\n" +
+        "DrawPreviewUnavailable,491x401x74x126\n" +
+        "DrawTruncatedText,3,fragment1,490x390x76x5,ff656565,Default:0:9,false\n" +
+        "DrawLine,2,477x464,481x464,b2a7a7a7,3:0:1\n" +
+        "DrawArrow,2,RIGHT,481x461x5x6,b2a7a7a7\n" +
+        "\n" +
+        "DrawRectangle,1,610x400x76x128,ffa7a7a7,1,0\n" +
+        "DrawPreviewUnavailable,611x401x74x126\n" +
+        "DrawAction,NORMAL,610x400x76x128,400x400x76x128,NORMAL\n" +
+        "DrawArrow,2,UP,435x532x6x5,b2a7a7a7\n" +
+        "DrawArrow,2,UP,667x532x6x5,b2a7a7a7\n" +
+        "DrawSelfAction,686x464,670x536,b2a7a7a7\n" +
+        "DrawTruncatedText,3,fragment2,610x390x76x5,ff656565,Default:0:9,false\n" +
+        "DrawLine,2,597x455,601x455,b2a7a7a7,3:0:1\n" +
+        "DrawArrow,2,RIGHT,601x452x5x6,b2a7a7a7\n" +
+        "DrawLine,2,597x464,601x464,b2a7a7a7,3:0:1\n" +
+        "DrawArrow,2,RIGHT,601x461x5x6,b2a7a7a7\n" +
+        "\n" +
+        "DrawRectangle,1,400x400x76x128,ffa7a7a7,1,0\n" +
+        "DrawPreviewUnavailable,401x401x74x126\n" +
+        "DrawTruncatedText,3,fragment3,400x390x76x5,ff656565,Default:0:9,false\n" +
+        "DrawLine,2,387x446,391x446,b2a7a7a7,3:0:1\n" +
+        "DrawArrow,2,RIGHT,391x443x5x6,b2a7a7a7\n" +
+        "DrawLine,2,387x455,391x455,b2a7a7a7,3:0:1\n" +
+        "DrawArrow,2,RIGHT,391x452x5x6,b2a7a7a7\n" +
+        "DrawLine,2,387x473,391x473,b2a7a7a7,3:0:1\n" +
+        "DrawArrow,2,RIGHT,391x470x5x6,b2a7a7a7\n" +
+        "\n" +
+        "UNClip\n", list.serialize()
     )
   }
 

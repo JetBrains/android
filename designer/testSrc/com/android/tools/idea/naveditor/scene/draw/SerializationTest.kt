@@ -41,11 +41,6 @@ class SerializationTest : TestCase() {
         Rectangle(10, 20, 30, 40),
         Rectangle(50, 60, 70, 80),
         DrawAction.DrawMode.HOVER), factory)
-
-    testSerialization("DrawAction,SELF,80x70x60x50,40x30x20x10,SELECTED", DrawAction(ActionTarget.ConnectionType.SELF,
-        Rectangle(80, 70, 60, 50),
-        Rectangle(40, 30, 20, 10),
-        DrawAction.DrawMode.SELECTED), factory)
   }
 
   fun testDrawActionHandleDrag() {
@@ -141,6 +136,13 @@ class SerializationTest : TestCase() {
 
     testSerialization("DrawPreviewUnavailable,1x2x3x4", DrawPreviewUnavailable(Rectangle(1, 2, 3, 4)), factory)
     testSerialization("DrawPreviewUnavailable,5x6x7x8", DrawPreviewUnavailable(Rectangle(5, 6, 7, 8)), factory)
+  }
+
+  fun testDrawSelfAction() {
+    val factory = { s: String -> DrawSelfAction(s) }
+
+    testSerialization("DrawSelfAction,10x20,30x40,ffff0000", DrawSelfAction(Point(10, 20), Point(30, 40), Color.RED), factory)
+    testSerialization("DrawSelfAction,50x60,70x80,ff0000ff", DrawSelfAction(Point(50, 60), Point(70, 80), Color.BLUE), factory)
   }
 
   companion object {

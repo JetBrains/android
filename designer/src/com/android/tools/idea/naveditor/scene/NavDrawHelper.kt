@@ -20,6 +20,7 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawCommand
+import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.targets.ActionHandleTarget
 import com.google.common.collect.ImmutableMap
 import com.intellij.util.ui.JBUI
@@ -52,6 +53,10 @@ private val HQ_RENDERING_HITS = ImmutableMap.of(
 
 @SwingCoordinate val REGULAR_FRAME_THICKNESS = JBUI.scale(1)
 @SwingCoordinate val HIGHLIGHTED_FRAME_THICKNESS = JBUI.scale(2)
+
+@JvmField
+@NavCoordinate
+val SELF_ACTION_LENGTHS = intArrayOf(JBUI.scale(28), JBUI.scale(26), JBUI.scale(60), JBUI.scale(8))
 
 @JvmField
 val ACTION_STROKE = BasicStroke(ACTION_STROKE_WIDTH, CAP_BUTT, JOIN_ROUND)
@@ -128,3 +133,17 @@ fun isHighlighted(component: SceneComponent): Boolean {
   }
 }
 
+/**
+ * Returns an array of five points representing the path of the self action
+ * start: middle of right side of component
+ * 1: previous point offset 28 to the left
+ * 2: previous point offset to 26 below the bottom of component
+ * 3: previous point shifted 60 to the right
+ * end: previous point shifted up 8
+ */
+fun selfActionPoints(@SwingCoordinate start: Point, @SwingCoordinate end: Point, context: SceneContext): Array<Point> {
+  val p1 = Point(start.x + context.getSwingDimension(SELF_ACTION_LENGTHS[0]), start.y)
+  val p2 = Point(p1.x, end.y + context.getSwingDimension(SELF_ACTION_LENGTHS[3]))
+  val p3 = Point(p2.x - context.getSwingDimension(SELF_ACTION_LENGTHS[2]), p2.y)
+  return arrayOf(start, p1, p2, p3, end)
+}
