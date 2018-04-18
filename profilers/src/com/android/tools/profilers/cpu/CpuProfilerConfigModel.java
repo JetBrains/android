@@ -28,12 +28,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * This class is responsible for managing the profiling configuration for the CPU profiler. It is shared between
  * {@link CpuProfilerStage} and CpuProfilingConfigurationsDialog.
  */
 public class CpuProfilerConfigModel {
+  private static final String LAST_SELECTED_CONFIGURATION_NAME = "last.selected.configuration.name";
+
   /**
    * Represents the selected configuration or the configuration being used in the case of ongoing trace recording.
    * While a trace recording in progress, it is not possible to change {@link #myProfilingConfiguration}, i.e it is achieved
@@ -73,7 +76,6 @@ public class CpuProfilerConfigModel {
     myCustomProfilingConfigurationsDeviceFiltered = new ArrayList<>();
     myDefaultProfilingConfigurations = new ArrayList<>();
     myAspectObserver = new AspectObserver();
-
     profilerStage.getAspect().addDependency(myAspectObserver)
       .onChange(CpuProfilerAspect.PROFILING_CONFIGURATION, this::updateProfilingConfigurations);
   }
@@ -83,8 +85,9 @@ public class CpuProfilerConfigModel {
     return myProfilingConfiguration;
   }
 
-  public void setProfilingConfiguration(@NotNull ProfilingConfiguration mode) {
-    myProfilingConfiguration = mode;
+  public void setProfilingConfiguration(@NotNull ProfilingConfiguration configuration) {
+    myProfilingConfiguration = configuration;
+    myProfilers.getIdeServices().getTemporaryProfilerPreferences().setValue(LAST_SELECTED_CONFIGURATION_NAME, configuration.getName());
   }
 
   @NotNull
@@ -116,14 +119,24 @@ public class CpuProfilerConfigModel {
     boolean isSimpleperfEnabled = selectedDevice != null && selectedDevice.getFeatureLevel() >= AndroidVersion.VersionCodes.O &&
                                   myProfilers.getIdeServices().getFeatureConfig().isSimpleperfEnabled();
     if (myProfilingConfiguration == null) {
-      // TODO (b/68691584): Remember the last selected configuration and suggest it instead of default configurations.
-      // If there is a preference for a native configuration, we select simpleperf.
-      if (myProfilers.getIdeServices().isNativeProfilingConfigurationPreferred() && isSimpleperfEnabled) {
+      // First we try to get the last selected config.
+      String selectedConfigName =
+        myProfilers.getIdeServices().getTemporaryProfilerPreferences().getValue(LAST_SELECTED_CONFIGURATION_NAME, "");
+      ProfilingConfiguration selectedConfig =
+        Stream.concat(defaultConfigs.stream(), savedConfigs.stream())
+              .filter(c -> c.getName().equals(selectedConfigName))
+              .findFirst()
+              .orElse(null);
+      if (selectedConfig != null) {
+        myProfilingConfiguration = selectedConfig;
+      }
+      else if (myProfilers.getIdeServices().isNativeProfilingConfigurationPreferred() && isSimpleperfEnabled) {
+        // If there is a preference for a native configuration, we select simpleperf.
         myProfilingConfiguration =
           Iterables.find(defaultConfigs, pref -> pref != null && pref.getProfilerType() == CpuProfilerType.SIMPLEPERF);
       }
-      // Otherwise we select ART sampled.
       else {
+        // Otherwise we select ART sampled.
         myProfilingConfiguration =
           Iterables.find(defaultConfigs, pref -> pref != null && pref.getProfilerType() == CpuProfilerType.ART
                                                  && pref.getMode() == CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
