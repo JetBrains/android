@@ -38,7 +38,8 @@ public class IssueModel {
     command -> GuiUtils.invokeLaterIfNeeded(command, ModalityState.defaultModalityState()));
   protected int myWarningCount;
   protected int myErrorCount;
-  private final Runnable myUpdateCallback = () -> updateErrorsList();
+  @VisibleForTesting
+  public final Runnable myUpdateCallback = () -> updateErrorsList();
 
   private List<IssueProvider> myIssueProviders = new ArrayList<>();
 
@@ -75,6 +76,7 @@ public class IssueModel {
 
   public void removeIssueProvider(@NotNull IssueProvider issueProvider) {
     myIssueProviders.remove(issueProvider);
+    issueProvider.removeListener(myUpdateCallback);
     updateErrorsList();
   }
 

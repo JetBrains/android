@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.common.error
 
+import com.android.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableCollection
 
 abstract class IssueProvider {
   // Unfortunately we have to use Runnable here for java interop
-  private val listeners = mutableListOf<Runnable>()
+  @VisibleForTesting
+  val listeners = mutableListOf<Runnable>()
   abstract fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>)
 
   fun addListener(listener: Runnable) = listeners.add(listener)

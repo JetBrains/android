@@ -17,9 +17,11 @@ package com.android.tools.idea.uibuilder.error;
 
 import com.android.tools.idea.common.error.Issue;
 import com.android.tools.idea.common.error.IssueModel;
+import com.android.tools.idea.common.error.IssueProvider;
 import com.android.tools.idea.common.error.LintIssueProvider;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -121,6 +123,23 @@ public class NlIssueModelTest {
     assertEquals(6, myIssueModel.getIssueCount());
     assertEquals(4, myIssueModel.getErrorCount());
     assertEquals(2, myIssueModel.getWarningCount());
+  }
+
+  @Test
+  public void addAndRemoveIssueProvider() {
+    IssueProvider fakeProvider = new IssueProvider() {
+      @Override
+      public void collectIssues(@NotNull ImmutableCollection.Builder<Issue> issueListBuilder) {
+      }
+    };
+    assertTrue(fakeProvider.getListeners().isEmpty());
+
+    myIssueModel.addIssueProvider(fakeProvider);
+    assertEquals(1, fakeProvider.getListeners().size());
+    assertEquals(myIssueModel.myUpdateCallback, fakeProvider.getListeners().get(0));
+
+    myIssueModel.removeIssueProvider(fakeProvider);
+    assertTrue(fakeProvider.getListeners().isEmpty());
   }
 
   @After
