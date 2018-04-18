@@ -210,7 +210,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(lineChartPanel, new TabularLayout.Constraint(0, 0));
 
-    JPanel stagePanel = new JPanel(new TabularLayout("*", "*,50px"));
+    JPanel stagePanel = new JPanel(new TabularLayout("*", "*,Fit"));
     stagePanel.add(monitorPanel, new TabularLayout.Constraint(0, 0));
     stagePanel.add(minibar, new TabularLayout.Constraint(1, 0));
     layout.setRowSizing(1, "*");
