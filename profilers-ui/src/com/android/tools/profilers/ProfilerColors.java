@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.intellij.ui.Gray;
@@ -37,22 +36,34 @@ public class ProfilerColors {
 
   public static final Color SESSION_DIVIDER_COLOR = new JBColor(0xD8D6D6, 0x2F3031);
 
-  public static final Color CPU_USAGE = new JBColor(0x71D2B5, 0x387362);
+  public static final Color CPU_USAGE = new JBColor(0xa7e0d7, 0x397060);
 
-  public static final Color CPU_USAGE_CAPTURED = new JBColor(0x0EA18D, 0x43CAA2);
+  public static final Color CPU_USAGE_CAPTURED = new JBColor(0x19AF9A, 0x43CAA2);
 
-  public static final Color CPU_OTHER_USAGE = new JBColor(0xD8EAF0, 0x3C454E);
+  public static final Color CPU_OTHER_USAGE = new JBColor(0xe9f3f6, 0x39444e);
 
   public static final Color CPU_OTHER_USAGE_CAPTURED = new JBColor(0xC8E0E8, 0x455B75);
 
-  public static final Color THREADS_COUNT = new JBColor(0x6AA78A, 0x5E9A7D);
+  public static final Color THREADS_COUNT = new JBColor(0x224E4D, 0xDAFFF4);
 
-  public static final Color THREADS_COUNT_CAPTURED = new JBColor(0x558A71, 0x71D7A6);
+  public static final Color THREADS_COUNT_CAPTURED = new JBColor(0x224E4D, 0xDAFFF4);
 
   // TODO: define final color
   public static final Color CPU_CAPTURE_EVENT = new JBColor(0x888888, 0x888888);
 
   public static final Color ENERGY_USAGE = new JBColor(0x966EC3, 0x8D6FC2);
+
+  public static final Color CPU_KERNEL_APP_TEXT_SELECTED = new JBColor(0xEFFDFB, 0x2C443D);
+  public static final Color CPU_KERNEL_APP_TEXT_HOVER = CPU_KERNEL_APP_TEXT_SELECTED;
+  public static final Color CPU_KERNEL_APP_TEXT = new JBColor(0x4A877F, 0x56907D);
+  public static final Color CPU_KERNEL_OTHER_TEXT = new JBColor(0x6E8C9A, 0x606D7E);
+  public static final Color CPU_KERNEL_OTHER_TEXT_SELECTED = new JBColor(0x232D31, 0xA9C7E9);
+  public static final Color CPU_KERNEL_OTHER_TEXT_HOVER = new JBColor(0x232D31, 0xA9C7E9);
+  public static final Color CPU_KERNEL_APP = new JBColor(0xC3E4E0, 0x33534C);
+  public static final Color CPU_KERNEL_APP_SELECTED = CPU_USAGE_CAPTURED;
+  public static final Color CPU_KERNEL_APP_HOVER = new JBColor(0x169986, 0x6BD5B6);
+  public static final Color CPU_KERNEL_OTHER = new JBColor(0xE5F1F5, 0x353C45);
+  public static final Color CPU_KERNEL_OTHER_HOVER = new JBColor(0x80B7CA, 0x587495);
 
   /**
    * Represents pair of colors of non-selected and selected states of a thread.
@@ -64,17 +75,17 @@ public class ProfilerColors {
            CPU_USAGE,
            new JBColor(0x57D9B2, 0x387358))
       .add(CpuProfilerStage.ThreadState.RUNNING_CAPTURED,
-           new JBColor(0x53B5A0, 0x44B67F),
-           new JBColor(0x84DEA7, 0x84DEA7))
+           CPU_USAGE_CAPTURED,
+           new JBColor(0x224E4D, 0xDAFFF4))
       .add(CpuProfilerStage.ThreadState.RUNNABLE_CAPTURED,
-           new JBColor(0x49917C, 0x3B9163),
-           new JBColor(0x599C74, 0x559B70))
+           new JBColor(0x2D7E77, 0x33807E),
+           new JBColor(0x2D7E77, 0x33807E))
       .add(CpuProfilerStage.ThreadState.WAITING,
-           new JBColor(0xD4E675, 0x94A244),
-           new JBColor(0xD4E675, 0x94A244))
+           new JBColor(0xeccc8e, 0xa5956a),
+           new JBColor(0xeccc8e, 0xa5956a))
       .add(CpuProfilerStage.ThreadState.WAITING_CAPTURED,
-           new JBColor(0xEFF35C, 0xDCF35C),
-           new JBColor(0xEFF35C, 0xDCF35C))
+           new JBColor(0xEAC174, 0xF1D48C),
+           new JBColor(0xEAC174, 0xF1D48C))
       .add(CpuProfilerStage.ThreadState.WAITING_IO_CAPTURED,
            new JBColor(0xFFB74D, 0xFFCA28),
            new JBColor(0xFFB74D, 0xFFCA28))
