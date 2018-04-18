@@ -181,6 +181,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     if ("WatchFaceService".equals(templateName)) return true; // See https://b.corp.google.com/issues/65062154
     if ("GoogleAdMobAdsActivity".equals(templateName)) return true;  // b/72260139
     if ("GoogleMapsActivity".equals(templateName)) return true;  // b/72260139
+    if ("SliceProvider".equals(templateName)) return true;  // b/78197770
     return false;
   }
 
@@ -640,14 +641,19 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   @TemplateCheck
   public void testNewSliceProvider() throws Exception {
-    myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "SliceProvider");
+    // TODO: This template requires API 28. Temporarily disabled until out of preview.
+    // TODO: (Consider adding preview SDK support to this suite.)
+    //myApiSensitiveTemplate = false;
+    //checkCreateTemplate("other", "SliceProvider", false);
   }
+
 
   @TemplateCheck
   public void testNewSliceProviderWithKotlin() throws Exception {
-    myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "SliceProvider", false, withKotlin);
+    // TODO: This template requires API 28. Temporarily disabled until out of preview.
+    // TODO: (Consider adding preview SDK support to this suite.)
+    //myApiSensitiveTemplate = false;
+    //checkCreateTemplate("other", "SliceProvider", false, withKotlin);
   }
 
   @TemplateCheck
