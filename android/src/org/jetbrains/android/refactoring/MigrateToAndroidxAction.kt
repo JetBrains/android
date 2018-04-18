@@ -53,14 +53,21 @@ class MigrateToAndroidxAction : BaseRefactoringAction() {
         .mapNotNull { GradleBuildModel.get(it)?.android() }
         .mapNotNull { it.compileSdkVersion().toString() }
         .map { it.removePrefix("android-") }
-        .map { AndroidVersion(it) }
+        .mapNotNull {
+          try {
+            AndroidVersion(it)
+          }
+          catch (e: AndroidVersion.AndroidVersionException) {
+            null
+          }
+        }
         .sorted()
         .lastOrNull()
 
       anActionEvent.presentation.isEnabled = if (highestVersion != null) {
         AndroidVersion(28) <= highestVersion || highestVersion.codename != null
       } else {
-        false
+        true // Enable by default when we can not find out the version
       }
     }
     else {
