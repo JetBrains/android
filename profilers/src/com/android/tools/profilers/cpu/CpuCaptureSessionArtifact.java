@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler.*;
+import com.android.tools.profiler.protobuf3jarjar.GeneratedMessageV3;
 import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.sessions.SessionArtifact;
@@ -35,10 +36,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * An artifact representation of a CPU capture.
  */
-public class CpuCaptureSessionArtifact implements SessionArtifact {
-
-  @VisibleForTesting
-  public static final String CAPTURING_SUBTITLE = "Capturing...";
+public class CpuCaptureSessionArtifact implements SessionArtifact<TraceInfo> {
 
   @NotNull private final StudioProfilers myProfilers;
   @NotNull private final Common.Session mySession;
@@ -56,6 +54,12 @@ public class CpuCaptureSessionArtifact implements SessionArtifact {
     mySessionMetaData = sessionMetaData;
     myInfo = info;
     myIsOngoingCapture = isOngoingCapture;
+  }
+
+  @NotNull
+  @Override
+  public TraceInfo getArtifactProto() {
+    return myInfo;
   }
 
   @NotNull
@@ -89,8 +93,7 @@ public class CpuCaptureSessionArtifact implements SessionArtifact {
     else if (isImportedSession()) {
       // For imported sessions, we show the time the file was imported, as it doesn't make sense to show the capture start time within the
       // session, which is always going to be 00:00:00
-      DateFormat timeFormat = new SimpleDateFormat("MM/dd/yyyy, hh:mm a");
-      return timeFormat.format(new Date(TimeUnit.NANOSECONDS.toMillis(mySession.getStartTimestamp())));
+      return SessionArtifact.getDisplayTime(TimeUnit.NANOSECONDS.toMillis(mySession.getStartTimestamp()));
     }
     else {
       // Otherwise, we show the formatted timestamp of the capture relative to the session start time.

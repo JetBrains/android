@@ -19,6 +19,7 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.sessions.SessionArtifactView;
+import com.intellij.util.ui.AsyncProcessIcon;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,23 +41,23 @@ public final class HprofArtifactView extends SessionArtifactView<HprofSessionArt
     // 1st row for showing name, 2nd row for time.
     setLayout(new TabularLayout("Fit-,*", "Fit-,Fit-"));
 
-    JLabel icon = new JLabel(StudioIcons.Profiler.Sessions.HEAP);
-    icon.setBorder(ARTIFACT_ICON_BORDER);
-    add(icon, new TabularLayout.Constraint(0, 0));
+    boolean ongoingHeapDump = artifact.getArtifactProto().getEndTime() == Long.MAX_VALUE;
+    if (ongoingHeapDump) {
+      AsyncProcessIcon loadingIcon = new AsyncProcessIcon("");
+      loadingIcon.setBorder(ARTIFACT_ICON_BORDER);
+      add(loadingIcon, new TabularLayout.Constraint(0, 0));
+    }
+    else {
+      JLabel icon = new JLabel(StudioIcons.Profiler.Sessions.HEAP);
+      icon.setBorder(ARTIFACT_ICON_BORDER);
+      add(icon, new TabularLayout.Constraint(0, 0));
+    }
 
     JLabel artifactName = new JLabel(getArtifact().getName());
     artifactName.setBorder(LABEL_PADDING);
     artifactName.setFont(TITLE_FONT);
 
-    JLabel artifactTime;
-    if (getArtifact().getSessionMetaData().getType() == Common.SessionMetaData.SessionType.MEMORY_CAPTURE) {
-      DateFormat timeFormat = new SimpleDateFormat("MM/dd/yyyy, hh:mm a");
-      artifactTime = new JLabel(timeFormat.format(new Date(TimeUnit.NANOSECONDS.toMillis(getArtifact().getSession().getStartTimestamp()))));
-    }
-    else {
-      artifactTime =
-        new JLabel(TimeAxisFormatter.DEFAULT.getClockFormattedString(TimeUnit.NANOSECONDS.toMicros(getArtifact().getTimestampNs())));
-    }
+    JLabel artifactTime = new JLabel(getArtifact().getSubtitle());
     artifactTime.setBorder(LABEL_PADDING);
     artifactTime.setFont(STATUS_FONT);
     add(artifactName, new TabularLayout.Constraint(0, 1));

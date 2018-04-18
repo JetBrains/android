@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.sessions.SessionArtifactView;
+import com.intellij.util.ui.AsyncProcessIcon;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,12 +37,16 @@ public class CpuCaptureArtifactView extends SessionArtifactView<CpuCaptureSessio
     // 1st row for showing name, second row for time.
     setLayout(new TabularLayout("Fit-,*", "Fit-,Fit-"));
 
-    JLabel icon = new JLabel(artifact.isOngoingCapture()
-                             // TODO(b/74975946): use proper icon for in-progress captures. Maybe animate.
-                             ? StudioIcons.LayoutEditor.Palette.PROGRESS_BAR
-                             : StudioIcons.Profiler.Sessions.CPU);
-    icon.setBorder(ARTIFACT_ICON_BORDER);
-    add(icon, new TabularLayout.Constraint(0, 0));
+    if (artifact.isOngoingCapture()) {
+      AsyncProcessIcon loadingIcon = new AsyncProcessIcon("");
+      loadingIcon.setBorder(ARTIFACT_ICON_BORDER);
+      add(loadingIcon, new TabularLayout.Constraint(0, 0));
+    }
+    else {
+      JLabel icon = new JLabel(StudioIcons.Profiler.Sessions.CPU);
+      icon.setBorder(ARTIFACT_ICON_BORDER);
+      add(icon, new TabularLayout.Constraint(0, 0));
+    }
 
     JLabel artifactName = new JLabel(getArtifact().getName());
     artifactName.setBorder(LABEL_PADDING);
