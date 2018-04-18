@@ -85,6 +85,7 @@ public class GradlePropertyModelBuilder {
     myHolder = null;
     myName = element.getName();
     myElement = element;
+    myIsMethod = !myElement.shouldUseAssignment();
   }
 
   /**

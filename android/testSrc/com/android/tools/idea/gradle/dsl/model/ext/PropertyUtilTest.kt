@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext
 
+import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl
+import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.TransformTestCase
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
@@ -91,5 +93,19 @@ class PropertyUtilTest : TransformTestCase() {
     method.addParsedExpression(arg)
     method.addParsedExpression(otherArg)
     assertNull(PropertyUtil.getFileValue(method))
+  }
+
+  @Test
+  fun testWriteBackElementWithTrimmedName() {
+    val literal = createLiteral(name = "android.defaultConfig.applicationId")
+    val buildModel = gradleBuildModel
+    val defaultConfigBlock = (buildModel.android()!!.defaultConfig() as ProductFlavorModelImpl).dslElement()
+    defaultConfigBlock.setNewElement(literal)
+    literal.setValue("hello")
+
+    applyChangesAndReparse(buildModel)
+
+    val applicationId = buildModel.android()!!.defaultConfig().applicationId()
+    assertThat(applicationId.psiElement!!.parent!!.text, equalTo("applicationId 'hello'"))
   }
 }

@@ -20,11 +20,15 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.pixelprobe.util.Strings;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import com.intellij.util.containers.hash.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType;
@@ -58,6 +62,15 @@ public class SingleArgumentMethodTransform extends PropertyTransform {
     myRecognizedNames.addAll(Arrays.asList(methodNames));
     myRecognizedNames.add(methodName);
     myWriteBackName = methodName;
+  }
+
+  public SingleArgumentMethodTransform(@NotNull String methodName, @NotNull GradleDslElement object) {
+    myWriteBackName = methodName;
+    List<String> splitName = Lists.newArrayList(Splitter.on(".").split(object.getQualifiedName()));
+    splitName.add(methodName);
+    for (int i = 0; i < splitName.size(); i++) {
+      myRecognizedNames.add(Strings.join(splitName.subList(i, splitName.size()), "."));
+    }
   }
 
   @Override
