@@ -59,7 +59,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
   @NotNull
   @Override
   public LaunchTask getTask(@NotNull Module module, @NotNull String applicationId, @NotNull LaunchOptions launchOptions) {
-    return new AndroidProfilerToolWindowLaunchTask(module);
+    return new AndroidProfilerLaunchTask(module, launchOptions);
   }
 
   @NotNull
@@ -243,11 +243,13 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     return "";
   }
 
-  public static final class AndroidProfilerToolWindowLaunchTask implements LaunchTask {
+  public static final class AndroidProfilerLaunchTask implements LaunchTask {
     @NotNull private final Module myModule;
+    @NotNull private final LaunchOptions myLaunchOptions;
 
-    public AndroidProfilerToolWindowLaunchTask(@NotNull Module module) {
+    public AndroidProfilerLaunchTask(@NotNull Module module, @NotNull LaunchOptions launchOptions) {
       myModule = module;
+      myLaunchOptions = launchOptions;
     }
 
     @NotNull
@@ -263,6 +265,12 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
 
     @Override
     public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
+      Object launchValue = myLaunchOptions.getExtraOption(ProfileRunExecutor.PROFILER_LAUNCH_OPTION_KEY);
+      if (!(launchValue instanceof Boolean && (Boolean)launchValue)) {
+        // Skip auto-profiling if it wasn't a profile action.
+        return true;
+      }
+
       ApplicationManager.getApplication().invokeLater(
         () -> {
           Project project = myModule.getProject();
