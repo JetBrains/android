@@ -90,6 +90,7 @@ public class TemplateMetadata {
   public static final String ATTR_CPP_SUPPORT = "includeCppSupport";
   public static final String ATTR_DEPENDENCIES_MULTIMAP = "dependenciesMultimap";
 
+  public static final String ATTR_IS_DYNAMIC_FEATURE = "isDynamicFeature";
   public static final String ATTR_DYNAMIC_FEATURE_TITLE = "dynamicFeatureTitle";
   public static final String ATTR_DYNAMIC_FEATURE_ON_DEMAND = "dynamicFeatureOnDemand";
   public static final String ATTR_DYNAMIC_FEATURE_FUSING = "dynamicFeatureFusing";

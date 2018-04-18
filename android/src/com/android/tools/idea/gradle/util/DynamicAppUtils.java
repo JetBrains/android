@@ -75,6 +75,24 @@ public class DynamicAppUtils {
   }
 
   /**
+   * Returns the Base Module of the specified dynamic feature {@link Module module}, or null if none is found.
+   */
+  @Nullable
+  public static Module getBaseFeature(@NotNull Module module) {
+    String gradlePath = getGradlePath(module);
+    if (gradlePath == null) {
+      return null;
+    }
+
+    return Arrays.stream(ModuleManager.getInstance(module.getProject()).getModules())
+      .filter(baseModule -> {
+        AndroidModuleModel baseModel = AndroidModuleModel.get(baseModule);
+        return baseModel != null && baseModel.getAndroidProject().getDynamicFeatures().contains(gradlePath);
+      })
+      .findFirst()
+      .orElse(null);
+  }
+  /**
    * Returns the list of dynamic feature {@link Module modules} that depend on this base module.
    */
   @NotNull
@@ -273,20 +291,31 @@ public class DynamicAppUtils {
         if (model.getAndroidProject().getProjectType() != AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE) {
           return null;
         }
-
-        // Find the gradle path of the module
-        GradleFacet facet = GradleFacet.getInstance(module);
-        if (facet == null) {
+        String gradlePath = getGradlePath(module);
+        if (gradlePath == null) {
           return null;
         }
-        GradleModuleModel gradleModel = facet.getGradleModuleModel();
-        if (gradleModel == null) {
-          return null;
-        }
-        return Pair.create(gradleModel.getGradlePath(), module);
+        return Pair.create(gradlePath, module);
       })
       .filter(Objects::nonNull)
       .collect(Collectors.toMap(p -> p.first, p -> p.second, DynamicAppUtils::handleModuleAmbiguity));
+  }
+
+  /**
+   * Find the gradle path of the module
+   * @return The path of the specified module, or null if it can't retrieve it.
+   */
+  @Nullable
+  private static String getGradlePath(@NotNull Module module) {
+    GradleFacet facet = GradleFacet.getInstance(module);
+    if (facet == null) {
+      return null;
+    }
+    GradleModuleModel gradleModel = facet.getGradleModuleModel();
+    if (gradleModel == null) {
+      return null;
+    }
+    return gradleModel.getGradlePath();
   }
 
   @NotNull
