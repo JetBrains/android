@@ -88,7 +88,7 @@ open class GuiTestRemoteRunner @Throws(InitializationError::class)
       SERVER_LOG.error(e)
       e.printStackTrace()
       notifier.fireTestIgnored(description)
-      Assert.fail(e.message)
+      throw RuntimeException(e)
     }
     var testIsRunning = true
     while(testIsRunning) {
