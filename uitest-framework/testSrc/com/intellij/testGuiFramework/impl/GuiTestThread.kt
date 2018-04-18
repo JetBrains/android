@@ -44,6 +44,7 @@ class GuiTestThread : Thread(GUI_TEST_THREAD_NAME) {
   }
 
   override fun run() {
+    LOG.warn("GuiTestThread started")
     client = JUnitClientImpl(host(), port(), createHandlers())
 
     core.addListener(JUnitClientListener({ jUnitInfo -> client!!.send(JUnitInfoMessage(jUnitInfo)) }))
