@@ -268,7 +268,6 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
 
     private void renderNativeStackFrame(@NotNull CodeElement codeElement, boolean selected) {
       setIcon(PlatformIcons.METHOD_ICON);
-      SimpleTextAttributes textAttribute = selected || codeElement.isInUserCode() ? REGULAR_ATTRIBUTES : GRAY_ATTRIBUTES;
       CodeLocation location = codeElement.getCodeLocation();
 
       StringBuilder methodBuilder = new StringBuilder();
@@ -280,7 +279,7 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
       methodBuilder.append(location.getMethodName());
       methodBuilder.append("(" + String.join(",", location.getMethodParameters()) + ") ");
       String methodName = methodBuilder.toString();
-      append(methodName, textAttribute, methodName);
+      append(methodName, REGULAR_ATTRIBUTES, methodName);
 
       if (!Strings.isNullOrEmpty(location.getFileName())) {
         String sourceLocation = Paths.get(location.getFileName()).getFileName().toString();
@@ -288,7 +287,7 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
           sourceLocation += ":" + String.valueOf(location.getLineNumber() + 1);
         }
 
-        append(sourceLocation, textAttribute, sourceLocation);
+        append(sourceLocation, REGULAR_ATTRIBUTES, sourceLocation);
       }
 
       String moduleName = " " + Paths.get(location.getNativeModuleName()).getFileName().toString();
