@@ -55,6 +55,10 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
     this(project, notificationTitle, modules, null);
   }
 
+  public GoToBundleLocationTask(@NotNull Project project, @NotNull Map<Module, File> modulesAndBundlePaths, @NotNull String notificationTitle) {
+    this(project, notificationTitle, null, modulesAndBundlePaths);
+  }
+
   @VisibleForTesting
   GoToBundleLocationTask(@NotNull Project project,
                          @NotNull String notificationTitle,
