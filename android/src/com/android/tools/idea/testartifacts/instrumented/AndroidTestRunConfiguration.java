@@ -21,7 +21,7 @@ import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.TestOptions.Execution;
 import com.android.builder.model.Variant;
 import com.android.ddmlib.IDevice;
-import com.android.ddmlib.testrunner.OnDeviceOrchestratorRemoteAndroidTestRunner;
+import com.android.ddmlib.testrunner.AndroidTestOrchestratorRemoteAndroidTestRunner;
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
@@ -517,11 +517,17 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
     @NotNull
     public RemoteAndroidTestRunner getRemoteAndroidTestRunner(@Nullable IdeAndroidArtifact artifact, @NotNull IDevice device) {
-      return artifact != null &&
-             artifact.getTestOptions() != null &&
-             Execution.ANDROID_TEST_ORCHESTRATOR.equals(artifact.getTestOptions().getExecution()) ?
-             new OnDeviceOrchestratorRemoteAndroidTestRunner(myTestApplicationId, myInstrumentationTestRunner, device) :
-             new RemoteAndroidTestRunner(myTestApplicationId, myInstrumentationTestRunner, device);
+      if (artifact != null && artifact.getTestOptions() != null) {
+        final Execution execution = artifact.getTestOptions().getExecution();
+        if (execution == Execution.ANDROID_TEST_ORCHESTRATOR) {
+          return new AndroidTestOrchestratorRemoteAndroidTestRunner(myTestApplicationId, myInstrumentationTestRunner, device, false);
+        }
+        else if (execution == Execution.ANDROIDX_TEST_ORCHESTRATOR) {
+          return new AndroidTestOrchestratorRemoteAndroidTestRunner(myTestApplicationId, myInstrumentationTestRunner, device, true);
+        }
+      }
+
+      return new RemoteAndroidTestRunner(myTestApplicationId, myInstrumentationTestRunner, device);
     }
 
     @Override
