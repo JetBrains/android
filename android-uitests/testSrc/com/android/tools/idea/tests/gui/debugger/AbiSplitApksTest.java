@@ -21,7 +21,6 @@ import com.android.tools.idea.tests.gui.emulator.EmulatorGenerator;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.ScreenshotsDuringTest;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -38,7 +37,6 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRunner.class)
 public class AbiSplitApksTest extends DebuggerTestBase {
   @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
-  @Rule public final ScreenshotsDuringTest movie = new ScreenshotsDuringTest();
 
   private final EmulatorTestRule emulator = new EmulatorTestRule(false);
   @Rule public final RuleChain emulatorRules = RuleChain
