@@ -67,7 +67,6 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
   private JCheckBox myV1JarSignatureCheckBox;
   private JCheckBox myV2FullAPKSignatureCheckBox;
   private JBLabel mySignatureHelpLabel;
-  private JBLabel myProGuardLabel;
   private JBLabel mySignatureLabel;
   private JPanel mySignaturePanel;
 
@@ -152,7 +151,6 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
     boolean isBundle = myWizard.getTargetType().equals("bundle");
     mySignaturePanel.setVisible(!isBundle);
     mySignatureLabel.setVisible(!isBundle);
-    myProGuardLabel.setVisible(!isBundle);
     myV1JarSignatureCheckBox.setEnabled(!isBundle);
     if (!isBundle) {
       GradleVersion modelVersion = null;
