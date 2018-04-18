@@ -1,5 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.service.carrier.CarrierIdentifier CarrierIdentifier(byte[], java.lang.String, java.lang.String) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.carrier.CarrierIdentifier CarrierIdentifier(byte[], java.lang.String, java.lang.String) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.carrier.CarrierIdentifier CarrierIdentifier(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.carrier.CarrierIdentifier CarrierIdentifier(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.carrier.CarrierIdentifier CarrierIdentifier(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String) 4">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.carrier.CarrierIdentifier CarrierIdentifier(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String) 5">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.carrier.CarrierIdentifier java.lang.String getGid1()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.carrier.CarrierIdentifier java.lang.String getGid2()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.carrier.CarrierIdentifier java.lang.String getImsi()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.carrier.CarrierIdentifier java.lang.String getSpn()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.service.carrier.CarrierMessagingService android.os.IBinder onBind(android.content.Intent)">
     <annotation name="android.support.annotation.Nullable" />
   </item>

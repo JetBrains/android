@@ -30,11 +30,6 @@
       <val name="value" val="&quot;android.permission.NFC&quot;" />
     </annotation>
   </item>
-  <item name="android.nfc.tech.TagTechnology void close()">
-    <annotation name="android.support.annotation.RequiresPermission">
-      <val name="value" val="&quot;android.permission.NFC&quot;" />
-    </annotation>
-  </item>
   <item name="android.nfc.tech.TagTechnology void connect()">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.NFC&quot;" />

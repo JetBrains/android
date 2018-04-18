@@ -11,10 +11,230 @@
   <item name="android.telephony.CarrierConfigManager android.os.PersistableBundle getConfigForSubId(int)">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.telephony.CellIdentity java.lang.CharSequence getOperatorAlphaLong()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.telephony.CellIdentity java.lang.CharSequence getOperatorAlphaShort()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.telephony.CellIdentity void writeToParcel(android.os.Parcel, int)">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
+  <item name="android.telephony.CellInfo int getCellConnectionStatus()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telephony.CellInfo.CONNECTION_NONE, android.telephony.CellInfo.CONNECTION_PRIMARY_SERVING, android.telephony.CellInfo.CONNECTION_SECONDARY_SERVING, android.telephony.CellInfo.CONNECTION_UNKNOWN}" />
+    </annotation>
+  </item>
+  <item name="android.telephony.MbmsDownloadSession android.telephony.MbmsDownloadSession create(android.content.Context, java.util.concurrent.Executor, android.telephony.mbms.MbmsDownloadSessionCallback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.MbmsDownloadSession android.telephony.MbmsDownloadSession create(android.content.Context, java.util.concurrent.Executor, android.telephony.mbms.MbmsDownloadSessionCallback) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.MbmsDownloadSession android.telephony.MbmsDownloadSession create(android.content.Context, java.util.concurrent.Executor, android.telephony.mbms.MbmsDownloadSessionCallback) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.MbmsDownloadSession android.telephony.MbmsDownloadSession create(android.content.Context, java.util.concurrent.Executor, int, android.telephony.mbms.MbmsDownloadSessionCallback)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.telephony.MbmsDownloadSession android.telephony.MbmsDownloadSession create(android.content.Context, java.util.concurrent.Executor, int, android.telephony.mbms.MbmsDownloadSessionCallback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.MbmsDownloadSession android.telephony.MbmsDownloadSession create(android.content.Context, java.util.concurrent.Executor, int, android.telephony.mbms.MbmsDownloadSessionCallback) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.MbmsDownloadSession android.telephony.MbmsDownloadSession create(android.content.Context, java.util.concurrent.Executor, int, android.telephony.mbms.MbmsDownloadSessionCallback) 3">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.MbmsDownloadSession java.io.File getTempFileRootDirectory()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.telephony.MbmsDownloadSession java.util.List&lt;android.telephony.mbms.DownloadRequest&gt; listPendingDownloads()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.MbmsDownloadSession void addProgressListener(android.telephony.mbms.DownloadRequest, java.util.concurrent.Executor, android.telephony.mbms.DownloadProgressListener) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.MbmsDownloadSession void addProgressListener(android.telephony.mbms.DownloadRequest, java.util.concurrent.Executor, android.telephony.mbms.DownloadProgressListener) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.MbmsDownloadSession void addProgressListener(android.telephony.mbms.DownloadRequest, java.util.concurrent.Executor, android.telephony.mbms.DownloadProgressListener) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.MbmsDownloadSession void addStatusListener(android.telephony.mbms.DownloadRequest, java.util.concurrent.Executor, android.telephony.mbms.DownloadStatusListener) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.MbmsDownloadSession void addStatusListener(android.telephony.mbms.DownloadRequest, java.util.concurrent.Executor, android.telephony.mbms.DownloadStatusListener) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.MbmsDownloadSession void addStatusListener(android.telephony.mbms.DownloadRequest, java.util.concurrent.Executor, android.telephony.mbms.DownloadStatusListener) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.MbmsDownloadSession void cancelDownload(android.telephony.mbms.DownloadRequest) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.MbmsDownloadSession void download(android.telephony.mbms.DownloadRequest) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.MbmsDownloadSession void removeProgressListener(android.telephony.mbms.DownloadRequest, android.telephony.mbms.DownloadProgressListener) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.MbmsDownloadSession void removeProgressListener(android.telephony.mbms.DownloadRequest, android.telephony.mbms.DownloadProgressListener) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.MbmsDownloadSession void removeStatusListener(android.telephony.mbms.DownloadRequest, android.telephony.mbms.DownloadStatusListener) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.MbmsDownloadSession void removeStatusListener(android.telephony.mbms.DownloadRequest, android.telephony.mbms.DownloadStatusListener) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.MbmsDownloadSession void requestUpdateFileServices(java.util.List&lt;java.lang.String&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.MbmsDownloadSession void setTempFileRootDirectory(java.io.File) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.MbmsStreamingSession android.telephony.MbmsStreamingSession create(android.content.Context, java.util.concurrent.Executor, android.telephony.mbms.MbmsStreamingSessionCallback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.MbmsStreamingSession android.telephony.MbmsStreamingSession create(android.content.Context, java.util.concurrent.Executor, android.telephony.mbms.MbmsStreamingSessionCallback) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.MbmsStreamingSession android.telephony.MbmsStreamingSession create(android.content.Context, java.util.concurrent.Executor, android.telephony.mbms.MbmsStreamingSessionCallback) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.MbmsStreamingSession android.telephony.MbmsStreamingSession create(android.content.Context, java.util.concurrent.Executor, int, android.telephony.mbms.MbmsStreamingSessionCallback)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.telephony.MbmsStreamingSession android.telephony.MbmsStreamingSession create(android.content.Context, java.util.concurrent.Executor, int, android.telephony.mbms.MbmsStreamingSessionCallback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.MbmsStreamingSession android.telephony.MbmsStreamingSession create(android.content.Context, java.util.concurrent.Executor, int, android.telephony.mbms.MbmsStreamingSessionCallback) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.MbmsStreamingSession android.telephony.MbmsStreamingSession create(android.content.Context, java.util.concurrent.Executor, int, android.telephony.mbms.MbmsStreamingSessionCallback) 3">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.MbmsStreamingSession android.telephony.mbms.StreamingService startStreaming(android.telephony.mbms.StreamingServiceInfo, java.util.concurrent.Executor, android.telephony.mbms.StreamingServiceCallback)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.telephony.MbmsStreamingSession android.telephony.mbms.StreamingService startStreaming(android.telephony.mbms.StreamingServiceInfo, java.util.concurrent.Executor, android.telephony.mbms.StreamingServiceCallback) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.NetworkScanRequest int getScanType()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telephony.NetworkScanRequest.SCAN_TYPE_ONE_SHOT, android.telephony.NetworkScanRequest.SCAN_TYPE_PERIODIC}" />
+    </annotation>
+  </item>
+  <item name="android.telephony.PhoneNumberUtils byte[] numberToCalledPartyBCD(java.lang.String, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telephony.PhoneNumberUtils.BCD_EXTENDED_TYPE_EF_ADN, android.telephony.PhoneNumberUtils.BCD_EXTENDED_TYPE_CALLED_PARTY}" />
+    </annotation>
+  </item>
+  <item name="android.telephony.PhoneNumberUtils java.lang.String calledPartyBCDFragmentToString(byte[], int, int, int) 3">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telephony.PhoneNumberUtils.BCD_EXTENDED_TYPE_EF_ADN, android.telephony.PhoneNumberUtils.BCD_EXTENDED_TYPE_CALLED_PARTY}" />
+    </annotation>
+  </item>
+  <item name="android.telephony.PhoneNumberUtils java.lang.String calledPartyBCDToString(byte[], int, int, int) 3">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telephony.PhoneNumberUtils.BCD_EXTENDED_TYPE_EF_ADN, android.telephony.PhoneNumberUtils.BCD_EXTENDED_TYPE_CALLED_PARTY}" />
+    </annotation>
+  </item>
+  <item name="android.telephony.ServiceState int getDuplexMode()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telephony.ServiceState.DUPLEX_MODE_UNKNOWN, android.telephony.ServiceState.DUPLEX_MODE_FDD, android.telephony.ServiceState.DUPLEX_MODE_TDD}" />
+    </annotation>
+  </item>
+  <item name="android.telephony.SmsManager void injectSmsPdu(byte[], java.lang.String, android.app.PendingIntent) 1">
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.telephony.SmsMessage.FORMAT_3GPP, android.telephony.SmsMessage.FORMAT_3GPP2}" />
+    </annotation>
+  </item>
+  <item name="android.telephony.SmsManager void sendTextMessageWithoutPersisting(java.lang.String, java.lang.String, java.lang.String, android.app.PendingIntent, android.app.PendingIntent)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="allOf" val="{&quot;android.permission.MODIFY_PHONE_STATE&quot;, &quot;android.permission.SEND_SMS&quot;}" />
+    </annotation>
+  </item>
+  <item name="android.telephony.SmsMessage java.lang.String getOriginatingAddress()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.telephony.SubscriptionManager">
     <annotation name="android.support.annotation.SystemService">
       <val name="value" val="android.content.Context.TELEPHONY_SUBSCRIPTION_SERVICE" />
     </annotation>
+  </item>
+  <item name="android.telephony.SubscriptionManager android.telephony.SubscriptionInfo getActiveSubscriptionInfo(int)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.READ_PHONE_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.telephony.SubscriptionManager android.telephony.SubscriptionInfo getActiveSubscriptionInfoForSimSlotIndex(int)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.READ_PHONE_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.telephony.SubscriptionManager int getActiveSubscriptionInfoCount()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.READ_PHONE_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.telephony.SubscriptionManager java.util.List&lt;android.telephony.SubscriptionInfo&gt; getActiveSubscriptionInfoList()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.READ_PHONE_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.telephony.SubscriptionManager java.util.List&lt;android.telephony.SubscriptionPlan&gt; getSubscriptionPlans(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.SubscriptionManager void setSubscriptionOverrideCongested(int, boolean, long) 2">
+    <annotation name="android.support.annotation.DurationMillisLong" />
+  </item>
+  <item name="android.telephony.SubscriptionManager void setSubscriptionOverrideUnmetered(int, boolean, long) 2">
+    <annotation name="android.support.annotation.DurationMillisLong" />
+  </item>
+  <item name="android.telephony.SubscriptionManager void setSubscriptionPlans(int, java.util.List&lt;android.telephony.SubscriptionPlan&gt;) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.SubscriptionPlan int getDataLimitBehavior()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telephony.SubscriptionPlan.LIMIT_BEHAVIOR_UNKNOWN, android.telephony.SubscriptionPlan.LIMIT_BEHAVIOR_DISABLED, android.telephony.SubscriptionPlan.LIMIT_BEHAVIOR_BILLED, android.telephony.SubscriptionPlan.LIMIT_BEHAVIOR_THROTTLED}" />
+    </annotation>
+  </item>
+  <item name="android.telephony.SubscriptionPlan java.lang.CharSequence getSummary()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.telephony.SubscriptionPlan java.lang.CharSequence getTitle()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.telephony.SubscriptionPlan long getDataLimitBytes()">
+    <annotation name="android.support.annotation.BytesLong" />
+  </item>
+  <item name="android.telephony.SubscriptionPlan long getDataUsageBytes()">
+    <annotation name="android.support.annotation.BytesLong" />
+  </item>
+  <item name="android.telephony.SubscriptionPlan long getDataUsageTime()">
+    <annotation name="android.support.annotation.CurrentTimeMillisLong" />
+  </item>
+  <item name="android.telephony.SubscriptionPlan.Builder android.telephony.SubscriptionPlan.Builder setDataLimit(long, int) 0">
+    <annotation name="android.support.annotation.BytesLong" />
+  </item>
+  <item name="android.telephony.SubscriptionPlan.Builder android.telephony.SubscriptionPlan.Builder setDataLimit(long, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telephony.SubscriptionPlan.LIMIT_BEHAVIOR_UNKNOWN, android.telephony.SubscriptionPlan.LIMIT_BEHAVIOR_DISABLED, android.telephony.SubscriptionPlan.LIMIT_BEHAVIOR_BILLED, android.telephony.SubscriptionPlan.LIMIT_BEHAVIOR_THROTTLED}" />
+    </annotation>
+  </item>
+  <item name="android.telephony.SubscriptionPlan.Builder android.telephony.SubscriptionPlan.Builder setDataUsage(long, long) 0">
+    <annotation name="android.support.annotation.BytesLong" />
+  </item>
+  <item name="android.telephony.SubscriptionPlan.Builder android.telephony.SubscriptionPlan.Builder setDataUsage(long, long) 1">
+    <annotation name="android.support.annotation.CurrentTimeMillisLong" />
+  </item>
+  <item name="android.telephony.SubscriptionPlan.Builder android.telephony.SubscriptionPlan.Builder setSummary(java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.telephony.SubscriptionPlan.Builder android.telephony.SubscriptionPlan.Builder setTitle(java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.telephony.TelephonyManager">
     <annotation name="android.support.annotation.SystemService">
@@ -37,13 +257,26 @@
       <val name="anyOf" val="{&quot;android.permission.ACCESS_COARSE_LOCATION&quot;, &quot;android.permission.ACCESS_FINE_LOCATION&quot;}" />
     </annotation>
   </item>
+  <item name="android.telephony.TelephonyManager android.telephony.NetworkScan requestNetworkScan(android.telephony.NetworkScanRequest, java.util.concurrent.Executor, android.telephony.TelephonyScanManager.NetworkScanCallback)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.MODIFY_PHONE_STATE&quot;" />
+    </annotation>
+  </item>
   <item name="android.telephony.TelephonyManager android.telephony.ServiceState getServiceState()">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.READ_PHONE_STATE&quot;" />
     </annotation>
   </item>
+  <item name="android.telephony.TelephonyManager android.telephony.SignalStrength getSignalStrength()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.telephony.TelephonyManager android.telephony.TelephonyManager createForPhoneAccountHandle(android.telecom.PhoneAccountHandle)">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.telephony.TelephonyManager boolean setNetworkSelectionModeManual(java.lang.String, boolean)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.MODIFY_PHONE_STATE&quot;" />
+    </annotation>
   </item>
   <item name="android.telephony.TelephonyManager int getDataNetworkType()">
     <annotation name="android.support.annotation.RequiresPermission">
@@ -100,6 +333,11 @@
       <val name="value" val="&quot;android.permission.READ_PHONE_STATE&quot;" />
     </annotation>
   </item>
+  <item name="android.telephony.TelephonyManager java.lang.String getNai()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.READ_PHONE_STATE&quot;" />
+    </annotation>
+  </item>
   <item name="android.telephony.TelephonyManager java.lang.String getSimSerialNumber()">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.READ_PHONE_STATE&quot;" />
@@ -149,6 +387,16 @@
   <item name="android.telephony.TelephonyManager void setDataEnabled(boolean)">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.MODIFY_PHONE_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.telephony.TelephonyManager void setNetworkSelectionModeAutomatic()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.MODIFY_PHONE_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.telephony.TelephonyScanManager.NetworkScanCallback void onError(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telephony.NetworkScan.ERROR_MODEM_ERROR, android.telephony.NetworkScan.ERROR_INVALID_SCAN, android.telephony.NetworkScan.ERROR_MODEM_UNAVAILABLE, android.telephony.NetworkScan.ERROR_UNSUPPORTED, android.telephony.NetworkScan.ERROR_RADIO_INTERFACE_ERROR, android.telephony.NetworkScan.ERROR_INVALID_SCANID, android.telephony.NetworkScan.ERROR_INTERRUPTED}" />
     </annotation>
   </item>
   <item name="android.telephony.VisualVoicemailService void onCellServiceConnected(android.telephony.VisualVoicemailService.VisualVoicemailTask, android.telecom.PhoneAccountHandle)">

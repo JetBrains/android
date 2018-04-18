@@ -48,6 +48,44 @@
       <val name="value" val="{android.webkit.WebSettings.LOAD_DEFAULT, android.webkit.WebSettings.LOAD_NORMAL, android.webkit.WebSettings.LOAD_CACHE_ELSE_NETWORK, android.webkit.WebSettings.LOAD_NO_CACHE, android.webkit.WebSettings.LOAD_CACHE_ONLY}" />
     </annotation>
   </item>
+  <item name="android.webkit.TracingConfig int getPredefinedCategories()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.webkit.TracingConfig.CATEGORIES_NONE, android.webkit.TracingConfig.CATEGORIES_ALL, android.webkit.TracingConfig.CATEGORIES_ANDROID_WEBVIEW, android.webkit.TracingConfig.CATEGORIES_WEB_DEVELOPER, android.webkit.TracingConfig.CATEGORIES_INPUT_LATENCY, android.webkit.TracingConfig.CATEGORIES_RENDERING, android.webkit.TracingConfig.CATEGORIES_JAVASCRIPT_AND_RENDERING, android.webkit.TracingConfig.CATEGORIES_FRAME_VIEWER}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.webkit.TracingConfig int getTracingMode()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.webkit.TracingConfig.RECORD_UNTIL_FULL, android.webkit.TracingConfig.RECORD_CONTINUOUSLY}" />
+    </annotation>
+  </item>
+  <item name="android.webkit.TracingConfig java.util.List&lt;java.lang.String&gt; getCustomIncludedCategories()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.webkit.TracingConfig.Builder android.webkit.TracingConfig.Builder addCategories(int...) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.webkit.TracingConfig.CATEGORIES_NONE, android.webkit.TracingConfig.CATEGORIES_ALL, android.webkit.TracingConfig.CATEGORIES_ANDROID_WEBVIEW, android.webkit.TracingConfig.CATEGORIES_WEB_DEVELOPER, android.webkit.TracingConfig.CATEGORIES_INPUT_LATENCY, android.webkit.TracingConfig.CATEGORIES_RENDERING, android.webkit.TracingConfig.CATEGORIES_JAVASCRIPT_AND_RENDERING, android.webkit.TracingConfig.CATEGORIES_FRAME_VIEWER}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.webkit.TracingConfig.Builder android.webkit.TracingConfig.Builder setTracingMode(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.webkit.TracingConfig.RECORD_UNTIL_FULL, android.webkit.TracingConfig.RECORD_CONTINUOUSLY}" />
+    </annotation>
+  </item>
+  <item name="android.webkit.TracingController android.webkit.TracingController getInstance()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.webkit.TracingController boolean stop(java.io.OutputStream, java.util.concurrent.Executor) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.TracingController boolean stop(java.io.OutputStream, java.util.concurrent.Executor) 1">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.CallbackExecutor" />
+  </item>
+  <item name="android.webkit.TracingController void start(android.webkit.TracingConfig) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.webkit.URLUtil java.lang.String guessFileName(java.lang.String, java.lang.String, java.lang.String) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -118,6 +156,9 @@
   <item name="android.webkit.WebView android.net.http.SslCertificate getCertificate()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.webkit.WebView android.os.Looper getWebViewLooper()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.webkit.WebView android.view.textclassifier.TextClassifier getTextClassifier()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -137,6 +178,9 @@
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.webkit.WebView.RENDERER_PRIORITY_WAIVED, android.webkit.WebView.RENDERER_PRIORITY_BOUND, android.webkit.WebView.RENDERER_PRIORITY_IMPORTANT}" />
     </annotation>
+  </item>
+  <item name="android.webkit.WebView java.lang.ClassLoader getWebViewClassLoader()">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.webkit.WebView java.lang.String findAddress(java.lang.String)">
     <annotation name="android.support.annotation.Nullable" />
@@ -190,6 +234,9 @@
   </item>
   <item name="android.webkit.WebView void setTextClassifier(android.view.textclassifier.TextClassifier) 0">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebView void startSafeBrowsing(android.content.Context, android.webkit.ValueCallback&lt;java.lang.Boolean&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.webkit.WebView void startSafeBrowsing(android.content.Context, android.webkit.ValueCallback&lt;java.lang.Boolean&gt;) 1">
     <annotation name="android.support.annotation.Nullable" />

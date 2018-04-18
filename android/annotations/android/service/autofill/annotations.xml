@@ -21,6 +21,12 @@
   <item name="android.service.autofill.AutofillService void onSaveRequest(android.service.autofill.SaveRequest, android.service.autofill.SaveCallback) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.service.autofill.BatchUpdates.Builder android.service.autofill.BatchUpdates.Builder transformChild(int, android.service.autofill.Transformation) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.BatchUpdates.Builder android.service.autofill.BatchUpdates.Builder updateTemplate(android.widget.RemoteViews) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.service.autofill.CharSequenceTransformation.Builder Builder(android.view.autofill.AutofillId, java.util.regex.Pattern, java.lang.String) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -39,7 +45,16 @@
   <item name="android.service.autofill.CharSequenceTransformation.Builder android.service.autofill.CharSequenceTransformation.Builder addField(android.view.autofill.AutofillId, java.util.regex.Pattern, java.lang.String) 2">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.service.autofill.CustomDescription.Builder Builder(android.widget.RemoteViews) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.service.autofill.CustomDescription.Builder android.service.autofill.CustomDescription.Builder addChild(int, android.service.autofill.Transformation) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.CustomDescription.Builder android.service.autofill.CustomDescription.Builder batchUpdate(android.service.autofill.Validator, android.service.autofill.BatchUpdates) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.CustomDescription.Builder android.service.autofill.CustomDescription.Builder batchUpdate(android.service.autofill.Validator, android.service.autofill.BatchUpdates) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.service.autofill.Dataset.Builder Builder(android.widget.RemoteViews) 0">
@@ -81,6 +96,48 @@
   <item name="android.service.autofill.Dataset.Builder android.service.autofill.Dataset.Builder setValue(android.view.autofill.AutofillId, android.view.autofill.AutofillValue, android.widget.RemoteViews) 2">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.service.autofill.Dataset.Builder android.service.autofill.Dataset.Builder setValue(android.view.autofill.AutofillId, android.view.autofill.AutofillValue, java.util.regex.Pattern)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.Dataset.Builder android.service.autofill.Dataset.Builder setValue(android.view.autofill.AutofillId, android.view.autofill.AutofillValue, java.util.regex.Pattern) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.Dataset.Builder android.service.autofill.Dataset.Builder setValue(android.view.autofill.AutofillId, android.view.autofill.AutofillValue, java.util.regex.Pattern) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.autofill.Dataset.Builder android.service.autofill.Dataset.Builder setValue(android.view.autofill.AutofillId, android.view.autofill.AutofillValue, java.util.regex.Pattern) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.autofill.Dataset.Builder android.service.autofill.Dataset.Builder setValue(android.view.autofill.AutofillId, android.view.autofill.AutofillValue, java.util.regex.Pattern, android.widget.RemoteViews)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.Dataset.Builder android.service.autofill.Dataset.Builder setValue(android.view.autofill.AutofillId, android.view.autofill.AutofillValue, java.util.regex.Pattern, android.widget.RemoteViews) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.Dataset.Builder android.service.autofill.Dataset.Builder setValue(android.view.autofill.AutofillId, android.view.autofill.AutofillValue, java.util.regex.Pattern, android.widget.RemoteViews) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.autofill.Dataset.Builder android.service.autofill.Dataset.Builder setValue(android.view.autofill.AutofillId, android.view.autofill.AutofillValue, java.util.regex.Pattern, android.widget.RemoteViews) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.autofill.Dataset.Builder android.service.autofill.Dataset.Builder setValue(android.view.autofill.AutofillId, android.view.autofill.AutofillValue, java.util.regex.Pattern, android.widget.RemoteViews) 3">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.DateTransformation DateTransformation(android.view.autofill.AutofillId, android.icu.text.DateFormat) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.DateTransformation DateTransformation(android.view.autofill.AutofillId, android.icu.text.DateFormat) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.DateValueSanitizer DateValueSanitizer(android.icu.text.DateFormat) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.FieldClassification java.util.List&lt;android.service.autofill.FieldClassification.Match&gt; getMatches()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.FieldClassification.Match java.lang.String getCategoryId()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.service.autofill.FillCallback void onFailure(java.lang.CharSequence) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -93,8 +150,26 @@
   <item name="android.service.autofill.FillEventHistory java.util.List&lt;android.service.autofill.FillEventHistory.Event&gt; getEvents()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.service.autofill.FillEventHistory.Event android.os.Bundle getClientState()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.service.autofill.FillEventHistory.Event java.lang.String getDatasetId()">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.autofill.FillEventHistory.Event java.util.Map&lt;android.view.autofill.AutofillId,android.service.autofill.FieldClassification&gt; getFieldsClassification()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.FillEventHistory.Event java.util.Map&lt;android.view.autofill.AutofillId,java.lang.String&gt; getChangedFields()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.FillEventHistory.Event java.util.Map&lt;android.view.autofill.AutofillId,java.util.Set&lt;java.lang.String&gt;&gt; getManuallyEnteredField()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.FillEventHistory.Event java.util.Set&lt;java.lang.String&gt; getIgnoredDatasetIds()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.FillEventHistory.Event java.util.Set&lt;java.lang.String&gt; getSelectedDatasetIds()">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.service.autofill.FillRequest android.os.Bundle getClientState()">
     <annotation name="android.support.annotation.Nullable" />
@@ -129,6 +204,21 @@
   <item name="android.service.autofill.FillResponse.Builder android.service.autofill.FillResponse.Builder setClientState(android.os.Bundle) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.service.autofill.FillResponse.Builder android.service.autofill.FillResponse.Builder setFieldClassificationIds(android.view.autofill.AutofillId...) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.FillResponse.Builder android.service.autofill.FillResponse.Builder setFlags(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.service.autofill.FillResponse.FLAG_TRACK_CONTEXT_COMMITED, android.service.autofill.FillResponse.FLAG_DISABLE_ACTIVITY_ONLY}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.service.autofill.FillResponse.Builder android.service.autofill.FillResponse.Builder setFooter(android.widget.RemoteViews) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.FillResponse.Builder android.service.autofill.FillResponse.Builder setHeader(android.widget.RemoteViews) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.service.autofill.FillResponse.Builder android.service.autofill.FillResponse.Builder setSaveInfo(android.service.autofill.SaveInfo)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -144,11 +234,32 @@
   <item name="android.service.autofill.ImageTransformation.Builder Builder(android.view.autofill.AutofillId, java.util.regex.Pattern, int) 2">
     <annotation name="android.support.annotation.DrawableRes" />
   </item>
+  <item name="android.service.autofill.ImageTransformation.Builder Builder(android.view.autofill.AutofillId, java.util.regex.Pattern, int, java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.ImageTransformation.Builder Builder(android.view.autofill.AutofillId, java.util.regex.Pattern, int, java.lang.CharSequence) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.ImageTransformation.Builder Builder(android.view.autofill.AutofillId, java.util.regex.Pattern, int, java.lang.CharSequence) 2">
+    <annotation name="android.support.annotation.DrawableRes" />
+  </item>
+  <item name="android.service.autofill.ImageTransformation.Builder Builder(android.view.autofill.AutofillId, java.util.regex.Pattern, int, java.lang.CharSequence) 3">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.service.autofill.ImageTransformation.Builder android.service.autofill.ImageTransformation.Builder addOption(java.util.regex.Pattern, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.service.autofill.ImageTransformation.Builder android.service.autofill.ImageTransformation.Builder addOption(java.util.regex.Pattern, int) 1">
     <annotation name="android.support.annotation.DrawableRes" />
+  </item>
+  <item name="android.service.autofill.ImageTransformation.Builder android.service.autofill.ImageTransformation.Builder addOption(java.util.regex.Pattern, int, java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.ImageTransformation.Builder android.service.autofill.ImageTransformation.Builder addOption(java.util.regex.Pattern, int, java.lang.CharSequence) 1">
+    <annotation name="android.support.annotation.DrawableRes" />
+  </item>
+  <item name="android.service.autofill.ImageTransformation.Builder android.service.autofill.ImageTransformation.Builder addOption(java.util.regex.Pattern, int, java.lang.CharSequence) 2">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.service.autofill.LuhnChecksumValidator LuhnChecksumValidator(android.view.autofill.AutofillId...) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -157,6 +268,9 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.service.autofill.RegexValidator RegexValidator(android.view.autofill.AutofillId, java.util.regex.Pattern) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.SaveCallback void onSuccess(android.content.IntentSender) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.service.autofill.SaveInfo.Builder Builder(int) 0">
@@ -172,6 +286,15 @@
     </annotation>
   </item>
   <item name="android.service.autofill.SaveInfo.Builder Builder(int, android.view.autofill.AutofillId[]) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.SaveInfo.Builder android.service.autofill.SaveInfo.Builder addSanitizer(android.service.autofill.Sanitizer, android.view.autofill.AutofillId...)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.SaveInfo.Builder android.service.autofill.SaveInfo.Builder addSanitizer(android.service.autofill.Sanitizer, android.view.autofill.AutofillId...) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.SaveInfo.Builder android.service.autofill.SaveInfo.Builder addSanitizer(android.service.autofill.Sanitizer, android.view.autofill.AutofillId...) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.service.autofill.SaveInfo.Builder android.service.autofill.SaveInfo.Builder setCustomDescription(android.service.autofill.CustomDescription)">
@@ -191,7 +314,7 @@
   </item>
   <item name="android.service.autofill.SaveInfo.Builder android.service.autofill.SaveInfo.Builder setFlags(int) 0">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.service.autofill.SaveInfo.FLAG_SAVE_ON_ALL_VIEWS_INVISIBLE}" />
+      <val name="value" val="{android.service.autofill.SaveInfo.FLAG_SAVE_ON_ALL_VIEWS_INVISIBLE, android.service.autofill.SaveInfo.FLAG_DONT_SAVE_ON_FINISH}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
@@ -212,6 +335,12 @@
   <item name="android.service.autofill.SaveInfo.Builder android.service.autofill.SaveInfo.Builder setOptionalIds(android.view.autofill.AutofillId[]) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.service.autofill.SaveInfo.Builder android.service.autofill.SaveInfo.Builder setTriggerId(android.view.autofill.AutofillId)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.SaveInfo.Builder android.service.autofill.SaveInfo.Builder setTriggerId(android.view.autofill.AutofillId) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.service.autofill.SaveInfo.Builder android.service.autofill.SaveInfo.Builder setValidator(android.service.autofill.Validator)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -224,10 +353,49 @@
   <item name="android.service.autofill.SaveRequest java.util.List&lt;android.service.autofill.FillContext&gt; getFillContexts()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.service.autofill.SaveRequest java.util.List&lt;java.lang.String&gt; getDatasetIds()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.autofill.TextValueSanitizer TextValueSanitizer(java.util.regex.Pattern, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.TextValueSanitizer TextValueSanitizer(java.util.regex.Pattern, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.UserData java.lang.String getFieldClassificationAlgorithm()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.autofill.UserData.Builder Builder(java.lang.String, java.lang.String, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.UserData.Builder Builder(java.lang.String, java.lang.String, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.UserData.Builder Builder(java.lang.String, java.lang.String, java.lang.String) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.UserData.Builder android.service.autofill.UserData.Builder add(java.lang.String, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.UserData.Builder android.service.autofill.UserData.Builder add(java.lang.String, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.UserData.Builder android.service.autofill.UserData.Builder setFieldClassificationAlgorithm(java.lang.String, android.os.Bundle) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.autofill.UserData.Builder android.service.autofill.UserData.Builder setFieldClassificationAlgorithm(java.lang.String, android.os.Bundle) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.service.autofill.Validators android.service.autofill.Validator and(android.service.autofill.Validator...)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.service.autofill.Validators android.service.autofill.Validator and(android.service.autofill.Validator...) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.Validators android.service.autofill.Validator not(android.service.autofill.Validator)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.Validators android.service.autofill.Validator not(android.service.autofill.Validator) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.service.autofill.Validators android.service.autofill.Validator or(android.service.autofill.Validator...)">

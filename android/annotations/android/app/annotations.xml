@@ -76,6 +76,12 @@
   <item name="android.app.Activity T findViewById(int) 0">
     <annotation name="android.support.annotation.IdRes" />
   </item>
+  <item name="android.app.Activity T requireViewById(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.Activity T requireViewById(int) 0">
+    <annotation name="android.support.annotation.IdRes" />
+  </item>
   <item name="android.app.Activity android.app.ActionBar getActionBar()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -177,7 +183,7 @@
   </item>
   <item name="android.app.Activity java.lang.Object getSystemService(java.lang.String) 0">
     <annotation name="android.support.annotation.StringDef">
-      <val name="value" val="{android.content.Context.POWER_SERVICE, android.content.Context.WINDOW_SERVICE, android.content.Context.LAYOUT_INFLATER_SERVICE, android.content.Context.ACCOUNT_SERVICE, android.content.Context.ACTIVITY_SERVICE, android.content.Context.ALARM_SERVICE, android.content.Context.NOTIFICATION_SERVICE, android.content.Context.ACCESSIBILITY_SERVICE, android.content.Context.CAPTIONING_SERVICE, android.content.Context.KEYGUARD_SERVICE, android.content.Context.LOCATION_SERVICE, android.content.Context.SEARCH_SERVICE, android.content.Context.SENSOR_SERVICE, android.content.Context.STORAGE_SERVICE, android.content.Context.STORAGE_STATS_SERVICE, android.content.Context.WALLPAPER_SERVICE, android.content.Context.VIBRATOR_SERVICE, android.content.Context.CONNECTIVITY_SERVICE, android.content.Context.NETWORK_STATS_SERVICE, android.content.Context.WIFI_SERVICE, android.content.Context.WIFI_AWARE_SERVICE, android.content.Context.WIFI_P2P_SERVICE, android.content.Context.NSD_SERVICE, android.content.Context.AUDIO_SERVICE, android.content.Context.FINGERPRINT_SERVICE, android.content.Context.MEDIA_ROUTER_SERVICE, android.content.Context.TELEPHONY_SERVICE, android.content.Context.TELEPHONY_SUBSCRIPTION_SERVICE, android.content.Context.CARRIER_CONFIG_SERVICE, android.content.Context.TELECOM_SERVICE, android.content.Context.CLIPBOARD_SERVICE, android.content.Context.INPUT_METHOD_SERVICE, android.content.Context.TEXT_SERVICES_MANAGER_SERVICE, android.content.Context.TEXT_CLASSIFICATION_SERVICE, android.content.Context.APPWIDGET_SERVICE, android.content.Context.DROPBOX_SERVICE, android.content.Context.DEVICE_POLICY_SERVICE, android.content.Context.UI_MODE_SERVICE, android.content.Context.DOWNLOAD_SERVICE, android.content.Context.NFC_SERVICE, android.content.Context.BLUETOOTH_SERVICE, android.content.Context.USB_SERVICE, android.content.Context.LAUNCHER_APPS_SERVICE, android.content.Context.INPUT_SERVICE, android.content.Context.DISPLAY_SERVICE, android.content.Context.USER_SERVICE, android.content.Context.RESTRICTIONS_SERVICE, android.content.Context.APP_OPS_SERVICE, android.content.Context.CAMERA_SERVICE, android.content.Context.PRINT_SERVICE, android.content.Context.CONSUMER_IR_SERVICE, android.content.Context.TV_INPUT_SERVICE, android.content.Context.USAGE_STATS_SERVICE, android.content.Context.MEDIA_SESSION_SERVICE, android.content.Context.BATTERY_SERVICE, android.content.Context.JOB_SCHEDULER_SERVICE, android.content.Context.MEDIA_PROJECTION_SERVICE, android.content.Context.MIDI_SERVICE, android.content.Context.HARDWARE_PROPERTIES_SERVICE, android.content.Context.SHORTCUT_SERVICE, android.content.Context.SYSTEM_HEALTH_SERVICE, android.content.Context.COMPANION_DEVICE_SERVICE}" />
+      <val name="value" val="{android.content.Context.POWER_SERVICE, android.content.Context.WINDOW_SERVICE, android.content.Context.LAYOUT_INFLATER_SERVICE, android.content.Context.ACCOUNT_SERVICE, android.content.Context.ACTIVITY_SERVICE, android.content.Context.ALARM_SERVICE, android.content.Context.NOTIFICATION_SERVICE, android.content.Context.ACCESSIBILITY_SERVICE, android.content.Context.CAPTIONING_SERVICE, android.content.Context.KEYGUARD_SERVICE, android.content.Context.LOCATION_SERVICE, android.content.Context.SEARCH_SERVICE, android.content.Context.SENSOR_SERVICE, android.content.Context.STORAGE_SERVICE, android.content.Context.STORAGE_STATS_SERVICE, android.content.Context.WALLPAPER_SERVICE, android.content.Context.VIBRATOR_SERVICE, android.content.Context.CONNECTIVITY_SERVICE, android.content.Context.IPSEC_SERVICE, android.content.Context.NETWORK_STATS_SERVICE, android.content.Context.WIFI_SERVICE, android.content.Context.WIFI_AWARE_SERVICE, android.content.Context.WIFI_P2P_SERVICE, android.content.Context.WIFI_RTT_RANGING_SERVICE, android.content.Context.NSD_SERVICE, android.content.Context.AUDIO_SERVICE, android.content.Context.FINGERPRINT_SERVICE, android.content.Context.MEDIA_ROUTER_SERVICE, android.content.Context.TELEPHONY_SERVICE, android.content.Context.TELEPHONY_SUBSCRIPTION_SERVICE, android.content.Context.CARRIER_CONFIG_SERVICE, android.content.Context.TELECOM_SERVICE, android.content.Context.CLIPBOARD_SERVICE, android.content.Context.INPUT_METHOD_SERVICE, android.content.Context.TEXT_SERVICES_MANAGER_SERVICE, android.content.Context.TEXT_CLASSIFICATION_SERVICE, android.content.Context.APPWIDGET_SERVICE, android.content.Context.DROPBOX_SERVICE, android.content.Context.DEVICE_POLICY_SERVICE, android.content.Context.UI_MODE_SERVICE, android.content.Context.DOWNLOAD_SERVICE, android.content.Context.NFC_SERVICE, android.content.Context.BLUETOOTH_SERVICE, android.content.Context.USB_SERVICE, android.content.Context.LAUNCHER_APPS_SERVICE, android.content.Context.INPUT_SERVICE, android.content.Context.DISPLAY_SERVICE, android.content.Context.USER_SERVICE, android.content.Context.RESTRICTIONS_SERVICE, android.content.Context.APP_OPS_SERVICE, android.content.Context.CAMERA_SERVICE, android.content.Context.PRINT_SERVICE, android.content.Context.CONSUMER_IR_SERVICE, android.content.Context.TV_INPUT_SERVICE, android.content.Context.USAGE_STATS_SERVICE, android.content.Context.MEDIA_SESSION_SERVICE, android.content.Context.BATTERY_SERVICE, android.content.Context.JOB_SCHEDULER_SERVICE, android.content.Context.MEDIA_PROJECTION_SERVICE, android.content.Context.MIDI_SERVICE, android.content.Context.HARDWARE_PROPERTIES_SERVICE, android.content.Context.SHORTCUT_SERVICE, android.content.Context.SYSTEM_HEALTH_SERVICE, android.content.Context.COMPANION_DEVICE_SERVICE, android.content.Context.CROSS_PROFILE_APPS_SERVICE, android.content.Context.EUICC_SERVICE}" />
     </annotation>
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -402,8 +408,14 @@
   </item>
   <item name="android.app.ActivityManager.RunningAppProcessInfo importance">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND, android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND_SERVICE, android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_TOP_SLEEPING, android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE, android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_PERCEPTIBLE, android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_SERVICE, android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_CACHED, android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_GONE}" />
+      <val name="value" val="{android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND, android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND_SERVICE, android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_TOP_SLEEPING, android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE, android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_PERCEPTIBLE, android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_CANT_SAVE_STATE, android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_SERVICE, android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_CACHED, android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_GONE}" />
     </annotation>
+  </item>
+  <item name="android.app.ActivityManager.TaskDescription TaskDescription(java.lang.String, int) 1">
+    <annotation name="android.support.annotation.DrawableRes" />
+  </item>
+  <item name="android.app.ActivityManager.TaskDescription TaskDescription(java.lang.String, int, int) 1">
+    <annotation name="android.support.annotation.DrawableRes" />
   </item>
   <item name="android.app.ActivityOptions android.app.ActivityOptions setLaunchBounds(android.graphics.Rect) 0">
     <annotation name="android.support.annotation.Nullable" />
@@ -505,6 +517,60 @@
   <item name="android.app.AlertDialog.Builder android.app.AlertDialog.Builder setTitle(int) 0">
     <annotation name="android.support.annotation.StringRes" />
   </item>
+  <item name="android.app.AppComponentFactory android.app.Activity instantiateActivity(java.lang.ClassLoader, java.lang.String, android.content.Intent)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.AppComponentFactory android.app.Activity instantiateActivity(java.lang.ClassLoader, java.lang.String, android.content.Intent) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.AppComponentFactory android.app.Activity instantiateActivity(java.lang.ClassLoader, java.lang.String, android.content.Intent) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.AppComponentFactory android.app.Activity instantiateActivity(java.lang.ClassLoader, java.lang.String, android.content.Intent) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.AppComponentFactory android.app.Application instantiateApplication(java.lang.ClassLoader, java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.AppComponentFactory android.app.Application instantiateApplication(java.lang.ClassLoader, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.AppComponentFactory android.app.Application instantiateApplication(java.lang.ClassLoader, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.AppComponentFactory android.app.Service instantiateService(java.lang.ClassLoader, java.lang.String, android.content.Intent)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.AppComponentFactory android.app.Service instantiateService(java.lang.ClassLoader, java.lang.String, android.content.Intent) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.AppComponentFactory android.app.Service instantiateService(java.lang.ClassLoader, java.lang.String, android.content.Intent) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.AppComponentFactory android.app.Service instantiateService(java.lang.ClassLoader, java.lang.String, android.content.Intent) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.AppComponentFactory android.content.BroadcastReceiver instantiateReceiver(java.lang.ClassLoader, java.lang.String, android.content.Intent)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.AppComponentFactory android.content.BroadcastReceiver instantiateReceiver(java.lang.ClassLoader, java.lang.String, android.content.Intent) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.AppComponentFactory android.content.BroadcastReceiver instantiateReceiver(java.lang.ClassLoader, java.lang.String, android.content.Intent) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.AppComponentFactory android.content.BroadcastReceiver instantiateReceiver(java.lang.ClassLoader, java.lang.String, android.content.Intent) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.AppComponentFactory android.content.ContentProvider instantiateProvider(java.lang.ClassLoader, java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.AppComponentFactory android.content.ContentProvider instantiateProvider(java.lang.ClassLoader, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.AppComponentFactory android.content.ContentProvider instantiateProvider(java.lang.ClassLoader, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.app.AppOpsManager">
     <annotation name="android.support.annotation.SystemService">
       <val name="value" val="android.content.Context.APP_OPS_SERVICE" />
@@ -582,6 +648,12 @@
     <annotation name="android.support.annotation.StyleRes" />
   </item>
   <item name="android.app.Dialog T findViewById(int) 0">
+    <annotation name="android.support.annotation.IdRes" />
+  </item>
+  <item name="android.app.Dialog T requireViewById(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.Dialog T requireViewById(int) 0">
     <annotation name="android.support.annotation.IdRes" />
   </item>
   <item name="android.app.Dialog android.app.ActionBar getActionBar()">
@@ -924,6 +996,15 @@
   <item name="android.app.FragmentTransaction android.app.FragmentTransaction setTransitionStyle(int) 0">
     <annotation name="android.support.annotation.StyleRes" />
   </item>
+  <item name="android.app.Instrumentation android.app.Activity startActivitySync(android.content.Intent, android.os.Bundle)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.Instrumentation android.app.Activity startActivitySync(android.content.Intent, android.os.Bundle) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.Instrumentation android.app.Activity startActivitySync(android.content.Intent, android.os.Bundle) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.app.Instrumentation android.app.UiAutomation getUiAutomation(int) 0">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{0, android.app.UiAutomation.FLAG_DONT_SUPPRESS_ACCESSIBILITY_SERVICES}" />
@@ -1000,6 +1081,16 @@
       <val name="value" val="{android.app.Notification.VISIBILITY_PUBLIC, android.app.Notification.VISIBILITY_PRIVATE, android.app.Notification.VISIBILITY_SECRET}" />
     </annotation>
   </item>
+  <item name="android.app.Notification.Action int getSemanticAction()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.app.Notification.Action.SEMANTIC_ACTION_NONE, android.app.Notification.Action.SEMANTIC_ACTION_REPLY, android.app.Notification.Action.SEMANTIC_ACTION_MARK_AS_READ, android.app.Notification.Action.SEMANTIC_ACTION_MARK_AS_UNREAD, android.app.Notification.Action.SEMANTIC_ACTION_DELETE, android.app.Notification.Action.SEMANTIC_ACTION_ARCHIVE, android.app.Notification.Action.SEMANTIC_ACTION_MUTE, android.app.Notification.Action.SEMANTIC_ACTION_UNMUTE, android.app.Notification.Action.SEMANTIC_ACTION_THUMBS_UP, android.app.Notification.Action.SEMANTIC_ACTION_THUMBS_DOWN, android.app.Notification.Action.SEMANTIC_ACTION_CALL}" />
+    </annotation>
+  </item>
+  <item name="android.app.Notification.Action.Builder android.app.Notification.Action.Builder setSemanticAction(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.app.Notification.Action.SEMANTIC_ACTION_NONE, android.app.Notification.Action.SEMANTIC_ACTION_REPLY, android.app.Notification.Action.SEMANTIC_ACTION_MARK_AS_READ, android.app.Notification.Action.SEMANTIC_ACTION_MARK_AS_UNREAD, android.app.Notification.Action.SEMANTIC_ACTION_DELETE, android.app.Notification.Action.SEMANTIC_ACTION_ARCHIVE, android.app.Notification.Action.SEMANTIC_ACTION_MUTE, android.app.Notification.Action.SEMANTIC_ACTION_UNMUTE, android.app.Notification.Action.SEMANTIC_ACTION_THUMBS_UP, android.app.Notification.Action.SEMANTIC_ACTION_THUMBS_DOWN, android.app.Notification.Action.SEMANTIC_ACTION_CALL}" />
+    </annotation>
+  </item>
   <item name="android.app.Notification.Builder android.app.Notification.Builder setColor(int) 0">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
@@ -1033,8 +1124,35 @@
   <item name="android.app.Notification.CarExtender int getColor()">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
+  <item name="android.app.Notification.MessagingStyle MessagingStyle(android.app.Person) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.app.Notification.MessagingStyle MessagingStyle(java.lang.CharSequence) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.Notification.MessagingStyle android.app.Notification.MessagingStyle addMessage(java.lang.CharSequence, long, android.app.Person) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.Notification.MessagingStyle android.app.Notification.MessagingStyle addMessage(java.lang.CharSequence, long, android.app.Person) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.Notification.MessagingStyle android.app.Notification.MessagingStyle setConversationTitle(java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.Notification.MessagingStyle android.app.Person getUser()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.Notification.MessagingStyle java.lang.CharSequence getConversationTitle()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.Notification.MessagingStyle.Message Message(java.lang.CharSequence, long, android.app.Person) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.Notification.MessagingStyle.Message Message(java.lang.CharSequence, long, android.app.Person) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.Notification.MessagingStyle.Message android.app.Person getSenderPerson()">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.app.NotificationChannel NotificationChannel(java.lang.String, java.lang.CharSequence, int) 2">
     <annotation name="android.support.annotation.IntDef">
@@ -1207,6 +1325,57 @@
   <item name="android.app.PendingIntent void writePendingIntentOrNullToParcel(android.app.PendingIntent, android.os.Parcel) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.Person android.graphics.drawable.Icon getIcon()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.Person java.lang.CharSequence getName()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.Person java.lang.String getKey()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.Person java.lang.String getUri()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.Person void writeToParcel(android.os.Parcel, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.os.Parcelable.PARCELABLE_WRITE_RETURN_VALUE}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.app.Person.Builder android.app.Person build()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.Person.Builder android.app.Person.Builder setBot(boolean)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.Person.Builder android.app.Person.Builder setIcon(android.graphics.drawable.Icon)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.Person.Builder android.app.Person.Builder setIcon(android.graphics.drawable.Icon) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.Person.Builder android.app.Person.Builder setImportant(boolean)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.Person.Builder android.app.Person.Builder setKey(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.Person.Builder android.app.Person.Builder setKey(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.Person.Builder android.app.Person.Builder setName(java.lang.CharSequence)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.Person.Builder android.app.Person.Builder setName(java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.Person.Builder android.app.Person.Builder setUri(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.Person.Builder android.app.Person.Builder setUri(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.app.RemoteAction RemoteAction(android.graphics.drawable.Icon, java.lang.CharSequence, java.lang.CharSequence, android.app.PendingIntent) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -1230,6 +1399,16 @@
   </item>
   <item name="android.app.RemoteAction java.lang.CharSequence getTitle()">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.RemoteInput int getResultsSource(android.content.Intent)">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.app.RemoteInput.SOURCE_FREE_FORM_INPUT, android.app.RemoteInput.SOURCE_CHOICE}" />
+    </annotation>
+  </item>
+  <item name="android.app.RemoteInput void setResultsSource(android.content.Intent, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.app.RemoteInput.SOURCE_FREE_FORM_INPUT, android.app.RemoteInput.SOURCE_CHOICE}" />
+    </annotation>
   </item>
   <item name="android.app.SearchManager">
     <annotation name="android.support.annotation.SystemService">
@@ -1474,12 +1653,22 @@
       <val name="flag" val="true" />
     </annotation>
   </item>
+  <item name="android.app.WallpaperManager void clearWallpaper()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.SET_WALLPAPER&quot;" />
+    </annotation>
+  </item>
   <item name="android.app.WallpaperManager void removeOnColorsChangedListener(android.app.WallpaperManager.OnColorsChangedListener) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.WallpaperManager void setBitmap(android.graphics.Bitmap)">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.SET_WALLPAPER&quot;" />
+    </annotation>
+  </item>
+  <item name="android.app.WallpaperManager void setDisplayPadding(android.graphics.Rect)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.SET_WALLPAPER_HINTS&quot;" />
     </annotation>
   </item>
   <item name="android.app.WallpaperManager void setResource(int)">

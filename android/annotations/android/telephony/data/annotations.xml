@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.telephony.data.ApnSetting int getApnTypeBitmask()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telephony.data.ApnSetting.TYPE_DEFAULT, android.telephony.data.ApnSetting.TYPE_MMS, android.telephony.data.ApnSetting.TYPE_SUPL, android.telephony.data.ApnSetting.TYPE_DUN, android.telephony.data.ApnSetting.TYPE_HIPRI, android.telephony.data.ApnSetting.TYPE_FOTA, android.telephony.data.ApnSetting.TYPE_IMS, android.telephony.data.ApnSetting.TYPE_CBS, android.telephony.data.ApnSetting.TYPE_IA, android.telephony.data.ApnSetting.TYPE_EMERGENCY}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.telephony.data.ApnSetting int getAuthType()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telephony.data.ApnSetting.AUTH_TYPE_NONE, android.telephony.data.ApnSetting.AUTH_TYPE_PAP, android.telephony.data.ApnSetting.AUTH_TYPE_CHAP, android.telephony.data.ApnSetting.AUTH_TYPE_PAP_OR_CHAP}" />
+    </annotation>
+  </item>
+  <item name="android.telephony.data.ApnSetting int getMvnoType()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telephony.data.ApnSetting.MVNO_TYPE_SPN, android.telephony.data.ApnSetting.MVNO_TYPE_IMSI, android.telephony.data.ApnSetting.MVNO_TYPE_GID, android.telephony.data.ApnSetting.MVNO_TYPE_ICCID}" />
+    </annotation>
+  </item>
+  <item name="android.telephony.data.ApnSetting int getProtocol()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telephony.data.ApnSetting.PROTOCOL_IP, android.telephony.data.ApnSetting.PROTOCOL_IPV6, android.telephony.data.ApnSetting.PROTOCOL_IPV4V6, android.telephony.data.ApnSetting.PROTOCOL_PPP}" />
+    </annotation>
+  </item>
+  <item name="android.telephony.data.ApnSetting int getRoamingProtocol()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telephony.data.ApnSetting.PROTOCOL_IP, android.telephony.data.ApnSetting.PROTOCOL_IPV6, android.telephony.data.ApnSetting.PROTOCOL_IPV4V6, android.telephony.data.ApnSetting.PROTOCOL_PPP}" />
+    </annotation>
+  </item>
+  <item name="android.telephony.data.ApnSetting void writeToParcel(android.os.Parcel, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.data.ApnSetting.Builder android.telephony.data.ApnSetting.Builder setApnTypeBitmask(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telephony.data.ApnSetting.TYPE_DEFAULT, android.telephony.data.ApnSetting.TYPE_MMS, android.telephony.data.ApnSetting.TYPE_SUPL, android.telephony.data.ApnSetting.TYPE_DUN, android.telephony.data.ApnSetting.TYPE_HIPRI, android.telephony.data.ApnSetting.TYPE_FOTA, android.telephony.data.ApnSetting.TYPE_IMS, android.telephony.data.ApnSetting.TYPE_CBS, android.telephony.data.ApnSetting.TYPE_IA, android.telephony.data.ApnSetting.TYPE_EMERGENCY}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.telephony.data.ApnSetting.Builder android.telephony.data.ApnSetting.Builder setAuthType(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telephony.data.ApnSetting.AUTH_TYPE_NONE, android.telephony.data.ApnSetting.AUTH_TYPE_PAP, android.telephony.data.ApnSetting.AUTH_TYPE_CHAP, android.telephony.data.ApnSetting.AUTH_TYPE_PAP_OR_CHAP}" />
+    </annotation>
+  </item>
+  <item name="android.telephony.data.ApnSetting.Builder android.telephony.data.ApnSetting.Builder setMvnoType(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telephony.data.ApnSetting.MVNO_TYPE_SPN, android.telephony.data.ApnSetting.MVNO_TYPE_IMSI, android.telephony.data.ApnSetting.MVNO_TYPE_GID, android.telephony.data.ApnSetting.MVNO_TYPE_ICCID}" />
+    </annotation>
+  </item>
+  <item name="android.telephony.data.ApnSetting.Builder android.telephony.data.ApnSetting.Builder setProtocol(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telephony.data.ApnSetting.PROTOCOL_IP, android.telephony.data.ApnSetting.PROTOCOL_IPV6, android.telephony.data.ApnSetting.PROTOCOL_IPV4V6, android.telephony.data.ApnSetting.PROTOCOL_PPP}" />
+    </annotation>
+  </item>
+  <item name="android.telephony.data.ApnSetting.Builder android.telephony.data.ApnSetting.Builder setRoamingProtocol(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telephony.data.ApnSetting.PROTOCOL_IP, android.telephony.data.ApnSetting.PROTOCOL_IPV6, android.telephony.data.ApnSetting.PROTOCOL_IPV4V6, android.telephony.data.ApnSetting.PROTOCOL_PPP}" />
+    </annotation>
+  </item>
+</root>
+

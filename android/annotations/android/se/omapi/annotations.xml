@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.se.omapi.Channel android.se.omapi.Session getSession()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.se.omapi.Channel byte[] getSelectResponse()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.se.omapi.Channel byte[] transmit(byte[])">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.se.omapi.Channel byte[] transmit(byte[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.se.omapi.Reader android.se.omapi.SEService getSEService()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.se.omapi.Reader android.se.omapi.Session openSession()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.se.omapi.Reader java.lang.String getName()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.se.omapi.SEService SEService(android.content.Context, java.util.concurrent.Executor, android.se.omapi.SEService.OnConnectedListener) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.se.omapi.SEService SEService(android.content.Context, java.util.concurrent.Executor, android.se.omapi.SEService.OnConnectedListener) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.se.omapi.SEService SEService(android.content.Context, java.util.concurrent.Executor, android.se.omapi.SEService.OnConnectedListener) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.se.omapi.SEService android.se.omapi.Reader[] getReaders()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.se.omapi.SEService java.lang.String getVersion()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.se.omapi.Session android.se.omapi.Channel openBasicChannel(byte[])">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.se.omapi.Session android.se.omapi.Channel openBasicChannel(byte[]) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.se.omapi.Session android.se.omapi.Channel openBasicChannel(byte[], byte)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.se.omapi.Session android.se.omapi.Channel openBasicChannel(byte[], byte) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.se.omapi.Session android.se.omapi.Channel openBasicChannel(byte[], byte) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.se.omapi.Session android.se.omapi.Channel openLogicalChannel(byte[])">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.se.omapi.Session android.se.omapi.Channel openLogicalChannel(byte[]) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.se.omapi.Session android.se.omapi.Channel openLogicalChannel(byte[], byte)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.se.omapi.Session android.se.omapi.Channel openLogicalChannel(byte[], byte) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.se.omapi.Session android.se.omapi.Channel openLogicalChannel(byte[], byte) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.se.omapi.Session android.se.omapi.Reader getReader()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.se.omapi.Session byte[] getATR()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+</root>
+

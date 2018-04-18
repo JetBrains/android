@@ -12,6 +12,21 @@
   <item name="android.graphics.Bitmap android.graphics.Bitmap createBitmap(android.graphics.Bitmap, int, int, int, int, android.graphics.Matrix, boolean) 5">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.graphics.Bitmap android.graphics.Bitmap createBitmap(android.graphics.Picture)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Bitmap android.graphics.Bitmap createBitmap(android.graphics.Picture) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Bitmap android.graphics.Bitmap createBitmap(android.graphics.Picture, int, int, android.graphics.Bitmap.Config)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Bitmap android.graphics.Bitmap createBitmap(android.graphics.Picture, int, int, android.graphics.Bitmap.Config) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Bitmap android.graphics.Bitmap createBitmap(android.graphics.Picture, int, int, android.graphics.Bitmap.Config) 3">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.graphics.Bitmap android.graphics.Bitmap createBitmap(android.util.DisplayMetrics, int, int, android.graphics.Bitmap.Config) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -106,6 +121,36 @@
   <item name="android.graphics.Bitmap void setPixels(int[], int, int, int, int, int, int) 0">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
+  <item name="android.graphics.BitmapFactory android.graphics.Bitmap decodeResourceStream(android.content.res.Resources, android.util.TypedValue, java.io.InputStream, android.graphics.Rect, android.graphics.BitmapFactory.Options)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.BitmapFactory android.graphics.Bitmap decodeResourceStream(android.content.res.Resources, android.util.TypedValue, java.io.InputStream, android.graphics.Rect, android.graphics.BitmapFactory.Options) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.BitmapFactory android.graphics.Bitmap decodeResourceStream(android.content.res.Resources, android.util.TypedValue, java.io.InputStream, android.graphics.Rect, android.graphics.BitmapFactory.Options) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.BitmapFactory android.graphics.Bitmap decodeResourceStream(android.content.res.Resources, android.util.TypedValue, java.io.InputStream, android.graphics.Rect, android.graphics.BitmapFactory.Options) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.BitmapFactory android.graphics.Bitmap decodeResourceStream(android.content.res.Resources, android.util.TypedValue, java.io.InputStream, android.graphics.Rect, android.graphics.BitmapFactory.Options) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.BitmapFactory android.graphics.Bitmap decodeResourceStream(android.content.res.Resources, android.util.TypedValue, java.io.InputStream, android.graphics.Rect, android.graphics.BitmapFactory.Options) 4">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.BitmapFactory android.graphics.Bitmap decodeStream(java.io.InputStream, android.graphics.Rect, android.graphics.BitmapFactory.Options)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.BitmapFactory android.graphics.Bitmap decodeStream(java.io.InputStream, android.graphics.Rect, android.graphics.BitmapFactory.Options) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.BitmapFactory android.graphics.Bitmap decodeStream(java.io.InputStream, android.graphics.Rect, android.graphics.BitmapFactory.Options) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.BitmapFactory android.graphics.Bitmap decodeStream(java.io.InputStream, android.graphics.Rect, android.graphics.BitmapFactory.Options) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.graphics.BitmapShader BitmapShader(android.graphics.Bitmap, android.graphics.Shader.TileMode, android.graphics.Shader.TileMode) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -183,12 +228,6 @@
   </item>
   <item name="android.graphics.Canvas boolean quickReject(float, float, float, float, android.graphics.Canvas.EdgeType) 4">
     <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.graphics.Canvas int save(int) 0">
-    <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.graphics.Canvas.ALL_SAVE_FLAG}" />
-      <val name="flag" val="true" />
-    </annotation>
   </item>
   <item name="android.graphics.Canvas int saveLayer(android.graphics.RectF, android.graphics.Paint) 0">
     <annotation name="android.support.annotation.Nullable" />
@@ -1361,6 +1400,165 @@
   <item name="android.graphics.ComposeShader ComposeShader(android.graphics.Shader, android.graphics.Shader, android.graphics.Xfermode) 2">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.graphics.ImageDecoder android.graphics.Bitmap decodeBitmap(android.graphics.ImageDecoder.Source)">
+    <annotation name="android.support.annotation.WorkerThread" />
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.ImageDecoder android.graphics.Bitmap decodeBitmap(android.graphics.ImageDecoder.Source) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.ImageDecoder android.graphics.Bitmap decodeBitmap(android.graphics.ImageDecoder.Source, android.graphics.ImageDecoder.OnHeaderDecodedListener)">
+    <annotation name="android.support.annotation.WorkerThread" />
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.ImageDecoder android.graphics.Bitmap decodeBitmap(android.graphics.ImageDecoder.Source, android.graphics.ImageDecoder.OnHeaderDecodedListener) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.ImageDecoder android.graphics.Bitmap decodeBitmap(android.graphics.ImageDecoder.Source, android.graphics.ImageDecoder.OnHeaderDecodedListener) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.ImageDecoder android.graphics.ImageDecoder.OnPartialImageListener getOnPartialImageListener()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.ImageDecoder android.graphics.ImageDecoder.Source createSource(android.content.ContentResolver, android.net.Uri)">
+    <annotation name="android.support.annotation.AnyThread" />
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.ImageDecoder android.graphics.ImageDecoder.Source createSource(android.content.ContentResolver, android.net.Uri) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.ImageDecoder android.graphics.ImageDecoder.Source createSource(android.content.ContentResolver, android.net.Uri) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.ImageDecoder android.graphics.ImageDecoder.Source createSource(android.content.res.AssetManager, java.lang.String)">
+    <annotation name="android.support.annotation.AnyThread" />
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.ImageDecoder android.graphics.ImageDecoder.Source createSource(android.content.res.AssetManager, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.ImageDecoder android.graphics.ImageDecoder.Source createSource(android.content.res.AssetManager, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.ImageDecoder android.graphics.ImageDecoder.Source createSource(android.content.res.Resources, int)">
+    <annotation name="android.support.annotation.AnyThread" />
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.ImageDecoder android.graphics.ImageDecoder.Source createSource(android.content.res.Resources, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.ImageDecoder android.graphics.ImageDecoder.Source createSource(java.io.File)">
+    <annotation name="android.support.annotation.AnyThread" />
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.ImageDecoder android.graphics.ImageDecoder.Source createSource(java.io.File) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.ImageDecoder android.graphics.ImageDecoder.Source createSource(java.nio.ByteBuffer)">
+    <annotation name="android.support.annotation.AnyThread" />
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.ImageDecoder android.graphics.ImageDecoder.Source createSource(java.nio.ByteBuffer) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.ImageDecoder android.graphics.PostProcessor getPostProcessor()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.ImageDecoder android.graphics.Rect getCrop()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.ImageDecoder android.graphics.drawable.Drawable decodeDrawable(android.graphics.ImageDecoder.Source)">
+    <annotation name="android.support.annotation.WorkerThread" />
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.ImageDecoder android.graphics.drawable.Drawable decodeDrawable(android.graphics.ImageDecoder.Source) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.ImageDecoder android.graphics.drawable.Drawable decodeDrawable(android.graphics.ImageDecoder.Source, android.graphics.ImageDecoder.OnHeaderDecodedListener)">
+    <annotation name="android.support.annotation.WorkerThread" />
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.ImageDecoder android.graphics.drawable.Drawable decodeDrawable(android.graphics.ImageDecoder.Source, android.graphics.ImageDecoder.OnHeaderDecodedListener) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.ImageDecoder android.graphics.drawable.Drawable decodeDrawable(android.graphics.ImageDecoder.Source, android.graphics.ImageDecoder.OnHeaderDecodedListener) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.ImageDecoder int getAllocator()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.graphics.ImageDecoder.ALLOCATOR_DEFAULT, android.graphics.ImageDecoder.ALLOCATOR_SOFTWARE, android.graphics.ImageDecoder.ALLOCATOR_SHARED_MEMORY, android.graphics.ImageDecoder.ALLOCATOR_HARDWARE}" />
+    </annotation>
+  </item>
+  <item name="android.graphics.ImageDecoder int getMemorySizePolicy()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.graphics.ImageDecoder.MEMORY_POLICY_DEFAULT, android.graphics.ImageDecoder.MEMORY_POLICY_LOW_RAM}" />
+    </annotation>
+  </item>
+  <item name="android.graphics.ImageDecoder void setAllocator(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.graphics.ImageDecoder.ALLOCATOR_DEFAULT, android.graphics.ImageDecoder.ALLOCATOR_SOFTWARE, android.graphics.ImageDecoder.ALLOCATOR_SHARED_MEMORY, android.graphics.ImageDecoder.ALLOCATOR_HARDWARE}" />
+    </annotation>
+  </item>
+  <item name="android.graphics.ImageDecoder void setCrop(android.graphics.Rect) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.ImageDecoder void setMemorySizePolicy(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.graphics.ImageDecoder.MEMORY_POLICY_DEFAULT, android.graphics.ImageDecoder.MEMORY_POLICY_LOW_RAM}" />
+    </annotation>
+  </item>
+  <item name="android.graphics.ImageDecoder void setOnPartialImageListener(android.graphics.ImageDecoder.OnPartialImageListener) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.ImageDecoder void setPostProcessor(android.graphics.PostProcessor) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.ImageDecoder void setTargetSampleSize(int) 0">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="1" />
+    </annotation>
+  </item>
+  <item name="android.graphics.ImageDecoder void setTargetSize(int, int) 0">
+    <annotation name="android.support.annotation.Px" />
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="1" />
+    </annotation>
+  </item>
+  <item name="android.graphics.ImageDecoder void setTargetSize(int, int) 1">
+    <annotation name="android.support.annotation.Px" />
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="1" />
+    </annotation>
+  </item>
+  <item name="android.graphics.ImageDecoder.DecodeException android.graphics.ImageDecoder.Source getSource()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.ImageDecoder.DecodeException int getError()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.graphics.ImageDecoder.DecodeException.SOURCE_EXCEPTION, android.graphics.ImageDecoder.DecodeException.SOURCE_INCOMPLETE, android.graphics.ImageDecoder.DecodeException.SOURCE_MALFORMED_DATA}" />
+    </annotation>
+  </item>
+  <item name="android.graphics.ImageDecoder.ImageInfo android.graphics.ColorSpace getColorSpace()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.ImageDecoder.ImageInfo android.util.Size getSize()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.ImageDecoder.ImageInfo java.lang.String getMimeType()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.ImageDecoder.OnHeaderDecodedListener void onHeaderDecoded(android.graphics.ImageDecoder, android.graphics.ImageDecoder.ImageInfo, android.graphics.ImageDecoder.Source) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.ImageDecoder.OnHeaderDecodedListener void onHeaderDecoded(android.graphics.ImageDecoder, android.graphics.ImageDecoder.ImageInfo, android.graphics.ImageDecoder.Source) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.ImageDecoder.OnHeaderDecodedListener void onHeaderDecoded(android.graphics.ImageDecoder, android.graphics.ImageDecoder.ImageInfo, android.graphics.ImageDecoder.Source) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.ImageDecoder.OnPartialImageListener boolean onPartialImage(android.graphics.ImageDecoder.DecodeException) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.graphics.LightingColorFilter LightingColorFilter(int, int) 0">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
@@ -1425,7 +1623,7 @@
       <val name="min" val="1" />
     </annotation>
   </item>
-  <item name="android.graphics.Paint float getRunAdvance(java.lang.CharSequence, int, int, int, int, boolean, int) 0">
+  <item name="android.graphics.Paint boolean equalsForTextMeasurement(android.graphics.Paint) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.graphics.Paint int getColor()">
@@ -1445,6 +1643,9 @@
     <annotation name="android.support.annotation.Size">
       <val name="min" val="1" />
     </annotation>
+  </item>
+  <item name="android.graphics.Path boolean isRect(android.graphics.RectF) 0">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.graphics.Path float[] approximate(float)">
     <annotation name="android.support.annotation.NonNull" />
@@ -1478,6 +1679,14 @@
     <annotation name="android.support.annotation.ColorInt" />
   </item>
   <item name="android.graphics.PorterDuffColorFilter PorterDuffColorFilter(int, android.graphics.PorterDuff.Mode) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.PostProcessor int onPostProcess(android.graphics.Canvas)">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.graphics.PixelFormat.UNKNOWN, android.graphics.PixelFormat.TRANSLUCENT, android.graphics.PixelFormat.TRANSPARENT, android.graphics.PixelFormat.OPAQUE}" />
+    </annotation>
+  </item>
+  <item name="android.graphics.PostProcessor int onPostProcess(android.graphics.Canvas) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.graphics.RadialGradient RadialGradient(float, float, float, int, int, android.graphics.Shader.TileMode) 3">
@@ -1541,6 +1750,18 @@
       <val name="value" val="{android.graphics.Typeface.NORMAL, android.graphics.Typeface.BOLD, android.graphics.Typeface.ITALIC, android.graphics.Typeface.BOLD_ITALIC}" />
     </annotation>
   </item>
+  <item name="android.graphics.Typeface android.graphics.Typeface create(android.graphics.Typeface, int, boolean)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Typeface android.graphics.Typeface create(android.graphics.Typeface, int, boolean) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.Typeface android.graphics.Typeface create(android.graphics.Typeface, int, boolean) 1">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="1" />
+      <val name="to" val="1000" />
+    </annotation>
+  </item>
   <item name="android.graphics.Typeface android.graphics.Typeface create(java.lang.String, int) 1">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.graphics.Typeface.NORMAL, android.graphics.Typeface.BOLD, android.graphics.Typeface.ITALIC, android.graphics.Typeface.BOLD_ITALIC}" />
@@ -1560,6 +1781,12 @@
   <item name="android.graphics.Typeface int getStyle()">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.graphics.Typeface.NORMAL, android.graphics.Typeface.BOLD, android.graphics.Typeface.ITALIC, android.graphics.Typeface.BOLD_ITALIC}" />
+    </annotation>
+  </item>
+  <item name="android.graphics.Typeface int getWeight()">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+      <val name="to" val="1000" />
     </annotation>
   </item>
   <item name="android.graphics.Typeface.Builder Builder(android.content.res.AssetManager, java.lang.String) 0">

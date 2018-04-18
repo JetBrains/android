@@ -49,6 +49,26 @@
   <item name="android.hardware.camera2.CameraCaptureSession int captureBurst(java.util.List&lt;android.hardware.camera2.CaptureRequest&gt;, android.hardware.camera2.CameraCaptureSession.CaptureCallback, android.os.Handler) 2">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.hardware.camera2.CameraCaptureSession int captureBurstRequests(java.util.List&lt;android.hardware.camera2.CaptureRequest&gt;, java.util.concurrent.Executor, android.hardware.camera2.CameraCaptureSession.CaptureCallback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.camera2.CameraCaptureSession int captureBurstRequests(java.util.List&lt;android.hardware.camera2.CaptureRequest&gt;, java.util.concurrent.Executor, android.hardware.camera2.CameraCaptureSession.CaptureCallback) 1">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.CallbackExecutor" />
+  </item>
+  <item name="android.hardware.camera2.CameraCaptureSession int captureBurstRequests(java.util.List&lt;android.hardware.camera2.CaptureRequest&gt;, java.util.concurrent.Executor, android.hardware.camera2.CameraCaptureSession.CaptureCallback) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.camera2.CameraCaptureSession int captureSingleRequest(android.hardware.camera2.CaptureRequest, java.util.concurrent.Executor, android.hardware.camera2.CameraCaptureSession.CaptureCallback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.camera2.CameraCaptureSession int captureSingleRequest(android.hardware.camera2.CaptureRequest, java.util.concurrent.Executor, android.hardware.camera2.CameraCaptureSession.CaptureCallback) 1">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.CallbackExecutor" />
+  </item>
+  <item name="android.hardware.camera2.CameraCaptureSession int captureSingleRequest(android.hardware.camera2.CaptureRequest, java.util.concurrent.Executor, android.hardware.camera2.CameraCaptureSession.CaptureCallback) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.hardware.camera2.CameraCaptureSession int setRepeatingBurst(java.util.List&lt;android.hardware.camera2.CaptureRequest&gt;, android.hardware.camera2.CameraCaptureSession.CaptureCallback, android.os.Handler) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -58,6 +78,16 @@
   <item name="android.hardware.camera2.CameraCaptureSession int setRepeatingBurst(java.util.List&lt;android.hardware.camera2.CaptureRequest&gt;, android.hardware.camera2.CameraCaptureSession.CaptureCallback, android.os.Handler) 2">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.hardware.camera2.CameraCaptureSession int setRepeatingBurstRequests(java.util.List&lt;android.hardware.camera2.CaptureRequest&gt;, java.util.concurrent.Executor, android.hardware.camera2.CameraCaptureSession.CaptureCallback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.camera2.CameraCaptureSession int setRepeatingBurstRequests(java.util.List&lt;android.hardware.camera2.CaptureRequest&gt;, java.util.concurrent.Executor, android.hardware.camera2.CameraCaptureSession.CaptureCallback) 1">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.CallbackExecutor" />
+  </item>
+  <item name="android.hardware.camera2.CameraCaptureSession int setRepeatingBurstRequests(java.util.List&lt;android.hardware.camera2.CaptureRequest&gt;, java.util.concurrent.Executor, android.hardware.camera2.CameraCaptureSession.CaptureCallback) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.hardware.camera2.CameraCaptureSession int setRepeatingRequest(android.hardware.camera2.CaptureRequest, android.hardware.camera2.CameraCaptureSession.CaptureCallback, android.os.Handler) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -66,6 +96,16 @@
   </item>
   <item name="android.hardware.camera2.CameraCaptureSession int setRepeatingRequest(android.hardware.camera2.CaptureRequest, android.hardware.camera2.CameraCaptureSession.CaptureCallback, android.os.Handler) 2">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.hardware.camera2.CameraCaptureSession int setSingleRepeatingRequest(android.hardware.camera2.CaptureRequest, java.util.concurrent.Executor, android.hardware.camera2.CameraCaptureSession.CaptureCallback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.camera2.CameraCaptureSession int setSingleRepeatingRequest(android.hardware.camera2.CaptureRequest, java.util.concurrent.Executor, android.hardware.camera2.CameraCaptureSession.CaptureCallback) 1">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.CallbackExecutor" />
+  </item>
+  <item name="android.hardware.camera2.CameraCaptureSession int setSingleRepeatingRequest(android.hardware.camera2.CaptureRequest, java.util.concurrent.Executor, android.hardware.camera2.CameraCaptureSession.CaptureCallback) 2">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.hardware.camera2.CameraCaptureSession void prepare(android.view.Surface) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -154,6 +194,9 @@
   <item name="android.hardware.camera2.CameraCharacteristics java.util.List&lt;android.hardware.camera2.CaptureResult.Key&lt;?&gt;&gt; getAvailableCaptureResultKeys()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.hardware.camera2.CameraCharacteristics java.util.Set&lt;java.lang.String&gt; getPhysicalCameraIds()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.hardware.camera2.CameraCharacteristics.Key java.lang.String getName()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -167,6 +210,14 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.hardware.camera2.CameraDevice android.hardware.camera2.CaptureRequest.Builder createCaptureRequest(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.hardware.camera2.CameraDevice.TEMPLATE_PREVIEW, android.hardware.camera2.CameraDevice.TEMPLATE_STILL_CAPTURE, android.hardware.camera2.CameraDevice.TEMPLATE_RECORD, android.hardware.camera2.CameraDevice.TEMPLATE_VIDEO_SNAPSHOT, android.hardware.camera2.CameraDevice.TEMPLATE_ZERO_SHUTTER_LAG, android.hardware.camera2.CameraDevice.TEMPLATE_MANUAL}" />
+    </annotation>
+  </item>
+  <item name="android.hardware.camera2.CameraDevice android.hardware.camera2.CaptureRequest.Builder createCaptureRequest(int, java.util.Set&lt;java.lang.String&gt;)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.camera2.CameraDevice android.hardware.camera2.CaptureRequest.Builder createCaptureRequest(int, java.util.Set&lt;java.lang.String&gt;) 0">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.hardware.camera2.CameraDevice.TEMPLATE_PREVIEW, android.hardware.camera2.CameraDevice.TEMPLATE_STILL_CAPTURE, android.hardware.camera2.CameraDevice.TEMPLATE_RECORD, android.hardware.camera2.CameraDevice.TEMPLATE_VIDEO_SNAPSHOT, android.hardware.camera2.CameraDevice.TEMPLATE_ZERO_SHUTTER_LAG, android.hardware.camera2.CameraDevice.TEMPLATE_MANUAL}" />
     </annotation>
@@ -270,17 +321,46 @@
   <item name="android.hardware.camera2.CameraManager void openCamera(java.lang.String, android.hardware.camera2.CameraDevice.StateCallback, android.os.Handler) 2">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.hardware.camera2.CameraManager void openCamera(java.lang.String, java.util.concurrent.Executor, android.hardware.camera2.CameraDevice.StateCallback)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.CAMERA&quot;" />
+    </annotation>
+  </item>
+  <item name="android.hardware.camera2.CameraManager void openCamera(java.lang.String, java.util.concurrent.Executor, android.hardware.camera2.CameraDevice.StateCallback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.camera2.CameraManager void openCamera(java.lang.String, java.util.concurrent.Executor, android.hardware.camera2.CameraDevice.StateCallback) 1">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.CallbackExecutor" />
+  </item>
+  <item name="android.hardware.camera2.CameraManager void openCamera(java.lang.String, java.util.concurrent.Executor, android.hardware.camera2.CameraDevice.StateCallback) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.hardware.camera2.CameraManager void registerAvailabilityCallback(android.hardware.camera2.CameraManager.AvailabilityCallback, android.os.Handler) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.hardware.camera2.CameraManager void registerAvailabilityCallback(android.hardware.camera2.CameraManager.AvailabilityCallback, android.os.Handler) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.hardware.camera2.CameraManager void registerAvailabilityCallback(java.util.concurrent.Executor, android.hardware.camera2.CameraManager.AvailabilityCallback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.CallbackExecutor" />
+  </item>
+  <item name="android.hardware.camera2.CameraManager void registerAvailabilityCallback(java.util.concurrent.Executor, android.hardware.camera2.CameraManager.AvailabilityCallback) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.hardware.camera2.CameraManager void registerTorchCallback(android.hardware.camera2.CameraManager.TorchCallback, android.os.Handler) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.hardware.camera2.CameraManager void registerTorchCallback(android.hardware.camera2.CameraManager.TorchCallback, android.os.Handler) 1">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.hardware.camera2.CameraManager void registerTorchCallback(java.util.concurrent.Executor, android.hardware.camera2.CameraManager.TorchCallback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.CallbackExecutor" />
+  </item>
+  <item name="android.hardware.camera2.CameraManager void registerTorchCallback(java.util.concurrent.Executor, android.hardware.camera2.CameraManager.TorchCallback) 1">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.hardware.camera2.CameraManager void setTorchMode(java.lang.String, boolean) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -326,7 +406,19 @@
   <item name="android.hardware.camera2.CaptureRequest.Builder T get(android.hardware.camera2.CaptureRequest.Key&lt;T&gt;)">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.hardware.camera2.CaptureRequest.Builder T getPhysicalCameraKey(android.hardware.camera2.CaptureRequest.Key&lt;T&gt;, java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.hardware.camera2.CaptureRequest.Builder T getPhysicalCameraKey(android.hardware.camera2.CaptureRequest.Key&lt;T&gt;, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.hardware.camera2.CaptureRequest.Builder android.hardware.camera2.CaptureRequest build()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.camera2.CaptureRequest.Builder android.hardware.camera2.CaptureRequest.Builder setPhysicalCameraKey(android.hardware.camera2.CaptureRequest.Key&lt;T&gt;, T, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.camera2.CaptureRequest.Builder android.hardware.camera2.CaptureRequest.Builder setPhysicalCameraKey(android.hardware.camera2.CaptureRequest.Key&lt;T&gt;, T, java.lang.String) 2">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.hardware.camera2.CaptureRequest.Builder void addTarget(android.view.Surface) 0">

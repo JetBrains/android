@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.security.ConfirmationCallback void onConfirmed(byte[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.ConfirmationPrompt void presentPrompt(java.util.concurrent.Executor, android.security.ConfirmationCallback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.ConfirmationPrompt void presentPrompt(java.util.concurrent.Executor, android.security.ConfirmationCallback) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.security.KeyChain android.content.Intent createInstallIntent()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
