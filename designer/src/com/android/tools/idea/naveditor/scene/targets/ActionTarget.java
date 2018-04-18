@@ -33,6 +33,7 @@ import com.android.tools.idea.naveditor.scene.NavColorSet;
 import com.android.tools.idea.naveditor.scene.NavDrawHelperKt;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import com.android.tools.idea.naveditor.scene.draw.DrawAction;
+import com.android.tools.idea.naveditor.scene.draw.DrawSelfAction;
 import com.google.common.collect.ImmutableList;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
@@ -53,11 +54,6 @@ public class ActionTarget extends BaseTarget {
   private final SceneComponent myDestination;
   private boolean myHighlighted = false;
 
-  @NavCoordinate private static final int SELF_ACTION_LENGTH_1 = JBUI.scale(28);
-  @NavCoordinate private static final int SELF_ACTION_LENGTH_2 = JBUI.scale(26);
-  @NavCoordinate private static final int SELF_ACTION_LENGTH_3 = JBUI.scale(60);
-  @NavCoordinate private static final int SELF_ACTION_LENGTH_4 = JBUI.scale(8);
-
   @NavCoordinate private static final int ACTION_PADDING = JBUI.scale(8);
   @NavCoordinate private static final int CONTROL_POINT_THRESHOLD = JBUI.scale(120);
 
@@ -77,7 +73,7 @@ public class ActionTarget extends BaseTarget {
     public ConnectionDirection dir;
   }
 
-  public enum ConnectionType {NORMAL, SELF, EXIT}
+  public enum ConnectionType {NORMAL, EXIT}
 
   public enum ConnectionDirection {
     LEFT(-1, 0), RIGHT(1, 0), TOP(0, -1), BOTTOM(0, 1);
@@ -169,34 +165,46 @@ public class ActionTarget extends BaseTarget {
     myDestRect = Coordinates.getSwingRect(sceneContext, myDestination.fillRect(null));
     mySourceRect = sourceRect;
 
-    ConnectionType connectionType = ConnectionType.NORMAL;
-    if (sourceId.equals(targetId)) {
-      connectionType = ConnectionType.SELF;
-    }
-    else if (NavComponentHelperKt.getActionType(myNlComponent) == ActionType.EXIT) {
-      connectionType = ConnectionType.EXIT;
-    }
-
     boolean selected = getComponent().getScene().getSelection().contains(myNlComponent);
-    DrawAction.buildDisplayList(list, connectionType, sourceRect, myDestRect,
-                                selected ? SELECTED : mIsOver || myHighlighted ? HOVER : NORMAL);
-
-    boolean isSelfAction = sourceId.equals(targetId);
-
-    ConnectionDirection direction = isSelfAction ? BOTTOM : getDestinationDirection(sourceRect, myDestRect);
-    Point arrowPoint = getArrowPoint(sceneContext, myDestRect, direction);
-
-    if (isSelfAction) {
-      arrowPoint.x += myDestRect.width / 2 + sceneContext.getSwingDimension(SELF_ACTION_LENGTH_1 - SELF_ACTION_LENGTH_3);
-    }
-
-    ArrowDirection arrowDirection = getArrowDirection(direction);
-    Rectangle arrowRectangle = getArrowRectangle(sceneContext, arrowPoint, direction);
 
     NavColorSet colorSet = (NavColorSet)sceneContext.getColorSet();
     Color color = selected ? colorSet.getSelectedActions()
                            : mIsOver || myHighlighted ? colorSet.getHighlightedActions() : colorSet.getActions();
+
+    if (sourceId.equals(targetId)) {
+      renderSelfAction(list, sceneContext, color);
+      return;
+    }
+
+    ConnectionType connectionType = ConnectionType.NORMAL;
+    if (NavComponentHelperKt.getActionType(myNlComponent) == ActionType.EXIT) {
+      connectionType = ConnectionType.EXIT;
+    }
+
+    DrawAction.buildDisplayList(list, connectionType, sourceRect, myDestRect,
+                                selected ? SELECTED : mIsOver || myHighlighted ? HOVER : NORMAL);
+
+    ConnectionDirection direction = getDestinationDirection(sourceRect, myDestRect);
+    Point arrowPoint = getArrowPoint(sceneContext, myDestRect, direction);
+
+    ArrowDirection arrowDirection = getArrowDirection(direction);
+    Rectangle arrowRectangle = getArrowRectangle(sceneContext, arrowPoint, direction);
+
     list.add(new DrawArrow(NavDrawHelperKt.DRAW_ACTION_LEVEL, arrowDirection, arrowRectangle, color));
+  }
+
+  private void renderSelfAction(@NotNull DisplayList list, @NotNull SceneContext sceneContext, Color color) {
+    Point start = getStartPoint(mySourceRect);
+    Point arrowPoint = getArrowPoint(sceneContext, myDestRect, BOTTOM);
+    arrowPoint.x += myDestRect.width / 2
+                    + sceneContext.getSwingDimension(NavDrawHelperKt.SELF_ACTION_LENGTHS[0]
+                                                     - NavDrawHelperKt.SELF_ACTION_LENGTHS[2]);
+
+    Rectangle arrowRectangle = getArrowRectangle(sceneContext, arrowPoint, BOTTOM);
+    Point end = new Point(arrowRectangle.x + arrowRectangle.width / 2, arrowRectangle.y + arrowRectangle.height - 1);
+
+    list.add(new DrawArrow(NavDrawHelperKt.DRAW_ACTION_LEVEL, ArrowDirection.UP, arrowRectangle, color));
+    list.add(new DrawSelfAction(start, end, color));
   }
 
   @Override
@@ -216,9 +224,9 @@ public class ActionTarget extends BaseTarget {
     }
 
     if (sourceId.equals(targetId)) {
-      @SwingCoordinate SelfActionPoints points = getSelfActionPoints(mySourceRect, transform);
-      for (int i = 1; i < points.x.length; i++) {
-        picker.addLine(this, 5, points.x[i - 1], points.y[i - 1], points.x[i], points.y[i]);
+      @SwingCoordinate Point[] points = getSelfActionPoints(mySourceRect, transform);
+      for (int i = 1; i < points.length; i++) {
+        picker.addLine(this, 5, points[i - 1].x, points[i - 1].y, points[i].x, points[i].y);
       }
 
       return;
@@ -244,25 +252,20 @@ public class ActionTarget extends BaseTarget {
   }
 
   @NotNull
-  public static SelfActionPoints getSelfActionPoints(@SwingCoordinate @NotNull Rectangle rect, @NotNull SceneContext sceneContext) {
-    SelfActionPoints selfActionPoints = new SelfActionPoints();
-    selfActionPoints.dir = BOTTOM;
-
+  public static Point[] getSelfActionPoints(@SwingCoordinate @NotNull Rectangle rect, @NotNull SceneContext sceneContext) {
     Point start = getStartPoint(rect);
+    Point end = getSelfActionEndPoint(rect, sceneContext);
 
-    selfActionPoints.x[0] = start.x;
-    selfActionPoints.x[1] = selfActionPoints.x[0] + sceneContext.getSwingDimension(SELF_ACTION_LENGTH_1);
-    selfActionPoints.x[2] = selfActionPoints.x[1];
-    selfActionPoints.x[3] = selfActionPoints.x[2] - sceneContext.getSwingDimension(SELF_ACTION_LENGTH_3) - 1;
-    selfActionPoints.x[4] = selfActionPoints.x[3];
+    return NavDrawHelperKt.selfActionPoints(start, end, sceneContext);
+  }
 
-    selfActionPoints.y[0] = start.y;
-    selfActionPoints.y[1] = selfActionPoints.y[0];
-    selfActionPoints.y[2] = selfActionPoints.y[1] + rect.height / 2 + sceneContext.getSwingDimension(SELF_ACTION_LENGTH_2);
-    selfActionPoints.y[3] = selfActionPoints.y[2];
-    selfActionPoints.y[4] = selfActionPoints.y[3] - sceneContext.getSwingDimension(SELF_ACTION_LENGTH_4);
+  @NotNull
+  public static Point getSelfActionEndPoint(@SwingCoordinate @NotNull Rectangle rect, @NotNull SceneContext sceneContext) {
+    Point end = getEndPoint(sceneContext, rect, BOTTOM);
+    end.x += rect.width / 2 + sceneContext.getSwingDimension(NavDrawHelperKt.SELF_ACTION_LENGTHS[0]
+                                                             - NavDrawHelperKt.SELF_ACTION_LENGTHS[2]);
 
-    return selfActionPoints;
+    return end;
   }
 
   @NotNull
@@ -279,7 +282,7 @@ public class ActionTarget extends BaseTarget {
   private static Point getEndPoint(@NotNull SceneContext context, @NotNull Rectangle rectangle, @NotNull ConnectionDirection direction) {
     return shiftPoint(getConnectionPoint(rectangle, direction),
                       direction,
-                      context.getSwingDimension(NavSceneManager.ACTION_ARROW_PARALLEL + ACTION_PADDING));
+                      context.getSwingDimension(NavSceneManager.ACTION_ARROW_PARALLEL + ACTION_PADDING) - 1);
   }
 
   @NotNull

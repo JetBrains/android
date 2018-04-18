@@ -106,24 +106,9 @@ public class DrawAction extends NavBaseDrawCommand {
                                            : (mode == HOVER) ? color.getHighlightedActions() : color.getActions();
     PATH.reset();
 
-    switch (connectionType) {
-      case SELF:
-        ActionTarget.SelfActionPoints selfActionPoints = ActionTarget.getSelfActionPoints(source, sceneContext);
-        PATH.moveTo(selfActionPoints.x[0], selfActionPoints.y[0]);
-        DrawConnectionUtils
-          .drawRound(PATH, selfActionPoints.x, selfActionPoints.y, selfActionPoints.x.length, sceneContext.getSwingDimension(ARCH_LEN));
-
-        break;
-      case NORMAL:
-      case EXIT:
-        ActionTarget.CurvePoints points = ActionTarget.getCurvePoints(source, dest, sceneContext);
-        PATH.moveTo(points.p1.x, points.p1.y);
-        PATH.curveTo(points.p2.x, points.p2.y, points.p3.x, points.p3.y, points.p4.x, points.p4.y);
-
-        break;
-      default:
-        return;
-    }
+    ActionTarget.CurvePoints points = ActionTarget.getCurvePoints(source, dest, sceneContext);
+    PATH.moveTo(points.p1.x, points.p1.y);
+    PATH.curveTo(points.p2.x, points.p2.y, points.p3.x, points.p3.y, points.p4.x, points.p4.y);
 
     BasicStroke actionStroke = (connectionType == ActionTarget.ConnectionType.EXIT)
                                ? NavDrawHelperKt.DASHED_ACTION_STROKE
