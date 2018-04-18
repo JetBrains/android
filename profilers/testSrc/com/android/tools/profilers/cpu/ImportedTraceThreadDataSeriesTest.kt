@@ -28,7 +28,7 @@ import org.junit.Test
 
 class ImportedTraceThreadDataSeriesTest {
 
-  private var myProfilerStage: CpuProfilerStage? = null
+  private lateinit var myCapture: CpuCapture
 
   @get:Rule
   var myGrpcChannel = FakeGrpcChannel("ImportedTraceThreadDataSeriesTest", FakeCpuService())
@@ -46,9 +46,10 @@ class ImportedTraceThreadDataSeriesTest {
     // Enable import trace flags to allow initiating CpuProfilerStage in import trace mode
     ideServices.enableImportTrace(true)
     ideServices.enableSessionsView(true)
-    myProfilerStage = CpuProfilerStage(profilers, CpuProfilerTestUtils.getTraceFile("valid_trace.trace"))
+    val stage = CpuProfilerStage(profilers, CpuProfilerTestUtils.getTraceFile("valid_trace.trace"))
+    myCapture = stage.capture!!
     val mainThreadId = 516
-    mySeries = ImportedTraceThreadDataSeries(myProfilerStage!!, mainThreadId)
+    mySeries = ImportedTraceThreadDataSeries(myCapture, mainThreadId)
   }
 
   @Test
@@ -86,16 +87,14 @@ class ImportedTraceThreadDataSeriesTest {
     assertThat(hasActivityCount).isEqualTo(noActivityCount)
     assertThat(othersActivity).isEqualTo(0)
 
-    val capture = myProfilerStage!!.capture
-    val rootChildren = capture!!.getCaptureNode(capture.mainThreadId)!!.children
+    val rootChildren = myCapture.getCaptureNode(myCapture.mainThreadId)!!.children
     // Check that we have one pair per children.
     assertThat(hasActivityCount).isEqualTo(rootChildren.size)
   }
 
   @Test
   fun rangeAfterStatesReturnsOnlyLastState() {
-    val capture = myProfilerStage!!.capture
-    val lastChild = Iterables.getLast(capture!!.getCaptureNode(capture.mainThreadId)!!.children)
+    val lastChild = Iterables.getLast(myCapture.getCaptureNode(myCapture.mainThreadId)!!.children)
     val rangeAfterStates = Range((lastChild.end + 1).toDouble(), java.lang.Double.MAX_VALUE)
     val dataSeries = mySeries!!.getDataForXRange(rangeAfterStates)
     // Assert that we return only the last NO_ACTIVITY state
@@ -105,8 +104,7 @@ class ImportedTraceThreadDataSeriesTest {
 
   @Test
   fun rangeBeforeStatesReturnsEmptySeries() {
-    val capture = myProfilerStage!!.capture
-    val firstChild = capture!!.getCaptureNode(capture.mainThreadId)!!.children[0]
+    val firstChild = myCapture.getCaptureNode(myCapture.mainThreadId)!!.children[0]
     val rangeAfterStates = Range(-java.lang.Double.MAX_VALUE, (firstChild.start - 1).toDouble())
     val dataSeries = mySeries!!.getDataForXRange(rangeAfterStates)
     // No state should be returned

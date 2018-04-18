@@ -32,8 +32,11 @@ public class AtraceDataSeries<T> extends InMemoryDataSeries<T> {
   @NotNull
   private final NotNullFunction<AtraceCpuCapture, List<SeriesData<T>>> mySeriesDataFunction;
 
+  @NotNull
+  private final CpuProfilerStage myStage;
+
   public AtraceDataSeries(@NotNull CpuProfilerStage stage, @NotNull NotNullFunction<AtraceCpuCapture, List<SeriesData<T>>> seriesDataFunction) {
-    super(stage);
+    myStage = stage;
     mySeriesDataFunction = seriesDataFunction;
   }
 

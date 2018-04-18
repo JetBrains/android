@@ -28,12 +28,6 @@ import java.util.List;
  * returned if {@link #getDataForXRange(Range)} receives a range with maximum length.
  */
 abstract class InMemoryDataSeries<T> implements DataSeries<T> {
-  @NotNull
-  protected final CpuProfilerStage myStage;
-
-  public InMemoryDataSeries(@NotNull CpuProfilerStage stage) {
-    myStage = stage;
-  }
 
   @Override
   public List<SeriesData<T>> getDataForXRange(Range xRange) {

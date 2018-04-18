@@ -664,6 +664,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
         timeline.reset((long)(captureRangeNs.getMin()), (long)(captureRangeNs.getMax() + expandAmountNs));
         timeline.setIsPaused(true);
 
+        // We must set build the thread model before setting the capture, otherwise we won't be able to properly set the thread after
+        // CpuCaptureModel#setCapture updates the thread id.
+        myThreadsStates.buildImportedTraceThreads(parsedCapture);
         setCaptureState(CaptureState.IDLE);
         setAndSelectCapture(parsedCapture);
         // We need to expand the end of the data range. Giving us the padding on the right side to show the view. If we don't do this
@@ -676,7 +679,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
         double expandAmountUs = TimeUnit.NANOSECONDS.toMicros((long)expandAmountNs);
         timeline.getViewRange().set(parsedCapture.getRange().getMin() - expandAmountUs,
                                     parsedCapture.getRange().getMax() + expandAmountUs);
-        myThreadsStates.buildImportedTraceThreads(parsedCapture);
         setCaptureDetails(DEFAULT_CAPTURE_DETAILS);
         // Save trace info if not already saved
         if (!myTraceIdsIterator.contains(CpuCaptureParser.IMPORTED_TRACE_ID)) {
