@@ -24,6 +24,7 @@ import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profilers.DragAndDropListModel;
 import com.android.tools.profilers.DragAndDropModelListElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -161,11 +162,12 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
   void buildImportedTraceThreads(@NotNull CpuCapture capture) {
     if (capture.getType() == CpuProfiler.CpuProfilerType.ATRACE) {
       // Atrace captures can display thread states normally. Return early.
+      // TODO(b/74526422): makes sure we properly set the data series when we support importing atrace files
       return;
     }
     // Create the RangedCpuThread objects from the capture's threads
     List<RangedCpuThread> threads = capture.getThreads().stream()
-      .map(thread -> new RangedCpuThread(myRange, thread.getId(), thread.getName(), true)).collect(Collectors.toList());
+      .map(thread -> new RangedCpuThread(myRange, thread.getId(), thread.getName(), capture)).collect(Collectors.toList());
     // Now insert the elements in order.
     threads.forEach(this::insertOrderedElement);
     sortElements();
@@ -197,23 +199,28 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
     private final AtraceDataSeries<CpuProfilerStage.ThreadState> myAtraceDataSeries;
 
     public RangedCpuThread(Range range, int threadId, String name) {
-      this(range, threadId, name, false);
+      this(range, threadId, name, null);
     }
 
-    public RangedCpuThread(Range range, int threadId, String name, boolean importedThread) {
+    /**
+     * When a not-null {@link CpuCapture} is passed, it means the thread is imported from a trace file. If the {@link CpuCapture} passed is
+     * null, it means we obtain the {@link CpuProfilerStage.ThreadState} data from perfd. See {@link #mySeries} for details.
+     */
+    public RangedCpuThread(Range range, int threadId, String name, @Nullable CpuCapture capture) {
       myRange = range;
       myThreadId = threadId;
       myName = name;
       myModel = new StateChartModel<>();
-      if (importedThread) {
-        // If thread is created from an imported trace (excluding atrace), we should use an ImportedTraceThreadDataSeries
-        mySeries = new ImportedTraceThreadDataSeries(myStage, myThreadId);
-        myAtraceDataSeries = null; // No use for the AtraceDataSeries
+      if (capture == null) {
+        // Capture is null for non-imported traces
+        ThreadStateDataSeries threadStateDataSeries = new ThreadStateDataSeries(myStage, mySession, myThreadId);
+        myAtraceDataSeries = new AtraceDataSeries<>(myStage, (atraceCapture) -> atraceCapture.getThreadStatesForThread(myThreadId));
+        mySeries = new MergeCaptureDataSeries<>(myStage, threadStateDataSeries, myAtraceDataSeries);
       }
       else {
-        ThreadStateDataSeries threadStateDataSeries = new ThreadStateDataSeries(myStage, mySession, myThreadId);
-        myAtraceDataSeries = new AtraceDataSeries<>(myStage, (capture) -> capture.getThreadStatesForThread(myThreadId));
-        mySeries = new MergeCaptureDataSeries<>(myStage, threadStateDataSeries, myAtraceDataSeries);
+        // If thread is created from an imported trace (excluding atrace), we should use an ImportedTraceThreadDataSeries
+        mySeries = new ImportedTraceThreadDataSeries(capture, myThreadId);
+        myAtraceDataSeries = null; // No use for the AtraceDataSeries
       }
       myModel.addSeries(new RangedSeries<>(myRange, mySeries));
     }

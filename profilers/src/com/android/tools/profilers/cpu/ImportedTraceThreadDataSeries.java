@@ -39,8 +39,10 @@ public final class ImportedTraceThreadDataSeries extends InMemoryDataSeries<CpuP
    */
   @NotNull private final List<SeriesData<CpuProfilerStage.ThreadState>> myStates;
 
-  public ImportedTraceThreadDataSeries(@NotNull CpuProfilerStage stage, int tid) {
-    super(stage);
+  @NotNull private final CpuCapture myCapture;
+
+  public ImportedTraceThreadDataSeries(@NotNull CpuCapture capture, int tid) {
+    myCapture = capture;
     myThreadId = tid;
     myStates = buildThreadStates();
   }
@@ -50,12 +52,7 @@ public final class ImportedTraceThreadDataSeries extends InMemoryDataSeries<CpuP
    */
   private List<SeriesData<CpuProfilerStage.ThreadState>> buildThreadStates() {
     List<SeriesData<CpuProfilerStage.ThreadState>> states = new ArrayList<>();
-    CpuCapture capture = myStage.getCapture();
-    if (capture == null) {
-      getLogger().warn("Capture is unexpectedly null and thread states could not be built.");
-      return states;
-    }
-    CaptureNode root = capture.getCaptureNode(myThreadId);
+    CaptureNode root = myCapture.getCaptureNode(myThreadId);
     if (root == null) {
       getLogger().warn("Thread root node is unexpectedly null and thread states could not be built.");
       return states;
