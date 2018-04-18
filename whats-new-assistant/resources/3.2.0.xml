@@ -42,8 +42,8 @@
           <img src="https://d.android.com/studio/releases/assistant/3.2.0/profiler-features-overview.gif">
 
           <br><br>
-          <a href="https://developer.android.com/studio/profile/android-profiler.html">
-          The Android Profiler</a>
+          The <a href="https://developer.android.com/studio/profile/android-profiler.html?utm_source=android-studio&utm_medium=studio-assistant">
+          Android Profiler</a>
           <img src="https://d.android.com/studio/images/buttons/toolbar-android-profiler.png" width="16" height="16">
           now includes the following new features:
 
@@ -52,6 +52,20 @@
             <li><b>Sessions:</b> Save profiler data as "sessions" to
             revisit and inspect later.
             <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#sessions">
+            Learn more</a></li>
+
+            <li><b>Import and inspect CPU trace files:</b>
+            You can now import and inspect <code>.trace</code> files that you create using
+            <a href="https://d.android.com/ndk/guides/simpleperf.html?utm_source=android-studio&utm_medium=studio-assistant">
+            simpleperf</a>, the
+            <a href="https://d.android.com/reference/android/os/Debug.html?utm_source=android-studio&utm_medium=studio-assistant">
+            Debug API</a>, or the
+            <a href="https://d.android.com/studio/profile/cpu-profiler.html?utm_source=android-studio&utm_medium=studio-assistant#method_traces">
+            CPU profiler</a> (importing System Trace recordings is currently not supported).
+            Import your trace file by clicking <b>Start a new profiling session</b>
+            <img src="https://d.android.com/studio/images/buttons/ic_plus.png" width="16" height="16">
+            in the profiler's <b>Sessions</b> pane and then selecting <b>Load from file</b>.
+            <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#import_trace">
             Learn more</a></li>
 
             <li><b>System Trace:</b> In the CPU Profiler, inspect your device's
@@ -63,13 +77,13 @@
             <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#system_trace">
             Learn more</a></li>
 
-            <li><b>Record a method trace during app startup:</b>
+            <li><b>Record CPU activity during app startup:</b>
             Enable the feature by selecting
             <b>Run &gt; Edit Configurations</b> from the main menu
-            and, under the <b>Profile</b> tab of your desired run
+            and, under the <b>Profiling</b> tab of your desired run
             configuration, checking the box next to <b>Start
             recording a method trace on startup</b>. Now deploy
-            your app to a device running Android 8.0 or higher by
+            your app to a device running Android 8.0 (API level 26) or higher by
             selecting <b>Run &gt; Profile</b>.
             <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#trace_startup">
             Learn more</a></li>
@@ -78,7 +92,14 @@
             Inspect memory allocations for your app’s JNI code when you deploy
             to a device running Android 8.0 (API level 26) or higher.
             <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#jni_memory">
-            Learn more</a>.</li>
+            Learn more</a></li>
+
+            <li><b>Record CPU activity using the Debug API</b>:
+            Instrument your app with the
+            <a href="https://d.android.com/reference/android/os/Debug.html?utm_source=android-studio&utm_medium=studio-assistant">
+            Debug API</a> to programmatically start and stop recording CPU activity in the CPU profiler.
+            <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#debug_api">
+            Learn more</a></li>
           </ul>
            ]]>
           </section>
@@ -117,7 +138,7 @@
           </section>
         </stepElement>
       </step>
-      <step label="Other new features and behavior changes">
+      <step label="Other New Features and Behaviors">
         <stepElement>
           <section>
             <![CDATA[
@@ -136,20 +157,20 @@
             </li>
 
             <li><b>Lint checks for Java/Kotlin interoperability:</b>
-            To enable new lint checks that enforce best practices described
+            Enable new lint checks that enforce best practices described
             in the
             <a href="https://d.android.com/r/studio-wna/java-kotlin-interop.html">
-            Kotlin Interop Guide</a>, add the following to your module's
-            <code>build.gradle</code>:
-
-            <br><br>
-            <div style="border: solid gray 1px; padding-left: 10px;">
-            <pre>android {
-    lintOptions {
-        check 'Interoperability'
-    }
-}</pre>
+            Kotlin Interop Guide</a> by first opening the IDE preferences dialog and
+            navigating to <b>Editor &gt; Inspections</b>. Then, check the rules that
+            you want to enable under <b>Kotlin Interoperability</b>.
+            <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#java_kotlin_interop">
+            Learn more</a></li>
             </div>
+            </li>
+
+            <li><b>Native multi-dex enabled by default:</b>
+            The Android plugin for Gradle now enables native multidex for all modules that set
+            <code>minSdkVersion = 21</code> or higher.
             </li>
 
             <li><b>Changed set of default ABIs:</b> When building multiple
