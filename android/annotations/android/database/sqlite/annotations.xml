@@ -97,6 +97,12 @@
       <val name="flag" val="true" />
     </annotation>
   </item>
+  <item name="android.database.sqlite.SQLiteDatabase.OpenParams java.lang.String getJournalMode()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.database.sqlite.SQLiteDatabase.OpenParams java.lang.String getSynchronousMode()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.database.sqlite.SQLiteDatabase.OpenParams.Builder android.database.sqlite.SQLiteDatabase.OpenParams build()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -138,6 +144,12 @@
       <val name="from" val="0" />
     </annotation>
   </item>
+  <item name="android.database.sqlite.SQLiteDatabase.OpenParams.Builder android.database.sqlite.SQLiteDatabase.OpenParams.Builder setJournalMode(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteDatabase.OpenParams.Builder android.database.sqlite.SQLiteDatabase.OpenParams.Builder setJournalMode(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.database.sqlite.SQLiteDatabase.OpenParams.Builder android.database.sqlite.SQLiteDatabase.OpenParams.Builder setLookasideConfig(int, int) 0">
     <annotation name="android.support.annotation.IntRange">
       <val name="from" val="0" />
@@ -157,6 +169,42 @@
       <val name="flag" val="true" />
     </annotation>
   </item>
+  <item name="android.database.sqlite.SQLiteDatabase.OpenParams.Builder android.database.sqlite.SQLiteDatabase.OpenParams.Builder setSynchronousMode(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteDatabase.OpenParams.Builder android.database.sqlite.SQLiteDatabase.OpenParams.Builder setSynchronousMode(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteOpenHelper SQLiteOpenHelper(android.content.Context, java.lang.String, android.database.sqlite.SQLiteDatabase.CursorFactory, int) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.database.sqlite.SQLiteOpenHelper SQLiteOpenHelper(android.content.Context, java.lang.String, android.database.sqlite.SQLiteDatabase.CursorFactory, int) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.database.sqlite.SQLiteOpenHelper SQLiteOpenHelper(android.content.Context, java.lang.String, android.database.sqlite.SQLiteDatabase.CursorFactory, int) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.database.sqlite.SQLiteOpenHelper SQLiteOpenHelper(android.content.Context, java.lang.String, android.database.sqlite.SQLiteDatabase.CursorFactory, int, android.database.DatabaseErrorHandler) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.database.sqlite.SQLiteOpenHelper SQLiteOpenHelper(android.content.Context, java.lang.String, android.database.sqlite.SQLiteDatabase.CursorFactory, int, android.database.DatabaseErrorHandler) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.database.sqlite.SQLiteOpenHelper SQLiteOpenHelper(android.content.Context, java.lang.String, android.database.sqlite.SQLiteDatabase.CursorFactory, int, android.database.DatabaseErrorHandler) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.database.sqlite.SQLiteOpenHelper SQLiteOpenHelper(android.content.Context, java.lang.String, android.database.sqlite.SQLiteDatabase.CursorFactory, int, android.database.DatabaseErrorHandler) 4">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.database.sqlite.SQLiteOpenHelper SQLiteOpenHelper(android.content.Context, java.lang.String, int, android.database.sqlite.SQLiteDatabase.OpenParams) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.database.sqlite.SQLiteOpenHelper SQLiteOpenHelper(android.content.Context, java.lang.String, int, android.database.sqlite.SQLiteDatabase.OpenParams) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.database.sqlite.SQLiteOpenHelper SQLiteOpenHelper(android.content.Context, java.lang.String, int, android.database.sqlite.SQLiteDatabase.OpenParams) 3">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.database.sqlite.SQLiteOpenHelper void setIdleConnectionTimeout(long) 0">
     <annotation name="android.support.annotation.IntRange">
       <val name="from" val="0" />
@@ -171,6 +219,9 @@
     <annotation name="android.support.annotation.IntRange">
       <val name="from" val="0" />
     </annotation>
+  </item>
+  <item name="android.database.sqlite.SQLiteOpenHelper void setOpenParams(android.database.sqlite.SQLiteDatabase.OpenParams) 0">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
 </root>
 

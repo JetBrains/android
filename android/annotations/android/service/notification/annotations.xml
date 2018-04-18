@@ -2,7 +2,7 @@
 <root>
   <item name="android.service.notification.Condition state">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.service.notification.Condition.STATE_FALSE, android.service.notification.Condition.STATE_TRUE, android.service.notification.Condition.STATE_TRUE, android.service.notification.Condition.STATE_ERROR}" />
+      <val name="value" val="{android.service.notification.Condition.STATE_FALSE, android.service.notification.Condition.STATE_TRUE, android.service.notification.Condition.STATE_UNKNOWN, android.service.notification.Condition.STATE_ERROR}" />
     </annotation>
   </item>
   <item name="android.service.notification.NotificationListenerService java.util.List&lt;android.app.NotificationChannel&gt; getNotificationChannels(java.lang.String, android.os.UserHandle) 0">

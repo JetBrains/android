@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.telephony.euicc.DownloadableSubscription java.lang.String getConfirmationCode()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.telephony.euicc.DownloadableSubscription java.lang.String getEncodedActivationCode()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.telephony.euicc.EuiccInfo EuiccInfo(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.telephony.euicc.EuiccInfo java.lang.String getOsVersion()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.telephony.euicc.EuiccManager android.telephony.euicc.EuiccInfo getEuiccInfo()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.telephony.euicc.EuiccManager java.lang.String getEid()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.telephony.euicc.EuiccManager void deleteSubscription(int, android.app.PendingIntent)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.WRITE_EMBEDDED_SUBSCRIPTIONS&quot;" />
+    </annotation>
+  </item>
+  <item name="android.telephony.euicc.EuiccManager void downloadSubscription(android.telephony.euicc.DownloadableSubscription, boolean, android.app.PendingIntent)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.WRITE_EMBEDDED_SUBSCRIPTIONS&quot;" />
+    </annotation>
+  </item>
+  <item name="android.telephony.euicc.EuiccManager void switchToSubscription(int, android.app.PendingIntent)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.WRITE_EMBEDDED_SUBSCRIPTIONS&quot;" />
+    </annotation>
+  </item>
+</root>
+

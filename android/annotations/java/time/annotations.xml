@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="java.time.LocalDateTime int getYear()">
+    <annotation name="org.jetbrains.annotations.Contract">
+      <val name="value" val="true" />
+    </annotation>
+  </item>
+  <item name="java.time.LocalDateTime java.time.LocalDateTime from(java.time.temporal.TemporalAccessor)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.time.LocalDateTime java.time.LocalDateTime of(int, int, int, int, int)">
+    <annotation name="org.jetbrains.annotations.Contract">
+      <val name="value" val="true" />
+    </annotation>
+  </item>
+  <item name="java.time.LocalDateTime java.time.LocalDateTime of(int, int, int, int, int, int)">
+    <annotation name="org.jetbrains.annotations.Contract">
+      <val name="value" val="true" />
+    </annotation>
+  </item>
+  <item name="java.time.LocalDateTime java.time.LocalDateTime of(int, int, int, int, int, int, int)">
+    <annotation name="org.jetbrains.annotations.Contract">
+      <val name="value" val="true" />
+    </annotation>
+  </item>
+  <item name="java.time.LocalDateTime java.time.LocalDateTime of(int, java.time.Month, int, int, int)">
+    <annotation name="org.jetbrains.annotations.Contract">
+      <val name="value" val="true" />
+    </annotation>
+  </item>
+  <item name="java.time.LocalDateTime java.time.LocalDateTime of(int, java.time.Month, int, int, int, int)">
+    <annotation name="org.jetbrains.annotations.Contract">
+      <val name="value" val="true" />
+    </annotation>
+  </item>
+  <item name="java.time.LocalDateTime java.time.LocalDateTime of(int, java.time.Month, int, int, int, int, int)">
+    <annotation name="org.jetbrains.annotations.Contract">
+      <val name="value" val="true" />
+    </annotation>
+  </item>
+  <item name="java.time.LocalDateTime java.time.LocalDateTime parse(java.lang.CharSequence)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.time.LocalDateTime java.time.LocalDateTime parse(java.lang.CharSequence, java.time.format.DateTimeFormatter)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.time.Month int getValue()">
+    <annotation name="org.jetbrains.annotations.Contract">
+      <val name="value" val="true" />
+    </annotation>
+  </item>
+</root>
+

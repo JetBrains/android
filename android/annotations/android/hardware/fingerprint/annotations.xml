@@ -4,6 +4,9 @@
     <annotation name="android.support.annotation.SystemService">
       <val name="value" val="android.content.Context.FINGERPRINT_SERVICE" />
     </annotation>
+    <annotation name="android.support.annotation.RequiresFeature">
+      <val name="value" val="&quot;android.hardware.fingerprint&quot;" />
+    </annotation>
   </item>
   <item name="android.hardware.fingerprint.FingerprintManager boolean hasEnrolledFingerprints()">
     <annotation name="android.support.annotation.RequiresPermission">
@@ -17,7 +20,7 @@
   </item>
   <item name="android.hardware.fingerprint.FingerprintManager void authenticate(android.hardware.fingerprint.FingerprintManager.CryptoObject, android.os.CancellationSignal, int, android.hardware.fingerprint.FingerprintManager.AuthenticationCallback, android.os.Handler)">
     <annotation name="android.support.annotation.RequiresPermission">
-      <val name="value" val="&quot;android.permission.USE_FINGERPRINT&quot;" />
+      <val name="anyOf" val="{&quot;android.permission.USE_BIOMETRIC&quot;, &quot;android.permission.USE_FINGERPRINT&quot;}" />
     </annotation>
   </item>
   <item name="android.hardware.fingerprint.FingerprintManager void authenticate(android.hardware.fingerprint.FingerprintManager.CryptoObject, android.os.CancellationSignal, int, android.hardware.fingerprint.FingerprintManager.AuthenticationCallback, android.os.Handler) 0">

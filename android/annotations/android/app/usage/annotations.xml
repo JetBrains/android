@@ -15,6 +15,11 @@
   <item name="android.app.usage.ExternalStorageStats long getVideoBytes()">
     <annotation name="android.support.annotation.BytesLong" />
   </item>
+  <item name="android.app.usage.NetworkStats.Bucket int getDefaultNetworkStatus()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.app.usage.NetworkStats.Bucket.DEFAULT_NETWORK_ALL, android.app.usage.NetworkStats.Bucket.DEFAULT_NETWORK_NO, android.app.usage.NetworkStats.Bucket.DEFAULT_NETWORK_YES}" />
+    </annotation>
+  </item>
   <item name="android.app.usage.NetworkStats.Bucket int getMetered()">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.app.usage.NetworkStats.Bucket.METERED_ALL, android.app.usage.NetworkStats.Bucket.METERED_NO, android.app.usage.NetworkStats.Bucket.METERED_YES}" />
@@ -109,6 +114,12 @@
   <item name="android.app.usage.UsageStatsManager">
     <annotation name="android.support.annotation.SystemService">
       <val name="value" val="android.content.Context.USAGE_STATS_SERVICE" />
+    </annotation>
+  </item>
+  <item name="android.app.usage.UsageStatsManager int getAppStandbyBucket()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.app.usage.UsageStatsManager.STANDBY_BUCKET_ACTIVE, android.app.usage.UsageStatsManager.STANDBY_BUCKET_WORKING_SET, android.app.usage.UsageStatsManager.STANDBY_BUCKET_FREQUENT, android.app.usage.UsageStatsManager.STANDBY_BUCKET_RARE}" />
+      <val name="flag" val="false" />
     </annotation>
   </item>
 </root>
