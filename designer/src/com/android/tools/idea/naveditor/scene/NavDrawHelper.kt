@@ -95,7 +95,7 @@ fun actionColor(context: SceneContext, component: SceneComponent): Color {
 
 fun scaledFont(context: SceneContext, style: Int): Font {
   val scale = context.scale
-  val size = (scale * (2.0 - scale)) * DEFAULT_FONT_SIZE // keep font size slightly larger at smaller scales
+  val size = (scale * (2.0 - Math.min(scale, 1.0))) * DEFAULT_FONT_SIZE // keep font size slightly larger at smaller scales
 
   return Font(DEFAULT_FONT_NAME, style, size.toInt())
 }
