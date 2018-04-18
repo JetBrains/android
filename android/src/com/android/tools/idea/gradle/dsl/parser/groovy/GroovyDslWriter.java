@@ -39,6 +39,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.*;
+import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.maybeTrimForParent;
 import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mASSIGN;
 
 public class GroovyDslWriter implements GradleDslWriter {
@@ -116,7 +117,7 @@ public class GroovyDslWriter implements GradleDslWriter {
       return null; // Avoid creation of an empty block statement.
     }
 
-    String statementText = element.getFullName();
+    String statementText = maybeTrimForParent(element.getNameElement(), element.getParent());
     if (element.isBlockElement()) {
       statementText += " {\n}\n";
     }
@@ -167,7 +168,8 @@ public class GroovyDslWriter implements GradleDslWriter {
       addedElement = parentPsiElement.addAfter(statement, anchor);
       if (anchorAfter != null) {
         parentPsiElement.addBefore(lineTerminator, addedElement);
-      } else {
+      }
+      else {
         parentPsiElement.addAfter(lineTerminator, addedElement);
         GrClosableBlock parentBlock = (GrClosableBlock)parentPsiElement;
         if (parentBlock.getRBrace() != null && !hasNewLineBetween(parentBlock.getLBrace(), parentBlock.getRBrace())) {
@@ -352,7 +354,9 @@ public class GroovyDslWriter implements GradleDslWriter {
 
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(parentPsiElement.getProject());
     String statementText =
-      (!methodCall.getFullName().isEmpty() ? methodCall.getFullName() + " " : "") + methodCall.getMethodName() + "()";
+      (!methodCall.getFullName().isEmpty() ? maybeTrimForParent(methodCall.getNameElement(), methodCall.getParent()) + " " : "") +
+      maybeTrimForParent(GradleNameElement.fake(methodCall.getMethodName()), methodCall.getParent()) +
+      "()";
     GrStatement statement = factory.createStatementFromText(statementText);
     PsiElement addedElement = parentPsiElement.addAfter(statement, anchor);
 

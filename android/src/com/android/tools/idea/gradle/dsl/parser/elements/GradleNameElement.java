@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
@@ -117,15 +118,25 @@ public class GradleNameElement {
 
   @NotNull
   public String fullName() {
-    List<String> qualifyingParts = qualifyingParts();
-    return !qualifyingParts.isEmpty() ? String.join(".", qualifyingParts) + "." + name() : name();
+    List<String> parts = qualifyingParts();
+    parts.add(name());
+    return createNameFromParts(parts);
+  }
+
+  @NotNull
+  public List<String> fullNameParts() {
+    return Splitter.on(".").splitToList(fullName());
+  }
+
+  public static String createNameFromParts(@NotNull List<String> parts) {
+    return String.join(".", parts);
   }
 
   @NotNull
   public List<String> qualifyingParts() {
     String name = findName();
     if (name == null) {
-      return ImmutableList.of();
+      return Lists.newArrayList();
     }
 
     List<String> nameSegments = Splitter.on('.').splitToList(name);

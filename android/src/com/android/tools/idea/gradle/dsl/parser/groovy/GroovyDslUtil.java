@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.groovy;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.lang.ASTNode;
@@ -47,6 +48,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.params.GrParameterList;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -59,7 +61,7 @@ import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mCOMMA;
 import static org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil.*;
 
 public final class GroovyDslUtil {
-
+  @Nullable
   static GroovyPsiElement ensureGroovyPsi(@Nullable PsiElement element) {
     if (element == null) {
       return null;
@@ -512,6 +514,26 @@ public final class GroovyDslUtil {
       return null;
     }
     return parentPsiElement;
+  }
+
+  static String maybeTrimForParent(@NotNull GradleNameElement name, @Nullable GradleDslElement parent) {
+    if (parent == null) {
+      return name.fullName();
+    }
+
+    List<String> parts = new ArrayList<>(name.fullNameParts());
+    if (parts.isEmpty()) {
+      return name.fullName();
+    }
+    String lastNamePart = parts.remove(parts.size() - 1);
+    List<String> parentParts = Splitter.on(".").splitToList(parent.getQualifiedName());
+    int i = 0;
+    while (i < parentParts.size() && !parts.isEmpty() && parentParts.get(i).equals(parts.get(0))) {
+      parts.remove(0);
+      i++;
+    }
+    parts.add(lastNamePart);
+    return GradleNameElement.createNameFromParts(parts);
   }
 
   /**

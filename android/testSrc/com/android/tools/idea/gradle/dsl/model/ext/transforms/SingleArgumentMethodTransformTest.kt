@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.ext.transforms
 
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
+import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl
 import com.android.tools.idea.gradle.dsl.parser.elements.*
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.sameInstance
@@ -167,5 +168,19 @@ class SingleArgumentMethodTransformTest : TransformTestCase() {
     // Name is kept form the literal.
     assertTrue(argumentElement.nameElement.isEmpty)
     assertThat(argumentElement.parent?.parent as GradleDslMethodCall, equalTo(resultElement))
+  }
+
+  @Test
+  fun testObjectConstructor() {
+    writeToBuildFile("")
+    val buildModel = gradleBuildModel
+    val defaultConfigBlock = (buildModel.android()!!.defaultConfig() as ProductFlavorModelImpl).dslElement()
+    val transform = SingleArgumentMethodTransform(methodName, defaultConfigBlock)
+    val inputElement = createMethodCall(methodName, "statement")
+    defaultConfigBlock.setNewElement(inputElement)
+    val literal = createLiteral("")
+    literal.setValue(78)
+    inputElement.addParsedExpression(literal)
+    assertTrue(transform.test(inputElement))
   }
 }
