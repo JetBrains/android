@@ -18,9 +18,7 @@ package com.android.tools.adtui.chart.statechart;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.geom.Rectangle2D;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Implementation of {@link StateChartReducer} which combines all rectangles that are strictly inside a pixel into one rectangle
@@ -54,12 +52,12 @@ public class DefaultStateChartReducer<T> implements StateChartReducer<T> {
       float minX = rect.x;
       float maxX = Float.MIN_VALUE;
       float minY = rect.y;
-      float maxY = rect.y + rect.height;
+      float height = rect.height;
 
       while (index < rectangles.size()) {
         rect = rectangles.get(index);
 
-        if (rect.x < pixelStart || rect.x > pixelEnd || rect.x + rect.width >= pixelEnd) {
+        if (rect.x < pixelStart || rect.x > pixelEnd || rect.x + rect.width > pixelEnd) {
           // Crossed different pixel
           break;
         }
@@ -84,7 +82,7 @@ public class DefaultStateChartReducer<T> implements StateChartReducer<T> {
         values.set(keepIndex, mostOccurred);
         // As width of the new rectangle smaller than 1px, arcWidth and arcHeight won't make any difference
         // thus, drawing "Rectangle2D" instead of "RoundRectangle2D"
-        rectangles.set(keepIndex, new Rectangle2D.Float(minX, minY, maxX - minX, maxY - minY));
+        rectangles.set(keepIndex, new Rectangle2D.Float(minX, minY, maxX - minX, height));
         ++keepIndex;
       }
     }

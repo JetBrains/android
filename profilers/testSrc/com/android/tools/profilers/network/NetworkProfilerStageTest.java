@@ -243,10 +243,6 @@ public class NetworkProfilerStageTest {
   public void updaterRegisteredCorrectly() {
     AspectObserver observer = new AspectObserver();
 
-    final boolean[] radioStateUpdated = {false};
-    myStage.getRadioState().addDependency(observer).onChange(
-      StateChartModel.Aspect.MODEL_CHANGED, () -> radioStateUpdated[0] = true);
-
     final boolean[] networkUsageUpdated = {false};
     myStage.getDetailedNetworkUsage().addDependency(observer).onChange(
       LineChartModel.Aspect.LINE_CHART, () -> networkUsageUpdated[0] = true);
@@ -269,7 +265,6 @@ public class NetworkProfilerStageTest {
     );
 
     myTimer.tick(1);
-    assertThat(radioStateUpdated[0]).isTrue();
     assertThat(networkUsageUpdated[0]).isTrue();
     assertThat(trafficAxisUpdated[0]).isTrue();
     assertThat(connectionAxisUpdated[0]).isTrue();

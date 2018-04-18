@@ -27,16 +27,16 @@ import com.intellij.ui.ColorUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 /**
  * A chart component that renders series of state change events as rectangles.
  */
-public final class StateChart<T> extends MouseAdapterComponent<T> {
+public final class StateChart<T> extends MouseAdapterComponent {
 
   public enum RenderMode {
     BAR,  // Each state is rendered as a filled rectangle until the next state changed.
@@ -150,25 +150,30 @@ public final class StateChart<T> extends MouseAdapterComponent<T> {
   }
 
   /**
-   * Creates a rectangle with the supplied dimensions. This function will normalize the x, and width values, then store
-   * the rectangle off using its key value as a lookup.
+   * Creates a rectangle with the supplied dimensions. This function will normalize the x and width values.
    *
    * @param value     value used to associate with the created rectangle..
    * @param previousX value used to determine the x position and width of the rectangle. This value should be relative to the currentX param.
    * @param currentX  value used to determine the width of the rectangle. This value should be relative to the previousX param.
    * @param minX      minimum value of the range total range used to normalize the x position and width of the rectangle.
-   * @param maxX      maximum value of the range total range used to normalize the x position and width of the rectangle.
+   * @param invRange  inverse of total range used to normalize the x position and width of the rectangle (~7% gain in performance).
    * @param rectY     rectangle height offset from max growth of rectangle. This value is expressed as a percentage from 0-1
-   * @param vGap      height offset from bottom of rectangle. This value is expressed as percentage from 0-1
+   * @param height    height of rectangle
    */
-  private void addRectangleDelta(@NotNull T value, double previousX, double currentX, double minX, double maxX, float rectY, double vGap) {
+  private void addRectangleDelta(@NotNull T value,
+                                 double previousX,
+                                 double currentX,
+                                 double minX,
+                                 double invRange,
+                                 float rectY,
+                                 float height) {
     // Because we start our activity line from the bottom and grow up we offset the height from the bottom of the component
     // instead of the top by subtracting our height from 1.
     Rectangle2D.Float rect = new Rectangle2D.Float(
-      (float)((previousX - minX) / (maxX - minX)),
+      (float)((previousX - minX) * invRange),
       rectY,
-      (float)((currentX - previousX) / (maxX - minX)),
-      (float)((1.0 - vGap) * myRectHeight));
+      (float)((currentX - previousX) * invRange),
+      height);
     myRectangles.add(rect);
     myRectangleValues.add(value);
   }
@@ -186,17 +191,19 @@ public final class StateChart<T> extends MouseAdapterComponent<T> {
       return;
     }
 
-    // TODO support adding series on the fly and interpolation.
+    // TODO support interpolation.
     myRectHeight = 1.0f / seriesSize;
     float gap = myRectHeight * myHeightGap;
+    float barHeight = (1.0f - gap) * myRectHeight;
 
     clearRectangles();
 
     for (int seriesIndex = 0; seriesIndex < series.size(); seriesIndex++) {
       RangedSeries<T> data = series.get(seriesIndex);
 
-      double min = data.getXRange().getMin();
-      double max = data.getXRange().getMax();
+      final double min = data.getXRange().getMin();
+      final double max = data.getXRange().getMax();
+      final double invRange = 1.0 / (max - min);
       float startHeight = 1.0f - (myRectHeight * (seriesIndex + 1));
 
       List<SeriesData<T>> seriesDataList = data.getSeries();
@@ -222,7 +229,7 @@ public final class StateChart<T> extends MouseAdapterComponent<T> {
         // Don't draw if this block doesn't intersect with [min..max]
         if (x >= min) {
           // Draw the previous block.
-          addRectangleDelta(previousValue, Math.max(min, previousX), Math.min(max, x), min, max, startHeight + gap * 0.5f, gap);
+          addRectangleDelta(previousValue, Math.max(min, previousX), Math.min(max, x), min, invRange, startHeight + gap * 0.5f, barHeight);
         }
 
         // Start a new block.
@@ -236,7 +243,7 @@ public final class StateChart<T> extends MouseAdapterComponent<T> {
       }
       // The last data point continues till max
       if (previousX < max && previousValue != null) {
-        addRectangleDelta(previousValue, Math.max(min, previousX), max, min, max, startHeight + gap * 0.5f, gap);
+        addRectangleDelta(previousValue, Math.max(min, previousX), max, min, invRange, startHeight + gap * 0.5f, barHeight);
       }
     }
   }
@@ -256,17 +263,19 @@ public final class StateChart<T> extends MouseAdapterComponent<T> {
     List<Rectangle2D.Float> transformedShapes = new ArrayList<>(myRectangles.size());
     List<T> transformedValues = new ArrayList<>(myRectangleValues.size());
 
-    AffineTransform scale = AffineTransform.getScaleInstance(dim.getWidth(), dim.getHeight());
+    float scaleX = (float)dim.width;
+    float scaleY = (float)dim.height;
     for (int i = 0; i < myRectangles.size(); i++) {
       Rectangle2D.Float rectangle = myRectangles.get(i);
-      // Manually scaling the rectangle results in ~6x performance improvement over
-      // calling AffineTransform::createTransformedShape. The reason for this is the shape created is a Point2D.Double
-      // this shape has to support all types of points as such cannot be rendered as efficiently as a
-      // rectangle.
-      transformedShapes.add(new Rectangle2D.Float((float)(rectangle.getX() * scale.getScaleX()),
-                                                  (float)(rectangle.getY() * scale.getScaleY()),
-                                                  (float)(rectangle.getWidth() * scale.getScaleX()),
-                                                  (float)(rectangle.getHeight() * scale.getScaleY())));
+      // Manually scaling the rectangle results in ~6x performance improvement over calling
+      // AffineTransform::createTransformedShape. The reason for this is the shape created is a Point2D.Double.
+      // This shape has to support all types of points as such cannot be transformed as efficiently as a
+      // rectangle. Furthermore, AffineTransform is uses doubles, which is about half as fast for LS
+      // when compared to floats (doubles memory bandwidth).
+      transformedShapes.add(new Rectangle2D.Float(rectangle.x * scaleX,
+                                                  rectangle.y * scaleY,
+                                                  rectangle.width * scaleX,
+                                                  rectangle.height * scaleY));
       transformedValues.add(myRectangleValues.get(i));
     }
 
@@ -276,22 +285,31 @@ public final class StateChart<T> extends MouseAdapterComponent<T> {
     assert transformedShapes.size() == transformedValues.size();
 
     long reducerTime = stopwatch.getElapsedSinceLastDeltaNs();
+    int hoverIndex = -1;
+    //noinspection FloatingPointEquality
+    if (getMouseX() != MouseAdapterComponent.INVALID_MOUSE_POSITION) {
+      float mouseXFloor = (float)Math.floor(getMouseX());
+      // Encode mouseXFloor into width component of the Rectangle2D.Float key to avoid recalculating on every invocation of the Comparable.
+      hoverIndex = Collections.binarySearch(transformedShapes,
+                                            new Rectangle2D.Float(mouseXFloor, 0, mouseXFloor + 1.0f, 0),
+                                            (value, key) -> (value.x + value.width < key.x) ? -1 : (value.x > key.width ? 1 : 0));
+    }
 
     for (int i = 0; i < transformedShapes.size(); i++) {
       T value = transformedValues.get(i);
-      Rectangle2D rect = transformedShapes.get(i);
-      boolean isMouseOver = isMouseOverRectangle(rect);
+      Rectangle2D.Float rect = transformedShapes.get(i);
+      boolean isMouseOver = (i == hoverIndex);
       Color color = myColorProvider.getColor(isMouseOver, value);
       g2d.setColor(color);
       g2d.fill(rect);
       if (myRenderMode == RenderMode.TEXT) {
         String valueText = myTextConverter.convertToString(value);
-        String text = AdtUiUtils.shrinkToFit(valueText, mDefaultFontMetrics, (float)rect.getWidth() - TEXT_PADDING * 2);
+        String text = AdtUiUtils.shrinkToFit(valueText, mDefaultFontMetrics, rect.width - TEXT_PADDING * 2);
         if (!text.isEmpty()) {
           g2d.setColor(myColorProvider.getFontColor(isMouseOver, value));
-          float textOffset = (float)(rect.getY() + (rect.getHeight() - mDefaultFontMetrics.getHeight()) / 2.0);
+          float textOffset = rect.y + (rect.height - mDefaultFontMetrics.getHeight()) * 0.5f;
           textOffset += mDefaultFontMetrics.getAscent();
-          g2d.drawString(text, (float)(rect.getX() + TEXT_PADDING), textOffset);
+          g2d.drawString(text, rect.x + TEXT_PADDING, textOffset);
         }
       }
     }

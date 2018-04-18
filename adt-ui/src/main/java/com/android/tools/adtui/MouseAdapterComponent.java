@@ -18,7 +18,6 @@ package com.android.tools.adtui;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.awt.geom.Rectangle2D;
 
 /**
  * Class to build and manipulate rectangles to be drawn in the profiler's UI. This class is not responsible
@@ -26,14 +25,10 @@ import java.awt.geom.Rectangle2D;
  * All dimensions used in this class are represented as a percentage. It is for the child class to scale the
  * rectangles to the dimensions needed for the control. The most common use case is scaling the rectangles by
  * the components width and height in the draw function.
- *
- * @param T is the value type used to be associated with stored rectangles.
  */
-public abstract class MouseAdapterComponent<T> extends AnimatedComponent implements MouseListener, MouseMotionListener {
-
-  // Initializing the normalized mouse x position to be -1. This is the clear value because we are checking
-  // valid rectangles from 0 to 1, as such using a negative number as a clear value will never result in a false overlap.
-  private double myNormalizedMouseX = -1;
+public abstract class MouseAdapterComponent extends AnimatedComponent implements MouseListener, MouseMotionListener {
+  public static final double INVALID_MOUSE_POSITION = -Double.MAX_VALUE;
+  private double myMouseX = INVALID_MOUSE_POSITION;
 
   /**
    * Default constructor for a MouseAdapterComponent, the constructor attaches mouse listeners.
@@ -76,7 +71,7 @@ public abstract class MouseAdapterComponent<T> extends AnimatedComponent impleme
   @Override
   public void mouseExited(MouseEvent e) {
     // Clear mouse position
-    setMousePointAndForwardEvent(-1, e);
+    setMousePointAndForwardEvent(INVALID_MOUSE_POSITION, e);
   }
 
   @Override
@@ -92,28 +87,20 @@ public abstract class MouseAdapterComponent<T> extends AnimatedComponent impleme
   /**
    * Normalizes the mouse position then passes MouseEvent to listeners up the callback stack.
    *
-   * @param xPosition mouse x position to be normalized for determining mouse over.
-   * @param e         mouse event to be passed on to parent items.
+   * @param x mouse x position to be normalized for determining mouse over.
+   * @param e mouse event to be passed on to parent items.
    */
   private void setMousePointAndForwardEvent(double x, MouseEvent e) {
     // TODO (b/74547254): Revisit mouse over animation to be based on range instead of mouse coordinates.
-    myNormalizedMouseX = x;
+    myMouseX = x;
     // Parent can be null in test.
     if (getParent() != null) {
       getParent().dispatchEvent(e);
     }
+    opaqueRepaint();
   }
 
-  /**
-   * Returns whether the mouse is over a given rectangle.
-   * <p>
-   * Note: The input rectangle is assumed to be scaled to screen space.
-   *
-   * @param rectangleScreenSpace The rectangle scaled to be in screen space.
-   * @return True if the mouse is within bounds of the {@code rectangleScreenSpace}. False otherwise.
-   */
-  public boolean isMouseOverRectangle(Rectangle2D rectangleScreenSpace) {
-    return myNormalizedMouseX >= rectangleScreenSpace.getX() &&
-           myNormalizedMouseX <= rectangleScreenSpace.getWidth() + rectangleScreenSpace.getX();
+  public double getMouseX() {
+    return myMouseX;
   }
 }

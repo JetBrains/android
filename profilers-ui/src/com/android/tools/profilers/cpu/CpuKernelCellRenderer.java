@@ -29,6 +29,10 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 
+import static com.android.tools.profilers.ProfilerColors.CPU_OTHER_USAGE_CAPTURED;
+import static com.android.tools.profilers.ProfilerColors.CPU_USAGE_CAPTURED;
+import static com.android.tools.profilers.ProfilerColors.DEFAULT_BACKGROUND;
+
 /**
  * This class is responsible for the layout of each row of the cpu process rendering.
  */
@@ -43,8 +47,7 @@ public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuSta
   /**
    * Current process id so we can highlight user process threads as a different color.
    */
-  @VisibleForTesting
-  final int myProcessId;
+  @VisibleForTesting final int myProcessId;
 
   /**
    * Creates a new {@link CpuKernelCellRenderer}, this cell renderer creates a label, as well as a {@link StateChart} for each element
@@ -91,11 +94,6 @@ public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuSta
     // recalculating the render states. This causes the rendering time to be substantially improved.
     int cpuId = value.getCpuId();
     StateChartModel<CpuThreadInfo> model = value.getModel();
-    if (myStateCharts.containsKey(cpuId) && !model.equals(myStateCharts.get(cpuId).getModel())) {
-      // The model associated to the tid has changed. That might have happened because the tid was recycled and
-      // assigned to another thread. The current model needs to be unregistered.
-      myUpdatableManager.unregister(myStateCharts.get(cpuId).getModel());
-    }
     StateChart<CpuThreadInfo> stateChart = getOrCreateStateChart(cpuId, model);
     stateChart.setDrawDebugInfo(myDebugRenderingEnabled);
     stateChart.setOpaque(true);
@@ -122,19 +120,25 @@ public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuSta
     }
     // The state chart corresponding to the thread is not stored on the map. Create a new one.
     StateChart<CpuThreadInfo> stateChart = new StateChart<>(model, new StateChartColorProvider<CpuThreadInfo>() {
+      private final Color CPU_USAGE_CAPTURED_HIGHLIGHTED =
+        ColorUtil.withAlpha(ColorUtil.brighter(CPU_USAGE_CAPTURED, 2), CPU_USAGE_CAPTURED.getAlpha() / 255.0);
+      private final Color CPU_OTHER_USAGE_CAPTURED_HIGHLIGHTED = ColorUtil
+        .withAlpha(ColorUtil.brighter(CPU_OTHER_USAGE_CAPTURED, 2),
+                   CPU_OTHER_USAGE_CAPTURED.getAlpha() / 255.0);
+
       @NotNull
       @Override
       public Color getColor(boolean isMouseOver, @NotNull CpuThreadInfo value) {
         CpuThreadsModel.RangedCpuThread selectedThread = myThreadsList.getSelectedValue();
-        Color color = ProfilerColors.DEFAULT_BACKGROUND;
+        Color color = DEFAULT_BACKGROUND;
 
         // If the thread data we are about to render is part of our process set the color to match the CPU chart.
         if (value.getProcessId() == myProcessId) {
-          color = ProfilerColors.CPU_USAGE_CAPTURED;
+          color = isMouseOver ? CPU_USAGE_CAPTURED_HIGHLIGHTED : CPU_USAGE_CAPTURED;
         }
         // Otherwise if we have thread info that is not empty use the other processes CPU color.
         else if (value != CpuThreadInfo.NULL_THREAD) {
-          color = ProfilerColors.CPU_OTHER_USAGE_CAPTURED;
+          color = isMouseOver ? CPU_OTHER_USAGE_CAPTURED_HIGHLIGHTED : CPU_OTHER_USAGE_CAPTURED;
         }
 
         // If we have a selected thread and its thread id does not match our thread info id fade it, making our selected thread elements pop.
@@ -150,7 +154,6 @@ public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuSta
     CpuCellRenderer.StateChartData<CpuThreadInfo> data = new CpuCellRenderer.StateChartData<>(stateChart, model);
     stateChart.setHeightGap(0.10f);
     myStateCharts.put(cpuId, data);
-    myUpdatableManager.register(model);
     return stateChart;
   }
 }

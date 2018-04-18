@@ -105,7 +105,6 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
 
     getStudioProfilers().getUpdater().register(myAxis);
     getStudioProfilers().getUpdater().register(myDetailedUsage);
-    getStudioProfilers().getUpdater().register(myEventModel);
     getStudioProfilers().getUpdater().register(myLegends);
     getStudioProfilers().getUpdater().register(myUsageTooltipLegends);
     getStudioProfilers().getUpdater().register(myEventTooltipLegends);
@@ -121,7 +120,6 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
 
     getStudioProfilers().getUpdater().unregister(myAxis);
     getStudioProfilers().getUpdater().unregister(myDetailedUsage);
-    getStudioProfilers().getUpdater().unregister(myEventModel);
     getStudioProfilers().getUpdater().unregister(myLegends);
     getStudioProfilers().getUpdater().unregister(myUsageTooltipLegends);
     getStudioProfilers().getUpdater().unregister(myEventTooltipLegends);

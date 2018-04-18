@@ -71,11 +71,6 @@ public class ThreadCellRenderer extends CpuCellRenderer<CpuThreadsModel.RangedCp
     // recalculating the render states. This causes the rendering time to be substantially improved.
     int tid = value.getThreadId();
     StateChartModel<CpuProfilerStage.ThreadState> model = value.getModel();
-    if (myStateCharts.containsKey(tid) && !model.equals(myStateCharts.get(tid).getModel())) {
-      // The model associated to the tid has changed. That might have happened because the tid was recycled and
-      // assigned to another thread. The current model needs to be unregistered.
-      myUpdatableManager.unregister(myStateCharts.get(tid).getModel());
-    }
     StateChart<CpuProfilerStage.ThreadState> stateChart = getOrCreateStateChart(tid, model);
     stateChart.setOpaque(true);
     stateChart.setBorder(null);
@@ -127,7 +122,6 @@ public class ThreadCellRenderer extends CpuCellRenderer<CpuThreadsModel.RangedCp
     stateChart.setHeightGap(3.0f / SIZE_IN_PIXELS);
     myStateCharts.put(tid, data);
     myColors.put(stateChart, enumColors);
-    myUpdatableManager.register(model);
     return stateChart;
   }
 }

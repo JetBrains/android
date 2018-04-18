@@ -174,7 +174,6 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
   public void enter() {
     myEventMonitor.enter();
 
-    getStudioProfilers().getUpdater().register(myRadioState);
     getStudioProfilers().getUpdater().register(myDetailedNetworkUsage);
     getStudioProfilers().getUpdater().register(myTrafficAxis);
     getStudioProfilers().getUpdater().register(myConnectionsAxis);
@@ -190,7 +189,6 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
   public void exit() {
     myEventMonitor.exit();
 
-    getStudioProfilers().getUpdater().unregister(myRadioState);
     getStudioProfilers().getUpdater().unregister(myDetailedNetworkUsage);
     getStudioProfilers().getUpdater().unregister(myTrafficAxis);
     getStudioProfilers().getUpdater().unregister(myConnectionsAxis);
