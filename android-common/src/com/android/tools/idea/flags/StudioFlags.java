@@ -242,7 +242,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> RUNDEBUG_USE_AIA_SDK_LIBRARY = Flag.create(
     RUNDEBUG_GROUP, "instantapps.sdklib.enabled", "Use external SDK library to launch Instant Apps",
     "When provisioning devices and launching Instant Apps, use the AIA SDK library JAR to perform these functions if available",
-    false);
+    true);
 
   public static final Flag<Boolean> RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED = Flag.create(
     RUNDEBUG_GROUP, "android.bundle.build.enabled", "Enable the Build Bundle action",
