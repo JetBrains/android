@@ -111,6 +111,7 @@ public class AndroidProfilersPanel implements HyperlinkListener {
     myAdvancedProfilingCheckBox.setSelected(enabled && state.ADVANCED_PROFILING_ENABLED);
 
     myStartupCpuProfileCheckBox.setSelected(state.STARTUP_CPU_PROFILING_ENABLED);
+    myStartupCpuProfilerDescription.setBackground(myDescription.getBackground());
 
     String name = state.STARTUP_CPU_PROFILING_CONFIGURATION_NAME;
     CpuProfilerConfig config = CpuProfilerConfigsState.getInstance(myProject).getConfigByName(name);
