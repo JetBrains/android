@@ -241,7 +241,6 @@ class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
       myStateChartModel = new StateChartModel<>();
       myStateChart = new StateChart<>(myStateChartModel, TEST_STATE_COLORS);
       myContentPane.add(myStateChart, BorderLayout.CENTER);
-      myComponents.add(myStateChartModel);
       myNewStateControlArrayIndex = 0;
       myValuesArrayIndex = 0;
     }

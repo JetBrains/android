@@ -31,9 +31,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ItemEvent;
-import java.util.Arrays;
+import java.util.*;
 import java.util.List;
-import java.util.Random;
 
 public class StateChartReducerVisualTest extends VisualTest {
   private enum ColorState {
@@ -60,6 +59,8 @@ public class StateChartReducerVisualTest extends VisualTest {
   };
 
   private Range myViewRange;
+  private StateChartModel<ColorState> myOptimizedColorChartModel;
+  private StateChartModel<ColorState> myColorChartModel;
   private StateChart<ColorState> myOptimizedColorChart;
   private StateChart<ColorState> myColorChart;
 
@@ -72,14 +73,14 @@ public class StateChartReducerVisualTest extends VisualTest {
     myViewRange = new Range(0, 0);
     myData = new DefaultDataSeries<>();
     RangedSeries<ColorState> series = new RangedSeries<>(myViewRange, myData);
-    StateChartModel<ColorState> model = new StateChartModel<>();
-    myColorChart = new StateChart<>(model, new StateChartConfig<>((rectangles, values) -> {}), COLOR_STATE_COLORS);
-    model.addSeries(series);
+    myColorChartModel = new StateChartModel<>();
+    myColorChart = new StateChart<>(myColorChartModel, new StateChartConfig<>((rectangles, values) -> {}), COLOR_STATE_COLORS);
+    myColorChartModel.addSeries(series);
 
-    StateChartModel<ColorState> optimizedModel = new StateChartModel<>();
-    myOptimizedColorChart = new StateChart<>(optimizedModel, COLOR_STATE_COLORS);
-    optimizedModel.addSeries(series);
-    return Arrays.asList(model, optimizedModel);
+    myOptimizedColorChartModel = new StateChartModel<>();
+    myOptimizedColorChart = new StateChart<>(myOptimizedColorChartModel, COLOR_STATE_COLORS);
+    myOptimizedColorChartModel.addSeries(series);
+    return Collections.emptyList();
   }
 
   @Override
@@ -112,6 +113,8 @@ public class StateChartReducerVisualTest extends VisualTest {
       myData.add(x, values[random.nextInt(values.length)]);
       myViewRange.setMax(x + 1);
     }
+    myOptimizedColorChartModel.changed(StateChartModel.Aspect.MODEL_CHANGED);
+    myColorChartModel.changed(StateChartModel.Aspect.MODEL_CHANGED);
   }
 
   @Override
