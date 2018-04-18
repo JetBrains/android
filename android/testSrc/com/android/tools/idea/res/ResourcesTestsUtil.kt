@@ -17,11 +17,18 @@
 
 package com.android.tools.idea.res
 
+import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.projectsystem.FilenameConstants
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.roots.DependencyScope
+import com.intellij.openapi.roots.ModuleRootModificationUtil
+import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.facet.AndroidFacet
+import java.io.File
 import java.nio.file.Paths
 
 const val AAR_LIBRARY_NAME = "com.test:test-library:1.0.0"
@@ -51,4 +58,31 @@ fun createTestModuleRepository(
   dynamicRepo: DynamicResourceValueRepository? = null
 ): LocalResourceRepository {
   return ModuleResourceRepository.createForTest(facet, resourceDirectories, namespace, dynamicRepo)
+}
+
+/**
+ * Adds a library dependency to the given module and returns the resources directory which should be filled with content.
+ *
+ * [ResourceRepositoryManager] will find the newly added library and create a separate repository for it when
+ * [ResourceRepositoryManager.getAppResources] is called.
+ */
+fun addAarDependency(module: Module): File {
+  val aarDir = FileUtil.createTempDirectory("exploded-aar", null)
+
+  // Create a manifest file in the right place, so that files inside aarDir are considered resource files.
+  // See AndroidResourceUtil#isResourceDirectory which is called from ResourcesDomFileDescription#isResourcesFile.
+  File(aarDir, SdkConstants.FN_ANDROID_MANIFEST_XML).createNewFile()
+
+  val resDir = File(aarDir, SdkConstants.FD_RES)
+  resDir.mkdir()
+
+  ModuleRootModificationUtil.addModuleLibrary(
+    module,
+    "maven_aar_dependency", // See AndroidMavenUtil.isMavenAarDependency
+    listOf(VfsUtil.findFileByIoFile(resDir, true)!!.url),
+    emptyList<String>(),
+    DependencyScope.COMPILE
+  )
+
+  return resDir
 }
