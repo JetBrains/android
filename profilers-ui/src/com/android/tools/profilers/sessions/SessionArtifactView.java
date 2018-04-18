@@ -33,28 +33,19 @@ import static com.android.tools.profilers.ProfilerColors.SELECTED_SESSION_COLOR;
  */
 public abstract class SessionArtifactView<T extends SessionArtifact> extends JPanel {
 
-  private static final int EXPAND_ICON_RIGHT_PADDING = JBUI.scale(8);
-  private static final int EXPAND_ICON_VERTICAL_PADDING = JBUI.scale(4);
-  private static final int SESSION_HIGHLIGHT_WIDTH = JBUI.scale(3);
-
-  protected static final Border ARTIFACT_ICON_BORDER = BorderFactory.createEmptyBorder(EXPAND_ICON_VERTICAL_PADDING,
-                                                                                       0,
-                                                                                       EXPAND_ICON_VERTICAL_PADDING,
-                                                                                       EXPAND_ICON_RIGHT_PADDING);
-
-  protected static final Border SELECTED_BORDER =
-    BorderFactory.createMatteBorder(0, SESSION_HIGHLIGHT_WIDTH, 0, 0, SELECTED_SESSION_COLOR);
-  protected static final Border UNSELECTED_BORDER = BorderFactory.createEmptyBorder(0, SESSION_HIGHLIGHT_WIDTH, 0, 0);
+  protected static final Border ARTIFACT_ICON_BORDER = JBUI.Borders.empty(4, 0);
+  protected static final Border SELECTED_BORDER = JBUI.Borders.customLine(SELECTED_SESSION_COLOR, 0, 3, 0, 0);
+  protected static final Border UNSELECTED_BORDER = JBUI.Borders.empty(0, 3, 0, 0);
 
   protected static final Border ARTIFACT_PADDING = JBUI.Borders.empty(2, 9, 2, 4);
-  protected static final Border LABEL_PADDING = JBUI.Borders.empty(1, 0);
+  protected static final Border LABEL_PADDING = JBUI.Borders.empty(1, 8, 1, 0);
 
   protected static final Font TITLE_FONT = AdtUiUtils.DEFAULT_FONT.deriveFont(13f);
   protected static final Font STATUS_FONT = AdtUiUtils.DEFAULT_FONT.deriveFont(11f);
 
   @NotNull private final T myArtifact;
   @NotNull private final ArtifactDrawInfo myArtifactDrawInfo;
-  @NotNull private final AspectObserver myObserver;
+  @NotNull protected final AspectObserver myObserver;
 
   public SessionArtifactView(@NotNull ArtifactDrawInfo artifactDrawInfo, @NotNull T artifact) {
     setBackground(HOVERED_SESSION_COLOR);

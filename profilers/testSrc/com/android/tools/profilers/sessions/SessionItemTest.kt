@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.sessions
 
+import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.*
@@ -26,6 +27,7 @@ import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.TimeUnit
 
 class SessionItemTest {
   private val myProfilerService = FakeProfilerService(false)
@@ -85,5 +87,43 @@ class SessionItemTest {
     sessionItem.onSelect()
     // Selecting a memory capture session should not navigate to StudioMonitorStage
     Truth.assertThat(profilers.stageClass).isEqualTo(MemoryProfilerStage::class.java)
+  }
+
+  @Test
+  fun testDurationUpdates() {
+    val profilers = StudioProfilers(
+      myGrpcChannel.client,
+      FakeIdeProfilerServices(),
+      FakeTimer()
+    )
+
+    var aspectChangeCount1 = 0
+    val observer1 = AspectObserver()
+    val finishedSession = Common.Session.newBuilder()
+      .setStartTimestamp(TimeUnit.SECONDS.toNanos(5))
+      .setEndTimestamp(TimeUnit.SECONDS.toNanos(10)).build()
+    val finishedSessionItem = SessionItem(profilers, finishedSession, Common.SessionMetaData.getDefaultInstance())
+    finishedSessionItem.addDependency(observer1)
+      .onChange(SessionItem.Aspect.MODEL, { aspectChangeCount1++ })
+    Truth.assertThat(finishedSessionItem.subtitle).isEqualTo("5s")
+    Truth.assertThat(aspectChangeCount1).isEqualTo(0)
+    // Updating should not affect finished sessions.
+    finishedSessionItem.update(TimeUnit.SECONDS.toNanos(1))
+    Truth.assertThat(finishedSessionItem.subtitle).isEqualTo("5s")
+    Truth.assertThat(aspectChangeCount1).isEqualTo(0)
+
+    var aspectChangeCount2 = 0
+    val observer2 = AspectObserver()
+    val ongoingSession = Common.Session.newBuilder()
+      .setStartTimestamp(TimeUnit.SECONDS.toNanos(5))
+      .setEndTimestamp(Long.MAX_VALUE).build()
+    val ongoingSessionItem = SessionItem(profilers, ongoingSession, Common.SessionMetaData.getDefaultInstance())
+    ongoingSessionItem.addDependency(observer2)
+      .onChange(SessionItem.Aspect.MODEL, { aspectChangeCount2++ })
+    Truth.assertThat(ongoingSessionItem.subtitle).isEqualTo("0s")
+    Truth.assertThat(aspectChangeCount2).isEqualTo(0)
+    ongoingSessionItem.update(TimeUnit.SECONDS.toNanos(2))
+    Truth.assertThat(ongoingSessionItem.subtitle).isEqualTo("2s")
+    Truth.assertThat(aspectChangeCount2).isEqualTo(1)
   }
 }

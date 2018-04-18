@@ -465,7 +465,7 @@ class SessionsViewTest {
     assertThat(cpuCaptureItem.artifact.session).isEqualTo(session)
     assertThat(cpuCaptureItem.artifact.isOngoingCapture).isTrue()
     assertThat(cpuCaptureItem.artifact.name).isEqualTo(ProfilingConfiguration.ATRACE)
-    assertThat(cpuCaptureItem.artifact.subtitle).isEqualTo(CpuCaptureSessionArtifact.CAPTURING_SUBTITLE)
+    assertThat(cpuCaptureItem.artifact.subtitle).isEqualTo(SessionArtifact.CAPTURING_SUBTITLE)
 
     assertThat(myProfilers.stage).isInstanceOf(StudioMonitorStage::class.java) // Makes sure we're in monitor stage
     // Selecting on the CpuCaptureSessionArtifact should open CPU profiler and select the capture

@@ -337,6 +337,38 @@ class SessionsManagerTest {
     assertThat(cpuCaptureItem1.timestampNs).isEqualTo(cpuTraceTimestamp - session1Timestamp)
   }
 
+  @Test
+  fun testSessionsAspectOnlyTriggeredWithChanges() {
+    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
+    val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
+    assertThat(myObserver.sessionsChangedCount).isEqualTo(0)
+
+    myManager.beginSession(device, process1)
+    assertThat(myObserver.sessionsChangedCount).isEqualTo(1)
+
+    // Triggering update with the same data should not fire the aspect.
+    myManager.update()
+    assertThat(myObserver.sessionsChangedCount).isEqualTo(1)
+
+    val heapDumpTimestamp = 10L
+    val heapDumpInfo = MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(heapDumpTimestamp).setEndTime(heapDumpTimestamp + 1).build()
+    myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
+    myManager.update()
+    assertThat(myObserver.sessionsChangedCount).isEqualTo(2)
+    // Repeated update should not fire the aspect.
+    myManager.update()
+    assertThat(myObserver.sessionsChangedCount).isEqualTo(2)
+
+    val cpuTraceTimestamp = 20L
+    val cpuTraceInfo = CpuProfiler.TraceInfo.newBuilder().setFromTimestamp(cpuTraceTimestamp).setToTimestamp(cpuTraceTimestamp + 1).build()
+    myCpuService.addTraceInfo(cpuTraceInfo)
+    myManager.update()
+    assertThat(myObserver.sessionsChangedCount).isEqualTo(3)
+    // Repeated update should not fire the aspect.
+    myManager.update()
+    assertThat(myObserver.sessionsChangedCount).isEqualTo(3)
+  }
+
   private class SessionsAspectObserver : AspectObserver() {
     var selectedSessionChangedCount: Int = 0
     var profilingSessionChangedCount: Int = 0

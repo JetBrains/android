@@ -16,6 +16,8 @@
 package com.android.tools.profilers.sessions;
 
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,8 +29,10 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
-import static com.android.tools.profilers.ProfilerColors.*;
+import static com.android.tools.profilers.ProfilerColors.ACTIVE_SESSION_COLOR;
+import static com.android.tools.profilers.ProfilerColors.SESSION_DIVIDER_COLOR;
 
 /**
  * A {@link SessionArtifactView} that represents a {@link com.android.tools.profiler.proto.Common.Session}
@@ -36,9 +40,11 @@ import static com.android.tools.profilers.ProfilerColors.*;
 public final class SessionItemView extends SessionArtifactView<SessionItem> {
 
   private static final Border DIVIDER_BORDER = JBUI.Borders.customLine(SESSION_DIVIDER_COLOR, 1, 0, 0, 0);
-  private static final Border COMPONENT_PADDING = JBUI.Borders.empty(4, 9, 4, 4);
+  private static final Border COMPONENT_PADDING = JBUI.Borders.empty(4, 2, 4, 4);
   private static final Font SESSION_TIME_FONT =
     TITLE_FONT.deriveFont(Collections.singletonMap(TextAttribute.WEIGHT, TextAttribute.WEIGHT_BOLD));
+
+  @NotNull private final JLabel myDurationLabel;
 
   public SessionItemView(@NotNull ArtifactDrawInfo artifactDrawInfo, @NotNull SessionItem artifact) {
     super(artifactDrawInfo, artifact);
@@ -47,7 +53,6 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
     // 1st row for showing session start time, 2nd row for name, 3rd row for duration
     setLayout(new TabularLayout("Fit-,Fit-,*", "Fit-,Fit-,Fit-"));
 
-    // TODO b\73780379 add duration.
     DateFormat timeFormat = new SimpleDateFormat("hh:mm a");
     JLabel startTime = new JLabel(timeFormat.format(new Date(getArtifact().getSessionMetaData().getStartTimestampEpochMs())));
     startTime.setBorder(LABEL_PADDING);
@@ -66,6 +71,16 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
     sessionName.setBorder(LABEL_PADDING);
     sessionName.setFont(STATUS_FONT);
     add(sessionName, new TabularLayout.Constraint(1, 0, 1, 3));
+
+    myDurationLabel = new JLabel(getArtifact().getName());
+    myDurationLabel.setBorder(LABEL_PADDING);
+    myDurationLabel.setFont(STATUS_FONT);
+    myDurationLabel
+      .setForeground(AdtUiUtils.overlayColor(myDurationLabel.getBackground().getRGB(), myDurationLabel.getForeground().getRGB(), 0.6f));
+    add(myDurationLabel, new TabularLayout.Constraint(2, 0, 1, 3));
+
+    getArtifact().addDependency(myObserver).onChange(SessionItem.Aspect.MODEL, this::modelChanged);
+    modelChanged();
   }
 
   @Override
@@ -75,6 +90,12 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
                              JBUI.Borders.merge(UNSELECTED_BORDER, COMPONENT_PADDING, false);
     // Skip the top border for the first entry as that would duplicate with the toolbar's border
     setBorder(getIndex() == 0 ? selectionBorder : JBUI.Borders.merge(DIVIDER_BORDER, selectionBorder, false));
+  }
+
+  private void modelChanged() {
+    myDurationLabel.setText(getArtifact().getSubtitle());
+    myDurationLabel.revalidate();
+    myDurationLabel.repaint();
   }
 
   /**
