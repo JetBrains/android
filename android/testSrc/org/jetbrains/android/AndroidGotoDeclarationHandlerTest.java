@@ -15,9 +15,15 @@
  */
 package org.jetbrains.android;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.resources.ResourceType;
+import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.ResourcesTestsUtil;
+import com.android.utils.FileUtils;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
@@ -28,6 +34,7 @@ import org.jetbrains.android.dom.AndroidValueResourcesTest;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
@@ -189,6 +196,22 @@ public class AndroidGotoDeclarationHandlerTest extends AndroidTestCase {
                  "               ~|~~~~~~              \n",
                  describeElements(getDeclarationsFrom(file))
     );
+  }
+
+  public void testGotoAarResourceFromCode() throws Exception {
+    myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
+
+    File aarDir = ResourcesTestsUtil.addAarDependency(myModule);
+    File stylesXml = FileUtils.join(aarDir, "values", "styles.xml");
+    FileUtils.createFile(stylesXml, "<resources><style name=\"LibStyle\"></style></resources>");
+    VirtualFile stylesXmlVfs = VfsUtil.findFileByIoFile(stylesXml, true);
+
+    // Sanity check.
+    assertSize(1, ResourceRepositoryManager.getAppResources(myFacet).getResourceItems(
+      ResourceNamespace.RES_AUTO, ResourceType.STYLE, "LibStyle"));
+
+    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "GotoAarStyle.java", "src/p1/p2/GotoAarStyle.java");
+    assertEquals(stylesXmlVfs, getDeclarationsFrom(file)[0].getNavigationElement().getContainingFile().getVirtualFile());
   }
 
   @Nullable
