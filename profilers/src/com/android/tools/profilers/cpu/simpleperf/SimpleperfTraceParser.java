@@ -29,6 +29,7 @@ import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -61,6 +62,11 @@ public class SimpleperfTraceParser implements TraceParser {
    * "/data/app/com.google.sample.tunnel-qpKipbnc0pE6uQs6gxAmbQ=="
    */
   private static final String DATA_APP_DIR = "/data/app";
+
+  /**
+   * Maximum number of characters of a native thread name.
+   */
+  private static final int THREAD_NAME_CHAR_LIMIT = 15;
 
   /**
    * Version of the trace file to be parsed. Should be obtained from the file itself.
@@ -108,15 +114,22 @@ public class SimpleperfTraceParser implements TraceParser {
    */
   private List<String> myEventTypes;
 
+  private String myAppPackageName;
+
   /**
    * Prefix (up to the app name) of the /data/app subfolder corresponding to the app being profiled. For example:
    * "/data/app/com.google.sample.tunnel".
    */
-  @NotNull
-  private final String myAppDataFolderPrefix;
+  private String myAppDataFolderPrefix;
 
-  public SimpleperfTraceParser(@NotNull String applicationId) {
-    myAppDataFolderPrefix = String.format("%s/%s", DATA_APP_DIR, applicationId);
+  /**
+   * Name of the main thread of the application if it can be inferred from the trace file. The main thread name should match the application
+   * package name. However, native thread names are limited to {@link #THREAD_NAME_CHAR_LIMIT} characters, so the resulting name might be a
+   * substring of the application package name.
+   */
+  private String myMainThreadName;
+
+  public SimpleperfTraceParser() {
     myFiles = new HashMap<>();
     mySamples = new ArrayList<>();
     myCaptureTrees = new HashMap<>();
@@ -161,7 +174,12 @@ public class SimpleperfTraceParser implements TraceParser {
   public CpuCapture parse(File trace, int traceId) throws IOException {
     parseTraceFile(trace);
     parseSampleData();
-    return new CpuCapture(this, traceId, CpuProfiler.CpuProfilerType.SIMPLEPERF);
+    if (myMainThreadName == null) {
+      return new CpuCapture(this, traceId, CpuProfiler.CpuProfilerType.SIMPLEPERF);
+    }
+    else {
+      return new CpuCapture(this, traceId, CpuProfiler.CpuProfilerType.SIMPLEPERF, myMainThreadName);
+    }
   }
 
   @Override
@@ -172,6 +190,10 @@ public class SimpleperfTraceParser implements TraceParser {
   @Override
   public Map<CpuThreadInfo, CaptureNode> getCaptureTrees() {
     return myCaptureTrees;
+  }
+
+  String getMainThreadName() {
+    return myMainThreadName;
   }
 
   @Override
@@ -248,6 +270,8 @@ public class SimpleperfTraceParser implements TraceParser {
         case META_INFO:
           SimpleperfReport.MetaInfo info = record.getMetaInfo();
           myEventTypes = info.getEventTypeList();
+          myAppPackageName = info.getAppPackageName();
+          myAppDataFolderPrefix = String.format("%s/%s", DATA_APP_DIR, myAppPackageName);
           break;
         default:
           getLog().warn("Unexpected record data type " + record.getRecordDataCase());
@@ -345,7 +369,11 @@ public class SimpleperfTraceParser implements TraceParser {
 
     // Add a root node to represent the thread itself.
     long firstTimestamp = threadSamples.get(0).getTime();
-    CaptureNode root = createCaptureNode(new SingleNameModel(myThreads.get(threadId)), firstTimestamp);
+    String threadName = myThreads.get(threadId);
+    CaptureNode root = createCaptureNode(new SingleNameModel(threadName), firstTimestamp);
+    if (isMainThread(threadName)) {
+      myMainThreadName = threadName;
+    }
     root.setDepth(0);
     myCaptureTrees.put(new CpuThreadInfo(threadId, myThreads.get(threadId)), root);
 
@@ -371,6 +399,17 @@ public class SimpleperfTraceParser implements TraceParser {
     updateAncestorsEndTime(lastTimestamp, lastVisitedNode);
     // update the root timestamp
     setNodeEndTime(root, lastTimestamp);
+  }
+
+  /**
+   * Whether the given thread name is equal to the application's or is a substring of it and is capped by {@link #THREAD_NAME_CHAR_LIMIT}.
+   */
+  private boolean isMainThread(@NotNull String threadName) {
+    assert myAppPackageName != null;
+    if (threadName.equals(myAppPackageName)) {
+      return true;
+    }
+    return threadName.length() == THREAD_NAME_CHAR_LIMIT && myAppPackageName.contains(threadName);
   }
 
   /**
@@ -462,8 +501,8 @@ public class SimpleperfTraceParser implements TraceParser {
       String methodName = fileNameFromPath(symbolFile.getPath()) + "+" + hexAddress;
       return new NoSymbolModel(methodName);
     }
-    // Otherwise, read the method from the symbol table and parse it into a CaptureNodeModel.
-    // User's code symbols come from files located inside the app's directory, therefore we check if the symbol path has the same prefix of such directory.
+    // Otherwise, read the method from the symbol table and parse it into a CaptureNodeModel. User's code symbols come from
+    // files located inside the app's directory, therefore we check if the symbol path has the same prefix of such directory.
     boolean isUserWritten = symbolFile.getPath().startsWith(myAppDataFolderPrefix);
     return NodeNameParser.parseNodeName(symbolFile.getSymbol(symbolId), isUserWritten);
   }

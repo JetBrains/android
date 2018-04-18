@@ -228,7 +228,7 @@ public class CpuCaptureTest {
     ArtTraceParser artParser = new ArtTraceParser();
     assertThat(artParser.supportsDualClock()).isTrue();
 
-    SimpleperfTraceParser simpleperfTraceParser = new SimpleperfTraceParser("any.id");
+    SimpleperfTraceParser simpleperfTraceParser = new SimpleperfTraceParser();
     assertThat(simpleperfTraceParser.supportsDualClock()).isFalse();
 
     AtraceParser atraceParser = new AtraceParser(123);

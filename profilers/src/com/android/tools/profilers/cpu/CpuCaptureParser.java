@@ -192,8 +192,7 @@ public class CpuCaptureParser {
     if (myServices.getFeatureConfig().isSimpleperfEnabled()) {
       try {
         // Then, try parsing the file as a simpleperf trace if its flag is enabled.
-        // TODO (b/74525724): When obtaining package name directly from simpleperf traces, don't pass "unknown" to the constructor.
-        SimpleperfTraceParser simpleperfParser = new SimpleperfTraceParser("unknown");
+        SimpleperfTraceParser simpleperfParser = new SimpleperfTraceParser();
         return simpleperfParser.parse(traceFile, IMPORTED_TRACE_ID);
       }
       catch (Exception ignored) {
@@ -238,7 +237,7 @@ public class CpuCaptureParser {
         parser = new ArtTraceParser();
       }
       else if (profilerType == CpuProfilerType.SIMPLEPERF) {
-        parser = new SimpleperfTraceParser(myServices.getApplicationId());
+        parser = new SimpleperfTraceParser();
       }
       else if (profilerType == CpuProfilerType.ATRACE) {
         parser = new AtraceParser(session.getPid());
