@@ -36,7 +36,12 @@ import java.util.*;
  * Trebuchet is our parser for atrace (systrace) raw data.
  */
 public class AtraceParser implements TraceParser {
-
+  /**
+   * A value to be used when we don't know the process we want to parse.
+   * Note: The max process id values we can have is max short, and some invalid process names can be -1 so
+   * to avoid confusion we use int max.
+   */
+  public static final int INVALID_PROCESS = Integer.MAX_VALUE;
   /**
    * Map of CpuThreadInfo to capture nodes. The thread info in this map does not contain process information.
    */
@@ -84,9 +89,11 @@ public class AtraceParser implements TraceParser {
     double endTimestampUs = convertToUserTimeUs(myModel.getEndTimestamp());
     myRange = new Range(startTimestampUs, endTimestampUs);
     myProcessModel = myModel.getProcesses().get(myProcessId);
-
     // TODO (b/69910215): Handle case capture does not contain process we are looking for.
-    assert myProcessModel != null;
+    // Throw an exception instead of assert as the caller expects we will throw an exception if we failed to parse.
+    if (myProcessModel == null) {
+      throw new IllegalArgumentException(String.format("A process with the id %s was not found while parsing the capture.", myProcessId));
+    }
     buildCaptureTreeNodes();
     buildThreadStateData();
     buildCpuStateData();

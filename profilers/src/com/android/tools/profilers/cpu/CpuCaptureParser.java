@@ -204,7 +204,7 @@ public class CpuCaptureParser {
       try {
         // Finally, try parsing the file as an atrace trace if its flag is enabled.
         // TODO (b/74526422): Figure out how to get the app process ID from atrace trace file, so we can pass to AtraceParser constructor.
-        AtraceParser atraceParser = new AtraceParser(1);
+        AtraceParser atraceParser = new AtraceParser(AtraceParser.INVALID_PROCESS);
         return atraceParser.parse(traceFile, IMPORTED_TRACE_ID);
       }
       catch (Exception ignored) {

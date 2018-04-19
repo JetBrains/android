@@ -129,7 +129,18 @@ class AtraceParserTest {
     assertThat(dataSeries[0]!![0].value.name).matches("perfd")
     assertThat(dataSeries[0]!![1].value).isEqualTo(CpuThreadInfo.NULL_THREAD)
     assertThat(dataSeries[0]!![2].value.name).matches("rcu_preempt")
+  }
 
+  @Test
+  fun testInvalidProcessIdThrows() {
+    var expectedExceptionCaught = false
+    try {
+      val parser = AtraceParser(AtraceParser.INVALID_PROCESS)
+      parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
+    } catch (e: IllegalArgumentException) {
+      expectedExceptionCaught = true
+    }
+    assertThat(expectedExceptionCaught).isTrue()
   }
 
   companion object {
