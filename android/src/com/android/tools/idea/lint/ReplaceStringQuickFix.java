@@ -194,6 +194,9 @@ public class ReplaceStringQuickFix implements AndroidLintQuickFix {
     // See if there's nothing left on the line; if so, delete the whole line
     int lineStart = DocumentUtil.getLineStartOffset(startOffset, document);
     int lineEnd = DocumentUtil.getLineEndOffset(startOffset, document);
+    if (lineEnd < endOffset) {
+      return range;
+    }
 
     String prefix = document.getText(new TextRange(lineStart, startOffset));
     String suffix = document.getText(new TextRange(endOffset, lineEnd));
