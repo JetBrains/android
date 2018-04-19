@@ -19,6 +19,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.analytics.FilterMetadata;
 import com.android.tools.profilers.cpu.CpuCaptureMetadata;
+import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.sessions.SessionArtifact;
 import com.android.tools.profilers.sessions.SessionsManager;
 import org.jetbrains.annotations.NotNull;
@@ -35,6 +36,11 @@ public final class FakeFeatureTracker implements FeatureTracker {
    * Stores the last {@link FilterMetadata} passed to the tracker.
    */
   private FilterMetadata myLastFilterMetadata;
+
+  /**
+   * Stores the last {@link ProfilingConfiguration} passed to track the startup CPU profiling.
+   */
+  private ProfilingConfiguration myLastCpuStartupProfilingConfig;
 
   @Override
   public void trackEnterStage(@NotNull Class<? extends Stage> stage) {
@@ -138,6 +144,16 @@ public final class FakeFeatureTracker implements FeatureTracker {
 
   public CpuCaptureMetadata getLastCpuCaptureMetadata() {
     return myLastCpuCaptureMetadata;
+  }
+
+  @Override
+  public void trackCpuStartupProfiling(@NotNull ProfilingConfiguration configuration) {
+    myLastCpuStartupProfilingConfig = configuration;
+  }
+
+  @Nullable
+  public ProfilingConfiguration getLastCpuStartupProfilingConfig() {
+    return myLastCpuStartupProfilingConfig;
   }
 
   @Override

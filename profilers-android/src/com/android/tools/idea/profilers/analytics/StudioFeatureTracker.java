@@ -211,6 +211,12 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
+  public void trackCpuStartupProfiling(@NotNull ProfilingConfiguration configuration) {
+    newTracker(AndroidProfilerEvent.Type.CPU_STARTUP_PROFILING).setDevice(myActiveDevice).setCpuStartupProfilingConfiguration(configuration)
+                                                               .track();
+  }
+
+  @Override
   public void trackSelectThread() {
     track(AndroidProfilerEvent.Type.SELECT_THREAD);
   }
@@ -386,6 +392,8 @@ public final class StudioFeatureTracker implements FeatureTracker {
     @Nullable private com.android.tools.profilers.analytics.FilterMetadata myFeatureMetadata;
     @Nullable private ProfilerSessionCreationMetaData mySessionCreationMetadata;
     @Nullable private ProfilerSessionSelectionMetaData mySessionArtifactMetadata;
+    @Nullable private ProfilingConfiguration myCpuStartupProfilingConfiguration;
+
     private AndroidProfilerEvent.MemoryHeap myMemoryHeap = AndroidProfilerEvent.MemoryHeap.UNKNOWN_HEAP;
 
     public Tracker(@NotNull AndroidProfilerEvent.Type eventType, @NotNull AndroidProfilerEvent.Stage stage) {
@@ -402,6 +410,12 @@ public final class StudioFeatureTracker implements FeatureTracker {
     @NotNull
     public Tracker setCpuCaptureMetadata(@Nullable com.android.tools.profilers.cpu.CpuCaptureMetadata cpuCaptureMetadata) {
       myCpuCaptureMetadata = cpuCaptureMetadata;
+      return this;
+    }
+
+    @NotNull
+    public Tracker setCpuStartupProfilingConfiguration(@Nullable ProfilingConfiguration configuration) {
+      myCpuStartupProfilingConfiguration = configuration;
       return this;
     }
 
@@ -433,14 +447,24 @@ public final class StudioFeatureTracker implements FeatureTracker {
       AndroidProfilerEvent.Builder profilerEvent = AndroidProfilerEvent.newBuilder().setStage(myCurrStage).setType(myEventType);
       populateCpuCaptureMetadata(profilerEvent);
       populateFilterMetadata(profilerEvent);
-      if (myEventType == AndroidProfilerEvent.Type.SELECT_MEMORY_HEAP) {
-        profilerEvent.setMemoryHeap(myMemoryHeap);
-      }
-      else if (myEventType == AndroidProfilerEvent.Type.SESSION_CREATED) {
-        profilerEvent.setSessionStartMetadata(mySessionCreationMetadata);
-      }
-      else if (myEventType == AndroidProfilerEvent.Type.SESSION_ARTIFACT_SELECTED) {
-        profilerEvent.setSessionArtifactMetadata(mySessionArtifactMetadata);
+      switch (myEventType) {
+        case SELECT_MEMORY_HEAP:
+          profilerEvent.setMemoryHeap(myMemoryHeap);
+          break;
+        case SESSION_CREATED:
+          profilerEvent.setSessionStartMetadata(mySessionCreationMetadata);
+          break;
+        case SESSION_ARTIFACT_SELECTED:
+          profilerEvent.setSessionArtifactMetadata(mySessionArtifactMetadata);
+          break;
+        case CPU_STARTUP_PROFILING:
+          profilerEvent.setCpuStartupProfilingMetadata(CpuStartupProfilingMetadata
+                                                         .newBuilder()
+                                                         .setProfilingConfig(
+                                                           toStatsCpuProfilingConfig(myCpuStartupProfilingConfiguration)));
+          break;
+        default:
+          break;
       }
 
       AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder()
@@ -527,41 +551,48 @@ public final class StudioFeatureTracker implements FeatureTracker {
             break;
         }
 
-        ProfilingConfiguration config = myCpuCaptureMetadata.getProfilingConfiguration();
-        CpuProfilingConfig.Builder cpuConfigInfo = CpuProfilingConfig.newBuilder()
-          .setSampleInterval(config.getProfilingSamplingIntervalUs())
-          .setSizeLimit(config.getProfilingBufferSizeInMb());
-
-        switch (config.getProfilerType()) {
-          case ART:
-            cpuConfigInfo.setType(CpuProfilingConfig.Type.ART);
-            break;
-          case SIMPLEPERF:
-            cpuConfigInfo.setType(CpuProfilingConfig.Type.SIMPLE_PERF);
-            break;
-          case ATRACE:
-            cpuConfigInfo.setType(CpuProfilingConfig.Type.ATRACE);
-            break;
-          case UNSPECIFIED_PROFILER:
-          case UNRECOGNIZED:
-            break;
-        }
-
-        switch (config.getMode()) {
-          case SAMPLED:
-            cpuConfigInfo.setMode(CpuProfilingConfig.Mode.SAMPLED);
-            break;
-          case INSTRUMENTED:
-            cpuConfigInfo.setMode(CpuProfilingConfig.Mode.INSTRUMENTED);
-            break;
-          case UNSTATED:
-          case UNRECOGNIZED:
-            break;
-        }
-        captureMetadata.setProfilingConfig(cpuConfigInfo.build());
-
+        captureMetadata.setProfilingConfig(toStatsCpuProfilingConfig(myCpuCaptureMetadata.getProfilingConfiguration()));
         profilerEvent.setCpuCaptureMetadata(captureMetadata);
       }
+    }
+
+    /**
+     * Converts the given {@link ProfilingConfiguration} to the representation in analytics, i.e to {@link CpuProfilingConfig}.
+     */
+    @NotNull
+    private CpuProfilingConfig toStatsCpuProfilingConfig(@NotNull ProfilingConfiguration config) {
+      CpuProfilingConfig.Builder cpuConfigInfo = CpuProfilingConfig.newBuilder()
+                                                                   .setSampleInterval(config.getProfilingSamplingIntervalUs())
+                                                                   .setSizeLimit(config.getProfilingBufferSizeInMb());
+
+      switch (config.getProfilerType()) {
+        case ART:
+          cpuConfigInfo.setType(CpuProfilingConfig.Type.ART);
+          break;
+        case SIMPLEPERF:
+          cpuConfigInfo.setType(CpuProfilingConfig.Type.SIMPLE_PERF);
+          break;
+        case ATRACE:
+          cpuConfigInfo.setType(CpuProfilingConfig.Type.ATRACE);
+          break;
+        case UNSPECIFIED_PROFILER:
+        case UNRECOGNIZED:
+          break;
+      }
+
+      switch (config.getMode()) {
+        case SAMPLED:
+          cpuConfigInfo.setMode(CpuProfilingConfig.Mode.SAMPLED);
+          break;
+        case INSTRUMENTED:
+          cpuConfigInfo.setMode(CpuProfilingConfig.Mode.INSTRUMENTED);
+          break;
+        case UNSTATED:
+        case UNRECOGNIZED:
+          break;
+      }
+
+      return cpuConfigInfo.build();
     }
   }
 

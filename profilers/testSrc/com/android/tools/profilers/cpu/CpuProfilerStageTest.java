@@ -21,6 +21,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.analytics.FilterMetadata;
 import com.android.tools.profilers.cpu.atrace.AtraceParser;
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
@@ -30,6 +31,7 @@ import com.android.tools.profilers.network.FakeNetworkService;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.google.common.collect.Iterators;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -816,7 +818,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void apiInitiatedCaptureShouldShowSpecialConfig() throws IOException {
+  public void apiInitiatedCaptureShouldShowSpecialConfig() {
     assertThat(myCpuService.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
     ProfilingConfiguration config1 = new ProfilingConfiguration("My Config",
                                                                 CpuProfiler.CpuProfilerType.SIMPLEPERF,
@@ -892,6 +894,20 @@ public class CpuProfilerStageTest extends AspectObserver {
     CpuProfilerStage stage = new CpuProfilerStage(myStage.getStudioProfilers());
     stage.getStudioProfilers().getUpdater().onTick(1);
     assertThat(stage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
+  }
+
+  @Ignore("http://b/78326357")
+  @Test
+  public void testStartupProfilingUsageTracking() {
+    final FakeFeatureTracker featureTracker = (FakeFeatureTracker)myServices.getFeatureTracker();
+
+    ProfilingConfiguration config = new ProfilingConfiguration("MyConfig", CpuProfiler.CpuProfilerType.ART,
+                                                               CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
+    myCpuService.setOngoingCaptureConfiguration(config.toProto(), 0, CpuProfiler.TraceInitiationType.INITIATED_BY_STARTUP);
+
+    assertThat(featureTracker.getLastCpuStartupProfilingConfig()).isNull();
+    myStage.enter();
+    assertThat(featureTracker.getLastCpuStartupProfilingConfig()).isEqualTo(config);
   }
 
   @Test
