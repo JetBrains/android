@@ -99,9 +99,12 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
       @Override
       public void componentResized(ComponentEvent e) {
         // When a component is first constructed, we need to check whether the mouse is already hovered. If so, draw the hover effect.
-        Point mousePosition = MouseInfo.getPointerInfo().getLocation();
-        SwingUtilities.convertPointFromScreen(mousePosition, SessionArtifactView.this);
-        showHoverState(SessionArtifactView.this.contains(mousePosition));
+        PointerInfo info = MouseInfo.getPointerInfo();
+        if (info != null) {
+          Point mousePosition = info.getLocation();
+          SwingUtilities.convertPointFromScreen(mousePosition, SessionArtifactView.this);
+          showHoverState(SessionArtifactView.this.contains(mousePosition));
+        }
       }
     });
   }
