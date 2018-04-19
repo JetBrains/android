@@ -46,12 +46,11 @@ public class CpuCaptureArtifactView extends SessionArtifactView<CpuCaptureSessio
     JLabel artifactName = new JLabel(getArtifact().getName());
     artifactName.setBorder(LABEL_PADDING);
     artifactName.setFont(TITLE_FONT);
-    JLabel artifactTime =
-      new JLabel(TimeAxisFormatter.DEFAULT.getClockFormattedString(TimeUnit.NANOSECONDS.toMicros(getArtifact().getTimestampNs())));
-    artifactTime.setBorder(LABEL_PADDING);
-    artifactTime.setFont(STATUS_FONT);
+    JLabel artifactSubtitle = new JLabel(getArtifact().getSubtitle());
+    artifactSubtitle.setBorder(LABEL_PADDING);
+    artifactSubtitle.setFont(STATUS_FONT);
     add(artifactName, new TabularLayout.Constraint(0, 1));
-    add(artifactTime, new TabularLayout.Constraint(1, 1));
+    add(artifactSubtitle, new TabularLayout.Constraint(1, 1));
   }
 
   @Override

@@ -26,6 +26,11 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -161,5 +166,22 @@ public class CpuProfilerTest {
 
     assertThat(myCpuProfiler.getTraceFile(session1)).isEqualTo(trace1);
     assertThat(myCpuProfiler.getTraceFile(session2)).isEqualTo(trace2);
+  }
+
+  @Test
+  public void importedSessionsStartTimeShouldBeTraceCreationTime() throws IOException {
+    // Enable the import trace flag
+    myIdeServices.enableImportTrace(true);
+
+    myCpuProfiler = new CpuProfiler(myProfilers);
+    File trace = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
+    long traceCreationTime =
+      Files.readAttributes(Paths.get(trace.getPath()), BasicFileAttributes.class).creationTime().to(TimeUnit.NANOSECONDS);
+
+
+    SessionsManager sessionsManager = myProfilers.getSessionsManager();
+    // Imported session's start time should be equal to the imported trace file creation time
+    sessionsManager.importSessionFromFile(trace);
+    assertThat(sessionsManager.getSelectedSession().getStartTimestamp()).isEqualTo(traceCreationTime);
   }
 }
