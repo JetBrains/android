@@ -15,14 +15,19 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler.*;
 import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.sessions.SessionArtifact;
+import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -30,6 +35,9 @@ import java.util.concurrent.TimeUnit;
  * An artifact representation of a CPU capture.
  */
 public class CpuCaptureSessionArtifact implements SessionArtifact {
+
+  @VisibleForTesting
+  public static final String CAPTURING_SUBTITLE = "Capturing...";
 
   @NotNull private final StudioProfilers myProfilers;
   @NotNull private final Common.Session mySession;
@@ -73,11 +81,26 @@ public class CpuCaptureSessionArtifact implements SessionArtifact {
     return ProfilingConfiguration.getDefaultConfigName(myInfo.getProfilerType());
   }
 
+  public String getSubtitle() {
+    if (myIsOngoingCapture) {
+      return CAPTURING_SUBTITLE;
+    }
+    else if (isImportedSession()) {
+      // For imported sessions, we show the time the file was imported, as it doesn't make sense to show the capture start time within the
+      // session, which is always going to be 00:00:00
+      DateFormat timeFormat = new SimpleDateFormat("MM/dd/yyyy, hh:mm a");
+      return timeFormat.format(new Date(TimeUnit.NANOSECONDS.toMillis(mySession.getStartTimestamp())));
+    }
+    else {
+      // Otherwise, we show the formatted timestamp of the capture relative to the session start time.
+      return TimeAxisFormatter.DEFAULT.getClockFormattedString(TimeUnit.NANOSECONDS.toMicros(getTimestampNs()));
+    }
+  }
+
   @Override
   public long getTimestampNs() {
-    // TODO(b/74975946): ongoing captures subtext should "Capturing..." instead of the start timestamp.
     // For imported traces, we only have an artifact and it should be aligned with session's start time.
-    if (mySessionMetaData.getType() == Common.SessionMetaData.SessionType.CPU_CAPTURE) {
+    if (isImportedSession()) {
       return 0;
     }
     // Otherwise, calculate the relative timestamp of the capture
@@ -92,7 +115,7 @@ public class CpuCaptureSessionArtifact implements SessionArtifact {
       myProfilers.getSessionsManager().setSession(mySession);
     }
 
-    if (mySessionMetaData.getType() == Common.SessionMetaData.SessionType.CPU_CAPTURE) {
+    if (isImportedSession()) {
       // Sessions created from imported traces handle its selection callback via a session change listener, so we just return early here.
       return;
     }
@@ -131,6 +154,10 @@ public class CpuCaptureSessionArtifact implements SessionArtifact {
 
   public boolean isOngoingCapture() {
     return myIsOngoingCapture;
+  }
+
+  private boolean isImportedSession() {
+    return mySessionMetaData.getType() == Common.SessionMetaData.SessionType.CPU_CAPTURE;
   }
 
   public static List<SessionArtifact> getSessionArtifacts(@NotNull StudioProfilers profilers,
