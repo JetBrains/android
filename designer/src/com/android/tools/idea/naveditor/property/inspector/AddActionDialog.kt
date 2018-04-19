@@ -33,7 +33,7 @@ import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.NavigationSchema.*
 import org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.FRAGMENT
 import java.awt.Font
-import java.awt.event.ActionEvent
+import java.awt.event.ActionListener
 import java.awt.event.ItemEvent
 import java.awt.event.ItemListener
 import javax.swing.Action
@@ -211,12 +211,10 @@ open class AddActionDialog(
     }
 
     val destination = existingAction.actionDestinationId
-    if (destination != null) {
-      dialog.myDestinationComboBox.addItem(
-          DestinationListEntry(existingAction.parent!!.findVisibleDestination(destination))
-      )
-      dialog.myDestinationComboBox.selectedIndex = 0
-    }
+    dialog.myDestinationComboBox.addItem(
+      DestinationListEntry(destination?.let { existingAction.parent!!.findVisibleDestination(destination) })
+    )
+    dialog.myDestinationComboBox.selectedIndex = 0
     dialog.myDestinationComboBox.isEnabled = false
 
     selectItem(dialog.myPopToComboBox, { it.component?.getAttribute(ANDROID_URI, ATTR_ID) }, NavigationSchema.ATTR_POP_UP_TO, AUTO_URI, existingAction)
@@ -312,7 +310,7 @@ open class AddActionDialog(
     dialog.myDestinationComboBox.renderer = destinationRenderer
 
     val repoManager = ResourceRepositoryManager.getOrCreateInstance(model.module)
-    dialog.myDestinationComboBox.addItemListener { event ->
+    val destinationListener = ActionListener {
       dialog.myEnterComboBox.removeAllItems()
       dialog.myExitComboBox.removeAllItems()
       dialog.myEnterComboBox.addItem(ValueWithDisplayString("None", null))
@@ -323,13 +321,12 @@ open class AddActionDialog(
       dialog.myPopEnterComboBox.addItem(ValueWithDisplayString("None", null))
       dialog.myPopExitComboBox.addItem(ValueWithDisplayString("None", null))
 
-      val component = (event.item as DestinationListEntry?)?.component
-      var isFragment = false
-      if (component != null) {
-        isFragment = component.destinationType == FRAGMENT
-      }
+      val component = (dialog.myDestinationComboBox.selectedItem as? DestinationListEntry)?.component
+                      ?: (dialog.myPopToComboBox.selectedItem as? DestinationListEntry)?.component
+                      ?: return@ActionListener
+
       if (repoManager != null) {
-        getAnimatorsPopupContent(repoManager, isFragment)
+        getAnimatorsPopupContent(repoManager, component.destinationType == FRAGMENT)
           .forEach { item ->
             dialog.myEnterComboBox.addItem(item)
             dialog.myExitComboBox.addItem(item)
@@ -339,24 +336,25 @@ open class AddActionDialog(
       }
     }
 
-    dialog.myDestinationComboBox.addItemListener { event ->
-      val item = event.item as DestinationListEntry?
-      if (event.stateChange == ItemEvent.SELECTED || item == null) {
-        if (item != null && item.isReturnToSource) {
-          previousPopTo = dialog.myPopToComboBox.selectedItem as DestinationListEntry?
-          previousInclusive = dialog.myInclusiveCheckBox.isSelected
-          selectItem(dialog.myPopToComboBox, {it.component }, parent)
-          dialog.myPopToComboBox.isEnabled = false
-          dialog.myInclusiveCheckBox.isSelected = true
-          dialog.myInclusiveCheckBox.isEnabled = false
-        } else {
-          if (!dialog.myPopToComboBox.isEnabled) {
-            selectItem(dialog.myPopToComboBox, { it }, previousPopTo)
-            dialog.myPopToComboBox.selectedItem = previousPopTo
-            dialog.myInclusiveCheckBox.isSelected = previousInclusive
-            dialog.myPopToComboBox.isEnabled = true
-            dialog.myInclusiveCheckBox.isEnabled = true
-          }
+    dialog.myDestinationComboBox.addActionListener(destinationListener)
+    dialog.myPopToComboBox.addActionListener(destinationListener)
+
+    dialog.myDestinationComboBox.addActionListener {
+      val item = dialog.myDestinationComboBox.selectedItem as? DestinationListEntry
+      if (item != null && item.isReturnToSource) {
+        previousPopTo = dialog.myPopToComboBox.selectedItem as DestinationListEntry?
+        previousInclusive = dialog.myInclusiveCheckBox.isSelected
+        selectItem(dialog.myPopToComboBox, {it.component }, parent)
+        dialog.myPopToComboBox.isEnabled = false
+        dialog.myInclusiveCheckBox.isSelected = true
+        dialog.myInclusiveCheckBox.isEnabled = false
+      } else {
+        if (!dialog.myPopToComboBox.isEnabled) {
+          selectItem(dialog.myPopToComboBox, { it }, previousPopTo)
+          dialog.myPopToComboBox.selectedItem = previousPopTo
+          dialog.myInclusiveCheckBox.isSelected = previousInclusive
+          dialog.myPopToComboBox.isEnabled = true
+          dialog.myInclusiveCheckBox.isEnabled = true
         }
       }
     }
