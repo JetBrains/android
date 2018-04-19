@@ -398,6 +398,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         myCpus.setVisibleRowCount(Math.min(4, myCpus.getModel().getSize()));
         hideableCpus.setVisible(hasElements);
         hideableCpus.setExpanded(hasElements);
+        hideableCpus.setTitle(String.format("KERNEL (%d)", myCpus.getModel().getSize()));
         // When the CpuKernelModel is updated we adjust the splitter. The higher the number the more space
         // the first component occupies. For when we are showing Kernel elements we want to take up more space
         // than when we are not. As such each time we modify the CpuKernelModel (when a trace is selected) we
@@ -577,7 +578,10 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     // TODO(b/62447834): Make a decision on how we want to handle thread selection.
     myThreads.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-
+    myThreads.setBorder(null);
+    myThreads.setCellRenderer(new ThreadCellRenderer(myThreads, myStage.getUpdatableManager()));
+    myThreads.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
+    scrollingThreads.setBorder(null);
     CpuThreadsModel model = myStage.getThreadStates();
     myThreads.addListSelectionListener((e) -> {
       int selectedIndex = myThreads.getSelectedIndex();
@@ -604,8 +608,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     scrollingThreads.setBorder(MONITOR_BORDER);
     scrollingThreads.setViewportView(myThreads);
-    myThreads.setCellRenderer(new ThreadCellRenderer(myThreads, myStage.getUpdatableManager()));
-    myThreads.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
 
     myTooltipComponent.registerListenersOn(myThreads);
     myThreads.addMouseListener(new ProfilerTooltipMouseAdapter(myStage, () -> new CpuThreadsTooltip(myStage)));
@@ -655,8 +657,24 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       }
     });
     // Clear border set by default on the hideable panel.
-    hideablePanel.setBorder(new JBEmptyBorder(0, 0, 0, 0));
+    hideablePanel.setBorder(JBUI.Borders.customLine(ProfilerColors.CPU_AXIS_GUIDE_COLOR, 2, 0, 0, 0));
     hideablePanel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
+    myThreads.getModel().addListDataListener(new ListDataListener() {
+      @Override
+      public void intervalAdded(ListDataEvent e) {
+
+      }
+
+      @Override
+      public void intervalRemoved(ListDataEvent e) {
+
+      }
+
+      @Override
+      public void contentsChanged(ListDataEvent e) {
+        hideablePanel.setTitle(String.format("THREADS (%d)", myThreads.getModel().getSize()));
+      }
+    });
     threads.setBorder(new JBEmptyBorder(0, 0, 0, 0));
     threadsPanel.add(hideablePanel, new TabularLayout.Constraint(THREADS_PANEL_ROW, 0));
   }

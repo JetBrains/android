@@ -51,6 +51,7 @@ public class HideablePanel extends JPanel {
     myStateChangeListeners = new EventListenerList();
     myTitlePanel = new JPanel(new TabularLayout("Fit-,*,Fit-"));
     myLabel = setupTitleBar(builder);
+    setTitle(builder.myTitle);
     myChild.setBorder(builder.myContentBorder == null ? HIDEABLE_CONTENT_BORDER : builder.myContentBorder);
     setBorder(builder.myPanelBorder == null ? HIDEABLE_PANEL_BORDER : builder.myPanelBorder);
     add(myChild, BorderLayout.CENTER);
@@ -68,7 +69,7 @@ public class HideablePanel extends JPanel {
    * @return label to update the expanded icon.
    */
   private JLabel setupTitleBar(@NotNull Builder builder) {
-    JLabel label = new JLabel(String.format("<html><nobr>%s</nobr></html>", builder.myTitle));
+    JLabel label = new JLabel();
     myTitlePanel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     myTitlePanel.addMouseListener(new MouseAdapter() {
       @Override
@@ -95,6 +96,10 @@ public class HideablePanel extends JPanel {
     }
     add(myTitlePanel, BorderLayout.NORTH);
     return label;
+  }
+
+  public void setTitle(String title) {
+    myLabel.setText(String.format("<html><nobr>%s</nobr></html>", title));
   }
 
   /**
