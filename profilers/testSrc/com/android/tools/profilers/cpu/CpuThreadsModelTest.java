@@ -23,7 +23,10 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -32,6 +35,7 @@ public class CpuThreadsModelTest {
   private FakeCpuService myCpuService = new FakeCpuService();
   @Rule
   public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("CpuThreadsModelTest", myCpuService, new FakeProfilerService());
+  private FakeIdeProfilerServices myServices = new FakeIdeProfilerServices();
   private StudioProfilers myProfilers;
   private CpuThreadsModel myThreadsModel;
   private Range myRange;
@@ -39,7 +43,7 @@ public class CpuThreadsModelTest {
   @Before
   public void setUp() {
     FakeTimer timer = new FakeTimer();
-    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), timer);
+    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), myServices, timer);
     // One second must be enough for new devices (and processes) to be picked up
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myRange = new Range();
@@ -108,6 +112,31 @@ public class CpuThreadsModelTest {
     validateThread(5, 100, "Thread 100");
     validateThread(6, 104, "Thread 100");
     validateThread(7, 2, "Thread 2");
+  }
+
+  @Test
+  public void importedThreadsModelComesFromTheCapture() {
+    // Create a threads model from an imported session
+    myServices.enableImportTrace(true);
+    CpuProfilerStage stage = new CpuProfilerStage(myProfilers, CpuProfilerTestUtils.getTraceFile("valid_trace.trace"));
+    myThreadsModel = stage.getThreadStates();
+
+    // The threads from the model should be obtained from the capture itself.
+    CpuCapture capture = stage.getCapture();
+    assertThat(myThreadsModel.getSize()).isEqualTo(capture.getThreads().size());
+
+    // First thread should be the main one
+    validateThread(0, capture.getMainThreadId(), "main");
+
+    // The other threads should be ordered alphabetically.
+    List<CpuThreadInfo> others = capture.getThreads().stream()
+                                        .filter(thread -> thread.getId() != capture.getMainThreadId())
+                                        .sorted(Comparator.comparing(CpuThreadInfo::getName))
+                                        .collect(Collectors.toList());
+    assertThat(others).hasSize(2);
+
+    validateThread(1, others.get(0).getId(), others.get(0).getName());
+    validateThread(2, others.get(1).getId(), others.get(1).getName());
   }
 
   @Test
