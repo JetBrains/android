@@ -115,7 +115,8 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   @VisibleForTesting
   public MemoryProfilerStage(@NotNull StudioProfilers profilers, @NotNull CaptureObjectLoader loader) {
     super(profilers);
-    myIsMemoryCaptureOnly = profilers.getSelectedSessionMetaData().getType() == Common.SessionMetaData.SessionType.MEMORY_CAPTURE;
+    myIsMemoryCaptureOnly =
+      profilers.getSessionsManager().getSelectedSessionMetaData().getType() == Common.SessionMetaData.SessionType.MEMORY_CAPTURE;
     mySessionData = profilers.getSession();
     myClient = profilers.getClient().getMemoryClient();
     HeapDumpSampleDataSeries heapDumpSeries =

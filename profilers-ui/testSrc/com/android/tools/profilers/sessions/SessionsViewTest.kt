@@ -24,9 +24,15 @@ import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profiler.proto.MemoryProfiler
 import com.android.tools.profiler.protobuf3jarjar.ByteString
 import com.android.tools.profilers.*
-import com.android.tools.profilers.cpu.*
+import com.android.tools.profilers.cpu.CpuCaptureArtifactView
+import com.android.tools.profilers.cpu.CpuProfilerStage
+import com.android.tools.profilers.cpu.FakeCpuService
+import com.android.tools.profilers.cpu.ProfilingConfiguration
 import com.android.tools.profilers.event.FakeEventService
-import com.android.tools.profilers.memory.*
+import com.android.tools.profilers.memory.FakeCaptureObjectLoader
+import com.android.tools.profilers.memory.FakeMemoryService
+import com.android.tools.profilers.memory.HprofArtifactView
+import com.android.tools.profilers.memory.MemoryProfilerStage
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject
 import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
@@ -338,7 +344,7 @@ class SessionsViewTest {
 
     val selectedSession = mySessionsManager.selectedSession
     assertThat(session).isEqualTo(selectedSession)
-    assertThat(myProfilers.selectedSessionMetaData.type).isEqualTo(Common.SessionMetaData.SessionType.MEMORY_CAPTURE)
+    assertThat(myProfilers.sessionsManager.selectedSessionMetaData.type).isEqualTo(Common.SessionMetaData.SessionType.MEMORY_CAPTURE)
   }
 
   @Test

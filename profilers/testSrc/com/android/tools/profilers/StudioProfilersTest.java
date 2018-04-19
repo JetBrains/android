@@ -1096,7 +1096,7 @@ public final class StudioProfilersTest {
     myProfilerService.addSession(sessionPreO, sessionPreOMetadata);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     profilers.getSessionsManager().setSession(sessionPreO);
-    assertThat(profilers.getSelectedSessionMetaData().getJvmtiEnabled()).isFalse();
+    assertThat(profilers.getSessionsManager().getSelectedSessionMetaData().getJvmtiEnabled()).isFalse();
 
     assertThat(profilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
@@ -1111,7 +1111,7 @@ public final class StudioProfilersTest {
     myProfilerService.addSession(sessionO, sessionOMetadata);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     profilers.getSessionsManager().setSession(sessionO);
-    assertThat(profilers.getSelectedSessionMetaData().getJvmtiEnabled()).isTrue();
+    assertThat(profilers.getSessionsManager().getSelectedSessionMetaData().getJvmtiEnabled()).isTrue();
 
     assertThat(profilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
@@ -1121,7 +1121,7 @@ public final class StudioProfilersTest {
 
     // When energy flag is disabled and the session is pre-O, GetDirectStages does not return Energy stage.
     fakeServices.enableEnergyProfiler(false);
-    assertThat(profilers.getSelectedSessionMetaData().getJvmtiEnabled()).isTrue();
+    assertThat(profilers.getSessionsManager().getSelectedSessionMetaData().getJvmtiEnabled()).isTrue();
     assertThat(profilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
       MemoryProfilerStage.class,

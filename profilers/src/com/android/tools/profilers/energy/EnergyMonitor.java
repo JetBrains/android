@@ -90,7 +90,7 @@ public class EnergyMonitor extends ProfilerMonitor {
   @Override
   public boolean isEnabled() {
     if (myProfilers.getSession().getSessionId() != 0) {
-      return myProfilers.getSelectedSessionMetaData().getJvmtiEnabled();
+      return myProfilers.getSessionsManager().getSelectedSessionMetaData().getJvmtiEnabled();
     }
     return myProfilers.getDevice() == null || myProfilers.getDevice().getFeatureLevel() >= AndroidVersion.VersionCodes.O;
   }
