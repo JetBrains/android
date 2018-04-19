@@ -611,7 +611,8 @@ public class AttributeProcessingUtil {
     for (String styleableName : styleableAnnotation.value()) {
       StyleableDefinition styleable = definitions.getStyleableByName(styleableName);
       if (styleable != null) {
-        registerStyleableAttributes(element, styleable, isSystem ? ANDROID_URI : null, callback, skippedAttributes);
+        // TODO(namespaces): if !isSystem and we're namespace-aware we should use the library-specific namespace
+        registerStyleableAttributes(element, styleable, isSystem ? ANDROID_URI : AUTO_URI, callback, skippedAttributes);
       }
       else if (isSystem) {
         // DOM element is annotated with @Styleable annotation, but styleable definition with
