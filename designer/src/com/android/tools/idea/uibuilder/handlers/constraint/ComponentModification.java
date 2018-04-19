@@ -21,6 +21,7 @@ import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlComponentDelegate;
 import com.android.utils.Pair;
+import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -90,4 +91,10 @@ public class ComponentModification implements NlAttributesHolder {
     }
   }
 
+  public void commitTo(XmlTag view) {
+    for (Pair<String, String> key : myAttributes.keySet()) {
+      String value = myAttributes.get(key);
+      view.setAttribute(key.getSecond(), key.getFirst(), value);
+    }
+  }
 }

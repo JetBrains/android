@@ -61,6 +61,8 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   @Nullable NlComponent mComponent;
   private static final int UNCONNECTED = -1;
   private Runnable myWriteAction;
+  private ComponentModification myModification;
+
   private final static int SLIDER_DEFAULT = 50;
   public final static String VERTICAL_BIAS_SLIDER = "verticalBiasSlider";
   public final static String HORIZONTAL_BIAS_SLIDER = "horizontalBiasSlider";
@@ -421,17 +423,18 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
       return;
     }
     NlModel model = component.getModel();
-    AttributesTransaction transaction = component.startAttributeTransaction();
-    transaction.setAttribute(nameSpace, attribute, value);
-    transaction.apply();
+
+    if (myModification == null || myModification.getComponent() != component) {
+      myModification = new ComponentModification(component, "Change Widget");
+    }
+    myModification.setAttribute(nameSpace, attribute, value);
+    myModification.apply();
     model.notifyLiveUpdate(false);
     myTimer.setRepeats(false);
 
     myWriteAction = new NlWriteCommandAction(Collections.singletonList(component), "Change Widget", () -> {
-      AttributesTransaction transaction2 = component.startAttributeTransaction();
-
-      transaction2.setAttribute(nameSpace, attribute, value);
-      transaction2.commit();
+      myModification.setAttribute(nameSpace, attribute, value);
+      myModification.commit();
     });
 
     myTimer.restart();
@@ -445,16 +448,16 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     String[] attribute = ourDeleteAttributes[type];
     String[] namespace = ourDeleteNamespace[type];
 
-    AttributesTransaction transaction = mComponent.startAttributeTransaction();
+    ComponentModification modification = new ComponentModification(mComponent, label);
     for (int i = 0; i < attribute.length; i++) {
-      transaction.setAttribute(namespace[i], attribute[i], null);
+      modification.setAttribute(namespace[i], attribute[i], null);
     }
 
-    ConstraintComponentUtilities.ensureHorizontalPosition(mComponent, transaction);
-    ConstraintComponentUtilities.ensureVerticalPosition(mComponent, transaction);
+    ConstraintComponentUtilities.ensureHorizontalPosition(mComponent, modification);
+    ConstraintComponentUtilities.ensureVerticalPosition(mComponent, modification);
 
-    transaction.apply();
-    NlWriteCommandAction.run(mComponent, label, transaction::commit);
+    modification.apply();
+    modification.commit();
   }
 
   public static final int UNKNOWN = -1;
@@ -625,7 +628,6 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   }
 
   public void killLeftConstraint() {
-
     killConstraint(ConstraintAnchor.Type.LEFT);
   }
 

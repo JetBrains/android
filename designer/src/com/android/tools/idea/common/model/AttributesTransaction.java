@@ -19,6 +19,7 @@ import android.view.View;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import com.android.tools.idea.uibuilder.model.LayoutParamsManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.google.common.collect.Maps;
@@ -66,6 +67,14 @@ public class AttributesTransaction implements NlAttributesHolder {
     List<AttributeSnapshot> attributes = myComponent.getAttributes();
     myOriginalValues = Maps.newHashMapWithExpectedSize(attributes.size());
     attributes.stream().forEach((attribute) -> myOriginalValues.put(attributeKey(attribute.namespace, attribute.name), attribute.value));
+  }
+
+  // TODO: fix this.
+  // Temporary fix -- we should not use AttributeTransaction instead.
+  public void applyToModification(ComponentModification modification) {
+    for (PendingAttribute attribute : myPendingAttributes.values()) {
+      modification.setAttribute(attribute.namespace, attribute.name, attribute.value);
+    }
   }
 
   @NotNull
