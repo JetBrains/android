@@ -282,7 +282,7 @@ filegroup(
 filegroup(
     name = "aapt-proto-artifacts",
     srcs = [
-        "//tools/base/sdk-common/aapt-proto-jar-generator:jarjar.jar",
+        "//tools/base/sdk-common/aapt-proto-jar-generator:aapt-proto-jarjar.jar",
     ],
     visibility = ["//visibility:public"],
 )
@@ -290,7 +290,7 @@ filegroup(
 filegroup(
     name = "aia-artifacts",
     srcs = [
-        "//tools/base/sdk-common/aia-manifest-jar-generator:jarjar.jar",
+        "//tools/base/sdk-common/aia-manifest-jar-generator:aia-manifest-proto-1.0-jarjar.jar",
     ],
     visibility = ["//visibility:public"],
 )
