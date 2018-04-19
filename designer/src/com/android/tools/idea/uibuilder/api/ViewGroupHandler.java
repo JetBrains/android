@@ -20,6 +20,7 @@ import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponentDelegate;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.ComponentProvider;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -283,5 +284,9 @@ public class ViewGroupHandler extends ViewHandler {
 
   public interface AccessoryPanelVisibility {
     void show(@NotNull AccessoryPanel.Type type, boolean show);
+  }
+
+  public NlComponentDelegate getNlComponentDelegate() {
+    return null;
   }
 }
