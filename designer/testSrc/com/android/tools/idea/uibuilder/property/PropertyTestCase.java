@@ -251,7 +251,8 @@ public abstract class PropertyTestCase extends LayoutTestCase {
                                        .withBounds(100, 500, 100, 100)
                                        .id("@id/checkBox3")
                                        .width("wrap_content")
-                                       .height("wrap_content"),
+                                       .height("wrap_content")
+                                       .withAttribute(ANDROID_URI, "onCheckedChanged", "@{(cb, isChecked) -> doSomething()}"),
                                      component(SWITCH)
                                        .withBounds(100, 600, 100, 100)
                                        .id("@id/switch")

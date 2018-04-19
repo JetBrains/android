@@ -88,14 +88,18 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     }
   }
 
+  public static boolean isDefinitionAcceptable(@NotNull XmlName name, @Nullable AttributeDefinition attributeDefinition) {
+    return attributeDefinition != null ||
+           ATTRS_WITHOUT_DEFINITIONS.contains(name.getLocalName()) ||
+           SdkConstants.TOOLS_URI.equals(name.getNamespaceKey());
+  }
+
   protected NlPropertyItem(@NotNull XmlName name,
                            @Nullable AttributeDefinition attributeDefinition,
                            @NotNull List<NlComponent> components,
                            @NotNull PropertiesManager propertiesManager) {
     assert !components.isEmpty();
-    if (attributeDefinition == null &&
-        !ATTRS_WITHOUT_DEFINITIONS.contains(name.getLocalName()) &&
-        !SdkConstants.TOOLS_URI.equals(name.getNamespaceKey())) {
+    if (!isDefinitionAcceptable(name, attributeDefinition)) {
       throw new IllegalArgumentException("Missing attribute definition for " + name.getLocalName());
     }
 

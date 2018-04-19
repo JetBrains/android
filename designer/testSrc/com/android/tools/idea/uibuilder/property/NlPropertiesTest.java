@@ -320,6 +320,15 @@ public class NlPropertiesTest extends PropertyTestCase {
     assertAbsent("ImageView", properties, AUTO_URI, ATTR_SRC_COMPAT);
   }
 
+  public void testIgnoreDataBindingProperty() {
+    // Regression test for: b/77234265
+    Table<String, String, NlPropertyItem> properties =
+      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(myCheckBox3));
+    assertAbsent("CheckBox", properties, "", "onCheckedChanged");
+    assertAbsent("CheckBox", properties, ANDROID_URI, "onCheckedChanged");
+    assertAbsent("CheckBox", properties, AUTO_URI, "onCheckedChanged");
+  }
+
   private static void assertPresent(String tag, Table<String, String, NlPropertyItem> properties, String namespace, String... names) {
     for (String n : names) {
       assertNotNull("Missing attribute " + n + " for " + tag, properties.get(namespace, n));

@@ -130,6 +130,19 @@ public class NlProperties {
         }
         AttributeDefinitions attrDefs = NS_RESOURCES.equals(name.getNamespaceKey()) ? systemAttrDefs : localAttrDefs;
         AttributeDefinition attrDef = attrDefs == null ? null : attrDefs.getAttrDefByName(name.getLocalName());
+        if (!NlPropertyItem.isDefinitionAcceptable(name, attrDef)) {
+          // Ignore attributes we don't have information about.
+          // This will ignore special data binding attributes such as:
+          //    CheckBox.onCheckedChanged
+          //    SearchView.onSearchClick
+          //    ZoomControls.onZoomOut
+          // among others.
+          //
+          // TODO: Investigate further:
+          // There is code in TagSnapshot.getValue that blocks the value of these attributes.
+          // Ignore these attributes for now.
+          continue;
+        }
         NlPropertyItem property = NlPropertyItem.create(name, attrDef, components, propertiesManager);
         properties.put(StringUtil.notNullize(name.getNamespaceKey()), property.getName(), property);
       }
@@ -150,11 +163,12 @@ public class NlProperties {
         case AUTO_COMPLETE_TEXT_VIEW:
           // An AutoCompleteTextView has a popup that is created at runtime.
           // Properties for this popup can be added to the AutoCompleteTextView tag.
-          properties.put(ANDROID_URI, ATTR_POPUP_BACKGROUND, NlPropertyItem.create(
-            new XmlName(ATTR_POPUP_BACKGROUND, ANDROID_URI),
-            systemAttrDefs != null ? systemAttrDefs.getAttrDefByName(ATTR_POPUP_BACKGROUND) : null,
-            components,
-            propertiesManager));
+          XmlName popup = new XmlName(ATTR_POPUP_BACKGROUND, ANDROID_URI);
+          AttributeDefinition definition = systemAttrDefs != null ? systemAttrDefs.getAttrDefByName(ATTR_POPUP_BACKGROUND) : null;
+          if (NlPropertyItem.isDefinitionAcceptable(popup, definition)) {
+            properties.put(ANDROID_URI, ATTR_POPUP_BACKGROUND,
+                           NlPropertyItem.create(popup, definition, components, propertiesManager));
+          }
           break;
       }
 
