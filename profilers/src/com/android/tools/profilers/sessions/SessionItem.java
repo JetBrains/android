@@ -30,12 +30,10 @@ public class SessionItem implements SessionArtifact {
   @NotNull private Common.Session mySession;
   @NotNull private final Common.SessionMetaData mySessionMetaData;
 
-  public SessionItem(@NotNull StudioProfilers profilers, @NotNull Common.Session session) {
+  public SessionItem(@NotNull StudioProfilers profilers, @NotNull Common.Session session, @NotNull Common.SessionMetaData metaData) {
     myProfilers = profilers;
     mySession = session;
-    Profiler.GetSessionMetaDataResponse response = myProfilers.getClient().getProfilerClient()
-      .getSessionMetaData(Profiler.GetSessionMetaDataRequest.newBuilder().setSessionId(mySession.getSessionId()).build());
-    mySessionMetaData = response.getData();
+    mySessionMetaData = metaData;
   }
 
   @NotNull

@@ -66,6 +66,11 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   @NotNull private Map<Long, SessionItem> mySessionItems;
 
   /**
+   * A map of Session's Id -> {@link Common.SessionMetaData}
+   */
+  @NotNull private Map<Long, Common.SessionMetaData> mySessionMetaDatas;
+
+  /**
    * A list of session-related items for display in the Sessions panel.
    */
   @NotNull private List<SessionArtifact> mySessionArtifacts;
@@ -103,6 +108,9 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     myProfilers = profilers;
     mySelectedSession = myProfilingSession = Common.Session.getDefaultInstance();
     mySessionItems = new HashMap<>();
+    mySessionMetaDatas = new HashMap<>();
+    // Always return the SessionMetaData default instance for a Session default instance.
+    mySessionMetaDatas.put(Common.Session.getDefaultInstance().getSessionId(), Common.SessionMetaData.getDefaultInstance());
     mySessionArtifacts = new ArrayList<>();
     mySessionViewRangeMap = new HashMap<>();
 
@@ -119,6 +127,14 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   @NotNull
   public Common.Session getProfilingSession() {
     return myProfilingSession;
+  }
+
+  /**
+   * Return the meta data of current selected session
+   */
+  @NotNull
+  public Common.SessionMetaData getSelectedSessionMetaData() {
+    return mySessionMetaDatas.get(mySelectedSession.getSessionId());
   }
 
   @NotNull
@@ -339,8 +355,13 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     sessions.forEach(session -> {
       SessionItem sessionItem = mySessionItems.get(session.getSessionId());
       if (sessionItem == null) {
-        sessionItem = new SessionItem(myProfilers, session);
+        Profiler.GetSessionMetaDataResponse response = myProfilers.getClient().getProfilerClient()
+                                                                  .getSessionMetaData(Profiler.GetSessionMetaDataRequest.newBuilder().setSessionId(session.getSessionId()).build());
+        Common.SessionMetaData metadata = response.getData();
+        sessionItem = new SessionItem(myProfilers, session, metadata);
+
         mySessionItems.put(session.getSessionId(), sessionItem);
+        mySessionMetaDatas.put(session.getSessionId(), metadata);
       }
       else {
         sessionItem.setSession(session);

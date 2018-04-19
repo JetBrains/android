@@ -101,8 +101,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    */
   @NotNull private Common.Session myProfilingSession;
 
-  @NotNull private Common.SessionMetaData mySelectedSessionMetaData;
-
   @NotNull
   private Stage myStage;
 
@@ -184,7 +182,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     // TODO: StudioProfilers initalizes with a default session, which a lot of tests now relies on to avoid a NPE.
     // We should clean all the tests up to either have StudioProfilers create a proper session first or handle the null cases better.
     mySelectedSession = myProfilingSession = Common.Session.getDefaultInstance();
-    mySelectedSessionMetaData = Common.SessionMetaData.getDefaultInstance();
     mySessionsManager.addDependency(this)
                      .onChange(SessionAspect.SELECTED_SESSION, this::selectedSessionChanged)
                      .onChange(SessionAspect.PROFILING_SESSION, this::profilingSessionChanged);
@@ -402,15 +399,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     setStage(new StudioMonitorStage(this));
   }
 
-
-  /**
-   * Return the meta data of current selected session
-   */
-  @NotNull
-  public Common.SessionMetaData getSelectedSessionMetaData() {
-    return mySelectedSessionMetaData;
-  }
-
   /**
    * Chooses a process, and starts profiling it if not already (and stops profiling the previous one).
    *
@@ -470,10 +458,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
 
     mySelectedSession = newSession;
-    mySelectedSessionMetaData = myClient.getProfilerClient()
-                                        .getSessionMetaData(
-                                          GetSessionMetaDataRequest.newBuilder().setSessionId(mySelectedSession.getSessionId()).build())
-                                        .getData();
     myAgentStatus = getAgentStatus(mySelectedSession);
     if (Common.Session.getDefaultInstance().equals(newSession)) {
       // No selected session - go to the null stage.
@@ -483,7 +467,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
 
     // Set the stage base on session type
-    Common.SessionMetaData.SessionType sessionType = mySelectedSessionMetaData.getType();
+    Common.SessionMetaData.SessionType sessionType = mySessionsManager.getSelectedSessionMetaData().getType();
     assert mySessionChangeListener.containsKey(sessionType);
     mySessionChangeListener.get(sessionType).run();
   }
@@ -521,15 +505,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
                                                    ProfilingStateRequest.newBuilder().setSession(mySelectedSession).build());
 
     return response.getBeingProfiled() && response.getIsStartupProfiling();
-  }
-
-  @NotNull
-  public String getSessionDisplayName() {
-    if (Common.Session.getDefaultInstance().equals(mySelectedSession)) {
-      return "";
-    }
-
-    return mySelectedSessionMetaData.getSessionName();
   }
 
   /**
@@ -680,7 +655,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     listBuilder.add(NetworkProfilerStage.class);
     // Show the energy stage in the list only when the session has JVMTI enabled or the device is above O.
     boolean hasSession = mySelectedSession.getSessionId() != 0;
-    boolean isEnergyStageEnabled = hasSession ? mySelectedSessionMetaData.getJvmtiEnabled()
+    boolean isEnergyStageEnabled = hasSession ? mySessionsManager.getSelectedSessionMetaData().getJvmtiEnabled()
                                               : myDevice != null && myDevice.getFeatureLevel() >= AndroidVersion.VersionCodes.O;
     if (getIdeServices().getFeatureConfig().isEnergyProfilerEnabled() && isEnergyStageEnabled) {
       listBuilder.add(EnergyProfilerStage.class);

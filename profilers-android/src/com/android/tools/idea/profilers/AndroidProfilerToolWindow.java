@@ -123,15 +123,10 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
   }
 
   private void selectedSessionChanged() {
-    String sessionName = myProfilers.getSessionDisplayName();
-    if (sessionName.isEmpty()) {
-      myWindow.setTitle("");
-    }
-    else {
-      // setTitle appends to the ToolWindow's existing name (i.e. "Profiler"), hence we only
-      // need to create and set the string for the session's name.
-      myWindow.setTitle(sessionName);
-    }
+    Common.SessionMetaData metaData = myProfilers.getSessionsManager().getSelectedSessionMetaData();
+    // setTitle appends to the ToolWindow's existing name (i.e. "Profiler"), hence we only
+    // need to create and set the string for the session's name.
+    myWindow.setTitle(metaData.getSessionName());
   }
 
   private void profilingSessionChanged() {

@@ -111,7 +111,7 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
   }
 
   public boolean isSessionSelected() {
-    return myArtifact.getSession().equals(myArtifact.getProfilers().getSession());
+    return myArtifact.getSession().equals(myArtifact.getProfilers().getSessionsManager().getSelectedSession());
   }
 
   public int getIndex() {
