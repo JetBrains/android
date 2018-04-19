@@ -2,6 +2,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repo")
 load("//tools/base/bazel:maven.bzl", "maven_java_library")
 
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.core",
     # do not sort: must match IML order
@@ -22,7 +23,6 @@ iml_module(
     ]),
     iml_files = ["intellij.android.core.iml"],
     javacopts = ["-Xep:MissingCasesInEnumSwitch:WARN"],
-    tags = ["managed"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     exports = ["//tools/adt/idea/build-common:intellij.android.buildCommon"],
@@ -125,11 +125,11 @@ iml_module(
     ],
 )
 
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.core.tests",
     iml_files = ["intellij.android.core.tests.iml"],
     javacopts = ["-XepAllErrorsAsWarnings"],
-    tags = ["managed"],
     test_class = "com.android.tools.idea.IdeaTestSuite",
     # keep sorted
     test_data = [

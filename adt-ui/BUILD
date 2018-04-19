@@ -1,12 +1,12 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.adt.ui",
     srcs = ["src/main/java"],
     iml_files = ["intellij.android.adt.ui.iml"],
     resources = ["resources"],
     tags = [
-        "managed",
         "no_test_foundry",  # b/73948555
     ],
     test_class = "com.android.tools.adtui.AdtUiTestSuite",

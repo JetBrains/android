@@ -1,10 +1,10 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.common",
     srcs = ["src"],
     iml_files = ["intellij.android.common.iml"],
-    tags = ["managed"],
     test_class = "com.android.tools.idea.AndroidCommonTestSuite",
     test_data = [
         "//tools/adt/idea/adt-ui/lib/libwebp",

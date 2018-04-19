@@ -1,12 +1,12 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.designer",
     srcs = ["src"],
     iml_files = ["intellij.android.designer.iml"],
     javacopts = ["-XepAllErrorsAsWarnings"],
     resources = ["resources"],
-    tags = ["managed"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
@@ -52,10 +52,10 @@ iml_module(
     ],
 )
 
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.designer.tests",
     iml_files = ["intellij.android.designer.tests.iml"],
-    tags = ["managed"],
     test_class = "com.android.tools.idea.DesignerTestSuite",
     test_data = [
         "//prebuilts/studio/jdk",

@@ -1,10 +1,10 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.sdkUpdates",
     srcs = ["src"],
     iml_files = ["intellij.android.sdkUpdates.iml"],
-    tags = ["managed"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
@@ -31,10 +31,10 @@ iml_module(
     ],
 )
 
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.sdkUpdates.tests",
     iml_files = ["intellij.android.sdkUpdates.tests.iml"],
-    tags = ["managed"],
     test_class = "com.android.tools.idea.updater.SdkUpdaterTestSuite",
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",

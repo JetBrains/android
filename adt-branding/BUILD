@@ -1,11 +1,11 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.adt.branding",
     srcs = ["src"],
     bundle_data = glob(["**"]),
     iml_files = ["intellij.android.adt.branding.iml"],
-    tags = ["managed"],
     test_runtime_deps = ["//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

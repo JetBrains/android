@@ -1,10 +1,10 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.guiTestFramework",
     srcs = ["src"],
     iml_files = ["intellij.android.guiTestFramework.iml"],
-    tags = ["managed"],
     test_runtime_deps = ["//tools/vendor/intellij/cidr:intellij.c.doxygen"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

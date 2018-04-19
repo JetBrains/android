@@ -1,11 +1,11 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
+# managed by go/iml_to_build
 iml_module(
     name = "native-symbolizer",
     # do not sort: must match IML order
     srcs = ["src"],
     iml_files = ["native-symbolizer.iml"],
-    tags = ["managed"],
     test_class = "com.android.tools.nativeSymbolizer.NativeSymbolizerTestSuite",
     test_data = glob(["testData/**"]) + [
         "//prebuilts/tools:lldb",

@@ -1,5 +1,6 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
+# managed by go/iml_to_build
 iml_module(
     name = "android-lang",
     # do not sort: must match IML order
@@ -9,7 +10,6 @@ iml_module(
         "resources",
     ],
     iml_files = ["android-lang.iml"],
-    tags = ["managed"],
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/xml/xml-analysis-impl:intellij.xml.analysis.impl",
@@ -44,10 +44,10 @@ iml_module(
     ],
 )
 
+# managed by go/iml_to_build
 iml_module(
     name = "android-lang-tests",
     iml_files = ["android-lang-tests.iml"],
-    tags = ["managed"],
     test_class = "com.android.tools.idea.lang.AndroidLangTestSuite",
     test_data = glob(["testData/**"]) + [
         "//tools/adt/idea/android/annotations",

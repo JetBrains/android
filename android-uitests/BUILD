@@ -29,10 +29,10 @@ COMMON_TAGS = [
     "slow",
 ]
 
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.guiTests",
     iml_files = ["intellij.android.guiTests.iml"],
-    tags = ["managed"],
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
