@@ -188,8 +188,8 @@ public final class ImageDiffUtil {
       return AdtUiUtils.DEFAULT_FONT;
     }
   }
-  public static void assertImageSimilar(File goldenFile,
-                                        BufferedImage actual,
+  public static void assertImageSimilar(@NotNull File goldenFile,
+                                        @NotNull BufferedImage actual,
                                         double maxPercentDifferent) throws IOException {
     if (!goldenFile.exists()) {
       Files.createParentDirs(goldenFile);
@@ -197,11 +197,15 @@ public final class ImageDiffUtil {
       fail("File did not exist, created here:" + goldenFile);
     }
 
-    assertImageSimilar(goldenFile.getName(), ImageIO.read(goldenFile), actual, maxPercentDifferent);
+    BufferedImage goldenImage = ImageIO.read(goldenFile);
+    assert goldenImage != null : "Failed to read image from " + goldenFile.getAbsolutePath();
+    assertImageSimilar(goldenFile.getName(), goldenImage, actual, maxPercentDifferent);
   }
 
-  public static void assertImageSimilar(String imageName, BufferedImage goldenImage,
-                                  BufferedImage image, double maxPercentDifferent) throws IOException {
+  public static void assertImageSimilar(@NotNull String imageName,
+                                        @NotNull BufferedImage goldenImage,
+                                        @NotNull BufferedImage image,
+                                        double maxPercentDifferent) throws IOException {
     assertEquals("Only TYPE_INT_ARGB image types are supported", TYPE_INT_ARGB, image.getType());
 
     if (goldenImage.getType() != TYPE_INT_ARGB) {
