@@ -15,8 +15,14 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.openapi.project.Project;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Run Configuration used for running Android Apps locally on a device/emulator via the "bundle" gradle tasks.
@@ -24,5 +30,18 @@ import com.intellij.openapi.project.Project;
 public class AndroidBundleRunConfiguration extends AndroidAppRunConfigurationBase {
   public AndroidBundleRunConfiguration(Project project, ConfigurationFactory factory) {
     super(project, factory);
+  }
+
+  @NotNull
+  @Override
+  protected List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet) {
+    List<ValidationError> errors = new ArrayList<>();
+    if (!DynamicAppUtils.supportsBundleTask(facet.getModule())) {
+      ValidationError error = ValidationError.fatal("This configuration requires a newer version of the Android Gradle Plugin",
+                                                    () -> DynamicAppUtils.promptUserForGradleUpdate(getProject()));
+      errors.add(error);
+    }
+    errors.addAll(super.checkConfiguration(facet));
+    return errors;
   }
 }

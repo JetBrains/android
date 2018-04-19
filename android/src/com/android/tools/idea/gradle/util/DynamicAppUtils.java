@@ -18,7 +18,10 @@ package com.android.tools.idea.gradle.util;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.AppBundleProjectBuildOutput;
 import com.android.builder.model.AppBundleVariantBuildOutput;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
+import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -29,14 +32,18 @@ import com.android.tools.idea.run.AndroidBundleRunConfiguration;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
+import com.android.utils.HtmlBuilder;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.android.exportSignedPackage.ChooseBundleOrApkStep;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,6 +54,8 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 
 /**
  * Various utility methods to navigate through various parts (dynamic features, base split, etc.)
@@ -118,6 +127,38 @@ public class DynamicAppUtils {
       return false;
     }
     return !StringUtil.isEmpty(androidModule.getSelectedVariant().getMainArtifact().getBundleTaskName());
+  }
+
+  public static void promptUserForGradleUpdate(@NotNull Project project) {
+    HtmlBuilder builder = new HtmlBuilder();
+    builder.openHtmlBody();
+    builder.add("Building Bundles requires you to update to the latest version of the Android Gradle Plugin.");
+    builder.newline();
+    builder.addLink("Learn More", ChooseBundleOrApkStep.DOC_URL);
+    builder.newline();
+    builder.newline();
+    builder.add("Bundles allow you to support multiple device configurations from a single build artifact.");
+    builder.newline();
+    builder.add("App stores that support the bundle format use it to build and sign your APKs for you, and");
+    builder.newline();
+    builder.add("serve those APKs to users as needed.");
+    builder.newline();
+    builder.newline();
+    builder.closeHtmlBody();
+    final int updateButtonIndex = 1;
+    int result = Messages.showDialog(project,
+                                     builder.getHtml(),
+                                     "Update the Android Gradle Plugin",
+                                     new String[]{Messages.CANCEL_BUTTON, "Update"},
+                                     updateButtonIndex /* Default button */,
+                                     AllIcons.General.WarningDialog);
+
+    if (result == updateButtonIndex) {
+      GradleVersion gradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION);
+      GradleVersion pluginVersion = GradleVersion.parse(AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion());
+      AndroidPluginVersionUpdater updater = AndroidPluginVersionUpdater.getInstance(project);
+      updater.updatePluginVersion(pluginVersion, gradleVersion);
+    }
   }
 
   /**
