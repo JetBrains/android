@@ -119,7 +119,7 @@ public class NlPropertyEditors extends PropertyEditors implements PTableCellEdit
           break;
         case Enum:
           return EditorType.COMBO;
-        case Flag:
+        case Flags:
           return EditorType.FLAG;
         default:
           break;

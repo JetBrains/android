@@ -48,7 +48,7 @@ class InspectorTestUtil(parent: Disposable, facet: AndroidFacet, fixture: JavaCo
   }
 
   fun addFlagsProperty(namespace: String, name: String, values: List<String>) {
-    val definition = AttributeDefinition(name, null, null, listOf(AttributeFormat.Flag))
+    val definition = AttributeDefinition(name, null, null, listOf(AttributeFormat.Flags))
     values.forEach { definition.addValue(it) }
     _properties.put(namespace, name, makeFlagsProperty(namespace, definition))
   }

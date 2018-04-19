@@ -85,7 +85,7 @@ public class NlPropertyRenderers implements PTableCellRendererProvider {
         return myBooleanRenderer;
       }
     }
-    if (formats.contains(AttributeFormat.Flag)) {
+    if (formats.contains(AttributeFormat.Flags)) {
       if (myFlagRenderer.canRender(property, formats)) {
         return myFlagRenderer;
       }

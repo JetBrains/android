@@ -161,7 +161,7 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
     else {
       values = tag.findSubTags(TAG_FLAG);
       if (values.length > 0) {
-        formats.add(AttributeFormat.Flag);
+        formats.add(AttributeFormat.Flags);
       }
     }
     def.addFormats(formats);

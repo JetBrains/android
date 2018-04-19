@@ -77,7 +77,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
                                       @Nullable AttributeDefinition attributeDefinition,
                                       @NotNull List<NlComponent> components,
                                       @NotNull PropertiesManager propertiesManager) {
-    if (attributeDefinition != null && attributeDefinition.getFormats().contains(AttributeFormat.Flag)) {
+    if (attributeDefinition != null && attributeDefinition.getFormats().contains(AttributeFormat.Flags)) {
       return new NlFlagPropertyItem(name, attributeDefinition, components, propertiesManager);
     }
     else if (name.getLocalName().equals(SdkConstants.ATTR_ID)) {

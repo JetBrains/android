@@ -248,7 +248,7 @@ public class AndroidDomUtil {
         containsUnsupportedFormats = true;
       }
     }
-    if (formats.contains(AttributeFormat.Flag)) {
+    if (formats.contains(AttributeFormat.Flags)) {
       return new FlagConverter(compositeBuilder.build(), values);
     }
 

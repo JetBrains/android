@@ -43,6 +43,6 @@ public class NlFlagRenderer extends NlAttributeRenderer {
 
   @Override
   public boolean canRender(@NotNull NlProperty item, @NotNull Set<AttributeFormat> formats) {
-    return formats.contains(AttributeFormat.Flag);
+    return formats.contains(AttributeFormat.Flags);
   }
 }

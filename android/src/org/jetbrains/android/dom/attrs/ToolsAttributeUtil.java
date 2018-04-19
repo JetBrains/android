@@ -58,7 +58,7 @@ public class ToolsAttributeUtil {
   /** List of all the tools namespace attributes and its attribute format */
   private static final ImmutableMap<String, List<AttributeFormat>> ATTRIBUTES = ImmutableMap.<String, List<AttributeFormat>>builder()
     // Layout files attributes
-    .put(ATTR_ACTION_BAR_NAV_MODE, singletonList(AttributeFormat.Flag))
+    .put(ATTR_ACTION_BAR_NAV_MODE, singletonList(AttributeFormat.Flags))
     .put(ATTR_CONTEXT, ImmutableList.of(AttributeFormat.Reference, AttributeFormat.String))
     .put(ATTR_IGNORE, NO_FORMATS)
     .put(ATTR_LISTFOOTER,  singletonList(AttributeFormat.Reference))

@@ -332,7 +332,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
         return ConfiguredThemeEditorStyle.class;
       }
 
-      if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Flag)) {
+      if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Flags)) {
         return Flag.class;
       }
 
