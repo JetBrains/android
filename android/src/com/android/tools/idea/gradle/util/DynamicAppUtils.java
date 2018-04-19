@@ -243,6 +243,23 @@ public class DynamicAppUtils {
     return false;
   }
 
+  /**
+   * Returns {@code true} if we should collect the list of languages of the target devices
+   * when deploying an app.
+   */
+  public static boolean shouldCollectListOfLanguages(@NotNull Module module,
+                                                     @NotNull RunConfiguration configuration,
+                                                     @NotNull List<AndroidDevice> targetDevices) {
+    // Don't collect if not using the bundle tool
+    if (!useSelectApksFromBundleBuilder(module, configuration, targetDevices)) {
+      return false;
+    }
+
+    // Only collect if all devices are L or later devices, because pre-L devices don't support split apks, meaning
+    // they don't support install on demand, meaning all languages should be installed.
+    return targetDevices.stream().allMatch(device -> device.getVersion().getFeatureLevel() >= AndroidVersion.VersionCodes.LOLLIPOP);
+  }
+
 
   @NotNull
   private static Map<String, Module> getDynamicFeaturesMap(@NotNull Project project) {
