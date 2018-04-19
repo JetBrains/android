@@ -352,6 +352,17 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
+java_test(
+    name = "InferNullityTest",
+    data = COMMON_DATA + glob([
+        "testData/Nullity/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.InferNullityTest"],
+    tags = COMMON_TAGS + ["no_psq"],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
 genrule(
     name = "aswb_plugin",
     srcs = ["@blaze//third_party/intellij/bazel/plugin/aswb:aswb_bazel_zip"],
