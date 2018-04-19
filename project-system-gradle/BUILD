@@ -29,6 +29,7 @@ iml_module(
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
     ],
 )
 

@@ -350,6 +350,13 @@ public final class StudioFlags {
     NAVIGATION, "enable.nav.editor", "Enable the Navigation Editor",
     "If enabled, it will be possible to create and edit navigation resource files", true);
 
+  private static final FlagGroup EDITOR = new FlagGroup(FLAGS, "editor", "Editor features");
+  public static final Flag<Boolean> IN_MEMORY_R_CLASSES = Flag.create(
+    EDITOR,
+    "in.memory.r.classes",
+    "Generate R classes fully in memory",
+    "If enabled, R classes are generated in memory", false);
+
   private StudioFlags() {
   }
 }
