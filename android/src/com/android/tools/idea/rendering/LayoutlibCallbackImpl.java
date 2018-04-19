@@ -35,7 +35,7 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
-import com.android.tools.lint.detector.api.LintUtils;
+import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
@@ -477,7 +477,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     Map<String, File> layoutToFile = new HashMap<>();
     Multimap<String, String> includeMap = ArrayListMultimap.create();
     for (File file : myParserFiles) {
-      String layoutName = LintUtils.getLayoutName(file);
+      String layoutName = Lint.getLayoutName(file);
       layoutToFile.put(layoutName, file);
       try {
         String xml = Files.toString(file, Charsets.UTF_8);

@@ -55,7 +55,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
+import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
 
 /**
  * Repository for Android application resources, e.g. those that show up in {@code R}, not {@code android.R}

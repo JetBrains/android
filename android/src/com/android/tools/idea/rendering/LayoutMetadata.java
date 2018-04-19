@@ -46,7 +46,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
+import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
 
 /**
  * Design-time metadata lookup for layouts, such as fragment and AdapterView bindings.

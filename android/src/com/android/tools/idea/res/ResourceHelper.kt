@@ -35,7 +35,10 @@ import com.android.resources.*
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.lint.detector.api.LintUtils
+import com.android.tools.lint.detector.api.computeResourceName
+import com.android.tools.lint.detector.api.computeResourcePrefix
+import com.android.tools.lint.detector.api.getBaseName
+import com.android.tools.lint.detector.api.stripIdPrefix
 import com.google.common.collect.Lists
 import com.google.common.collect.Sets
 import com.intellij.openapi.application.ApplicationManager
@@ -158,7 +161,7 @@ fun getResourceName(file: VirtualFile): String {
   // Note that we use getBaseName here rather than {@link VirtualFile#getNameWithoutExtension}
   // because that method uses lastIndexOf('.') rather than indexOf('.') -- which means that
   // for a nine patch drawable it would include ".9" in the resource name
-  return LintUtils.getBaseName(file.name)
+  return getBaseName(file.name)
 }
 
 /**
@@ -174,7 +177,7 @@ fun getResourceName(file: PsiFile): String {
   // We're replicating that code here rather than just calling
   // getResourceName(file.getVirtualFile());
   // since file.getVirtualFile can return null
-  return LintUtils.getBaseName(file.name)
+  return getBaseName(file.name)
 }
 
 fun getFolderType(file: PsiFile?): ResourceFolderType? {
@@ -689,9 +692,9 @@ fun prependResourcePrefix(module: Module?, name: String?, folderType: ResourceFo
   }
   val facet = AndroidFacet.getInstance(module) ?: return name
   val androidModel = AndroidModuleModel.get(facet) ?: return name
-  val resourcePrefix = LintUtils.computeResourcePrefix(androidModel.androidProject) ?: return name
+  val resourcePrefix = computeResourcePrefix(androidModel.androidProject) ?: return name
   return if (name != null) {
-    if (name.startsWith(resourcePrefix)) name else LintUtils.computeResourceName(resourcePrefix, name, folderType)
+    if (name.startsWith(resourcePrefix)) name else computeResourceName(resourcePrefix, name, folderType)
   } else {
     resourcePrefix
   }
@@ -762,7 +765,7 @@ fun findIdsInFile(file: PsiFile): Set<String> {
     override fun visitElement(element: PsiElement) {
       super.visitElement(element)
       if (element is XmlTag) {
-        val id = LintUtils.stripIdPrefix(element.getAttributeValue(ATTR_ID, ANDROID_URI))
+        val id = stripIdPrefix(element.getAttributeValue(ATTR_ID, ANDROID_URI))
         if (!id.isEmpty()) {
           ids.add(id)
         }

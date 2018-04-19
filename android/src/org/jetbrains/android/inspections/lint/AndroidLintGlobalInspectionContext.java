@@ -9,7 +9,7 @@ import com.android.tools.lint.client.api.LintBaseline;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.detector.api.Issue;
-import com.android.tools.lint.detector.api.LintUtils;
+import com.android.tools.lint.detector.api.Lint;
 import com.android.tools.lint.detector.api.Scope;
 import com.google.common.collect.Lists;
 import com.intellij.analysis.AnalysisScope;
@@ -318,7 +318,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
         if (myBaseline.isRemoveFixed()) {
           message = String.format("Updated baseline file %1$s<br>Removed %2$d issues<br>%3$s remaining", myBaseline.getFile().getName(),
                                   myBaseline.getFixedCount(),
-                                  LintUtils.describeCounts(myBaseline.getFoundErrorCount(), myBaseline.getFoundWarningCount(), false,
+                                  Lint.describeCounts(myBaseline.getFoundErrorCount(), myBaseline.getFoundWarningCount(), false,
                                                            true));
         } else {
           message = String.format("Created baseline file %1$s<br>%2$d issues will be filtered out", myBaseline.getFile().getName(),

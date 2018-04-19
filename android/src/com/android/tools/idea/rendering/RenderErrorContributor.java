@@ -97,8 +97,8 @@ import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_PREFI
 import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
 import static com.android.tools.idea.rendering.RenderLogger.TAG_STILL_BUILDING;
 import static com.android.tools.idea.res.ResourceHelper.isViewPackageNeeded;
-import static com.android.tools.lint.detector.api.LintUtils.editDistance;
-import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
+import static com.android.tools.lint.detector.api.Lint.editDistance;
+import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
 
 /**
  * Class that finds {@link RenderErrorModel.Issue}s in a {@link RenderResult}.
@@ -934,7 +934,7 @@ public class RenderErrorContributor {
         return true;
       }
 
-      if (editDistance(match, matchWith) <= maxDistance) {
+      if (editDistance(match, matchWith, maxDistance + 1) <= maxDistance) {
         // Suggest this class as a typo for the given class
         String labelClass = (suggestedBase.equals(actual) || actual.indexOf('.') != -1) ? suggested : suggestedBase;
         builder.addLink(String.format("Change to %1$s", labelClass),

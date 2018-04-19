@@ -23,7 +23,7 @@ import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.util.PropertiesFiles;
-import com.android.tools.lint.detector.api.LintUtils;
+import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
@@ -998,7 +998,7 @@ class EclipseProject implements Comparable<EclipseProject> {
         proguardConfig = proguardConfig.replace('/', File.separatorChar);
       }
 
-      Iterable<String> paths = LintUtils.splitPath(proguardConfig);
+      Iterable<String> paths = Lint.splitPath(proguardConfig);
       for (String path : paths) {
         if (path.startsWith(SDK_PROPERTY_REF)) {
           mySdkProguardFiles.add(new File(path.substring(SDK_PROPERTY_REF.length()).replace('/', separatorChar)));

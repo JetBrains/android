@@ -21,7 +21,7 @@ import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.projectsystem.*;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
-import com.android.tools.lint.detector.api.LintUtils;
+import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.SdkUtils;
 import com.android.utils.SparseArray;
 import com.google.common.annotations.VisibleForTesting;
@@ -694,7 +694,7 @@ public class HtmlLinkManager {
       id = null;
     }
     else {
-      id = LintUtils.stripIdPrefix(url.substring(start));
+      id = Lint.stripIdPrefix(url.substring(start));
     }
 
     WriteCommandAction<Void> action = new WriteCommandAction<Void>(module.getProject(), "Assign Fragment", file) {
@@ -708,7 +708,7 @@ public class HtmlLinkManager {
 
           if (id != null) {
             String tagId = tag.getAttributeValue(ATTR_ID, ANDROID_URI);
-            if (tagId == null || !tagId.endsWith(id) || !id.equals(LintUtils.stripIdPrefix(tagId))) {
+            if (tagId == null || !tagId.endsWith(id) || !id.equals(Lint.stripIdPrefix(tagId))) {
               continue;
             }
           }

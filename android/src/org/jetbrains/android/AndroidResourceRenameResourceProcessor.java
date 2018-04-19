@@ -24,7 +24,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.res.*;
-import com.android.tools.lint.detector.api.LintUtils;
+import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
@@ -672,7 +672,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
           return AndroidCommonUtils.getResourceName(type, name);
         }
       }
-      return LintUtils.getBaseName(file.getName());
+      return Lint.getBaseName(file.getName());
     }
     else if (element instanceof PsiField) {
       PsiField field = (PsiField)element;
