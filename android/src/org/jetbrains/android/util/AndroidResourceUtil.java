@@ -21,9 +21,7 @@ import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.res.StateList;
-import com.android.tools.idea.res.StateListState;
+import com.android.tools.idea.res.*;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -59,7 +57,6 @@ import com.intellij.util.Processor;
 import com.intellij.util.graph.Graph;
 import org.jetbrains.android.AndroidFileTemplateProvider;
 import org.jetbrains.android.actions.CreateTypedResourceFileAction;
-import org.jetbrains.android.augment.AndroidPsiElementFinder;
 import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.dom.color.ColorSelector;
 import org.jetbrains.android.dom.drawable.DrawableSelector;
@@ -1072,7 +1069,7 @@ public class AndroidResourceUtil {
     if (!localOnly) {
       final String qName = aClass.getQualifiedName();
 
-      if (CLASS_R.equals(qName) || AndroidPsiElementFinder.INTERNAL_R_CLASS_QNAME.equals(qName)) {
+      if (CLASS_R.equals(qName) || AndroidInternalRClassFinder.INTERNAL_R_CLASS_QNAME.equals(qName)) {
         return new MyReferredResourceFieldInfo(resClassName, resFieldName, resolvedModule, true, false);
       }
     }

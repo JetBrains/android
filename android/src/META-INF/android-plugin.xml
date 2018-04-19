@@ -1087,7 +1087,8 @@
 
     <codeInsight.unresolvedReferenceQuickFixProvider implementation="org.jetbrains.android.inspections.AndroidResourceQuickFixProvider"/>
     <lang.psiAugmentProvider implementation="org.jetbrains.android.augment.AndroidPsiAugmentProvider"/>
-    <java.elementFinder implementation="org.jetbrains.android.augment.AndroidPsiElementFinder"/>
+    <java.elementFinder implementation="com.android.tools.idea.res.ProjectSystemPsiElementFinder" order="first, before java"/>
+    <java.elementFinder implementation="com.android.tools.idea.res.AndroidInternalRClassFinder"/>
 
     <packaging.elementType implementation="org.jetbrains.android.compiler.artifact.AndroidFinalPackageElementType"/>
     <packaging.sourceItemProvider implementation="org.jetbrains.android.compiler.artifact.AndroidSourceItemsProvider"/>
