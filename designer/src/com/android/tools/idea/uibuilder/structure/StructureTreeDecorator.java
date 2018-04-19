@@ -20,7 +20,7 @@ import com.android.tools.idea.uibuilder.api.StructurePaneComponentHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.adtui.common.ColoredIconGenerator;
-import com.android.tools.lint.detector.api.LintUtils;
+import com.android.tools.lint.detector.api.Lint;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredTextContainer;
@@ -93,7 +93,7 @@ public class StructureTreeDecorator {
   }
 
   private static void append(@NotNull ColoredTextContainer container, @NotNull NlComponent component) {
-    String id = LintUtils.stripIdPrefix(component.getId());
+    String id = Lint.stripIdPrefix(component.getId());
 
     if (!id.isEmpty()) {
       container.append(id, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);

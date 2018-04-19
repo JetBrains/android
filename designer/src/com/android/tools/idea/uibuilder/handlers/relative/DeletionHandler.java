@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.lint.detector.api.LintUtils;
+import com.android.tools.lint.detector.api.Lint;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -64,7 +64,7 @@ public class DeletionHandler {
     for (NlComponent view : myChildren) {
       String id = view.getId();
       if (id != null) {
-        myNodeMap.put(LintUtils.stripIdPrefix(id), view);
+        myNodeMap.put(Lint.stripIdPrefix(id), view);
       }
     }
 
@@ -72,7 +72,7 @@ public class DeletionHandler {
     for (NlComponent node : myDeleted) {
       String id = node.getId();
       if (id != null) {
-        myDeletedIds.add(LintUtils.stripIdPrefix(id));
+        myDeletedIds.add(Lint.stripIdPrefix(id));
       }
     }
 
@@ -81,7 +81,7 @@ public class DeletionHandler {
     for (NlComponent node : moved) {
       String id = node.getId();
       if (id != null) {
-        myDeletedIds.remove(LintUtils.stripIdPrefix(id));
+        myDeletedIds.remove(Lint.stripIdPrefix(id));
       }
     }
   }

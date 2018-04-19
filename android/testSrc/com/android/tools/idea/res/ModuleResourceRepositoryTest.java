@@ -18,12 +18,10 @@ package com.android.tools.idea.res;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
-import com.android.tools.lint.detector.api.LintUtils;
+import com.android.tools.lint.detector.api.Lint;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
@@ -485,7 +483,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
   }
 
   public void testAllowEmpty() {
-    assertTrue(LintUtils.assertionsEnabled()); // this test should be run with assertions enabled!
+    assertTrue(Lint.assertionsEnabled()); // this test should be run with assertions enabled!
     LocalResourceRepository repository = ModuleResourceRepository.createForTest(myFacet, Collections.emptyList());
     assertNotNull(repository);
     repository.getModificationCount();

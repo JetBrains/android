@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.lint.detector.api.LintUtils;
+import com.android.tools.lint.detector.api.Lint;
 
 import java.util.*;
 
@@ -57,7 +57,7 @@ public class DependencyGraph {
     // Parent view:
     String parentId = layout.getId();
     if (parentId != null) {
-      parentId = LintUtils.stripIdPrefix(parentId);
+      parentId = Lint.stripIdPrefix(parentId);
     }
     else {
       parentId = "RelativeLayout"; // For display purposes; we never reference
@@ -72,7 +72,7 @@ public class DependencyGraph {
     for (NlComponent child : layout.getChildren()) {
       String id = child.getId();
       if (id != null) {
-        id = LintUtils.stripIdPrefix(id);
+        id = Lint.stripIdPrefix(id);
       }
       ViewData view = new ViewData(child, id);
       myNodeToView.put(child, view);
@@ -101,7 +101,7 @@ public class DependencyGraph {
           else {
             // id-based constraint.
             // NOTE: The id could refer to some widget that is NOT a sibling!
-            String targetId = LintUtils.stripIdPrefix(value);
+            String targetId = Lint.stripIdPrefix(value);
             ViewData target = idToView.get(targetId);
             //noinspection StatementWithEmptyBody
             if (target != view) {
@@ -293,7 +293,7 @@ public class DependencyGraph {
       }
 
       if (newName != null) {
-        s = String.format(DEPENDENCY_FORMAT, s, stripLayoutAttributePrefix(newName), newId != null ? LintUtils.stripIdPrefix(newId) : "?");
+        s = String.format(DEPENDENCY_FORMAT, s, stripLayoutAttributePrefix(newName), newId != null ? Lint.stripIdPrefix(newId) : "?");
       }
 
       return s;

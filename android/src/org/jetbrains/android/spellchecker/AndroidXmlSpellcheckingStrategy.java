@@ -18,7 +18,7 @@ package org.jetbrains.android.spellchecker;
 import com.android.SdkConstants;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.lint.client.api.DefaultConfiguration;
-import com.android.tools.lint.detector.api.LintUtils;
+import com.android.tools.lint.detector.api.Lint;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
@@ -231,7 +231,7 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
       }
       PsiDirectory dir = file.getParent();
       if (dir != null) {
-        String locale = LintUtils.getLocaleAndRegion(dir.getName());
+        String locale = Lint.getLocaleAndRegion(dir.getName());
         if (locale == null) {
           locale = getToolsLocale(file);
         }

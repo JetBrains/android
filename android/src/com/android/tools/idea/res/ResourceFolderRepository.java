@@ -70,7 +70,7 @@ import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
 import static com.android.resources.ResourceFolderType.*;
-import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
+import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
 import static org.jetbrains.android.util.AndroidResourceUtil.XML_FILE_RESOURCE_TYPES;
 
 /**
