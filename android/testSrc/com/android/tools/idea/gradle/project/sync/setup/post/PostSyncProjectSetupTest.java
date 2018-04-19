@@ -33,6 +33,7 @@ import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.intellij.execution.BeforeRunTask;
+import com.intellij.execution.RunManagerEx;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.impl.RunManagerImpl;
@@ -69,7 +70,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
   @Mock private GradleProjectBuilder myProjectBuilder;
   @Mock private CommonModuleValidator.Factory myModuleValidatorFactory;
   @Mock private CommonModuleValidator myModuleValidator;
-  @Mock private RunManagerImpl myRunManager;
+  @Mock private RunManagerEx myRunManager;
   @Mock private ProvistionTasks myProvisionTasks;
 
   private ProgressIndicator myProgressIndicator;
@@ -110,13 +111,13 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     AndroidJUnitConfiguration jUnitConfiguration = new AndroidJUnitConfiguration("", project, configurationFactory);
     myRunManager.addConfiguration(myRunManager.createConfiguration(jUnitConfiguration, configurationFactory), true);
 
-    RunConfiguration[] junitRunConfigurations = myRunManager.getConfigurations(AndroidJUnitConfigurationType.getInstance());
+    List<RunConfiguration> junitRunConfigurations = myRunManager.getConfigurationsList(AndroidJUnitConfigurationType.getInstance());
     for (RunConfiguration runConfiguration : junitRunConfigurations) {
       assertSize(1, myRunManager.getBeforeRunTasks(runConfiguration));
       assertEquals(MakeBeforeRunTaskProvider.ID, myRunManager.getBeforeRunTasks(runConfiguration).get(0).getProviderId());
     }
 
-    RunConfiguration runConfiguration = junitRunConfigurations[0];
+    RunConfiguration runConfiguration = junitRunConfigurations.get(0);
     List<BeforeRunTask> tasks = new LinkedList<>(myRunManager.getBeforeRunTasks(runConfiguration));
 
     MakeBeforeRunTaskProvider taskProvider = new MakeBeforeRunTaskProvider(project, AndroidProjectInfo.getInstance(project),
@@ -124,7 +125,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     BeforeRunTask newTask = taskProvider.createTask(runConfiguration);
     newTask.setEnabled(true);
     tasks.add(newTask);
-    myRunManager.setBeforeRunTasks(runConfiguration, tasks, false);
+    myRunManager.setBeforeRunTasks(runConfiguration, tasks);
 
     mySetup.setUpProject(request, myProgressIndicator);
     assertSize(2, myRunManager.getBeforeRunTasks(runConfiguration));

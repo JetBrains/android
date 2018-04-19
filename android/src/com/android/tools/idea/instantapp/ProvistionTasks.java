@@ -41,8 +41,7 @@ public class ProvistionTasks {
     BeforeRunTaskProvider provisionTaskProvider = BeforeRunTaskProvider.getProvider(project, ProvisionBeforeRunTaskProvider.ID);
 
     if (provisionTaskProvider != null) {
-      RunConfiguration[] runConfigurations = runManager.getAllConfigurations();
-      for (RunConfiguration runConfiguration : runConfigurations) {
+      for (RunConfiguration runConfiguration : runManager.getAllConfigurationsList()) {
         if (runConfiguration instanceof AndroidRunConfigurationBase) {
           // Makes a copy so we don't modify the original one in case the method changes its implementation
           List<BeforeRunTask> beforeRunTasks = new ArrayList<>(runManager.getBeforeRunTasks(runConfiguration));
@@ -50,7 +49,7 @@ public class ProvistionTasks {
             BeforeRunTask provisionTask = provisionTaskProvider.createTask(runConfiguration);
             if (provisionTask != null) {
               beforeRunTasks.add(provisionTask);
-              runManager.setBeforeRunTasks(runConfiguration, beforeRunTasks, false);
+              runManager.setBeforeRunTasks(runConfiguration, beforeRunTasks);
             }
           }
         }

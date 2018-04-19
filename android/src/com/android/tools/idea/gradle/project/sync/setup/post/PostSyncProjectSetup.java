@@ -297,7 +297,7 @@ public class PostSyncProjectSetup {
         newBeforeRunTasks.add(beforeRunTask);
       }
     }
-    runManager.setBeforeRunTasks(runConfiguration, newBeforeRunTasks, false);
+    runManager.setBeforeRunTasks(runConfiguration, newBeforeRunTasks);
   }
 
   private void attemptToGenerateSources(@NotNull Request request) {
