@@ -105,7 +105,7 @@ public class CommonDropDownButtonUI extends BasicButtonUI {
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
     CommonDropDownButton button = (CommonDropDownButton)component;
-    if (myHover || button.isSelected()) {
+    if ((myHover && button.isEnabled()) || button.isSelected()) {
       GraphicsUtilKt.paintBackground(graphics, component);
     }
     super.paint(graphics, component);

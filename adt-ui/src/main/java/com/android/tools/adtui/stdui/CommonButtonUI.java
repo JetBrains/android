@@ -73,7 +73,7 @@ class CommonButtonUI extends BasicButtonUI {
   public void paint(Graphics g, JComponent c) {
     AbstractButton b = (AbstractButton)c;
     // TODO: Create a unique style for showing focus on buttons, for now use the hover state visuals.
-    if (myHover || b.isSelected() || b.isFocusOwner()) {
+    if ((myHover && b.isEnabled()) || b.isSelected() || b.isFocusOwner()) {
       GraphicsUtilKt.paintBackground(g, c);
     }
     super.paint(g, c);

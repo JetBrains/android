@@ -85,7 +85,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   private JPanel myMonitoringToolbar;
   private JPanel myCommonToolbar;
   private JPanel myGoLiveToolbar;
-  private AbstractButton myGoLive;
+  private JToggleButton myGoLive;
 
   @NotNull
   private final IdeProfilerComponents myIdeProfilerComponents;
@@ -171,6 +171,12 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   public <S extends Stage, T extends StageView> void bind(@NotNull Class<S> clazz,
                                                           @NotNull BiFunction<StudioProfilersView, S, T> constructor) {
     myBinder.bind(clazz, constructor);
+  }
+
+  @VisibleForTesting
+  @NotNull
+  JToggleButton getGoLiveButton() {
+    return myGoLive;
   }
 
   @VisibleForTesting
@@ -343,6 +349,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       zoomIn.setEnabled(isValidSession);
       resetZoom.setEnabled(isValidSession);
       myGoLive.setEnabled(isAlive);
+      myGoLive.setSelected(isAlive);
     };
     myProfiler.getSessionsManager().addDependency(this).onChange(SessionAspect.SELECTED_SESSION, toggleToolButtons);
     toggleToolButtons.run();
