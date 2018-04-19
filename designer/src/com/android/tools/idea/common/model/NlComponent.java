@@ -78,6 +78,7 @@ public class NlComponent implements NlAttributesHolder {
   private final ListenerCollection<ChangeListener> myListeners = ListenerCollection.createWithDirectExecutor();
   private final ChangeEvent myChangeEvent = new ChangeEvent(this);
   private DependencyGraph myCachedDependencyGraph;
+  private NlComponentDelegate myDelegate;
 
   /**
    * Current open attributes transaction or null if none is open
@@ -106,6 +107,15 @@ public class NlComponent implements NlAttributesHolder {
     myTag = tag;
     myTagPointer = tagPointer;
     myTagName = tag.getName();
+  }
+
+  @Nullable
+  public NlComponentDelegate getDelegate() {
+    return myDelegate;
+  }
+
+  public void setDelegate(@Nullable NlComponentDelegate delegate) {
+    myDelegate = delegate;
   }
 
   public void setMixin(@NotNull XmlModelComponentMixin mixin) {
@@ -413,6 +423,9 @@ public class NlComponent implements NlAttributesHolder {
    */
   @Nullable
   public String getLiveAttribute(@Nullable String namespace, @NotNull String attribute) {
+    if (myDelegate != null && myDelegate.handlesAttribute(this, namespace, attribute)) {
+      return myDelegate.getAttribute(this, namespace, attribute);
+    }
     if (myCurrentTransaction != null) {
       return myCurrentTransaction.getAttribute(namespace, attribute);
     }
@@ -422,6 +435,9 @@ public class NlComponent implements NlAttributesHolder {
   @Override
   @Nullable
   public String getAttribute(@Nullable String namespace, @NotNull String attribute) {
+    if (myDelegate != null && myDelegate.handlesAttribute(this, namespace, attribute)) {
+      return myDelegate.getAttribute(this, namespace, attribute);
+    }
     if (mySnapshot != null) {
       return mySnapshot.getAttribute(attribute, namespace);
     }
@@ -451,6 +467,9 @@ public class NlComponent implements NlAttributesHolder {
 
   @NotNull
   public List<AttributeSnapshot> getAttributes() {
+    if (myDelegate != null && myDelegate.handlesAttributes(this)) {
+      return myDelegate.getAttributes(this);
+    }
     if (mySnapshot != null) {
       return mySnapshot.attributes;
     }
