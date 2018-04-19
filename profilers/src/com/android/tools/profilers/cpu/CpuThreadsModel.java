@@ -118,10 +118,10 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
       RangedCpuThread first = (RangedCpuThread)a;
       RangedCpuThread second = (RangedCpuThread)b;
       // Process main thread should be first element.
-      if (first.getThreadId() == mySession.getPid()) {
+      if (first.isMainThread()) {
         return -1;
       }
-      else if (second.getThreadId() == mySession.getPid()) {
+      else if (second.isMainThread()) {
         return 1;
       }
 
@@ -181,6 +181,7 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
   public class RangedCpuThread implements DragAndDropModelListElement {
 
     private final int myThreadId;
+    private final boolean myIsMainThread;
     private final String myName;
     private final Range myRange;
     private final StateChartModel<CpuProfilerStage.ThreadState> myModel;
@@ -216,11 +217,15 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
         ThreadStateDataSeries threadStateDataSeries = new ThreadStateDataSeries(myStage, mySession, myThreadId);
         myAtraceDataSeries = new AtraceDataSeries<>(myStage, (atraceCapture) -> atraceCapture.getThreadStatesForThread(myThreadId));
         mySeries = new MergeCaptureDataSeries<>(myStage, threadStateDataSeries, myAtraceDataSeries);
+        // For non-imported traces, the main thread ID is equal to the process ID of the current session
+        myIsMainThread = myThreadId == mySession.getPid();
       }
       else {
         // If thread is created from an imported trace (excluding atrace), we should use an ImportedTraceThreadDataSeries
-        mySeries = new ImportedTraceThreadDataSeries(capture, myThreadId);
         myAtraceDataSeries = null; // No use for the AtraceDataSeries
+        mySeries = new ImportedTraceThreadDataSeries(capture, myThreadId);
+        // For imported traces, the main thread ID can be obtained from the capture
+        myIsMainThread = myThreadId == capture.getMainThreadId();
       }
       myModel.addSeries(new RangedSeries<>(myRange, mySeries));
     }
@@ -247,6 +252,10 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
     @Override
     public int getId() {
       return myThreadId;
+    }
+
+    public boolean isMainThread() {
+      return myIsMainThread;
     }
   }
 }
