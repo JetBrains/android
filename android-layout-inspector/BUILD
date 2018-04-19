@@ -1,10 +1,10 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
+# managed by go/iml_to_build
 iml_module(
     name = "android-layout-inspector",
     srcs = ["src"],
     iml_files = ["android-layout-inspector.iml"],
-    tags = ["managed"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
@@ -39,10 +39,10 @@ iml_module(
     ],
 )
 
+# managed by go/iml_to_build
 iml_module(
     name = "android-layout-inspector-test",
     iml_files = ["android-layout-inspector-test.iml"],
-    tags = ["managed"],
     test_class = "com.android.tools.idea.LayoutInspectorTestSuite",
     # keep sorted
     test_data = [

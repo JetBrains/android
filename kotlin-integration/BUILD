@@ -1,10 +1,10 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repo")
 
+# managed by go/iml_to_build
 iml_module(
     name = "kotlin-integration-tests",
     iml_files = ["kotlin-integration-tests.iml"],
-    tags = ["managed"],
     test_class = "com.android.tools.idea.KotlinIntegrationTestSuite",
     # keep sorted
     test_data = [

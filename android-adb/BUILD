@@ -1,11 +1,11 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repo")
 
+# managed by go/iml_to_build
 iml_module(
     name = "android-adb",
     srcs = ["src"],
     iml_files = ["android-adb.iml"],
-    tags = ["managed"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -18,10 +18,10 @@ iml_module(
     ],
 )
 
+# managed by go/iml_to_build
 iml_module(
     name = "android-adb-tests",
     iml_files = ["android-adb-tests.iml"],
-    tags = ["managed"],
     test_class = "com.android.tools.idea.adb.AndroidAdbTestSuite",
     test_data = ["//prebuilts/studio/sdk:platform-tools"],
     # do not sort: must match IML order

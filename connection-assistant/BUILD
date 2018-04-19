@@ -1,11 +1,11 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
+# managed by go/iml_to_build
 iml_module(
     name = "connection-assistant",
     srcs = ["src"],
     iml_files = ["connection-assistant.iml"],
     resources = ["resources"],
-    tags = ["managed"],
     # keep sorted
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",
@@ -43,10 +43,10 @@ iml_module(
     ],
 )
 
+# managed by go/iml_to_build
 iml_module(
     name = "connection-assistant-test",
     iml_files = ["connection-assistant-test.iml"],
-    tags = ["managed"],
     test_class = "com.android.tools.idea.connection.assistant.ConnectionAssistantTestSuite",
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",

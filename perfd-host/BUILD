@@ -1,10 +1,10 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.perfdHost",
     srcs = ["src/main/java"],
     iml_files = ["intellij.android.perfdHost.iml"],
-    tags = ["managed"],
     test_resources = ["testData"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

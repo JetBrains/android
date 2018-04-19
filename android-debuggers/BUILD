@@ -1,10 +1,10 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
+# managed by go/iml_to_build
 iml_module(
     name = "android-debuggers",
     srcs = ["src"],
     iml_files = ["android-debuggers.iml"],
-    tags = ["managed"],
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/xml/xml-analysis-impl:intellij.xml.analysis.impl",
@@ -40,10 +40,10 @@ iml_module(
     ],
 )
 
+# managed by go/iml_to_build
 iml_module(
     name = "android-debuggers-tests",
     iml_files = ["android-debuggers-tests.iml"],
-    tags = ["managed"],
     test_class = "com.android.tools.idea.debuggers.AndroidDebuggersTestSuite",
     # do not sort: must match IML order
     test_runtime_deps = [

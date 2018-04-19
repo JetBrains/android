@@ -1,10 +1,10 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
+# managed by go/iml_to_build
 iml_module(
     name = "apkanalyzer",
     srcs = ["src"],
     iml_files = ["apkanalyzer.iml"],
-    tags = ["managed"],
     test_runtime_deps = ["//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
