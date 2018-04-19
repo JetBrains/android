@@ -23,7 +23,11 @@ import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.updater.UpdatableManager;
 import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerLayout;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.util.ui.JBDimension;
+import com.intellij.util.ui.JBUI;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -78,11 +82,15 @@ public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuSta
                                                 int index,
                                                 boolean isSelected,
                                                 boolean cellHasFocus) {
-    JPanel panel = new JPanel(new TabularLayout("150px,*", "30px"));
+    JPanel panel = new JPanel(new TabularLayout("150px,*", "*"));
+    panel.setBorder(ProfilerLayout.CPU_THREADS_BORDER);
+    panel.setPreferredSize(JBDimension.create(panel.getPreferredSize()).withHeight(ProfilerLayout.CPU_THREADS_LINE_HEIGHT));
     panel.setBackground(list.getBackground());
     myLabel.setText(String.format("CPU %d", value.getCpuId()));
     myLabel.setBackground(ProfilerColors.THREAD_LABEL_BACKGROUND);
     myLabel.setForeground(ProfilerColors.THREAD_LABEL_TEXT);
+    // Offset the label to match the threads component.
+    myLabel.setBorder(JBUI.Borders.emptyLeft(StudioIcons.Menu.MENU.getIconWidth() + myLabel.getIconTextGap()));
 
     // Instead of using just one statechart for the cell renderer and set its model here, we cache the statecharts
     // corresponding to each cpu. StateChart#setModel is currently expensive and will make StateChart#render
@@ -159,7 +167,6 @@ public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuSta
     }, (threadInfo) -> threadInfo.getName());
     stateChart.setRenderMode(StateChart.RenderMode.TEXT);
     CpuCellRenderer.StateChartData<CpuThreadInfo> data = new CpuCellRenderer.StateChartData<>(stateChart, model);
-    stateChart.setHeightGap(0.10f);
     myStateCharts.put(cpuId, data);
     return stateChart;
   }

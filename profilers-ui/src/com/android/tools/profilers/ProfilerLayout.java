@@ -87,6 +87,12 @@ public class ProfilerLayout {
   public static final Border TOOLBAR_ICON_BORDER = JBUI.Borders.empty(4);
   public static final Font TOOLBAR_LABEL_FONT = AdtUiUtils.DEFAULT_FONT.deriveFont(11f);
 
+  /**
+   * Used in the CPU threads/kernel cell renderer's to set the preferred height.
+   */
+  public static final int CPU_THREADS_LINE_HEIGHT = 21;
+  public static final Border CPU_THREADS_BORDER = JBUI.Borders.empty(2, 0);
+
   private ProfilerLayout() {
     // Static class designed to hold constants only
   }
