@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslParser;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslWriter;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -37,11 +38,9 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
@@ -58,7 +57,7 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
   @Nullable private GradleDslFile myParentModuleDslFile;
   @Nullable private GradleDslFile mySiblingDslFile;
 
-  @NotNull private final List<ApplyDslElement> myAppliedFiles;
+  @Nullable private ApplyDslElement myApplyDslElement;
   @NotNull private final BuildModelContext myBuildModelContext;
 
   protected GradleDslFile(@NotNull VirtualFile file,
@@ -68,7 +67,6 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
     super(null, null, GradleNameElement.fake(moduleName));
     myFile = file;
     myProject = project;
-    myAppliedFiles = new ArrayList<>();
     myBuildModelContext = context;
 
     Application application = ApplicationManager.getApplication();
@@ -132,8 +130,8 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
   }
 
   @NotNull
-  public List<GradleDslFile> getAppliedFiles() {
-    return myAppliedFiles.stream().map(ApplyDslElement::getAppliedDslFile).collect(Collectors.toList());
+  public List<GradleDslFile> getApplyDslElement() {
+    return myApplyDslElement == null ? ImmutableList.of() : myApplyDslElement.getAppliedDslFiles();
   }
 
   public void setParentModuleDslFile(@NotNull GradleDslFile parentModuleDslFile) {
@@ -188,9 +186,9 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
   @Override
   protected void apply() {
     // First make sure we update all our applied files.
-    for (ApplyDslElement applyElement : myAppliedFiles) {
-      if (applyElement.getAppliedDslFile() != null) {
-        applyElement.getAppliedDslFile().apply();
+    if (myApplyDslElement != null) {
+      for (GradleDslFile file : myApplyDslElement.getAppliedDslFiles()) {
+        file.apply();
       }
     }
 
@@ -198,10 +196,10 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
     super.apply();
   }
 
-  public void registerAppliedFile(@NotNull ApplyDslElement applyElement) {
-    myAppliedFiles.add(applyElement);
+  public void registerApplyElement(@NotNull ApplyDslElement applyElement) {
+    myApplyDslElement = applyElement;
   }
-  
+
   @NotNull
   public List<BuildModelNotification> getPublicNotifications() {
     return myBuildModelContext.getPublicNotifications();

@@ -100,8 +100,8 @@ public abstract class GradleFileModelImpl implements GradleFileModel {
     // Attempting to parse a cycle of applied files will fail in GradleDslFile#mergeAppliedFiles;
     while (!currentFiles.isEmpty()) {
       GradleDslFile currentFile = currentFiles.remove(0);
-      files.addAll(currentFile.getAppliedFiles());
-      currentFiles.addAll(currentFile.getAppliedFiles());
+      files.addAll(currentFile.getApplyDslElement());
+      currentFiles.addAll(currentFile.getApplyDslElement());
     }
 
     // Get all the properties files.

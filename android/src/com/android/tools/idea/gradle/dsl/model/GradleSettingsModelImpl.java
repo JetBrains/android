@@ -80,28 +80,23 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
     return result;
   }
 
-  @NotNull
   @Override
-  public GradleSettingsModelImpl addModulePath(@NotNull String modulePath) {
+  public void addModulePath(@NotNull String modulePath) {
     modulePath = standardiseModulePath(modulePath);
     myGradleDslFile.addToNewLiteralList(INCLUDE, modulePath);
-    return this;
   }
 
-  @NotNull
   @Override
-  public GradleSettingsModelImpl removeModulePath(@NotNull String modulePath) {
+  public void removeModulePath(@NotNull String modulePath) {
     // Try to remove the module path whether it has ":" prefix or not.
     if (!modulePath.startsWith(":")) {
       myGradleDslFile.removeFromExpressionList(INCLUDE, ":" + modulePath);
     }
     myGradleDslFile.removeFromExpressionList(INCLUDE, modulePath);
-    return this;
   }
 
-  @NotNull
   @Override
-  public GradleSettingsModelImpl replaceModulePath(@NotNull String oldModulePath, @NotNull String newModulePath) {
+  public void replaceModulePath(@NotNull String oldModulePath, @NotNull String newModulePath) {
     // Try to replace the module path whether it has ":" prefix or not.
     if (!newModulePath.startsWith(":")) {
       newModulePath = ":" + newModulePath;
@@ -110,7 +105,6 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
       myGradleDslFile.replaceInExpressionList(INCLUDE, ":" + oldModulePath, newModulePath);
     }
     myGradleDslFile.replaceInExpressionList(INCLUDE, oldModulePath, newModulePath);
-    return this;
   }
 
   @Nullable

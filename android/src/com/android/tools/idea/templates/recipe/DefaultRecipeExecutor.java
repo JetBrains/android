@@ -123,7 +123,7 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
     File buildFile = getBuildFilePath(myContext);
     if (project.isInitialized()) {
       GradleBuildModel buildModel = getBuildModel(buildFile, project);
-      if (buildModel.appliedPlugins().stream().noneMatch(x -> x.value().equals(name))) {
+      if (buildModel.appliedPlugins().stream().noneMatch(x -> x.name().forceString().equals(name))) {
         buildModel.applyPlugin(name);
         myIO.applyChanges(buildModel);
       }
