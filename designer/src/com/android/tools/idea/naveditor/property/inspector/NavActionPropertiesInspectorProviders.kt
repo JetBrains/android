@@ -17,7 +17,9 @@ import org.jetbrains.android.dom.navigation.NavigationSchema
 
 class NavActionTransitionInspectorProvider : NavPropertiesInspectorProvider(mapOf(
     NavigationSchema.ATTR_ENTER_ANIM to "Enter",
-    NavigationSchema.ATTR_EXIT_ANIM to "Exit"), "Transitions")
+    NavigationSchema.ATTR_EXIT_ANIM to "Exit",
+    NavigationSchema.ATTR_POP_ENTER_ANIM to "Pop Enter",
+    NavigationSchema.ATTR_POP_EXIT_ANIM to "Pop Exit"), "Transitions")
 
 class NavActionPopInspectorProvider : NavPropertiesInspectorProvider(mapOf(
     NavigationSchema.ATTR_POP_UP_TO to "Pop To",

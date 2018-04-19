@@ -123,11 +123,15 @@ class NavPropertiesInspectorProvidersTest : NavTestCase() {
     val destinationProperty = SimpleProperty(NavigationSchema.ATTR_DESTINATION, a1Only)
     val popToProperty = SimpleProperty(NavigationSchema.ATTR_POP_UP_TO, a1Only)
     val popToInclusiveProperty = SimpleProperty(NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE, a1Only)
+    val enterAnimProperty = SimpleProperty(NavigationSchema.ATTR_ENTER_ANIM, a1Only)
+    val exitAnimProperty = SimpleProperty(NavigationSchema.ATTR_EXIT_ANIM, a1Only)
+    val popEnterAnimProperty = SimpleProperty(NavigationSchema.ATTR_POP_ENTER_ANIM, a1Only)
+    val popExitAnimProperty = SimpleProperty(NavigationSchema.ATTR_POP_EXIT_ANIM, a1Only)
     // TODO: add more properties once they're fully supported
 
     val properties =
         listOf(typeProperty, idProperty, destinationProperty, clearTaskProperty, singleTopProperty, documentProperty, popToProperty,
-            popToInclusiveProperty, dummyProperty)
+            popToInclusiveProperty, enterAnimProperty, exitAnimProperty, popEnterAnimProperty, popExitAnimProperty, dummyProperty)
             .associateBy { it.name }
 
     val inspectorProvider = NavMainPropertiesInspectorProvider()
@@ -137,6 +141,12 @@ class NavPropertiesInspectorProvidersTest : NavTestCase() {
     assertSameElements(inspector.editors.map { it.property }, listOf(idProperty, typeProperty, destinationProperty))
     assertInstanceOf(inspector.editors.first { it.property == typeProperty }, NonEditableEditor::class.java)
     assertInstanceOf(inspector.editors.first { it.property == destinationProperty }, VisibleDestinationsEditor::class.java)
+
+    val transitionsInspectorProvider = NavActionTransitionInspectorProvider()
+    assertTrue(transitionsInspectorProvider.isApplicable(a1Only, properties, propertiesManager))
+    val transitionsInspector = transitionsInspectorProvider.createCustomInspector(a1Only, properties, propertiesManager)
+    assertSameElements(transitionsInspector.editors.map { it.property },
+                       listOf(enterAnimProperty, exitAnimProperty, popEnterAnimProperty, popExitAnimProperty))
 
     val popInspectorProvider = NavActionPopInspectorProvider()
     assertTrue(popInspectorProvider.isApplicable(a1Only, properties, propertiesManager))
