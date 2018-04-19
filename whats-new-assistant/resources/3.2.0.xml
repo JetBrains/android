@@ -54,18 +54,11 @@
             <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#sessions">
             Learn more</a></li>
 
-            <li><b>Import and inspect CPU trace files:</b>
-            You can now import and inspect <code>.trace</code> files that you create using
-            <a href="https://d.android.com/ndk/guides/simpleperf.html?utm_source=android-studio&utm_medium=studio-assistant">
-            simpleperf</a>, the
-            <a href="https://d.android.com/reference/android/os/Debug.html?utm_source=android-studio&utm_medium=studio-assistant">
-            Debug API</a>, or the
-            <a href="https://d.android.com/studio/profile/cpu-profiler.html?utm_source=android-studio&utm_medium=studio-assistant#method_traces">
-            CPU profiler</a> (importing System Trace recordings is currently not supported).
-            Import your trace file by clicking <b>Start a new profiling session</b>
-            <img src="https://d.android.com/studio/images/buttons/ic_plus.png" width="16" height="16">
-            in the profiler's <b>Sessions</b> pane and then selecting <b>Load from file</b>.
-            <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#import_trace">
+            <li><b>Start method traces using the Debug API:</b>
+            Call <code>Debug.startMethodTracing(String tracePath)</code> and
+            <code>Debug.stopMethodTracing()</code> in your app's code to programmatically start and stop
+            recording method traces in the CPU profiler.
+            <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#debug_api">
             Learn more</a></li>
 
             <li><b>System Trace:</b> In the CPU Profiler, inspect your device's
@@ -75,6 +68,27 @@
             <code>systrace</code></a> and is useful for investigating
             system-level issues, such as UI jank.
             <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#system_trace">
+            Learn more</a></li>
+
+            <li><b>Export CPU trace files:</b>
+            After you
+            <a href="https://d.android.com/studio/profile/cpu-profiler.html?utm_source=android-studio&utm_medium=studio-assistant#method_traces">
+            record CPU activity</a> with the CPU profiler, export the data as a
+            <code>.trace</code> file by right-clicking on the recording in the CPU timeline and selecting
+            <b>Export trace</b> from the context menu.
+            <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#export_trace">
+            Learn more</a></li>
+
+            <li><b>Import and inspect CPU trace files:</b>
+            You can now import and inspect <code>.trace</code> files that you create using the
+            <a href="https://d.android.com/reference/android/os/Debug.html?utm_source=android-studio&utm_medium=studio-assistant">
+            Debug API</a> or
+            <a href="https://d.android.com/studio/profile/cpu-profiler.html?utm_source=android-studio&utm_medium=studio-assistant#method_traces">
+            CPU profiler</a> (however, importing System Trace recordings is currently not supported).
+            Import your trace file by clicking <b>Start a new profiling session</b>
+            <img src="https://d.android.com/studio/images/buttons/ic_plus.png" width="16" height="16">
+            in the profiler's <b>Sessions</b> pane and then selecting <b>Load from file</b>.
+            <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#import_trace">
             Learn more</a></li>
 
             <li><b>Record CPU activity during app startup:</b>
@@ -88,17 +102,10 @@
             <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#trace_startup">
             Learn more</a></li>
 
-            <li><b>Inspect JNI references</b>:
+            <li><b>Inspect JNI references:</b>
             Inspect memory allocations for your app’s JNI code when you deploy
             to a device running Android 8.0 (API level 26) or higher.
             <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#jni_memory">
-            Learn more</a></li>
-
-            <li><b>Record CPU activity using the Debug API</b>:
-            Instrument your app with the
-            <a href="https://d.android.com/reference/android/os/Debug.html?utm_source=android-studio&utm_medium=studio-assistant">
-            Debug API</a> to programmatically start and stop recording CPU activity in the CPU profiler.
-            <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#debug_api">
             Learn more</a></li>
           </ul>
            ]]>
@@ -109,24 +116,20 @@
         <stepElement>
           <section>
             <![CDATA[
-
-          <img src="https://d.android.com/studio/releases/assistant/3.2.0/cpp-features-overview.gif">
-
-          <br><br>
-          Android Studio now includes the following features for developing and
-          debugging your C/C++ libraries:
+          Android Studio now includes the following features for developing
+          your C/C++ libraries:
 
           <br><br>
           <div style="margin-bottom:0px;">
           <ul>
-            <li><b>Smart editor features for CMake scripts</b>:
+            <li><b>Smart editor features for CMake scripts:</b>
             Perform safe refactoring, code completion,
             code reformatting, and other smart editor actions when editing CMake
             build scripts.
             <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#cmake-editor">
             Learn more</a></li>
 
-            <li><b>Navigate external header files</b>:
+            <li><b>Navigate external header files:</b>
             In the <b>Project</b> window, view and inspect header
             files from external C/C++ library dependencies that you import into
             your project using CMake.
