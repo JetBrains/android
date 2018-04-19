@@ -281,7 +281,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     myCaptureElapsedTimeUpdatable = new CaptureElapsedTimeUpdatable();
     myCaptureStateUpdatable = new CpuCaptureStateUpdatable(() -> updateProfilingState());
     // Calling updateProfilingState() in constructor makes sure the member fields are in a known predictable state.
-
+    // TODO(http://b/78326357): move updateProfilingState() to {@link #enter()}. Constructor should be just for initializing data.
     updateProfilingState();
     myProfilerConfigModel.updateProfilingConfigurations();
 
@@ -825,8 +825,13 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     ProfilingStateResponse response = checkProfilingState();
 
     if (response.getBeingProfiled()) {
+      ProfilingConfiguration configuration = ProfilingConfiguration.fromProto(response.getConfiguration());
       // Update capture state only if it was idle to avoid disrupting state that's invisible to device such as STOPPING.
       if (myCaptureState == CaptureState.IDLE) {
+        if (response.getInitiationType() == TraceInitiationType.INITIATED_BY_STARTUP) {
+          getStudioProfilers().getIdeServices().getFeatureTracker().trackCpuStartupProfiling(configuration);
+        }
+
         // Set myInProgressTraceInitiationType before calling setCaptureState() because the latter may fire an
         // aspect that depends on the former.
         myInProgressTraceInitiationType = response.getInitiationType();
@@ -847,8 +852,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
         }
         else {
           // Updates myProfilerConfigModel to the ongoing profiler configuration.
-          CpuProfilerConfiguration configuration = response.getConfiguration();
-          myProfilerConfigModel.setProfilingConfiguration(ProfilingConfiguration.fromProto(configuration));
+          myProfilerConfigModel.setProfilingConfiguration(configuration);
         }
       }
     }
