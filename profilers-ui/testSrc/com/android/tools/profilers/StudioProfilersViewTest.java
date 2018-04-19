@@ -358,6 +358,35 @@ public class StudioProfilersViewTest {
     assertThat(((ThreeComponentsSplitter)profilersView.getComponent()).getFirstSize()).isEqualTo(splitter.getFirstSize());
   }
 
+  @Test
+  public void testGoLiveButtonStates() {
+    // Check that go live is initially enabled and toggled
+    JToggleButton liveButton = myView.getGoLiveButton();
+    assertThat(myProfilers.getSessionsManager().isSessionAlive()).isTrue();
+    assertThat(liveButton.isEnabled()).isTrue();
+    assertThat(liveButton.isSelected()).isTrue();
+
+    // Stopping the session should disable and unselect the button
+    myProfilers.getSessionsManager().endCurrentSession();
+    Common.Session deadSession = myProfilers.getSessionsManager().getSelectedSession();
+    assertThat(myProfilers.getSessionsManager().isSessionAlive()).isFalse();
+    assertThat(liveButton.isEnabled()).isFalse();
+    assertThat(liveButton.isSelected()).isFalse();
+
+    Common.Device onlineDevice = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build();
+    Common.Process onlineProcess = Common.Process.newBuilder().setPid(2).setState(Common.Process.State.ALIVE).build();
+    myProfilers.getSessionsManager().beginSession(onlineDevice, onlineProcess);
+    assertThat(myProfilers.getSessionsManager().isSessionAlive()).isTrue();
+    // Live button should be selected when switching to a live session.
+    assertThat(liveButton.isEnabled()).isTrue();
+    assertThat(liveButton.isSelected()).isTrue();
+
+    // Switching to a dead session should disable and unselect the button.
+    myProfilers.getSessionsManager().setSession(deadSession);
+    assertThat(liveButton.isEnabled()).isFalse();
+    assertThat(liveButton.isSelected()).isFalse();
+  }
+
   public void transitionStage(Stage stage) throws Exception {
     JPanel component = myView.getComponent();
     myProfilers.setStage(new FakeStage(myProfilers));
