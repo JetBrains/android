@@ -58,6 +58,35 @@ class AddActionDialogTest : NavTestCase() {
     assertEquals("a1", dialog.id)
   }
 
+  fun testExistingPop() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("f1") {
+          action("a1", popUpTo = "f2") {
+            withAttribute(AUTO_URI, NavigationSchema.ATTR_ENTER_ANIM, "@anim/fade_in")
+            withAttribute(AUTO_URI, NavigationSchema.ATTR_CLEAR_TASK, "true")
+            withAttribute(AUTO_URI, NavigationSchema.ATTR_POP_ENTER_ANIM, "@anim/fade_out")
+          }
+        }
+        fragment("f2")
+      }
+    }
+
+    val dialog = AddActionDialog(
+      AddActionDialog.Defaults.NORMAL,
+      model.find("a1"),
+      model.find("f1")!!
+    )
+    dialog.close(0)
+    assertEquals("f2", dialog.popTo)
+    assertEquals("@anim/fade_in", dialog.enterTransition)
+    assertEquals("@anim/fade_out", dialog.popEnterTransition)
+    assertTrue(dialog.isClearTask)
+    assertEquals(model.find("f1"), dialog.source)
+    assertEquals("f2", dialog.popTo)
+    assertEquals("a1", dialog.id)
+  }
+
   fun testContent() {
     val model = model("nav.xml") {
       navigation("root") {
@@ -183,6 +212,12 @@ class AddActionDialogTest : NavTestCase() {
     dialog.myDestinationComboBox.selectedIndex = 3
     assertTrue(dialog.myInclusiveCheckBox.isSelected)
     assertTrue(dialog.myInclusiveCheckBox.isEnabled)
+
+    // Select "source" and then "None" and verify popTo is reenabled
+    dialog.myDestinationComboBox.selectedIndex = 1
+    assertFalse(dialog.myPopToComboBox.isEnabled)
+    dialog.myDestinationComboBox.selectedIndex = 0
+    assertTrue(dialog.myPopToComboBox.isEnabled)
 
     dialogWrapper.close(0)
   }
