@@ -777,7 +777,7 @@ public class RenderErrorContributor {
       return;
     }
     Set<AttributeFormat> formats = definition.getFormats();
-    if (formats.contains(AttributeFormat.Flag) || formats.contains(AttributeFormat.Enum)) {
+    if (formats.contains(AttributeFormat.Flags) || formats.contains(AttributeFormat.Enum)) {
       String[] values = definition.getValues();
       if (values.length > 0) {
         HtmlBuilder builder = new HtmlBuilder();

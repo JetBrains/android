@@ -90,7 +90,7 @@ public class LayoutParamsManagerTest extends AndroidTestCase {
     LinearLayoutParams layoutParams = new LinearLayoutParams();
     assertThat(LayoutParamsManager.mapField(layoutParams, "width").type).containsExactly(AttributeFormat.Dimension);
     assertThat(LayoutParamsManager.mapField(layoutParams, "height").type).containsExactly(AttributeFormat.Dimension);
-    assertThat(LayoutParamsManager.mapField(layoutParams, "gravity").type).containsExactly(AttributeFormat.Flag);
+    assertThat(LayoutParamsManager.mapField(layoutParams, "gravity").type).containsExactly(AttributeFormat.Flags);
     for (String m : new String[]{"marginTop", "marginStart", "marginBottom", "marginEnd", "marginEnd", "marginLeft", "marginRight"}) {
       assertThat(LayoutParamsManager.mapField(layoutParams, m).type).containsExactly(AttributeFormat.Dimension);
     }
@@ -150,7 +150,7 @@ public class LayoutParamsManagerTest extends AndroidTestCase {
 
     // Test flag attribute
     AttributeDefinition flagDefinition = new AttributeDefinition("flagAttribute", null, null, EnumSet.of(
-      AttributeFormat.Flag
+      AttributeFormat.Flags
     ));
     flagDefinition.addValueMapping("value1", 0b001);
     flagDefinition.addValueMapping("value2", 0b010);

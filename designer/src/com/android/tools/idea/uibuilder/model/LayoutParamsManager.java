@@ -73,13 +73,13 @@ public class LayoutParamsManager {
         case "height":
           return new MappedField(attributeName, AttributeFormat.Dimension);
         case "gravity":
-          return new MappedField(attributeName, AttributeFormat.Flag);
+          return new MappedField(attributeName, AttributeFormat.Flags);
       }
 
       return null;
     });
     registerFieldMapper(LinearLayout.LayoutParams.class.getName(),
-                        (attributeName) -> "gravity".equals(attributeName) ? new MappedField(attributeName, AttributeFormat.Flag) : null);
+                        (attributeName) -> "gravity".equals(attributeName) ? new MappedField(attributeName, AttributeFormat.Flags) : null);
     registerFieldMapper(ViewGroup.MarginLayoutParams.class.getName(), (attributeName) -> {
       switch (attributeName) {
         case "marginBottom":
@@ -469,7 +469,7 @@ public class LayoutParamsManager {
             }
           }
           break;
-          case Flag: {
+          case Flags: {
             if (attributeDefinition == null) {
               continue;
             }

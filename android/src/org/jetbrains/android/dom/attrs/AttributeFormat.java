@@ -24,7 +24,7 @@ import java.util.Set;
  * @author yole
  */
 public enum AttributeFormat {
-    Reference, String, Color, Dimension, Boolean, Integer, Float, Fraction, Enum, Flag;
+    Reference, String, Color, Dimension, Boolean, Integer, Float, Fraction, Enum, Flags;
 
     public static EnumSet<ResourceType> convertTypes(Set<AttributeFormat> formats) {
         EnumSet<ResourceType> types = EnumSet.noneOf(ResourceType.class);

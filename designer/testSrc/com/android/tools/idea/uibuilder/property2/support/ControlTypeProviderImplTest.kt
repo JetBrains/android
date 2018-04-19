@@ -33,7 +33,7 @@ class ControlTypeProviderImplTest: AndroidTestCase() {
   fun testFlagEditorForFlagProperties() {
     val util = SupportTestUtil(testRootDisposable, myFacet, myFixture, TEXT_VIEW)
     val provide = NeleControlTypeProvider()
-    val definition = AttributeDefinition(name, null, null, listOf(AttributeFormat.Flag))
+    val definition = AttributeDefinition(name, null, null, listOf(AttributeFormat.Flags))
     val property = util.makeFlagsProperty(ANDROID_URI, definition)
     val enumSupport = mock(EnumSupport::class.java)
     assertThat(provide(property, enumSupport)).isEqualTo(ControlType.FLAG_EDITOR)
