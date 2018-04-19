@@ -23,6 +23,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiElementFinder
 import com.intellij.ui.AppUIUtil
 import java.nio.file.Path
 
@@ -133,4 +134,8 @@ class TestProjectSystem(val project: Project) : AndroidProjectSystem, AndroidPro
   override fun mergeBuildFiles(dependencies: String, destinationContents: String, supportLibVersionFilter: String?): String {
     TODO("not implemented")
   }
+
+  override fun getPsiElementFinders() = emptyList<PsiElementFinder>()
+
+  override fun getAugmentRClasses() = true
 }
