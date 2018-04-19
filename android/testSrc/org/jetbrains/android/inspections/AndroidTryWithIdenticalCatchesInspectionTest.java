@@ -16,8 +16,7 @@
 package org.jetbrains.android.inspections;
 
 import com.intellij.codeInspection.InspectionProfileEntry;
-import org.jetbrains.annotations.Nls;
-import org.jetbrains.annotations.NotNull;
+import com.siyeh.ig.migration.TryWithIdenticalCatchesInspection;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidTryWithIdenticalCatchesInspectionTest extends AndroidInspectionTestCase {
@@ -69,13 +68,6 @@ public class AndroidTryWithIdenticalCatchesInspectionTest extends AndroidInspect
   @Nullable
   @Override
   protected InspectionProfileEntry getInspection() {
-    return new AndroidTryWithIdenticalCatchesInspection() {
-      @Nls
-      @NotNull
-      @Override
-      public String getDisplayName() {
-        return "Identical 'catch' branches in 'try' statement";
-      }
-    };
+    return new TryWithIdenticalCatchesInspection();
   }
 }
