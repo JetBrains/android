@@ -29,7 +29,6 @@ import com.intellij.ide.projectView.impl.ProjectViewPane;
 import com.intellij.ide.util.PropertiesComponent;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -46,7 +45,6 @@ import static org.junit.Assert.assertEquals;
 public class NewActivityTest {
   private static final String PROVIDED_ACTIVITY = "app/src/main/java/google/simpleapplication/MyActivity.java";
   private static final String PROVIDED_MANIFEST = "app/src/main/AndroidManifest.xml";
-  private static final String APP_BUILD_GRADLE = "app/build.gradle";
   private static final String DEFAULT_ACTIVITY_NAME = "MainActivity";
   private static final String DEFAULT_LAYOUT_NAME = "activity_main";
   private static final String DEFAULT_ACTIVITY_TITLE = "MainActivity";
@@ -76,41 +74,6 @@ public class NewActivityTest {
     assertTextFieldValues(DEFAULT_ACTIVITY_NAME, DEFAULT_LAYOUT_NAME, DEFAULT_ACTIVITY_TITLE);
     assertThat(getSavedKotlinSupport()).isFalse();
     assertThat(getSavedRenderSourceLanguage()).isEqualTo(Language.JAVA);
-  }
-
-  /**
-   * Verifies that a new activity can be created through the Wizard
-   * <p>
-   * This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>
-   * TT ID: 9ab45c50-1eb0-44aa-95fb-17835baf2274
-   * <p>
-   *   <pre>
-   *   Test Steps:
-   *   1. Right click on the application module and select New > Activity > Basic Activity
-   *   2. Enter activity and package name. Click Finish
-   *   Verify:
-   *   Activity class and layout.xml files are created. The activity previews correctly in layout editor.
-   *   </pre>
-   */
-  @RunIn(TestGroup.SANITY)
-  @Test
-  public void createDefaultActivity() {
-    myDialog.clickFinish();
-
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
-    guiTest.ideFrame().getProjectView().assertFilesExist(
-      "app/src/main/java/google/simpleapplication/MainActivity.java",
-      "app/src/main/res/layout/activity_main.xml"
-    );
-
-    String manifesText = myEditor.open(PROVIDED_MANIFEST).getCurrentFileContents();
-    assertEquals(getOccurrenceCount(manifesText, "android:name=\".MainActivity\""), 1);
-    assertEquals(getOccurrenceCount(manifesText, "@string/title_activity_main"), 1);
-    assertEquals(getOccurrenceCount(manifesText, "android.intent.category.LAUNCHER"), 1);
-
-    String gradleText = myEditor.open(APP_BUILD_GRADLE).getCurrentFileContents();
-    assertEquals(getOccurrenceCount(gradleText, "com.android.support.constraint:constraint-layout"), 1);
   }
 
   @Test

@@ -15,29 +15,19 @@
  */
 package com.android.tools.idea.tests.gui.emulator;
 
-import com.android.tools.idea.fd.InstantRunSettings;
-import com.android.tools.idea.tests.gui.debugger.DebuggerTestBase;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.BrowseSamplesWizardFixture;
-import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.intellij.debugger.engine.evaluation.EvaluateException;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.wm.impl.content.BaseLabel;
-import com.intellij.openapi.wm.impl.content.ContentTabLabelFixture;
 import com.intellij.util.SystemProperties;
 import org.fest.swing.timing.Wait;
-import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
 import static com.google.common.truth.Truth.assertThat;
@@ -51,181 +41,6 @@ public class LaunchAndroidApplicationTest {
   @Rule public final RuleChain emulatorRules = RuleChain
     .outerRule(new DeleteAvdsRule())
     .around(emulator);
-
-  private static final String APP_NAME = "app";
-  private static final String FATAL_SIGNAL_11_OR_6 = ".*SIGSEGV.*|.*SIGABRT.*";
-  private static final String PROCESS_NAME = "google.simpleapplication";
-  private static final String INSTRUMENTED_TEST_CONF_NAME = "instrumented_test";
-  private static final String ANDROID_INSTRUMENTED_TESTS = "Android Instrumented Tests";
-  private static final Pattern LOCAL_PATH_OUTPUT = Pattern.compile(
-    ".*adb shell am start .*google\\.simpleapplication.*", Pattern.DOTALL);
-  private static final Pattern ADB_SHELL_AM_START = Pattern.compile(
-    ".*adb shell am start .*com\\.example\\.hellojni.*", Pattern.DOTALL);
-  private static final Pattern INSTRUMENTED_TEST_OUTPUT = Pattern.compile(
-    ".*adb shell am instrument .*AndroidJUnitRunner.*Tests ran to completion.*", Pattern.DOTALL);
-  private static final Pattern RUN_OUTPUT = Pattern.compile(".*Connected to process.*", Pattern.DOTALL);
-  private static final Pattern DEBUG_OUTPUT = Pattern.compile(".*Connected to the target VM.*", Pattern.DOTALL);
-
-
-  /**
-   * Verifies that a project can be deployed on an emulator
-   * <p>
-   * This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>
-   * TT ID: 579892c4-e1b6-48f7-a5a2-69a12c12ce83
-   * <p>
-   *   <pre>
-   *   Test Steps:
-   *   1. Import SimpleApplication
-   *   2. Add a few layout elements to the default activity
-   *   3. Click Run
-   *   4. From the device chooser dialog, select the running emulator and click Ok
-   *   Verify:
-   *   Project builds successfully and runs on the emulator
-   *   </pre>
-   */
-  @RunIn(TestGroup.SANITY)
-  @Test
-  public void testRunOnEmulator() throws Exception {
-    InstantRunSettings.setShowStatusNotifications(false);
-    guiTest.importSimpleLocalApplication();
-
-    IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
-
-    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
-
-    ideFrameFixture
-      .runApp(APP_NAME)
-      .selectDevice(avdName)
-      .clickOk();
-
-    // Wait for background tasks to finish before requesting Run Tool Window. Otherwise Run Tool Window won't activate.
-    guiTest.waitForBackgroundTasks();
-
-    // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
-    ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), 120);
-    ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
-
-    ideFrameFixture.getAndroidToolWindow().selectDevicesTab().selectProcess(PROCESS_NAME);
-    ideFrameFixture.stopApp();
-  }
-
-  /**
-   * Verifies that debugger can be invoked on an application by setting breakpoints
-   * <p>
-   * This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>
-   * TT ID: b9daba2b-067f-434b-91b2-c02197ac1521
-   * <p>
-   *   <pre>
-   *   Test Steps:
-   *   1. Import SimpleApplication
-   *   2. Open the default activity class file
-   *   3. In the OnCreate method, add a breakpoint
-   *   4. Click on Debug project
-   *   5. Select a running emulator
-   *   Verify:
-   *   The application is deployed on the emulator/device and the breakpoint is hit when the first screen loads
-   *   </pre>
-   */
-  @RunIn(TestGroup.SANITY)
-  @Test
-  public void testDebugOnEmulator() throws IOException {
-    guiTest.importSimpleLocalApplication();
-
-    IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
-
-    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
-
-    ideFrameFixture
-      .debugApp(APP_NAME)
-      .selectDevice(avdName)
-      .clickOk();
-
-    // Wait for background tasks to finish before requesting Debug Tool Window. Otherwise Debug Tool Window won't activate.
-    guiTest.waitForBackgroundTasks();
-
-    // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
-    ideFrameFixture.getDebugToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), 120);
-    ideFrameFixture.getDebugToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(DEBUG_OUTPUT), 120);
-
-    ideFrameFixture.getAndroidToolWindow()
-      .selectDevicesTab()
-      .selectProcess(PROCESS_NAME);
-    ideFrameFixture.stopApp();
-  }
-
-  /**
-   * To verify app crashes if vulkan graphics is not supported.
-   * <p>
-   * The ideal test would launch the app on a real device (Nexus 5X or 6P). Since there
-   * if no current framework support to run the app on a real device, this test reverses
-   * the scenario and verifies the app will crash when the vulcan graphics card is not
-   * present on the emulator when running the app.
-   * <p>
-   * This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>
-   * TT ID: 62320838-5ab1-4808-9a56-11e1fe349e1a
-   * <p>
-   *   <pre>
-   *   Test Steps:
-   *   1. Open Android Studio
-   *   2. Import VulkanCrashes project.
-   *   3. Navigate to the downloaded vulkan directory.
-   *   3. Compile and run app on the emulator (Nexus 6P).
-   *   Verify:
-   *   1. Application crashes in the emulator.
-   *   </pre>
-   * <p>
-   */
-  @RunIn(TestGroup.SANITY)
-  @Test
-  public void testVulkanCrashes() throws IOException, ClassNotFoundException {
-    IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("VulkanCrashes");
-
-    String avdName = EmulatorGenerator.ensureAvdIsCreated(
-      ideFrameFixture.invokeAvdManager(),
-      new AvdSpec.Builder()
-        .setHardwareProfile("Nexus 6P")
-        .setSystemImageGroup(AvdSpec.SystemImageGroups.X86)
-        .setSystemImageSpec(
-          new ChooseSystemImageStepFixture.SystemImage("Nougat", "24", "x86", "Android 7.0")
-        )
-        .build()
-    );
-
-    // The app must run under the debugger, otherwise there is a race condition where
-    // the app may crash before Android Studio can connect to the console.
-    ideFrameFixture
-      .debugApp(APP_NAME)
-      .selectDevice(avdName)
-      .clickOk();
-
-    // Wait for background tasks to finish before requesting Debug Tool Window. Otherwise Debug Tool Window won't activate.
-    guiTest.waitForBackgroundTasks();
-
-    // wait for both debugger tabs to be available and visible
-    ContentTabLabelFixture.find(
-      ideFrameFixture.robot(),
-      Matchers.byText(BaseLabel.class, APP_NAME),
-      EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS
-    );
-    ContentTabLabelFixture.find(
-      ideFrameFixture.robot(),
-      Matchers.byText(BaseLabel.class, APP_NAME + "-java"),
-      EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS
-    );
-
-    // wait for native debugger to receive a fatal signal. Use DebuggerTestBase to check for when the app has paused.
-    String[] expectedDebuggerPatterns = {
-      "Signal = (SIGABRT|SIGSEGV).*"
-    };
-    DebuggerTestBase.checkAppIsPaused(ideFrameFixture, expectedDebuggerPatterns, APP_NAME);
-    // Look for text indicating a crash. Check for both SIGSEGV and SIGABRT since they are both given in some cases.
-    ExecutionToolWindowFixture.ContentFixture contentWindow = ideFrameFixture.getDebugToolWindow().findContent(APP_NAME);
-    contentWindow.waitForOutput(new PatternTextMatcher(Pattern.compile(FATAL_SIGNAL_11_OR_6, Pattern.DOTALL)), 10);
-    contentWindow.stop();
-  }
 
   /**
    * To verify that sample ndk projects can be imported and breakpoints in code are hit.
@@ -321,116 +136,6 @@ public class LaunchAndroidApplicationTest {
 
     // Wait for the Cpp HandleInput() break point to get hit.
     expectBreakPoint("Engine* eng = (Engine*)app->userData;");
-  }
-
-  /**
-   * To verify that importing a sample project and deploying on test device.
-   * <p>
-   * This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>
-   * TT ID: ae1223a3-b42d-4c8f-8837-5c6f7e8c583a
-   * <p>
-   *   <pre>
-   *   Test Steps:
-   *   1. Open Android Studio
-   *   2. Import Background/Job Scheduler from sample projects
-   *   3. Create an emulator
-   *   4. Deploy the project on the emulator
-   *   Verify:
-   *   1. The sample project is built successfully and deployed on the emulator.
-   *   </pre>
-   * <p>
-   */
-  @RunIn(TestGroup.SANITY)
-  @Test
-  public void importSampleProject() throws Exception {
-    BrowseSamplesWizardFixture samplesWizard = guiTest.welcomeFrame()
-      .importCodeSample();
-    samplesWizard.selectSample("Ui/Done Bar")
-      .clickNext()
-      .clickFinish();
-
-    IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
-
-    ideFrameFixture
-      .waitForGradleProjectSyncToFail(Wait.seconds(20))
-      .getEditor()
-      .open("Application/build.gradle")
-      .select("buildToolsVersion \"(.*)\"")
-      .enterText("27.0.3")
-      .invokeAction(EditorFixture.EditorAction.SAVE);
-
-    ideFrameFixture.requestProjectSync();
-
-    GuiTests.findAndClickButtonWhenEnabled(
-      ideFrameFixture.waitForDialog("Android Gradle Plugin Update Recommended", 120),
-      "Update");
-
-    ideFrameFixture.waitForGradleProjectSyncToFinish(Wait.seconds(120));
-
-    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
-
-    String appName = "Application";
-    ideFrameFixture
-      .runApp(appName)
-      .selectDevice(avdName)
-      .clickOk();
-
-    // Wait for background tasks to finish before requesting Run Tool Window. Otherwise Run Tool Window won't activate.
-    guiTest.waitForBackgroundTasks();
-
-    ideFrameFixture.getRunToolWindow().findContent(appName)
-      .waitForOutput(new PatternTextMatcher(RUN_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
-  }
-
-  /**
-   * To verify that instrumentation tests can be added and executed.
-   * <p>
-   * This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>
-   * TT ID: c8fc3fd5-1a7d-405d-974f-5e4f0b42e168
-   * <p>
-   *   <pre>
-   *   Test Steps:
-   *   1. Open Android Studio
-   *   2. Create a new project
-   *   3. Create an avd
-   *   4. Open the default instrumented test example
-   *   5. Open Run/Debug Configuration Settings
-   *   6. Click on the "+" button and select Android Instrumented Tests
-   *   7. Add a name to the test
-   *   8. Select the app module and click OK"
-   *   9. Run "ExampleInstrumentedTest" with test configuration created previously
-   *   Verify:
-   *   1. Test runs successfully by checking the output of running the instrumented test.
-   *   </pre>
-   * <p>
-   */
-  @RunIn(TestGroup.SANITY)
-  @Test
-  public void testRunInstrumentationTest() throws Exception {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("InstrumentationTest");
-    IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
-
-    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
-
-    ideFrameFixture.invokeMenuPath("Run", "Edit Configurations...");
-    EditConfigurationsDialogFixture.find(guiTest.robot())
-        .clickAddNewConfigurationButton()
-        .selectConfigurationType(ANDROID_INSTRUMENTED_TESTS)
-        .enterAndroidInstrumentedTestConfigurationName(INSTRUMENTED_TEST_CONF_NAME)
-        .selectModuleForAndroidInstrumentedTestsConfiguration(APP_NAME)
-        .clickOk();
-
-    ideFrameFixture.runApp(INSTRUMENTED_TEST_CONF_NAME)
-      .selectDevice(avdName)
-      .clickOk();
-
-    // Wait for background tasks to finish before requesting Run Tool Window. Otherwise Run Tool Window won't activate.
-    guiTest.waitForBackgroundTasks();
-
-    ideFrameFixture.getRunToolWindow().findContent(INSTRUMENTED_TEST_CONF_NAME)
-        .waitForOutput(new PatternTextMatcher(INSTRUMENTED_TEST_OUTPUT), 120);
   }
 
   private void expectBreakPoint(String lineText) {

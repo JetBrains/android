@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,33 +29,34 @@ import org.junit.runner.RunWith;
 import static com.android.tools.idea.tests.gui.kotlin.ProjectWithKotlinTestUtil.createKotlinFileAndClassAndVerify;
 
 @RunWith(GuiTestRunner.class)
-public class ProjectWithKotlinTest {
+public class AddKotlinTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
   private final EmulatorTestRule emulator = new EmulatorTestRule();
   @Rule public final RuleChain emulatorRules = RuleChain
     .outerRule(new DeleteAvdsRule())
     .around(emulator);
-
-  private static final String KOTLIN_SUPPORT_PROJECT_DIR_NAME = "KotlinSupportProject";
-  private static final String KOTLIN_SUPPORT_PACKAGE_NAME = "com.android.kotlinsupportproject";
+  private static final String PROJECT_DIR_NAME = "LinkProjectWithKotlin";
+  private static final String PACKAGE_NAME = "com.android.linkprojectwithkotlin";
 
   /**
    * Verifies user can link project with Kotlin.
    * <p>
    * This is run to qualify releases. Please involve the test team in substantial changes.
    * <p>
-   * TT ID: 64230371-979d-4a17-86f4-7aa1213b93f6
+   * TT ID: 30f26a59-108e-49cc-bec0-586f518ea3cb
    * <p>
    *   <pre>
    *   Test Steps:
-   *   1. Import KotlinSupportProject project, which does support Kotlin
+   *   1. Import LinkProjectWithKotlin project, which doesn't support Kotlin
    *      and wait for project sync to finish.
    *   2. Select Project view and expand directory to Java package and click on it.
    *   3. From menu, click on "File->New->Kotlin File/Class".
    *   4. In "New Kotlin File/Class" dialog, enter the name of class
    *      and choose "Class" from the dropdown list in Kind category, and click on OK.
-   *   5. Continue this with File,interface,enum class and verify 1 & 2
+   *   5. Click on the configure pop up on the top right corner or bottom right corner.
+   *   6. Select all modules containing Kotlin files option from "Configure kotlin pop up".
+   *   7. Continue this with File,interface,enum class and verify 1 & 2
    *   Verify:
    *   1. Observe the code in Kotlin language.
    *   2. Build and deploy on the emulator.
@@ -63,8 +64,8 @@ public class ProjectWithKotlinTest {
    * <p>
    */
   @Test
-  @RunIn(TestGroup.QA)
-  public void createKotlinFileAndClassInKotlinSupportProject() throws Exception {
-    createKotlinFileAndClassAndVerify(KOTLIN_SUPPORT_PROJECT_DIR_NAME, KOTLIN_SUPPORT_PACKAGE_NAME, true, guiTest, emulator);
+  @RunIn(TestGroup.SANITY)
+  public void addKotlinClass() throws Exception {
+    createKotlinFileAndClassAndVerify(PROJECT_DIR_NAME, PACKAGE_NAME, false, guiTest, emulator);
   }
 }

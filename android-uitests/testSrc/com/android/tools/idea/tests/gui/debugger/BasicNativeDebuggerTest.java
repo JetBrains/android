@@ -186,56 +186,6 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
     assertThat(debugToolWindowFixture.getDebuggerContent("app-native")).isNull();
   }
 
-  /**
-   * Verifies that instant run hot swap works as expected on a C++ support project.
-   * <p>
-   * This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>
-   * TT ID: 54d17691-48b8-4bf2-9ac2-9ff179327418
-   * <p>
-   *   <pre>
-   *   Test Steps:
-   *   1. Import BasicCmakeAppForUI.
-   *   2. Select auto debugger on Edit Configurations dialog.
-   *   3. Set breakpoints both in Java and C++ code.
-   *   4. Debug on a device running M or earlier.
-   *   5. When the C++ breakpoint is hit, verify variables and resume
-   *   6. When the Java breakpoint is hit, verify variables
-   *   7. Stop debugging
-   *   </pre>
-   */
-  @Test
-  @RunIn(TestGroup.QA_UNRELIABLE)  // b/77970753
-  public void testDualDebuggerBreakpoints() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
-
-    DebuggerTestUtil.setDebuggerType(ideFrameFixture, DebuggerTestUtil.DUAL);
-
-    // Setup C++ and Java breakpoints.
-    openAndToggleBreakPoints(ideFrameFixture, C_FILE_NAME, C_BP_LINE);
-    openAndToggleBreakPoints(ideFrameFixture, JAVA_FILE_NAME, JAVA_BP_LINE);
-
-    DebugToolWindowFixture debugToolWindowFixture =
-      DebuggerTestUtil.debugAppAndWaitForSessionToStart(ideFrameFixture, guiTest, DEBUG_CONFIG_NAME, emulator.getDefaultAvdName());
-
-    // Setup the expected patterns to match the variable values displayed in Debug windows's 'Variables' tab.
-    String[] expectedPatterns = new String[]{
-      variableToSearchPattern("sum_of_10_ints", "int", "55"),
-      variableToSearchPattern("product_of_10_ints", "int", "3628800"),
-      variableToSearchPattern("quotient", "int", "512"),
-    };
-    checkAppIsPaused(ideFrameFixture, expectedPatterns);
-    resume("app", ideFrameFixture);
-
-    expectedPatterns = new String[]{
-      variableToSearchPattern("s", "\"Success. Sum = 55, Product = 3628800, Quotient = 512\""),
-    };
-
-    checkAppIsPaused(ideFrameFixture, expectedPatterns, "app-java");
-    assertThat(debugToolWindowFixture.getDebuggerContent("app-java")).isNotNull();
-    // TODO Stop the session.
-  }
-
   private void waitUntilDebugConsoleCleared(DebugToolWindowFixture debugToolWindowFixture) {
     final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);
     contentFixture.waitForOutput(new NotMatchingPatternMatcher(DEBUGGER_ATTACHED_PATTERN), 10);
