@@ -68,6 +68,7 @@ import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -93,6 +94,7 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
  */
 public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeRunTask> {
   @NotNull public static final Key<MakeBeforeRunTask> ID = Key.create("Android.Gradle.BeforeRunTask");
+  private static int DEVICE_SPEC_TIMEOUT_SECONDS = 10;
 
   public static final String TASK_NAME = "Gradle-aware Make";
 
@@ -346,7 +348,10 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   public static List<String> getDeviceSpecificArguments(@NotNull Module[] modules,
                                                         @NotNull RunConfiguration configuration,
                                                         @NotNull List<AndroidDevice> devices) throws IOException {
-    AndroidDeviceSpec deviceSpec = AndroidDeviceSpec.create(devices);
+    AndroidDeviceSpec deviceSpec = AndroidDeviceSpec.create(devices,
+                                                            shouldCollectListOfLanguages(modules, configuration, devices),
+                                                            DEVICE_SPEC_TIMEOUT_SECONDS,
+                                                            TimeUnit.SECONDS);
     if (deviceSpec == null) {
       return Collections.emptyList();
     }
@@ -455,6 +460,14 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
                                                         @NotNull RunConfiguration configuration,
                                                         @NotNull List<AndroidDevice> targetDevices) {
     return Arrays.stream(modules).anyMatch(module -> DynamicAppUtils.useSelectApksFromBundleBuilder(module, configuration, targetDevices));
+  }
+
+  private static boolean shouldCollectListOfLanguages(@NotNull Module[] modules,
+                                                      @NotNull RunConfiguration configuration,
+                                                      @NotNull List<AndroidDevice> targetDevices) {
+    // We should collect the list of languages only if *all* devices are verify the condition, otherwise we would
+    // end up deploying language split APKs to devices that don't support them.
+    return Arrays.stream(modules).allMatch(module -> DynamicAppUtils.shouldCollectListOfLanguages(module, configuration, targetDevices));
   }
 
   @NotNull

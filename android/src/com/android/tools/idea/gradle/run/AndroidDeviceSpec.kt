@@ -15,24 +15,40 @@
  */
 package com.android.tools.idea.gradle.run
 
+import com.android.ide.common.util.getLanguages
 import com.android.resources.Density
 import com.android.tools.idea.run.AndroidDevice
 import com.google.common.collect.Ordering
 import com.google.gson.stream.JsonWriter
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.io.FileUtil
-import java.io.*
+import java.io.File
+import java.io.IOException
+import java.io.StringWriter
+import java.io.Writer
+import java.time.Duration
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 data class AndroidDeviceSpec(
-  val apiLevel: Int = 0,
-  val apiCodeName: String? = null,
-  val buildDensity: Density? = null,
-  val buildAbis: ArrayList<String> = ArrayList()
+  val apiLevel: Int,
+  val apiCodeName: String?,
+  val buildDensity: Density?,
+  val buildAbis: ArrayList<String>,
+  val languages: SortedSet<String>
 ) {
   companion object {
+    /**
+     * Creates an [AndroidDeviceSpec] instance from a list of [devices][AndroidDevice], or `null` if the list of
+     * devices is empty.
+     *
+     * If the [fetchLanguages] parameter is `true`, a request is made to the device to retrieve the list
+     * of installed languages using the [getLanguages] method. The [timeout] and [unit]
+     * parameters are used in that case to ensure each request has a timeout.
+     */
+    @Throws(IOException::class)
     @JvmStatic
-    fun create(devices: List<AndroidDevice>): AndroidDeviceSpec? {
+    fun create(devices: List<AndroidDevice>, fetchLanguages: Boolean, timeout: Long, unit: TimeUnit): AndroidDeviceSpec? {
       if (devices.isEmpty()) {
         return null
       }
@@ -64,7 +80,43 @@ data class AndroidDeviceSpec(
         }
       }
 
-      return AndroidDeviceSpec(apiLevel, apiCodeName, buildDensity, buildAbis)
+      val languages = if (fetchLanguages) {
+        combineDeviceLanguages(devices, timeout, unit)
+      }
+      else {
+        Collections.emptySortedSet()
+      }
+      return AndroidDeviceSpec(apiLevel, apiCodeName, buildDensity, buildAbis, languages)
+    }
+
+    /**
+     * Retrieve the list of installed languages on each device and merge them into a set.
+     *
+     * Note: We should be able to cache the result of this call to improve performance,
+     * i.e. to avoid issuing an ADB call every time, but we first need to define a
+     * reasonable cache validation policy, which is not trivial. See b/78452155.
+     */
+    @Throws(IOException::class)
+    private fun combineDeviceLanguages(devices: List<AndroidDevice>,
+                                       timeout: Long, unit: TimeUnit): SortedSet<String> {
+      return try {
+        // Note: the "getLanguages" method below uses Duration.Zero as an infinite timeout value.
+        // So we must ensure to never use 0 "nanos" if the caller wants the minimal timeout.
+        val nanos = Math.max(1, unit.toNanos(timeout))
+        val duration = Duration.ofNanos(nanos)
+        val languageSets = devices.map { it.launchedDevice.get(timeout, unit).getLanguages(duration) }
+        // Note: If we get an empty list from any device, we want to return an empty list instead of the
+        // union of all languages, to ensure we don't have missing language splits on that device.
+        if (languageSets.any { it.isEmpty() }) {
+          Collections.emptySortedSet()
+        }
+        else {
+          languageSets.flatMap { it }.toSortedSet()
+        }
+      }
+      catch (e: Exception) {
+        throw IOException("Error retrieving list of installed languages on device", e)
+      }
     }
   }
 
@@ -104,6 +156,14 @@ data class AndroidDeviceSpec(
         writer.name("supported_abis")
         writer.beginArray()
         buildAbis.forEach {
+          writer.value(it)
+        }
+        writer.endArray()
+      }
+      if (!languages.isEmpty()) {
+        writer.name("supported_locales")
+        writer.beginArray()
+        languages.forEach {
           writer.value(it)
         }
         writer.endArray()

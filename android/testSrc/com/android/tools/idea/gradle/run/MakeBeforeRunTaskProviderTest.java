@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.run;
 
+import com.android.ddmlib.*;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
@@ -25,14 +26,17 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.run.AndroidAppRunConfigurationBase;
 import com.android.tools.idea.run.AndroidBundleRunConfiguration;
 import com.android.tools.idea.run.AndroidDevice;
+import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.IdeaTestCase;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import org.mockito.Mock;
+import org.mockito.stubbing.Answer;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,14 +49,17 @@ import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 public class MakeBeforeRunTaskProviderTest extends IdeaTestCase {
   @Mock private AndroidModuleModel myAndroidModel;
   @Mock private IdeAndroidProject myIdeAndroidProject;
   @Mock private AndroidDevice myDevice;
+  @Mock private IDevice myLaunchedDevice;
   @Mock private AndroidAppRunConfigurationBase myRunConfiguration;
   @Mock private AndroidModuleModel myAndroidModel2;
   @Mock private IdeAndroidProject myIdeAndroidProject2;
@@ -62,7 +69,13 @@ public class MakeBeforeRunTaskProviderTest extends IdeaTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
+    when(myDevice.getLaunchedDevice()).thenReturn(Futures.immediateFuture(myLaunchedDevice));
+    when(myLaunchedDevice.getVersion()).thenAnswer(invocation -> myDevice.getVersion());
+    setupDeviceConfig(myLaunchedDevice, "  config: mcc310-mnc410-es-rUS,fr-rFR-ldltr-sw411dp-w411dp-h746dp-normal-long-notround" +
+                                        "-lowdr-nowidecg-port-notnight-560dpi-finger-keysexposed-nokeys-navhidden-nonav-v27");
+
     myModules = new Module[]{getModule()};
+
     setUpModuleAsAndroidModule();
   }
 
@@ -102,7 +115,8 @@ public class MakeBeforeRunTaskProviderTest extends IdeaTestCase {
     List<String> arguments =
       MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration, Collections.singletonList(myDevice));
 
-    String expectedJson = "{\"sdk_version\":23,\"screen_density\":640,\"supported_abis\":[\"armeabi\"]}";
+    String expectedJson =
+      "{\"sdk_version\":23,\"screen_density\":640,\"supported_abis\":[\"armeabi\"],\"supported_locales\":[\"es\",\"fr\"]}";
     assertExpectedJsonFile(arguments, expectedJson);
   }
 
@@ -215,5 +229,17 @@ public class MakeBeforeRunTaskProviderTest extends IdeaTestCase {
     GradleModuleModel model = new GradleModuleModel(module.getName(), Collections.emptyList(), GRADLE_PATH_SEPARATOR + module.getName(),
                                                     getBaseDirPath(getProject()), null, null);
     gradleFacet.setGradleModuleModel(model);
+  }
+
+  @SuppressWarnings("SameParameterValue")
+  private static void setupDeviceConfig(IDevice device, String config)
+    throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
+    doAnswer(invocation -> {
+      // get the 2nd arg (the receiver to feed it the lines).
+      IShellOutputReceiver receiver = invocation.getArgument(1);
+      byte[] byteArray = (config + "\n").getBytes(Charsets.UTF_8);
+      receiver.addOutput(byteArray, 0, byteArray.length);
+      return null;
+    }).when(device).executeShellCommand(anyString(), any(), anyLong(), any());
   }
 }
