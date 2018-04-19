@@ -37,10 +37,10 @@ import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
 
 import javax.swing.*;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowingAndEnabled;
+import static com.android.tools.idea.tests.gui.instantrun.InstantRunTestUtility.extractPidFromOutput;
 import static com.google.common.truth.Truth.assertThat;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
@@ -62,126 +62,9 @@ public class InstantRunTest {
   private static final Pattern EMPTY_OUTPUT= Pattern.compile("^$", Pattern.DOTALL);
   private static final Pattern RUN_OUTPUT =
     Pattern.compile(".*Connected to process (\\d+) .*", Pattern.DOTALL);
-  private static final Pattern CMAKE_RUN_OUTPUT =
-    Pattern.compile(".*adb shell am start .*google\\.basiccmake.*Connected to process (\\d+) .*", Pattern.DOTALL);
   private static final Pattern HOT_SWAP_OUTPUT =
     Pattern.compile(".*Hot swapped changes, activity restarted.*", Pattern.DOTALL);
   private static final int OUTPUT_RESET_TIMEOUT = 30;
-
-  /**
-   * Verifies that instant run hot swap works as expected.
-   * <p>
-   * This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>
-   * TT ID: 80302441-094b-44e0-b2a8-bd076a5f001d
-   * <p>
-   *   <pre>
-   *   Test Steps:
-   *   1. Import SimpleApplication.
-   *   2. Update the gradle plugin version if necessary for testing purpose.
-   *   3. Create an AVD with a system image API 21 or above.
-   *   4. Run on the AVD
-   *   5. Verify 1.
-   *   6. Edit a java file.
-   *   7. Run again.
-   *   8. Verify 2.
-   *   Verify:
-   *   1. Make sure the right app is installed and started in Run tool window.
-   *   2. Make sure the instant run hot swap is applied in Run tool window.
-   *   </pre>
-   */
-  @RunIn(TestGroup.SANITY)
-  @Test
-  public void hotSwap() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
-    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
-
-    ideFrameFixture
-      .runApp(APP_NAME)
-      .selectDevice(avdName)
-      .clickOk();
-
-    guiTest.waitForBackgroundTasks();
-
-    ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
-    contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
-    String pid = extractPidFromOutput(contentFixture.getOutput(10), RUN_OUTPUT);
-
-    ideFrameFixture
-      .getEditor()
-      .open("app/src/main/java/google/simpleapplication/MyActivity.java")
-      .moveBetween("setContentView(R.layout.activity_my);", "")
-      .enterText("\nSystem.out.println(\"Hello, hot swap!\");");
-
-    ideFrameFixture
-      .findApplyChangesButton()
-      .click();
-
-    contentFixture.waitForOutput(new PatternTextMatcher(HOT_SWAP_OUTPUT), 120);
-    String newPid = extractPidFromOutput(contentFixture.getOutput(10), RUN_OUTPUT);
-    // (Hot swap) Verify the equality of PIDs before and after IR.
-    assertThat(pid).isEqualTo(newPid);
-  }
-
-  /**
-   * Verifies that instant run cold swap works as expected.
-   * <p>
-   * This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>
-   * TT ID: 2dd47337-e044-4607-9d62-03c324cff486
-   * <p>
-   *   <pre>
-   *   Test Steps:
-   *   1. Import SimpleApplication.
-   *   2. Update the gradle plugin version if necessary for testing purpose.
-   *   3. Create an AVD with a system image API 21 or above.
-   *   4. Run on the AVD
-   *   5. Verify 1.
-   *   6. Edit a resource xml file.
-   *   7. Run again.
-   *   8. Verify 2.
-   *   Verify:
-   *   1. Make sure the right app is installed and started in Run tool window.
-   *   2. Make sure the instant run cold swap is applied in Run tool window.
-   *   </pre>
-   */
-  @RunIn(TestGroup.SANITY)
-  @Test
-  public void coldSwap() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
-    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
-
-    ideFrameFixture
-      .runApp(APP_NAME)
-      .selectDevice(avdName)
-      .clickOk();
-
-    ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
-    contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
-    String output = contentFixture.getOutput(10);
-    String pid = extractPidFromOutput(output, RUN_OUTPUT);
-
-    ideFrameFixture
-      .getEditor()
-      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(false)
-      .waitForRenderToFinish(Wait.seconds(30))
-      .dragComponentToSurface("Text", "TextView")
-      .waitForRenderToFinish(Wait.seconds(30));
-
-    ideFrameFixture
-      .findApplyChangesButton()
-      .click();
-
-    // Studio takes a few seconds to reset Run tool window contents.
-    Wait.seconds(OUTPUT_RESET_TIMEOUT)
-      .expecting("Run tool window output has been reset")
-      .until(() -> !contentFixture.getOutput(10).contains(output));
-    contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
-    String newPid = extractPidFromOutput(contentFixture.getOutput(10), RUN_OUTPUT);
-    // (Cold swap) Verify the inequality of PIDs before and after IR
-    assertThat(pid).isNotEqualTo(newPid);
-  }
 
   /**
    * Verifies that Instant run user notification on activity running on separate process.
@@ -221,64 +104,6 @@ public class InstantRunTest {
       .open("app/src/main/AndroidManifest.xml", EditorFixture.Tab.EDITOR)
       .moveBetween("<application", "")
       .enterText("\nandroid:process=\":foo\"");
-
-    ideFrameFixture
-      .findApplyChangesButton()
-      .click();
-
-    // Studio takes a few seconds to reset Run tool window contents.
-    Wait.seconds(OUTPUT_RESET_TIMEOUT)
-      .expecting("Run tool window output has been reset")
-      .until(() -> !contentFixture.getOutput(10).contains(output));
-    contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
-    String newPid = extractPidFromOutput(contentFixture.getOutput(10), RUN_OUTPUT);
-    // (Cold swap) Verify the inequality of PIDs before and after IR
-    assertThat(pid).isNotEqualTo(newPid);
-  }
-
-  /**
-   * Verifies that instant run works as expected when AndroidManifest is changed.
-   * <p>
-   * This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>
-   * TT ID: 02d4c23c-70e5-46ef-ab1f-7c29577ea6ed
-   * <p>
-   *   <pre>
-   *   Test Steps:
-   *   1. Import SimpleApplication.
-   *   2. Update the gradle plugin version if necessary for testing purpose.
-   *   3. Create an AVD with a system image API 21 or above.
-   *   4. Run on the AVD
-   *   5. Verify 1.
-   *   6. Edit AndroidManifest.
-   *   7. Run again.
-   *   8. Verify 2.
-   *   Verify:
-   *   1. Make sure the right app is installed and started in Run tool window.
-   *   2. Make sure the instant run is applied in EventLog tool window.
-   *   </pre>
-   */
-  @RunIn(TestGroup.SANITY)
-  @Test
-  public void changeManifest() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
-    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
-
-    ideFrameFixture
-      .runApp(APP_NAME)
-      .selectDevice(avdName)
-      .clickOk();
-
-    ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
-    contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
-    String output = contentFixture.getOutput(10);
-    String pid = extractPidFromOutput(contentFixture.getOutput(10), RUN_OUTPUT);
-
-    ideFrameFixture
-      .getEditor()
-      .open("app/src/main/AndroidManifest.xml", EditorFixture.Tab.EDITOR)
-      .moveBetween("", "<application")
-      .pasteText("<uses-permission android:name=\"android.permission.INTERNET\" />\n");
 
     ideFrameFixture
       .findApplyChangesButton()
@@ -422,59 +247,6 @@ public class InstantRunTest {
       DebuggerTestBase.variableToSearchPattern("x", "150"),
     };
     clickButtonAndWaitForVerification(ideFrameFixture, expectedPatterns);
-  }
-
-  /**
-   * Verifies that instant run hot swap works as expected on a C++ support project.
-   * <p>
-   * This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>
-   * TT ID: 23a7eaf2-aba0-4aca-9bd8-28f9c24c855b
-   * <p>
-   *   <pre>
-   *   Test Steps:
-   *   1. Import BasicCmake.
-   *   2. Update the gradle plugin version if necessary for testing purpose.
-   *   3. Create an AVD with a system image API 21 or above.
-   *   4. Run on the AVD
-   *   5. Verify 1.
-   *   6. Edit a java file.
-   *   7. Run again.
-   *   8. Verify 2.
-   *   Verify:
-   *   1. Make sure the right app is installed and started in Run tool window.
-   *   2. Make sure the instant run hot swap is applied in Run tool window.
-   *   </pre>
-   */
-  @RunIn(TestGroup.SANITY)
-  @Test
-  public void cmakeHotSwap() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmake");
-    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
-
-    ideFrameFixture
-      .runApp(APP_NAME)
-      .selectDevice(avdName)
-      .clickOk();
-
-    ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
-    contentFixture.waitForOutput(new PatternTextMatcher(CMAKE_RUN_OUTPUT), 120);
-    String pid = extractPidFromOutput(contentFixture.getOutput(10), CMAKE_RUN_OUTPUT);
-
-    ideFrameFixture
-      .getEditor()
-      .open("app/src/main/java/google/basiccmake/MainActivity.java")
-      .moveBetween("tv.setText(stringFromJNI());", "")
-      .enterText("\nSystem.out.println(\"Hello, CMake hot swap!\");");
-
-    ideFrameFixture
-      .findApplyChangesButton()
-      .click();
-
-    contentFixture.waitForOutput(new PatternTextMatcher(HOT_SWAP_OUTPUT), 120);
-    String newPid = extractPidFromOutput(contentFixture.getOutput(10), CMAKE_RUN_OUTPUT);
-    // (Hot swap) Verify the equality of PIDs before and after IR.
-    assertThat(pid).isEqualTo(newPid);
   }
 
   /**
@@ -637,17 +409,6 @@ public class InstantRunTest {
 
     contentFixture.waitForOutput(new PatternTextMatcher(HOT_SWAP_OUTPUT), 120);
   }
-
-  @NotNull
-  private static String extractPidFromOutput(@NotNull String output, @NotNull Pattern pattern) {
-    Matcher m = pattern.matcher(output);
-    String pid = null;
-    if (m.find()) {
-      pid = m.group(1);
-    }
-    return pid;
-  }
-
 
   /**
    * Verifies that Studio InstantRun performs a full build and reinstall when manifest values are changed

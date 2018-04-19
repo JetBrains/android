@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.kotlin;
 
-import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.tests.gui.emulator.EmulatorGenerator;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -24,8 +23,6 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
-import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Rule;
 import org.junit.Test;
@@ -33,10 +30,11 @@ import org.junit.runner.RunWith;
 
 import java.util.regex.Pattern;
 
+import static com.android.tools.idea.tests.gui.kotlin.ProjectWithKotlinTestUtil.createNewBasicKotlinProject;
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith (GuiTestRunner.class)
-public class NewKotlinProjectTest {
+@RunWith(GuiTestRunner.class)
+public class CreateCppKotlinProjectTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule(false);
@@ -46,43 +44,6 @@ public class NewKotlinProjectTest {
   private static final String C_FILE = "native-lib.cpp";
   private static final Pattern CONNECTED_TO_PROCESS_OUTPUT = Pattern.compile(
     ".*Connected to process.*", Pattern.DOTALL);
-
-  /**
-   * Verifies that can creating a new project with Kotlin.
-   * <p>
-   * This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>
-   * TT ID: 4d4c36b0-23a7-4f16-9293-061e2fb1310f
-   * <p>
-   *   <pre>
-   *   Test Steps:
-   *   1. Create a basic Kotlin project following the default steps.
-   *   2. Select the "include Kotlin" support checkbox [verify 1 & 2].
-   *   3. Build and run project, and verify 3.
-   *   Vefify:
-   *   1. Check if build is successful.
-   *   2. Mainactivity should have .kt as extension and ensure the class has Kotlin code.
-   *   3. Ensure the app is deployed on the emulator.
-   *   </pre>
-   */
-  @RunIn(TestGroup.SANITY)
-  @Test
-  public void createBasicKotlinProject() throws Exception {
-    createNewBasicKotlinProject(false);
-
-    IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
-    assertThat(KOTLIN_FILE).isEqualTo(ideFrameFixture.getEditor().getCurrentFileName());
-
-    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
-
-    ideFrameFixture.runApp(APP_NAME)
-      .selectDevice(avdName)
-      .clickOk();
-
-    ideFrameFixture.getRunToolWindow().findContent(APP_NAME)
-      .waitForOutput(new PatternTextMatcher(CONNECTED_TO_PROCESS_OUTPUT), emulator.DEFAULT_EMULATOR_WAIT_SECONDS);
-    ideFrameFixture.stopApp();
-  }
 
   /**
    * Verifies that can creating a new project with Kotlin.
@@ -105,7 +66,7 @@ public class NewKotlinProjectTest {
   @RunIn(TestGroup.SANITY)
   @Test
   public void createCppKotlinProject() throws Exception {
-    createNewBasicKotlinProject(true);
+    createNewBasicKotlinProject(true, guiTest);
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
     assertThat(KOTLIN_FILE).isEqualTo(ideFrameFixture.getEditor().getCurrentFileName());
@@ -115,36 +76,11 @@ public class NewKotlinProjectTest {
 
     String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
     ideFrameFixture.runApp(APP_NAME)
-      .selectDevice(avdName)
-      .clickOk();
+                   .selectDevice(avdName)
+                   .clickOk();
 
     ideFrameFixture.getRunToolWindow().findContent(APP_NAME)
-      .waitForOutput(new PatternTextMatcher(CONNECTED_TO_PROCESS_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
+                   .waitForOutput(new PatternTextMatcher(CONNECTED_TO_PROCESS_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
     ideFrameFixture.stopApp();
-  }
-
-  private void createNewBasicKotlinProject(boolean hasCppSupport) {
-    NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
-      .createNewProject();
-
-    newProjectWizard.getConfigureAndroidProjectStep()
-      .enterPackageName("android.com")
-      .setCppSupport(hasCppSupport)
-      .setKotlinSupport(true); // Default "App name", "company domain" and "package name"
-
-    newProjectWizard.clickNext();
-    newProjectWizard.clickNext(); // Skip "Select minimum SDK Api" step
-    newProjectWizard.clickNext(); // Skip "Add Activity" step
-
-    if (hasCppSupport) {
-      newProjectWizard.clickNext();
-    }
-
-    newProjectWizard.clickFinish();
-
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(60));
-
-    // Build project after Gradle sync finished.
-    guiTest.ideFrame().invokeMenuPath("Build", "Rebuild Project").waitForBuildToFinish(BuildMode.REBUILD, Wait.seconds(60));
   }
 }

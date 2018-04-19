@@ -95,62 +95,6 @@ public class NewModuleTest {
       .waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
   }
 
-  /**
-   * Verifies addition of new application module to application.
-   * <p>This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>TT ID: fd583b0a-bedd-4ec8-9207-70e4994ed761
-   * <pre>
-   *   Test Steps
-   *   1. File -> new module
-   *   2. Select Phone & Tablet module
-   *   3. Choose no activity
-   *   3. Wait for build to complete
-   *   Verification
-   *   a new folder matching the module name should have been created.
-   * </pre>
-   */
-  @RunIn(TestGroup.SANITY)
-  @Test
-  public void createNewAppModuleWithDefaults() throws Exception {
-    guiTest.importSimpleLocalApplication()
-      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .chooseModuleType("Phone & Tablet Module")
-      .clickNextToStep("Phone & Tablet Module")
-      .setModuleName("application-module")
-      .clickNextToStep("Add an Activity to Mobile")
-      .chooseActivity("Add No Activity")
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish();
-    assertAbout(file()).that(guiTest.getProjectPath("application-module")).isDirectory();
-  }
-
-  /**
-   * Verifies addition of new library module to application.
-   * <p>This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>TT ID: c35b2089-a5e5-408a-a448-5d94f71fda94
-   * <pre>
-   *   Test Steps
-   *   Create a new project
-   *   1. File > New Module
-   *   2. Choose Android Library
-   *   3. Click Finish
-   *   Verification
-   *   a new folder matching the module name should have been created
-   * </pre>
-   */
-  @RunIn(TestGroup.SANITY)
-  @Test
-  public void createNewLibraryModuleWithDefaults() throws Exception {
-    guiTest.importSimpleLocalApplication()
-      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .chooseModuleType("Android Library")
-      .clickNextToStep("Android Library")
-      .setModuleName("library-module")
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish();
-    assertAbout(file()).that(guiTest.getProjectPath("library-module")).isDirectory();
-  }
-
   @RunIn(TestGroup.UNRELIABLE)  // b/73262313
   @Test
   public void createNewJavaLibraryWithDefaults() throws Exception {

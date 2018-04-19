@@ -74,46 +74,6 @@ public class NlEditorTest {
     assertThat(layout.getSelection()).containsExactly(textView.getComponent());
   }
 
-  /**
-   * Verifies addition of components to designer screen
-   * <p>This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>TT ID: 78baed4b-32be-4d72-b558-ba9f6c727334
-   * <pre>
-   *   1. Create a new project
-   *   2. Open the layout xml file
-   *   3. Switch to design view
-   *   4. Drag and drop components TableRow, Button
-   *   5. Switch back to Text view
-   *   Verification:
-   *   1. The added component shows up in the xml
-   * </pre>
-   */
-  @RunIn(TestGroup.QA_UNRELIABLE)  // b/77856035
-  @TargetBuildSystem({TargetBuildSystem.BuildSystem.GRADLE, TargetBuildSystem.BuildSystem.BAZEL})
-  @Test
-  public void basicLayoutEdit() throws Exception {
-    NlEditorFixture editorFixture = guiTest.importSimpleLocalApplication()
-      .getEditor()
-      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(false)
-      .waitForSurfaceToLoad();
-
-    assertThat(editorFixture.canInteractWithSurface()).isTrue();
-
-    editorFixture
-      .dragComponentToSurface("Layouts", "TableRow")
-      .waitForRenderToFinish()
-      .dragComponentToSurface("Buttons", "Button")
-      .waitForRenderToFinish();
-
-    String layoutFileContents = guiTest.ideFrame()
-      .getEditor()
-      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
-      .getCurrentFileContents();
-    assertThat(layoutFileContents).contains("<TableRow");
-    assertThat(layoutFileContents).contains("<Button");
-  }
-
   @TargetBuildSystem({TargetBuildSystem.BuildSystem.BAZEL})
   @Test
   public void designEditorUnavailableIfInProgressBazelSyncFailed() throws Exception {
