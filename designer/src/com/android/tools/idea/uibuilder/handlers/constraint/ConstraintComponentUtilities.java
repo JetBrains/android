@@ -758,7 +758,7 @@ public final class ConstraintComponentUtilities {
     return false;
   }
 
-  public static void ensureHorizontalPosition(NlComponent component, AttributesTransaction transaction) {
+  public static void ensureHorizontalPosition(NlComponent component, NlAttributesHolder transaction) {
     if (hasHorizontalConstraints(component)) {
       return;
     }
@@ -769,7 +769,7 @@ public final class ConstraintComponentUtilities {
     }
   }
 
-  public static void ensureVerticalPosition(NlComponent component, AttributesTransaction transaction) {
+  public static void ensureVerticalPosition(NlComponent component, NlAttributesHolder transaction) {
     if (hasVerticalConstraints(component)) {
       return;
     }

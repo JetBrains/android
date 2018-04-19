@@ -21,6 +21,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponentDelegate;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
@@ -70,12 +71,17 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
   private NlComponent mySelection;
   MotionLayoutAttributePanel myMotionLayoutAttributePanel;
   private boolean myInStateChange;
+  private NlComponentDelegate myNlComponentDelegate = new MotionLayoutComponentDelegate(this);
 
   public State getCurrentState() {
     return myCurrentState;
   }
 
-  enum State {TL_UNKNOWN, TL_START, TL_PLAY, TL_PAUSE, TL_TRANSITION, TL_END}
+  public NlComponentDelegate getNlComponentDelegate() {
+    return myNlComponentDelegate;
+  }
+
+  enum State { TL_UNKNOWN, TL_START, TL_PLAY, TL_PAUSE, TL_TRANSITION, TL_END }
 
   private State myCurrentState = TL_UNKNOWN;
 
@@ -136,7 +142,18 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
 
     // component is a motion layout
     myMotionLayout = component;
+    addDelegate();
     loadMotionScene();
+  }
+
+  private void addDelegate() {
+    if (myMotionLayout == null) {
+      return;
+    }
+    myMotionLayout.setDelegate(myNlComponentDelegate);
+    for (NlComponent child : myMotionLayout.getChildren()) {
+      child.setDelegate(myNlComponentDelegate);
+    }
   }
 
   private void loadMotionScene() {
@@ -144,6 +161,7 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
       String referencedFile =
         myMotionLayout.getAttribute(SdkConstants.AUTO_URI, "transition"); // TODO SdkConstants.ATTR_MOTION_SCENE_REFERENCE);
       parseMotionScene(myMotionLayout, referencedFile);
+      setState(TL_UNKNOWN);
     }
     switch (myPanel.getMode()) {
       case START:
@@ -218,7 +236,13 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
       myMotionLayoutComponentHelper = new MotionLayoutComponentHelper(myMotionLayout);
     }
     if (myCurrentState != TL_PLAY) {
-      setState(TL_TRANSITION);
+      if (percent == 0) {
+        setState(TL_START);
+      } else if (percent == 1) {
+        setState(TL_END);
+      } else {
+        setState(TL_TRANSITION);
+      }
     }
   }
 
@@ -232,21 +256,16 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
       case TL_START:
         mGanttCommands.setMode(GanttCommands.Mode.START);
         stopPlaying();
-        importFullConstraintSet(myMotionLayout, "@+id/start");
-        setInTransition(myMotionLayout, false);
         myVisibilityCallback.show(AccessoryPanel.Type.EAST_PANEL, false);
         mGanttCommands.setProgress(0);
         break;
       case TL_END:
         mGanttCommands.setMode(GanttCommands.Mode.END);
         stopPlaying();
-        importFullConstraintSet(myMotionLayout, "@+id/end");
-        setInTransition(myMotionLayout, false);
         myVisibilityCallback.show(AccessoryPanel.Type.EAST_PANEL, false);
         mGanttCommands.setProgress(1);
         break;
       case TL_PLAY:
-        setInTransition(myMotionLayout, true);
         mGanttCommands.setMode(GanttCommands.Mode.PLAY);
 
         myVisibilityCallback.show(AccessoryPanel.Type.EAST_PANEL, true);
@@ -259,7 +278,6 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
       case TL_TRANSITION:
         stopPlaying();
         mGanttCommands.setMode(GanttCommands.Mode.TRANSITION);
-        setInTransition(myMotionLayout, true);
         myVisibilityCallback.show(AccessoryPanel.Type.EAST_PANEL, true);
     }
     myCurrentState = state;
@@ -358,7 +376,7 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
 
   // TODO: merge with the above parse function
   @Nullable
-  private XmlFile getTransitionFile(@NotNull NlComponent component) {
+  XmlFile getTransitionFile(@NotNull NlComponent component) {
     // get the parent if need be
     if (!NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.MOTION_LAYOUT)) {
       component = component.getParent();
@@ -389,7 +407,7 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
   }
 
   @Nullable
-  private XmlTag getConstraintSet(XmlFile file, String constraintSetId) {
+  XmlTag getConstraintSet(XmlFile file, String constraintSetId) {
     XmlTag[] children = file.getRootTag().findSubTags("ConstraintSet");
     for (int i = 0; i < children.length; i++) {
       XmlAttribute attribute = children[i].getAttribute("android:id");
@@ -403,7 +421,7 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
   }
 
   @Nullable
-  private XmlTag getConstrainView(XmlTag constraintSet, String id) {
+  XmlTag getConstrainView(XmlTag constraintSet, String id) {
     XmlTag[] children = constraintSet.getSubTags();
     for (int i = 0; i < children.length; i++) {
       XmlAttribute attribute = children[i].getAttribute("android:id");
@@ -417,70 +435,6 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
       }
     }
     return null;
-  }
-
-  public void importFullConstraintSet(NlComponent component, String constraintSetId) {
-    // let's first find the constraint set
-
-    XmlFile xmlFile = getTransitionFile(component);
-    Project project = component.getModel().getProject();
-    XmlTag constraintSet = getConstraintSet(xmlFile, constraintSetId);
-    if (constraintSet == null) {
-      return;
-    }
-    List<NlComponent> components = null;
-    if (component.getParent() == null) {
-      components = component.getChildren();
-    }
-    else {
-      components = component.getParent().getChildren();
-    }
-
-    final List<NlComponent> finalComponents = components;
-    new WriteCommandAction(project, "Copy ConstraintSet", xmlFile) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        // iterate on the constraints and write them on the component
-        for (NlComponent component : finalComponents) {
-          XmlTag constrainView = getConstrainView(constraintSet, component.getId());
-          if (constrainView == null) {
-            continue;
-          }
-          XmlAttribute[] attributes = constrainView.getAttributes();
-          AttributesTransaction transaction = component.startAttributeTransaction();
-          for (Pair<String, String> attribute : ConstraintComponentUtilities.ourLayoutAttributes) {
-            transaction.setAttribute(attribute.getFirst(), attribute.getSecond(), null);
-          }
-          for (int i = 0; i < attributes.length; i++) {
-            String qname = attributes[i].getName();
-
-            if (qname.equalsIgnoreCase("android:id")) {
-              continue;
-            }
-            int separatorIndex = qname.indexOf(':');
-            if (separatorIndex == -1) {
-              continue;
-            }
-            String namespace = qname.substring(0, separatorIndex);
-            if (namespace.equalsIgnoreCase("android")) {
-              namespace = SdkConstants.ANDROID_URI;
-            }
-            else if (namespace.equalsIgnoreCase("motion")) {
-              namespace = SdkConstants.AUTO_URI;
-            }
-            else if (namespace.equalsIgnoreCase("app")) {
-              namespace = SdkConstants.AUTO_URI;
-            }
-            String name = qname.substring(separatorIndex + 1);
-            String value = attributes[i].getValue();
-            transaction.setAttribute(namespace, name, value);
-          }
-          transaction.commit();
-        }
-      }
-    }.execute();
-    NlModel model = component.getModel();
-    model.notifyModified(NlModel.ChangeType.EDIT);
   }
 
   public void setInTransition(@NotNull NlComponent component, boolean inTransition) {

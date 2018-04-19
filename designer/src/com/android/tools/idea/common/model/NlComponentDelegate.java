@@ -18,6 +18,7 @@ package com.android.tools.idea.common.model;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -25,7 +26,7 @@ import java.util.List;
  * Specify delegation operations for NlComponent
  */
 public interface NlComponentDelegate {
-  boolean handlesAttribute(@NotNull NlComponent component, @NotNull String namespace, @NotNull String attribute);
+  boolean handlesAttribute(@NotNull NlComponent component, @Nullable String namespace, @NotNull String attribute);
 
   boolean handlesAttributes(NlComponent component);
 
@@ -33,7 +34,7 @@ public interface NlComponentDelegate {
 
   boolean handlesCommit(ComponentModification modification);
 
-  String getAttribute(@NotNull NlComponent component, @NotNull String namespace, @NotNull String attribute);
+  String getAttribute(@NotNull NlComponent component, @Nullable String namespace, @NotNull String attribute);
 
   List<AttributeSnapshot> getAttributes(NlComponent component);
 

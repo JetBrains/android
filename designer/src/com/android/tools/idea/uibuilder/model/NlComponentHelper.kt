@@ -516,8 +516,6 @@ object NlComponentHelper {
    */
   fun registerComponent(component: NlComponent) {
     component.setMixin(NlComponentMixin(component))
-    val viewGroupHandler = component.viewGroupHandler
-    component.delegate = viewGroupHandler?.nlComponentDelegate
   }
 
   // TODO Add a needsId method to the handler classes

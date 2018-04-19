@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ConnectionDraw;
 import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintWidget;
@@ -341,8 +342,10 @@ public class SingleWidgetView extends JPanel {
     NlComponent component = mWidgetConstraintPanel.mComponent;
     if (component != null) {
       Scout.arrangeWidgets(bottom, Collections.singletonList(component), false);
-      NlWriteCommandAction
-        .run(component, "Connecting", () -> component.startAttributeTransaction().commit());
+      ComponentModification modification = new ComponentModification(component, "Connect Constraint");
+      // Temporary fix -- we should not use AttributeTransaction instead.
+      component.startAttributeTransaction().applyToModification(modification);
+      modification.commit();
     }
   }
 
