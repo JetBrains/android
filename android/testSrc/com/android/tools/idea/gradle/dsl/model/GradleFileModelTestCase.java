@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.FlavorTypeModel.TypeNameValueElement;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
+import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel;
@@ -636,5 +637,10 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
   public static void verifyFilePathsAreEqual(@NotNull File expected, @NotNull VirtualFile actual) {
     assertEquals(toSystemIndependentName(expected.getAbsolutePath()), actual.getPath());
+  }
+
+  public static void verifyPlugins(@NotNull List<String> names, @NotNull List<PluginModel> models) {
+    List<String> actualNames = PluginModel.extractNames(models);
+    assertSameElements(names, actualNames);
   }
 }

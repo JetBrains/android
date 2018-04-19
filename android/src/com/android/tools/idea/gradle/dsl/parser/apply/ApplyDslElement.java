@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.apply;
 
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -27,36 +24,35 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ApplyDslElement extends GradlePropertiesDslElement {
   @NonNls public static final String APPLY_BLOCK_NAME = "apply";
+  @NonNls private static final String FROM = "from";
   // The GradleDslFile that represents the virtual file that has been applied.
   // This will be set when parsing the build file we belong to.
-  @Nullable private GradleDslFile myAppliedDslFile;
+  @NotNull private final List<GradleDslFile> myAppliedDslFiles = new ArrayList<>();
 
   public ApplyDslElement(@NotNull GradleDslElement parent) {
     super(parent, null, GradleNameElement.create(APPLY_BLOCK_NAME));
+    parent.getDslFile().registerApplyElement(this);
   }
 
   @Override
   public void addParsedElement(@NotNull GradleDslElement element) {
-    String property = element.getName();
-    if (property.equals("plugin")) {
-      addToParsedExpressionList("plugin", element);
-      return;
-    }
-    if (property.equals("from")) {
+    GradleDslSimpleExpression from = extractFrom(element);
+    if (from != null) {
       // Try and find the given file.
-      String fileName = attemptToExtractFileName(element);
+      String fileName = attemptToExtractFileName(from);
       if (fileName != null) {
         VirtualFile file = VirtualFileManager.getInstance().findFileByUrl(getDslFile().getFile().getParent() + "/" + fileName);
         if (file != null) {
-          // Register the applied file.
-          getDslFile().registerAppliedFile(this);
-
           // Parse the file
-          myAppliedDslFile = getDslFile().getContext().getOrCreateBuildFile(file);
+          GradleDslFile dslFile = getDslFile().getContext().getOrCreateBuildFile(file);
+          myAppliedDslFiles.add(dslFile);
 
-          getDslFile().addAppliedModelProperties(myAppliedDslFile);
+          getDslFile().addAppliedModelProperties(dslFile);
         }
       }
     }
@@ -80,17 +76,21 @@ public class ApplyDslElement extends GradlePropertiesDslElement {
   public void setPsiElement(@Nullable PsiElement psiElement) {
   }
 
-  @Nullable
-  public GradleDslFile getAppliedDslFile() {
-    return myAppliedDslFile;
+  @NotNull
+  public List<GradleDslFile> getAppliedDslFiles() {
+    return myAppliedDslFiles;
   }
 
   @Nullable
-  private static String attemptToExtractFileName(@NotNull GradleDslElement element) {
-    if (element instanceof GradleDslLiteral) {
-      return ((GradleDslLiteral)element).getValue(String.class);
-    }
+  private static String attemptToExtractFileName(@NotNull GradleDslSimpleExpression element) {
+    return (element).getValue(String.class);
+  }
 
+  @Nullable
+  private static GradleDslSimpleExpression extractFrom(@NotNull GradleDslElement element) {
+    if (element instanceof GradleDslExpressionMap) {
+      return ((GradleDslExpressionMap)element).getPropertyElement(FROM, GradleDslSimpleExpression.class);
+    }
     return null;
   }
 }

@@ -32,14 +32,11 @@ public interface GradleSettingsModel extends GradleFileModel {
   @NotNull
   List<String> modulePaths();
 
-  @NotNull
-  GradleSettingsModel addModulePath(@NotNull String modulePath);
+  void addModulePath(@NotNull String modulePath);
 
-  @NotNull
-  GradleSettingsModel removeModulePath(@NotNull String modulePath);
+  void removeModulePath(@NotNull String modulePath);
 
-  @NotNull
-  GradleSettingsModel replaceModulePath(@NotNull String oldModulePath, @NotNull String newModulePath);
+  void replaceModulePath(@NotNull String oldModulePath, @NotNull String newModulePath);
 
   @Nullable
   File moduleDirectory(String modulePath);

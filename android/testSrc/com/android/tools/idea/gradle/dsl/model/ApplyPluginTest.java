@@ -16,10 +16,15 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.google.common.collect.ImmutableList;
 import com.intellij.psi.PsiElement;
 import org.junit.Test;
 
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*;
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
@@ -35,7 +40,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
     GradleBuildModel buildModel = getGradleBuildModel();
-    assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
   }
 
   @Test
@@ -48,7 +53,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
     GradleBuildModel buildModel = getGradleBuildModel();
-    assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
   }
 
   @Test
@@ -58,7 +63,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
     GradleBuildModel buildModel = getGradleBuildModel();
-    assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
   }
 
   @Test
@@ -69,7 +74,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
     GradleBuildModel buildModel = getGradleBuildModel();
-    assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
   }
 
   @Test
@@ -81,13 +86,13 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
     GradleBuildModel buildModel = getGradleBuildModel();
-    assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
 
     buildModel.removePlugin("com.android.application");
-    assertEquals("apply", ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins( ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
 
     buildModel.resetState();
-    assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
   }
 
   @Test
@@ -100,13 +105,13 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
     GradleBuildModel buildModel = getGradleBuildModel();
-    assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
 
     buildModel.removePlugin("com.android.application");
-    assertEquals("apply", ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
 
     buildModel.resetState();
-    assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
   }
 
   @Test
@@ -116,13 +121,13 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
     GradleBuildModel buildModel = getGradleBuildModel();
-    assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
 
     buildModel.removePlugin("com.android.application");
-    assertEquals("apply", ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
 
     buildModel.resetState();
-    assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
   }
 
   @Test
@@ -133,13 +138,13 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
     GradleBuildModel buildModel = getGradleBuildModel();
-    assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
 
     buildModel.removePlugin("com.android.application");
-    assertEquals("apply", ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
 
     buildModel.resetState();
-    assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
   }
 
   @Test
@@ -151,16 +156,16 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
     GradleBuildModel buildModel = getGradleBuildModel();
-    assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
 
     buildModel.removePlugin("com.android.application");
-    assertEquals("apply", ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
 
     applyChanges(buildModel);
-    assertEquals("apply", ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
 
     buildModel.reparse();
-    assertEquals("apply", ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
   }
 
   @Test
@@ -173,16 +178,16 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
     GradleBuildModel buildModel = getGradleBuildModel();
-    assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
 
     buildModel.removePlugin("com.android.application");
-    assertEquals("apply", ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
 
     applyChanges(buildModel);
-    assertEquals("apply", ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
 
     buildModel.reparse();
-    assertEquals("apply", ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
   }
 
   @Test
@@ -192,16 +197,16 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
     GradleBuildModel buildModel = getGradleBuildModel();
-    assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
 
     buildModel.removePlugin("com.android.application");
-    assertEquals("apply", ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
 
     applyChanges(buildModel);
-    assertEquals("apply", ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
 
     buildModel.reparse();
-    assertEquals("apply", ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
   }
 
   @Test
@@ -212,16 +217,17 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
     GradleBuildModel buildModel = getGradleBuildModel();
-    assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
+
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
 
     buildModel.removePlugin("com.android.application");
-    assertEquals("apply", ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
 
     applyChanges(buildModel);
-    assertEquals("apply", ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
 
     buildModel.reparse();
-    assertEquals("apply", ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
   }
 
   @Test
@@ -230,13 +236,13 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
     GradleBuildModel buildModel = getGradleBuildModel();
-    assertEquals("apply", ImmutableList.of("com.android.application"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.application"), buildModel.appliedPlugins());
 
     buildModel.applyPlugin("com.android.library");
-    assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
 
     buildModel.resetState();
-    assertEquals("apply", ImmutableList.of("com.android.application"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.application"), buildModel.appliedPlugins());
   }
 
   @Test
@@ -246,13 +252,13 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
     GradleBuildModel buildModel = getGradleBuildModel();
-    assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
 
     buildModel.applyPlugin("com.android.application");
-    assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
 
     buildModel.resetState();
-    assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
   }
 
   @Test
@@ -261,16 +267,17 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
     GradleBuildModel buildModel = getGradleBuildModel();
-    assertEquals("apply", ImmutableList.of("com.android.application"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.application"), buildModel.appliedPlugins());
 
     buildModel.applyPlugin("com.android.library");
-    assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
+
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
 
     applyChanges(buildModel);
-    assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
 
     buildModel.reparse();
-    assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
   }
 
   @Test
@@ -280,20 +287,66 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
     GradleBuildModel buildModel = getGradleBuildModel();
-    verifyAppliedPlugins(buildModel, text);
+    verifyAppliedPluginsAndText(buildModel, text);
 
     buildModel.applyPlugin("com.android.application");
-    verifyAppliedPlugins(buildModel, text);
+    verifyAppliedPluginsAndText(buildModel, text);
 
     applyChanges(buildModel);
-    verifyAppliedPlugins(buildModel, text);
+    verifyAppliedPluginsAndText(buildModel, text);
 
     buildModel.reparse();
-    verifyAppliedPlugins(buildModel, text);
+    verifyAppliedPluginsAndText(buildModel, text);
   }
 
-  private static void verifyAppliedPlugins(GradleBuildModel buildModel, String buildText) {
-    assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
+  @Test
+  public void testSetPluginName() throws Exception {
+    String text = "apply plugin: 'com.android.application'\n" +
+                  "apply {\n" +
+                  "  plugin 'com.foo.bar'\n" +
+                  "}";
+    writeToBuildFile(text);
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    assertSize(2, buildModel.appliedPlugins());
+    PluginModel pluginModel = buildModel.appliedPlugins().get(0);
+    verifyPropertyModel(pluginModel.name(), STRING_TYPE, "com.android.application", STRING, DERIVED, 0, "plugin");
+    PluginModel otherPlugin = buildModel.appliedPlugins().get(1);
+    verifyPropertyModel(otherPlugin.name(), STRING_TYPE, "com.foo.bar", STRING, REGULAR, 0, "plugin");
+
+    pluginModel.name().setValue("com.google.application");
+    otherPlugin.name().setValue("bar.com.foo");
+    applyChangesAndReparse(buildModel);
+
+    assertSize(2, buildModel.appliedPlugins());
+    pluginModel = buildModel.appliedPlugins().get(0);
+     verifyPropertyModel(pluginModel.name(), STRING_TYPE, "com.google.application", STRING, DERIVED, 0, "plugin");
+    otherPlugin = buildModel.appliedPlugins().get(1);
+    verifyPropertyModel(otherPlugin.name(), STRING_TYPE, "bar.com.foo", STRING, REGULAR, 0, "plugin");
+  }
+
+  @Test
+  public void testDeletePluginName() throws Exception {
+    String text = "apply plugin: 'com.android.application'\n" +
+                  "apply {\n" +
+                  "  plugin 'com.foo.bar'\n" +
+                  "}";
+    writeToBuildFile(text);
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    assertSize(2, buildModel.appliedPlugins());
+    PluginModel pluginModel = buildModel.appliedPlugins().get(0);
+    PluginModel otherPlugin = buildModel.appliedPlugins().get(1);
+
+    pluginModel.name().delete();
+    otherPlugin.name().delete();
+    applyChangesAndReparse(buildModel);
+
+    assertSize(0, buildModel.appliedPlugins());
+  }
+
+  private static void verifyAppliedPluginsAndText(GradleBuildModel buildModel, String buildText) {
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
     assertThat(buildModel).isInstanceOf(GradleBuildModelImpl.class);
     GradleBuildModelImpl buildModelImpl = (GradleBuildModelImpl)buildModel;
 

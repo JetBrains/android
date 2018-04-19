@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -55,13 +54,11 @@ public interface GradleBuildModel extends GradleFileModel {
   }
 
   @NotNull
-  List<GradleNotNullValue<String>> appliedPlugins();
+  List<PluginModel> appliedPlugins();
 
-  @NotNull
-  GradleBuildModel applyPlugin(@NotNull String plugin);
+  PluginModel applyPlugin(@NotNull String plugin);
 
-  @NotNull
-  GradleBuildModel removePlugin(@NotNull String plugin);
+  void removePlugin(@NotNull String plugin);
 
   @Nullable
   AndroidModel android();

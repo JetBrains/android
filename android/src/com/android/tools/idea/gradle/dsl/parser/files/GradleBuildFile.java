@@ -27,8 +27,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
-
 import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.SOURCE_COMPATIBILITY_ATTRIBUTE_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.TARGET_COMPATIBILITY_ATTRIBUTE_NAME;
@@ -44,15 +42,13 @@ public class GradleBuildFile extends GradleDslFile {
 
   @Override
   public void addParsedElement(@NotNull GradleDslElement element) {
-    if (APPLY_BLOCK_NAME.equals(element.getName()) && element instanceof GradleDslExpressionMap) {
+    if (APPLY_BLOCK_NAME.equals(element.getFullName()) && element instanceof GradleDslExpressionMap) {
       ApplyDslElement applyDslElement = getPropertyElement(APPLY_BLOCK_NAME, ApplyDslElement.class);
       if (applyDslElement == null) {
         applyDslElement = new ApplyDslElement(this);
         super.addParsedElement(applyDslElement);
       }
-      for (Map.Entry<String, GradleDslElement> entry : ((GradleDslExpressionMap)element).getPropertyElements().entrySet()) {
-        applyDslElement.addParsedElement(entry.getValue());
-      }
+      applyDslElement.addParsedElement(element);
       return;
     }
     super.addParsedElement(element);
