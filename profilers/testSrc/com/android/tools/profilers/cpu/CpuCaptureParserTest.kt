@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu
 
 import com.android.testutils.TestUtils
+import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profiler.protobuf3jarjar.ByteString
 import com.android.tools.profilers.FakeIdeProfilerServices
@@ -132,7 +133,8 @@ class CpuCaptureParserTest {
   fun profilerTypeMustBeSpecified() {
     val parser = CpuCaptureParser(FakeIdeProfilerServices())
     val traceBytes = CpuProfilerTestUtils.traceFileToByteString("simpleperf.trace")
-    val futureCapture = parser.parse(ProfilersTestData.SESSION_DATA, ANY_TRACE_ID, traceBytes, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER)!!
+    val futureCapture = parser.parse(ProfilersTestData.SESSION_DATA, ANY_TRACE_ID, traceBytes,
+                                     CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER)!!
 
     try {
       futureCapture.get()
@@ -194,10 +196,11 @@ class CpuCaptureParserTest {
 
     // Now enable the flag and try to parse it again.
     services.enableAtrace(true)
-    futureCapture = parser.parse(traceFile)!!
+    futureCapture = parser.parse(Common.Session.newBuilder().setPid(1).build(), 0, CpuProfilerTestUtils.traceFileToByteString(traceFile),
+                                 CpuProfiler.CpuProfilerType.ATRACE)!!
     capture = futureCapture.get()
     assertThat(capture).isNotNull()
-    assertThat(capture.traceId).isEqualTo(CpuCaptureParser.IMPORTED_TRACE_ID)
+    assertThat(capture.traceId).isEqualTo(0)
     // Atrace capture should be instance of AtraceCpuCapture
     assertThat(capture).isInstanceOf(AtraceCpuCapture::class.java)
   }
