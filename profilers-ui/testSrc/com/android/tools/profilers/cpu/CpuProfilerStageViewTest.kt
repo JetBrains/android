@@ -22,6 +22,7 @@ import com.android.tools.adtui.instructions.InstructionsPanel
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profilers.*
 import com.android.tools.profilers.cpu.CpuProfilerStageView.KERNEL_VIEW_SPLITTER_RATIO
 import com.android.tools.profilers.cpu.CpuProfilerStageView.SPLITTER_DEFAULT_RATIO
@@ -37,6 +38,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
+import javax.swing.JLabel
 import javax.swing.JList
 
 // Path to trace file. Used in test to build AtraceParser.
@@ -52,6 +54,8 @@ class CpuProfilerStageViewTest {
 
   private val myCpuService = FakeCpuService()
 
+  private val myTimer = FakeTimer()
+
   @get:Rule
   val myGrpcChannel = FakeGrpcChannel(
       "CpuCaptureViewTestChannel", myCpuService, myProfilerService,
@@ -64,10 +68,9 @@ class CpuProfilerStageViewTest {
 
   @Before
   fun setUp() {
-    val timer = FakeTimer()
-    val profilers = StudioProfilers(myGrpcChannel.client, myIdeServices, timer)
+    val profilers = StudioProfilers(myGrpcChannel.client, myIdeServices, myTimer)
     // One second must be enough for new devices (and processes) to be picked up
-    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
     myStage = CpuProfilerStage(profilers)
     myStage.studioProfilers.stage = myStage
@@ -230,6 +233,46 @@ class CpuProfilerStageViewTest {
   }
 
   @Test
+  fun testHideablePanelsHaveItemCountsAsTitle() {
+    // Create default device and process for a default session.
+    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
+    val process1 = Common.Process.newBuilder().setPid(2652).setState(Common.Process.State.ALIVE).build()
+    // Create a session and a ongoing profiling session.
+    myStage.studioProfilers.sessionsManager.endCurrentSession()
+    myStage.studioProfilers.sessionsManager.beginSession(device, process1)
+    myStage.studioProfilers.stage = myStage
+    myCpuService.profilerType = CpuProfiler.CpuProfilerType.ATRACE
+    myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)
+    myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE)))
+    myStage.setAndSelectCapture(0)
+    // One second is enough for the models to be updated.
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    myStage.studioProfilers.timeline.viewRange.set(myStage.capture!!.range)
+
+    val cpuProfilerStageView = myProfilersView.stageView as CpuProfilerStageView
+    val treeWalker = TreeWalker(cpuProfilerStageView.component)
+    // Find our cpu list.
+    val cpuList = treeWalker.descendants().filterIsInstance<JList<CpuKernelModel.CpuState>>().first()
+    var hideablePanel = TreeWalker(cpuList).ancestors().filterIsInstance<HideablePanel>().first()
+    var panelTitle = TreeWalker(hideablePanel).descendants().filterIsInstance<JLabel>().first()
+    assertThat(panelTitle.text).contains("KERNEL (4)")
+    // Find our thread list.
+    val threadsList = treeWalker.descendants().filterIsInstance<JList<CpuThreadsModel.RangedCpuThread>>().last()
+    hideablePanel = TreeWalker(threadsList).ancestors().filterIsInstance<HideablePanel>().first()
+    panelTitle = TreeWalker(hideablePanel).descendants().filterIsInstance<JLabel>().first()
+    assertThat(panelTitle.text).contains("THREADS (0)")
+    // Add a thread
+    myCpuService.addAdditionalThreads(1, "Test", mutableListOf(
+      CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder().setTimestamp(0).setNewState(
+        CpuProfiler.GetThreadsResponse.State.SLEEPING).build()))
+    // Update the view range triggering an aspect change in CpuThreadsModel.
+    myStage.studioProfilers.timeline.viewRange.set(myStage.studioProfilers.timeline.dataRange)
+    // Tick to trigger
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    assertThat(panelTitle.text).contains("THREADS (1)")
+  }
+
+  @Test
   fun testTooltipComponentIsFirstChild() {
     val cpuProfilerStageView = CpuProfilerStageView(myProfilersView, myStage)
     val treeWalker = TreeWalker(cpuProfilerStageView.component)
@@ -248,7 +291,7 @@ class CpuProfilerStageViewTest {
     // This panel is the panel that appears in the L3 view telling users how to do their recording.
     // "Click [record icon] to start method profiling"
     assertThat(panelList).hasSize(1)
-    assertThat((panelList[0] as InstructionsPanel).getRenderInstructionsForComponent(0)).hasSize(3)
+    assertThat(panelList[0].getRenderInstructionsForComponent(0)).hasSize(3)
     myStage = CpuProfilerStage(myStage.studioProfilers, File("FakePathToTraceFile.trace"))
     myStage.enter()
     // Create a CpuProfilerStageView. We don't need its value, so we don't store it in a variable.
@@ -257,7 +300,7 @@ class CpuProfilerStageViewTest {
     // We cannot get the string due to privacy of InstructionsComponent.
     // This panel is the panel that appears in the Cpu Usage area indicating we have no cpu usage data.
     assertThat(panelList).hasSize(1)
-    assertThat((panelList[0] as InstructionsPanel).getRenderInstructionsForComponent(0)).hasSize(1)
+    assertThat(panelList[0].getRenderInstructionsForComponent(0)).hasSize(1)
   }
 
   /**
