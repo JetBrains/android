@@ -63,7 +63,7 @@ class NamespacedRenderTest : AndroidGradleTestCase() {
     goldenImage: String
   ) {
     val task = RenderTestUtil.createRenderTask(myModules.appModule, layout, configuration)
-    val result = task.render().get().renderedImage.copy
+    val result = task.render().get().renderedImage.copy!!
 
     ImageDiffUtil.assertImageSimilar(
       File(getTestDataPath() + goldenImage),
