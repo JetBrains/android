@@ -16,8 +16,7 @@
 package org.jetbrains.android.inspections;
 
 import com.intellij.codeInspection.InspectionProfileEntry;
-import org.jetbrains.annotations.Nls;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.codeInspection.java18api.Java8CollectionRemoveIfInspection;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidJava8CollectionRemoveIfInspectionTest extends AndroidInspectionTestCase {
@@ -79,20 +78,6 @@ public class AndroidJava8CollectionRemoveIfInspectionTest extends AndroidInspect
   @Nullable
   @Override
   protected InspectionProfileEntry getInspection() {
-    return new AndroidJava8CollectionRemoveIfInspection() {
-      @Nls
-      @NotNull
-      @Override
-      public String getGroupDisplayName() {
-        return "Java 8";
-      }
-
-      @Nls
-      @NotNull
-      @Override
-      public String getDisplayName() {
-        return "Loop can be replaced with Collection.removeIf()";
-      }
-    };
+    return new Java8CollectionRemoveIfInspection();
   }
 }
