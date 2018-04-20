@@ -63,7 +63,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
 import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 
 /**
@@ -88,7 +87,7 @@ final class ManifestInfo {
     final File mainManifestFile = VfsUtilCore.virtualToIoFile(primaryManifestFile);
 
     ILogger logger = NullLogger.getLogger();
-    ManifestMerger2.MergeType mergeType = facet.getConfiguration().isAppProject() || facet.getConfiguration().getProjectType() == PROJECT_TYPE_FEATURE ? ManifestMerger2.MergeType.APPLICATION : ManifestMerger2.MergeType.LIBRARY;
+    ManifestMerger2.MergeType mergeType = facet.getConfiguration().isAppOrFeature() ? ManifestMerger2.MergeType.APPLICATION : ManifestMerger2.MergeType.LIBRARY;
 
     AndroidModel androidModel = facet.getConfiguration().getModel();
     AndroidModuleModel gradleModel = AndroidModuleModel.get(facet);
@@ -360,7 +359,7 @@ final class ManifestInfo {
       trackChanges(lastModifiedMap, flavorAndBuildTypeManifests);
 
       List<VirtualFile> libraryManifests = Collections.emptyList();
-      if (myFacet.getConfiguration().isAppProject() || myFacet.getConfiguration().getProjectType() == PROJECT_TYPE_FEATURE) {
+      if (myFacet.getConfiguration().isAppOrFeature()) {
         libraryManifests = getLibManifests(myFacet);
         trackChanges(lastModifiedMap, libraryManifests);
       }

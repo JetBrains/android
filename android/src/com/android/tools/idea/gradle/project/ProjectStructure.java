@@ -31,13 +31,15 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Ref;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.concurrent.GuardedBy;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.android.builder.model.AndroidProject.*;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder.EMPTY;
 
 public class ProjectStructure {
@@ -129,16 +131,8 @@ public class ProjectStructure {
   }
 
   private static boolean isAppOrFeature(@NotNull Module module) {
-    AndroidModuleModel androidModel = AndroidModuleModel.get(module);
-    if (androidModel == null) {
-      return false;
-    }
-
-    int projectType = androidModel.getAndroidProject().getProjectType();
-    return projectType == PROJECT_TYPE_APP ||
-           projectType == PROJECT_TYPE_INSTANTAPP ||
-           projectType == PROJECT_TYPE_FEATURE ||
-           projectType == PROJECT_TYPE_DYNAMIC_FEATURE;
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    return facet != null && facet.getConfiguration().isAppOrFeature();
   }
 
   private static boolean isApp(@NotNull AndroidModuleModel androidModel) {
