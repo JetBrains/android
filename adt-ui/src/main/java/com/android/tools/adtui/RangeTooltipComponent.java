@@ -53,7 +53,7 @@ public final class RangeTooltipComponent extends AnimatedComponent {
     myViewRange = view;
     myDataRange = data;
 
-    myTooltipComponent = new TooltipComponent(component, this, preferredTooltipParent);
+    myTooltipComponent = new TooltipComponent.Builder(component, this).setPreferredParentClass(preferredTooltipParent).build();
     myViewRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::viewRangeChanged);
     myHighlightRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::highlightRangeChanged);
   }

@@ -15,10 +15,10 @@
  */
 package com.android.tools.adtui;
 
-import com.android.annotations.VisibleForTesting;
 import com.intellij.util.Producer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import java.awt.*;
@@ -34,54 +34,37 @@ public final class TooltipComponent extends AnimatedComponent {
   @NotNull
   private final Component myOwner;
 
-  /**
-   * Provided for tests, since in tests we can't create JFrames (they would throw a headless
-   * exception), so calling {@code myOwner.isDisplayble()} directly would always return false.
-   */
   @NotNull
   private final Producer<Boolean> myIsOwnerDisplayable;
+
+  private final boolean myAnchoredToOwner;
+
+  private final boolean myShowDropShadow;
+
+  @Nullable
+  private final Class<? extends JLayeredPane> myPreferredParentClass;
 
   @Nullable
   private Point myLastPoint;
 
   private final ComponentListener myParentListener;
 
-  @Nullable
-  private Class<? extends JLayeredPane> myPreferredParentClass;
+  private TooltipComponent(@NotNull Builder builder) {
+    myContent = builder.myContent;
+    myOwner = builder.myOwner;
+    myIsOwnerDisplayable = builder.myIsOwnerDisplayable;
+    myPreferredParentClass = builder.myPreferredParentClass;
+    myAnchoredToOwner = builder.myAnchoredToOwner;
+    myShowDropShadow = builder.myShowDropShadow;
 
-  /**
-   * Construct a tooltip component to show for a particular {@code owner}. After
-   * construction, you should also use {@link #registerListenersOn(Component)} to ensure the
-   * tooltip will show up on mouse movement.
-   *
-   * @param owner                The suggested owner for this tooltip. The tooltip will walk up the
-   *                             tree from this owner searching for a proper place to add itself.
-   * @param preferredParentClass If not {@code null}, the type of pane to use as this tooltip's
-   *                             parent (useful if you have a specific parent pane in mind)
-   */
-  public TooltipComponent(@NotNull Component content,
-                          @NotNull Component owner,
-                          @Nullable Class<? extends JLayeredPane> preferredParentClass) {
-    this(content, owner, preferredParentClass, owner::isDisplayable);
-  }
-
-  @VisibleForTesting
-  TooltipComponent(@NotNull Component content,
-                   @NotNull Component owner,
-                   @Nullable Class<? extends JLayeredPane> preferredParentClass,
-                   @NotNull Producer<Boolean> isOwnerDisplayable) {
-    myContent = content;
-    myOwner = owner;
-    myIsOwnerDisplayable = isOwnerDisplayable;
-    myPreferredParentClass = preferredParentClass;
-    add(content);
+    add(myContent);
     removeFromParent();
 
     // Note: invokeLater here is important in order to avoid modifying the hierarchy during a
     // hierarchy event.
     // We usually handle tooltip removal on mouseexit, but we add this here for possible edge
     // cases.
-    owner.addHierarchyListener(event -> SwingUtilities.invokeLater(() -> {
+    myOwner.addHierarchyListener(event -> SwingUtilities.invokeLater(() -> {
       if (!myIsOwnerDisplayable.produce()) {
         removeFromParent();
       }
@@ -207,25 +190,102 @@ public final class TooltipComponent extends AnimatedComponent {
 
     // Translate the bounds to clamp it wholly within the parent's drawable region.
     Dimension preferredSize = getPreferredSize();
+    Point anchorPoint;
+    if (myAnchoredToOwner) {
+      anchorPoint = SwingUtilities.convertPoint(myOwner, new Point(0, 0), this);
+    }
+    else {
+      anchorPoint = new Point(myLastPoint);
+    }
+
+    int padding = myShowDropShadow ? TOOLTIP_BORDER_SIZE : 0;
     // TODO Investigate if this works for multiple monitors, especially on Macs?
-    int x = Math.max(Math.min(myLastPoint.x + TOOLTIP_BORDER_SIZE, dim.width - preferredSize.width - TOOLTIP_BORDER_SIZE),
-                     TOOLTIP_BORDER_SIZE);
-    int y = Math.max(Math.min(myLastPoint.y + TOOLTIP_BORDER_SIZE, dim.height - preferredSize.height - TOOLTIP_BORDER_SIZE),
-                     TOOLTIP_BORDER_SIZE);
+    int x = Math.max(Math.min(anchorPoint.x + padding, dim.width - preferredSize.width - padding), padding);
+    int y = Math.max(Math.min(anchorPoint.y + padding, dim.height - preferredSize.height - padding), padding);
     myContent.setBounds(x, y, preferredSize.width, preferredSize.height);
 
     g.setColor(Color.WHITE);
     g.fillRect(x, y, preferredSize.width, preferredSize.height);
     g.setStroke(new BasicStroke(1.0f));
 
-    int lines = 4;
-    int[] alphas = new int[]{40, 30, 20, 10};
-    RoundRectangle2D.Float rect = new RoundRectangle2D.Float();
-    for (int i = 0; i < lines; i++) {
-      g.setColor(new Color(0, 0, 0, alphas[i]));
-      rect.setRoundRect(x - 1 - i, y - 1 - i, preferredSize.width + 1 + i * 2, preferredSize.height + 1 + i * 2, i * 2 + 2, i * 2 + 2);
-      g.draw(rect);
+    if (myShowDropShadow) {
+      int lines = 4;
+      int[] alphas = new int[]{40, 30, 20, 10};
+      RoundRectangle2D.Float rect = new RoundRectangle2D.Float();
+      for (int i = 0; i < lines; i++) {
+        g.setColor(new Color(0, 0, 0, alphas[i]));
+        rect.setRoundRect(x - 1 - i, y - 1 - i, preferredSize.width + 1 + i * 2, preferredSize.height + 1 + i * 2, i * 2 + 2, i * 2 + 2);
+        g.draw(rect);
+      }
     }
     myContent.repaint();
+  }
+
+  public static class Builder {
+    @NotNull private final Component myContent;
+    @NotNull private final Component myOwner;
+    @NotNull private Producer<Boolean> myIsOwnerDisplayable;
+    @Nullable private Class<? extends JLayeredPane> myPreferredParentClass;
+    private boolean myAnchoredToOwner;
+    private boolean myShowDropShadow = true;
+
+    /**
+     * Construct a tooltip component to show for a particular {@code owner}. After
+     * construction, you should also use {@link TooltipComponent#registerListenersOn(Component)} to ensure the
+     * tooltip will show up on mouse movement.
+     *
+     * @param owner The suggested owner for this tooltip. The tooltip will walk up the
+     *              tree from this owner searching for a proper place to add itself.
+     */
+    public Builder(@NotNull Component content, @NotNull Component owner) {
+      myContent = content;
+      myOwner = owner;
+      myIsOwnerDisplayable = myOwner::isDisplayable;
+    }
+
+    /**
+     * @param preferredParentClass If not {@code null}, the type of pane to use as this tooltip's
+     *                             parent (useful if you have a specific parent pane in mind)
+     */
+    @NotNull
+    public Builder setPreferredParentClass(@Nullable Class<? extends JLayeredPane> preferredParentClass) {
+      myPreferredParentClass = preferredParentClass;
+      return this;
+    }
+
+    /**
+     * Provided for tests, since in tests we can't create JFrames (they would throw a headless
+     * exception), so calling {@code myOwner.isDisplayble()} directly would always return false.
+     */
+    @TestOnly
+    @NotNull
+    public Builder setIsOwnerDisplayable(@NotNull Producer<Boolean> isOwnerDisplayable) {
+      myIsOwnerDisplayable = isOwnerDisplayable;
+      return this;
+    }
+
+    /**
+     * @param isAnchored Sets whether the tooltip should be anchored to the top left corner of the owner, instead of following the mouse.
+     */
+    @NotNull
+    public Builder setAnchored(boolean isAnchored) {
+      myAnchoredToOwner = isAnchored;
+      return this;
+    }
+
+    /**
+     * @param showDropShadow Sets whether to include drop shadows around the tooltip. This has the effect of adding extra paddings around
+     *                       the tooltip which might not always be desirable.
+     */
+    @NotNull
+    public Builder setShowDropShadow(boolean showDropShadow) {
+      myShowDropShadow = showDropShadow;
+      return this;
+    }
+
+    @NotNull
+    public TooltipComponent build() {
+      return new TooltipComponent(this);
+    }
   }
 }

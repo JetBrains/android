@@ -210,7 +210,8 @@ final class ConnectionsView {
     textPane.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
     textPane.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
     textPane.setFont(myConnectionsTable.getFont().deriveFont(TOOLTIP_FONT_SIZE));
-    TooltipComponent tooltip = new TooltipComponent(textPane, myConnectionsTable, ProfilerLayeredPane.class);
+    TooltipComponent tooltip =
+      new TooltipComponent.Builder(textPane, myConnectionsTable).setPreferredParentClass(ProfilerLayeredPane.class).build();
     tooltip.registerListenersOn(myConnectionsTable);
     myConnectionsTable.addMouseMotionListener(new MouseAdapter() {
       @Override
