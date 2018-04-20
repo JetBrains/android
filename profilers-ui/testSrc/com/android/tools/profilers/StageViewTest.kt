@@ -43,11 +43,11 @@ class StageViewTest {
     // Point selection
     val minUs = TimeUnit.MINUTES.toMicros(1)
     selectionRange.set(minUs.toDouble(), minUs.toDouble())
-    assertThat(selectionTimeLabel.text).isEqualTo("00:01:00.000")
+    assertThat(selectionTimeLabel.text).isEqualTo("01:00.000")
 
     // Range selection
     val maxUs = TimeUnit.HOURS.toMicros(1)
     selectionRange.max = maxUs.toDouble()
-    assertThat(selectionTimeLabel.text).isEqualTo("00:01:00.000 - 01:00:00.000")
+    assertThat(selectionTimeLabel.text).isEqualTo("01:00.000 - 01:00:00.000")
   }
 }

@@ -101,8 +101,8 @@ public class EnergyEventsTableTooltipInfoModel extends AspectModel<EnergyEventsT
     return timeFormat.format(new Date(timestampMs - mySystemTimeDelta));
   }
 
-  public String getFormattedString(double timestampUs) {
-    return myFormatter.getClockFormattedString((long)(timestampUs - myGlobalRange.getMin()));
+  public String getSimplifiedClockFormattedString(long timestampUs) {
+    return myFormatter.getSimplifiedClockFormattedString(timestampUs - (long)myGlobalRange.getMin());
   }
 
   public String getFormattedDuration(long timestampUs) {
@@ -115,7 +115,7 @@ public class EnergyEventsTableTooltipInfoModel extends AspectModel<EnergyEventsT
     }
     EnergyProfiler.EnergyEvent firstEvent = myDuration.getEventList().get(0);
     EnergyProfiler.EnergyEvent lastEvent = myDuration.getEventList().get(myDuration.getEventList().size() - 1);
-    String startTime = getFormattedString(TimeUnit.NANOSECONDS.toMicros(firstEvent.getTimestamp()));
+    String startTime = getSimplifiedClockFormattedString(TimeUnit.NANOSECONDS.toMicros(firstEvent.getTimestamp()));
     String unknownString;
     switch (myDuration.getKind()) {
       case WAKE_LOCK:
@@ -129,7 +129,7 @@ public class EnergyEventsTableTooltipInfoModel extends AspectModel<EnergyEventsT
     }
 
     String endTime =
-      lastEvent.getIsTerminal() ? getFormattedString(TimeUnit.NANOSECONDS.toMicros(lastEvent.getTimestamp())) : unknownString;
+      lastEvent.getIsTerminal() ? getSimplifiedClockFormattedString(TimeUnit.NANOSECONDS.toMicros(lastEvent.getTimestamp())) : unknownString;
     return startTime + " - " + endTime;
   }
 
