@@ -151,7 +151,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
     registerSessionChangeListener(Common.SessionMetaData.SessionType.FULL, () -> {
       setStage(new StudioMonitorStage(this));
-      if (isSessionAlive(mySelectedSession)) {
+      if (SessionsManager.isSessionAlive(mySelectedSession)) {
         // The session is live - move the timeline to the current time.
         TimeResponse timeResponse = myClient.getProfilerClient()
                                             .getCurrentTime(TimeRequest.newBuilder().setDeviceId(mySelectedSession.getDeviceId()).build());
@@ -298,7 +298,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
       // A heartbeat event may not have been sent by perfa when we first profile an app, here we keep pinging the status and
       // fire the corresponding change and tracking events.
-      if (isSessionAlive(mySelectedSession)) {
+      if (SessionsManager.isSessionAlive(mySelectedSession)) {
         AgentStatusResponse.Status agentStatus = getAgentStatus(mySelectedSession);
         if (myAgentStatus != agentStatus) {
           myAgentStatus = agentStatus;
@@ -451,7 +451,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
     // The current selected session has not changed but it has gone from live to finished, simply pause the timeline.
     if (mySelectedSession.getSessionId() == newSession.getSessionId() &&
-        isSessionAlive(mySelectedSession) && !isSessionAlive(newSession)) {
+        SessionsManager.isSessionAlive(mySelectedSession) && !SessionsManager.isSessionAlive(newSession)) {
       mySelectedSession = newSession;
       myTimeline.setIsPaused(true);
       return;
@@ -476,14 +476,14 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     Common.Session newSession = mySessionsManager.getProfilingSession();
     // Stops the previous profiling session if it is active
     if (!Common.Session.getDefaultInstance().equals(myProfilingSession)) {
-      assert isSessionAlive(myProfilingSession);
+      assert SessionsManager.isSessionAlive(myProfilingSession);
       myProfilers.forEach(profiler -> profiler.stopProfiling(myProfilingSession));
     }
 
     myProfilingSession = newSession;
 
     if (!Common.Session.getDefaultInstance().equals(myProfilingSession)) {
-      assert isSessionAlive(myProfilingSession);
+      assert SessionsManager.isSessionAlive(myProfilingSession);
       myProfilers.forEach(profiler -> profiler.startProfiling(myProfilingSession));
       myIdeServices.getFeatureTracker().trackProfilingStarted();
       if (getAgentStatus(myProfilingSession) == AgentStatusResponse.Status.ATTACHED) {
@@ -609,10 +609,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   @Nullable
   public Common.Process getProcess() {
     return myProcess;
-  }
-
-  private boolean isSessionAlive(@NotNull Common.Session session) {
-    return session.getEndTimestamp() == Long.MAX_VALUE;
   }
 
   public boolean isAgentAttached() {

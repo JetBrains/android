@@ -54,7 +54,7 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
     startTime.setFont(SESSION_TIME_FONT);
     add(startTime, new TabularLayout.Constraint(0, 0));
     // Session is ongoing.
-    if (getArtifact().getSession().getEndTimestamp() == Long.MAX_VALUE) {
+    if (SessionsManager.isSessionAlive(getArtifact().getSession())) {
       JPanel liveDotWrapper = new JPanel();
       liveDotWrapper.setOpaque(false);
       LiveSessionDot liveDot = new LiveSessionDot();

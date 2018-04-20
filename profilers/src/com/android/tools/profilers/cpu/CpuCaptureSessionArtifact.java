@@ -21,6 +21,7 @@ import com.android.tools.profiler.proto.CpuProfiler.*;
 import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.sessions.SessionArtifact;
+import com.android.tools.profilers.sessions.SessionsManager;
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
@@ -178,8 +179,7 @@ public class CpuCaptureSessionArtifact implements SessionArtifact {
 
     // If there is an ongoing capture, add an artifact to represent it. If the session is not alive, there is not a capture in progress, so
     // we don't need to bother calling the service.
-    boolean isSessionAlive = session.getEndTimestamp() == Long.MAX_VALUE;
-    if (isSessionAlive) {
+    if (SessionsManager.isSessionAlive(session)) {
       ProfilingStateResponse profilingStateResponse =
         profilers.getClient().getCpuClient().checkAppProfilingState(ProfilingStateRequest.newBuilder().setSession(session).build());
 
