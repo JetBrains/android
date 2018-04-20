@@ -28,13 +28,17 @@ public class ChooseBundleOrApkStep extends ExportSignedPackageWizardStep {
   @VisibleForTesting
   JRadioButton myBundleButton;
   @VisibleForTesting
-  JRadioButton myApksButton;
+  JRadioButton myApkButton;
   private JPanel myBundlePanel;
   private JPanel myApkPanel;
   private HyperlinkLabel myLearnMoreLink;
 
   public ChooseBundleOrApkStep(ExportSignedPackageWizard wizard) {
     myWizard = wizard;
+
+    final GenerateSignedApkSettings settings = GenerateSignedApkSettings.getInstance(wizard.getProject());
+    myBundleButton.setSelected(settings.BUILD_TARGET_KEY.equals(ExportSignedPackageWizard.BUNDLE));
+    myApkButton.setSelected(settings.BUILD_TARGET_KEY.equals(ExportSignedPackageWizard.APK));
 
     myLearnMoreLink.setHyperlinkText("Learn more");
     myLearnMoreLink.setHyperlinkTarget(DOC_URL);
@@ -47,7 +51,10 @@ public class ChooseBundleOrApkStep extends ExportSignedPackageWizardStep {
 
   @Override
   protected void commitForNext() {
-    myWizard.setTargetType(myBundleButton.isSelected() ? ExportSignedPackageWizard.BUNDLE : ExportSignedPackageWizard.APK);
+    boolean isBundle = myBundleButton.isSelected();
+    GenerateSignedApkSettings.getInstance(myWizard.getProject()).BUILD_TARGET_KEY =
+      isBundle ? ExportSignedPackageWizard.BUNDLE : ExportSignedPackageWizard.APK;
+    myWizard.setTargetType(isBundle ? ExportSignedPackageWizard.BUNDLE : ExportSignedPackageWizard.APK);
   }
 
   @Override
