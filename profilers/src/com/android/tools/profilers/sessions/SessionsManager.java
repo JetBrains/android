@@ -143,7 +143,11 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   }
 
   public boolean isSessionAlive() {
-    return mySelectedSession.getEndTimestamp() == Long.MAX_VALUE;
+    return isSessionAlive(mySelectedSession);
+  }
+
+  public static boolean isSessionAlive(@NotNull Common.Session session) {
+    return session.getEndTimestamp() == Long.MAX_VALUE;
   }
 
   @NotNull

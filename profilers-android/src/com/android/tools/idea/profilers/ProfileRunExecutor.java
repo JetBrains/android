@@ -20,6 +20,7 @@ import com.android.tools.idea.run.LaunchOptionsProvider;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
+import com.android.tools.profilers.sessions.SessionsManager;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.execution.Executor;
 import com.intellij.execution.ExecutorRegistry;
@@ -97,7 +98,7 @@ public class ProfileRunExecutor extends DefaultRunExecutor implements ExecutorIc
     if (profilerToolWindow != null) {
       StudioProfilers profilers = profilerToolWindow.getProfilers();
       Common.Session profilingSession = profilers.getSessionsManager().getProfilingSession();
-      if (profilingSession.getEndTimestamp() == Long.MAX_VALUE) {
+      if (SessionsManager.isSessionAlive(profilingSession)) {
         return ExecutionUtil.getLiveIndicator(getIcon());
       }
     }

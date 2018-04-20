@@ -22,6 +22,7 @@ import com.android.tools.idea.profilers.perfd.ProfilerServiceProxy;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.sessions.SessionAspect;
+import com.android.tools.profilers.sessions.SessionsManager;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
@@ -131,7 +132,7 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
 
   private void profilingSessionChanged() {
     Common.Session profilingSession = myProfilers.getSessionsManager().getProfilingSession();
-    if (profilingSession.getEndTimestamp() == Long.MAX_VALUE) {
+    if (SessionsManager.isSessionAlive(profilingSession)) {
       myWindow.setIcon(ExecutionUtil.getLiveIndicator(StudioIcons.Shell.ToolWindows.ANDROID_PROFILER));
     }
     else {
