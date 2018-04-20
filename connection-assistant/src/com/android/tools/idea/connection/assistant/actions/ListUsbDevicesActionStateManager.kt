@@ -102,7 +102,6 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
   }
 
   override fun getState(project: Project, actionData: ActionData): AssistActionState {
-    if (usbDeviceCollector.getPlatform() == Platform.Windows) return DefaultActionState.ERROR
     if (!myDevicesFuture.isDone) return DefaultActionState.IN_PROGRESS
 
     return if (getDevices().get().isEmpty()) DefaultActionState.ERROR_RETRY else CustomSuccessState
@@ -120,10 +119,6 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
     if (!myDevicesFuture.isDone) return "Loading..."
     val htmlBuilder = HtmlBuilder()
     val devices = myDevicesFuture.get().sortedBy { it.name }
-    if (usbDeviceCollector.getPlatform() == Platform.Windows && devices.isEmpty()) {
-      htmlBuilder.addHtml("Connection Assistant currently does not support detecting USB devices on the Windows operating system.").newline()
-      return htmlBuilder.closeHtmlBody().html
-    }
 
     if (usbDeviceCollector.getPlatform() == Platform.Windows) {
       htmlBuilder.addHtml(
