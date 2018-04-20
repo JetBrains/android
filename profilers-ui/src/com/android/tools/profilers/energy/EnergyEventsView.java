@@ -194,7 +194,8 @@ public final class EnergyEventsView {
     EnergyEventsTableTooltipInfoComponent tooltipInfoComponent = new EnergyEventsTableTooltipInfoComponent(tooltipModel);
     tooltipInfoComponent.setForeground(ProfilerColors.TOOLTIP_TEXT);
     tooltipInfoComponent.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
-    TooltipComponent tooltip = new TooltipComponent(tooltipInfoComponent, myEventsTable, ProfilerLayeredPane.class);
+    TooltipComponent tooltip =
+      new TooltipComponent.Builder(tooltipInfoComponent, myEventsTable).setPreferredParentClass(ProfilerLayeredPane.class).build();
     tooltip.registerListenersOn(myEventsTable);
 
     // Convert mouse position to the table timeline tooltipRange and update the model.

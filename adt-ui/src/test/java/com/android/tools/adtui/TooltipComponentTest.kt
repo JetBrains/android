@@ -54,7 +54,8 @@ class TooltipComponentTest {
     root.add(owner)
 
     val displayableProducer = DisplayableProducer(owner)
-    val tooltip = TooltipComponent(JLabel(), owner, null, displayableProducer).apply { registerListenersOn(owner) }
+    val tooltip = TooltipComponent.Builder(JLabel(), owner).setIsOwnerDisplayable(displayableProducer).build()
+      .apply { registerListenersOn(owner) }
 
     // Tooltip only added when mouse moves over [owner]
     assertThat(root.components).asList().doesNotContain(tooltip)
@@ -78,7 +79,8 @@ class TooltipComponentTest {
     layered.add(owner)
 
     val displayableProducer = DisplayableProducer(owner)
-    val tooltip = TooltipComponent(JLabel(), owner, null, displayableProducer).apply { registerListenersOn(owner) }
+    val tooltip = TooltipComponent.Builder(JLabel(), owner).setIsOwnerDisplayable(displayableProducer).build()
+      .apply { registerListenersOn(owner) }
     val fakeUi = FakeUi(root)
     fakeUi.mouse.moveTo(50, 50)
 
@@ -97,7 +99,8 @@ class TooltipComponentTest {
     layered2.add(owner)
 
     val displayableProducer = DisplayableProducer(owner)
-    val tooltip = TooltipComponent(JLabel(), owner, null, displayableProducer).apply { registerListenersOn(owner) }
+    val tooltip = TooltipComponent.Builder(JLabel(), owner).setIsOwnerDisplayable(displayableProducer).build()
+      .apply { registerListenersOn(owner) }
     val fakeUi = FakeUi(root)
     fakeUi.mouse.moveTo(50, 50)
 
@@ -112,7 +115,8 @@ class TooltipComponentTest {
     val owner = createWithSize { JLayeredPane() }
 
     val displayableProducer = DisplayableProducer(owner)
-    val tooltip = TooltipComponent(JLabel(), owner, null, displayableProducer).apply { registerListenersOn(owner) }
+    val tooltip = TooltipComponent.Builder(JLabel(), owner).setIsOwnerDisplayable(displayableProducer).build()
+      .apply { registerListenersOn(owner) }
 
     root1.add(owner)
     val fakeUi1 = FakeUi(root1)
@@ -141,7 +145,8 @@ class TooltipComponentTest {
     intermediate.add(owner)
 
     val displayableProducer = DisplayableProducer(owner, root)
-    val tooltip = TooltipComponent(JLabel(), owner, null, displayableProducer).apply { registerListenersOn(owner) }
+    val tooltip = TooltipComponent.Builder(JLabel(), owner).setIsOwnerDisplayable(displayableProducer).build()
+      .apply { registerListenersOn(owner) }
     val fakeUi = FakeUi(root)
     fakeUi.mouse.moveTo(50, 50)
 
@@ -163,12 +168,15 @@ class TooltipComponentTest {
     root.add(preferred)
     preferred.add(owner)
     val displayableProducer = DisplayableProducer(owner)
-    val tooltip = TooltipComponent(JLabel(), owner, FakeLayeredPane::class.java, displayableProducer).apply { registerListenersOn(owner) }
+
+    val tooltip = TooltipComponent.Builder(JLabel(), owner).setPreferredParentClass(
+      FakeLayeredPane::class.java).setIsOwnerDisplayable(displayableProducer).build()
+      .apply { registerListenersOn(owner) }
 
     val fakeUi = FakeUi(root)
     fakeUi.mouse.moveTo(50, 50)
     assertThat(tooltip.parent).isEqualTo(preferred)
   }
 
-  private class FakeLayeredPane: JLayeredPane()
+  private class FakeLayeredPane : JLayeredPane()
 }

@@ -382,7 +382,7 @@ final class ThreadsView {
       myContent.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
       myContent.setFont(myContent.getFont().deriveFont(TOOLTIP_FONT_SIZE));
 
-      myTooltipComponent = new TooltipComponent(myContent, table, ProfilerLayeredPane.class);
+      myTooltipComponent = new TooltipComponent.Builder(myContent, table).setPreferredParentClass(ProfilerLayeredPane.class).build();
       myTooltipComponent.registerListenersOn(table);
       myTooltipComponent.setVisible(false);
     }
