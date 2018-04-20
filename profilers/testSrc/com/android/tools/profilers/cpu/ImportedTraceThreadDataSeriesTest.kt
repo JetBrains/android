@@ -47,6 +47,7 @@ class ImportedTraceThreadDataSeriesTest {
     ideServices.enableImportTrace(true)
     ideServices.enableSessionsView(true)
     val stage = CpuProfilerStage(profilers, CpuProfilerTestUtils.getTraceFile("valid_trace.trace"))
+    stage.enter()
     myCapture = stage.capture!!
     val mainThreadId = 516
     mySeries = ImportedTraceThreadDataSeries(myCapture, mainThreadId)

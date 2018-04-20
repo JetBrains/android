@@ -230,12 +230,19 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
    */
   private final boolean myIsImportTraceMode;
 
+  /**
+   * The imported trace file, it is only used when the stage was initiated in Import Trace mode, otherwise null.
+   */
+  @Nullable
+  private File myImportedTrace;
+
   public CpuProfilerStage(@NotNull StudioProfilers profilers) {
     this(profilers, null);
   }
 
   public CpuProfilerStage(@NotNull StudioProfilers profilers, @Nullable File importedTrace) {
     super(profilers);
+    myImportedTrace = importedTrace;
     // Only allow import trace mode if Import CPU trace and sessions flag are enabled.
     myIsImportTraceMode = getStudioProfilers().getIdeServices().getFeatureConfig().isImportCpuTraceEnabled()
                           && getStudioProfilers().getIdeServices().getFeatureConfig().isSessionsEnabled()
@@ -280,10 +287,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     myCaptureState = CaptureState.IDLE;
     myCaptureElapsedTimeUpdatable = new CaptureElapsedTimeUpdatable();
     myCaptureStateUpdatable = new CpuCaptureStateUpdatable(() -> updateProfilingState());
-    // Calling updateProfilingState() in constructor makes sure the member fields are in a known predictable state.
-    // TODO(http://b/78326357): move updateProfilingState() to {@link #enter()}. Constructor should be just for initializing data.
-    updateProfilingState();
-    myProfilerConfigModel.updateProfilingConfigurations();
 
     myCaptureModel = new CaptureModel(this);
     myUpdatableManager = new UpdatableManager(getStudioProfilers().getUpdater());
@@ -319,10 +322,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
         setAndSelectCapture(candidateToSelect.getTraceId());
       }
     });
-    if (myIsImportTraceMode) {
-      // When in import trace mode, immediately import the trace from the given file and set the resulting capture.
-      parseAndSelectImportedTrace(importedTrace);
-    }
   }
 
   private static Logger getLogger() {
@@ -471,6 +470,17 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
 
     getStudioProfilers().addDependency(this).onChange(ProfilerAspect.DEVICES, myProfilerConfigModel::updateProfilingConfigurations);
+
+    // This actions are here instead of in the constructor, because only after this method the UI (i.e {@link CpuProfilerStageView}
+    // will be visible to the user. As well as, the feature tracking will link the correct stage to the events that happened
+    // during this actions.
+    updateProfilingState();
+    myProfilerConfigModel.updateProfilingConfigurations();
+    if (myIsImportTraceMode) {
+      assert myImportedTrace != null;
+      // When in import trace mode, immediately import the trace from the given file and set the resulting capture.
+      parseAndSelectImportedTrace(myImportedTrace);
+    }
   }
 
   @Override

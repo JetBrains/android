@@ -71,6 +71,7 @@ class CpuProfilerStageViewTest {
 
     myStage = CpuProfilerStage(profilers)
     myStage.studioProfilers.stage = myStage
+    myStage.enter()
     myProfilersView = StudioProfilersView(profilers, myComponents)
   }
 
@@ -148,6 +149,7 @@ class CpuProfilerStageViewTest {
     myIdeServices.enableImportTrace(true)
     myIdeServices.enableSessionsView(true)
     myStage = CpuProfilerStage(myStage.studioProfilers, File("FakePathToTraceFile.trace"))
+    myStage.enter()
     // Clear any context menu items added to the service to make sure we'll have only the items created in CpuProfilerStageView
     myComponents.clearContextMenuItems()
     // Create a CpuProfilerStageView. We don't need its value, so we don't store it in a variable.
@@ -248,6 +250,7 @@ class CpuProfilerStageViewTest {
     assertThat(panelList).hasSize(1)
     assertThat((panelList[0] as InstructionsPanel).getRenderInstructionsForComponent(0)).hasSize(3)
     myStage = CpuProfilerStage(myStage.studioProfilers, File("FakePathToTraceFile.trace"))
+    myStage.enter()
     // Create a CpuProfilerStageView. We don't need its value, so we don't store it in a variable.
     cpuStageView = CpuProfilerStageView(myProfilersView, myStage)
     panelList = TreeWalker(cpuStageView.component).descendants().filterIsInstance(InstructionsPanel::class.java).toList()
