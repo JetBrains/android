@@ -61,7 +61,7 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
   lateinit private var objectInputStream: ObjectInputStream
   lateinit private var objectOutputStream: ObjectOutputStream
 
-  private val IDE_STARTUP_TIMEOUT = 20000
+  private val IDE_STARTUP_TIMEOUT = 40000
   private val MESSAGE_INTERVAL_TIMEOUT = 15L
 
   private val port: Int
@@ -82,8 +82,9 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
   private fun start() {
     postingMessages.clear()
     receivingMessages.clear()
+    val startTime = System.currentTimeMillis()
     connection = serverSocket.accept()
-    LOG.info("Server accepted client on port: ${connection.port}")
+    LOG.info("Server accepted client on port: ${connection.port} after ${System.currentTimeMillis() - startTime}ms")
 
     objectOutputStream = ObjectOutputStream(connection.getOutputStream())
     serverSendThread = ServerSendThread(connection, objectOutputStream)
