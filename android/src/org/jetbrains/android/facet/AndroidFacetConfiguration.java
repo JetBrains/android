@@ -40,10 +40,7 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.builder.model.AndroidProject.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -146,6 +143,14 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
   public boolean isAppProject() {
     int projectType = getState().PROJECT_TYPE;
     return projectType == PROJECT_TYPE_APP || projectType == PROJECT_TYPE_INSTANTAPP;
+  }
+
+  public boolean isAppOrFeature() {
+    int projectType = getState().PROJECT_TYPE;
+    return projectType == PROJECT_TYPE_APP ||
+           projectType == PROJECT_TYPE_INSTANTAPP ||
+           projectType == PROJECT_TYPE_FEATURE ||
+           projectType == PROJECT_TYPE_DYNAMIC_FEATURE;
   }
 
   @Nullable

@@ -172,6 +172,7 @@ public class ProjectStructureTest extends IdeaTestCase {
 
     AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
     androidFacet.getConfiguration().setModel(androidModel);
+    androidFacet.getConfiguration().setProjectType(projectType);
 
     IdeAndroidProject androidProject = mock(IdeAndroidProject.class);
     when(androidProject.getProjectType()).thenReturn(projectType);
