@@ -22,7 +22,7 @@ import java.awt.event.ActionEvent;
 
 public class DuplicateAvdAction extends AvdUiAction {
   public DuplicateAvdAction(AvdInfoProvider avdInfoProvider) {
-    super(avdInfoProvider, "Duplicate", "Duplicate this AVD", AllIcons.Modules.Edit);
+    super(avdInfoProvider, "Duplicate", "Duplicate this AVD", AllIcons.Actions.Edit);
   }
 
   @Override
