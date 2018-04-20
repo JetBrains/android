@@ -41,6 +41,11 @@ class BazelGuiTestProjectSystem : GuiTestProjectSystem {
 
   private val logger = Logger.getInstance(id)
 
+  private fun File.appendLine(line: String): File {
+    appendText(line + "\n")
+    return this
+  }
+
   override fun prepareTestForImport(targetTestDirectory: File) {
     // If the uitestignore file exists, then delete the files listed in that file.
     val ignoreFile = File(targetTestDirectory, "bazel.uitestignore")
@@ -58,7 +63,11 @@ class BazelGuiTestProjectSystem : GuiTestProjectSystem {
     val workspaceFile = File(targetTestDirectory, "WORKSPACE")
     workspaceFile.writeText(injectRuntimeVariables(workspaceFile.readText()))
 
-    File(targetTestDirectory, ".bazelrc").appendText("startup --host_javabase=" + getJdkPath())
+    val gccPath = getGccPath()
+    File(targetTestDirectory, ".bazelrc")
+      .appendLine("startup --host_javabase=${getJdkPath()}")
+      .appendLine("info --action_env=CC=$gccPath")
+      .appendLine("build --action_env=CC=$gccPath")
   }
 
   private fun injectRuntimeVariables(workspaceFileContent: String) =
@@ -160,6 +169,8 @@ the location of the project data directory that is assigned during importProject
       TestUtils.getWorkspaceFile(prebuiltsRepo).absolutePath
     }
   }
+
+  private fun getGccPath() = File(TestUtils.getWorkspaceRoot(), "prebuilts/gcc").path
 
   private fun getJdkPath(): String {
     val subdir = when {
