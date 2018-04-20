@@ -369,7 +369,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   @Override
-  public void showErrorBalloon(@NotNull String title, @NotNull String body, String url, String urlText) {
+  public void showErrorBalloon(@NotNull String title, @NotNull String body, @Nullable String url, @Nullable String urlText) {
     myErrorBalloonTitle = title;
     myErrorBalloonBody = body;
     myErrorBalloonUrl = url;

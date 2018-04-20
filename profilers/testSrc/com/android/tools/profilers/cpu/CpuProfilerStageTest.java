@@ -1478,6 +1478,25 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
+  public void importAtraceFileShouldShowABalloon() {
+    StudioProfilers profilers = myStage.getStudioProfilers();
+    myServices.enableImportTrace(true);
+    myServices.enableSessionsView(true);
+    myServices.enableAtrace(true);
+    File traceFile = CpuProfilerTestUtils.getTraceFile("atrace.ctrace");
+    CpuProfilerStage stage = new CpuProfilerStage(profilers, traceFile);
+    stage.enter();
+    // Import trace mode is enabled successfully
+    assertThat(stage.isImportTraceMode()).isTrue();
+
+    // We should show a balloon saying the import has failed
+    assertThat(myServices.getErrorBalloonTitle()).isEqualTo(CpuProfilerStage.PARSING_FILE_FAILURE_BALLOON_TITLE);
+    assertThat(myServices.getErrorBalloonBody()).isEqualTo(CpuProfilerStage.PARSING_ATRACE_FAILURE_BALLOON_TEXT);
+    assertThat(myServices.getErrorBalloonUrl()).isEqualTo(CpuProfilerStage.PARSING_ATRACE_NOT_SUPPORTED_URL);
+    assertThat(myServices.getErrorBalloonUrlText()).isEqualTo(CpuProfilerStage.PARSING_ATRACE_NOT_SUPPORTED_TEXT);
+  }
+
+  @Test
   public void captureIsSetWhenOpeningStageInImportTraceMode() {
     StudioProfilers profilers = myStage.getStudioProfilers();
     myServices.enableImportTrace(true);

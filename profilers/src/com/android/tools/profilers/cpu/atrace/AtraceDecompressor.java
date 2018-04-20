@@ -18,14 +18,12 @@ package com.android.tools.profilers.cpu.atrace;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.google.common.base.Charsets;
 import com.intellij.openapi.diagnostic.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import trebuchet.io.BufferProducer;
 import trebuchet.io.DataSlice;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.zip.DataFormatException;
@@ -61,7 +59,7 @@ public class AtraceDecompressor implements BufferProducer {
     myInputStream = inputStream;
     myInflater = new Inflater();
 
-    // Read the inital header off the input file.
+    // Read the initial header of the input file.
     myInputStream.read(myInputBuffer, 0, HEADER.size());
     verifyHeader();
     myInputBufferOffset = 0;
@@ -70,6 +68,26 @@ public class AtraceDecompressor implements BufferProducer {
 
   public AtraceDecompressor(File file) throws IOException {
     this(new FileInputStream(file));
+  }
+
+  /**
+   * Whether a given {@link File} header matches {@link #HEADER}.
+   */
+  public static boolean verifyFileHasAtraceHeader(@NotNull File trace) {
+    try (FileInputStream input = new FileInputStream(trace)) {
+      byte[] buffer = new byte[HEADER.size()];
+      int bytesRead = input.read(buffer, 0, HEADER.size());
+      if (bytesRead != HEADER.size()) {
+        getLogger().warn("Some bytes of the trace file header could not be read.");
+        return false;
+      }
+      ByteString fileHeader = ByteString.copyFrom(buffer);
+      return HEADER.toStringUtf8().equals(fileHeader.toStringUtf8());
+    }
+    catch (IOException e) {
+      getLogger().warn("There was an error trying to read the trace file.");
+      return false;
+    }
   }
 
   private void verifyHeader() {
