@@ -17,11 +17,12 @@ package com.android.tools.idea.naveditor.property.editors;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtSecondaryPanel;
+import com.android.tools.adtui.model.stdui.DefaultCommonBorderModel;
+import com.android.tools.adtui.stdui.CommonBorder;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.editors.BaseComponentEditor;
 import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener;
-import com.intellij.ide.ui.laf.darcula.ui.DarculaEditorTextFieldBorder;
 import com.intellij.openapi.command.undo.UndoConstants;
 import com.intellij.openapi.fileTypes.FileTypes;
 import com.intellij.openapi.project.Project;
@@ -33,7 +34,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.plaf.InsetsUIResource;
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -68,23 +68,15 @@ public class TextEditor extends BaseComponentEditor {
 
     myProject = project;
 
-    //noinspection UseDPIAwareInsets
     myTextEditor = new EditorTextField("", myProject, FileTypes.PLAIN_TEXT) {
         @Override
         public void addNotify() {
           super.addNotify();
           getEditor().getDocument().putUserData(UndoConstants.DONT_RECORD_UNDO, true);
           if (drawBorder) {
-            getEditor().setBorder(new DarculaEditorTextFieldBorder() {
-              @Override
-              public Insets getBorderInsets(Component component) {
-                Insets myEditorInsets = JBUI.insets(VERTICAL_SPACING + VERTICAL_PADDING,
-                                                    HORIZONTAL_PADDING,
-                                                    VERTICAL_SPACING + VERTICAL_PADDING,
-                                                    HORIZONTAL_PADDING);
-                return new InsetsUIResource(myEditorInsets.top, myEditorInsets.left, myEditorInsets.bottom, myEditorInsets.right);
-              }
-            });
+            getEditor().setBorder(
+              new CommonBorder(1f, new DefaultCommonBorderModel(), VERTICAL_SPACING + VERTICAL_PADDING, HORIZONTAL_PADDING,
+                               VERTICAL_SPACING + VERTICAL_PADDING, HORIZONTAL_PADDING));
           }
         }
 

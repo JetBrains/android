@@ -16,20 +16,17 @@
 package com.android.tools.idea.common.property.editors
 
 import com.android.tools.adtui.common.AdtSecondaryPanel
+import com.android.tools.adtui.model.stdui.DefaultCommonBorderModel
+import com.android.tools.adtui.stdui.CommonBorder
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener
-import com.intellij.ide.ui.laf.darcula.ui.DarculaEditorTextFieldBorder
 import com.intellij.openapi.command.undo.UndoConstants
 import com.intellij.openapi.fileTypes.FileTypes
 import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorTextField
-import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
-import java.awt.Component
-import java.awt.Insets
 import javax.swing.JComponent
 import javax.swing.border.EmptyBorder
-import javax.swing.plaf.InsetsUIResource
 
 class NonEditableEditor(listener: NlEditingListener, project: Project) : BaseComponentEditor(listener) {
   val component = AdtSecondaryPanel(BorderLayout())
@@ -39,15 +36,9 @@ class NonEditableEditor(listener: NlEditingListener, project: Project) : BaseCom
     override fun addNotify() {
       super.addNotify()
       editor?.document?.putUserData(UndoConstants.DONT_RECORD_UNDO, true)
-      editor?.setBorder(object : DarculaEditorTextFieldBorder() {
-        override fun getBorderInsets(component: Component): Insets {
-          val myEditorInsets = JBUI.insets(VERTICAL_SPACING + VERTICAL_PADDING,
-              HORIZONTAL_PADDING,
-              VERTICAL_SPACING + VERTICAL_PADDING,
-              HORIZONTAL_PADDING)
-          return InsetsUIResource(myEditorInsets.top, myEditorInsets.left, myEditorInsets.bottom, myEditorInsets.right)
-        }
-      })
+      editor?.setBorder(
+        CommonBorder(1f, DefaultCommonBorderModel(), VERTICAL_SPACING + VERTICAL_PADDING, HORIZONTAL_PADDING,
+                     VERTICAL_SPACING + VERTICAL_PADDING, HORIZONTAL_PADDING))
     }
 
     override fun removeNotify() {
