@@ -36,11 +36,9 @@ import java.util.LinkedList;
 import java.util.Map;
 
 /**
- * {@link NavSceneLayoutAlgorithm} that puts screens in locations specified in the model, falling back to some other method if no location
- * is specified.
+ * {@link NavSceneLayoutAlgorithm} that puts screens in locations that have been specified by the user
  */
 public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm {
-  private NavSceneLayoutAlgorithm myFallback;
   private NavigationSchema mySchema;
   private Module myModule;
   private Storage myStorage;
@@ -50,10 +48,8 @@ public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm {
   }
 
   @VisibleForTesting
-  ManualLayoutAlgorithm(@NotNull NavSceneLayoutAlgorithm fallback,
-                        @NotNull NavigationSchema schema,
+  ManualLayoutAlgorithm(@NotNull NavigationSchema schema,
                         @NotNull LayoutPositions state) {
-    myFallback = fallback;
     mySchema = schema;
     myStorage = new Storage();
     myStorage.myState = state;
@@ -69,18 +65,11 @@ public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm {
     return mySchema;
   }
 
-  private NavSceneLayoutAlgorithm getFallback() {
-    if (myFallback == null) {
-      myFallback = new DummyAlgorithm(getSchema());
-    }
-    return myFallback;
-  }
-
   @Override
-  public void layout(@NotNull SceneComponent component) {
+  public boolean layout(@NotNull SceneComponent component) {
     NavigationSchema.DestinationType type = getSchema().getDestinationType(component.getNlComponent().getTagName());
     if (type == NavigationSchema.DestinationType.NAVIGATION && component.getParent() == null) {
-      return;
+      return true;
     }
     Deque<String> stack = getParentStack(component);
 
@@ -88,7 +77,7 @@ public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm {
     String name = getFileName(component);
     if (name == null) {
       // should only happen in tests.
-      return;
+      return false;
     }
     positions = positions.get(name);
     while (!stack.isEmpty()) {
@@ -102,12 +91,11 @@ public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm {
       Point location = positions.myPosition;
       if (location != null) {
         component.setPosition(location.x, location.y);
-        return;
+        return true;
       }
     }
 
-    getFallback().layout(component);
-    save(component);
+    return false;
   }
 
   @NotNull
@@ -132,6 +120,7 @@ public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm {
     return stack;
   }
 
+  @Override
   public void save(@NotNull SceneComponent component) {
     LayoutPositions positions = getStorage().getState();
 
@@ -168,7 +157,7 @@ public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm {
   }
 
   @VisibleForTesting
-  static class Point {
+  public static class Point {
     public int x;
     public int y;
 
@@ -221,5 +210,10 @@ public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm {
     public void loadState(@NotNull LayoutPositions state) {
       myState = state;
     }
+  }
+
+  @Override
+  public boolean canSave() {
+    return true;
   }
 }

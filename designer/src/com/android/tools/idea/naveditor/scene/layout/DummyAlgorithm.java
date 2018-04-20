@@ -43,10 +43,10 @@ public class DummyAlgorithm implements NavSceneLayoutAlgorithm {
   }
 
   @Override
-  public void layout(@NotNull SceneComponent component) {
+  public boolean layout(@NotNull SceneComponent component) {
     NavigationSchema.DestinationType type = mySchema.getDestinationType(component.getNlComponent().getTagName());
     if (type == NavigationSchema.DestinationType.NAVIGATION && component.getParent() == null) {
-      return;
+      return true;
     }
     SceneComponent root = component.getScene().getRoot();
 
@@ -59,7 +59,7 @@ public class DummyAlgorithm implements NavSceneLayoutAlgorithm {
     @NavCoordinate int xOffset = INITIAL_OFFSET;
     @NavCoordinate int yOffset = INITIAL_OFFSET;
 
-    while (true) {
+    do {
       component.setPosition(xOffset, yOffset);
       Rectangle newBounds = component.fillDrawRect(0, null);
       bounds.put(component, newBounds);
@@ -68,10 +68,10 @@ public class DummyAlgorithm implements NavSceneLayoutAlgorithm {
         yOffset += INTERVAL;
         xOffset = INITIAL_OFFSET;
       }
-      if (checkOverlaps(bounds, component)) {
-        break;
-      }
     }
+    while (!checkOverlaps(bounds, component));
+
+    return true;
   }
 
   private static boolean checkOverlaps(@NotNull Map<SceneComponent, Rectangle> bounds, @NotNull SceneComponent component) {
