@@ -21,6 +21,8 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
+import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -58,28 +60,16 @@ class AddDynamicFeatureTest {
    * 1. The new dynamic module is shown in the project explorer pane.
    * 2. Open the dynamic module manifest and check that "dist:onDemand" and
    * "dist:fusing include" are set to true.
-   * 3. Open the app Module Strings (not the *dynamic* Module Strings) and check that a
+   * 3. Open the app Module strings.xml (not the *dynamic* Module strings.xml) and check that a
    * new string was added for the dynamic feature title
-  </pre> *
+   * </pre>
    */
   @Test
   @Throws(Exception::class)
   fun addDefaultDynamicModule() {
     val ideFrame = guiTest.importSimpleLocalApplication()
 
-    ideFrame.invokeMenuPath("File", "New", "New Module...")
-
-    NewModuleWizardFixture.find(ideFrame)
-      .clickNextToDynamicFeature()
-      .clickNextToConfigureDynamicDelivery()
-      .wizard()
-      .clickFinish()
-
-    ideFrame.waitForGradleProjectSyncToFinish()
-
-    ideFrame.projectView
-      .selectAndroidPane()
-      .clickPath("dynamic-feature")
+    createDefaultDynamicModule(ideFrame)
 
     ideFrame.editor
       .open("dynamic-feature/src/main/AndroidManifest.xml")
@@ -110,9 +100,9 @@ class AddDynamicFeatureTest {
    * 1. The new dynamic module is shown in the project explorer pane (MyDynamicFeature).
    * 2. Open the dynamic module manifest and check that "dist:onDemand" and
    * "dist:fusing include" are set to false.
-   * 3. Open the app Module Strings (not the *dynamic* Module Strings) and check that a
+   * 3. Open the app Module strings.xml (not the *dynamic* Module strings.xml) and check that a
    * new string was added for the dynamic feature title with value "My Dynamic Feature Title"
-  </pre> *
+   * </pre>
    */
   @Test
   @Throws(Exception::class)
@@ -120,7 +110,6 @@ class AddDynamicFeatureTest {
     val ideFrame = guiTest.importSimpleLocalApplication()
 
     ideFrame.invokeMenuPath("File", "New", "New Module...")
-
     NewModuleWizardFixture.find(ideFrame)
       .clickNextToDynamicFeature()
       .enterFeatureModuleName("MyDynamicFeature")
@@ -132,10 +121,8 @@ class AddDynamicFeatureTest {
       .setOnDemand(false)
       .wizard()
       .clickFinish()
-
-    ideFrame.waitForGradleProjectSyncToFinish()
-
-    ideFrame.projectView
+      .waitForGradleProjectSyncToFinish()
+      .projectView
       .selectAndroidPane()
       .clickPath("MyDynamicFeature")
 
@@ -151,5 +138,65 @@ class AddDynamicFeatureTest {
       .currentFileContents.run {
       assertThat(this).contains("""<string name="title_mydynamicfeature">My Dynamic Feature Title</string>""")
     }
+  }
+
+  /**
+   * Verifies that user is able to add a Dynamic module through the
+   * new module wizard.
+   *
+   * <pre>
+   * Test steps:
+   * 1. Import simple application project
+   * 2. Go to File -> New module to open the new module dialog wizard.
+   * 3. Follow through the wizard to add a new dynamic module, accepting defaults.
+   * 4. Complete the wizard and wait for the build to complete.
+   * 5. Go to File -> New -> Activity -> Login Activity -> Finish
+   * Verify:
+   * 1. The new dynamic module is shown in the project explorer pane.
+   * 2. Open the app Module strings.xml (not the *dynamic* Module strings.xml) and check that a
+   * new string was added for "title_activity_login"
+   * 3. Open the "dynamic-feature" module strings.xml and check there are new strings
+   * like: "prompt_email", "prompt_password", "error_invalid_email", etc
+   * </pre>
+   */
+  @Test
+  @Throws(Exception::class)
+  fun addLoginActivityToDynamicModule() {
+    val ideFrame = guiTest.importSimpleLocalApplication()
+
+    createDefaultDynamicModule(ideFrame)
+    .invokeMenuPath("File", "New", "Activity", "Login Activity")
+    NewActivityWizardFixture.find(ideFrame)
+      .clickFinish()
+      .waitForGradleProjectSyncToFinish()
+
+    ideFrame.editor
+      .open("app/src/main/res/values/strings.xml")
+      .currentFileContents.run {
+      assertThat(this).contains("title_activity_login")
+    }
+
+    ideFrame.editor
+      .open("dynamic-feature/src/main/res/values/strings.xml")
+      .currentFileContents.run {
+      assertThat(this).contains("prompt_email")
+      assertThat(this).contains("prompt_password")
+      assertThat(this).contains("error_invalid_email")
+    }
+  }
+
+  private fun createDefaultDynamicModule(ideFrame: IdeFrameFixture): IdeFrameFixture {
+    ideFrame.invokeMenuPath("File", "New", "New Module...")
+    NewModuleWizardFixture.find(ideFrame)
+      .clickNextToDynamicFeature()
+      .clickNextToConfigureDynamicDelivery()
+      .wizard()
+      .clickFinish()
+      .waitForGradleProjectSyncToFinish()
+      .projectView
+      .selectAndroidPane()
+      .clickPath("dynamic-feature")
+
+    return ideFrame
   }
 }
