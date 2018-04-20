@@ -68,14 +68,6 @@ class ListUsbDevicesActionStateManagerTest : AndroidTestCase() {
   }
 
   @Test
-  fun testWindowNoButton() {
-    `when`(testUsbDeviceCollector.getPlatform()).thenReturn(Platform.Windows)
-    `when`(testUsbDeviceCollector.listUsbDevices()).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()))
-    myStateManager.refresh()
-    TestCase.assertEquals(myStateManager.getState(project, emptyActionData), DefaultActionState.ERROR)
-  }
-
-  @Test
   fun testException() {
     val exceptionFuture = CompletableFuture<List<UsbDevice>>()
     exceptionFuture.completeExceptionally(IOException())
