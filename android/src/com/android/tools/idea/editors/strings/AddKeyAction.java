@@ -29,7 +29,7 @@ final class AddKeyAction extends AnAction {
   private final StringResourceViewPanel myPanel;
 
   AddKeyAction(@NotNull StringResourceViewPanel panel) {
-    super("Add Key", null, AllIcons.ToolbarDecorator.Add);
+    super("Add Key", null, AllIcons.General.Add);
     myPanel = panel;
   }
 

@@ -23,7 +23,7 @@ import java.awt.event.ActionEvent;
 
 public class EditAvdAction extends AvdUiAction {
   public EditAvdAction(AvdInfoProvider avdInfoProvider) {
-    this(avdInfoProvider, "Edit", "Edit this AVD", AllIcons.Modules.Edit);
+    this(avdInfoProvider, "Edit", "Edit this AVD", AllIcons.Actions.Edit);
   }
 
   protected EditAvdAction(AvdInfoProvider avdInfoProvider, String text, String description, Icon icon) {

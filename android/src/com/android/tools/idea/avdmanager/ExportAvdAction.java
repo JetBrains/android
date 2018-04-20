@@ -27,7 +27,7 @@ public class ExportAvdAction extends AvdUiAction {
   private static final Logger LOG = Logger.getInstance(RunAvdAction.class);
 
   public ExportAvdAction(AvdInfoProvider avdInfoProvider) {
-    super(avdInfoProvider, "Export", "Export this AVD", AllIcons.Modules.Edit);
+    super(avdInfoProvider, "Export", "Export this AVD", AllIcons.Actions.Edit);
   }
 
   @Override
