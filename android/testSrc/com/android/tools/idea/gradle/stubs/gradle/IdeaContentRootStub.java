@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.tooling.model.DomainObjectSet;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaSourceDirectory;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
@@ -105,6 +106,16 @@ public class IdeaContentRootStub implements IdeaContentRoot {
   @Override
   public DomainObjectSet<? extends IdeaSourceDirectory> getGeneratedTestDirectories() {
     return ImmutableDomainObjectSet.of(Collections.<IdeaSourceDirectory>emptyList());
+  }
+
+  @Override
+  public DomainObjectSet<? extends IdeaSourceDirectory> getResourceDirectories() throws UnsupportedMethodException {
+    return ImmutableDomainObjectSet.of(Collections.emptyList());
+  }
+
+  @Override
+  public DomainObjectSet<? extends IdeaSourceDirectory> getTestResourceDirectories() throws UnsupportedMethodException {
+    return ImmutableDomainObjectSet.of(Collections.emptyList());
   }
 
   @Override
