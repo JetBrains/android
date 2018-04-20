@@ -176,12 +176,12 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
     long selectionMaxUs = timeline.convertToRelativeTimeUs(TimeUnit.MICROSECONDS.toNanos((long)selectionRange.getMax()));
     mySelectionTimeLabel.setIcon(StudioIcons.Profiler.Toolbar.CLOCK);
     if (selectionRange.isPoint()) {
-      mySelectionTimeLabel.setText(TimeAxisFormatter.DEFAULT.getClockFormattedString(selectionMinUs));
+      mySelectionTimeLabel.setText(TimeAxisFormatter.DEFAULT.getSimplifiedClockFormattedString(selectionMinUs));
     }
     else {
       mySelectionTimeLabel.setText(String.format("%s - %s",
-                                                 TimeAxisFormatter.DEFAULT.getClockFormattedString(selectionMinUs),
-                                                 TimeAxisFormatter.DEFAULT.getClockFormattedString(selectionMaxUs)));
+                                                 TimeAxisFormatter.DEFAULT.getSimplifiedClockFormattedString(selectionMinUs),
+                                                 TimeAxisFormatter.DEFAULT.getSimplifiedClockFormattedString(selectionMaxUs)));
     }
   }
 }

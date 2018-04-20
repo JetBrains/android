@@ -50,6 +50,21 @@ public class TimeAxisFomatterTest {
 
     // exact hours
     assertEquals("02:00:00.000", formatter.getClockFormattedString(7_200_000_000L));
+
+    // less than a millisecond
+    assertEquals("00.000", formatter.getSimplifiedClockFormattedString(100));
+
+    // seconds and milliseconds
+    assertEquals("02.360", formatter.getSimplifiedClockFormattedString(2_360_000));
+
+    // hours, minutes, seconds and milliseconds
+    assertEquals("03:25:45.654", formatter.getSimplifiedClockFormattedString(12_345_654_321L));
+
+    // exact seconds
+    assertEquals("01.000", formatter.getSimplifiedClockFormattedString(1_000_000));
+
+    // exact hours
+    assertEquals("02:00:00.000", formatter.getSimplifiedClockFormattedString(7_200_000_000L));
   }
 
   @Test
