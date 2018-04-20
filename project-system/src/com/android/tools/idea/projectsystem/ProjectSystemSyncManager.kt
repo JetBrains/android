@@ -92,7 +92,7 @@ interface ProjectSystemSyncManager {
      * The project state was loaded from the cached result of the last successful sync, but may not reflect the current state of the project
      * (e.g. the initial project sync was skipped without checking to see if the cached state was valid).
      */
-    SKIPPED_OUT_OF_DATE(false),
+    SKIPPED_OUT_OF_DATE(true),
     /** The project state was loaded from a cache instead of performing an actual sync */
     SKIPPED(true),
     /** Sync succeeded */
