@@ -21,8 +21,7 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.TargetProvider;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
-import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
-import com.android.tools.idea.naveditor.scene.layout.NavSceneLayoutAlgorithm;
+import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import org.jetbrains.android.dom.navigation.NavActionElement;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
@@ -38,13 +37,6 @@ import java.util.Map;
  * Notably, adds the actions going from this screen to others.
  */
 public class NavScreenTargetProvider implements TargetProvider {
-  private final NavSceneLayoutAlgorithm myLayoutAlgorithm;
-  private final NavigationSchema mySchema;
-
-  public NavScreenTargetProvider(@NotNull NavSceneLayoutAlgorithm algorithm, @NotNull NavigationSchema schema) {
-    myLayoutAlgorithm = algorithm;
-    mySchema = schema;
-  }
 
   @NotNull
   @Override
@@ -52,7 +44,9 @@ public class NavScreenTargetProvider implements TargetProvider {
     List<Target> result = new ArrayList<>();
     SceneComponent parent = sceneComponent.getParent();
     NlComponent nlComponent = sceneComponent.getNlComponent();
-    NavigationSchema.DestinationType type = mySchema.getDestinationType(nlComponent.getTagName());
+    NavSceneManager manager = (NavSceneManager)sceneComponent.getScene().getSceneManager();
+    NavigationSchema schema = manager.getSchema();
+    NavigationSchema.DestinationType type = schema.getDestinationType(nlComponent.getTagName());
     if (type == null || parent == null) {
       return result;
     }
@@ -72,10 +66,8 @@ public class NavScreenTargetProvider implements TargetProvider {
           result.add(new ActionTarget(sceneComponent, destination, nlChild));
         }
       });
-    if (myLayoutAlgorithm instanceof ManualLayoutAlgorithm) {
-      result.add(new ScreenDragTarget(sceneComponent, (ManualLayoutAlgorithm)myLayoutAlgorithm));
-    }
-    if (mySchema.getDestinationSubtags(nlComponent.getTagName()).containsKey(NavActionElement.class)) {
+    result.add(new ScreenDragTarget(sceneComponent));
+    if (schema.getDestinationSubtags(nlComponent.getTagName()).containsKey(NavActionElement.class)) {
       result.add(new ActionHandleTarget(sceneComponent));
     }
 

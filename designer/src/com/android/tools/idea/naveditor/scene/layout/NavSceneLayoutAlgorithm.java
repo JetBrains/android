@@ -22,5 +22,23 @@ import org.jetbrains.annotations.NotNull;
  * A mechanism for layout out screens in the navigation editor.
  */
 public interface NavSceneLayoutAlgorithm {
-  void layout(@NotNull SceneComponent component);
+  /**
+   * @param component The component to position
+   * @return True if the component was positioned, false if we should try other layout algorithms
+   */
+  boolean layout(@NotNull SceneComponent component);
+
+  /**
+   * @return true if this algorithm can persist components' positions
+   */
+  default boolean canSave() {
+    return false;
+  }
+
+  /**
+   * Persist the component's position.
+   */
+  default void save(@NotNull SceneComponent component) {
+    throw new UnsupportedOperationException();
+  }
 }

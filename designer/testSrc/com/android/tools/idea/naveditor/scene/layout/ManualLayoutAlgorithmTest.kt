@@ -16,7 +16,6 @@
 package com.android.tools.idea.naveditor.scene.layout
 
 import com.android.SdkConstants.ATTR_ID
-import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
@@ -25,7 +24,6 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.testFramework.PlatformTestUtil
 import org.jetbrains.android.dom.navigation.NavigationSchema
-import org.mockito.Mockito.*
 
 /**
  * Tests for [ManualLayoutAlgorithm]
@@ -52,10 +50,8 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     positions.put("fragment2", newPositions)
 
     val scene = model.surface.scene!!
-    val fallback = mock(NavSceneLayoutAlgorithm::class.java)
-    val algorithm = ManualLayoutAlgorithm(fallback, NavigationSchema.get(myFacet), rootPositions)
+    val algorithm = ManualLayoutAlgorithm(NavigationSchema.get(myFacet), rootPositions)
     scene.root!!.flatten().forEach { algorithm.layout(it) }
-    verifyZeroInteractions(fallback)
 
     assertEquals(123, scene.getSceneComponent("fragment1")!!.drawX)
     assertEquals(456, scene.getSceneComponent("fragment1")!!.drawY)
@@ -90,8 +86,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     positions.put("fragment1", newPositions)
 
     val scene = model.surface.scene!!
-    val fallback = mock(NavSceneLayoutAlgorithm::class.java)
-    val algorithm = ManualLayoutAlgorithm(fallback, NavigationSchema.get(myFacet), rootPositions)
+    val algorithm = ManualLayoutAlgorithm(NavigationSchema.get(myFacet), rootPositions)
     scene.root!!.flatten().forEach { algorithm.layout(it) }
 
     val scene2 = model2.surface.scene!!
@@ -101,52 +96,6 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     assertEquals(456, scene.getSceneComponent("fragment1")!!.drawY)
     assertEquals(456, scene2.getSceneComponent("fragment1")!!.drawX)
     assertEquals(789, scene2.getSceneComponent("fragment1")!!.drawY)
-  }
-
-  fun testFallback() {
-    val model = model("nav.xml") {
-      navigation("root") {
-        fragment("fragment1")
-        fragment("fragment2")
-        fragment("fragment3")
-      }
-    }
-    val rootPositions = ManualLayoutAlgorithm.LayoutPositions()
-    val positions = ManualLayoutAlgorithm.LayoutPositions()
-    rootPositions.put("nav.xml", positions)
-
-    var newPositions = ManualLayoutAlgorithm.LayoutPositions()
-    newPositions.myPosition = ManualLayoutAlgorithm.Point(60, 60)
-    positions.put("fragment1", newPositions)
-
-    newPositions = ManualLayoutAlgorithm.LayoutPositions()
-    newPositions.myPosition = ManualLayoutAlgorithm.Point(200, 200)
-    positions.put("fragment3", newPositions)
-
-
-    val scene = model.surface.scene!!
-    val fallback = mock(NavSceneLayoutAlgorithm::class.java)
-    val fragment2 = scene.getSceneComponent("fragment2")!!
-    doAnswer { invocation ->
-      (invocation.getArgument<Any>(0) as SceneComponent).setPosition(123, 456)
-      null
-    }.`when`(fallback).layout(fragment2)
-    val algorithm = ManualLayoutAlgorithm(fallback, NavigationSchema.get(myFacet), rootPositions)
-    scene.root!!.flatten().forEach { algorithm.layout(it) }
-    verify(fallback).layout(fragment2)
-    verifyNoMoreInteractions(fallback)
-
-    assertEquals(60, scene.getSceneComponent("fragment1")!!.drawX)
-    assertEquals(60, scene.getSceneComponent("fragment1")!!.drawY)
-    assertEquals(123, scene.getSceneComponent("fragment2")!!.drawX)
-    assertEquals(456, scene.getSceneComponent("fragment2")!!.drawY)
-    assertEquals(200, scene.getSceneComponent("fragment3")!!.drawX)
-    assertEquals(200, scene.getSceneComponent("fragment3")!!.drawY)
-
-    algorithm.layout(fragment2)
-    verifyNoMoreInteractions(fallback)
-    assertEquals(123, scene.getSceneComponent("fragment2")!!.drawX)
-    assertEquals(456, scene.getSceneComponent("fragment2")!!.drawY)
   }
 
   fun testSave() {
