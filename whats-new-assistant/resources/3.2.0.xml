@@ -116,6 +116,10 @@
         <stepElement>
           <section>
             <![CDATA[
+
+          <img src="https://d.android.com/studio/releases/assistant/3.2.0/cpp-features-overview.gif">
+
+          <br><br>
           Android Studio now includes the following features for developing
           your C/C++ libraries:
 
@@ -147,6 +151,25 @@
             <![CDATA[
 
           <ul>
+            <li><b>AAPT2 now on Google's Maven repo:</b>
+            To use AAPT2, you must add Google's Maven repository to your project-level <code>build.gradle</code>, as shown below.
+            <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#aapt2_gmaven">
+            Learn more</a>
+
+            <br><br>
+            <div style="border: solid gray 1px; padding-left: 10px;">
+            <pre>buildscript.repositories {
+    <b>google()</b>
+    jcenter()
+    ...
+}
+allprojects.repositories {
+    <b>google()</b>
+    jcenter()
+    ...
+}</pre>
+            </div>
+
             <li><b>New code shrinker:</b> Preview a new code shrinker that
             also obfuscates by adding the line below to your project’s
             <code>gradle.properties</code> file.
