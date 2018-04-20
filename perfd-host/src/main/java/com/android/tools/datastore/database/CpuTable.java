@@ -117,7 +117,7 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
                       "SELECT ThreadId, Name, State, Timestamp FROM Thread_Activities " +
                       "WHERE Session = ? AND Timestamp > ? AND Timestamp <= ?;");
       createStatement(CpuTable.CpuStatements.INSERT_PROFILING_STATE,
-                      "INSERT INTO Profiling_State (Session, Timestamp, Data) values (?, ?, ?)");
+                      "INSERT OR REPLACE INTO Profiling_State (Session, Timestamp, Data) values (?, ?, ?)");
       createStatement(CpuTable.CpuStatements.QUERY_PROFILING_STATE,
                       "SELECT Data from Profiling_State WHERE Session = ? ORDER BY Timestamp DESC LIMIT 1 ");
     }
