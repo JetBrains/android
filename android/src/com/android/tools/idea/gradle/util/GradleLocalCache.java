@@ -20,6 +20,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
+import org.gradle.initialization.BuildLayoutParameters;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
@@ -30,11 +31,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.android.SdkConstants.DOT_GRADLE;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.util.SystemProperties.getUserHome;
 import static java.util.Collections.sort;
 
 public class GradleLocalCache {
@@ -162,8 +161,8 @@ public class GradleLocalCache {
         }
       }
     }
-    // The default location: ~/.gradle
-    File path = new File(getUserHome(), DOT_GRADLE);
+    // The default location
+    File path = new BuildLayoutParameters().getGradleUserHomeDir();
     if (path.isDirectory()) {
       paths.add(path);
     }
