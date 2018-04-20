@@ -96,7 +96,10 @@ public class CpuConfig {
   public CpuCoreUsage[] getCpuCoreUsages(@NotNull CpuUsageData prevUsageData, CpuUsageData currUsageData) {
     // We'll assume that CpuUsageData is more reliable than CpuCoreConfigResponse.
     final int coreCount = currUsageData.getCoresCount();
-    assert coreCount == prevUsageData.getCoresCount();
+    if (coreCount != prevUsageData.getCoresCount()) {
+      getLog().info(String.format("CPU config changing from %d to %d cores.", prevUsageData.getCoresCount(), coreCount));
+      return new CpuCoreUsage[0];
+    }
     CpuCoreUsage[] cpuCoresUtilization = new CpuCoreUsage[coreCount];
 
     if (myIsMinMaxCoreFreqValid) {
