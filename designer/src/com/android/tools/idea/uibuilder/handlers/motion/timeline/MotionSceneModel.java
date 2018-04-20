@@ -26,11 +26,8 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
-import org.w3c.dom.*;
+import org.w3c.dom.NamedNodeMap;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -53,7 +50,6 @@ public class MotionSceneModel {
   public TransitionTag getTransitionTag(int i) {
     return myTransition.get(i);
   }
-
 
   // Represents a single view in the motion scene
   public static class MotionSceneView {
@@ -114,7 +110,7 @@ public class MotionSceneModel {
   /* ===========================KeyFrame===================================*/
 
   public static abstract class KeyFrame {
-    private final MotionSceneModel myMotionSceneModel;
+    protected final MotionSceneModel myMotionSceneModel;
     protected String mType;
 
     int framePosition;
@@ -140,6 +136,7 @@ public class MotionSceneModel {
     public boolean isAndroidAttribute(String str) {
       return false;
     }
+
     public String[] getPossibleAttr() {
       return myPossibleAttr;
     }
@@ -286,7 +283,6 @@ public class MotionSceneModel {
       super.parse(node, value);
     }
 
-
     @Override
     public void fill(HashMap<String, Object> attributes) {
       if (transitionEasing != null) {
@@ -382,7 +378,6 @@ public class MotionSceneModel {
       myPossibleAttr = ourPossibleAttr;
     }
 
-
     @Override
     public void fill(HashMap<String, Object> attributes) {
       if (!Float.isNaN(horizontalPosition_inDeltaX)) {
@@ -406,7 +401,6 @@ public class MotionSceneModel {
       super.fill(attributes);
     }
 
-
     @Override
     public float getFloat(String type) {
       if (KeyPositionCartesian_horizontalPosition_inDeltaX.equals(type)) {
@@ -429,7 +423,6 @@ public class MotionSceneModel {
       }
       return super.getFloat(type);
     }
-
 
     @Override
     void parse(String node, String value) {
@@ -460,6 +453,7 @@ public class MotionSceneModel {
   /* ===========================KeyAttributes===================================*/
   public static class KeyAttributes extends KeyFrame {
     String curveFit = null;
+    ArrayList<CustomAttributes> myCustomAttributes = new ArrayList<>();
     public static String[] ourPossibleAttr = {
       "framePosition",
       "target",
@@ -479,6 +473,7 @@ public class MotionSceneModel {
       "translationX",
       "translationY",
       "translationZ",
+      CustomLabel
     };
     public static String[] ourPossibleStandardAttr = {
       "orientation",
@@ -495,6 +490,10 @@ public class MotionSceneModel {
       "translationZ"
     };
     HashSet<String> myAndroidAttributes = null;
+
+    public ArrayList<CustomAttributes> getCustomAttr() {
+      return myCustomAttributes;
+    }
 
     @Override
     public boolean isAndroidAttribute(String str) {
@@ -534,12 +533,51 @@ public class MotionSceneModel {
         myAttributes.put(node, new Float(value));
       }
     }
+
+    /**
+     * @param nlModel
+     * @param key
+     * @param value
+     */
+    public void createCustomAttribute(NlModel nlModel, String key, CustomAttributes.Type type, String value) {
+      XmlFile xmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(myMotionSceneModel.myProject, myMotionSceneModel.myVirtualFile);
+
+      WriteCommandAction.runWriteCommandAction(myMotionSceneModel.myProject, new Runnable() {
+        @Override
+        public void run() {
+          XmlTag[] tagKeyFrames = xmlFile.getRootTag().findSubTags(MotionSceneKeyFrames);
+          for (int i = 0; i < tagKeyFrames.length; i++) {
+            XmlTag tagKeyFrame = tagKeyFrames[i];
+            XmlTag[] tagkey = tagKeyFrame.getSubTags();
+
+            for (int j = 0; j < tagkey.length; j++) {
+              XmlTag xmlTag = tagkey[j];
+              if (match(xmlTag)) {
+                String head = MotionNameSpace;
+                if (isAndroidAttribute(key)) {
+                  head = AndroidNameSpace;
+                }
+                xmlTag.setAttribute(MotionNameSpace + key, value);
+              }
+            }
+          }
+        }
+      });
+      if (nlModel != null) {
+        // TODO: we may want to do live edits instead, but LayoutLib needs
+        // anyway to save the file to disk, so...
+        LayoutPullParsers.saveFileIfNecessary(xmlFile);
+        nlModel.notifyModified(NlModel.ChangeType.EDIT);
+      }
+      parse(key, value);
+    }
   }
 
   /* ===========================KeyCycle===================================*/
   public static class KeyCycle extends KeyFrame {
     float waveOffset = Float.NaN;
     float wavePeriod = Float.NaN;
+    ArrayList<CustomCycleAttributes> myCustomAttributes = new ArrayList<>();
     String waveShape;
     public static String[] ourPossibleAttr = {
       "target",
@@ -584,6 +622,7 @@ public class MotionSceneModel {
       }
       return myAndroidAttributes.contains(str);
     }
+
     public KeyCycle(MotionSceneModel motionSceneModel) {
       super(motionSceneModel);
       super.mType = KeyTypeCycle;
@@ -624,6 +663,71 @@ public class MotionSceneModel {
       }
     }
   }
+
+  /* ===========================CustomCycleAttributes===================================*/
+
+  public static class CustomCycleAttributes implements AttributeParse {
+    KeyCycle parentKeyCycle;
+    HashMap<String, Object> myAttributes = new HashMap<>();
+    public static String[] ourPossibleAttr = {
+      "attributeName",
+      "customIntegerValue",
+      "customFloatValue",
+      "customStringValue",
+      "customDimension",
+    };
+
+    public CustomCycleAttributes(KeyCycle frame) {
+      parentKeyCycle = frame;
+    }
+
+    @Override
+    public void parse(String name, String value) {
+      myAttributes.put(name, value);
+    }
+  }
+  /* ===========================CustomAttributes===================================*/
+
+  public static class CustomAttributes implements AttributeParse {
+    final KeyAttributes parentKeyAttributes;
+    HashMap<String, Object> myAttributes = new HashMap<>();
+    public static String[] ourPossibleAttr = {
+      "attributeName",
+      "customColorValue",
+      "customIntegerValue",
+      "customFloatValue",
+      "customStringValue",
+      "customDimension",
+      "customBoolean"
+    };
+
+    public String[] getPossibleAttr() {
+      return ourPossibleAttr;
+    }
+
+    enum Type {
+      CUSTOM_COLOR,
+      CUSTOM_INTEGER,
+      CUSTOM_FLOAT,
+      CUSTOM_STRING,
+      CUSTOM_DIMENSION,
+      CUSTOM_BOOLEAN
+    }
+
+    public CustomAttributes(KeyAttributes frame) {
+      parentKeyAttributes = frame;
+    }
+
+    public HashMap<String, Object> getAttributes() {
+      return myAttributes;
+    }
+
+    @Override
+    public void parse(String name, String value) {
+      myAttributes.put(name.substring(name.lastIndexOf(':') + 1), value);
+    }
+  }
+
   // =================================AttributeParse====================================== //
 
   interface AttributeParse {
@@ -717,7 +821,6 @@ public class MotionSceneModel {
       }
     }
   }
-
 
   // =================================OnSwipe====================================== //
 
@@ -816,7 +919,6 @@ public class MotionSceneModel {
       motionSceneModel.myTransition.add(transition);
     }
 
-
     // process all the key frames
     tagKeyFrames = file.getRootTag().findSubTags(MotionSceneKeyFrames);
 
@@ -835,12 +937,26 @@ public class MotionSceneModel {
         }
         else if (MotionSceneString.KeyTypeAttributes.equals(keyNodeName)) {
           frame = new KeyAttributes(motionSceneModel);
+          XmlTag[] customTags = xmlTag.getSubTags();
+          for (int k = 0; k < customTags.length; k++) {
+            XmlTag tag = customTags[k];
+            CustomAttributes custom = new CustomAttributes((KeyAttributes)frame);
+            parse(custom, tag.getAttributes());
+            ((KeyAttributes)frame).myCustomAttributes.add(custom);
+          }
         }
         else if (MotionSceneString.KeyTypePositionCartesian.equals(keyNodeName)) {
           frame = new KeyPositionCartesian(motionSceneModel);
         }
         else if (MotionSceneString.KeyTypeCycle.equals(keyNodeName)) {
           frame = new KeyCycle(motionSceneModel);
+          XmlTag[] customTags = xmlTag.getSubTags();
+          for (int k = 0; k < customTags.length; k++) {
+            XmlTag tag = customTags[k];
+            CustomCycleAttributes custom = new CustomCycleAttributes((KeyCycle)frame);
+            parse(custom, tag.getAttributes());
+            ((KeyCycle)frame).myCustomAttributes.add(custom);
+          }
         }
         else {
           System.err.println("Unknown name :" + keyNodeName);
@@ -908,5 +1024,4 @@ public class MotionSceneModel {
       motionView.myKeyCycles.add((KeyCycle)frame);
     }
   }
-
 }
