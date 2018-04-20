@@ -220,7 +220,7 @@ public class GradleTaskFinder {
         if (gradleTaskName != null) {
           tasks.add(createBuildTask(gradlePath, gradleTaskName));
         }
-        if (TestCompileType.UNIT_TESTS.equals(testCompileType)) {
+        if (TestCompileType.UNIT_TESTS.equals(testCompileType) || TestCompileType.ALL.equals(testCompileType)) {
           tasks.add(createBuildTask(gradlePath, JavaFacet.TEST_CLASSES_TASK_NAME));
         }
       }
