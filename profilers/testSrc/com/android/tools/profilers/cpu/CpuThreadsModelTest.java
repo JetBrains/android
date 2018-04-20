@@ -119,6 +119,7 @@ public class CpuThreadsModelTest {
     // Create a threads model from an imported session
     myServices.enableImportTrace(true);
     CpuProfilerStage stage = new CpuProfilerStage(myProfilers, CpuProfilerTestUtils.getTraceFile("valid_trace.trace"));
+    stage.enter();
     myThreadsModel = stage.getThreadStates();
 
     // The threads from the model should be obtained from the capture itself.
