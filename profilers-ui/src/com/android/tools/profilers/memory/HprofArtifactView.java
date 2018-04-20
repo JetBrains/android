@@ -15,19 +15,11 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.TabularLayout;
-import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
-import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.sessions.SessionArtifactView;
-import com.intellij.util.ui.AsyncProcessIcon;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
 /**
  * A {@link SessionArtifactView} that represents a heap dump object.
@@ -36,38 +28,11 @@ public final class HprofArtifactView extends SessionArtifactView<HprofSessionArt
 
   public HprofArtifactView(@NotNull ArtifactDrawInfo artifactDrawInfo, @NotNull HprofSessionArtifact artifact) {
     super(artifactDrawInfo, artifact);
-
-    // 1st column for artifact's icon, 2nd column for texts
-    // 1st row for showing name, 2nd row for time.
-    setLayout(new TabularLayout("Fit-,*", "Fit-,Fit-"));
-
-    boolean ongoingHeapDump = artifact.getArtifactProto().getEndTime() == Long.MAX_VALUE;
-    if (ongoingHeapDump) {
-      AsyncProcessIcon loadingIcon = new AsyncProcessIcon("");
-      loadingIcon.setBorder(ARTIFACT_ICON_BORDER);
-      add(loadingIcon, new TabularLayout.Constraint(0, 0));
-    }
-    else {
-      JLabel icon = new JLabel(StudioIcons.Profiler.Sessions.HEAP);
-      icon.setBorder(ARTIFACT_ICON_BORDER);
-      add(icon, new TabularLayout.Constraint(0, 0));
-    }
-
-    JLabel artifactName = new JLabel(getArtifact().getName());
-    artifactName.setBorder(LABEL_PADDING);
-    artifactName.setFont(TITLE_FONT);
-
-    JLabel artifactTime = new JLabel(getArtifact().getSubtitle());
-    artifactTime.setBorder(LABEL_PADDING);
-    artifactTime.setFont(STATUS_FONT);
-    add(artifactName, new TabularLayout.Constraint(0, 1));
-    add(artifactTime, new TabularLayout.Constraint(1, 1));
   }
 
   @Override
-  protected void selectedSessionChanged() {
-    setBorder(isSessionSelected() ?
-              BorderFactory.createCompoundBorder(SELECTED_BORDER, ARTIFACT_PADDING) :
-              BorderFactory.createCompoundBorder(UNSELECTED_BORDER, ARTIFACT_PADDING));
+  protected JComponent buildComponent() {
+    return buildCaptureArtifactView(getArtifact().getName(), getArtifact().getSubtitle(), StudioIcons.Profiler.Sessions.HEAP,
+                                    getArtifact().isOngoingCapture());
   }
 }

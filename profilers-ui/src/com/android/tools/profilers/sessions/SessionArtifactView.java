@@ -15,18 +15,25 @@
  */
 package com.android.tools.profilers.sessions;
 
+import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.TooltipComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.ContextMenuInstaller;
-import com.android.tools.profilers.ProfilerContextMenu;
+import com.android.tools.profilers.ProfilerLayeredPane;
+import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
+import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Collections;
 
 import static com.android.tools.profilers.ProfilerColors.HOVERED_SESSION_COLOR;
@@ -51,27 +58,41 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
   @NotNull private final ArtifactDrawInfo myArtifactDrawInfo;
   @NotNull protected final AspectObserver myObserver;
 
+  @NotNull private final JComponent myArtifactView;
+
+  @NotNull private final TooltipComponent myTooltipComponent;
+  /**
+   * This is essentially a clone of myArtifactView used for display in the TooltipComponent.
+   */
+  @NotNull private final JComponent myTooltipArtifactView;
+
   public SessionArtifactView(@NotNull ArtifactDrawInfo artifactDrawInfo, @NotNull T artifact) {
-    setBackground(HOVERED_SESSION_COLOR);
-    setOpaque(false);
     myArtifactDrawInfo = artifactDrawInfo;
     myArtifact = artifact;
     myObserver = new AspectObserver();
+
+    myArtifactView = buildComponent();
+    myArtifactView.setBackground(HOVERED_SESSION_COLOR);
+    myArtifactView.setOpaque(false);
+    setLayout(new BorderLayout());
+    add(myArtifactView, BorderLayout.CENTER);
+
     initializeListeners();
 
     // Context menus set up
     ContextMenuInstaller contextMenuInstaller = artifactDrawInfo.mySessionsView.getIdeProfilerComponents().createContextMenuInstaller();
     getContextMenus().forEach(menu -> contextMenuInstaller.installGenericContextMenu(this, menu));
 
-    // Listen to selected session changed so we can update the selection visuals accordingly.
-    myArtifactDrawInfo.mySessionsView.getProfilers().getSessionsManager().addDependency(myObserver)
-                                     .onChange(SessionAspect.SELECTED_SESSION, () -> {
-                                       selectedSessionChanged();
-                                       // Selection states have possibly changed for this artifact, re-render.
-                                       revalidate();
-                                       repaint();
-                                     });
-    selectedSessionChanged();
+    // The tooltip view mimics exactly what's shown in the Sessions panel. But by wrapping it in a TooltipComponent it appears floating
+    // when the Sessions panel does not have enough space to show the entire view.
+    myTooltipArtifactView = buildComponent();
+    myTooltipArtifactView.setBackground(HOVERED_SESSION_COLOR);
+    myTooltipComponent = new TooltipComponent.Builder(myTooltipArtifactView, this)
+      .setPreferredParentClass(ProfilerLayeredPane.class)
+      .setAnchored(true)
+      .setShowDropShadow(false)
+      .build();
+    myTooltipComponent.registerListenersOn(this);
   }
 
   private void initializeListeners() {
@@ -114,6 +135,11 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
     return myArtifact;
   }
 
+  @NotNull
+  public StudioProfilers getProfilers() {
+    return myArtifactDrawInfo.mySessionsView.getProfilers();
+  }
+
   public boolean isSessionSelected() {
     return myArtifact.getSession().equals(myArtifact.getProfilers().getSessionsManager().getSelectedSession());
   }
@@ -126,11 +152,60 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
     return Collections.emptyList();
   }
 
-  protected abstract void selectedSessionChanged();
+  protected abstract JComponent buildComponent();
 
-  private void showHoverState(boolean hoever) {
-    setOpaque(hoever);
-    repaint();
+  private void showHoverState(boolean hover) {
+    boolean isTooltipNeeded = getSize().width < myTooltipArtifactView.getPreferredSize().width;
+    myArtifactView.setOpaque(hover);
+    if (isTooltipNeeded) {
+      myTooltipArtifactView.setVisible(isTooltipNeeded);
+    }
+    else {
+      myArtifactView.repaint();
+    }
+  }
+
+  /**
+   * Helper method to generate a standard view to display a session's capture artifact.
+   */
+  protected JComponent buildCaptureArtifactView(@NotNull String name,
+                                                @NotNull String subtitle,
+                                                @NotNull Icon icon,
+                                                boolean isOngoing) {
+    // 1st column for artifact's icon, 2nd column for texts
+    // 1st row for showing name, 2nd row for time.
+    JPanel panel = new JPanel(new TabularLayout("Fit,*", "Fit,Fit"));
+
+    if (isOngoing) {
+      AsyncProcessIcon loadingIcon = new AsyncProcessIcon("");
+      loadingIcon.setBorder(ARTIFACT_ICON_BORDER);
+      panel.add(loadingIcon, new TabularLayout.Constraint(0, 0));
+    }
+    else {
+      JLabel iconLabel = new JLabel(icon);
+      iconLabel.setBorder(ARTIFACT_ICON_BORDER);
+      panel.add(iconLabel, new TabularLayout.Constraint(0, 0));
+    }
+
+    JLabel artifactName = new JLabel(name);
+    artifactName.setBorder(LABEL_PADDING);
+    artifactName.setFont(TITLE_FONT);
+
+    JLabel artifactTime = new JLabel(subtitle);
+    artifactTime.setBorder(LABEL_PADDING);
+    artifactTime.setFont(STATUS_FONT);
+    panel.add(artifactName, new TabularLayout.Constraint(0, 1));
+    panel.add(artifactTime, new TabularLayout.Constraint(1, 1));
+
+    // Listen to selected session changed so we can update the selection visuals accordingly.
+    final Border selectedBorder = BorderFactory.createCompoundBorder(SELECTED_BORDER, ARTIFACT_PADDING);
+    final Border unSelectedBorder = BorderFactory.createCompoundBorder(UNSELECTED_BORDER, ARTIFACT_PADDING);
+    getProfilers().getSessionsManager().addDependency(myObserver).onChange(SessionAspect.SELECTED_SESSION, () ->
+      panel.setBorder(isSessionSelected() ? selectedBorder : unSelectedBorder)
+    );
+    panel.setBorder(isSessionSelected() ? selectedBorder : unSelectedBorder);
+
+    return panel;
   }
 
   /**
