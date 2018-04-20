@@ -70,7 +70,7 @@ public final class EnergyEventsView {
     CALLED_BY(0.16, String.class, "Called By") {
       @Override
       Object getValueFrom(@NotNull EnergyDuration data) {
-        return data.getEventList().stream().filter(e -> !e.getTraceId().isEmpty()).findFirst().map(EnergyEvent::getTraceId).orElse("");
+        return data.getCalledByTraceId();
       }
     },
     TIMELINE(0.5, Long.class, "Timeline") {
@@ -114,10 +114,11 @@ public final class EnergyEventsView {
 
   public EnergyEventsView(EnergyProfilerStageView stageView) {
     myStage = stageView.getStage();
-    myTableModel = new EventsTableModel(myStage.getEnergyEventsFetcher());
+    myTableModel = new EventsTableModel(myStage);
     myEventsTable = new HoverRowTable(myTableModel, ProfilerColors.DEFAULT_HOVER_COLOR);
     buildEventsTable();
-    myStage.getAspect().addDependency(myAspectObserver).onChange(EnergyProfilerAspect.SELECTED_EVENT_DURATION, this::updateTableSelection);
+    myStage.getAspect().addDependency(myAspectObserver).onChange(EnergyProfilerAspect.SELECTED_EVENT_DURATION, this::updateTableSelection)
+      .onChange(EnergyProfilerAspect.SELECTED_ORIGIN_FILTER, myTableModel::updateTableByConfiguration);
   }
 
   private void buildEventsTable() {
@@ -235,12 +236,17 @@ public final class EnergyEventsView {
   }
 
   private static final class EventsTableModel extends AbstractTableModel {
+    @NotNull private final EnergyProfilerStage myStage;
+    // The data list without filtered by configuration.
+    @NotNull private List<EnergyDuration> myDataList = new ArrayList<>();
+    // The data list to display that has been filtered by configuration.
     @NotNull private List<EnergyDuration> myList = new ArrayList<>();
 
-    private EventsTableModel(@NotNull EnergyEventsFetcher fetcher) {
-      fetcher.addListener(list -> {
-        myList = list;
-        fireTableDataChanged();
+    private EventsTableModel(@NotNull EnergyProfilerStage stage) {
+      myStage = stage;
+      stage.getEnergyEventsFetcher().addListener(list -> {
+        myDataList = list;
+        updateTableByConfiguration();
       });
     }
 
@@ -274,6 +280,11 @@ public final class EnergyEventsView {
     public EnergyDuration getValue(int rowIndex) {
       return myList.get(rowIndex);
     }
+
+    public void updateTableByConfiguration() {
+      myList = myStage.filterByOrigin(myDataList);
+      fireTableDataChanged();
+    }
   }
 
   private static final class CalledByRenderer extends BorderlessTableCellRenderer {
@@ -287,11 +298,7 @@ public final class EnergyEventsView {
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
       String calledByValue = "";
       if (value instanceof String) {
-        String stackTrace = myStage.requestBytes((String)value).toStringUtf8();
-        // Get the method name which is before the line metadata in the first line, for example, "com.AlarmManager.method(Class line: 50)"
-        // results in "AlarmManager.method".
-        int firstLineIndex = stackTrace.indexOf('(');
-        calledByValue = firstLineIndex > 0 ? stackTrace.substring(0, firstLineIndex).trim() : stackTrace.trim();
+        calledByValue = myStage.getEventsTraceCache().getTraceData((String)value);
         // LastDotIndex in the line is the method name start index, the second last index is the class name start index.
         int lastDotIndex = calledByValue.lastIndexOf('.');
         if (lastDotIndex > 0) {

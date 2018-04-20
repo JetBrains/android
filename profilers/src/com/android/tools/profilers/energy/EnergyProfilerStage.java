@@ -32,10 +32,13 @@ import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener {
   private static final String HAS_USED_ENERGY_SELECTION = "energy.used.selection";
+  private static final String ENERGY_EVENT_ORIGIN_INDEX = "energy.event.origin";
 
   @NotNull private final DetailedEnergyUsage myDetailedUsage;
   @NotNull private final AxisComponentModel myAxis;
@@ -52,6 +55,8 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
   // Intentionally local field, to prevent GC from cleaning it and removing weak listeners
   @SuppressWarnings("FieldCanBeLocal") private AspectObserver myAspectObserver = new AspectObserver();
   private AspectModel<EnergyProfilerAspect> myAspect = new AspectModel<>();
+
+  @NotNull private final EnergyTraceCache myTraceCache = new EnergyTraceCache(this);
 
   @Nullable private EnergyDuration mySelectedDuration;
 
@@ -197,6 +202,11 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
   }
 
   @NotNull
+  public EnergyTraceCache getEventsTraceCache() {
+    return myTraceCache;
+  }
+
+  @NotNull
   public EaseOutModel getInstructionsEaseOutModel() {
     return myInstructionsEaseOutModel;
   }
@@ -234,6 +244,27 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
       .setEventId(duration.getEventList().get(0).getEventId())
       .build();
     return new EnergyDuration(getStudioProfilers().getClient().getEnergyClient().getEventGroup(request).getEventsList());
+  }
+
+  @NotNull
+  public EnergyEventOrigin getEventOrigin() {
+    int savedOriginOrdinal = getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences()
+                                                 .getInt(ENERGY_EVENT_ORIGIN_INDEX, EnergyEventOrigin.ALL.ordinal());
+    return EnergyEventOrigin.values()[savedOriginOrdinal];
+  }
+
+ public void setEventOrigin(@NotNull EnergyEventOrigin origin) {
+    if (getEventOrigin() != origin) {
+      getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().setInt(ENERGY_EVENT_ORIGIN_INDEX, origin.ordinal());
+      myAspect.changed(EnergyProfilerAspect.SELECTED_ORIGIN_FILTER);
+    }
+  }
+
+  @NotNull
+  public List<EnergyDuration> filterByOrigin(@NotNull List<EnergyDuration> list) {
+    String appName = getStudioProfilers().getSelectedAppName();
+    return list.stream().filter(duration -> getEventOrigin().isValid(appName, myTraceCache.getTraceData(duration.getCalledByTraceId())))
+               .collect(Collectors.toList());
   }
 
   @Override

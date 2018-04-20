@@ -20,5 +20,9 @@ public enum EnergyProfilerAspect {
    * Aspect associated with a single, focused event duration, it may be {@code null} which means that
    * currently no event duration is selected (perhaps recently deselected).
    */
-  SELECTED_EVENT_DURATION
+  SELECTED_EVENT_DURATION,
+  /**
+   * Aspect for a selected configuration filtering on whether showing the event durations.
+   */
+  SELECTED_ORIGIN_FILTER
 }
