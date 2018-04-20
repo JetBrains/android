@@ -121,6 +121,7 @@ public final class EnergyEventsView {
   }
 
   private void buildEventsTable() {
+    myEventsTable.setAutoCreateRowSorter(true);
     myEventsTable.getColumnModel().getColumn(Column.EVENT.ordinal()).setCellRenderer(new BorderlessTableCellRenderer());
     myEventsTable.getColumnModel().getColumn(Column.DESCRIPTION.ordinal()).setCellRenderer(new BorderlessTableCellRenderer());
     myEventsTable.getColumnModel().getColumn(Column.CALLED_BY.ordinal()).setCellRenderer(new CalledByRenderer(myStage));
