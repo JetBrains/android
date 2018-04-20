@@ -15,7 +15,10 @@
  */
 package com.intellij.testGuiFramework.remote.server
 
+import com.android.tools.idea.tests.gui.framework.GuiTests
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testGuiFramework.launcher.GuiTestLauncher
+import com.intellij.testGuiFramework.launcher.GuiTestOptions
 import com.intellij.testGuiFramework.remote.transport.CloseIdeMessage
 import com.intellij.testGuiFramework.remote.transport.MessageFromClient
 import com.intellij.testGuiFramework.remote.transport.MessageFromServer
@@ -25,6 +28,7 @@ import org.apache.log4j.Logger
 import org.junit.runner.Result
 import org.junit.runner.notification.RunListener
 import org.junit.runner.notification.RunNotifier
+import java.io.File
 import java.io.InvalidClassException
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
@@ -132,6 +136,9 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
   }
 
   override fun launchIdeAndStart() {
+    val configDir = GuiTests.getConfigDirPath()
+    FileUtil.delete(configDir)
+    FileUtil.ensureExists(configDir)
     GuiTestLauncher.runIde(port)
     start()
   }
