@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValueImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.google.common.collect.Lists;
 import com.intellij.psi.PsiElement;
@@ -163,6 +161,11 @@ public final class GradleDslExpressionList extends GradleDslElementImpl implemen
       Collectors.toList());
   }
 
+  @NotNull
+  public <T> List<T> getLiterals(@NotNull Class<T> clazz) {
+    return getSimpleExpressions().stream().map(e -> e.getValue(clazz)).filter(e -> e != null).collect(Collectors.toList());
+  }
+
   public boolean isLiteralList() {
     return myIsLiteralList;
   }
@@ -186,31 +189,6 @@ public final class GradleDslExpressionList extends GradleDslElementImpl implemen
       }
     }
     saveExpressions();
-  }
-
-  /**
-   * Returns the list of values of type {@code clazz}.
-   * <p>
-   * <p>Returns an empty list when there are no elements of type {@code clazz}.
-   */
-  @NotNull
-  public <E> List<GradleNotNullValue<E>> getValues(Class<E> clazz) {
-    List<GradleNotNullValue<E>> result = Lists.newArrayList();
-    for (GradleDslSimpleExpression expression : getSimpleExpressions()) {
-      if (expression instanceof GradleDslReference) {
-        // See if the reference itself is pointing to a list.
-        GradleDslExpressionList referenceList = expression.getValue(GradleDslExpressionList.class);
-        if (referenceList != null) {
-          result.addAll(referenceList.getValues(clazz));
-          continue;
-        }
-      }
-      E value = expression.getValue(clazz);
-      if (value != null) {
-        result.add(new GradleNotNullValueImpl<>(expression, value));
-      }
-    }
-    return result;
   }
 
   @Override

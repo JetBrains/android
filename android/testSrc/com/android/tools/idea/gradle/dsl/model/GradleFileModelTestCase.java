@@ -25,11 +25,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
-import com.android.tools.idea.gradle.dsl.api.values.GradleValue;
-import com.android.tools.idea.gradle.dsl.model.values.GradleValueImpl;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.google.common.collect.ImmutableMap;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
@@ -38,7 +34,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiElement;
 import com.intellij.testFramework.PlatformTestCase;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.android.AndroidTestBase;
@@ -57,9 +52,9 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*;
 import static com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.PasswordType;
-import static com.android.tools.idea.gradle.dsl.api.values.GradleValue.getValues;
 import static com.android.tools.idea.testing.FileSubject.file;
-import static com.google.common.truth.Truth.*;
+import static com.google.common.truth.Truth.assertAbout;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static org.junit.runners.Parameterized.Parameter;
@@ -321,28 +316,6 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     assertEquals(propertyName, propertyModel.getFullyQualifiedName());
   }
 
-  protected void verifyGradleValue(@NotNull GradleNullableValue gradleValue,
-                                   @NotNull String propertyName,
-                                   @NotNull String propertyText) {
-    verifyGradleValue(gradleValue, propertyName, propertyText, toSystemIndependentName(myBuildFile.getPath()));
-  }
-
-  public static void verifyGradleValue(@NotNull GradleNullableValue value,
-                                       @NotNull String propertyName,
-                                       @NotNull String propertyText,
-                                       @NotNull String propertyFilePath) {
-    if (!(value instanceof GradleValueImpl)) {
-      fail("Gradle value implementation unknown!");
-    }
-    GradleValueImpl gradleValue = (GradleValueImpl)value;
-    PsiElement psiElement = gradleValue.getPsiElement();
-    assertNotNull(psiElement);
-    assertEquals(propertyText, psiElement.getText());
-    assertEquals(propertyFilePath, toSystemIndependentName(gradleValue.getFile().getPath()));
-    assertEquals(propertyName, gradleValue.getPropertyName());
-    assertEquals(propertyText, gradleValue.getDslText());
-  }
-
   public static void assertEquals(@NotNull String message, @Nullable String expected, @NotNull GradlePropertyModel actual) {
     assertEquals(message, expected, actual.getValue(STRING_TYPE));
   }
@@ -355,19 +328,6 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     assertEquals(message, expected, actual.getValue(INTEGER_TYPE));
   }
 
-  public static <T> void assertEquals(@NotNull String message, @Nullable T expected, @NotNull GradleValue<T> actual) {
-    assertEquals(message, expected, actual.value());
-  }
-
-  public static <T> void assertEquals(@Nullable T expected, @NotNull GradleValue<T> actual) {
-    assertEquals(expected, actual.value());
-  }
-
-  public static <T> void assertEquals(@NotNull String message, @NotNull List<T> expected, @Nullable List<? extends GradleValue<T>> actual) {
-    assertNotNull(message, actual);
-    assertWithMessage(message).that(getValues(actual)).containsExactlyElementsIn(expected);
-  }
-
   public static void assertEquals(@NotNull String message, @NotNull List<Object> expected, @Nullable GradlePropertyModel propertyModel) {
     verifyListProperty(message, propertyModel, expected);
   }
@@ -376,23 +336,6 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
                                       @NotNull Map<String, T> expected,
                                       @Nullable GradlePropertyModel propertyModel) {
     verifyMapProperty(message, propertyModel, new HashMap<>(expected));
-  }
-
-  public static <T> void assertEquals(@NotNull List<T> expected, @Nullable List<? extends GradleValue<T>> actual) {
-    assertNotNull(actual);
-    assertThat(getValues(actual)).containsExactlyElementsIn(expected);
-  }
-
-  public static <T> void assertEquals(@NotNull String message,
-                                      @NotNull Map<String, T> expected,
-                                      @Nullable Map<String, ? extends GradleValue<T>> actual) {
-    assertNotNull(message, actual);
-    assertWithMessage(message).that(ImmutableMap.copyOf(getValues(actual))).containsExactlyEntriesIn(ImmutableMap.copyOf(expected));
-  }
-
-  public static <T> void assertEquals(@NotNull Map<String, T> expected, @Nullable Map<String, ? extends GradleValue<T>> actual) {
-    assertNotNull(actual);
-    assertThat(ImmutableMap.copyOf(getValues(actual))).containsExactlyEntriesIn(ImmutableMap.copyOf(expected));
   }
 
   public static void verifyFlavorType(@NotNull String message,
@@ -412,14 +355,6 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
   public static void assertMissingProperty(@NotNull String message, @NotNull GradlePropertyModel model) {
     assertEquals(message, NONE, model.getValueType());
-  }
-
-  public static <T> void assertNull(@NotNull String message, @NotNull GradleNullableValue<T> nullableValue) {
-    assertNull(message, nullableValue.value());
-  }
-
-  public static <T> void assertNull(@NotNull GradleNullableValue<T> nullableValue) {
-    assertNull(nullableValue.value());
   }
 
   public static <T> void checkForValidPsiElement(@NotNull T object, @NotNull Class<? extends GradleDslBlockModel> clazz) {
@@ -503,6 +438,11 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
       default:
         fail("Type for model: " + model + " was unexpected, " + model.getValueType());
     }
+  }
+
+  public static void verifyListProperty(@Nullable GradlePropertyModel model,
+                                        @NotNull List<Object> expectedValues) {
+    verifyListProperty(model, expectedValues, true);
   }
 
   public static void verifyListProperty(@Nullable GradlePropertyModel model,

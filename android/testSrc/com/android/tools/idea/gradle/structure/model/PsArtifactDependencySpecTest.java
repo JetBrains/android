@@ -18,20 +18,12 @@ package com.android.tools.idea.gradle.structure.model;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.testing.IdeComponents;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiElement;
 import com.intellij.testFramework.IdeaTestCase;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.gradle.tooling.model.GradleModuleVersion;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.mockito.Mockito;
 
-import java.util.Map;
 import java.util.function.Function;
 
 import static org.mockito.Mockito.mock;
@@ -61,15 +53,15 @@ public class PsArtifactDependencySpecTest extends IdeaTestCase {
   public void testCreate_nameOnly() {
     PsArtifactDependencySpec spec = PsArtifactDependencySpec.create("name");
     assertNotNull(spec);
-    assertEquals(null, spec.getGroup());
+    assertNull(spec.getGroup());
     assertEquals("name", spec.getName());
-    assertEquals(null, spec.getVersion());
+    assertNull(spec.getVersion());
   }
 
   public void testCreate_nameAndVersion() {
     PsArtifactDependencySpec spec = PsArtifactDependencySpec.create("name:1.0");
     assertNotNull(spec);
-    assertEquals(null, spec.getGroup());
+    assertNull(spec.getGroup());
     assertEquals("name", spec.getName());
     assertEquals("1.0", spec.getVersion());
   }
@@ -77,7 +69,7 @@ public class PsArtifactDependencySpecTest extends IdeaTestCase {
   public void testCreate_nameAndPlus() {
     PsArtifactDependencySpec spec = PsArtifactDependencySpec.create("name:+");
     assertNotNull(spec);
-    assertEquals(null, spec.getGroup());
+    assertNull(spec.getGroup());
     assertEquals("name", spec.getName());
     assertEquals("+", spec.getVersion());
   }
@@ -87,7 +79,7 @@ public class PsArtifactDependencySpecTest extends IdeaTestCase {
     assertNotNull(spec);
     assertEquals("group", spec.getGroup());
     assertEquals("name", spec.getName());
-    assertEquals(null, spec.getVersion());
+    assertNull(spec.getVersion());
   }
 
   public void testCreate_groupNameAndVersion() {
@@ -135,15 +127,15 @@ public class PsArtifactDependencySpecTest extends IdeaTestCase {
     assertNotNull(spec);
     assertEquals("group", spec.getGroup());
     assertEquals("name", spec.getName());
-    assertEquals(null, spec.getVersion());
+    assertNull(spec.getVersion());
   }
 
   public void testCreate_nameAndPackage() {
     PsArtifactDependencySpec spec = PsArtifactDependencySpec.create("name@jar");
     assertNotNull(spec);
-    assertEquals(null, spec.getGroup());
+    assertNull(spec.getGroup());
     assertEquals("name", spec.getName());
-    assertEquals(null, spec.getVersion());
+    assertNull(spec.getVersion());
   }
 
   public void testCreate_complexSpecification() {
@@ -241,51 +233,5 @@ public class PsArtifactDependencySpecTest extends IdeaTestCase {
 
   public void testEqualsAndHashCode() {
     EqualsVerifier.forClass(PsArtifactDependencySpec.class).verify();
-  }
-
-  private static class TestGradleValue implements GradleNullableValue<String>, GradleNotNullValue<String> {
-
-    @NotNull
-    private final String myValue;
-
-    public TestGradleValue(@NotNull String value) {
-      myValue = value;
-    }
-
-    @NotNull
-    @Override
-    public String value() {
-      return myValue;
-    }
-
-    @Nullable
-    @Override
-    public PsiElement getPsiElement() {
-      return null;
-    }
-
-    @NotNull
-    @Override
-    public VirtualFile getFile() {
-      return null;
-    }
-
-    @NotNull
-    @Override
-    public String getPropertyName() {
-      return null;
-    }
-
-    @Nullable
-    @Override
-    public String getDslText() {
-      return null;
-    }
-
-    @Override
-    @NotNull
-    public Map<String, GradleNotNullValue<Object>> getResolvedVariables() {
-      return null;
-    }
   }
 }

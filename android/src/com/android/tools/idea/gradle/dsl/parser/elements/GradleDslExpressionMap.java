@@ -15,14 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValueImpl;
-import com.google.common.collect.Maps;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Map;
 
 /**
  * Represents an element which consists of a map from properties of type {@link String} and values of type {@link GradleDslSimpleExpression}.
@@ -62,26 +57,6 @@ public final class GradleDslExpressionMap extends GradlePropertiesDslElement imp
     GradleDslLiteral gradleDslLiteral = new GradleDslLiteral(this, name);
     setNewElement(gradleDslLiteral);
     gradleDslLiteral.setValue(value);
-  }
-
-  /**
-   * Returns the map from properties of the type {@link String} and values of the type {@code clazz}.
-   *
-   * <p>Returns an empty map when the given there are no values of type {@code clazz}.
-   */
-  @NotNull
-  public <V> Map<String, GradleNotNullValue<V>> getValues(@NotNull Class<V> clazz) {
-    Map<String, GradleNotNullValue<V>> result = Maps.newLinkedHashMap();
-    for (Map.Entry<String, GradleDslElement> entry : getPropertyElements().entrySet()) {
-      GradleDslElement propertyElement = entry.getValue();
-      if (propertyElement instanceof GradleDslSimpleExpression) {
-        V value = ((GradleDslSimpleExpression)propertyElement).getValue(clazz);
-        if (value != null) {
-          result.put(entry.getKey(), new GradleNotNullValueImpl<>(propertyElement, value));
-        }
-      }
-    }
-    return result;
   }
 
   @Override

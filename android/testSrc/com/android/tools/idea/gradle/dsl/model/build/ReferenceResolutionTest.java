@@ -16,11 +16,14 @@
 package com.android.tools.idea.gradle.dsl.model.build;
 
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
-import com.android.tools.idea.gradle.dsl.model.ext.ExtModelImpl;
 import org.junit.Test;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
 
 /**
  * Tests resolving references to project, parent, rootProject etc.
@@ -46,13 +49,13 @@ public class ReferenceResolutionTest extends GradleFileModelTestCase {
     writeToSubModuleBuildFile(subModuleText);
 
     String expectedRootDir = getBaseDirPath(myProject).getPath();
-    ExtModelImpl ext = (ExtModelImpl)getSubModuleGradleBuildModel().ext();
-    assertEquals("rootDir", expectedRootDir, ext.getLiteralProperty("rpd", String.class));
-    assertEquals("rootDir", expectedRootDir, ext.getLiteralProperty("rpd1", String.class));
-    assertEquals("rootDir", expectedRootDir, ext.getLiteralProperty("rpd2", String.class));
-    assertEquals("rootDir", expectedRootDir, ext.getLiteralProperty("rpd3", String.class));
-    assertEquals("rootDir", expectedRootDir, ext.getLiteralProperty("rpd4", String.class));
-    assertEquals("rootDir", expectedRootDir, ext.getLiteralProperty("rpd5", String.class));
+    ExtModel ext = getSubModuleGradleBuildModel().ext();
+    verifyPropertyModel(ext.findProperty("rpd").resolve(), STRING_TYPE, expectedRootDir, STRING, PropertyType.REGULAR, 1);
+    verifyPropertyModel(ext.findProperty("rpd1").resolve(), STRING_TYPE, expectedRootDir, STRING, PropertyType.REGULAR, 1);
+    verifyPropertyModel(ext.findProperty("rpd2").resolve(), STRING_TYPE, expectedRootDir, STRING, PropertyType.REGULAR, 1);
+    verifyPropertyModel(ext.findProperty("rpd3").resolve(), STRING_TYPE, expectedRootDir, STRING, PropertyType.REGULAR, 1);
+    verifyPropertyModel(ext.findProperty("rpd4").resolve(), STRING_TYPE, expectedRootDir, STRING, PropertyType.REGULAR, 1);
+    verifyPropertyModel(ext.findProperty("rpd5").resolve(), STRING_TYPE, expectedRootDir, STRING, PropertyType.REGULAR, 1);
   }
 
   @Test
@@ -76,13 +79,13 @@ public class ReferenceResolutionTest extends GradleFileModelTestCase {
 
     String expectedRootDir = getBaseDirPath(myProject).getPath();
     String expectedSubModuleDir = mySubModuleBuildFile.getParent();
-    ExtModelImpl ext = (ExtModelImpl)getSubModuleGradleBuildModel().ext();
-    assertEquals("projectDir", expectedSubModuleDir, ext.getLiteralProperty("pd", String.class));
-    assertEquals("projectDir", expectedSubModuleDir, ext.getLiteralProperty("pd1", String.class));
-    assertEquals("projectDir", expectedRootDir, ext.getLiteralProperty("pd2", String.class));
-    assertEquals("projectDir", expectedRootDir, ext.getLiteralProperty("pd3", String.class));
-    assertEquals("projectDir", expectedSubModuleDir, ext.getLiteralProperty("pd4", String.class));
-    assertEquals("projectDir", expectedRootDir, ext.getLiteralProperty("pd5", String.class));
+    ExtModel ext = getSubModuleGradleBuildModel().ext();
+    verifyPropertyModel(ext.findProperty("pd").resolve(), STRING_TYPE, expectedSubModuleDir, STRING, PropertyType.REGULAR, 1);
+    verifyPropertyModel(ext.findProperty("pd1").resolve(), STRING_TYPE, expectedSubModuleDir, STRING, PropertyType.REGULAR, 1);
+    verifyPropertyModel(ext.findProperty("pd2").resolve(), STRING_TYPE, expectedRootDir, STRING, PropertyType.REGULAR, 1);
+    verifyPropertyModel(ext.findProperty("pd3").resolve(), STRING_TYPE, expectedRootDir, STRING, PropertyType.REGULAR, 1);
+    verifyPropertyModel(ext.findProperty("pd4").resolve(), STRING_TYPE, expectedSubModuleDir, STRING, PropertyType.REGULAR, 1);
+    verifyPropertyModel(ext.findProperty("pd5").resolve(), STRING_TYPE, expectedRootDir, STRING, PropertyType.REGULAR, 1);
   }
 
   @Test
