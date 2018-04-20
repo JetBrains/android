@@ -148,7 +148,7 @@ public interface IdeProfilerServices {
    * @param url     destination of the hyperlink that follows the body, if neither url or urlText is null
    * @param urlText shown text of the hyperlink that follows the body, if neither url or urlText is null
    */
-  void showErrorBalloon(@NotNull String title, @NotNull String body, String url, String urlText);
+  void showErrorBalloon(@NotNull String title, @NotNull String body, @Nullable String url, @Nullable String urlText);
 
   /**
    * Wraps the supplied expection in a NoPiiException that is then sent to the crash report.

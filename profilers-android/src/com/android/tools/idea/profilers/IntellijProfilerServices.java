@@ -351,10 +351,15 @@ public class IntellijProfilerServices implements IdeProfilerServices {
   }
 
   @Override
-  public void showErrorBalloon(@NotNull String title, @NotNull String body, @NotNull String url, @NotNull String urlText) {
-    OpenUrlHyperlink hyperlink = new OpenUrlHyperlink(url, urlText);
-    AndroidNotification.getInstance(myProject)
-      .showBalloon(title, body, NotificationType.ERROR, AndroidNotification.BALLOON_GROUP, false, hyperlink);
+  public void showErrorBalloon(@NotNull String title, @NotNull String body, @Nullable String url, @Nullable String urlText) {
+    if (url != null && urlText != null) {
+      OpenUrlHyperlink hyperlink = new OpenUrlHyperlink(url, urlText);
+      AndroidNotification.getInstance(myProject)
+                         .showBalloon(title, body, NotificationType.ERROR, AndroidNotification.BALLOON_GROUP, false, hyperlink);
+    }
+    else {
+      AndroidNotification.getInstance(myProject).showBalloon(title, body, NotificationType.ERROR, AndroidNotification.BALLOON_GROUP);
+    }
   }
 
   @Override

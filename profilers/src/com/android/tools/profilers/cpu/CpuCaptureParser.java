@@ -20,6 +20,7 @@ import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.cpu.art.ArtTraceParser;
+import com.android.tools.profilers.cpu.atrace.AtraceDecompressor;
 import com.android.tools.profilers.cpu.atrace.AtraceParser;
 import com.android.tools.profilers.cpu.simpleperf.SimpleperfTraceParser;
 import com.google.common.annotations.VisibleForTesting;
@@ -35,6 +36,7 @@ import java.nio.BufferUnderflowException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 /**
  * Manages the parsing of traces into {@link CpuCapture} objects and provide a way to retrieve them.
@@ -53,6 +55,12 @@ public class CpuCaptureParser {
    * so we can have an arbitrary ID as it's going to be unique within a session.
    */
   static final int IMPORTED_TRACE_ID = 42;
+
+  /**
+   * Message of the exception to be thrown if trying to parse an imported atrace file.
+   * TODO (b/74526422): remove this when adding full support for importing atrace captures
+   */
+  static final String ATRACE_IMPORT_FAILURE_MESSAGE = "Importing atrace files is not supported yet.";
 
   /**
    * Maps a trace id to a corresponding {@link CompletableFuture<CpuCapture>}.
@@ -201,16 +209,13 @@ public class CpuCaptureParser {
     }
 
     if (myServices.getFeatureConfig().isAtraceEnabled()) {
-      try {
-        // Finally, try parsing the file as an atrace trace if its flag is enabled.
-        // TODO (b/74526422): Figure out how to get the app process ID from atrace trace file, so we can pass to AtraceParser constructor.
-        AtraceParser atraceParser = new AtraceParser(AtraceParser.INVALID_PROCESS);
-        return atraceParser.parse(traceFile, IMPORTED_TRACE_ID);
-      }
-      catch (Exception ignored) {
-        // Ignore the exception and continue the flow to return null
+      // If atrace flag is enabled, check the file header to see if it's an atrace file and throw an exception with a known message,
+      // so it can be properly handled by whoever invokes the parsing. TODO (b/74526422): support parsing atrace imported captures
+      if (AtraceDecompressor.verifyFileHasAtraceHeader(traceFile)) {
+        throw new IllegalStateException(ATRACE_IMPORT_FAILURE_MESSAGE);
       }
     }
+
     // File couldn't be parsed by any of the parsers. Log the issue and return null.
     getLogger().warn(String.format("Parsing %s has failed.", traceFile.getPath()));
     return null;
