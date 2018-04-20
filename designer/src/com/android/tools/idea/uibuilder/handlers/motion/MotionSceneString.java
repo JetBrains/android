@@ -4,6 +4,10 @@ import java.util.Arrays;
 import java.util.HashSet;
 
 public class MotionSceneString {
+      public static final String MotionNameSpace = "motion:";
+      public static final String AndroidNameSpace = "android:";
+
+
       public static final  String MotionSceneKeyFrames = "KeyFrames";
       public static final  String MotionSceneTransition = "Transition";
       public static final  String MotionSceneConstraintSet = "ConstraintSet";

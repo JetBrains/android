@@ -285,24 +285,32 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
   }
 
   private void startPlaying() {
+    final int timer_delay_in_ms = 16;
     if (myPositionTimer != null) {
       myPositionTimer.stop();
     }
     myPositionTimer = new Timer(0, e -> {
-      float value = myLastPos + 1;
-      if (value > 100) {
+
+      float increment = timer_delay_in_ms / 1000.f;
+      if (myPanel!= null) {
+        float speedMultiplier = myPanel.getChart().getPlayBackSpeed();
+        float timeMs = myPanel.getChart().getAnimationTimeInMs();
+        increment =  speedMultiplier *  timer_delay_in_ms / timeMs;
+      }
+      float value = myLastPos + increment;
+      if (value > 1) {
         value = 0;
       }
       myLastPos = value;
-      if (!myMotionLayoutComponentHelper.setValue(value / 100f)) {
+      if (!myMotionLayoutComponentHelper.setValue(value)) {
         myMotionLayoutComponentHelper = new MotionLayoutComponentHelper(myMotionLayout);
       }
       if (mGanttCommands != null) {
-        mGanttCommands.setProgress(value / 100f);
+        mGanttCommands.setProgress(value);
       }
     });
     myPositionTimer.setRepeats(true);
-    myPositionTimer.setDelay(16);
+    myPositionTimer.setDelay(timer_delay_in_ms);
     myPositionTimer.start();
   }
 
@@ -324,6 +332,7 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
         setState(State.TL_END);
         break;
       case PLAY_ACTION:
+      case SLOW_MOTION:
         if (myCurrentState == TL_PLAY) {
           setState(State.TL_PAUSE);
         }

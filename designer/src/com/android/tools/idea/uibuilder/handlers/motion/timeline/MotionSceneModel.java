@@ -32,6 +32,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -97,8 +98,8 @@ public class MotionSceneModel {
         }
 
         XmlTag createdTag = keyFrame.createChildTag(type, null, "", false);
-        createdTag.setAttribute("motion:" + KeyAttributes_framePosition, Integer.toString(framePosition));
-        createdTag.setAttribute("motion:" + KeyAttributes_target, "@id/" + name);
+        createdTag.setAttribute(MotionNameSpace + KeyAttributes_framePosition, Integer.toString(framePosition));
+        createdTag.setAttribute(MotionNameSpace + KeyAttributes_target, "@id/" + name);
         keyFrame.addSubTag(createdTag, false);
       }
     });
@@ -136,6 +137,9 @@ public class MotionSceneModel {
       return null;
     }
 
+    public boolean isAndroidAttribute(String str) {
+      return false;
+    }
     public String[] getPossibleAttr() {
       return myPossibleAttr;
     }
@@ -212,7 +216,11 @@ public class MotionSceneModel {
             for (int j = 0; j < tagkey.length; j++) {
               XmlTag xmlTag = tagkey[j];
               if (match(xmlTag)) {
-                xmlTag.setAttribute("motion:" + key, value);
+                String head = MotionNameSpace;
+                if (isAndroidAttribute(key)) {
+                  head = AndroidNameSpace;
+                }
+                xmlTag.setAttribute(MotionNameSpace + key, value);
               }
             }
           }
@@ -297,7 +305,6 @@ public class MotionSceneModel {
       "target",
       "transitionEasing",
       "curveFit",
-      "circleRadius",
       "drawPath",
       "sizePercent",
       "perpendicularPath_percent",
@@ -367,9 +374,6 @@ public class MotionSceneModel {
       "verticalPosition_inDeltaY",
       "horizontalPercent",
       "verticalPercent",
-    };
-    public static String[] ourPossibleStandardAttr = {
-
     };
 
     public KeyPositionCartesian(MotionSceneModel motionSceneModel) {
@@ -464,7 +468,6 @@ public class MotionSceneModel {
       "sizePercent",
       "progress",
       "orientation",
-      "visibility",
       "alpha",
       "elevation",
       "rotation",
@@ -479,7 +482,6 @@ public class MotionSceneModel {
     };
     public static String[] ourPossibleStandardAttr = {
       "orientation",
-      "visibility",
       "alpha",
       "elevation",
       "rotation",
@@ -492,7 +494,15 @@ public class MotionSceneModel {
       "translationY",
       "translationZ"
     };
+    HashSet<String> myAndroidAttributes = null;
 
+    @Override
+    public boolean isAndroidAttribute(String str) {
+      if (myAndroidAttributes == null) {
+        myAndroidAttributes = new HashSet<>(Arrays.asList(ourPossibleStandardAttr));
+      }
+      return myAndroidAttributes.contains(str);
+    }
 
     public KeyAttributes(MotionSceneModel motionSceneModel) {
       super(motionSceneModel);
@@ -565,7 +575,15 @@ public class MotionSceneModel {
       "translationY",
       "translationZ"
     };
+    HashSet<String> myAndroidAttributes = null;
 
+    @Override
+    public boolean isAndroidAttribute(String str) {
+      if (myAndroidAttributes == null) {
+        myAndroidAttributes = new HashSet<>(Arrays.asList(ourPossibleStandardAttr));
+      }
+      return myAndroidAttributes.contains(str);
+    }
     public KeyCycle(MotionSceneModel motionSceneModel) {
       super(motionSceneModel);
       super.mType = KeyTypeCycle;

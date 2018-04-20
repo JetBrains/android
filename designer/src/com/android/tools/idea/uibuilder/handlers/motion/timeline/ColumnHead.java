@@ -58,9 +58,9 @@ class ColumnHead extends TimeLine implements Gantt.ChartElement {
     setForeground(mChart.myGridColor);
     super.paintComponent(g);
 
-    if (!Float.isNaN(mChart.myTimeCursorMs)) {
+    if (!Float.isNaN(mChart.getTimeCursorMs())) {
       int h = getHeight();
-      float time = mChart.myTimeCursorMs;
+      float time = mChart.getTimeCursorMs();
       int x = mChart.getCursorPosition();
       g.setColor(mChart.myTimeCursorColor);
       drawFletching(g, x, 0);
@@ -74,7 +74,7 @@ class ColumnHead extends TimeLine implements Gantt.ChartElement {
     switch (reason) {
       case CURSOR_POSITION_CHANGED: {
         if (mChart.myGantt.myGanttController != null) {
-          mChart.myGantt.myGanttController.framePosition(mChart.myTimeCursorMs / mChart.myAnimationTotalTimeMs);
+          mChart.myGantt.myGanttController.framePosition(mChart.getTimeCursorMs() / mChart.myAnimationTotalTimeMs);
           repaint();
         }
       }
