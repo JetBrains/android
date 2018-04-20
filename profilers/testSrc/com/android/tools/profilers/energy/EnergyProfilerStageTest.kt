@@ -17,6 +17,7 @@ package com.android.tools.profilers.energy
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.EnergyProfiler
+import com.android.tools.profiler.protobuf3jarjar.ByteString
 import com.android.tools.profilers.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
@@ -31,37 +32,47 @@ import java.util.concurrent.TimeUnit
 class EnergyProfilerStageTest {
   private val fakeData = ImmutableList.of<EnergyProfiler.EnergyEvent>(
     EnergyProfiler.EnergyEvent.newBuilder()
+      .setEventId(1)
       .setTimestamp(2000)
       .setAlarmSet(EnergyProfiler.AlarmSet.getDefaultInstance())
+      .setTraceId("alarmTraceId")
       .build(),
     EnergyProfiler.EnergyEvent.newBuilder()
+      .setEventId(1)
       .setTimestamp(3000)
       .setAlarmCancelled(EnergyProfiler.AlarmCancelled.getDefaultInstance())
       .setIsTerminal(true)
       .build(),
     EnergyProfiler.EnergyEvent.newBuilder()
+      .setEventId(2)
       .setTimestamp(3000)
       .setJobScheduled(EnergyProfiler.JobScheduled.getDefaultInstance())
+      .setTraceId("jobTraceId")
       .build(),
     EnergyProfiler.EnergyEvent.newBuilder()
+      .setEventId(2)
       .setTimestamp(4000)
       .setJobFinished(EnergyProfiler.JobFinished.getDefaultInstance())
       .setIsTerminal(true)
       .build(),
     EnergyProfiler.EnergyEvent.newBuilder()
+      .setEventId(3)
       .setTimestamp(0)
       .setWakeLockAcquired(EnergyProfiler.WakeLockAcquired.getDefaultInstance())
       .build(),
     EnergyProfiler.EnergyEvent.newBuilder()
+      .setEventId(3)
       .setTimestamp(1000)
       .setWakeLockReleased(EnergyProfiler.WakeLockReleased.getDefaultInstance())
       .setIsTerminal(true)
       .build(),
     EnergyProfiler.EnergyEvent.newBuilder()
+      .setEventId(4)
       .setTimestamp(4000)
       .setLocationUpdateRequested(EnergyProfiler.LocationUpdateRequested.getDefaultInstance())
       .build(),
     EnergyProfiler.EnergyEvent.newBuilder()
+      .setEventId(4)
       .setTimestamp(5000)
       .setLocationUpdateRemoved(EnergyProfiler.LocationUpdateRemoved.getDefaultInstance())
       .setIsTerminal(true)
@@ -155,5 +166,32 @@ class EnergyProfilerStageTest {
     for (i in 0..1) {
       assertThat(locationEvents[i].value).isEqualTo(fakeData[i + 6])
     }
+  }
+
+  @Test
+  fun filterEventsByConfiguration() {
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    assertThat(myStage.studioProfilers.selectedAppName).isEqualTo("FakeProcess")
+    profilerService.addFile("alarmTraceId", ByteString.copyFromUtf8("FakeProcess"))
+    profilerService.addFile("jobTraceId", ByteString.copyFromUtf8("ThirdParty"))
+    val durationList = EnergyDuration.groupById(fakeData)
+
+    myStage.setEventOrigin(EnergyEventOrigin.APP_ONLY)
+    val appOnlyResult = myStage.filterByOrigin(durationList)
+    assertThat(appOnlyResult.size).isEqualTo(1)
+    assertThat(appOnlyResult[0].name).startsWith("Alarm")
+
+    myStage.setEventOrigin(EnergyEventOrigin.ALL)
+    val allResult = myStage.filterByOrigin(durationList)
+    assertThat(allResult.size).isEqualTo(4)
+    assertThat(allResult[0].name).startsWith("Alarm")
+    assertThat(allResult[1].name).startsWith("Job")
+    assertThat(allResult[2].name).startsWith("Wake Lock")
+    assertThat(allResult[3].name).startsWith("Location")
+
+    myStage.setEventOrigin(EnergyEventOrigin.THIRD_PARTY_ONLY)
+    val thirdPartyResult = myStage.filterByOrigin(durationList)
+    assertThat(thirdPartyResult.size).isEqualTo(1)
+    assertThat(thirdPartyResult[0].name).startsWith("Job")
   }
 }

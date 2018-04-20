@@ -588,6 +588,25 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return mySelectedSession;
   }
 
+  /**
+   * Return the selected app's package name if present, otherwise returns empty string.
+   *
+   * <p>TODO (78597376): Clean up the method to make it reusable.</p>
+   */
+  @NotNull
+  public String getSelectedAppName() {
+    String name = "";
+    if (!getSession().equals(Common.Session.getDefaultInstance())) {
+      name = mySessionsManager.getSelectedSessionMetaData().getSessionName();
+    }
+    else if (myProcess != null) {
+      name = myProcess.getName();
+    }
+    // The selected profiling name could be android.com.test (Google Pixel), remove the phone name.
+    String[] nameSplit = name.split(" \\(", 2);
+    return nameSplit.length > 0 ? nameSplit[0] : "";
+  }
+
   public void setStage(@NotNull Stage stage) {
     myStage.exit();
     getTimeline().getSelectionRange().clear();

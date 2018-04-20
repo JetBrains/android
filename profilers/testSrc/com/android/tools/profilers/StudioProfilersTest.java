@@ -1178,6 +1178,44 @@ public final class StudioProfilersTest {
   }
 
   @Test
+  public void testSelectedAppNameFromSession() {
+    FakeTimer timer = new FakeTimer();
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
+    Common.Device device = createDevice(AndroidVersion.VersionCodes.BASE, "FakeDevice", Common.Device.State.ONLINE);
+    Common.Process process = createProcess(device.getDeviceId(), 20, "FakeProcess (phone)", Common.Process.State.ALIVE);
+    myProfilerService.addDevice(device);
+    myProfilerService.addProcess(device, process);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(profilers.getSession()).isNotEqualTo(Common.Session.getDefaultInstance());
+    assertThat(profilers.getSelectedAppName()).isEqualTo("FakeProcess");
+  }
+
+  @Test
+  public void testSelectedAppNameFromProcessWhenNoSession() {
+    FakeTimer timer = new FakeTimer();
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
+    Common.Device device = createDevice(AndroidVersion.VersionCodes.BASE, "FakeDevice", Common.Device.State.ONLINE);
+    Common.Process process = createProcess(device.getDeviceId(), 20, "FakeProcess (phone)", Common.Process.State.ALIVE);
+    myProfilerService.addDevice(device);
+    myProfilerService.addProcess(device, process);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    profilers.getSessionsManager().setSession(Common.Session.getDefaultInstance());
+    assertThat(profilers.getSelectedAppName()).isEqualTo("FakeProcess");
+  }
+
+  @Test
+  public void testSelectedAppNameWhenNoProcessAndNoSession() {
+    FakeTimer timer = new FakeTimer();
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
+    Common.Device device = createDevice(AndroidVersion.VersionCodes.BASE, "FakeDevice", Common.Device.State.ONLINE);
+    myProfilerService.addDevice(device);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(profilers.getSession()).isEqualTo(Common.Session.getDefaultInstance());
+    assertThat(profilers.getProcess()).isNull();
+    assertThat(profilers.getSelectedAppName()).isEmpty();
+  }
+
+  @Test
   public void testSessionViewRangeCaches() {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);

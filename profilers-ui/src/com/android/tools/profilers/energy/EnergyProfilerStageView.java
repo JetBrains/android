@@ -16,6 +16,7 @@ package com.android.tools.profilers.energy;
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
+import com.android.tools.adtui.flat.FlatComboBox;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.SelectionListener;
@@ -27,11 +28,13 @@ import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
+import javax.swing.plaf.basic.BasicComboBoxRenderer;
 import java.awt.*;
 import java.util.concurrent.TimeUnit;
 
@@ -55,12 +58,19 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     verticalSplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
     verticalSplitter.setFirstComponent(buildMonitorUi());
 
-    myEventsPanel = new JPanel(new TabularLayout("*,Fit-", "Fit-,*"));
+    myEventsPanel = new JPanel(new TabularLayout("Fit-,Fit-,*,Fit-", "Fit-,*"));
     myEventsPanel.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
-    myEventsPanel.add(getSelectionTimeLabel(), new TabularLayout.Constraint(0, 1));
+    JLabel showLabel = new JLabel("Show");
+    showLabel.setBorder(new JBEmptyBorder(0, 11, 0, 6));
+    showLabel.setFont(showLabel.getFont().deriveFont(12f));
+    myEventsPanel.add(showLabel, new TabularLayout.Constraint(0, 0));
+    JComponent configurationComponent = getConfigurationComponent();
+    configurationComponent.setFont(showLabel.getFont().deriveFont(12f));
+    myEventsPanel.add(configurationComponent, new TabularLayout.Constraint(0, 1));
+    myEventsPanel.add(getSelectionTimeLabel(), new TabularLayout.Constraint(0, 3));
 
     JComponent eventsView = new EnergyEventsView(this).getComponent();
-    myEventsPanel.add(new JBScrollPane(eventsView), new TabularLayout.Constraint(1, 0, 1, 2));
+    myEventsPanel.add(new JBScrollPane(eventsView), new TabularLayout.Constraint(1, 0, 1, 4));
     myEventsPanel.setVisible(false);
     verticalSplitter.setSecondComponent(myEventsPanel);
 
@@ -277,5 +287,29 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
         .setBackgroundCornerRadius(PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER, PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER)
         .build();
     parent.add(panel, new TabularLayout.Constraint(0, 0));
+  }
+
+  private JComponent getConfigurationComponent() {
+    FlatComboBox<EnergyEventOrigin> comboBox = new FlatComboBox<>();
+    comboBox.setModel(new DefaultComboBoxModel<>(EnergyEventOrigin.values()));
+    comboBox.getModel().setSelectedItem(getStage().getEventOrigin());
+    BasicComboBoxRenderer comboBoxRenderer = new BasicComboBoxRenderer() {
+      @Override
+      public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+        if (value instanceof EnergyEventOrigin) {
+          value = ((EnergyEventOrigin)value).getLabelString();
+        }
+        return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+      }
+    };
+    comboBoxRenderer.setBorder(new JBEmptyBorder(UIUtil.getListCellPadding()));
+    comboBox.setRenderer(comboBoxRenderer);
+    comboBox.addActionListener(e -> {
+      Object origin = comboBox.getSelectedItem();
+      if (origin instanceof EnergyEventOrigin) {
+        getStage().setEventOrigin((EnergyEventOrigin)origin);
+      }
+    });
+    return comboBox;
   }
 }
