@@ -30,7 +30,7 @@ import icons.StudioIcons;
  */
 public class OpenAssistSidePanelAction extends AnAction {
 
-  private static final String TOOL_WINDOW_TITLE = "Assistant";
+  public static final String TOOL_WINDOW_TITLE = "Assistant";
 
   @Override
   public void actionPerformed(AnActionEvent event) {
