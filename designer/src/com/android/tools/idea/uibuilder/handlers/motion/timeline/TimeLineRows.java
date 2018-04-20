@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.timeline;
 
-import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 
 import javax.swing.*;
@@ -94,7 +93,7 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
   @Override
   public void paint(Graphics g) {
     super.paint(g);
-    if (!Float.isNaN(myChart.myTimeCursorMs)) {
+    if (!Float.isNaN(myChart.getTimeCursorMs())) {
       int x = myChart.getCursorPosition();
       g.setColor(myChart.myTimeCursorColor);
       g.fillRect(x, 0, 1, getHeight());

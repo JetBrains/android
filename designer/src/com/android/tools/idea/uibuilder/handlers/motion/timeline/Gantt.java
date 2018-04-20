@@ -16,13 +16,16 @@
 package com.android.tools.idea.uibuilder.handlers.motion.timeline;
 
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBUI;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.text.DecimalFormat;
 
 /**
  * Provides the TimeLine panel
@@ -36,7 +39,11 @@ public class Gantt extends JPanel implements GanttCommands {
   private JScrollPane myScrollPane = new JBScrollPane(myRowGraphc);
   TrackControls myTrackControls = new TrackControls(myChart);
   JTextField myDuration;
+  private DecimalFormat myFormat = new DecimalFormat("####.00");
+
+
   private MotionSceneModel myMotionSceneModel;
+  private JLabel myTitleLabel;
 
   public Gantt(GanttEventListener listener) {
     super(new BorderLayout());
@@ -79,10 +86,10 @@ public class Gantt extends JPanel implements GanttCommands {
       @Override
       public void mouseDragged(MouseEvent e) {
         int pos = e.getX();
-        myChart.myTimeCursorMs = (pos - myChart.myChartLeftInset) / myChart.myPixelsPerMs;
-        myChart.myTimeCursorMs = Math.max(0, myChart.myTimeCursorMs);
-        myChart.myTimeCursorMs = Math.min(myChart.myAnimationTotalTimeMs, myChart.myTimeCursorMs);
-        float percent = myChart.myTimeCursorMs / myChart.myAnimationTotalTimeMs;
+        myChart.setTimeCursorMs((pos - myChart.myChartLeftInset) / myChart.myPixelsPerMs);
+        myChart.setTimeCursorMs(Math.max(0, myChart.getTimeCursorMs()));
+        myChart.setTimeCursorMs(Math.min(myChart.myAnimationTotalTimeMs, myChart.getTimeCursorMs()));
+        float percent = myChart.getTimeCursorMs() / myChart.myAnimationTotalTimeMs;
 
         JViewport viewPort = (JViewport)SwingUtilities.getAncestorOfClass(JViewport.class, myRowGraphc);
         Rectangle rec = myRowGraphc.getVisibleRect();
@@ -113,7 +120,6 @@ public class Gantt extends JPanel implements GanttCommands {
 
   public void setZoom(float percent) {
     myChart.setZoom(percent);
-
   }
 
   public MotionSceneModel.KeyFrame getSelectedKey(String id) {
@@ -182,22 +188,37 @@ public class Gantt extends JPanel implements GanttCommands {
     }
   }
 
+  // ==================================TITLE BAR code================================
   private JPanel buildTitleBar() {
     JPanel panel = new JPanel(new BorderLayout());
-    JLabel label = new JLabel("Timeline");
-    panel.add(label, BorderLayout.WEST);
+    panel.setBorder(new EmptyBorder(0, JBUI.scale(10), 0, JBUI.scale(10)));
+    myTitleLabel = new JLabel("Timeline");
+    panel.add(myTitleLabel, BorderLayout.WEST);
     JPanel right = new JPanel();
     right.add(new JLabel("Duration(ms)"));
     myDuration = new JTextField();
     myDuration.setText("XXXXX"); // This sets the Preferred size to the size needed to fit 5 X characters
     myDuration.setPreferredSize(myDuration.getPreferredSize());
-    myDuration.setText("1000");
+    myDuration.setText("600");
     ((PlainDocument)myDuration.getDocument()).setDocumentFilter(new IntFilter());
+    myDuration.addFocusListener(new FocusAdapter() {
+      @Override
+      public void focusLost(FocusEvent e) {
+        JTextField c = (JTextField)e.getSource();
+        ActionListener[] listeners = c.getActionListeners();
+        ActionEvent event = new ActionEvent(c, ActionEvent.ACTION_PERFORMED, null);
+        for (int i = 0; i < listeners.length; i++) {
+          listeners[i].actionPerformed(event);
+        }
+      }
+    });
     myDuration.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         if (myGanttController.myListener != null) {
-          myGanttController.myListener.transitionDuration(Integer.parseInt(myDuration.getText()));
+          int duration = Integer.parseInt(myDuration.getText());
+          myGanttController.myListener.transitionDuration(duration);
+          myChart.setAnimationTotalTimeMs(duration);
         }
       }
     });
@@ -216,6 +237,25 @@ public class Gantt extends JPanel implements GanttCommands {
     });
     panel.add(right, BorderLayout.EAST);
     return panel;
+  }
+
+  public void setDurationMs(int time) {
+    myDuration.setText(Integer.toString(time));
+  }
+
+  void updateLabel() {
+    String s;
+    switch (myChart.getMode()) {
+      case START:
+        s = "Start Constraint " + myFormat.format(myChart.getTimeCursorMs()) + "ms";
+        break;
+      case END:
+        s = "End Constraint " + myFormat.format(myChart.getTimeCursorMs()) + "ms";
+        break;
+      default:
+        s = "Timeline " + myFormat.format(myChart.getTimeCursorMs()) + "ms";
+    }
+    myTitleLabel.setText(s);
   }
 
   @Override
@@ -250,6 +290,7 @@ public class Gantt extends JPanel implements GanttCommands {
       myChart.addView(new ViewElement(s, motionScene.mySceneViews.get(s)));
     }
     myChart.update(Gantt.ChartElement.Reason.ADDVIEW);
+    myChart.setMotionSceneModel(myMotionSceneModel);
     validate();
     repaint();
   }

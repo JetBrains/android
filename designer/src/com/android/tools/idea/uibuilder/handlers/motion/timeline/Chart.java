@@ -28,6 +28,7 @@ import java.util.ArrayList;
  * timing cursors etc.
  */
 public class Chart {
+  public float myPlayBackSpeed = 1;
   Gantt myGantt;
   int myChartLeftInset = JBUI.scale(20);
   int myChartRightInset = JBUI.scale(20);
@@ -36,10 +37,9 @@ public class Chart {
 
   int myContainerWidth;
   int myContainerHeight;
-  float myTimeCursorMs = 300f; // The point where the Animation is
+  private float myTimeCursorMs = 300f; // The point where the Animation is
   float myPixelsPerMs;
   int myAnimationTotalTimeMs = 600;
-
   int[] myXTicksPixels = new int[20]; // calculated by TimeLine
   int myXTickCount = 0;
 
@@ -48,6 +48,7 @@ public class Chart {
   private GanttCommands.Mode myMode = GanttCommands.Mode.UNKNOWN;
   public String mySelectedKeyView;
   Selection mySelection = Selection.NONE;
+  MotionSceneModel myModel;
   MotionSceneModel.KeyFrame mySelectedKeyFrame;
   ArrayList<Gantt.ChartElement> myChartElements = new ArrayList<>();
   ArrayList<Gantt.ViewElement> myViewElements = new ArrayList<>();
@@ -65,6 +66,35 @@ public class Chart {
 
   GraphElements myGraphElements;
 
+  public float getTimeCursorMs() {
+    return myTimeCursorMs;
+  }
+
+  public void setTimeCursorMs(float timeCursorMs) {
+    myTimeCursorMs = timeCursorMs;
+    myGantt.updateLabel();
+  }
+
+  public float getAnimationTotalTimeMs() {
+    return myAnimationTotalTimeMs;
+  }
+
+  public void setAnimationTotalTimeMs(int time) {
+    myAnimationTotalTimeMs = time;
+    update(Gantt.ChartElement.Reason.ZOOM);
+  }
+
+  public void setMotionSceneModel(MotionSceneModel model) {
+    myModel = model;
+    if (myModel!=null) {
+      int duration = myModel.getTransitionTag(0).duration;
+      setAnimationTotalTimeMs(duration);
+      myGantt.setDurationMs(duration);
+
+    }
+  }
+
+  // ===================================GraphElements=================================== //
   static class GraphElements {
     final String myElement;
     final String myViewId;
@@ -86,6 +116,7 @@ public class Chart {
       return myElement;
     }
   }
+  // ===================================GraphElements=================================== //
 
   public void setMode(GanttCommands.Mode mode) {
     myMode = mode;
@@ -110,21 +141,27 @@ public class Chart {
     TIME_POINT
   }
 
-  ;
+  public float getPlayBackSpeed() {
+    return myPlayBackSpeed;
+  }
+
+  public float getAnimationTimeInMs() {
+    return myAnimationTotalTimeMs;
+  }
 
   public Chart(Gantt gantt) {myGantt = gantt;}
 
   public void setCursorPosition(float position) {
-    myTimeCursorMs = position * myAnimationTotalTimeMs;
+    setTimeCursorMs(position * myAnimationTotalTimeMs);
     update(Gantt.ChartElement.Reason.CURSOR_POSITION_CHANGED);
   }
 
   public float getProgress() {
-    return myTimeCursorMs / myAnimationTotalTimeMs;
+    return getTimeCursorMs() / myAnimationTotalTimeMs;
   }
 
   public int getCursorPosition() {
-    float time = myTimeCursorMs;
+    float time = getTimeCursorMs();
     return myChartLeftInset + (int)(time * myPixelsPerMs);
   }
 
@@ -156,7 +193,6 @@ public class Chart {
   public void updateZoom() {
     int width = myContainerWidth - myChartRightInset - myChartLeftInset;
     myPixelsPerPercent = (myZoom * width) / 100;
-
     myPixelsPerMs = (myZoom * width) / myAnimationTotalTimeMs;
   }
 
@@ -173,7 +209,6 @@ public class Chart {
   }
 
   public int getGraphWidth() {
-
     return (int)(myPixelsPerPercent * 100f) + myChartLeftInset + myChartRightInset;
   }
 }

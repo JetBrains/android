@@ -119,11 +119,13 @@ public class TrackControls extends JPanel {
 
   private void popupSlowSpee(ActionEvent e, GanttEventListener.Actions action) {
     String[] list = {"0.25 x", "0.5 x", "1 x", "2 x", "4 x"};
+    final float[] speed = {0.25f, 0.5f, 1, 2, 4};
     final JList<String> displayedList = new JBList<String>(list);
     JBPopupListener listener = new JBPopupListener.Adapter() {
       @Override
       public void onClosed(LightweightWindowEvent event) {
         JBPopup popup = event.asPopup();
+        mChart.myPlayBackSpeed = speed[displayedList.getLeadSelectionIndex()];
         myGanttInterface.buttonPressed(e, action);
       }
     };
