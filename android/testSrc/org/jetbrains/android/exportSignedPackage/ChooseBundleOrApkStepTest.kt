@@ -35,4 +35,16 @@ class ChooseBundleOrApkStepTest : IdeaTestCase() {
     assertTrue(chooseStep.myBundleButton.isEnabled)
     assertTrue(chooseStep.myBundleButton.isSelected)
   }
+
+  fun testApkSelectedThroughSetting() {
+    val wizard = Mockito.mock(ExportSignedPackageWizard::class.java)
+    Mockito.`when`(wizard.project).thenReturn(myProject)
+
+    val settings = GenerateSignedApkSettings.getInstance(wizard.project)
+    settings.BUILD_TARGET_KEY = ExportSignedPackageWizard.APK
+    val chooseStep = ChooseBundleOrApkStep(wizard)
+    assertTrue(chooseStep.myBundleButton.isEnabled)
+    assertFalse(chooseStep.myBundleButton.isSelected)
+    assertTrue(chooseStep.myApkButton.isSelected)
+  }
 }
