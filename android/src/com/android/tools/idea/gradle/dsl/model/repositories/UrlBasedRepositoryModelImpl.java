@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
  * Base class for all the url based repository models like Maven and JCenter.
  */
 public abstract class UrlBasedRepositoryModelImpl extends RepositoryModelImpl implements UrlBasedRepositoryModel {
-  @NonNls private static final String URL = "url";
+  @NonNls public static final String URL = "url";
 
   @NotNull private final String myDefaultRepoUrl;
 

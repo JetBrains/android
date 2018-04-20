@@ -184,7 +184,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     static MapNotation create(@NotNull String configurationName,
                               @NotNull GradleDslExpressionMap dslElement,
                               @Nullable GradleDslClosure configurationElement) {
-      if (dslElement.getLiteralProperty("name", String.class).value() == null) {
+      if (dslElement.getLiteral("name", String.class) == null) {
         return null; // not a artifact dependency element.
       }
 

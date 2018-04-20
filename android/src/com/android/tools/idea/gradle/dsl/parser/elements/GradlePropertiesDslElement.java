@@ -17,16 +17,11 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
-import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValueImpl;
-import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValueImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.ext.ElementSort;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
-import com.google.common.base.Preconditions;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -366,40 +361,6 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
                        .collect(Collectors.toList());
   }
 
-  private static <T> GradleNullableValue<T> createAndWrapDslValue(@Nullable GradleDslElement element, @NotNull Class<T> clazz) {
-    if (element == null) {
-      return new GradleNullableValueImpl<>(null, null);
-    }
-
-    T resultValue = null;
-    if (clazz.isInstance(element)) {
-      resultValue = clazz.cast(element);
-    }
-    else if (element instanceof GradleDslSimpleExpression) {
-      resultValue = ((GradleDslSimpleExpression)element).getValue(clazz);
-    }
-
-    if (resultValue != null) {
-      return new GradleNotNullValueImpl<>(element, resultValue);
-    }
-    else {
-      return new GradleNullableValueImpl<>(element, null);
-    }
-  }
-
-  /**
-   * Returns the literal value of the given {@code property} of the type {@code clazz} along with the variable resolution history.
-   * <p>
-   * <p>The returned {@link GradleNullableValueImpl} may contain a {@code null} value when either the given {@code property} does not exists in
-   * this element or the given {@code property} value is not of the type {@code clazz}.
-   */
-  @NotNull
-  public <T> GradleNullableValue<T> getLiteralProperty(@NotNull String property, @NotNull Class<T> clazz) {
-    Preconditions.checkArgument(clazz == String.class || clazz == Integer.class || clazz == Boolean.class);
-
-    return createAndWrapDslValue(getPropertyElement(property), clazz);
-  }
-
   @NotNull
   public List<GradleDslElement> getPropertyElementsByName(@NotNull String propertyName) {
     return myProperties.getElementsWhere(e -> e.myElement.getName().equals(propertyName) && PROPERTY_FILTER.test(e));
@@ -442,6 +403,16 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
       holder.replacePropertyInternal(oldElement, newElement);
     }
     return newElement;
+  }
+
+  @Nullable
+  public <T> T getLiteral(@NotNull String property, @NotNull Class<T> clazz) {
+    GradleDslSimpleExpression expression = getPropertyElement(property, GradleDslSimpleExpression.class);
+    if (expression == null) {
+      return null;
+    }
+
+    return expression.getValue(clazz);
   }
 
   @NotNull
@@ -523,24 +494,6 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     removePropertyInternal(element);
     setModified(true);
     return this;
-  }
-
-  /**
-   * Returns the list of values of type {@code clazz} when the given {@code property} corresponds to a {@link GradleDslExpressionList}.
-   * <p>
-   * <p>Returns {@code null} when either the given {@code property} does not exists in this element or does not corresponds to a
-   * {@link GradleDslExpressionList}.
-   * <p>
-   * <p>Returns an empty list when the given {@code property} exists in this element and corresponds to a {@link GradleDslExpressionList}, but either
-   * that list is empty or does not contain any element of type {@code clazz}.
-   */
-  @Nullable
-  public <E> List<GradleNotNullValue<E>> getListProperty(@NotNull String property, @NotNull Class<E> clazz) {
-    GradleDslExpressionList gradleDslExpressionList = getPropertyElement(property, GradleDslExpressionList.class);
-    if (gradleDslExpressionList != null) {
-      return gradleDslExpressionList.getValues(clazz);
-    }
-    return null;
   }
 
   @Override

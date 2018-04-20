@@ -33,7 +33,7 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement {
         return;
       }
       GradleDslExpressionList listElement = (GradleDslExpressionList)element;
-      if (listElement.getExpressions().size() != 3 || listElement.getValues(String.class).size() != 3) {
+      if (listElement.getExpressions().size() != 3 || listElement.getLiterals(String.class).size() != 3) {
         return;
       }
     }

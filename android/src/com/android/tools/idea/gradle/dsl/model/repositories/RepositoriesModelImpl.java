@@ -39,6 +39,7 @@ import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenReposit
 import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement.MAVEN_BLOCK_NAME;
 
 public class RepositoriesModelImpl extends GradleDslBlockModel implements RepositoriesModel {
+
   public RepositoriesModelImpl(@NotNull RepositoriesDslElement dslElement) {
     super(dslElement);
   }
@@ -163,7 +164,7 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
   public boolean containsMavenRepositoryByUrl(@NotNull String repositoryUrl) {
     List<MavenRepositoryDslElement> elements = myDslElement.getPropertyElements(MavenRepositoryDslElement.class);
     for (MavenRepositoryDslElement element : elements) {
-      String urlElement = element.getLiteralProperty("url", String.class).value();
+      String urlElement = element.getLiteral(URL, String.class);
       if (repositoryUrl.equals(urlElement)) {
         return true;
       }

@@ -17,8 +17,9 @@ package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.parser.BuildModelContext;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
@@ -33,6 +34,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement.BUILD_FILE_NAME;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleSettingsFile;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -69,13 +71,16 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
     List<String> result = Lists.newArrayList();
     result.add(":"); // Indicates the root module.
 
-    List<GradleNotNullValue<String>> includePaths = myGradleDslFile.getListProperty(INCLUDE, String.class);
+    GradleDslExpressionList includePaths = myGradleDslFile.getPropertyElement(INCLUDE, GradleDslExpressionList.class);
     if (includePaths == null) {
       return result;
     }
 
-    for (GradleNotNullValue<String> includePath : includePaths) {
-      result.add(standardiseModulePath(includePath.value()));
+    for (GradleDslSimpleExpression includePath : includePaths.getSimpleExpressions()) {
+      String value = includePath.getValue(String.class);
+      if (value != null) {
+        result.add(standardiseModulePath(value));
+      }
     }
     return result;
   }
@@ -217,7 +222,7 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
     String projectKey = "project('" + modulePath + "')";
     ProjectPropertiesDslElement projectProperties = myGradleDslFile.getPropertyElement(projectKey, ProjectPropertiesDslElement.class);
     if (projectProperties != null) {
-      buildFileName = projectProperties.buildFileName().value();
+      buildFileName =  projectProperties.getLiteral(BUILD_FILE_NAME, String.class);
     }
 
     if (buildFileName == null) {
