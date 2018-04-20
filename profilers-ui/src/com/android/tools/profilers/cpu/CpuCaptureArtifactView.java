@@ -15,15 +15,11 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.TabularLayout;
-import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.sessions.SessionArtifactView;
-import com.intellij.util.ui.AsyncProcessIcon;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.util.concurrent.TimeUnit;
 
 /**
  * A {@link SessionArtifactView} that represents a CPU capture object.
@@ -32,36 +28,11 @@ public class CpuCaptureArtifactView extends SessionArtifactView<CpuCaptureSessio
 
   public CpuCaptureArtifactView(@NotNull ArtifactDrawInfo artifactDrawInfo, @NotNull CpuCaptureSessionArtifact artifact) {
     super(artifactDrawInfo, artifact);
-
-    // 1st column for artifact's icon, 2nd column for texts
-    // 1st row for showing name, second row for time.
-    setLayout(new TabularLayout("Fit-,*", "Fit-,Fit-"));
-
-    if (artifact.isOngoingCapture()) {
-      AsyncProcessIcon loadingIcon = new AsyncProcessIcon("");
-      loadingIcon.setBorder(ARTIFACT_ICON_BORDER);
-      add(loadingIcon, new TabularLayout.Constraint(0, 0));
-    }
-    else {
-      JLabel icon = new JLabel(StudioIcons.Profiler.Sessions.CPU);
-      icon.setBorder(ARTIFACT_ICON_BORDER);
-      add(icon, new TabularLayout.Constraint(0, 0));
-    }
-
-    JLabel artifactName = new JLabel(getArtifact().getName());
-    artifactName.setBorder(LABEL_PADDING);
-    artifactName.setFont(TITLE_FONT);
-    JLabel artifactSubtitle = new JLabel(getArtifact().getSubtitle());
-    artifactSubtitle.setBorder(LABEL_PADDING);
-    artifactSubtitle.setFont(STATUS_FONT);
-    add(artifactName, new TabularLayout.Constraint(0, 1));
-    add(artifactSubtitle, new TabularLayout.Constraint(1, 1));
   }
 
   @Override
-  protected void selectedSessionChanged() {
-    setBorder(isSessionSelected() ?
-              BorderFactory.createCompoundBorder(SELECTED_BORDER, ARTIFACT_PADDING) :
-              BorderFactory.createCompoundBorder(UNSELECTED_BORDER, ARTIFACT_PADDING));
+  protected JComponent buildComponent() {
+    return buildCaptureArtifactView(getArtifact().getName(), getArtifact().getSubtitle(), StudioIcons.Profiler.Sessions.CPU,
+                                    getArtifact().isOngoingCapture());
   }
 }
