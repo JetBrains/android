@@ -19,6 +19,7 @@ import com.android.tools.idea.common.actions.*
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurfaceShortcut
+import com.android.tools.idea.gradle.actions.SelectBuildVariantAction
 import com.android.tools.idea.naveditor.actions.*
 import com.android.tools.idea.naveditor.model.isDestination
 import com.android.tools.idea.naveditor.model.isNavigation
@@ -27,7 +28,10 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.IdeActions
+import com.intellij.openapi.actionSystem.ShortcutSet
 import org.jetbrains.android.dom.navigation.NavActionElement
+import java.awt.event.InputEvent
+import java.awt.event.KeyEvent
 import javax.swing.JComponent
 
 /**
@@ -39,12 +43,18 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
   private val zoomInAction: AnAction = DesignSurfaceShortcut.ZOOM_IN.registerForAction(ZoomInAction(surface), surface)
   private val zoomOutAction: AnAction = DesignSurfaceShortcut.ZOOM_OUT.registerForAction(ZoomOutAction(surface), surface)
   private val zoomToFitAction: AnAction = DesignSurfaceShortcut.ZOOM_FIT.registerForAction(ZoomToFitAction(surface), surface)
+  private val selectNextAction: AnAction = SelectNextAction(surface)
+  private val selectPreviousAction: AnAction = SelectPreviousAction(surface)
+  private val selectAllAction: AnAction = SelectAllAction(surface)
 
   // Open for testing only
   open val addDestinationMenu by lazy { AddDestinationMenu(mySurface) }
 
   override fun registerActionsShortcuts(component: JComponent) {
     ActionManager.registerAction(gotoComponentAction, IdeActions.ACTION_GOTO_DECLARATION, component)
+    selectNextAction.registerCustomShortcutSet(KeyEvent.VK_TAB, 0, mySurface)
+    selectPreviousAction.registerCustomShortcutSet(KeyEvent.VK_TAB, InputEvent.SHIFT_DOWN_MASK, mySurface)
+    ActionManager.registerAction(selectAllAction, IdeActions.ACTION_SELECT_ALL, component)
   }
 
   override fun createPopupMenu(
@@ -75,6 +85,9 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
   }
 
   private fun addSurfaceGroup(group: DefaultActionGroup) {
+    group.add(selectAllAction)
+
+    group.addSeparator()
     group.add(zoomInAction)
     group.add(zoomOutAction)
     group.add(zoomToFitAction)
