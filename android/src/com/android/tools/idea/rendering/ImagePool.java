@@ -448,11 +448,10 @@ public class ImagePool {
 
     @Override
     public void dispose() {
-      if (myBuffer != null) {
-        myBuffer = null;
-        if (myOwnReference != null) {
-          myOwnReference.finalizeReferent();
-        }
+      assert myBuffer != null : "Image was already disposed";
+      myBuffer = null;
+      if (myOwnReference != null) {
+        myOwnReference.finalizeReferent();
       }
     }
 

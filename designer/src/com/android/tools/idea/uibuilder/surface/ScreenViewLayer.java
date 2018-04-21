@@ -118,13 +118,7 @@ public class ScreenViewLayer extends Layer {
     RenderResult renderResult = myScreenView.getResult();
     if (renderResultHasChanged(renderResult)) {
       myLastRenderResult = renderResult;
-      ImagePool.Image image = renderResult.getRenderedImage();
-      if (myImage != image) {
-        if (myImage != null) {
-          myImage.dispose();
-        }
-        myImage = renderResult.getRenderedImage();
-      }
+      myImage = renderResult.getRenderedImage();
       myCachedScale = -1; // reset the scale to be sure that a new scaled image is requested when the result has changed
     }
 
