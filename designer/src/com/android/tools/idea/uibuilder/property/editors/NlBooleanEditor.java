@@ -35,6 +35,7 @@ public class NlBooleanEditor extends BaseComponentEditor implements NlComponentE
   @VisibleForTesting static final String TIP_TEXT_DONT_CARE = "(No value)";
   @VisibleForTesting static final String TIP_TEXT_NOT_SELECTED = "false";
   @VisibleForTesting static final String TIP_TEXT_SELECTED = "true";
+  private static final int VERTICAL_SPACING_IN_TABLE_CELL = 1;
 
   private final JPanel myPanel;
   private final ThreeStateCheckBox myCheckbox;
@@ -46,21 +47,21 @@ public class NlBooleanEditor extends BaseComponentEditor implements NlComponentE
   public static NlTableCellEditor createForTable() {
     NlTableCellEditor cellEditor = new NlTableCellEditor();
     BrowsePanel browsePanel = new BrowsePanel(cellEditor, true);
-    cellEditor.init(new NlBooleanEditor(cellEditor, browsePanel), browsePanel);
+    cellEditor.init(new NlBooleanEditor(cellEditor, browsePanel, VERTICAL_SPACING_IN_TABLE_CELL), browsePanel);
     return cellEditor;
   }
 
   public static NlBooleanEditor createForInspector(@NotNull NlEditingListener listener) {
-    return new NlBooleanEditor(listener, null);
+    return new NlBooleanEditor(listener, null, VERTICAL_SPACING);
   }
 
-  private NlBooleanEditor(@NotNull NlEditingListener listener, @Nullable BrowsePanel browsePanel) {
+  private NlBooleanEditor(@NotNull NlEditingListener listener, @Nullable BrowsePanel browsePanel, int verticalSpacing) {
     super(listener);
     myCheckbox = new ThreeStateCheckBox();
     myCheckbox.addActionListener(this::checkboxChanged);
     myPanel = new AdtSecondaryPanel(new BorderLayout(JBUI.scale(HORIZONTAL_COMPONENT_GAP), 0));
     myPanel.add(myCheckbox, BorderLayout.LINE_START);
-    myPanel.setBorder(JBUI.Borders.empty(VERTICAL_SPACING, 0, HORIZONTAL_SPACING, 0));
+    myPanel.setBorder(JBUI.Borders.empty(verticalSpacing, 0, HORIZONTAL_SPACING, 0));
 
     myBrowsePanel = browsePanel;
     if (browsePanel != null) {
