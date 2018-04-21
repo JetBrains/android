@@ -1,12 +1,5 @@
 # managed by go/iml_to_build
 java_import(
-    name = "juniversalchardet-1.0.3",
-    jars = ["juniversalchardet-1.0.3.jar"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-java_import(
     name = "asm-5.0.3",
     jars = ["asm-5.0.3.jar"],
     visibility = ["//visibility:public"],
