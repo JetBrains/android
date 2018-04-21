@@ -117,7 +117,7 @@ public class NavigationSchema implements Disposable {
   public static final String ENABLE_NAV_PROPERTY = "enable.nav.editor";
 
   public static boolean enableNavigationEditor() {
-    return Boolean.getBoolean(ENABLE_NAV_PROPERTY);
+    return !"false".equals(System.getProperty(ENABLE_NAV_PROPERTY));
   }
 
   /**
