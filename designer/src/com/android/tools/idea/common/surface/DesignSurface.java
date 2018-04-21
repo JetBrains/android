@@ -977,6 +977,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
           return list.toArray(XmlTag.EMPTY);
         }
       }
+      if (LangDataKeys.MODULE.is(dataId) && myModel != null) {
+        return myModel.getModule();
+      }
 
       return null;
     }

@@ -112,39 +112,6 @@ public class NavNlEditorTest {
     assertEquals(selectedComponents.size(), 0);
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/72238573
-  @Test
-  public void testCreateNew() throws Exception {
-    IdeFrameFixture frame = guiTest.importProject("Navigation");
-    // Open file as XML and switch to design tab, wait for successful render
-    EditorFixture editor = guiTest.ideFrame().getEditor();
-    editor.open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN);
-    NlEditorFixture layout = editor.getLayoutEditor(true);
-
-    // This is separate to catch the case where we have a problem opening the file before sync is complete.
-    frame.waitForGradleProjectSyncToFinish();
-    layout.waitForRenderToFinish();
-
-    AddDestinationMenuFixture fixture = ((NavDesignSurfaceFixture)layout.getSurface()).openAddDestinationMenu();
-    fixture.clickCreateBlank();
-    try {
-      // click again to make sure the action only actually gets invoked once.
-      // But it might already be hidden, so in that case catch the exception and keep going.
-      fixture.clickCreateBlank();
-    }
-    catch (IllegalStateException e) {
-      // nothing
-    }
-
-    assertEquals(1, layout.getSelection().size());
-    assertEquals("fragment", layout.getSelection().get(0).getAttribute(ANDROID_URI, ATTR_LABEL));
-
-    DestinationListFixture destinationListFixture = DestinationListFixture.Companion.create(guiTest.robot());
-    List<NlComponent> selectedComponents = destinationListFixture.getSelectedComponents();
-    assertEquals(selectedComponents.size(), 1);
-    assertEquals(selectedComponents.get(0).getId(), "fragment");
-  }
-
   @Test
   public void testAddDependency() throws Exception {
     IdeFrameFixture frame = guiTest.importSimpleLocalApplication();

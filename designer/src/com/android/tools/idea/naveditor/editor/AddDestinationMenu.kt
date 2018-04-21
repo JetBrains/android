@@ -16,6 +16,7 @@ package com.android.tools.idea.naveditor.editor
 import com.android.annotations.VisibleForTesting
 import com.android.resources.ResourceFolderType
 import com.android.tools.adtui.common.AdtSecondaryPanel
+import com.android.tools.idea.actions.NewAndroidComponentAction
 import com.android.tools.idea.naveditor.scene.NavColorSet
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.res.ResourceNotificationManager
@@ -23,14 +24,18 @@ import com.google.common.collect.ImmutableList
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.ClassInheritorsSearch
+import com.intellij.psi.util.PsiUtil
 import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.CollectionListModel
 import com.intellij.ui.DocumentAdapter
@@ -53,6 +58,7 @@ import java.awt.Image
 import java.awt.MediaTracker
 import java.awt.Point
 import java.awt.event.*
+import java.io.File
 import java.util.*
 import javax.swing.*
 import javax.swing.border.CompoundBorder
@@ -68,6 +74,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
 
   private lateinit var myButton: JComponent
   private var creatingInProgress = false
+  private val createdFiles: MutableList<File> = mutableListOf()
 
   @VisibleForTesting
   val destinations: List<Destination>
@@ -75,7 +82,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       val model = surface.model!!
       val classToDestination = LinkedHashMap<PsiClass, Destination>()
       val module = model.module
-      val schema = surface.schema
+      val schema = surface.sceneManager?.schema ?: return listOf()
 
       val scope = GlobalSearchScope.moduleWithDependenciesScope(module)
       val project = model.project
@@ -86,7 +93,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
         val query = ClassInheritorsSearch.search(psiSuperClass, scope, true)
         for (psiClass in query) {
           val destination = Destination.RegularDestination(parent, tag, null, psiClass.name, psiClass.qualifiedName)
-          classToDestination.put(psiClass, destination)
+          classToDestination[psiClass] = destination
         }
       }
 
@@ -190,13 +197,23 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
         }
     )
 
-    val result = AdtSecondaryPanel(VerticalLayout(5))
+    val result = object: AdtSecondaryPanel(VerticalLayout(5)), DataProvider {
+      override fun getData(dataId: String?): Any? {
+        if (NewAndroidComponentAction.CREATED_FILES.`is`(dataId)) {
+          return createdFiles
+        }
+        else {
+          return surface.getData(dataId)
+        }
+      }
+    }
+
     destinationsList.background = result.background
     result.add(searchField)
 
     val action: AnAction = object : AnAction("Create blank destination") {
       override fun actionPerformed(e: AnActionEvent?) {
-        createBlankDestination()
+        createBlankDestination(e)
       }
     }
     blankDestinationButton = ActionButtonWithText(action, action.templatePresentation, "Toolbar",  JBDimension(0, 45))
@@ -252,14 +269,39 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     return result
   }
 
+  private fun createBlankDestination(e: AnActionEvent?) {
+    val action = NewAndroidComponentAction("Fragment", "Fragment (Blank)", 7)
+    action.setShouldOpenFiles(false)
+    createBlankDestination(e, action)
+  }
+
   @VisibleForTesting
-  fun createBlankDestination() {
-    addDestination(
-        Destination.RegularDestination(
-            surface.currentNavigation,
-            surface.schema.getDefaultTag(NavigationSchema.DestinationType.FRAGMENT)!!
-        )
-    )
+  fun createBlankDestination(e: AnActionEvent?, action: AnAction) {
+    action.actionPerformed(e)
+    val project = e?.project ?: return
+    val sceneManager = surface.sceneManager ?: return
+    val schema = sceneManager.schema
+    var layoutFile: XmlFile? = null
+    var psiClass: PsiClass? = null
+    val model = surface.model ?: return
+    val resourceManager = LocalResourceManager.getInstance(model.module) ?: return
+
+    for (file in createdFiles) {
+      val virtualFile = VfsUtil.findFileByIoFile(file, true) ?: continue
+      val psiFile = PsiUtil.getPsiFile(project, virtualFile)
+      if (psiFile is XmlFile && resourceManager.getFileResourceFolderType(psiFile) == ResourceFolderType.LAYOUT) {
+        layoutFile = psiFile
+      }
+      if (psiFile is PsiJavaFile) {
+        psiClass = psiFile.classes[0]
+      }
+    }
+    if (psiClass != null) {
+      val tag = schema.findTagForComponent(psiClass) ?: return
+      val destination =
+        Destination.RegularDestination(surface.currentNavigation, tag, null, psiClass.name, psiClass.qualifiedName, layoutFile = layoutFile)
+      addDestination(destination)
+    }
   }
 
   private fun addDestination(destination: Destination) {

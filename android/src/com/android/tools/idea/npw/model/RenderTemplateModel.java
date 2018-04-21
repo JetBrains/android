@@ -49,6 +49,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -72,6 +73,8 @@ public final class RenderTemplateModel extends WizardModel {
   @NotNull private final BoolProperty myInstantApp;
   @NotNull private final MultiTemplateRenderer myMultiTemplateRenderer;
   @Nullable private final AndroidFacet myFacet;
+  @NotNull private final List<File> myCreatedFiles = new ArrayList<>();
+  private final boolean myShouldOpenFiles;
 
   /**
    * The target template we want to render. If null, the user is skipping steps that would instantiate a template and this model shouldn't
@@ -85,7 +88,8 @@ public final class RenderTemplateModel extends WizardModel {
                              @Nullable TemplateHandle templateHandle,
                              @NotNull String initialPackageSuggestion,
                              @NotNull NamedModuleTemplate template,
-                             @NotNull String commandName) {
+                             @NotNull String commandName,
+                             boolean shouldOpenFiles) {
     Project project = facet.getModule().getProject();
     myProject = new OptionalValueProperty<>(project);
     myFacet = facet;
@@ -96,6 +100,7 @@ public final class RenderTemplateModel extends WizardModel {
     myCommandName = commandName;
     myMultiTemplateRenderer = new MultiTemplateRenderer();
     myLanguageSet = new ObjectValueProperty<>(getInitialSourceLanguage(project));
+    myShouldOpenFiles = shouldOpenFiles;
     init();
   }
 
@@ -113,6 +118,7 @@ public final class RenderTemplateModel extends WizardModel {
     myMultiTemplateRenderer = moduleModel.getMultiTemplateRenderer();
     myMultiTemplateRenderer.incrementRenders();
     myLanguageSet = new ObjectValueProperty<>(getInitialSourceLanguage(myProject.getValueOrNull()));
+    myShouldOpenFiles = true;
     init();
   }
 
@@ -184,6 +190,9 @@ public final class RenderTemplateModel extends WizardModel {
     return myAndroidSdkInfo;
   }
 
+  public List<File> getCreatedFiles() {
+    return myCreatedFiles;
+  }
   /**
    * If this template should also generate icon assets, set an icon generator.
    */
@@ -252,13 +261,12 @@ public final class RenderTemplateModel extends WizardModel {
     public void render() {
       final AndroidModuleTemplate paths = myTemplates.get().getPaths();
       final Project project = myProject.getValue();
-      final List<File> filesToOpen = Lists.newArrayListWithExpectedSize(3);
       final List<File> filesToReformat = Lists.newArrayList();
 
       boolean success = new WriteCommandAction<Boolean>(project, myCommandName) {
         @Override
         protected void run(@NotNull Result<Boolean> result) {
-          boolean success = renderTemplate(false, project, paths, filesToOpen, filesToReformat);
+          boolean success = renderTemplate(false, project, paths, myCreatedFiles, filesToReformat);
           if (success && myIconGenerator != null) {
             myIconGenerator.generateIconsToDisk(paths);
           }
@@ -271,21 +279,22 @@ public final class RenderTemplateModel extends WizardModel {
         if (isKotlinTemplate()) {
           JavaToKotlinHandler.convertJavaFilesToKotlin(project, filesToReformat, () -> {
             // replace .java w/ .kt files
-            for (int i = 0; i < filesToOpen.size(); i++) {
-              File file = filesToOpen.get(i);
+            for (int i = 0; i < myCreatedFiles.size(); i++) {
+              File file = myCreatedFiles.get(i);
               if (file.getName().endsWith(DOT_JAVA)) {
                 File ktFile =
                   new File(file.getParent(), file.getName().replace(DOT_JAVA, DOT_KT));
-                filesToOpen.set(i, ktFile);
+                myCreatedFiles.set(i, ktFile);
               }
             }
-
-            TemplateUtils.openEditors(project, filesToOpen, true);
+            if (myShouldOpenFiles) {
+              TemplateUtils.openEditors(project, myCreatedFiles, true);
+            }
           });
         }
-        else {
+        else if (myShouldOpenFiles) {
           // calling smartInvokeLater will make sure that files are open only when the project is ready
-          DumbService.getInstance(project).smartInvokeLater(() -> TemplateUtils.openEditors(project, filesToOpen, true));
+          DumbService.getInstance(project).smartInvokeLater(() -> TemplateUtils.openEditors(project, myCreatedFiles, true));
         }
       }
     }
