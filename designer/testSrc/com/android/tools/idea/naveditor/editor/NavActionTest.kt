@@ -262,4 +262,86 @@ class NavActionTest : NavTestCase() {
     assertEquals(action3.parent, fragment4)
     assertEquals(action3.actionDestinationId, "fragment2")
   }
+
+  fun testSelectNextAction() {
+    val model = model("nav.xml") {
+      navigation {
+        action("action1")
+        fragment("fragment1")
+        fragment("fragment2")
+        fragment("fragment3")
+      }
+    }
+
+    val fragment1 = model.find("fragment1")!!
+    val fragment2 = model.find("fragment2")!!
+    val fragment3 = model.find("fragment3")!!
+
+    val surface = model.surface as NavDesignSurface
+    val action = SelectNextAction(surface)
+
+    action.actionPerformed(null)
+    assertTrue(model.surface.selectionModel.selection.equals(listOf(fragment1)))
+
+    action.actionPerformed(null)
+    assertTrue(model.surface.selectionModel.selection.equals(listOf(fragment2)))
+
+    action.actionPerformed(null)
+    assertTrue(model.surface.selectionModel.selection.equals(listOf(fragment3)))
+
+    action.actionPerformed(null)
+    assertTrue(model.surface.selectionModel.selection.equals(listOf(fragment1)))
+  }
+
+
+  fun testSelectPreviousAction() {
+    val model = model("nav.xml") {
+      navigation {
+        action("action1")
+        fragment("fragment1")
+        fragment("fragment2")
+        fragment("fragment3")
+      }
+    }
+
+    val fragment1 = model.find("fragment1")!!
+    val fragment2 = model.find("fragment2")!!
+    val fragment3 = model.find("fragment3")!!
+
+    val surface = model.surface as NavDesignSurface
+    val action = SelectPreviousAction(surface)
+
+    action.actionPerformed(null)
+    assertTrue(model.surface.selectionModel.selection.equals(listOf(fragment3)))
+
+    action.actionPerformed(null)
+    assertTrue(model.surface.selectionModel.selection.equals(listOf(fragment2)))
+
+    action.actionPerformed(null)
+    assertTrue(model.surface.selectionModel.selection.equals(listOf(fragment1)))
+
+    action.actionPerformed(null)
+    assertTrue(model.surface.selectionModel.selection.equals(listOf(fragment3)))
+  }
+
+  fun testSelectAllAction() {
+    val model = model("nav.xml") {
+      navigation {
+        action("action1")
+        fragment("fragment1")
+        fragment("fragment2")
+        fragment("fragment3")
+      }
+    }
+
+    val fragment1 = model.find("fragment1")!!
+    val fragment2 = model.find("fragment2")!!
+    val fragment3 = model.find("fragment3")!!
+
+    val surface = model.surface as NavDesignSurface
+    val action = SelectAllAction(surface)
+
+    action.actionPerformed(null)
+    assertTrue(model.surface.selectionModel.selection.equals(listOf(fragment1, fragment2, fragment3)))
+  }
 }

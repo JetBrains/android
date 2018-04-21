@@ -259,12 +259,14 @@ class NavActionManagerTest : NavTestCase() {
 
     val items = menuGroup.getChildren(null)
 
-    assertEquals(5, items.size)
-    validateItem(items[0], ZoomInAction::class.java, "Zoom In", true)
-    validateItem(items[1], ZoomOutAction::class.java, "Zoom Out", true)
-    validateItem(items[2], ZoomToFitAction::class.java, "Zoom to Fit Screen", true)
-    validateItem(items[3], Separator::class.java, null, true)
-    validateItem(items[4], GotoComponentAction::class.java, "Go to XML", true)
+    assertEquals(7, items.size)
+    validateItem(items[0], SelectAllAction::class.java, "Select All", true)
+    validateItem(items[1], Separator::class.java, null, true)
+    validateItem(items[2], ZoomInAction::class.java, "Zoom In", true)
+    validateItem(items[3], ZoomOutAction::class.java, "Zoom Out", true)
+    validateItem(items[4], ZoomToFitAction::class.java, "Zoom to Fit Screen", true)
+    validateItem(items[5], Separator::class.java, null, true)
+    validateItem(items[6], GotoComponentAction::class.java, "Go to XML", true)
   }
 
   fun testMultiSelectContextMenu() {
