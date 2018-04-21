@@ -147,11 +147,11 @@ public class DataModelTest extends AndroidTestCase {
 
     System.clearProperty(NavigationSchema.ENABLE_NAV_PROPERTY);
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(5));
-    assertThat(getElementsAsStrings(myItemListModel)).doesNotContain("NavHostFragment");
-
-    System.setProperty(NavigationSchema.ENABLE_NAV_PROPERTY, "true");
-    myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(5));
     assertThat(getElementsAsStrings(myItemListModel)).contains("NavHostFragment");
+
+    System.setProperty(NavigationSchema.ENABLE_NAV_PROPERTY, "false");
+    myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(5));
+    assertThat(getElementsAsStrings(myItemListModel)).doesNotContain("NavHostFragment");
   }
 
   public void testSearch() {
