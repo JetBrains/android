@@ -15,19 +15,30 @@
  */
 package com.android.tools.idea.naveditor.editor
 
-import com.android.SdkConstants.ATTR_LABEL
+import com.android.tools.idea.actions.NewAndroidComponentAction.CREATED_FILES
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import com.android.tools.idea.naveditor.model.className
+import com.android.tools.idea.naveditor.model.layout
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.common.collect.ImmutableList
+import com.intellij.ide.impl.DataManagerImpl
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.project.rootManager
 import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
 import com.intellij.util.ui.UIUtil
+import junit.framework.TestCase
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
 import java.awt.event.MouseEvent
+import java.io.File
 import java.util.stream.Collectors
+import javax.swing.JPanel
 
 // TODO: testing with custom navigators
 class AddDestinationMenuTest : NavTestCase() {
@@ -45,6 +56,10 @@ class AddDestinationMenuTest : NavTestCase() {
   private val menu
     get() = _menu!!
 
+  private var _panel: JPanel? = null
+  private val panel
+    get() = _panel!!
+
   override fun setUp() {
     super.setUp()
     _model = model("nav.xml") {
@@ -60,7 +75,7 @@ class AddDestinationMenuTest : NavTestCase() {
     surface.setSize(1000, 1000)
     surface.model = model
     _menu = AddDestinationMenu(surface)
-    menu.mainPanel
+    _panel = menu.mainPanel
   }
 
   fun testContent() {
@@ -131,10 +146,50 @@ class AddDestinationMenuTest : NavTestCase() {
 
   fun testCreateBlank() {
     model.pendingIds.addAll(model.flattenComponents().map { it.id }.collect(Collectors.toList()))
-    menu.createBlankDestination()
-    val added = model.find("fragment3")!!
+    val event = mock(AnActionEvent::class.java)
+    `when`(event.project).thenReturn(project)
+    val action = object: AnAction() {
+      override fun actionPerformed(e: AnActionEvent) {
+        TestCase.assertEquals(event, e)
+        val createdFiles = DataManagerImpl.MyDataContext(panel).getData(CREATED_FILES)!!
+        val root = myModule.rootManager.contentRoots[0].path
+        myFixture.addFileToProject("src/mytest/navtest/Frag.java",
+                                   "package mytest.navtest\n" +
+                                   "public class Frag extends android.app.Fragment {}")
+        myFixture.addFileToProject("res/layout/frag_layout.xml", "")
+        createdFiles.add(File(root, "src/mytest/navtest/Frag.java"))
+        createdFiles.add(File(root, "res/layout/frag_layout.xml"))
+      }
+    }
+    menu.createBlankDestination(event, action)
+
+    val added = model.find("frag")!!
     assertEquals("fragment", added.tagName)
-    assertEquals("fragment", added.getAndroidAttribute(ATTR_LABEL))
+    assertEquals("@layout/frag_layout", added.layout)
+    assertEquals("mytest.navtest.Frag", added.className)
+  }
+
+  fun testCreateBlankNoLayout() {
+    model.pendingIds.addAll(model.flattenComponents().map { it.id }.collect(Collectors.toList()))
+    val event = mock(AnActionEvent::class.java)
+    `when`(event.project).thenReturn(project)
+    val action = object: AnAction() {
+      override fun actionPerformed(e: AnActionEvent) {
+        TestCase.assertEquals(event, e)
+        val createdFiles = DataManagerImpl.MyDataContext(panel).getData(CREATED_FILES)!!
+        val root = myModule.rootManager.contentRoots[0].path
+        myFixture.addFileToProject("src/mytest/navtest/Frag.java",
+                                   "package mytest.navtest\n" +
+                                   "public class Frag extends android.app.Fragment {}")
+        createdFiles.add(File(root, "src/mytest/navtest/Frag.java"))
+      }
+    }
+    menu.createBlankDestination(event, action)
+
+    val added = model.find("frag")!!
+    assertEquals("fragment", added.tagName)
+    assertNull(added.layout)
+    assertEquals("mytest.navtest.Frag", added.className)
   }
 
   fun testImageLoading() {

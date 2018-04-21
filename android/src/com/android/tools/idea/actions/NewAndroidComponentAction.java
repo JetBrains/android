@@ -16,9 +16,9 @@
 package com.android.tools.idea.actions;
 
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.npw.model.RenderTemplateModel;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep;
-import com.android.tools.idea.npw.model.RenderTemplateModel;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.templates.TemplateManager;
@@ -26,7 +26,6 @@ import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableSet;
-import com.intellij.ide.IdeView;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -49,9 +48,12 @@ public class NewAndroidComponentAction extends AnAction {
   // These categories will be using a new wizard
   public static Set<String> NEW_WIZARD_CATEGORIES = ImmutableSet.of("Activity", "Google");
 
+  public static final DataKey<List<File>> CREATED_FILES = DataKey.create("CreatedFiles");
+
   private final String myTemplateCategory;
   private final String myTemplateName;
   private final int myMinSdkVersion;
+  private boolean myShouldOpenFiles = true;
 
   public NewAndroidComponentAction(@NotNull String templateCategory, @NotNull String templateName, int minSdkVersion) {
     super(templateName, AndroidBundle.message("android.wizard.action.new.component", templateName), null);
@@ -59,6 +61,10 @@ public class NewAndroidComponentAction extends AnAction {
     myTemplateName = templateName;
     getTemplatePresentation().setIcon(isActivityTemplate() ? AndroidIcons.Activity : AndroidIcons.AndroidFile);
     myMinSdkVersion = minSdkVersion;
+  }
+
+  public void setShouldOpenFiles(boolean shouldOpenFiles) {
+    myShouldOpenFiles = shouldOpenFiles;
   }
 
   private boolean isActivityTemplate() {
@@ -94,11 +100,6 @@ public class NewAndroidComponentAction extends AnAction {
   public void actionPerformed(AnActionEvent e) {
     DataContext dataContext = e.getDataContext();
 
-    IdeView view = LangDataKeys.IDE_VIEW.getData(dataContext);
-    if (view == null) {
-      return;
-    }
-
     Module module = LangDataKeys.MODULE.getData(dataContext);
     if (module == null) {
       return;
@@ -128,7 +129,7 @@ public class NewAndroidComponentAction extends AnAction {
     Project project = module.getProject();
 
     RenderTemplateModel templateModel = new RenderTemplateModel(
-      facet, new TemplateHandle(file), initialPackageSuggestion, moduleTemplates.get(0), "New " + activityDescription);
+      facet, new TemplateHandle(file), initialPackageSuggestion, moduleTemplates.get(0), "New " + activityDescription, myShouldOpenFiles);
 
     boolean isActivity = isActivityTemplate();
     String dialogTitle = AndroidBundle.message(isActivity ? "android.wizard.new.activity.title" : "android.wizard.new.component.title");
@@ -138,7 +139,10 @@ public class NewAndroidComponentAction extends AnAction {
     wizardBuilder.addStep(new ConfigureTemplateParametersStep(templateModel, stepTitle, moduleTemplates));
     ModelWizardDialog dialog = new StudioWizardDialogBuilder(wizardBuilder.build(), dialogTitle).setProject(project).build();
     dialog.show();
-
+    List<File> createdFiles = dataContext.getData(CREATED_FILES);
+    if (createdFiles != null) {
+      createdFiles.addAll(templateModel.getCreatedFiles());
+    }
     /*
     // TODO: Implement the getCreatedElements call for the wizard
     final PsiElement[] createdElements = dialog.getCreatedElements();

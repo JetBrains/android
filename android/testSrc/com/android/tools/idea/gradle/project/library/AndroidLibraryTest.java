@@ -80,7 +80,7 @@ public class AndroidLibraryTest extends AndroidGradleTestCase {
     // Create a Wizard and add an Activity to the lib module
     TemplateHandle myTemplateHandle = new TemplateHandle(TemplateManager.getInstance().getTemplateFile("Activity", "Empty Activity"));
     NamedModuleTemplate template = GradleAndroidModuleTemplate.createDefaultTemplateAt(new File(project.getProjectFilePath()));
-    RenderTemplateModel render = new RenderTemplateModel(libAndroidFacet, myTemplateHandle, "com.example", template, "command");
+    RenderTemplateModel render = new RenderTemplateModel(libAndroidFacet, myTemplateHandle, "com.example", template, "command", true);
 
     List<NamedModuleTemplate> moduleTemplates = AndroidPackageUtils.getModuleTemplates(libAndroidFacet, null);
     assertThat(moduleTemplates).isNotEmpty();
