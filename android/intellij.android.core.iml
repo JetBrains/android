@@ -61,7 +61,17 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="jsr305" level="project" />
-    <orderEntry type="library" name="jgraphx-3.4.0.1" level="project" />
+    <orderEntry type="module-library">
+      <library name="jgraphx">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/lib/jgraphx-3.4.0.1.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MODULE_DIR$/lib/src/jgraphx-3.4.0.1-sources.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
     <orderEntry type="module" module-name="android.sdktools.repository" />
     <orderEntry type="module" module-name="android.sdktools.instant-run-client" />
     <orderEntry type="module" module-name="android.sdktools.instant-run-common" />
