@@ -82,7 +82,7 @@ public class NlReferenceEditor extends BaseComponentEditor {
   public static NlTableCellEditor createForTable(@NotNull Project project) {
     NlTableCellEditor cellEditor = new NlTableCellEditor();
     BrowsePanel browsePanel = new BrowsePanel(cellEditor, true);
-    cellEditor.init(new NlReferenceEditor(project, cellEditor, browsePanel, false, true, false, VERTICAL_PADDING), browsePanel);
+    cellEditor.init(new NlReferenceEditor(project, cellEditor, browsePanel, false, true, false, 0), browsePanel);
     return cellEditor;
   }
 
@@ -139,7 +139,6 @@ public class NlReferenceEditor extends BaseComponentEditor {
     mySlider.setVisible(includeSliderSupport);
 
     myProject = project;
-
     myTextEditorWithAutoCompletion = TextEditorWithAutoCompletion.create(project, JBUI.insets(verticalSpacing,
                                                                                               HORIZONTAL_PADDING,
                                                                                               verticalSpacing,
