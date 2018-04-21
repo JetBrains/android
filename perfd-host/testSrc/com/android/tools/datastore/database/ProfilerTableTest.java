@@ -135,6 +135,34 @@ public class ProfilerTableTest {
   }
 
   @Test
+  public void testDeleteSession() {
+    List<Common.Session> sessions = new ArrayList<>();
+    for (int i = 0; i < 2; i++) {
+      long startTime = 40 + i;
+      String sessionName = Integer.toString(60 + i);
+      Common.Session session = Common.Session.newBuilder()
+                                             .setSessionId(10 + i)
+                                             .setDeviceId(20 + i)
+                                             .setPid(30 + i)
+                                             .setStartTimestamp(startTime)
+                                             .setEndTimestamp(Long.MAX_VALUE)
+                                             .build();
+
+      myTable.insertOrUpdateSession(session, sessionName, startTime, true, false, Common.SessionMetaData.SessionType.FULL);
+      sessions.add(session);
+    }
+
+    for (int i = 0; i < 2; i++) {
+      assertThat(myTable.getSessionById(sessions.get(i).getSessionId())).isEqualTo(sessions.get(i));
+      myTable.deleteSession(sessions.get(i).getSessionId());
+    }
+
+    for (int i = 0; i < 2; i++) {
+      assertThat(myTable.getSessionById(sessions.get(i).getSessionId())).isEqualTo(Common.Session.getDefaultInstance());
+    }
+  }
+
+  @Test
   public void testInsertAndGetSessionMetaData() {
     List<Common.SessionMetaData> metaDatas = new ArrayList<>();
     Random rand = new Random();

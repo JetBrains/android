@@ -132,4 +132,8 @@ public class SessionItem extends AspectModel<SessionItem.Aspect> implements Sess
       changed(Aspect.MODEL);
     }
   }
+
+  public void deleteSession() {
+    myProfilers.getSessionsManager().deleteSession(mySession);
+  }
 }

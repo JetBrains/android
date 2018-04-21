@@ -208,6 +208,11 @@ public class SessionsView extends AspectObserver {
   }
 
   @NotNull
+  public IdeProfilerComponents getIdeProfilerComponents() {
+    return myIdeProfilerComponents;
+  }
+
+  @NotNull
   public static Dimension getComponentMinimizeSize(boolean isExpanded) {
     return isExpanded ? new Dimension(SESSIONS_EXPANDED_MIN_WIDTH, 0) : new Dimension(SESSIONS_COLLAPSED_MIN_WIDTH, 0);
   }

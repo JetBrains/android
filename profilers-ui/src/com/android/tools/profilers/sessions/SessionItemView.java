@@ -18,18 +18,22 @@ package com.android.tools.profilers.sessions;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.profilers.ProfilerAction;
+import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.awt.font.TextAttribute;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
+import java.util.List;
 
 import static com.android.tools.profilers.ProfilerColors.ACTIVE_SESSION_COLOR;
 import static com.android.tools.profilers.ProfilerColors.SESSION_DIVIDER_COLOR;
@@ -48,6 +52,8 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
 
   public SessionItemView(@NotNull ArtifactDrawInfo artifactDrawInfo, @NotNull SessionItem artifact) {
     super(artifactDrawInfo, artifact);
+
+    setFocusable(true);
 
     // 1st column reserved for the Session's title (time), 2nd column for the live session icon.
     // 1st row for showing session start time, 2nd row for name, 3rd row for duration
@@ -90,6 +96,14 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
                              JBUI.Borders.merge(UNSELECTED_BORDER, COMPONENT_PADDING, false);
     // Skip the top border for the first entry as that would duplicate with the toolbar's border
     setBorder(getIndex() == 0 ? selectionBorder : JBUI.Borders.merge(DIVIDER_BORDER, selectionBorder, false));
+  }
+
+  @Override
+  protected List<ContextMenuItem> getContextMenus() {
+    ProfilerAction action = new ProfilerAction.Builder("Delete")
+      .setActionRunnable(() -> getArtifact().deleteSession())
+      .build();
+    return Collections.singletonList(action);
   }
 
   private void modelChanged() {

@@ -177,6 +177,14 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   }
 
   @Override
+  public void deleteSession(DeleteSessionRequest request, StreamObserver<DeleteSessionResponse> responseObserver) {
+    // TODO (b\67509712): properly delete all data related to the session.
+    myTable.deleteSession(request.getSessionId());
+    responseObserver.onNext(DeleteSessionResponse.getDefaultInstance());
+    responseObserver.onCompleted();
+  }
+
+  @Override
   public void importSession(ImportSessionRequest request, StreamObserver<ImportSessionResponse> responseObserver) {
     myTable.insertOrUpdateSession(request.getSession(), request.getSessionName(), request.getStartTimestampEpochMs(), false, false,
                                   request.getSessionType());

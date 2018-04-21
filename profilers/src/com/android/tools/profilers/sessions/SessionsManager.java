@@ -285,6 +285,27 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     }
   }
 
+  public void deleteSession(@NotNull Common.Session session) {
+    assert mySessionItems.containsKey(session.getSessionId()) && mySessionItems.get(session.getSessionId()).getSession().equals(session);
+
+    // Selected session can change after we stop profiling so caching the value first.
+    boolean sessionIsSelectedSession = mySelectedSession.equals(session);
+    if (myProfilingSession.equals(session)) {
+      // Route to StudioProfiler to set a null device, which will stop the session properly.
+      myProfilers.setDevice(null);
+    }
+
+    // When deleting a currently selected session, set the session back to default so the profilers will go to the null stage.
+    if (sessionIsSelectedSession) {
+      setSessionInternal(Common.Session.getDefaultInstance());
+    }
+
+    DeleteSessionRequest request = DeleteSessionRequest.newBuilder().setSessionId(session.getSessionId()).build();
+    myProfilers.getClient().getProfilerClient().deleteSession(request);
+    mySessionItems.remove(session.getSessionId());
+    updateSessionItems(Collections.emptyList());
+  }
+
   /**
    * Create and a new session with a specific type
    *
@@ -364,7 +385,11 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       SessionItem sessionItem = mySessionItems.get(session.getSessionId());
       if (sessionItem == null) {
         Profiler.GetSessionMetaDataResponse response = myProfilers.getClient().getProfilerClient()
-                                                                  .getSessionMetaData(Profiler.GetSessionMetaDataRequest.newBuilder().setSessionId(session.getSessionId()).build());
+                                                                  .getSessionMetaData(Profiler.GetSessionMetaDataRequest.newBuilder()
+                                                                                                                        .setSessionId(
+                                                                                                                          session
+                                                                                                                            .getSessionId())
+                                                                                                                        .build());
         Common.SessionMetaData metadata = response.getData();
         sessionItem = new SessionItem(myProfilers, session, metadata);
 
