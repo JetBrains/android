@@ -16,6 +16,7 @@
 package com.android.tools.profilers;
 
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.Profiler.*;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
@@ -252,6 +253,14 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     else {
       responseObserver.onNext(GetSessionMetaDataResponse.getDefaultInstance());
     }
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void deleteSession(DeleteSessionRequest request, StreamObserver<DeleteSessionResponse> responseObserver) {
+    mySessions.remove(request.getSessionId());
+    mySessionMetaDatas.remove(request.getSessionId());
+    responseObserver.onNext(DeleteSessionResponse.getDefaultInstance());
     responseObserver.onCompleted();
   }
 

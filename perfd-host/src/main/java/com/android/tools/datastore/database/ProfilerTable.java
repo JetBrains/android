@@ -44,6 +44,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
     SELECT_DEVICE_LAST_KNOWN_TIME,
     SELECT_SESSIONS,
     SELECT_SESSION_BY_ID,
+    DELETE_SESSION_BY_ID,
     FIND_AGENT_STATUS,
     UPDATE_AGENT_STATUS,
     INSERT_BYTES,
@@ -114,6 +115,8 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
                       "SELECT * from Profiler_Sessions ORDER BY SessionId ASC");
       createStatement(ProfilerStatements.SELECT_SESSION_BY_ID,
                       "SELECT * from Profiler_Sessions WHERE SessionId = ?");
+      createStatement(ProfilerStatements.DELETE_SESSION_BY_ID,
+                      "DELETE from Profiler_Sessions WHERE SessionId = ?");
       createStatement(ProfilerStatements.FIND_AGENT_STATUS,
                       "SELECT HasAgent, LastKnownAttachedTime from Profiler_Processes WHERE DeviceId = ? AND ProcessId = ? AND StartTime = ?");
       createStatement(ProfilerStatements.UPDATE_AGENT_STATUS,
@@ -275,6 +278,12 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
       //TODO: Update start/end times with times polled from device.
       //End time always equals now, start time comes from device. This way if we get disconnected we still have an accurate end time.
       execute(ProfilerStatements.INSERT_DEVICE, device.getDeviceId(), device.toByteArray());
+    }
+  }
+
+  public void deleteSession(long sessionId) {
+    synchronized (myLock) {
+      execute(ProfilerStatements.DELETE_SESSION_BY_ID, sessionId);
     }
   }
 

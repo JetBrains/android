@@ -17,6 +17,9 @@ package com.android.tools.profilers.sessions;
 
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.profilers.ContextMenuInstaller;
+import com.android.tools.profilers.ProfilerContextMenu;
+import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,6 +27,7 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Collections;
 
 import static com.android.tools.profilers.ProfilerColors.HOVERED_SESSION_COLOR;
 import static com.android.tools.profilers.ProfilerColors.SELECTED_SESSION_COLOR;
@@ -55,6 +59,10 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
     myObserver = new AspectObserver();
     initializeListeners();
 
+    // Context menus set up
+    ContextMenuInstaller contextMenuInstaller = artifactDrawInfo.mySessionsView.getIdeProfilerComponents().createContextMenuInstaller();
+    getContextMenus().forEach(menu -> contextMenuInstaller.installGenericContextMenu(this, menu));
+
     // Listen to selected session changed so we can update the selection visuals accordingly.
     myArtifactDrawInfo.mySessionsView.getProfilers().getSessionsManager().addDependency(myObserver)
                                      .onChange(SessionAspect.SELECTED_SESSION, () -> {
@@ -71,7 +79,9 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
     addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
-        myArtifact.onSelect();
+        if (SwingUtilities.isLeftMouseButton(e)) {
+          myArtifact.onSelect();
+        }
       }
 
       @Override
@@ -107,6 +117,10 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
 
   public int getIndex() {
     return myArtifactDrawInfo.myIndex;
+  }
+
+  protected java.util.List<ContextMenuItem> getContextMenus() {
+    return Collections.emptyList();
   }
 
   protected abstract void selectedSessionChanged();
