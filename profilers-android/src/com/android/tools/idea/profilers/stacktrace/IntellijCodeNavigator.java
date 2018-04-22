@@ -26,16 +26,8 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.ClassUtil;
-import com.intellij.util.Processor;
-import com.jetbrains.cidr.lang.symbols.OCQualifiedName;
-import com.jetbrains.cidr.lang.symbols.OCSymbol;
-import com.jetbrains.cidr.lang.symbols.cpp.OCDeclaratorSymbol;
-import com.jetbrains.cidr.lang.symbols.cpp.OCFunctionSymbol;
-import com.jetbrains.cidr.lang.symbols.symtable.OCGlobalProjectSymbolsCache;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * A {@link CodeNavigator} with logic to jump to code inside of an IntelliJ code editor.
@@ -107,6 +99,7 @@ public final class IntellijCodeNavigator extends CodeNavigator {
     // false.
     Navigatable[] navigatable = new Navigatable[1]; // Workaround to set the navigatable inside the processor.
 
+    /* Disabled in AOSP: Depends on closed source code
     Processor<OCSymbol> processor = symbol -> {
       if (!(symbol instanceof OCFunctionSymbol)) {
         return true; // Symbol is not a function. Continue the processing.
@@ -149,7 +142,7 @@ public final class IntellijCodeNavigator extends CodeNavigator {
 
     assert location.getMethodName() != null;
     OCGlobalProjectSymbolsCache.processByQualifiedName(myProject, processor, location.getMethodName());
-
+*/
     return navigatable[0];
   }
 
