@@ -30,6 +30,8 @@ import com.android.tools.profilers.cpu.CpuCaptureArtifactView;
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
 import com.android.tools.profilers.memory.HprofArtifactView;
 import com.android.tools.profilers.memory.HprofSessionArtifact;
+import com.android.tools.profilers.memory.LegacyAllocationsArtifactView;
+import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
@@ -196,6 +198,7 @@ public class SessionsView extends AspectObserver {
     mySessionArtifactViewBinder = new ViewBinder<>();
     mySessionArtifactViewBinder.bind(SessionItem.class, SessionItemView::new);
     mySessionArtifactViewBinder.bind(HprofSessionArtifact.class, HprofArtifactView::new);
+    mySessionArtifactViewBinder.bind(LegacyAllocationsSessionArtifact.class, LegacyAllocationsArtifactView::new);
     mySessionArtifactViewBinder.bind(CpuCaptureSessionArtifact.class, CpuCaptureArtifactView::new);
 
     initializeUI();

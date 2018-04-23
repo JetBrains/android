@@ -29,6 +29,7 @@ import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.memory.HprofSessionArtifact
+import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact
 import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -46,12 +47,12 @@ class SessionsManagerTest {
   val myThrown = ExpectedException.none()
   @get:Rule
   var myGrpcChannel = FakeGrpcChannel(
-      "SessionsManagerTestChannel",
-      myProfilerService,
-      myMemoryService,
-      myCpuService,
-      FakeEventService(),
-      FakeNetworkService.newBuilder().build()
+    "SessionsManagerTestChannel",
+    myProfilerService,
+    myMemoryService,
+    myCpuService,
+    FakeEventService(),
+    FakeNetworkService.newBuilder().build()
   )
 
   private lateinit var myTimer: FakeTimer
@@ -308,22 +309,31 @@ class SessionsManagerTest {
 
     val heapDumpTimestamp = 10L
     val cpuTraceTimestamp = 20L
+    val legacyAllocationsInfoTimestamp = 30L
+    val liveAllocationsInfoTimestamp = 40L
     val heapDumpInfo = MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(heapDumpTimestamp).setEndTime(heapDumpTimestamp + 1).build()
     val cpuTraceInfo = CpuProfiler.TraceInfo.newBuilder().setFromTimestamp(cpuTraceTimestamp).setToTimestamp(cpuTraceTimestamp + 1).build()
+    var allocationInfos = MemoryProfiler.MemoryData.newBuilder()
+      .addAllocationsInfo(MemoryProfiler.AllocationsInfo.newBuilder().setStartTime(legacyAllocationsInfoTimestamp).setEndTime(
+        legacyAllocationsInfoTimestamp + 1).setLegacy(true).build())
+      .addAllocationsInfo(MemoryProfiler.AllocationsInfo.newBuilder().setStartTime(liveAllocationsInfoTimestamp).build())
+      .build()
     myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
+    myMemoryService.setMemoryData(allocationInfos)
     myCpuService.addTraceInfo(cpuTraceInfo)
     myManager.update()
 
-    // Sessions should now be expandable and expanded by default
     // The Hprof and CPU capture artifacts are now included and sorted in ascending order
     sessionItems = myManager.sessionArtifacts
-    assertThat(sessionItems).hasSize(6)
+    assertThat(sessionItems).hasSize(8)
     sessionItem0 = sessionItems[0] as SessionItem
-    val cpuCaptureItem0 = sessionItems[1] as CpuCaptureSessionArtifact
-    val hprofItem0 = sessionItems[2] as HprofSessionArtifact
-    sessionItem1 = sessionItems[3] as SessionItem
-    val cpuCaptureItem1 = sessionItems[4] as CpuCaptureSessionArtifact
-    val hprofItem1 = sessionItems[5] as HprofSessionArtifact
+    val legacyAllocationsItem0 = sessionItems[1] as LegacyAllocationsSessionArtifact
+    val cpuCaptureItem0 = sessionItems[2] as CpuCaptureSessionArtifact
+    val hprofItem0 = sessionItems[3] as HprofSessionArtifact
+    sessionItem1 = sessionItems[4] as SessionItem
+    val legacyAllocationsItem1 = sessionItems[5] as LegacyAllocationsSessionArtifact
+    val cpuCaptureItem1 = sessionItems[6] as CpuCaptureSessionArtifact
+    val hprofItem1 = sessionItems[7] as HprofSessionArtifact
 
     assertThat(sessionItem0.session).isEqualTo(session2)
     assertThat(sessionItem0.timestampNs).isEqualTo(0)
@@ -331,12 +341,16 @@ class SessionsManagerTest {
     assertThat(hprofItem0.timestampNs).isEqualTo(heapDumpTimestamp - session2Timestamp)
     assertThat(cpuCaptureItem0.session).isEqualTo(session2)
     assertThat(cpuCaptureItem0.timestampNs).isEqualTo(cpuTraceTimestamp - session2Timestamp)
+    assertThat(legacyAllocationsItem0.session).isEqualTo(session2)
+    assertThat(legacyAllocationsItem0.timestampNs).isEqualTo(legacyAllocationsInfoTimestamp - session2Timestamp)
     assertThat(sessionItem1.session).isEqualTo(session1)
     assertThat(sessionItem1.timestampNs).isEqualTo(0)
     assertThat(hprofItem1.session).isEqualTo(session1)
     assertThat(hprofItem1.timestampNs).isEqualTo(heapDumpTimestamp - session1Timestamp)
     assertThat(cpuCaptureItem1.session).isEqualTo(session1)
     assertThat(cpuCaptureItem1.timestampNs).isEqualTo(cpuTraceTimestamp - session1Timestamp)
+    assertThat(legacyAllocationsItem1.session).isEqualTo(session1)
+    assertThat(legacyAllocationsItem1.timestampNs).isEqualTo(legacyAllocationsInfoTimestamp - session1Timestamp)
   }
 
   @Test

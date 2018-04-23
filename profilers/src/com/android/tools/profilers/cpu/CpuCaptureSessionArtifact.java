@@ -18,18 +18,12 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler.*;
-import com.android.tools.profiler.protobuf3jarjar.GeneratedMessageV3;
-import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.sessions.SessionArtifact;
 import com.android.tools.profilers.sessions.SessionsManager;
-import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -132,19 +126,7 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<TraceInfo> {
 
     // If the capture is in progress we jump to its start range
     if (myIsOngoingCapture) {
-      // Jump to the ongoing capture. We don't jump to live immediately because the ongoing capture might not fit the current zoom level.
-      // So first we adjust the zoom level to fit the current size of the ongoing capture + 10% of the view range, so the user can see the
-      // capture animating for a while before it takes the entire view range.
-      ProfilerTimeline timeline = myProfilers.getTimeline();
-      double viewRange90PercentLength = 0.9 * timeline.getViewRange().getLength();
-      double currentOngoingCaptureLength = timeline.getDataRange().getMax() - TimeUnit.NANOSECONDS.toMicros(myInfo.getFromTimestamp());
-      if (currentOngoingCaptureLength > viewRange90PercentLength) {
-        timeline.zoomOutBy(currentOngoingCaptureLength - viewRange90PercentLength);
-      }
-
-      // Then jump to live.
-      timeline.setStreaming(true);
-      timeline.setIsPaused(false);
+      SessionArtifact.navigateTimelineToOngoingCapture(myProfilers.getTimeline(), TimeUnit.NANOSECONDS.toMicros(myInfo.getFromTimestamp()));
     }
     // Otherwise, we set and select the capture in the CpuProfilerStage
     else {
@@ -153,7 +135,7 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<TraceInfo> {
     }
 
     myProfilers.getIdeServices().getFeatureTracker()
-      .trackSessionArtifactSelected(this, myProfilers.getSessionsManager().isSessionAlive());
+               .trackSessionArtifactSelected(this, myProfilers.getSessionsManager().isSessionAlive());
   }
 
   public boolean isOngoingCapture() {
@@ -169,11 +151,11 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<TraceInfo> {
                                                           @NotNull Common.SessionMetaData sessionMetaData) {
     GetTraceInfoResponse response = profilers.getClient().getCpuClient().getTraceInfo(
       GetTraceInfoRequest.newBuilder()
-        .setSession(session)
-        // We need to list imported traces and their timestamps might not be within the session range, so we search for max range.
-        .setFromTimestamp(Long.MIN_VALUE)
-        .setToTimestamp(Long.MAX_VALUE)
-        .build());
+                         .setSession(session)
+                         // We need to list imported traces and their timestamps might not be within the session range, so we search for max range.
+                         .setFromTimestamp(Long.MIN_VALUE)
+                         .setToTimestamp(Long.MAX_VALUE)
+                         .build());
 
     List<SessionArtifact> artifacts = new ArrayList<>();
     for (TraceInfo info : response.getTraceInfoList()) {
@@ -188,9 +170,9 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<TraceInfo> {
 
       if (profilingStateResponse.getBeingProfiled()) {
         TraceInfo ongoingTraceInfo = TraceInfo.newBuilder()
-          .setProfilerType(profilingStateResponse.getConfiguration().getProfilerType())
-          .setFromTimestamp(profilingStateResponse.getStartTimestamp())
-          .build();
+                                              .setProfilerType(profilingStateResponse.getConfiguration().getProfilerType())
+                                              .setFromTimestamp(profilingStateResponse.getStartTimestamp())
+                                              .build();
         artifacts.add(new CpuCaptureSessionArtifact(profilers, session, sessionMetaData, ongoingTraceInfo, true));
       }
     }
