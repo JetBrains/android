@@ -522,7 +522,7 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
   }
 
   private String convertToAndroidX(String dep) {
-    Integer buildApi = (Integer) getParamMap().get(ATTR_BUILD_API);
+    int buildApi = Integer.parseInt(getParamMap().get(ATTR_BUILD_API).toString());
     if (buildApi >= 28) {
       return AndroidxNameUtils.getVersionedCoordinateMapping(dep);
     }
