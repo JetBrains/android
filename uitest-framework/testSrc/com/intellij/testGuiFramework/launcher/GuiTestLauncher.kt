@@ -17,6 +17,7 @@ package com.intellij.testGuiFramework.launcher
 
 import com.android.testutils.TestUtils
 import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.tests.IdeaTestSuiteBase
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.util.io.FileUtil
@@ -162,8 +163,8 @@ object GuiTestLauncher {
       "-Didea.platform.prefix=AndroidStudio",
       "-Didea.jre.check=true",
       /* testing-specific options */
-      "-Didea.config.path=${GuiTestOptions.getConfigPath()}",
-      "-Didea.system.path=${GuiTestOptions.getSystemPath()}",
+      "-Didea.config.path=${GuiTests.getConfigDirPath()}",
+      "-Didea.system.path=${GuiTests.getSystemDirPath()}",
       "-Dplugin.path=${GuiTestOptions.getPluginPath()}",
       "-Ddisable.android.first.run=true",
       "-Ddisable.config.import=true",

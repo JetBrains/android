@@ -66,7 +66,7 @@ public class IdeTestApplication implements Disposable {
   @NotNull
   public static synchronized IdeTestApplication getInstance() throws Exception {
     System.setProperty(PLATFORM_PREFIX_KEY, "AndroidStudio");
-    File configDirPath = getConfigDirPath();
+    File configDirPath = GuiTests.getConfigDirPath();
     System.setProperty(PROPERTY_CONFIG_PATH, configDirPath.getPath());
 
     // Force Swing FileChooser on Mac (instead of native one) to be able to use FEST to drive it.
@@ -86,36 +86,6 @@ public class IdeTestApplication implements Disposable {
     }
 
     return ourInstance;
-  }
-
-  @NotNull
-  private static File getConfigDirPath() throws IOException {
-    File dirPath = new File(getGuiTestRootDirPath(), "config");
-    ensureExists(dirPath);
-    return dirPath;
-  }
-
-  @NotNull
-  public static File getFailedTestScreenshotDirPath() throws IOException {
-    File dirPath = new File(getGuiTestRootDirPath(), "failures");
-    ensureExists(dirPath);
-    return dirPath;
-  }
-
-  @NotNull
-  private static File getGuiTestRootDirPath() throws IOException {
-    String guiTestRootDirPathProperty = System.getProperty("gui.tests.root.dir.path");
-    if (isNotEmpty(guiTestRootDirPathProperty)) {
-      File rootDirPath = new File(guiTestRootDirPathProperty);
-      if (rootDirPath.isDirectory()) {
-        return rootDirPath;
-      }
-    }
-    String homeDirPath = toSystemDependentName(PathManager.getHomePath());
-    assertThat(homeDirPath).isNotEmpty();
-    File rootDirPath = new File(homeDirPath, join("androidStudio", "gui-tests"));
-    ensureExists(rootDirPath);
-    return rootDirPath;
   }
 
   private static void recreateDirectory(@NotNull File path) throws IOException {

@@ -83,6 +83,7 @@ import java.util.function.Predicate;
 import static com.google.common.base.Joiner.on;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.io.Files.createTempDir;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
@@ -336,6 +337,44 @@ public final class GuiTests {
     }
     return listBuilder.build();
   }
+
+  @NotNull
+  public static File getConfigDirPath() throws IOException {
+    File dirPath = new File(getGuiTestRootDirPath(), "config");
+    ensureExists(dirPath);
+    return dirPath;
+  }
+
+  @NotNull
+  public static File getSystemDirPath() throws IOException {
+    File dirPath = new File(getGuiTestRootDirPath(), "system");
+    ensureExists(dirPath);
+    return dirPath;
+  }
+
+  @NotNull
+  public static File getFailedTestScreenshotDirPath() throws IOException {
+    File dirPath = new File(getGuiTestRootDirPath(), "failures");
+    ensureExists(dirPath);
+    return dirPath;
+  }
+
+  @NotNull
+  private static File getGuiTestRootDirPath() throws IOException {
+    String guiTestRootDirPathProperty = System.getProperty("gui.tests.root.dir.path");
+    if (isNotEmpty(guiTestRootDirPathProperty)) {
+      File rootDirPath = new File(guiTestRootDirPathProperty);
+      if (rootDirPath.isDirectory()) {
+        return rootDirPath;
+      }
+    }
+    String homeDirPath = toSystemDependentName(PathManager.getHomePath());
+    assertThat(homeDirPath).isNotEmpty();
+    File rootDirPath = new File(homeDirPath, join("androidStudio", "gui-tests"));
+    ensureExists(rootDirPath);
+    return rootDirPath;
+  }
+
 
   @NotNull
   public static File getProjectCreationDirPath(@Nullable String testDirectory) {
