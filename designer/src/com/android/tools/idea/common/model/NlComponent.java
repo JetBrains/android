@@ -212,6 +212,9 @@ public class NlComponent implements NlAttributesHolder {
     if (component == this) {
       throw new IllegalArgumentException();
     }
+    if (myDelegate != null) {
+      myDelegate.willRemoveChild(component);
+    }
     synchronized (children) {
       cachedChildrenCopy = null;
       children.remove(component);
@@ -386,6 +389,10 @@ public class NlComponent implements NlAttributesHolder {
    */
   @Override
   public void setAttribute(@Nullable String namespace, @NotNull String attribute, @Nullable String value) {
+    if (myDelegate != null && myDelegate.handlesAttribute(this, namespace, attribute)) {
+      myDelegate.setAttribute(this, namespace, attribute, value);
+      return;
+    }
     XmlTag tag = getTag();
     if (!tag.isValid()) {
       // This could happen when trying to set an attribute in a component that has been already deleted
@@ -443,6 +450,10 @@ public class NlComponent implements NlAttributesHolder {
     if (myDelegate != null && myDelegate.handlesAttribute(this, namespace, attribute)) {
       return myDelegate.getAttribute(this, namespace, attribute);
     }
+    return getAttributeImpl(namespace, attribute);
+  }
+
+  public String getAttributeImpl(@Nullable String namespace, @NotNull String attribute) {
     if (mySnapshot != null) {
       return mySnapshot.getAttribute(attribute, namespace);
     }

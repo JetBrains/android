@@ -19,12 +19,14 @@ import com.android.SdkConstants;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawAnchor;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
@@ -248,7 +250,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
   /**
    * Clear the attributes related to this Anchor type
    */
-  private void clearMe(@NotNull AttributesTransaction transaction) {
+  private void clearMe(@NotNull NlAttributesHolder transaction) {
     ConstraintComponentUtilities.clearAnchor(myType, transaction, useRtlAttributes(), isRtl());
   }
 
@@ -286,12 +288,12 @@ public class ConstraintAnchorTarget extends AnchorTarget {
    */
   private void revertToPreviousState() {
     NlComponent component = myComponent.getAuthoritativeNlComponent();
-    AttributesTransaction attributes = component.startAttributeTransaction();
-    attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, null);
+    ComponentModification modification = new ComponentModification(component, "Revert");
+    modification.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, null);
     for (String key : mPreviousAttributes.keySet()) {
       if (key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X) ||
           key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y)) {
-        attributes.setAttribute(SdkConstants.TOOLS_URI, key, mPreviousAttributes.get(key));
+        modification.setAttribute(SdkConstants.TOOLS_URI, key, mPreviousAttributes.get(key));
       }
       else if (key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_MARGIN_TOP)
                || key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM)
@@ -299,21 +301,21 @@ public class ConstraintAnchorTarget extends AnchorTarget {
                || key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT)
                || key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_MARGIN_START)
                || key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_MARGIN_END)) {
-        attributes.setAttribute(SdkConstants.ANDROID_URI, key, mPreviousAttributes.get(key));
+        modification.setAttribute(SdkConstants.ANDROID_URI, key, mPreviousAttributes.get(key));
       }
       else {
-        attributes.setAttribute(SdkConstants.SHERPA_URI, key, mPreviousAttributes.get(key));
+        modification.setAttribute(SdkConstants.SHERPA_URI, key, mPreviousAttributes.get(key));
       }
     }
-    attributes.apply();
+    modification.apply();
     myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
   }
 
   /**
    * Connect the anchor to the given target. Applied immediately in memory.
    */
-  private AttributesTransaction connectMe(NlComponent component, String attribute, NlComponent targetComponent) {
-    AttributesTransaction attributes = component.startAttributeTransaction();
+  private ComponentModification connectMe(NlComponent component, String attribute, NlComponent targetComponent) {
+    ComponentModification modification = new ComponentModification(component, "Connect Constraint");
     String targetId;
     NlComponent parent = component.getParent();
     assert parent != null;
@@ -326,16 +328,16 @@ public class ConstraintAnchorTarget extends AnchorTarget {
     else {
       targetId = SdkConstants.NEW_ID_PREFIX + NlComponentHelperKt.ensureLiveId(targetComponent);
     }
-    attributes.setAttribute(SdkConstants.SHERPA_URI, attribute, targetId);
+    modification.setAttribute(SdkConstants.SHERPA_URI, attribute, targetId);
     if (myType == Type.BASELINE) {
-      ConstraintComponentUtilities.clearAttributes(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourTopAttributes, attributes);
-      ConstraintComponentUtilities.clearAttributes(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourBottomAttributes, attributes);
-      attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, null);
-      attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, null);
-      attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, null);
+      ConstraintComponentUtilities.clearAttributes(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourTopAttributes, modification);
+      ConstraintComponentUtilities.clearAttributes(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourBottomAttributes, modification);
+      modification.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, null);
+      modification.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, null);
+      modification.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, null);
     }
     else if (ConstraintComponentUtilities.ourReciprocalAttributes.get(attribute) != null) {
-      attributes.setAttribute(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourReciprocalAttributes.get(attribute), null);
+      modification.setAttribute(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourReciprocalAttributes.get(attribute), null);
     }
 
     // If the other side is already connected to the same component, the user is trying to
@@ -343,7 +345,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
     String otherSideAttr = ConstraintComponentUtilities.ourOtherSideAttributes.get(attribute);
     String otherSideAttrValue = otherSideAttr != null ? component.getAttribute(SdkConstants.SHERPA_URI, otherSideAttr) : null;
     if (isOppositeSideConnectedToSameTarget(targetId, otherSideAttrValue)) {
-      removeOppositeSideMargin(attributes, otherSideAttr);
+      removeOppositeSideMargin(modification, otherSideAttr);
     }
     else if (ConstraintComponentUtilities.ourMapMarginAttributes.get(attribute) != null) {
       Scene scene = myComponent.getScene();
@@ -361,25 +363,25 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       }
       String margin = String.format(SdkConstants.VALUE_N_DP, marginValue);
       String attr = ConstraintComponentUtilities.ourMapMarginAttributes.get(attribute);
-      attributes.setAttribute(SdkConstants.ANDROID_URI, attr, margin);
+      modification.setAttribute(SdkConstants.ANDROID_URI, attr, margin);
       if (SdkConstants.ATTR_LAYOUT_MARGIN_END.equals(attr)) {
-        attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, margin);
+        modification.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, margin);
       }
       else if (SdkConstants.ATTR_LAYOUT_MARGIN_START.equals(attr)) {
-        attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, margin);
+        modification.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, margin);
       }
       scene.needsRebuildList();
       myConnectedX = myLastX;
       myConnectedY = myLastY;
     }
-    ConstraintComponentUtilities.cleanup(attributes, myComponent.getNlComponent());
-    attributes.apply();
+    ConstraintComponentUtilities.cleanup(modification, myComponent.getNlComponent());
+    modification.apply();
     myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
     myRenderingTemporaryConnection = true;
-    return attributes;
+    return modification;
   }
 
-  private void removeOppositeSideMargin(@NotNull AttributesTransaction attributes, @NotNull String otherSideAttr) {
+  private void removeOppositeSideMargin(@NotNull NlAttributesHolder attributes, @NotNull String otherSideAttr) {
     String otherSideMargin = ConstraintComponentUtilities.ourMapMarginAttributes.get(otherSideAttr);
     if (otherSideMargin == null) {
       return;
@@ -483,11 +485,10 @@ public class ConstraintAnchorTarget extends AnchorTarget {
    * @param component
    */
   private void disconnectMe(NlComponent component) {
-    AttributesTransaction attributes = component.startAttributeTransaction();
-    clearMe(attributes);
-    ConstraintComponentUtilities.cleanup(attributes, myComponent.getNlComponent());
-    attributes.apply();
-    NlWriteCommandAction.run(component, "Constraint Disconnected", attributes::commit);
+    ComponentModification modification = new ComponentModification(component, "Constraint Disconnected");
+    clearMe(modification);
+    ConstraintComponentUtilities.cleanup(modification, myComponent.getNlComponent());
+    modification.commit();
     myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
   }
 
@@ -659,9 +660,8 @@ public class ConstraintAnchorTarget extends AnchorTarget {
               }
             }
             NlComponent targetComponent = closestTarget.myComponent.getAuthoritativeNlComponent();
-            AttributesTransaction attributes = connectMe(component, attribute, targetComponent);
-
-            NlWriteCommandAction.run(component, "Constraint Connected", attributes::commit);
+            ComponentModification modification = connectMe(component, attribute, targetComponent);
+            modification.commit();
             myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
           }
         }

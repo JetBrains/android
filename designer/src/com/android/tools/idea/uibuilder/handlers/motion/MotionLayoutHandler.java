@@ -189,6 +189,26 @@ public class MotionLayoutHandler extends ConstraintLayoutHandler implements NlCo
     }
   }
 
+  @Override
+  public void setAttribute(NlComponent component, String namespace, String attribute, String value) {
+    ComponentModification modification = new ComponentModification(component, "Set Attribute " + attribute);
+    MotionLayoutTimelinePanel panel = getTimeline(modification.getComponent());
+    if (panel != null) {
+      modification.setAttribute(namespace, attribute, value);
+      panel.getNlComponentDelegate().commit(modification);
+    }
+  }
+
+  @Override
+  public void clearCaches() {
+    // nothing here
+  }
+
+  @Override
+  public void willRemoveChild(@NotNull NlComponent component) {
+    // nmothing here
+  }
+
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
 }

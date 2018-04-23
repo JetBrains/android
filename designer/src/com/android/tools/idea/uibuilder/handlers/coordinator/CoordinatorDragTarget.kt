@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.tools.idea.common.command.NlWriteCommandAction
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.model.AttributesTransaction
+import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneContext
@@ -86,12 +87,12 @@ class CoordinatorDragTarget : DragBaseTarget() {
     }
   }
 
-  private fun restoreAttributes(transaction: AttributesTransaction) {
+  private fun restoreAttributes(transaction: NlAttributesHolder) {
     for (attribute in myAttributes) {
       val value = myOriginalAttributes[attribute]
       transaction.setAttribute(SdkConstants.AUTO_URI, attribute, value)
     }
-    transaction.apply()
+//    transaction.apply()
   }
 
   private fun updateInteractionState(interactionState : CoordinatorLayoutHandler.InteractionState) {
@@ -135,7 +136,7 @@ class CoordinatorDragTarget : DragBaseTarget() {
     updateInteractionState(CoordinatorLayoutHandler.InteractionState.NORMAL)
   }
 
-  override fun updateAttributes(attributes: AttributesTransaction, x: Int, y: Int) {
+  override fun updateAttributes(attributes: NlAttributesHolder, x: Int, y: Int) {
     if (mySnapTarget != null) {
       mySnapTarget!!.snap(attributes)
     }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.timeline;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
@@ -97,13 +98,13 @@ public class MotionSceneModel {
         if (keyFrame == null) { // no keyframes need to create
           keyFrame =
             xmlFile.getRootTag().createChildTag(MotionSceneKeyFrames, null, null, false);
-          xmlFile.getRootTag().addSubTag(keyFrame, false);
+          keyFrame = xmlFile.getRootTag().addSubTag(keyFrame, false);
         }
 
         XmlTag createdTag = keyFrame.createChildTag(type, null, "", false);
-        createdTag.setAttribute(MotionNameSpace + KeyAttributes_framePosition, Integer.toString(framePosition));
-        createdTag.setAttribute(MotionNameSpace + KeyAttributes_target, "@id/" + name);
-        keyFrame.addSubTag(createdTag, false);
+        createdTag = keyFrame.addSubTag(createdTag, false);
+        createdTag.setAttribute(KeyAttributes_framePosition, SdkConstants.AUTO_URI, Integer.toString(framePosition));
+        createdTag.setAttribute(KeyAttributes_target, SdkConstants.AUTO_URI, "@id/" + name);
       }
     });
     if (myNlModel != null) {

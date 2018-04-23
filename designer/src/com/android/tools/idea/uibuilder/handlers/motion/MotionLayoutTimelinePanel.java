@@ -19,21 +19,18 @@ import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlComponentDelegate;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.Gantt;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.GanttCommands;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.GanttEventListener;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
-import com.android.utils.Pair;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -131,6 +128,10 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     }
 
     NlComponent component = selection.get(0);
+    if (component != mySelection) {
+      myNlComponentDelegate.clearCaches();
+    }
+
     mySelection = component;
     if (!NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.CLASS_MOTION_LAYOUT)) {
       component = component.getParent();
@@ -140,9 +141,9 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     }
 
     // component is a motion layout
+    addDelegate();
     if (myMotionLayout != component) {
       myMotionLayout = component;
-      addDelegate();
       loadMotionScene();
     }
   }
@@ -233,7 +234,7 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
 
   @Override
   public void framePosition(float percent) {
-    if (!myMotionLayoutComponentHelper.setValue(percent)) {
+    if (!myMotionLayoutComponentHelper.setProgress(percent)) {
       myMotionLayoutComponentHelper = new MotionLayoutComponentHelper(myMotionLayout);
     }
     if (myCurrentState != TL_PLAY) {
@@ -270,7 +271,6 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
         break;
       case TL_PLAY:
         mGanttCommands.setMode(GanttCommands.Mode.PLAY);
-
         myVisibilityCallback.show(AccessoryPanel.Type.EAST_PANEL, true);
         startPlaying();
         break;
@@ -282,6 +282,9 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
         stopPlaying();
         mGanttCommands.setMode(GanttCommands.Mode.TRANSITION);
         myVisibilityCallback.show(AccessoryPanel.Type.EAST_PANEL, true);
+        break;
+      case TL_UNKNOWN:
+        stopPlaying();
     }
     myCurrentState = state;
     myInStateChange = false;
@@ -305,7 +308,7 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
         value = 0;
       }
       myLastPos = value;
-      if (!myMotionLayoutComponentHelper.setValue(value)) {
+      if (!myMotionLayoutComponentHelper.setProgress(value)) {
         myMotionLayoutComponentHelper = new MotionLayoutComponentHelper(myMotionLayout);
       }
       if (mGanttCommands != null) {
@@ -416,6 +419,31 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     VirtualFile virtualFile = directory.findFileByRelativePath(fileName + ".xml");
 
     return (XmlFile)AndroidPsiUtils.getPsiFileSafely(project, virtualFile);
+  }
+
+  @Nullable
+  List<XmlTag> getKeyframes(XmlFile file, String componentId) {
+    XmlTag[] children = file.getRootTag().findSubTags("KeyFrames");
+    List<XmlTag> found = new ArrayList();
+    for (int i = 0; i < children.length; i++) {
+      XmlTag[] keyframes = children[i].getSubTags();
+      for (int j = 0; j < keyframes.length; j++) {
+        XmlTag keyframe = keyframes[j];
+        XmlAttribute attribute = keyframe.getAttribute("motion:target");
+        if (attribute != null) {
+          System.out.println("attribute value: " + attribute.getValue());
+          String keyframeTarget = attribute.getValue();
+          int index = keyframeTarget.indexOf('/');
+          if (index != -1) {
+            keyframeTarget = keyframeTarget.substring(index + 1);
+          }
+          if (componentId.equalsIgnoreCase(keyframeTarget)) {
+            found.add(keyframe);
+          }
+        }
+      }
+    }
+    return found;
   }
 
   @Nullable

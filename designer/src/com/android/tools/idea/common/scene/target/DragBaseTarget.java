@@ -18,10 +18,12 @@ package com.android.tools.idea.common.scene.target;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.MultiComponentTarget;
 import com.android.tools.idea.uibuilder.scene.target.TargetSnapper;
 import com.intellij.openapi.util.text.StringUtil;
@@ -104,7 +106,7 @@ public abstract class DragBaseTarget extends BaseTarget implements MultiComponen
     myTargetSnapper.renderSnappedNotches(list, sceneContext, myComponent);
   }
 
-  protected abstract void updateAttributes(@NotNull AttributesTransaction attributes,
+  protected abstract void updateAttributes(@NotNull NlAttributesHolder attributes,
                                            @AndroidDpCoordinate int x,
                                            @AndroidDpCoordinate int y);
 
@@ -139,13 +141,13 @@ public abstract class DragBaseTarget extends BaseTarget implements MultiComponen
     }
     myComponent.setDragging(true);
     NlComponent component = myComponent.getAuthoritativeNlComponent();
-    AttributesTransaction attributes = component.startAttributeTransaction();
     x -= myOffsetX;
     y -= myOffsetY;
     int snappedX = myTargetSnapper.trySnapHorizontal(x).orElse(x);
     int snappedY = myTargetSnapper.trySnapVertical(y).orElse(y);
-    updateAttributes(attributes, snappedX, snappedY);
-    attributes.apply();
+    ComponentModification modification = new ComponentModification(component, "Drag");
+    updateAttributes(modification, snappedX, snappedY);
+    modification.apply();
     component.fireLiveChangeEvent();
     myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
     myChangedComponent = true;
@@ -163,19 +165,19 @@ public abstract class DragBaseTarget extends BaseTarget implements MultiComponen
         commitChanges = false;
       }
       NlComponent component = myComponent.getAuthoritativeNlComponent();
-      AttributesTransaction attributes = component.startAttributeTransaction();
+      ComponentModification modification = new ComponentModification(component, "Drag");
       x -= myOffsetX;
       y -= myOffsetY;
       int snappedX = myTargetSnapper.trySnapHorizontal(x).orElse(x);
       int snappedY = myTargetSnapper.trySnapVertical(y).orElse(y);
       if (isAutoConnectionEnabled()) {
-        myTargetSnapper.applyNotches(attributes);
+        myTargetSnapper.applyNotches(modification);
       }
-      updateAttributes(attributes, snappedX, snappedY);
-      attributes.apply();
+      updateAttributes(modification, snappedX, snappedY);
+      modification.apply();
 
       if (commitChanges) {
-        NlWriteCommandAction.run(component, "Dragged " + StringUtil.getShortName(component.getTagName()), attributes::commit);
+        modification.commit();
       }
     }
     if (myChangedComponent) {

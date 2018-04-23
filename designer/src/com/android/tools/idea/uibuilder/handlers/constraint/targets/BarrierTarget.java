@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
+import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawBarrier;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
@@ -125,7 +126,7 @@ public class BarrierTarget extends ConstraintDragTarget {
     myComponent.setSelected(true);
   }
   @Override
-  protected void updateAttributes(@NotNull AttributesTransaction attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+  protected void updateAttributes(@NotNull NlAttributesHolder attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
 
   }
 

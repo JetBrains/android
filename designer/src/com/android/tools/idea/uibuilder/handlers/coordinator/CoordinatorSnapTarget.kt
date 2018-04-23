@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.coordinator
 import com.android.SdkConstants
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.model.AttributesTransaction
+import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.target.BaseTarget
@@ -69,6 +70,7 @@ class CoordinatorSnapTarget constructor(type: Type) : BaseTarget() {
   }
 
   override fun render(list: DisplayList, sceneContext: SceneContext) {
+    @Suppress("ConstantConditionIf")
     if (DEBUG) {
       val color = if (mIsOver) Color.orange else Color.green
       list.addRect(sceneContext, myLeft, myTop, myRight, myBottom, color)
@@ -80,7 +82,7 @@ class CoordinatorSnapTarget constructor(type: Type) : BaseTarget() {
 
   fun isSnapped(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) = (x in myLeft..myRight && y in myTop..myBottom)
 
-  fun snap(attributes: AttributesTransaction) {
+  fun snap(attributes: NlAttributesHolder) {
     val value = when (myType) {
       Type.LEFT -> "left|center"
       Type.RIGHT -> "right|center"

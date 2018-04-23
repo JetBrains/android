@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.scene.target;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -26,6 +27,7 @@ import com.android.tools.idea.common.scene.ScenePicker;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.BaseTarget;
 import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import com.android.tools.idea.uibuilder.scene.draw.DrawResize;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -217,7 +219,7 @@ public abstract class ResizeBaseTarget extends BaseTarget {
     return false;
   }
 
-  protected abstract void updateAttributes(@NotNull AttributesTransaction attributes,
+  protected abstract void updateAttributes(@NotNull NlAttributesHolder attributes,
                                            @AndroidDpCoordinate int x,
                                            @AndroidDpCoordinate int y);
 
@@ -251,11 +253,9 @@ public abstract class ResizeBaseTarget extends BaseTarget {
   @Override
   public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
     NlComponent component = myComponent.getAuthoritativeNlComponent();
-    AttributesTransaction attributes = component.startAttributeTransaction();
-    updateAttributes(attributes, x, y);
-    attributes.apply();
-
-    NlWriteCommandAction.run(component, "Resize " + StringUtil.getShortName(component.getTagName()), attributes::commit);
+    ComponentModification modification = new ComponentModification(component, "Resize " + StringUtil.getShortName(component.getTagName()));
+    updateAttributes(modification, x, y);
+    modification.commit();
     myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
   }
 

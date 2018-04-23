@@ -20,12 +20,14 @@ import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlComponentDelegate;
+import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.utils.Pair;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Encapsulate write operations on components
@@ -41,6 +43,10 @@ public class ComponentModification implements NlAttributesHolder {
     myComponent = component;
     myLabel = label;
     myComponentDelegate = myComponent.getDelegate();
+    List<AttributeSnapshot> attributeSnapshots = component.getAttributes();
+    for (AttributeSnapshot snapshot : attributeSnapshots) {
+      setAttribute(snapshot.namespace, snapshot.name, snapshot.value);
+    }
   }
 
   public NlComponent getComponent() {
@@ -50,7 +56,7 @@ public class ComponentModification implements NlAttributesHolder {
   HashMap<Pair<String, String>, String> myAttributes = new HashMap<>();
 
   @Override
-  public void setAttribute(String namespace, String name, String value) {
+  public void setAttribute(@Nullable String namespace, @NotNull String name, @Nullable String value) {
     myAttributes.put(Pair.of(namespace, name), value);
   }
 
@@ -58,6 +64,8 @@ public class ComponentModification implements NlAttributesHolder {
   public String getAttribute(@Nullable String namespace, @NotNull String attribute) {
     return myAttributes.get(Pair.of(namespace, attribute));
   }
+
+  public HashMap<Pair<String, String>, String> getAttributes() { return myAttributes; }
 
   @Override
   public void removeAttribute(@NotNull String namespace, @NotNull String name) {
@@ -67,6 +75,12 @@ public class ComponentModification implements NlAttributesHolder {
   public void apply() {
     if (myComponentDelegate != null && myComponentDelegate.handlesApply(this)) {
       myComponentDelegate.apply(this);
+      AttributesTransaction transaction = myComponent.startAttributeTransaction();
+      for (Pair<String, String> key : myAttributes.keySet()) {
+        String value = myAttributes.get(key);
+        transaction.setAttribute(key.getFirst(), key.getSecond(), value);
+      }
+      transaction.apply();
     } else {
         AttributesTransaction transaction = myComponent.startAttributeTransaction();
         for (Pair<String, String> key : myAttributes.keySet()) {

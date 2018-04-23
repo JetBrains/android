@@ -42,4 +42,9 @@ public interface NlComponentDelegate {
 
   void commit(ComponentModification modification);
 
+  void setAttribute(NlComponent component, String namespace, String attribute, String value);
+
+  void clearCaches();
+
+  void willRemoveChild(@NotNull NlComponent component);
 }

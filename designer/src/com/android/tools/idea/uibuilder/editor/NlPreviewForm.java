@@ -404,7 +404,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
           LayoutlibSceneManager sceneManager = mySurface.getSceneManager();
           if (myModel != null && sceneManager != null) {
             sceneManager.setElapsedFrameTimeMs(timeMs);
-            helper.setValue((timeMs - 500L) / (float)maxTimeMs);
+            helper.setProgress((timeMs - 500L) / (float)maxTimeMs);
           }
         }, 16, 500L, maxTimeMs + 500L);
       }

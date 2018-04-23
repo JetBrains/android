@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.linear.targets;
 
+import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.uibuilder.handlers.absolute.AbsoluteResizeTarget;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
@@ -32,7 +33,7 @@ public class LinearResizeTarget extends AbsoluteResizeTarget {
   }
 
   @Override
-  protected void updateAttributes(@NotNull AttributesTransaction attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+  protected void updateAttributes(@NotNull NlAttributesHolder attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
 
     Type t = getType();
     if (TOP == t || LEFT_TOP == t || RIGHT_TOP == t) {

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.linear.targets;
 
+import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
@@ -55,7 +56,7 @@ public class LinearDragTarget extends DragBaseTarget {
   }
 
   @Override
-  protected void updateAttributes(@NotNull AttributesTransaction attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+  protected void updateAttributes(@NotNull NlAttributesHolder attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     //Do nothing
   }
 
