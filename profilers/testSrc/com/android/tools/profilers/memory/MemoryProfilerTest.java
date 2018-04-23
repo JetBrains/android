@@ -79,19 +79,14 @@ public class MemoryProfilerTest {
     myIdeProfilerServices.enableLiveAllocationTracking(true);
     setupODeviceAndProcess();
 
-    Range dataRequestRange = myMemoryService.getLastRequestedDataRange();
     Truth.assertThat(myStudioProfiler.isAgentAttached()).isFalse();
     Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(0);
-    Truth.assertThat(dataRequestRange.getMin()).isWithin(0).of(TimeUnit.SECONDS.toNanos(0));
-    Truth.assertThat(dataRequestRange.getMax()).isWithin(0).of(TimeUnit.SECONDS.toNanos(0));
 
     // Advance the timer to select the device + process
     myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
     Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(2);
-    Truth.assertThat(dataRequestRange.getMin()).isWithin(0).of(0);
-    Truth.assertThat(dataRequestRange.getMax()).isWithin(0).of(0);
   }
 
   @Test

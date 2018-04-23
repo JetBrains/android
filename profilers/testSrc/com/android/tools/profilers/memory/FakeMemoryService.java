@@ -82,8 +82,6 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
 
   private static final String SYSTEM_NATIVE_MODULE = "/system/lib64/libnativewindow.so";
 
-
-  @NotNull private Range myLastRequestedDataRange = new Range(0, 0);
   private Status myExplicitAllocationsStatus = null;
   private AllocationsInfo myExplicitAllocationsInfo = null;
   private TriggerHeapDumpResponse.Status myExplicitHeapDumpStatus = null;
@@ -137,7 +135,6 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   public void getData(MemoryRequest request, StreamObserver<MemoryData> response) {
     response.onNext(myMemoryData != null ? myMemoryData
                                          : MemoryData.newBuilder().setEndTimestamp(request.getStartTime() + 1).build());
-    myLastRequestedDataRange.set(request.getStartTime(), request.getEndTime());
     response.onCompleted();
   }
 
@@ -486,10 +483,5 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
 
   public void resetTrackAllocationCount() {
     myTrackAllocationCount = 0;
-  }
-
-  @NotNull
-  public Range getLastRequestedDataRange() {
-    return myLastRequestedDataRange;
   }
 }

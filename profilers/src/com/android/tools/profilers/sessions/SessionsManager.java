@@ -25,6 +25,7 @@ import com.android.tools.profiler.protobuf3jarjar.GeneratedMessageV3;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
 import com.android.tools.profilers.memory.HprofSessionArtifact;
+import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -118,6 +119,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
 
     myArtifactsFetchers = new ArrayList<>();
     myArtifactsFetchers.add(HprofSessionArtifact::getSessionArtifacts);
+    myArtifactsFetchers.add(LegacyAllocationsSessionArtifact::getSessionArtifacts);
     myArtifactsFetchers.add(CpuCaptureSessionArtifact::getSessionArtifacts);
   }
 

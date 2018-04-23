@@ -18,34 +18,29 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
-import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.ListHeapDumpInfosResponse;
+import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.sessions.SessionArtifact;
 import org.jetbrains.annotations.NotNull;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
- * An artifact representation of a memory heap dump.
+ * A session artifact representation of a memory allocation recording (legacy).
  */
-public final class HprofSessionArtifact implements SessionArtifact<HeapDumpInfo> {
+public class LegacyAllocationsSessionArtifact implements SessionArtifact<MemoryProfiler.AllocationsInfo> {
 
   @NotNull private final StudioProfilers myProfilers;
   @NotNull private final Common.Session mySession;
   @NotNull private final Common.SessionMetaData mySessionMetaData;
-  @NotNull private final HeapDumpInfo myInfo;
+  @NotNull private final MemoryProfiler.AllocationsInfo myInfo;
 
-  public HprofSessionArtifact(@NotNull StudioProfilers profilers,
-                              @NotNull Common.Session session,
-                              @NotNull Common.SessionMetaData sessionMetaData,
-                              @NotNull HeapDumpInfo info) {
+  public LegacyAllocationsSessionArtifact(@NotNull StudioProfilers profilers,
+                                          @NotNull Common.Session session,
+                                          @NotNull Common.SessionMetaData sessionMetaData,
+                                          @NotNull MemoryProfiler.AllocationsInfo info) {
     myProfilers = profilers;
     mySession = session;
     mySessionMetaData = sessionMetaData;
@@ -54,7 +49,7 @@ public final class HprofSessionArtifact implements SessionArtifact<HeapDumpInfo>
 
   @NotNull
   @Override
-  public HeapDumpInfo getArtifactProto() {
+  public MemoryProfiler.AllocationsInfo getArtifactProto() {
     return myInfo;
   }
 
@@ -79,19 +74,14 @@ public final class HprofSessionArtifact implements SessionArtifact<HeapDumpInfo>
   @Override
   @NotNull
   public String getName() {
-    return "Heap Dump";
+    return "Allocation Records";
   }
 
   @NotNull
   public String getSubtitle() {
-    if (mySessionMetaData.getType() == Common.SessionMetaData.SessionType.MEMORY_CAPTURE) {
-      return SessionArtifact.getDisplayTime(TimeUnit.NANOSECONDS.toMillis(mySession.getStartTimestamp()));
-    }
-    else {
-      return isOngoingCapture()
-             ? CAPTURING_SUBTITLE
-             : TimeAxisFormatter.DEFAULT.getClockFormattedString(TimeUnit.NANOSECONDS.toMicros(getTimestampNs()));
-    }
+    return isOngoingCapture()
+           ? CAPTURING_SUBTITLE
+           : TimeAxisFormatter.DEFAULT.getClockFormattedString(TimeUnit.NANOSECONDS.toMicros(getTimestampNs()));
   }
 
   @Override
@@ -139,15 +129,18 @@ public final class HprofSessionArtifact implements SessionArtifact<HeapDumpInfo>
   public static List<SessionArtifact> getSessionArtifacts(@NotNull StudioProfilers profilers,
                                                           @NotNull Common.Session session,
                                                           @NotNull Common.SessionMetaData sessionMetaData) {
-    ListHeapDumpInfosResponse response = profilers.getClient().getMemoryClient()
-                                                  .listHeapDumpInfos(
-                                                    ListDumpInfosRequest.newBuilder().setSession(session)
-                                                                        .setStartTime(session.getStartTimestamp())
-                                                                        .setEndTime(session.getEndTimestamp()).build());
+    MemoryProfiler.MemoryData response = profilers.getClient().getMemoryClient()
+                                                  .getData(MemoryProfiler.MemoryRequest.newBuilder().setSession(session)
+                                                                                       .setStartTime(session.getStartTimestamp())
+                                                                                       .setEndTime(session.getEndTimestamp())
+                                                                                       .build());
 
     List<SessionArtifact> artifacts = new ArrayList<>();
-    for (HeapDumpInfo info : response.getInfosList()) {
-      artifacts.add(new HprofSessionArtifact(profilers, session, sessionMetaData, info));
+    for (MemoryProfiler.AllocationsInfo info : response.getAllocationsInfoList()) {
+      // Skip AllocationsInfo's that represent live allocations.
+      if (info.getLegacy()) {
+        artifacts.add(new LegacyAllocationsSessionArtifact(profilers, session, sessionMetaData, info));
+      }
     }
 
     return artifacts;

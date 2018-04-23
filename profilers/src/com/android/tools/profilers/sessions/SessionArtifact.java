@@ -18,6 +18,7 @@ package com.android.tools.profilers.sessions;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.protobuf3jarjar.GeneratedMessageV3;
+import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.StudioProfilers;
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
@@ -83,5 +84,22 @@ public interface SessionArtifact<T extends GeneratedMessageV3> extends Updatable
   static String getDisplayTime(long timeMs) {
     DateFormat timeFormat = new SimpleDateFormat("MM/dd/yyyy, hh:mm a");
     return timeFormat.format(new Date(timeMs));
+  }
+
+  /**
+   * Helper method to jump to the ongoing capture. We don't jump to live immediately because the ongoing capture might not fit the current
+   * zoom level. So first we adjust the zoom level to fit the current size of the ongoing capture + 10% of the view range, so the user can
+   * see the capture animating for a while before it takes the entire view range.
+   */
+  static void navigateTimelineToOngoingCapture(@NotNull ProfilerTimeline timeline, long startTimeUs) {
+    double viewRange90PercentLength = 0.9 * timeline.getViewRange().getLength();
+    double currentOngoingCaptureLength = timeline.getDataRange().getMax() - startTimeUs;
+    if (currentOngoingCaptureLength > viewRange90PercentLength) {
+      timeline.zoomOutBy(currentOngoingCaptureLength - viewRange90PercentLength);
+    }
+
+    // Then jump to live.
+    timeline.setStreaming(true);
+    timeline.setIsPaused(false);
   }
 }
