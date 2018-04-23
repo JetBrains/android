@@ -105,7 +105,7 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
         float startX = Coordinates.getSwingXDip(mySceneView, mySceneView.getScene().getRoot().getDrawX());
         float dw = Math.max(0, x - startX);
         float w = Coordinates.getSwingDimensionDip(mySceneView, mySceneView.getScene().getRoot().getDrawWidth());
-        myMotionHelper.setValue(dw / w);
+        myMotionHelper.setProgress(dw / w);
       }
     } else {
       super.update(x, y, modifiers);
@@ -119,7 +119,7 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
         float startX = Coordinates.getSwingXDip(mySceneView, mySceneView.getScene().getRoot().getDrawX());
         float dw = Math.max(0, x - startX);
         float w = Coordinates.getSwingDimensionDip(mySceneView, mySceneView.getScene().getRoot().getDrawWidth());
-        myMotionHelper.setValue(dw / w);
+        myMotionHelper.setProgress(dw / w);
       }
     } else {
       super.end(x, y, modifiers, canceled);

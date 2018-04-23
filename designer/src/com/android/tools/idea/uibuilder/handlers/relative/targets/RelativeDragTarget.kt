@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.tools.idea.common.command.NlWriteCommandAction
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.model.AttributesTransaction
+import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.target.DragBaseTarget
@@ -108,7 +109,7 @@ class RelativeDragTarget : DragBaseTarget() {
     }
   }
 
-  override fun updateAttributes(attributes: AttributesTransaction, @AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) {
+  override fun updateAttributes(attributes: NlAttributesHolder, @AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) {
     val parent = myComponent.parent ?: return
 
     // Remove offset, so (dx, dy) is the position of left-top corner of component.
@@ -125,7 +126,7 @@ class RelativeDragTarget : DragBaseTarget() {
    * Update the horizontal constraints and return the position of component on X-axis.
    */
   @AndroidDpCoordinate
-  private fun processHorizontalAttributes(attributes: AttributesTransaction, @AndroidDpCoordinate x: Int): Int {
+  private fun processHorizontalAttributes(attributes: NlAttributesHolder, @AndroidDpCoordinate x: Int): Int {
     val parent = myComponent.parent!!
 
     // Calculate horizontal constraint(s)
@@ -160,7 +161,7 @@ class RelativeDragTarget : DragBaseTarget() {
    * Calculate the align and margin on x axis.
    * This functions should only be used when there is no Notch on X axis
    */
-  private fun addHorizontalParentConstraints(attributes: AttributesTransaction, @AndroidDpCoordinate x: Int) {
+  private fun addHorizontalParentConstraints(attributes: NlAttributesHolder, @AndroidDpCoordinate x: Int) {
     val parent = myComponent.parent!!
     if (x + myComponent.drawWidth / 2 < parent.drawCenterX) {
       // near to the left side
@@ -185,7 +186,7 @@ class RelativeDragTarget : DragBaseTarget() {
   /**
    * Update the exist horizontal constraints to make them match the position of SceneComponent
    */
-  private fun updateCurrentHorizontalConstraints(attributes: AttributesTransaction) {
+  private fun updateCurrentHorizontalConstraints(attributes: NlAttributesHolder) {
     updateAlignAttributeIfNeed(attributes, LEFT_ALIGN_ATTRIBUTES, myComponent.drawLeft, LEFT_ATTRIBUTE_RULES)
     updateAlignAttributeIfNeed(attributes, RIGHT_ALIGN_ATTRIBUTES, myComponent.drawRight, RIGHT_ATTRIBUTE_RULES)
 
@@ -204,7 +205,7 @@ class RelativeDragTarget : DragBaseTarget() {
    * Update the vertical constraints and return the position of component on Y-axis.
    */
   @AndroidDpCoordinate
-  private fun processVerticalAttributes(attributes: AttributesTransaction, @AndroidDpCoordinate y: Int): Int {
+  private fun processVerticalAttributes(attributes: NlAttributesHolder, @AndroidDpCoordinate y: Int): Int {
     val parent = myComponent.parent!!
 
     // Calculate vertical constraint(s)
@@ -240,7 +241,7 @@ class RelativeDragTarget : DragBaseTarget() {
    * Calculate the align and margin on y axis.
    * This functions should only be used when there is no Notch on Y axis
    */
-  private fun addVerticalParentConstraint(attributes: AttributesTransaction, @AndroidDpCoordinate y: Int) {
+  private fun addVerticalParentConstraint(attributes: NlAttributesHolder, @AndroidDpCoordinate y: Int) {
     val parent = myComponent.parent!!
     if (y + myComponent.drawHeight / 2 < parent.drawCenterY) {
       // near to the top side
@@ -258,7 +259,7 @@ class RelativeDragTarget : DragBaseTarget() {
   /**
    * Update the exist vertical constraints to make them match the position of SceneComponent
    */
-  private fun updateVerticalConstraints(attributes: AttributesTransaction) {
+  private fun updateVerticalConstraints(attributes: NlAttributesHolder) {
     updateAlignAttributeIfNeed(attributes, TOP_ALIGN_ATTRIBUTES, myComponent.drawTop, TOP_ATTRIBUTE_RULES)
     updateAlignAttributeIfNeed(attributes, BOTTOM_ALIGN_ATTRIBUTES, myComponent.drawBottom, BOTTOM_ATTRIBUTE_RULES)
   }
@@ -279,7 +280,7 @@ class RelativeDragTarget : DragBaseTarget() {
     }
   }
 
-  private fun updateAlignAttributeIfNeed(attributes: AttributesTransaction,
+  private fun updateAlignAttributeIfNeed(attributes: NlAttributesHolder,
                                          attributesToUpdate: Array<String>,
                                          coordinateToUpdate: Int,
                                          rules: AlignAttributeRules) {
@@ -306,10 +307,10 @@ private fun hasVerticalConstraint(component: SceneComponent): Boolean {
   return VERTICAL_ALIGNING_ATTRIBUTE_NAMES.any { nlComponent.getAndroidAttribute(it) != null }
 }
 
-private fun clearHorizontalConstrains(attributes: AttributesTransaction) =
+private fun clearHorizontalConstrains(attributes: NlAttributesHolder) =
   HORIZONTAL_ALIGNING_ATTRIBUTE_NAMES.map { attributes.removeAndroidAttribute(it) }
 
-private fun clearVerticalConstrains(attributes: AttributesTransaction) =
+private fun clearVerticalConstrains(attributes: NlAttributesHolder) =
   VERTICAL_ALIGNING_ATTRIBUTE_NAMES.map { attributes.removeAndroidAttribute(it) }
 
 /**

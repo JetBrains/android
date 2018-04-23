@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.DragBaseTarget;
@@ -144,7 +145,7 @@ public class ConstraintDragTarget extends DragBaseTarget implements MultiCompone
   }
 
   @Override
-  protected void updateAttributes(@NotNull AttributesTransaction attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+  protected void updateAttributes(@NotNull NlAttributesHolder attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     SceneComponent targetStartComponent = getTargetComponent(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourStartAttributes);
     SceneComponent targetEndComponent = getTargetComponent(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourEndAttributes);
     SceneComponent targetLeftComponent = getTargetComponent(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourLeftAttributes);
@@ -295,7 +296,7 @@ public class ConstraintDragTarget extends DragBaseTarget implements MultiCompone
     ConstraintComponentUtilities.cleanup(attributes, myComponent.getNlComponent());
   }
 
-  private void applyMargin(AttributesTransaction attributes, String attribute, @AndroidDpCoordinate int currentValue) {
+  private void applyMargin(NlAttributesHolder attributes, String attribute, @AndroidDpCoordinate int currentValue) {
     currentValue = Math.max(0, currentValue);
     currentValue = currentValue / ourSnapMarginDistance * ourSnapMarginDistance; // snap
     String marginString = myComponent.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, attribute);

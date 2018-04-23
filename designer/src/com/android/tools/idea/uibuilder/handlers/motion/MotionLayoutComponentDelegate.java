@@ -16,26 +16,33 @@
 package com.android.tools.idea.uibuilder.handlers.motion;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlComponentDelegate;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
+import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.utils.Pair;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class MotionLayoutComponentDelegate implements NlComponentDelegate {
+
+  private static final boolean USE_CACHE = true;
 
   private final MotionLayoutTimelinePanel myPanel;
 
@@ -92,12 +99,12 @@ public class MotionLayoutComponentDelegate implements NlComponentDelegate {
 
   @Override
   public boolean handlesAttributes(NlComponent component) {
-    return false;
+    return true;
   }
 
   @Override
   public boolean handlesApply(ComponentModification modification) {
-    return false;
+    return true;
   }
 
   @Override
@@ -105,38 +112,46 @@ public class MotionLayoutComponentDelegate implements NlComponentDelegate {
     return true;
   }
 
+  @Nullable
+  private XmlTag getConstrainedView(@NotNull NlComponent component) {
+    String constraintSetId = null;
+    switch (myPanel.getCurrentState()) {
+      case TL_START: {
+        constraintSetId = "@+id/start";
+      } break;
+      case TL_END: {
+        constraintSetId = "@+id/end";
+      } break;
+      default:
+        return null;
+    }
+    XmlFile file = myPanel.getTransitionFile(component);
+    if (file == null) {
+      return null;
+    }
+    XmlTag constraintSet = myPanel.getConstraintSet(file, constraintSetId);
+    if (constraintSet == null) {
+      return null;
+    }
+    XmlTag constrainedView = myPanel.getConstrainView(constraintSet, component.getId());
+    if (constrainedView == null) {
+      return null;
+    }
+    return constrainedView;
+  }
+
+  HashMap<NlComponent, HashMap<Pair<String, String>, String> > mAttributesCacheStart = new HashMap<>();
+  HashMap<NlComponent, HashMap<Pair<String, String>, String> > mAttributesCacheEnd = new HashMap<>();
+  HashMap<NlComponent, List<AttributeSnapshot>> mCachedAttributes = new HashMap<>();
+
   @Override
   public String getAttribute(@NotNull NlComponent component, @Nullable String namespace, @NotNull String attribute) {
     switch (myPanel.getCurrentState()) {
       case TL_START: {
-        XmlFile file = myPanel.getTransitionFile(component);
-        if (file == null) {
-          return null;
-        }
-        XmlTag constraintSet = myPanel.getConstraintSet(file, "@+id/start");
-        if (constraintSet == null) {
-          return null;
-        }
-        XmlTag constrainedView = myPanel.getConstrainView(constraintSet, component.getId());
-        if (constrainedView == null) {
-          return null;
-        }
-        return constrainedView.getAttributeValue(attribute, namespace);
+        return getCachedAttribute(mAttributesCacheStart, component, namespace, attribute);
       }
       case TL_END: {
-        XmlFile file = myPanel.getTransitionFile(component);
-        if (file == null) {
-          return null;
-        }
-        XmlTag constraintSet = myPanel.getConstraintSet(file, "@+id/end");
-        if (constraintSet == null) {
-          return null;
-        }
-        XmlTag constrainedView = myPanel.getConstrainView(constraintSet, component.getId());
-        if (constrainedView == null) {
-          return null;
-        }
-        return constrainedView.getAttributeValue(attribute, namespace);
+        return getCachedAttribute(mAttributesCacheEnd, component, namespace, attribute);
       }
       default:
         // Quick hack to show fixed sizes while we are in the transition
@@ -148,14 +163,152 @@ public class MotionLayoutComponentDelegate implements NlComponentDelegate {
     return null;
   }
 
+  @Nullable
+  private String getCachedAttribute(@NotNull HashMap<NlComponent, HashMap<Pair<String, String>, String> > cache,
+                                    @NotNull NlComponent component, @Nullable String namespace, @NotNull String attribute) {
+    HashMap<Pair<String, String>, String> cachedComponent = null;
+    String cachedAttribute = null;
+    Pair<String, String> key = null;
+    if (USE_CACHE) {
+      cachedComponent = cache.get(component);
+      if (cachedComponent == null) {
+        cachedComponent = new HashMap<>();
+        cache.put(component, cachedComponent);
+      }
+      key = Pair.of(namespace, attribute);
+      cachedAttribute = cachedComponent.get(key);
+    }
+    if (cachedAttribute == null) {
+      XmlTag constrainedView = getConstrainedView(component);
+      if (constrainedView == null) {
+        return component.getAttributeImpl(namespace, attribute);
+      }
+      cachedAttribute = constrainedView.getAttributeValue(attribute, namespace);
+      if (USE_CACHE) {
+        cachedComponent.put(key, cachedAttribute);
+      }
+    }
+    return cachedAttribute;
+  }
+
+  private void clearCache(@NotNull NlComponent component) {
+    mCachedAttributes.remove(component);
+    mAttributesCacheStart.remove(component);
+    mAttributesCacheEnd.remove(component);
+  }
+
+  @Override
+  public void clearCaches() {
+    mCachedAttributes.clear();
+    mAttributesCacheStart.clear();
+    mAttributesCacheEnd.clear();
+  }
+
+  @Override
+  public void willRemoveChild(@NotNull NlComponent component) {
+    XmlFile file = myPanel.getTransitionFile(component);
+    if (file == null) {
+      return;
+    }
+    Project project = component.getModel().getProject();
+    new WriteCommandAction(project, "Remove component", file) {
+      @Override
+      protected void run(@NotNull Result result) throws Throwable {
+
+        XmlTag constraintSet = myPanel.getConstraintSet(file, "@+id/start");
+        if (constraintSet != null) {
+          XmlTag constrainedView = myPanel.getConstrainView(constraintSet, component.getId());
+          if (constrainedView != null) {
+            constrainedView.delete();
+          }
+        }
+        constraintSet = myPanel.getConstraintSet(file, "@+id/end");
+        if (constraintSet != null) {
+          XmlTag constrainedView = myPanel.getConstrainView(constraintSet, component.getId());
+          if (constrainedView != null) {
+            constrainedView.delete();
+          }
+        }
+        List<XmlTag> keyframes = myPanel.getKeyframes(file, component.getId());
+        for (XmlTag keyframe : keyframes) {
+          keyframe.delete();
+        }
+      }
+    }.execute();
+
+    // A bit heavy handed, but that's what LayoutLib needs...
+    LayoutPullParsers.saveFileIfNecessary(file);
+
+    // Let's warn we edited the model.
+    NlModel model = component.getModel();
+    model.notifyModified(NlModel.ChangeType.EDIT);
+    clearCache(component);
+  }
+
   @Override
   public List<AttributeSnapshot> getAttributes(NlComponent component) {
-    return null;
+    List<AttributeSnapshot> attributes = null;
+    if (USE_CACHE) {
+      mCachedAttributes.get(component);
+    }
+    if (attributes == null) {
+      XmlTag constrainedView = getConstrainedView(component);
+      if (constrainedView != null) {
+        attributes = AttributeSnapshot.createAttributesForTag(constrainedView);
+      } else {
+        attributes = Collections.emptyList();
+      }
+      if (USE_CACHE) {
+        mCachedAttributes.put(component, attributes);
+      }
+    }
+    return attributes;
   }
 
   @Override
   public void apply(ComponentModification modification) {
+    String constraintSetId = null;
+    int position = 0;
+    switch (myPanel.getCurrentState()) {
+      case TL_START: {
+        constraintSetId = "@+id/start";
+        position = 0;
+      } break;
+      case TL_END: {
+        constraintSetId = "@+id/end";
+        position = 1;
+      } break;
+      default:
+        return;
+    }
 
+    ResourceIdManager manager = ResourceIdManager.get(modification.getComponent().getModel().getModule());
+    NlComponent parent = modification.getComponent().getParent();
+    ViewInfo info = NlComponentHelperKt.getViewInfo(modification.getComponent());
+
+    MotionLayoutComponentHelper helper = new MotionLayoutComponentHelper(parent);
+
+    final Configuration configuration = modification.getComponent().getModel().getConfiguration();
+    final int dpiValue = configuration.getDensity().getDpiValue();
+    HashMap<String, String> attributes = new HashMap<>();
+    for (Pair<String, String> key : modification.getAttributes().keySet()) {
+      String value = modification.getAttributes().get(key);
+      if (value != null) {
+        if (value.startsWith("@id/") || value.startsWith("@+id/")) {
+          value = value.substring(value.indexOf('/') + 1);
+          Integer resolved = manager.getCompiledId(new ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, value));
+          if (resolved != null) {
+            value = resolved.toString();
+          }
+        } else if (value.equalsIgnoreCase("parent")) {
+          value = "0";
+        }
+      }
+      attributes.put(key.getSecond(), value);
+    }
+
+    helper.setAttributes(dpiValue, constraintSetId, info.getViewObject(), attributes);
+    helper.setProgress(position);
   }
 
   @Override
@@ -189,9 +342,18 @@ public class MotionLayoutComponentDelegate implements NlComponentDelegate {
         }
         XmlTag constrainedView = myPanel.getConstrainView(constraintSet, component.getId());
         if (constrainedView == null) {
-          return;
+          constrainedView = constraintSet.createChildTag("ConstrainView", null, "", false);
+          constrainedView = constraintSet.addSubTag(constrainedView, false);
+          String componentId = "@+id/" + component.getId();
+          constrainedView.setAttribute("id", SdkConstants.ANDROID_URI, componentId);
+          constrainedView.setAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, SdkConstants.ANDROID_URI,
+                                       component.getAttributeImpl(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH));
+          constrainedView.setAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, SdkConstants.ANDROID_URI,
+                                       component.getAttributeImpl(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT));
+          modification.commitTo(constrainedView);
+        } else {
+          modification.commitTo(constrainedView);
         }
-        modification.commitTo(constrainedView);
       }
     }.execute();
 
@@ -201,5 +363,14 @@ public class MotionLayoutComponentDelegate implements NlComponentDelegate {
     // Let's warn we edited the model.
     NlModel model = component.getModel();
     model.notifyModified(NlModel.ChangeType.EDIT);
+    clearCache(component);
   }
+
+  @Override
+  public void setAttribute(NlComponent component, String namespace, String attribute, String value) {
+    ComponentModification modification = new ComponentModification(component, "Set Attribute " + attribute);
+    modification.setAttribute(namespace, attribute, value);
+    modification.commit();
+  }
+
 }

@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.relative.targets
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.model.AttributesTransaction
+import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor
@@ -74,7 +75,7 @@ internal val SceneComponent.drawCenterY: Int
 
 internal fun Int.toDpString(): String = String.format(SdkConstants.VALUE_N_DP, this)
 
-internal fun updateAlignAttribute(component: SceneComponent, attributes: AttributesTransaction, value: Int, rules: AlignAttributeRules) {
+internal fun updateAlignAttribute(component: SceneComponent, attributes: NlAttributesHolder, value: Int, rules: AlignAttributeRules) {
   val parent = component.parent!!
   if (attributes.getAndroidAttribute(rules.alignParentAttribute) == SdkConstants.VALUE_TRUE) {
     attributes.setAndroidAttribute(rules.marginAttribute, String.format(SdkConstants.VALUE_N_DP, rules.alignParentRule(parent, value)))

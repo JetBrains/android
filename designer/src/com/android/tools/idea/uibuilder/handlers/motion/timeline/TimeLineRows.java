@@ -66,7 +66,7 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
         StackTraceElement element = st[i];
         System.out.println(" " + reason.name() + "   " + st[i].toString());
       }
-      System.out.println(" " + reason.name() +"   "+ st[5].getFileName()+":"+st[5].getLineNumber());
+      System.out.println(" " + reason.name() + "   " + st[5].getFileName() + ":" + st[5].getLineNumber());
     }
     if (reason == Reason.SELECTION_CHANGED) {
       return;
@@ -75,7 +75,7 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
       repaint();
       return;
     }
-    if (reason == Reason.RESIZE || reason == Reason.ZOOM) {
+    if (reason == Reason.RESIZE || reason == Reason.ZOOM || reason == Reason.ADDVIEW) {
       Dimension d = getPreferredSize();
       d.width = myChart.getGraphWidth();
       if (myChart.getmNumberOfViews() > 0) {
@@ -83,14 +83,15 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
         d.height = v.myYStart + v.myHeight + 1;
       }
 
-      if (myViewRows.size() == myChart.myViewElements.size()) {
+      if (reason != Reason.ADDVIEW && myViewRows.size() == myChart.myViewElements.size()) {
         int chartWidth = myChart.getGraphWidth();
         for (ViewRow row : myViewRows) {
           int pos = row.myRow;
           Gantt.ViewElement v = myChart.myViewElements.get(pos);
           Dimension dimension = row.getPreferredSize();
           if (dimension.width == chartWidth && dimension.height == v.myHeight) {
-          } else {
+          }
+          else {
             row.setPreferredSize(new Dimension(chartWidth, v.myHeight));
           }
         }
@@ -113,7 +114,7 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
           myViewRows.add(vr);
           vr.setPreferredSize(new Dimension(chartWidth, v.myHeight));
           add(vr);
-                  }
+        }
 
         revalidate();
         repaint();
@@ -331,9 +332,9 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
       pos += delta_y;
       for (MotionSceneModel.KeyCycle key : myViewElement.mKeyFrames.myKeyCycles) {
         int x = myChart.myChartLeftInset + (int)((key.framePosition * width) / 100);
-                if (key == myChart.mySelectedKeyFrame) {
+        if (key == myChart.mySelectedKeyFrame) {
           g.setColor(Chart.ourMySelectedLineColor);
-          drawDiamond(g, true, x, pos );
+          drawDiamond(g, true, x, pos);
           g.setColor(Chart.myUnSelectedLineColor);
         }
         else {

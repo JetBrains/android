@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.scene.target;
 
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.target.Target;
@@ -62,7 +63,7 @@ public abstract class Notch {
   static final int TYPE_CIRCLE = 1 << 2;
 
   public interface Action {
-    void apply(@NotNull AttributesTransaction attributes);
+    void apply(@NotNull NlAttributesHolder attributes);
   }
 
   /**
@@ -121,7 +122,7 @@ public abstract class Notch {
    *
    * @param attributes The transaction that the {@link Action} can use to modify the component
    */
-  public void applyAction(@NotNull AttributesTransaction attributes) {
+  public void applyAction(@NotNull NlAttributesHolder attributes) {
     if (myAction != null) {
       myAction.apply(attributes);
     }

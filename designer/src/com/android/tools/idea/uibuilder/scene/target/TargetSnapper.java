@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.scene.target;
 
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.target.Target;
@@ -201,7 +202,7 @@ public class TargetSnapper {
     return ret;
   }
 
-  public void applyNotches(@NotNull AttributesTransaction attributes) {
+  public void applyNotches(@NotNull NlAttributesHolder attributes) {
     if (myHorizontalNotch != null) {
       myHorizontalNotch.applyAction(attributes);
     }

@@ -31,6 +31,7 @@ public class MotionLayoutComponentHelper {
   private Method myGetMaxTimeMethod;
   private Method mySetKeyframePositionMethod;
   private Method motionLayoutAccess;
+  private Method mySetAttributesMethod;
 
   public static final int PATH_PERCENT = 0;
   public static final int PATH_PERPENDICULAR = 1;
@@ -41,6 +42,39 @@ public class MotionLayoutComponentHelper {
 
   public MotionLayoutComponentHelper(@NotNull NlComponent component) {
     myTransitionLayoutComponent = component;
+  }
+
+  public void setAttributes(int dpiValue, String constraintSetId, Object view, Object attributes) {
+    ViewInfo info = NlComponentHelperKt.getViewInfo(myTransitionLayoutComponent);
+    if (info == null) {
+      return;
+    }
+    Object instance = info.getViewObject();
+    if (mySetAttributesMethod == null) {
+      try {
+        mySetAttributesMethod = instance.getClass().getMethod("setAttributes",
+                                                             int.class, String.class, Object.class, Object.class);
+      }
+      catch (NoSuchMethodException e) {
+        e.printStackTrace();
+      }
+    }
+    if (mySetAttributesMethod != null) {
+      try {
+        RenderService.runRenderAction(() -> {
+          try {
+            mySetAttributesMethod.invoke(instance, dpiValue, constraintSetId, view, attributes);
+          }
+          catch (Exception e) {
+            mySetAttributesMethod = null;
+            e.printStackTrace();
+          }
+        });
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
   }
 
   boolean setKeyframePosition(Object view, int position, int type, float x, float y) {
@@ -92,6 +126,8 @@ public class MotionLayoutComponentHelper {
     if (myCallSetTransitionPosition == null) {
       try {
         myCallSetTransitionPosition = instance.getClass().getMethod("setToolPosition", float.class);
+        NlModel model = myTransitionLayoutComponent.getModel();
+        model.notifyLiveUpdate(false);
       }
       catch (NoSuchMethodException e) {
         e.printStackTrace();
@@ -115,16 +151,14 @@ public class MotionLayoutComponentHelper {
     }
   }
 
-  public boolean setValue(float value) {
+  public boolean setProgress(float value) {
     ViewInfo info = NlComponentHelperKt.getViewInfo(myTransitionLayoutComponent);
     if (info == null) {
       return false;
     }
     Object instance = info.getViewObject();
     try {
-      //        RenderService.runRenderAction(() -> {
       setTransitionPosition(instance, value);
-      //        });
     }
     catch (Exception e) {
       e.printStackTrace();

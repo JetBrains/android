@@ -397,7 +397,7 @@ public final class ConstraintComponentUtilities {
    * @param useRtlAttributes if true, we should use start/end
    * @param isRtl            if true, we are in RTL, otherwise in LTR
    */
-  public static void clearAnchor(AnchorTarget.Type type, AttributesTransaction transaction, boolean useRtlAttributes, boolean isRtl) {
+  public static void clearAnchor(AnchorTarget.Type type, NlAttributesHolder transaction, boolean useRtlAttributes, boolean isRtl) {
     switch (type) {
       case LEFT: {
         clearAttributes(SHERPA_URI, ourPotentialAttributes.get(AnchorTarget.Type.LEFT), transaction);
@@ -611,21 +611,20 @@ public final class ConstraintComponentUtilities {
   }
 
   public static void clearAttributes(NlComponent component) {
-    AttributesTransaction transaction = component.startAttributeTransaction();
-    clearAllAttributes(component, transaction);
-    transaction.apply();
-
-    NlWriteCommandAction.run(component, "Cleared all constraints", transaction::commit);
+    ComponentModification modification = new ComponentModification(component, "Cleared all constraints");
+    clearAllAttributes(component, modification);
+    modification.commit();
   }
 
-  public static void setDpAttribute(String uri, String attribute, AttributesTransaction transaction, int value) {
+
+  public static void setDpAttribute(String uri, String attribute, NlAttributesHolder transaction, int value) {
     if (value > 0) {
       String position = String.format(VALUE_N_DP, value);
       transaction.setAttribute(uri, attribute, position);
     }
   }
 
-  public static void clearAttributes(String uri, ArrayList<String> attributes, AttributesTransaction transaction) {
+  public static void clearAttributes(String uri, ArrayList<String> attributes, NlAttributesHolder transaction) {
     int count = attributes.size();
     for (int i = 0; i < count; i++) {
       String attribute = attributes.get(i);
@@ -633,18 +632,18 @@ public final class ConstraintComponentUtilities {
     }
   }
 
-  public static void clearAttributes(String uri, String[] attributes, AttributesTransaction transaction) {
+  public static void clearAttributes(String uri, String[] attributes, NlAttributesHolder transaction) {
     for (int i = 0; i < attributes.length; i++) {
       transaction.setAttribute(uri, attributes[i], null);
     }
   }
 
-  public static void clearAttributes(String uri, Pair<String, String> attributes, AttributesTransaction transaction) {
+  public static void clearAttributes(String uri, Pair<String, String> attributes, NlAttributesHolder transaction) {
     transaction.setAttribute(uri, attributes.getFirst(), null);
     transaction.setAttribute(uri, attributes.getSecond(), null);
   }
 
-  private static void clearConnections(NlComponent component, ArrayList<String> attributes, AttributesTransaction transaction) {
+  private static void clearConnections(NlComponent component, ArrayList<String> attributes, NlAttributesHolder transaction) {
     int count = attributes.size();
     for (int i = 0; i < count; i++) {
       String attribute = attributes.get(i);
@@ -694,7 +693,7 @@ public final class ConstraintComponentUtilities {
     }
   }
 
-  private static void clearAllAttributes(NlComponent component, AttributesTransaction transaction) {
+  private static void clearAllAttributes(NlComponent component, NlAttributesHolder transaction) {
     if (isWidthConstrained(component) && isHorizontalResizable(component)) {
       String fixedWidth = String.format(VALUE_N_DP, getDpWidth(component));
       transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, fixedWidth);
@@ -716,7 +715,7 @@ public final class ConstraintComponentUtilities {
   }
 
   public static void updateOnDelete(NlComponent component, String targetId) {
-    AttributesTransaction transaction = null;
+    ComponentModification transaction = null;
     // noinspection ConstantConditions
     transaction = updateOnDelete(component, ourLeftAttributes, transaction, targetId);
     transaction = updateOnDelete(component, ourTopAttributes, transaction, targetId);
@@ -727,22 +726,21 @@ public final class ConstraintComponentUtilities {
     transaction = updateOnDelete(component, ourEndAttributes, transaction, targetId);
 
     if (transaction != null) {
-      transaction.apply();
-      NlWriteCommandAction.run(component, "Remove constraints pointing to a deleted component", transaction::commit);
+      transaction.commit();
     }
   }
 
-  private static AttributesTransaction updateOnDelete(NlComponent component,
+  private static ComponentModification updateOnDelete(NlComponent component,
                                                       ArrayList<String> attributes,
-                                                      AttributesTransaction transaction,
+                                                      ComponentModification modification,
                                                       String targetId) {
     if (isConnectedTo(component, attributes, targetId)) {
-      if (transaction == null) {
-        transaction = component.startAttributeTransaction();
+      if (modification == null) {
+        modification = new ComponentModification(component, "Update on Delete");
       }
-      clearConnections(component, attributes, transaction);
+      clearConnections(component, attributes, modification);
     }
-    return transaction;
+    return modification;
   }
 
   private static boolean isConnectedTo(NlComponent component, ArrayList<String> attributes, String targetId) {
@@ -864,7 +862,7 @@ public final class ConstraintComponentUtilities {
     return Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getX(component));
   }
 
-  private static boolean hasAttributes(@NotNull AttributesTransaction transaction, String uri, ArrayList<String> attributes) {
+  private static boolean hasAttributes(@NotNull NlAttributesHolder transaction, String uri, ArrayList<String> attributes) {
     int count = attributes.size();
     for (int i = 0; i < count; i++) {
       String attribute = attributes.get(i);
@@ -886,27 +884,27 @@ public final class ConstraintComponentUtilities {
     return null;
   }
 
-  private static boolean hasLeft(@NotNull AttributesTransaction transaction) {
+  private static boolean hasLeft(@NotNull NlAttributesHolder transaction) {
     return hasAttributes(transaction, SHERPA_URI, ourLeftAttributes);
   }
 
-  private static boolean hasTop(@NotNull AttributesTransaction transaction) {
+  private static boolean hasTop(@NotNull NlAttributesHolder transaction) {
     return hasAttributes(transaction, SHERPA_URI, ourTopAttributes);
   }
 
-  private static boolean hasRight(@NotNull AttributesTransaction transaction) {
+  private static boolean hasRight(@NotNull NlAttributesHolder transaction) {
     return hasAttributes(transaction, SHERPA_URI, ourRightAttributes);
   }
 
-  private static boolean hasBottom(@NotNull AttributesTransaction transaction) {
+  private static boolean hasBottom(@NotNull NlAttributesHolder transaction) {
     return hasAttributes(transaction, SHERPA_URI, ourBottomAttributes);
   }
 
-  private static boolean hasStart(@NotNull AttributesTransaction transaction) {
+  private static boolean hasStart(@NotNull NlAttributesHolder transaction) {
     return hasAttributes(transaction, SHERPA_URI, ourStartAttributes);
   }
 
-  private static boolean hasEnd(@NotNull AttributesTransaction transaction) {
+  private static boolean hasEnd(@NotNull NlAttributesHolder transaction) {
     return hasAttributes(transaction, SHERPA_URI, ourEndAttributes);
   }
 
@@ -917,7 +915,7 @@ public final class ConstraintComponentUtilities {
    * @param transaction
    * @param component
    */
-  public static void cleanup(@NotNull AttributesTransaction transaction, @NotNull NlComponent component) {
+  public static void cleanup(@NotNull NlAttributesHolder transaction, @NotNull NlComponent component) {
     boolean hasLeft = hasLeft(transaction);
     boolean hasRight = hasRight(transaction);
     boolean hasTop = hasTop(transaction);
@@ -1168,11 +1166,9 @@ public final class ConstraintComponentUtilities {
     else {
       chainStyle = ATTR_LAYOUT_CHAIN_SPREAD_INSIDE;
     }
-    AttributesTransaction transaction = chainHead.startAttributeTransaction();
-    transaction.setAttribute(SHERPA_URI, orientationStyle, chainStyle);
-    transaction.apply();
-
-    NlWriteCommandAction.run(chainHead, "Cycle chain style", transaction::commit);
+    ComponentModification modification = new ComponentModification(chainHead, "Cycle Chain Style");
+    modification.setAttribute(SHERPA_URI, orientationStyle, chainStyle);
+    modification.commit();
 
     component.getScene().needsRebuildList();
   }

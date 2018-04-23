@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.scene.targets;
 
 import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.DragBaseTarget;
@@ -47,7 +48,7 @@ public class ScreenDragTarget extends DragBaseTarget implements MultiComponentTa
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
-  protected void updateAttributes(@NotNull AttributesTransaction attributes, int x, int y) {
+  protected void updateAttributes(@NotNull NlAttributesHolder attributes, int x, int y) {
     // Nothing
   }
 

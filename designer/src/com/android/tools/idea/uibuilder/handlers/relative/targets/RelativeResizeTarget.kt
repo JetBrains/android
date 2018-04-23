@@ -19,6 +19,7 @@ import com.android.tools.idea.common.model.AttributesTransaction
 import com.android.tools.idea.uibuilder.scene.target.ResizeWithSnapBaseTarget
 
 import com.android.SdkConstants.*
+import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
@@ -30,21 +31,21 @@ import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.*
  */
 class RelativeResizeTarget(type: ResizeBaseTarget.Type) : ResizeWithSnapBaseTarget(type) {
 
-  private fun updateTopHeight(attributes: AttributesTransaction, y: Int, parent: SceneComponent) {
+  private fun updateTopHeight(attributes: NlAttributesHolder, y: Int, parent: SceneComponent) {
     val stripY = maxOf(parent.drawTop, minOf(y, myStartY2))
 
     attributes.setAndroidAttribute(ATTR_LAYOUT_HEIGHT, getNewHeight(stripY))
     updateAlignAttribute(myComponent, attributes, stripY, TOP_ATTRIBUTE_RULES)
   }
 
-  private fun updateBottomHeight(attributes: AttributesTransaction, y: Int, parent: SceneComponent) {
+  private fun updateBottomHeight(attributes: NlAttributesHolder, y: Int, parent: SceneComponent) {
     val stripY = maxOf(myStartY1, minOf(y, parent.drawBottom))
 
     attributes.setAndroidAttribute(ATTR_LAYOUT_HEIGHT, getNewHeight(stripY))
     updateAlignAttribute(myComponent, attributes, stripY, BOTTOM_ATTRIBUTE_RULES)
   }
 
-  private fun updateLeftWidth(attributes: AttributesTransaction, x: Int, parent: SceneComponent) {
+  private fun updateLeftWidth(attributes: NlAttributesHolder, x: Int, parent: SceneComponent) {
     val stripX = maxOf(parent.drawLeft, minOf(x, myStartX2))
 
     attributes.setAndroidAttribute(ATTR_LAYOUT_WIDTH, getNewWidth(stripX))
@@ -54,7 +55,7 @@ class RelativeResizeTarget(type: ResizeBaseTarget.Type) : ResizeWithSnapBaseTarg
     updateAlignAttribute(myComponent, attributes, stripX, LEFT_ATTRIBUTE_RULES)
   }
 
-  private fun updateRightWidth(attributes: AttributesTransaction, x: Int, parent: SceneComponent) {
+  private fun updateRightWidth(attributes: NlAttributesHolder, x: Int, parent: SceneComponent) {
     val stripX = maxOf(myStartX1, minOf(x, parent.drawRight))
 
     attributes.setAndroidAttribute(ATTR_LAYOUT_WIDTH, getNewWidth(stripX))
@@ -64,7 +65,7 @@ class RelativeResizeTarget(type: ResizeBaseTarget.Type) : ResizeWithSnapBaseTarg
     updateAlignAttribute(myComponent, attributes, stripX, RIGHT_ATTRIBUTE_RULES)
   }
 
-  override fun updateAttributes(attributes: AttributesTransaction, x: Int, y: Int) {
+  override fun updateAttributes(attributes: NlAttributesHolder, x: Int, y: Int) {
     val parent = myComponent.parent ?: return
 
     val margins = attributes.getAndroidAttribute(ATTR_LAYOUT_MARGIN)
