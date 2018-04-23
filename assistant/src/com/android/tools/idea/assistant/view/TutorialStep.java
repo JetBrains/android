@@ -16,10 +16,10 @@
 package com.android.tools.idea.assistant.view;
 
 import com.android.tools.idea.assistant.AssistActionStateManager;
+import com.android.tools.idea.assistant.DefaultTutorialBundle;
 import com.android.tools.idea.assistant.datamodel.ActionData;
 import com.android.tools.idea.assistant.datamodel.StepData;
 import com.android.tools.idea.assistant.datamodel.StepElementData;
-import com.android.tools.idea.assistant.DefaultTutorialBundle;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
@@ -42,7 +42,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.AbstractBorder;
-import javax.swing.border.EmptyBorder;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
