@@ -40,8 +40,6 @@ public final class MemoryCaptureView extends AspectObserver {
 
   @NotNull private final JLabel myLabel;
 
-  @NotNull private final JButton myExportButton;
-
   @NotNull private final JPanel myPanel;
 
   @Nullable private CaptureObject myCaptureObject = null;
@@ -52,18 +50,10 @@ public final class MemoryCaptureView extends AspectObserver {
       .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::reset)
       .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::refresh);
 
-    myPanel = new JPanel(new TabularLayout("Fit-,Fit-,Fit-,Fit-", "*"));
+    myPanel = new JPanel(new TabularLayout("Fit-,Fit-", "*"));
 
     myLabel = new JLabel();
     myLabel.setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 3));
-
-    myExportButton = new CommonButton(AllIcons.Actions.Export);
-    myExportButton.setToolTipText("Export capture to file");
-    myExportButton.addActionListener(e -> ideProfilerComponents.createExportDialog().open(
-      () -> "Export As",
-      () -> "heapdump",
-      this::getFileExtension,
-      file -> stage.getStudioProfilers().getIdeServices().saveFile(file, this::saveToFile, null)));
     reset();
   }
 
@@ -82,7 +72,6 @@ public final class MemoryCaptureView extends AspectObserver {
     myPanel.removeAll();
     myLabel.setText("");
     myCaptureObject = myStage.getSelectedCapture();
-    myExportButton.setEnabled(false);
   }
 
   private void refresh() {
@@ -90,30 +79,9 @@ public final class MemoryCaptureView extends AspectObserver {
     boolean validCapture = captureObject == myCaptureObject && myCaptureObject != null;
 
     if (validCapture) {
-      if (captureObject.isExportable() && !myStage.isMemoryCaptureOnly()) {
-        myExportButton.setEnabled(captureObject.isExportable());
-        myPanel.add(myExportButton, new TabularLayout.Constraint(0, 0));
-        myPanel.add(new FlatSeparator(), new TabularLayout.Constraint(0, 1));
-      }
       myLabel.setText(myCaptureObject.getName());
-      myPanel.add(myLabel, new TabularLayout.Constraint(0, 2));
-      myPanel.add(new FlatSeparator(), new TabularLayout.Constraint(0, 3));
-    }
-  }
-
-  @Nullable
-  private String getFileExtension() {
-    return myCaptureObject == null ? null : myCaptureObject.getExportableExtension();
-  }
-
-  private void saveToFile(@NotNull FileOutputStream outputStream) {
-    if (myCaptureObject != null) {
-      try {
-        myCaptureObject.saveToFile(outputStream);
-      }
-      catch (IOException e) {
-        getLogger().warn(e);
-      }
+      myPanel.add(myLabel, new TabularLayout.Constraint(0, 0));
+      myPanel.add(new FlatSeparator(), new TabularLayout.Constraint(0, 1));
     }
   }
 }
