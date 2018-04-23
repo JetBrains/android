@@ -43,21 +43,28 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 public class ResourceFolderRegistry {
+  /**
+   * Lock for synchronizing access to {@link #ourDirMap}.
+   *
+   * <p>Needs to be obtained while holding the IDE read lock, to avoid deadlocks.
+   */
   private final static Object DIR_MAP_LOCK = new Object();
 
   @GuardedBy("DIR_MAP_LOCK")
   private final static Map<VirtualFile, ResourceFolderRepository> ourDirMap = Maps.newHashMap();
 
   public static void reset() {
-    synchronized (DIR_MAP_LOCK) {
-      for (Map.Entry<VirtualFile, ResourceFolderRepository> entry : ourDirMap.entrySet()) {
-        VirtualFile dir = entry.getKey();
-        ResourceFolderRepository repository = entry.getValue();
-        Project project = repository.getFacet().getModule().getProject();
-        PsiProjectListener.removeRoot(project, dir, repository);
+    ReadAction.run(() -> {
+      synchronized (DIR_MAP_LOCK) {
+        for (Map.Entry<VirtualFile, ResourceFolderRepository> entry : ourDirMap.entrySet()) {
+          VirtualFile dir = entry.getKey();
+          ResourceFolderRepository repository = entry.getValue();
+          Project project = repository.getFacet().getModule().getProject();
+          PsiProjectListener.removeRoot(project, dir, repository);
+        }
+        ourDirMap.clear();
       }
-      ourDirMap.clear();
-    }
+    });
   }
 
   @NotNull
@@ -69,15 +76,17 @@ public class ResourceFolderRegistry {
   public static ResourceFolderRepository get(@NotNull final AndroidFacet facet,
                                              @NotNull final VirtualFile dir,
                                              @NotNull ResourceNamespace namespace) {
-    synchronized (DIR_MAP_LOCK) {
-      ResourceFolderRepository repository = ourDirMap.get(dir);
-      if (repository == null) {
-        Project project = facet.getModule().getProject();
-        repository = ResourceFolderRepository.create(facet, dir, namespace);
-        putRepositoryInCache(project, dir, repository);
+    return ReadAction.compute(() -> {
+      synchronized (DIR_MAP_LOCK) {
+        ResourceFolderRepository repository = ourDirMap.get(dir);
+        if (repository == null) {
+          Project project = facet.getModule().getProject();
+          repository = ResourceFolderRepository.create(facet, dir, namespace);
+          putRepositoryInCache(project, dir, repository);
+        }
+        return repository;
       }
-      return repository;
-    }
+    });
   }
 
   private static void putRepositoryInCache(@NotNull Project project, @NotNull final VirtualFile dir,
@@ -86,10 +95,11 @@ public class ResourceFolderRegistry {
     // Some of the resources in the ResourceFolderRepository might actually contain pointers to the Project instance so we need
     // to make sure we invalidate those whenever the project is closed.
     Disposer.register(project, () -> {
-      ResourceFolderRepository repositoryFromMap;
-      synchronized (DIR_MAP_LOCK) {
-        repositoryFromMap = ourDirMap.remove(dir);
-      }
+      ResourceFolderRepository repositoryFromMap = ReadAction.compute(() -> {
+        synchronized (DIR_MAP_LOCK) {
+          return ourDirMap.remove(dir);
+        }
+      });
       if (repositoryFromMap != null) {
         Disposer.dispose(repositoryFromMap);
       }
