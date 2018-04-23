@@ -19,12 +19,15 @@ import com.android.annotations.VisibleForTesting
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
+import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.res.ResourceClassRegistry
 import com.android.tools.idea.res.ResourceIdManager
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.util.listenUntilNextSuccessfulSync
 import com.intellij.openapi.components.AbstractProjectComponent
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
+import com.intellij.util.messages.MessageBusConnection
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.android.util.AndroidUtils
 
@@ -42,9 +45,10 @@ class ClearResourceCacheAfterFirstBuild(project: Project) : AbstractProjectCompo
   @GuardedBy("lock")
   private var errorOccurred = false
   private val callbacks = mutableListOf<CacheClearedCallback>()
+  private lateinit var messageBusConnection: MessageBusConnection
 
   override fun projectOpened() {
-    listenUntilNextSuccessfulSync(myProject, listener = object: SyncResultListener {
+    messageBusConnection = listenUntilNextSuccessfulSync(myProject, listener = object : SyncResultListener {
       override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
         if (result.isSuccessful) {
           syncSucceeded()
@@ -69,6 +73,15 @@ class ClearResourceCacheAfterFirstBuild(project: Project) : AbstractProjectCompo
    * @param onSourceGenerationError callback to execute if source generation failed
    */
   fun runWhenResourceCacheClean(onCacheClean: Runnable, onSourceGenerationError: Runnable) {
+    // There's no need to wait for the first successful project sync this session if the project's sync state
+    // is already clean. In this case, we can go ahead and clear the cache and notify callbacks of a success.
+    if (this::messageBusConnection.isInitialized && !Disposer.isDisposed(messageBusConnection) && syncStateClean()) {
+      Disposer.dispose(messageBusConnection)
+      syncSucceeded()
+      onCacheClean.run()
+      return
+    }
+
     val (cacheClean, errorOccurred) = synchronized(lock) {
       if (!cacheClean) {
         callbacks.add(CacheClearedCallback(onCacheClean, onSourceGenerationError))
@@ -83,6 +96,11 @@ class ClearResourceCacheAfterFirstBuild(project: Project) : AbstractProjectCompo
     else if (errorOccurred) {
       onSourceGenerationError.run()
     }
+  }
+
+  private fun syncStateClean(): Boolean {
+    val syncManager = myProject.getSyncManager()
+    return !syncManager.isSyncInProgress() && !syncManager.isSyncNeeded() && syncManager.getLastSyncResult().isSuccessful
   }
 
   /**
