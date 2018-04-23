@@ -105,6 +105,8 @@ public class TutorialChooser extends CardViewPanel {
     serviceScroller.setOpaque(false);
     serviceScroller.getViewport().setOpaque(false);
     add(serviceScroller, BorderLayout.CENTER);
+    // reset the scroll bars after render see b/77530149
+    SwingUtilities.invokeLater(() -> serviceScroller.getVerticalScrollBar().setValue(0));
   }
 
   /**

@@ -92,6 +92,8 @@ public class TutorialCard extends CardViewPanel {
       add(new StepByStepFooter(), BorderLayout.SOUTH);
     }
     redraw();
+    // reset the scroll bars after render see b/77530149
+    SwingUtilities.invokeLater(() -> initScrollValues());
   }
 
   /**
@@ -100,6 +102,10 @@ public class TutorialCard extends CardViewPanel {
   @Override
   public void setVisible(boolean aFlag) {
     super.setVisible(aFlag);
+    initScrollValues();
+  }
+
+  private void initScrollValues() {
     JScrollBar verticalScrollBar = myContentsScroller.getVerticalScrollBar();
     JScrollBar horizontalScrollBar = myContentsScroller.getHorizontalScrollBar();
     verticalScrollBar.setValue(verticalScrollBar.getMinimum());
