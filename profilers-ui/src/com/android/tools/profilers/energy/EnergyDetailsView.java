@@ -73,7 +73,7 @@ public class EnergyDetailsView extends JPanel {
     closeButton.setAlignmentY(CENTER_ALIGNMENT);
     rootPanel.add(closeButton, new TabularLayout.Constraint(0, 1));
     rootPanel.add(titlePanel, new TabularLayout.Constraint(0, 0, 1, 2));
-    rootPanel.add(detailsPanel, new TabularLayout.Constraint(1, 0, 1, 2));
+    rootPanel.add(detailsScrollPane, new TabularLayout.Constraint(1, 0, 1, 2));
     add(rootPanel);
   }
 
