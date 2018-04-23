@@ -32,10 +32,10 @@ public class ConvertToDpQuickFix implements AndroidLintQuickFix {
       return;
     }
     final XmlTag tag = PsiTreeUtil.getParentOfType(startElement, XmlTag.class);
-    final List<Density> densities = new ArrayList<Density>();
+    final List<Density> densities = new ArrayList<>();
 
     for (Density density : Density.values()) {
-      if (density.getDpiValue() > 0) {
+      if (density.isValidValueForDevice()) {
         densities.add(density);
       }
     }
@@ -49,11 +49,7 @@ public class ConvertToDpQuickFix implements AndroidLintQuickFix {
       final Density density = densities.get(i);
       densityPresentableNames[i] = getLabelForDensity(density);
 
-      final int dpi = density.getDpiValue();
-      if (dpi == 0) {
-        continue;
-      }
-
+      int dpi = density.getDpiValue();
       if (dpi == ourPrevDpi) {
         initialValue = densityPresentableNames[i];
       }
