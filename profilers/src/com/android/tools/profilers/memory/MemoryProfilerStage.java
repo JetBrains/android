@@ -260,31 +260,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
     myUpdateCaptureOnSelection = false;
     Range selectionRange = getStudioProfilers().getTimeline().getSelectionRange();
-    Range intersection;
-    CaptureDurationData<? extends CaptureObject> durationData = null;
-    double overlap = 0.0f; // Weight value to determine which capture is "more" selected.
-
-    List<SeriesData<CaptureDurationData<CaptureObject>>> series =
-      new ArrayList<>(getAllocationInfosDurations().getSeries().getDataSeries().getDataForXRange(selectionRange));
-    // Heap dumps break ties vs allocations.
-    series.addAll(getHeapDumpSampleDurations().getSeries().getDataSeries().getDataForXRange(selectionRange));
-
-    for (SeriesData<CaptureDurationData<CaptureObject>> data : series) {
-      long duration = data.value.getDurationUs();
-      if (duration == Long.MAX_VALUE && !data.value.getSelectableWhenMaxDuration()) {
-        continue;
-      }
-
-      long dataMax = duration == Long.MAX_VALUE ? duration : data.x + duration;
-      Range c = new Range(data.x, dataMax);
-      intersection = c.getIntersection(selectionRange);
-      if (!intersection.isEmpty() && intersection.getLength() >= overlap) {
-        durationData = data.value;
-        overlap = intersection.getLength();
-      }
-    }
-
-    selectCaptureDuration(durationData, SwingUtilities::invokeLater);
+    selectCaptureDuration(getIntersectingCaptureDuration(selectionRange), SwingUtilities::invokeLater);
     myUpdateCaptureOnSelection = true;
   }
 
@@ -437,6 +413,38 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       return timeResponse.getTimestampNs() - myPendingLegacyAllocationStartTimeNs;
     }
     return INVALID_START_TIME;
+  }
+
+  /**
+   * Returns the capture object whose range overlaps with a given range. If multiple captures overlap with it,
+   * the first object found is returned.
+   */
+  @Nullable
+  public CaptureDurationData<? extends CaptureObject> getIntersectingCaptureDuration(@NotNull Range range) {
+    Range intersection;
+    CaptureDurationData<? extends CaptureObject> durationData = null;
+    double overlap = 0.0f; // Weight value to determine which capture is "more" selected.
+
+    List<SeriesData<CaptureDurationData<CaptureObject>>> series =
+      new ArrayList<>(getAllocationInfosDurations().getSeries().getDataSeries().getDataForXRange(range));
+    // Heap dumps break ties vs allocations.
+    series.addAll(getHeapDumpSampleDurations().getSeries().getDataSeries().getDataForXRange(range));
+
+    for (SeriesData<CaptureDurationData<CaptureObject>> data : series) {
+      long duration = data.value.getDurationUs();
+      if (duration == Long.MAX_VALUE && !data.value.getSelectableWhenMaxDuration()) {
+        continue;
+      }
+
+      long dataMax = duration == Long.MAX_VALUE ? duration : data.x + duration;
+      Range c = new Range(data.x, dataMax);
+      intersection = c.getIntersection(range);
+      if (!intersection.isEmpty() && intersection.getLength() >= overlap) {
+        durationData = data.value;
+        overlap = intersection.getLength();
+      }
+    }
+    return durationData;
   }
 
   public boolean useLiveAllocationTracking() {

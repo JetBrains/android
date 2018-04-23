@@ -25,6 +25,7 @@ import com.android.tools.profilers.*;
 import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.sessions.SessionsManager;
+import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.util.io.FileUtil;
@@ -273,6 +274,49 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     DumpDataResponse response = myProfilers.getClient().getMemoryClient().getHeapDump(request);
 
     assertThat(response.getData()).isEqualTo(ByteString.copyFrom(data, Charset.defaultCharset()));
+  }
+
+  @Test
+  public void testContextMenu() {
+    MemoryProfilerStageView stageView = (MemoryProfilerStageView)myProfilersView.getStageView();
+    FakeIdeProfilerComponents ideProfilerComponents = (FakeIdeProfilerComponents)stageView.getIdeComponents();
+    ContextMenuItem[] items = ideProfilerComponents.getAllContextMenuItems().toArray(new ContextMenuItem[0]);
+
+    assertThat(items.length).isEqualTo(13);
+    assertThat(items[0].getText()).isEqualTo("Export...");
+    assertThat(items[1]).isEqualTo(ContextMenuItem.SEPARATOR);
+    assertThat(items[2].getText()).isEqualTo("Record allocations");
+    assertThat(items[3].getText()).isEqualTo("Stop recording");
+    assertThat(items[4].getText()).isEqualTo("Force garbage collection");
+    assertThat(items[5]).isEqualTo(ContextMenuItem.SEPARATOR);
+    assertThat(items[6].getText()).isEqualTo("Dump Java heap");
+    assertThat(items[7]).isEqualTo(ContextMenuItem.SEPARATOR);
+    assertThat(items[8].getText()).isEqualTo("Attach to Live");
+    assertThat(items[9].getText()).isEqualTo("Detach from Live");
+    assertThat(items[10]).isEqualTo(ContextMenuItem.SEPARATOR);
+    assertThat(items[11].getText()).isEqualTo("Zoom in");
+    assertThat(items[12].getText()).isEqualTo("Zoom out");
+
+    // Adding allocation info to make getStage().useLiveAllocationTracking() return true;
+    myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(AllocationsInfo.newBuilder()
+                                                                                      .setStatus(AllocationsInfo.Status.IN_PROGRESS)
+                                                                                      .setStartTime(1).setEndTime(5)
+                                                                                      .setLegacy(false).build()).build());
+    ideProfilerComponents.clearContextMenuItems();
+    new MemoryProfilerStageView(myProfilersView, myStage);
+    items = ideProfilerComponents.getAllContextMenuItems().toArray(new ContextMenuItem[0]);
+    assertThat(items.length).isEqualTo(11);
+    assertThat(items[0].getText()).isEqualTo("Export...");
+    assertThat(items[1]).isEqualTo(ContextMenuItem.SEPARATOR);
+    assertThat(items[2].getText()).isEqualTo("Force garbage collection");
+    assertThat(items[3]).isEqualTo(ContextMenuItem.SEPARATOR);
+    assertThat(items[4].getText()).isEqualTo("Dump Java heap");
+    assertThat(items[5]).isEqualTo(ContextMenuItem.SEPARATOR);
+    assertThat(items[6].getText()).isEqualTo("Attach to Live");
+    assertThat(items[7].getText()).isEqualTo("Detach from Live");
+    assertThat(items[8]).isEqualTo(ContextMenuItem.SEPARATOR);
+    assertThat(items[9].getText()).isEqualTo("Zoom in");
+    assertThat(items[10].getText()).isEqualTo("Zoom out");
   }
 
   private void assertSelection(@Nullable CaptureObject expectedCaptureObject,

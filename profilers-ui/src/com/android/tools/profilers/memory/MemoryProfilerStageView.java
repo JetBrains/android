@@ -36,6 +36,7 @@ import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.SystemInfo;
@@ -54,6 +55,7 @@ import sun.swing.SwingUtilities2;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
@@ -63,6 +65,9 @@ import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
 import static java.awt.event.InputEvent.META_DOWN_MASK;
 
 public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
+  private static Logger getLogger() {
+    return Logger.getInstance(MemoryProfilerStageView.class);
+  }
 
   @NotNull private final MemoryCaptureView myCaptureView = new MemoryCaptureView(getStage(), getIdeComponents());
   @NotNull private final MemoryHeapView myHeapView = new MemoryHeapView(getStage());
@@ -180,7 +185,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     captureObjectChanged();
     allocationTrackingChanged();
-    buildContextMenu(mySelectionComponent);
+    buildContextMenu();
   }
 
   @Override
@@ -263,6 +268,12 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull
   MemoryInstanceDetailsView getInstanceDetailsView() {
     return myInstanceDetailsView;
+  }
+
+  @VisibleForTesting
+  @Nullable
+  SelectionComponent getSelectionComponent() {
+    return mySelectionComponent;
   }
 
   @VisibleForTesting
@@ -486,24 +497,57 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     return panel;
   }
 
-  private void buildContextMenu(@Nullable JComponent component) {
-    if (component == null) {
+  private void buildContextMenu() {
+    if (mySelectionComponent == null) {
       return;
     }
 
     IdeProfilerComponents ideProfilerComponents = getIdeComponents();
     ContextMenuInstaller contextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
 
-    if (!getStage().useLiveAllocationTracking()) {
-      contextMenuInstaller.installGenericContextMenu(component, myAllocationAction);
-      contextMenuInstaller.installGenericContextMenu(component, myStopAllocationAction);
-    }
-    contextMenuInstaller.installGenericContextMenu(component, myForceGarbageCollectionAction);
-    contextMenuInstaller.installGenericContextMenu(component, ContextMenuItem.SEPARATOR);
-    contextMenuInstaller.installGenericContextMenu(component, myHeapDumpAction);
-    contextMenuInstaller.installGenericContextMenu(component, ContextMenuItem.SEPARATOR);
+    ProfilerAction exportHeapDumpAction = new ProfilerAction.Builder("Export...").setIcon(StudioIcons.Common.EXPORT).build();
+    contextMenuInstaller.installGenericContextMenu(
+      mySelectionComponent, exportHeapDumpAction,
+      x -> getCaptureIntersectingWithMouseX(x) != null &&
+           getCaptureIntersectingWithMouseX(x).isExportable(),
+      x -> getIdeComponents().createExportDialog().open(
+        () -> "Export capture to file",
+        () -> getCaptureIntersectingWithMouseX(x).getName(),
+        () -> getCaptureIntersectingWithMouseX(x).getExportableExtension(),
+        file -> getStage().getStudioProfilers().getIdeServices().saveFile(
+          file,
+          (output) -> {
+            try {
+              getCaptureIntersectingWithMouseX(x).saveToFile(output);
+            }
+            catch (IOException e) {
+              getLogger().warn(e);
+            }
+          }, null)));
+    contextMenuInstaller.installGenericContextMenu(mySelectionComponent, ContextMenuItem.SEPARATOR);
 
-    getProfilersView().installCommonMenuItems(component);
+    if (!getStage().useLiveAllocationTracking()) {
+      contextMenuInstaller.installGenericContextMenu(mySelectionComponent, myAllocationAction);
+      contextMenuInstaller.installGenericContextMenu(mySelectionComponent, myStopAllocationAction);
+    }
+    contextMenuInstaller.installGenericContextMenu(mySelectionComponent, myForceGarbageCollectionAction);
+    contextMenuInstaller.installGenericContextMenu(mySelectionComponent, ContextMenuItem.SEPARATOR);
+    contextMenuInstaller.installGenericContextMenu(mySelectionComponent, myHeapDumpAction);
+    contextMenuInstaller.installGenericContextMenu(mySelectionComponent, ContextMenuItem.SEPARATOR);
+
+    getProfilersView().installCommonMenuItems(mySelectionComponent);
+  }
+
+  /**
+   * Returns the memory capture object that intersects with the mouse X coordinate within {@link #mySelectionComponent}.
+   */
+  @Nullable
+  private CaptureObject getCaptureIntersectingWithMouseX(int mouseXLocation) {
+    assert mySelectionComponent != null;
+    Range range = getTimeline().getViewRange();
+    double pos = mouseXLocation / mySelectionComponent.getSize().getWidth() * range.getLength() + range.getMin();
+    CaptureDurationData<? extends CaptureObject> durationData = getStage().getIntersectingCaptureDuration(new Range(pos, pos));
+    return durationData == null ? null : durationData.getCaptureEntry().getCaptureObject();
   }
 
   private void installProfilingInstructions(@NotNull JPanel parent) {
