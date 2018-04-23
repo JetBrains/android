@@ -57,7 +57,7 @@ public class ScreenshotsDuringTest extends TestWatcher {
   protected void starting(Description description) {
     String folderName = description.getTestClass().getSimpleName() + "-" + description.getMethodName();
     try {
-      myFolder = new File(IdeTestApplication.getFailedTestScreenshotDirPath(), folderName);
+      myFolder = new File(GuiTests.getFailedTestScreenshotDirPath(), folderName);
       ensureExists(myFolder);
     }
     catch (IOException e) {

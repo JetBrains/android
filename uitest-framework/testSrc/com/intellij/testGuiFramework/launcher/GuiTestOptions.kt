@@ -29,8 +29,6 @@ object GuiTestOptions {
 
   var buildSystem = TargetBuildSystem.BuildSystem.GRADLE
 
-  fun getConfigPath(): String = PathManager.getConfigPath()
-  fun getSystemPath(): String = PathManager.getSystemPath()
   fun getPluginPath(): String = getSystemProperty("plugin.path", "")
   fun isDebug(): Boolean = getSystemProperty("idea.debug.mode", false)
 
