@@ -307,8 +307,10 @@ public class RenderService extends AndroidFacetScopedService {
 
       return task;
     } catch (IllegalStateException | IncorrectOperationException | AssertionError e) {
-      // We can get this exception if the module/project is closed while we are updating the model. Ignore it.
-      assert isDisposed() || getFacet().isDisposed();
+      // Ignore the exception if it was generated when the facet is being disposed (project is being closed)
+      if (!isDisposed() && !getFacet().isDisposed()) {
+        throw e;
+      }
     }
 
     return null;
