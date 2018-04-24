@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.ui
 
 import com.android.tools.idea.gradle.structure.configurables.ConfigurablesTreeModel
 import com.google.common.collect.Lists
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -41,7 +42,7 @@ abstract class ConfigurablesMasterDetailsPanel<ModelT>(
     private val placeName: String,
     private val treeModel: ConfigurablesTreeModel,
     private val uiSettings: PsUISettings
-) : MasterDetailsComponent(), ModelPanel<ModelT>, Place.Navigator, PanelWithUiState {
+) : MasterDetailsComponent(), ModelPanel<ModelT>, Place.Navigator, PanelWithUiState, Disposable {
 
   private var inQuietSelection = false
 
@@ -54,9 +55,12 @@ abstract class ConfigurablesMasterDetailsPanel<ModelT>(
     splitter.orientation = true
     (splitter as JBSplitter).splitterProportionKey = "android.psd.proportion.configurables"
     tree.model = treeModel
+    myRoot = treeModel.rootNode as MyNode
     tree.isRootVisible = false
     TreeUtil.expandAll(tree)
   }
+
+  override fun dispose() = disposeUIResources()
 
   override fun createActions(fromPopup: Boolean): ArrayList<AnAction>? {
     val result = mutableListOf<AnAction>()
