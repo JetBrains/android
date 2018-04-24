@@ -171,6 +171,11 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       }
 
       @Override
+      public boolean isCpuApiTracingEnabled() {
+        return StudioFlags.PROFILER_CPU_API_TRACING.get();
+      }
+
+      @Override
       public boolean isCpuCaptureFilterEnabled() {
         return StudioFlags.PROFILER_CPU_CAPTURE_FILTER.get();
       }
@@ -231,13 +236,13 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isSessionsEnabled() {
-        return StudioFlags.PROFILER_SHOW_SESSIONS.get();
+      public boolean isSessionImportEnabled() {
+        return StudioFlags.PROFILER_IMPORT_SESSION.get();
       }
 
       @Override
-      public boolean isSessionImportEnabled() {
-        return StudioFlags.PROFILER_IMPORT_SESSION.get();
+      public boolean isSessionsEnabled() {
+        return StudioFlags.PROFILER_SHOW_SESSIONS.get();
       }
 
       @Override
@@ -248,11 +253,6 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isStartupCpuProfilingEnabled() {
         return StudioFlags.PROFILER_STARTUP_CPU_PROFILING.get();
-      }
-
-      @Override
-      public boolean isCpuApiTracingEnabled() {
-        return StudioFlags.PROFILER_CPU_API_TRACING.get();
       }
     };
   }

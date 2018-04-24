@@ -213,6 +213,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
+      public boolean isCpuApiTracingEnabled() {
+        return myIsCpuApiTracingEnabled;
+      }
+
+      @Override
       public boolean isCpuCaptureFilterEnabled() {
         return false;
       }
@@ -271,13 +276,13 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isSessionsEnabled() {
-        return mySessionsViewEnabled;
+      public boolean isSessionImportEnabled() {
+        return mySessionsImportEnabled;
       }
 
       @Override
-      public boolean isSessionImportEnabled() {
-        return mySessionsImportEnabled;
+      public boolean isSessionsEnabled() {
+        return mySessionsViewEnabled;
       }
 
       @Override
@@ -288,11 +293,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isStartupCpuProfilingEnabled() {
         return myStartupCpuProfilingEnabled;
-      }
-
-      @Override
-      public boolean isCpuApiTracingEnabled() {
-        return myIsCpuApiTracingEnabled;
       }
     };
   }
