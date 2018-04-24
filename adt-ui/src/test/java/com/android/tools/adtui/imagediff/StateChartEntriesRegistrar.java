@@ -69,7 +69,7 @@ class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
       protected void setUp() {
         super.setUp();
         // Move the mouse over an element other than the first (which is transparent).
-        myStateChart.mouseMoved(new MouseEvent(myStateChart, 0, 0, 0, 130, 0, 0, false, 0));
+        myStateChart.dispatchEvent(new MouseEvent(myStateChart, MouseEvent.MOUSE_MOVED, 0, 0, 130, 0, 0, false, 0));
       }
 
       @Override
@@ -86,7 +86,7 @@ class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
       protected void setUp() {
         super.setUp();
         // Ensure that mouse exit moves off all elements.
-        myStateChart.mouseExited(new MouseEvent(myStateChart, 0, 0, 0, 0, 0, 0, false, 0));
+        myStateChart.dispatchEvent(new MouseEvent(myStateChart, MouseEvent.MOUSE_EXITED, 0, 0, 0, 0, 0, false, 0));
       }
 
       @Override
@@ -102,8 +102,8 @@ class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
       @Override
       protected void setUp() {
         super.setUp();
-        // Ensure that mouse exit moves off all elements.
-        myStateChart.mouseMoved(new MouseEvent(myStateChart, 0, 0, 0, 0, 0, 0, false, 0));
+        // Ensure that mouse over moves off all elements.
+        myStateChart.dispatchEvent(new MouseEvent(myStateChart, MouseEvent.MOUSE_MOVED, 0, 0, 0, 0, 0, false, 0));
       }
 
       @Override
@@ -124,7 +124,7 @@ class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
       protected void setUp() {
         super.setUp();
         // Ensure that mouse exit moves off all elements.
-        myStateChart.mouseMoved(new MouseEvent(myStateChart, 0, 0, 0, 0, 0, 0, false, 0));
+        myStateChart.dispatchEvent(new MouseEvent(myStateChart, MouseEvent.MOUSE_MOVED, 0, 0, 0, 0, 0, false, 0));
       }
 
       @Override
