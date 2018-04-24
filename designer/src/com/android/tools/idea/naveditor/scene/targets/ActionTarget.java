@@ -226,7 +226,7 @@ public class ActionTarget extends BaseTarget {
     if (sourceId.equals(targetId)) {
       @SwingCoordinate Point[] points = getSelfActionPoints(mySourceRect, transform);
       for (int i = 1; i < points.length; i++) {
-        picker.addLine(this, 5, points[i - 1].x, points[i - 1].y, points[i].x, points[i].y);
+        picker.addLine(this, 0, points[i - 1].x, points[i - 1].y, points[i].x, points[i].y, 5);
       }
 
       return;

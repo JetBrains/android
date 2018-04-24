@@ -28,10 +28,16 @@ public class ScenePickerTest extends TestCase {
   double error = 0;
 
   public void testLine() {
+    testLine(0, 10);
+    testLine(5, 5);
+    testLine(10, 0);
+  }
+
+  private void testLine(int range, int w) {
     ScenePicker scenePicker = new ScenePicker();
     scenePicker.reset();
-    scenePicker.addLine(new Integer(1), 10, 10, 10, 100, 100);
-    scenePicker.addLine(new Integer(1), 10, 2100, 2100, 1100, 1100);
+    scenePicker.addLine(new Integer(1), range, 10, 10, 100, 100, w);
+    scenePicker.addLine(new Integer(1), range, 2100, 2100, 1100, 1100, w);
     boolean[] found = new boolean[1];
     scenePicker.setSelectListener((obj, dist) -> {
       assertEquals(1, Math.toIntExact((Integer)obj));
@@ -54,7 +60,7 @@ public class ScenePickerTest extends TestCase {
     scenePicker.find(100, 100);
     assertTrue(found[0]);
     found[0] = false;
-    expectedDistance = Math.hypot(7, 7);
+    expectedDistance = Math.max(Math.hypot(7, 7) - w, 0);
 
     scenePicker.find(3, 3);
     assertTrue(found[0]);
