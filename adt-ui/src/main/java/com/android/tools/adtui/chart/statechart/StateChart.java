@@ -17,16 +17,18 @@
 package com.android.tools.adtui.chart.statechart;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.adtui.MouseAdapterComponent;
+import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.Stopwatch;
 import com.intellij.ui.ColorUtil;
+import com.intellij.util.ui.MouseEventHandler;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,7 +38,8 @@ import java.util.Map;
 /**
  * A chart component that renders series of state change events as rectangles.
  */
-public final class StateChart<T> extends MouseAdapterComponent {
+public final class StateChart<T> extends AnimatedComponent {
+  public static final float INVALID_MOUSE_POSITION = -Float.MAX_VALUE;
 
   public enum RenderMode {
     BAR,  // Each state is rendered as a filled rectangle until the next state changed.
@@ -69,7 +72,7 @@ public final class StateChart<T> extends MouseAdapterComponent {
   private final List<Rectangle2D.Float> myRectangles = new ArrayList<>();
   private final List<T> myRectangleValues = new ArrayList<>();
 
-  private float myRectHeight = 1.0f;
+  private float myMouseX = INVALID_MOUSE_POSITION;
 
   /**
    * @param colors map of a state to corresponding color
@@ -115,6 +118,7 @@ public final class StateChart<T> extends MouseAdapterComponent {
     setFont(AdtUiUtils.DEFAULT_FONT);
     setModel(model);
     setHeightGap(myConfig.getHeightGap());
+    registerMouseEvents();
   }
 
   public void setModel(@NotNull StateChartModel<T> model) {
@@ -192,9 +196,9 @@ public final class StateChart<T> extends MouseAdapterComponent {
     }
 
     // TODO support interpolation.
-    myRectHeight = 1.0f / seriesSize;
-    float gap = myRectHeight * myHeightGap;
-    float barHeight = (1.0f - gap) * myRectHeight;
+    float rectHeight = 1.0f / seriesSize;
+    float gap = rectHeight * myHeightGap;
+    float barHeight = (1.0f - gap) * rectHeight;
 
     clearRectangles();
 
@@ -204,7 +208,7 @@ public final class StateChart<T> extends MouseAdapterComponent {
       final double min = data.getXRange().getMin();
       final double max = data.getXRange().getMax();
       final double invRange = 1.0 / (max - min);
-      float startHeight = 1.0f - (myRectHeight * (seriesIndex + 1));
+      float startHeight = 1.0f - (rectHeight * (seriesIndex + 1));
 
       List<SeriesData<T>> seriesDataList = data.getSeries();
       if (seriesDataList.isEmpty()) {
@@ -287,8 +291,8 @@ public final class StateChart<T> extends MouseAdapterComponent {
     long reducerTime = stopwatch.getElapsedSinceLastDeltaNs();
     int hoverIndex = -1;
     //noinspection FloatingPointEquality
-    if (getMouseX() != MouseAdapterComponent.INVALID_MOUSE_POSITION) {
-      float mouseXFloor = (float)Math.floor(getMouseX());
+    if (myMouseX != INVALID_MOUSE_POSITION) {
+      float mouseXFloor = (float)Math.floor(myMouseX);
       // Encode mouseXFloor into width component of the Rectangle2D.Float key to avoid recalculating on every invocation of the Comparable.
       hoverIndex = Collections.binarySearch(transformedShapes,
                                             new Rectangle2D.Float(mouseXFloor, 0, mouseXFloor + 1.0f, 0),
@@ -320,6 +324,23 @@ public final class StateChart<T> extends MouseAdapterComponent {
     addDebugInfo("RDT ms: %.2f, %.2f, %.2f", reducerTime / 1000000.f, drawTime / 1000000.f,
                  (scalingTime + reducerTime + drawTime) / 1000000.f);
     addDebugInfo("# of drawn rects: %d", transformedShapes.size());
+  }
+
+  private void registerMouseEvents() {
+    MouseEventHandler handler = new MouseEventHandler() {
+      @Override
+      protected void handle(MouseEvent event) {
+        if (event.getID() == MouseEvent.MOUSE_EXITED) {
+          myMouseX = INVALID_MOUSE_POSITION;
+        }
+        else {
+          myMouseX = event.getX();
+        }
+        opaqueRepaint();
+      }
+    };
+    addMouseListener(handler);
+    addMouseMotionListener(handler);
   }
 }
 
