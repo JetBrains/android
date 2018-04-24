@@ -25,12 +25,12 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.sessions.SessionArtifact;
 import org.jetbrains.annotations.NotNull;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import static com.android.tools.profilers.memory.MemoryProfiler.saveHeapDumpToFile;
 
 /**
  * An artifact representation of a memory heap dump.
@@ -134,6 +134,11 @@ public final class HprofSessionArtifact implements SessionArtifact<HeapDumpInfo>
     }
 
     myProfilers.getIdeServices().getFeatureTracker().trackSessionArtifactSelected(this, myProfilers.getSessionsManager().isSessionAlive());
+  }
+
+  void saveToFile(@NotNull OutputStream outputStream) {
+    saveHeapDumpToFile(myProfilers.getClient().getMemoryClient(), mySession, myInfo, outputStream,
+                       myProfilers.getIdeServices().getFeatureTracker());
   }
 
   public static List<SessionArtifact> getSessionArtifacts(@NotNull StudioProfilers profilers,

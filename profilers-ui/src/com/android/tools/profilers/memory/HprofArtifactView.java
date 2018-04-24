@@ -15,11 +15,15 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.profilers.ProfilerAction;
 import com.android.tools.profilers.sessions.SessionArtifactView;
+import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * A {@link SessionArtifactView} that represents a heap dump object.
@@ -34,5 +38,21 @@ public final class HprofArtifactView extends SessionArtifactView<HprofSessionArt
   protected JComponent buildComponent() {
     return buildCaptureArtifactView(getArtifact().getName(), getArtifact().getSubtitle(), StudioIcons.Profiler.Sessions.HEAP,
                                     getArtifact().isOngoingCapture());
+  }
+
+  @Override
+  protected List<ContextMenuItem> getContextMenus() {
+    ProfilerAction action = new ProfilerAction.Builder("Export...")
+      .setEnableBooleanSupplier(() -> !getArtifact().isOngoingCapture())
+      .setActionRunnable(() -> {
+        getSessionsView().getIdeProfilerComponents().createExportDialog().open(
+          () -> "Export As",
+          () -> getArtifact().getName(),
+          () -> "hprof",
+          file -> getSessionsView().getProfilers().getIdeServices()
+                                   .saveFile(file, outputStream -> getArtifact().saveToFile(outputStream), null));
+      })
+      .build();
+    return Collections.singletonList(action);
   }
 }

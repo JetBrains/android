@@ -15,11 +15,15 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.profilers.ProfilerAction;
 import com.android.tools.profilers.sessions.SessionArtifactView;
+import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * A {@link SessionArtifactView} that represents a CPU capture object.
@@ -34,5 +38,21 @@ public class CpuCaptureArtifactView extends SessionArtifactView<CpuCaptureSessio
   protected JComponent buildComponent() {
     return buildCaptureArtifactView(getArtifact().getName(), getArtifact().getSubtitle(), StudioIcons.Profiler.Sessions.CPU,
                                     getArtifact().isOngoingCapture());
+  }
+
+  @Override
+  protected List<ContextMenuItem> getContextMenus() {
+    ProfilerAction action = new ProfilerAction.Builder("Export...")
+      .setEnableBooleanSupplier(() -> !getArtifact().isOngoingCapture())
+      .setActionRunnable(() -> {
+        getSessionsView().getIdeProfilerComponents().createExportDialog().open(
+          () -> "Export As",
+          () -> CpuProfiler.generateCaptureFileName(getArtifact().getArtifactProto().getProfilerType()),
+          () -> "trace",
+          file -> getArtifact().getProfilers().getIdeServices().saveFile(file, outputStream -> CpuProfiler
+            .saveCaptureToFile(getArtifact().getArtifactProto(), outputStream), null));
+      })
+      .build();
+    return Collections.singletonList(action);
   }
 }

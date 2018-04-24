@@ -31,10 +31,8 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.ui.HideablePanel;
-import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuProfiler.TraceInitiationType;
 import com.android.tools.profilers.*;
-import com.android.tools.profilers.cpu.atrace.AtraceExporter;
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
 import com.android.tools.profilers.event.*;
 import com.android.tools.profilers.sessions.SessionAspect;
@@ -47,8 +45,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
@@ -71,11 +67,6 @@ import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -843,12 +834,10 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       x -> exportTrace.isEnabled() && getTraceIntersectingWithMouseX(x) != null,
       x -> getIdeComponents().createExportDialog().open(
         () -> "Export trace as",
-        () -> generateTraceName(getTraceIntersectingWithMouseX(x)),
+        () -> CpuProfiler.generateCaptureFileName(getTraceIntersectingWithMouseX(x).getProfilerType()),
         () -> "trace",
         file -> getStage().getStudioProfilers().getIdeServices().saveFile(
-          file,
-          (output) -> exportTraceFile(output, getTraceIntersectingWithMouseX(x)),
-          null)));
+          file, (output) -> CpuProfiler.saveCaptureToFile(getTraceIntersectingWithMouseX(x).getTraceInfo(), output), null)));
     contextMenuInstaller.installGenericContextMenu(mySelection, ContextMenuItem.SEPARATOR);
   }
 
@@ -868,51 +857,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     contextMenuInstaller.installGenericContextMenu(mySelection, record);
     contextMenuInstaller.installGenericContextMenu(mySelection, ContextMenuItem.SEPARATOR);
-  }
-
-  /**
-   * Generate a default name for a trace to be exported. The name suggested is based on the current timestamp and the capture type.
-   */
-  private String generateTraceName(CpuTraceInfo traceInfo) {
-    StringBuilder traceName = new StringBuilder("cpu-");
-    CpuCapture capture = myStage.getCapture();
-    if (capture != null) {
-      String normalizedTraceType = StringUtil.toLowerCase(traceInfo.getProfilerType().name());
-      traceName.append(normalizedTraceType);
-      traceName.append("-");
-    }
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss");
-    traceName.append(LocalDateTime.now().format(formatter));
-    traceName.append(".trace");
-    return traceName.toString();
-  }
-
-  /**
-   * Copies the content of the trace file corresponding to a {@link CpuTraceInfo} to a given {@link FileOutputStream}.
-   */
-  private static void exportTraceFile(FileOutputStream output, CpuTraceInfo traceInfo) {
-    // Export trace file action is only called when "Export trace..." is enabled and that only happens with non-null traces
-    assert traceInfo != null;
-
-    // Copy temp trace file to the output stream.
-    try (FileInputStream input = new FileInputStream(traceInfo.getTraceFilePath())) {
-      // Atrace Format = [HEADER|ZlibData][HEADER|ZlibData]
-      // Systrace Expected format = [HEADER|ZlipData]
-      // As such exporting the file raw Systrace will only read the first header/data chunk.
-      // Atrace captures come over as several parts combined into one file. As such we need an exporter
-      // to handle converting the format to a format that Systrace can support. The reason for the multi-part file
-      // is because Atrace dumps a compressed data file every X interval and this file represents the concatenation of all
-      // the individual dumps.
-      if (traceInfo.getProfilerType() == CpuProfiler.CpuProfilerType.ATRACE) {
-        AtraceExporter.export(input, output);
-      }
-      else {
-        FileUtil.copy(input, output);
-      }
-    }
-    catch (IOException e) {
-      getLogger().warn("Failed to export CPU trace file:\n" + e);
-    }
   }
 
   /**

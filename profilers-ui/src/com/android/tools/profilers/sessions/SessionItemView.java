@@ -17,6 +17,7 @@ package com.android.tools.profilers.sessions;
 
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.ProfilerAction;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.intellij.util.ui.JBUI;
@@ -82,7 +83,10 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
     durationLabel.setFont(STATUS_FONT);
     durationLabel
       .setForeground(AdtUiUtils.overlayColor(durationLabel.getBackground().getRGB(), durationLabel.getForeground().getRGB(), 0.6f));
-    panel.add(durationLabel, new TabularLayout.Constraint(2, 0, 1, 3));
+    // Only show duration for non-imported sessions.
+    if (getArtifact().getSessionMetaData().getType() == Common.SessionMetaData.SessionType.FULL) {
+      panel.add(durationLabel, new TabularLayout.Constraint(2, 0, 1, 3));
+    }
 
     // TODO (b/78520629) - TabularLayout currently does not account for size of components that span multiple row/column, hence we are
     // inserting a filler in occupy the blank space in 1st row, 3rd col to make sure the dimensions of the session name + duration labels
