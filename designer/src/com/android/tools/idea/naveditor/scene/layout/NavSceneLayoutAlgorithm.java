@@ -41,4 +41,11 @@ public interface NavSceneLayoutAlgorithm {
   default void save(@NotNull SceneComponent component) {
     throw new UnsupportedOperationException();
   }
+
+  default void restorePositionData(@NotNull SceneComponent component, @NotNull Object position) {
+    throw new UnsupportedOperationException();
+  }
+  default Object getPositionData(@NotNull SceneComponent component) {
+    throw new UnsupportedOperationException();
+  }
 }

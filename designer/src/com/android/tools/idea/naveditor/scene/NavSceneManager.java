@@ -395,6 +395,20 @@ public class NavSceneManager extends SceneManager {
     }
   }
 
+  @Nullable
+  public Object getPositionData(@NotNull SceneComponent component) {
+    if (mySavingLayoutAlgorithm != null) {
+      return mySavingLayoutAlgorithm.getPositionData(component);
+    }
+    return null;
+  }
+
+  public void restorePositionData(@NotNull SceneComponent component, @NotNull Object positionData) {
+    if (mySavingLayoutAlgorithm != null) {
+      mySavingLayoutAlgorithm.restorePositionData(component, positionData);
+    }
+  }
+
   /**
    * Builds up a list of ids of sources and destinations for all actions
    * whose source and destination are currently visible
