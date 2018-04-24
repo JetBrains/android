@@ -19,6 +19,7 @@ import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.updater.UpdatableManager;
+import com.android.tools.adtui.util.SwingUtil;
 import com.android.tools.profilers.ProfilerColors;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
@@ -80,12 +81,12 @@ public abstract class CpuCellRenderer<T, K> implements ListCellRenderer<T> {
         // First we pass a mouse exited to reset positioning.
         if (oldHoveredIndex != myHoveredIndex && list.getModel().getSize() > oldHoveredIndex && oldHoveredIndex >= 0) {
           StateChart<K> chart = getChartForModel(list.getModel().getElementAt(oldHoveredIndex));
-          chart.mouseExited(e);
+          chart.dispatchEvent(SwingUtil.convertMouseEventID(e, MouseEvent.MOUSE_EXITED));
         }
         // Second we pass the updated position of the mouse.
         if (myHoveredIndex >= 0) {
           StateChart<K> chart = getChartForModel(list.getModel().getElementAt(myHoveredIndex));
-          chart.mouseMoved(e);
+          chart.dispatchEvent(SwingUtil.convertMouseEventID(e, MouseEvent.MOUSE_MOVED));
         }
       }
     });

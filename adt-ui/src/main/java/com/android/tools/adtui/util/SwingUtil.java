@@ -16,6 +16,7 @@
 package com.android.tools.adtui.util;
 
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -25,7 +26,9 @@ import javax.swing.JList;
 import javax.swing.JSeparator;
 import javax.swing.UIManager;
 import javax.swing.plaf.basic.ComboPopup;
+import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseEvent;
 
 public class SwingUtil {
 
@@ -140,5 +143,16 @@ public class SwingUtil {
         comboBox.repaint();
       }
     }
+  }
+
+  /**
+   * @return a {@link MouseEvent} similar to the given {@param event} except that its {@link MouseEvent#getID()} will be the {@param id}.
+   */
+  @NotNull
+  public static MouseEvent convertMouseEventID(@NotNull MouseEvent event, int id) {
+    return new MouseEvent((Component)event.getSource(),
+                          id, event.getWhen(), event.getModifiers(), event.getX(), event.getY(),
+                          event.getClickCount(), event.isPopupTrigger(),
+                          event.getButton());
   }
 }
