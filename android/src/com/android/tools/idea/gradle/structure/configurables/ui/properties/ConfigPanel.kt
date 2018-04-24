@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
+import com.android.tools.idea.gradle.structure.configurables.ui.ComponentProvider
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.meta.PropertiesUiModel
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 
 /**
  * A panel for editing configuration entities such as [PsProductFlavor] and [PsBuildType].
@@ -26,8 +29,9 @@ import com.android.tools.idea.gradle.structure.model.meta.PropertiesUiModel
  */
 open class ConfigPanel<in ModelT>(
     private val propertiesModel: PropertiesUiModel<ModelT>
-) : ConfigPanelUi() {
+) : ConfigPanelUi(), ComponentProvider, Disposable {
   private var model: ModelT? = null
+  private var editors = mutableListOf<ModelPropertyEditor<ModelT, Any?>>()
 
   /**
    * Configures the panel for editing of the [model] and binds the editors.
@@ -36,9 +40,14 @@ open class ConfigPanel<in ModelT>(
     this.model = model
     setNumberOfProperties(propertiesModel.properties.size)
     for (property in propertiesModel.properties) {
-      val editor = property.createEditor(module.parent, module, model)
+      val editor: ModelPropertyEditor<ModelT, Any?> = property.createEditor(module.parent, module, model)
       addPropertyComponents(property.propertyDescription, editor.component, editor.statusComponent)
+      editors.add(editor)
     }
+  }
+
+  override fun dispose() {
+    editors.forEach { Disposer.dispose(it) }
   }
 }
 
