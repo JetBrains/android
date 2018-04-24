@@ -64,7 +64,7 @@ import static org.jetbrains.android.util.AndroidBundle.message;
  * This class configures the Dynamic Module specific data such as the "Base Application Module", "Module Name", "Package Name" and
  * "Minimum API Level"
  */
-public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicModuleModel> {
+public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatureModel> {
   private final JBScrollPane myRootPanel;
   private final ValidatorPanel myValidatorPanel;
   private final BindingsManager myBindings = new BindingsManager();
@@ -79,7 +79,7 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicModul
   private JPanel myFormFactorSdkControlsPanel;
   private FormFactorSdkControls myFormFactorSdkControls;
 
-  public ConfigureDynamicModuleStep(@NotNull DynamicModuleModel model, @NotNull String basePackage) {
+  public ConfigureDynamicModuleStep(@NotNull DynamicFeatureModel model, @NotNull String basePackage) {
     super(model, message("android.wizard.module.config.title"));
 
     TextProperty packageNameText = new TextProperty(myPackageName);

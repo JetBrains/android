@@ -36,7 +36,7 @@ import static com.android.tools.adtui.validation.Validator.Result.OK;
 import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
-public class ConfigureDynamicDeliveryStep extends ModelWizardStep<DynamicModuleModel> {
+public class ConfigureDynamicDeliveryStep extends ModelWizardStep<DynamicFeatureModel> {
   private final JBScrollPane myRootPanel;
   private final ValidatorPanel myValidatorPanel;
   private final BindingsManager myBindings = new BindingsManager();
@@ -47,7 +47,7 @@ public class ConfigureDynamicDeliveryStep extends ModelWizardStep<DynamicModuleM
   private JCheckBox myOnDemandCheckBox;
   private JCheckBox myFusingCheckBox;
 
-  protected ConfigureDynamicDeliveryStep(@NotNull DynamicModuleModel model) {
+  protected ConfigureDynamicDeliveryStep(@NotNull DynamicFeatureModel model) {
     super(model, message("android.wizard.module.config.title"));
 
     myValidatorPanel = new ValidatorPanel(this, myPanel);
