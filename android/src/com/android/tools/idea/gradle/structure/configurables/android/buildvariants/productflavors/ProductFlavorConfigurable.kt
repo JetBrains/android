@@ -28,9 +28,11 @@ import com.intellij.openapi.ui.NamedConfigurable
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-class ProductFlavorConfigurable(private val productFlavor: PsProductFlavor) : ChildModelConfigurable<PsProductFlavor>(productFlavor) {
+class ProductFlavorConfigurable(private val productFlavor: PsProductFlavor)
+  : ChildModelConfigurable<PsProductFlavor, ProductFlavorConfigPanel>(
+  productFlavor) {
   override fun getBannerSlogan() = "Product Flavor '${productFlavor.name}'"
-  override fun createOptionsPanel(): JComponent = ProductFlavorConfigPanel(productFlavor).component
+  override fun createPanel(): ProductFlavorConfigPanel = ProductFlavorConfigPanel(productFlavor)
 }
 
 class FlavorDimensionConfigurable(

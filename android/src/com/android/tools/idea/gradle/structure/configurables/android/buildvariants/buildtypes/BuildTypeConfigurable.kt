@@ -16,17 +16,16 @@ package com.android.tools.idea.gradle.structure.configurables.android.buildvaria
 import com.android.tools.idea.gradle.structure.configurables.android.ChildModelConfigurable
 import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.buildtypes.BuildTypeConfigPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.listPropertyEditor
-import com.android.tools.idea.gradle.structure.configurables.ui.properties.simplePropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.mapPropertyEditor
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.simplePropertyEditor
 import com.android.tools.idea.gradle.structure.model.android.PsBuildType
 import com.android.tools.idea.gradle.structure.model.meta.PropertiesUiModel
 import com.android.tools.idea.gradle.structure.model.meta.uiProperty
-import javax.swing.JComponent
 
-class BuildTypeConfigurable(private val buildType: PsBuildType) : ChildModelConfigurable<PsBuildType>(buildType) {
+class BuildTypeConfigurable(private val buildType: PsBuildType) : ChildModelConfigurable<PsBuildType, BuildTypeConfigPanel>(buildType) {
   override fun getBannerSlogan() = "Build Type '${buildType.name}'"
 
-  override fun createOptionsPanel(): JComponent = BuildTypeConfigPanel(buildType).component
+  override fun createPanel(): BuildTypeConfigPanel = BuildTypeConfigPanel(buildType)
 }
 
 fun buildTypePropertiesModel() =
