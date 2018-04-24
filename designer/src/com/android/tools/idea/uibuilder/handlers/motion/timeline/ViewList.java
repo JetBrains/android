@@ -165,7 +165,7 @@ class ViewList extends JPanel implements Gantt.ChartElement {
     String name = v.myName;
     MotionSceneModel model = v.mKeyFrames.myModel;
     int fpos = (int)(myChart.getTimeCursorMs() * 100 / myChart.myAnimationTotalTimeMs);
-    String type = (new String[]{"KeyPositionCartesian", "KeyPositonPath", "KeyAttributes", "KeyCycles"})[frameType];
+    String type = (new String[]{"KeyPositionCartesian", "KeyPositionPath", "KeyAttributes", "KeyCycles"})[frameType];
 
     v.mKeyFrames.myModel.createKeyFrame(type, fpos, name);
   }

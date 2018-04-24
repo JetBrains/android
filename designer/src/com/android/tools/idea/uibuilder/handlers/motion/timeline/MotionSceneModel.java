@@ -217,7 +217,7 @@ public class MotionSceneModel {
                 if (isAndroidAttribute(key)) {
                   head = AndroidNameSpace;
                 }
-                xmlTag.setAttribute(MotionNameSpace + key, value);
+                xmlTag.setAttribute(head + key, value);
               }
             }
           }
@@ -557,7 +557,7 @@ public class MotionSceneModel {
                 if (isAndroidAttribute(key)) {
                   head = AndroidNameSpace;
                 }
-                xmlTag.setAttribute(MotionNameSpace + key, value);
+                xmlTag.setAttribute(head + key, value);
               }
             }
           }
