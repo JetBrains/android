@@ -90,6 +90,11 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
   private List<String> myTraceFilePaths = new ArrayList<>();
 
+  /**
+   * Session used in start/stop capturing gRPC requests in this fake service.
+   */
+  private Common.Session myStartStopCapturingSession;
+
   @Override
   public void startProfilingApp(CpuProfiler.CpuProfilingAppStartRequest request,
                                 StreamObserver<CpuProfiler.CpuProfilingAppStartResponse> responseObserver) {
@@ -103,6 +108,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
       myProfilerType = request.getConfiguration().getProfilerType();
       myOngoingCaptureInitiationType = CpuProfiler.TraceInitiationType.INITIATED_BY_UI;
     }
+    myStartStopCapturingSession = request.getSession();
 
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
@@ -129,6 +135,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
       response.setTrace(myTrace);
       response.setTraceId(myTraceId);
     }
+    myStartStopCapturingSession = request.getSession();
 
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
@@ -218,6 +225,10 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
   public Common.Session getSession() {
     return mySession;
+  }
+
+  public Common.Session getStartStopCapturingSession() {
+    return myStartStopCapturingSession;
   }
 
   @Override
