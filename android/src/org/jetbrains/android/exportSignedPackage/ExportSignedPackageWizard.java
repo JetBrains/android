@@ -19,6 +19,7 @@ package org.jetbrains.android.exportSignedPackage;
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
+import com.android.prefs.AndroidLocation;
 import com.android.sdklib.BuildToolInfo;
 import com.android.tools.idea.gradle.actions.GoToApkLocationTask;
 import com.android.tools.idea.gradle.actions.GoToBundleLocationTask;
@@ -237,7 +238,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
             myEncryptionTool.run(myGradleSigningInfo.keyStoreFilePath,
                                  myGradleSigningInfo.keyAlias,
                                  GOOGLE_PUBLIC_KEY,
-                                 generatePrivateKeyPath(apkDirectory).getPath(),
+                                 generatePrivateKeyPath().getPath(),
                                  myGradleSigningInfo.keyStorePassword,
                                  myGradleSigningInfo.keyPassword
             );
@@ -519,8 +520,9 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   }
 
   @NotNull
-  private File generatePrivateKeyPath(@NotNull File apkDirectory) {
-    return new File(apkDirectory, ENCRYPTED_PRIVATE_KEY_FILE);
+  private File generatePrivateKeyPath() throws AndroidLocation.AndroidLocationException {
+    String androidDir = AndroidLocation.getFolder();
+    return new File(androidDir, ENCRYPTED_PRIVATE_KEY_FILE);
   }
 
   private void showErrorInDispatchThread(@NotNull final String message) {
