@@ -17,8 +17,10 @@ package org.jetbrains.android.refactoring
 
 import com.android.SdkConstants.FN_GRADLE_PROPERTIES
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.google.common.collect.Range
 import com.google.common.collect.RangeMap
 import com.google.common.collect.TreeRangeMap
@@ -37,6 +39,7 @@ import com.intellij.openapi.vfs.VfsUtil.findFileByIoFile
 import com.intellij.psi.*
 import com.intellij.psi.codeStyle.JavaCodeStyleManager
 import com.intellij.psi.impl.migration.PsiMigrationManager
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.refactoring.RefactoringBundle
 import com.intellij.refactoring.listeners.RefactoringEventData
@@ -47,6 +50,7 @@ import org.jetbrains.android.refactoring.AppCompatMigrationEntry.*
 import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.ClassMigrationUsageInfo
 import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.PackageMigrationUsageInfo
 import org.jetbrains.android.util.AndroidBundle
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral
 import java.io.File
 
 /**
@@ -259,7 +263,9 @@ class MigrateToAndroidxProcessor(val project: Project,
       return emptyList()
     }
     for (module in ModuleManager.getInstance(project).modules) {
-      val dependencies = GradleBuildModel.get(module)?.dependencies() ?: continue
+      val gradleBuildModel = GradleBuildModel.get(module) ?: continue
+
+      val dependencies = gradleBuildModel.dependencies()
       for (dep in dependencies.all()) {
         if (dep is ArtifactDependencyModel) {
           val compactDependencyNotation = dep.compactNotation()
@@ -268,6 +274,19 @@ class MigrateToAndroidxProcessor(val project: Project,
           val key: Pair<String, String> = Pair.create(gc.groupId, gc.artifactId)
           val entry = gradleDependencyEntries[key] ?: continue
           gradleUsages.add(MigrateToAppCompatUsageInfo.GradleDependencyUsageInfo(psiElement, entry))
+        }
+      }
+
+      val androidBlock = gradleBuildModel.android() ?: continue
+      for (flavorBlock in androidBlock.productFlavors() + androidBlock.defaultConfig()) {
+        val runnerModel = flavorBlock.testInstrumentationRunner().resultModel
+        val runnerName = runnerModel.getValue(GradlePropertyModel.STRING_TYPE) ?: continue
+        val newRunnerName = AndroidxNameUtils.getNewName(runnerName)
+        if (newRunnerName != runnerName) {
+          val psiElement = runnerModel.psiElement ?: continue
+          for (literal in PsiTreeUtil.findChildrenOfType(psiElement, GrLiteral::class.java).filter { it.value == runnerName }) {
+            gradleUsages.add(MigrateToAppCompatUsageInfo.GradleStringUsageInfo(literal, newRunnerName))
+          }
         }
       }
     }
