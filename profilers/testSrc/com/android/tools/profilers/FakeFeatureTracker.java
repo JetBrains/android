@@ -19,6 +19,8 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.analytics.FilterMetadata;
+import com.android.tools.profilers.analytics.energy.EnergyEventMetadata;
+import com.android.tools.profilers.analytics.energy.EnergyRangeMetadata;
 import com.android.tools.profilers.cpu.CpuCaptureMetadata;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.sessions.SessionArtifact;
@@ -347,6 +349,16 @@ public final class FakeFeatureTracker implements FeatureTracker {
   @Override
   public void trackFilterMetadata(@NotNull FilterMetadata filterMetadata) {
     myLastFilterMetadata = filterMetadata;
+  }
+
+  @Override
+  public void trackSelectEnergyRange(@NotNull EnergyRangeMetadata rangeMetadata) {
+
+  }
+
+  @Override
+  public void trackSelectEnergyEvent(@NotNull EnergyEventMetadata eventMetadata) {
+
   }
 
   public FilterMetadata getLastFilterMetadata() {
