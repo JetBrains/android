@@ -30,10 +30,10 @@ import java.util.List;
 
 /**
  * Child class of {@link AndroidRunConfigurationBase} to test instance methods.
- * All override methods are default genereated methods.
+ * All override methods are default generated methods.
  */
-public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase {
-  public AndroidTestRunConfiguration(Project project,
+public class AndroidRunConfigurationMock extends AndroidRunConfigurationBase {
+  public AndroidRunConfigurationMock(Project project,
                                      ConfigurationFactory factory, boolean androidTests) {
     super(project, factory, androidTests);
   }

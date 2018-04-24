@@ -43,6 +43,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.util.Computable;
+import org.gradle.internal.impldep.org.jetbrains.annotations.TestOnly;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -110,6 +111,12 @@ public class GradleApkProvider implements ApkProvider {
     myTest = test;
     myOutputKindProvider = outputKindProvider;
   }
+
+  @TestOnly
+  OutputKind getOutputKind() { return myOutputKindProvider.compute(); }
+
+  @TestOnly
+  boolean isTest() { return myTest; }
 
   @Override
   @NotNull
