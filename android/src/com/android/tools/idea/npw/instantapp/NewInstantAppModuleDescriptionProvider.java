@@ -17,21 +17,23 @@ package com.android.tools.idea.npw.instantapp;
 
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.model.NewModuleModel;
-import com.android.tools.idea.npw.module.*;
+import com.android.tools.idea.npw.module.ConfigureAndroidModuleStep;
+import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
+import com.android.tools.idea.npw.module.ModuleGalleryEntry;
+import com.android.tools.idea.npw.module.ModuleTemplateGalleryEntry;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.templates.TemplateManager;
-import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
-import icons.StudioIllustrations;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 
 import static com.android.tools.idea.npw.model.NewProjectModel.getSuggestedProjectPackage;
+import static com.android.tools.idea.npw.ui.ActivityGallery.getTemplateImage;
 import static com.android.tools.idea.templates.Template.ANDROID_MODULE_TEMPLATE;
 import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
 import static org.jetbrains.android.util.AndroidBundle.message;
@@ -45,30 +47,29 @@ public class NewInstantAppModuleDescriptionProvider implements ModuleDescription
   }
 
   private static class FeatureTemplateGalleryEntry implements ModuleTemplateGalleryEntry {
-    @NotNull private final File myTemplateFile;
-    @NotNull private TemplateMetadata myTemplateMetadata;
+    @NotNull private final TemplateHandle myTemplateHandle;
 
     FeatureTemplateGalleryEntry() {
-      myTemplateFile = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, ANDROID_MODULE_TEMPLATE);
-      myTemplateMetadata = new TemplateHandle(myTemplateFile).getMetadata();
+      String moduleName = message("android.wizard.module.new.feature.module");
+      myTemplateHandle = new TemplateHandle(TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, moduleName));
     }
 
     @Nullable
     @Override
-    public Icon getIcon() {
-      return StudioIllustrations.ModuleTemplates.FEATURE_MODULE;
+    public Image getIcon() {
+      return getTemplateImage(myTemplateHandle, false);
     }
 
     @NotNull
     @Override
     public String getName() {
-      return message("android.wizard.module.new.feature.module");
+      return myTemplateHandle.getMetadata().getTitle();
     }
 
     @Nullable
     @Override
     public String getDescription() {
-      return myTemplateMetadata.getDescription();
+      return myTemplateHandle.getMetadata().getDescription();
     }
 
     @Override
@@ -79,7 +80,7 @@ public class NewInstantAppModuleDescriptionProvider implements ModuleDescription
     @NotNull
     @Override
     public File getTemplateFile() {
-      return myTemplateFile;
+      return TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, ANDROID_MODULE_TEMPLATE);
     }
 
     @NotNull
@@ -102,7 +103,7 @@ public class NewInstantAppModuleDescriptionProvider implements ModuleDescription
     @Override
     public SkippableWizardStep createStep(@NotNull NewModuleModel model) {
       String basePackage = getSuggestedProjectPackage(model.getProject().getValue(), true);
-      return new ConfigureAndroidModuleStep(model, FormFactor.MOBILE, myTemplateMetadata.getMinSdk(), basePackage, true, true,
+      return new ConfigureAndroidModuleStep(model, FormFactor.MOBILE, myTemplateHandle.getMetadata().getMinSdk(), basePackage, true, true,
                                             getDescription());
     }
   }
@@ -116,8 +117,8 @@ public class NewInstantAppModuleDescriptionProvider implements ModuleDescription
 
     @Nullable
     @Override
-    public Icon getIcon() {
-      return StudioIllustrations.ModuleTemplates.INSTANT_APP_MODULE;
+    public Image getIcon() {
+      return getTemplateImage(myTemplateHandle, false);
     }
 
     @NotNull

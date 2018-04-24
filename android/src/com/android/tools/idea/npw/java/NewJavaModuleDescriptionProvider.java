@@ -15,20 +15,21 @@
  */
 package com.android.tools.idea.npw.java;
 
+import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
 import com.android.tools.idea.npw.module.ModuleGalleryEntry;
-import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
-import icons.StudioIllustrations;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
+import java.awt.*;
 import java.util.Collection;
 import java.util.Collections;
+
+import static com.android.tools.idea.npw.ui.ActivityGallery.getTemplateImage;
 
 public class NewJavaModuleDescriptionProvider implements ModuleDescriptionProvider {
   @Override
@@ -45,8 +46,8 @@ public class NewJavaModuleDescriptionProvider implements ModuleDescriptionProvid
 
     @Nullable
     @Override
-    public Icon getIcon() {
-      return StudioIllustrations.ModuleTemplates.ANDROID_MODULE;
+    public Image getIcon() {
+      return getTemplateImage(myTemplateHandle, false);
     }
 
     @NotNull

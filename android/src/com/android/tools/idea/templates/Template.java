@@ -102,6 +102,7 @@ public class Template {
   public static final String CATEGORY_OTHER = "other";
   public static final String CATEGORY_APPLICATION = "Application";
   public static final String ANDROID_MODULE_TEMPLATE = "Android Module";
+  public static final String ANDROID_PROJECT_TEMPLATE = "Android Project";
 
   /**
    * Highest supported format; templates with a higher number will be skipped
@@ -270,7 +271,7 @@ public class Template {
         return TemplateRenderer.UNKNOWN_TEMPLATE_RENDERER;
       case ANDROID_MODULE_TEMPLATE:
         return TemplateRenderer.ANDROID_MODULE;
-      case "Android Project":
+      case ANDROID_PROJECT_TEMPLATE:
         return TemplateRenderer.ANDROID_PROJECT;
       case "Empty Activity":
         return TemplateRenderer.EMPTY_ACTIVITY;

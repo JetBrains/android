@@ -28,7 +28,7 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -60,8 +60,8 @@ public class NewDynamicAppModuleDescriptionProvider implements ModuleDescription
 
     @Nullable
     @Override
-    public Icon getIcon() {
-      return new ImageIcon(getTemplateImage(myTemplateHandle, false));
+    public Image getIcon() {
+      return getTemplateImage(myTemplateHandle, false);
     }
 
     @NotNull
