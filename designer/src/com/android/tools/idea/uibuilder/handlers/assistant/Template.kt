@@ -30,7 +30,7 @@ internal data class Template(private val myTemplateName: String, val myTemplate:
 
   companion object {
     @JvmField
-    val NONE_TEMPLATE = Template("None", "", false)
+    val NONE_TEMPLATE = Template("Default", "", false)
 
     /**
      * Returns a new template using the contents from the given stream
