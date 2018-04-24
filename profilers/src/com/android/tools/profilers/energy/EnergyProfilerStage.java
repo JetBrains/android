@@ -25,6 +25,7 @@ import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.analytics.energy.EnergyEventMetadata;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
@@ -77,6 +78,7 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
       public void selectionCreated() {
         setProfilerMode(ProfilerMode.EXPANDED);
         profilers.getIdeServices().getFeatureTracker().trackSelectRange();
+        // TODO(b/74004663): Add featureTracker#trackSelectEnergyRange() call here
         profilers.getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_ENERGY_SELECTION, true);
         myInstructionsEaseOutModel.setCurrentPercentage(1);
       }
@@ -199,6 +201,11 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
     }
     mySelectedDuration = duration;
     myAspect.changed(EnergyProfilerAspect.SELECTED_EVENT_DURATION);
+
+    if (mySelectedDuration != null) {
+      getStudioProfilers().getIdeServices().getFeatureTracker()
+                          .trackSelectEnergyEvent(new EnergyEventMetadata(mySelectedDuration.getEventList()));
+    }
   }
 
   @NotNull

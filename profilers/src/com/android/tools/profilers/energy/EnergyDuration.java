@@ -168,7 +168,8 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
     return "n/a";
   }
 
-  @NotNull Kind getKind() {
+  @NotNull
+  public Kind getKind() {
     return Kind.from(myEventList.get(0));
   }
 
