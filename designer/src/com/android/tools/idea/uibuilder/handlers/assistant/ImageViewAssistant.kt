@@ -125,7 +125,7 @@ class ImageViewAssistant(
     }
   }
 
-  private fun createUseAllCheckBox() = JBCheckBox("All").apply {
+  private fun createUseAllCheckBox() = JBCheckBox("Use as set").apply {
     setAssistantFont(this@apply)
     isSelected = useAll
     isOpaque = false

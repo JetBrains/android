@@ -59,7 +59,7 @@ class SampleDrawablePanel(val module: Module) : JPanel(BorderLayout()) {
     addListSelectionListener { this@SampleDrawablePanel.selectedIndex = selectedIndex }
   }
 
-  private val allCheckbox = JBCheckBox("All", true).apply {
+  private val allCheckbox = JBCheckBox("Use as set", true).apply {
     alignmentX = LEFT_ALIGNMENT
     addActionListener { selectedIndex = if (isSelected) -1 else 0 }
   }
