@@ -16,7 +16,6 @@
 package com.android.tools.idea.npw.dynamicapp;
 
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
@@ -30,14 +29,13 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Map;
 
 import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
-public class DynamicModuleModel extends WizardModel {
+public class DynamicFeatureModel extends WizardModel {
   @NotNull private final Project myProject;
   @NotNull private final TemplateHandle myTemplateHandle;
 
@@ -49,8 +47,8 @@ public class DynamicModuleModel extends WizardModel {
   @NotNull private final BoolProperty myFeatureOnDemand = new BoolValueProperty(true);
   @NotNull private final BoolProperty myFeatureFusing = new BoolValueProperty(true);
 
-  public DynamicModuleModel(@NotNull Project project,
-                            @NotNull TemplateHandle templateHandle) {
+  public DynamicFeatureModel(@NotNull Project project,
+                             @NotNull TemplateHandle templateHandle) {
     myProject = project;
     myTemplateHandle = templateHandle;
   }
