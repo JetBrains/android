@@ -19,17 +19,20 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
+import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.Profiler.TimeRequest;
 import com.android.tools.profiler.proto.Profiler.TimeResponse;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -201,5 +204,42 @@ public class MemoryProfiler extends StudioProfiler {
     }
 
     return false;
+  }
+
+  public static void saveHeapDumpToFile(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
+                                        @NotNull Common.Session session,
+                                        @NotNull HeapDumpInfo info,
+                                        @NotNull OutputStream outputStream,
+                                        @NotNull FeatureTracker featureTracker) {
+
+    DumpDataResponse response = client.getHeapDump(
+      DumpDataRequest.newBuilder().setSession(session).setDumpTime(info.getStartTime()).build());
+    if (response.getStatus() == DumpDataResponse.Status.SUCCESS) {
+      try {
+        response.getData().writeTo(outputStream);
+        featureTracker.trackExportHeap();
+      }
+      catch (IOException exception) {
+        getLogger().warn("Failed to export heap dump file:\n" + exception);
+      }
+    }
+  }
+
+  public static void saveLegacyAllocationToFile(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
+                                                @NotNull Common.Session session,
+                                                @NotNull AllocationsInfo info,
+                                                @NotNull OutputStream outputStream,
+                                                @NotNull FeatureTracker featureTracker) {
+    DumpDataResponse response = client.getLegacyAllocationDump(
+      DumpDataRequest.newBuilder().setSession(session).setDumpTime(info.getStartTime()).build());
+    if (response.getStatus() == DumpDataResponse.Status.SUCCESS) {
+      try {
+        response.getData().writeTo(outputStream);
+        featureTracker.trackExportAllocation();
+      }
+      catch (IOException exception) {
+        getLogger().warn("Failed to export allocation records:\n" + exception);
+      }
+    }
   }
 }

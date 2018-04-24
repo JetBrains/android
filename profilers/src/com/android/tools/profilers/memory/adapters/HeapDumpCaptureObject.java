@@ -28,6 +28,7 @@ import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.memory.MemoryProfiler;
 import com.android.tools.proguard.ProguardMap;
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
@@ -108,16 +109,8 @@ public class HeapDumpCaptureObject implements CaptureObject {
   }
 
   @Override
-  public void saveToFile(@NotNull OutputStream outputStream) throws IOException {
-    DumpDataResponse response =
-      myClient.getHeapDump(DumpDataRequest.newBuilder().setSession(mySession).setDumpTime(myHeapDumpInfo.getStartTime()).build());
-    if (response.getStatus() == DumpDataResponse.Status.SUCCESS) {
-      response.getData().writeTo(outputStream);
-      myFeatureTracker.trackExportHeap();
-    }
-    else {
-      throw new IOException("Could not retrieve hprof dump.");
-    }
+  public void saveToFile(@NotNull OutputStream outputStream) {
+    MemoryProfiler.saveHeapDumpToFile(myClient, mySession, myHeapDumpInfo, outputStream, myFeatureTracker);
   }
 
   @VisibleForTesting

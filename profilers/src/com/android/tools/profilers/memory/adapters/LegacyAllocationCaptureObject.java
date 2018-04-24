@@ -31,6 +31,8 @@ import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.android.tools.profilers.memory.MemoryProfiler.saveLegacyAllocationToFile;
+
 public final class LegacyAllocationCaptureObject implements CaptureObject {
   static final int DEFAULT_HEAP_ID = 0;
   static final String DEFAULT_HEAP_NAME = "default";
@@ -39,6 +41,7 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
   @NotNull private final MemoryServiceBlockingStub myClient;
   @NotNull private final ClassDb myClassDb;
   @NotNull private final Common.Session mySession;
+  @NotNull private final MemoryProfiler.AllocationsInfo myInfo;
   private long myStartTimeNs;
   private long myEndTimeNs;
   private final FeatureTracker myFeatureTracker;
@@ -54,6 +57,7 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
     myClient = client;
     myClassDb = new ClassDb();
     mySession = session;
+    myInfo = info;
     myStartTimeNs = info.getStartTime();
     myEndTimeNs = info.getEndTime();
     myFakeHeapSet = new HeapSet(this, DEFAULT_HEAP_NAME, DEFAULT_HEAP_ID);
@@ -78,16 +82,8 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
   }
 
   @Override
-  public void saveToFile(@NotNull OutputStream outputStream) throws IOException {
-    MemoryProfiler.DumpDataResponse response = myClient.getLegacyAllocationDump(
-      MemoryProfiler.DumpDataRequest.newBuilder().setSession(mySession).setDumpTime(myStartTimeNs).build());
-    if (response.getStatus() == MemoryProfiler.DumpDataResponse.Status.SUCCESS) {
-      response.getData().writeTo(outputStream);
-      myFeatureTracker.trackExportAllocation();
-    }
-    else {
-      throw new IOException("Could not retrieve allocation dump.");
-    }
+  public void saveToFile(@NotNull OutputStream outputStream) {
+    saveLegacyAllocationToFile(myClient, mySession, myInfo, outputStream, myFeatureTracker);
   }
 
   @NotNull

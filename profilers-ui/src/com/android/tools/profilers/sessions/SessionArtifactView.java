@@ -131,6 +131,11 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
   }
 
   @NotNull
+  public SessionsView getSessionsView() {
+    return myArtifactDrawInfo.mySessionsView;
+  }
+
+  @NotNull
   public T getArtifact() {
     return myArtifact;
   }
