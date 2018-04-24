@@ -58,7 +58,7 @@ public class OrientationMenuAction extends DropDownAction {
    */
   // TODO The surface is probably no needed, createVariationAction should be able to use the renderContext configuration
   public OrientationMenuAction(@NotNull ConfigurationHolder renderContext, @Nullable EditorDesignSurface surface) {
-    super("", "Orientation in Editor", StudioIcons.LayoutEditor.Toolbar.ROTATE_BUTTON);
+    super("", "Orientation for Preview", StudioIcons.LayoutEditor.Toolbar.ROTATE_BUTTON);
     myRenderContext = renderContext;
     mySurface = surface;
   }

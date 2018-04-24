@@ -83,7 +83,7 @@ public class ThemeConfigurationTest {
     AndroidThemePreviewPanelFixture themePreviewPanel = themeEditor.getPreviewComponent().getThemePreviewPanel();
     themePreviewPanel.requirePreviewPanel();
 
-    ActionButtonFixture button = themeEditor.findToolbarButton("API Version in Editor");
+    ActionButtonFixture button = themeEditor.findToolbarButton("API Version for Preview");
     button.click();
     clickPopupMenuItem("API 19", "19", button.target(), guiTest.robot());
 

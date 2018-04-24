@@ -43,7 +43,7 @@ public class ThemeMenuAction extends DropDownAction {
   @Nullable private ThemeResolver myThemeResolver;
 
   public ThemeMenuAction(@NotNull ConfigurationHolder renderContext) {
-    super("", "Theme in Editor", StudioIcons.LayoutEditor.Toolbar.THEME_BUTTON);
+    super("", "Theme for Preview", StudioIcons.LayoutEditor.Toolbar.THEME_BUTTON);
     myRenderContext = renderContext;
 
     Configuration conf = myRenderContext.getConfiguration();

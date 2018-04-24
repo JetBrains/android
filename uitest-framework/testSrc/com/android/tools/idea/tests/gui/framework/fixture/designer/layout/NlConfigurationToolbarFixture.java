@@ -81,7 +81,7 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
 
   @NotNull
   public NlConfigurationToolbarFixture<ParentFixture> chooseApiLevel(@NotNull String apiLevel) {
-    selectDropDownActionButtonItem("API Version in Editor", text -> apiLevel.equals(text));
+    selectDropDownActionButtonItem("API Version for Preview", text -> apiLevel.equals(text));
     return this;
   }
 
@@ -93,14 +93,14 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
 
   public void requireTheme(@NotNull String theme) {
     Wait.seconds(1).expecting("theme to be updated")
-      .until(() -> theme.equals(TextAccessors.getTextAccessor(findToolbarButton("Theme in Editor")).getText()));
+      .until(() -> theme.equals(TextAccessors.getTextAccessor(findToolbarButton("Theme for Preview")).getText()));
   }
 
   /**
    * Returns the current API level of the toolbar's configuration as a String
    */
   public String getApiLevel() {
-    return TextAccessors.getTextAccessor(findToolbarButton("API Version in Editor")).getText();
+    return TextAccessors.getTextAccessor(findToolbarButton("API Version for Preview")).getText();
   }
 
   /**
