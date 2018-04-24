@@ -32,14 +32,88 @@
         <![CDATA[
           This panel describes some of the new features and behavior changes
           included in this update.
+
+          <br><br>
+          To open this panel again later, select <b>Help &gt; What's New in Android Studio</b>
+          from the main menu.
           ]]>
       </description>
+      <step label="Support for Android App Bundles">
+        <stepElement>
+          <section>
+            <![CDATA[
+          <br>
+          <img src="https://d.android.com/studio/releases/assistant/3.2.0/aab-overview.gif"
+          width="428"
+          alt="">
+
+          <br><br>
+          The <i>Android App Bundle</i> is a new upload format that includes all your app’s compiled
+          code and resources, but defers APK generation and signing to the Google Play Store.
+
+          <br><br>
+          Google Play’s new app serving model, called <i>Dynamic Delivery</i>, then uses your app
+          bundle to generate and serve optimized APKs for each user’s device configuration, so
+          they download only the code and resources they need to run your app. You no longer have
+          to build, sign, and manage multiple APKs, and users get smaller, more optimized downloads.
+
+          <br><br>
+          Additionally, you can add <i>dynamic feature modules</i> to your app project and include
+          them in your app bundle. Through Dynamic Delivery, your users can then download and
+          install your app’s dynamic features on-demand.
+
+          <br><br>
+          To learn more about how to build Android App Bundles,
+          <a href="https://d.android.com/r/studio-wna/aab-overview.html">
+          read the official documentation</a> in a browser.
+          <br><br>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Support for Android Jetpack">
+        <stepElement>
+          <section>
+            <![CDATA[
+          <br>
+          <img src="https://d.android.com/studio/releases/assistant/3.2.0/jetpack-overview.gif"
+          width="428"
+          alt="">
+
+          <br><br>
+          <i>Android Jetpack</i> helps accelerate Android development with components,
+          tools and guidance that eliminate repetitive tasks, and enables you to more
+          quickly and easily build high-quality, testable apps. Android Studio
+          includes the following updates to support Jetpack. For more details,
+          <a href="https://d.android.com/r/studio-wna/jetpack-overview.html">
+          read the official documentation</a> in a browser.
+
+          <br><br>
+          <ul>
+            <li><b>New Navigation Editor:</b>
+            A visual editor for the XML resource that the new Navigation Component uses to
+            handle navigation actions at runtime.
+            <a href="https://d.android.com/r/studio-wna/3.2.0/navigation-editor.html">
+            Learn more</a></li>
+
+            <li><b>New template for Architecture Components:</b>
+            Easily add the new Architecture Components to your project, such as the <code>ViewModel</code>,
+            using the <b>New Project Wizard</b>.
+            <a href="https://d.android.com/r/studio-wna/3.2.0/architecture-components-templates.html">
+            Learn more</a></li>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
       <step label="New Profiler Features">
         <stepElement>
           <section>
             <![CDATA[
 
-          <img src="https://d.android.com/studio/releases/assistant/3.2.0/profiler-features-overview.gif">
+          <br>
+          <img src="https://d.android.com/studio/releases/assistant/3.2.0/profiler-features-overview.gif"
+          width="428"
+          alt="">
 
           <br><br>
           The <a href="https://developer.android.com/studio/profile/android-profiler.html?utm_source=android-studio&utm_medium=studio-assistant">
@@ -117,7 +191,10 @@
           <section>
             <![CDATA[
 
-          <img src="https://d.android.com/studio/releases/assistant/3.2.0/cpp-features-overview.gif">
+          <br>
+          <img src="https://d.android.com/studio/releases/assistant/3.2.0/cpp-features-overview.gif"
+          width="428"
+          alt="">
 
           <br><br>
           Android Studio now includes the following features for developing
@@ -149,8 +226,17 @@
         <stepElement>
           <section>
             <![CDATA[
-
+          <br>
           <ul>
+            <li><b>Base IDE upgraded to IntelliJ 2018.1.2:</b>
+            Android Studio now includes updates up through to
+            <a href="https://blog.jetbrains.com/idea/2018/04/intellij-idea-2018-1-2-is-released/">
+            IntelliJ 2018.1.2</a>. You may notice changes in behavior and performance as a result of this merge.
+            If you encounter changes you believe to be regressions, please
+            <a href="https://developer.android.com/studio/report-bugs.html?utm_source=android-studio&utm_medium=studio-assistant">
+            report a bug</a>.
+            </li>
+
             <li><b>AAPT2 now on Google's Maven repo:</b>
             To use AAPT2, you must add Google's Maven repository to your project-level <code>build.gradle</code>, as shown below.
             <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#aapt2_gmaven">
