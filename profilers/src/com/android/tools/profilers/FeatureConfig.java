@@ -21,6 +21,7 @@ package com.android.tools.profilers;
  */
 public interface FeatureConfig {
   boolean isAtraceEnabled();
+  boolean isCpuApiTracingEnabled();
   boolean isCpuCaptureFilterEnabled();
   boolean isEnergyProfilerEnabled();
   boolean isExportCpuTraceEnabled();
@@ -33,11 +34,10 @@ public interface FeatureConfig {
   boolean isNetworkRequestPayloadEnabled();
   boolean isNetworkThreadViewEnabled();
   boolean isPerformanceMonitoringEnabled();
-  boolean isSessionsEnabled();
   boolean isSessionImportEnabled();
+  boolean isSessionsEnabled();
   boolean isSimpleperfEnabled();
   boolean isStartupCpuProfilingEnabled();
-  boolean isCpuApiTracingEnabled();
   // Add new features alphabetically instead of at the end of the list
   // This reduces the chance of having to deal with an annoying merge conflict.
 }
