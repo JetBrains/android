@@ -26,10 +26,10 @@ import java.awt.geom.RoundRectangle2D;
 
 public class TouchEventRenderer<E> implements SimpleEventRenderer<E> {
 
-  private static final JBColor HOLD_COLOR = new JBColor(new Color(0x668D7BCE, true),
-                                                        new Color(0x669876D8, true));
-  private static final JBColor TOUCH_COLOR = new JBColor(new Color(0xCC8D7BCE, true),
-                                                         new Color(0xCC9876D8, true));
+  private static final JBColor HOLD_COLOR = new JBColor(new Color(0x66E2739A, true),
+                                                        new Color(0x66E27BA4, true));
+  private static final JBColor TOUCH_COLOR = new JBColor(new Color(0xCCE2739A, true),
+                                                         new Color(0xCCE27BA4, true));
   private static final int MIN_LENGTH = 20;
 
   private static final int LINE_WIDTH = 12;
