@@ -704,6 +704,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
           saveTraceInfo(CpuCaptureParser.IMPORTED_TRACE_ID, parsedCapture);
           myTraceIdsIterator.addTrace(CpuCaptureParser.IMPORTED_TRACE_ID);
         }
+        // Track import trace success
+        getStudioProfilers().getIdeServices().getFeatureTracker().trackImportTrace(parsedCapture.getType(), true);
       }
       else {
         setCaptureState(CaptureState.PARSING_FAILURE);
@@ -711,6 +713,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
           .showErrorBalloon(PARSING_FILE_FAILURE_BALLOON_TITLE, PARSING_FILE_FAILURE_BALLOON_TEXT, CPU_BUG_TEMPLATE_URL, REPORT_A_BUG_TEXT);
         // PARSING_FAILURE is a transient state. After notifying the listeners that the parser has failed, we set the status to IDLE.
         setCaptureState(CaptureState.IDLE);
+        // Track import trace failure
+        // TODO (b/78557952): try to get the profiler type from the trace, which should be possible as long as it has a valid header.
+        getStudioProfilers().getIdeServices().getFeatureTracker().trackImportTrace(CpuProfilerType.UNSPECIFIED_PROFILER, false);
       }
     };
 

@@ -18,6 +18,7 @@ package com.android.tools.idea.profilers.analytics;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.NullMonitorStage;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioMonitorStage;
@@ -211,6 +212,28 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
+  public void trackImportTrace(@NotNull CpuProfiler.CpuProfilerType profilerType, boolean success) {
+    CpuImportTraceMetadata.Builder metadata = CpuImportTraceMetadata.newBuilder();
+    metadata.setImportStatus(success ? CpuImportTraceMetadata.ImportStatus.IMPORT_TRACE_SUCCESS
+                                     : CpuImportTraceMetadata.ImportStatus.IMPORT_TRACE_FAILURE);
+    switch (profilerType) {
+      case ART:
+        metadata.setTechnology(CpuImportTraceMetadata.Technology.ART_TECHNOLOGY);
+        break;
+      case SIMPLEPERF:
+        metadata.setTechnology(CpuImportTraceMetadata.Technology.SIMPLEPERF_TECHNOLOGY);
+        break;
+      case ATRACE:
+        metadata.setTechnology(CpuImportTraceMetadata.Technology.ATRACE_TECHNOLOGY);
+        break;
+      default:
+        metadata.setTechnology(CpuImportTraceMetadata.Technology.UNKNOWN_TECHNOLOGY);
+        break;
+    }
+    newTracker(AndroidProfilerEvent.Type.CPU_IMPORT_TRACE).setDevice(myActiveDevice).setCpuImportTraceMetadata(metadata.build()).track();
+  }
+
+  @Override
   public void trackCpuStartupProfiling(@NotNull ProfilingConfiguration configuration) {
     newTracker(AndroidProfilerEvent.Type.CPU_STARTUP_PROFILING).setDevice(myActiveDevice).setCpuStartupProfilingConfiguration(configuration)
                                                                .track();
@@ -389,6 +412,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
     @NotNull private final AndroidProfilerEvent.Stage myCurrStage;
     @Nullable private Common.Device myDevice;
     @Nullable private com.android.tools.profilers.cpu.CpuCaptureMetadata myCpuCaptureMetadata;
+    @Nullable private CpuImportTraceMetadata myCpuImportTraceMetadata;
     @Nullable private com.android.tools.profilers.analytics.FilterMetadata myFeatureMetadata;
     @Nullable private ProfilerSessionCreationMetaData mySessionCreationMetadata;
     @Nullable private ProfilerSessionSelectionMetaData mySessionArtifactMetadata;
@@ -410,6 +434,12 @@ public final class StudioFeatureTracker implements FeatureTracker {
     @NotNull
     public Tracker setCpuCaptureMetadata(@Nullable com.android.tools.profilers.cpu.CpuCaptureMetadata cpuCaptureMetadata) {
       myCpuCaptureMetadata = cpuCaptureMetadata;
+      return this;
+    }
+
+    @NotNull
+    public Tracker setCpuImportTraceMetadata(CpuImportTraceMetadata cpuImportTraceMetadata) {
+      myCpuImportTraceMetadata = cpuImportTraceMetadata;
       return this;
     }
 
@@ -462,6 +492,10 @@ public final class StudioFeatureTracker implements FeatureTracker {
                                                          .newBuilder()
                                                          .setProfilingConfig(
                                                            toStatsCpuProfilingConfig(myCpuStartupProfilingConfiguration)));
+          break;
+        case CPU_IMPORT_TRACE:
+          assert myCpuImportTraceMetadata != null;
+          profilerEvent.setCpuImportTraceMetadata(myCpuImportTraceMetadata);
           break;
         default:
           break;

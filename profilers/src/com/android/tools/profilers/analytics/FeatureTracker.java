@@ -16,6 +16,7 @@
 package com.android.tools.profilers.analytics;
 
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.cpu.CpuCaptureMetadata;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
@@ -139,6 +140,11 @@ public interface FeatureTracker {
    * Track the user capturing a method trace.
    */
   void trackCaptureTrace(@NotNull CpuCaptureMetadata cpuCaptureMetadata);
+
+  /**
+   * Track the user importing a method trace.
+   */
+  void trackImportTrace(@NotNull CpuProfiler.CpuProfilerType profilerType, boolean success);
 
   /**
    * Track the startup CPU profiling that was started with the given {@param configuration}.

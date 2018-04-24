@@ -1464,6 +1464,11 @@ public class CpuProfilerStageTest extends AspectObserver {
     StudioProfilers profilers = myStage.getStudioProfilers();
     myServices.enableImportTrace(true);
     myServices.enableSessionsView(true);
+
+    FakeFeatureTracker tracker = (FakeFeatureTracker)myServices.getFeatureTracker();
+    // Sanity check to verify the last import trace status was not set yet
+    assertThat(tracker.getLastImportTraceStatus()).isNull();
+
     File traceFile = CpuProfilerTestUtils.getTraceFile("corrupted_trace.trace");
     CpuProfilerStage stage = new CpuProfilerStage(profilers, traceFile);
     stage.enter();
@@ -1475,6 +1480,10 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(myServices.getErrorBalloonBody()).isEqualTo(CpuProfilerStage.PARSING_FILE_FAILURE_BALLOON_TEXT);
     assertThat(myServices.getErrorBalloonUrl()).isEqualTo(CpuProfilerStage.CPU_BUG_TEMPLATE_URL);
     assertThat(myServices.getErrorBalloonUrlText()).isEqualTo(CpuProfilerStage.REPORT_A_BUG_TEXT);
+
+    // We should track failed imports
+    assertThat(tracker.getLastCpuProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER);
+    assertThat(tracker.getLastImportTraceStatus()).isFalse();
   }
 
   @Test
@@ -1501,6 +1510,11 @@ public class CpuProfilerStageTest extends AspectObserver {
     StudioProfilers profilers = myStage.getStudioProfilers();
     myServices.enableImportTrace(true);
     myServices.enableSessionsView(true);
+
+    FakeFeatureTracker tracker = (FakeFeatureTracker)myServices.getFeatureTracker();
+    // Sanity check to verify the last import trace status was not set yet
+    assertThat(tracker.getLastImportTraceStatus()).isNull();
+
     File traceFile = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
     CpuProfilerStage stage = new CpuProfilerStage(profilers, traceFile);
     stage.enter();
@@ -1512,9 +1526,13 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(timeline.isPaused()).isTrue();
     assertThat((long)timeline.getDataRange().getMin()).isEqualTo((long)captureRange.getMin());
     assertThat((long)(timeline.getDataRange().getMax() - expansionAmount)).isEqualTo((long)(captureRange.getMax()));
-    // Need 1 because of floating point percision rounding error on large numbers.
+    // Need 1 because of floating point precision rounding error on large numbers.
     assertThat(timeline.getViewRange().getMin() + expansionAmount).isWithin(1).of(timeline.getDataRange().getMin());
     assertThat(stage.getCapture()).isNotNull();
+
+    // We should track successful imports
+    assertThat(tracker.getLastCpuProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
+    assertThat(tracker.getLastImportTraceStatus()).isTrue();
   }
 
   @Test
