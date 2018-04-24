@@ -46,7 +46,9 @@ import com.android.tools.idea.util.ListenerCollection;
 import com.android.util.PropertiesMap;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.intellij.openapi.application.ApplicationManager;
@@ -378,15 +380,24 @@ public class LayoutlibSceneManager extends SceneManager {
   private class ModelChangeListener implements ModelListener {
     @Override
     public void modelDerivedDataChanged(@NotNull NlModel model) {
-      NlDesignSurface surface = getDesignSurface();
       // TODO: this is the right behavior, but seems to unveil repaint issues. Turning it off for now.
-      if (false && surface.getSceneMode() == SceneMode.BLUEPRINT_ONLY) {
+      if (false && getDesignSurface().getSceneMode() == SceneMode.BLUEPRINT_ONLY) {
         layout(true);
       }
       else {
-        render(getTriggerFromChangeType(model.getLastChangeType()));
-        mySelectionChangeListener
-          .selectionChanged(getDesignSurface().getSelectionModel(), getDesignSurface().getSelectionModel().getSelection());
+        Futures.addCallback(render(getTriggerFromChangeType(model.getLastChangeType())), new FutureCallback<RenderResult>() {
+          @Override
+          public void onSuccess(@javax.annotation.Nullable RenderResult result) {
+            SelectionModel selectionModel = getDesignSurface().getSelectionModel();
+            mySelectionChangeListener.selectionChanged(selectionModel,
+                                                       selectionModel.getSelection());
+          }
+
+          @Override
+          public void onFailure(Throwable t) {
+            Logger.getInstance(LayoutlibSceneManager.class).warn(t);
+          }
+        });
       }
     }
 
@@ -493,7 +504,7 @@ public class LayoutlibSceneManager extends SceneManager {
     getRenderingQueue().queue(new Update("model.render", LOW_PRIORITY) {
       @Override
       public void run() {
-        render(trigger);
+        Futures.getUnchecked(render(trigger));
       }
 
       @Override
@@ -808,25 +819,36 @@ public class LayoutlibSceneManager extends SceneManager {
    * <p/>
    * <b>Do not call this method from the dispatch thread!</b>
    */
-  protected void render(@Nullable LayoutEditorRenderResult.Trigger trigger) {
-    try {
-      renderImpl(trigger);
-    }
-    catch (Throwable e) {
-      if (!getModel().getFacet().isDisposed()) {
-        throw e;
+  @NotNull
+  protected ListenableFuture<RenderResult> render(@Nullable LayoutEditorRenderResult.Trigger trigger) {
+    ListenableFuture<RenderResult> result = renderAsyncImpl(trigger);
+    Futures.addCallback(result, new FutureCallback<RenderResult>() {
+      @Override
+      public void onSuccess(@javax.annotation.Nullable RenderResult result) {
+        onResult();
       }
-    } finally {
-      ImmutableList<Runnable> callbacks;
-      synchronized (myRenderCallbacks) {
-        callbacks = ImmutableList.copyOf(myRenderCallbacks);
-        myRenderCallbacks.clear();
+
+      @Override
+      public void onFailure(Throwable t) {
+        Logger.getInstance(LayoutlibSceneManager.class).warn(t);
+        onResult();
       }
-      callbacks.forEach(Runnable::run);
-    }
+
+      private void onResult() {
+        ImmutableList<Runnable> callbacks;
+        synchronized (myRenderCallbacks) {
+          callbacks = ImmutableList.copyOf(myRenderCallbacks);
+          myRenderCallbacks.clear();
+        }
+        callbacks.forEach(Runnable::run);
+      }
+    });
+
+    return result;
   }
 
-  private void renderImpl(@Nullable LayoutEditorRenderResult.Trigger trigger) {
+  @NotNull
+  private ListenableFuture<RenderResult> renderAsyncImpl(@Nullable LayoutEditorRenderResult.Trigger trigger) {
     Configuration configuration = getModel().getConfiguration();
     DesignSurface surface = getDesignSurface();
     if (getModel().getConfigurationModificationCount() != configuration.getModificationCount()) {
@@ -856,10 +878,10 @@ public class LayoutlibSceneManager extends SceneManager {
     boolean inflated = inflate(false);
     long elapsedFrameTimeMs = myElapsedFrameTimeMs;
 
-    Future<RenderResult> futureResult;
+    ListenableFuture<RenderResult> futureResult;
     synchronized (myRenderingTaskLock) {
       if (myRenderTask == null) {
-        return;
+        return Futures.immediateFuture(null);
       }
       if (elapsedFrameTimeMs != -1) {
         myRenderTask.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(elapsedFrameTimeMs));
@@ -867,38 +889,49 @@ public class LayoutlibSceneManager extends SceneManager {
       futureResult = myRenderTask.render();
     }
 
-    RenderResult result = Futures.getUnchecked(futureResult);
-    // When the layout was inflated in this same call, we do not have to update the hierarchy again
-    if (result != null && !inflated) {
-      updateHierarchy(result);
-    }
-    myRenderResultLock.writeLock().lock();
-    try {
-      if (myRenderResult != null) {
-        myRenderResult.dispose();
-      }
-      myRenderResult = result;
-      // Downgrade the write lock to read lock
-      myRenderResultLock.readLock().lock();
-    }
-    finally {
-      myRenderResultLock.writeLock().unlock();
-    }
-    try {
-      NlUsageTrackerManager.getInstance(surface).logRenderResult(trigger,
-                                                                 myRenderResult,
-                                                                 System.currentTimeMillis() - renderStartTimeMs);
-    }
-    finally {
-      myRenderResultLock.readLock().unlock();
-    }
+    Futures.addCallback(futureResult, new FutureCallback<RenderResult>() {
+      @Override
+      public void onSuccess(@javax.annotation.Nullable RenderResult result) {
+        // When the layout was inflated in this same call, we do not have to update the hierarchy again
+        if (result != null && !inflated) {
+          updateHierarchy(result);
+        }
+        myRenderResultLock.writeLock().lock();
+        try {
+          if (myRenderResult != null) {
+            myRenderResult.dispose();
+          }
+          myRenderResult = result;
+          // Downgrade the write lock to read lock
+          myRenderResultLock.readLock().lock();
+        }
+        finally {
+          myRenderResultLock.writeLock().unlock();
+        }
+        try {
+          NlUsageTrackerManager.getInstance(surface).logRenderResult(trigger,
+                                                                     myRenderResult,
+                                                                     System.currentTimeMillis() - renderStartTimeMs);
+        }
+        finally {
+          myRenderResultLock.readLock().unlock();
+        }
 
-    UIUtil.invokeLaterIfNeeded(() -> {
-      if (!Disposer.isDisposed(this)) {
-        update();
+        UIUtil.invokeLaterIfNeeded(() -> {
+          if (!Disposer.isDisposed(LayoutlibSceneManager.this)) {
+            update();
+          }
+        });
+        fireRenderListeners();
+      }
+
+      @Override
+      public void onFailure(Throwable t) {
+        Logger.getInstance(LayoutlibSceneManager.class).warn(t);
       }
     });
-    fireRenderListeners();
+
+    return futureResult;
   }
 
   public void setElapsedFrameTimeMs(long ms) {

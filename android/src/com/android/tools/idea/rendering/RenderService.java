@@ -424,8 +424,12 @@ public class RenderService extends AndroidFacetScopedService {
    * <p/>
    * This method will run the passed action asynchronously
    */
-  public static void runAsyncRenderAction(@NotNull Runnable runnable) {
+  @NotNull
+  public static ListenableFuture<?> runAsyncRenderAction(@NotNull Runnable runnable) {
+    ListenableFutureTask<?> future = ListenableFutureTask.create(runnable, null);
+
     ourRenderingExecutor.submit(runnable);
+    return future;
   }
 
 
