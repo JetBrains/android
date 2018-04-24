@@ -183,6 +183,7 @@ java_test(
     ]) + glob(["testData/LayoutLocalTest/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.BazelStartupSyncTest"],
     tags = COMMON_TAGS + [
+        "manual",  # b/73358558
         "no_psq",  # b/73037396
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -202,6 +203,7 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editing.AswbGotoDeclarationTest"],
     tags = COMMON_TAGS + [
+        "manual",  # b/73358558
         "no_psq",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
