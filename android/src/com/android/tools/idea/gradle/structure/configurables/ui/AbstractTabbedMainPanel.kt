@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.ui
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.intellij.openapi.util.ActionCallback
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.TabbedPaneWrapper
 import com.intellij.ui.navigation.History
 import com.intellij.ui.navigation.Place
@@ -45,6 +46,7 @@ abstract class AbstractTabbedMainPanel(
   protected fun <T> addTab(panel: ModelPanel<T>) {
     tabbedPane.addTab(panel.title, panel.createComponent())
     tabPanels.add(panel)
+    Disposer.register(this, panel)
   }
 
   override fun dispose() = Unit
