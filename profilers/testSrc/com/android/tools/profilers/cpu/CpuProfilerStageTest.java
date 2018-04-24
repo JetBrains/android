@@ -1651,6 +1651,33 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(filterMetadata.getFeaturesUsed()).isEqualTo(FilterMetadata.MATCH_CASE | FilterMetadata.IS_REGEX);
   }
 
+  @Test
+  public void sessionChangeShouldntAffectStageSession() {
+    assertThat(myCpuService.getStartStopCapturingSession()).isNull();
+    // get profilers session
+    Common.Session stageSession = myStage.getStudioProfilers().getSession();
+    startCapturingSuccess();
+    // startCapturing should set startStopSession in FakeCpuService to the one used in the startProfilingAppRequest
+    assertThat(myCpuService.getStartStopCapturingSession()).isEqualTo(stageSession);
+
+    Common.Session otherSession = Common.Session.getDefaultInstance();
+    // Make sure the sessions are different
+    assertThat(otherSession).isNotEqualTo(stageSession);
+
+    myStage.getStudioProfilers().getSessionsManager().setSession(otherSession);
+    // Sanity check to verify the session was indeed changed.
+    assertThat(myStage.getStudioProfilers().getSession()).isEqualTo(otherSession);
+
+    myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS);
+    myCpuService.setValidTrace(true);
+    myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
+    stopCapturing();
+
+    // stopCapturing should set startStopSession in FakeCpuService to the one used in the stopProfilingAppRequest. This session should be
+    // the one set when creating the profiler stage and not the one that was selected by the time the request was made.
+    assertThat(myCpuService.getStartStopCapturingSession()).isEqualTo(stageSession);
+  }
+
   private void addAndSetDevice(int featureLevel, String serial) {
     int deviceId = serial.hashCode();
     Common.Device device = Common.Device.newBuilder()
