@@ -37,31 +37,35 @@ class MigrateToAndroidxTest : AndroidTestCase() {
    */
   fun testMigrateWithConflictingClassAndPackageNames() {
     AndroidxMigrationBuilder()
-        .withFileInProject("MainActivity.java", "src/p1/p2/MainActivity.java")
-        .withEntry(ClassMigrationEntry("android.support.design.widget.CoordinatorLayout", "androidx.widget.CoordinatorLayout"))
-        .withEntry(PackageMigrationEntry("android.support.v7", "androidx"))
-        .withEntry(PackageMigrationEntry("android.support.design", "androidx.design"))
-        .run(myFixture)
+      .withFileInProject("MainActivity.java", "src/p1/p2/MainActivity.java")
+      .withEntry(ClassMigrationEntry("android.support.design.widget.CoordinatorLayout", "androidx.widget.CoordinatorLayout"))
+      .withEntry(PackageMigrationEntry("android.support.v7", "androidx"))
+      .withEntry(PackageMigrationEntry("android.support.design", "androidx.design"))
+      .run(myFixture)
   }
 
   fun testMigrateLayoutXml() {
     AndroidxMigrationBuilder()
-        .withEntry(ClassMigrationEntry("android.support.design.widget.CoordinatorLayout", "androidx.widget.CoordinatorLayout"))
-        .withEntry(PackageMigrationEntry("android.support.v7", "androidx"))
-        .withEntry(PackageMigrationEntry("android.support", "androidx"))
-        .withFileInProject("app_bar_main.xml", "res/layout/app_bar_main.xml")
-        .run(myFixture)
+      .withEntry(ClassMigrationEntry("android.support.design.widget.CoordinatorLayout", "androidx.widget.CoordinatorLayout"))
+      .withEntry(PackageMigrationEntry("android.support.v7", "androidx"))
+      .withEntry(PackageMigrationEntry("android.support", "androidx"))
+      .withFileInProject("app_bar_main.xml", "res/layout/app_bar_main.xml")
+      .run(myFixture)
   }
 
   fun testMigrateBuildDependencies() {
     // test both map notation as well as compact notation
     AndroidxMigrationBuilder()
-        .withEntry(GradleDependencyMigrationEntry("com.android.support", "appcompat-v7",
-            "androidx.appcompat", "base", "1.0.0-alpha1"))
-        .withEntry(GradleDependencyMigrationEntry("com.android.support.constraint", "constraint-layout",
-            "androidx.constraint", "base", "2.0.0-alpha1"))
-        .withFileInProject("buildDependencies.gradle", "build.gradle")
-        .run(myFixture)
+      .withEntry(GradleDependencyMigrationEntry("com.android.support", "appcompat-v7",
+                                                "androidx.appcompat", "base", "1.0.0-alpha1"))
+      .withEntry(GradleDependencyMigrationEntry("com.android.support.constraint", "constraint-layout",
+                                                "androidx.constraint", "base", "2.0.0-alpha1"))
+      .withEntry(GradleDependencyMigrationEntry("com.android.support.test", "runner",
+                                                "androidx.test", "runner", "1.1.0-alpha1"))
+      .withEntry(GradleDependencyMigrationEntry("com.android.support.test.espresso", "espresso-core",
+                                                "androidx.test.espresso", "espresso-core", "3.1.0-alpha1"))
+      .withFileInProject("buildDependencies.gradle", "build.gradle")
+      .run(myFixture)
   }
 
   /**

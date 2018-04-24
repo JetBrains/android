@@ -17,7 +17,6 @@ package org.jetbrains.android.refactoring;
 
 import com.android.annotations.NonNull;
 import com.android.repository.io.FileOpUtils;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.intellij.openapi.util.TextRange;
@@ -493,6 +492,32 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
       if (elementText.equals(oldName) && current.getReference() != null) {
         current.getReference().handleElementRename(newName);
       }
+    }
+  }
+
+  static class GradleStringUsageInfo extends MigrateToAppCompatUsageInfo {
+
+    @NotNull private final String myNewValue;
+
+    public GradleStringUsageInfo(@NotNull GrLiteral element, @NotNull String newValue) {
+      super(element);
+      myNewValue = newValue;
+    }
+
+    @Nullable
+    @Override
+    public PsiElement applyChange(@NotNull PsiMigration migration) {
+      PsiElement element = getElement();
+      if (element == null) {
+        return null;
+      }
+
+      PsiReference reference = element.getReference();
+      if (reference != null) {
+        reference.handleElementRename(myNewValue);
+      }
+
+      return element;
     }
   }
 }
