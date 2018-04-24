@@ -145,15 +145,7 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
                                        @NotNull ApplicationIdProvider applicationIdProvider,
                                        @NotNull List<AndroidDevice> targetDevices) {
     if (facet.getConfiguration().getModel() != null && facet.getConfiguration().getModel() instanceof AndroidModuleModel) {
-      Computable<GradleApkProvider.OutputKind> outputKindProvider = () -> {
-        if (DynamicAppUtils.useSelectApksFromBundleBuilder(facet.getModule(), this, targetDevices)) {
-          return GradleApkProvider.OutputKind.AppBundleOutputModel;
-        }
-        else {
-          return GradleApkProvider.OutputKind.Default;
-        }
-      };
-      return new GradleApkProvider(facet, applicationIdProvider, myOutputProvider, false, outputKindProvider);
+      return createGradleApkProvider(facet, applicationIdProvider, false, targetDevices);
     }
     ApkFacet apkFacet = ApkFacet.getInstance(facet.getModule());
     if (apkFacet != null) {

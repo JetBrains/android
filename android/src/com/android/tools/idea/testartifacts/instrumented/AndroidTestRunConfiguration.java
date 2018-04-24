@@ -69,6 +69,9 @@ import java.util.*;
 import static com.intellij.codeInsight.AnnotationUtil.CHECK_HIERARCHY;
 import static com.intellij.openapi.util.text.StringUtil.getPackageName;
 
+/**
+ * Run Configuration for "Android Instrumented Tests"
+ */
 public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase implements RefactoringListenerProvider {
   private static final Logger LOG = Logger.getInstance(AndroidTestRunConfiguration.class);
 
@@ -204,7 +207,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                        @NotNull ApplicationIdProvider applicationIdProvider,
                                        @NotNull List<AndroidDevice> targetDevices) {
     if (facet.getConfiguration().getModel() != null && facet.getConfiguration().getModel() instanceof AndroidModuleModel) {
-      return new GradleApkProvider(facet, applicationIdProvider, myOutputProvider, true);
+      return createGradleApkProvider(facet, applicationIdProvider, true, targetDevices);
     }
     return new NonGradleApkProvider(facet, applicationIdProvider, null);
   }

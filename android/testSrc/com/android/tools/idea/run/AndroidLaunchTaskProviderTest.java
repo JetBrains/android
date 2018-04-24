@@ -113,7 +113,7 @@ public class AndroidLaunchTaskProviderTest extends AndroidGradleTestCase {
     assertThat(deployTask.getContext()).isInstanceOf(DynamicAppDeployTaskContext.class);
 
     DynamicAppDeployTaskContext context = (DynamicAppDeployTaskContext)deployTask.getContext();
-    assertThat(context.getApplicationId()).isEqualTo("com.example.app");
+    assertThat(context.getApplicationId()).isEqualTo("google.simpleapplication");
     assertThat(context.getArtifacts().size()).isEqualTo(2);
     assertThat(context.getArtifacts().get(0).getName()).isEqualTo("app-debug.apk");
     assertThat(context.getArtifacts().get(1).getName()).isEqualTo("feature1-debug.apk");

@@ -21,11 +21,9 @@ import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
 import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.ConfigurationFactory;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.mockito.Mock;
 
 import java.util.ArrayList;
@@ -48,7 +46,7 @@ public class AndroidRunConfigurationBaseCanInstantRunTest extends AndroidTestCas
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    myRunConfig = new AndroidTestRunConfiguration(getProject(), mock(ConfigurationFactory.class), false);
+    myRunConfig = new AndroidRunConfigurationMock(getProject(), mock(ConfigurationFactory.class), false);
   }
 
   // canInstantRunTests
