@@ -27,7 +27,6 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.IconUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -96,7 +95,7 @@ public class ChooseModuleTypeStep extends ModelWizardStep.WithoutModel {
   private JComponent createGallery() {
     myFormFactorGallery = new WizardGallery<>(
       getTitle(),
-      galEntry -> galEntry.getIcon() == null ? null : IconUtil.toImage(galEntry.getIcon()),
+      galEntry -> galEntry.getIcon() == null ? null : galEntry.getIcon(),
       galEntry -> galEntry == null ? message("android.wizard.gallery.item.none") : galEntry.getName()
     );
 
