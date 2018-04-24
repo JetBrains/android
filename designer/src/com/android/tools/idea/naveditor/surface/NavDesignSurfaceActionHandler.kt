@@ -19,9 +19,13 @@ import com.android.tools.idea.common.surface.DesignSurfaceActionHandler
 import com.android.tools.idea.naveditor.model.actionDestination
 import com.android.tools.idea.naveditor.model.isAction
 import com.android.tools.idea.naveditor.model.isDestination
+import com.android.tools.idea.naveditor.scene.getPositionData
+import com.android.tools.idea.naveditor.scene.restorePositionData
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.Result
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.command.undo.BasicUndoableAction
+import com.intellij.openapi.command.undo.UndoManager
 import java.util.stream.Collectors
 
 class NavDesignSurfaceActionHandler(val surface: NavDesignSurface) : DesignSurfaceActionHandler(surface) {
@@ -33,6 +37,17 @@ class NavDesignSurfaceActionHandler(val surface: NavDesignSurface) : DesignSurfa
         val selectionModel = surface.selectionModel
         for (component in selectionModel.selection) {
           if (component.isDestination) {
+            val sceneComponent = surface.scene?.getSceneComponent(component)
+            val positionData = sceneComponent?.getPositionData()
+            UndoManager.getInstance(project).undoableActionPerformed(object: BasicUndoableAction(component.model.file.virtualFile) {
+              override fun undo() {
+                if (sceneComponent != null && positionData != null) {
+                  sceneComponent.restorePositionData(positionData)
+                }
+              }
+
+              override fun redo() {}
+            })
             val parent = component.parent ?: continue
             model.delete(parent.flatten().filter { it.isAction && it.actionDestination == component }.collect(Collectors.toList()))
           }

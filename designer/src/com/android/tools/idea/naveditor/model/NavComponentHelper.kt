@@ -129,6 +129,9 @@ val NlComponent.isFragment: Boolean
 val NlComponent.isNavigation: Boolean
   get() = destinationType == NavigationSchema.DestinationType.NAVIGATION
 
+val NlComponent.isInclude: Boolean
+  get() = tagName == TAG_INCLUDE
+
 val NlComponent.isSelfAction: Boolean
   get() = actionType == ActionType.SELF
 

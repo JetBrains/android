@@ -147,6 +147,11 @@ public class NlComponent implements NlAttributesHolder {
   }
 
   @NotNull
+  public SmartPsiElementPointer<XmlTag> getTagPointer() {
+    return myTagPointer;
+  }
+
+  @NotNull
   public NlModel getModel() {
     return myModel;
   }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.layout
 
+import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ID
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
@@ -50,7 +51,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     positions.put("fragment2", newPositions)
 
     val scene = model.surface.scene!!
-    val algorithm = ManualLayoutAlgorithm(NavigationSchema.get(myFacet), rootPositions)
+    val algorithm = ManualLayoutAlgorithm(NavigationSchema.get(myFacet), rootPositions, myModule)
     scene.root!!.flatten().forEach { algorithm.layout(it) }
 
     assertEquals(123, scene.getSceneComponent("fragment1")!!.drawX)
@@ -86,7 +87,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     positions.put("fragment1", newPositions)
 
     val scene = model.surface.scene!!
-    val algorithm = ManualLayoutAlgorithm(NavigationSchema.get(myFacet), rootPositions)
+    val algorithm = ManualLayoutAlgorithm(NavigationSchema.get(myFacet), rootPositions, myModule)
     scene.root!!.flatten().forEach { algorithm.layout(it) }
 
     val scene2 = model2.surface.scene!!
@@ -169,5 +170,41 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     assertEquals(500, component.drawY)
 
     // don't need to test the null id component; behavior there is undefined.
+  }
+
+  fun testChangeId() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1")
+        fragment("fragment2")
+      }
+    }
+    val rootPositions = ManualLayoutAlgorithm.LayoutPositions()
+    val positions = ManualLayoutAlgorithm.LayoutPositions()
+    rootPositions.put("nav.xml", positions)
+
+    var newPositions = ManualLayoutAlgorithm.LayoutPositions()
+    newPositions.myPosition = ManualLayoutAlgorithm.Point(123, 456)
+    positions.put("fragment1", newPositions)
+
+    newPositions = ManualLayoutAlgorithm.LayoutPositions()
+    newPositions.myPosition = ManualLayoutAlgorithm.Point(456, 789)
+    positions.put("fragment2", newPositions)
+
+    val scene = model.surface.scene!!
+    val algorithm = ManualLayoutAlgorithm(NavigationSchema.get(myFacet), rootPositions, myModule)
+    scene.root!!.flatten().forEach { algorithm.layout(it) }
+
+    WriteCommandAction.runWriteCommandAction(project) { model.find("fragment1")!!.setAttribute(ANDROID_URI, ATTR_ID, "@+id/renamed") }
+
+    scene.root!!.flatten().forEach {
+      it.setPosition(0, 0)
+      algorithm.layout(it)
+    }
+
+    assertEquals(123, scene.getSceneComponent("renamed")!!.drawX)
+    assertEquals(456, scene.getSceneComponent("renamed")!!.drawY)
+    assertEquals(456, scene.getSceneComponent("fragment2")!!.drawX)
+    assertEquals(789, scene.getSceneComponent("fragment2")!!.drawY)
   }
 }
