@@ -253,9 +253,9 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
   fun testParsingDependenciesMultiFile() {
     setupParentAndAppliedFiles()
 
-    val projectModel = ProjectBuildModel.get(myProject)!!
+    val projectModel = ProjectBuildModel.get(myProject)
     val childModel = projectModel.getModuleBuildModel(mySubModule)!!
-    val parentModel = projectModel.projectBuildModel
+    val parentModel = projectModel.projectBuildModel!!
     val appliedModel = childModel.involvedFiles.filter { f -> f.virtualFile.name == "defaults.gradle" }[0] as GradleBuildModel
 
     // Applied model
@@ -366,9 +366,9 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
   fun testAddPropertyMultiFile() {
     setupParentAndAppliedFiles()
 
-    val projectModel = ProjectBuildModel.get(myProject)!!
+    val projectModel = ProjectBuildModel.get(myProject)
     val childModel = projectModel.getModuleBuildModel(mySubModule)!!
-    val parentModel = projectModel.projectBuildModel
+    val parentModel = projectModel.projectBuildModel!!
     val appliedModel = childModel.involvedFiles.filter { f -> f.virtualFile.name == "defaults.gradle" }[0] as GradleBuildModel
 
     val maxSdkModel = appliedModel.ext().findProperty("vars").toMap()!!["maxSdk"]!!
@@ -408,9 +408,9 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
   fun testRenameProperty() {
     setupParentAndAppliedFiles()
 
-    val projectModel = ProjectBuildModel.get(myProject)!!
+    val projectModel = ProjectBuildModel.get(myProject)
     val childModel = projectModel.getModuleBuildModel(mySubModule)!!
-    val parentModel = projectModel.projectBuildModel
+    val parentModel = projectModel.projectBuildModel!!
     val appliedModel = childModel.involvedFiles.filter { f -> f.virtualFile.name == "defaults.gradle" }[0] as GradleBuildModel
 
     // Swap min and max sdk names from the applied file.
@@ -506,7 +506,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
   fun testMapDependenciesWithReordering() {
     setupParentAndAppliedFiles()
 
-    val projectModel = ProjectBuildModel.get(myProject)!!
+    val projectModel = ProjectBuildModel.get(myProject)
     val childModel = projectModel.getModuleBuildModel(mySubModule)!!
 
     run {

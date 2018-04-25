@@ -30,17 +30,17 @@ import java.io.File;
 public interface ProjectBuildModel {
   /**
    * @param project the project to create a model for.
-   * @return the model for the project, or null if no build.gradle file could be found.
+   * @return the model for the project
    */
-  @Nullable
+  @NotNull
   static ProjectBuildModel get(@NotNull Project project) {
     return GradleModelProvider.get().getProjectModel(project);
   }
 
   /**
-   * @return the {@link GradleBuildModel} for this projects root build file.
+   * @return the {@link GradleBuildModel} for this projects root build file, null if no file was found.
    */
-  @NotNull
+  @Nullable
   GradleBuildModel getProjectBuildModel();
 
   /**

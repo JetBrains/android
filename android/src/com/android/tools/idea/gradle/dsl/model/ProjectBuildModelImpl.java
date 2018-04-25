@@ -38,30 +38,32 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 
 public class ProjectBuildModelImpl implements ProjectBuildModel {
   @NotNull private final BuildModelContext myBuildModelContext;
-  @NotNull private final GradleBuildFile myProjectBuildFile;
+  @NotNull private final Project myProject;
+  @Nullable private final GradleBuildFile myProjectBuildFile;
 
-  @Nullable
+  @NotNull
   public static ProjectBuildModel get(@NotNull Project project) {
     VirtualFile file = getGradleBuildFile(getBaseDirPath(project));
-    return file == null ? null : new ProjectBuildModelImpl(project, file);
+    return new ProjectBuildModelImpl(project, file);
   }
 
   /**
    * @param project the project this model should be built for
    * @param file the file contain the projects main build.gradle
    */
-  private ProjectBuildModelImpl(@NotNull Project project, @NotNull VirtualFile file) {
+  private ProjectBuildModelImpl(@NotNull Project project, @Nullable VirtualFile file) {
     myBuildModelContext = BuildModelContext.create(project);
+    myProject = project;
 
     // First parse the main project build file.
-    myProjectBuildFile = myBuildModelContext.getOrCreateBuildFile(file, project.getName());
+    myProjectBuildFile = file != null ? myBuildModelContext.getOrCreateBuildFile(file, project.getName()) : null;
   }
 
 
   @Override
-  @NotNull
+  @Nullable
   public GradleBuildModel getProjectBuildModel() {
-    return new GradleBuildModelImpl(myProjectBuildFile);
+    return myProjectBuildFile == null ? null : new GradleBuildModelImpl(myProjectBuildFile);
   }
 
   @Override
@@ -89,7 +91,7 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
   @Override
   @Nullable
   public GradleSettingsModel getProjectSettingsModel() {
-    GradleSettingsFile settingsFile = myBuildModelContext.getOrCreateSettingsFile(myProjectBuildFile.getProject());
+    GradleSettingsFile settingsFile = myBuildModelContext.getOrCreateSettingsFile(myProject);
     if (settingsFile == null) {
       return null;
     }

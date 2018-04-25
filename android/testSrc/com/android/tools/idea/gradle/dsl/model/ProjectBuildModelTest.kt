@@ -50,8 +50,8 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     writeToSubModuleBuildFile(childText)
     writeToSettingsFile("include ':${SUB_MODULE_NAME}'")
 
-    val projectModel = ProjectBuildModel.get(myProject)!!
-    val parentBuildModel = projectModel.projectBuildModel
+    val projectModel = ProjectBuildModel.get(myProject)
+    val parentBuildModel = projectModel.projectBuildModel!!
     val childBuildModel = projectModel.getModuleBuildModel(mySubModule)!!
 
     run {
@@ -103,11 +103,11 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     writeToBuildFile(text)
     writeToSubModuleBuildFile(childText)
 
-    val projectModel = ProjectBuildModel.get(myProject)!!
+    val projectModel = ProjectBuildModel.get(myProject)
     val childModelOne = projectModel.getModuleBuildModel(mySubModule)!!
     val childModelTwo = projectModel.getModuleBuildModel(mySubModule)!!
-    val parentModelOne = projectModel.projectBuildModel
-    val parentModelTwo = projectModel.projectBuildModel
+    val parentModelOne = projectModel.projectBuildModel!!
+    val parentModelTwo = projectModel.projectBuildModel!!
 
     // Edit the properties in one of the models.
     run  {
@@ -165,8 +165,8 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     writeToSettingsFile("include ':${SUB_MODULE_NAME}'")
     val newModule = writeToNewSubModule("lib", otherModuleText, "")
 
-    val projectModel = ProjectBuildModel.get(myProject)!!
-    val parentBuildModel = projectModel.projectBuildModel
+    val projectModel = ProjectBuildModel.get(myProject)
+    val parentBuildModel = projectModel.projectBuildModel!!
     val childBuildModel = projectModel.getModuleBuildModel(File(mySubModule.moduleFilePath).parentFile)!!
     val otherChildBuildModel = projectModel.getModuleBuildModel(newModule)!!
     val settingsModel = projectModel.projectSettingsModel!!
