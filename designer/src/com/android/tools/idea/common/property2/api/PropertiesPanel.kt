@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.common.property2.api
 
+import com.android.annotations.VisibleForTesting
+import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.idea.common.property2.impl.model.CollapsibleLabelModel
 import com.android.tools.idea.common.property2.impl.model.GenericInspectorLineModel
 import com.android.tools.idea.common.property2.impl.model.InspectorPanelModel
@@ -27,6 +29,7 @@ import com.intellij.ui.ScrollPaneFactory
 import java.awt.BorderLayout
 import java.util.*
 import javax.swing.*
+import kotlin.properties.Delegates
 
 private const val VERTICAL_SCROLLING_UNIT_INCREMENT = 3
 private const val VERTICAL_SCROLLING_BLOCK_INCREMENT = 25
@@ -40,32 +43,22 @@ private const val VERTICAL_SCROLLING_BLOCK_INCREMENT = 25
  * The content of the inspector is controlled by a list of [PropertiesView]s which
  * must be added to this class using [addView].
  */
-class PropertiesPanel(parentDisposable: Disposable) : InspectorPanel, Disposable, PropertiesModelListener {
-
-  val component = JPanel(BorderLayout())
-
-  var filter
-    get() = inspectorModel.filter
-    set(value) {
-      inspectorModel.filter = value
-    }
+class PropertiesPanel(parentDisposable: Disposable) : Disposable, PropertiesModelListener {
 
   private var activeModel: PropertiesModel<*>? = null
+  private var activeView: PropertiesView<*>? = null
   private val views = IdentityHashMap<PropertiesModel<*>, PropertiesView<*>>()
-  private val inspectorModel = InspectorPanelModel()
-  private val inspector = InspectorPanelImpl(inspectorModel, this)
-  private val gotoNextLine: (InspectorLineModel) -> Unit = { inspectorModel.moveToNextLineEditor(it) }
+  private val tabbedPanel = CommonTabbedPane()
+  private val hidden = JPanel()
+
+  @VisibleForTesting
+  val pages = mutableListOf<PropertiesPage>()
+
+  val component = JPanel(BorderLayout())
+  var filter: String by Delegates.observable("", { _, oldValue, newValue -> filterChanged(oldValue, newValue) })
 
   init {
-    val scrollPane = ScrollPaneFactory.createScrollPane(
-      inspector,
-      ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-      ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER)
-    scrollPane.border = BorderFactory.createEmptyBorder()
-    scrollPane.verticalScrollBar.unitIncrement = VERTICAL_SCROLLING_UNIT_INCREMENT
-    scrollPane.verticalScrollBar.blockIncrement = VERTICAL_SCROLLING_BLOCK_INCREMENT
-
-    component.add(scrollPane, BorderLayout.CENTER)
+    hidden.isVisible = false
     Disposer.register(parentDisposable, this)
   }
 
@@ -80,34 +73,149 @@ class PropertiesPanel(parentDisposable: Disposable) : InspectorPanel, Disposable
 
   override fun propertyValuesChanged(model: PropertiesModel<*>) {
     if (model == activeModel) {
-      inspectorModel.propertyValuesChanged()
+      pages.forEach { it.propertyValuesChanged() }
     }
   }
 
   fun enterInFilter(): Boolean {
-    return inspectorModel.enterInFilter()
+    return pages.firstOrNull { it.component.isVisible }?.enterInFilter() == true
   }
 
+  /**
+   * Populate the inspector from the specified [model].
+   *
+   * Create a page for each tab with the components specified in the tab.
+   */
   private fun populateInspector(model: PropertiesModel<*>) {
     val view = views[model] ?: return
     if (activeModel != model) {
       activeModel?.deactivate()
       activeModel = model
+      activeView = view
     }
-    inspectorModel.clear()
-    inspector.removeAll()
-    view.attachToInspector(this)
-    inspector.revalidate()
-    inspector.repaint()
+    pages.forEach { it.clear() }
+    for (index in view.tabs.indices) {
+      val tab = view.tabs[index]
+      val page = lookupPage(index)
+      tab.attachToInspector(page)
+    }
+    pages.subList(view.tabs.size, pages.size).clear()
+    updatePageVisibility()
+  }
+
+  /**
+   * Update the visibility of the current pages.
+   *
+   * This will be called after the inspector is repopulated and after a filter changed.
+   * What the user will see depends on how many visible tabs we have.
+   *  - If there are multiple visible tabs, add each tab page to the [tabbedPanel]
+   *  - If there is only 1 visible tab, show the page of that tab and hide the other pages and the [tabbedPanel]
+   *
+   *  Hidden pages (and the [tabbedPanel]) are retained for quick display, and are kept in the
+   *  swing component tree such that LookAndFeel changes are applied while they are hidden.
+   *  The [hidden] panel is always hidden, and serves as the keeper of other hidden pages.
+   */
+  private fun updatePageVisibility() {
+    val view = activeView ?: return
+    val visibleTabCount = findVisibleTabCount()
+    assert(view.tabs.size == pages.size)
+    component.removeAll()
+    tabbedPanel.removeAll()
+    for (index in view.tabs.indices) {
+      val tab = view.tabs[index]
+      val page = pages[index]
+      val tabVisible = filter.isEmpty() || tab.searchable
+      page.component.isVisible = tabVisible
+      when {
+        !tabVisible -> hidden.add(page.component)
+        visibleTabCount == 1 -> component.add(page.component, BorderLayout.CENTER)
+        else -> tabbedPanel.add(page.component, tab.name)
+      }
+    }
+    if (visibleTabCount < 2) {
+      hidden.add(tabbedPanel)
+    }
+    else {
+      component.add(tabbedPanel, BorderLayout.CENTER)
+    }
+    component.add(hidden, BorderLayout.SOUTH)
+    component.revalidate()
+    component.repaint()
+  }
+
+  private fun findVisibleTabCount(): Int {
+    val view = activeView ?: return 0
+    if (filter.isEmpty()) {
+      return view.tabs.size
+    }
+    return view.tabs.count { it.searchable }
+  }
+
+  private fun filterChanged(oldValue: String, newValue: String) {
+    for (page in pages) {
+      page.filter = newValue
+    }
+    if (oldValue.isEmpty().xor(newValue.isEmpty())) {
+      updatePageVisibility()
+    }
+  }
+
+  private fun lookupPage(pageIndex: Int): PropertiesPage {
+    while (pageIndex >= pages.size) {
+      pages.add(PropertiesPage(this))
+    }
+    return pages[pageIndex]
   }
 
   override fun dispose() {
     views.keys.forEach { it.removeListener(this) }
+    pages.forEach { it.clear() }
+  }
+}
+
+class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
+  private val inspectorModel = InspectorPanelModel()
+  private val inspector = InspectorPanelImpl(inspectorModel, parentDisposable)
+  private val gotoNextLine: (InspectorLineModel) -> Unit = { inspectorModel.moveToNextLineEditor(it) }
+
+  val component = createScrollPane(inspector)
+
+  var filter
+    get() = inspectorModel.filter
+    set(value) { inspectorModel.filter = value }
+
+  fun enterInFilter():Boolean {
+    return inspectorModel.enterInFilter()
+  }
+
+  fun clear() {
+    inspectorModel.clear()
+    inspector.removeAll()
+  }
+
+  fun propertyValuesChanged() {
+    inspectorModel.propertyValuesChanged()
+  }
+
+  fun repaint() {
+    inspector.revalidate()
+    inspector.repaint()
+  }
+
+  private fun createScrollPane(component: JComponent): JComponent {
+    val scrollPane = ScrollPaneFactory.createScrollPane(
+      component,
+      ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+      ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER)
+    scrollPane.border = BorderFactory.createEmptyBorder()
+    scrollPane.verticalScrollBar.unitIncrement = VERTICAL_SCROLLING_UNIT_INCREMENT
+    scrollPane.verticalScrollBar.blockIncrement = VERTICAL_SCROLLING_BLOCK_INCREMENT
+    return scrollPane
   }
 
   override fun addTitle(title: String): InspectorLineModel {
     val model = CollapsibleLabelModel(title)
-    val label = CollapsibleLabel(model, true)
+    val label = CollapsibleLabel(model)
     inspectorModel.add(model)
     inspector.addLineElement(label)
     model.gotoNextLine = gotoNextLine
@@ -116,7 +224,7 @@ class PropertiesPanel(parentDisposable: Disposable) : InspectorPanel, Disposable
 
   override fun addEditor(editorModel: PropertyEditorModel, editor: JComponent): InspectorLineModel {
     val model = CollapsibleLabelModel(editorModel.property.name, editorModel)
-    val label = CollapsibleLabel(model, false)
+    val label = CollapsibleLabel(model)
     editorModel.lineModel = model
     inspectorModel.add(model)
     inspector.addLineElement(label, editor)

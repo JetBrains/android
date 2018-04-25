@@ -29,10 +29,17 @@ be added at some point.
 
 The top level UI component is a [PropertiesPanel](#PropertiesPanel). This
 component must be configured with a list of [PropertiesView](#PropertiesView)s.
+This allows a properties panel to show properties from different sub-systems
+which each have their own model and possibly a different implementation for
+each property.
 A property view holds:
 - a [PropertiesModel](#PropertiesModel) which controls what properties to
   show and when to show them.
-- a list of [InspectorBuilder](#InspectorBuilder)s which are used to populate
+- a list of [PropertiesViewTab](#PropertiesViewTab)s which each defines a tab in
+  the properties panel. This allows the property panel to have different
+  representations of the same properties.
+  Each [PropertiesPage](#PropertiesPage) has a list of
+  [InspectorBuilder](#InspectorBuilder)s which are used to populate
   lines in the inspector given which properties are currently available.
 
 
@@ -93,8 +100,8 @@ InspectorBuilder
 An [InspectorBuilder.kt](http://cs/android/tools/adt/idea/designer/src/com/android/tools/idea/common/property2/api/InspectorBuilder.kt)
 builds a section of lines in the inspector.
 The implementation of an inspector must implement one of more of these builders
-and supply them to the [PropertiesView](#PropertiesView) in the order the sections
-should appear. Use the builders property on the [PropertiesView](#PropertiesView).
+and supply them to the [PropertiesPage](#PropertiesPage) in the order the sections
+should appear. Use the builders property on the [PropertiesPage](#PropertiesPage).
 
 An implementation of an [InspectorBuilder](#InspectorBuilder) is usually given an
 [EditorProvider](#EditorProvider) which is able to generate a line for a given
@@ -210,8 +217,17 @@ delegate the event to all lines currently shown in the inspector.
 PropertiesView
 -------------------------------------------------------------------------------
 The view must be supplied with an implementation of a [PropertiesModel](#PropertiesModel)
-and a list of [InspectorBuilder](#InspectorBuilder)s. The view serves as a holder
-of these items but contains no logic in itself.
+and a list of named tab definitions by using the addTab method. This method will
+create an [PropertiesViewTab](#PropertiesViewTab) tab instance.
+If only one tab is created there will be no visible tab control.
+
+PropertiesViewTab
+-------------------------------------------------------------------------------
+Each tab should be created with the addTab method in [PropertiesView](#PropertiesView)
+and defines the UI of a tab in the properties panel.
+After creating a [PropertiesViewTab](#PropertiesViewTab), [InspectorBuilder](#InspectorBuilder)s
+can be supplied via the builders property. A page is searchable. If it is not searchable
+it will be automatically hidden during a search.
 
 
 Interfaces with provided default implementations
