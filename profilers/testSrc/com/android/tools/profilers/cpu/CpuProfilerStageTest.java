@@ -898,6 +898,53 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
+  public void apiInitiatedCaptureUsageTracking() {
+    int traceId1 = 1;
+    String fileName1 = "file1.trace";
+    int traceId2 = 2;
+    String fileName2 = "file2.trace";
+    int traceId3 = 3;
+    String fileName3 = "";
+
+    // Trace 1: not API-initiated. Shouldn't have API-tracing usage.
+    CpuProfiler.TraceInfo traceInfo1 = CpuProfiler.TraceInfo.newBuilder()
+                                                            .setTraceId(traceId1)
+                                                            .setTraceFilePath(fileName1)
+                                                            .setInitiationType(CpuProfiler.TraceInitiationType.INITIATED_BY_UI)
+                                                            .build();
+
+    // Trace 2: API-initiated with a valid given trace path.
+    CpuProfiler.TraceInfo traceInfo2 = CpuProfiler.TraceInfo.newBuilder()
+                                                            .setTraceId(traceId2)
+                                                            .setTraceFilePath(fileName2)
+                                                            .setInitiationType(CpuProfiler.TraceInitiationType.INITIATED_BY_API)
+                                                            .build();
+
+    // Trace 3: API-initiated without a valid given trace path.
+    CpuProfiler.TraceInfo traceInfo3 = CpuProfiler.TraceInfo.newBuilder()
+                                                            .setTraceId(traceId3)
+                                                            .setTraceFilePath(fileName3)
+                                                            .setInitiationType(CpuProfiler.TraceInitiationType.INITIATED_BY_API)
+                                                            .build();
+
+    final FakeFeatureTracker featureTracker = (FakeFeatureTracker)myServices.getFeatureTracker();
+    myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
+
+    myCpuService.addTraceInfo(traceInfo1);
+    myStage.getStudioProfilers().getUpdater().onTick(1);
+    assertThat(featureTracker.getApiTracingUsageCount()).isEqualTo(0);
+
+    myCpuService.addTraceInfo(traceInfo2);
+    myStage.getStudioProfilers().getUpdater().onTick(1);
+    assertThat(featureTracker.getApiTracingUsageCount()).isGreaterThan(0);
+    assertThat(featureTracker.getLastCpuAPiTracingPathProvided()).isTrue();
+
+    myCpuService.addTraceInfo(traceInfo3);
+    myStage.getStudioProfilers().getUpdater().onTick(1);
+    assertThat(featureTracker.getLastCpuAPiTracingPathProvided()).isFalse();
+  }
+
+  @Test
   public void testStartupProfilingUsageTracking() {
     final FakeFeatureTracker featureTracker = (FakeFeatureTracker)myServices.getFeatureTracker();
 

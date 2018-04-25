@@ -243,6 +243,15 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
+  public void trackCpuApiTracing(boolean sampling, boolean pathProvided, int bufferSize, int flags, int intervalUs) {
+    CpuApiTracingMetadata metadata =
+      CpuApiTracingMetadata.newBuilder().setUseSampling(sampling).setArgTracePath(pathProvided).setArgBufferSize(bufferSize)
+                           .setArgFlags(flags).setArgIntervalUs(intervalUs).build();
+    newTracker(AndroidProfilerEvent.Type.CPU_API_TRACING).setDevice(myActiveDevice).setCpuApiTracingMetadata(metadata)
+                                                         .track();
+  }
+
+  @Override
   public void trackSelectThread() {
     track(AndroidProfilerEvent.Type.SELECT_THREAD);
   }
@@ -417,6 +426,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
     @Nullable private com.android.tools.profilers.cpu.CpuCaptureMetadata myCpuCaptureMetadata;
     @Nullable private CpuImportTraceMetadata myCpuImportTraceMetadata;
     @Nullable private com.android.tools.profilers.analytics.FilterMetadata myFeatureMetadata;
+    @Nullable private CpuApiTracingMetadata myCpuApiTracingMetadata;
     @Nullable private ProfilerSessionCreationMetaData mySessionCreationMetadata;
     @Nullable private ProfilerSessionSelectionMetaData mySessionArtifactMetadata;
     @Nullable private ProfilingConfiguration myCpuStartupProfilingConfiguration;
@@ -449,6 +459,12 @@ public final class StudioFeatureTracker implements FeatureTracker {
     @NotNull
     public Tracker setCpuStartupProfilingConfiguration(@Nullable ProfilingConfiguration configuration) {
       myCpuStartupProfilingConfiguration = configuration;
+      return this;
+    }
+
+    @NotNull
+    public Tracker setCpuApiTracingMetadata(@Nullable CpuApiTracingMetadata metadata) {
+      myCpuApiTracingMetadata = metadata;
       return this;
     }
 
@@ -489,6 +505,9 @@ public final class StudioFeatureTracker implements FeatureTracker {
           break;
         case SESSION_ARTIFACT_SELECTED:
           profilerEvent.setSessionArtifactMetadata(mySessionArtifactMetadata);
+          break;
+        case CPU_API_TRACING:
+          profilerEvent.setCpuApiTracingMetadata(myCpuApiTracingMetadata);
           break;
         case CPU_STARTUP_PROFILING:
           profilerEvent.setCpuStartupProfilingMetadata(CpuStartupProfilingMetadata
