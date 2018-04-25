@@ -69,7 +69,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_DYNAMIC_APP_MODULE = Flag.create(
     NPW, "dynamic.app.module", "New Dynamic App Module flow",
     "Adds entry in File > New Module to create a new Dynamic App Module",
-    false);
+    true);
 
   public static final Flag<Boolean> NPW_USE_HOME_FOLDER_AS_EXTRA_TEMPLATE_ROOT_FOLDER = Flag.create(
     NPW, "home.template.root", "Use .android folder as a Template Root Folder",
