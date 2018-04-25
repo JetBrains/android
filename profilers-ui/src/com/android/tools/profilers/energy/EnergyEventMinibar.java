@@ -51,7 +51,7 @@ public final class EnergyEventMinibar {
     root.setBorder(MONITOR_BORDER);
 
     JPanel labelContainer = new JPanel(new BorderLayout());
-    labelContainer.setBackground(ColorUtil.withAlpha(ProfilerColors.DEFAULT_BACKGROUND, 0.75));
+    labelContainer.setBackground(ColorUtil.withAlpha(ProfilerColors.DEFAULT_STAGE_BACKGROUND, 0.75));
     labelContainer.setBorder(MONITOR_LABEL_PADDING);
     JLabel label = new JLabel("SYSTEM");
     label.setVerticalAlignment(SwingConstants.CENTER);
@@ -59,7 +59,7 @@ public final class EnergyEventMinibar {
     labelContainer.add(label);
 
     JPanel eventChartContainer = new JPanel(new BorderLayout());
-    eventChartContainer.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
+    eventChartContainer.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
     eventChartContainer.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
     eventChartContainer.add(eventChart);
 
