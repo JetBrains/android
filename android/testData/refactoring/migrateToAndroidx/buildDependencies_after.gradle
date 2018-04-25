@@ -18,6 +18,19 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    flavorDimensions "color"
+
+    productFlavors {
+        red {
+            dimension "color"
+            testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        }
+    }
+
+    testOptions {
+        execution "ANDROIDX_TEST_ORCHESTRATOR"
+    }
 }
 
 dependencies {
