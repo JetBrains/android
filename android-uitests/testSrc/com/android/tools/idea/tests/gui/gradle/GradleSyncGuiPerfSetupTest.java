@@ -32,7 +32,6 @@ import com.google.common.io.Files;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assume;
@@ -75,7 +74,7 @@ import static junit.framework.Assert.assertTrue;
  * for all future runs of GradleSyncGuiPerfTest.  In fact, this is the recommended configuration.
  */
 @RunIn(TestGroup.SYNC_PERFORMANCE_SETUP)
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public class GradleSyncGuiPerfSetupTest {
 
   @Rule public final GuiTestRule guiTest = new GradleSyncGuiPerfSetupTestRule().withTimeout(30, TimeUnit.MINUTES);

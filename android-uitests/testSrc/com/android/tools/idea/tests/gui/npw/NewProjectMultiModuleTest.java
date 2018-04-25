@@ -23,7 +23,6 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import com.android.tools.idea.tests.gui.instantapp.SdkReplacer;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
@@ -33,7 +32,7 @@ import static com.android.tools.idea.npw.FormFactor.*;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunIn(TestGroup.UNRELIABLE)  // b/63508325 @RunIn(TestGroup.PROJECT_WIZARD)
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public class NewProjectMultiModuleTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 

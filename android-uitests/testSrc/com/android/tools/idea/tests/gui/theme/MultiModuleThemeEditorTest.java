@@ -21,7 +21,6 @@ import com.intellij.notification.EventLog;
 import com.intellij.notification.LogModel;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -34,7 +33,7 @@ import java.util.List;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunIn(TestGroup.THEME)
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public class MultiModuleThemeEditorTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

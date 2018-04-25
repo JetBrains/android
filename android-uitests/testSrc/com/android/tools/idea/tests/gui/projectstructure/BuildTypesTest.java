@@ -20,7 +20,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,7 +27,7 @@ import org.junit.runner.RunWith;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public class BuildTypesTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

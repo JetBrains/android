@@ -24,7 +24,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ProjectStructur
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectSuggestionsConfigurable
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.waitForIdle
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.timing.Wait
 import org.junit.*
 import org.junit.Assert.assertTrue
@@ -32,7 +31,7 @@ import org.junit.runner.RunWith
 import kotlin.test.assertNotNull
 
 @RunIn(TestGroup.UNRELIABLE)
-@RunWith(GuiTestRemoteRunner::class)
+@RunWith(GuiTestRunner::class)
 class SuggestionsViewTest {
 
   @Rule

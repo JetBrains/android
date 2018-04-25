@@ -23,7 +23,6 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Rule;
 import org.junit.Test;
@@ -34,7 +33,7 @@ import java.util.regex.Pattern;
 import static com.android.tools.idea.tests.gui.kotlin.ProjectWithKotlinTestUtil.createNewBasicKotlinProject;
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public class CreateCppKotlinProjectTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

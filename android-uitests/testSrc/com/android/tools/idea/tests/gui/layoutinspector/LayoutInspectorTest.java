@@ -29,7 +29,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.LayoutInspectorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.RunToolWindowFixture;
 import com.android.tools.idea.tests.util.ddmlib.AndroidDebugBridgeUtils;
 import com.android.tools.idea.tests.util.ddmlib.DeviceQueries;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,7 +39,7 @@ import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public class LayoutInspectorTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

@@ -30,7 +30,6 @@ import com.intellij.openapi.fileChooser.ex.FileChooserDialogImpl;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.ui.ComponentWithMnemonics;
 import org.fest.reflect.exception.ReflectionError;
 import org.fest.reflect.reference.TypeRef;
@@ -52,7 +51,7 @@ import java.util.Collection;
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.reflect.core.Reflection.field;
 
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public class ConvertToWebpActionTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

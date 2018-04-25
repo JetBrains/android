@@ -23,7 +23,6 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture.ContentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RunToolWindowFixture;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Rule;
 import org.junit.Test;
@@ -31,7 +30,7 @@ import org.junit.runner.RunWith;
 
 import java.util.regex.Pattern;
 
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public class BuildAndRunCMakeProjectTest {
   @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();

@@ -25,7 +25,6 @@ import com.android.tools.idea.tests.gui.framework.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.*;
@@ -37,7 +36,7 @@ import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 
 @RunIn(TestGroup.SYNC_PERFORMANCE)
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public class GradleSyncGuiPerfTest {
 
   @Rule public final GradleSyncGuiPerfTestRule guiTest = new GradleSyncGuiPerfTestRule().withTimeout(20, TimeUnit.MINUTES);

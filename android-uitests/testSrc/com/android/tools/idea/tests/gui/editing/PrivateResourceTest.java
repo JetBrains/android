@@ -23,7 +23,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
@@ -33,7 +32,7 @@ import java.util.Collection;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public class PrivateResourceTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 

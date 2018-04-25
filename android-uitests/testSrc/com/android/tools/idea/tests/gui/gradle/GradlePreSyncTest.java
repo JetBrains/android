@@ -24,7 +24,6 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ProxySettingsDialogFixture;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.net.HttpConfigurable;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
@@ -44,7 +43,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public class GradlePreSyncTest {
   @Nullable private File myBackupProperties;
 

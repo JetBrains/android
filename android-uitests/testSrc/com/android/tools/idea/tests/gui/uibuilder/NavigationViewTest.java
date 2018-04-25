@@ -21,7 +21,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -33,7 +32,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.Objects;
 
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public final class NavigationViewTest {
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();

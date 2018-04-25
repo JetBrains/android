@@ -87,7 +87,7 @@ class GuiTestThread : Thread(GUI_TEST_THREAD_NAME) {
   private fun port(): Int = System.getProperty(GuiTestStarter.GUI_TEST_PORT).toInt()
 
   private fun runTest(testContainer: JUnitTestContainer) {
-    val request = if (testContainer.testClass.getAnnotation(RunWith::class.java).value.java == Parameterized::class.java) {
+    val request = if (testContainer.testClass.getAnnotation(RunWith::class.java).value == Parameterized::class.java) {
       Request.method(testContainer.testClass, testContainer.methodName + "[" + testContainer.buildSystem + "]")
     } else {
       Request.method(testContainer.testClass, testContainer.methodName)

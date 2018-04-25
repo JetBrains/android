@@ -18,14 +18,13 @@ package com.android.tools.idea.tests.gui.editing;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.FindPopupPanelFixture;
 import com.google.common.collect.ImmutableList;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public class FindInPathTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

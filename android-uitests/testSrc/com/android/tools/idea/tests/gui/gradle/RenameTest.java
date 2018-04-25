@@ -30,7 +30,6 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
 import com.intellij.refactoring.rename.DirectoryAsPackageRenameHandler;
 import com.intellij.refactoring.rename.RenameHandler;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.android.util.AndroidBundle;
@@ -41,7 +40,7 @@ import org.junit.runner.RunWith;
 import static org.junit.Assert.*;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public class RenameTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

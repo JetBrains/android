@@ -22,7 +22,6 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -31,7 +30,7 @@ import org.junit.runner.RunWith;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public class RelativeLayoutTest {
 
   @Rule

@@ -22,7 +22,6 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.ChooseGradleHomeDialogFixture;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
@@ -38,7 +37,7 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
  * UI Test for {@link com.android.tools.idea.gradle.project.ChooseGradleHomeDialog}.
  */
 @RunIn(TestGroup.PROJECT_SUPPORT)
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public class ChooseGradleHomeDialogTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

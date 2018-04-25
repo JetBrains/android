@@ -25,7 +25,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFi
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.GuiTestFileUtils;
 import com.android.tools.idea.tests.util.WizardUtils;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.fixture.JListFixture;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +41,7 @@ import java.nio.file.Path;
 
 import static org.junit.Assert.*;
 
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public final class MenuTest {
   @Language("XML")
   @SuppressWarnings("XmlUnusedNamespaceDeclaration")

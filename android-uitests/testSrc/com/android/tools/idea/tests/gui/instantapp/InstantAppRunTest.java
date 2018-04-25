@@ -37,7 +37,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerD
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture.SystemImage;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.containers.ContainerUtil;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
@@ -54,7 +53,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public class InstantAppRunTest {
   private static final SystemImage O_AVD_IMAGE = new SystemImage("Oreo", "26", "x86", "Android 8.0 (Google APIs)");
 

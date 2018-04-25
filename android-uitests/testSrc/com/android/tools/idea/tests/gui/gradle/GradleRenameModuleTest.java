@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.RenameModuleDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -32,7 +31,7 @@ import java.io.IOException;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunIn(TestGroup.UNRELIABLE) // b/77269009 @RunIn(TestGroup.PROJECT_SUPPORT)
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public class GradleRenameModuleTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

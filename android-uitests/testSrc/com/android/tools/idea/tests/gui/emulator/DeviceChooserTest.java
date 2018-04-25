@@ -25,7 +25,6 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.ScalableIcon;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.ui.LayeredIcon;
 import org.fest.reflect.exception.ReflectionError;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -43,7 +42,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.fest.reflect.core.Reflection.method;
 import static org.fest.reflect.core.Reflection.field;
 
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public class DeviceChooserTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

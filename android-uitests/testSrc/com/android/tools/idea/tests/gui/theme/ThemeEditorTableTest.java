@@ -21,7 +21,6 @@ import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.*;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.*;
@@ -45,7 +44,7 @@ import static org.junit.Assert.*;
  * UI tests regarding the attributes table of the theme editor
  */
 @RunIn(TestGroup.THEME)
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public class ThemeEditorTableTest {
 
   @Rule public final RenderTimeoutRule timeout = new RenderTimeoutRule(60, TimeUnit.SECONDS);

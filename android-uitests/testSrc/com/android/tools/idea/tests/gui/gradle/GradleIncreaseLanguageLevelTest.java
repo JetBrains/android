@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -32,7 +31,7 @@ import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.E
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
 @Ignore("fails; replace with headless integration test; see b/37730035")
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public class GradleIncreaseLanguageLevelTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
