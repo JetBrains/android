@@ -108,12 +108,12 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
    */
   @NotNull
   public NlConfigurationToolbarFixture<ParentFixture> chooseDevice(@NotNull String label) {
-    selectDropDownActionButtonItem("Device in Editor (D)", new DeviceNamePredicate(label));
+    selectDropDownActionButtonItem("Device for Preview (D)", new DeviceNamePredicate(label));
     return this;
   }
 
   public void chooseLayoutVariant(@NotNull String layoutVariant) {
-    selectDropDownActionButtonItem("Orientation in Editor (O)", Predicate.isEqual(layoutVariant));
+    selectDropDownActionButtonItem("Orientation for Preview (O)", Predicate.isEqual(layoutVariant));
   }
 
   /**
@@ -191,14 +191,14 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
   public NlConfigurationToolbarFixture<ParentFixture> setOrientationAsLandscape() {
     // If there is any Landscape variation, the text of Action Button will become "Landscape -> [variation_folder]/[layout_name].xml"
     // Use String.startsWith() to cover that case.
-    selectDropDownActionButtonItem("Orientation in Editor (O)", item -> item.startsWith("Landscape"));
+    selectDropDownActionButtonItem("Orientation for Preview (O)", item -> item.startsWith("Landscape"));
     return this;
   }
 
   public NlConfigurationToolbarFixture<ParentFixture> setOrientationAsPortrait() {
     // If there is any Portrait variation, the text of Action Button will become "Portrait -> [variation_folder]/[layout_name].xml"
     // Use String.startsWith() to cover that case.
-    selectDropDownActionButtonItem("Orientation in Editor (O)", item -> item.startsWith("Portrait"));
+    selectDropDownActionButtonItem("Orientation for Preview (O)", item -> item.startsWith("Portrait"));
     return this;
   }
 
