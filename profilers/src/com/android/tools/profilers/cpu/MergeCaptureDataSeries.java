@@ -22,7 +22,6 @@ import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -63,24 +62,27 @@ public class MergeCaptureDataSeries<T> implements DataSeries<T> {
       Range traceRange = myStage.getCapture().getRange();
       if (traceRange.getMin() <= maxRangeUs && traceRange.getMax() >= minRangeUs) {
         // If our trace starts before our requested we query only for the last bit of data in our range.
-        // otherwise we request all data from the start upto our trace start. This ensures we cover two scenarios.
-        // [##] is the capture range and data.
+        // otherwise we request all data from the start up to the first event found in atrace. This ensures we cover two scenarios.
+        // [xx] is the capture range and data.
         // |--| is the requested range and DataStore data.
-        // 1) We have all data upto our trace start range |----[xxx]|
+        // 1) We have all data up to our first data point in our trace. |----[xxx]|
         // 2) We have the last state change from before our trace in the event we have no trace data available |-[]|
         double traceStart = traceRange.getMin() < minRangeUs ? minRangeUs : traceRange.getMin();
-        // Pull all states from the start of our range up to our capture start time.
-        // If our capture start time is after our range we still need to pull the data as our capture may not
-        // include data for all cases.
-        List<SeriesData<T>> dataStoreSeries = getDataForRangeFromSeries(minRangeUs, traceStart, myDataStoreSeries);
-
-        // Request data from our trace up to the max trace or requested range whatever is less.
-        double requestTo = traceRange.getMax();
+        // Request data from our trace up to the max trace range or requested range whatever is less.
+        double atraceSeriesRequestTo = traceRange.getMax();
         if (traceRange.getMax() > maxRangeUs) {
-          requestTo = maxRangeUs;
+          atraceSeriesRequestTo = maxRangeUs;
         }
-        List<SeriesData<T>> atraceSeries = getDataForRangeFromSeries(traceStart, requestTo, myAtraceDataSeries);
-        minRangeUs = requestTo;
+        // We request atrace data from our trace start up to the trace end, or request range.
+        List<SeriesData<T>> atraceSeries = getDataForRangeFromSeries(traceStart, atraceSeriesRequestTo, myAtraceDataSeries);
+
+        // If we have trace data we adjust the range we request sampled data from.
+        // The end point of our sampled data is either the first sampled point in our Atrace series. Or if we have no Atrace data
+        // we request all other data up to the end of our trace.
+        double firstAtraceSeriesEntryTime = !atraceSeries.isEmpty() ? atraceSeries.get(0).x : atraceSeriesRequestTo;
+        List<SeriesData<T>> dataStoreSeries = getDataForRangeFromSeries(minRangeUs, firstAtraceSeriesEntryTime, myDataStoreSeries);
+
+        minRangeUs = atraceSeriesRequestTo;
 
         // Merge our DataStore series and our trace series.
         // We find the first time from our DataStore that is less than our Atrace and add that to our results.
