@@ -320,6 +320,10 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
             if (candidateToSelect == null || trace.getRange().getMax() > candidateToSelect.getRange().getMax()) {
               candidateToSelect = trace;
             }
+            // Track usage for API-initiated tracing.
+            // TODO(b/72832167): When more tracing APIs are supported, update the tracking logic.
+            getStudioProfilers().getIdeServices().getFeatureTracker()
+                                .trackCpuApiTracing(false, !trace.getTraceFilePath().equals(""), -1, -1, -1);
           }
         }
         // Update xRange's min to the latest end point we have seen. When we query next time, we want new traces only; not all traces.

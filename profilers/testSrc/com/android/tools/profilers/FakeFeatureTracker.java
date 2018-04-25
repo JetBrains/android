@@ -53,6 +53,16 @@ public final class FakeFeatureTracker implements FeatureTracker {
    */
   private Boolean myLastImportTraceSucceeded;
 
+  /**
+   * Stores the last boolean value of {@link pathProvided} passed to track API tracing.
+   */
+  private boolean myLastCpuApiTracingPathProvided;
+
+  /**
+   * The times that the usage data of API-initiated tracing has been recorded.
+   */
+  private int myApiTracingUsageCount = 0;
+
   @Override
   public void trackEnterStage(@NotNull Class<? extends Stage> stage) {
 
@@ -179,6 +189,20 @@ public final class FakeFeatureTracker implements FeatureTracker {
   @Nullable
   public ProfilingConfiguration getLastCpuStartupProfilingConfig() {
     return myLastCpuStartupProfilingConfig;
+  }
+
+  @Override
+  public void trackCpuApiTracing(boolean sampling, boolean pathProvided, int bufferSize, int flags, int intervalUs) {
+    myLastCpuApiTracingPathProvided = pathProvided;
+    myApiTracingUsageCount++;
+  }
+
+  public boolean getLastCpuAPiTracingPathProvided() {
+    return myLastCpuApiTracingPathProvided;
+  }
+
+  public int getApiTracingUsageCount() {
+    return myApiTracingUsageCount;
   }
 
   @Override

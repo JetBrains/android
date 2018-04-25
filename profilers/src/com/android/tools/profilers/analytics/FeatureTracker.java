@@ -152,6 +152,15 @@ public interface FeatureTracker {
   void trackCpuStartupProfiling(@NotNull ProfilingConfiguration configuration);
 
   /**
+   * @param sampling     True if using sampling; false if using instrumentation.
+   * @param pathProvided A trace path is given and not null (we don't log the path as it might contain PII).
+   * @param bufferSize   Buffer size as a given API argument (-1 if unavailable).
+   * @param flags        Flags as a given API argument (-1 if unavailable).
+   * @param intervalUs   Sampling interval as a given API argument (-1 if unavailable).
+   */
+  public void trackCpuApiTracing(boolean sampling, boolean pathProvided, int bufferSize, int flags, int intervalUs);
+
+  /**
    * Track the user clicking on one of the threads in the thread list.
    */
   void trackSelectThread();
