@@ -61,7 +61,7 @@ import static java.lang.String.format;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
- * This class configures the Dynamic Module specific data such as the "Base Application Module", "Module Name", "Package Name" and
+ * This class configures the Dynamic Feature Module specific data such as the "Base Application Module", "Module Name", "Package Name" and
  * "Minimum API Level"
  */
 public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatureModel> {

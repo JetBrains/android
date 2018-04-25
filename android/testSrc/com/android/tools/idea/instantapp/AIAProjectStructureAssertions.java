@@ -58,8 +58,8 @@ public class AIAProjectStructureAssertions {
   }
 
   /**
-   * Asserts that the given module is a feature module and that it has dependencies that match the given set of expected dependencies.
-   * projects
+   * Asserts that the given module is a Instant App Feature module and that it has dependencies that match the given set of
+   * expected dependencies projects
    */
   public static void assertModuleIsValidAIAFeature(@NotNull Module module,
                                                    @NotNull Collection<String> expectedDependencies) throws InterruptedException {

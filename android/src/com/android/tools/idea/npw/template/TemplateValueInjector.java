@@ -353,7 +353,7 @@ public final class TemplateValueInjector {
 
     Module baseFeature = DynamicAppUtils.getBaseFeature(module);
     if (baseFeature == null) {
-      throw new RuntimeException("Dynamic Feature Module '" + module.getName() + "' has no Base Feature Module");
+      throw new RuntimeException("Dynamic Feature Module '" + module.getName() + "' has no Base Module");
     }
 
     return setBaseFeature(baseFeature);

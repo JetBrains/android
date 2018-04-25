@@ -166,7 +166,7 @@ public class NewInstantAppModuleTest {
     NewModuleWizardFixture newModuleWizardFixture = ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...");
 
     ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> configureAndroidModuleStep = newModuleWizardFixture
-      .chooseModuleType("Feature Module")
+      .chooseModuleType("Instant App Feature Module")
       .clickNext() // Selected App
       .getConfigureAndroidModuleStep()
       .selectMinimumSdkApi("23");

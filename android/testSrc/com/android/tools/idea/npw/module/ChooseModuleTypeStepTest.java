@@ -60,10 +60,10 @@ public class ChooseModuleTypeStepTest extends AndroidGradleTestCase {
 
   public void testSortFullModuleEntries() {
     Assert.assertThat(
-      sort("Z", "Import .JAR/.AAR Package", "Android Library", "Phone & Tablet Module", "Feature Module", "Instant App",
+      sort("Z", "Import .JAR/.AAR Package", "Android Library", "Phone & Tablet Module", "Instant App Feature Module", "Instant App",
            "Android Wear Module", "Android TV Module", "Import Gradle Project", "Import Eclipse ADT Project","Google Cloud Module",
            "Java Library", "A"),
-      equalToList("Phone & Tablet Module", "Android Library", "Instant App", "Feature Module", "Android Wear Module",
+      equalToList("Phone & Tablet Module", "Android Library", "Instant App", "Instant App Feature Module", "Android Wear Module",
                   "Android TV Module", "Import Gradle Project", "Import Eclipse ADT Project", "Import .JAR/.AAR Package", "Java Library",
                   "Google Cloud Module", "A", "Z")
     );
@@ -86,12 +86,12 @@ public class ChooseModuleTypeStepTest extends AndroidGradleTestCase {
       .map(ModuleGalleryEntry::getName).collect(Collectors.toList());
 
     List<String> expectedEntries = Lists.newArrayList(
-      "Phone & Tablet Module", "Android Library", "Dynamic Module", "Instant App", "Feature Module", "Android Wear Module",
+      "Phone & Tablet Module", "Android Library", "Dynamic Feature Module", "Instant App", "Instant App Feature Module", "Android Wear Module",
       "Android TV Module", "Android Things Module", "Import Gradle Project", "Import Eclipse ADT Project",
       "Import .JAR/.AAR Package", "Java Library"
     );
     if (!StudioFlags.NPW_DYNAMIC_APP_MODULE.get()) {
-      expectedEntries.remove("Dynamic Module");
+      expectedEntries.remove("Dynamic Feature Module");
     }
 
     Assert.assertThat(sortedEntries, equalTo(expectedEntries));

@@ -55,7 +55,7 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
   }
 
   public ConfigureInstantModuleStepFixture<NewProjectWizardFixture> getConfigureInstantModuleStep() {
-    JRootPane rootPane = findStepWithTitle("Configure the feature module");
+    JRootPane rootPane = findStepWithTitle("Configure the Instant App Feature module");
     return new ConfigureInstantModuleStepFixture<>(this, rootPane);
   }
 

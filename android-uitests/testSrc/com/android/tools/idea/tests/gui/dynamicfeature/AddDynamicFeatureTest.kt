@@ -47,18 +47,18 @@ class AddDynamicFeatureTest {
   }
 
   /**
-   * Verifies that user is able to add a Dynamic module through the
+   * Verifies that user is able to add a Dynamic Feature Module through the
    * new module wizard.
    *
    * <pre>
    * Test steps:
    * 1. Import simple application project
    * 2. Go to File -> New module to open the new module dialog wizard.
-   * 3. Follow through the wizard to add a new dynamic module, accepting defaults.
+   * 3. Follow through the wizard to add a new Dynamic Feature Module, accepting defaults.
    * 4. Complete the wizard and wait for the build to complete.
    * Verify:
-   * 1. The new dynamic module is shown in the project explorer pane.
-   * 2. Open the dynamic module manifest and check that "dist:onDemand" and
+   * 1. The new Dynamic Feature Module is shown in the project explorer pane.
+   * 2. Open the Dynamic Feature Module manifest and check that "dist:onDemand" and
    * "dist:fusing include" are set to true.
    * 3. Open the app Module strings.xml (not the *dynamic* Module strings.xml) and check that a
    * new string was added for the dynamic feature title
@@ -86,19 +86,19 @@ class AddDynamicFeatureTest {
   }
 
   /**
-   * Verifies that user is able to add a Dynamic module through the
+   * Verifies that user is able to add a Dynamic Feature Module through the
    * new module wizard.
    *
    * <pre>
    * Test steps:
    * 1. Import simple application project
    * 2. Go to File -> New module to open the new module dialog wizard.
-   * 3. Select dynamic module and press next.
+   * 3. Select Dynamic Feature Module and press next.
    * 4. In the Module Configuration step, select "app" as the Base application module and name the Module "MyDynamicFeature"
    * 5. In the Dynamic Delivery step, name the Delivery ""My Dynamic Feature Title", and un-tick the check box for On-Demand/Fusing.
    * Verify:
-   * 1. The new dynamic module is shown in the project explorer pane (MyDynamicFeature).
-   * 2. Open the dynamic module manifest and check that "dist:onDemand" and
+   * 1. The new Dynamic Feature Module is shown in the project explorer pane (MyDynamicFeature).
+   * 2. Open the Dynamic Feature Module manifest and check that "dist:onDemand" and
    * "dist:fusing include" are set to false.
    * 3. Open the app Module strings.xml (not the *dynamic* Module strings.xml) and check that a
    * new string was added for the dynamic feature title with value "My Dynamic Feature Title"
@@ -141,18 +141,18 @@ class AddDynamicFeatureTest {
   }
 
   /**
-   * Verifies that user is able to add a Dynamic module through the
+   * Verifies that user is able to add a Dynamic Feature Module through the
    * new module wizard.
    *
    * <pre>
    * Test steps:
    * 1. Import simple application project
    * 2. Go to File -> New module to open the new module dialog wizard.
-   * 3. Follow through the wizard to add a new dynamic module, accepting defaults.
+   * 3. Follow through the wizard to add a new Dynamic Feature Module, accepting defaults.
    * 4. Complete the wizard and wait for the build to complete.
    * 5. Go to File -> New -> Activity -> Login Activity -> Finish
    * Verify:
-   * 1. The new dynamic module is shown in the project explorer pane.
+   * 1. The new Dynamic Feature Module is shown in the project explorer pane.
    * 2. Open the app Module strings.xml (not the *dynamic* Module strings.xml) and check that a
    * new string was added for "title_activity_login"
    * 3. Open the "dynamic-feature" module strings.xml and check there are new strings
