@@ -455,6 +455,7 @@ genrule(
     outs = [
         "aswb/aspect/WORKSPACE",
         "aswb/aspect/BUILD.bazel",
+        "aswb/aspect/artifacts.bzl",
         "aswb/aspect/intellij_info_bundled.bzl",
         "aswb/aspect/intellij_info_impl.bzl",
         "aswb/aspect/java_classpath.bzl",
