@@ -489,8 +489,8 @@ public class AndroidIcons {
   }
 
   public static class ToolWindows {
-    public static final Icon HeapAnalysis = IconLoader.getIcon("/icons/toolwindows/toolWindowHeapAnalysis.png"); // 13x13
-    public static final Icon Warning = IconLoader.getIcon("/icons/toolwindows/toolWindowWarning.png"); // 13x13
+    public static final Icon HeapAnalysis = IconLoader.getIcon("/icons/toolwindows/toolWindowHeapAnalysis.svg"); // 13x13
+    public static final Icon Warning = IconLoader.getIcon("/icons/toolwindows/toolWindowWarning.svg"); // 13x13
   }
 
   public static class Issue {
