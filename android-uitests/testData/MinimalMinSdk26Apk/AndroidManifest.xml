@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:versionCode="1"
+    android:versionName="1.0"
+    package="com.android.smallapk"
+    platformBuildVersionCode="27"
+    platformBuildVersionName="8.1.0">
+
+    <uses-sdk
+        android:minSdkVersion="26"
+        android:targetSdkVersion="27" />
+
+    <application
+        android:label="@ref/0x7f050000"
+        android:icon="@ref/0x7f030000"
+        android:debuggable="true"
+        android:allowBackup="true"
+        android:supportsRtl="true"
+        android:roundIcon="@ref/0x7f030001" />
+</manifest>

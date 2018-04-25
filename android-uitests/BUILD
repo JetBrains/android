@@ -80,6 +80,7 @@ iml_module(
         "//tools/adt/idea/uitest-framework-bazel[module, test]",
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
         "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module, test]",
+        "//tools/adt/idea/android-adb[module, test]",
     ],
 )
 
@@ -444,6 +445,15 @@ java_test(
         "no_psq",
         "qa_sanity",
     ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "AndroidProfilerTest",
+    data = COMMON_DATA + glob(["testData/MinimalMinSdk26Apk/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.profiler.AndroidProfilerTest"],
+    tags = COMMON_TAGS,
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )

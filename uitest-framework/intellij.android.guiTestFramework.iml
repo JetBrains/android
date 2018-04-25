@@ -45,5 +45,6 @@
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="module" module-name="android-layout-inspector" scope="TEST" />
     <orderEntry type="module" module-name="adt-testutils" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.profilersAndroid" scope="TEST" />
   </component>
 </module>

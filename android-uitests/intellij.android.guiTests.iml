@@ -40,5 +40,6 @@
     <orderEntry type="module" module-name="uitest-framework-bazel" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.fakeadbserver" scope="TEST" />
+    <orderEntry type="module" module-name="android-adb" scope="TEST" />
   </component>
 </module>

@@ -46,5 +46,6 @@ iml_module(
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
         "//tools/adt/idea/android-layout-inspector[module, test]",
         "//tools/adt/idea/adt-testutils[module, test]",
+        "//tools/adt/idea/profilers-android:intellij.android.profilersAndroid[module, test]",
     ],
 )

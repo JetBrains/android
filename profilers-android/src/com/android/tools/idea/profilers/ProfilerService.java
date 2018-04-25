@@ -22,6 +22,7 @@ import com.android.tools.nativeSymbolizer.NativeSymbolizerKt;
 import com.android.tools.profilers.ProfilerClient;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -47,7 +48,7 @@ public class ProfilerService implements Disposable {
   private final DataStoreService myDataStoreService;
 
   private ProfilerService(@NotNull Project project) {
-    String datastoreDirectory = Paths.get(System.getProperty("user.home"), ".android").toString() + File.separator;
+    String datastoreDirectory = Paths.get(PathManager.getSystemPath(), ".android").toString() + File.separator;
 
     NativeSymbolizer symbolizer = NativeSymbolizerKt.createNativeSymbolizer(project);
     Disposer.register(this, symbolizer);
