@@ -1,12 +1,14 @@
 
 apply { plugin("kotlin") }
 
+apply { plugin("jps-compatible") }
+
 dependencies {
     compile(project(":compiler:util"))
-    compile(ideaSdkCoreDeps("intellij-core"))
-    compile(ideaPluginDeps("gradle-api", plugin = "gradle"))
-    compile(ideaPluginDeps("android", "android-common", "sdk-common", plugin = "android"))
-    compile(ideaSdkDeps("android-base-common"))
+    compileOnly(intellijCoreDep()) { includeJars("intellij-core") }
+    compileOnly(intellijDep()) { includeJars("guava", "android-base-common", rootProject = rootProject) }
+    compileOnly(intellijPluginDep("gradle")) { includeJars("gradle-api", rootProject = rootProject) }
+    compileOnly(intellijPluginDep("android")) { includeJars("android", "android-common", "sdk-common") }
 }
 
 sourceSets {

@@ -24,8 +24,6 @@
                          level="WEAK WARNING"
                          language="kotlin" />
 
-        <editorNotificationProvider implementation="org.jetbrains.kotlin.android.actions.KotlinNewActivityNotification"/>
-
         <codeInsight.lineMarkerProvider language="kotlin" implementationClass="org.jetbrains.kotlin.android.KotlinAndroidLineMarkerProvider"/>
 
         <intentionAction>
@@ -114,5 +112,9 @@
 
     <extensions defaultExtensionNs="com.android.gradle.sync">
         <postSyncModuleSetupStep implementation="org.jetbrains.kotlin.android.configure.KotlinAndroidModuleSetupStep"/>
+    </extensions>
+
+    <extensions defaultExtensionNs="org.jetbrains.kotlin.android.model">
+        <androidModuleInfoProvider implementation="org.jetbrains.kotlin.android.model.impl.AndroidModuleInfoProviderImpl"/>
     </extensions>
 </idea-plugin>
