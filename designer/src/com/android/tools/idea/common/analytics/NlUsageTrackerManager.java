@@ -72,14 +72,11 @@ public class NlUsageTrackerManager implements NlUsageTracker {
 
   private final Executor myExecutor;
   private final WeakReference<DesignSurface> myDesignSurfaceRef;
-  private final UsageTracker myUsageTracker;
-
 
   @VisibleForTesting
-  NlUsageTrackerManager(@NotNull Executor executor, @Nullable DesignSurface surface, @NotNull UsageTracker usageTracker) {
+  NlUsageTrackerManager(@NotNull Executor executor, @Nullable DesignSurface surface) {
     myExecutor = executor;
     myDesignSurfaceRef = new WeakReference<>(surface);
-    myUsageTracker = usageTracker;
   }
 
   /**
@@ -93,7 +90,7 @@ public class NlUsageTrackerManager implements NlUsageTracker {
     }
 
     try {
-      return sTrackersCache.get(surface, () -> new NlUsageTrackerManager(ourExecutorService, surface, UsageTracker.getInstance()));
+      return sTrackersCache.get(surface, () -> new NlUsageTrackerManager(ourExecutorService, surface));
     }
     catch (ExecutionException e) {
       assert false;
@@ -236,7 +233,7 @@ public class NlUsageTrackerManager implements NlUsageTracker {
           .setKind(AndroidStudioEvent.EventKind.LAYOUT_EDITOR_EVENT)
           .setLayoutEditorEvent(builder.build());
 
-        myUsageTracker.log(studioEvent);
+        UsageTracker.getInstance().log(studioEvent);
       });
     }
     catch (RejectedExecutionException e) {

@@ -75,6 +75,29 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
   private AttributeDefinition myTextDefinition;
   private AttributeDefinition myCustomDefinition;
 
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+
+    UsageTracker usageTracker = mock(UsageTracker.class);
+    myLogCalls = new LinkedList<>();
+    doAnswer(invocation -> {
+      myLogCalls.add(((AndroidStudioEvent.Builder)invocation.getArguments()[0]).build());
+      return null;
+    }).when(usageTracker).log(any());
+
+    UsageTracker.setInstanceForTest(usageTracker);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      UsageTracker.cleanAfterTesting();
+    } finally {
+      super.tearDown();
+    }
+  }
+
   public void testGetInstance() {
     assertEquals(NlUsageTrackerManager.NOP_TRACKER, NlUsageTrackerManager.getInstanceInner(null));
 
@@ -387,13 +410,6 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
   }
 
   private NlUsageTrackerManager getUsageTracker() {
-    UsageTracker usageTracker = mock(UsageTracker.class);
-    myLogCalls = new LinkedList<>();
-    doAnswer(invocation -> {
-      myLogCalls.add(((AndroidStudioEvent.Builder)invocation.getArguments()[0]).build());
-      return null;
-    }).when(usageTracker).log(any());
-
     NlDesignSurface surface = mock(NlDesignSurface.class);
     when(surface.getLayoutType()).thenReturn(NlLayoutType.LAYOUT);
     when(surface.getSceneMode()).thenReturn(SceneMode.BOTH);
@@ -401,7 +417,7 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
     Configuration configuration = getConfigurationMock();
     when(surface.getConfiguration()).thenReturn(configuration);
 
-    return new NlUsageTrackerManager(SYNC_EXECUTOR, surface, usageTracker) {
+    return new NlUsageTrackerManager(SYNC_EXECUTOR, surface) {
       @Override
       boolean shouldLog(int percent) {
         // Log everything in tests
