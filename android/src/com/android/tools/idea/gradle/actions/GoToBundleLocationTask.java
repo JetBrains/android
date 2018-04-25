@@ -102,13 +102,13 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
                              @NotNull SortedMap<String, File> bundlePathsByModule) {
     if (ShowFilePathAction.isSupported()) {
       StringBuilder buffer = new StringBuilder();
-      buffer.append("Bundle file(s) generated successfully:<br/>");
+      buffer.append("App bundle(s) generated successfully:<br/>");
 
       int moduleIndex = 0;
       for (Map.Entry<String, File> entry : bundlePathsByModule.entrySet()) {
         String moduleName = entry.getKey();
         buffer.append("Module '" ).append(moduleName).append("': ");
-        buffer.append("<a href=\"").append(MODULE).append(moduleName).append("\">locate</a> the Bundle file.");
+        buffer.append("<a href=\"").append(MODULE).append(moduleName).append("\">locate</a> the app bundle.");
         if (moduleIndex < bundlePathsByModule.size() - 1) {
           buffer.append("<br/>");
         }
@@ -122,7 +122,7 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
       // Platform does not support showing the location of a file.
       // Display file paths in the 'Log' view, since they could be too long to show in a balloon notification.
       StringBuilder buffer = new StringBuilder();
-      buffer.append("Bundle file(s) generated successfully:\n");
+      buffer.append("App bundle(s) generated successfully:\n");
 
       int moduleIndex = 0;
       for (Map.Entry<String, File> entry : bundlePathsByModule.entrySet()) {
@@ -133,7 +133,7 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
           buffer.append("\n");
         }
       }
-      notification.showBalloon(myNotificationTitle, "Bundle file(s) generated successfully.", INFORMATION, new OpenEventLogHyperlink());
+      notification.showBalloon(myNotificationTitle, "App bundle(s) generated successfully.", INFORMATION, new OpenEventLogHyperlink());
       notification.addLogEvent(myNotificationTitle, buffer.toString(), INFORMATION);
     }
   }

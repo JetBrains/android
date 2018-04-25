@@ -153,9 +153,9 @@ public class BuildBundleActionTest extends IdeaTestCase {
   }
 
   private static String getHtmlUpdateMessage() {
-    return "<html><body>Building Bundles requires you to update to the latest version of the Android Gradle Plugin.<BR/>" +
+    return "<html><body>Building Android App Bundles requires you to update to the latest version of the Android Gradle Plugin.<BR/>" +
            "<A HREF=\"https://d.android.com/r/studio-ui/dynamic-delivery/overview.html\">Learn More</A><BR/><BR/>" +
-           "Bundles allow you to support multiple device configurations from a single build artifact.<BR/>" +
+           "App bundles allow you to support multiple device configurations from a single build artifact.<BR/>" +
            "App stores that support the bundle format use it to build and sign your APKs for you, and<BR/>" +
            "serve those APKs to users as needed.<BR/><BR/></body></html>";
   }

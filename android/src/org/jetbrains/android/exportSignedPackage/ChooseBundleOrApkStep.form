@@ -23,7 +23,7 @@
             <properties>
               <font style="1"/>
               <selected value="true"/>
-              <text value="Bundle"/>
+              <text value="Android App Bundle"/>
             </properties>
           </component>
           <component id="35db0" class="com.intellij.ui.components.JBLabel">

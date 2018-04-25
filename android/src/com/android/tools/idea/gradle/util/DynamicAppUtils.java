@@ -152,12 +152,12 @@ public class DynamicAppUtils {
   public static void promptUserForGradleUpdate(@NotNull Project project) {
     HtmlBuilder builder = new HtmlBuilder();
     builder.openHtmlBody();
-    builder.add("Building Bundles requires you to update to the latest version of the Android Gradle Plugin.");
+    builder.add("Building Android App Bundles requires you to update to the latest version of the Android Gradle Plugin.");
     builder.newline();
     builder.addLink("Learn More", ChooseBundleOrApkStep.DOC_URL);
     builder.newline();
     builder.newline();
-    builder.add("Bundles allow you to support multiple device configurations from a single build artifact.");
+    builder.add("App bundles allow you to support multiple device configurations from a single build artifact.");
     builder.newline();
     builder.add("App stores that support the bundle format use it to build and sign your APKs for you, and");
     builder.newline();
