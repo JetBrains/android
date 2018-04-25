@@ -52,6 +52,12 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, F
   }
 
   @NotNull
+  public FileChooserDialogFixture openProject() {
+    findActionLinkByActionId("WelcomeScreen.OpenProject").click();
+    return FileChooserDialogFixture.findDialog(robot(), "Open File or Project");
+  }
+
+  @NotNull
   public WelcomeFrameFixture importProject() {
     findActionLinkByActionId("WelcomeScreen.ImportProject").click();
     return this;
