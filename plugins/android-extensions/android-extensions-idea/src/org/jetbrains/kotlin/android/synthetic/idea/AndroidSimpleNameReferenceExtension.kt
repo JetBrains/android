@@ -19,9 +19,7 @@ package org.jetbrains.kotlin.android.synthetic.idea
 import com.intellij.psi.PsiElement
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlFile
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.ResourceFolderManager
-import org.jetbrains.android.util.AndroidResourceUtil
+import org.jetbrains.kotlin.android.model.AndroidModuleInfoProvider
 import org.jetbrains.kotlin.android.synthetic.AndroidConst
 import org.jetbrains.kotlin.android.synthetic.androidIdToName
 import org.jetbrains.kotlin.idea.references.KtSimpleNameReference
@@ -42,7 +40,7 @@ class AndroidSimpleNameReferenceExtension : SimpleNameReferenceExtension {
 
     override fun handleElementRename(reference: KtSimpleNameReference, psiFactory: KtPsiFactory, newElementName: String): PsiElement? {
         val resolvedElement = reference.resolve()
-        if (resolvedElement is XmlAttributeValue && AndroidResourceUtil.isIdDeclaration(resolvedElement)) {
+        if (resolvedElement is XmlAttributeValue && isIdDeclaration(resolvedElement)) {
             val newSyntheticPropertyName = androidIdToName(newElementName) ?: return null
             return psiFactory.createNameIdentifier(newSyntheticPropertyName.name)
         }
@@ -52,6 +50,8 @@ class AndroidSimpleNameReferenceExtension : SimpleNameReferenceExtension {
 
         return null
     }
+
+    private fun isIdDeclaration(declaration: XmlAttributeValue) = declaration.value?.startsWith("@+id/") ?: false
 
     private fun KtSimpleNameReference.isReferenceToXmlFile(xmlFile: XmlFile): Boolean {
         if (!isLayoutPackageIdentifier(this)) {
@@ -68,8 +68,7 @@ class AndroidSimpleNameReferenceExtension : SimpleNameReferenceExtension {
             return false
         }
 
-        val androidFacet = AndroidFacet.getInstance(element) ?: return false
-        val resourceDirectories = ResourceFolderManager.getInstance(androidFacet).folders
+        val resourceDirectories = AndroidModuleInfoProvider.getInstance(element)?.getAllResourceDirectories() ?: return false
         val resourceDirectory = virtualFile.parent?.parent ?: return false
         return resourceDirectories.any { it == resourceDirectory }
     }
