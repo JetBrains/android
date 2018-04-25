@@ -31,20 +31,20 @@ public class ConfigureDynamicFeatureDeliveryStepFixture<W extends AbstractWizard
 
   @NotNull
   public ConfigureDynamicFeatureDeliveryStepFixture<W> enterName(@NotNull String text) {
-    JTextComponent textField = findTextFieldWithLabel("Name (this may be visible to users)");
+    JTextComponent textField = findTextFieldWithLabel("Module title (this may be visible to users)");
     replaceText(textField, text);
     return this;
   }
 
   @NotNull
   public ConfigureDynamicFeatureDeliveryStepFixture<W> setOnDemand(boolean select) {
-    selectCheckBoxWithText("On-Demand (this feature ins't available at install time, but it can be downloaded later)", select);
+    selectCheckBoxWithText("Enable on-demand", select);
     return this;
   }
 
   @NotNull
   public ConfigureDynamicFeatureDeliveryStepFixture<W> setFusing(boolean select) {
-    selectCheckBoxWithText("Make this feature available to devices that don't support Dynamic Delivery", select);
+    selectCheckBoxWithText("Fusing (install module on devices that don't support on-demand delivery)", select);
     return this;
   }
 }

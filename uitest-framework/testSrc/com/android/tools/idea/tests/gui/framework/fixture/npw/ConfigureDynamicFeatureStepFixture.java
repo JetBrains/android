@@ -59,7 +59,7 @@ public class ConfigureDynamicFeatureStepFixture<W extends AbstractWizardFixture>
   @NotNull
   public ConfigureDynamicFeatureDeliveryStepFixture<W> clickNextToConfigureDynamicDelivery() {
     wizard().clickNext();
-    waitUntilShowing(robot(), target(), JLabelMatcher.withText("Configure Dynamic Delivery"));
+    waitUntilShowing(robot(), target(), JLabelMatcher.withText("Configure On-Demand Options"));
     return new ConfigureDynamicFeatureDeliveryStepFixture<>(wizard(), (JRootPane)wizard().target());
   }
 }
