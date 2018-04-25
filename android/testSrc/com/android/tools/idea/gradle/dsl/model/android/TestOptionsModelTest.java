@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import com.android.builder.model.TestOptions;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.TestOptionsModel;
@@ -30,6 +31,7 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
                                                   "    reportDir 'reportDirectory'\n" +
                                                   "    resultsDir 'resultsDirectory'\n" +
                                                   "    unitTests.returnDefaultValues true\n" +
+                                                  "    execution 'ANDROID_TEST_ORCHESTRATOR'" +
                                                   "  }\n" +
                                                   "}";
 
@@ -80,6 +82,7 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     TestOptionsModel testOptions = android.testOptions();
     testOptions.reportDir().setValue("reportDirectory");
     testOptions.resultsDir().setValue("resultsDirectory");
+    testOptions.execution().setValue(TestOptions.Execution.ANDROID_TEST_ORCHESTRATOR.name());
     testOptions.unitTests().returnDefaultValues().setValue(true);
 
     applyChangesAndReparse(buildModel);
@@ -99,6 +102,7 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     assertTrue(hasPsiElement(testOptions));
     testOptions.reportDir().delete();
     testOptions.resultsDir().delete();
+    testOptions.execution().delete();
     testOptions.unitTests().returnDefaultValues().delete();
 
     applyChangesAndReparse(buildModel);
@@ -117,6 +121,7 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     TestOptionsModel testOptions = android.testOptions();
     assertEquals("reportDir", "reportDirectory", testOptions.reportDir());
     assertEquals("resultsDir", "resultsDirectory", testOptions.resultsDir());
+    assertEquals("execution", TestOptions.Execution.ANDROID_TEST_ORCHESTRATOR.name(), testOptions.execution());
     assertEquals("unitTests.returnDefaultValues", Boolean.TRUE, testOptions.unitTests().returnDefaultValues());
   }
 
@@ -127,6 +132,7 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     TestOptionsModel testOptions = android.testOptions();
     assertMissingProperty("reportDir", testOptions.reportDir());
     assertMissingProperty("resultsDir", testOptions.resultsDir());
+    assertMissingProperty("execution", testOptions.execution());
     assertMissingProperty("unitTests.returnDefaultValues", testOptions.unitTests().returnDefaultValues());
   }
 }

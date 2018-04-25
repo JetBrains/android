@@ -29,4 +29,7 @@ public interface TestOptionsModel extends GradleDslModel {
 
   @NotNull
   UnitTestsModel unitTests();
+
+  @NotNull
+  ResolvedPropertyModel execution();
 }

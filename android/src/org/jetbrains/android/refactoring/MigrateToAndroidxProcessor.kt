@@ -16,9 +16,10 @@
 package org.jetbrains.android.refactoring
 
 import com.android.SdkConstants.FN_GRADLE_PROPERTIES
+import com.android.builder.model.TestOptions.Execution
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.support.AndroidxNameUtils
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.google.common.collect.Range
@@ -262,8 +263,9 @@ class MigrateToAndroidxProcessor(val project: Project,
     if (gradleDependencyEntries.isEmpty()) {
       return emptyList()
     }
+    val projectBuildModel = ProjectBuildModel.get(project)
     for (module in ModuleManager.getInstance(project).modules) {
-      val gradleBuildModel = GradleBuildModel.get(module) ?: continue
+      val gradleBuildModel = projectBuildModel.getModuleBuildModel(module) ?: continue
 
       val dependencies = gradleBuildModel.dependencies()
       for (dep in dependencies.all()) {
@@ -277,20 +279,31 @@ class MigrateToAndroidxProcessor(val project: Project,
         }
       }
 
+      fun addStringUsage(model: GradlePropertyModel, oldString: String, newString: String) {
+        val psiElement = model.psiElement ?: return
+        for (literal in PsiTreeUtil.findChildrenOfType(psiElement, GrLiteral::class.java).filter { it.value == oldString }) {
+          gradleUsages.add(MigrateToAppCompatUsageInfo.GradleStringUsageInfo(literal, newString))
+        }
+      }
+
       val androidBlock = gradleBuildModel.android() ?: continue
       for (flavorBlock in androidBlock.productFlavors() + androidBlock.defaultConfig()) {
         val runnerModel = flavorBlock.testInstrumentationRunner().resultModel
         val runnerName = runnerModel.getValue(GradlePropertyModel.STRING_TYPE) ?: continue
         val newRunnerName = AndroidxNameUtils.getNewName(runnerName)
         if (newRunnerName != runnerName) {
-          val psiElement = runnerModel.psiElement ?: continue
-          for (literal in PsiTreeUtil.findChildrenOfType(psiElement, GrLiteral::class.java).filter { it.value == runnerName }) {
-            gradleUsages.add(MigrateToAppCompatUsageInfo.GradleStringUsageInfo(literal, newRunnerName))
-          }
+          addStringUsage(runnerModel, runnerName, newRunnerName)
         }
+      }
+
+      val executionProperty = androidBlock.testOptions().execution()
+      val executionValue = executionProperty.getValue(GradlePropertyModel.STRING_TYPE)
+      if (executionValue.equals(Execution.ANDROID_TEST_ORCHESTRATOR.name, ignoreCase = true)) {
+        addStringUsage(executionProperty, executionValue!!, Execution.ANDROIDX_TEST_ORCHESTRATOR.name)
       }
     }
 
     return gradleUsages
   }
+
 }

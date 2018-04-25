@@ -30,6 +30,7 @@ import static com.android.tools.idea.gradle.dsl.parser.android.testOptions.UnitT
 public class TestOptionsModelImpl extends GradleDslBlockModel implements TestOptionsModel {
   @NonNls private static final String REPORT_DIR = "reportDir";
   @NonNls private static final String RESULTS_DIR = "resultsDir";
+  @NonNls private static final String EXECUTION = "execution";
 
   public TestOptionsModelImpl(@NotNull TestOptionsDslElement dslElement) {
     super(dslElement);
@@ -56,5 +57,11 @@ public class TestOptionsModelImpl extends GradleDslBlockModel implements TestOpt
       myDslElement.setNewElement(unitTestsDslElement);
     }
     return new UnitTestsModelImpl(unitTestsDslElement);
+  }
+
+  @NotNull
+  @Override
+  public ResolvedPropertyModel execution() {
+    return getModelForProperty(EXECUTION, true);
   }
 }
