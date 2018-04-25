@@ -31,7 +31,7 @@ public abstract class GradleModelProvider {
     return new GradleModelSource();
   }
 
-  @Nullable
+  @NotNull
   public abstract ProjectBuildModel getProjectModel(@NotNull Project project);
 
   @Nullable

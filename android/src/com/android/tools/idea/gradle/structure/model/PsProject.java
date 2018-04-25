@@ -40,7 +40,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 
 public class PsProject extends PsModel {
   @NotNull private final Project myProject;
-  @Nullable private final ProjectBuildModel myParsedModel;
+  @NotNull private final ProjectBuildModel myParsedModel;
 
   @NotNull private final List<PsModule> myModules = Lists.newArrayList();
 
@@ -50,29 +50,27 @@ public class PsProject extends PsModel {
     super(null);
     myProject = project;
     myParsedModel = GradleModelProvider.get().getProjectModel(project);
-    if (myParsedModel != null) {
-      for (Module resolvedModel : ModuleManager.getInstance(myProject).getModules()) {
-        String gradlePath = getGradlePath(resolvedModel);
-        GradleBuildModel parsedModel = myParsedModel.getModuleBuildModel(resolvedModel);
-        if (gradlePath != null && parsedModel != null) {
-          // Only Gradle-based modules are displayed in the PSD.
-          PsModule module = null;
+    for (Module resolvedModel : ModuleManager.getInstance(myProject).getModules()) {
+      String gradlePath = getGradlePath(resolvedModel);
+      GradleBuildModel parsedModel = myParsedModel.getModuleBuildModel(resolvedModel);
+      if (gradlePath != null && parsedModel != null) {
+        // Only Gradle-based modules are displayed in the PSD.
+        PsModule module = null;
 
-          AndroidModuleModel gradleModel = AndroidModuleModel.get(resolvedModel);
-          if (gradleModel != null) {
-            module = new PsAndroidModule(this, resolvedModel, gradlePath, gradleModel, parsedModel);
+        AndroidModuleModel gradleModel = AndroidModuleModel.get(resolvedModel);
+        if (gradleModel != null) {
+          module = new PsAndroidModule(this, resolvedModel, gradlePath, gradleModel, parsedModel);
+        }
+        // TODO enable when Java module support is complete.
+        else {
+          JavaModuleModel javaModuleModel = JavaModuleModel.get(resolvedModel);
+          if (javaModuleModel != null && javaModuleModel.isBuildable()) {
+            module = new PsJavaModule(this, resolvedModel, gradlePath, javaModuleModel, parsedModel);
           }
-          // TODO enable when Java module support is complete.
-          else {
-            JavaModuleModel javaModuleModel = JavaModuleModel.get(resolvedModel);
-            if (javaModuleModel != null && javaModuleModel.isBuildable()) {
-              module = new PsJavaModule(this, resolvedModel, gradlePath, javaModuleModel, parsedModel);
-            }
-          }
+        }
 
-          if (module != null) {
-            myModules.add(module);
-          }
+        if (module != null) {
+          myModules.add(module);
         }
       }
     }
@@ -136,16 +134,14 @@ public class PsProject extends PsModel {
   }
 
   public void applyChanges() {
-    if (myParsedModel != null) {
-      if (isModified()) {
-        new WriteCommandAction(getResolvedModel(), "Applying changes to the project structure.") {
-          @Override
-          protected void run(@NotNull Result result) {
-            myParsedModel.applyChanges();
-            setModified(false);
-          }
-        }.execute();
-      }
+    if (isModified()) {
+      new WriteCommandAction(getResolvedModel(), "Applying changes to the project structure.") {
+        @Override
+        protected void run(@NotNull Result result) {
+          myParsedModel.applyChanges();
+          setModified(false);
+        }
+      }.execute();
     }
   }
 }

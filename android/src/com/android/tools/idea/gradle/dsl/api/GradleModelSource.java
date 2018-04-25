@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class GradleModelSource extends GradleModelProvider {
 
-  @Nullable
+  @NotNull
   @Override
   public ProjectBuildModel getProjectModel(@NotNull Project project) {
     return ProjectBuildModelImpl.get(project);
