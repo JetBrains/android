@@ -28,11 +28,13 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
+import com.android.tools.idea.run.AndroidAppRunConfigurationBase;
 import com.android.tools.idea.run.AndroidBundleRunConfiguration;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.utils.HtmlBuilder;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.icons.AllIcons;
@@ -250,6 +252,14 @@ public class DynamicAppUtils {
                                                        @NotNull List<AndroidDevice> targetDevices) {
     if (configuration instanceof AndroidBundleRunConfiguration) {
       return true;
+    }
+
+    if (configuration instanceof AndroidAppRunConfigurationBase) {
+      AndroidAppRunConfigurationBase androidConfiguration = (AndroidAppRunConfigurationBase)configuration;
+      if (androidConfiguration.DEPLOY_APK_FROM_BUNDLE) {
+        Preconditions.checkArgument(androidConfiguration.DEPLOY);
+        return true;
+      }
     }
 
     // If any device is pre-L *and* module has a dynamic feature, we need to use the bundle tool
