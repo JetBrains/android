@@ -17,8 +17,6 @@ package com.android.tools.idea.tests.gui.uibuilder
 
 import com.android.tools.idea.tests.gui.framework.BuildSpecificGuiTestRunner
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
-import com.android.tools.idea.tests.gui.framework.RunIn
-import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.bazel.fixture.BazelConsoleToolWindowFixture
 import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem
 import com.google.common.truth.Truth.assertThat
@@ -40,7 +38,6 @@ class BazelStartupSyncTest {
     fun data(): List<TargetBuildSystem.BuildSystem> = Collections.singletonList(TargetBuildSystem.BuildSystem.BAZEL)
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/78544892
   @Test
   @TargetBuildSystem(TargetBuildSystem.BuildSystem.BAZEL)
   fun startupBazelSyncSucceeds() {
