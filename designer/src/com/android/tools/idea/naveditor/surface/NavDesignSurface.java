@@ -43,7 +43,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.ide.DeleteProvider;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -517,5 +520,13 @@ public class NavDesignSurface extends DesignSurface {
     }
     myCurrentNavigation = match;
     zoomToFit();
+  }
+
+  @Override
+  public Object getData(String dataId) {
+    if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId)) {
+      return new NavDesignSurfaceActionHandler(this);
+    }
+    return super.getData(dataId);
   }
 }
