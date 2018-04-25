@@ -75,6 +75,11 @@ public class StudioIcons {
     public static final Icon ZOOM_OUT = load("/studio/icons/common/zoom-out.png"); // 16x16
   }
 
+  public static class Cursors {
+    public static final Icon GRAB = load("/studio/icons/cursors/grab.png"); // 20x20
+    public static final Icon GRABBING = load("/studio/icons/cursors/grabbing.png"); // 20x20
+  }
+
   public static class DeviceExplorer {
     public static final Icon SD_CARD_FOLDER = load("/studio/icons/device-explorer/sd-card-folder.png"); // 16x16
     public static final Icon SHARED_PREFS = load("/studio/icons/device-explorer/shared-prefs.png"); // 16x16
