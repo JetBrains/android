@@ -127,6 +127,7 @@ public class ThreadCellRenderer extends CpuCellRenderer<CpuThreadsModel.RangedCp
                          }
                        });
     StateChartData<CpuProfilerStage.ThreadState> data = new StateChartData<>(stateChart, model);
+    stateChart.setHeightGap(0.0f); // Default config sets this to 0.5f;
     myStateCharts.put(tid, data);
     myColors.put(stateChart, enumColors);
     return stateChart;
