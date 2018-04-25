@@ -92,7 +92,7 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
 
   @NotNull
   public ConfigureDynamicFeatureStepFixture<NewModuleWizardFixture> clickNextToDynamicFeature() {
-    chooseModuleType("Dynamic Module");
+    chooseModuleType("Dynamic Feature Module");
     clickNext();
     JRootPane rootPane = findStepWithTitle("Configure your new module");
     return new ConfigureDynamicFeatureStepFixture<>(this, rootPane);

@@ -125,7 +125,7 @@ public class MakeBeforeRunTaskProviderTest extends IdeaTestCase {
    * in using the "select apks from bundle" task (as opposed to the regular "assemble" task.
    */
   public void testDeviceArgumentsForPreLollipopDeviceWithDynamicFeature() throws IOException {
-    // Setup an additional feature module
+    // Setup an additional Dynamic Feature module
     Module featureModule = createModule("feature1");
     setUpModuleAsAndroidModule(featureModule, myAndroidModel2, myIdeAndroidProject2);
     when(myIdeAndroidProject2.getProjectType()).thenReturn(PROJECT_TYPE_DYNAMIC_FEATURE);

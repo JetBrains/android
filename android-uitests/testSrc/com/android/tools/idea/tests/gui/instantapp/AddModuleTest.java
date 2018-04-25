@@ -36,7 +36,7 @@ public class AddModuleTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   /**
-   * Verifies that user is able to add a feature module through the
+   * Verifies that user is able to add a Instant App Feature module through the
    * new module wizard.
    *
    * <p>TT ID: d239df75-a7fc-4327-a5af-d6b2f6caba11
@@ -45,10 +45,10 @@ public class AddModuleTest {
    *   Test steps:
    *   1. Import simple instant application project
    *   2. Go to File -> New module to open the new module dialog wizard.
-   *   3. Follow through the wizard to add a new feature module, accepting defaults.
+   *   3. Follow through the wizard to add a new Instant App Feature module, accepting defaults.
    *   4. Complete the wizard and wait for the build to complete.
    *   Verify:
-   *   1. The new feature module's library is shown in the project explorer pane.
+   *   1. The new Instant App Feature module's library is shown in the project explorer pane.
    * </pre>
    */
   @Test
@@ -60,7 +60,7 @@ public class AddModuleTest {
 
     NewModuleWizardFixture newModDialog = NewModuleWizardFixture.find(ideFrame);
 
-    newModDialog.chooseModuleType("Feature Module")
+    newModDialog.chooseModuleType("Instant App Feature Module")
       .clickNextToStep("Creates a new Android module.")
       .clickNextToStep("Add an Activity to Mobile")
       .clickNextToStep("Configure Activity")

@@ -35,7 +35,7 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 public class InstantApps {
 
   /**
-   * This method will find and return all feature modules associated with the facet of an instant app application module.
+   * This method will find and return all Instant App Feature modules associated with the facet of an instant app application module.
    *
    * @param facet the {@link AndroidFacet} for the Instant App application module whose feature modules you want to find.
    * @return The {@link List} of {@link Module}s corresponding to all found features.

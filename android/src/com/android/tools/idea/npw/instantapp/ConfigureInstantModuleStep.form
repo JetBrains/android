@@ -53,7 +53,7 @@
         </constraints>
         <properties>
           <font size="18" style="1"/>
-          <text value="Configure the feature module"/>
+          <text value="Configure the Instant App Feature module"/>
         </properties>
       </component>
       <vspacer id="829d0">

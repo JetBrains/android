@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 
 /**
  * Implementation of {@see SplitApkDeployTaskContext} when deploying an application
- * with multiple feature modules.
+ * with multiple Dynamic Feature modules.
  */
 public class DynamicAppDeployTaskContext implements SplitApkDeployTaskContext {
   private ApkInfo myApkInfo;
