@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
@@ -29,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public final class ThreadStateDataSeries implements DataSeries<CpuProfilerStage.ThreadState> {
+public class ThreadStateDataSeries implements DataSeries<CpuProfilerStage.ThreadState> {
 
   @NotNull private final Common.Session mySession;
   private final int myThreadId;
