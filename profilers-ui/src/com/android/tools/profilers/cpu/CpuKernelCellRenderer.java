@@ -167,6 +167,7 @@ public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuSta
     }, (threadInfo) -> threadInfo.getName());
     stateChart.setRenderMode(StateChart.RenderMode.TEXT);
     CpuCellRenderer.StateChartData<CpuThreadInfo> data = new CpuCellRenderer.StateChartData<>(stateChart, model);
+    stateChart.setHeightGap(0.0f); // Default config sets this to 0.5f;
     myStateCharts.put(cpuId, data);
     return stateChart;
   }

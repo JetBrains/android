@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @param <T> The type of data represented by the state chart.
  */
+// TODO (b/78585871) Update the StateChart to a builder pattern, and remove additional parameters from this.
 public class StateChartConfig<T> {
 
   /**
