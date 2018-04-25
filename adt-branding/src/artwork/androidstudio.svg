@@ -23,8 +23,8 @@
 			<path opacity="0.2" clip-path="url(#SVGID_2_)" fill="#263238" d="M255,438.5c-118.3,0-214.3-95.6-215-213.8c0,0.4,0,0.8,0,1.2
 				c0,118.7,96.3,215,215,215c118.7,0,215-96.3,215-215c0-0.4,0-0.8,0-1.2C469.3,342.9,373.3,438.5,255,438.5z"/>
 			<g clip-path="url(#SVGID_2_)">
-				<rect x="15" y="223.5" fill="#263238" fill-opacity="5.000000e-02" width="480" height="2.5"/>
-				<rect x="15" y="226" fill="#FFFFFF" fill-opacity="5.000000e-02" width="480" height="2.5"/>
+				<rect x="15" y="223.5" fill="#263238" fill-opacity="0.05" width="480" height="2.5"/>
+				<rect x="15" y="226" fill="#FFFFFF" fill-opacity="0.05" width="480" height="2.5"/>
 			</g>
 			<g clip-path="url(#SVGID_2_)">
 				<linearGradient id="SVGID_3_" gradientUnits="userSpaceOnUse" x1="143.3816" y1="188.4517" x2="382.5708" y2="427.641">
