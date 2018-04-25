@@ -21,13 +21,17 @@ import com.android.tools.idea.common.util.iconToImage
 import com.android.tools.idea.naveditor.model.schema
 import com.android.tools.idea.naveditor.model.setAsStartDestination
 import com.android.tools.idea.naveditor.model.startDestination
+import com.android.tools.idea.naveditor.scene.ThumbnailManager
 import com.intellij.openapi.application.Result
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.xml.XmlFile
 import icons.StudioIcons
+import icons.StudioIcons.NavEditor.ExistingDestinations.ACTIVITY
+import icons.StudioIcons.NavEditor.ExistingDestinations.DESTINATION
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import java.awt.Image
+import java.awt.image.BufferedImage
 
 sealed class Destination {
   abstract fun addToGraph()
@@ -45,12 +49,20 @@ sealed class Destination {
 
     // TODO: render thumbnail with border
     override val thumbnail: Image by lazy {
-      if (parent.model.schema.getDestinationType(tag) == NavigationSchema.DestinationType.ACTIVITY) {
-        iconToImage(StudioIcons.NavEditor.ExistingDestinations.ACTIVITY)
+      val model = parent.model
+      if (layoutFile != null) {
+        val future = ThumbnailManager.getInstance(model.facet).getThumbnail(layoutFile, model.configuration)
+        if (future != null) {
+          val result = BufferedImage(73, 94, BufferedImage.TYPE_INT_ARGB)
+          result.graphics.drawImage(iconToImage(DESTINATION), 0, 0, null)
+          // TODO: wait for rendering nicely
+          future.get().drawImageTo(result.graphics, 11, 28, 61-11, 84-28)
+          return@lazy result
+        }
       }
-      else {
-        iconToImage(StudioIcons.NavEditor.ExistingDestinations.DESTINATION)
-      }
+      val isActivity = model.schema.getDestinationType(tag) == NavigationSchema.DestinationType.ACTIVITY
+      
+      return@lazy iconToImage(if (isActivity) ACTIVITY else DESTINATION)
     }
 
     override val typeLabel: String
