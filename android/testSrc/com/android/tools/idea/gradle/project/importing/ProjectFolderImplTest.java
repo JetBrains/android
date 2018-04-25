@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.importing;
 
 import com.android.tools.idea.gradle.project.importing.ProjectFolder.ProjectFolderImpl;
+import org.jetbrains.jps.model.serialization.PathMacroUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -68,7 +69,7 @@ public class ProjectFolderImplTest {
 
   @Test
   public void createIdeaProjectFolder() throws IOException {
-    File buildFilePath = new File(myProjectFolderPath, ".idea");
+    File buildFilePath = new File(myProjectFolderPath, PathMacroUtil.DIRECTORY_STORE_NAME);
     assertAbout(file()).that(buildFilePath).doesNotExist();
 
     myFolder.createIdeaProjectFolder();
@@ -77,7 +78,7 @@ public class ProjectFolderImplTest {
 
   @Test
   public void createIdeaProjectFolderWhenFolderAlreadyExists() throws IOException {
-    File ideaFolderPath = myProjectFolder.newFolder(".idea");
+    File ideaFolderPath = myProjectFolder.newFolder(PathMacroUtil.DIRECTORY_STORE_NAME);
 
     File librariesFolderPath = new File(ideaFolderPath, "libraries");
     assertTrue(librariesFolderPath.mkdirs());
