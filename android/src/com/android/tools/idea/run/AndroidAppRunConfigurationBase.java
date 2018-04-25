@@ -59,10 +59,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
@@ -80,6 +77,7 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
 
   // Deploy options
   public boolean DEPLOY = true;
+  public boolean DEPLOY_APK_FROM_BUNDLE = false;
   public String ARTIFACT_NAME = "";
   public String PM_INSTALL_OPTIONS = "";
   public String DYNAMIC_FEATURES_DISABLED_LIST = "";
@@ -106,12 +104,27 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
   @NotNull
   @Override
   protected List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet) {
-    LaunchOptionState launchOptionState = getLaunchOptionState(MODE);
-    if (launchOptionState == null) {
-      return Collections.emptyList();
-    }
+    List<ValidationError> errors = new ArrayList<>();
 
-    return launchOptionState.checkConfiguration(facet);
+    LaunchOptionState launchOptionState = getLaunchOptionState(MODE);
+    if (launchOptionState != null) {
+      errors.addAll(launchOptionState.checkConfiguration(facet));
+    }
+    errors.addAll(checkDeployConfiguration(facet));
+    return errors;
+  }
+
+  @NotNull
+  protected List<ValidationError> checkDeployConfiguration(@NotNull AndroidFacet facet) {
+    List<ValidationError> errors = new ArrayList<>();
+    if (DEPLOY && DEPLOY_APK_FROM_BUNDLE) {
+      if (!DynamicAppUtils.supportsBundleTask(facet.getModule())) {
+        ValidationError error = ValidationError.fatal("This option requires a newer version of the Android Gradle Plugin",
+                                                      () -> DynamicAppUtils.promptUserForGradleUpdate(getProject()));
+        errors.add(error);
+      }
+    }
+    return errors;
   }
 
   @NotNull
@@ -307,6 +320,11 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
 
     for (LaunchOptionState state : myLaunchOptionStates.values()) {
       DefaultJDOMExternalizer.readExternal(state, element);
+    }
+
+    // Ensure invariant in case persisted state is manually edited or corrupted for some reason
+    if (DEPLOY_APK_FROM_BUNDLE) {
+      DEPLOY=true;
     }
   }
 

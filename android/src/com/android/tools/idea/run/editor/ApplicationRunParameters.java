@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.run.AndroidAppRunConfigurationBase;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.intellij.compiler.options.CompileStepBeforeRun;
@@ -148,18 +149,33 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
     return myModuleSelector.getModule();
   }
 
+  /**
+   * Returns the {@link InstallOption} given the various deployment option persistent in the run configuration
+   * state.
+   *
+   * @param deploy           {@code true} if deploying APKs to the device
+   * @param deployFromBundle {@code true} if deploying APK from the bundle to the device. If {@code true}, the deploy parameter must
+   *                         be {@code true} too.
+   * @param artifactName     The custom artifact to deploy to the device. If {@code empty},
+   */
   @NotNull
-  private static InstallOption getDeployOption(boolean deploy, @Nullable String artifactName) {
-    if (!deploy) {
-      return InstallOption.NOTHING;
+  private static InstallOption getDeployOption(boolean deploy, boolean deployFromBundle, @Nullable String artifactName) {
+    // deployFromBundle == true implies deploy == true
+    Preconditions.checkArgument(!deployFromBundle || deploy);
+
+    if (deploy) {
+      if (deployFromBundle) {
+        return StringUtil.isEmpty(artifactName) ? InstallOption.APK_FROM_BUNDLE : InstallOption.CUSTOM_ARTIFACT;
+      }
+      return StringUtil.isEmpty(artifactName) ? InstallOption.DEFAULT_APK : InstallOption.CUSTOM_ARTIFACT;
     }
 
-    return StringUtil.isEmpty(artifactName) ? InstallOption.DEFAULT_APK : InstallOption.CUSTOM_ARTIFACT;
+    return InstallOption.NOTHING;
   }
 
   @Override
   public void resetFrom(@NotNull AndroidAppRunConfigurationBase configuration) {
-    InstallOption installOption = getDeployOption(configuration.DEPLOY, configuration.ARTIFACT_NAME);
+    InstallOption installOption = getDeployOption(configuration.DEPLOY, configuration.DEPLOY_APK_FROM_BUNDLE, configuration.ARTIFACT_NAME);
     myDeployOptionCombo.setSelectedItem(installOption);
 
     if (installOption == InstallOption.CUSTOM_ARTIFACT) {
@@ -212,6 +228,7 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
   public void applyTo(@NotNull AndroidAppRunConfigurationBase configuration) {
     InstallOption installOption = (InstallOption)myDeployOptionCombo.getSelectedItem();
     configuration.DEPLOY = installOption != InstallOption.NOTHING;
+    configuration.DEPLOY_APK_FROM_BUNDLE = installOption == InstallOption.APK_FROM_BUNDLE;
     configuration.ARTIFACT_NAME = "";
     if (installOption == InstallOption.CUSTOM_ARTIFACT) {
       Object item = myCustomArtifactLabeledComponent.getComponent().getSelectedItem();
