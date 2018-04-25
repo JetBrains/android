@@ -22,7 +22,6 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.ui.ComponentWithMnemonics;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.util.PatternTextMatcher;
@@ -37,7 +36,7 @@ import java.util.regex.Pattern;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public class InstantRunWithKotlinTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

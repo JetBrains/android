@@ -24,7 +24,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.testFramework.LeakHunter;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.MemoryDumpHelper;
 import com.intellij.util.containers.ContainerUtil;
 import gnu.trove.*;
@@ -57,7 +56,7 @@ import java.util.Set;
  * <p>If {@code CAPTURE_HEAP_DUMPS} field is set to true, the test will create heap dumps from before and after the run for
  * further leak analysis.
  */
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 @RunIn(TestGroup.UNRELIABLE)
 public class LayoutEditorMemoryUseTest {
 

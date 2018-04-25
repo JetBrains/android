@@ -19,7 +19,6 @@ import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.BrowseSamplesWizardFixture;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.SystemProperties;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
@@ -33,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public class LaunchAndroidApplicationTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);

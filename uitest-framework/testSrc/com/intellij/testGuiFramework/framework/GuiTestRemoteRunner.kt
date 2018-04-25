@@ -51,7 +51,7 @@ import java.net.SocketException
  *   - sends a RESTART_IDE message back to the server if the IDE has fatal errors
  */
 open class GuiTestRemoteRunner @Throws(InitializationError::class)
-  constructor(testClass: Class<*>, val myBuildSystem: TargetBuildSystem.BuildSystem = TargetBuildSystem.BuildSystem.GRADLE) : BlockJUnit4ClassRunner(testClass) {
+  constructor(testClass: Class<*>, val buildSystem: TargetBuildSystem.BuildSystem = TargetBuildSystem.BuildSystem.GRADLE) : BlockJUnit4ClassRunner(testClass) {
 
   constructor(testClass: Class<*>) : this(testClass, TargetBuildSystem.BuildSystem.GRADLE)
 
@@ -81,7 +81,7 @@ open class GuiTestRemoteRunner @Throws(InitializationError::class)
       if (!server.isRunning()) {
         server.launchIdeAndStart()
       }
-      val jUnitTestContainer = JUnitTestContainer(method.declaringClass, method.name, buildSystem = myBuildSystem)
+      val jUnitTestContainer = JUnitTestContainer(method.declaringClass, method.name, buildSystem = buildSystem)
       server.send(RunTestMessage(jUnitTestContainer))
     }
     catch (e: Exception) {
@@ -116,7 +116,7 @@ open class GuiTestRemoteRunner @Throws(InitializationError::class)
             eachNotifier.fireTestFinished()
             return
           }
-          server.send(RunTestMessage(JUnitTestContainer(method.declaringClass, method.name, message.index, myBuildSystem)))
+          server.send(RunTestMessage(JUnitTestContainer(method.declaringClass, method.name, message.index, buildSystem)))
         }
 
       }

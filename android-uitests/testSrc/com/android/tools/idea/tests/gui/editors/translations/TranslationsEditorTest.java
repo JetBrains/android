@@ -36,7 +36,6 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -71,7 +70,7 @@ import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.T
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.*;
 
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public final class TranslationsEditorTest {
   private static final int CHINESE_IN_CHINA_COLUMN = 4;
   private static final int ENGLISH_COLUMN = 5;

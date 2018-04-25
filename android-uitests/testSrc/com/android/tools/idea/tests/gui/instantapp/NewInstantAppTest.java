@@ -24,7 +24,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
 import com.intellij.openapi.module.Module;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
@@ -46,7 +45,7 @@ import static com.google.common.truth.Truth.assertThat;
  * Test that newly created Instant App projects do not have errors in them
  */
 @RunIn(TestGroup.PROJECT_WIZARD)
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public class NewInstantAppTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 

@@ -24,7 +24,6 @@ import com.android.tools.idea.common.editor.NlEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,7 +34,7 @@ import java.nio.file.Path;
 import static org.junit.Assert.assertTrue;
 
 @RunIn(TestGroup.PROJECT_WIZARD)
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public final class ScrollingActivityTest {
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();

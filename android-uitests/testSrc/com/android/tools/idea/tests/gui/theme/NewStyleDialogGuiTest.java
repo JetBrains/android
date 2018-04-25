@@ -21,7 +21,6 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.NewStyleDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -32,7 +31,7 @@ import java.io.IOException;
 
 import static junit.framework.Assert.assertEquals;
 
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public class NewStyleDialogGuiTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

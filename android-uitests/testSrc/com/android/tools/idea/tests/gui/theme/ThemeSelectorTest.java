@@ -23,7 +23,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.ThemeSelectionDialogFi
 import com.android.tools.idea.tests.gui.framework.fixture.theme.NewStyleDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorTableFixture;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.*;
 import org.junit.Ignore;
@@ -43,7 +42,7 @@ import static org.junit.Assert.*;
  * UI tests for the theme selector in the Theme Editor
  */
 @RunIn(TestGroup.THEME)
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public class ThemeSelectorTest {
 
   @Rule public final RenderTimeoutRule timeout = new RenderTimeoutRule(60, TimeUnit.SECONDS);

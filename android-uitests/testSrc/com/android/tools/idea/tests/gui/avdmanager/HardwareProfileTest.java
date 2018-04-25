@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.avdmanager;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.*;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,7 +27,7 @@ import static com.google.common.truth.Truth.assertWithMessage;
 /**
  * Tests exercising the UI for hardware profile management
  */
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public class HardwareProfileTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

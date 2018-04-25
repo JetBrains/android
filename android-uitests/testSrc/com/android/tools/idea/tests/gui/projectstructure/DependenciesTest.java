@@ -34,7 +34,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFi
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.DependencyTabFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.ui.table.JBTable;
 import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.exception.WaitTimedOutError;
@@ -56,7 +55,7 @@ import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
 import static org.junit.Assert.assertTrue;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public class DependenciesTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 

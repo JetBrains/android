@@ -20,7 +20,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MergedManifestFixture;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.fixture.JPopupMenuFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.junit.Ignore;
@@ -34,7 +33,7 @@ import java.io.IOException;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.*;
 
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public class ManifestEditorTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

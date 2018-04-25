@@ -29,7 +29,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardF
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.FlavorsTabFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Before;
 import org.junit.Rule;
@@ -40,7 +39,7 @@ import java.util.regex.Pattern;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public class FlavorsExecutionTest {
 
   private final static Logger LOG = Logger.getInstance(FlavorsExecutionTest.class);

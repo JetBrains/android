@@ -26,7 +26,6 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.Consumer;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.timing.Wait;
@@ -47,7 +46,7 @@ import static org.fest.swing.util.Strings.match;
 import static org.junit.Assert.assertTrue;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public class GradleTasksTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

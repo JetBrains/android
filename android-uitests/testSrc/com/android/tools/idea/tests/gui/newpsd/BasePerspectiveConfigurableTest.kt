@@ -24,7 +24,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ProjectStructur
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectDependenciesConfigurable
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectIdeSdksLocationConfigurable
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -32,7 +31,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunIn(TestGroup.UNRELIABLE)
-@RunWith(GuiTestRemoteRunner::class)
+@RunWith(GuiTestRunner::class)
 class BasePerspectiveConfigurableTest {
 
   @Rule

@@ -25,7 +25,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureAndroidMo
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.xml.GenericAttributeValue;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.android.dom.manifest.Manifest;
@@ -47,7 +46,7 @@ import static org.junit.Assert.assertNotNull;
  * Test that newly created Instant App modules do not have errors in them
  */
 @RunIn(TestGroup.PROJECT_WIZARD)
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public class NewInstantAppModuleTest {
   private static final String SAVED_COMPANY_DOMAIN = "SAVED_COMPANY_DOMAIN";
 

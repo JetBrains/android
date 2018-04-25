@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.ExpectedModuleDepend
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JListFixture;
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +39,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
-@RunWith(GuiTestRemoteRunner.class)
+@RunWith(GuiTestRunner.class)
 public class AddGradleDependencyTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
