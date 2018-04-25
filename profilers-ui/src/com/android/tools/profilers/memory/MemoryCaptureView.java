@@ -58,7 +58,7 @@ public final class MemoryCaptureView extends AspectObserver {
     myLabel = new JLabel();
     myLabel.setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 3));
 
-    myExportButton = new FlatButton(AllIcons.Actions.Export);
+    myExportButton = new FlatButton(AllIcons.ToolbarDecorator.Export);
     myExportButton.setToolTipText("Export capture to file");
     myExportButton.addActionListener(e -> ideProfilerComponents.openExportDialog(
       () -> "Export As",
