@@ -18,16 +18,35 @@ package com.android.tools.idea.common.property2.api
 /**
  * Defines a view in a [PropertiesPanel].
  *
- * A view is defined by a [PropertiesModel] and a list of [InspectorBuilder]s.
- * Each view controls an aspect of the properties inspector.
+ * A view defines a separate set of viewable properties.
  *
- * For example: the property panel in Nele may show properties of
- * an NlComponent when a such a component s selected, and show the
- * properties of a key frame in the motion editor when a key frame
- * is selected.
+ * For example:
+ *  - One view for displaying component properties in Nele
+ *  - Another view for displaying key frame properties in Motion Editor
+ *
+ * Use [addTab] to create a named tab [PropertiesViewTab].
+ * Each tab will be shown on a separate tab in the properties panel.
  */
 class PropertiesView<P: PropertyItem>(val model: PropertiesModel<P>) {
+  val tabs = mutableListOf<PropertiesViewTab<P>>()
+
+  fun addTab(name: String): PropertiesViewTab<P> {
+    val tab = PropertiesViewTab(name, model)
+    tabs.add(tab)
+    return tab
+  }
+}
+
+/**
+ * Defines a tab in a [PropertiesPanel].
+ *
+ * A tab definition consist of:
+ * - a list [builders] of [InspectorBuilder] which defines the UI on the tab.
+ * - [searchable] which controls if a tab should be visible during search (default is true).
+ */
+class PropertiesViewTab<P: PropertyItem>(val name: String, private val model: PropertiesModel<P>) {
   val builders = mutableListOf<InspectorBuilder<P>>()
+  var searchable = true
 
   fun attachToInspector(inspector: InspectorPanel) {
     builders.forEach { it.attachToInspector(inspector, model.properties) }

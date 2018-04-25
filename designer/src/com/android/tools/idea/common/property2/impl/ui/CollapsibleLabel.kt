@@ -20,8 +20,6 @@ import com.android.tools.idea.common.property2.impl.model.CollapsibleLabelModel
 import com.google.common.html.HtmlEscapers
 import com.intellij.ui.ExpandableItemsHandler
 import com.intellij.ui.components.JBLabel
-import com.intellij.util.ui.UIUtil
-import java.awt.Font
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 
@@ -34,7 +32,7 @@ import java.awt.event.MouseEvent
  *
  * An expansion control is optionally shown and expansion logic is included.
  */
-class CollapsibleLabel(val model: CollapsibleLabelModel, private val bold: Boolean) : JBLabel(model.name) {
+class CollapsibleLabel(val model: CollapsibleLabelModel) : JBLabel(model.name) {
   // A JBLabel wil automatically display ellipsis at the end of a string that is too long for the width
   private val valueWithTrailingEllipsis = model.name
   // In html the value will not have ellipsis at the end but simply cut off when the string is too long
@@ -61,15 +59,6 @@ class CollapsibleLabel(val model: CollapsibleLabelModel, private val bold: Boole
     installMouseListener(model.expandable)
     revalidateParent?.revalidate()
     revalidateParent?.repaint()
-  }
-
-  override fun updateUI() {
-    super.updateUI()
-
-    font = UIUtil.getLabelFont()
-    if (bold) {
-      UIUtil.getLabelFont().deriveFont(Font.BOLD)
-    }
   }
 
   override fun contains(x: Int, y: Int): Boolean {
