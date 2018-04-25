@@ -46,7 +46,7 @@ public class StudioIcons {
     public static final Icon ERROR = load("/studio/icons/common/error.png"); // 16x16
     public static final Icon EXPORT = load("/studio/icons/common/export.png"); // 16x16
     public static final Icon FILTER = load("/studio/icons/common/filter.png"); // 16x16
-    public static final Icon HELP = load("/studio/icons/common/help.png"); //  16x16
+    public static final Icon HELP = load("/studio/icons/common/help.png"); // 16x16
     public static final Icon IMPORT_DATA = load("/studio/icons/common/import-data.png"); // 16x16
     public static final Icon INFO_INLINE_SELECTED = load("/studio/icons/common/info-inline-selected.png"); // 16x16
     public static final Icon INFO_INLINE = load("/studio/icons/common/info-inline.png"); // 16x16
@@ -60,6 +60,7 @@ public class StudioIcons {
     public static final Icon PROPERTY_BOUND = load("/studio/icons/common/property-bound.png"); // 15x20
     public static final Icon PROPERTY_UNBOUND_FOCUS = load("/studio/icons/common/property-unbound-focus.png"); // 15x20
     public static final Icon PROPERTY_UNBOUND = load("/studio/icons/common/property-unbound.png"); // 15x20
+    public static final Icon REORDER = load("/studio/icons/common/reorder.png"); // 16x16
     public static final Icon RESET_ZOOM = load("/studio/icons/common/reset-zoom.png"); // 16x16
     public static final Icon SEARCH = load("/studio/icons/common/search.png"); // 16x16
     public static final Icon SUCCESS_INLINE_SELECTED = load("/studio/icons/common/success-inline-selected.png"); // 16x16
@@ -437,6 +438,7 @@ public class StudioIcons {
       public static final Icon BOOKMARK = load("/studio/icons/profiler/sessions/bookmark.png"); // 16x16
       public static final Icon CPU = load("/studio/icons/profiler/sessions/cpu.png"); // 16x16
       public static final Icon HEAP = load("/studio/icons/profiler/sessions/heap.png"); // 16x16
+      public static final Icon SAVE = load("/studio/icons/profiler/sessions/save.png"); // 16x16
     }
 
     public static class Sidebar {
@@ -445,6 +447,7 @@ public class StudioIcons {
     }
 
     public static class Toolbar {
+      public static final Icon CAPTURE_CLOCK = load("/studio/icons/profiler/toolbar/capture-clock.png"); // 16x16
       public static final Icon CLOCK = load("/studio/icons/profiler/toolbar/clock.png"); // 16x16
       public static final Icon COLLAPSE_SESSION = load("/studio/icons/profiler/toolbar/collapse-session.png"); // 16x16
       public static final Icon EXPAND_SESSION = load("/studio/icons/profiler/toolbar/expand-session.png"); // 16x16
