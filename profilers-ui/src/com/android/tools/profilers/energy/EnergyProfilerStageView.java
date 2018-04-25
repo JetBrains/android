@@ -25,7 +25,9 @@ import com.android.tools.profilers.event.*;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import sun.swing.SwingUtilities2;
 
@@ -229,7 +231,37 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
 
   @Override
   public JComponent getToolbar() {
-    return new JPanel();
+    JPanel toolBar = new JPanel(createToolbarLayout());
+    JLabel textLabel = new JLabel();
+    textLabel.setText("Modeled");
+    textLabel.setFont(textLabel.getFont().deriveFont(13.0f));
+    textLabel.setBorder(new JBEmptyBorder(4, 8, 4, 7));
+    toolBar.add(textLabel);
+
+    JLabel iconLabel = new JLabel();
+    iconLabel.setIcon(StudioIcons.Common.HELP);
+    toolBar.add(iconLabel);
+
+    JTextPane textPane = new JTextPane();
+    textPane.setEditable(false);
+    textPane.setBorder(TOOLTIP_BORDER);
+    textPane.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
+    textPane.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
+    textPane.setFont(iconLabel.getFont().deriveFont(TOOLTIP_FONT_SIZE));
+    TooltipComponent tooltip =
+      new TooltipComponent.Builder(textPane, iconLabel).setPreferredParentClass(ProfilerLayeredPane.class).build();
+    tooltip.registerListenersOn(iconLabel);
+
+    textPane.setText(
+      "The Energy Profiler models your app's estimated energy usage of CPU, Network, and GPS resources of your device. " +
+      "It also highlights background events that may contribute to battery drain, " +
+      "such as wake locks, alarms, jobs, and location requests.");
+
+    textPane.setPreferredSize(new Dimension(350, 0));
+
+    JPanel panel = new JPanel(new BorderLayout());
+    panel.add(toolBar, BorderLayout.WEST);
+    return panel;
   }
 
   private void updateSelectedDurationView() {

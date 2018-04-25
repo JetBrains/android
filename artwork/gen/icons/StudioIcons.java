@@ -46,6 +46,7 @@ public class StudioIcons {
     public static final Icon ERROR = load("/studio/icons/common/error.png"); // 16x16
     public static final Icon EXPORT = load("/studio/icons/common/export.png"); // 16x16
     public static final Icon FILTER = load("/studio/icons/common/filter.png"); // 16x16
+    public static final Icon HELP = load("/studio/icons/common/help.png"); //  16x16
     public static final Icon IMPORT_DATA = load("/studio/icons/common/import-data.png"); // 16x16
     public static final Icon INFO_INLINE_SELECTED = load("/studio/icons/common/info-inline-selected.png"); // 16x16
     public static final Icon INFO_INLINE = load("/studio/icons/common/info-inline.png"); // 16x16
