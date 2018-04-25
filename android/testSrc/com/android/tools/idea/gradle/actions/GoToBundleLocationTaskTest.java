@@ -87,7 +87,7 @@ public class GoToBundleLocationTaskTest extends IdeaTestCase {
 
   @NotNull
   private static String getModuleNotificationMessage(@NotNull String moduleName) {
-    return "Bundle file(s) generated successfully:" + getModuleLineNotificationMessage(moduleName);
+    return "App bundle file(s) generated successfully:" + getModuleLineNotificationMessage(moduleName);
   }
 
   @NotNull
