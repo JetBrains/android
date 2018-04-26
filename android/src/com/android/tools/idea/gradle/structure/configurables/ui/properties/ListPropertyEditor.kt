@@ -25,13 +25,14 @@ import javax.swing.table.TableColumnModel
 /**
  * A property editor [ModelPropertyEditor] for properties of simple list types.
  */
-class ListPropertyEditor<ModelT, ValueT : Any, out ModelPropertyT : ModelListProperty<ModelT, ValueT>>(
+class ListPropertyEditor<ContextT, ModelT, ValueT : Any, out ModelPropertyT : ModelListProperty<ContextT, ModelT, ValueT>>(
+  context: ContextT,
   model: ModelT,
   property: ModelPropertyT,
-  editor: PropertyEditorFactory<Unit, ModelSimpleProperty<Unit, ValueT>, ValueT>,
+  editor: PropertyEditorFactory<ContextT, Unit, ModelSimpleProperty<ContextT, Unit, ValueT>, ValueT>,
   variablesProvider: VariablesProvider?
 ) :
-  CollectionPropertyEditor<ModelT, ModelPropertyT, ValueT>(model, property, editor, variablesProvider),
+  CollectionPropertyEditor<ContextT, ModelT, ModelPropertyT, ValueT>(context, model, property, editor, variablesProvider),
   ModelPropertyEditor<ModelT, List<ValueT>> {
 
   override fun updateProperty() = throw UnsupportedOperationException()
@@ -94,8 +95,8 @@ class ListPropertyEditor<ModelT, ValueT : Any, out ModelPropertyT : ModelListPro
   private fun getRowProperty(row: Int) = property.getEditableValues(model)[row]
 }
 
-fun <ModelT, ValueT : Any, ModelPropertyT : ModelListProperty<ModelT, ValueT>> listPropertyEditor(
-  editor: PropertyEditorFactory<Unit, ModelSimpleProperty<Unit, ValueT>, ValueT>
+fun <ContextT, ModelT, ValueT : Any, ModelPropertyT : ModelListProperty<ContextT, ModelT, ValueT>> listPropertyEditor(
+  editor: PropertyEditorFactory<ContextT, Unit, ModelSimpleProperty<ContextT, Unit, ValueT>, ValueT>
 ):
-    PropertyEditorFactory<ModelT, ModelPropertyT, List<ValueT>> =
-    { model, property, variablesProvider -> ListPropertyEditor(model, property, editor, variablesProvider) }
+    PropertyEditorFactory<ContextT, ModelT, ModelPropertyT, List<ValueT>> =
+    { context, model, property, variablesProvider -> ListPropertyEditor(context, model, property, editor, variablesProvider) }

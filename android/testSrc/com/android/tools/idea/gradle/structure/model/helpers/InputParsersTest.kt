@@ -26,27 +26,27 @@ class InputParsersTest {
 
   @Test
   fun string() {
-    val parsed = parseString("abc")
+    val parsed = parseString(null, "abc")
     assertTrue(parsed is ParsedValue.Set.Parsed)
     assertEquals("abc", (parsed as ParsedValue.Set.Parsed).value)
   }
 
   @Test
   fun string_empty() {
-    val parsed = parseString("")
+    val parsed = parseString(null, "")
     assertTrue(parsed is ParsedValue.NotSet)
   }
 
   @Test
   fun file() {
-    val parsed = parseFile("/tmp/abc")
+    val parsed = parseFile(null, "/tmp/abc")
     assertTrue(parsed is ParsedValue.Set.Parsed)
     assertEquals(File("/tmp/abc"), (parsed as ParsedValue.Set.Parsed).value)
   }
 
   @Test
   fun file_empty() {
-    val parsed = parseFile("")
+    val parsed = parseFile(null, "")
     assertTrue(parsed is ParsedValue.NotSet)
   }
 
@@ -73,27 +73,27 @@ class InputParsersTest {
 
   @Test
   fun boolean_empty() {
-    val parsed = parseBoolean("")
+    val parsed = parseBoolean(null, "")
     assertTrue(parsed is ParsedValue.NotSet)
   }
 
   @Test
   fun boolean_true() {
-    val parsed = parseBoolean("true")
+    val parsed = parseBoolean(null, "true")
     assertTrue(parsed is ParsedValue.Set.Parsed)
     assertEquals(true, (parsed as ParsedValue.Set.Parsed).value)
   }
 
   @Test
   fun boolean_false() {
-    val parsed = parseBoolean("FALSE")
+    val parsed = parseBoolean(null, "FALSE")
     assertTrue(parsed is ParsedValue.Set.Parsed)
     assertEquals(false, (parsed as ParsedValue.Set.Parsed).value)
   }
 
   @Test
   fun boolean_invalid() {
-    val parsed = parseBoolean("yes")
+    val parsed = parseBoolean(null, "yes")
     assertTrue(parsed is ParsedValue.Set.Invalid)
     assertEquals("yes", (parsed as ParsedValue.Set.Invalid).dslText)
     assertEquals("Unknown boolean value: 'yes'. Expected 'true' or 'false'", parsed.errorMessage)
@@ -101,20 +101,20 @@ class InputParsersTest {
 
   @Test
   fun int_empty() {
-    val parsed = parseInt("")
+    val parsed = parseInt(null, "")
     assertTrue(parsed is ParsedValue.NotSet)
   }
 
   @Test
   fun int() {
-    val parsed = parseInt("123")
+    val parsed = parseInt(null, "123")
     assertTrue(parsed is ParsedValue.Set.Parsed)
     assertEquals(123, (parsed as ParsedValue.Set.Parsed).value)
   }
 
   @Test
   fun int_invalid() {
-    val parsed = parseInt("123.4")
+    val parsed = parseInt(null, "123.4")
     assertTrue(parsed is ParsedValue.Set.Invalid)
     assertEquals("123.4", (parsed as ParsedValue.Set.Invalid).dslText)
     assertEquals("'123.4' is not a valid integer value", parsed.errorMessage)

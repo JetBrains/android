@@ -22,14 +22,14 @@ import com.google.common.util.concurrent.Futures.immediateFuture
 import com.google.common.util.concurrent.ListenableFuture
 import kotlin.reflect.KProperty
 
-fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT, ValueT : Any> T.listProperty(
+fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT, ValueT : Any, ContextT> T.listProperty(
   description: String,
   getResolvedValue: ResolvedT.() -> List<ValueT>?,
   itemValueGetter: ResolvedPropertyModel.() -> ValueT?,
   itemValueSetter: ResolvedPropertyModel.(ValueT) -> Unit,
   getParsedProperty: ParsedT.() -> ResolvedPropertyModel,
-  parse: (String) -> ParsedValue<ValueT>,
-  getKnownValues: ((ModelT) -> ListenableFuture<List<ValueDescriptor<ValueT>>>)? = null
+  parse: (ContextT, String) -> ParsedValue<ValueT>,
+  getKnownValues: ((ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<ValueT>>>)? = null
 ) =
   ModelListPropertyImpl(
     this,
@@ -41,11 +41,11 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT
     { getParsedProperty().dslText() },
     { getParsedProperty().delete() },
     { getParsedProperty().setDslText(it) },
-    { if (it.isBlank()) ParsedValue.NotSet else parse(it.trim()) },
-    { if (getKnownValues != null) getKnownValues(it) else immediateFuture(listOf()) }
+    { context: ContextT, value -> if (value.isBlank()) ParsedValue.NotSet else parse(context, value.trim()) },
+    { context: ContextT, model -> if (getKnownValues != null) getKnownValues(context, model) else immediateFuture(listOf()) }
   )
 
-class ModelListPropertyImpl<in ModelT, out ResolvedT, ParsedT, ValueT : Any>(
+class ModelListPropertyImpl<in ContextT, in ModelT, out ResolvedT, ParsedT, ValueT : Any>(
   override val modelDescriptor: ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   override val description: String,
   private val getResolvedValue: ResolvedT.() -> List<ValueT>?,
@@ -55,9 +55,9 @@ class ModelListPropertyImpl<in ModelT, out ResolvedT, ParsedT, ValueT : Any>(
   private val getParsedRawValue: ParsedT.() -> DslText?,
   override val clearParsedValue: ParsedT.() -> Unit,
   override val setParsedRawValue: (ParsedT.(DslText) -> Unit),
-  override val parser: (String) -> ParsedValue<ValueT>,
-  override val knownValuesGetter: (ModelT) -> ListenableFuture<List<ValueDescriptor<ValueT>>>
-) : ModelCollectionPropertyBase<ModelT, ResolvedT, ParsedT, List<ValueT>, ValueT>(), ModelListProperty<ModelT, ValueT> {
+  override val parser: (ContextT, String) -> ParsedValue<ValueT>,
+  override val knownValuesGetter: (ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<ValueT>>>
+) : ModelCollectionPropertyBase<ContextT, ModelT, ResolvedT, ParsedT, List<ValueT>, ValueT>(), ModelListProperty<ContextT, ModelT, ValueT> {
 
   override fun getEditableValues(model: ModelT): List<ModelPropertyCore<Unit, ValueT>> =
     modelDescriptor

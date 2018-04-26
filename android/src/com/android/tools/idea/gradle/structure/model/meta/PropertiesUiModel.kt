@@ -25,12 +25,12 @@ import com.android.tools.idea.gradle.structure.model.VariablesProvider
  *
  * This is the basic UI model defining a set of properties to be edited and their order.
  */
-class PropertiesUiModel<in ModelT>(val properties: List<PropertyUiModel<ModelT, *>>)
+class PropertiesUiModel<in ModelT>(val properties: List<PropertyUiModel<*, ModelT, *>>)
 
 /**
  * A UI model of a property of type [PropertyT] of a model of type [ModelT].
  */
-interface PropertyUiModel<in ModelT, out PropertyT> {
+interface PropertyUiModel<in ContextT, in ModelT, out PropertyT> {
   /**
    * The plain text description of the property as it should appear in the UI.
    */
@@ -43,8 +43,8 @@ interface PropertyUiModel<in ModelT, out PropertyT> {
 }
 
 typealias
-    PropertyEditorFactory<ModelT, ModelPropertyT, PropertyT> =
-      (ModelT, ModelPropertyT, VariablesProvider?) -> ModelPropertyEditor<ModelT, PropertyT>
+    PropertyEditorFactory<ContextT, ModelT, ModelPropertyT, PropertyT> =
+      (ContextT, ModelT, ModelPropertyT, VariablesProvider?) -> ModelPropertyEditor<ModelT, PropertyT>
 
 /**
  * Creates a UI property model describing how to represent [property] for editing.
@@ -53,15 +53,29 @@ typealias
  */
 inline fun <ModelT, reified PropertyT : Any, ModelPropertyT : ModelProperty<ModelT, PropertyT>> uiProperty(
   property: ModelPropertyT,
-  noinline editorFactory: PropertyEditorFactory<ModelT, ModelPropertyT, PropertyT>
-): PropertyUiModel<ModelT, *> =
-  PropertyUiModelImpl(property, editorFactory)
+  noinline editorFactory: PropertyEditorFactory<Nothing?, ModelT, ModelPropertyT, PropertyT>
+): PropertyUiModel<*, ModelT, *> =
+  PropertyUiModelImpl(null, property, editorFactory)
 
-class PropertyUiModelImpl<in ModelT, PropertyT : Any, out ModelPropertyT : ModelProperty<ModelT, PropertyT>>(
+/**
+ * Creates a UI property model describing how to represent [property] for editing.
+ *
+ * @param editorFactory the function to create an editor bound to an instance of [property] a model of type [ModelT]
+ */
+inline fun <ContextT, ModelT, reified PropertyT : Any, ModelPropertyT : ModelProperty<ModelT, PropertyT>> uiProperty(
+  property: ModelPropertyT,
+  noinline editorFactory: PropertyEditorFactory<ContextT, ModelT, ModelPropertyT, PropertyT>,
+  context: ContextT
+): PropertyUiModel<*, ModelT, *> =
+  PropertyUiModelImpl(context, property, editorFactory)
+
+class PropertyUiModelImpl<in ContextT, in ModelT, PropertyT : Any, out ModelPropertyT : ModelProperty<ModelT, PropertyT>>(
+  private val context:ContextT,
   private val property: ModelPropertyT,
-  private val editorFactory: PropertyEditorFactory<ModelT, ModelPropertyT, PropertyT>
-) : PropertyUiModel<ModelT, PropertyT> {
+  private val editorFactory: PropertyEditorFactory<ContextT, ModelT, ModelPropertyT, PropertyT>
+) : PropertyUiModel<ContextT, ModelT, PropertyT> {
   override val propertyDescription: String = property.description
-  override fun createEditor(project: PsProject, module: PsModule, model: ModelT): ModelPropertyEditor<ModelT, PropertyT> =
-    editorFactory(model, property, module.variables)
+  override fun createEditor(project: PsProject, module: PsModule, model: ModelT)
+    : ModelPropertyEditor<ModelT, PropertyT> =
+    editorFactory(context, model, property, module.variables)
 }

@@ -36,9 +36,9 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
   }
 
   private fun <T : Any> GradlePropertyModel.wrap(
-    parse: (String) -> ParsedValue<T>,
+    parse: (Nothing?, String) -> ParsedValue<T>,
     caster: ResolvedPropertyModel.() -> T?
-  ): ModelMapProperty<ModelMapPropertyImplTest, T> {
+  ): ModelMapProperty<Nothing?, ModelMapPropertyImplTest, T> {
     val resolved = resolve()
     return TestModelDescriptor.mapProperty(
       "description",
@@ -46,7 +46,7 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
       getParsedProperty = { resolved },
       itemValueGetter = { caster() },
       itemValueSetter = { setValue(it) },
-      parse = { parse(it) }
+      parse = { context, value -> parse(context, value) }
     )
   }
 
@@ -79,7 +79,7 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
     val propMap = extModel.findProperty("propMap").wrap(::parseString, ResolvedPropertyModel::asString)
     val propMapRef = extModel.findProperty("propMapRef").wrap(::parseString, ResolvedPropertyModel::asString)
 
-    fun validateValues(map: ModelMapProperty<ModelMapPropertyImplTest, String>) {
+    fun validateValues(map: ModelMapProperty<Nothing?, ModelMapPropertyImplTest, String>) {
       val editableValues = map.getEditableValues(this)
       val propOne = editableValues["one"]
       val propB = editableValues["B"]

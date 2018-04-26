@@ -21,5 +21,6 @@ import com.android.tools.idea.gradle.structure.model.meta.PropertyUiModel
 import com.android.tools.idea.gradle.structure.model.meta.uiProperty
 
 object DeclaredLibraryDependencyUiProperties {
-  fun makeVersionUiProperty(dependency: PsDeclaredLibraryDependency): PropertyUiModel<Unit, *> = uiProperty(dependency.versionProperty, ::simplePropertyEditor)
+  fun makeVersionUiProperty(dependency: PsDeclaredLibraryDependency): PropertyUiModel<*, Unit, *> =
+    uiProperty(dependency.versionProperty, ::simplePropertyEditor)
 }
