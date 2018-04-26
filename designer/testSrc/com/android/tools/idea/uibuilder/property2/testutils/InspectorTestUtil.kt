@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property2.testutils
 
+import com.android.tools.adtui.ptable2.PTableModel
 import com.android.tools.idea.common.property2.api.*
 import com.android.tools.idea.common.property2.impl.support.EditorProviderImpl
 import com.android.tools.idea.common.property2.impl.support.PropertiesTableImpl
@@ -118,6 +119,10 @@ class FakeInspectorPanel : InspectorPanel {
 
   override fun addEditor(modelEditorPair: Pair<PropertyEditorModel, JComponent>): InspectorLineModel {
     return addEditor(modelEditorPair.first, modelEditorPair.second)
+  }
+
+  override fun addTable(tableModel: PTableModel): InspectorLineModel {
+    TODO("not used in tests")
   }
 
   override fun addComponent(component: JComponent): InspectorLineModel {

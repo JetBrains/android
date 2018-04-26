@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.common.property2.api
 
+import com.android.tools.adtui.ptable2.PTableGroupItem
+
 /**
  * A data structure designed for a property which contains flags.
  *
@@ -23,9 +25,9 @@ package com.android.tools.idea.common.property2.api
  *
  * @param T the actual type of a flag item
  */
-interface FlagsPropertyItem<out T : FlagPropertyItem> : PropertyItem {
+interface FlagsPropertyItem<out T : FlagPropertyItem> : PropertyItem, PTableGroupItem {
   /** The flags representing this flag property */
-  val flags: List<T>
+  override val children: List<T>
 
   /** Find a flag with a given name */
   fun flag(itemName: String): T?

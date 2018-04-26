@@ -62,17 +62,17 @@ class FlagPropertyEditorModel(private val flagsProperty: FlagsPropertyItem<*>) :
 
   /** Returns the names of the flags currently set in the property in order */
   val initialItemsAboveSeparator: List<String>
-    get() = flagsProperty.flags.map { it.name }.filter { initialSelectedItems.contains(it) }
+    get() = flagsProperty.children.map { it.name }.filter { initialSelectedItems.contains(it) }
 
   /** Returns the names of the flags currently unset in the property in order */
   val initialItemsBelowSeparator: List<String>
-    get() = flagsProperty.flags.map { it.name }.filterNot { initialSelectedItems.contains(it) }
+    get() = flagsProperty.children.map { it.name }.filterNot { initialSelectedItems.contains(it) }
 
   /** Returns true if there are visible flags (after filtering) that are both set and unset */
   val flagDividerVisible: Boolean
     get() {
       if (filter.isEmpty()) {
-        return initialSelectedItems.isNotEmpty() && flagsProperty.flags.size > initialSelectedItems.size
+        return initialSelectedItems.isNotEmpty() && flagsProperty.children.size > initialSelectedItems.size
       }
       return !(initialSelectedItems.none { isMatch(it) } || initialItemsBelowSeparator.none { isMatch(it) })
     }
@@ -120,19 +120,19 @@ class FlagPropertyEditorModel(private val flagsProperty: FlagsPropertyItem<*>) :
 
   /** Apply the current selected flags as a new value of the property */
   fun applyChanges() {
-    val list = flagsProperty.flags.map { it.name }.filter { selectedItems.contains(it) }
+    val list = flagsProperty.children.map { it.name }.filter { selectedItems.contains(it) }
     value = Joiner.on("|").join(list)
   }
 
   /** Select all possible bits in the mask. This may be just 1 flag or may be all non zero value flags */
   fun selectAll() {
     selectedItems.clear()
-    val flag = flagsProperty.flags.firstOrNull { it.maskValue == maskAll }
+    val flag = flagsProperty.children.firstOrNull { it.maskValue == maskAll }
     if (flag != null) {
       selectedItems.add(flag.name)
     }
     else {
-      flagsProperty.flags.filter { it.maskValue != 0 }.forEach { selectedItems.add(it.name) }
+      flagsProperty.children.filter { it.maskValue != 0 }.forEach { selectedItems.add(it.name) }
     }
     computeDialogState()
   }
@@ -169,7 +169,7 @@ class FlagPropertyEditorModel(private val flagsProperty: FlagsPropertyItem<*>) :
     maskAll = 0
     zeroValue = null
     initialSelectedItems.clear()
-    for (flag in flagsProperty.flags) {
+    for (flag in flagsProperty.children) {
       maskAll = maskAll or flag.maskValue
       if (flag.actualValue) {
         initialSelectedItems.add(flag.name)

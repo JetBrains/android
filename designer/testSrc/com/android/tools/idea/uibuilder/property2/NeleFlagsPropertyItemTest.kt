@@ -26,7 +26,7 @@ class NeleFlagsPropertyItemTest : PropertyTestCase() {
   fun testTextStyleProperty() {
     val components = createComponents(component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_TEXT_STYLE, TextStyle.VALUE_BOLD))
     val property = createFlagsPropertyItem(ATTR_TEXT_STYLE, NelePropertyType.STRING, components)
-    assertThat(property.flags).hasSize(3)
+    assertThat(property.children).hasSize(3)
     val normal = property.flag(TextStyle.VALUE_NORMAL)
     val bold = property.flag(TextStyle.VALUE_BOLD)
     val italic = property.flag(TextStyle.VALUE_ITALIC)

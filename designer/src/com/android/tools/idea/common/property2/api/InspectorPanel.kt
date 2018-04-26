@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.common.property2.api
 
+import com.android.tools.adtui.ptable2.PTableModel
+import com.android.tools.idea.common.property2.impl.model.TableLineModel
+import com.android.tools.idea.common.property2.impl.ui.TableEditor
 import javax.swing.JComponent
 
 /**
@@ -59,6 +62,11 @@ interface InspectorPanel {
   fun addEditor(modelEditorPair: Pair<PropertyEditorModel, JComponent>): InspectorLineModel {
     return addEditor(modelEditorPair.first, modelEditorPair.second)
   }
+
+  /**
+   * Add a table of properties to the inspector.
+   */
+  fun addTable(tableModel: PTableModel): InspectorLineModel
 
   /**
    * Adds a custom panel that spans the entire width.

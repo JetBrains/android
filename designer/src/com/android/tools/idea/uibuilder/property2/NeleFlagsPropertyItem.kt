@@ -67,7 +67,7 @@ class NeleFlagsPropertyItem(
       return _lastFormattedValue!!
     }
 
-  override val flags: List<NeleFlagPropertyItem>
+  override val children: List<NeleFlagPropertyItem>
     get() {
       if (_flags.isEmpty()) {
           attrDefinition.values.mapTo(_flags, { NeleFlagPropertyItem(this, it, lookupMaskValue(it)) })
@@ -85,8 +85,10 @@ class NeleFlagsPropertyItem(
     }
 
   override fun flag(itemName: String): NeleFlagPropertyItem {
-    return flags.find { it.name == itemName } ?: throw IllegalArgumentException(itemName)
+    return children.find { it.name == itemName } ?: throw IllegalArgumentException(itemName)
   }
+
+  override var expanded: Boolean = false
 
   fun isFlagSet(flag: NeleFlagPropertyItem) = lastValues.contains(flag.name)
 
