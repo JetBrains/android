@@ -19,10 +19,10 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.android.tools.idea.common.scene.draw.DrawCommandSerializationHelperKt;
-import com.android.tools.idea.rendering.ImagePool;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_NAV_SCREEN_LEVEL;
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.setRenderingHints;
@@ -35,10 +35,10 @@ public class DrawNavScreen extends NavBaseDrawCommand {
   @SwingCoordinate private final int myY;
   @SwingCoordinate private final int myWidth;
   @SwingCoordinate private final int myHeight;
-  @NotNull private final ImagePool.Image myImage;
+  @NotNull private final BufferedImage myImage;
 
   public DrawNavScreen(@SwingCoordinate int x, @SwingCoordinate int y, @SwingCoordinate int width, @SwingCoordinate int height,
-                       @NotNull ImagePool.Image image) {
+                       @NotNull BufferedImage image) {
     myX = x;
     myY = y;
     myWidth = width;
@@ -61,6 +61,6 @@ public class DrawNavScreen extends NavBaseDrawCommand {
     setRenderingHints(g);
     g.clipRect(myX, myY, myWidth, myHeight);
     // TODO: better scaling (similar to ScreenViewLayer)
-    myImage.drawImageTo(g, myX, myY, myWidth, myHeight);
+    g.drawImage(myImage,  myX, myY, myWidth, myHeight, null);
   }
 }

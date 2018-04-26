@@ -63,8 +63,8 @@ sealed class Destination {
           val result = BufferedImage((73 * scale).toInt(), (94 * scale).toInt(), BufferedImage.TYPE_INT_ARGB)
           DESTINATION.paintIcon(null, result.graphics, 0, 0)
           // TODO: wait for rendering nicely
-          future.get().drawImageTo(result.graphics, (THUMBNAIL_X * scale).toInt(), (THUMBNAIL_Y * scale).toInt(),
-                                   (THUMBNAIL_WIDTH * scale).toInt(), (THUMBNAIL_HEIGHT * scale).toInt())
+          result.graphics.drawImage(future.get(), (THUMBNAIL_X * scale).toInt(), (THUMBNAIL_Y * scale).toInt(),
+                                    (THUMBNAIL_WIDTH * scale).toInt(), (THUMBNAIL_HEIGHT * scale).toInt(), null)
           return@lazy result
         }
       }
