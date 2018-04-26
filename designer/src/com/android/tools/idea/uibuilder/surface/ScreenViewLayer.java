@@ -55,10 +55,6 @@ public class ScreenViewLayer extends Layer {
   private final ScreenView myScreenView;
 
   /**
-   * The source image we scaled from
-   */
-  @Nullable private ImagePool.Image myImage;
-  /**
    * Cached scaled image
    */
   @Nullable private BufferedImage myScaledDownImage;
@@ -118,11 +114,10 @@ public class ScreenViewLayer extends Layer {
     RenderResult renderResult = myScreenView.getResult();
     if (renderResultHasChanged(renderResult)) {
       myLastRenderResult = renderResult;
-      myImage = renderResult.getRenderedImage();
       myCachedScale = -1; // reset the scale to be sure that a new scaled image is requested when the result has changed
     }
 
-    if (myImage == null) {
+    if (myLastRenderResult == null) {
       return;
     }
 
@@ -142,33 +137,42 @@ public class ScreenViewLayer extends Layer {
       }
     }
 
-    drawImage(g);
+    RenderingHints hints = g.getRenderingHints();
+    if (myScaledDownImage != null && myCachedScale < 1.0) {
+      drawScaledDownImage(g, myScreenView.getX(), myScreenView.getY(), myScaledDownImage);
+    }
+    else {
+      drawImage(g, myScreenView.getX(), myScreenView.getY(), myIsRescaling, myCachedScale, myLastRenderResult);
+    }
+    g.setRenderingHints(hints);
 
     if (prevClip != null) {
       g.setClip(prevClip);
     }
   }
 
-  private void drawImage(@NotNull Graphics2D g) {
-    assert myImage != null : "RenderResult Image is null and this should not happen at this point";
-    RenderingHints hints = g.getRenderingHints();
+  /**
+   * Draw the scaled down image in high quality
+   */
+  private static void drawScaledDownImage(@NotNull Graphics2D g,
+                                          int x, int y,
+                                          @NotNull BufferedImage scaledDownImage) {
+    g.setRenderingHints(HQ_RENDERING_HITS);
+    UIUtil.drawImage(g, scaledDownImage, x, y, null);
+  }
 
-    if (myScaledDownImage != null && myCachedScale < 1.0) {
-      // Draw the scaled down image in high quality
-      g.setRenderingHints(HQ_RENDERING_HITS);
-      UIUtil.drawImage(g, myScaledDownImage, myScreenView.getX(), myScreenView.getY(), null);
-    }
-    else {
-      // If the image is being scaled down or the image needs to be only scaled up, we can directly draw
-      // the image
-      g.setRenderingHints(myIsRescaling ? LQ_RENDERING_HITS : HQ_RENDERING_HITS);
-      myImage.drawImageTo(g, myScreenView.getX(), myScreenView.getY(),
-                          (int)Math.round(myImage.getWidth() * myCachedScale),
-                          (int)Math.round(myImage.getHeight() * myCachedScale));
-      g.setRenderingHints(hints);
-    }
-
-    g.setRenderingHints(hints);
+  private static void drawImage(@NotNull Graphics2D g,
+                                int x, int y,
+                                boolean isRescaling,
+                                double scale,
+                                @NotNull RenderResult renderResult) {
+    // If the image is being scaled down or the image needs to be only scaled up, we can directly draw
+    // the image
+    g.setRenderingHints(isRescaling ? LQ_RENDERING_HITS : HQ_RENDERING_HITS);
+    ImagePool.Image image = renderResult.getRenderedImage();
+    image.drawImageTo(g, x, y,
+                        (int)Math.round(image.getWidth() * scale),
+                        (int)Math.round(image.getHeight() * scale));
   }
 
   /**
@@ -216,7 +220,7 @@ public class ScreenViewLayer extends Layer {
   }
 
   /**
-   * Implementation of {@link Runnable} to do a high quality scaling of {@link #myImage} in background.
+   * Implementation of {@link Runnable} to do a high quality scaling of {@link RenderResult} image in background.
    * When the scaling is done, the {@link DesignSurface} will be repainted.
    *
    * @see ImageUtils#scale(BufferedImage, double)
@@ -230,10 +234,10 @@ public class ScreenViewLayer extends Layer {
 
     private void scaleOriginalImage() {
       myScaledDownImage = null;
-      ImagePool.Image image = myImage;
-      if (image == null) {
+      if (myLastRenderResult == null) {
         return;
       }
+      ImagePool.Image image = myLastRenderResult.getRenderedImage();
       if (UIUtil.isRetina() && ImageUtils.supportsRetina()) {
         myScaledDownImage = getRetinaScaledImage(image, myCachedScale, false);
       }
