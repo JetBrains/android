@@ -61,17 +61,18 @@ object PropertyModelTestUtil {
   fun makeFlagsProperty(propertyName: String, flagNames: List<String>, values: List<Int>): FlagsPropertyItem<FlagPropertyItem> {
     require(flagNames.size == values.size)
     val property = object : FlagsPropertyItem<FlagPropertyItem> {
+      override var expanded = true
       override val namespace = ANDROID_URI
       override val name = propertyName
-      override val flags = mutableListOf<FlagPropertyItem>()
-      override fun flag(itemName: String): FlagPropertyItem? = flags.firstOrNull { it.name == itemName }
+      override val children = mutableListOf<FlagPropertyItem>()
+      override fun flag(itemName: String): FlagPropertyItem? = children.firstOrNull { it.name == itemName }
       override var value: String? = null
       override var resolvedValue: String? = null
       override var isReference = false
       override val maskValue: Int
         get() {
           var mask = 0
-          flags.filter { valueAsSet.contains(it.name) }.forEach { mask = mask or it.maskValue }
+          children.filter { valueAsSet.contains(it.name) }.forEach { mask = mask or it.maskValue }
           return mask
         }
       val valueAsSet: HashSet<String>
@@ -82,7 +83,7 @@ object PropertyModelTestUtil {
     }
 
     for (index in flagNames.indices) {
-      property.flags.add(object : FlagPropertyItem {
+      property.children.add(object : FlagPropertyItem {
         override val flags = property
         override val namespace = ANDROID_URI
         override val name = flagNames[index]

@@ -59,6 +59,11 @@ interface PropertiesTable<out P : PropertyItem> {
   val size: Int
 
   /**
+   * Return all properties in the table
+   */
+  val values: Collection<P>
+
+  /**
    * Default implementation of a [PropertiesTable].
    *
    * Which is using a [Table] as a backing store.

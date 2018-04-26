@@ -16,14 +16,7 @@
 package com.android.tools.idea.common.property2.impl.support
 
 import com.android.tools.idea.common.property2.api.*
-import com.android.tools.idea.common.property2.impl.model.ComboBoxPropertyEditorModel
-import com.android.tools.idea.common.property2.impl.model.FlagPropertyEditorModel
-import com.android.tools.idea.common.property2.impl.model.TextFieldPropertyEditorModel
-import com.android.tools.idea.common.property2.impl.model.ThreeStateBooleanPropertyEditorModel
-import com.android.tools.idea.common.property2.impl.ui.ActionButtonBinding
-import com.android.tools.idea.common.property2.impl.ui.PropertyComboBox
-import com.android.tools.idea.common.property2.impl.ui.PropertyTextField
-import com.android.tools.idea.common.property2.impl.ui.PropertyThreeStateCheckBox
+import com.android.tools.idea.common.property2.impl.model.*
 import com.android.tools.idea.common.property2.impl.ui.*
 import javax.swing.JComponent
 

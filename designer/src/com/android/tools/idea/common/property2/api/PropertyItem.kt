@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.common.property2.api
 
+import com.android.tools.adtui.ptable2.PTableItem
 import javax.swing.Icon
 
 /**
  * Defines basic information about a property.
  */
-interface PropertyItem {
+interface PropertyItem : PTableItem {
   /**
    * The namespace of the property e.g. "http://schemas.android.com/apk/res/android"
    */
@@ -35,12 +36,12 @@ interface PropertyItem {
   /**
    * The name of the property e.g. "gravity"
    */
-  val name: String
+  override val name: String
 
   /**
    * The property value
    */
-  var value: String?
+  override var value: String?
 
   /**
    * If [value] is a reference then resolve the reference, otherwise this is the same as [value].

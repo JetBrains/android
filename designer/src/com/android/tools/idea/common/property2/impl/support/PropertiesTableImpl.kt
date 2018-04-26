@@ -47,4 +47,7 @@ class PropertiesTableImpl<out P: PropertyItem>(private val table: Table<String, 
 
   override val size: Int
     get() = table.size()
+
+  override val values: Collection<P>
+    get() = table.values()
 }

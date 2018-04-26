@@ -16,14 +16,13 @@
 package com.android.tools.idea.common.property2.api
 
 import com.android.annotations.VisibleForTesting
+import com.android.tools.adtui.ptable2.PTableModel
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.idea.common.property2.impl.model.CollapsibleLabelModel
 import com.android.tools.idea.common.property2.impl.model.GenericInspectorLineModel
 import com.android.tools.idea.common.property2.impl.model.InspectorPanelModel
-import com.android.tools.idea.common.property2.impl.ui.CollapsibleLabel
-import com.android.tools.idea.common.property2.impl.ui.GenericLinePanel
-import com.android.tools.idea.common.property2.impl.ui.InspectorPanelImpl
-import com.android.tools.idea.common.property2.impl.ui.LEFT_HORIZONTAL_CONTENT_BORDER_SIZE
+import com.android.tools.idea.common.property2.impl.model.TableLineModel
+import com.android.tools.idea.common.property2.impl.ui.*
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.ScrollPaneFactory
@@ -232,6 +231,15 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
     editorModel.lineModel = model
     inspectorModel.add(model)
     inspector.addLineElement(label, editor)
+    model.gotoNextLine = gotoNextLine
+    return model
+  }
+
+  override fun addTable(tableModel: PTableModel): InspectorLineModel {
+    val model = TableLineModel(tableModel)
+    val editor = TableEditor(model, TableCellRendererProvider.create(null), null)
+    inspectorModel.add(model)
+    inspector.addLineElement(editor.component)
     model.gotoNextLine = gotoNextLine
     return model
   }
