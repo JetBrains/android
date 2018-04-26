@@ -205,8 +205,10 @@ open class MigrateToAndroidxProcessor(val project: Project,
   }
 
   /**
-   * We do not want to apply OptimizeImportsRefactoring since the project might be broken after changing the imports.
-   * This is a workaround for http://b/79220682
+   * We do not want to apply [com.intellij.refactoring.OptimizeImportsRefactoringHelper] since the project might be broken after changing
+   * the imports.
+   *
+   * This is a workaround for http://b/79220682.
    */
   override fun shouldApplyRefactoringHelper(key: RefactoringHelper<*>): Boolean = false
 
