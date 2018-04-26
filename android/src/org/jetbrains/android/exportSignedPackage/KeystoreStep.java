@@ -91,6 +91,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
   private JBLabel myKeyStorePasswordLabel;
   private JBLabel myKeyAliasLabel;
   private JBLabel myKeyPasswordLabel;
+  private JPanel myExportKeyPanel;
 
   private final ExportSignedPackageWizard myWizard;
   private final boolean myUseGradleForSigning;
@@ -167,7 +168,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     super._init();
     updateSelection(mySelection);
 
-    if(myWizard.getTargetType().equals("bundle")) {
+    if(myWizard.getTargetType().equals(ExportSignedPackageWizard.BUNDLE)) {
       final GenerateSignedApkSettings settings = GenerateSignedApkSettings.getInstance(myWizard.getProject());
       myExportKeysCheckBox.setSelected(settings.EXPORT_PRIVATE_KEY);
       myGoogleAppSigningLabel.setHyperlinkText(" (needed to enroll your app in ",
@@ -191,12 +192,15 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
 
   private boolean isGradleValid(@Nullable String targetType) {
     // all gradle versions are valid unless targetType is bundle
-    if (targetType == null || !targetType.equals("bundle")) {
+    if (targetType == null || !targetType.equals(ExportSignedPackageWizard.BUNDLE)) {
       return true;
     }
 
     if (mySelection == null) return true;
-    GradleVersion version = AndroidModuleModel.get(mySelection).getModelVersion();
+    AndroidModuleModel model = AndroidModuleModel.get(mySelection);
+    if (model == null) return false;
+    GradleVersion version = model.getModelVersion();
+    if (version == null) return false;
     return version.isAtLeastIncludingPreviews(3, 2, 0);
   }
 
@@ -213,6 +217,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     myKeyPasswordLabel.setVisible(!showError);
     myKeyAliasLabel.setVisible(!showError);
     myKeyStorePathLabel.setVisible(!showError);
+    myExportKeyPanel.setVisible(!showError);
 
     // gradle error fields
     myGradlePanel.setVisible(showError);

@@ -15,8 +15,6 @@
  */
 package org.jetbrains.android.exportSignedPackage
 
-import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.testing.IdeComponents
 import com.intellij.credentialStore.CredentialAttributes
 import com.intellij.credentialStore.Credentials
@@ -24,11 +22,11 @@ import com.intellij.ide.passwordSafe.PasswordSafe
 import com.intellij.testFramework.IdeaTestCase
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_PASSWORD_KEY
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.AndroidFacetConfiguration
 import org.jetbrains.concurrency.Promise
 import org.jetbrains.concurrency.resolvedPromise
 import org.junit.Assert.assertArrayEquals
-import org.mockito.Mockito.*
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
 import java.util.*
 
 class KeystoreStepTest : IdeaTestCase() {
@@ -42,7 +40,7 @@ class KeystoreStepTest : IdeaTestCase() {
 
   fun testEnableEncryptedKeyExportFlagFalse() {
     val wizard = setupWizardHelper()
-    `when`(wizard.targetType).thenReturn("apk")
+    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
     val keystoreStep = KeystoreStep(wizard, true, facets)
     keystoreStep._init()
     assertEquals(false, keystoreStep.exportKeysCheckBox.isVisible)
@@ -51,7 +49,7 @@ class KeystoreStepTest : IdeaTestCase() {
 
   fun testEnableEncryptedKeyExportFlagTrue() {
     val wizard = setupWizardHelper()
-    `when`(wizard.targetType).thenReturn("bundle")
+    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
     val keystoreStep = KeystoreStep(wizard, true, facets)
     keystoreStep._init()
     assertEquals(true, keystoreStep.exportKeysCheckBox.isVisible)
