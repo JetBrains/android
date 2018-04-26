@@ -53,7 +53,7 @@ public class GenerateApkWithReleaseVariantTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.SANITY_BAZEL)
   public void generateApkWithReleaseVariant() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importSimpleLocalApplication();
 

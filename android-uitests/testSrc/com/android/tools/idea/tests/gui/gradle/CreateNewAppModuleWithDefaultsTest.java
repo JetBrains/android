@@ -46,7 +46,7 @@ public class CreateNewAppModuleWithDefaultsTest {
    *   a new folder matching the module name should have been created.
    * </pre>
    */
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void createNewAppModuleWithDefaults() throws Exception {
     guiTest.importSimpleLocalApplication()
