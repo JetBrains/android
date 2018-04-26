@@ -16,9 +16,12 @@
 package com.android.tools.idea.naveditor.property.editors
 
 import com.android.tools.idea.common.property.NlProperty
+import com.android.tools.idea.common.property.editors.EnumEditor
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import com.android.tools.idea.uibuilder.property.editors.NlEditingListener
 import com.android.tools.idea.uibuilder.property.fixtures.EnumEditorFixture
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 
@@ -59,5 +62,30 @@ class VisibleDestinationsEditorTest: NavTestCase() {
           "subnav2", "@+id/subnav2"
         )
     }
+  }
+
+  fun testDeletedComponent() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("f1") {
+          action("action", destination = "f2")
+        }
+        fragment("f2")
+      }
+    }
+
+    val property = mock(NlProperty::class.java)
+    val action = model.find("action")!!
+    `when`(property.components).thenReturn(listOf(action))
+    `when`(property.value).thenReturn("foo")
+    `when`(property.resolveValue(any())).thenReturn("foo")
+    `when`(property.tag).thenReturn(action.tag)
+
+    val comboBox = EnumEditor.CustomComboBox()
+    val editor = VisibleDestinationsEditor(NlEditingListener.DEFAULT_LISTENER, comboBox)
+    editor.property = property
+
+    model.delete(listOf(action))
+    editor.refresh()
   }
 }

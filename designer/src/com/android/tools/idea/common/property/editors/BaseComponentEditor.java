@@ -18,6 +18,7 @@ package com.android.tools.idea.common.property.editors;
 import com.android.tools.idea.uibuilder.property.editors.BrowsePanel;
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
@@ -81,7 +82,10 @@ public abstract class BaseComponentEditor implements NlComponentEditor, BrowsePa
 
   @Override
   public void refresh() {
-    setProperty(getProperty());
+    XmlTag tag = getProperty().getTag();
+    if (tag == null || tag.isValid()) {
+      setProperty(getProperty());
+    }
   }
 
   @Override
