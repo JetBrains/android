@@ -198,13 +198,13 @@ val NlComponent.actionDestination: NlComponent?
  * [actionSetup] should include everything needed to set the default id (destination, popTo, and popToInclusive).
  */
 @JvmOverloads
-fun NlComponent.createAction(destinationId: String? = null, actionSetup: NlComponent.() -> Unit = {}): NlComponent {
+fun NlComponent.createAction(destinationId: String? = null, id: String? = null, actionSetup: NlComponent.() -> Unit = {}): NlComponent {
   val newAction = createChild(NavigationSchema.TAG_ACTION)
   newAction.actionDestinationId = destinationId
   newAction.actionSetup()
   // TODO: it would be nice if, when we changed something affecting the below logic and the id hasn't been changed,
   // we could update the id as a refactoring so references are also updated.
-  newAction.assignId(generateActionId(this, newAction.actionDestinationId, newAction.popUpTo, newAction.inclusive))
+  newAction.assignId(id ?: generateActionId(this, newAction.actionDestinationId, newAction.popUpTo, newAction.inclusive))
   return newAction
 }
 

@@ -16,6 +16,7 @@ package com.android.tools.idea.naveditor.property.inspector
 import com.android.SdkConstants.AUTO_URI
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import com.android.tools.idea.naveditor.model.actionDestination
 import com.intellij.ui.TitledSeparator
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.dom.navigation.NavigationSchema
@@ -28,6 +29,66 @@ import javax.swing.JList
 import javax.swing.ListCellRenderer
 
 class AddActionDialogTest : NavTestCase() {
+
+  fun testCreate() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("f1")
+        fragment("f2")
+      }
+    }
+
+    val dialog = AddActionDialog(
+      AddActionDialog.Defaults.NORMAL,
+      null,
+      model.find("f1")!!
+    )
+    val destinationCombo = dialog.dialog.myDestinationComboBox
+    val f2 = model.find("f2")
+    for (i in 0 until destinationCombo.itemCount) {
+      if (destinationCombo.getItemAt(i)?.component == f2) {
+        destinationCombo.selectedIndex = i
+        break
+      }
+    }
+    dialog.dialog.myIdTextField.text = "foo"
+    dialog.close(0)
+    dialog.writeUpdatedAction()
+
+    val action = model.find("foo")!!
+    assertEquals(model.find("f2"), action.actionDestination)
+    assertEquals(model.find("f1"), dialog.source)
+  }
+
+  fun testCreateWithGeneratedId() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("f1")
+        fragment("f2")
+      }
+    }
+
+    val dialog = AddActionDialog(
+      AddActionDialog.Defaults.NORMAL,
+      null,
+      model.find("f1")!!
+    )
+    val destinationCombo = dialog.dialog.myDestinationComboBox
+    val f2 = model.find("f2")
+    for (i in 0 until destinationCombo.itemCount) {
+      if (destinationCombo.getItemAt(i)?.component == f2) {
+        destinationCombo.selectedIndex = i
+        break
+      }
+    }
+    dialog.close(0)
+    dialog.writeUpdatedAction()
+
+    val action = model.find("action_f1_to_f2")!!
+    assertEquals(model.find("f2"), action.actionDestination)
+    assertEquals(model.find("f1"), dialog.source)
+  }
+
   fun testExisting() {
     val model = model("nav.xml") {
       navigation {
