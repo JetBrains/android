@@ -44,7 +44,6 @@ class KeystoreStepTest : IdeaTestCase() {
     val keystoreStep = KeystoreStep(wizard, true, facets)
     keystoreStep._init()
     assertEquals(false, keystoreStep.exportKeysCheckBox.isVisible)
-    assertEquals(false, keystoreStep.exportKeysCheckBox.isSelected)
   }
 
   fun testEnableEncryptedKeyExportFlagTrue() {
@@ -93,6 +92,7 @@ class KeystoreStepTest : IdeaTestCase() {
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
     `when`(wizard.project).thenReturn(myProject)
+    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
 
     val keystoreStep = KeystoreStep(wizard, true, facets)
     assertEquals(testKeyStorePath, keystoreStep.keyStorePathField.text)
@@ -136,6 +136,7 @@ class KeystoreStepTest : IdeaTestCase() {
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
     `when`(wizard.project).thenReturn(myProject)
+    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
 
     val keystoreStep = KeystoreStep(wizard, true, facets)
     assertEquals(testKeyStorePath, keystoreStep.keyStorePathField.text)

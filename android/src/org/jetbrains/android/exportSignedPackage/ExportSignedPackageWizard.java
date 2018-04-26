@@ -221,37 +221,37 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
         GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(myProject);
         if (myTargetType.equals(BUNDLE)) {
+          if (myExportPrivateKey) {
+            //if the apkFile path doesn't exist, try to create it, the encryption tool will not work without the directory.
+            if(!apkDirectory.exists() && !apkDirectory.mkdirs()) {
+              getLog().error("Unable to make a folder at location: " + apkDirectory.getAbsolutePath());
+              return;
+            }
+
+            try {
+              myEncryptionTool.run(myGradleSigningInfo.keyStoreFilePath,
+                                   myGradleSigningInfo.keyAlias,
+                                   GOOGLE_PUBLIC_KEY,
+                                   generatePrivateKeyPath().getPath(),
+                                   myGradleSigningInfo.keyStorePassword,
+                                   myGradleSigningInfo.keyPassword
+              );
+
+              final GenerateSignedApkSettings settings = GenerateSignedApkSettings.getInstance(myProject);
+              //We want to only export the private key once. Anymore would be redundant.
+              settings.EXPORT_PRIVATE_KEY = false;
+            }
+            catch (Exception e) {
+              getLog().error("Something went wrong with the encryption tool", e);
+              return;
+            }
+          }
+
           gradleBuildInvoker.add(new GoToBundleLocationTask(myProject, appModulesToOutputs, "Generate Signed Bundle"));
         } else {
           gradleBuildInvoker.add(new GoToApkLocationTask(appModulesToOutputs, "Generate Signed APK"));
         }
         gradleBuildInvoker.executeTasks(new File(rootProjectPath), gradleTasks, projectProperties);
-
-        if (myExportPrivateKey) {
-          //if the apkFile path doesn't exist, try to create it, the encryption tool will not work without the directory.
-          if(!apkDirectory.exists() && !apkDirectory.mkdirs()) {
-            getLog().error("Unable to make a folder at location: " + apkDirectory.getAbsolutePath());
-            return;
-          }
-
-          try {
-            myEncryptionTool.run(myGradleSigningInfo.keyStoreFilePath,
-                                 myGradleSigningInfo.keyAlias,
-                                 GOOGLE_PUBLIC_KEY,
-                                 generatePrivateKeyPath().getPath(),
-                                 myGradleSigningInfo.keyStorePassword,
-                                 myGradleSigningInfo.keyPassword
-            );
-
-            final GenerateSignedApkSettings settings = GenerateSignedApkSettings.getInstance(myProject);
-            //We want to only export the private key once. Anymore would be redundant.
-            settings.EXPORT_PRIVATE_KEY = false;
-          }
-          catch (Exception e) {
-            getLog().error("Something went wrong with the encryption tool", e);
-            return;
-          }
-        }
 
         getLog().info("Export " + myTargetType.toUpperCase() + " command: " +
                  Joiner.on(',').join(gradleTasks) +
