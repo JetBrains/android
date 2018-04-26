@@ -49,6 +49,7 @@ public enum InstantRunGradleSupport {
   USES_JACK(AndroidBundle.message("instant.run.notification.ir.disabled.jack")),
   USES_EXTERNAL_NATIVE_BUILD(AndroidBundle.message("instant.run.notification.ir.disabled.external.native.build")),
   USES_EXPERIMENTAL_PLUGIN(AndroidBundle.message("instant.run.notification.ir.disabled.experimental.plugin")),
+  USES_APP_BUNDLE_OUTPUT(AndroidBundle.message("instant.run.notification.ir.disabled.app.bundle.output")),
   UNKNOWN_REASON(AndroidBundle.message("instant.run.notification.ir.disabled.unknown.reason"));
 
   private final String myUserNotification;

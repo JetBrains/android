@@ -694,6 +694,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return API_TOO_LOW_FOR_INSTANT_RUN;
     }
 
+    // If using app bundle, IR is not supported
+    if (DynamicAppUtils.useSelectApksFromBundleBuilder(module, this, targetDevices)) {
+      return USES_APP_BUNDLE_OUTPUT;
+    }
+
     IDevice targetDevice = MakeBeforeRunTaskProvider.getLaunchedDevice(device);
     if (targetDevice != null) {
       if (MultiUserUtils.hasMultipleUsers(targetDevice, 200, TimeUnit.MILLISECONDS, false)) {
