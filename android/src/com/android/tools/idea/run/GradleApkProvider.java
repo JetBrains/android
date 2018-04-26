@@ -420,7 +420,9 @@ public class GradleApkProvider implements ApkProvider {
   public List<ValidationError> validate() {
     AndroidModuleModel androidModuleModel = AndroidModuleModel.get(myFacet);
     assert androidModuleModel != null; // This is a Gradle project, there must be an AndroidGradleModel.
+    // Note: Instant apps and app bundles outputs are assumed to be signed
     if (androidModuleModel.getAndroidProject().getProjectType() == PROJECT_TYPE_INSTANTAPP ||
+        myOutputKindProvider.compute() == OutputKind.AppBundleOutputModel ||
         androidModuleModel.getMainArtifact().isSigned()) {
       return ImmutableList.of();
     }
