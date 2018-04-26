@@ -49,7 +49,7 @@ public class AndroidTemplateProjectSettingsGroup extends DefaultActionGroup {
     AndroidEditRunConfigurationsAction() {
       Presentation p = getTemplatePresentation();
       p.setText("Run Configurations");
-      p.setIcon(AllIcons.General.CreateNewProjectfromExistingFiles);
+      p.setIcon(AllIcons.ToolbarDecorator.Import);
     }
   }
 }
