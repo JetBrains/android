@@ -320,9 +320,11 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     final boolean rememberPasswords = myRememberPasswordCheckBox.isSelected();
     settings.REMEMBER_PASSWORDS = rememberPasswords;
 
-    final boolean exportPrivateKey = myExportKeysCheckBox.isSelected();
-    settings.EXPORT_PRIVATE_KEY = exportPrivateKey;
-    myWizard.setExportPrivateKey(exportPrivateKey);
+    if (myWizard.getTargetType().equals(ExportSignedPackageWizard.BUNDLE)) {
+      final boolean exportPrivateKey = myExportKeysCheckBox.isSelected();
+      settings.EXPORT_PRIVATE_KEY = exportPrivateKey;
+      myWizard.setExportPrivateKey(exportPrivateKey);
+    }
 
     final String keyStorePasswordKey = makePasswordKey(KEY_STORE_PASSWORD_KEY, keyStoreLocation, null);
     final String keyPasswordKey = makePasswordKey(KEY_PASSWORD_KEY, keyStoreLocation, keyAlias);
