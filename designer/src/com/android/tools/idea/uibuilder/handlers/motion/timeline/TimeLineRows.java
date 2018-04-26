@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.timeline;
 
+import com.android.tools.adtui.util.SwingUtil;
+import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.util.ui.JBUI;
 
 import javax.swing.*;
@@ -23,6 +25,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import static com.intellij.openapi.ui.VerticalFlowLayout.TOP;
 
 /**
  * The make chart that displays the Keyframes in time
@@ -40,8 +44,13 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
   JComponent mySpacer = new JComponent() {
   };
 
+
   TimeLineRows(Chart chart) {
-    super(new GridBagLayout());
+    VerticalFlowLayout layout = new VerticalFlowLayout(TOP, 0, 0, true, false);
+    setLayout(layout);
+
+    layout.setHorizontalFill(true);
+    layout.setVerticalFill(false);
 
     myChart = chart;
     update(Reason.CONSTRUCTION);
@@ -54,7 +63,9 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
       repaint();
       return;
     }
-    if (reason == Reason.ZOOM || reason == Reason.RESIZE) {
+
+
+    if (reason == Reason.RESIZE || reason == Reason.ZOOM) {
       Dimension d = getPreferredSize();
       d.width = myChart.getGraphWidth();
       if (myChart.getmNumberOfViews() > 0) {
@@ -62,31 +73,38 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
         d.height = v.myYStart + v.myHeight + 1;
       }
 
-      // remove old rows
-      for (ViewRow row : myViewRows) {
-        remove(row);
+      if (myViewRows.size() == myChart.myViewElements.size()) {
+        int chartWidth = myChart.getGraphWidth();
+        for (ViewRow row : myViewRows) {
+          int pos = row.myRow;
+          Gantt.ViewElement v = myChart.myViewElements.get(pos);
+          row.setPreferredSize(new Dimension(chartWidth, v.myHeight));
+        }
+        revalidate();
+        repaint();
       }
-      myViewRows.clear();
-      remove(mySpacer);
+      else {
 
-      // add new rows
-      GridBagConstraints cons = new GridBagConstraints();
-      cons.fill = GridBagConstraints.HORIZONTAL;
-      cons.weightx = 1;
-      cons.gridx = 0;
-      int chartWidth = myChart.getGraphWidth();
-      for (int i = 0; i < myChart.myViewElements.size(); i++) {
-        Gantt.ViewElement v = myChart.myViewElements.get(i);
-        ViewRow vr = new ViewRow(v, i);
-        myViewRows.add(vr);
-        vr.setPreferredSize(new Dimension(chartWidth, v.myHeight));
-        add(vr, cons);
+        // remove old rows
+        for (ViewRow row : myViewRows) {
+          remove(row);
+        }
+        myViewRows.clear();
+        remove(mySpacer);
+
+        int chartWidth = myChart.getGraphWidth();
+        for (int i = 0; i < myChart.myViewElements.size(); i++) {
+          Gantt.ViewElement v = myChart.myViewElements.get(i);
+          ViewRow vr = new ViewRow(v, i);
+          myViewRows.add(vr);
+          vr.setPreferredSize(new Dimension(chartWidth, v.myHeight));
+          add(vr);
+          System.out.println("new size [" + i + "]= " + chartWidth);
+        }
+
+        revalidate();
+        repaint();
       }
-      cons.weighty = 1;
-      add(mySpacer, cons);
-      validate();
-      repaint();
-      SwingUtilities.invokeLater(() -> repaint());
     }
   }
 
@@ -178,7 +196,7 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
     }
 
     private void select(int x, int y) {
-      MotionSceneModel.KeyFrame keyFrame = myLocationTable.find(x, y, 10);
+      MotionSceneModel.KeyFrame keyFrame = myLocationTable.find(x, y, 20);
       if (keyFrame != myChart.mySelectedKeyFrame) {
         myChart.mySelectedKeyFrame = keyFrame;
         myChart.mySelection = Chart.Selection.KEY;
@@ -190,7 +208,7 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
       }
     }
 
-    public void drawDiamond(Graphics g, int x, int pos) {
+    public void drawDiamond(Graphics g, boolean selected, int x, int pos) {
       int half = ourDiamondSize / 2;
       myXPoints[0] = x;
       myYPoints[0] = pos;
@@ -200,7 +218,12 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
       myYPoints[2] = pos + ourDiamondSize;
       myXPoints[3] = x - half;
       myYPoints[3] = pos + half;
-      g.fillPolygon(myXPoints, myYPoints, 4);
+      if (selected) {
+        g.drawPolygon(myXPoints, myYPoints, 4);
+      }
+      else {
+        g.fillPolygon(myXPoints, myYPoints, 4);
+      }
     }
 
     @Override
@@ -266,11 +289,11 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
 
         if (key == myChart.mySelectedKeyFrame) {
           g.setColor(Chart.ourMySelectedLineColor);
-          drawDiamond(g, x, pos);
+          drawDiamond(g, true, x, pos);
           g.setColor(Chart.myUnSelectedLineColor);
         }
         else {
-          drawDiamond(g, x, pos);
+          drawDiamond(g, false, x, pos);
         }
         myLocationTable.add(x, pos, key);
       }
@@ -281,11 +304,11 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
         int x = myChart.myChartLeftInset + (int)((key.framePosition * width) / 100);
         if (key == myChart.mySelectedKeyFrame) {
           g.setColor(Chart.ourMySelectedLineColor);
-          drawDiamond(g, x, pos);
+          drawDiamond(g, true, x, pos);
           g.setColor(Chart.myUnSelectedLineColor);
         }
         else {
-          drawDiamond(g, x, pos);
+          drawDiamond(g, false, x, pos);
         }
 
         myLocationTable.add(x, pos, key);
@@ -296,11 +319,11 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
 
         if (key == myChart.mySelectedKeyFrame) {
           g.setColor(Chart.ourMySelectedLineColor);
-          drawDiamond(g, x, pos * 2);
+          drawDiamond(g, true, x, pos * 2);
           g.setColor(Chart.myUnSelectedLineColor);
         }
         else {
-          drawDiamond(g, x, pos * 2);
+          drawDiamond(g, false, x, pos * 2);
         }
         myLocationTable.add(x, pos * 2, key);
       }
@@ -309,7 +332,6 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
 
       g.setColor(Chart.myTimeCursorColor);
       g.fillRect(x, 0, 1, panelHeight);
-
     }
   }
 }

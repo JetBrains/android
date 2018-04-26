@@ -86,11 +86,10 @@ public class Chart {
 
   public void setMotionSceneModel(MotionSceneModel model) {
     myModel = model;
-    if (myModel!=null) {
+    if (myModel != null) {
       int duration = myModel.getTransitionTag(0).duration;
       setAnimationTotalTimeMs(duration);
       myGantt.setDurationMs(duration);
-
     }
   }
 
@@ -158,6 +157,10 @@ public class Chart {
 
   public float getProgress() {
     return getTimeCursorMs() / myAnimationTotalTimeMs;
+  }
+
+  public int getFramePosition() {
+    return (int)((0.5f + 100 * getTimeCursorMs()) / myAnimationTotalTimeMs);
   }
 
   public int getCursorPosition() {

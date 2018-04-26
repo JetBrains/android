@@ -43,12 +43,17 @@ public class MotionSceneModel {
   HashMap<String, MotionSceneView> mySceneViews = new HashMap<>();
   ArrayList<ConstraintSet> myConstraintSets;
   ArrayList<TransitionTag> myTransition;
+  OnSwipeTag myOnSwipeTag;
   private VirtualFile myVirtualFile;
   private Project myProject;
   private NlModel myNlModel;
 
   public TransitionTag getTransitionTag(int i) {
     return myTransition.get(i);
+  }
+
+  public OnSwipeTag getOnSwipeTag() {
+    return myOnSwipeTag;
   }
 
   // Represents a single view in the motion scene
@@ -184,7 +189,7 @@ public class MotionSceneModel {
     }
 
     private String trim(String node) {
-      return node.substring(node.indexOf(":") + 1);
+      return node.substring(node.indexOf(':') + 1);
     }
 
     public void parse(XmlAttribute[] attributes) {
@@ -824,10 +829,9 @@ public class MotionSceneModel {
 
   // =================================OnSwipe====================================== //
 
-  static class OnSwipe implements AttributeParse {
-    String myConstraintSetEnd;
-    String myConstraintSetStart;
-    int duration;
+  public static class OnSwipeTag implements AttributeParse {
+    MotionSceneModel myModel;
+
     HashMap<String, Object> myAllAttributes = new HashMap<>();
     public static String[] ourPossibleAttr = {
       "maxVelocity",
@@ -838,8 +842,22 @@ public class MotionSceneModel {
     };
     public String[] myPossibleAttr = ourPossibleAttr;
 
+    public String[] getPossibleAttr() {
+      return myPossibleAttr;
+    }
+
+    public HashMap<String, Object> getAttributes() {
+      return myAllAttributes;
+    }
+
+    OnSwipeTag(MotionSceneModel model) {
+      myModel = model;
+      myPossibleAttr = ourPossibleAttr;
+    }
+
     @Override
     public void parse(String name, String value) {
+      name = name.substring(name.lastIndexOf(':') + 1);
       myAllAttributes.put(name, value);
     }
   }
@@ -917,6 +935,16 @@ public class MotionSceneModel {
       parse(transition, tag.getAttributes());
 
       motionSceneModel.myTransition.add(transition);
+    }
+    // process the OnSwipe
+
+    XmlTag[] onSwipeTags = file.getRootTag().findSubTags(MotionSceneOnSwipe);
+
+    for (int i = 0; i < onSwipeTags.length; i++) {
+      OnSwipeTag onSwipeTag = new OnSwipeTag(motionSceneModel);
+      XmlTag tag = onSwipeTags[i];
+      parse(onSwipeTag, tag.getAttributes());
+      motionSceneModel.myOnSwipeTag = onSwipeTag;
     }
 
     // process all the key frames

@@ -231,7 +231,6 @@ class ViewList extends JPanel implements Gantt.ChartElement {
       Object root = tree.getModel().getRoot();
 
       c.setOpaque(true);
-     // c.setBackground(myBackground);
       setIcon(TimeLineIcons.EMPTY);
 
       if (root.equals(node)) {
@@ -263,8 +262,6 @@ class ViewList extends JPanel implements Gantt.ChartElement {
     if (myTree != null) {
       myTree.setBackground(bg);
     }
-
-
   }
 
   /* ========================================================== */
