@@ -58,6 +58,7 @@ import java.util.function.Predicate;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.flags.StudioFlags.MIGRATE_TO_ANDROID_X_REFACTORING_ENABLED;
 import static com.android.tools.idea.gradle.dsl.api.GradleBuildModel.parseBuildFile;
 import static com.android.tools.idea.gradle.util.GradleProjects.isBuildWithGradle;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
@@ -521,7 +522,7 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
 
   private String convertToAndroidX(String dep) {
     int buildApi = Integer.parseInt(getParamMap().get(ATTR_BUILD_API).toString());
-    if (buildApi >= 28) {
+    if (MIGRATE_TO_ANDROID_X_REFACTORING_ENABLED.get() && buildApi >= 28) {
       return AndroidxNameUtils.getVersionedCoordinateMapping(dep);
     }
     return dep;
