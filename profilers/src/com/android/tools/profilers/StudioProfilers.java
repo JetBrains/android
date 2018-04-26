@@ -47,6 +47,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.android.tools.profiler.proto.CpuProfiler.ProfilingStateRequest;
@@ -89,6 +90,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   @Nullable
   private String myPreferredProcessName;
 
+  private Predicate<Common.Process> myPreferredProcessFilter;
+
   private Common.Device myDevice;
 
   /**
@@ -126,6 +129,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     myClient = client;
     myIdeServices = ideServices;
     myPreferredProcessName = null;
+    myPreferredProcessFilter = null;
     myStage = new NullMonitorStage(this);
     mySessionsManager = new SessionsManager(this);
     mySessionChangeListener = new HashMap<>();
@@ -224,10 +228,16 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   /**
    * Tells the profiler to select and profile the device+process combo of the same name next time it is detected.
+   *
+   * @param processFilter Additional filter used for choosing the most desirable preferred process. e.g. Process of a particular pid,
+   *                      or process that starts after a certain time.
    */
-  public void setPreferredDeviceAndProcessNames(@Nullable String deviceName, @Nullable String processName) {
+  public void setPreferredProcess(@Nullable String deviceName,
+                                  @Nullable String processName,
+                                  @Nullable Predicate<Common.Process> processFilter) {
     myPreferredDeviceName = deviceName;
     myPreferredProcessName = processName;
+    myPreferredProcessFilter = processFilter;
     myAutoProfilingEnabled = true;
     // Checks whether we can switch immediately if the device is already there.
     setDevice(findPreferredDevice());
@@ -241,7 +251,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   /**
    * Enable/disable auto device+process selection, which looks for the preferred device + process combination and starts profiling. If no
-   * preference has been set (via {@link #setPreferredDeviceAndProcessNames(String, String)}, then we profiling any online device+process
+   * preference has been set (via {@link #setPreferredProcess(String, String)}, then we profiling any online device+process
    * combo.
    */
   public void setAutoProfilingEnabled(boolean enabled) {
@@ -520,7 +530,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     // Prefer the project's app if available.
     if (myAutoProfilingEnabled && myPreferredProcessName != null) {
       for (Common.Process process : processes) {
-        if (process.getName().equals(myPreferredProcessName) && process.getState() == Common.Process.State.ALIVE) {
+        if (process.getName().equals(myPreferredProcessName) && process.getState() == Common.Process.State.ALIVE &&
+            (myPreferredProcessFilter == null || myPreferredProcessFilter.test(process))) {
           return process;
         }
       }
@@ -590,7 +601,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   /**
    * Return the selected app's package name if present, otherwise returns empty string.
-   *
+   * <p>
    * <p>TODO (78597376): Clean up the method to make it reusable.</p>
    */
   @NotNull

@@ -62,12 +62,12 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
     try {
       createTable("Profiler_Bytes", "Id STRING NOT NULL", "Session INTEGER", "Data BLOB");
       createTable("Profiler_Devices", "DeviceId INTEGER", "LastKnownTime INTEGER", "Data BLOB");
-      createTable("Profiler_Processes", "DeviceId INTEGER", "ProcessId INTEGER", "StartTime INTEGER", "EndTime INTEGER",
-                  "HasAgent INTEGER", "LastKnownAttachedTime INTEGER", "Data BLOB");
+      createTable("Profiler_Processes", "DeviceId INTEGER", "ProcessId INTEGER", "HasAgent INTEGER",
+                  "LastKnownAttachedTime INTEGER", "Data BLOB");
       createTable("Profiler_Sessions", "SessionId INTEGER", "DeviceId INTEGER", "ProcessId INTEGER", "StartTime INTEGER",
                   "EndTime INTEGER", "StartTimeEpochMs INTEGER", "NAME TEXT", "JvmtiEnabled BIT", "LiveAllocationEnabled BIT",
                   "TypeId INTEGER");
-      createUniqueIndex("Profiler_Processes", "DeviceId", "ProcessId", "StartTime");
+      createUniqueIndex("Profiler_Processes", "DeviceId", "ProcessId");
       createUniqueIndex("Profiler_Devices", "DeviceId");
       createUniqueIndex("Profiler_Bytes", "Id", "Session");
       createUniqueIndex("Profiler_Sessions", "SessionId");
@@ -94,9 +94,9 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
       createStatement(ProfilerStatements.UPDATE_DEVICE_LAST_KNOWN_TIME,
                       "UPDATE Profiler_Devices Set LastKnownTime = ? WHERE DeviceId = ?");
       createStatement(ProfilerStatements.INSERT_PROCESS,
-                      "INSERT OR REPLACE INTO Profiler_Processes (DeviceId, ProcessId, StartTime, EndTime, Data) values (?, ?, ?, ?, ?)");
+                      "INSERT OR REPLACE INTO Profiler_Processes (DeviceId, ProcessId, Data) values (?, ?, ?)");
       createStatement(ProfilerStatements.UPDATE_PROCESS,
-                      "UPDATE Profiler_Processes Set EndTime = ?, Data = ? WHERE DeviceId = ? AND ProcessId = ? AND StartTime = ?");
+                      "UPDATE Profiler_Processes Set Data = ? WHERE DeviceId = ? AND ProcessId = ?");
       createStatement(ProfilerStatements.INSERT_SESSION,
                       "INSERT OR REPLACE INTO Profiler_Sessions " +
                       "(SessionId, DeviceId, ProcessId, StartTime, EndTime, StartTimeEpochMs, Name, JvmtiEnabled, LiveAllocationEnabled, TypeId) " +
@@ -104,9 +104,9 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
       createStatement(ProfilerStatements.UPDATE_SESSION,
                       "UPDATE Profiler_Sessions Set EndTime = ? WHERE SessionId = ?");
       createStatement(ProfilerStatements.SELECT_PROCESSES,
-                      "SELECT Data from Profiler_Processes WHERE DeviceId = ? AND (EndTime > ? OR EndTime = 0) AND StartTime < ?");
+                      "SELECT Data from Profiler_Processes WHERE DeviceId = ?");
       createStatement(ProfilerStatements.SELECT_PROCESS_BY_ID,
-                      "SELECT Data from Profiler_Processes WHERE DeviceId = ? AND ProcessId = ? AND StartTime = ?");
+                      "SELECT Data from Profiler_Processes WHERE DeviceId = ? AND ProcessId = ?");
       createStatement(ProfilerStatements.SELECT_DEVICE,
                       "SELECT Data from Profiler_Devices");
       createStatement(ProfilerStatements.SELECT_DEVICE_LAST_KNOWN_TIME,
@@ -118,9 +118,9 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
       createStatement(ProfilerStatements.DELETE_SESSION_BY_ID,
                       "DELETE from Profiler_Sessions WHERE SessionId = ?");
       createStatement(ProfilerStatements.FIND_AGENT_STATUS,
-                      "SELECT HasAgent, LastKnownAttachedTime from Profiler_Processes WHERE DeviceId = ? AND ProcessId = ? AND StartTime = ?");
+                      "SELECT HasAgent, LastKnownAttachedTime from Profiler_Processes WHERE DeviceId = ? AND ProcessId = ?");
       createStatement(ProfilerStatements.UPDATE_AGENT_STATUS,
-                      "UPDATE Profiler_Processes SET HasAgent = ?, LastKnownAttachedTime = ? WHERE DeviceId = ? AND ProcessId = ? AND StartTime = ?");
+                      "UPDATE Profiler_Processes SET HasAgent = ?, LastKnownAttachedTime = ? WHERE DeviceId = ? AND ProcessId = ?");
       createStatement(ProfilerStatements.INSERT_BYTES, "INSERT OR REPLACE INTO Profiler_Bytes (Id, Session, Data) VALUES (?, ?, ?)");
       createStatement(ProfilerStatements.GET_BYTES, "SELECT Data FROM Profiler_Bytes WHERE Id = ? AND Session = ?");
     }
@@ -178,7 +178,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
     synchronized (myLock) {
       GetProcessesResponse.Builder responseBuilder = GetProcessesResponse.newBuilder();
       try {
-        ResultSet results = executeQuery(ProfilerStatements.SELECT_PROCESSES, request.getDeviceId(), Long.MIN_VALUE, Long.MAX_VALUE);
+        ResultSet results = executeQuery(ProfilerStatements.SELECT_PROCESSES, request.getDeviceId());
         while (results.next()) {
           byte[] data = results.getBytes(1);
           Common.Process process = data == null ? Common.Process.getDefaultInstance() : Common.Process.parseFrom(data);
@@ -296,14 +296,12 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
   public void insertOrUpdateProcess(@NotNull DeviceId devicdId, @NotNull Common.Process process) {
     synchronized (myLock) {
       try {
-        ResultSet results = executeQuery(ProfilerStatements.SELECT_PROCESS_BY_ID, devicdId.get(), process.getPid(), 0L);
+        ResultSet results = executeQuery(ProfilerStatements.SELECT_PROCESS_BY_ID, devicdId.get(), process.getPid());
         if (results.next()) {
-          execute(ProfilerStatements.UPDATE_PROCESS, 0L, process.toByteArray(), devicdId.get(), process.getPid(), 0L);
+          execute(ProfilerStatements.UPDATE_PROCESS, process.toByteArray(), devicdId.get(), process.getPid());
         }
         else {
-          //TODO: Properly set end time. Here the end time comes from the device, or is set to now, so we don't leave
-          //end times open.
-          execute(ProfilerStatements.INSERT_PROCESS, devicdId.get(), process.getPid(), 0L, 0L, process.toByteArray());
+          execute(ProfilerStatements.INSERT_PROCESS, devicdId.get(), process.getPid(), process.toByteArray());
         }
       }
       catch (SQLException ex) {
@@ -341,8 +339,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
                                 @NotNull AgentStatusResponse agentStatus) {
     synchronized (myLock) {
       try {
-        ResultSet results =
-          executeQuery(ProfilerStatements.FIND_AGENT_STATUS, devicdId.get(), process.getPid(), 0L);
+        ResultSet results = executeQuery(ProfilerStatements.FIND_AGENT_STATUS, devicdId.get(), process.getPid());
         if (results.next()) {
           AgentStatusResponse.Status status = AgentStatusResponse.Status.forNumber(results.getInt(1));
           switch (status) {
@@ -356,7 +353,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
           }
 
           execute(ProfilerStatements.UPDATE_AGENT_STATUS, status.ordinal(), agentStatus.getLastTimestamp(),
-                  devicdId.get(), process.getPid(), 0L);
+                  devicdId.get(), process.getPid());
         }
       }
       catch (SQLException ex) {
@@ -370,8 +367,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
     synchronized (myLock) {
       AgentStatusResponse.Builder responseBuilder = AgentStatusResponse.newBuilder();
       try {
-        ResultSet results =
-          executeQuery(ProfilerStatements.FIND_AGENT_STATUS, request.getDeviceId(), request.getPid(), 0L);
+        ResultSet results = executeQuery(ProfilerStatements.FIND_AGENT_STATUS, request.getDeviceId(), request.getPid());
         if (results.next()) {
           responseBuilder.setStatusValue(results.getInt(1));
           responseBuilder.setLastTimestamp(results.getLong(2));
