@@ -13,18 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("UNUSED_PARAMETER")
+
 package com.android.tools.idea.gradle.structure.model.helpers
 
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import java.io.File
 
-fun parseString(text: String): ParsedValue<String> =
+fun parseString(context: Any?, text: String): ParsedValue<String> =
     if (text == "")
       ParsedValue.NotSet
     else
       ParsedValue.Set.Parsed(value = text)
 
-fun parseFile(text: String): ParsedValue<File> =
+fun parseFile(context: Any?, text: String): ParsedValue<File> =
     if (text == "")
       ParsedValue.NotSet
     else
@@ -41,7 +43,7 @@ inline fun <reified T> parseEnum(text: String, parser: (String) -> T?): ParsedVa
         ParsedValue.Set.Invalid(text, "'${text}' is not a valid value of type ${T::class.simpleName}")
     }
 
-fun parseBoolean(text: String): ParsedValue<Boolean> =
+fun parseBoolean(context: Any?, text: String): ParsedValue<Boolean> =
     when {
       text == "" -> ParsedValue.NotSet
       text.equals("true", ignoreCase = true) -> ParsedValue.Set.Parsed(value = true)
@@ -49,7 +51,7 @@ fun parseBoolean(text: String): ParsedValue<Boolean> =
       else -> ParsedValue.Set.Invalid(text, "Unknown boolean value: '$text'. Expected 'true' or 'false'")
     }
 
-fun parseInt(text: String): ParsedValue<Int> =
+fun parseInt(context: Any?, text: String): ParsedValue<Int> =
     if (text == "")
       ParsedValue.NotSet
     else {

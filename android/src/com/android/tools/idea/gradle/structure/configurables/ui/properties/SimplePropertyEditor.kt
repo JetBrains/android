@@ -35,7 +35,8 @@ import javax.swing.text.DefaultCaret
  * This is a [ComboBox] based editor allowing manual text entry as well as entry by selecting an item from the list of values provided by
  * [ModelSimpleProperty.getKnownValues]. Text free text input is parsed by [ModelSimpleProperty.parse].
  */
-class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSimpleProperty<ModelT, PropertyT>>(
+class SimplePropertyEditor<ContextT, ModelT, PropertyT : Any, out ModelPropertyT : ModelSimpleProperty<ContextT, ModelT, PropertyT>>(
+  val context: ContextT,
   val elementType: Class<PropertyT>,
   val model: ModelT,
   val property: ModelPropertyT,
@@ -94,7 +95,7 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
 
   private fun getKnowValues(): Map<PropertyT?, ValueRenderer> {
     val defaultValue = property.getDefaultValue(model)
-    val knownValues = property.getKnownValues(model).get()
+    val knownValues = property.getKnownValues(context, model).get()
     return buildKnownValueRenderers(knownValues, defaultValue)
   }
 
@@ -170,7 +171,7 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
     text.startsWith("\"") && text.endsWith("\"") ->
       ParsedValue.Set.Parsed<PropertyT>(value = null,
                                         dslText = DslText(DslMode.INTERPOLATED_STRING, text.substring(1, text.length - 1)))
-    else -> property.parse(text)
+    else -> property.parse(context, text)
   }
 
 
@@ -204,12 +205,13 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
   }
 }
 
-inline fun <ModelT, reified PropertyT : Any, ModelPropertyT : ModelSimpleProperty<ModelT, PropertyT>> simplePropertyEditor(
+inline fun <ContextT, ModelT, reified PropertyT : Any, ModelPropertyT : ModelSimpleProperty<ContextT, ModelT, PropertyT>> simplePropertyEditor(
+  context: ContextT,
   model: ModelT,
   property: ModelPropertyT,
   variablesProvider: VariablesProvider? = null
-): SimplePropertyEditor<ModelT, PropertyT, ModelPropertyT> =
-  SimplePropertyEditor(PropertyT::class.java, model, property, variablesProvider)
+): SimplePropertyEditor<ContextT, ModelT, PropertyT, ModelPropertyT> =
+  SimplePropertyEditor(context, PropertyT::class.java, model, property, variablesProvider)
 
 private fun <T : Any> ParsedValue<T>.normalizeForEditorAndLookup() =
   if (this is ParsedValue.Set.Parsed && value != null && dslText?.mode == DslMode.LITERAL)

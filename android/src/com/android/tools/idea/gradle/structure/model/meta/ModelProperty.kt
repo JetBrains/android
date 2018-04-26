@@ -59,18 +59,18 @@ interface ModelProperty<in ModelT, PropertyT : Any> :
 }
 
 @Suppress("AddVarianceModifier")  // PSQ erroneously reports AddVarianceModifier on ValueT here.
-interface ModelPropertyContext<in ModelT, ValueT : Any> {
+interface ModelPropertyContext<in ContextT, in ModelT, ValueT : Any> {
   /**
    * Parses the text representation of type [ValueT].
    *
    * This is up to the parser to decide whether [value] is valid, invalid or is a DSL expression.
    */
-  fun parse(value: String): ParsedValue<ValueT>
+  fun parse(context: ContextT, value: String): ParsedValue<ValueT>
 
   /**
    * Returns a list of well-known values (constants) with their short human-readable descriptions that are applicable to the property.
    */
-  fun getKnownValues(model: ModelT): ListenableFuture<List<ValueDescriptor<ValueT>>>
+  fun getKnownValues(context: ContextT, model: ModelT): ListenableFuture<List<ValueDescriptor<ValueT>>>
 }
 
 /**
@@ -78,42 +78,43 @@ interface ModelPropertyContext<in ModelT, ValueT : Any> {
  *
  * The simple-types property is a property whose value can be easily represented in the UI as text.
  */
-interface ModelSimpleProperty<in ModelT, PropertyT : Any> :
+interface ModelSimpleProperty<in ContextT, in ModelT, PropertyT : Any> :
   ModelProperty<ModelT, PropertyT>,
-  ModelPropertyContext<ModelT, PropertyT>
-typealias SimpleProperty<ModelT, PropertyT> = ModelSimpleProperty<ModelT, PropertyT>
+  ModelPropertyContext<ContextT, ModelT, PropertyT>
+typealias SimpleProperty<ModelT, PropertyT> = ModelSimpleProperty<Nothing?, ModelT, PropertyT>
 /**
  * A UI descriptor of a collection property.
  */
-interface ModelCollectionProperty<in ModelT, CollectionT : Any, ValueT : Any>
+interface ModelCollectionProperty<in ContextT, in ModelT, CollectionT : Any, ValueT : Any>
   : ModelProperty<ModelT, CollectionT>,
-    ModelPropertyContext<ModelT, ValueT>
+    ModelPropertyContext<ContextT, ModelT, ValueT>
 
 /**
  * A UI descriptor of a list property.
  */
-interface ModelListProperty<in ModelT, ValueT : Any> :
-  ModelCollectionProperty<ModelT, List<ValueT>, ValueT> {
+interface ModelListProperty<in ContextT, in ModelT, ValueT : Any> :
+  ModelCollectionProperty<ContextT, ModelT, List<ValueT>, ValueT> {
   fun getEditableValues(model: ModelT): List<ModelPropertyCore<Unit, ValueT>>
   fun addItem(model: ModelT, index: Int): ModelPropertyCore<Unit, ValueT>
   fun deleteItem(model: ModelT, index: Int)
 }
-typealias ListProperty<ModelT, PropertyT> = ModelListProperty<ModelT, PropertyT>
+typealias ListProperty<ModelT, PropertyT> = ModelListProperty<Nothing?, ModelT, PropertyT>
 
 /**
  * A UI descriptor of a map property.
  */
-interface ModelMapProperty<in ModelT, ValueT : Any> :
-  ModelCollectionProperty<ModelT, Map<String, ValueT>, ValueT> {
+interface ModelMapProperty<in ContextT, in ModelT, ValueT : Any> :
+  ModelCollectionProperty<ContextT, ModelT, Map<String, ValueT>, ValueT> {
   fun getEditableValues(model: ModelT): Map<String, ModelPropertyCore<Unit, ValueT>>
   fun addEntry(model: ModelT, key: String): ModelPropertyCore<Unit, ValueT>
   fun deleteEntry(model: ModelT, key: String)
   fun changeEntryKey(model: ModelT, old: String, new: String): ModelPropertyCore<Unit, ValueT>
 }
-typealias MapProperty<ModelT, PropertyT> = ModelMapProperty<ModelT, PropertyT>
+typealias MapProperty<ModelT, PropertyT> = ModelMapProperty<Nothing?, ModelT, PropertyT>
 
-fun <ModelT, PropertyT : Any> ModelSimpleProperty<ModelT, PropertyT>.bind(boundModel: ModelT): ModelSimpleProperty<Unit, PropertyT> = let {
-  object : ModelSimpleProperty<Unit, PropertyT> {
+fun <ContextT, ModelT, PropertyT : Any> ModelSimpleProperty<ContextT, ModelT, PropertyT>.bind(boundModel: ModelT):
+  ModelSimpleProperty<ContextT, Unit, PropertyT> = let {
+  object : ModelSimpleProperty<ContextT, Unit, PropertyT> {
     override fun getParsedValue(model: Unit): ParsedValue<PropertyT> = it.getParsedValue(boundModel)
 
     override fun setParsedValue(model: Unit, value: ParsedValue<PropertyT>) = it.setParsedValue(boundModel, value)
@@ -128,8 +129,9 @@ fun <ModelT, PropertyT : Any> ModelSimpleProperty<ModelT, PropertyT>.bind(boundM
 
     override fun setValue(thisRef: Unit, property: KProperty<*>, value: ParsedValue<PropertyT>) = it.setValue(boundModel, property, value)
 
-    override fun parse(value: String): ParsedValue<PropertyT> = it.parse(value)
+    override fun parse(context: ContextT, value: String): ParsedValue<PropertyT> = it.parse(context, value)
 
-    override fun getKnownValues(model: Unit): ListenableFuture<List<ValueDescriptor<PropertyT>>> = it.getKnownValues(boundModel)
+    override fun getKnownValues(context: ContextT, model: Unit): ListenableFuture<List<ValueDescriptor<PropertyT>>> =
+      it.getKnownValues(context, boundModel)
   }
 }

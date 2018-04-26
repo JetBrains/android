@@ -60,7 +60,7 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidPro
     getParsedProperty = { compileOptions().sourceCompatibility() },
     getter = { toLanguageLevel() },
     setter = { setLanguageLevel(it) },
-    parse = { parseEnum(it, LanguageLevel::parse) },
+    parse = { _, value -> parseEnum(value, LanguageLevel::parse) },
     getKnownValues = ::languageLevels
   )
 
@@ -70,7 +70,7 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidPro
     getParsedProperty = { compileOptions().targetCompatibility() },
     getter = { toLanguageLevel() },
     setter = { setLanguageLevel(it) },
-    parse = { parseEnum(it, LanguageLevel::parse) },
+    parse = { _, value -> parseEnum(value, LanguageLevel::parse) },
     getKnownValues = ::languageLevels
   )
 }

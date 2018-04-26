@@ -33,9 +33,9 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
   }
 
   private fun <T : Any> GradlePropertyModel.wrap(
-    parse: (String) -> ParsedValue<T>,
+    parse: (Nothing?, String) -> ParsedValue<T>,
     caster: ResolvedPropertyModel.() -> T?
-  ): ModelListProperty<Model, T> {
+  ): ModelListProperty<Nothing?, Model, T> {
     val resolved = resolve()
     return Model.listProperty(
       "description",
@@ -43,7 +43,7 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
       getParsedProperty = { resolved },
       itemValueGetter = { caster() },
       itemValueSetter = { setValue(it) },
-      parse = { parse(it) }
+      parse = { context, value -> parse(context, value) }
     )
   }
 
@@ -75,7 +75,7 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
     val propList = extModel.findProperty("propList").wrap(::parseString, ResolvedPropertyModel::asString)
     val propListRef = extModel.findProperty("propListRef").wrap(::parseString, ResolvedPropertyModel::asString)
 
-    fun validateValues(list: ModelListProperty<Model, String>) {
+    fun validateValues(list: ModelListProperty<Nothing?, Model, String>) {
       val editableValues = list.getEditableValues(Model)
       val propA = editableValues[0]
       val propB = editableValues[1]

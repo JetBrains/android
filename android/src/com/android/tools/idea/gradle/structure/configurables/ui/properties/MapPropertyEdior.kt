@@ -32,12 +32,13 @@ import javax.swing.table.TableColumnModel
 /**
  * A property editor [ModelPropertyEditor] for properties of simple map types.
  */
-class MapPropertyEditor<ModelT, ValueT : Any, out ModelPropertyT : ModelMapProperty<ModelT, ValueT>>(
+class MapPropertyEditor<ContextT, ModelT, ValueT : Any, out ModelPropertyT : ModelMapProperty<ContextT, ModelT, ValueT>>(
+  context: ContextT,
   model: ModelT,
   property: ModelPropertyT,
-  editor: PropertyEditorFactory<Unit, ModelSimpleProperty<Unit, ValueT>, ValueT>,
+  editor: PropertyEditorFactory<ContextT, Unit, ModelSimpleProperty<ContextT, Unit, ValueT>, ValueT>,
   variablesProvider: VariablesProvider?
-) : CollectionPropertyEditor<ModelT, ModelPropertyT, ValueT>(model, property, editor, variablesProvider),
+) : CollectionPropertyEditor<ContextT, ModelT, ModelPropertyT, ValueT>(context, model, property, editor, variablesProvider),
     ModelPropertyEditor<ModelT, Map<String, ValueT>> {
 
   init {
@@ -120,7 +121,7 @@ class MapPropertyEditor<ModelT, ValueT : Any, out ModelPropertyT : ModelMapPrope
 
   private fun modelValueAt(row: Int) =
     @Suppress("UNCHECKED_CAST")  // If it is of type Value, then generic type arguments are correct.
-    (table.model.getValueAt(row, 1) as? CollectionPropertyEditor<ModelT, ModelPropertyT, ValueT>.Value)?.value
+    (table.model.getValueAt(row, 1) as? CollectionPropertyEditor<ContextT, ModelT, ModelPropertyT, ValueT>.Value)?.value
 
   inner class MyKeyCellEditor : AbstractTableCellEditor() {
     private var currentRow: Int = -1
@@ -146,7 +147,7 @@ class MapPropertyEditor<ModelT, ValueT : Any, out ModelPropertyT : ModelMapPrope
               val addedEntry = property.addEntry(model, newKey)
               @Suppress("UNCHECKED_CAST")
               val modelValue: Value? =
-                table.model.getValueAt(currentRow, 1) as? CollectionPropertyEditor<ModelT, ModelPropertyT, ValueT>.Value
+                table.model.getValueAt(currentRow, 1) as? CollectionPropertyEditor<ContextT, ModelT, ModelPropertyT, ValueT>.Value
               if (modelValue != null) {
                 addedEntry.setParsedValue(Unit, modelValue.value)
               }
@@ -170,8 +171,8 @@ class MapPropertyEditor<ModelT, ValueT : Any, out ModelPropertyT : ModelMapPrope
   }
 }
 
-fun <ModelT, ValueT : Any, ModelPropertyT : ModelMapProperty<ModelT, ValueT>> mapPropertyEditor(
-  editor: PropertyEditorFactory<Unit, ModelSimpleProperty<Unit, ValueT>, ValueT>
+fun <ContextT, ModelT, ValueT : Any, ModelPropertyT : ModelMapProperty<ContextT, ModelT, ValueT>> mapPropertyEditor(
+  editor: PropertyEditorFactory<ContextT, Unit, ModelSimpleProperty<ContextT, Unit, ValueT>, ValueT>
 ):
-    PropertyEditorFactory<ModelT, ModelPropertyT, Map<String, ValueT>> =
-  { model, property, variablesProvider -> MapPropertyEditor(model, property, editor, variablesProvider) }
+    PropertyEditorFactory<ContextT, ModelT, ModelPropertyT, Map<String, ValueT>> =
+  { context, model, property, variablesProvider -> MapPropertyEditor(context, model, property, editor, variablesProvider) }
