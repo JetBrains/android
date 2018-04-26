@@ -72,8 +72,8 @@ class CpuKernelTooltipViewTest {
     val series = AtraceDataSeries<CpuThreadInfo>(myStage, { _ -> testSeriesData })
     myRange.set(1.0, 1.0)
     myCpuKernelTooltip.setCpuSeries(series)
-    assertThat(myCpuKernelTooltipView.headingLabel).contains("Thread")
-    assertThat(myCpuKernelTooltipView.text).isEqualTo("Cpu")
+    assertThat(myCpuKernelTooltipView.headingText).contains("00:00:00.000")
+    assertThat(myCpuKernelTooltipView.text).isEqualTo("<html>Thread at <span style='color:#888888'>0.00ms</span><br>Cpu</html>")
   }
 
   private class FakeCpuKernelTooltipView(
@@ -81,8 +81,6 @@ class CpuKernelTooltipViewTest {
     tooltip: CpuKernelTooltip
   ) : CpuKernelTooltipView(view, tooltip) {
     val myTooltipContent = createTooltip() as JLabel
-    val headingLabel: String
-      get() = myHeadingLabel.text
 
     val text: String
       get() = myTooltipContent.text

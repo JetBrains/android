@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit
 
 class EventActivityTooltipViewTest {
 
-  private var myActivityTooltipView: FakeEventActivityTooltipView? = null
+  private lateinit var myActivityTooltipView: FakeEventActivityTooltipView
   private var myTimer: FakeTimer = FakeTimer()
   private var myMonitor: EventMonitor? = null
   private var myEventService = FakeEventService()
@@ -57,8 +57,9 @@ class EventActivityTooltipViewTest {
             0
         ))
     myTimer.tick(TimeUnit.SECONDS.toNanos(2))
-    assertThat(myActivityTooltipView!!.titleText).matches(ACTIVITY_NAME)
-    assertThat(myActivityTooltipView!!.durationText).matches("1s - 3s")
+    assertThat(myActivityTooltipView.headingText).matches("00:00:01.001")
+    assertThat(myActivityTooltipView.contentText).matches(ACTIVITY_NAME)
+    assertThat(myActivityTooltipView.durationText).matches("1s - 3s")
   }
 
   @Test
@@ -74,22 +75,23 @@ class EventActivityTooltipViewTest {
             0
         ))
     myTimer.tick(TimeUnit.SECONDS.toNanos(2))
-    assertThat(myActivityTooltipView!!.titleText).matches(String.format("%s - destroyed", ACTIVITY_NAME))
-    assertThat(myActivityTooltipView!!.durationText).matches("1s - 2s")
+    assertThat(myActivityTooltipView.headingText).matches("00:00:01.001")
+    assertThat(myActivityTooltipView.contentText).matches(String.format("%s - destroyed", ACTIVITY_NAME))
+    assertThat(myActivityTooltipView.durationText).matches("1s - 2s")
   }
 
   @Test
   fun testGetTitleTextNone() {
     myTimer.tick(1)
-    val text = myActivityTooltipView!!.titleText
-    assertEquals("EVENTS at 1s1.00ms", text)
+    val text = myActivityTooltipView.headingText
+    assertEquals("00:00:01.001", text)
   }
 
   private fun buildActivityEvent(name: String,
                                  states: Array<ActivityStateData>,
                                  contextHash: Long): com.android.tools.profiler.proto.EventProfiler.ActivityData {
     val builder = com.android.tools.profiler.proto.EventProfiler.ActivityData.newBuilder()
-    builder.setPid(ProfilersTestData.SESSION_DATA.getPid())
+    builder.setPid(ProfilersTestData.SESSION_DATA.pid)
         .setName(name)
         .setHash(name.hashCode().toLong())
         .setFragmentData(com.android.tools.profiler.proto.EventProfiler.FragmentData.newBuilder().setActivityContextHash(contextHash))
@@ -109,8 +111,8 @@ class EventActivityTooltipViewTest {
       createComponent()
     }
 
-    val titleText: String
-      get() = myHeadingLabel.text
+    val contentText: String
+      get() = myContentLabel.text
 
     val durationText: String
       get() = myDurationLabel.text

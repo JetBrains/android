@@ -37,6 +37,9 @@ public class EventActivityTooltipView extends ProfilerMonitorTooltipView<EventMo
   @NotNull
   private final EventActivityTooltip myActivityTooltip;
 
+  @VisibleForTesting
+  protected JLabel myContentLabel;
+
 
   public EventActivityTooltipView(StageView parent, @NotNull EventActivityTooltip tooltip) {
     super(tooltip.getMonitor());
@@ -52,23 +55,16 @@ public class EventActivityTooltipView extends ProfilerMonitorTooltipView<EventMo
     getMonitor().getProfilers().getTimeline().getDataRange().removeDependencies(this);
   }
 
-  @Override
-  protected void timeChanged() {
+  private void timeChanged() {
     ProfilerTimeline timeline = getMonitor().getProfilers().getTimeline();
     Range dataRange = timeline.getDataRange();
     Range range = timeline.getTooltipRange();
-
     if (!range.isEmpty()) {
       showStackedEventInfo(timeline, dataRange, range);
     }
-    else {
-      myHeadingLabel.setText("");
-    }
-    updateMaximumLabelDimensions();
   }
 
   private void clearTooltipInfo() {
-    super.timeChanged();
     myDurationLabel.setText("");
   }
 
@@ -78,7 +74,7 @@ public class EventActivityTooltipView extends ProfilerMonitorTooltipView<EventMo
       // Set the label to [Activity] [Length of time activity was active]
       double endTime = activity.getEndUs() == 0 ? dataRange.getMax() : activity.getEndUs();
       setTimelineText(timeline.getDataRange(), activity.getStartUs(), endTime);
-      myHeadingLabel.setText(activity.getData());
+      myContentLabel.setText(activity.getData());
     }
     else {
       clearTooltipInfo();
@@ -91,7 +87,7 @@ public class EventActivityTooltipView extends ProfilerMonitorTooltipView<EventMo
     String startTimeString = TimeAxisFormatter.DEFAULT
       .getFormattedString(dataRange.getLength(), startTime - dataRange.getMin(), true);
     String endTimeString = TimeAxisFormatter.DEFAULT
-      .getFormattedString(dataRange.getLength(), endTime, true);
+      .getFormattedString(dataRange.getLength(), endTime - dataRange.getMin(), true);
     myDurationLabel.setText(String.format("%s - %s", startTimeString, endTimeString));
   }
 
@@ -100,10 +96,12 @@ public class EventActivityTooltipView extends ProfilerMonitorTooltipView<EventMo
   public JComponent createTooltip() {
     JPanel panel = new JPanel(new TabularLayout("*"));
     panel.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
+    myContentLabel = new JLabel();
+    panel.add(myContentLabel, new TabularLayout.Constraint(0, 0));
     myDurationLabel = new JLabel();
     myDurationLabel.setForeground(Color.GRAY);
     myDurationLabel.setFont(myFont);
-    panel.add(myDurationLabel, new TabularLayout.Constraint(0, 0));
+    panel.add(myDurationLabel, new TabularLayout.Constraint(1, 0));
     return panel;
   }
 }

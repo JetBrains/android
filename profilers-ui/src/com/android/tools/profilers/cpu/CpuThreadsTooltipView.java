@@ -35,13 +35,13 @@ public class CpuThreadsTooltipView extends ProfilerTooltipView {
   @NotNull protected final JLabel myContent;
 
   protected CpuThreadsTooltipView(@NotNull CpuProfilerStageView view, @NotNull CpuThreadsTooltip tooltip) {
-    super(view.getTimeline(), "CPU");
+    super(view.getTimeline());
     myTimeline = view.getTimeline();
     myTooltip = tooltip;
     myContent = new JLabel();
     myContent.setFont(AdtUiUtils.DEFAULT_FONT);
     myContent.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
-    tooltip.addDependency(this).onChange(CpuThreadsTooltip.Aspect.THREAD_STATE, this::timeChanged);
+    tooltip.addDependency(this).onChange(CpuThreadsTooltip.Aspect.THREAD_STATE, this::stateChanged);
   }
 
   @Override
@@ -50,21 +50,18 @@ public class CpuThreadsTooltipView extends ProfilerTooltipView {
     myTooltip.removeDependencies(this);
   }
 
-  @Override
-  protected void timeChanged() {
+  private void stateChanged() {
     Range range = myTimeline.getTooltipRange();
     if (!range.isEmpty()) {
       String time = TimeAxisFormatter.DEFAULT
         .getFormattedString(myTimeline.getDataRange().getLength(), range.getMin() - myTimeline.getDataRange().getMin(), true);
       String title = myTooltip.getThreadName() != null ? myTooltip.getThreadName() : "CPU";
-      myHeadingLabel.setText(String.format("<html>%s <span style='color:#%s'>%s</span></html",
-                                           title,
-                                           ColorUtil.toHex(ProfilerColors.TOOLTIP_TIME_COLOR),
-                                           time));
-      myContent.setText(myTooltip.getThreadState() == null ? "" : threadStateToString(myTooltip.getThreadState()));
-      updateMaximumLabelDimensions();
+      myContent.setText(String.format("<html>%s <span style='color:#%s'>%s</span><br>%s</html>",
+                                      title,
+                                      ColorUtil.toHex(ProfilerColors.TOOLTIP_TIME_COLOR),
+                                      time,
+                                      myTooltip.getThreadState() == null ? "" : threadStateToString(myTooltip.getThreadState())));
     } else {
-      myHeadingLabel.setText("");
       myContent.setText("");
     }
   }

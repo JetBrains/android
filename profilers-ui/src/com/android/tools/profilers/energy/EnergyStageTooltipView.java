@@ -29,7 +29,7 @@ class EnergyStageTooltipView extends ProfilerTooltipView {
   @NotNull private final EnergyStageTooltip myTooltip;
 
   public EnergyStageTooltipView(@NotNull EnergyProfilerStageView stageView, @NotNull EnergyStageTooltip tooltip) {
-    super(stageView.getTimeline(), "Energy");
+    super(stageView.getTimeline());
     myTooltip = tooltip;
   }
 

@@ -22,7 +22,6 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.ProfilerTooltipView;
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.ColorUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,13 +38,13 @@ public class CpuKernelTooltipView extends ProfilerTooltipView {
   @NotNull private final JLabel myContent;
 
   protected CpuKernelTooltipView(@NotNull CpuProfilerStageView view, @NotNull CpuKernelTooltip tooltip) {
-    super(view.getTimeline(), "CPU");
+    super(view.getTimeline());
     myTimeline = view.getTimeline();
     myTooltip = tooltip;
     myContent = new JLabel();
     myContent.setFont(AdtUiUtils.DEFAULT_FONT);
     myContent.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
-    tooltip.addDependency(this).onChange(CpuKernelTooltip.Aspect.CPU_KERNEL_THREAD_INFO, this::timeChanged);
+    tooltip.addDependency(this).onChange(CpuKernelTooltip.Aspect.CPU_KERNEL_THREAD_INFO, this::threadInfoChanged);
   }
 
   @Override
@@ -54,11 +53,9 @@ public class CpuKernelTooltipView extends ProfilerTooltipView {
     myTooltip.removeDependencies(this);
   }
 
-  @Override
-  protected void timeChanged() {
+  private void threadInfoChanged() {
     Range range = myTimeline.getTooltipRange();
     if (range.isEmpty()) {
-      myHeadingLabel.setText("");
       myContent.setText("");
       return;
     }
@@ -70,23 +67,21 @@ public class CpuKernelTooltipView extends ProfilerTooltipView {
         .getFormattedString(myTimeline.getDataRange().getLength(),
                             range.getMin() - myTimeline.getDataRange().getMin(),
                             true);
-      myHeadingLabel.setText(String.format("<html>IDLE at <span style='color:#%s'>%s</span></html",
-                                           ColorUtil.toHex(ProfilerColors.TOOLTIP_TIME_COLOR),
-                                           time));
-      myContent.setText("");
+      myContent.setText(String.format("<html>IDLE at <span style='color:#%s'>%s</span></html>",
+                                      ColorUtil.toHex(ProfilerColors.TOOLTIP_TIME_COLOR),
+                                      time));
     }
     else {
       String time = TimeAxisFormatter.DEFAULT
         .getFormattedString(myTimeline.getDataRange().getLength(),
                             range.getMin() - myTimeline.getDataRange().getMin(),
                             true);
-      myHeadingLabel.setText(String.format("<html>%s at <span style='color:#%s'>%s</span></html",
-                                           threadInfo.getProcessName(),
-                                           ColorUtil.toHex(ProfilerColors.TOOLTIP_TIME_COLOR),
-                                           time));
-      myContent.setText(threadInfo.getName());
+      myContent.setText(String.format("<html>%s at <span style='color:#%s'>%s</span><br>%s</html>",
+                                      threadInfo.getProcessName(),
+                                      ColorUtil.toHex(ProfilerColors.TOOLTIP_TIME_COLOR),
+                                      time,
+                                      threadInfo.getName()));
     }
-    updateMaximumLabelDimensions();
   }
 
   @NotNull
