@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.surface;
 
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneLayer;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
@@ -32,16 +33,11 @@ public class ScreenView extends ScreenViewBase {
   /**
    * True if we are previewing a non-layout file in Preview Dialog (e.g. Previewing Vector Drawable), false otherwise.
    */
-  protected boolean myIsPreviewingNonLayoutFileInPreviewDialog;
+  protected final boolean myShowBorder;
 
   public ScreenView(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager) {
     super(surface, manager);
-    if (getSurface().isPreviewSurface() && AndroidPsiUtils.getResourceType(getSceneManager().getModel().getFile()) != ResourceType.LAYOUT) {
-      myIsPreviewingNonLayoutFileInPreviewDialog = true;
-    }
-    else {
-      myIsPreviewingNonLayoutFileInPreviewDialog = false;
-    }
+    myShowBorder = !getSurface().isPreviewSurface() || surface.getLayoutType() == NlLayoutType.LAYOUT;
   }
 
   @NotNull
@@ -49,7 +45,7 @@ public class ScreenView extends ScreenViewBase {
   protected ImmutableList<Layer> createLayers() {
     ImmutableList.Builder<Layer> builder = ImmutableList.builder();
 
-    if (!myIsPreviewingNonLayoutFileInPreviewDialog) {
+    if (myShowBorder) {
       builder.add(new BorderLayer(this));
     }
     builder.add(new ScreenViewLayer(this));

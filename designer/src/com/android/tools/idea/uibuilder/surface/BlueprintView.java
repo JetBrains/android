@@ -23,8 +23,6 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
-
 /**
  * View of a device/screen/layout.
  * This is actually painted by {@link ScreenViewLayer}.
@@ -40,7 +38,7 @@ public class BlueprintView extends ScreenView {
   @Override
   protected ImmutableList<Layer> createLayers() {
     ImmutableList.Builder<Layer> builder = ImmutableList.builder();
-    if (!myIsPreviewingNonLayoutFileInPreviewDialog) {
+    if (myShowBorder) {
       builder.add(new BorderLayer(this));
     }
     builder.add(new SelectionLayer(this));
