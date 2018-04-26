@@ -164,7 +164,7 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
         Thread.currentThread().interrupt()
       }
       catch (e: Exception) {
-        if (e is InvalidClassException) LOG.error("Probably client is down:", e)
+        if (e is InvalidClassException) LOG.warn("Probably client is down:", e)
       }
       finally {
         objectOutputStream.close()
@@ -185,7 +185,7 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
         }
       }
       catch (e: Exception) {
-        if (e is InvalidClassException) LOG.error("Probably serialization error:", e)
+        if (e is InvalidClassException) LOG.warn("Probably serialization error:", e)
       }
     }
   }
