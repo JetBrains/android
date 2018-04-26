@@ -29,9 +29,11 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.util.Computable
 import com.intellij.ui.ListCellRendererWrapper
+import com.intellij.util.text.nullize
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.NavigationSchema.*
 import org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.FRAGMENT
+import org.jetbrains.annotations.TestOnly
 import java.awt.Font
 import java.awt.event.ActionListener
 import java.awt.event.ItemEvent
@@ -406,7 +408,7 @@ open class AddActionDialog(
         document = isDocument
         clearTask = isClearTask
       }
-      existingAction?.apply(actionSetup) ?: source.createAction(actionSetup = actionSetup)
+      existingAction?.apply(actionSetup) ?: source.createAction(actionSetup = actionSetup, id = id.nullize(true))
     })
   }
 
