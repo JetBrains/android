@@ -85,7 +85,6 @@ open class GuiTestRemoteRunner @Throws(InitializationError::class)
       server.send(RunTestMessage(jUnitTestContainer))
     }
     catch (e: Exception) {
-      SERVER_LOG.error(e)
       e.printStackTrace()
       notifier.fireTestIgnored(description)
       throw RuntimeException(e)
@@ -144,17 +143,12 @@ open class GuiTestRemoteRunner @Throws(InitializationError::class)
   }
 
   private fun runOnClientSide(method: FrameworkMethod, notifier: RunNotifier) {
-    try {
-      LOG.info("Starting test: '${testClass.name}.${method.name}'")
-      // if IDE has fatal errors from a previous test, request a restart
-      if (GuiTests.fatalErrorsFromIde().isNotEmpty()) {
-        GuiTestThread.client?.send(RestartIdeMessage()) ?: throw Exception("JUnitClient is accidentally null")
-      } else {
-          super.runChild(method, notifier)
-      }
-    } catch (e: Exception) {
-      LOG.error(e)
-      throw e
+    LOG.info("Starting test: '${testClass.name}.${method.name}'")
+    // if IDE has fatal errors from a previous test, request a restart
+    if (GuiTests.fatalErrorsFromIde().isNotEmpty()) {
+      GuiTestThread.client?.send(RestartIdeMessage()) ?: throw Exception("JUnitClient is accidentally null")
+    } else {
+      super.runChild(method, notifier)
     }
   }
 
