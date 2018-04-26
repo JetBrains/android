@@ -76,7 +76,7 @@ public class ModifyMinSdkAndSyncTest {
    *   Project syncs and minSdk version is updated.
    * </pre>
    */
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void modifyMinSdkAndSync() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importSimpleLocalApplication();
