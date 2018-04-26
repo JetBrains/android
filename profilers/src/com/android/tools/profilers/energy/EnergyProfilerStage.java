@@ -29,6 +29,7 @@ import com.android.tools.profilers.analytics.energy.EnergyEventMetadata;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -195,8 +196,11 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
     return mySelectedDuration;
   }
 
+  /**
+   * Sets the selected duration, if the given duration is the same as existing or not valid by filter then it is ignored.
+   */
   public void setSelectedDuration(@Nullable EnergyDuration duration) {
-    if (Objects.equals(mySelectedDuration, duration)) {
+    if (Objects.equals(mySelectedDuration, duration) || !canSelectDuration(duration)) {
       return;
     }
     mySelectedDuration = duration;
@@ -263,8 +267,16 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
  public void setEventOrigin(@NotNull EnergyEventOrigin origin) {
     if (getEventOrigin() != origin) {
       getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().setInt(ENERGY_EVENT_ORIGIN_INDEX, origin.ordinal());
+      // As the selected duration is in the stage, update it before the table view update because the table view need reflect the selection.
+      if (!canSelectDuration(getSelectedDuration())) {
+        setSelectedDuration(null);
+      }
       myAspect.changed(EnergyProfilerAspect.SELECTED_ORIGIN_FILTER);
     }
+  }
+
+  private boolean canSelectDuration(@Nullable EnergyDuration duration) {
+    return duration == null || !filterByOrigin(ImmutableList.of(duration)).isEmpty();
   }
 
   @NotNull

@@ -176,12 +176,12 @@ class EnergyProfilerStageTest {
     profilerService.addFile("jobTraceId", ByteString.copyFromUtf8("ThirdParty"))
     val durationList = EnergyDuration.groupById(fakeData)
 
-    myStage.setEventOrigin(EnergyEventOrigin.APP_ONLY)
+    myStage.eventOrigin = EnergyEventOrigin.APP_ONLY
     val appOnlyResult = myStage.filterByOrigin(durationList)
     assertThat(appOnlyResult.size).isEqualTo(1)
     assertThat(appOnlyResult[0].name).startsWith("Alarm")
 
-    myStage.setEventOrigin(EnergyEventOrigin.ALL)
+    myStage.eventOrigin = EnergyEventOrigin.ALL
     val allResult = myStage.filterByOrigin(durationList)
     assertThat(allResult.size).isEqualTo(4)
     assertThat(allResult[0].name).startsWith("Alarm")
@@ -189,9 +189,39 @@ class EnergyProfilerStageTest {
     assertThat(allResult[2].name).startsWith("Wake Lock")
     assertThat(allResult[3].name).startsWith("Location")
 
-    myStage.setEventOrigin(EnergyEventOrigin.THIRD_PARTY_ONLY)
+    myStage.eventOrigin = EnergyEventOrigin.THIRD_PARTY_ONLY
     val thirdPartyResult = myStage.filterByOrigin(durationList)
     assertThat(thirdPartyResult.size).isEqualTo(1)
     assertThat(thirdPartyResult[0].name).startsWith("Job")
+  }
+
+  @Test
+  fun selectedDurationFilteredByOrigin() {
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    assertThat(myStage.studioProfilers.selectedAppName).isEqualTo("FakeProcess")
+    profilerService.addFile("alarmTraceId", ByteString.copyFromUtf8("FakeProcess"))
+    profilerService.addFile("jobTraceId", ByteString.copyFromUtf8("ThirdParty"))
+    val durationList = EnergyDuration.groupById(fakeData)
+
+    myStage.eventOrigin = EnergyEventOrigin.ALL
+    myStage.selectedDuration = durationList[0]
+    assertThat(myStage.selectedDuration).isEqualTo(durationList[0])
+
+    myStage.eventOrigin = EnergyEventOrigin.THIRD_PARTY_ONLY
+    assertThat(myStage.selectedDuration).isNull()
+    myStage.selectedDuration = durationList[0] // Ignored because filter is set
+    assertThat(myStage.selectedDuration).isNull()
+    myStage.selectedDuration = durationList[1]
+    assertThat(myStage.selectedDuration).isEqualTo(durationList[1])
+    myStage.selectedDuration = null
+    assertThat(myStage.getSelectedDuration()).isNull()
+
+    myStage.eventOrigin = EnergyEventOrigin.APP_ONLY
+    myStage.selectedDuration = durationList[0]
+    assertThat(myStage.selectedDuration).isEqualTo(durationList[0])
+    myStage.selectedDuration = durationList[1]
+    assertThat(myStage.selectedDuration).isEqualTo(durationList[0])
+    myStage.selectedDuration = null
+    assertThat(myStage.getSelectedDuration()).isNull()
   }
 }
