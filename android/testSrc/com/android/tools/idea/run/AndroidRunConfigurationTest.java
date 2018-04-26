@@ -47,7 +47,7 @@ public class AndroidRunConfigurationTest extends AndroidTestCase {
     assertContainsElements(
       ReflectionUtil.collectFields(myRunConfiguration.getClass()).stream().map(f ->f.getName()).collect(Collectors.toList()),
       "CLEAR_LOGCAT", "SHOW_LOGCAT_AUTOMATICALLY", "SKIP_NOOP_APK_INSTALLATIONS", "FORCE_STOP_RUNNING_APP",
-      "DEPLOY", "ARTIFACT_NAME", "PM_INSTALL_OPTIONS", "DYNAMIC_FEATURES_DISABLED_LIST",
+      "DEPLOY", "DEPLOY_APK_FROM_BUNDLE", "ARTIFACT_NAME", "PM_INSTALL_OPTIONS", "DYNAMIC_FEATURES_DISABLED_LIST",
       "ACTIVITY_EXTRA_FLAGS", "MODE");
   }
 
