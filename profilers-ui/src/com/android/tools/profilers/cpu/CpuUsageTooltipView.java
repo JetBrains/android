@@ -27,7 +27,7 @@ class CpuUsageTooltipView extends ProfilerTooltipView {
   @NotNull private final CpuUsageTooltip myTooltip;
 
   CpuUsageTooltipView(@NotNull CpuProfilerStageView view, @NotNull CpuUsageTooltip tooltip) {
-    super(view.getTimeline(), "CPU");
+    super(view.getTimeline());
     myTooltip = tooltip;
   }
 

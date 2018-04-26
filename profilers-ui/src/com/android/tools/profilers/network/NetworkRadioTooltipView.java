@@ -30,12 +30,14 @@ public final class NetworkRadioTooltipView extends ProfilerTooltipView {
 
   private JLabel myTimeRangeLabel;
 
+  private JLabel myContentLabel;
+
   NetworkRadioTooltipView(@NotNull NetworkProfilerStageView view, @NotNull NetworkRadioTooltip tooltip) {
-    super(view.getTimeline(), "Network Radio");
+    super(view.getTimeline());
     myTimeline = view.getTimeline();
     myTooltip = tooltip;
 
-    tooltip.addDependency(this).onChange(NetworkRadioTooltip.Aspect.RADIO_STATE, this::timeChanged);
+    tooltip.addDependency(this).onChange(NetworkRadioTooltip.Aspect.RADIO_STATE, this::stateChanged);
   }
 
   @Override
@@ -44,20 +46,18 @@ public final class NetworkRadioTooltipView extends ProfilerTooltipView {
     myTooltip.removeDependencies(this);
   }
 
-  @Override
-  protected void timeChanged() {
+  private void stateChanged() {
     NetworkRadioTooltip.RadioStateData radioStateData = myTooltip.getRadioStateData();
     if (radioStateData != null) {
       String min = TimeAxisFormatter.DEFAULT.getClockFormattedString(
         (long)(radioStateData.getRadioStateRange().getMin() - myTimeline.getDataRange().getMin()));
       String max = TimeAxisFormatter.DEFAULT.getClockFormattedString(
         (long)(radioStateData.getRadioStateRange().getMax() - myTimeline.getDataRange().getMin()));
-      myHeadingLabel.setText(radioStateData.getRadioState().name());
+      myContentLabel.setText(radioStateData.getRadioState().name());
       myTimeRangeLabel.setText(String.format("%s - %s", min, max));
-      updateMaximumLabelDimensions();
     }
     else {
-      myHeadingLabel.setText("");
+      myContentLabel.setText("");
       myTimeRangeLabel.setText("");
     }
   }
@@ -67,10 +67,14 @@ public final class NetworkRadioTooltipView extends ProfilerTooltipView {
   protected JComponent createTooltip() {
     JPanel panel = new JPanel(new TabularLayout("*"));
     panel.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
+    myContentLabel = new JLabel();
+    myContentLabel.setForeground(ProfilerColors.TOOLTIP_TEXT);
+    myContentLabel.setFont(myFont);
     myTimeRangeLabel = new JLabel();
     myTimeRangeLabel.setForeground(ProfilerColors.TOOLTIP_TEXT);
     myTimeRangeLabel.setFont(myFont);
-    panel.add(myTimeRangeLabel, new TabularLayout.Constraint(0, 0));
+    panel.add(myContentLabel, new TabularLayout.Constraint(0, 0));
+    panel.add(myTimeRangeLabel, new TabularLayout.Constraint(1, 0));
     return panel;
   }
 }

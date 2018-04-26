@@ -43,6 +43,9 @@ public class EventSimpleEventTooltipView extends ProfilerMonitorTooltipView<Even
   @VisibleForTesting
   protected JLabel myDurationLabel;
 
+  @VisibleForTesting
+  protected JLabel myContentLabel;
+
   protected JComponent myComponent;
 
   public EventSimpleEventTooltipView(StageView parent, @NotNull EventSimpleEventTooltip tooltip) {
@@ -60,47 +63,39 @@ public class EventSimpleEventTooltipView extends ProfilerMonitorTooltipView<Even
     getMonitor().getProfilers().getTimeline().getDataRange().removeDependencies(this);
   }
 
-  @Override
-  protected void timeChanged() {
+  private void timeChanged() {
     ProfilerTimeline timeline = getMonitor().getProfilers().getTimeline();
     Range dataRange = timeline.getDataRange();
     Range range = timeline.getTooltipRange();
-
     if (!range.isEmpty()) {
       showSimpleEventInfo(timeline, dataRange, range);
     }
-    else {
-      myHeadingLabel.setText("");
-    }
-    updateMaximumLabelDimensions();
   }
 
   private void clearTooltipInfo() {
-    super.timeChanged();
     myStartTimeLabel.setText("");
     myDurationLabel.setText("");
   }
 
   private void showSimpleEventInfo(ProfilerTimeline timeline, Range dataRange, Range range) {
     EventAction event = getEventAt(range.getMin());
-    if (event != null) {
-      double endTime = event.getEndUs() == 0 ? dataRange.getMax() : event.getEndUs();
-      setTimelineText(timeline.getDataRange(), event.getStartUs(), endTime);
-      String label = "";
-      if (event.getType() == SimpleEventType.KEYBOARD) {
-        label = "Key Event - Press";
-      }
-      else if (event.getType() == SimpleEventType.TOUCH) {
-        label = "Touch Event - Press";
-      }
-      else if (event.getType() == SimpleEventType.ROTATION) {
-        label = "Rotation Event";
-      }
-      myHeadingLabel.setText(label);
-    }
-    else {
+    if (event == null) {
       clearTooltipInfo();
+      return;
     }
+    double endTime = event.getEndUs() == 0 ? dataRange.getMax() : event.getEndUs();
+    setTimelineText(timeline.getDataRange(), event.getStartUs(), endTime);
+    String label = "";
+    if (event.getType() == SimpleEventType.KEYBOARD) {
+      label = "Key Event - Press";
+    }
+    else if (event.getType() == SimpleEventType.TOUCH) {
+      label = "Touch Event - Press";
+    }
+    else if (event.getType() == SimpleEventType.ROTATION) {
+      label = "Rotation Event";
+    }
+    myContentLabel.setText(label);
   }
 
   private void setTimelineText(Range dataRange, double startTime, double endTime) {
@@ -141,16 +136,20 @@ public class EventSimpleEventTooltipView extends ProfilerMonitorTooltipView<Even
   @NotNull
   @Override
   public JComponent createTooltip() {
-    JPanel panel = new JPanel(new TabularLayout("*"));
+    JPanel panel = new JPanel(new TabularLayout("*", "Fit-,5px,Fit-,5px,Fit-"));
     panel.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
+    myContentLabel = new JLabel();
+    myContentLabel.setForeground(Color.GRAY);
+    myContentLabel.setFont(myFont);
     myStartTimeLabel = new JLabel();
     myStartTimeLabel.setForeground(Color.GRAY);
     myStartTimeLabel.setFont(myFont);
     myDurationLabel = new JLabel();
     myDurationLabel.setForeground(Color.GRAY);
     myDurationLabel.setFont(myFont);
-    panel.add(myDurationLabel, new TabularLayout.Constraint(0, 0));
-    panel.add(myStartTimeLabel, new TabularLayout.Constraint(1, 0));
+    panel.add(myContentLabel, new TabularLayout.Constraint(0, 0));
+    panel.add(myDurationLabel, new TabularLayout.Constraint(2, 0));
+    panel.add(myStartTimeLabel, new TabularLayout.Constraint(4, 0));
     return panel;
   }
 }

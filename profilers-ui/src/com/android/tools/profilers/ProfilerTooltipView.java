@@ -20,6 +20,7 @@ import com.android.tools.adtui.TooltipComponent;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.JBEmptyBorder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,10 +33,7 @@ public abstract class ProfilerTooltipView extends AspectObserver {
   private final ProfilerTimeline myTimeline;
 
   @NotNull
-  private final String myTitle;
-
-  @NotNull
-  protected final JLabel myHeadingLabel;
+  private final JLabel myHeadingLabel;
 
   @Nullable
   private JComponent myTooltipContent;
@@ -46,24 +44,26 @@ public abstract class ProfilerTooltipView extends AspectObserver {
 
   private int myMaximumWidth = 0;
 
-  protected ProfilerTooltipView(@NotNull ProfilerTimeline timeline, @NotNull String title) {
+  protected ProfilerTooltipView(@NotNull ProfilerTimeline timeline) {
     myTimeline = timeline;
-    myTitle = title;
-
     myHeadingLabel = new JLabel();
     myHeadingLabel.setForeground(ProfilerColors.TOOLTIP_TEXT);
     myFont = myHeadingLabel.getFont().deriveFont(ProfilerLayout.TOOLTIP_FONT_SIZE);
     myMaximumLabelHeight = myHeadingLabel.getFontMetrics(myFont).getHeight();
     myHeadingLabel.setFont(myFont);
-    timeline.getTooltipRange().addDependency(this).onChange(Range.Aspect.RANGE, this::timeChanged);
+    timeline.getTooltipRange().addDependency(this).onChange(Range.Aspect.RANGE, this::updateHeader);
   }
 
-  protected void timeChanged() {
+  @VisibleForTesting
+  public String getHeadingText() {
+    return myHeadingLabel.getText();
+  }
+
+  private void updateHeader() {
     Range range = myTimeline.getTooltipRange();
     if (!range.isEmpty()) {
-      String time = TimeAxisFormatter.DEFAULT
-        .getFormattedString(myTimeline.getDataRange().getLength(), range.getMin() - myTimeline.getDataRange().getMin(), true);
-      myHeadingLabel.setText(String.format("%s at %s", myTitle, time));
+      String time = TimeAxisFormatter.DEFAULT.getClockFormattedString((long)(range.getMin() - myTimeline.getDataRange().getMin()));
+      myHeadingLabel.setText(time);
       updateMaximumLabelDimensions();
     }
     else {
@@ -92,13 +92,13 @@ public abstract class ProfilerTooltipView extends AspectObserver {
     myHeadingLabel.setMinimumSize(new Dimension(myMaximumWidth, myMaximumLabelHeight));
     updateMaximumLabelDimensions();
 
-    TooltipPanel tooltipPanel = new TooltipPanel(new TabularLayout("*", "Fit-,10px,*"));
+    TooltipPanel tooltipPanel = new TooltipPanel(new TabularLayout("*", "Fit-,5px,*"));
     tooltipPanel.add(myHeadingLabel, new TabularLayout.Constraint(0, 0));
     tooltipPanel.add(myTooltipContent, new TabularLayout.Constraint(2, 0));
     tooltipPanel.setForeground(ProfilerColors.TOOLTIP_TEXT);
     tooltipPanel.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
     tooltipPanel.setBorder(new JBEmptyBorder(10, 10, 10, 10));
-    timeChanged();
+    updateHeader();
 
     return tooltipPanel;
   }

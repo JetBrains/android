@@ -16,7 +16,6 @@
 package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.*
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -56,12 +55,12 @@ class CpuThreadsTooltipViewTest {
     val threadSeries = ThreadStateDataSeries(cpuStage, ProfilersTestData.SESSION_DATA, 1)
 
     cpuThreadsTooltip.setThread("myThread", threadSeries)
-    assertThat(cpuThreadsTooltipView.headingLabel).contains("myThread")
-    assertThat(cpuThreadsTooltipView.content).isEqualTo("Running")
+    assertThat(cpuThreadsTooltipView.headingText).contains("00:00:01.000")
+    assertThat(cpuThreadsTooltipView.content).isEqualTo("<html>myThread <span style='color:#888888'>1s</span><br>Running</html>")
 
     cpuThreadsTooltip.setThread("newThread", threadSeries)
-    assertThat(cpuThreadsTooltipView.headingLabel).contains("newThread")
-    assertThat(cpuThreadsTooltipView.content).isEqualTo("Running")
+    assertThat(cpuThreadsTooltipView.headingText).contains("00:00:01.000")
+    assertThat(cpuThreadsTooltipView.content).isEqualTo("<html>newThread <span style='color:#888888'>1s</span><br>Running</html>")
   }
 
   private class FakeCpuThreadsTooltipView(
@@ -71,9 +70,6 @@ class CpuThreadsTooltipViewTest {
     init {
       createComponent()
     }
-
-    val headingLabel: String
-      get() = myHeadingLabel.text
 
     val content: String
       get() = myContent.text

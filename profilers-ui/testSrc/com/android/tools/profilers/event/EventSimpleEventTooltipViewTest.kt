@@ -16,16 +16,13 @@
 package com.android.tools.profilers.event
 
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.adtui.model.Range
 import com.android.tools.profiler.proto.EventProfiler
 import com.android.tools.profilers.*
+import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-
 import java.util.concurrent.TimeUnit
-
-import com.google.common.truth.Truth.assertThat
 
 class EventSimpleEventTooltipViewTest {
 
@@ -76,7 +73,8 @@ class EventSimpleEventTooltipViewTest {
         .setEndTimestamp(TEST_START_TIME_NS + TimeUnit.SECONDS.toNanos(durationSeconds))
         .build())
     myTimer.tick(TimeUnit.SECONDS.toNanos(1))
-    assertThat(mySimpleEventTooltipView!!.titleText).matches(title)
+    assertThat(mySimpleEventTooltipView!!.headingText).matches("00:00:01.001")
+    assertThat(mySimpleEventTooltipView!!.contentText).matches(title)
     assertThat(mySimpleEventTooltipView!!.durationText).matches(String.format("Duration: %ds", durationSeconds))
     assertThat(mySimpleEventTooltipView!!.startText).matches("Start: 1s")
   }
@@ -89,8 +87,8 @@ class EventSimpleEventTooltipViewTest {
       createComponent()
     }
 
-    val titleText: String
-      get() = myHeadingLabel.text
+    val contentText: String
+      get() = myContentLabel.text
 
     val durationText: String
       get() = myDurationLabel.text
