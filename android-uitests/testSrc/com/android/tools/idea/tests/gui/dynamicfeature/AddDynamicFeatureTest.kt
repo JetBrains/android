@@ -141,8 +141,7 @@ class AddDynamicFeatureTest {
   }
 
   /**
-   * Verifies that user is able to add a Dynamic Feature Module through the
-   * new module wizard.
+   * Verifies that user is able to add a New Login Activity to a Dynamic Feature Module
    *
    * <pre>
    * Test steps:
@@ -182,6 +181,47 @@ class AddDynamicFeatureTest {
       assertThat(this).contains("prompt_email")
       assertThat(this).contains("prompt_password")
       assertThat(this).contains("error_invalid_email")
+    }
+  }
+
+  /**
+   * Verifies that user is able to add a Map Activity to a Dynamic Feature Module and that the library
+   * dependencies are added to the Base, using "api" references.
+   *
+   * <pre>
+   * Test steps:
+   * 1. Import simple application project
+   * 2. Go to File -> New module to open the new module dialog wizard.
+   * 3. Follow through the wizard to add a new Dynamic Feature Module, accepting defaults.
+   * 4. Complete the wizard and wait for the build to complete.
+   * 5. Go to File -> New -> Google -> Google Maps Activity -> Finish
+   * Verify:
+   * 1. The new Dynamic Feature Module is shown in the project explorer pane.
+   * 2. Open the "dynamic-feature" module build.gradle check that play-services-maps was not added.
+   * 3. Open the "app" module build.gradle and check that play-services-maps was added with "api" dependency.
+   * </pre>
+   */
+  @Test
+  @Throws(Exception::class)
+  fun addMapsActivityToDynamicModule() {
+    val ideFrame = guiTest.importSimpleLocalApplication()
+
+    createDefaultDynamicModule(ideFrame)
+      .invokeMenuPath("File", "New", "Google", "Google Maps Activity")
+    NewActivityWizardFixture.find(ideFrame)
+      .clickFinish()
+      .waitForGradleProjectSyncToFinish()
+
+    ideFrame.editor
+      .open("dynamic-feature/build.gradle")
+      .currentFileContents.run {
+      assertThat(this).doesNotContain("play-services-maps")
+    }
+
+    ideFrame.editor
+      .open("app/build.gradle")
+      .currentFileContents.run {
+      assertThat(this).contains("api 'com.google.android.gms:play-services-maps")
     }
   }
 
