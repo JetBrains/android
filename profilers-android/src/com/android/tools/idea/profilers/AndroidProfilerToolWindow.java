@@ -40,6 +40,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.util.function.Predicate;
 
 public class AndroidProfilerToolWindow extends AspectObserver implements Disposable {
 
@@ -65,7 +66,7 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
     // By default, we only auto-profile the app associated with the project.
     StartupManager.getInstance(project)
                   .runWhenProjectIsInitialized(
-                    () -> myProfilers.setPreferredDeviceAndProcessNames(null, getPreferredProcessName(myProject)));
+                    () -> myProfilers.setPreferredProcess(null, getPreferredProcessName(myProject), null));
 
     myView = new StudioProfilersView(myProfilers, new IntellijProfilerComponents(myProject));
     myLayeredPane = new ProfilerLayeredPane();
@@ -102,11 +103,13 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
   /**
    * Sets the profiler's auto-profiling process in case it has been unset.
    *
-   * @param module The module being profiled.
-   * @param device The target {@link IDevice} that the app will launch in.
+   * @param module            The module being profiled.
+   * @param device            The target {@link IDevice} that the app will launch in.
+   * @param processPredicate  Additional filter used for choosing the most desirable process. e.g. Process of a particular pid,
+   *                          or process that starts after a certain time.
    */
-  public void profileProject(@NotNull Module module, @NotNull IDevice device) {
-    myProfilers.setPreferredDeviceAndProcessNames(getDeviceDisplayName(device), getModuleName(module));
+  public void profileModule(@NotNull Module module, @NotNull IDevice device, @Nullable Predicate<Common.Process> processPredicate) {
+    myProfilers.setPreferredProcess(getDeviceDisplayName(device), getModuleName(module), processPredicate);
   }
 
   private void modeChanged() {

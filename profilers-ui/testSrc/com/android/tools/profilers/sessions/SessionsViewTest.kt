@@ -31,7 +31,6 @@ import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject
 import com.android.tools.profilers.memory.adapters.LegacyAllocationCaptureObject
 import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
-import org.jetbrains.concurrency.all
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -138,7 +137,7 @@ class SessionsViewTest {
     val otherProcess2 = Common.Process.newBuilder()
       .setPid(30).setDeviceId(2).setName("Other2").setState(Common.Process.State.ALIVE).build()
     // Process* is preferred, Other* should be in the other processes flyout.
-    myProfilers.setPreferredDeviceAndProcessNames(null, "Process")
+    myProfilers.setPreferredProcess(null, "Process", null)
 
     var selectionAction = mySessionsView.processSelectionAction
     assertThat(selectionAction.childrenActionCount).isEqualTo(3)
@@ -235,7 +234,7 @@ class SessionsViewTest {
     val deadProcess3 = Common.Process.newBuilder()
       .setPid(50).setDeviceId(2).setName("Dead").setState(Common.Process.State.DEAD).build()
     // Also test processes that can be grouped in the fly-out menu.
-    myProfilers.setPreferredDeviceAndProcessNames(null, "Process4")
+    myProfilers.setPreferredProcess(null, "Process4", null)
 
     myProfilerService.addDevice(deadDevice)
     myProfilerService.addDevice(onlineDevice)
@@ -269,7 +268,7 @@ class SessionsViewTest {
     val process3 = Common.Process.newBuilder()
       .setPid(10).setDeviceId(2).setName("Process3").setState(Common.Process.State.ALIVE).build()
     // Mark all process as preferred processes as we are not testing the other processes flyout here.
-    myProfilers.setPreferredDeviceAndProcessNames(null, "Process")
+    myProfilers.setPreferredProcess(null, "Process", null)
 
     myProfilerService.addDevice(device1)
     myProfilerService.addProcess(device1, process1)

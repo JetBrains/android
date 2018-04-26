@@ -22,7 +22,10 @@ import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
 import com.android.tools.idea.project.AndroidNotification;
-import com.android.tools.idea.run.*;
+import com.android.tools.idea.run.AndroidLaunchTaskContributor;
+import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.android.tools.idea.run.ConsolePrinter;
+import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.android.tools.idea.run.tasks.LaunchTask;
@@ -59,15 +62,14 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
   @NotNull
   @Override
   public LaunchTask getTask(@NotNull Module module, @NotNull String applicationId, @NotNull LaunchOptions launchOptions) {
-    return new AndroidProfilerToolWindowLaunchTask(module);
+    return new AndroidProfilerToolWindowLaunchTask(module, launchOptions);
   }
 
   @NotNull
   @Override
   public String getAmStartOptions(@NotNull Module module, @NotNull String applicationId, @NotNull LaunchOptions launchOptions,
                                   @NotNull IDevice device) {
-    Object launchValue = launchOptions.getExtraOption(ProfileRunExecutor.PROFILER_LAUNCH_OPTION_KEY);
-    if (!(launchValue instanceof Boolean && (Boolean)launchValue)) {
+    if (!isProfilerLaunch(launchOptions)) {
       // Not a profile action
       return "";
     }
@@ -98,10 +100,15 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       return "";
     }
     Profiler.ConfigureStartupAgentResponse response = profilerService.getProfilerClient().getProfilerClient()
-      .configureStartupAgent(Profiler.ConfigureStartupAgentRequest.newBuilder().setDeviceId(deviceId)
-                               // TODO: Find a way of finding the correct ABI
-                               .setAgentLibFileName(getAbiDependentLibPerfaName(device))
-                               .setAppPackageName(appPackageName).build());
+                                                                     .configureStartupAgent(
+                                                                       Profiler.ConfigureStartupAgentRequest.newBuilder()
+                                                                                                            .setDeviceId(deviceId)
+                                                                                                            // TODO: Find a way of finding the correct ABI
+                                                                                                            .setAgentLibFileName(
+                                                                                                              getAbiDependentLibPerfaName(
+                                                                                                                device))
+                                                                                                            .setAppPackageName(
+                                                                                                              appPackageName).build());
     return response.getAgentArgs().isEmpty() ? "" : "--attach-agent " + response.getAgentArgs();
   }
 
@@ -190,18 +197,31 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     throws InterruptedException, TimeoutException {
     // Wait for perfd to come online for 1 minute.
     for (int i = 0; i < 60; ++i) {
-      Profiler.GetDevicesResponse response =
-        profilerService.getProfilerClient().getProfilerClient()
-          .getDevices(Profiler.GetDevicesRequest.getDefaultInstance());
-
-      for (Common.Device profilerDevice : response.getDeviceList()) {
-        if (profilerDevice.getSerial().equals(device.getSerialNumber())) {
-          return profilerDevice.getDeviceId();
-        }
+      Common.Device profilerDevice = getProfilerDevice(device, profilerService);
+      if (!Common.Device.getDefaultInstance().equals(profilerDevice)) {
+        return profilerDevice.getDeviceId();
       }
       Thread.sleep(TimeUnit.SECONDS.toMillis(1));
     }
     throw new TimeoutException("Timeout waiting for perfd");
+  }
+
+  /**
+   * @return the {@link Common.Device} representation of the input {@link IDevice} if one exists.
+   * {@link Common.Device#getDefaultInstance()} otherwise.
+   */
+  @NotNull
+  private static Common.Device getProfilerDevice(@NotNull IDevice device, @NotNull ProfilerService profilerService) {
+    Profiler.GetDevicesResponse response =
+      profilerService.getProfilerClient().getProfilerClient().getDevices(Profiler.GetDevicesRequest.getDefaultInstance());
+
+    for (Common.Device profilerDevice : response.getDeviceList()) {
+      if (profilerDevice.getSerial().equals(device.getSerialNumber())) {
+        return profilerDevice;
+      }
+    }
+
+    return Common.Device.getDefaultInstance();
   }
 
   @NotNull
@@ -223,7 +243,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
 
   /**
    * @return the most preferred ABI according to {@link IDevice#getAbis()} for which
-   *         {@param fileName} exists in {@param releaseDir} or {@param devDir}
+   * {@param fileName} exists in {@param releaseDir} or {@param devDir}
    */
   @NotNull
   private static String getBestAbi(@NotNull IDevice device,
@@ -243,11 +263,21 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     return "";
   }
 
+  /**
+   * @return true if the launch is initiated by the {@link ProfileRunExecutor}. False otherwise.
+   */
+  private static boolean isProfilerLaunch(@NotNull LaunchOptions options) {
+    Object launchValue = options.getExtraOption(ProfileRunExecutor.PROFILER_LAUNCH_OPTION_KEY);
+    return launchValue instanceof Boolean && (Boolean)launchValue;
+  }
+
   public static final class AndroidProfilerToolWindowLaunchTask implements LaunchTask {
     @NotNull private final Module myModule;
+    @NotNull private final LaunchOptions myLaunchOptions;
 
-    public AndroidProfilerToolWindowLaunchTask(@NotNull Module module) {
+    public AndroidProfilerToolWindowLaunchTask(@NotNull Module module, @NotNull LaunchOptions launchOptions) {
       myModule = module;
+      myLaunchOptions = launchOptions;
     }
 
     @NotNull
@@ -263,6 +293,9 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
 
     @Override
     public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
+      // We only profile the process that is launched and detected by the profilers after the current device time. This is to avoid
+      // profiling the previous application instance in case it is still running.
+      long currentDeviceTimeNs = getCurrentDeviceTime(device);
       ApplicationManager.getApplication().invokeLater(
         () -> {
           Project project = myModule.getProject();
@@ -271,11 +304,45 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
             window.setShowStripeButton(true);
             AndroidProfilerToolWindow profilerToolWindow = AndroidProfilerToolWindowFactory.getProfilerToolWindow(project);
             if (profilerToolWindow != null) {
-              profilerToolWindow.profileProject(myModule, device);
+              profilerToolWindow.profileModule(myModule, device, p -> p.getStartTimestampNs() >= currentDeviceTimeNs);
             }
           }
         });
       return true;
+    }
+
+    /**
+     * Attempt to get the current time of the device.
+     */
+    private long getCurrentDeviceTime(@NotNull IDevice device) {
+      long startTimeNs = Long.MIN_VALUE;
+      ProfilerService profilerService = ProfilerService.getInstance(myModule.getProject());
+      // If we are launching from the "Profile" action, wait for perfd to start properly to get the time.
+      // Note: perfd should have started already from AndroidProfilerLaunchTaskContributor#getAmStartOptions already. This wait might be
+      // redundant but harmless.
+      long deviceId = -1;
+      if (isProfilerLaunch(myLaunchOptions)) {
+        try {
+          deviceId = waitForPerfd(device, profilerService);
+        }
+        catch (InterruptedException | TimeoutException e) {
+          getLogger().debug(e);
+        }
+      }
+      else {
+        // If we are launching from Run/Debug, do not bother waiting for perfd start, but try to get the time anyway in case the profiler
+        // is already running.
+        deviceId = getProfilerDevice(device, profilerService).getDeviceId();
+      }
+
+      Profiler.TimeResponse timeResponse = profilerService.getProfilerClient().getProfilerClient().getCurrentTime(
+        Profiler.TimeRequest.newBuilder().setDeviceId(deviceId).build());
+      if (!Profiler.TimeResponse.getDefaultInstance().equals(timeResponse)) {
+        // Found a valid time response, sets that as the time for detecting when the process is next launched.
+        startTimeNs = timeResponse.getTimestampNs();
+      }
+
+      return startTimeNs;
     }
   }
 }

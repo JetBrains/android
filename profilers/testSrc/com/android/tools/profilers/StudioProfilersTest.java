@@ -29,7 +29,6 @@ import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.TestOnly;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -180,7 +179,7 @@ public final class StudioProfilersTest {
     final String PREFERRED_PROCESS = "Preferred";
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
-    profilers.setPreferredDeviceAndProcessNames(null, PREFERRED_PROCESS);
+    profilers.setPreferredProcess(null, PREFERRED_PROCESS, null);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getDevice()).isNull();
     assertThat(profilers.getProcess()).isNull();
@@ -204,6 +203,48 @@ public final class StudioProfilersTest {
     assertThat(profilers.getProcess()).isEqualTo(preferred);
     assertThat(profilers.getProcesses()).hasSize(2);
     assertThat(profilers.getProcesses()).containsAllIn(ImmutableList.of(process, preferred));
+  }
+
+  @Test
+  public void testSetPreferredProcessDoesNotProfileEarlierProcess() throws Exception {
+    final String PREFERRED_PROCESS = "Preferred";
+    FakeTimer timer = new FakeTimer();
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
+    profilers.setPreferredProcess(null, PREFERRED_PROCESS, p -> p.getStartTimestampNs() > 5);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(profilers.getDevice()).isNull();
+    assertThat(profilers.getProcess()).isNull();
+
+    Common.Device device = createDevice(AndroidVersion.VersionCodes.BASE, "FakeDevice", Common.Device.State.ONLINE);
+    Common.Process earlierProcess = Common.Process.newBuilder()
+                                           .setDeviceId(device.getDeviceId())
+                                           .setPid(20)
+                                           .setName(PREFERRED_PROCESS)
+                                           .setState(Common.Process.State.ALIVE)
+                                           .setStartTimestampNs(5)
+                                           .build();
+    myProfilerService.addDevice(device);
+    myProfilerService.addProcess(device, earlierProcess);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    // The process start time is before the time we start looking for preferred process, so profiler should not have started.
+    assertThat(profilers.getDevice()).isEqualTo(device);
+    assertThat(profilers.getProcess()).isNull();
+
+    Common.Process afterProcess = Common.Process.newBuilder()
+                                                .setDeviceId(device.getDeviceId())
+                                                .setPid(21)
+                                                .setName(PREFERRED_PROCESS)
+                                                .setState(Common.Process.State.ALIVE)
+                                                .setStartTimestampNs(10)
+                                                .build();
+    myProfilerService.addProcess(device, afterProcess);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    assertThat(profilers.getDevice()).isEqualTo(device);
+    assertThat(profilers.getProcess()).isEqualTo(afterProcess);
+    assertThat(profilers.getProcesses()).hasSize(2);
+    assertThat(profilers.getProcesses()).containsAllIn(ImmutableList.of(earlierProcess, afterProcess));
   }
 
   @Test
@@ -353,7 +394,7 @@ public final class StudioProfilersTest {
 
     Common.Device device = createDevice(AndroidVersion.VersionCodes.BASE, "FakeDevice", Common.Device.State.ONLINE);
     Common.Process process = createProcess(device.getDeviceId(), 20, "FakeProcess", Common.Process.State.ALIVE);
-    profilers.setPreferredDeviceAndProcessNames(null, process.getName());
+    profilers.setPreferredProcess(null, process.getName(), null);
     myProfilerService.addDevice(device);
     myProfilerService.addProcess(device, process);
 
@@ -396,7 +437,7 @@ public final class StudioProfilersTest {
 
     Common.Device device = createDevice(AndroidVersion.VersionCodes.BASE, "FakeDevice", Common.Device.State.ONLINE);
     Common.Process process = createProcess(device.getDeviceId(), 20, "FakeProcess", Common.Process.State.ALIVE);
-    profilers.setPreferredDeviceAndProcessNames(null, process.getName());
+    profilers.setPreferredProcess(null, process.getName(), null);
     myProfilerService.addDevice(device);
     myProfilerService.addProcess(device, process);
 
@@ -538,7 +579,7 @@ public final class StudioProfilersTest {
   public void preferredDeviceShouldNotOverrideSelectedDevice() {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
-    profilers.setPreferredDeviceAndProcessNames("Manufacturer Model", null);
+    profilers.setPreferredProcess("Manufacturer Model", null, null);
 
     // A device with a process that can be profiled
     Common.Device device = createDevice(AndroidVersion.VersionCodes.BASE, "FakeDevice", Common.Device.State.ONLINE);
@@ -613,7 +654,7 @@ public final class StudioProfilersTest {
   public void preferredDeviceHasPriority() {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
-    profilers.setPreferredDeviceAndProcessNames("Manufacturer Model", null);
+    profilers.setPreferredProcess("Manufacturer Model", null, null);
 
     // A device with a process that can be profiled
     Common.Device device = createDevice(AndroidVersion.VersionCodes.BASE, "FakeDevice", Common.Device.State.ONLINE);
@@ -651,7 +692,7 @@ public final class StudioProfilersTest {
     assertThat(profilers.getProcess()).isEqualTo(preferredProcess);
 
     // Updating the preferred device should immediately switch over.
-    profilers.setPreferredDeviceAndProcessNames("Manufacturer2 Model2", null);
+    profilers.setPreferredProcess("Manufacturer2 Model2", null, null);
     assertThat(profilers.getDevice()).isEqualTo(preferredDevice2);
     assertThat(profilers.getProcess()).isEqualTo(preferredProcess2);
   }
