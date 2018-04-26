@@ -31,6 +31,9 @@ import java.text.DecimalFormat;
  * Provides the TimeLine panel
  */
 public class Gantt extends JPanel implements GanttCommands {
+
+  public static final int HEADER_HEIGHT = JBUI.scale(30);
+
   GanttController myGanttController = new GanttController();
   private Chart myChart = new Chart(this);
   private ViewList myViewList = new ViewList(myChart);

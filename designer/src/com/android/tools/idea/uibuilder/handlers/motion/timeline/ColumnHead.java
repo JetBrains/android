@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.timeline;
 
+import com.android.tools.adtui.common.StudioColorsKt;
+import com.intellij.util.ui.JBUI;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
@@ -24,7 +27,6 @@ import java.awt.geom.Rectangle2D;
  */
 class ColumnHead extends TimeLine implements Gantt.ChartElement {
   JLayeredPane myLayeredPane;
-  int rowHeight = 20;
   Chart mChart;
 
   ColumnHead(Chart chart) {
@@ -32,6 +34,7 @@ class ColumnHead extends TimeLine implements Gantt.ChartElement {
     mChart = chart;
     update(Reason.CONSTRUCTION);
     mChart.add(this);
+    setBorder(JBUI.Borders.customLine(StudioColorsKt.getBorder(), 0, 0, 1, 0));
   }
 
   int[] mXPoints = new int[5];
@@ -67,10 +70,17 @@ class ColumnHead extends TimeLine implements Gantt.ChartElement {
   }
 
   @Override
+  protected void paintBorder(Graphics g) {
+    //Do Nothing here: The cursor line needs to be painted over the border so the call to
+    //paintBorder needs to be done after the cursor painting.
+  }
+
+  @Override
   protected void paintComponent(Graphics g) {
     g.setColor(mChart.myGridColor);
     setForeground(mChart.myGridColor);
     super.paintComponent(g);
+    super.paintBorder(g);
 
     if (!Float.isNaN(mChart.getTimeCursorMs())) {
       int h = getHeight();
@@ -97,7 +107,7 @@ class ColumnHead extends TimeLine implements Gantt.ChartElement {
       case ZOOM:
         Dimension d = getPreferredSize();
         d.width = mChart.getGraphWidth();
-        d.height = rowHeight;
+        d.height = Gantt.HEADER_HEIGHT;
         setPreferredSize(d);
         repaint();
         break;

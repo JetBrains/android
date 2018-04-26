@@ -26,8 +26,8 @@ import java.awt.*;
 public class TimeLineIcons {
   public static final Icon CIRCLE_PLAY = StudioIcons.MotionLayoutUI.CIRCLE_PLAY;
   public static final Icon PLAY = StudioIcons.MotionLayoutUI.PLAY;
-  public static final Icon FORWARD = StudioIcons.MotionLayoutUI.BACKWARD;
-  public static final Icon BACKWARD = StudioIcons.MotionLayoutUI.FORWARD;
+  public static final Icon FORWARD = StudioIcons.MotionLayoutUI.FORWARD;
+  public static final Icon BACKWARD = StudioIcons.MotionLayoutUI.BACKWARD;
   public static final Icon LOOP = StudioIcons.MotionLayoutUI.LOOP;
   public static final Icon ADD_KEYFRAME = StudioIcons.MotionLayoutUI.ADD_KEYFRAME;
   public static final Icon VIEW = StudioIcons.MotionLayoutUI.VIEW;
