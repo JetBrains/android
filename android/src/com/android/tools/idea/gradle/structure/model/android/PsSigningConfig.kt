@@ -54,17 +54,17 @@ class PsSigningConfig(
       model.isModified = true
     }
 
-    val storeFile: ModelSimpleProperty<PsSigningConfig, File> = property(
+    val storeFile: SimpleProperty<PsSigningConfig, File> = property(
       "Store File",
       getResolvedValue = { storeFile },
       getParsedProperty = { storeFile() },
       getter = { asFile() },
       // TODO: Store project relative path if possible.
       setter = { setValue(it.absolutePath) },
-      parse = { parseFile(it) }
+      parse = ::parseFile
     )
 
-    val storePassword: ModelSimpleProperty<PsSigningConfig, String> = property(
+    val storePassword: SimpleProperty<PsSigningConfig, String> = property(
       "Store Password",
       getResolvedValue = { storePassword },
       // TODO: Properly handle other password types.
@@ -72,29 +72,29 @@ class PsSigningConfig(
       getParsedRawValue = { storePassword().resolve().dslText() },
       setParsedValue = { storePassword().setValue(it) },
       clearParsedValue = { storePassword().delete() },
-      parse = { parseString(it) }
+      parse = ::parseString
     )
 
-    val storeType: ModelSimpleProperty<PsSigningConfig, String> = property(
+    val storeType: SimpleProperty<PsSigningConfig, String> = property(
       "Store Type",
       getResolvedValue = { storeType },
       // TODO: Properly handle other password types.
       getParsedProperty = { storeType() },
       getter = { asString() },
       setter = { setValue(it) },
-      parse = { parseString(it) }
+      parse = ::parseString
     )
 
-    val keyAlias: ModelSimpleProperty<PsSigningConfig, String> = property(
+    val keyAlias: SimpleProperty<PsSigningConfig, String> = property(
       "Key Alias",
       getResolvedValue = { keyAlias },
       getParsedProperty = { keyAlias() },
       getter = { asString() },
       setter = { setValue(it) },
-      parse = { parseString(it) }
+      parse = ::parseString
     )
 
-    val keyPassword: ModelSimpleProperty<PsSigningConfig, String> = property(
+    val keyPassword: SimpleProperty<PsSigningConfig, String> = property(
       "Key Password",
       getResolvedValue = { keyPassword },
       // TODO: Properly handle other password types.
@@ -102,7 +102,7 @@ class PsSigningConfig(
       getParsedRawValue = { keyPassword().resolve().dslText() },
       setParsedValue = { keyPassword().setValue(it) },
       clearParsedValue = { keyPassword().delete() },
-      parse = { parseString(it) }
+      parse = ::parseString
     )
   }
 }

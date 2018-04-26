@@ -64,16 +64,16 @@ open class PsBuildType(
       model.isModified = true
     }
 
-    val applicationIdSuffix: ModelSimpleProperty<PsBuildType, String> = property(
+    val applicationIdSuffix: SimpleProperty<PsBuildType, String> = property(
       "Application Id Suffix",
       getResolvedValue = { applicationIdSuffix },
       getParsedProperty = { applicationIdSuffix() },
       getter = { asString() },
       setter = { setValue(it) },
-      parse = { parseString(it) }
+      parse = ::parseString
     )
 
-    val debuggable: ModelSimpleProperty<PsBuildType, Boolean> = property(
+    val debuggable: SimpleProperty<PsBuildType, Boolean> = property(
       "Debuggable",
       // See: com.android.build.gradle.internal.dsl.BuildType#init
       defaultValueGetter = { it.name == DEBUG_BUILD_TYPE_NAME },
@@ -81,11 +81,11 @@ open class PsBuildType(
       getParsedProperty = { debuggable() },
       getter = { asBoolean() },
       setter = { setValue(it) },
-      parse = { parseBoolean(it) },
-      getKnownValues = { booleanValues() }
+      parse = ::parseBoolean,
+      getKnownValues = ::booleanValues
     )
 
-    val embedMicroApp: ModelSimpleProperty<PsBuildType, Boolean> = property(
+    val embedMicroApp: SimpleProperty<PsBuildType, Boolean> = property(
       "Embed Micro App",
       // See: com.android.build.gradle.internal.dsl.BuildType#init
       defaultValueGetter = { it.name != DEBUG_BUILD_TYPE_NAME },
@@ -93,121 +93,121 @@ open class PsBuildType(
       getParsedProperty = { embedMicroApp() },
       getter = { asBoolean() },
       setter = { setValue(it) },
-      parse = { parseBoolean(it) },
-      getKnownValues = { booleanValues() }
+      parse = ::parseBoolean,
+      getKnownValues = ::booleanValues
     )
 
-    val jniDebuggable: ModelSimpleProperty<PsBuildType, Boolean> = property(
+    val jniDebuggable: SimpleProperty<PsBuildType, Boolean> = property(
       "Jni Debuggable",
       defaultValueGetter = { false },
       getResolvedValue = { isJniDebuggable },
       getParsedProperty = { jniDebuggable() },
       getter = { asBoolean() },
       setter = { setValue(it) },
-      parse = { parseBoolean(it) },
-      getKnownValues = { booleanValues() }
+      parse = ::parseBoolean,
+      getKnownValues = ::booleanValues
     )
 
-    val minifyEnabled: ModelSimpleProperty<PsBuildType, Boolean> = property(
+    val minifyEnabled: SimpleProperty<PsBuildType, Boolean> = property(
       "Minify Enabled",
       defaultValueGetter = { false },
       getResolvedValue = { isMinifyEnabled },
       getParsedProperty = { minifyEnabled() },
       getter = { asBoolean() },
       setter = { setValue(it) },
-      parse = { parseBoolean(it) },
-      getKnownValues = { booleanValues() }
+      parse = ::parseBoolean,
+      getKnownValues = ::booleanValues
     )
 
-    val multiDexEnabled: ModelSimpleProperty<PsBuildType, Boolean> = property(
+    val multiDexEnabled: SimpleProperty<PsBuildType, Boolean> = property(
       "Multi Dex Enabled",
       getResolvedValue = { multiDexEnabled },
       getParsedProperty = { multiDexEnabled() },
       getter = { asBoolean() },
       setter = { setValue(it) },
-      parse = { parseBoolean(it) },
-      getKnownValues = { booleanValues() }
+      parse = ::parseBoolean,
+      getKnownValues = ::booleanValues
     )
 
-    val pseudoLocalesEnabled: ModelSimpleProperty<PsBuildType, Boolean> = property(
+    val pseudoLocalesEnabled: SimpleProperty<PsBuildType, Boolean> = property(
       "Pseudo Locales Enabled",
       defaultValueGetter = { false },
       getResolvedValue = { isPseudoLocalesEnabled },
       getParsedProperty = { pseudoLocalesEnabled() },
       getter = { asBoolean() },
       setter = { setValue(it) },
-      parse = { parseBoolean(it) },
-      getKnownValues = { booleanValues() }
+      parse = ::parseBoolean,
+      getKnownValues = ::booleanValues
     )
 
-    val renderscriptDebuggable: ModelSimpleProperty<PsBuildType, Boolean> = property(
+    val renderscriptDebuggable: SimpleProperty<PsBuildType, Boolean> = property(
       "Renderscript Debuggable",
       defaultValueGetter = { false },
       getResolvedValue = { isRenderscriptDebuggable },
       getParsedProperty = { renderscriptDebuggable() },
       getter = { asBoolean() },
       setter = { setValue(it) },
-      parse = { parseBoolean(it) },
-      getKnownValues = { booleanValues() }
+      parse = ::parseBoolean,
+      getKnownValues = ::booleanValues
     )
 
-    val renderscriptOptimLevel: ModelSimpleProperty<PsBuildType, Int> = property(
+    val renderscriptOptimLevel: SimpleProperty<PsBuildType, Int> = property(
       "Renderscript optimization Level",
       defaultValueGetter = { 3 },
       getResolvedValue = { renderscriptOptimLevel },
       getParsedProperty = { renderscriptOptimLevel() },
       getter = { asInt() },
       setter = { setValue(it) },
-      parse = { parseInt(it) }
+      parse = ::parseInt
     )
 
-    val testCoverageEnabled: ModelSimpleProperty<PsBuildType, Boolean> = property(
+    val testCoverageEnabled: SimpleProperty<PsBuildType, Boolean> = property(
       "Test Coverage Enabled",
       defaultValueGetter = { false },
       getResolvedValue = { isTestCoverageEnabled },
       getParsedProperty = { testCoverageEnabled() },
       getter = { asBoolean() },
       setter = { setValue(it) },
-      parse = { parseBoolean(it) },
-      getKnownValues = { booleanValues() }
+      parse = ::parseBoolean,
+      getKnownValues = ::booleanValues
     )
 
-    val versionNameSuffix: ModelSimpleProperty<PsBuildType, String> = property(
+    val versionNameSuffix: SimpleProperty<PsBuildType, String> = property(
       "Version Name Suffix",
       getResolvedValue = { versionNameSuffix },
       getParsedProperty = { versionNameSuffix() },
       getter = { asString() },
       setter = { setValue(it) },
-      parse = { parseString(it) }
+      parse = ::parseString
     )
 
-    val zipAlignEnabled: ModelSimpleProperty<PsBuildType, Boolean> = property(
+    val zipAlignEnabled: SimpleProperty<PsBuildType, Boolean> = property(
       "Zip Align Enabled",
       defaultValueGetter = { true },
       getResolvedValue = { isZipAlignEnabled },
       getParsedProperty = { zipAlignEnabled() },
       getter = { asBoolean() },
       setter = { setValue(it) },
-      parse = { parseBoolean(it) },
-      getKnownValues = { booleanValues() }
+      parse = ::parseBoolean,
+      getKnownValues = ::booleanValues
     )
 
-    val proGuardFiles: ModelListProperty<PsBuildType, File> = listProperty(
+    val proGuardFiles: ListProperty<PsBuildType, File> = listProperty(
       "Proguard Files",
       getResolvedValue = { proguardFiles.toList() },
       getParsedProperty = { proguardFiles() },
       itemValueGetter = { asFile() },
       itemValueSetter = { setValue(it.toString()) },
-      parse = { parseFile(it) }
+      parse = ::parseFile
     )
 
-    val manifestPlaceholders: ModelMapProperty<PsBuildType, String> = mapProperty(
+    val manifestPlaceholders: MapProperty<PsBuildType, String> = mapProperty(
       "Manifest Placeholders",
       getResolvedValue = { manifestPlaceholders.mapValues { it.value.toString() } },
       getParsedProperty = { manifestPlaceholders() },
       itemValueGetter = { asString() },
       itemValueSetter = { setValue(it) },
-      parse = { parseString(it) }
+      parse = ::parseString
     )
   }
 }

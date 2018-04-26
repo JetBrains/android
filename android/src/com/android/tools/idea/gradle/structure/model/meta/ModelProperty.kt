@@ -81,7 +81,7 @@ interface ModelPropertyContext<in ModelT, ValueT : Any> {
 interface ModelSimpleProperty<in ModelT, PropertyT : Any> :
   ModelProperty<ModelT, PropertyT>,
   ModelPropertyContext<ModelT, PropertyT>
-
+typealias SimpleProperty<ModelT, PropertyT> = ModelSimpleProperty<ModelT, PropertyT>
 /**
  * A UI descriptor of a collection property.
  */
@@ -98,6 +98,7 @@ interface ModelListProperty<in ModelT, ValueT : Any> :
   fun addItem(model: ModelT, index: Int): ModelPropertyCore<Unit, ValueT>
   fun deleteItem(model: ModelT, index: Int)
 }
+typealias ListProperty<ModelT, PropertyT> = ModelListProperty<ModelT, PropertyT>
 
 /**
  * A UI descriptor of a map property.
@@ -109,6 +110,7 @@ interface ModelMapProperty<in ModelT, ValueT : Any> :
   fun deleteEntry(model: ModelT, key: String)
   fun changeEntryKey(model: ModelT, old: String, new: String): ModelPropertyCore<Unit, ValueT>
 }
+typealias MapProperty<ModelT, PropertyT> = ModelMapProperty<ModelT, PropertyT>
 
 fun <ModelT, PropertyT : Any> ModelSimpleProperty<ModelT, PropertyT>.bind(boundModel: ModelT): ModelSimpleProperty<Unit, PropertyT> = let {
   object : ModelSimpleProperty<Unit, PropertyT> {
