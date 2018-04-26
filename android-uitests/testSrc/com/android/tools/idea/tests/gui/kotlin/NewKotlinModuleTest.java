@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.kotlin;
 
-import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -37,7 +36,6 @@ import static com.google.common.truth.Truth.assertThat;
 public class NewKotlinModuleTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
   private static final String APP_NAME = "app";
   private static final String NEW_KOTLIN_MDULE_NAME = "KotlinModule";
