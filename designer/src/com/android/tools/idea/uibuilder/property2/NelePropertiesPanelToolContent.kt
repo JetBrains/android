@@ -33,6 +33,7 @@ import java.awt.event.KeyEvent
 import javax.swing.JPanel
 
 private const val BASIC_PAGE = "Basic"
+private const val ADVANCED_PAGE = "Advanced"
 
 /**
  * Create the models and views for the properties tool content.
@@ -51,12 +52,15 @@ class NelePropertiesPanelToolContent(facet: AndroidFacet) : JPanel(BorderLayout(
     add(properties.component, BorderLayout.CENTER)
     properties.addView(view)
     val basic = view.addTab(BASIC_PAGE)
+    basic.searchable = false
     basic.builders.add(IdInspectorBuilder(editorProvider))
     basic.builders.add(LayoutInspectorBuilder(facet.module.project, editorProvider))
     basic.builders.add(ViewInspectorBuilder(facet.module.project, editorProvider))
     basic.builders.add(TextViewInspectorBuilder(editorProvider))
     basic.builders.add(ProgressBarInspectorBuilder(editorProvider))
     basic.builders.add(FavoritesInspectorBuilder(editorProvider))
+    val advanced = view.addTab(ADVANCED_PAGE)
+    advanced.builders.add(AdvancedInspectorBuilder())
     registerKeyAction(showResolvedValueAction, ToggleShowResolvedValueAction.SHORTCUT.firstKeyStroke, "toggleResolvedValues",
                       WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
   }
