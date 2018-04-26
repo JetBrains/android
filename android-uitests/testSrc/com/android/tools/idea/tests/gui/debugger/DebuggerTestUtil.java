@@ -16,10 +16,12 @@
 package com.android.tools.idea.tests.gui.debugger;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditConfigurationsDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,12 +47,20 @@ public class DebuggerTestUtil {
                                                                         @NotNull GuiTestRule guiTest,
                                                                         @NotNull String configName,
                                                                         @NotNull String avdName) {
+    return debugAppAndWaitForSessionToStart(ideFrameFixture, guiTest, configName, avdName, Wait.seconds(90));
+  }
+
+  public static DebugToolWindowFixture debugAppAndWaitForSessionToStart(@NotNull IdeFrameFixture ideFrameFixture,
+                                                                        @NotNull GuiTestRule guiTest,
+                                                                        @NotNull String configName,
+                                                                        @NotNull String avdName,
+                                                                        @NotNull Wait wait) {
     ideFrameFixture.debugApp(configName)
       .selectDevice(avdName)
       .clickOk();
 
     // Wait for background tasks to finish before requesting Debug Tool Window. Otherwise Debug Tool Window won't activate.
-    guiTest.waitForBackgroundTasks();
+    GuiTests.waitForBackgroundTasks(guiTest.robot(), wait);
 
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(ideFrameFixture);
 
@@ -61,4 +71,5 @@ public class DebuggerTestUtil {
 
     return debugToolWindowFixture;
   }
+
 }
