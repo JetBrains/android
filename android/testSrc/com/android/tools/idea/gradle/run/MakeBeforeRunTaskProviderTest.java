@@ -24,8 +24,8 @@ import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.run.AndroidAppRunConfigurationBase;
-import com.android.tools.idea.run.AndroidBundleRunConfiguration;
 import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
@@ -36,7 +36,6 @@ import org.apache.commons.io.FileUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import org.mockito.Mock;
-import org.mockito.stubbing.Answer;
 
 import java.io.File;
 import java.io.IOException;
@@ -107,10 +106,13 @@ public class MakeBeforeRunTaskProviderTest extends IdeaTestCase {
   }
 
   public void testPreviewDeviceArgumentsForBundleConfiguration() throws IOException {
-    myRunConfiguration = mock(AndroidBundleRunConfiguration.class);
+    myRunConfiguration = mock(AndroidRunConfiguration.class);
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, "N"));
     when(myDevice.getDensity()).thenReturn(640);
     when(myDevice.getAbis()).thenReturn(ImmutableList.of(Abi.ARMEABI));
+
+    myRunConfiguration.DEPLOY = true;
+    myRunConfiguration.DEPLOY_APK_FROM_BUNDLE = true;
 
     List<String> arguments =
       MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration, Collections.singletonList(myDevice));

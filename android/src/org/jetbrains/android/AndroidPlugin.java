@@ -18,13 +18,9 @@ package org.jetbrains.android;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.run.AndroidBundleRunConfigurationType;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.components.ApplicationComponent;
-import com.intellij.openapi.extensions.ExtensionPoint;
-import com.intellij.openapi.extensions.Extensions;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.startup.Actions.moveAction;
@@ -44,7 +40,6 @@ public class AndroidPlugin implements ApplicationComponent {
     if (!IdeInfo.getInstance().isAndroidStudio()) {
       initializeForNonStudio();
     }
-    setUpAndroidBundleRunConfiguration();
     setUpActionsUnderFlag();
   }
 
@@ -69,16 +64,6 @@ public class AndroidPlugin implements ApplicationComponent {
     moveAction("Android.MainToolBarGradleGroup", IdeActions.GROUP_MAIN_TOOLBAR, "Android.MainToolBarActionGroup",
                new Constraints(Anchor.LAST, null));
     UsageTracker.getInstance().setIdeBrand(AndroidStudioEvent.IdeBrand.INTELLIJ);
-  }
-
-  private static void setUpAndroidBundleRunConfiguration() {
-    // TODO: Once the StudioFlag is removed, the configuration type registration should move to the
-    // android-plugin.xml file.
-    if (StudioFlags.RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED.get()) {
-      ExtensionPoint<ConfigurationType> configurationTypeExtensionPoint =
-        Extensions.getRootArea().getExtensionPoint(ConfigurationType.CONFIGURATION_TYPE_EP);
-      configurationTypeExtensionPoint.registerExtension(new AndroidBundleRunConfigurationType());
-    }
   }
 
   private static void setUpActionsUnderFlag() {

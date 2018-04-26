@@ -29,12 +29,11 @@ import java.util.List;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.AndroidGradleTests.updateGradleVersions;
 import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
-import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_PRE30;
 import static com.google.common.truth.Truth.assertThat;
 
-public class AndroidBundleRunConfigurationTest extends AndroidGradleTestCase {
-  private AndroidBundleRunConfiguration myRunConfiguration;
+public class AndroidRunConfigurationGradleTest extends AndroidGradleTestCase {
+  private AndroidRunConfiguration myRunConfiguration;
 
   @Override
   public void setUp() throws Exception {
@@ -44,8 +43,8 @@ public class AndroidBundleRunConfigurationTest extends AndroidGradleTestCase {
 
     super.setUp();
 
-    ConfigurationFactory configurationFactory = AndroidBundleRunConfigurationType.getInstance().getFactory();
-    myRunConfiguration = new AndroidBundleRunConfiguration(getProject(), configurationFactory);
+    ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getFactory();
+    myRunConfiguration = new AndroidRunConfiguration(getProject(), configurationFactory);
 
     // We override the default extension point to prevent the "Gradle Update" UI to show during the test
     PlatformTestUtil.unregisterAllExtensions(PluginVersionUpgradeStep.EXTENSION_POINT_NAME, getTestRootDisposable());
@@ -66,6 +65,8 @@ public class AndroidBundleRunConfigurationTest extends AndroidGradleTestCase {
 
   public void testNoErrorIfGradlePluginVersionIsUpToDate() throws Exception {
     loadProject(DYNAMIC_APP);
+    myRunConfiguration.DEPLOY = true;
+    myRunConfiguration.DEPLOY_APK_FROM_BUNDLE = true;
     List<ValidationError> errors = myRunConfiguration.checkConfiguration(myAndroidFacet);
     assertThat(errors).isEmpty();
   }
@@ -79,14 +80,11 @@ public class AndroidBundleRunConfigurationTest extends AndroidGradleTestCase {
     requestSyncAndGetExpectedFailure();
 
     // Verifies there is a validation error (since bundle tasks are not available)
+    myRunConfiguration.DEPLOY = true;
+    myRunConfiguration.DEPLOY_APK_FROM_BUNDLE = true;
     List<ValidationError> errors = myRunConfiguration.checkConfiguration(myAndroidFacet);
-    assertThat(errors).isNotEmpty();
-    ValidationError bundleTaskError = errors
-      .stream()
-      .filter(e -> "This configuration requires a newer version of the Android Gradle Plugin".equals(e.getMessage()))
-      .findFirst()
-      .orElse(null);
-    assertThat(bundleTaskError).isNotNull();
+    assertThat(errors).hasSize(1);
+    assertThat(errors.get(0).getMessage()).isEqualTo("This option requires a newer version of the Android Gradle Plugin");
   }
 
   private static class MyPluginVersionUpgradeStep extends PluginVersionUpgradeStep {
