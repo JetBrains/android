@@ -65,6 +65,10 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
 
   private static int LIVE_ALLOCATION_STACK_DEPTH = Integer.getInteger("profiler.alloc.stack.depth", 50);
 
+  // Clamp the property value between 5 Seconds and 5 Minutes, otherwise the user could specify arbitrarily small or large value.
+  private static int CPU_ART_STOP_TIMEOUT_SEC = Math.max(5, Math.min(Integer.getInteger("profiler.cpu.art.stop.timeout.sec", 5),
+                                                                     5 * 60));
+
   private static final String BOOT_COMPLETE_PROPERTY = "dev.bootcomplete";
   private static final String BOOT_COMPLETE_MESSAGE = "1";
 
@@ -416,6 +420,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         .setEnergyProfilerEnabled(StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get())
         .setCpuApiTracingEnabled(StudioFlags.PROFILER_CPU_API_TRACING.get())
         .setAndroidFeatureLevel(myDevice.getVersion().getFeatureLevel())
+        .setCpuConfig(Agent.AgentConfig.CpuConfig.newBuilder().setArtStopTimeoutSec(CPU_ART_STOP_TIMEOUT_SEC))
         .build();
 
       File configFile = FileUtil.createTempFile(fileName, null, true);
