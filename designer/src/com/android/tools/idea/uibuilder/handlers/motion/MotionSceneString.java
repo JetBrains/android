@@ -11,6 +11,8 @@ public class MotionSceneString {
 
       public static final  String MotionSceneKeyFrames = "KeyFrames";
       public static final  String MotionSceneTransition = "Transition";
+      public static final  String MotionSceneOnSwipe = "OnSwipe";
+
       public static final  String MotionSceneConstraintSet = "ConstraintSet";
       public static final  String ConstraintSetConstrainView = "ConstrainView";
 

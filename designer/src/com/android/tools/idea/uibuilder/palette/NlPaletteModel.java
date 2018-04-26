@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.handlers.ActionMenuViewHandler;
 import com.android.tools.idea.uibuilder.handlers.CustomViewGroupHandler;
 import com.android.tools.idea.uibuilder.handlers.CustomViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintHelperHandler;
 import com.android.tools.idea.uibuilder.handlers.preference.PreferenceCategoryHandler;
 import com.android.tools.idea.uibuilder.handlers.preference.PreferenceHandler;
 import com.android.tools.idea.uibuilder.menu.MenuHandler;
@@ -252,6 +253,10 @@ public class NlPaletteModel implements Disposable {
           handler instanceof MenuHandler ||
           handler instanceof ActionMenuViewHandler) {
         return false;
+      }
+
+      if (handler instanceof ConstraintHelperHandler) {
+        return false; // temporary hack
       }
 
       if (handler instanceof ViewGroupHandler) {

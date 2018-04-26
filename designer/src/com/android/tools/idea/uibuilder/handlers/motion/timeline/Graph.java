@@ -176,7 +176,6 @@ public class Graph extends JPanel {
 
       myLastMinx = myActualMinx;
       myLastMaxx = myActualMaxx;
-      System.out.println(" myMinx = " + myMinx);
     }
     if (Math.abs(myLastMiny - myActualMiny)
         + Math.abs(myLastMaxy - myActualMaxy) > 0.1 * (myActualMaxy - myActualMiny)) {

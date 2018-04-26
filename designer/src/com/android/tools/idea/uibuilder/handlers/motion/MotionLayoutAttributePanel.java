@@ -65,6 +65,7 @@ class MotionLayoutAttributePanel implements AccessoryPanelInterface {
   JPanel myAttribGroups;
   TransitionPanel myTransitionPanel = new TransitionPanel();
   AttributeTagPanel myAttributeTagPanel = new AttributeTagPanel();
+  private OnSwipePanel myOnSwipeTagPanel = new OnSwipePanel();
 
   public MotionLayoutAttributePanel(@NotNull NlComponent parent, @NotNull ViewGroupHandler.AccessoryPanelVisibility visibility) {
     myMotionLayout = parent;
@@ -92,6 +93,8 @@ class MotionLayoutAttributePanel implements AccessoryPanelInterface {
     myAttribGroups = new JPanel();
     myAttribGroups.setLayout(new BoxLayout(myAttribGroups, BoxLayout.Y_AXIS));
     myAttribGroups.add(myTransitionPanel);
+    myAttribGroups.add(Box.createRigidArea(JBUI.size(0, 10)));
+    myAttribGroups.add(myOnSwipeTagPanel);
     myAttribGroups.add(Box.createRigidArea(JBUI.size(0, 10)));
     myAttribGroups.add(myAttributeTagPanel);
     myAttribGroups.add(Box.createRigidArea(JBUI.size(0, 10)));
@@ -141,6 +144,9 @@ class MotionLayoutAttributePanel implements AccessoryPanelInterface {
       if (keyframe != null) {
         MotionSceneModel.TransitionTag transitionTag = keyframe.getModel().getTransitionTag(0);
         myTransitionPanel.setTransitionTag(transitionTag);
+        MotionSceneModel.OnSwipeTag onSwipeTag = keyframe.getModel().getOnSwipeTag();
+        myOnSwipeTagPanel.setOnSwipeTag(onSwipeTag);
+
       }
       myCurrentKeyframe = keyframe;
 
@@ -154,7 +160,7 @@ class MotionLayoutAttributePanel implements AccessoryPanelInterface {
     JLabel myTitle = new JLabel("", JLabel.LEFT);
     JTable myTable = new JBTable(myKeyAttrTableModel);
     JBPopupMenu myPopupMenu = new JBPopupMenu("Add Attribute");
-
+    ArrayList<CustomAttributePanel> myCustomAttributePanels = new ArrayList<>();
     JButton myAddButton = new JButton(TimeLineIcons.ADD_KEYFRAME);
 
     AttributeTagPanel() {
@@ -221,18 +227,22 @@ class MotionLayoutAttributePanel implements AccessoryPanelInterface {
         return;
       }
       setupPopup(keyframe);
+      for (CustomAttributePanel panel : myCustomAttributePanels) {
+        remove(panel);
+      }
       if (keyframe instanceof MotionSceneModel.KeyAttributes) {
         MotionSceneModel.KeyAttributes ka = (MotionSceneModel.KeyAttributes)keyframe;
         for (MotionSceneModel.CustomAttributes attributes : ka.getCustomAttr()) {
           CustomAttributePanel cap = new CustomAttributePanel();
           cap.setTag(attributes);
+          myCustomAttributePanels.add(cap);
           add(cap);
         }
       }
     }
   }
 
-  //============================TransitionPanel==================================//
+  //============================CustomAttributePanel==================================//
 
   static class CustomAttributePanel extends JPanel {
     Vector<String> colNames = new Vector<String>(Arrays.asList("Name", "Value"));
@@ -320,7 +330,6 @@ class MotionLayoutAttributePanel implements AccessoryPanelInterface {
       setupPopup(tag);
     }
   }
-
   //============================TransitionPanel==================================//
 
   static class TransitionPanel extends JPanel {
@@ -405,6 +414,99 @@ class MotionLayoutAttributePanel implements AccessoryPanelInterface {
       }
       myTableModel.fireTableDataChanged();
       setupPopup(tag);
+    }
+  }
+
+  //============================OnSwipePanel==================================//
+
+  static class OnSwipePanel extends JPanel {
+    Vector<String> colNames = new Vector<String>(Arrays.asList("Name", "Value"));
+    Vector<Vector<Object>> data = new Vector<>();
+    DefaultTableModel myTableModel = new DefaultTableModel(data, colNames);
+    JTable myTable = new JBTable(myTableModel);
+    JBPopupMenu myPopupMenu = new JBPopupMenu("Add Attribute");
+
+    OnSwipePanel() {
+      setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+      JLabel label = new JLabel("OnSwipe");
+
+      myTable.setDefaultRenderer(AttributesNamesHolder.class, new AttributesNamesCellRenderer());
+      myTable.setDefaultRenderer(String.class, new AttributesValueCellRenderer());
+      label.setForeground(ourTagColor);
+      label.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+      myTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+        @Override
+        public Component getTableCellRendererComponent(JTable table,
+                                                       Object value,
+                                                       boolean isSelected,
+                                                       boolean hasFocus,
+                                                       int row,
+                                                       int column) {
+          Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+          if (!isSelected) {
+            c.setForeground(column > 0 ? ourValueColor : ourNameColor);
+          }
+
+          return c;
+        }
+      });
+
+      JButton button = new JButton(TimeLineIcons.ADD_KEYFRAME);
+      button.setAlignmentX(Component.LEFT_ALIGNMENT);
+      button.setMargin(null);
+      button.setBorderPainted(false);
+      button.setOpaque(false);
+      button.setUI(new BasicButtonUI());
+
+      myPopupMenu.add(new JMenuItem("test1"));
+
+      button.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mousePressed(MouseEvent e) {
+          myPopupMenu.show(e.getComponent(), e.getX(), e.getY());
+        }
+      });
+
+      add(label);
+      add(myTable);
+      add(button);
+
+    }
+
+    public ActionListener myAddItemAction = new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        String s = ((JMenuItem)e.getSource()).getText();
+        data.add(new Vector<Object>(Arrays.asList(s, "")));
+        myTableModel.fireTableRowsInserted(data.size() - 1, data.size());
+      }
+    };
+
+    private void setupPopup(MotionSceneModel.OnSwipeTag tag) {
+      myPopupMenu.removeAll();
+      String[] names = tag.getPossibleAttr();
+      for (int i = 0; i < names.length; i++) {
+        JMenuItem menuItem = new JMenuItem(names[i]);
+        menuItem.addActionListener(myAddItemAction);
+        myPopupMenu.add(menuItem);
+      }
+    }
+
+    public void setOnSwipeTag(MotionSceneModel.OnSwipeTag tag) {
+      if (tag == null) {
+        setVisible(false);
+        return;
+      }
+      HashMap<String, Object> attr = tag.getAttributes();
+      data.clear();
+      for (String s : attr.keySet()) {
+        Vector<Object> v = new Vector<Object>(Arrays.asList(s, attr.get(s)));
+        data.add(v);
+      }
+      myTableModel.fireTableDataChanged();
+      setupPopup(tag);
+      setVisible(true);
     }
   }
 
