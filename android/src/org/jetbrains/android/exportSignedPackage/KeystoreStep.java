@@ -18,9 +18,8 @@ package org.jetbrains.android.exportSignedPackage;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
-import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.intellij.ide.passwordSafe.PasswordSafe;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.wizard.CommitStepException;
@@ -55,7 +54,6 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE;
 
 /**
@@ -151,10 +149,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     myCloseAndUpdateLink.addHyperlinkListener(new HyperlinkListener() {
       @Override
       public void hyperlinkUpdate(HyperlinkEvent e) {
-        GradleVersion gradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION);
-        GradleVersion pluginVersion = GradleVersion.parse(AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion());
-        AndroidPluginVersionUpdater updater = AndroidPluginVersionUpdater.getInstance(project);
-        updater.updatePluginVersion(pluginVersion, gradleVersion);
+        DynamicAppUtils.promptUserForGradleUpdate(project);
         myWizard.close(CANCEL_EXIT_CODE);
       }
     });
@@ -186,22 +181,18 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
 
   private void updateSelection(@Nullable AndroidFacet selectedItem) {
     mySelection = selectedItem;
-    showGradleError(!isGradleValid(myWizard.getTargetType()));
+    showGradleError(!isGradleValid(myWizard.getTargetType(), myWizard.getProject()));
   }
 
 
-  private boolean isGradleValid(@Nullable String targetType) {
+  private boolean isGradleValid(@Nullable String targetType, @NotNull Project project) {
     // all gradle versions are valid unless targetType is bundle
-    if (targetType == null || !targetType.equals(ExportSignedPackageWizard.BUNDLE)) {
+    if (!targetType.equals(ExportSignedPackageWizard.BUNDLE)) {
       return true;
     }
 
     if (mySelection == null) return true;
-    AndroidModuleModel model = AndroidModuleModel.get(mySelection);
-    if (model == null) return false;
-    GradleVersion version = model.getModelVersion();
-    if (version == null) return false;
-    return version.isAtLeastIncludingPreviews(3, 2, 0);
+    return DynamicAppUtils.supportsBundleTask(mySelection.getModule());
   }
 
   private void showGradleError(boolean showError) {
@@ -277,7 +268,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
 
   @Override
   protected void commitForNext() throws CommitStepException {
-    if (!isGradleValid(myWizard.getTargetType())) {
+    if (!isGradleValid(myWizard.getTargetType(), myWizard.getProject())) {
       throw new CommitStepException(AndroidBundle.message("android.export.package.bundle.gradle.error"));
     }
 
