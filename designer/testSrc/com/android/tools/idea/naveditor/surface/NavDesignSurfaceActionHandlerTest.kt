@@ -47,5 +47,10 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
 
     assertSameElements(model.flattenComponents().toArray(),
                        model.components[0], model.find("fragment1"), model.find("fragment3"), model.find("a3"))
+    assertEquals(surface.selectionModel.selection, listOf(model.find("fragment3")))
+
+    surface.selectionModel.setSelection(listOf(model.find("a3")))
+    handler.deleteElement(context)
+    assertEquals(surface.selectionModel.selection, model.components)
   }
 }

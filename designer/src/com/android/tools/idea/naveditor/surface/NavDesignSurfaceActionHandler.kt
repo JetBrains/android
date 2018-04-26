@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.surface
 
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler
+import com.android.tools.idea.naveditor.actions.getNextDestination
 import com.android.tools.idea.naveditor.model.actionDestination
 import com.android.tools.idea.naveditor.model.isAction
 import com.android.tools.idea.naveditor.model.isDestination
@@ -31,15 +32,21 @@ import java.util.stream.Collectors
 class NavDesignSurfaceActionHandler(val surface: NavDesignSurface) : DesignSurfaceActionHandler(surface) {
   override fun deleteElement(dataContext: DataContext) {
     val superCall = { super.deleteElement(dataContext) }
-    val action = object: WriteCommandAction<Unit>(surface.project, "Delete Component", surface.model!!.file) {
+    val selection = surface.selectionModel.selection
+
+    var nextSelection: String? = null
+    if (selection.all { it.isDestination }) {
+      nextSelection = getNextDestination(surface)?.id
+    }
+
+    val action = object : WriteCommandAction<Unit>(surface.project, "Delete Component", surface.model!!.file) {
       override fun run(result: Result<Unit>) {
         val model = surface.model ?: return
-        val selectionModel = surface.selectionModel
-        for (component in selectionModel.selection) {
+        for (component in selection) {
           if (component.isDestination) {
             val sceneComponent = surface.scene?.getSceneComponent(component)
             val positionData = sceneComponent?.getPositionData()
-            UndoManager.getInstance(project).undoableActionPerformed(object: BasicUndoableAction(component.model.file.virtualFile) {
+            UndoManager.getInstance(project).undoableActionPerformed(object : BasicUndoableAction(component.model.file.virtualFile) {
               override fun undo() {
                 if (sceneComponent != null && positionData != null) {
                   sceneComponent.restorePositionData(positionData)
@@ -56,5 +63,14 @@ class NavDesignSurfaceActionHandler(val surface: NavDesignSurface) : DesignSurfa
       }
     }
     action.execute()
+    val newComponent = if (nextSelection != null) {
+      surface.currentNavigation.children.find { it.id == nextSelection }
+    }
+    else {
+      surface.currentNavigation
+    }
+    if (newComponent != null) {
+      surface.selectionModel.setSelection(listOf(newComponent))
+    }
   }
 }
