@@ -28,6 +28,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.util.AndroidResourceUtil;
 
+import java.awt.image.BufferedImage;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
@@ -58,10 +59,9 @@ public class ThumbnailManagerTest extends NavTestCase {
     VirtualFile file = myFixture.findFileInTempDir("res/layout/activity_main.xml");
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
-    DesignSurface surface = mock(NavDesignSurface.class);
     NlModel model = NlModel.create(getMyRootDisposable(), myFacet, psiFile.getVirtualFile());
-    CompletableFuture<ImagePool.Image> imageFuture = manager.getThumbnail(psiFile, model.getConfiguration());
-    ImagePool.Image image = imageFuture.get();
+    CompletableFuture<BufferedImage> imageFuture = manager.getThumbnail(psiFile, model.getConfiguration());
+    BufferedImage image = imageFuture.get();
     imageFuture = manager.getThumbnail(psiFile, model.getConfiguration());
     assertSame(image, imageFuture.get());
 

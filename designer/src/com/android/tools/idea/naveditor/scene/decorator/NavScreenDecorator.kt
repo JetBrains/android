@@ -27,11 +27,11 @@ import com.android.tools.idea.naveditor.scene.ThumbnailManager
 import com.android.tools.idea.naveditor.scene.createDrawCommand
 import com.android.tools.idea.naveditor.scene.draw.DrawNavScreen
 import com.android.tools.idea.naveditor.scene.draw.DrawPreviewUnavailable
-import com.android.tools.idea.rendering.ImagePool.Image
 import com.android.tools.idea.res.resolve
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.xml.XmlFile
 import java.awt.Rectangle
+import java.awt.image.BufferedImage
 import java.io.File
 import java.util.concurrent.ExecutionException
 
@@ -70,7 +70,7 @@ abstract class NavScreenDecorator : SceneDecorator() {
     )
   }
 
-  private fun buildImage(sceneContext: SceneContext, component: SceneComponent): Image? {
+  private fun buildImage(sceneContext: SceneContext, component: SceneComponent): BufferedImage? {
     val surface = sceneContext.surface ?: return null
     val configuration = surface.configuration ?: return null
     val facet = surface.model?.facet ?: return null
