@@ -87,7 +87,7 @@ public class GoToBundleLocationTaskTest extends IdeaTestCase {
 
   @NotNull
   private static String getModuleNotificationMessage(@NotNull String moduleName) {
-    return "App bundle file(s) generated successfully:" + getModuleLineNotificationMessage(moduleName);
+    return "App bundle(s) generated successfully:" + getModuleLineNotificationMessage(moduleName);
   }
 
   @NotNull
@@ -95,9 +95,13 @@ public class GoToBundleLocationTaskTest extends IdeaTestCase {
     return "<br/>Module '" +
            moduleName +
            "': <a href=\"" +
-           GoToBundleLocationTask.MODULE +
+           GoToBundleLocationTask.LOCATE_URL_PREFIX +
            moduleName +
-           "\">locate</a> the Bundle file.";
+           "\">locate</a> or " +
+           "<a href=\"" +
+           GoToBundleLocationTask.ANALYZE_URL_PREFIX +
+           moduleName +
+           "\">analyze</a> the app bundle.";
   }
 
   @NotNull

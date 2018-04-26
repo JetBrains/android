@@ -30,8 +30,14 @@ import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.notification.EventLog;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import org.jetbrains.annotations.NotNull;
@@ -45,7 +51,8 @@ import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.notification.NotificationType.INFORMATION;
 
 public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInvocationTask {
-  public static final String MODULE = "module:";
+  public static final String ANALYZE_URL_PREFIX = "analyze:";
+  public static final String LOCATE_URL_PREFIX = "module:";
   @NotNull private final Project myProject;
   @NotNull private final String myNotificationTitle;
   @Nullable private final Collection<Module> myModules;
@@ -55,7 +62,9 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
     this(project, notificationTitle, modules, null);
   }
 
-  public GoToBundleLocationTask(@NotNull Project project, @NotNull Map<Module, File> modulesAndBundlePaths, @NotNull String notificationTitle) {
+  public GoToBundleLocationTask(@NotNull Project project,
+                                @NotNull Map<Module, File> modulesAndBundlePaths,
+                                @NotNull String notificationTitle) {
     this(project, notificationTitle, null, modulesAndBundlePaths);
   }
 
@@ -107,8 +116,9 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
       int moduleIndex = 0;
       for (Map.Entry<String, File> entry : bundlePathsByModule.entrySet()) {
         String moduleName = entry.getKey();
-        buffer.append("Module '" ).append(moduleName).append("': ");
-        buffer.append("<a href=\"").append(MODULE).append(moduleName).append("\">locate</a> the app bundle.");
+        buffer.append("Module '").append(moduleName).append("': ");
+        buffer.append("<a href=\"").append(LOCATE_URL_PREFIX).append(moduleName).append("\">locate</a> or ");
+        buffer.append("<a href=\"").append(ANALYZE_URL_PREFIX).append(moduleName).append("\">analyze</a> the app bundle.");
         if (moduleIndex < bundlePathsByModule.size() - 1) {
           buffer.append("<br/>");
         }
@@ -196,6 +206,10 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
     return null;
   }
 
+  private static Logger getLog() {
+    return Logger.getInstance(GoToBundleLocationTask.class);
+  }
+
   @VisibleForTesting
   static class OpenFolderNotificationListener extends NotificationListener.Adapter {
     @NotNull private final Project myProject;
@@ -214,14 +228,43 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
       }
 
       String description = e.getDescription();
-      if (description.startsWith(MODULE)){
-        File apkPath = myBundlePathsPerModule.get(description.substring(MODULE.length()));
-        assert apkPath != null;
-        if (apkPath.isFile()){
-          apkPath = apkPath.getParentFile();
-        }
-        ShowFilePathAction.openDirectory(apkPath);
+      if (description.startsWith(ANALYZE_URL_PREFIX)) {
+        openBundleAnalyzer(description.substring(ANALYZE_URL_PREFIX.length()));
       }
+      else if (description.startsWith(LOCATE_URL_PREFIX)) {
+        openBundleDirectory(description.substring(LOCATE_URL_PREFIX.length()));
+      }
+    }
+
+    private void openBundleAnalyzer(@NotNull String bundlePath) {
+      File bundleFile = myBundlePathsPerModule.get(bundlePath);
+      if (bundleFile == null) {
+        getLog().warn(String.format("Error finding bundle file \"%s\"", bundlePath));
+        return;
+      }
+      if (!bundleFile.isFile()) {
+        getLog().warn(String.format("Bundle file is not a file (directory?) \"%s\"", bundlePath));
+        return;
+      }
+      VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(bundleFile);
+      if (virtualFile == null) {
+        getLog().warn(String.format("Bundle file not found in virtual file system \"%s\"", bundlePath));
+        return;
+      }
+      OpenFileDescriptor fd = new OpenFileDescriptor(myProject, virtualFile);
+      List<FileEditor> editors = FileEditorManager.getInstance(myProject).openEditor(fd, true);
+      if (editors.isEmpty()) {
+        getLog().warn(String.format("Could not open editor for bundle file \"%s\"", bundlePath));
+      }
+    }
+
+    private void openBundleDirectory(String path) {
+      File apkPath = myBundlePathsPerModule.get(path);
+      assert apkPath != null;
+      if (apkPath.isFile()) {
+        apkPath = apkPath.getParentFile();
+      }
+      ShowFilePathAction.openDirectory(apkPath);
     }
 
     @Override
@@ -244,7 +287,7 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
 
   private static class OpenEventLogHyperlink extends NotificationHyperlink {
     OpenEventLogHyperlink() {
-      super("open.event.log", "Show APK path(s) in the 'Event Log' view");
+      super("open.event.log", "Show app bundle path(s) in the 'Event Log' view");
     }
 
     @Override
