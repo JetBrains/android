@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.timeline;
 
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.JBPopupListener;
@@ -25,7 +26,6 @@ import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.JBUI;
 
 import javax.swing.*;
-import javax.swing.border.MatteBorder;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
 import javax.swing.event.TreeSelectionEvent;
@@ -42,12 +42,10 @@ import java.util.HashSet;
 import static com.android.tools.idea.uibuilder.handlers.motion.timeline.TimeLineIcons.ADD_KEYFRAME;
 
 class ViewList extends JPanel implements Gantt.ChartElement {
-  private static final int TREE_PANEL_WIDTH = JBUI.scale(170);
   DefaultMutableTreeNode myRootNode = new DefaultMutableTreeNode();
   JTree myTree = new Tree(myRootNode);
   Chart myChart;
   boolean myInternal;
-  private Color myBackground;
 
   Icon mySpacerIcon = new Icon() {
 
@@ -94,7 +92,7 @@ class ViewList extends JPanel implements Gantt.ChartElement {
     myTree.setRootVisible(false);
     myTree.setCellRenderer(cellRenderer);
     update(Reason.CONSTRUCTION);
-    setBorder(new MatteBorder(0, 0, 0, 1, Color.BLACK));
+    setBorder(JBUI.Borders.customLine(StudioColorsKt.getBorder(), 0, 0, 0, 1));
     myChart.add(this);
     myAddPanel.add(myAddButton);
     myAddButton.setUI(new BasicButtonUI());
@@ -148,11 +146,11 @@ class ViewList extends JPanel implements Gantt.ChartElement {
         createKeyFrame(displayedList.getSelectedIndex());
       }
     };
-    JBPopup popup = JBPopupFactory.getInstance()
-                                  .createListPopupBuilder(displayedList)
-                                  .setTitle("Create KeyFrame")
-                                  .addListener(listener)
-                                  .createPopup();
+    JBPopup popup =
+      JBPopupFactory.getInstance()
+                    .createListPopupBuilder(displayedList)
+                    .setTitle("Create KeyFrame")
+                    .addListener(listener).createPopup();
 
     JComponent component = ((JComponent)e.getSource());
 
@@ -193,40 +191,39 @@ class ViewList extends JPanel implements Gantt.ChartElement {
     protected AbstractLayoutCache.NodeDimensions createNodeDimensions() {
       return new NodeDimensionsHandler() {
         @Override
-        public Rectangle getNodeDimensions(
-          Object value, int row, int depth, boolean expanded,
-          Rectangle size) {
-          Rectangle dimensions = super.getNodeDimensions(value, row,
-                                                         depth, expanded, size);
-          dimensions.width =
-            getWidth() - getRowX(row, depth) - 1;
+        public Rectangle getNodeDimensions(Object value, int row, int depth, boolean expanded, Rectangle size) {
+          Rectangle dimensions = super.getNodeDimensions(value, row, depth, expanded, size);
+          dimensions.width = getWidth() - getRowX(row, depth) - 1;
           return dimensions;
         }
       };
     }
 
     @Override
-    protected void paintHorizontalLine(Graphics g, JComponent c,
-                                       int y, int left, int right) {
+    protected void paintHorizontalLine(Graphics g, JComponent c, int y, int left, int right) {
       // do nothing.
     }
 
     @Override
-    protected void paintVerticalPartOfLeg(Graphics g, Rectangle clipBounds,
-                                          Insets insets, TreePath path) {
+    protected void paintVerticalPartOfLeg(Graphics g, Rectangle clipBounds, Insets insets, TreePath path) {
       // do nothing.
     }
   }
 
-  TreeCellRenderer cellRenderer = new DefaultTreeCellRenderer() {
+  TreeCellRenderer cellRenderer =   new DefaultTreeCellRenderer() {
 
     @Override
-    public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel,
-                                                  boolean expanded, boolean leaf, int row, boolean hasFocus) {
+    public Component getTreeCellRendererComponent(JTree tree,
+                                                  Object value,
+                                                  boolean sel,
+                                                  boolean expanded,
+                                                  boolean leaf,
+                                                  int row,
+                                                  boolean hasFocus) {
       DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
 
-      JComponent c = (JComponent)super
-        .getTreeCellRendererComponent(tree, (node.getChildCount() == 0) ? "" : value, sel, expanded, leaf, row, hasFocus);
+      JComponent c =
+        (JComponent)super.getTreeCellRendererComponent(tree, (node.getChildCount() == 0) ? "" : value, sel, expanded, leaf, row, hasFocus);
 
       Object root = tree.getModel().getRoot();
 
@@ -254,7 +251,6 @@ class ViewList extends JPanel implements Gantt.ChartElement {
 
   @Override
   public void setBackground(Color bg) {
-    myBackground = bg;
     super.setBackground(bg);
     if (myAddButton != null) {
       myAddPanel.setBackground(bg);

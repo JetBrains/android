@@ -1,11 +1,13 @@
 package com.android.tools.idea.uibuilder.handlers.motion.timeline;
 
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.JBPopupListener;
 import com.intellij.openapi.ui.popup.LightweightWindowEvent;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBList;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -32,11 +34,11 @@ public class TrackControls extends JPanel {
   public static final int NO_OF_BUTTONS = 5;
 
   JButton[] myButtons = {myCircle, myPrevKeyFrame, myPlayButton, myNextKeyFrame, myLoop};
-  Icon[] myIcons = {
+  private static final Icon[] myIcons = {
     TimeLineIcons.CIRCLE_PLAY,
-    TimeLineIcons.FORWARD,
-    TimeLineIcons.PLAY,
     TimeLineIcons.BACKWARD,
+    TimeLineIcons.PLAY,
+    TimeLineIcons.FORWARD,
     TimeLineIcons.LOOP
   };
 
@@ -55,7 +57,7 @@ public class TrackControls extends JPanel {
   TrackControls(Chart chart) {
     super(new GridLayout(1, NO_OF_BUTTONS, 0, 0));
     mChart = chart;
-    setPreferredSize(new Dimension(ourViewListWidth, TimeLineIcons.CIRCLE_PLAY.getIconHeight()));
+    setPreferredSize(new Dimension(ourViewListWidth, Gantt.HEADER_HEIGHT));
     mChart.add(new Gantt.ChartElement() {
       @Override
       public void update(Reason reason) {
@@ -105,7 +107,7 @@ public class TrackControls extends JPanel {
         }
       });
     }
-    setBorder(new MatteBorder(0, 0, 1, 1, Color.BLACK));
+    setBorder(JBUI.Borders.customLine(StudioColorsKt.getBorder(), 0, 0, 1, 1));
   }
 
   private void buttonPressed(ActionEvent e, GanttEventListener.Actions action) {
