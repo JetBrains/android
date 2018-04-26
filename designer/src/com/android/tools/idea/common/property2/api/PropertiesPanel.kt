@@ -23,9 +23,11 @@ import com.android.tools.idea.common.property2.impl.model.InspectorPanelModel
 import com.android.tools.idea.common.property2.impl.ui.CollapsibleLabel
 import com.android.tools.idea.common.property2.impl.ui.GenericLinePanel
 import com.android.tools.idea.common.property2.impl.ui.InspectorPanelImpl
+import com.android.tools.idea.common.property2.impl.ui.LEFT_HORIZONTAL_CONTENT_BORDER_SIZE
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.ScrollPaneFactory
+import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.util.*
 import javax.swing.*
@@ -216,6 +218,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
   override fun addTitle(title: String): InspectorLineModel {
     val model = CollapsibleLabelModel(title)
     val label = CollapsibleLabel(model)
+    label.border = JBUI.Borders.emptyLeft(LEFT_HORIZONTAL_CONTENT_BORDER_SIZE)
     inspectorModel.add(model)
     inspector.addLineElement(label)
     model.gotoNextLine = gotoNextLine
@@ -225,6 +228,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
   override fun addEditor(editorModel: PropertyEditorModel, editor: JComponent): InspectorLineModel {
     val model = CollapsibleLabelModel(editorModel.property.name, editorModel)
     val label = CollapsibleLabel(model)
+    label.border = JBUI.Borders.emptyLeft(LEFT_HORIZONTAL_CONTENT_BORDER_SIZE)
     editorModel.lineModel = model
     inspectorModel.add(model)
     inspector.addLineElement(label, editor)

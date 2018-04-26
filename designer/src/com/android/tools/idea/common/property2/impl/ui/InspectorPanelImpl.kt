@@ -24,8 +24,10 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.IdeGlassPaneUtil
 import com.intellij.ui.AbstractExpandableItemsHandler
+import com.intellij.util.ui.JBInsets
 import com.intellij.util.ui.JBUI
 import java.awt.Component
+import java.awt.Insets
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.event.MouseEvent
@@ -36,8 +38,7 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingUtilities
 
-// Spacing used in the border of the inspector
-private const val HORIZONTAL_SPACING = 6
+private const val RIGHT_OVERLAY_MARGIN = 6
 
 typealias ComponentBounds = com.intellij.openapi.util.Pair<Component, Rectangle>
 
@@ -50,7 +51,7 @@ class InspectorPanelImpl(val model: InspectorPanelModel, parentDisposable: Dispo
 
   init {
     Disposer.register(parentDisposable, this)
-    border = JBUI.Borders.empty(0, HORIZONTAL_SPACING)
+    border = JBUI.Borders.empty()
     model.addValueChangedListener(this)
   }
 
@@ -165,8 +166,10 @@ class InspectorPanelImpl(val model: InspectorPanelModel, parentDisposable: Dispo
 
     private fun overlayBounds(key: CollapsibleLabel): Rectangle {
       val bounds = Rectangle(key.location, key.preferredSize)
+      val insets = key.border?.getBorderInsets(key) ?: Insets(0, 0, 0, 0)
+      JBInsets.removeFrom(bounds, insets)
       bounds.height = (myComponent.layout as? InspectorLayoutManager)?.getRowHeight(key) ?: key.preferredSize.height
-      bounds.width += JBUI.scale(HORIZONTAL_SPACING)
+      bounds.width += JBUI.scale(RIGHT_OVERLAY_MARGIN) // Give a little extra room in the overlay
       return bounds
     }
 
