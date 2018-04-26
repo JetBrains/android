@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import com.android.resources.ResourceType;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneLayer;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
 
 /**
  * View of a device/screen/layout.
@@ -29,8 +29,19 @@ import java.awt.*;
  */
 public class ScreenView extends ScreenViewBase {
 
+  /**
+   * True if we are previewing a non-layout file in Preview Dialog (e.g. Previewing Vector Drawable), false otherwise.
+   */
+  protected boolean myIsPreviewingNonLayoutFileInPreviewDialog;
+
   public ScreenView(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager) {
     super(surface, manager);
+    if (getSurface().isPreviewSurface() && AndroidPsiUtils.getResourceType(getSceneManager().getModel().getFile()) != ResourceType.LAYOUT) {
+      myIsPreviewingNonLayoutFileInPreviewDialog = true;
+    }
+    else {
+      myIsPreviewingNonLayoutFileInPreviewDialog = false;
+    }
   }
 
   @NotNull
@@ -38,7 +49,9 @@ public class ScreenView extends ScreenViewBase {
   protected ImmutableList<Layer> createLayers() {
     ImmutableList.Builder<Layer> builder = ImmutableList.builder();
 
-    builder.add(new MyBottomLayer(this));
+    if (!myIsPreviewingNonLayoutFileInPreviewDialog) {
+      builder.add(new BorderLayer(this));
+    }
     builder.add(new ScreenViewLayer(this));
     builder.add(new SelectionLayer(this));
 
@@ -49,24 +62,5 @@ public class ScreenView extends ScreenViewBase {
       builder.add(new CanvasResizeLayer(getSurface(), this));
     }
     return builder.build();
-  }
-
-  private static class MyBottomLayer extends Layer {
-
-    private final ScreenViewBase myScreenView;
-
-    public MyBottomLayer(@NotNull ScreenViewBase screenView) {
-      myScreenView = screenView;
-    }
-
-    @Override
-    public void paint(@NotNull Graphics2D g2d) {
-      Shape screenShape = myScreenView.getScreenShape();
-      if (screenShape != null) {
-        g2d.draw(screenShape);
-        return;
-      }
-      myScreenView.paintBorder(g2d);
-    }
   }
 }
