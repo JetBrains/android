@@ -145,7 +145,7 @@ public class AbiSplitApksTest extends DebuggerTestBase {
         .build()
     );
 
-    DebuggerTestUtil.debugAppAndWaitForSessionToStart(ideFrame, guiTest, DEBUG_CONFIG_NAME, avdName);
+    DebuggerTestUtil.debugAppAndWaitForSessionToStart(ideFrame, guiTest, DEBUG_CONFIG_NAME, avdName, Wait.seconds(120));
 
     ideFrame.stopApp();
     ProjectViewFixture.PaneFixture projectPane = ideFrame.getProjectView().selectProjectPane();
