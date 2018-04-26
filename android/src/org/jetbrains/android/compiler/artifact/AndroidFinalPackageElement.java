@@ -46,6 +46,7 @@ public class AndroidFinalPackageElement extends PackagingElement<AndroidFinalPac
     myFacetPointer = facet != null ? FacetPointersManager.getInstance(myProject).create(facet) : null;
   }
 
+  @NotNull
   @Override
   public PackagingElementPresentation createPresentation(@NotNull ArtifactEditorContext context) {
     return new DelegatedPackagingElementPresentation(new AndroidFinalPackagePresentation(myFacetPointer));
@@ -71,6 +72,7 @@ public class AndroidFinalPackageElement extends PackagingElement<AndroidFinalPac
            : null;
   }
 
+  @NotNull
   @Override
   public List<? extends Generator> computeAntInstructions(@NotNull PackagingElementResolvingContext resolvingContext,
                                                           @NotNull AntCopyInstructionCreator creator,
