@@ -22,13 +22,13 @@ import com.intellij.testGuiFramework.launcher.GuiTestOptions
 import com.intellij.testGuiFramework.remote.transport.CloseIdeMessage
 import com.intellij.testGuiFramework.remote.transport.MessageFromClient
 import com.intellij.testGuiFramework.remote.transport.MessageFromServer
-import com.intellij.testGuiFramework.remote.transport.TransportMessage
 import org.apache.log4j.Level
 import org.apache.log4j.Logger
+import org.junit.runner.Description
 import org.junit.runner.Result
+import org.junit.runner.notification.Failure
 import org.junit.runner.notification.RunListener
 import org.junit.runner.notification.RunNotifier
-import java.io.File
 import java.io.InvalidClassException
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
@@ -72,6 +72,22 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
     LOG.info("Server running on port $port")
     serverSocket.soTimeout = IDE_STARTUP_TIMEOUT
     notifier.addListener(object : RunListener() {
+      var shouldRestartClient = false
+
+      override fun testFailure(failure: Failure?) {
+        shouldRestartClient = true
+        super.testFailure(failure)
+      }
+
+      override fun testFinished(description: Description?) {
+        super.testFinished(description)
+        if (shouldRestartClient && GuiTestOptions.shouldRestartOnTestFailure()) {
+          closeIdeAndStop()
+          launchIdeAndStart()
+          shouldRestartClient = false
+        }
+      }
+
       override fun testRunFinished(result: Result?) {
         closeIdeAndStop()
         super.testRunFinished(result)
