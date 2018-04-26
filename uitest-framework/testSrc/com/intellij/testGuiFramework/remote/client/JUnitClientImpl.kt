@@ -107,10 +107,11 @@ class JUnitClientImpl(val host: String, val port: Int, initHandlers: Array<Clien
             .filter { it.accept(message) }
             .forEach { it.handle(message) }
         }
-      } catch (e: Exception) {
+      } catch (e: Throwable) {
         LOG.warn("Transport receiving message exception", e)
       } finally {
         objectInputStream.close()
+        this@JUnitClientImpl.stop()
       }
     }
   }
@@ -130,6 +131,7 @@ class JUnitClientImpl(val host: String, val port: Int, initHandlers: Array<Clien
       }
       finally {
         objectOutputStream.close()
+        this@JUnitClientImpl.stop()
       }
     }
   }
