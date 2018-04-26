@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.actions
 
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.model.isDestination
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.actionSystem.AnAction
@@ -22,22 +23,26 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 
 class SelectNextAction(private val surface: NavDesignSurface) : AnAction() {
   override fun actionPerformed(e: AnActionEvent?) {
-    val destinations = surface.currentNavigation.children.filter { it.isDestination }
-    if (destinations.isEmpty()) {
-      return
+    getNextDestination(surface)?.let {
+      surface.selectionModel.setSelection(listOf(it))
     }
+  }
+}
 
-    val selectionModel = surface.selectionModel
-    val selection = selectionModel.selection
+fun getNextDestination(surface: NavDesignSurface): NlComponent? {
+  val destinations = surface.currentNavigation.children.filter { it.isDestination }
+  if (destinations.isEmpty()) {
+    return null
+  }
 
-    val next = if (selection.size == 1) {
-      val index = destinations.indexOf(selection[0])
-      destinations[(index + 1) % destinations.size]
-    }
-    else {
-      destinations.first()
-    }
+  val selectionModel = surface.selectionModel
+  val selection = selectionModel.selection
 
-    selectionModel.setSelection(listOf(next))
+  return if (selection.size == 1) {
+    val index = destinations.indexOf(selection[0])
+    destinations[(index + 1) % destinations.size]
+  }
+  else {
+    destinations.first()
   }
 }
