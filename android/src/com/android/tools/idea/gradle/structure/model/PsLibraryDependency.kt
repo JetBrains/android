@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
-import com.android.tools.idea.gradle.structure.model.meta.ModelSimpleProperty
+import com.android.tools.idea.gradle.structure.model.meta.SimpleProperty
 
 interface PsLibraryDependency : PsBaseDependency {
   val parent: PsModule
@@ -26,7 +26,7 @@ interface PsLibraryDependency : PsBaseDependency {
 }
 
 interface PsDeclaredLibraryDependency: PsLibraryDependency, PsDeclaredDependency {
-  val versionProperty: ModelSimpleProperty<Unit, String>
+  val versionProperty: SimpleProperty<Unit, String>
 }
 
 interface PsResolvedLibraryDependency : PsLibraryDependency, PsResolvedDependency {

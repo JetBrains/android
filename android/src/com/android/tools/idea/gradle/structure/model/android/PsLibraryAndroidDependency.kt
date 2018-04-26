@@ -45,7 +45,7 @@ open class PsDeclaredLibraryAndroidDependency(
   override val joinedConfigurationNames: String = configurationName
 
   var version by Descriptor.version
-  override val versionProperty: ModelSimpleProperty<Unit, String> get() = Descriptor.version.bind(this)
+  override val versionProperty: SimpleProperty<Unit, String> get() = Descriptor.version.bind(this)
 
   object Descriptor : ModelDescriptor<PsDeclaredLibraryAndroidDependency, Nothing, ArtifactDependencyModel> {
     override fun getResolved(model: PsDeclaredLibraryAndroidDependency): Nothing? = null
@@ -61,13 +61,13 @@ open class PsDeclaredLibraryAndroidDependency(
       model.parent.fireDependencyModifiedEvent(model)
     }
 
-    val version: ModelSimpleProperty<PsDeclaredLibraryAndroidDependency, String> = property(
+    val version: SimpleProperty<PsDeclaredLibraryAndroidDependency, String> = property(
       "Version",
       getResolvedValue = { null },
       getParsedProperty = { this.version() },
       getter = { asString() },
       setter = { setValue(it) },
-      parse = { parseString(it) }
+      parse = ::parseString
     )
   }
 }

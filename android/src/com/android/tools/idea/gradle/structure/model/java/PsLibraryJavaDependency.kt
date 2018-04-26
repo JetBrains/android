@@ -49,7 +49,7 @@ class PsLibraryJavaDependency(
 
   var version by PsLibraryJavaDependency.Descriptor.version
 
-  override val versionProperty: ModelSimpleProperty<Unit, String> get() = PsLibraryJavaDependency.Descriptor.version.bind(this)
+  override val versionProperty: SimpleProperty<Unit, String> get() = PsLibraryJavaDependency.Descriptor.version.bind(this)
 
   object Descriptor : ModelDescriptor<PsLibraryJavaDependency, Nothing, ArtifactDependencyModel> {
     override fun getResolved(model: PsLibraryJavaDependency): Nothing? = null
@@ -61,13 +61,13 @@ class PsLibraryJavaDependency(
       model.isModified = true
     }
 
-    val version: ModelSimpleProperty<PsLibraryJavaDependency, String> = property(
+    val version: SimpleProperty<PsLibraryJavaDependency, String> = property(
       "Version",
       getResolvedValue = { null },
       getParsedProperty = { this.version() },
       getter = { asString() },
       setter = { setValue(it) },
-      parse = { parseString(it) }
+      parse = ::parseString
     )
   }
 }
