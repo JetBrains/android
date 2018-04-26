@@ -23,17 +23,13 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.templates.FmGetConfigurationNameMethod;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException;
 import com.android.tools.idea.templates.RecipeMergeUtils;
 import com.android.tools.idea.templates.TemplateMetadata;
-import com.google.common.base.Function;
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
 import com.intellij.diff.comparison.ComparisonManager;
 import com.intellij.diff.comparison.ComparisonPolicy;
@@ -466,10 +462,10 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
    * Merge the URLs from our gradle template into the target module's build.gradle file
    */
   private void mergeDependenciesIntoGradle() throws Exception {
-    boolean isInstantApp = (Boolean)getParamMap().getOrDefault(ATTR_IS_INSTANT_APP, false);
+    // Note: ATTR_BASE_FEATURE_DIR has a value set for Instant App/Dynamic Feature modules.
     String baseFeatureRoot = (String)getParamMap().getOrDefault(ATTR_BASE_FEATURE_DIR, "");
     File featureBuildFile = getBuildFilePath(myContext);
-    if (!isInstantApp || isNullOrEmpty(baseFeatureRoot)) {
+    if (isNullOrEmpty(baseFeatureRoot)) {
       writeDependencies(featureBuildFile, x -> true);
     }
     else {
@@ -483,6 +479,8 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
         configName = "api";
       }
 
+      // If a Library (e.g. Google Maps) Manifest references its own resources, it needs to be added to the Base, otherwise aapt2 will fail
+      // during linking. Since we don't know the libraries Manifest references, we declare this libraries in the base as "api" dependencies.
       File baseBuildFile = getGradleBuildFilePath(new File(baseFeatureRoot));
       String configuration = configName;
       writeDependencies(baseBuildFile, x -> x.equals(configuration));
