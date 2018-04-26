@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.npw;
 
-import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -32,7 +31,6 @@ import static com.google.common.truth.Truth.assertThat;
 public class NewCppProjectTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule(false);
 
   /**
    * Creates a new project with c++, and checks that if we run Analyze > Inspect Code, there are no warnings.
