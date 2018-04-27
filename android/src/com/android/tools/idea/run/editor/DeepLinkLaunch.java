@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.tools.idea.instantapp.InstantAppSdks;
 import com.android.tools.idea.instantapp.InstantAppUrlFinder;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ValidationError;
@@ -51,10 +52,19 @@ public class DeepLinkLaunch extends LaunchOption<DeepLinkLaunch.State> {
     @NotNull
     @Override
     public List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet) {
-      if (DEEP_LINK == null || DEEP_LINK.isEmpty()) {
-        return ImmutableList.of(ValidationError.warning("URL not specified"));
+      boolean isInstantApp = facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP;
+
+      if ((DEEP_LINK == null || DEEP_LINK.isEmpty())) {
+        if (isInstantApp && InstantAppSdks.getInstance().shouldUseSdkLibraryToRun()) {
+          // The new AIA SDK library supports launching instant apps without a URL
+          return ImmutableList.of();
+        }
+        else {
+          return ImmutableList.of(ValidationError.warning("URL not specified"));
+        }
       }
-      else if (facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+
+      if (isInstantApp) {
         boolean matched = false;
         List<Module> featureModules = findFeatureModules(facet);
         for (Module featureModule : featureModules) {

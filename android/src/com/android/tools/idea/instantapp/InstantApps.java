@@ -129,6 +129,12 @@ public class InstantApps {
   @NotNull
   public static String getDefaultInstantAppUrl(@NotNull AndroidFacet facet) {
     String defaultUrl = "<<ERROR - NO URL SET>>";
+
+    if (InstantAppSdks.getInstance().shouldUseSdkLibraryToRun()) {
+      // The new SDK supports launching instant apps with no URL; override the error text
+      defaultUrl = "";
+    }
+
     List<Module> featureModules = findFeatureModules(facet);
     for (Module module : featureModules) {
       String foundUrl = new InstantAppUrlFinder(module).getDefaultUrl();

@@ -16,13 +16,26 @@
 package com.android.tools.idea.instantapp;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.IdeComponents;
+import org.junit.Before;
 
 import static com.android.tools.idea.instantapp.InstantApps.findBaseFeature;
 import static com.android.tools.idea.instantapp.InstantApps.getDefaultInstantAppUrl;
 import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
+import static org.mockito.Mockito.when;
 
 public class InstantAppsTest extends AndroidGradleTestCase {
+  private InstantAppSdks instantAppSdks;
+
+  @Override
+  @Before
+  public void setUp() throws Exception {
+    super.setUp();
+    instantAppSdks = new IdeComponents(null, getTestRootDisposable()).mockApplicationService(InstantAppSdks.class);
+    when(instantAppSdks.shouldUseSdkLibraryToRun()).thenReturn(true);
+  }
+
   public void testFindBaseFeatureWithInstantApp() throws Exception {
     loadProject(INSTANT_APP, "instant-app");
     assertEquals(myModules.getModule("feature"), findBaseFeature(myAndroidFacet));
@@ -38,8 +51,14 @@ public class InstantAppsTest extends AndroidGradleTestCase {
     assertEquals("http://example.com/example", getDefaultInstantAppUrl(myAndroidFacet));
   }
 
-  public void testGetDefaultInstantAppUrlWithoutInstantApp() throws Exception {
+  public void testGetDefaultInstantAppUrlWithoutInstantAppUsingOldLauncher() throws Exception {
+    when(instantAppSdks.shouldUseSdkLibraryToRun()).thenReturn(false);
     loadProject(SIMPLE_APPLICATION, "app");
     assertEquals("<<ERROR - NO URL SET>>", getDefaultInstantAppUrl(myAndroidFacet));
+  }
+
+  public void testGetDefaultInstantAppUrlWithoutInstantAppUsingNewSdkLib() throws Exception {
+    loadProject(SIMPLE_APPLICATION, "app");
+    assertEquals("", getDefaultInstantAppUrl(myAndroidFacet));
   }
 }
