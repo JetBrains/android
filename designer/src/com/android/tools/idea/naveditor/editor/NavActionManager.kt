@@ -21,6 +21,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurfaceShortcut
 import com.android.tools.idea.gradle.actions.SelectBuildVariantAction
 import com.android.tools.idea.naveditor.actions.*
+import com.android.tools.idea.naveditor.model.isAction
 import com.android.tools.idea.naveditor.model.isDestination
 import com.android.tools.idea.naveditor.model.isNavigation
 import com.android.tools.idea.naveditor.model.uiName
@@ -72,6 +73,7 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
       mySurface.selectionModel.selection.count() > 1 -> addMultiSelectionGroup(group, actionManager)
       leafComponent == mySurface.currentNavigation -> addSurfaceGroup(group)
       leafComponent.isDestination -> addDestinationGroup(group, leafComponent, actionManager)
+      leafComponent.isAction -> addActionGroup(group, leafComponent, actionManager)
     }
 
     return group
@@ -114,6 +116,18 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
 
     group.addSeparator()
     group.add(gotoComponentAction)
+  }
+
+  private fun addActionGroup(
+    group: DefaultActionGroup,
+    component: NlComponent,
+    actionManager: com.intellij.openapi.actionSystem.ActionManager
+  ) {
+    val parent = component.parent ?: throw IllegalStateException()
+    group.add(EditExistingAction(mySurface, parent, component))
+
+    group.addSeparator()
+    group.add(actionManager.getAction(IdeActions.ACTION_DELETE))
   }
 
   private fun createAddActionGroup(component: NlComponent): DefaultActionGroup {

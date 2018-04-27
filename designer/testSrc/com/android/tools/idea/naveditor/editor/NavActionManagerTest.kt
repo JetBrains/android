@@ -294,6 +294,27 @@ class NavActionManagerTest : NavTestCase() {
 
   }
 
+  fun testActionContextMenu() {
+    val model = model("nav.xml") {
+      navigation(startDestination = "fragment2") {
+        fragment("fragment1") {
+          action("action1", "fragment2")
+        }
+        fragment("fragment2")
+      }
+    }
+    surface.model = model
+    val actionManager = NavActionManager(surface)
+    val action1 = model.find("action1")!!
+    val menuGroup = actionManager.createPopupMenu(com.intellij.openapi.actionSystem.ActionManager.getInstance(), action1)
+    val items = menuGroup.getChildren(null)
+
+    assertEquals(3, items.size)
+    validateItem(items[0], EditExistingAction::class.java, "Edit", true)
+    validateItem(items[1], Separator::class.java, null, true)
+    validateItem(items[2], DeleteAction::class.java, "Delete", true)
+  }
+
   private fun validateItem(item: AnAction, c: Class<*>, name: String?, enabled: Boolean) {
     assertInstanceOf(item, c)
     assertEquals(name, item.templatePresentation.text)

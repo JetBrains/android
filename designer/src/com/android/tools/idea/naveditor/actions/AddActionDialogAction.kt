@@ -21,16 +21,29 @@ import com.android.tools.idea.naveditor.property.inspector.AddActionDialog
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-class ToDestinationAction(
+open class AddActionDialogAction(
   private val surface: DesignSurface,
-  private val component: NlComponent
+  val text: String,
+  private val parent: NlComponent,
+  private val action: NlComponent?
 ) :
-    AnAction("To Destination...") {
+  AnAction(text) {
   override fun actionPerformed(e: AnActionEvent?) {
-    val addActionDialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, component)
+    val addActionDialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, action, parent)
     if (addActionDialog.showAndGet()) {
       val action = addActionDialog.writeUpdatedAction()
       surface.selectionModel.setSelection(listOf(action))
     }
   }
 }
+
+class ToDestinationAction(
+  val surface: DesignSurface,
+  val parent: NlComponent
+) : AddActionDialogAction(surface, "To Destination...", parent, null)
+
+class EditExistingAction(
+  val surface: DesignSurface,
+  val parent: NlComponent,
+  val action: NlComponent
+) : AddActionDialogAction(surface, "Edit", parent, action)

@@ -17,11 +17,13 @@ package com.android.tools.idea.common.model;
 
 import com.android.resources.Density;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.naveditor.scene.targets.ActionTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -270,8 +272,19 @@ public class Coordinates {
   public static NlComponent findComponent(@NotNull SceneView view,
                                           @SwingCoordinate int swingX,
                                           @SwingCoordinate int swingY) {
-    SceneComponent sceneComponent =
-      view.getScene().findComponent(SceneContext.get(view), getAndroidXDip(view, swingX), getAndroidYDip(view, swingY));
+    SceneContext sceneContext = SceneContext.get(view);
+    @AndroidDpCoordinate int x = getAndroidXDip(view, swingX);
+    @AndroidDpCoordinate int y = getAndroidYDip(view, swingY);
+
+    // TODO: Remove this code once we use a SceneComponent for the navigation
+    // action rather than a Target
+    Target target = view.getScene().findTarget(sceneContext, x, y);
+    if (target instanceof ActionTarget) {
+      ActionTarget selectableTarget = (ActionTarget)target;
+      return selectableTarget.getActionComponent();
+    }
+
+    SceneComponent sceneComponent = view.getScene().findComponent(sceneContext, x, y);
     return sceneComponent != null ? sceneComponent.getNlComponent() : null;
   }
 

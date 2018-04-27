@@ -193,6 +193,11 @@ public class ActionTarget extends BaseTarget {
     list.add(new DrawArrow(NavDrawHelperKt.DRAW_ACTION_LEVEL, arrowDirection, arrowRectangle, color));
   }
 
+  @NotNull
+  public NlComponent getActionComponent() {
+    return myNlComponent;
+  }
+
   private void renderSelfAction(@NotNull DisplayList list, @NotNull SceneContext sceneContext, Color color) {
     Point start = getStartPoint(mySourceRect);
     Point arrowPoint = getArrowPoint(sceneContext, myDestRect, BOTTOM);
