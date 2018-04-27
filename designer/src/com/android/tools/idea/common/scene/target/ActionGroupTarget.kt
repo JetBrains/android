@@ -23,7 +23,8 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.ScenePicker
 import com.android.tools.idea.common.scene.draw.DisplayList
 import java.awt.Rectangle
-import java.util.stream.Stream
+import kotlin.math.max
+import kotlin.math.min
 
 @SwingCoordinate
 private val SWING_GAP = 6
@@ -53,9 +54,13 @@ class ActionGroupTarget(component: SceneComponent) : BaseTarget() {
   override fun layout(context: SceneContext, l: Int, t: Int, r: Int, b: Int): Boolean {
     val size = getAndroidDpSize(SWING_DIMENSION)
     val gap = getAndroidDpSize(SWING_GAP)
-    val top = b + gap
-    val bottom = top + size
-    var left = l
+    val sceneView = myComponent.scene.sceneManager.sceneView
+    // Make sure the targets are not painted below the bottom of the scene view
+    val bottom = min(b + gap + size, Coordinates.getAndroidYDip(sceneView, sceneView.y + sceneView.size.height))
+    val top = bottom - size
+
+    // Make sure the targets are not painted outside of the scene view to the left
+    var left = max(l, 0)
     var right = left
     myLeft = left.toFloat()
     myTop = top.toFloat()
@@ -71,10 +76,27 @@ class ActionGroupTarget(component: SceneComponent) : BaseTarget() {
           left += size + gap
         }
       }
+
+    // If the targets go over to the right, redo the layout starting more to the left so that all the targets fit
+    // This cannot be pre-computed as some of the targets become invisible when their layout() is called
+    val rightBorder = Coordinates.getAndroidXDip(sceneView, sceneView.x + sceneView.size.width)
+    if (right > rightBorder) {
+      left = l - (right - rightBorder)
+      right = left
+      actionTargets
+        .filter { it.isVisible }
+        .forEach {
+          right = left + size
+          it.layout(context, left, top, right, bottom)
+          if (it.isVisible) {
+            left += size + gap
+          }
+        }
+    }
     myRight = right.toFloat()
 
-    actionsBounds.setSize(context.getSwingDimensionDip((right - l).toFloat()),
-                          context.getSwingDimensionDip((bottom - top).toFloat()))
+    actionsBounds.setSize(context.getSwingDimensionDip(myRight - myLeft),
+                          context.getSwingDimensionDip(myBottom - myTop))
     componentBounds.setBounds(
       context.getSwingXDip(myComponent.getDrawX(System.currentTimeMillis()).toFloat()),
       context.getSwingYDip(myComponent.getDrawY(System.currentTimeMillis()).toFloat()),
