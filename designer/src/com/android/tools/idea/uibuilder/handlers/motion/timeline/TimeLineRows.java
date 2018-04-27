@@ -32,6 +32,7 @@ import static com.intellij.openapi.ui.VerticalFlowLayout.TOP;
  * The make chart that displays the Keyframes in time
  */
 public class TimeLineRows extends JPanel implements Gantt.ChartElement {
+  private static final boolean DEBUG = false;
   Color myBackground = Chart.ourAvgBackground;
   Chart myChart;
   int[] myXPoints = new int[10]; // so that the memory is not allocated on paint
@@ -43,7 +44,6 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
   // a super light spacer to fill the bottom of the table
   JComponent mySpacer = new JComponent() {
   };
-
 
   TimeLineRows(Chart chart) {
     VerticalFlowLayout layout = new VerticalFlowLayout(TOP, 0, 0, true, false);
@@ -59,12 +59,22 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
 
   @Override
   public void update(Reason reason) {
+    if (DEBUG) {
+      StackTraceElement[] st = new Throwable().getStackTrace();
+      System.out.println("update ..... " + reason.name() + "   " + st[2].getFileName() + ":" + st[2].getLineNumber());
+      for (int i = 3; i < 10; i++) {
+        StackTraceElement element = st[i];
+        System.out.println(" " + reason.name() + "   " + st[i].toString());
+      }
+      System.out.println(" " + reason.name() +"   "+ st[5].getFileName()+":"+st[5].getLineNumber());
+    }
+    if (reason == Reason.SELECTION_CHANGED) {
+      return;
+    }
     if (reason == Reason.CURSOR_POSITION_CHANGED) {
       repaint();
       return;
     }
-
-
     if (reason == Reason.RESIZE || reason == Reason.ZOOM) {
       Dimension d = getPreferredSize();
       d.width = myChart.getGraphWidth();
@@ -78,7 +88,11 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
         for (ViewRow row : myViewRows) {
           int pos = row.myRow;
           Gantt.ViewElement v = myChart.myViewElements.get(pos);
-          row.setPreferredSize(new Dimension(chartWidth, v.myHeight));
+          Dimension dimension = row.getPreferredSize();
+          if (dimension.width == chartWidth && dimension.height == v.myHeight) {
+          } else {
+            row.setPreferredSize(new Dimension(chartWidth, v.myHeight));
+          }
         }
         revalidate();
         repaint();
@@ -99,8 +113,7 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
           myViewRows.add(vr);
           vr.setPreferredSize(new Dimension(chartWidth, v.myHeight));
           add(vr);
-          System.out.println("new size [" + i + "]= " + chartWidth);
-        }
+                  }
 
         revalidate();
         repaint();
@@ -279,7 +292,9 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
         }
         y += myViewElement.myHeightCycle;
       }
-
+      Graphics2D g2d = (Graphics2D)g;
+      Stroke stroke = g2d.getStroke();
+      g2d.setStroke(new BasicStroke(2));
       int pos = 2;
       int width = getWidth() - myChart.myChartLeftInset - myChart.myChartRightInset;
 
@@ -297,7 +312,7 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
         }
         myLocationTable.add(x, pos, key);
       }
-      int delta_y = getHeight() / 4;
+      int delta_y = (getHeight() - ourDiamondSize) / 4;
       pos += delta_y;
 
       for (MotionSceneModel.KeyPosition key : myViewElement.mKeyFrames.myKeyPositions) {
@@ -316,20 +331,19 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
       pos += delta_y;
       for (MotionSceneModel.KeyCycle key : myViewElement.mKeyFrames.myKeyCycles) {
         int x = myChart.myChartLeftInset + (int)((key.framePosition * width) / 100);
-
-        if (key == myChart.mySelectedKeyFrame) {
+                if (key == myChart.mySelectedKeyFrame) {
           g.setColor(Chart.ourMySelectedLineColor);
-          drawDiamond(g, true, x, pos * 2);
+          drawDiamond(g, true, x, pos );
           g.setColor(Chart.myUnSelectedLineColor);
         }
         else {
-          drawDiamond(g, false, x, pos * 2);
+          drawDiamond(g, false, x, pos);
         }
-        myLocationTable.add(x, pos * 2, key);
+        myLocationTable.add(x, pos, key);
       }
 
       int x = myChart.getCursorPosition();
-
+      g2d.setStroke(stroke);
       g.setColor(Chart.myTimeCursorColor);
       g.fillRect(x, 0, 1, panelHeight);
     }

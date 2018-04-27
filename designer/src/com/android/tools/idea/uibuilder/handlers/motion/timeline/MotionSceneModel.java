@@ -621,6 +621,11 @@ public class MotionSceneModel {
     HashSet<String> myAndroidAttributes = null;
 
     @Override
+    public String toString() {
+      return getName() + Arrays.toString(myAttributes.keySet().toArray());
+    }
+
+    @Override
     public boolean isAndroidAttribute(String str) {
       if (myAndroidAttributes == null) {
         myAndroidAttributes = new HashSet<>(Arrays.asList(ourPossibleStandardAttr));
@@ -660,12 +665,7 @@ public class MotionSceneModel {
       else if (node.endsWith(MotionSceneString.KeyCycle_waveShape)) {
         waveShape = value;
       }
-      else if (ourStandardSet.contains(node)) {
-        myAttributes.put(node, value);
-      }
-      else {
-        super.parse(node, value);
-      }
+      super.parse(node, value);
     }
   }
 
@@ -705,6 +705,11 @@ public class MotionSceneModel {
       "customDimension",
       "customBoolean"
     };
+
+    @Override
+    public String toString() {
+      return Arrays.toString(myAttributes.keySet().toArray());
+    }
 
     public String[] getPossibleAttr() {
       return ourPossibleAttr;
@@ -957,15 +962,15 @@ public class MotionSceneModel {
 
       for (int j = 0; j < tagkey.length; j++) {
         XmlTag xmlTag = tagkey[j];
-
+        XmlTag[] customTags = xmlTag.getSubTags();
         String keyNodeName = xmlTag.getName();
+
         KeyFrame frame = null;
-        if (MotionSceneString.KeyTypePositionPath.equals(keyNodeName)) {
+        if (KeyTypePositionPath.equals(keyNodeName)) {
           frame = new KeyPositionPath(motionSceneModel);
         }
-        else if (MotionSceneString.KeyTypeAttributes.equals(keyNodeName)) {
+        else if (KeyTypeAttributes.equals(keyNodeName)) {
           frame = new KeyAttributes(motionSceneModel);
-          XmlTag[] customTags = xmlTag.getSubTags();
           for (int k = 0; k < customTags.length; k++) {
             XmlTag tag = customTags[k];
             CustomAttributes custom = new CustomAttributes((KeyAttributes)frame);
@@ -973,12 +978,11 @@ public class MotionSceneModel {
             ((KeyAttributes)frame).myCustomAttributes.add(custom);
           }
         }
-        else if (MotionSceneString.KeyTypePositionCartesian.equals(keyNodeName)) {
+        else if (KeyTypePositionCartesian.equals(keyNodeName)) {
           frame = new KeyPositionCartesian(motionSceneModel);
         }
-        else if (MotionSceneString.KeyTypeCycle.equals(keyNodeName)) {
+        else if (KeyTypeCycle.equals(keyNodeName)) {
           frame = new KeyCycle(motionSceneModel);
-          XmlTag[] customTags = xmlTag.getSubTags();
           for (int k = 0; k < customTags.length; k++) {
             XmlTag tag = customTags[k];
             CustomCycleAttributes custom = new CustomCycleAttributes((KeyCycle)frame);

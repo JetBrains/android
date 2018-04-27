@@ -8,7 +8,6 @@ public class MotionSceneString {
       public static final String MotionNameSpace = "motion:";
       public static final String AndroidNameSpace = "android:";
 
-
       public static final  String MotionSceneKeyFrames = "KeyFrames";
       public static final  String MotionSceneTransition = "Transition";
       public static final  String MotionSceneOnSwipe = "OnSwipe";
@@ -24,7 +23,6 @@ public class MotionSceneString {
       public static final  String KeyTypeAttributes="KeyAttributes";
       public static final  String KeyTypePositionCartesian="KeyPositionCartesian";
       public static final  String KeyTypePositionPath="KeyPositionPath";
-
 
       public static final  String Key_framePosition="framePosition";
       public static final  String KeyAttributes_android_orientation="orientation";

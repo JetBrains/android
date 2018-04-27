@@ -81,7 +81,7 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     return myNlComponentDelegate;
   }
 
-  enum State { TL_UNKNOWN, TL_START, TL_PLAY, TL_PAUSE, TL_TRANSITION, TL_END }
+  enum State {TL_UNKNOWN, TL_START, TL_PLAY, TL_PAUSE, TL_TRANSITION, TL_END}
 
   private State myCurrentState = TL_UNKNOWN;
 
@@ -91,10 +91,9 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
                                    @NotNull NlComponent parent,
                                    @NotNull ViewGroupHandler.AccessoryPanelVisibility visibility) {
     mySurface = surface;
-    myMotionLayout = parent;
     myVisibilityCallback = visibility;
 
-    myMotionLayoutComponentHelper = new MotionLayoutComponentHelper(myMotionLayout);
+    myMotionLayoutComponentHelper = new MotionLayoutComponentHelper(parent);
     parent.putClientProperty(TIMELINE, this);
   }
 
@@ -141,9 +140,11 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     }
 
     // component is a motion layout
-    myMotionLayout = component;
-    addDelegate();
-    loadMotionScene();
+    if (myMotionLayout != component) {
+      myMotionLayout = component;
+      addDelegate();
+      loadMotionScene();
+    }
   }
 
   private void addDelegate() {
@@ -238,9 +239,11 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     if (myCurrentState != TL_PLAY) {
       if (percent == 0) {
         setState(TL_START);
-      } else if (percent == 1) {
+      }
+      else if (percent == 1) {
         setState(TL_END);
-      } else {
+      }
+      else {
         setState(TL_TRANSITION);
       }
     }
@@ -292,10 +295,10 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     myPositionTimer = new Timer(0, e -> {
 
       float increment = timer_delay_in_ms / 1000.f;
-      if (myPanel!= null) {
+      if (myPanel != null) {
         float speedMultiplier = myPanel.getChart().getPlayBackSpeed();
         float timeMs = myPanel.getChart().getAnimationTimeInMs();
-        increment =  speedMultiplier *  timer_delay_in_ms / timeMs;
+        increment = speedMultiplier * timer_delay_in_ms / timeMs;
       }
       float value = myLastPos + increment;
       if (value > 1) {
@@ -340,7 +343,7 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
           setState(State.TL_PLAY);
         }
         break;
-        default:
+      default:
     }
   }
 
