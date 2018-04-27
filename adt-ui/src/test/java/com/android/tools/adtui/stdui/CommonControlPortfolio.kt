@@ -24,7 +24,6 @@ import com.android.tools.adtui.stdui.menu.CommonDropDownButton
 import com.intellij.ide.ui.laf.darcula.DarculaLaf
 import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.openapi.util.IconLoader
-import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -72,8 +71,8 @@ object CommonControlPortfolio {
     topPanel.add(grid, "TextField")
 
     grid = JPanel(VerticalFlowLayout())
-    grid.add(makeComboBox("zero", true, true))
-    grid.add(makeComboBox("zero", true, false))
+    grid.add(makeComboBox("zero", enabled = true, editable = true))
+    grid.add(makeComboBox("zero", enabled = true, editable = false))
     topPanel.add(grid, "ComboBox")
 
     val menuPanel = JPanel(VerticalFlowLayout())
@@ -179,7 +178,6 @@ object CommonControlPortfolio {
 
     val combo = CommonComboBox(model)
     combo.isOpaque = false
-    combo.renderer = SimpleListRenderer(0, 6)
     return combo
   }
 
@@ -223,18 +221,6 @@ object CommonControlPortfolio {
         populateCommonActionRecursive(action, text, icon, width, depth - 1, label)
         parent.addChildrenActions(action)
       }
-    }
-  }
-}
-
-class SimpleListRenderer(private val valueInset: Int, private val listInset: Int) :
-    ColoredListCellRenderer<String>() {
-
-  override fun customizeCellRenderer(list: JList<out String>, value: String?, index: Int, selected: Boolean, hasFocus: Boolean) {
-    ipad.left = if (index < 0) valueInset else listInset
-    ipad.right = 0
-    if (value != null) {
-      append(value)
     }
   }
 }

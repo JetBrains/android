@@ -20,10 +20,7 @@ import com.intellij.ui.ColorUtil
 import com.intellij.ui.Gray
 import com.intellij.util.ui.GraphicsUtil
 import com.intellij.util.ui.UIUtil
-import java.awt.AlphaComposite
-import java.awt.Color
-import java.awt.Graphics
-import java.awt.Graphics2D
+import java.awt.*
 import java.awt.geom.Rectangle2D
 import java.awt.geom.RoundRectangle2D
 import javax.swing.JComponent
@@ -46,6 +43,13 @@ fun Rectangle2D.Float.applyInset(inset: Float) {
   this.y += inset
   this.width -= 2 * inset
   this.height -= 2 * inset
+}
+
+fun Rectangle2D.Float.applyInsets(insets: Insets) {
+  this.x += insets.left
+  this.y += insets.top
+  this.width -= insets.left + insets.right
+  this.height -= insets.top + insets.bottom
 }
 
 /**

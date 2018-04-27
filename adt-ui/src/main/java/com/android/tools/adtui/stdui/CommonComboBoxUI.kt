@@ -20,9 +20,7 @@ import com.android.tools.adtui.model.stdui.CommonComboBoxModel
 import com.android.tools.adtui.model.stdui.CommonTextFieldModel
 import com.android.tools.adtui.stdui.StandardDimensions.DROPDOWN_ARROW_HEIGHT
 import com.android.tools.adtui.stdui.StandardDimensions.DROPDOWN_ARROW_WIDTH
-import com.android.tools.adtui.stdui.StandardDimensions.DROPDOWN_BUTTON_WIDTH
 import com.android.tools.adtui.stdui.StandardDimensions.DROPDOWN_CORNER_RADIUS
-import com.android.tools.adtui.stdui.StandardDimensions.DROPDOWN_HORIZONTAL_PADDING_RIGHT
 import com.android.tools.adtui.stdui.StandardDimensions.HORIZONTAL_PADDING
 import com.android.tools.adtui.stdui.StandardDimensions.INNER_BORDER_WIDTH
 import com.android.tools.adtui.stdui.StandardDimensions.OUTER_BORDER_WIDTH
@@ -43,6 +41,8 @@ import javax.swing.plaf.basic.BasicComboBoxEditor
 import javax.swing.plaf.basic.BasicComboBoxUI
 import javax.swing.plaf.basic.BasicComboPopup
 import javax.swing.plaf.basic.ComboPopup
+import kotlin.math.max
+import kotlin.math.roundToInt
 
 private const val GLOBAL_INPUT_MAP = "ASComboBox.inputMap"
 private const val GLOBAL_ACTION_MAP = "ASComboBox.actionMap"
@@ -53,13 +53,21 @@ open class CommonComboBoxUI : BasicComboBoxUI() {
     super.installDefaults()
 
     if (comboBox.border == null || comboBox.border is UIResource) {
-      comboBox.border = BorderUIResource(CommonBorder(
-        DROPDOWN_CORNER_RADIUS, EditorCommonBorderModel(comboBox), 0, HORIZONTAL_PADDING, 0, DROPDOWN_HORIZONTAL_PADDING_RIGHT))
+      comboBox.border = BorderUIResource(
+        CommonBorder(DROPDOWN_CORNER_RADIUS, EditorCommonBorderModel(comboBox), 0, 0, 0, 0))
     }
     if (comboBox.background == null || comboBox.background is UIResource) {
       comboBox.background = ColorUIResource(StandardColors.BACKGROUND_COLOR)
     }
     LookAndFeel.installProperty(comboBox, "opaque", true)
+  }
+
+  // Fudge the display size such that TextFields and comboBoxes are about the same height
+  override fun getDisplaySize(): Dimension {
+    val metrics = comboBox.getFontMetrics(comboBox.font)
+    val h = max(metrics.height + JBUI.scale(1), (3 * DROPDOWN_ARROW_HEIGHT).roundToInt())
+    val w = (3 * DROPDOWN_ARROW_WIDTH).roundToInt() + 10 * metrics.charWidth('w')
+    return Dimension(w, h)
   }
 
   override fun getMinimumSize(component: JComponent): Dimension {
@@ -68,10 +76,8 @@ open class CommonComboBoxUI : BasicComboBoxUI() {
     }
     val size = displaySize
     val insets = insets
-    val buttonWidth = round(DROPDOWN_BUTTON_WIDTH)
-    //adjust the size based on the button width
     size.height += insets.top + insets.bottom
-    size.width += insets.left + insets.right + buttonWidth
+    size.width += insets.left + insets.right + (2 * DROPDOWN_ARROW_WIDTH).roundToInt()
 
     cachedMinimumSize.setSize(size.width, size.height)
     isMinimumSizeDirty = false
@@ -95,6 +101,7 @@ open class CommonComboBoxUI : BasicComboBoxUI() {
 
   override fun paint(g: Graphics, c: JComponent) {
     paintArrowButton(g)
+    paintMargin(g)
     super.paint(g, c)
   }
 
@@ -105,50 +112,123 @@ open class CommonComboBoxUI : BasicComboBoxUI() {
     g.color = prevColor
   }
 
+  override fun paintCurrentValue(g: Graphics, bounds: Rectangle, hasFocus: Boolean) {
+    val component = comboBox.renderer.getListCellRendererComponent(listBox, comboBox.selectedItem, -1, false, hasFocus)
+    component.font = comboBox.font
+    component.background = comboBox.background
+
+    // Fix for 4238829: should lay out the JPanel.
+    val shouldValidate = component is JPanel
+
+    currentValuePane.paintComponent(g, component, comboBox, bounds.x, bounds.y, bounds.width, bounds.height, shouldValidate)
+  }
+
   private fun paintArrowButton(g: Graphics) {
     val g2 = g.create() as Graphics2D
-    val rect = createRectWithBorderInsets()
+    val rect = rectangleForArrowButton()
+    val corner = DROPDOWN_CORNER_RADIUS
 
+    // Fill background of arrow button
     val background = Path2D.Float()
-    background.moveTo(rect.x + rect.width - DROPDOWN_BUTTON_WIDTH, rect.y)
+    adjustForCurvedBorder(rect, corner - 1f)
+    background.moveTo(rect.x, rect.y)
     background.lineTo(rect.x + rect.width, rect.y)
     background.lineTo(rect.x + rect.width, rect.y + rect.height)
-    background.lineTo(rect.x + rect.width - DROPDOWN_BUTTON_WIDTH, rect.y + rect.height)
-    background.lineTo(rect.x + rect.width - DROPDOWN_BUTTON_WIDTH, rect.y)
+    background.lineTo(rect.x, rect.y + rect.height)
+    background.closePath()
+    adjustForCurvedBorder(rect, -(corner - 1f))
     g2.color = comboBox.background
     g2.fill(background)
 
+    // Draw a line to separate the arrow button from the value/editor
+    val xLine = if (comboBox.componentOrientation.isLeftToRight) rect.x else rect.x + rect.width
     val line = Path2D.Float()
-    line.moveTo(rect.x + rect.width - DROPDOWN_BUTTON_WIDTH - 0.5f, rect.y)
-    line.lineTo(rect.x + rect.width - DROPDOWN_BUTTON_WIDTH - 0.5f, rect.y + rect.height - 0.5f)
+    line.moveTo(xLine, rect.y)
+    line.lineTo(xLine, rect.y + rect.height - 0.5f)
     g2.stroke = BasicStroke(INNER_BORDER_WIDTH)
     g2.color = StandardColors.INNER_BORDER_COLOR
     g2.draw(line)
 
-    val y = rect.y + (rect.height - DROPDOWN_ARROW_HEIGHT) / 2f + 1f
-    val x = rect.x + rect.width - DROPDOWN_BUTTON_WIDTH / 2f
+    // Draw the arrow of the button
+    val w2 = rect.width / 4f
+    val h = rect.height / 4f
+    val x = rect.x + rect.width / 2f
+    val y = rect.y + (rect.height - h) / 2f
     val triangle = Path2D.Float()
-    triangle.moveTo(x, y + DROPDOWN_ARROW_HEIGHT)
-    triangle.lineTo(x - DROPDOWN_ARROW_WIDTH / 2f, y)
-    triangle.lineTo(x + DROPDOWN_ARROW_WIDTH / 2f, y)
-    triangle.lineTo(x, y + DROPDOWN_ARROW_HEIGHT)
+    triangle.moveTo(x, y + h)
+    triangle.lineTo(x - w2, y)
+    triangle.lineTo(x + w2, y)
+    triangle.closePath()
+    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
     g2.color = StandardColors.DROPDOWN_ARROW_COLOR
     g2.fill(triangle)
     g2.dispose()
   }
 
-  private fun createRectWithBorderInsets(): Rectangle2D.Float {
-    val rect = Rectangle2D.Float(0f, 0f, comboBox.width.toFloat(), comboBox.height.toFloat())
-    val insets = comboBox.border?.getBorderInsets(comboBox) ?: JBUI.insets(0)
-    rect.x += insets.left.toFloat()
-    rect.y += insets.top.toFloat()
-    rect.width -= insets.left.toFloat() + insets.right.toFloat()
-    rect.height -= insets.top.toFloat() + insets.bottom.toFloat()
+  private fun paintMargin(g: Graphics) {
+    val g2 = g as Graphics2D
+    val background = Path2D.Float()
+    val rect = rectangleForMargin()
+    background.moveTo(rect.x, rect.y)
+    background.lineTo(rect.x + rect.width, rect.y)
+    background.lineTo(rect.x + rect.width, rect.y + rect.height)
+    background.lineTo(rect.x, rect.y + rect.height)
+    background.closePath()
+    g2.color = comboBox.background
+    g2.fill(background)
+  }
+
+  private fun rectangleForArrowButton(): Rectangle2D.Float {
+    val bounds = Rectangle2D.Float(0f, 0f, comboBox.width.toFloat(), comboBox.height.toFloat())
+    bounds.applyInsets(insets)
+
+    // The width of the button depends on the height. See BasicComboBoxUI.rectangleForCurrentValue.
+    val buttonWidth = bounds.height
+
+    // The placement of the arrow button depends on the component orientation.
+    if (comboBox.componentOrientation.isLeftToRight) {
+      bounds.x = max(0f, bounds.x + bounds.width - buttonWidth)
+    }
+    bounds.width = buttonWidth
+    return bounds
+  }
+
+  private fun rectangleForMargin(): Rectangle2D.Float {
+    val bounds = Rectangle2D.Float(0f, 0f, comboBox.width.toFloat(), comboBox.height.toFloat())
+    bounds.applyInsets(insets)
+    if (comboBox.componentOrientation.isLeftToRight) {
+      bounds.x += DROPDOWN_CORNER_RADIUS - 1
+    } else {
+      bounds.x = bounds.x + bounds.width - HORIZONTAL_PADDING
+    }
+    bounds.width = HORIZONTAL_PADDING - DROPDOWN_CORNER_RADIUS + 1
+    return bounds
+  }
+
+  override fun rectangleForCurrentValue(): Rectangle {
+    val rect = super.rectangleForCurrentValue()
+    rect.width -= HORIZONTAL_PADDING
+    if (comboBox.componentOrientation.isLeftToRight) {
+      rect.x += HORIZONTAL_PADDING
+    }
     return rect
+  }
+
+  private fun adjustForCurvedBorder(bounds: Rectangle2D.Float, size: Float) {
+    bounds.width -= size
+    if (!comboBox.componentOrientation.isLeftToRight) {
+      bounds.x += size
+    }
   }
 
   override fun createArrowButton() : JButton? {
     return null
+  }
+
+  // Create a default renderer.
+  // Note: This method will only be called if no renderer was specified on the ComboBox.
+  override fun createRenderer(): ListCellRenderer<*> {
+    return CommonComboBoxRenderer.UIResource()
   }
 
   override fun createEditor(): ComboBoxEditor {

@@ -38,8 +38,8 @@ public class CommonDropDownButtonUI extends BasicButtonUI {
   private static final int ARROW_REGION_WIDTH = (int)StandardDimensions.INSTANCE.getDROPDOWN_ARROW_WIDTH() +
                                                 (int)StandardDimensions.INSTANCE.getDROPDOWN_ARROW_HORIZONTAL_PADDING() * 2;
   private static final int ARROW_REGION_HEIGHT = (int)StandardDimensions.INSTANCE.getDROPDOWN_ARROW_HEIGHT() +
-                                                 (int)StandardDimensions.INSTANCE.getDROPDOWN_ARROW_VERITCAL_PADDING_TOP() +
-                                                 (int)StandardDimensions.INSTANCE.getDROPDOWN_ARROW_VERITCAL_PADDING_BOTTOM();
+                                                 (int)StandardDimensions.INSTANCE.getDROPDOWN_ARROW_VERTICAL_PADDING_TOP() +
+                                                 (int)StandardDimensions.INSTANCE.getDROPDOWN_ARROW_VERTICAL_PADDING_BOTTOM();
 
   @NotNull private final MouseAdapter myAdapter;
   private boolean myHover;
