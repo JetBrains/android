@@ -21,9 +21,7 @@ import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem
-import org.fest.swing.exception.WaitTimedOutError
 import org.fest.swing.timing.Wait
-import org.hamcrest.core.IsInstanceOf.instanceOf
 import org.junit.*
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
@@ -45,18 +43,13 @@ class AswbGotoDeclarationTest {
   @Test
   @TargetBuildSystem(TargetBuildSystem.BuildSystem.BAZEL)
   fun gotoDeclaration_withExternalResources() {
-    try {
-      guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleBazelApplication", "java/com/foo/gallery/BUILD")
-        .editor
-        .open("../SimpleBazelApplication/java/com/foo/gallery/activities/MainActivity.java")
-        .moveBetween("R.style", ".Base_Highlight")
-        .invokeAction(EditorFixture.EditorAction.GOTO_DECLARATION)
-      Wait.seconds(20).expecting("file to open")
-        .until({guiTest.ideFrame().editor.currentFileName.equals("styles.xml")})
-    } catch(e: Exception) {
-      // Time out exception due to b/71820265, try-catch should be removed after fixing it.
-      Assert.assertThat(e, instanceOf(WaitTimedOutError::class.java))
-    }
+    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleBazelApplication", "java/com/foo/gallery/BUILD")
+      .editor
+      .open("../SimpleBazelApplication/java/com/foo/gallery/activities/MainActivity.java")
+      .moveBetween("R.style", ".Base_Highlight")
+      .invokeAction(EditorFixture.EditorAction.GOTO_DECLARATION)
+    Wait.seconds(20).expecting("file to open")
+      .until({guiTest.ideFrame().editor.currentFileName.equals("styles.xml")})
   }
 
   @RunIn(TestGroup.UNRELIABLE)  // b/76176149
