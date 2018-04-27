@@ -19,7 +19,6 @@ import com.google.common.collect.Lists;
 import com.intellij.testFramework.IdeaTestCase;
 
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
@@ -42,13 +41,7 @@ public class ArtifactRepositorySearchTest extends IdeaTestCase {
 
     ArtifactRepositorySearch search = new ArtifactRepositorySearch(Lists.newArrayList(repository1, repository2));
 
-    final CountDownLatch lock = new CountDownLatch(1);
-
-    ArtifactRepositorySearch.Callback callback = search.start(request);
-    callback.doWhenDone(lock::countDown);
-    lock.await();
-
-    List<SearchResult> results = callback.getSearchResults();
+    List<SearchResult> results = search.search(request).get().getResults();
     assertThat(results).containsExactly(result1, result2);
   }
 }

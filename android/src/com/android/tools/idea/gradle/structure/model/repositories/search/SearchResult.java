@@ -29,11 +29,11 @@ public class SearchResult {
   @Nullable private final Exception myError;
   private final int myTotalFound;
 
-  SearchResult(@NotNull String repositoryName, @NotNull Exception error) {
+  public SearchResult(@NotNull String repositoryName, @NotNull Exception error) {
     this(repositoryName, Collections.emptyList(), error, 0);
   }
 
-  SearchResult(@NotNull String repositoryName, @NotNull List<FoundArtifact> artifacts, int totalFound) {
+  public SearchResult(@NotNull String repositoryName, @NotNull List<FoundArtifact> artifacts, int totalFound) {
     this(repositoryName, artifacts, null, totalFound);
   }
 
