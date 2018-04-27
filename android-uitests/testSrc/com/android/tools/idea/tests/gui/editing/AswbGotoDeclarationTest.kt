@@ -47,12 +47,6 @@ class AswbGotoDeclarationTest {
     guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleBazelApplication", "java/com/foo/gallery/BUILD")
   }
 
-  private fun EditorFixture.gotoDeclaration(resourceId: String): EditorFixture {
-    select("($resourceId)")
-    invokeAction(EditorFixture.EditorAction.GOTO_DECLARATION)
-    return this
-  }
-
   @Test
   @TargetBuildSystem(TargetBuildSystem.BuildSystem.BAZEL)
   fun gotoDeclaration_withExternalResources() {
@@ -60,7 +54,8 @@ class AswbGotoDeclarationTest {
       guiTest.ideFrame()
         .editor
         .open("../SimpleBazelApplication/java/com/foo/gallery/activities/MainActivity.java")
-        .gotoDeclaration("R.style.Base_Highlight")
+        .moveBetween("R.style", ".Base_Highlight")
+        .invokeAction(EditorFixture.EditorAction.GOTO_DECLARATION)
       Wait.seconds(20).expecting("file to open")
         .until({guiTest.ideFrame().editor.currentFileName.equals("styles.xml")})
     } catch(e: Exception) {
@@ -76,7 +71,8 @@ class AswbGotoDeclarationTest {
     guiTest.ideFrame()
       .editor
       .open("../SimpleBazelApplication/java/com/foo/gallery/activities/MainActivity.java")
-      .gotoDeclaration("R.menu.settings")
+      .moveBetween("R.menu", ".settings")
+      .invokeAction(EditorFixture.EditorAction.GOTO_DECLARATION)
     Wait.seconds(20).expecting("file to open")
       .until({guiTest.ideFrame().editor.currentFileName.equals("settings.xml")})
   }
