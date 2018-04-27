@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.details;
 
+import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditor;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency;
@@ -38,9 +39,14 @@ public class SingleDeclaredLibraryDependencyDetails implements DependencyDetails
   private JXLabel myScopeLabel;
   private JPanel myRequestedVersion;
 
+  @NotNull private final PsContext myContext;
   @Nullable private PsDeclaredLibraryDependency myDependency;
   @Nullable private ModelPropertyEditor<Unit, ?> myVersionPropertyEditor;
   @Nullable private JComponent myEditorComponent;
+
+  public SingleDeclaredLibraryDependencyDetails(@NotNull PsContext context) {
+    myContext = context;
+  }
 
   @Override
   @NotNull
@@ -65,7 +71,7 @@ public class SingleDeclaredLibraryDependencyDetails implements DependencyDetails
       Disposer.dispose(myVersionPropertyEditor);
     }
     myVersionPropertyEditor =
-      DeclaredLibraryDependencyUiProperties.INSTANCE.makeVersionUiProperty(myDependency)
+      DeclaredLibraryDependencyUiProperties.INSTANCE.makeVersionUiProperty(myContext, myDependency)
                                                     .createEditor(myDependency.getParent().getParent(),
                                                                   myDependency.getParent(),
                                                                   Unit.INSTANCE);
