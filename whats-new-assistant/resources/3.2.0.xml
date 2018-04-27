@@ -124,9 +124,9 @@
           <br><br>
           <ul>
 
-            <li><b>Energy Profiler:</b> Estimate your app's energy consumption based on its usage of the device
-            CPU, network, and GPS. This new profiler also highlights background events that may contribute to battery
-            drain, such as wake locks, alarms, jobs, and location requests.
+            <li><b>Energy Profiler:</b> Estimates your app's energy usage of a device's CPU, Network,
+            and GPS resources. This new profiler also highlights background events that may contribute
+            to battery drain, such as wake locks, alarms, jobs, and location requests.
             <a href="https://d.android.com/studio/preview/features/index.html?utm_source=android-studio&utm_medium=studio-assistant#energy_profiler">
             Learn more</a></li>
 
