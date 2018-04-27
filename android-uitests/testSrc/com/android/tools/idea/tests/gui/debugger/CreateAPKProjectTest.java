@@ -319,11 +319,10 @@ public class CreateAPKProjectTest extends DebuggerTestBase {
     // VfsUtil.findFileByIoFile blocks us indefinitely. Retrieve
     // VirtualFile before we open the dialog:
     VirtualFile apkFile = VfsUtil.findFileByIoFile(apk, true);
-    welcomeFrame.profileDebugApk();
 
     // This step generates the ~/ApkProjects/app-x86-debug directory. This
     // directory will be removed as a part of our tests' cleanup methods.
-    FileChooserDialogFixture.findDialog(guiTest.robot(), "Select APK File")
+    welcomeFrame.profileOrDebugApk()
       .select(apkFile)
       .clickOk();
 

@@ -58,9 +58,9 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, F
   }
 
   @NotNull
-  public WelcomeFrameFixture profileDebugApk() {
+  public FileChooserDialogFixture profileOrDebugApk() {
     findActionLinkByActionId("WelcomeScreen.AndroidStudio.apkProfilingAndDebugging").click();
-    return this;
+    return FileChooserDialogFixture.findDialog(robot(), "Select APK File");
   }
 
   @NotNull
