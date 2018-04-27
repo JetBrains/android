@@ -22,6 +22,7 @@ import com.android.tools.adtui.instructions.*;
 import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.JBColor;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
@@ -286,12 +287,12 @@ public class LegendComponent extends AnimatedComponent {
                                                                    0.0f);  // Dash phase - just starts at zero.
     private static final BasicStroke BORDER_STROKE = new BasicStroke(1);
     private static int ICON_MAX_WIDTH = Math.max(BOX_SIZE.width, LINE_SIZE.width);
+    private static final Color BOX_BORDER_COLOR = new JBColor(new Color(0, 0, 0, 0.1f), new Color(1, 1, 1, 0.1f));
 
     @VisibleForTesting
     @NotNull
     final LegendConfig.IconType myType;
     @NotNull private final Color myColor;
-    @NotNull private final Color myBorderColor;
 
     public IconInstruction(@NotNull LegendConfig.IconType type, @NotNull Color color) {
       switch (type) {
@@ -305,12 +306,6 @@ public class LegendComponent extends AnimatedComponent {
 
       myType = type;
       myColor = color;
-
-      // TODO: make the border customizable. Profilers, for instance, shouldn't have a border in Darcula.
-      int r = (int)(myColor.getRed() * .8f);
-      int g = (int)(myColor.getGreen() * .8f);
-      int b = (int)(myColor.getBlue() * .8f);
-      myBorderColor = new Color(r, g, b);
     }
 
     @NotNull
@@ -343,9 +338,9 @@ public class LegendComponent extends AnimatedComponent {
           g2d.setColor(myColor);
           g2d.fillRect(boxX, boxY, BOX_SIZE.width, BOX_SIZE.height);
 
-          g2d.setColor(myBorderColor);
+          g2d.setColor(BOX_BORDER_COLOR);
           g2d.setStroke(BORDER_STROKE);
-          g2d.drawRect(boxX, boxY, BOX_SIZE.width, BOX_SIZE.height);
+          g2d.drawRect(boxX, boxY, BOX_SIZE.width - 1, BOX_SIZE.height - 1);
           break;
 
         case LINE:
