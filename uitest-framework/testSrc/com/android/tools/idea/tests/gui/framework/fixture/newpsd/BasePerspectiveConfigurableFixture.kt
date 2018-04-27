@@ -46,6 +46,7 @@ open class BasePerspectiveConfigurableFixture protected constructor(
       Pause.pause(TimedDeadzone.DEFAULT.length.toLong() + 1)
     } finally {
       robot().releaseMouse(MouseButton.LEFT_BUTTON)
+      waitForIdle()
     }
   }
 
@@ -57,6 +58,7 @@ open class BasePerspectiveConfigurableFixture protected constructor(
       Pause.pause(TimedDeadzone.DEFAULT.length.toLong() + 1)
     } finally {
       robot().releaseMouse(MouseButton.LEFT_BUTTON)
+      waitForIdle()
     }
   }
 
