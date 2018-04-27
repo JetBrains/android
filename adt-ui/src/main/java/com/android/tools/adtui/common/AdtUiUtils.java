@@ -15,17 +15,22 @@
  */
 package com.android.tools.adtui.common;
 
+import com.android.tools.adtui.TabularLayout;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.InputEvent;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.util.function.Predicate;
 
 import static com.intellij.util.ui.SwingHelper.ELLIPSIS;
@@ -164,5 +169,87 @@ public final class AdtUiUtils {
    */
   public static int getActionMask() {
     return SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK;
+  }
+
+  /**
+   * Returns a separator that is vertically centered. It has a consistent size among Mac and Linux platforms, as {@link JSeparator} on
+   * different platforms has different UI and different sizes.
+   */
+  public static JComponent createHorizontalSeparator() {
+    JPanel separatorWrapper = new JPanel(new TabularLayout("*", "*,Fit,*"));
+    // The separator panel background should inherit the parent component's background.
+    separatorWrapper.setBackground(null);
+    separatorWrapper.add(new JSeparator(), new TabularLayout.Constraint(1, 0));
+    Dimension size = new Dimension(1, 12);
+    separatorWrapper.setMinimumSize(size);
+    separatorWrapper.setPreferredSize(size);
+    return separatorWrapper;
+  }
+
+  /**
+   * Creates a scroll pane that the vertical scrolling is delegated to upper level scroll pane and its own vertical scroll bar is hidden.
+   * This is needed when the outer pane has vertical scrolling and the inner pane has horizontal scrolling.
+   */
+  @NotNull
+  public static JBScrollPane createNestedVScrollPane(@NotNull JComponent component) {
+    JBScrollPane scrollPane = new JBScrollPane(component);
+    scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+    scrollPane.addMouseWheelListener(new AdtUiUtils.DelegateMouseWheelListener(scrollPane));
+    scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    return scrollPane;
+  }
+
+  /**
+   * Delegates given scroll pane's vertical wheel event to the parent scroll pane.
+   */
+  private static class DelegateMouseWheelListener implements MouseWheelListener {
+    @NotNull private final JScrollPane myScrollPane;
+    @Nullable private JScrollPane myParentScrollPane;
+    private int myLastScrollOffset = 0;
+
+    DelegateMouseWheelListener(@NotNull JScrollPane scrollPane) {
+      myScrollPane = scrollPane;
+    }
+
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent e) {
+      setParentScrollPane();
+      if (myParentScrollPane == null) {
+        myScrollPane.removeMouseWheelListener(this);
+        return;
+      }
+
+      JScrollBar scrollBar = myScrollPane.getVerticalScrollBar();
+      int terminalValue = e.getWheelRotation() < 0 ? 0 : scrollBar.getMaximum() - scrollBar.getVisibleAmount();
+      if (scrollBar.getValue() == terminalValue && myLastScrollOffset == terminalValue) {
+        // Clone the event since this pane already consumes it.
+        myParentScrollPane.dispatchEvent(clone(myParentScrollPane, e));
+      }
+      myLastScrollOffset = scrollBar.getValue();
+    }
+
+    private void setParentScrollPane() {
+      if (myParentScrollPane == null) {
+        Component parent = myScrollPane.getParent();
+        while (parent != null && !(parent instanceof JScrollPane)) {
+          parent = parent.getParent();
+        }
+        myParentScrollPane = (JScrollPane) parent;
+      }
+    }
+
+    private static MouseWheelEvent clone(JScrollPane source, MouseWheelEvent e) {
+      return new MouseWheelEvent(source,
+                                 e.getID(),
+                                 e.getWhen(),
+                                 e.getModifiers(),
+                                 e.getX(),
+                                 e.getY(),
+                                 e.getClickCount(),
+                                 e.isPopupTrigger(),
+                                 e.getScrollType(),
+                                 e.getScrollAmount(),
+                                 e.getWheelRotation());
+    }
   }
 }

@@ -16,6 +16,7 @@
 package com.android.tools.adtui.ui;
 
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.intellij.icons.AllIcons;
 import com.intellij.util.ui.JBEmptyBorder;
 import org.jetbrains.annotations.NotNull;
@@ -80,14 +81,10 @@ public class HideablePanel extends JPanel {
 
     // Add Label as first element, should always be left aligned.
     myTitlePanel.add(label, new TabularLayout.Constraint(0, 0));
-    // If we have a separator we want it to be centered vertically so we wrap it in a panel.
     if (builder.myShowSeparator) {
-      JPanel verticalAlignPanel = new JPanel(new TabularLayout("*", "*,Fit,*"));
-      // The separator panel background should inherit the parent component's background.
-      verticalAlignPanel.setBackground(null);
-      verticalAlignPanel.add(new JSeparator(), new TabularLayout.Constraint(1, 0));
-      verticalAlignPanel.setBorder(new JBEmptyBorder(0, 10, 0, builder.myTitleRightPadding));
-      myTitlePanel.add(verticalAlignPanel, new TabularLayout.Constraint(0, 1));
+      JComponent separatorComponent = AdtUiUtils.createHorizontalSeparator();
+      separatorComponent.setBorder(new JBEmptyBorder(0, 10, 0, builder.myTitleRightPadding));
+      myTitlePanel.add(separatorComponent, new TabularLayout.Constraint(0, 1));
     }
     // If we have a north east component we add that last it will only take up as much space as it needs.
     if (builder.myNorthEastComponent != null) {
