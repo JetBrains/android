@@ -112,7 +112,7 @@ internal class DeclaredDependenciesPanel(
   private fun createPlaceName(moduleName: String): String = "dependencies.$moduleName.place"
 
   private fun initializeDependencyDetails() {
-    addDetails(SingleDeclaredLibraryDependencyDetails())
+    addDetails(SingleDeclaredLibraryDependencyDetails(context))
     addDetails(ModuleDependencyDetails(context, true))
   }
 

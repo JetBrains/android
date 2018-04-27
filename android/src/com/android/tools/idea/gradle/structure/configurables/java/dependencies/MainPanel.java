@@ -105,7 +105,7 @@ class MainPanel extends AbstractDependenciesPanel {
   }
 
   private void initializeDependencyDetails() {
-    addDetails(new SingleDeclaredLibraryDependencyDetails());
+    addDetails(new SingleDeclaredLibraryDependencyDetails(myContext));
     addDetails(new ModuleDependencyDetails(getContext(), true));
   }
 

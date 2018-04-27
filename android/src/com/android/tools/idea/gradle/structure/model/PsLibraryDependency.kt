@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
+import com.android.tools.idea.gradle.structure.model.meta.ModelSimpleProperty
 import com.android.tools.idea.gradle.structure.model.meta.SimpleProperty
+import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
 
 interface PsLibraryDependency : PsBaseDependency {
   val parent: PsModule
@@ -26,7 +28,7 @@ interface PsLibraryDependency : PsBaseDependency {
 }
 
 interface PsDeclaredLibraryDependency: PsLibraryDependency, PsDeclaredDependency {
-  val versionProperty: SimpleProperty<Unit, String>
+  val versionProperty: ModelSimpleProperty<ArtifactRepositorySearchService, Unit, String>
 }
 
 interface PsResolvedLibraryDependency : PsLibraryDependency, PsResolvedDependency {

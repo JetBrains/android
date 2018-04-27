@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.model.java.JarLibraryDependency
 import com.android.tools.idea.gradle.structure.model.*
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
 import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
 import com.intellij.util.PlatformIcons.LIBRARY_ICON
 import javax.swing.Icon
 
@@ -49,7 +50,8 @@ class PsLibraryJavaDependency(
 
   var version by PsLibraryJavaDependency.Descriptor.version
 
-  override val versionProperty: SimpleProperty<Unit, String> get() = PsLibraryJavaDependency.Descriptor.version.bind(this)
+  override val versionProperty: ModelSimpleProperty<ArtifactRepositorySearchService, Unit, String> get() =
+    PsLibraryJavaDependency.Descriptor.version.bind(this)
 
   object Descriptor : ModelDescriptor<PsLibraryJavaDependency, Nothing, ArtifactDependencyModel> {
     override fun getResolved(model: PsLibraryJavaDependency): Nothing? = null
@@ -61,7 +63,7 @@ class PsLibraryJavaDependency(
       model.isModified = true
     }
 
-    val version: SimpleProperty<PsLibraryJavaDependency, String> = property(
+    val version: ModelSimpleProperty<ArtifactRepositorySearchService, PsLibraryJavaDependency, String> = property(
       "Version",
       getResolvedValue = { null },
       getParsedProperty = { this.version() },

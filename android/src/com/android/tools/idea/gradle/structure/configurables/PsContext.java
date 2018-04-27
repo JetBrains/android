@@ -20,8 +20,14 @@ import com.android.tools.idea.gradle.structure.FastGradleSync;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.daemon.PsAnalyzerDaemon;
 import com.android.tools.idea.gradle.structure.daemon.PsLibraryUpdateCheckerDaemon;
+import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsProject;
+import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearch;
+import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchResults;
+import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService;
+import com.android.tools.idea.gradle.structure.model.repositories.search.SearchRequest;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -29,11 +35,16 @@ import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.concurrent.GuardedBy;
 import java.util.EventListener;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static com.intellij.util.ExceptionUtil.getRootCause;
 
 public class PsContext implements Disposable {
+  @NotNull private final Object myLock = new Object();
   @NotNull private final PsProject myProject;
   @NotNull private final PsAnalyzerDaemon myAnalyzerDaemon;
   @NotNull private final FastGradleSync myGradleSync;
@@ -43,6 +54,10 @@ public class PsContext implements Disposable {
   @NotNull private final EventDispatcher<GradleSyncListener> myGradleSyncEventDispatcher = EventDispatcher.create(GradleSyncListener.class);
 
   @Nullable private String mySelectedModuleName;
+
+  @GuardedBy("myLock")
+  @NotNull
+  private final Map<PsModule, ArtifactRepositorySearchService> myArtifactRepositorySearchServices = new LinkedHashMap<>();
 
   public PsContext(@NotNull PsProject project, @NotNull Disposable parentDisposable) {
     myProject = project;
@@ -121,7 +136,50 @@ public class PsContext implements Disposable {
     return ProjectStructureConfigurable.getInstance(myProject.getResolvedModel());
   }
 
+  /**
+   * Gets a {@link ArtifactRepositorySearchService} that searches the repositories configured for {@code module}. The results are cached and
+   * in the case of an exactly matching request reused.
+   */
+  @NotNull
+  public ArtifactRepositorySearchService getArtifactRepositorySearchServiceFor(@NotNull PsModule module) {
+    synchronized (myLock) {
+      ArtifactRepositorySearchService result = myArtifactRepositorySearchServices.get(module);
+      if (result == null) {
+        result = new CachingArtifactRepositorySearch(new ArtifactRepositorySearch(module.getArtifactRepositories()));
+        myArtifactRepositorySearchServices.put(module, result);
+      }
+      return result;
+    }
+  }
+
   public interface ChangeListener extends EventListener {
     void moduleSelectionChanged(@NotNull String moduleName, @NotNull Object source);
+  }
+
+  private static class CachingArtifactRepositorySearch implements ArtifactRepositorySearchService {
+    @NotNull private final Object myLock = new Object();
+
+    @GuardedBy("myLock")
+    @NotNull
+    private final Map<SearchRequest, ListenableFuture<ArtifactRepositorySearchResults>> myRequestCache = new HashMap<>();
+    @NotNull private final ArtifactRepositorySearchService myArtifactRepositorySearch;
+
+    public CachingArtifactRepositorySearch(@NotNull ArtifactRepositorySearchService artifactRepositorySearch) {
+      myArtifactRepositorySearch = artifactRepositorySearch;
+    }
+
+    @NotNull
+    @Override
+    public ListenableFuture<ArtifactRepositorySearchResults> search(@NotNull SearchRequest request) {
+      synchronized (myLock) {
+        ListenableFuture<ArtifactRepositorySearchResults> result = myRequestCache.get(request);
+        if (result == null || result.isCancelled()) {
+          // This is assumed to be a lightweight call.
+          result = myArtifactRepositorySearch.search(request);
+          myRequestCache.put(request, result);
+        }
+        return result;
+      }
+    }
   }
 }
