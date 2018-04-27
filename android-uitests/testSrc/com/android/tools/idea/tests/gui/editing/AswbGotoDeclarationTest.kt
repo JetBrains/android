@@ -40,6 +40,7 @@ class AswbGotoDeclarationTest {
     fun data(): List<TargetBuildSystem.BuildSystem> = Collections.singletonList(TargetBuildSystem.BuildSystem.BAZEL)
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/78573145
   @Test
   @TargetBuildSystem(TargetBuildSystem.BuildSystem.BAZEL)
   fun gotoDeclaration_withExternalResources() {
