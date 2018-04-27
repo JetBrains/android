@@ -26,12 +26,18 @@ import com.intellij.openapi.application.Result
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.xml.XmlFile
+import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import icons.StudioIcons.NavEditor.ExistingDestinations.ACTIVITY
 import icons.StudioIcons.NavEditor.ExistingDestinations.DESTINATION
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import java.awt.Image
 import java.awt.image.BufferedImage
+
+private const val THUMBNAIL_X = 11
+private const val THUMBNAIL_Y = 28
+private const val THUMBNAIL_WIDTH = 50
+private const val THUMBNAIL_HEIGHT = 56
 
 sealed class Destination {
   abstract fun addToGraph()
@@ -47,16 +53,18 @@ sealed class Destination {
       val qualifiedName: String? = null, val idBase: String = className ?: tag, private val layoutFile: XmlFile? = null)
     : Destination() {
 
-    // TODO: render thumbnail with border
+    // TODO: get border color from theme
     override val thumbnail: Image by lazy {
       val model = parent.model
       if (layoutFile != null) {
         val future = ThumbnailManager.getInstance(model.facet).getThumbnail(layoutFile, model.configuration)
         if (future != null) {
-          val result = BufferedImage(73, 94, BufferedImage.TYPE_INT_ARGB)
-          result.graphics.drawImage(iconToImage(DESTINATION), 0, 0, null)
+          val scale = (DESTINATION as? JBUI.RasterJBIcon)?.getScale(JBUI.ScaleType.PIX_SCALE) ?: 1.0
+          val result = BufferedImage((73 * scale).toInt(), (94 * scale).toInt(), BufferedImage.TYPE_INT_ARGB)
+          DESTINATION.paintIcon(null, result.graphics, 0, 0)
           // TODO: wait for rendering nicely
-          future.get().drawImageTo(result.graphics, 11, 28, 61-11, 84-28)
+          future.get().drawImageTo(result.graphics, (THUMBNAIL_X * scale).toInt(), (THUMBNAIL_Y * scale).toInt(),
+                                   (THUMBNAIL_WIDTH * scale).toInt(), (THUMBNAIL_HEIGHT * scale).toInt())
           return@lazy result
         }
       }
