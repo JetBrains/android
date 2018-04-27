@@ -111,23 +111,20 @@ class InspectorPanelModel {
     // Place a "*" in front of the filter to allow the typed filter to match other places than just the beginning of a string.
     val matcher = NameUtil.buildMatcher("*$filter").build()
     lines.forEach { line ->
-      if (line is CollapsibleLabelModel) {
-        line.expandable = false
+      when {
+        line is CollapsibleLabelModel -> line.hideForSearch(line.isMatch(matcher))
+        line.isSearchable -> line.filter = filter
+        else -> line.visible = line.isMatch(matcher)
       }
-      line.visible = line.isMatch(matcher)
     }
   }
 
   private fun restoreGroups() {
     lines.reversed().forEach { line ->
-      if (line is CollapsibleLabelModel) {
-        line.expandable = line.hasChildren
-        if (line.parent == null) {
-          line.visible = true
-        }
-      }
-      else {
-        line.visible = true
+      when {
+        line is CollapsibleLabelModel -> line.restoreAfterSearch()
+        line.isSearchable -> line.filter = ""
+        else -> line.visible = true
       }
     }
   }

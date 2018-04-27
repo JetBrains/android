@@ -38,5 +38,6 @@ class TableEditor(private val lineModel: TableLineModel,
 
   private fun handleValueChanged() {
     component.isVisible = lineModel.visible
+    table.filter = lineModel.filter
   }
 }

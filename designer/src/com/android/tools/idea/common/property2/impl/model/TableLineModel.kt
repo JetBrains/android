@@ -20,4 +20,11 @@ import com.android.tools.adtui.ptable2.PTableModel
 /**
  * A model for table embedded in the properties panel.
  */
-class TableLineModel(val tableModel: PTableModel) : GenericInspectorLineModel()
+class TableLineModel(val tableModel: PTableModel, override val isSearchable: Boolean) : GenericInspectorLineModel() {
+
+  override var filter = ""
+    set(value) {
+      field = value
+      fireValueChanged()
+    }
+}

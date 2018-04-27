@@ -16,8 +16,6 @@
 package com.android.tools.idea.common.property2.api
 
 import com.android.tools.adtui.ptable2.PTableModel
-import com.android.tools.idea.common.property2.impl.model.TableLineModel
-import com.android.tools.idea.common.property2.impl.ui.TableEditor
 import javax.swing.JComponent
 
 /**
@@ -65,8 +63,12 @@ interface InspectorPanel {
 
   /**
    * Add a table of properties to the inspector.
+   *
+   * Embed a table with the items in [tableModel].
+   * Specify if the table should be [searchable] i.e. the user can search for items
+   * in the table using the the general search for the properties panel.
    */
-  fun addTable(tableModel: PTableModel): InspectorLineModel
+  fun addTable(tableModel: PTableModel, searchable: Boolean): InspectorLineModel
 
   /**
    * Adds a custom panel that spans the entire width.

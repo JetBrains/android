@@ -50,11 +50,8 @@ class CollapsibleLabelModel(
   var parent: CollapsibleLabelModel? = null
     private set
 
-  val hasChildren: Boolean
-    get() = children?.isNotEmpty() == true
-
   var expandable = false
-    set(value) {
+    private set(value) {
       field = value
       fireValueChanged()
     }
@@ -137,5 +134,17 @@ class CollapsibleLabelModel(
     child.visible = expanded && visible
     val expandableChild = child as? CollapsibleLabelModel
     expandableChild?.parent = this
+  }
+
+  fun hideForSearch(isMatch: Boolean) {
+    expandable = false
+    visible = isMatch
+  }
+
+  fun restoreAfterSearch() {
+    expandable = children?.isNotEmpty() == true
+    if (parent == null) {
+      visible = true
+    }
   }
 }

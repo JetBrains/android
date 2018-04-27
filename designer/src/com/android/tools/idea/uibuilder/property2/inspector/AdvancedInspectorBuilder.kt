@@ -27,16 +27,16 @@ class AdvancedInspectorBuilder : InspectorBuilder<NelePropertyItem> {
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
     val declared = properties.values.stream().filter { it.rawValue != null }.toList()
-    addTable(inspector, "Declared Attributes", declared)
+    addTable(inspector, "Declared Attributes", declared, searchable = false)
 
     val all = properties.values.toList()
-    addTable(inspector, "All Attributes", all)
+    addTable(inspector, "All Attributes", all, searchable = true)
   }
 
-  private fun addTable(inspector: InspectorPanel, title: String, properties: List<NelePropertyItem>) {
+  private fun addTable(inspector: InspectorPanel, title: String, properties: List<NelePropertyItem>, searchable: Boolean) {
     val titleModel = inspector.addExpandableTitle(title, true)
     val tableModel = NeleTableModel(properties)
-    val lineModel = inspector.addTable(tableModel)
+    val lineModel = inspector.addTable(tableModel, searchable)
     titleModel.addChild(lineModel)
   }
 }
