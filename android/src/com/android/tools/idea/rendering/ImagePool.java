@@ -51,7 +51,7 @@ public class ImagePool {
 
     @Override
     @Nullable
-    public BufferedImage getCopy(int x, int y, int w, int h) {
+    public BufferedImage getCopy(@Nullable GraphicsConfiguration gc, int x, int y, int w, int h) {
       return null;
     }
 
@@ -348,18 +348,37 @@ public class ImagePool {
     }
 
     /**
-     * Returns a {@link BufferedImage} with a copy of a sub-image of the pooled image.
+     * Returns a {@link BufferedImage} with a copy of a sub-image of the pooled image. If you pass the
+     * optional {@link GraphicsConfiguration}, the returned copy will be compatible with that configuration.
      */
     @SuppressWarnings("SameParameterValue")
     @Nullable
-    BufferedImage getCopy(int x, int y, int w, int h);
+    BufferedImage getCopy(@Nullable GraphicsConfiguration gc, int x, int y, int w, int h);
+
+    /**
+     * Returns a {@link BufferedImage} with a copy of a sub-image of the pooled image.
+     */
+    @Nullable
+    default BufferedImage getCopy(int x, int y, int w, int h) {
+      return getCopy(null, 0, 0, w, h);
+    }
+
+    /**
+     * Returns a {@link BufferedImage} with a copy of the pooled image. The copy will be compatible with the given
+     * {@link GraphicsConfiguration}.
+     * If the original image is large, and you plan to paint to screen, use this method to obtain the copy.
+     */
+    @Nullable
+    default BufferedImage getCopy(@NotNull GraphicsConfiguration gc) {
+      return getCopy(gc, 0, 0, getWidth(), getHeight());
+    }
 
     /**
      * Returns a {@link BufferedImage} with a copy of the pooled image
      */
     @Nullable
     default BufferedImage getCopy() {
-      return getCopy(0, 0, getWidth(), getHeight());
+      return getCopy(null, 0, 0, getWidth(), getHeight());
     }
 
     /**
@@ -421,7 +440,7 @@ public class ImagePool {
 
     @Override
     @NotNull
-    public BufferedImage getCopy(int x, int y, int w, int h) {
+    public BufferedImage getCopy(@Nullable GraphicsConfiguration gc, int x, int y, int w, int h) {
       assert myBuffer != null : "Image was already disposed";
 
       if (x + w > myWidth) {
@@ -433,8 +452,12 @@ public class ImagePool {
       }
 
       WritableRaster raster = myBuffer.copyData(myBuffer.getRaster().createCompatibleWritableRaster(x, y, w, h));
+
       //noinspection UndesirableClassUsage
-      return new BufferedImage(myBuffer.getColorModel(), raster, myBuffer.isAlphaPremultiplied(), null);
+      return new BufferedImage(gc != null ? gc.getColorModel() : myBuffer.getColorModel(),
+                               raster,
+                               gc != null ? gc.getColorModel().isAlphaPremultiplied() : myBuffer.isAlphaPremultiplied(),
+                               null);
     }
 
     @Override

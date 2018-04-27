@@ -226,6 +226,21 @@ public class ScreenViewLayer extends Layer {
    * @see ImageUtils#scale(BufferedImage, double)
    */
   private class RescaleRunnable implements Runnable {
+    @Nullable private final GraphicsConfiguration myGc;
+
+    private RescaleRunnable() {
+      if (!GraphicsEnvironment.isHeadless()) {
+        // Save the graphics context to create image copies that match the screen configuration. This
+        // way, we avoid Swing making additional copies of large bitmaps to transform them to the right
+        // configuration.
+        myGc = GraphicsEnvironment.getLocalGraphicsEnvironment()
+                                  .getDefaultScreenDevice()
+                                  .getDefaultConfiguration();
+      }
+      else {
+        myGc = null;
+      }
+    }
 
     @Override
     public void run() {
@@ -239,10 +254,10 @@ public class ScreenViewLayer extends Layer {
       }
       ImagePool.Image image = myLastRenderResult.getRenderedImage();
       if (UIUtil.isRetina() && ImageUtils.supportsRetina()) {
-        myScaledDownImage = getRetinaScaledImage(image, myCachedScale, false);
+        myScaledDownImage = getRetinaScaledImage(image, myGc, myCachedScale, false);
       }
       if (myScaledDownImage == null) {
-        BufferedImage imageCopy = image.getCopy();
+        BufferedImage imageCopy = myGc != null ? image.getCopy(myGc) : image.getCopy();
         myScaledDownImage = ImageUtils.scale(imageCopy, myCachedScale);
       }
       myIsRescaling = false;
@@ -252,14 +267,17 @@ public class ScreenViewLayer extends Layer {
   }
 
   @Nullable
-  private static BufferedImage getRetinaScaledImage(@NotNull ImagePool.Image pooledImage, double scale, boolean fastScaling) {
+  private static BufferedImage getRetinaScaledImage(@NotNull ImagePool.Image pooledImage,
+                                                    @Nullable GraphicsConfiguration gc,
+                                                    double scale,
+                                                    boolean fastScaling) {
     if (scale > 1.01) {
       // When scaling up significantly, use normal painting logic; no need to pixel double into a
       // double res image buffer!
       return null;
     }
 
-    BufferedImage original = pooledImage.getCopy();
+    BufferedImage original = gc != null ? pooledImage.getCopy(gc) : pooledImage.getCopy();
     if (original == null) {
       return null;
     }
