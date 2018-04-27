@@ -25,6 +25,7 @@ import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.InteractionManager
 import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.model.NavCoordinate
@@ -323,6 +324,10 @@ class NavDesignSurfaceTest : NavTestCase() {
     assertNotEquals(orig, newVersion)
     surface.refreshRoot()
     assertEquals(newVersion, surface.currentNavigation)
+  }
+
+  fun testConfiguration() {
+    assertNotEquals(ConfigurationManager.getOrCreateInstance(myFacet), NavDesignSurface (project, project).getConfigurationManager(myFacet))
   }
 
   private fun dragSelect(manager: InteractionManager, sceneView: SceneView, @NavCoordinate rect: Rectangle) {

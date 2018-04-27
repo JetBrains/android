@@ -30,6 +30,7 @@ import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.surface.ZoomType;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.naveditor.editor.NavActionManager;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
@@ -72,6 +73,7 @@ import java.awt.*;
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
+import java.util.WeakHashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -93,6 +95,8 @@ public class NavDesignSurface extends DesignSurface {
   private NlComponent myCurrentNavigation;
   @VisibleForTesting
   AtomicReference<Future<?>> myScheduleRef = new AtomicReference<>();
+
+  private static final WeakHashMap<AndroidFacet, ConfigurationManager> ourConfigurationManagers = new WeakHashMap<>();
 
   public NavDesignSurface(@NotNull Project project, @NotNull Disposable parentDisposable) {
     super(project, new SelectionModel(), parentDisposable);
@@ -527,5 +531,16 @@ public class NavDesignSurface extends DesignSurface {
       return new NavDesignSurfaceActionHandler(this);
     }
     return super.getData(dataId);
+  }
+
+  @NotNull
+  @Override
+  public ConfigurationManager getConfigurationManager(@NotNull AndroidFacet facet) {
+    ConfigurationManager result = ourConfigurationManagers.get(facet);
+    if (result == null) {
+      result = ConfigurationManager.create(facet.getModule());
+      ourConfigurationManagers.put(facet, result);
+    }
+    return result;
   }
 }
