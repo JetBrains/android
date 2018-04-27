@@ -19,6 +19,9 @@ import com.android.SdkConstants.*
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
+import com.android.tools.adtui.model.stdui.CommonComboBoxModel
+import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
+import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.SampleDataResourceItem
@@ -33,6 +36,8 @@ import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JPanel
 
+private const val NONE_VALUE = "None"
+
 class TextViewAssistant(private val context: Context) : AssistantPopupPanel() {
   private val myComponent: NlComponent = context.component
   private val myOriginalTextValue: String?
@@ -45,7 +50,7 @@ class TextViewAssistant(private val context: Context) : AssistantPopupPanel() {
       isOpaque = false
       add(assistantLabel("Text"))
 
-      val elements = myAppResources.items.get(ResourceNamespace.TOOLS, ResourceType.SAMPLE_DATA).values()
+      val elements = listOf(NONE_VALUE) + myAppResources.items.get(ResourceNamespace.TOOLS, ResourceType.SAMPLE_DATA).values()
         .filterIsInstance<SampleDataResourceItem>()
         .filter {
           it.contentType == SampleDataResourceItem.ContentType.TEXT
@@ -56,14 +61,23 @@ class TextViewAssistant(private val context: Context) : AssistantPopupPanel() {
           ResourceUrl.create(TOOLS_PREFIX, reference.resourceType, reference.name).toString()
         }
         .sorted()
-        .toTypedArray()
+        .toList()
 
-      val combo = JComboBox<String>(elements)
-      combo.isOpaque = false
-      val existingToolsText = context.component.getAttribute(TOOLS_URI, ATTR_TEXT) ?: ""
-      if (existingToolsText.startsWith(TOOLS_SAMPLE_PREFIX)) {
-        combo.selectedItem = existingToolsText
+      val existingToolsText = context.component.getAttribute(TOOLS_URI, ATTR_TEXT).orEmpty()
+      val initialElement = if (existingToolsText.startsWith(TOOLS_SAMPLE_PREFIX)) {
+        existingToolsText
       }
+      else {
+        NONE_VALUE
+      }
+
+      val model = DefaultCommonComboBoxModel(initialElement, elements)
+      val combo = CommonComboBox<String, CommonComboBoxModel<String>>(model).apply {
+        isOpaque = false
+        isEditable = false
+        selectedItem = initialElement
+      }
+
       combo.addActionListener {
         onElementSelected(combo.selectedItem as String)
       }
@@ -78,8 +92,9 @@ class TextViewAssistant(private val context: Context) : AssistantPopupPanel() {
   }
 
   private fun onElementSelected(selectedItem: String?) {
+    val attributeValue = if (NONE_VALUE == selectedItem || "" == selectedItem.orEmpty()) null else selectedItem
     WriteCommandAction.runWriteCommandAction(myProject,  {
-      myComponent.setAttribute(TOOLS_URI, ATTR_TEXT, selectedItem)
+      myComponent.setAttribute(TOOLS_URI, ATTR_TEXT, attributeValue)
     })
     context.doClose(false)
   }
