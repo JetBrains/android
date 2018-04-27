@@ -18,13 +18,9 @@ package com.android.tools.idea.uibuilder;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.util.PropertiesMap;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandAdapter;
 import com.intellij.openapi.command.CommandEvent;
@@ -51,19 +47,12 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
 
   @Override
   public void requestRender() {
-    runAfterCommandIfNecessary(() -> Futures.getUnchecked(render(getTriggerFromChangeType(getModel().getLastChangeType()))));
+    runAfterCommandIfNecessary(() -> render(getTriggerFromChangeType(getModel().getLastChangeType())));
   }
 
   @Override
   public void requestLayoutAndRender(boolean animate) {
-    runAfterCommandIfNecessary(() -> Futures.getUnchecked(render(getTriggerFromChangeType(getModel().getLastChangeType()))));
-  }
-
-  @NotNull
-  @Override
-  protected ListenableFuture<RenderResult> render(@Nullable LayoutEditorRenderResult.Trigger trigger) {
-    // Makes the asynchronous call, synchronous
-    return Futures.immediateFuture(Futures.getUnchecked(super.render(trigger)));
+    runAfterCommandIfNecessary(() -> render(getTriggerFromChangeType(getModel().getLastChangeType())));
   }
 
   @Override
