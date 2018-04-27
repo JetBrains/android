@@ -53,20 +53,13 @@ class AswbGotoDeclarationTest {
     return this
   }
 
-  /**
-   * Open a file
-   *
-   * @param relativePath the project-relative path
-   */
-  private fun openFile(relativePath: String): EditorFixture {
-    return guiTest.ideFrame().editor.open(relativePath)
-  }
-
   @Test
   @TargetBuildSystem(TargetBuildSystem.BuildSystem.BAZEL)
   fun gotoDeclaration_withExternalResources() {
     try {
-      openFile("../SimpleBazelApplication/java/com/foo/gallery/activities/MainActivity.java")
+      guiTest.ideFrame()
+        .editor
+        .open("../SimpleBazelApplication/java/com/foo/gallery/activities/MainActivity.java")
         .gotoDeclaration("R.style.Base_Highlight")
       Wait.seconds(20).expecting("file to open")
         .until({guiTest.ideFrame().editor.currentFileName.equals("styles.xml")})
@@ -80,7 +73,9 @@ class AswbGotoDeclarationTest {
   @Test
   @TargetBuildSystem(TargetBuildSystem.BuildSystem.BAZEL)
   fun gotoDeclaration_withLocalResources() {
-    openFile("../SimpleBazelApplication/java/com/foo/gallery/activities/MainActivity.java")
+    guiTest.ideFrame()
+      .editor
+      .open("../SimpleBazelApplication/java/com/foo/gallery/activities/MainActivity.java")
       .gotoDeclaration("R.menu.settings")
     Wait.seconds(20).expecting("file to open")
       .until({guiTest.ideFrame().editor.currentFileName.equals("settings.xml")})
