@@ -898,6 +898,15 @@ public class Scene implements SelectionListener, Disposable {
     return myFindListener.getClosestComponent();
   }
 
+  @Nullable
+  public Target findTarget(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+    if (myRoot == null) {
+      return null;
+    }
+    myFindListener.find(transform, myRoot, x, y);
+    return myFindListener.getClosestTarget();
+  }
+
   public Collection<SceneComponent> getSceneComponents() {
     return mySceneComponents.values();
   }
