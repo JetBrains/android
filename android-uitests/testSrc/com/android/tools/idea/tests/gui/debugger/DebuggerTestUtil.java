@@ -15,12 +15,18 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
+import com.android.tools.idea.tests.gui.emulator.AvdSpec;
+import com.android.tools.idea.tests.gui.emulator.EmulatorGenerator;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditConfigurationsDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
+import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
@@ -34,6 +40,11 @@ public class DebuggerTestUtil {
   public static final String NATIVE = "Native";
   public static final String JAVA = "Java";
   public static final String JAVA_DEBUGGER_CONF_NAME = "app-java";
+
+  public final static String ABI_TYPE_X86 = "x86";
+  public final static String ABI_TYPE_X86_64 = "x86_64";
+
+  private final static int GRADLE_SYNC_TIMEOUT = 60;
 
   public static void setDebuggerType(@NotNull IdeFrameFixture ideFrameFixture,
                        @NotNull String type) {
@@ -72,4 +83,77 @@ public class DebuggerTestUtil {
     return debugToolWindowFixture;
   }
 
+  public static void abiSplitApks(@NotNull GuiTestRule guiTest,
+                                  @NotNull String abiType) throws Exception {
+    IdeFrameFixture ideFrame = guiTest.importProject("BasicCmakeAppForUI");
+    ideFrame.waitForGradleProjectSyncToFinish(Wait.seconds(GRADLE_SYNC_TIMEOUT));
+
+    DebuggerTestUtil.setDebuggerType(ideFrame, DebuggerTestUtil.NATIVE);
+
+    ideFrame.getEditor()
+            .open("app/build.gradle", EditorFixture.Tab.EDITOR)
+            .moveBetween("apply plugin: 'com.android.application'", "")
+            .enterText("\n\nandroid.splits.abi.enable true")
+            .invokeAction(EditorFixture.EditorAction.SAVE);
+
+    ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish(Wait.seconds(GRADLE_SYNC_TIMEOUT));
+
+    openAndToggleBreakPoints(ideFrame,
+                             "app/src/main/jni/native-lib.c",
+                             "return (*env)->NewStringUTF(env, message);");
+
+    String expectedApkName = "";
+    String avdName = "";
+    if (abiType.equals(ABI_TYPE_X86)) {
+      expectedApkName = "app-x86-debug.apk";
+    } else if (abiType.equals(ABI_TYPE_X86_64)) {
+      expectedApkName = "app-x86_64-debug.apk";
+    } else {
+      throw new RuntimeException("Not supported ABI type provided: " + abiType);
+    }
+
+    ChooseSystemImageStepFixture.SystemImage systemImageSpec = new ChooseSystemImageStepFixture.SystemImage(
+      "Nougat",
+      "24",
+      abiType,
+      "Android 7.0 (Google APIs)"
+    );
+    avdName = EmulatorGenerator.ensureAvdIsCreated(
+      ideFrame.invokeAvdManager(),
+      new AvdSpec.Builder()
+        .setSystemImageGroup(AvdSpec.SystemImageGroups.X86)
+        .setSystemImageSpec(systemImageSpec)
+        .build()
+    );
+
+    DebuggerTestUtil.debugAppAndWaitForSessionToStart(ideFrame, guiTest, "app", avdName, Wait.seconds(120));
+
+    ideFrame.stopApp();
+    ProjectViewFixture.PaneFixture projectPane = ideFrame.getProjectView().selectProjectPane();
+
+    final String apkNameRef = expectedApkName;
+    Wait.seconds(30).expecting("The apk file is generated.").until(() -> {
+      try {
+        projectPane.clickPath("BasicCmakeAppForUI",
+                              "app",
+                              "build",
+                              "intermediates",
+                              "instant-run-apk",
+                              "debug",
+                              apkNameRef);
+        return true;
+      } catch (LocationUnavailableException e) {
+        return false;
+      }
+    });
+  }
+
+  private static void openAndToggleBreakPoints(IdeFrameFixture ideFrame, String fileName, String... lines) {
+    EditorFixture editor = ideFrame.getEditor().open(fileName);
+    for (String line : lines) {
+      editor.moveBetween("", line);
+      editor.invokeAction(EditorFixture.EditorAction.TOGGLE_LINE_BREAKPOINT);
+    }
+    editor.close();
+  }
 }
