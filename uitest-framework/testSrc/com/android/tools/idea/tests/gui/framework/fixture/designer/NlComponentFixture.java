@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.designer;
 
 import com.android.SdkConstants;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.scene.target.ActionGroupTarget;
 import com.android.tools.idea.common.scene.target.ComponentAssistantActionTarget;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
@@ -225,6 +226,8 @@ public class NlComponentFixture {
     // Find the position of the baseline target icon and click on it
     SceneComponent sceneComponent = sceneView.getScene().getSceneComponent(myComponent);
     Target target = GuiQuery.getNonNull(() -> sceneComponent.getTargets().stream()
+      .filter(t -> t instanceof ActionGroupTarget)
+      .flatMap(t -> ((ActionGroupTarget)t).getActionTargets().stream())
       .filter(t -> expectedTooltipText.equals(t.getToolTipText()))
       .findFirst().get());
     SceneContext context = SceneContext.get(sceneView);
