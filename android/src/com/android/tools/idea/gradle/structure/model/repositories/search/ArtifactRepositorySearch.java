@@ -17,83 +17,47 @@ package com.android.tools.idea.gradle.structure.model.repositories.search;
 
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.ActionCallback;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import net.jcip.annotations.NotThreadSafe;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.ide.PooledThreadExecutor;
 
 import java.util.List;
 import java.util.concurrent.Future;
 
 @NotThreadSafe
-public class ArtifactRepositorySearch {
+public class ArtifactRepositorySearch implements ArtifactRepositorySearchService {
   @NotNull private final List<ArtifactRepository> myRepositories;
+  @NotNull ListeningExecutorService executor = MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE);
 
   public ArtifactRepositorySearch(@NotNull List<ArtifactRepository> repositories) {
     myRepositories = repositories;
   }
 
+  @Override
   @NotNull
-  public Callback start(@NotNull SearchRequest request) {
-    Callback callback = new Callback();
-
-    List<Future<SearchResult>> jobs = Lists.newArrayListWithExpectedSize(myRepositories.size());
+  public ListenableFuture<ArtifactRepositorySearchResults> search(@NotNull SearchRequest request) {
+    List<ListenableFuture<SearchResult>> jobs = Lists.newArrayListWithExpectedSize(myRepositories.size());
     List<SearchResult> results = Lists.newArrayList();
     List<Exception> errors = Lists.newArrayList();
 
-    Application application = ApplicationManager.getApplication();
-    application.executeOnPooledThread(() -> {
-      for (ArtifactRepository repository : myRepositories) {
-        jobs.add(application.executeOnPooledThread(() -> repository.search(request)));
-      }
-
-      for (Future<SearchResult> job : jobs) {
-        try {
-          results.add(Futures.getChecked(job, Exception.class));
+    for (ArtifactRepository repository : myRepositories) {
+      jobs.add(executor.submit(() -> repository.search(request)));
+    }
+    return Futures.whenAllComplete(jobs).call(
+      () -> {
+        for (Future<SearchResult> job : jobs) {
+          try {
+            results.add(Futures.getChecked(job, Exception.class));
+          }
+          catch (Exception e) {
+            errors.add(e);
+          }
         }
-        catch (Exception e) {
-          errors.add(e);
-        }
+        return new ArtifactRepositorySearchResults(results, errors);
       }
-      callback.setDone(results, errors);
-    });
-    return callback;
-  }
-
-  public static class Callback extends ActionCallback {
-    @NotNull private final List<SearchResult> mySearchResults = Lists.newArrayList();
-    @NotNull private final List<Exception> myErrors = Lists.newArrayList();
-
-    void setDone(@NotNull List<SearchResult> searchResults, @NotNull List<Exception> errors) {
-      searchResults.forEach(searchResult -> {
-        Exception error = searchResult.getError();
-        if (error != null) {
-          myErrors.add(error);
-          return;
-        }
-        mySearchResults.add(searchResult);
-      });
-      myErrors.addAll(errors);
-      setDone();
-    }
-
-    @NotNull
-    public List<SearchResult> getSearchResults() {
-      checkIsDone();
-      return mySearchResults;
-    }
-
-    @NotNull
-    public List<Exception> getErrors() {
-      checkIsDone();
-      return myErrors;
-    }
-
-    private void checkIsDone() {
-      if (!isDone()) {
-        throw new IllegalStateException("Repository search has not finished yet");
-      }
-    }
+    );
   }
 }

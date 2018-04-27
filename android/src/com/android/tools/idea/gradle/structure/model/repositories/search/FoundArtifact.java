@@ -36,13 +36,13 @@ public class FoundArtifact implements Comparable<FoundArtifact> {
 
   @NotNull private final List<GradleVersion> myVersions = Lists.newArrayList();
 
-  FoundArtifact(@NotNull String repositoryName, @NotNull String groupId, @NotNull String name, @NotNull GradleVersion version) {
+  public FoundArtifact(@NotNull String repositoryName, @NotNull String groupId, @NotNull String name, @NotNull GradleVersion version) {
     this(repositoryName, groupId, name);
     myVersions.add(version);
     sortVersionsFromNewestToOldest();
   }
 
-  FoundArtifact(@NotNull String repositoryName, @NotNull String groupId, @NotNull String name, @NotNull List<GradleVersion> versions) {
+  public FoundArtifact(@NotNull String repositoryName, @NotNull String groupId, @NotNull String name, @NotNull List<GradleVersion> versions) {
     this(repositoryName, groupId, name);
     myVersions.addAll(versions);
     sortVersionsFromNewestToOldest();

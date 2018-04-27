@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.structure.configurables.ui;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.structure.model.repositories.search.*;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.Disposable;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.JBSplitter;
@@ -26,6 +28,7 @@ import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.ui.table.TableView;
+import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.ListTableModel;
 import org.jetbrains.annotations.NonNls;
@@ -44,7 +47,6 @@ import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
 
 public class ArtifactRepositorySearchForm {
@@ -165,33 +167,39 @@ public class ArtifactRepositorySearchForm {
 
     SearchRequest request = new SearchRequest(getArtifactName(), getGroupId(), 50, 0);
 
-    ArtifactRepositorySearch.Callback callback = mySearch.start(request);
-    callback.doWhenDone(() -> invokeLaterIfNeeded(() -> {
-      List<FoundArtifact> foundArtifacts = Lists.newArrayList();
+    Futures.addCallback(mySearch.search(request), new FutureCallback<ArtifactRepositorySearchResults>() {
+      @Override
+      public void onSuccess(@Nullable ArtifactRepositorySearchResults results) {
+        List<FoundArtifact> foundArtifacts = Lists.newArrayList();
 
-      List<Exception> errors = callback.getErrors();
-      if (!errors.isEmpty()) {
+        assert results != null;
+        List<Exception> errors = results.getErrors();
+        if (!errors.isEmpty()) {
+          showSearchStopped();
+          mySearchErrors.addAll(errors);
+          return;
+        }
+
+        for (SearchResult result : results.getResults()) {
+          foundArtifacts.addAll(result.getArtifacts());
+        }
+
+        if (foundArtifacts.size() > 1) {
+          Collections.sort(foundArtifacts);
+        }
+
+        myResultsTable.getListTableModel().setItems(foundArtifacts);
+        myResultsTable.updateColumnSizes();
         showSearchStopped();
-        mySearchErrors.addAll(errors);
-        return;
+        if (!foundArtifacts.isEmpty()) {
+          myResultsTable.changeSelection(0, 0, false, false);
+        }
+        myResultsTable.requestFocusInWindow();
       }
 
-      for (SearchResult result : callback.getSearchResults()) {
-        foundArtifacts.addAll(result.getArtifacts());
-      }
-
-      if (foundArtifacts.size() > 1) {
-        Collections.sort(foundArtifacts);
-      }
-
-      myResultsTable.getListTableModel().setItems(foundArtifacts);
-      myResultsTable.updateColumnSizes();
-      showSearchStopped();
-      if (!foundArtifacts.isEmpty()) {
-        myResultsTable.changeSelection(0, 0, false, false);
-      }
-      myResultsTable.requestFocusInWindow();
-    }));
+      @Override
+      public void onFailure(@NotNull Throwable unused) { }
+    }, EdtExecutorService.getInstance());
   }
 
   private void clearResults() {
