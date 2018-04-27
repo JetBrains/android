@@ -172,7 +172,6 @@ public class MotionLayoutComponentHelper {
     return 0;
   }
 
-
   public int motionLayoutAccess(int cmd, String type, Object view, float[] in, int inLength, float[] out, int outLength) {
     ViewInfo info = NlComponentHelperKt.getViewInfo(myTransitionLayoutComponent);
     if (info == null) {

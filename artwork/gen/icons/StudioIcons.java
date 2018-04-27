@@ -323,6 +323,8 @@ public class StudioIcons {
 
   public static class MotionLayoutUI {
     public static final Icon ADD_KEYFRAME = load("/studio/icons/layout-editor/motion/add-keyframe.png"); // 16x16
+    public static final Icon REMOVE_KEYFRAME = load("/studio/icons/layout-editor/motion/remove-keyframe.png"); // 16x16
+    public static final Icon REMOVE_TAG = load("/studio/icons/layout-editor/motion/ic_delete_forever.png"); // 16x16
     public static final Icon CIRCLE_PLAY = load("/studio/icons/layout-editor/motion/circle-play.png"); // 16x16
     public static final Icon BACKWARD = load("/studio/icons/layout-editor/motion/skip-previous.png"); // 16x16
     public static final Icon PLAY = load("/studio/icons/layout-editor/motion/play.png"); // 16x16

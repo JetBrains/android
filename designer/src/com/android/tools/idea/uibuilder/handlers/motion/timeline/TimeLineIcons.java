@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.timeline;
 
+import com.intellij.util.IconUtil;
 import icons.StudioIcons;
 
 import javax.swing.*;
@@ -29,7 +30,9 @@ public class TimeLineIcons {
   public static final Icon FORWARD = StudioIcons.MotionLayoutUI.FORWARD;
   public static final Icon BACKWARD = StudioIcons.MotionLayoutUI.BACKWARD;
   public static final Icon LOOP = StudioIcons.MotionLayoutUI.LOOP;
-  public static final Icon ADD_KEYFRAME = StudioIcons.MotionLayoutUI.ADD_KEYFRAME;
+  public static final Icon ADD_KEYFRAME = IconUtil.getAddIcon();
+  public static final Icon REMOVE_KEYFRAME = IconUtil.getRemoveIcon();
+  public static final Icon REMOVE_TAG = StudioIcons.MotionLayoutUI.REMOVE_TAG;
   public static final Icon VIEW = StudioIcons.MotionLayoutUI.VIEW;
   public static final Icon CHART = StudioIcons.MotionLayoutUI.CHART;
   public static final Icon PAUSE = StudioIcons.MotionLayoutUI.PAUSE;

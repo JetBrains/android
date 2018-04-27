@@ -44,7 +44,6 @@ public class Gantt extends JPanel implements GanttCommands {
   JTextField myDuration;
   private DecimalFormat myFormat = new DecimalFormat("####.00");
 
-
   private MotionSceneModel myMotionSceneModel;
   private JLabel myTitleLabel;
 
@@ -63,7 +62,6 @@ public class Gantt extends JPanel implements GanttCommands {
     myChart.myContainerHeight = myScrollPane.getViewport().getHeight();
     myChart.myContainerWidth = myScrollPane.getViewport().getWidth();
     setBackground(Chart.ourSecondaryPanelBackground);
-
     setup();
     if (listener != null) {
       listener.onInit(this);

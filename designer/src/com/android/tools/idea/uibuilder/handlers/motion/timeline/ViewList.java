@@ -64,7 +64,6 @@ class ViewList extends JPanel implements Gantt.ChartElement {
     }
   };
 
-
   JPanel myAddPanel = new JPanel(null) {
     @Override
     public void doLayout() {
@@ -325,6 +324,7 @@ class ViewList extends JPanel implements Gantt.ChartElement {
     // TODO change a graph to be size of graph I want
     // TODO Change graph to be size from here
     if (reason == Reason.SELECTION_CHANGED) {
+      updateSizes();
       return;
     }
     if (reason == Reason.ZOOM) {
@@ -349,6 +349,20 @@ class ViewList extends JPanel implements Gantt.ChartElement {
       }
     }
     int count = myRootNode.getChildCount();
+
+    updateSizes();
+
+    TreePath[] selection = myTree.getSelectionPaths();
+    if (selection != null && selection.length > 0 && selection[0].getPath().length > 1) {
+      mySelectedView = (ViewNode)(selection[0].getPath()[1]);
+    }
+    else {
+      mySelectedView = null;
+    }
+    myAddPanel.doLayout();
+  }
+
+  private void updateSizes() {
 
     int viewNo = 0;
     Gantt.ViewElement viewElement = null;
@@ -388,14 +402,6 @@ class ViewList extends JPanel implements Gantt.ChartElement {
         }
       }
     }
-    TreePath[] selection = myTree.getSelectionPaths();
-    if (selection != null && selection.length > 0 && selection[0].getPath().length > 1) {
-      mySelectedView = (ViewNode)(selection[0].getPath()[1]);
-    }
-    else {
-      mySelectedView = null;
-    }
-    myAddPanel.doLayout();
   }
 
   void reload() {
