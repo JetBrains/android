@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.energy;
 
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.ui.HideablePanel;
 import com.android.tools.profiler.proto.EnergyProfiler;
@@ -22,7 +23,6 @@ import com.android.tools.profilers.stacktrace.StackTraceGroup;
 import com.android.tools.profilers.stacktrace.StackTraceModel;
 import com.android.tools.profilers.stacktrace.StackTraceView;
 import com.intellij.openapi.ui.VerticalFlowLayout;
-import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
@@ -73,8 +73,7 @@ public final class EnergyCallstackView extends JPanel {
         JPanel wrapperPanel = new JPanel(new BorderLayout());
         wrapperPanel.add(traceComponent, BorderLayout.CENTER);
         wrapperPanel.setBackground(traceComponent.getBackground());
-        traceComponent = new JBScrollPane(wrapperPanel,
-                                          ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        traceComponent = AdtUiUtils.createNestedVScrollPane(wrapperPanel);
       }
 
       String time = TimeAxisFormatter.DEFAULT.getClockFormattedString(TimeUnit.NANOSECONDS.toMicros(event.getTimestamp() - startTimeNs));
@@ -93,7 +92,7 @@ public final class EnergyCallstackView extends JPanel {
     }
 
     JLabel label = new JLabel("<html><b>Callstacks</b>: " + callstackList.size() + "</html>");
-    label.setBorder(new JBEmptyBorder(0, 0, 5, 0));
+    label.setBorder(new JBEmptyBorder(0, 0, 4, 0));
     add(label);
     callstackList.forEach(c -> add(c));
   }
