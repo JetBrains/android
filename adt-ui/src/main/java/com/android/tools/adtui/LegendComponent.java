@@ -42,17 +42,17 @@ public class LegendComponent extends AnimatedComponent {
   /**
    * Space, in pixels, between vertical legends.
    */
-  private static final int LEGEND_VERT_MARGIN_PX = JBUI.scale(10);
+  private static final int LEGEND_VERT_MARGIN_PX = JBUI.scale(8);
 
   /**
    * Space, in pixels, between horizontal legends.
    */
-  private final static int LEGEND_HORIZ_MARGIN_PX = JBUI.scale(12);
+  private final static int LEGEND_HORIZ_MARGIN_PX = JBUI.scale(10);
 
   /**
    * Space between a legend icon and its text
    */
-  private static final int ICON_MARGIN_PX = JBUI.scale(7);
+  private static final int ICON_MARGIN_PX = JBUI.scale(6);
 
   private final int myLeftPadding;
   private final int myRightPadding;
