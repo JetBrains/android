@@ -100,17 +100,26 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   @NotNull
   public static NlModel create(@Nullable Disposable parent,
                                @NotNull AndroidFacet facet,
+                               @NotNull VirtualFile file,
+                               @NotNull ConfigurationManager configurationManager) {
+    return new NlModel(parent, facet, file, configurationManager.getConfiguration(file));
+  }
+
+  @NotNull
+  public static NlModel create(@Nullable Disposable parent,
+                               @NotNull AndroidFacet facet,
                                @NotNull VirtualFile file) {
-    return new NlModel(parent, facet, file);
+    return create(parent, facet, file, ConfigurationManager.getOrCreateInstance(facet));
   }
 
   @VisibleForTesting
   protected NlModel(@Nullable Disposable parent,
                     @NotNull AndroidFacet facet,
-                    @NotNull VirtualFile file) {
+                    @NotNull VirtualFile file,
+                    @NotNull Configuration configuration) {
     myFacet = facet;
     myFile = file;
-    myConfiguration = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(myFile);
+    myConfiguration = configuration;
     myConfigurationModificationCount = myConfiguration.getModificationCount();
     myId = System.nanoTime() ^ file.getName().hashCode();
     if (parent != null) {

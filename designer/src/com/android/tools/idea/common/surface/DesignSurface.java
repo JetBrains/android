@@ -28,6 +28,7 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
@@ -54,6 +55,7 @@ import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import org.intellij.lang.annotations.JdkConstants;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -1295,4 +1297,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   @Nullable
   public abstract Interaction createInteractionOnDrag(@NotNull SceneComponent draggedSceneComponent, @Nullable SceneComponent primary);
+
+  @NotNull
+  public ConfigurationManager getConfigurationManager(@NotNull AndroidFacet facet) {
+    return ConfigurationManager.getOrCreateInstance(facet);
+  }
 }
