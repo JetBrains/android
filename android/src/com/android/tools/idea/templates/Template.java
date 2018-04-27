@@ -307,7 +307,7 @@ public class Template {
         return TemplateRenderer.FRAGMENT_LIST;
       case "Master/Detail Flow":
         return TemplateRenderer.MASTER_DETAIL_FLOW;
-      case "Android Wear Module":
+      case "Wear OS Module":
         return TemplateRenderer.ANDROID_WEAR_MODULE;
       case "Broadcast Receiver":
         return TemplateRenderer.BROADCAST_RECEIVER;

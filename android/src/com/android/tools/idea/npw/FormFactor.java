@@ -38,7 +38,7 @@ public enum FormFactor {
   MOBILE("Mobile", "Phone and Tablet", 15, SdkVersionInfo.LOWEST_ACTIVE_API, SdkVersionInfo.HIGHEST_KNOWN_API, Lists.newArrayList(20),
          Lists.newArrayList(SystemImage.DEFAULT_TAG, SystemImage.GOOGLE_APIS_TAG, SystemImage.GOOGLE_APIS_X86_TAG), null,
          FormFactors.MOBILE, FormFactors.MOBILE_LARGE),
-  WEAR("Wear", "Wear", 21, SdkVersionInfo.LOWEST_ACTIVE_API_WEAR, SdkVersionInfo.HIGHEST_KNOWN_API_WEAR,
+  WEAR("Wear", "Wear OS", 21, SdkVersionInfo.LOWEST_ACTIVE_API_WEAR, SdkVersionInfo.HIGHEST_KNOWN_API_WEAR,
        null, Lists.newArrayList(SystemImage.WEAR_TAG), null, FormFactors.WEAR, FormFactors.WEAR_LARGE),
   TV("TV", "TV", 21, SdkVersionInfo.LOWEST_ACTIVE_API_TV, SdkVersionInfo.HIGHEST_KNOWN_API_TV,
      null, Lists.newArrayList(SystemImage.TV_TAG), null, FormFactors.TV, FormFactors.TV_LARGE),

@@ -61,9 +61,9 @@ public class ChooseModuleTypeStepTest extends AndroidGradleTestCase {
   public void testSortFullModuleEntries() {
     Assert.assertThat(
       sort("Z", "Import .JAR/.AAR Package", "Android Library", "Phone & Tablet Module", "Instant App Feature Module", "Instant App",
-           "Android Wear Module", "Android TV Module", "Import Gradle Project", "Import Eclipse ADT Project","Google Cloud Module",
+           "Wear OS Module", "Android TV Module", "Import Gradle Project", "Import Eclipse ADT Project","Google Cloud Module",
            "Java Library", "A"),
-      equalToList("Phone & Tablet Module", "Android Library", "Instant App", "Instant App Feature Module", "Android Wear Module",
+      equalToList("Phone & Tablet Module", "Android Library", "Instant App", "Instant App Feature Module", "Wear OS Module",
                   "Android TV Module", "Import Gradle Project", "Import Eclipse ADT Project", "Import .JAR/.AAR Package", "Java Library",
                   "Google Cloud Module", "A", "Z")
     );
@@ -86,7 +86,7 @@ public class ChooseModuleTypeStepTest extends AndroidGradleTestCase {
       .map(ModuleGalleryEntry::getName).collect(Collectors.toList());
 
     List<String> expectedEntries = Lists.newArrayList(
-      "Phone & Tablet Module", "Android Library", "Dynamic Feature Module", "Instant App", "Instant App Feature Module", "Android Wear Module",
+      "Phone & Tablet Module", "Android Library", "Dynamic Feature Module", "Instant App", "Instant App Feature Module", "Wear OS Module",
       "Android TV Module", "Android Things Module", "Import Gradle Project", "Import Eclipse ADT Project",
       "Import .JAR/.AAR Package", "Java Library"
     );

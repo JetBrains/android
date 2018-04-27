@@ -41,7 +41,7 @@ import static org.jetbrains.android.util.AndroidBundle.message;
  * This step allows the user to select which type of module they want to create.
  */
 public class ChooseModuleTypeStep extends ModelWizardStep.WithoutModel {
-  public static final String ANDROID_WEAR_MODULE_NAME = "Android Wear Module";
+  public static final String ANDROID_WEAR_MODULE_NAME = "Wear OS Module";
   public static final String ANDROID_TV_MODULE_NAME = "Android TV Module";
   public static final String ANDROID_THINGS_MODULE_NAME = "Android Things Module";
   public static final String JAVA_LIBRARY_MODULE_NAME = "Java Library";
