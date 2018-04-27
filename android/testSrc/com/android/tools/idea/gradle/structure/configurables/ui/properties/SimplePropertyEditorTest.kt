@@ -19,8 +19,11 @@ import com.android.tools.adtui.HtmlLabel
 import com.android.tools.idea.gradle.structure.model.VariablesProvider
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.google.common.util.concurrent.Futures.immediateFuture
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.SettableFuture
 import com.intellij.idea.IdeaTestApplication
 import com.intellij.testFramework.UsefulTestCase
+import com.intellij.ui.components.JBTextField
 import org.hamcrest.CoreMatchers.*
 import org.junit.Assert.assertThat
 import org.junit.Assume.assumeThat
@@ -29,6 +32,7 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.awt.event.ActionEvent
 import javax.swing.ListModel
+import javax.swing.plaf.basic.BasicComboBoxEditor
 import javax.swing.text.JTextComponent
 
 class SimplePropertyEditorTest  : UsefulTestCase() {
@@ -38,6 +42,8 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
   }
 
   class ParsedModel {
+    var setParsedValueCalls = 0
+    var setParsedRawValueCalls = 0
     var value: String? = "value"
     var dsl: DslText? = DslText(DslMode.LITERAL, "value")
   }
@@ -59,9 +65,9 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
     }
   }
   private var defaultValue: String? = "default"
-  private var wellKnownValues = listOf(ValueDescriptor("1", "one"), ValueDescriptor("2", "two"))
   private var translateDsl = mutableMapOf<String, String>()
-
+  private var wellKnownValuesFuture: ListenableFuture<List<ValueDescriptor<String>>> =
+    immediateFuture(listOf(ValueDescriptor("1", "one"), ValueDescriptor("2", "two")))
 
   private val property = ModelSimplePropertyImpl(
     modelDescriptor,
@@ -70,8 +76,14 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
     getResolvedValue = { value },
     getParsedValue = { value },
     getParsedRawValue = { dsl ?: if (value != null) DslText(mode = DslMode.LITERAL, text = value) else null },
-    setParsedValue = { value = it; dsl = it?.let { DslText(DslMode.LITERAL, it.toString()) } },
-    setParsedRawValue = { value = translateDsl[it.text]; dsl = it; },
+    setParsedValue = {
+      setParsedValueCalls++
+      value = it; dsl = it?.let { DslText(DslMode.LITERAL, it.toString()) }
+    },
+    setParsedRawValue = {
+      setParsedValueCalls++
+      value = translateDsl[it.text]; dsl = it;
+    },
     parser = { _: Nothing?, it ->
       when {
         it.isEmpty() -> ParsedValue.NotSet
@@ -79,7 +91,7 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
         else -> ParsedValue.Set.Parsed(value = it)
       }
     },
-    knownValuesGetter = { _: Nothing?, _ -> immediateFuture(wellKnownValues) })
+    knownValuesGetter = { _: Nothing?, _ -> wellKnownValuesFuture })
 
   override fun setUp() {
     super.setUp()
@@ -106,6 +118,25 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
     val editor = simplePropertyEditor(null, model, property)
     assertThat<Any?>(editor.selectedItem, equalTo("1".asSimpleParsed()))
     assertThat(editor.testPlainTextStatus, equalTo(""))
+  }
+
+  fun testLoadsDelayedWellKnownValue() {
+    parsedModel.dsl = DslText(DslMode.LITERAL, "1")
+    parsedModel.value = "1"
+    resolvedModel.value = "1"
+    val values = wellKnownValuesFuture.get() // Capture default test values.
+    val settableWellKnownValuesFuture = SettableFuture.create<List<ValueDescriptor<String>>>()
+    wellKnownValuesFuture = settableWellKnownValuesFuture
+    val editor = simplePropertyEditor(null, model, property)
+    assertThat(editor.testWatermark(), equalTo("1"))
+    assertThat<Any?>(editor.selectedItem, equalTo("1".asSimpleParsed()))
+    assertThat(editor.testPlainTextStatus, equalTo(""))
+    assertThat(parsedModel.setParsedRawValueCalls, equalTo(0))
+    assertThat(parsedModel.setParsedValueCalls, equalTo(0))
+    settableWellKnownValuesFuture.set(values)
+    assertThat(editor.testWatermark(), equalTo("1 (one)"))
+    assertThat(parsedModel.setParsedRawValueCalls, equalTo(0))
+    assertThat(parsedModel.setParsedValueCalls, equalTo(0))
   }
 
   fun testLoadsNotSetValue() {
@@ -199,7 +230,7 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
     assertThat(editor.getModel().getItems(),
                hasItems("1".asSimpleParsed(), "2".asSimpleParsed(), var1.asParsed(), var2.asParsed()))
 
-    wellKnownValues = listOf(ValueDescriptor("1", "one"), ValueDescriptor("2", "two"), ValueDescriptor("3", "three"))
+    wellKnownValuesFuture = immediateFuture(listOf(ValueDescriptor("1", "one"), ValueDescriptor("2", "two"), ValueDescriptor("3", "three")))
     editor.commitTestText("2")
     editor.simulateEditorGotFocus()
 
@@ -208,7 +239,7 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
     assertThat(parsedModel.value, equalTo("2"))
     assertThat<Any?>(editor.selectedItem, equalTo("2".asSimpleParsed()))
 
-    wellKnownValues = listOf(ValueDescriptor("1", "one"), ValueDescriptor("3", "three"))
+    wellKnownValuesFuture = immediateFuture(listOf(ValueDescriptor("1", "one"), ValueDescriptor("3", "three")))
     editor.simulateEditorGotFocus()
 
     assertThat(editor.getModel().getItems(),
@@ -340,3 +371,5 @@ private fun SimplePropertyEditor<*, *, *, *>.commitTestText(text: String) {
   actionPerformed(ActionEvent(getEditor(), 0, null))
 }
 
+private fun SimplePropertyEditor<*, *, *, *>.testWatermark(): String? =
+  ((this.getEditor() as? BasicComboBoxEditor)?.editorComponent as? JBTextField)?.emptyText?.text
