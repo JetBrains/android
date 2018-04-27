@@ -88,6 +88,7 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static com.intellij.testFramework.PlatformTestCase.synchronizeTempDirVfs;
 import static java.util.concurrent.TimeUnit.MINUTES;
+import static org.jetbrains.android.util.AndroidCommonUtils.getStackTrace;
 
 /**
  * Base class for unit tests that operate on Gradle projects
@@ -604,7 +605,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     @Override
     public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
-      failureMessage = errorMessage;
+      failureMessage = !errorMessage.isEmpty() ? errorMessage : "No errorMessage at:\n" + getStackTrace(new Throwable());
       myLatch.countDown();
     }
 
