@@ -42,16 +42,11 @@ class AswbGotoDeclarationTest {
     fun data(): List<TargetBuildSystem.BuildSystem> = Collections.singletonList(TargetBuildSystem.BuildSystem.BAZEL)
   }
 
-  @Before
-  fun setUp() {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleBazelApplication", "java/com/foo/gallery/BUILD")
-  }
-
   @Test
   @TargetBuildSystem(TargetBuildSystem.BuildSystem.BAZEL)
   fun gotoDeclaration_withExternalResources() {
     try {
-      guiTest.ideFrame()
+      guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleBazelApplication", "java/com/foo/gallery/BUILD")
         .editor
         .open("../SimpleBazelApplication/java/com/foo/gallery/activities/MainActivity.java")
         .moveBetween("R.style", ".Base_Highlight")
@@ -68,7 +63,7 @@ class AswbGotoDeclarationTest {
   @Test
   @TargetBuildSystem(TargetBuildSystem.BuildSystem.BAZEL)
   fun gotoDeclaration_withLocalResources() {
-    guiTest.ideFrame()
+    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleBazelApplication", "java/com/foo/gallery/BUILD")
       .editor
       .open("../SimpleBazelApplication/java/com/foo/gallery/activities/MainActivity.java")
       .moveBetween("R.menu", ".settings")
