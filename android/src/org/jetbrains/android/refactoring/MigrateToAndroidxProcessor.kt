@@ -151,6 +151,7 @@ class MigrateToAndroidxProcessor(val project: Project,
       usages
         .filterIsInstance<MigrateToAppCompatUsageInfo>()
         .mapNotNull { it.applyChange(migration) }
+        .filter { it.isValid }
         .map { smartPointerManager.createSmartPsiElementPointer(it) }
         .forEach { refsToShorten.add(it) }
 
