@@ -18,6 +18,7 @@ package com.android.tools.profilers.energy;
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTooltipView;
@@ -62,17 +63,21 @@ class EnergyStageTooltipView extends ProfilerTooltipView {
     eventLegends.changed(LegendComponentModel.Aspect.LEGEND);
 
 
-    JPanel legendPanel = new JPanel(new TabularLayout("*").setVGap(10));
+    JPanel legendPanel = new JPanel(new TabularLayout("*").setVGap(8));
     legendPanel.setOpaque(false);
     legendPanel.add(usageLegendComponent, new TabularLayout.Constraint(0, 0));
 
-    JLabel eventLabel = new JLabel("System Events");
+    JLabel eventLabel = new JLabel("System Events ");
     eventLabel.setFont(myFont);
-    legendPanel.add(eventLabel, new TabularLayout.Constraint(1, 0));
+    JPanel labelWithSeparator = new JPanel(new TabularLayout("Fit,*", "Fit"));
+    labelWithSeparator.add(eventLabel, new TabularLayout.Constraint(0, 0));
+    labelWithSeparator.add(AdtUiUtils.createHorizontalSeparator(), new TabularLayout.Constraint(0, 1));
+    labelWithSeparator.setOpaque(false);
+    legendPanel.add(labelWithSeparator, new TabularLayout.Constraint(1, 0));
 
     legendPanel.add(eventLegendComponent, new TabularLayout.Constraint(2, 0));
 
-    legendPanel.add(new JSeparator(SwingConstants.HORIZONTAL), new TabularLayout.Constraint(3, 0));
+    legendPanel.add(AdtUiUtils.createHorizontalSeparator(), new TabularLayout.Constraint(3, 0));
 
     JLabel callToActionLabel = new JLabel("Select range to inspect");
     callToActionLabel.setFont(myFont);
