@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.scene
 
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.scene.targets.ScreenDragTarget
 
@@ -23,7 +24,7 @@ class NavSceneManagerTest : NavTestCase() {
 
   fun testLayout() {
     val model = model("nav.xml") {
-      NavModelBuilderUtil.navigation("root") {
+      navigation("root") {
         fragment("fragment1")
         fragment("fragment2")
         fragment("fragment3")
@@ -54,5 +55,29 @@ class NavSceneManagerTest : NavTestCase() {
     assertEquals(20, scene.getSceneComponent("fragment2")!!.drawY)
     assertEquals(20, scene.getSceneComponent("fragment3")!!.drawX)
     assertEquals(20, scene.getSceneComponent("fragment3")!!.drawY)
+  }
+
+  fun testLandscape() {
+    val model = NavModelBuilderUtil.model("nav.xml", myFacet, myFixture, {
+      navigation {
+        fragment("fragment1")
+      }
+    }, "navigation-land").build()
+    val scene = model.surface.scene!!
+    val component = scene.getSceneComponent("fragment1")!!
+    assertEquals(256, component.drawWidth)
+    assertEquals(153, component.drawHeight)
+  }
+
+  fun testPortrait() {
+    val model = NavModelBuilderUtil.model("nav.xml", myFacet, myFixture, {
+      navigation {
+        fragment("fragment1")
+      }
+    }, "navigation-port").build()
+    val scene = model.surface.scene!!
+    val component = scene.getSceneComponent("fragment1")!!
+    assertEquals(153, component.drawWidth)
+    assertEquals(256, component.drawHeight)
   }
 }

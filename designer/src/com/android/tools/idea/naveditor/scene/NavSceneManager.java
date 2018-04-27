@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene;
 
+import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
 import com.android.tools.adtui.common.SwingCoordinate;
@@ -176,6 +177,12 @@ public class NavSceneManager extends SceneManager {
             // If it's approximately square make it smaller, otherwise it takes up too much space.
             x *= 0.5;
             y *= 0.5;
+          }
+          if (state.getOrientation() == ScreenOrientation.LANDSCAPE) {
+            int tmp = x;
+            //noinspection SuspiciousNameCombination
+            x = y;
+            y = tmp;
           }
           sceneComponent.setSize(x, y, true);
           break;
