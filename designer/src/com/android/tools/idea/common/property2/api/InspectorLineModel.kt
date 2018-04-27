@@ -17,6 +17,8 @@ package com.android.tools.idea.common.property2.api
 
 import com.intellij.util.text.Matcher
 
+private const val ERROR_NOT_SEARCHABLE = "Component is not searchable"
+
 /**
  * The model of a line in an inspector.
  *
@@ -59,10 +61,30 @@ interface InspectorLineModel {
   fun requestFocus()
 
   /**
+   * Return true if it is possible to search inside this line.
+   *
+   * Most lines are not searchable. Some lines may contain complex content,
+   * where searching is possible.
+   */
+  val isSearchable: Boolean
+    get() = false
+
+  /**
+   * The filter for a search can be specified by setting [filter].
+   *
+   * This method should only be used uf [isSearchable] returns true.
+   */
+  var filter: String
+    get() = ""
+    set(value) = error(ERROR_NOT_SEARCHABLE)
+
+
+  /**
    * Return true, if this line should be shown for the specified search filter.
    *
    * For implementing search in the inspector, allow a line to control
-   * whether it is a search match.
+   * whether it is a search match. This method will never be called if
+   * [isSearchable] is true.
    * @param matcher the current string matcher.
    * @return true if this line is a match, false if not.
    */

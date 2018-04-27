@@ -123,7 +123,7 @@ class FakeInspectorPanel : InspectorPanel {
     return addEditor(modelEditorPair.first, modelEditorPair.second)
   }
 
-  override fun addTable(tableModel: PTableModel): InspectorLineModel {
+  override fun addTable(tableModel: PTableModel, searchable: Boolean): InspectorLineModel {
     val line = FakeInspectorLine(LineType.TABLE)
     line.tableModel = tableModel
     lines.add(line)
