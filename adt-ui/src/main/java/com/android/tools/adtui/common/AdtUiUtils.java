@@ -177,12 +177,11 @@ public final class AdtUiUtils {
    */
   public static JComponent createHorizontalSeparator() {
     JPanel separatorWrapper = new JPanel(new TabularLayout("*", "*,Fit,*"));
-    // The separator panel background should inherit the parent component's background.
-    separatorWrapper.setBackground(null);
     separatorWrapper.add(new JSeparator(), new TabularLayout.Constraint(1, 0));
     Dimension size = new Dimension(1, 12);
     separatorWrapper.setMinimumSize(size);
     separatorWrapper.setPreferredSize(size);
+    separatorWrapper.setOpaque(false);
     return separatorWrapper;
   }
 
