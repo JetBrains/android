@@ -133,7 +133,7 @@ public final class EnergyEventsView {
       new TimelineRenderer(myEventsTable, myStage.getStudioProfilers().getTimeline().getSelectionRange()));
     TableUtils.setTableHeaderBorder(myEventsTable, ProfilerLayout.TABLE_COLUMN_HEADER_BORDER);
 
-    myEventsTable.getEmptyText().setText("No system events for the selected range.");
+    myEventsTable.getEmptyText().setText("No system events for the selected range or filter.");
     myEventsTable.getEmptyText().getComponent().setFont(myEventsTable.getFont().deriveFont(15f));
 
     myEventsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
