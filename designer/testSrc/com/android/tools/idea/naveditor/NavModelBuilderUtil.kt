@@ -49,7 +49,11 @@ object NavModelBuilderUtil {
   private val TAG_FRAGMENT = "fragment"
   private val TAG_NAVIGATION = "navigation"
 
-  fun model(name: String, facet: AndroidFacet, fixture: JavaCodeInsightTestFixture, f: () -> ComponentDescriptor): ModelBuilder {
+  fun model(name: String,
+            facet: AndroidFacet,
+            fixture: JavaCodeInsightTestFixture,
+            f: () -> ComponentDescriptor,
+            path: String = "navigation"): ModelBuilder {
     val managerFactory = Function<SyncNlModel, SceneManager> { model ->
       val surface = model.surface as NavDesignSurface
 
@@ -81,7 +85,7 @@ object NavModelBuilderUtil {
     }
 
     return ModelBuilder(facet, fixture, name, f(), managerFactory,
-        BiConsumer<NlModel, NlModel> { model, newModel -> NavSceneManager.updateHierarchy(model, newModel) }, "navigation",
+        BiConsumer<NlModel, NlModel> { model, newModel -> NavSceneManager.updateHierarchy(model, newModel) }, path,
         NavDesignSurface::class.java)
   }
 
