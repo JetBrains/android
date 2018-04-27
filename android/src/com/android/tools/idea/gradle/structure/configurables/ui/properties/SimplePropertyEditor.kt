@@ -21,6 +21,10 @@ import com.android.tools.idea.gradle.structure.configurables.ui.TextRenderer
 import com.android.tools.idea.gradle.structure.model.VariablesProvider
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.ui.ComboBox
 import java.awt.Dimension
 import java.awt.event.FocusEvent
@@ -44,6 +48,7 @@ class SimplePropertyEditor<ContextT, ModelT, PropertyT : Any, out ModelPropertyT
 ) : RenderedComboBox<ParsedValue<PropertyT>>(DefaultComboBoxModel<ParsedValue<PropertyT>>()), ModelPropertyEditor<ModelT, PropertyT> {
   private var knownValueRenderers: Map<PropertyT?, ValueRenderer> = mapOf()
   private var disposed = false
+  private var knownValuesFuture: ListenableFuture<Unit>? = null  // Accessed only from the EDT.
 
   override val component: JComponent = this
   override val statusComponent: HtmlLabel = HtmlLabel().also {
@@ -77,26 +82,42 @@ class SimplePropertyEditor<ContextT, ModelT, PropertyT : Any, out ModelPropertyT
   }
 
   override fun dispose() {
+    knownValuesFuture?.cancel(false)
     disposed = true
   }
 
   @VisibleForTesting
   fun loadKnownValues() {
     val availableVariables: List<ParsedValue.Set.Parsed<PropertyT>>? = getAvailableVariables()
-    val possibleValues = getKnowValues()
-    val knownValues = possibleValues.keys.map {
-      if (it != null) ParsedValue.Set.Parsed(it)
-      else ParsedValue.NotSet
-    } + availableVariables.orEmpty()
-    knownValueRenderers = possibleValues
 
-    setKnownValues(knownValues)
-  }
+    fun receiveKnownValuesOnEdt(it: List<ValueDescriptor<PropertyT>>?) {
+      val possibleValues = buildKnownValueRenderers(it, property.getDefaultValue(model))
+      val knownValues = possibleValues.keys.map {
+        if (it != null) ParsedValue.Set.Parsed(it)
+        else ParsedValue.NotSet
+      } + availableVariables.orEmpty()
+      knownValueRenderers = possibleValues
 
-  private fun getKnowValues(): Map<PropertyT?, ValueRenderer> {
-    val defaultValue = property.getDefaultValue(model)
-    val knownValues = property.getKnownValues(context, model).get()
-    return buildKnownValueRenderers(knownValues, defaultValue)
+      setKnownValues(knownValues)
+    }
+
+    knownValuesFuture?.cancel(false)
+
+    knownValuesFuture = Futures.transform(
+      property.getKnownValues(context, model),
+      {
+        receiveKnownValuesOnEdt(it)
+        knownValuesFuture = null
+      },
+      {
+        val application = ApplicationManager.getApplication()
+        if (application.isDispatchThread) {
+          it.run()
+        }
+        else {
+          application.invokeLater(it, ModalityState.any())
+        }
+      })
   }
 
   private fun loadValue(value: PropertyValue<PropertyT>) {
