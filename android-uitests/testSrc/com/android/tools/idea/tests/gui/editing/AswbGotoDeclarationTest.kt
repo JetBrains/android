@@ -53,12 +53,6 @@ class AswbGotoDeclarationTest {
     return this
   }
 
-  private fun EditorFixture.waitUntilCurrentFileIs(waitTimeInSecond: Long, targetResourcePath: String): EditorFixture {
-    Wait.seconds(waitTimeInSecond).expecting("Navigate to target resource file $targetResourcePath")
-        .until { currentFile!!.canonicalPath == targetResourcePath }
-    return this
-  }
-
   /**
    * Open a file
    *
@@ -71,13 +65,11 @@ class AswbGotoDeclarationTest {
   @Test
   @TargetBuildSystem(TargetBuildSystem.BuildSystem.BAZEL)
   fun gotoDeclaration_withExternalResources() {
-    val targetResourcePath = guiTest.ideFrame()
-        .findFileByRelativePath("../SimpleBazelApplication/java/com/foo/libs/res/res/values/styles.xml", true)!!
-        .canonicalPath
     try {
       openFile("../SimpleBazelApplication/java/com/foo/gallery/activities/MainActivity.java")
         .gotoDeclaration("R.style.Base_Highlight")
-        .waitUntilCurrentFileIs(20, targetResourcePath!!)
+      Wait.seconds(20).expecting("file to open")
+        .until({guiTest.ideFrame().editor.currentFileName.equals("styles.xml")})
     } catch(e: Exception) {
       // Time out exception due to b/71820265, try-catch should be removed after fixing it.
       Assert.assertThat(e, instanceOf(WaitTimedOutError::class.java))
@@ -88,11 +80,9 @@ class AswbGotoDeclarationTest {
   @Test
   @TargetBuildSystem(TargetBuildSystem.BuildSystem.BAZEL)
   fun gotoDeclaration_withLocalResources() {
-    val targetResourcePath = guiTest.ideFrame()
-        .findFileByRelativePath("../SimpleBazelApplication/java/com/foo/gallery/activities/res/menu/settings.xml", true)!!
-        .canonicalPath
     openFile("../SimpleBazelApplication/java/com/foo/gallery/activities/MainActivity.java")
       .gotoDeclaration("R.menu.settings")
-      .waitUntilCurrentFileIs(20, targetResourcePath!!)
+    Wait.seconds(20).expecting("file to open")
+      .until({guiTest.ideFrame().editor.currentFileName.equals("settings.xml")})
   }
 }
