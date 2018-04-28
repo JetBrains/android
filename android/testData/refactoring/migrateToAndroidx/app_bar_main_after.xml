@@ -30,4 +30,7 @@
         android:layout_margin="@dimen/fab_margin"
         app:srcCompat="@android:drawable/ic_dialog_email" />
 
+    <androidx.widget.RecyclerView
+        app:layoutManager="androidx.widget.GridLayoutManager" />
+
 </androidx.widget.CoordinatorLayout>
