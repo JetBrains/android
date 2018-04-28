@@ -108,6 +108,13 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
         PsiJavaCodeReferenceElement referenceElement = (PsiJavaCodeReferenceElement)element;
         return referenceElement.bindToElement(aClass);
       }
+      else if (element instanceof XmlAttributeValue) {
+        XmlAttributeValue value = (XmlAttributeValue)element;
+        XmlAttribute attribute = (XmlAttribute)value.getParent();
+        if (mapEntry.myOldName.equals(value.getValue())) {
+          attribute.setValue(mapEntry.myNewName);
+        }
+      }
       else {
         final TextRange range = getRangeInElement();
         for (PsiReference reference : element.getReferences()) {
