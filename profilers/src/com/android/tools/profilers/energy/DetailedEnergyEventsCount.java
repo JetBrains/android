@@ -34,7 +34,7 @@ public class DetailedEnergyEventsCount {
     Range dataRange = profilers.getTimeline().getDataRange();
     RangedSeries<EnergyProfiler.EnergyEvent> series = new RangedSeries<>(dataRange, sourceSeries);
 
-    myLocationCountSeries = new RangedContinuousSeries("Location Event", profilers.getTimeline().getViewRange(), countRange,
+    myLocationCountSeries = new RangedContinuousSeries("Location", profilers.getTimeline().getViewRange(), countRange,
                                                        new EnergyEventsCountDataSeries(series, EnergyDuration.Kind.LOCATION));
     myWakeLockCountSeries = new RangedContinuousSeries("Wake Locks", profilers.getTimeline().getViewRange(), countRange,
                                                        new EnergyEventsCountDataSeries(series, EnergyDuration.Kind.WAKE_LOCK));

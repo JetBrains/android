@@ -135,7 +135,7 @@ class EnergyProfilerStageTest {
     assertThat(myStage.tooltip).isInstanceOf(EnergyStageTooltip::class.java)
     val tooltip = myStage.tooltip as EnergyStageTooltip
     assertThat(tooltip.eventLegends.legends).hasSize(3)
-    assertThat(tooltip.eventLegends.locationLegend.name).isEqualTo("Location Event")
+    assertThat(tooltip.eventLegends.locationLegend.name).isEqualTo("Location")
     assertThat(tooltip.eventLegends.wakeLockLegend.name).isEqualTo("Wake Locks")
     assertThat(tooltip.eventLegends.alarmAndJobLegend.name).isEqualTo("Alarms & Jobs")
   }
