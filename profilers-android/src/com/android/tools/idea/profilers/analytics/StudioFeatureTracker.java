@@ -751,7 +751,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
           case FULL_WAKE_LOCK: return EnergyEvent.Subtype.WAKE_LOCK_FULL;
           case PROXIMITY_SCREEN_OFF_WAKE_LOCK: return EnergyEvent.Subtype.WAKE_LOCK_PROXIMITY_SCREEN_OFF;
           // Default case should never happen unless framework adds a new wake lock type and we forget to handle it
-          default: return null; // TODO(b/78596783): return EnergyEvent.Subtype.UNKNOWN_EVENT_SUBTYPE;
+          default: return EnergyEvent.Subtype.UNKNOWN_EVENT_SUBTYPE;
         }
       }
       else if (energyEvent.getMetadataCase() == EnergyProfiler.EnergyEvent.MetadataCase.ALARM_SET) {
@@ -762,7 +762,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
           case ELAPSED_REALTIME: return EnergyEvent.Subtype.ALARM_ELAPSED_REALTIME;
           case ELAPSED_REALTIME_WAKEUP: return EnergyEvent.Subtype.ALARM_ELAPSED_REALTIME_WAKEUP;
           // Default case should never happen unless framework adds a new alarm type and we forget to handle it
-          default: return null; // TODO(b/78596783): return EnergyEvent.Subtype.UNKNOWN_EVENT_SUBTYPE;
+          default: return EnergyEvent.Subtype.UNKNOWN_EVENT_SUBTYPE;
         }
       }
 
