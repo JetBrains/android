@@ -19,9 +19,9 @@ import com.android.tools.idea.gradle.structure.configurables.ui.treeview.Abstrac
 import org.jetbrains.annotations.NotNull;
 
 public class DependenciesTreeStructure extends AbstractBaseTreeStructure {
-  @NotNull private final DependenciesTreeRootNode<?> myRootNode;
+  @NotNull private final DependenciesTreeRootNode myRootNode;
 
-  public DependenciesTreeStructure(@NotNull DependenciesTreeRootNode<?> rootNode) {
+  public DependenciesTreeStructure(@NotNull DependenciesTreeRootNode rootNode) {
     myRootNode = rootNode;
   }
 

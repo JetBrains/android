@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.treeview.Abstrac
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.android.tools.idea.gradle.structure.model.PsModule;
+import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.*;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -36,22 +37,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-public class DependenciesTreeRootNode<T extends PsModel> extends AbstractPsResettableNode<T> {
-  @NotNull private final DependencyCollectorFunction<T> myDependencyCollectorFunction;
+public class DependenciesTreeRootNode extends AbstractPsResettableNode<PsProject> {
   @NotNull private final DependencyNodeComparator myDependencyNodeComparator;
 
-  public DependenciesTreeRootNode(@NotNull T model, @NotNull DependencyCollectorFunction<T> dependencyCollectorFunction,
+  public DependenciesTreeRootNode(@NotNull PsProject model,
                                   @NotNull PsUISettings uiSettings) {
     super(model, uiSettings);
-    myDependencyCollectorFunction = dependencyCollectorFunction;
     myDependencyNodeComparator = new DependencyNodeComparator(new PsDependencyComparator(getUiSettings()));
   }
 
   @Override
   @NotNull
   protected List<? extends AbstractPsModelNode> createChildren() {
-    T model = getFirstModel();
-    DependencyCollector collector = myDependencyCollectorFunction.apply(model);
+    DependencyCollector collector = new DependencyCollector();
+    getFirstModel().forEachModule(module -> collectDeclaredDependencies(module, collector));
 
     List<AbstractDependencyNode> children = Lists.newArrayList();
     for (Map.Entry<PsArtifactDependencySpec, List<PsLibraryAndroidDependency>> entry : collector.libraryDependenciesBySpec.entrySet()) {
@@ -69,16 +68,14 @@ public class DependenciesTreeRootNode<T extends PsModel> extends AbstractPsReset
   }
 
 
-  public static abstract class DependencyCollectorFunction<T extends PsModel> implements Function<T, DependencyCollector> {
-    protected void collectDeclaredDependencies(@NotNull PsModule module, @NotNull DependencyCollector collector) {
-      if (module instanceof PsAndroidModule) {
-        PsAndroidModule androidModule = (PsAndroidModule)module;
-        androidModule.getDependencies().forEach(v -> {
-          if (v.isDeclared()) {
-            collector.add(v);
-          }
-        });
-      }
+  protected void collectDeclaredDependencies(@NotNull PsModule module, @NotNull DependencyCollector collector) {
+    if (module instanceof PsAndroidModule) {
+      PsAndroidModule androidModule = (PsAndroidModule)module;
+      androidModule.getDependencies().forEach(v -> {
+        if (v.isDeclared()) {
+          collector.add(v);
+        }
+      });
     }
   }
 
