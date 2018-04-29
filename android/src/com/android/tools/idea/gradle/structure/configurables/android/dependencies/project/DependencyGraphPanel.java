@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractPsNodeTreeBuilder.MatchingNodeCollector;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.graph.DependenciesTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.graph.DependenciesTreeRootNode;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.graph.DependenciesTreeRootNode.DependencyCollectorFunction;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.graph.DependenciesTreeStructure;
 import com.android.tools.idea.gradle.structure.configurables.issues.DependencyViewIssuesRenderer;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
@@ -174,17 +173,9 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
   }
 
   @NotNull
-  private DependenciesTreeRootNode<PsProject> createRootNode() {
-    return new DependenciesTreeRootNode<>(
+  private DependenciesTreeRootNode createRootNode() {
+    return new DependenciesTreeRootNode(
       myContext.getProject(),
-      new DependencyCollectorFunction<PsProject>() {
-        @Override
-        public DependenciesTreeRootNode.DependencyCollector apply(PsProject project) {
-          DependenciesTreeRootNode.DependencyCollector collector = new DependenciesTreeRootNode.DependencyCollector();
-          project.forEachModule(module -> collectDeclaredDependencies(module, collector));
-          return collector;
-        }
-      },
       myContext.getUiSettings());
   }
 
