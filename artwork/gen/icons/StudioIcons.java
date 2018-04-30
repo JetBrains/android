@@ -40,6 +40,7 @@ public class StudioIcons {
     public static final Icon CHECKED = load("/studio/icons/common/checked.png"); // 16x16
     public static final Icon CLEAR = load("/studio/icons/common/clear.png"); // 16x16
     public static final Icon CLOSE = load("/studio/icons/common/close.png"); // 16x16
+    public static final Icon DELETE = load("/studio/icons/common/delete.png"); // 16x16
     public static final Icon EDIT = load("/studio/icons/common/edit.png"); // 16x16
     public static final Icon ERROR_INLINE_SELECTED = load("/studio/icons/common/error-inline-selected.png"); // 16x16
     public static final Icon ERROR_INLINE = load("/studio/icons/common/error-inline.png"); // 16x16
@@ -60,6 +61,7 @@ public class StudioIcons {
     public static final Icon PROPERTY_BOUND = load("/studio/icons/common/property-bound.png"); // 15x20
     public static final Icon PROPERTY_UNBOUND_FOCUS = load("/studio/icons/common/property-unbound-focus.png"); // 15x20
     public static final Icon PROPERTY_UNBOUND = load("/studio/icons/common/property-unbound.png"); // 15x20
+    public static final Icon REMOVE = load("/studio/icons/common/remove.png"); // 16x16
     public static final Icon REORDER = load("/studio/icons/common/reorder.png"); // 16x16
     public static final Icon RESET_ZOOM = load("/studio/icons/common/reset-zoom.png"); // 16x16
     public static final Icon SEARCH = load("/studio/icons/common/search.png"); // 16x16
@@ -102,6 +104,8 @@ public class StudioIcons {
       public static final Icon GO_TO_END = load("/studio/icons/layout-editor/motion/go-to-end.png"); // 16x16
       public static final Icon GO_TO_START = load("/studio/icons/layout-editor/motion/go-to-start.png"); // 16x16
       public static final Icon LOOP = load("/studio/icons/layout-editor/motion/loop.png"); // 16x16
+      public static final Icon MAX_SCALE = load("/studio/icons/layout-editor/motion/max-scale.png"); // 16x16
+      public static final Icon MIN_SCALE = load("/studio/icons/layout-editor/motion/min-scale.png"); // 16x16
       public static final Icon PAUSE = load("/studio/icons/layout-editor/motion/pause.png"); // 16x16
       public static final Icon PLAY = load("/studio/icons/layout-editor/motion/play.png"); // 16x16
       public static final Icon SLOW_MOTION = load("/studio/icons/layout-editor/motion/slow-motion.png"); // 16x16
