@@ -40,6 +40,7 @@ import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.labels.BoldLabel;
+import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.PlatformColors;
 import com.intellij.util.ui.UIUtil;
@@ -90,7 +91,7 @@ final class OverviewTabContent extends TabContent {
   }
 
   private static JComponent createFields(@NotNull HttpData httpData, @Nullable Dimension payloadDimension) {
-    JPanel myFieldsPanel = new JPanel(new TabularLayout("Fit-,20px,*").setVGap(TabUiUtils.SECTION_VGAP));
+    JPanel myFieldsPanel = new JPanel(new TabularLayout("Fit-,40px,*").setVGap(TabUiUtils.SECTION_VGAP));
 
     int row = 0;
     myFieldsPanel.add(new NoWrapBoldLabel("Request"), new TabularLayout.Constraint(row, 0));
@@ -166,7 +167,7 @@ final class OverviewTabContent extends TabContent {
     myFieldsPanel.add(hyperlink, new TabularLayout.Constraint(row, 2));
 
     row++;
-    JSeparator separator = TabUiUtils.createSeparator();
+    JSeparator separator = new JSeparator();
     separator.setMinimumSize(separator.getPreferredSize());
     int gap = TabUiUtils.PAGE_VGAP - TabUiUtils.SECTION_VGAP - (int)separator.getPreferredSize().getHeight() / 2;
     JPanel separatorContainer = new JPanel(new VerticalFlowLayout(0, gap));
@@ -238,7 +239,7 @@ final class OverviewTabContent extends TabContent {
   protected JComponent createComponent() {
     TabularLayout layout = new TabularLayout("*").setVGap(TabUiUtils.PAGE_VGAP);
     myPanel = new JPanel(layout);
-    myPanel.setBorder(BorderFactory.createEmptyBorder(TabUiUtils.PAGE_VGAP, TabUiUtils.HGAP, 0, TabUiUtils.HGAP));
+    myPanel.setBorder(new JBEmptyBorder(TabUiUtils.PAGE_VGAP, TabUiUtils.HORIZONTAL_PADDING, 0, TabUiUtils.HORIZONTAL_PADDING));
     JBScrollPane overviewScroll = TabUiUtils.createVerticalScrollPane(myPanel);
     overviewScroll.getVerticalScrollBar().setUnitIncrement(TabUiUtils.SCROLL_UNIT);
     overviewScroll.addComponentListener(new ComponentAdapter() {

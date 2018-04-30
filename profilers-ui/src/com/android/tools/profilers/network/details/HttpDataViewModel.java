@@ -109,7 +109,7 @@ final class HttpDataViewModel {
       payloadComponent.add(viewerComponent, new TabularLayout.Constraint(0, 0));
     }
     else {
-      payloadComponent = new JLabel("No body available");
+      payloadComponent = new JLabel("Not available");
     }
     return payloadComponent;
   }

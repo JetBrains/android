@@ -23,6 +23,7 @@ import com.android.tools.profilers.network.NetworkProfilerStageView;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
+import com.intellij.util.ui.JBEmptyBorder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,6 +58,7 @@ public class ConnectionDetailsView extends JPanel {
     JPanel rootPanel = new JPanel(new TabularLayout("*,Fit-", "Fit-,*"));
 
     myTabsPanel = new CommonTabbedPane();
+    myTabsPanel.setFont(UIManager.getFont("Label.font").deriveFont(TabUiUtils.FIELD_FONT_SIZE));
 
     populateTabs();
 
@@ -67,7 +69,11 @@ public class ConnectionDetailsView extends JPanel {
     });
 
     CloseButton closeButton = new CloseButton(e -> myStageView.getStage().setSelectedConnection(null));
-    rootPanel.add(closeButton, new TabularLayout.Constraint(0, 1));
+    // Add a wrapper to move the close button center vertically.
+    JPanel closeButtonWrapper = new JPanel(new BorderLayout());
+    closeButtonWrapper.add(closeButton, BorderLayout.CENTER);
+    closeButtonWrapper.setBorder(new JBEmptyBorder(3, 0, 0, 0));
+    rootPanel.add(closeButtonWrapper, new TabularLayout.Constraint(0, 1));
     rootPanel.add(myTabsPanel, new TabularLayout.Constraint(0, 0, 2, 2));
 
     add(rootPanel);
