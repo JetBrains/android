@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.FakeElementTransform;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -128,7 +129,11 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
       configurationElement = element.getClosureElement();
     }
     List<ArtifactDependencyModel> results = Lists.newArrayList();
-    assert element instanceof GradleDslSimpleExpression || element instanceof GradleDslExpressionMap || element instanceof GradleDslExpressionList;
+    if (!(element instanceof GradleDslSimpleExpression ||
+          element instanceof GradleDslExpressionMap ||
+          element instanceof GradleDslExpressionList)) {
+      return ImmutableList.of();
+    }
     if (element instanceof GradleDslExpressionMap) {
       MapNotation mapNotation = MapNotation.create(configurationName, (GradleDslExpressionMap)element, configurationElement);
       if (mapNotation != null) {
