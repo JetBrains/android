@@ -51,21 +51,16 @@ class GradleGuiTestProjectSystem : GuiTestProjectSystem {
   }
 
   override fun importProject(targetTestDirectory: File, robot: Robot, buildPath: String?) {
-    val previouslyOpenProjects = ProjectManager.getInstance().openProjects
     val toSelect = VfsUtil.findFileByIoFile(targetTestDirectory, true)
     ApplicationManager.getApplication().invokeAndWait { GradleProjectImporter.getInstance().importProject(toSelect!!) }
 
-    // Wait until the project window is actually displayed
-    val newOpenProjects = mutableListOf<Project>()
     Wait.seconds(5).expecting("Project to be open").until {
-        newOpenProjects.addAll(ProjectManager.getInstance().openProjects)
-        newOpenProjects.removeAll(previouslyOpenProjects)
-        !newOpenProjects.isEmpty()
+      !ProjectManager.getInstance().openProjects.isEmpty()
       }
 
     // After the project is opened there will be an Index and a Gradle Sync phase, and these can happen in any order.
     // Waiting for indexing to finish, makes sure Sync will start next or all Sync was done already.
-    GuiTests.waitForProjectIndexingToFinish(newOpenProjects[0])
+    GuiTests.waitForProjectIndexingToFinish(ProjectManager.getInstance().openProjects[0])
   }
 
   override fun requestProjectSync(ideFrameFixture: IdeFrameFixture): GuiTestProjectSystem {
