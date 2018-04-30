@@ -23,7 +23,10 @@ import com.intellij.openapi.ui.popup.LightweightWindowEvent;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.ui.EmptyIcon;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
+import icons.StudioIcons;
 
 import javax.swing.*;
 import javax.swing.event.TreeExpansionEvent;
@@ -47,22 +50,7 @@ class ViewList extends JPanel implements Gantt.ChartElement {
   Chart myChart;
   boolean myInternal;
 
-  Icon mySpacerIcon = new Icon() {
-
-    @Override
-    public void paintIcon(Component c, Graphics g, int x, int y) {
-    }
-
-    @Override
-    public int getIconWidth() {
-      return 0;
-    }
-
-    @Override
-    public int getIconHeight() {
-      return Chart.ourGraphHeight;
-    }
-  };
+  private static final Icon mySpacerIcon = JBUI.scale(EmptyIcon.create(0, Chart.ourGraphHeight));
 
   JPanel myAddPanel = new JPanel(null) {
     @Override
@@ -209,44 +197,7 @@ class ViewList extends JPanel implements Gantt.ChartElement {
     }
   }
 
-  TreeCellRenderer cellRenderer =   new DefaultTreeCellRenderer() {
-
-    @Override
-    public Component getTreeCellRendererComponent(JTree tree,
-                                                  Object value,
-                                                  boolean sel,
-                                                  boolean expanded,
-                                                  boolean leaf,
-                                                  int row,
-                                                  boolean hasFocus) {
-      DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
-
-      JComponent c =
-        (JComponent)super.getTreeCellRendererComponent(tree, (node.getChildCount() == 0) ? "" : value, sel, expanded, leaf, row, hasFocus);
-
-      Object root = tree.getModel().getRoot();
-
-      c.setOpaque(true);
-      setIcon(TimeLineIcons.EMPTY);
-
-      if (root.equals(node)) {
-        return c;
-      }
-
-      if (node.getParent() == root) {
-        setIcon(TimeLineIcons.VIEW);
-      }
-      if (node instanceof GraphMode) {
-        setIcon(mySpacerIcon);
-      }
-      if (sel) {
-        setBackground(Color.LIGHT_GRAY);
-      }
-      setText(node.getUserObject().toString());
-
-      return c;
-    }
-  };
+  TreeCellRenderer cellRenderer = new MyDefaultTreeCellRenderer();
 
   @Override
   public void setBackground(Color bg) {
@@ -423,5 +374,46 @@ class ViewList extends JPanel implements Gantt.ChartElement {
     }
 
     model.reload();
+  }
+
+  private static class MyDefaultTreeCellRenderer extends DefaultTreeCellRenderer {
+
+    MyDefaultTreeCellRenderer() {
+      setBackgroundNonSelectionColor(StudioColorsKt.getSecondaryPanelBackground());
+    }
+
+    @Override
+    public Component getTreeCellRendererComponent(JTree tree,
+                                                  Object value,
+                                                  boolean sel,
+                                                  boolean expanded,
+                                                  boolean leaf,
+                                                  int row,
+                                                  boolean hasFocus) {
+      DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
+
+      JComponent c =
+        (JComponent)super.getTreeCellRendererComponent(tree, (node.getChildCount() == 0) ? "" : value, sel, expanded, leaf, row, hasFocus);
+
+      Object root = tree.getModel().getRoot();
+
+      if (root.equals(node)) {
+        setIcon(EmptyIcon.ICON_0);
+        return c;
+      }
+
+      if (node.getParent() == root) {
+        setIcon(StudioIcons.LayoutEditor.Palette.VIEW);
+      }
+      else if (node instanceof GraphMode) {
+        setIcon(mySpacerIcon);
+      }
+      else {
+        setIcon(EmptyIcon.ICON_0);
+      }
+      setText(node.getUserObject().toString());
+      setBackgroundSelectionColor(UIUtil.getTreeSelectionBackground(hasFocus));
+      return c;
+    }
   }
 }
