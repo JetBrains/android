@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.attributeEditor;
 
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutAttributePanel;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.ui.table.JBTable;
@@ -39,12 +41,13 @@ public class TransitionPanel extends TagPanel {
   Vector<String> colNames = new Vector<String>(Arrays.asList("Name", "Value"));
   Vector<Vector<Object>> data = new Vector<>();
   DefaultTableModel myTableModel = new DefaultTableModel(data, colNames);
-  JTable myTable = new JBTable(myTableModel);
   JBPopupMenu myPopupMenu = new JBPopupMenu("Add Attribute");
 
-  public TransitionPanel() {
+  public TransitionPanel(MotionLayoutAttributePanel panel) {
+    super(panel);
     myTitle.setText("Transition");
-
+    myTable = new JBTable(myTableModel);
+    setup();
     myTable.setDefaultRenderer(EditorUtils.AttributesNamesHolder.class, new EditorUtils.AttributesNamesCellRenderer());
     myTable.setDefaultRenderer(String.class, new EditorUtils.AttributesValueCellRenderer());
 
@@ -64,11 +67,10 @@ public class TransitionPanel extends TagPanel {
         return c;
       }
     });
-    EditorUtils.AddRemovePanel addRemovePanel = new EditorUtils.AddRemovePanel();
 
     myPopupMenu.add(new JMenuItem("place holder"));
 
-    addRemovePanel.myAddButton.addMouseListener(new MouseAdapter() {
+    myAddRemovePanel.myAddButton.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
         myPopupMenu.show(e.getComponent(), e.getX(), e.getY());
@@ -90,7 +92,7 @@ public class TransitionPanel extends TagPanel {
     gbc.gridy++;
     gbc.fill = GridBagConstraints.NONE;
     gbc.anchor = GridBagConstraints.WEST;
-    add(addRemovePanel, gbc);
+    add(myAddRemovePanel, gbc);
   }
 
   public ActionListener myAddItemAction = new ActionListener() {
@@ -114,6 +116,10 @@ public class TransitionPanel extends TagPanel {
       menuItem.addActionListener(myAddItemAction);
       myPopupMenu.add(menuItem);
     }
+  }
+
+  @Override
+  protected void deleteAttr(NlModel nlModel, int selection) {
   }
 
   public void setTransitionTag(MotionSceneModel.TransitionTag tag) {

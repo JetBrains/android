@@ -15,20 +15,52 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.attributeEditor;
 
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutAttributePanel;
+
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 
 /**
  * Base class for all tag panels.
  */
 public class TagPanel extends JPanel {
+  MotionLayoutAttributePanel myBasePanel;
   protected JLabel myTitle = new JLabel("", JLabel.LEFT);
+  EditorUtils.AddRemovePanel myAddRemovePanel = new EditorUtils.AddRemovePanel();
+  JTable myTable;
+  protected JButton myRemoveTagButton;
 
-  TagPanel() {
+  TagPanel(MotionLayoutAttributePanel basePanel) {
+    myBasePanel = basePanel;
     setLayout(new GridBagLayout());
     setBackground(EditorUtils.ourMainBackground);
     myTitle.setForeground(EditorUtils.ourTagColor);
     myTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
     myTitle.setFont(myTitle.getFont().deriveFont(Font.BOLD));
+  }
+
+  protected void deleteAttr(NlModel nlModel, int selection) {
+  }
+
+  protected void deleteTag(NlModel nlModel) {
+  }
+
+  protected void setup() {
+    if (myRemoveTagButton != null) {
+      myRemoveTagButton.addActionListener(e -> deleteTag(myBasePanel.myNlModel));
+    }
+    myAddRemovePanel.myRemoveButton.addActionListener((e)-> deleteAttr(myBasePanel.myNlModel, myTable.getSelectedColumn()));
+    myTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+      @Override
+      public void valueChanged(ListSelectionEvent e) {
+        if (e.getValueIsAdjusting()) {
+          return;
+        }
+         myAddRemovePanel.myRemoveButton.setEnabled((myTable.getSelectedColumn() != -1));
+      }
+    });
   }
 }

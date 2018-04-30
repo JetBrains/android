@@ -40,6 +40,8 @@ import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString
  * This parses the file and provide hooks to write the file.
  */
 public class MotionSceneModel {
+  public static final boolean BROKEN = true;
+
   HashMap<String, MotionSceneView> mySceneViews = new HashMap<>();
   ArrayList<ConstraintSet> myConstraintSets;
   ArrayList<TransitionTag> myTransition;
@@ -127,6 +129,8 @@ public class MotionSceneModel {
       myMotionSceneModel = motionSceneModel;
     }
 
+    public abstract String[] getDefault(String key);
+
     public MotionSceneModel getModel() {
       return myMotionSceneModel;
     }
@@ -177,6 +181,10 @@ public class MotionSceneModel {
     }
 
     void parse(String node, String value) {
+      if (value == null) {
+        myAttributes.remove(node);
+        return;
+      }
       if (node.endsWith(MotionSceneString.Key_framePosition)) {
         framePosition = Integer.parseInt(value);
       }
@@ -197,6 +205,52 @@ public class MotionSceneModel {
         XmlAttribute attribute = attributes[i];
         parse(trim(attribute.getName()), attribute.getValue());
       }
+    }
+
+    /**
+     * TODO fix this it is broken
+     *
+     * @param nlModel
+     * @param key
+     * @param value
+     */
+    public void deleteAttribute(NlModel nlModel, String key) {
+      if (BROKEN) {
+        return;
+      }
+      XmlFile xmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(myMotionSceneModel.myProject, myMotionSceneModel.myVirtualFile);
+
+      WriteCommandAction.runWriteCommandAction(myMotionSceneModel.myProject, new Runnable() {
+        @Override
+        public void run() {
+          XmlTag[] tagKeyFrames = xmlFile.getRootTag().findSubTags(MotionSceneKeyFrames);
+          for (int i = 0; i < tagKeyFrames.length; i++) {
+            XmlTag tagKeyFrame = tagKeyFrames[i];
+            XmlTag[] tagkey = tagKeyFrame.getSubTags();
+
+            for (int j = 0; j < tagkey.length; j++) {
+              XmlTag xmlTag = tagkey[j];
+              if (match(xmlTag)) {
+                String head = MotionNameSpace;
+                if (isAndroidAttribute(key)) {
+                  head = AndroidNameSpace;
+                }
+                xmlTag.setAttribute(head + key, null);
+              }
+            }
+          }
+        }
+      });
+      if (nlModel != null) {
+        // TODO: we may want to do live edits instead, but LayoutLib needs
+        // anyway to save the file to disk, so...
+        LayoutPullParsers.saveFileIfNecessary(xmlFile);
+        nlModel.notifyModified(NlModel.ChangeType.EDIT);
+      }
+      parse(key, null);
+    }
+
+    public void deleteTag(NlModel model) {
     }
 
     /**
@@ -266,11 +320,15 @@ public class MotionSceneModel {
     public String getName() {
       return mType;
     }
+
+    public String getEasingCurve() {
+      return (String)myAttributes.get(KeyPositionCartesian_transitionEasing);
+    }
   }
 
   /* ============================KeyPosition==================================*/
 
-  public static class KeyPosition extends KeyFrame {
+  public static abstract class KeyPosition extends KeyFrame {
     String transitionEasing = null;
 
     public KeyPosition(MotionSceneModel motionSceneModel) { super(motionSceneModel); }
@@ -311,6 +369,26 @@ public class MotionSceneModel {
       "perpendicularPath_percent",
       "path_percent"
     };
+    public static String[][] ourDefaults = {
+      {},
+      {},
+      {"curve=(0.5,0,0.5,1)"},
+      {"spline", "linear"},
+      {"true", "false"},
+      {"0.5"},
+      {"0.0"},
+      {"0.5"}
+    };
+
+    @Override
+    public String[] getDefault(String key) {
+      for (int i = 0; i < ourPossibleAttr.length; i++) {
+        if (key.equals(ourPossibleAttr[i])) {
+          return (ourDefaults.length > i) ? ourDefaults[i] : ourDefaults[0];
+        }
+      }
+      return ourDefaults[0];
+    }
 
     public KeyPositionPath(MotionSceneModel motionSceneModel) {
       super(motionSceneModel);
@@ -376,6 +454,30 @@ public class MotionSceneModel {
       "horizontalPercent",
       "verticalPercent",
     };
+    public static String[][] ourDefaults = {
+      {},
+      {},
+      {"curve=(0.5,0,0.5,1)"},
+      {"spline", "linear"},
+      {"true", "false"},
+      {"0.5"},
+      {"0.5"},
+      {"0.5"},
+      {"0.5"},
+      {"0.5"},
+      {"0.5"},
+      {"0.5"}
+    };
+
+    @Override
+    public String[] getDefault(String key) {
+      for (int i = 0; i < ourPossibleAttr.length; i++) {
+        if (key.equals(ourPossibleAttr[i])) {
+          return (ourDefaults.length > i) ? ourDefaults[i] : ourDefaults[0];
+        }
+      }
+      return ourDefaults[0];
+    }
 
     public KeyPositionCartesian(MotionSceneModel motionSceneModel) {
       super(motionSceneModel);
@@ -480,6 +582,27 @@ public class MotionSceneModel {
       "translationZ",
       CustomLabel
     };
+    public static String[][] ourDefaults = {
+      {},
+      {},
+      {"curve=(0.5,0,0.5,1)"},
+      {"spline", "linear"},
+      {"true", "false"},
+      {"0.5"},
+      {"90"},
+      {"0.5"},
+      {"5dp"},
+      {"45"},
+      {"10"},
+      {"10"},
+      {"90"},
+      {"1.5"},
+      {"1.5"},
+      {"10dp"},
+      {"10dp"},
+      {"10dp"},
+    };
+
     public static String[] ourPossibleStandardAttr = {
       "orientation",
       "alpha",
@@ -498,6 +621,16 @@ public class MotionSceneModel {
 
     public ArrayList<CustomAttributes> getCustomAttr() {
       return myCustomAttributes;
+    }
+
+    @Override
+    public String[] getDefault(String key) {
+      for (int i = 0; i < ourPossibleAttr.length; i++) {
+        if (key.equals(ourPossibleAttr[i])) {
+          return (ourDefaults.length > i) ? ourDefaults[i] : ourDefaults[0];
+        }
+      }
+      return ourDefaults[0];
     }
 
     @Override
@@ -586,14 +719,14 @@ public class MotionSceneModel {
     String waveShape;
     public static String[] ourPossibleAttr = {
       "target",
-      "curveFit",
       "framePosition",
       "transitionEasing",
+      "curveFit",
       "progress",
       "waveShape",
       "wavePeriod",
       "waveOffset",
-      "waveVariesBy",
+      //TODO "waveVariesBy",
       "transitionPathRotate",
       "alpha",
       "elevation",
@@ -606,6 +739,29 @@ public class MotionSceneModel {
       "translationY",
       "translationZ"
     };
+    public static String[][] ourDefaults = {
+      {},
+      {},
+      {"curve=(0.5,0,0.5,1)"},
+      {"spline", "linear"},
+      {"0.5"},
+      {"0.5"},
+      {"sin", "square", "triangle", "sawtooth", "reverseSawtooth", "cos", "bounce"},
+      {"1"},
+      {"0"},
+      {"90"},
+      {"0.5"},
+      {"20dp"},
+      {"45"},
+      {"10"},
+      {"10"},
+      {"1.5"},
+      {"1.5"},
+      {"20dp"},
+      {"20dp"},
+      {"20dp"},
+    };
+
     public static String[] ourPossibleStandardAttr = {
       "alpha",
       "elevation",
@@ -618,6 +774,17 @@ public class MotionSceneModel {
       "translationY",
       "translationZ"
     };
+
+    @Override
+    public String[] getDefault(String key) {
+      for (int i = 0; i < ourPossibleAttr.length; i++) {
+        if (key.equals(ourPossibleAttr[i])) {
+          return (ourDefaults.length > i) ? ourDefaults[i] : ourDefaults[0];
+        }
+      }
+      return ourDefaults[0];
+    }
+
     HashSet<String> myAndroidAttributes = null;
 
     @Override
@@ -678,9 +845,23 @@ public class MotionSceneModel {
       "attributeName",
       "customIntegerValue",
       "customFloatValue",
-      "customStringValue",
       "customDimension",
     };
+    public static String[][] ourDefaults = {
+      {},
+      {"1"},
+      {"1.0"},
+      {"20dp"}
+    };
+
+    public String[] getDefault(String key) {
+      for (int i = 0; i < ourPossibleAttr.length; i++) {
+        if (key.equals(ourPossibleAttr[i])) {
+          return (ourDefaults.length > i) ? ourDefaults[i] : ourDefaults[0];
+        }
+      }
+      return ourDefaults[0];
+    }
 
     public CustomCycleAttributes(KeyCycle frame) {
       parentKeyCycle = frame;
@@ -701,9 +882,14 @@ public class MotionSceneModel {
       "customColorValue",
       "customIntegerValue",
       "customFloatValue",
-      "customStringValue",
       "customDimension",
-      "customBoolean"
+    };
+    public static String[][] ourDefaults = {
+      {},
+      {"#FFF"},
+      {"2"},
+      {"1.0"},
+      {"20dp"}
     };
 
     @Override
@@ -713,6 +899,10 @@ public class MotionSceneModel {
 
     public String[] getPossibleAttr() {
       return ourPossibleAttr;
+    }
+
+    public void deleteTag(NlModel model) {
+
     }
 
     enum Type {
@@ -864,6 +1054,9 @@ public class MotionSceneModel {
     public void parse(String name, String value) {
       name = name.substring(name.lastIndexOf(':') + 1);
       myAllAttributes.put(name, value);
+    }
+
+    public void deletTag(NlModel model) {
     }
   }
   // =================================ConstraintView====================================== //

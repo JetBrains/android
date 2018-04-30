@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.attributeEditor;
 
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutAttributePanel;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.TimeLineIcons;
 import com.intellij.openapi.ui.JBPopupMenu;
@@ -40,13 +42,15 @@ public class OnSwipePanel extends TagPanel {
   private Vector<String> colNames = new Vector<String>(Arrays.asList("Name", "Value"));
   private Vector<Vector<Object>> data = new Vector<>();
   private DefaultTableModel myTableModel = new DefaultTableModel(data, colNames);
-  private JTable myTable = new JBTable(myTableModel);
-  private JButton myRemoveTagButton = EditorUtils.makeButton(TimeLineIcons.REMOVE_TAG);
+  MotionSceneModel.OnSwipeTag myOnSwipeTag;
   private JBPopupMenu myPopupMenu = new JBPopupMenu("Add Attribute");
 
-  public OnSwipePanel() {
+  public OnSwipePanel(MotionLayoutAttributePanel panel) {
+    super(panel);
     myTitle.setText("OnSwipe");
-
+    myTable = new JBTable(myTableModel);
+    myRemoveTagButton = EditorUtils.makeButton(TimeLineIcons.REMOVE_TAG);
+    setup();
     myTable.setDefaultRenderer(EditorUtils.AttributesNamesHolder.class, new EditorUtils.AttributesNamesCellRenderer());
     myTable.setDefaultRenderer(String.class, new EditorUtils.AttributesValueCellRenderer());
 
@@ -67,10 +71,9 @@ public class OnSwipePanel extends TagPanel {
       }
     });
 
-    EditorUtils.AddRemovePanel addRemovePanel = new EditorUtils.AddRemovePanel();
 
     myPopupMenu.add(new JMenuItem("test1"));
-    addRemovePanel.myAddButton.addMouseListener(new MouseAdapter() {
+    myAddRemovePanel.myAddButton.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
         myPopupMenu.show(e.getComponent(), e.getX(), e.getY());
@@ -101,7 +104,17 @@ public class OnSwipePanel extends TagPanel {
     gbc.gridy++;
     gbc.fill = GridBagConstraints.NONE;
     gbc.anchor = GridBagConstraints.WEST;
-    add(addRemovePanel, gbc);
+    add(myAddRemovePanel, gbc);
+  }
+
+
+  @Override
+  protected void deleteAttr(NlModel nlModel, int selection) {
+  }
+
+  @Override
+  protected void deleteTag(NlModel nlModel) {
+    myOnSwipeTag.deletTag(nlModel);
   }
 
   public ActionListener myAddItemAction = new ActionListener() {
@@ -114,6 +127,7 @@ public class OnSwipePanel extends TagPanel {
   };
 
   private void setupPopup(MotionSceneModel.OnSwipeTag tag, Set<String> strings) {
+    myOnSwipeTag = tag;
     myPopupMenu.removeAll();
     String[] names = tag.getPossibleAttr();
     for (int i = 0; i < names.length; i++) {
