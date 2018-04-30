@@ -42,11 +42,6 @@ interface ModelPropertyEditor<in ModelT, out ValueT> : Disposable {
   fun getValue(): ParsedValue<ValueT>
 
   /**
-   * Returns the text representation of the the current value of the editor as it appears to the user.
-   */
-  fun getValueText(): String
-
-  /**
    * Updates the bound property to the current value of the editor.
    */
   fun updateProperty()

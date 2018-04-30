@@ -69,8 +69,6 @@ class SimplePropertyEditor<ContextT, ModelT, PropertyT : Any, out ModelPropertyT
     @Suppress("UNCHECKED_CAST")
     editor.item as ParsedValue<PropertyT>
 
-  override fun getValueText(): String = getValue().getText()
-
   override fun updateProperty() {
     if (disposed) throw IllegalStateException()
     // It is important to avoid applying the unchanged values since the application

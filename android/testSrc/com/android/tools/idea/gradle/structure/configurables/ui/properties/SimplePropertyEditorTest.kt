@@ -320,7 +320,7 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
     // to test updateProperty() method.
     assumeThat(parsedModel.value, equalTo("value"))
 
-    assertThat(editor.getValueText(), equalTo("abc"))
+    assertThat(editor.toEditorText(editor.getValue()), equalTo("abc"))
     assertThat((editor.getValue() as ParsedValue.Set.Parsed).dslText, nullValue())
   }
 
