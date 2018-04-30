@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.dsl.model.ext;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
@@ -531,5 +533,48 @@ public class ExtModelTest extends GradleFileModelTestCase {
     ExtModel extModel = buildModel.ext();
 
     verifyPropertyModel(extModel.findProperty("greeting").resolve(), STRING_TYPE, "Hello, penguins are cool!", STRING, REGULAR, 1);
+  }
+
+  @Test
+  public void testDependencyExtUsage() throws IOException {
+    String text = "buildscript {\n" +
+                  "  dependencies {\n" +
+                  "    ext.hello = 'boo'\n" +
+                  "    classpath \"com.android.tools.build:gradle:$hello\"\n" +
+                  "  }\n" +
+                  "}\n" +
+                  "ext.goodbye = hello\n" +
+                  "ext.goodday = buildscript.dependencies.ext.hello";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel buildScriptDeps = buildModel.buildscript().dependencies();
+
+    assertSize(1, buildScriptDeps.artifacts());
+    ArtifactDependencyModel dependencyModel = buildScriptDeps.artifacts().get(0);
+    verifyPropertyModel(dependencyModel.version(), STRING_TYPE, "boo", STRING, FAKE, 1);
+
+    // Check outta Ext can't see the inner one.
+    ExtModel extModel = buildModel.ext();
+    verifyPropertyModel(extModel.findProperty("goodbye"), STRING_TYPE, "hello", REFERENCE, REGULAR, 0);
+    verifyPropertyModel(extModel.findProperty("goodday").resolve(), STRING_TYPE, "boo", STRING, REGULAR, 1);
+  }
+
+  @Test
+  public void testBuildScriptExtUsage() throws IOException {
+    String text = "buildscript {\n" +
+                  "  ext.hello = 'boo'\n" +
+                  "  dependencies {\n" +
+                  "    classpath \"com.android.tools.build:gradle:$hello\"\n" +
+                  "  }\n" +
+                  "}\n";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel buildScriptDeps = buildModel.buildscript().dependencies();
+
+    assertSize(1, buildScriptDeps.artifacts());
+    ArtifactDependencyModel dependencyModel = buildScriptDeps.artifacts().get(0);
+    verifyPropertyModel(dependencyModel.version(), STRING_TYPE, "$hello", STRING, FAKE, 0);
   }
 }

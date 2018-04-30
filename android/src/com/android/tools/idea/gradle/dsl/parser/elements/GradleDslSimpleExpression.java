@@ -376,7 +376,7 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
       }
 
       // All elements we find must be GradlePropertiesDslElement or references them on all but the last iteration.
-      if (element == null || !(element instanceof GradlePropertiesDslElement)) {
+      if (!(element instanceof GradlePropertiesDslElement)) {
         return null;
       }
       properties = (GradlePropertiesDslElement)element;
@@ -391,7 +391,6 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
                                                             boolean resolveWithOrder) {
     // We need to keep track of the last element we saw to ensure we only check items BEFORE the one we are resolving.
     GradleDslElement lastElement = null;
-    boolean extChecked = false;
     while (element != null) {
       if (element instanceof GradlePropertiesDslElement) {
         GradleDslElement propertyElement = resolveReferenceOnPropertiesElement((GradlePropertiesDslElement)element, nameParts, lastElement);
@@ -399,20 +398,15 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
           return propertyElement;
         }
 
-        // Check if we see a ExtElement before we hit the file. We don't bother checking it again.
-        if (element instanceof ExtDslElement) {
-          extChecked = true;
-        }
-
-        if (element instanceof GradleDslFile && !extChecked) {
-          GradleDslElement extDslElement = ((GradleDslFile)element).getPropertyElementBefore(lastElement, EXT_BLOCK_NAME);
-          if (extDslElement instanceof ExtDslElement) {
-            GradleDslElement extPropertyElement = resolveReferenceOnPropertiesElement((ExtDslElement)extDslElement, nameParts, lastElement);
+        // If it is then we have already checked the ExtElement of this object.
+        if (!(lastElement instanceof ExtDslElement)) {
+          GradleDslElement extElement = ((GradlePropertiesDslElement)element).getPropertyElementBefore(lastElement, EXT_BLOCK_NAME);
+          if (extElement instanceof ExtDslElement) {
+            GradleDslElement extPropertyElement = resolveReferenceOnPropertiesElement((ExtDslElement)extElement, nameParts, lastElement);
             if (extPropertyElement != null) {
               return extPropertyElement;
             }
           }
-          break;
         }
       }
 

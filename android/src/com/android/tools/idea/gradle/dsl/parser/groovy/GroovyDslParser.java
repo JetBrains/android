@@ -658,7 +658,11 @@ public class GroovyDslParser implements GradleDslParser {
       GradleDslElement element = resultElement.getPropertyElement(nestedElementName);
       if (element == null) {
         GradlePropertiesDslElement newElement;
-        if (resultElement instanceof GradleDslFile || resultElement instanceof SubProjectsDslElement) {
+        // Ext element is supported for any Gradle domain object that implements ExtensionAware.
+        if (!(resultElement instanceof BuildScriptDslElement) && EXT_BLOCK_NAME.equals(nestedElementName)) {
+          newElement = new ExtDslElement(resultElement);
+        }
+        else if (resultElement instanceof GradleDslFile || resultElement instanceof SubProjectsDslElement) {
           if (APPLY_BLOCK_NAME.equals(nestedElementName)) {
             newElement = new ApplyDslElement(resultElement);
           }
