@@ -34,6 +34,8 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.SystemInfo;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
 
@@ -436,6 +438,11 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
   }
 
   public void testZoom() {
+    if (SystemInfo.isMac && UIUtil.isRetina()) {
+      _testZoomOnMacWithRetina();
+      return;
+    }
+
     SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 200, 200)
       .matchParentWidth()
@@ -468,6 +475,51 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
 
     mySurface.zoom(ZoomType.OUT, 100, 100);
     assertEquals(new Point(7, 7), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
+    mySurface.zoom(ZoomType.OUT);
+    assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
+    mySurface.zoom(ZoomType.OUT);
+
+    assertEquals(mySurface.getScale(), origScale);
+    mySurface.zoom(ZoomType.OUT);
+    assertEquals(mySurface.getScale(), origScale);
+
+    mySurface.getScrollPane().setSize(2000, 2000);
+    assertEquals(1.0, mySurface.getMinScale());
+  }
+
+  private void _testZoomOnMacWithRetina() {
+    SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
+      .withBounds(0, 0, 200, 200)
+      .matchParentWidth()
+      .matchParentHeight()
+      .children(
+        component(FRAME_LAYOUT)
+          .withBounds(100, 100, 100, 100)
+          .width("100dp")
+          .height("100dp")
+      ))
+      .build();
+    mySurface.setModel(model);
+    mySurface.getScrollPane().setSize(1000, 1000);
+    mySurface.zoomToFit();
+    double origScale = mySurface.getScale();
+    assertEquals(origScale, mySurface.getMinScale());
+
+    SceneView view = mySurface.getCurrentSceneView();
+    JViewport viewport = mySurface.getScrollPane().getViewport();
+    assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
+
+    mySurface.zoom(ZoomType.IN);
+    double scale = mySurface.getScale();
+    assertTrue(scale > origScale);
+    assertEquals(new Point(-44, -44), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
+
+    mySurface.zoom(ZoomType.IN, 100, 100);
+    assertTrue(mySurface.getScale() > scale);
+    assertEquals(new Point(-29, -29), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
+
+    mySurface.zoom(ZoomType.OUT, 100, 100);
+    assertEquals(new Point(-43, -43), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
     mySurface.zoom(ZoomType.OUT);
     assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
     mySurface.zoom(ZoomType.OUT);
