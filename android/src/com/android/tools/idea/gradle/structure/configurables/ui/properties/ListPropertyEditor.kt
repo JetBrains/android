@@ -66,7 +66,6 @@ class ListPropertyEditor<ContextT, ModelT, ValueT : Any, out ModelPropertyT : Mo
     }
   }
 
-  override fun getValueText(): String = throw UnsupportedOperationException()
   override fun getValue(): ParsedValue<List<ValueT>> = throw UnsupportedOperationException()
 
   override fun addItem() {
