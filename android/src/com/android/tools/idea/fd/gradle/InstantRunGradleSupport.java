@@ -50,6 +50,7 @@ public enum InstantRunGradleSupport {
   USES_EXTERNAL_NATIVE_BUILD(AndroidBundle.message("instant.run.notification.ir.disabled.external.native.build")),
   USES_EXPERIMENTAL_PLUGIN(AndroidBundle.message("instant.run.notification.ir.disabled.experimental.plugin")),
   USES_APP_BUNDLE_OUTPUT(AndroidBundle.message("instant.run.notification.ir.disabled.app.bundle.output")),
+  USES_MULTI_APK(AndroidBundle.message("instant.run.notification.ir.disabled.multi.apk")),
   UNKNOWN_REASON(AndroidBundle.message("instant.run.notification.ir.disabled.unknown.reason"));
 
   private final String myUserNotification;
@@ -99,6 +100,8 @@ public enum InstantRunGradleSupport {
         return USES_EXPERIMENTAL_PLUGIN;
       case InstantRun.STATUS_SUPPORTED:
         return SUPPORTED;
+      case InstantRun.STATUS_NOT_SUPPORTED_FOR_MULTI_APK:
+        return USES_MULTI_APK;
       default:
         // In case Gradle adds a new option, we need to update the IDE..
         Logger.getInstance(InstantRunGradleSupport.class).error("Unknown instant run support status reported: " + modelStatus);
