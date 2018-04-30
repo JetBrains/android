@@ -153,22 +153,27 @@ public final class SdkQuickfixUtils {
     }
 
     List<String> unknownPaths = new ArrayList<>();
-    List<UpdatablePackage> resolvedPackages;
-    mgr.load(0, null, null, null,
-             new StudioProgressRunner(true, false, "Finding Available SDK Components", project),
-             new StudioDownloader(), StudioSettingsController.getInstance(), true);
-    RepositoryPackages packages = mgr.getPackages();
-    if (requestedPackages == null) {
-      requestedPackages = new ArrayList<>();
-    }
-    requestedPackages.addAll(lookupPaths(requestedPaths, packages, unknownPaths));
+    List<UpdatablePackage> resolvedPackages = new ArrayList<>();
+    if (requestedPackages != null && !requestedPackages.isEmpty()
+        || requestedPaths != null && !requestedPaths.isEmpty()) {
+      // This is an expensive call involving a number of manifest download operations,
+      // so make it only when some installations are requested.
+      mgr.load(0, null, null, null,
+               new StudioProgressRunner(true, false, "Finding Available SDK Components", project),
+               new StudioDownloader(), StudioSettingsController.getInstance(), true);
+      RepositoryPackages packages = mgr.getPackages();
+      if (requestedPackages == null) {
+        requestedPackages = new ArrayList<>();
+      }
+      requestedPackages.addAll(lookupPaths(requestedPaths, packages, unknownPaths));
 
-    try {
-      resolvedPackages = resolve(requestedPackages, packages);
-    }
-    catch (PackageResolutionException e) {
-      Messages.showErrorDialog(e.getMessage(), "Error Resolving Packages");
-      return null;
+      try {
+        resolvedPackages = resolve(requestedPackages, packages);
+      }
+      catch (PackageResolutionException e) {
+        Messages.showErrorDialog(e.getMessage(), "Error Resolving Packages");
+        return null;
+      }
     }
 
     Set<LocalPackage> resolvedUninstalls = new HashSet<>();
