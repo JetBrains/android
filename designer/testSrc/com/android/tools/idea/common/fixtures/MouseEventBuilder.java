@@ -51,7 +51,10 @@ public class MouseEventBuilder {
 
   public MouseEventBuilder withButton(int button) {
     myButton = button;
-    myMask |= InputEvent.getMaskForButton(button);
+    // MOUSE_RELEASED doesn't have the button in the mask
+    if (myId != MouseEvent.MOUSE_RELEASED) {
+      myMask |= InputEvent.getMaskForButton(button);
+    }
     return this;
   }
 
@@ -62,6 +65,10 @@ public class MouseEventBuilder {
 
   public MouseEventBuilder withId(int id) {
     myId = id;
+    // MOUSE_RELEASED doesn't have the button in the mask
+    if (id == MouseEvent.MOUSE_RELEASED) {
+      myMask ^= InputEvent.getMaskForButton(myButton);
+    }
     return this;
   }
 
