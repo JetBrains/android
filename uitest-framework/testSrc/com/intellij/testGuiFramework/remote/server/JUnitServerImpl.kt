@@ -61,8 +61,8 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
   lateinit private var objectInputStream: ObjectInputStream
   lateinit private var objectOutputStream: ObjectOutputStream
 
-  private val IDE_STARTUP_TIMEOUT = 40000
-  private val MESSAGE_INTERVAL_TIMEOUT = 15L
+  private val IDE_STARTUP_TIMEOUT = 40000   // ms
+  private val MESSAGE_INTERVAL_TIMEOUT = if (GuiTestOptions.isDebug()) Long.MAX_VALUE else 15L // seconds
 
   private val port: Int
 
