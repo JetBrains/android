@@ -36,21 +36,4 @@ public class TimeLineIcons {
   public static final Icon VIEW = StudioIcons.MotionLayoutUI.VIEW;
   public static final Icon CHART = StudioIcons.MotionLayoutUI.CHART;
   public static final Icon PAUSE = StudioIcons.MotionLayoutUI.PAUSE;
-  /* ==================== Simple empty icon needed as a place holder =========================*/
-  public static final Icon EMPTY = new Icon() {
-    @Override
-    public void paintIcon(Component c, Graphics g, int x, int y) {
-
-    }
-
-    @Override
-    public int getIconWidth() {
-      return 0;
-    }
-
-    @Override
-    public int getIconHeight() {
-      return 0;
-    }
-  };
 }
