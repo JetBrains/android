@@ -50,7 +50,12 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
       public void stateChanged() {
         // We need to query the tool window again, because it might have been unregistered when closing the project.
         ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(ID);
-        if (window != null && window.isVisible() && window.getContentManager().getContentCount() == 0) {
+        if (window == null) {
+          return;
+        }
+
+        AndroidProfilerToolWindow profilerToolWindow = getProfilerToolWindow(project);
+        if (window.isVisible() && profilerToolWindow == null) {
           createContent(project, window);
         }
       }
@@ -96,8 +101,11 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
   }
 
   public static void removeContent(@NotNull ToolWindow toolWindow) {
-    toolWindow.getContentManager().removeAllContents(true);
-    toolWindow.setIcon(StudioIcons.Shell.ToolWindows.ANDROID_PROFILER);
+    if (toolWindow.getContentManager().getContentCount() > 0) {
+      Content content = toolWindow.getContentManager().getContent(0);
+      PROJECT_PROFILER_MAP.remove(content);
+      toolWindow.getContentManager().removeAllContents(true);
+    }
   }
 
   @Override
