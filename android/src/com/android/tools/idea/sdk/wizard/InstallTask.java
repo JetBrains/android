@@ -89,12 +89,25 @@ class InstallTask extends Task.Backgroundable {
     final List<RepoPackage> failures = Lists.newArrayList();
 
     LinkedHashMap<RepoPackage, PackageOperation> operations = new LinkedHashMap<>();
-    for (UpdatablePackage install : myInstallRequests) {
-      operations.put(install.getRemote(), getOrCreateInstaller(install.getRemote()));
+    if (!myInstallRequests.isEmpty()) {
+      myLogger.logInfo("Packages to install: ");
+      for (UpdatablePackage install : myInstallRequests) {
+        RepoPackage remote = install.getRemote();
+        assert remote != null;
+        myLogger.logInfo(String.format("- %1$s (%2$s)", remote.getDisplayName(), remote.getPath()));
+        operations.put(remote, getOrCreateInstaller(remote));
+      }
+      myLogger.logInfo("\n");
     }
-    for (LocalPackage uninstall : myUninstallRequests) {
-      operations.put(uninstall, getOrCreateUninstaller(uninstall));
+    if (!myUninstallRequests.isEmpty()) {
+      myLogger.logInfo("Packages to uninstall: ");
+      for (LocalPackage uninstall : myUninstallRequests) {
+        myLogger.logInfo(String.format("- %1$s (%2$s)", uninstall.getDisplayName(), uninstall.getPath()));
+        operations.put(uninstall, getOrCreateUninstaller(uninstall));
+      }
+      myLogger.logInfo("\n");
     }
+
     try {
       while (!operations.isEmpty()) {
         // If we end up having to retry some, we'll start from 0 again.
