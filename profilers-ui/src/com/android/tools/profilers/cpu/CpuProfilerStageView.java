@@ -358,7 +358,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
           CpuKernelModel.CpuState model = myCpus.getModel().getElementAt(row);
           if (myStage.getTooltip() instanceof CpuKernelTooltip) {
             CpuKernelTooltip tooltip = (CpuKernelTooltip)myStage.getTooltip();
-            tooltip.setCpuSeries(model.getSeries());
+            tooltip.setCpuSeries(model.getCpuId(), model.getSeries());
           }
         }
       }

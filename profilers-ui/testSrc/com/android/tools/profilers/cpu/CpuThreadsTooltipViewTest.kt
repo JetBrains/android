@@ -15,13 +15,17 @@
  */
 package com.android.tools.profilers.cpu
 
+import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profilers.*
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
+import javax.swing.JComponent
+import javax.swing.JLabel
 
 class CpuThreadsTooltipViewTest {
   private var timer: FakeTimer = FakeTimer()
@@ -48,30 +52,43 @@ class CpuThreadsTooltipViewTest {
     stageView.timeline.dataRange.set(0.0, TimeUnit.SECONDS.toMicros(5).toDouble())
     stageView.timeline.tooltipRange.set(tooltipTime.toDouble(), tooltipTime.toDouble())
     stageView.timeline.viewRange.set(0.0, TimeUnit.SECONDS.toMicros(10).toDouble())
+    val capturedThread = CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder()
+      .setNewState(CpuProfiler.GetThreadsResponse.State.SLEEPING)
+      .setTimestamp(TimeUnit.SECONDS.toNanos(2))
+      .build()
+    cpuService.addAdditionalThreads(3, "newThread", arrayListOf(capturedThread))
+    cpuService.addTraceInfo(CpuProfiler.TraceInfo.newBuilder()
+                              .setTraceId(1)
+                              .setFromTimestamp(TimeUnit.SECONDS.toNanos(2))
+                              .setToTimestamp(TimeUnit.SECONDS.toNanos(4))
+                              .addThreads(CpuProfiler.Thread.newBuilder().setTid(3).setName("newThread")).build())
   }
 
   @Test
   fun textUpdateOnThreadChange() {
-    val threadSeries = ThreadStateDataSeries(cpuStage, ProfilersTestData.SESSION_DATA, 1)
+    var threadSeries = ThreadStateDataSeries(cpuStage, ProfilersTestData.SESSION_DATA, 1)
 
     cpuThreadsTooltip.setThread("myThread", threadSeries)
-    assertThat(cpuThreadsTooltipView.headingText).contains("00:01.000")
-    assertThat(cpuThreadsTooltipView.content).isEqualTo("<html>myThread <span style='color:#888888'>1s</span><br>Running</html>")
-
+    var labels = TreeWalker(cpuThreadsTooltipView.tooltipPanel).descendants().filterIsInstance<JLabel>()
+    assertThat(labels.stream().anyMatch({ label -> label.text.equals("00:01.000") })).isTrue()
+    assertThat(labels.stream().anyMatch({ label -> label.text.equals("Running") })).isTrue()
+    assertThat(labels.stream().anyMatch({ label -> label.text.equals("Thread: myThread") })).isTrue()
+    assertThat(labels.stream().anyMatch({ label -> label.text.equals("Details Unavailable") })).isTrue()
+    threadSeries = ThreadStateDataSeries(cpuStage, ProfilersTestData.SESSION_DATA, 3)
+    val tooltipTime = TimeUnit.SECONDS.toMicros(3)
+    cpuStage.studioProfilers.timeline.tooltipRange.set(tooltipTime.toDouble(), tooltipTime.toDouble())
     cpuThreadsTooltip.setThread("newThread", threadSeries)
-    assertThat(cpuThreadsTooltipView.headingText).contains("00:01.000")
-    assertThat(cpuThreadsTooltipView.content).isEqualTo("<html>newThread <span style='color:#888888'>1s</span><br>Running</html>")
+    labels = TreeWalker(cpuThreadsTooltipView.tooltipPanel).descendants().filterIsInstance<JLabel>()
+    assertThat(labels.stream().anyMatch({ label -> label.text.equals("00:03.000") })).isTrue()
+    assertThat(labels.stream().anyMatch({ label -> label.text.equals("Sleeping") })).isTrue()
+    assertThat(labels.stream().anyMatch({ label -> label.text.equals("Thread: newThread") })).isTrue()
+    assertThat(labels.stream().anyMatch({ label -> label.text.equals("Details Unavailable") })).isFalse()
   }
 
   private class FakeCpuThreadsTooltipView(
-      parent: CpuProfilerStageView,
-      tooltip: CpuThreadsTooltip)
+    parent: CpuProfilerStageView,
+    tooltip: CpuThreadsTooltip)
     : CpuThreadsTooltipView(parent, tooltip) {
-    init {
-      createComponent()
-    }
-
-    val content: String
-      get() = myContent.text
+    val tooltipPanel: JComponent = createComponent()
   }
 }
