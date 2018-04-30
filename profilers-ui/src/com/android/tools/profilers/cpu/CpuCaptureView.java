@@ -384,8 +384,11 @@ class CpuCaptureView {
       myPanel.add(getNoDataForRange(), CARD_EMPTY_INFO);
 
       CodeNavigator navigator = stageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator();
-      stageView.getIdeComponents().createContextMenuInstaller().installNavigationContextMenu(myTree, navigator,
-                                                                                             () -> getCodeLocation(myTree));
+      assert stageView.getStage().getCapture() != null;
+      if (stageView.getStage().getCapture().getType() != CpuProfiler.CpuProfilerType.ATRACE) {
+        stageView.getIdeComponents().createContextMenuInstaller().installNavigationContextMenu(myTree, navigator,
+                                                                                               () -> getCodeLocation(myTree));
+      }
 
       switchCardLayout(myPanel, model.isEmpty());
 
