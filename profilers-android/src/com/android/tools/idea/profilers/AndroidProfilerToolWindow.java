@@ -29,10 +29,13 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
+import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,6 +47,8 @@ import java.util.function.Predicate;
 
 public class AndroidProfilerToolWindow extends AspectObserver implements Disposable {
 
+  private static final String HIDE_STOP_PROMPT = "profilers.hide.stop.prompt";
+
   @NotNull
   private final StudioProfilersView myView;
   @NotNull
@@ -54,6 +59,10 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
   private final Project myProject;
   @NotNull
   private final ProfilerLayeredPane myLayeredPane;
+  @NotNull
+  private final IntellijProfilerComponents myIdeProfilerComponents;
+  @NotNull
+  private final AndroidProfilerWindowManagerListener myToolWindowManagerListener;
 
   public AndroidProfilerToolWindow(@NotNull ToolWindow window, @NotNull Project project) {
     myWindow = window;
@@ -63,8 +72,8 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
     ProfilerClient client = service.getProfilerClient();
     myProfilers = new StudioProfilers(client, new IntellijProfilerServices(myProject));
 
-    myView =
-      new StudioProfilersView(myProfilers, new IntellijProfilerComponents(myProject, myProfilers.getIdeServices().getFeatureTracker()));
+    myIdeProfilerComponents = new IntellijProfilerComponents(myProject, myProfilers.getIdeServices().getFeatureTracker());
+    myView = new StudioProfilersView(myProfilers, myIdeProfilerComponents);
     myLayeredPane = new ProfilerLayeredPane();
     service.getDataStoreService().setNoPiiExceptionHanlder(myProfilers.getIdeServices()::reportNoPiiException);
     initializeUi();
@@ -76,6 +85,9 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
     myProfilers.getSessionsManager().addDependency(this)
                .onChange(SessionAspect.SELECTED_SESSION, this::selectedSessionChanged)
                .onChange(SessionAspect.PROFILING_SESSION, this::profilingSessionChanged);
+
+    myToolWindowManagerListener = new AndroidProfilerWindowManagerListener();
+    ToolWindowManagerEx.getInstanceEx(myProject).addToolWindowManagerListener(myToolWindowManagerListener);
   }
 
   @NotNull
@@ -119,6 +131,7 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
   private void stageChanged() {
     if (myProfilers.isStopped()) {
       AndroidProfilerToolWindowFactory.removeContent(myWindow);
+      ToolWindowManagerEx.getInstanceEx(myProject).removeToolWindowManagerListener(myToolWindowManagerListener);
     }
   }
 
@@ -194,5 +207,65 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
     deviceNameBuilder.append(model);
 
     return deviceNameBuilder.toString();
+  }
+
+  /**
+   * This class maps 1-to-1 with an {@link AndroidProfilerToolWindow} instance.
+   */
+  private class AndroidProfilerWindowManagerListener implements ToolWindowManagerListener {
+    private boolean myIsProfilingActiveBalloonShown = false;
+
+    /**
+     * How the profilers should respond to the tool window's state changes is as follow:
+     * 1. If the window is hidden while a session is running, we prompt to user whether they want to stop the session.
+     * If yes, we stop and kill the profilers. Otherwise, the hide action is undone and the tool strip button remain shown.
+     * 2. If the window is minimized while a session is running, a balloon is shown informing users that the profilers is still running.
+     */
+    @Override
+    public void stateChanged() {
+      boolean hasAliveSession = SessionsManager.isSessionAlive(myProfilers.getSessionsManager().getProfilingSession());
+
+      boolean isWindowHidden = !myWindow.isShowStripeButton();
+      if (isWindowHidden) {
+        if (hasAliveSession) {
+          boolean hidePrompt = myProfilers.getIdeServices().getTemporaryProfilerPreferences().getBoolean(HIDE_STOP_PROMPT, false);
+          boolean confirm = hidePrompt || myIdeProfilerComponents.createUiMessageHandler().displayOkCancelMessage(
+            "Confirm Stop Profiling",
+            "Hiding the window will stop the current profiling session. Are you sure?",
+            "Yes",
+            "Cancel",
+            null,
+            "Do not ask me again",
+            result -> myProfilers.getIdeServices().getTemporaryProfilerPreferences().setBoolean(HIDE_STOP_PROMPT, result)
+          );
+
+          if (!confirm) {
+            myWindow.setShowStripeButton(true);
+            return;
+          }
+        }
+
+        myProfilers.stop();
+        return;
+      }
+
+      boolean isWindowVisible = myWindow.isVisible();
+      if (isWindowVisible) {
+        myIsProfilingActiveBalloonShown = false;
+      }
+      else if (hasAliveSession && !myIsProfilingActiveBalloonShown) {
+        // Only shown the balloon if we detect the window is hidden for the first time.
+        myIsProfilingActiveBalloonShown = true;
+        ToolWindowManager.getInstance(myProject).notifyByBalloon(
+          AndroidProfilerToolWindowFactory.ID,
+          MessageType.INFO,
+          "Profiler session is running in the background. Hide the toolbar button to stop profiling completely."
+        );
+      }
+    }
+
+    @Override
+    public void toolWindowRegistered(@NotNull String id) {
+    }
   }
 }
