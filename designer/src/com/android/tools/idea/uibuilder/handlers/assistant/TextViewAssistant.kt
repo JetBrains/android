@@ -92,7 +92,7 @@ class TextViewAssistant(private val context: Context) : AssistantPopupPanel() {
   }
 
   private fun onElementSelected(selectedItem: String?) {
-    val attributeValue = if (NONE_VALUE == selectedItem || "" == selectedItem.orEmpty()) null else selectedItem
+    val attributeValue = if (NONE_VALUE == selectedItem || selectedItem.isNullOrEmpty()) null else selectedItem
     WriteCommandAction.runWriteCommandAction(myProject,  {
       myComponent.setAttribute(TOOLS_URI, ATTR_TEXT, attributeValue)
     })
