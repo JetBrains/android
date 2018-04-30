@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.attributeEditor;
 
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutAttributePanel;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.TimeLineIcons;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.ui.JBUI;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -33,37 +35,41 @@ import java.util.HashMap;
 import java.util.Set;
 
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.CustomLabel;
+import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.KeyPositionCartesian_transitionEasing;
 
 /**
  * Panel used to show KeyFrames (Pos, Cycle and Attributes)
  */
 public class AttributeTagPanel extends TagPanel {
-  private MotionLayoutAttributePanel myPanel;
   public KeyAttrTableModel myKeyAttrTableModel = new KeyAttrTableModel();
-  JTable myTable = new JBTable(myKeyAttrTableModel);
+  MotionSceneModel.KeyFrame myKeyframe;
   JBPopupMenu myPopupMenu = new JBPopupMenu("Add Attribute");
-  EditorUtils.AddRemovePanel addRemovePanel = new EditorUtils.AddRemovePanel();
   ArrayList<CustomAttributePanel> myCustomAttributePanels = new ArrayList<>();
   GridBagConstraints gbc = new GridBagConstraints();
   public HashMap<EditorUtils.AttributesNamesHolder, Object> myAttributes;
   public ArrayList<EditorUtils.AttributesNamesHolder> myAttributesNames;
+  EasingCurve myEasingCurve;
 
   public AttributeTagPanel(MotionLayoutAttributePanel panel) {
-    myPanel = panel;
-    myTable.setDefaultRenderer(EditorUtils.AttributesNamesHolder.class, new EditorUtils.AttributesNamesCellRenderer());
+    super(panel);
+    myBasePanel = panel;
+    myTable = new JBTable(myKeyAttrTableModel);
+    myRemoveTagButton = EditorUtils.makeButton(TimeLineIcons.REMOVE_TAG);
+    setup();
 
+    myTable.setDefaultRenderer(EditorUtils.AttributesNamesHolder.class, new EditorUtils.AttributesNamesCellRenderer());
     myTable.setDefaultRenderer(String.class, new EditorUtils.AttributesValueCellRenderer());
 
     myPopupMenu.add(new JMenuItem("test1"));
 
-    addRemovePanel.myAddButton.addMouseListener(new MouseAdapter() {
+    myAddRemovePanel.myAddButton.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
         myPopupMenu.show(e.getComponent(), e.getX(), e.getY());
       }
     });
 
-    addRemovePanel.myRemoveButton.addMouseListener(new MouseAdapter() {
+    myAddRemovePanel.myRemoveButton.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
         myPopupMenu.show(e.getComponent(), e.getX(), e.getY());
@@ -77,27 +83,24 @@ public class AttributeTagPanel extends TagPanel {
     gbc.gridwidth = 2;
     gbc.fill = GridBagConstraints.BOTH;
     add(myTitle, gbc);
+
     gbc.gridx = 1;
     gbc.weightx = 0;
-
     gbc.fill = GridBagConstraints.NONE;
     gbc.anchor = GridBagConstraints.EAST;
-    add(EditorUtils.makeButton(TimeLineIcons.REMOVE_TAG), gbc);
+    add(myRemoveTagButton, gbc);
+
     gbc.gridwidth = 2;
     gbc.gridx = 0;
     gbc.gridy++;
     gbc.weightx = 1;
-
     gbc.fill = GridBagConstraints.BOTH;
-
     add(myTable, gbc);
+
     gbc.gridy++;
     gbc.fill = GridBagConstraints.NONE;
     gbc.anchor = GridBagConstraints.WEST;
-    add(addRemovePanel, gbc);
-    gbc.gridwidth = 2;
-    gbc.fill = GridBagConstraints.BOTH;
-    gbc.gridy++;
+    add(myAddRemovePanel, gbc);
   }
 
   public ActionListener myAddItemAction = new ActionListener() {
@@ -108,11 +111,22 @@ public class AttributeTagPanel extends TagPanel {
         return;
       }
       EditorUtils.AttributesNamesHolder holder = new EditorUtils.AttributesNamesHolder(s);
-      myAttributes.put(holder, "");
+      String []def = myKeyframe.getDefault(s);
+      myAttributes.put(holder, (def!=null && def.length>0)?def[0]:"");
       myAttributesNames.add(holder);
       myKeyAttrTableModel.fireTableRowsInserted(myAttributesNames.size() - 1, myAttributesNames.size());
     }
   };
+
+  @Override
+  protected void deleteAttr(NlModel nlModel, int selection) {
+    myKeyframe.deleteAttribute(nlModel, myKeyAttrTableModel.getValueAt(selection, 0).toString());
+  }
+
+  @Override
+  protected void deleteTag(NlModel nlModel) {
+    myKeyframe.deleteTag(nlModel);
+  }
 
   private void setupPopup(MotionSceneModel.KeyFrame keyframe) {
     myPopupMenu.removeAll();
@@ -131,26 +145,66 @@ public class AttributeTagPanel extends TagPanel {
     }
   }
 
+  private void setEasing(String points) {
+    for (int i = 0; i < myAttributesNames.size(); i++) {
+      if (KeyPositionCartesian_transitionEasing.equals(myAttributesNames.get(i).toString())) {
+        myAttributes.put(myAttributesNames.get(i), points);
+        myKeyAttrTableModel.fireTableCellUpdated(i,1);
+      }
+    }
+  }
+
+  private void saveEasing(String value) {
+    myBasePanel.myCurrentKeyframe.setValue(myBasePanel.myNlModel, KeyPositionCartesian_transitionEasing, value);
+  }
+
   public void setKeyFrame(MotionSceneModel.KeyFrame keyframe) {
-     myKeyAttrTableModel.setKeyFrame(keyframe);
-    addRemovePanel.myAddButton.setVisible(keyframe != null);
+    myKeyAttrTableModel.setKeyFrame(keyframe);
+    myAddRemovePanel.myAddButton.setVisible(keyframe != null);
     if (keyframe == null) {
       return;
     }
     setupPopup(keyframe);
+    if (myEasingCurve != null) {
+      remove(myEasingCurve);
+      myEasingCurve = null;
+    }
+    String easing = keyframe.getEasingCurve();
+    if (easing != null) {
+      myEasingCurve = new EasingCurve();
+      myEasingCurve.setControlPoints(easing);
+      myEasingCurve.setPreferredSize(new Dimension(200, JBUI.scale(200)));
+      myEasingCurve.addActionListener(e -> setEasing(myEasingCurve.getControlPoints()));
+      myEasingCurve.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseReleased(MouseEvent e) {
+          saveEasing(myEasingCurve.getControlPoints());
+        }
+      });
+      gbc.gridy++;
+      gbc.gridwidth=2;
+      gbc.fill = GridBagConstraints.BOTH;
+      add(myEasingCurve, gbc);
+    }
+
     for (CustomAttributePanel panel : myCustomAttributePanels) {
       remove(panel);
     }
     if (keyframe instanceof MotionSceneModel.KeyAttributes) {
       MotionSceneModel.KeyAttributes ka = (MotionSceneModel.KeyAttributes)keyframe;
       for (MotionSceneModel.CustomAttributes attributes : ka.getCustomAttr()) {
-        CustomAttributePanel cap = new CustomAttributePanel();
+        CustomAttributePanel cap = new CustomAttributePanel(myBasePanel);
         cap.setTag(attributes);
         myCustomAttributePanels.add(cap);
+        gbc.gridy++;
+        gbc.gridwidth=2;
+        gbc.fill = GridBagConstraints.BOTH;
         add(cap, gbc);
+
       }
     }
   }
+
   //=========================KeyAttrTableModel=====================================//
 
   class KeyAttrTableModel extends DefaultTableModel {
@@ -175,7 +229,7 @@ public class AttributeTagPanel extends TagPanel {
 
     @Override
     public Class<?> getColumnClass(int columnIndex) {
-      return columnIndex == 1 ? String.class :EditorUtils.AttributesNamesHolder.class;
+      return columnIndex == 1 ? String.class : EditorUtils.AttributesNamesHolder.class;
     }
 
     @Override
@@ -199,14 +253,15 @@ public class AttributeTagPanel extends TagPanel {
       // TODO update attribute
       myAttributes.put(myAttributesNames.get(rowIndex), aValue);
 
-      if (myPanel.myCurrentKeyframe == null) {
+      if (myBasePanel.myCurrentKeyframe == null) {
         return;
       }
       String key = getValueAt(rowIndex, 0).toString();
-      myPanel.myCurrentKeyframe.setValue(myPanel.myNlModel, key, aValue.toString());
+      myBasePanel.myCurrentKeyframe.setValue(myBasePanel.myNlModel, key, aValue.toString());
     }
 
     public void setKeyFrame(MotionSceneModel.KeyFrame keyframe) {
+      myKeyframe = keyframe;
       if (myAttributes == null) {
         myAttributes = new HashMap<>();
         myAttributesNames = new ArrayList<>();
@@ -218,7 +273,7 @@ public class AttributeTagPanel extends TagPanel {
       if (keyframe != null) {
         HashMap<String, Object> tmp = new HashMap<>();
         keyframe.fill(tmp);
-        ArrayList<String> attributesNames =  new ArrayList<String>(tmp.keySet());
+        ArrayList<String> attributesNames = new ArrayList<String>(tmp.keySet());
         attributesNames.sort(EditorUtils.compareAttributes);
 
         for (String s : attributesNames) {

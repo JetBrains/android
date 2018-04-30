@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.attributeEditor;
 
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutAttributePanel;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.TimeLineIcons;
 import com.intellij.openapi.ui.JBPopupMenu;
@@ -38,15 +40,18 @@ import java.util.Vector;
  * Used to show custom attributes
  */
 public class CustomAttributePanel extends TagPanel {
-  private final JButton myRemoveTagButton = EditorUtils.makeButton(TimeLineIcons.REMOVE_TAG);
   Vector<String> colNames = new Vector<String>(Arrays.asList("Name", "Value"));
   Vector<Vector<Object>> data = new Vector<>();
   DefaultTableModel myTableModel = new DefaultTableModel(data, colNames);
-  JTable myTable = new JBTable(myTableModel);
   JBPopupMenu myPopupMenu = new JBPopupMenu("Add Attribute");
+  MotionSceneModel.CustomAttributes myCustomAttributes;
 
-  public CustomAttributePanel() {
+  public CustomAttributePanel(MotionLayoutAttributePanel panel) {
+    super(panel);
     myTitle.setText("Custom");
+    myTable = new JBTable(myTableModel);
+    myRemoveTagButton = EditorUtils.makeButton(TimeLineIcons.REMOVE_TAG);
+    setup();
 
     int pix = JBUI.scale(5);
     setBorder(JBUI.Borders.empty(0, pix));
@@ -66,16 +71,13 @@ public class CustomAttributePanel extends TagPanel {
         if (!isSelected) {
           c.setForeground(column > 0 ? EditorUtils.ourValueColor : EditorUtils.ourNameColor);
         }
-
         return c;
       }
     });
 
-    EditorUtils.AddRemovePanel addRemovePanel = new EditorUtils.AddRemovePanel();
-
     myPopupMenu.add(new JMenuItem("test1"));
 
-    addRemovePanel.addMouseListener(new MouseAdapter() {
+    myAddRemovePanel.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
         myPopupMenu.show(e.getComponent(), e.getX(), e.getY());
@@ -106,7 +108,16 @@ public class CustomAttributePanel extends TagPanel {
     gbc.gridy++;
     gbc.fill = GridBagConstraints.NONE;
     gbc.anchor = GridBagConstraints.WEST;
-    add(addRemovePanel, gbc);
+    add(myAddRemovePanel, gbc);
+  }
+
+  @Override
+  protected void deleteTag(NlModel nlModel) {
+    myCustomAttributes.deleteTag(nlModel);
+  }
+
+  @Override
+  protected void deleteAttr(NlModel nlModel, int selection) {
   }
 
   public ActionListener myAddItemAction = new ActionListener() {

@@ -48,9 +48,9 @@ public class MotionLayoutAttributePanel implements AccessoryPanelInterface {
   public MotionSceneModel.KeyFrame myCurrentKeyframe;
   public NlModel myNlModel;
   JPanel myAttribGroups;
-  TransitionPanel myTransitionPanel = new TransitionPanel();
+  TransitionPanel myTransitionPanel = new TransitionPanel(this);
   AttributeTagPanel myAttributeTagPanel = new AttributeTagPanel(this);
-  private OnSwipePanel myOnSwipeTagPanel = new OnSwipePanel();
+  private OnSwipePanel myOnSwipeTagPanel = new OnSwipePanel(this);
 
   public MotionLayoutAttributePanel(@NotNull NlComponent parent, @NotNull ViewGroupHandler.AccessoryPanelVisibility visibility) {
     myMotionLayout = parent;

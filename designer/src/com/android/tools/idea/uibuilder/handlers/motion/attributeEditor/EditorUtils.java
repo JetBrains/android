@@ -29,11 +29,13 @@ import java.util.Comparator;
  * Collection of utilities used by the Panels
  */
 public class EditorUtils {
-  static Color ourNameColor = new JBColor(0x0000ff, 0xafafaf);
-  static Color ourTagColor = new JBColor(0x000080, 0xe5b764);
-  static Color ourValueColor = new JBColor(0x008000, 0x537f4e);
-  static Color ourSecondaryPanelBackground = new JBColor(0xfcfcfc, 0x313435);
-  static Color ourMainBackground = ourSecondaryPanelBackground;
+  static JBColor ourNameColor = new JBColor(0x0000ff, 0xafafaf);
+  static JBColor ourEasingGraphColor = new JBColor(0x0000ff, 0xafafaf);
+  static JBColor ourEasingControlsColor  = new JBColor(0x008000, 0x537f4e);
+  static JBColor ourTagColor = new JBColor(0x000080, 0xe5b764);
+  static JBColor ourValueColor = new JBColor(0x008000, 0x537f4e);
+  static JBColor ourSecondaryPanelBackground = new JBColor(0xfcfcfc, 0x313435);
+  static JBColor ourMainBackground = ourSecondaryPanelBackground;
 
   static class AddRemovePanel extends JPanel {
     JButton myAddButton = makeButton(TimeLineIcons.ADD_KEYFRAME);
