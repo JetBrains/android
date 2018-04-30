@@ -16,6 +16,7 @@
 package com.android.tools.idea.res;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.SampleDataResourceValue;
 import com.android.ide.common.resources.ResourceItem;
@@ -153,6 +154,8 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
 
     // Check that we wrap around
     assertEquals("string1", resolver.findResValue("@sample/strings", false).getValue());
+    ResourceReference reference = new ResourceReference(ResourceNamespace.TODO, ResourceType.SAMPLE_DATA, "strings");
+    assertEquals("string2", resolver.getResolvedResource(reference).getValue());
     assertEquals("1", resolver.findResValue("@sample/ints", false).getValue());
     assertTrue(imagePaths.contains(resolver.findResValue("@sample/images", false).getValue()));
 
