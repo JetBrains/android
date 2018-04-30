@@ -628,13 +628,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       NlComponent primary = screenView.getSelectionModel().getPrimary();
       NlComponent parent = primary != null ? primary.getParent() : null;
       if (parent != null) {
-        int ax = Coordinates.getAndroidX(screenView, mouseX);
-        int ay = Coordinates.getAndroidY(screenView, mouseY);
-        if (NlComponentHelperKt.containsX(primary, ax) && NlComponentHelperKt.containsY(primary, ay)) {
-          ViewGroupHandler handler = NlComponentHelperKt.getViewGroupHandler(parent);
-          if (handler != null) {
-            interaction = handler.createInteraction(screenView, primary);
-          }
+        ViewGroupHandler handler = NlComponentHelperKt.getViewGroupHandler(parent);
+        if (handler != null) {
+          interaction = handler.createInteraction(screenView, primary);
         }
       }
     }
