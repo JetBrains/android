@@ -191,7 +191,7 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
       myTemplateIconTitle.setIcon(new ImageIcon(image.getScaledInstance(256, 256,  Image.SCALE_SMOOTH)));
     }
     myTemplateIconTitle.setText(ActivityGallery.getTemplateImageLabel(templateHandle, false));
-    myTemplateIconDetail.setText("<html>" + ActivityGallery.getTemplateDescription(templateHandle, false) + "</html>");
+    myTemplateIconDetail.setText("<html><center>" + ActivityGallery.getTemplateDescription(templateHandle, false) + "</center></html>");
   }
 
   private void createUIComponents() {

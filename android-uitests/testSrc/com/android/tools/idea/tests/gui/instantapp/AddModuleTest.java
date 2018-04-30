@@ -98,7 +98,7 @@ public class AddModuleTest {
 
     NewModuleWizardFixture.find(ideFrame)
       .chooseModuleType("Instant App")
-      .clickNextToStep("Configure your new module")
+      .clickNextToStep("Configure your module")
       .clickFinish();
 
     ideFrame.waitForGradleProjectSyncToFinish();

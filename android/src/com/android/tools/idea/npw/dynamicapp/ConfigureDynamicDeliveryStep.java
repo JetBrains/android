@@ -26,6 +26,7 @@ import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,12 +44,13 @@ public class ConfigureDynamicDeliveryStep extends ModelWizardStep<DynamicFeature
   private final ListenerManager myListeners = new ListenerManager();
 
   private JPanel myPanel;
+  private JBLabel myFeatureTitleLabel;
   private JTextField myFeatureTitle;
   private JCheckBox myOnDemandCheckBox;
   private JCheckBox myFusingCheckBox;
 
   protected ConfigureDynamicDeliveryStep(@NotNull DynamicFeatureModel model) {
-    super(model, message("android.wizard.module.config.title"));
+    super(model, message("android.wizard.module.new.dynamic.on.demand.options"));
 
     myValidatorPanel = new ValidatorPanel(this, myPanel);
     myRootPanel = StudioWizardStepPanel.wrappedWithVScroll(myValidatorPanel);
@@ -61,7 +63,8 @@ public class ConfigureDynamicDeliveryStep extends ModelWizardStep<DynamicFeature
     myBindings.bindTwoWay(new SelectedProperty(myOnDemandCheckBox), getModel().featureOnDemand());
     myBindings.bindTwoWay(new SelectedProperty(myFusingCheckBox), getModel().featureFusing());
 
-    myListeners.receiveAndFire(getModel().featureOnDemand(), onDemandValue -> myFusingCheckBox.setEnabled(onDemandValue.booleanValue()));
+    myListeners.receiveAndFire(getModel().featureOnDemand(), onDemandValue ->
+      setEnabled(onDemandValue.booleanValue(), myFeatureTitleLabel, myFeatureTitle, myFusingCheckBox));
 
     myValidatorPanel.registerValidator(getModel().featureTitle(), value ->
       value.isEmpty() ? new Validator.Result(ERROR, message("android.wizard.validate.empty.name")) : OK);
@@ -89,5 +92,11 @@ public class ConfigureDynamicDeliveryStep extends ModelWizardStep<DynamicFeature
   public void dispose() {
     myBindings.releaseAll();
     myListeners.releaseAll();
+  }
+
+  private static void setEnabled(boolean isEnabled, JComponent... components) {
+    for (JComponent component : components) {
+      component.setEnabled(isEnabled);
+    }
   }
 }
