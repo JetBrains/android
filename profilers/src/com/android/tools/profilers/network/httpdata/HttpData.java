@@ -17,6 +17,7 @@ package com.android.tools.profilers.network.httpdata;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSortedMap;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -281,12 +282,16 @@ public class HttpData {
     private static final String FIELD_CONTENT_TYPE = "content-type";
     public static final String FIELD_CONTENT_LENGTH = "content-length";
 
+    /**
+     * Returns the fields map with the keys sorted by the {@link String.CASE_INSENSITIVE_ORDER}. If the map contains an entry with a
+     * capitalized key /Content-Length/, it returns the same value for a lower case key /content-length/.
+     */
     @NotNull
-    public abstract ImmutableMap<String, String> getFields();
+    public abstract ImmutableSortedMap<String, String> getFields();
 
     @NotNull
     public String getField(@NotNull String key) {
-      return getFields().getOrDefault(key.toLowerCase(), "");
+      return getFields().getOrDefault(key, "");
     }
 
     @NotNull
@@ -313,7 +318,7 @@ public class HttpData {
       Arrays.stream(fields.split("\\n")).filter(line -> !line.trim().isEmpty()).forEach(line -> {
         String[] keyAndValue = line.split("=", 2);
         assert keyAndValue.length == 2 : String.format("Unexpected http header field (%s)", line);
-        fieldsMap.put(keyAndValue[0].trim().toLowerCase(), StringUtil.trimEnd(keyAndValue[1].trim(), ';'));
+        fieldsMap.put(keyAndValue[0].trim(), StringUtil.trimEnd(keyAndValue[1].trim(), ';'));
       });
       return fieldsMap;
     }
@@ -323,13 +328,13 @@ public class HttpData {
     private static final String STATUS_CODE_NAME = "response-status-code";
     public static final int NO_STATUS_CODE = -1;
 
-    @NotNull private final ImmutableMap<String, String> myFields;
+    @NotNull private final ImmutableSortedMap<String, String> myFields;
     private int myStatusCode = NO_STATUS_CODE;
 
     ResponseHeader(String fields) {
       fields = fields.trim();
       if (fields.isEmpty()) {
-        myFields = ImmutableMap.of();
+        myFields = new ImmutableSortedMap.Builder<String, String>(String.CASE_INSENSITIVE_ORDER).build();
         return;
       }
 
@@ -353,11 +358,11 @@ public class HttpData {
       Map<String, String> fieldsMap = parseHeaderFields(fields);
 
       if (fieldsMap.containsKey(STATUS_CODE_NAME)) {
-         String statusCode = fieldsMap.remove(STATUS_CODE_NAME);
+        String statusCode = fieldsMap.remove(STATUS_CODE_NAME);
         myStatusCode = Integer.parseInt(statusCode);
       }
       assert myStatusCode != -1 : String.format("Unexpected http response (%s)", fields);
-      myFields = ImmutableMap.copyOf(fieldsMap);
+      myFields = new ImmutableSortedMap.Builder<String, String>(String.CASE_INSENSITIVE_ORDER).putAll(fieldsMap).build();
     }
 
     public int getStatusCode() {
@@ -366,21 +371,21 @@ public class HttpData {
 
     @NotNull
     @Override
-    public ImmutableMap<String, String> getFields() {
+    public ImmutableSortedMap<String, String> getFields() {
       return myFields;
     }
   }
 
   public static final class RequestHeader extends Header {
-    @NotNull private final ImmutableMap<String, String> myFields;
+    @NotNull private final ImmutableSortedMap<String, String> myFields;
 
     RequestHeader(String fields) {
-      myFields = ImmutableMap.copyOf(parseHeaderFields(fields));
+      myFields = new ImmutableSortedMap.Builder<String, String>(String.CASE_INSENSITIVE_ORDER).putAll(parseHeaderFields(fields)).build();
     }
 
     @NotNull
     @Override
-    public ImmutableMap<String, String> getFields() {
+    public ImmutableSortedMap<String, String> getFields() {
       return myFields;
     }
   }

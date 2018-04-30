@@ -49,8 +49,7 @@ final class HeadersTabContent extends TabContent {
     JLabel titleLabel = new OverviewTabContent.NoWrapBoldLabel(title);
     titleLabel.setFont(titleLabel.getFont().deriveFont(TabUiUtils.TITLE_FONT_SIZE));
     panel.add(titleLabel, new TabularLayout.Constraint(0, 0));
-    Map<String, String> sortedMap = new TreeMap<>(header.getFields());
-    panel.add(TabUiUtils.createMapComponent(sortedMap), new TabularLayout.Constraint(1, 0));
+    panel.add(TabUiUtils.createMapComponent(header.getFields()), new TabularLayout.Constraint(1, 0));
     new TreeWalker(panel).descendantStream().forEach(c -> {
       if (c != titleLabel) {
         TabUiUtils.adjustFont(c);

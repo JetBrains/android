@@ -249,6 +249,24 @@ public class HttpDataTest {
   }
 
   @Test
+  public void getResponseHeadersSortedAlphabetically() {
+    HttpData.Builder builder = TestHttpData.newBuilder(1);
+    builder.setResponseFields("Content-Length = 10000 \n abc = 1 \n response-status-code = 200");
+    HttpData data = builder.build();
+    assertThat(data.getResponseHeader().getFields().firstKey()).isEqualTo("abc");
+    assertThat(data.getResponseHeader().getFields().lastKey()).isEqualTo("Content-Length");
+  }
+
+  @Test
+  public void getRequestHeadersSortedAlphabetically() {
+    HttpData.Builder builder = TestHttpData.newBuilder(1);
+    builder.setRequestFields("Content-Length = 10000 \n abc = 1 \n ");
+    HttpData data = builder.build();
+    assertThat(data.getRequestHeader().getFields().firstKey()).isEqualTo("abc");
+    assertThat(data.getRequestHeader().getFields().lastKey()).isEqualTo("Content-Length");
+  }
+
+  @Test
   public void getStatusCodeFromFields() {
     HttpData.Builder builder = TestHttpData.newBuilder(1);
     builder.setResponseFields("content-length = 10000 \n  response-status-code = 200");
