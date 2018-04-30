@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.annotations.NonNull;
 import com.android.builder.model.AaptOptions;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.rendering.api.*;
@@ -31,7 +32,6 @@ import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.parsers.*;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
@@ -41,6 +41,7 @@ import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.collect.*;
+import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -63,10 +64,7 @@ import org.w3c.dom.NodeList;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.StringReader;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -291,11 +289,11 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     return null;
   }
 
-  @Nullable
   @Override
-  public XmlPullParser getXmlFileParser(String fileName) {
-    // No need to generate a PSI-based parser (which can read edited/unsaved contents) for files in build outputs or
-    // layoutlib built-in directories
+  @Nullable
+  public XmlPullParser createXmlParserForPsiFile(@NotNull String fileName) {
+    // No need to generate a PSI-based parser (which can read edited/unsaved contents) for files
+    // in build outputs or layoutlib built-in directories.
     if (fileName.contains(FilenameConstants.EXPLODED_AAR) || fileName.contains(FD_LAYOUTLIB) || fileName.contains(BUILD_CACHE)) {
       return null;
     }
@@ -308,8 +306,9 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
         if (psiFile != null) {
           ResourceValue resourceValue = myFontFamilies.get(fileName);
           if (resourceValue != null) {
-            // This is a font-family XML. Now check if it defines a downloadable font. If it is, this is a special case where we generate
-            // a synthetic font-family XML file that points to the cached fonts downloaded by the DownloadableFontCacheService
+            // This is a font-family XML. Now check if it defines a downloadable font. If it is,
+            // this is a special case where we generate a synthetic font-family XML file that points
+            // to the cached fonts downloaded by the DownloadableFontCacheService.
             if (myProjectFonts == null && myResourceResolver != null) {
               myProjectFonts = new ProjectFonts(myResourceResolver);
             }
@@ -337,6 +336,27 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     finally {
       RenderSecurityManager.exitSafeRegion(token);
     }
+  }
+
+  @Override
+  @Nullable
+  public XmlPullParser createXmlParserForFile(@NotNull String fileName) {
+    try (FileInputStream fileStream = new FileInputStream(fileName)) {
+      // Read data fully to memory to be able to close the file stream.
+      ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
+      ByteStreams.copy(fileStream, byteOutputStream);
+      NamedParser parser = new NamedParser(fileName);
+      parser.setInput(new ByteArrayInputStream(byteOutputStream.toByteArray()), null);
+      return parser;
+    } catch (IOException | XmlPullParserException e) {
+      return null;
+    }
+  }
+
+  @Override
+  @NonNull
+  public XmlPullParser createXmlParser() {
+    return new NamedParser(null);
   }
 
   public void setLayoutParser(@Nullable String layoutName, @Nullable ILayoutPullParser layoutParser) {
@@ -404,7 +424,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     }
     myParserCount++;
 
-    if (myLayoutPullParserFactory != null && xml != null) {
+    if (myLayoutPullParserFactory != null) {
       ILayoutPullParser parser = myLayoutPullParserFactory.create(xml, this);
       if (parser != null) {
         return parser;
