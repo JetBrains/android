@@ -434,7 +434,7 @@ public class InteractionManager {
       }
 
       if (myCurrentInteraction == null) {
-        boolean allowToggle = (modifiers & (InputEvent.SHIFT_MASK | InputEvent.META_MASK)) != 0;
+        boolean allowToggle = (modifiers & (InputEvent.SHIFT_MASK | Toolkit.getDefaultToolkit().getMenuShortcutKeyMask())) != 0;
         selectComponentAt(x, y, allowToggle, false);
         mySurface.repaint();
       }
@@ -990,8 +990,11 @@ public class InteractionManager {
         || (event.getModifiersEx() & modifierKeyMask) == modifierKeyMask) {
       DesignSurface surface = getSurface();
       Point position = surface.getScrollPosition();
-      position.translate(myLastMouseX - x, myLastMouseY - y);
-      surface.setScrollPosition(position);
+      // position can be null in tests
+      if (position != null) {
+        position.translate(myLastMouseX - x, myLastMouseY - y);
+        surface.setScrollPosition(position);
+      }
       mySurface.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
       return true;
     }
