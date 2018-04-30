@@ -9,6 +9,7 @@ import com.intellij.openapi.ui.popup.LightweightWindowEvent;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.JBUI;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -37,11 +38,11 @@ public class TrackControls extends JPanel {
 
   JButton[] myButtons = {myCircle, myPrevKeyFrame, myPlayButton, myNextKeyFrame, myLoop};
   private static final Icon[] myIcons = {
-    TimeLineIcons.CIRCLE_PLAY,
-    TimeLineIcons.BACKWARD,
-    TimeLineIcons.PLAY,
-    TimeLineIcons.FORWARD,
-    TimeLineIcons.LOOP
+    StudioIcons.LayoutEditor.Motion.SLOW_MOTION,
+    StudioIcons.LayoutEditor.Motion.GO_TO_START,
+    StudioIcons.LayoutEditor.Motion.PLAY,
+    StudioIcons.LayoutEditor.Motion.GO_TO_END,
+    StudioIcons.LayoutEditor.Motion.LOOP
   };
 
   static GanttEventListener.Actions[] actions = {

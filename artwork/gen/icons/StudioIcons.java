@@ -98,6 +98,15 @@ public class StudioIcons {
       public static final Icon VISIBILITY_GONE_INLINE = load("/studio/icons/layout-editor/extras/visibility-gone-inline.png"); // 16x16
     }
 
+    public static class Motion {
+      public static final Icon GO_TO_END = load("/studio/icons/layout-editor/motion/go-to-end.png"); // 16x16
+      public static final Icon GO_TO_START = load("/studio/icons/layout-editor/motion/go-to-start.png"); // 16x16
+      public static final Icon LOOP = load("/studio/icons/layout-editor/motion/loop.png"); // 16x16
+      public static final Icon PAUSE = load("/studio/icons/layout-editor/motion/pause.png"); // 16x16
+      public static final Icon PLAY = load("/studio/icons/layout-editor/motion/play.png"); // 16x16
+      public static final Icon SLOW_MOTION = load("/studio/icons/layout-editor/motion/slow-motion.png"); // 16x16
+    }
+
     public static class Palette {
       public static final Icon AD_VIEW = load("/studio/icons/layout-editor/palette/ad-view.png"); // 16x16
       public static final Icon ADAPTER_VIEW_FLIPPER = load("/studio/icons/layout-editor/palette/adapter-view-flipper.png"); // 16x16
