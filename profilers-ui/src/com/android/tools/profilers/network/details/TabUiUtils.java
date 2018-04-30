@@ -20,14 +20,12 @@ import com.android.tools.adtui.ui.BreakWordWrapHtmlTextPane;
 import com.android.tools.adtui.ui.HideablePanel;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.text.Element;
-import javax.swing.text.View;
-import javax.swing.text.ViewFactory;
 import javax.swing.text.html.*;
 import java.awt.*;
 import java.awt.event.MouseWheelEvent;
@@ -43,7 +41,9 @@ import java.util.stream.Collectors;
 final class TabUiUtils {
 
   public static final int SCROLL_UNIT = JBUI.scale(10);
-  public static final float FIELD_FONT_SIZE = 11.f;
+  public static final float FIELD_FONT_SIZE = 12.f;
+  // Padding to be aligned with the tab title on the left.
+  public static final int HORIZONTAL_PADDING = 15;
 
   public static final int TAB_SECTION_VGAP = JBUI.scale(5);
   public static final int PAGE_VGAP = JBUI.scale(28);
@@ -116,7 +116,11 @@ final class TabUiUtils {
   public static HideablePanel createHideablePanel(@NotNull String title, @NotNull JComponent content,
                                                   @Nullable JComponent northEastComponent) {
     title = String.format("<html><b>%s</b></html>", title);
-    return new HideablePanel.Builder(title, content).setNorthEastComponent(northEastComponent).build();
+    return new HideablePanel.Builder(title, content)
+      .setNorthEastComponent(northEastComponent)
+      .setPanelBorder(new JBEmptyBorder(10, 0, 0, 0))
+      .setContentBorder(new JBEmptyBorder(10, 12, 0, 0))
+      .build();
   }
 
   /**
@@ -126,29 +130,19 @@ final class TabUiUtils {
   @NotNull
   public static JComponent createStyledMapComponent(@NotNull Map<String, String> map) {
     if (map.isEmpty()) {
-      return new JLabel("No data available");
+      return new JLabel("Not available");
     }
 
-    JEditorPane htmlTextPane = new JEditorPane();
-    htmlTextPane.setBackground(null);
-    htmlTextPane.setEditable(false);
-    htmlTextPane.setContentType("text/html");
-    HTMLEditorKit editorKit = new BreakWordWrapHtmlTextPane.BreakWordWrapHTMLEditorKit();
-    htmlTextPane.setEditorKit(editorKit);
-    StyleSheet styleSheet = editorKit.getStyleSheet();
-    Font labelFont = UIManager.getFont("Label.font");
-    styleSheet.addRule("body { font-family: " + labelFont.getFamily() + "; font-size: " + FIELD_FONT_SIZE + "pt; }");
-    styleSheet.addRule("p { margin: 4 0 4 0; }");
-
+    JTextPane textPane = new BreakWordWrapHtmlTextPane();
     StringBuilder stringBuilder = new StringBuilder();
     stringBuilder.append("<html>");
     for (Map.Entry<String, String> entry : map.entrySet()) {
-      stringBuilder.append("<p><b>").append(entry.getKey()).append(":&nbsp&nbsp</b>");
+      stringBuilder.append("<p><b>").append(entry.getKey()).append("</b>:&nbsp&nbsp");
       stringBuilder.append("<span>").append(entry.getValue()).append("</span></p>");
     }
     stringBuilder.append("</html>");
-    htmlTextPane.setText(stringBuilder.toString());
-    return htmlTextPane;
+    textPane.setText(stringBuilder.toString());
+    return textPane;
   }
 
   /**
@@ -158,7 +152,7 @@ final class TabUiUtils {
   @NotNull
   public static JComponent createMapComponent(@NotNull Map<String, String> argsMap) {
     if (argsMap.isEmpty()) {
-      return new JLabel("No data available");
+      return new JLabel("Not available");
     }
 
     StringBuilder stringBuilder = new StringBuilder();

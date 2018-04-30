@@ -22,6 +22,7 @@ import com.android.tools.profilers.network.NetworkConnectionsModel;
 import com.android.tools.profilers.network.details.HttpDataViewModel.ConnectionType;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.util.ui.JBEmptyBorder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,6 +57,7 @@ final class ResponseTabContent extends TabContent {
   @Override
   protected JComponent createComponent() {
     myPanel = TabUiUtils.createVerticalPanel(TabUiUtils.TAB_SECTION_VGAP);
+    myPanel.setBorder(new JBEmptyBorder(0, TabUiUtils.HORIZONTAL_PADDING, 0, TabUiUtils.HORIZONTAL_PADDING));
     return TabUiUtils.createVerticalScrollPane(myPanel);
   }
 

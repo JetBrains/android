@@ -67,6 +67,7 @@ final class RequestTabContent extends TabContent {
   @Override
   protected JComponent createComponent() {
     myPanel = TabUiUtils.createVerticalPanel(TabUiUtils.TAB_SECTION_VGAP);
+    myPanel.setBorder(new JBEmptyBorder(0, TabUiUtils.HORIZONTAL_PADDING, 0, TabUiUtils.HORIZONTAL_PADDING));
     return TabUiUtils.createVerticalScrollPane(myPanel);
   }
 
@@ -95,8 +96,8 @@ final class RequestTabContent extends TabContent {
     if (!contentToParse.isEmpty()) {
       final CardLayout cardLayout = new CardLayout();
       final JPanel payloadPanel = new JPanel(cardLayout);
-      String cardViewParsed = "view parsed";
-      String cardViewSource = "view source";
+      String cardViewParsed = "View Parsed";
+      String cardViewSource = "View Source";
 
       final Map<String, String> parsedContent = new LinkedHashMap<>();
       Stream<String[]> parsedContentStream = Arrays.stream(contentToParse.trim().split("&")).map(s -> s.split("=", 2));
