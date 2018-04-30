@@ -639,7 +639,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     CpuKernelTooltip tooltip = (CpuKernelTooltip)myStage.getTooltip();
 
     // Null series
-    tooltip.setCpuSeries(null);
+    tooltip.setCpuSeries(0, null);
     assertThat(tooltip.getCpuThreadInfo()).isNull();
 
     // Test Series
@@ -648,7 +648,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     cpuSeriesData.add(new SeriesData<>(5, CpuThreadInfo.NULL_THREAD));
     cpuSeriesData.add(new SeriesData<>(10, new CpuThreadInfo(0, "Test", 0, "Test")));
     AtraceDataSeries<CpuThreadInfo> series = new AtraceDataSeries<>(myStage, (capture) -> cpuSeriesData);
-    tooltip.setCpuSeries(series);
+    tooltip.setCpuSeries(1, series);
     assertThat(tooltip.getCpuThreadInfo().getProcessName()).isEqualTo("Test");
 
     // Tooltip before all data.

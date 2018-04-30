@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu
 
 import com.android.testutils.TestUtils
+import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData
@@ -67,22 +68,34 @@ class CpuKernelTooltipViewTest {
   @Test
   fun textUpdateOnRangeChange() {
     val testSeriesData = ArrayList<SeriesData<CpuThreadInfo>>()
-    testSeriesData.add(SeriesData(0, CpuThreadInfo(0, "Cpu", 0, "Thread")))
+    testSeriesData.add(SeriesData(0, CpuThreadInfo(0, "SomeThread", 0, "MyProcess")))
     testSeriesData.add(SeriesData(5, CpuThreadInfo.NULL_THREAD))
     val series = AtraceDataSeries<CpuThreadInfo>(myStage, { _ -> testSeriesData })
     myRange.set(1.0, 1.0)
-    myCpuKernelTooltip.setCpuSeries(series)
-    assertThat(myCpuKernelTooltipView.headingText).contains("+ 1 μs")
-    assertThat(myCpuKernelTooltipView.text).isEqualTo("<html>Thread at <span style='color:#888888'>0.00ms</span><br>Cpu</html>")
+    myCpuKernelTooltip.setCpuSeries(1, series)
+    val labels = TreeWalker(myCpuKernelTooltipView.tooltipPanel).descendants().filterIsInstance<JLabel>()
+    assertThat(labels.stream().anyMatch({ label -> label.text.equals("+ 1 μs") })).isTrue()
+    assertThat(labels.stream().anyMatch({ label -> label.text.equals("CPU: 1") })).isTrue()
+    assertThat(labels.stream().anyMatch({ label -> label.text.equals("Thread: SomeThread") })).isTrue()
+    assertThat(labels.stream().anyMatch({ label -> label.text.equals("Process: MyProcess") })).isTrue()
+    assertThat(labels.stream().anyMatch({ label -> label.text.equals("Other (not selectable)") })).isFalse()
+  }
+
+  @Test
+  fun otherDetailsAppearOnOtherApps() {
+    val testSeriesData = ArrayList<SeriesData<CpuThreadInfo>>()
+    testSeriesData.add(SeriesData(0, CpuThreadInfo(0, "SomeThread", 22, "MyProcess")))
+    val series = AtraceDataSeries<CpuThreadInfo>(myStage, { _ -> testSeriesData })
+    myRange.set(1.0, 1.0)
+    myCpuKernelTooltip.setCpuSeries(1, series)
+    val labels = TreeWalker(myCpuKernelTooltipView.tooltipPanel).descendants().filterIsInstance<JLabel>()
+    assertThat(labels.stream().anyMatch({ label -> label.text.equals("Other (not selectable)") })).isTrue()
   }
 
   private class FakeCpuKernelTooltipView(
     view: CpuProfilerStageView,
     tooltip: CpuKernelTooltip
   ) : CpuKernelTooltipView(view, tooltip) {
-    val myTooltipContent = createTooltip() as JLabel
-
-    val text: String
-      get() = myTooltipContent.text
+    val tooltipPanel = createComponent()
   }
 }

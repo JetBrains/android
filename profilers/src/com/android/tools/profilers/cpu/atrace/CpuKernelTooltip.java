@@ -39,6 +39,7 @@ public class CpuKernelTooltip extends AspectModel<CpuKernelTooltip.Aspect> imple
   @NotNull private final CpuProfilerStage myStage;
   @Nullable private DataSeries<CpuThreadInfo> mySeries;
   @Nullable private CpuThreadInfo myCpuThreadInfo;
+  private int myCpuId;
 
   public CpuKernelTooltip(@NotNull CpuProfilerStage stage) {
     myStage = stage;
@@ -70,13 +71,18 @@ public class CpuKernelTooltip extends AspectModel<CpuKernelTooltip.Aspect> imple
     changed(Aspect.CPU_KERNEL_THREAD_INFO);
   }
 
-  public void setCpuSeries(@Nullable DataSeries<CpuThreadInfo> stateSeries) {
+  public void setCpuSeries(int cpuId, @Nullable DataSeries<CpuThreadInfo> stateSeries) {
     mySeries = stateSeries;
+    myCpuId = cpuId;
     updateState();
   }
 
   @Nullable
   public CpuThreadInfo getCpuThreadInfo() {
     return myCpuThreadInfo;
+  }
+
+  public int getCpuId() {
+    return myCpuId;
   }
 }
