@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.instantrun;
 
-import com.android.tools.idea.tests.gui.emulator.DeleteAvdsRule;
-import com.android.tools.idea.tests.gui.emulator.EmulatorGenerator;
-import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.fakeadbserver.ClientState;
+import com.android.fakeadbserver.DeviceState;
+import com.android.fakeadbserver.FakeAdbServer;
+import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
+import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -28,11 +31,16 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
+import org.fest.swing.util.StringTextMatcher;
+import org.jetbrains.annotations.NotNull;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
 
+import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
 
 import static com.android.tools.idea.tests.gui.instantrun.InstantRunTestUtility.extractPidFromOutput;
@@ -43,15 +51,52 @@ public class ChangeManifestTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  private final EmulatorTestRule emulator = new EmulatorTestRule(false);
-  @Rule public final RuleChain emulatorRules = RuleChain
-    .outerRule(new DeleteAvdsRule())
-    .around(emulator);
+  private FakeAdbServer fakeAdbServer;
 
   private static final String APP_NAME = "app";
   private static final Pattern RUN_OUTPUT =
     Pattern.compile(".*Connected to process (\\d+) .*", Pattern.DOTALL);
   private static final int OUTPUT_RESET_TIMEOUT = 30;
+
+  @Before
+  public void setupFakeAdbServer() throws IOException, InterruptedException, ExecutionException {
+    ActivityManagerCommandHandler.ProcessStarter startCmdHandler = new ActivityManagerCommandHandler.ProcessStarter() {
+      private ClientState prevState;
+      private int pidCount = 1234;
+
+      @NotNull
+      @Override
+      public String startProcess(@NotNull DeviceState deviceState) {
+        if (prevState != null) {
+          deviceState.stopClient(prevState.getPid());
+        }
+
+        prevState = deviceState.startClient(pidCount, 1235, "google.simpleapplication", false);
+        pidCount++;
+
+        return "";
+      }
+    };
+
+    FakeAdbServer.Builder adbBuilder = new FakeAdbServer.Builder();
+    adbBuilder.installDefaultCommandHandlers()
+      .setShellCommandHandler(ActivityManagerCommandHandler.COMMAND, () -> new ActivityManagerCommandHandler(startCmdHandler))
+      .setDeviceCommandHandler(JdwpCommandHandler.COMMAND, JdwpCommandHandler::new);
+
+    fakeAdbServer = adbBuilder.build();
+    DeviceState fakeDevice = fakeAdbServer.connectDevice(
+      "test_device",
+      "Google",
+      "Nexus 5X",
+      "8.1",
+      "27",
+      DeviceState.HostConnectionType.LOCAL
+    ).get();
+    fakeDevice.setDeviceStatus(DeviceState.DeviceStatus.ONLINE);
+
+    fakeAdbServer.start();
+    AndroidDebugBridge.enableFakeAdbServerMode(fakeAdbServer.getPort());
+  }
 
   /**
    * Verifies that instant run works as expected when AndroidManifest is changed.
@@ -79,11 +124,10 @@ public class ChangeManifestTest {
   @Test
   public void changeManifest() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
-    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
 
     ideFrameFixture
       .runApp(APP_NAME)
-      .selectDevice(avdName)
+      .selectDevice(new StringTextMatcher("Google Nexus 5X"))
       .clickOk();
 
     ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
@@ -109,5 +153,12 @@ public class ChangeManifestTest {
     String newPid = extractPidFromOutput(contentFixture.getOutput(10), RUN_OUTPUT);
     // (Cold swap) Verify the inequality of PIDs before and after IR
     assertThat(pid).isNotEqualTo(newPid);
+  }
+
+  @After
+  public void shutdownFakeAdb() throws Exception {
+    AndroidDebugBridge.terminate();
+    AndroidDebugBridge.disableFakeAdbServerMode();
+    fakeAdbServer.close();
   }
 }
