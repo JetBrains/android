@@ -16,11 +16,10 @@
 package com.android.tools.idea.tests.gui.instantapp
 
 import com.android.ddmlib.AndroidDebugBridge
-import com.android.fakeadbserver.CommandHandler
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler
-import com.android.fakeadbserver.shellcommandhandlers.ShellCommandHandler
+import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
@@ -34,8 +33,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.io.IOException
-import java.net.Socket
 
 @RunWith(GuiTestRemoteRunner::class)
 class CreateAndRunInstantAppTest {
@@ -47,10 +44,24 @@ class CreateAndRunInstantAppTest {
 
   @Before
   fun setupFakeAdbServer() {
+    /**
+     * ActivityManager "start" command handler for an invocation like
+     *
+     *    am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d 'https://example.com/example'
+     */
+    val startCmdHandler = object: ActivityManagerCommandHandler.ProcessStarter {
+      override fun startProcess(deviceState: DeviceState): String {
+        deviceState.startClient(1234, 1235, "${projectApplicationId}.app", false)
+        return "Starting: Intent { act=android.intent.action.VIEW cat=[android.intent.category.BROWSABLE] dat=https://example.com/... }"
+      }
+    }
+
     fakeAdbServer = FakeAdbServer.Builder()
       .installDefaultCommandHandlers()
       .setShellCommandHandler(ActivityManagerCommandHandler.COMMAND, {
-        ActivityManagerCommandHandler(projectApplicationId)
+        ActivityManagerCommandHandler(
+          startCmdHandler
+        )
       })
       .setDeviceCommandHandler(JdwpCommandHandler.COMMAND, {
         JdwpCommandHandler()
@@ -128,42 +139,4 @@ class CreateAndRunInstantAppTest {
     fakeAdbServer.close()
   }
 
-  private class ActivityManagerCommandHandler(var packageId: String): ShellCommandHandler() {
-    companion object {
-      const val COMMAND = "am"
-    }
-
-    override fun invoke(fakeAdbServer: FakeAdbServer, responseSocket: Socket, device: DeviceState, args: String?): Boolean {
-      try {
-        val output = responseSocket.getOutputStream()
-
-        if (args == null) {
-          CommandHandler.writeFail(output)
-          return false
-        }
-
-        CommandHandler.writeOkay(output)
-
-        val response: String = when {
-          args.startsWith("start ") -> startProcess(device)
-          else -> ""
-        }
-
-        CommandHandler.writeString(output, response)
-      } catch(ignored: IOException) {
-      }
-
-      return false
-    }
-
-    /**
-     * Command handler for an invocation like
-     *
-     *    am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d 'https://example.com/example'
-     */
-    private fun startProcess(deviceState: DeviceState): String {
-      deviceState.startClient(1234, 1235, "${packageId}.app", false)
-      return "Starting: Intent { act=android.intent.action.VIEW cat=[android.intent.category.BROWSABLE] dat=https://example.com/... }"
-    }
-  }
 }
