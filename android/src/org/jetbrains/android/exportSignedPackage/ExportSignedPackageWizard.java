@@ -65,6 +65,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
@@ -208,23 +209,31 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
           createProperty(AndroidProject.PROPERTY_SIGNING_STORE_PASSWORD, new String(myGradleSigningInfo.keyStorePassword)));
         projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_KEY_ALIAS, myGradleSigningInfo.keyAlias));
         projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_KEY_PASSWORD, new String(myGradleSigningInfo.keyPassword)));
+        if (myTargetType.equals(BUNDLE)) {
+          myApkPath = Paths.get(myApkPath, myBuildType).toString();
+        }
         projectProperties.add(createProperty(AndroidProject.PROPERTY_APK_LOCATION, myApkPath));
 
         // These were introduced in 2.3, but gradle doesn't care if it doesn't know the properties and so they don't affect older versions.
         projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_V1_ENABLED, Boolean.toString(myV1Signature)));
         projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_V2_ENABLED, Boolean.toString(myV2Signature)));
 
-        File apkDirectory = getApkLocation(myApkPath, myBuildType);
+        File apkDirectory = myTargetType.equals(BUNDLE)
+                            ? Paths.get(myApkPath, "bundle.aab").toFile()
+                            : getApkLocation(myApkPath, myBuildType);
         Map<Module, File> appModulesToOutputs = Collections.singletonMap(myFacet.getModule(), apkDirectory);
 
         assert myProject != null;
 
         GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(myProject);
         if (myTargetType.equals(BUNDLE)) {
+          File exportedKeyFile = null;
           if (myExportPrivateKey) {
-            //if the apkFile path doesn't exist, try to create it, the encryption tool will not work without the directory.
-            if(!apkDirectory.exists() && !apkDirectory.mkdirs()) {
-              getLog().error("Unable to make a folder at location: " + apkDirectory.getAbsolutePath());
+            try {
+              exportedKeyFile = generatePrivateKeyPath();
+            }
+            catch (AndroidLocation.AndroidLocationException e) {
+              getLog().error("Something went wrong with the encryption tool", e);
               return;
             }
 
@@ -232,7 +241,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
               myEncryptionTool.run(myGradleSigningInfo.keyStoreFilePath,
                                    myGradleSigningInfo.keyAlias,
                                    GOOGLE_PUBLIC_KEY,
-                                   generatePrivateKeyPath().getPath(),
+                                   exportedKeyFile.getPath(),
                                    myGradleSigningInfo.keyStorePassword,
                                    myGradleSigningInfo.keyPassword
               );
@@ -247,7 +256,13 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
             }
           }
 
-          gradleBuildInvoker.add(new GoToBundleLocationTask(myProject, appModulesToOutputs, "Generate Signed Bundle"));
+          GoToBundleLocationTask task;
+          if (exportedKeyFile != null) {
+            task = new GoToBundleLocationTask(myProject, "Generate Signed Bundle", appModulesToOutputs, exportedKeyFile);
+          } else {
+            task = new GoToBundleLocationTask(myProject, "Generate Signed Bundle", appModulesToOutputs);
+          }
+          gradleBuildInvoker.add(task);
         } else {
           gradleBuildInvoker.add(new GoToApkLocationTask(appModulesToOutputs, "Generate Signed APK"));
         }

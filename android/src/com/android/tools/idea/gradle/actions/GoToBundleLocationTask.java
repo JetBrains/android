@@ -53,30 +53,43 @@ import static com.intellij.notification.NotificationType.INFORMATION;
 public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInvocationTask {
   public static final String ANALYZE_URL_PREFIX = "analyze:";
   public static final String LOCATE_URL_PREFIX = "module:";
+  public static final String LOCATE_KEY_URL_PREFIX = "key:";
   @NotNull private final Project myProject;
   @NotNull private final String myNotificationTitle;
   @Nullable private final Collection<Module> myModules;
+  @Nullable private final File myExportedKeyFile;
   @Nullable private Map<Module, File> myModulesAndBundlePaths;
 
-  public GoToBundleLocationTask(@NotNull Project project, @NotNull Collection<Module> modules, @NotNull String notificationTitle) {
-    this(project, notificationTitle, modules, null);
+  public GoToBundleLocationTask(@NotNull Project project,
+                                @NotNull String notificationTitle,
+                                @NotNull Collection<Module> modules) {
+    this(project, notificationTitle, modules, null, null);
   }
 
   public GoToBundleLocationTask(@NotNull Project project,
+                                @NotNull String notificationTitle,
+                                @NotNull Map<Module, File> modulesAndBundlePaths) {
+    this(project, notificationTitle, null, modulesAndBundlePaths, null);
+  }
+
+  public GoToBundleLocationTask(@NotNull Project project,
+                                @NotNull String notificationTitle,
                                 @NotNull Map<Module, File> modulesAndBundlePaths,
-                                @NotNull String notificationTitle) {
-    this(project, notificationTitle, null, modulesAndBundlePaths);
+                                @NotNull File exportedKeyFile) {
+    this(project, notificationTitle, null, modulesAndBundlePaths, exportedKeyFile);
   }
 
   @VisibleForTesting
   GoToBundleLocationTask(@NotNull Project project,
                          @NotNull String notificationTitle,
                          @Nullable Collection<Module> modules,
-                         @Nullable Map<Module, File> modulesAndPaths) {
+                         @Nullable Map<Module, File> modulesAndPaths,
+                         @Nullable File exportedKeyFile) {
     myProject = project;
     myNotificationTitle = notificationTitle;
     myModulesAndBundlePaths = modulesAndPaths;
     myModules = modules;
+    myExportedKeyFile = exportedKeyFile;
   }
 
   @Override
@@ -123,10 +136,15 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
           buffer.append("<br/>");
         }
       }
+      if (myExportedKeyFile != null) {
+        buffer.append("<br/>");
+        buffer.append("<a href=\"").append(LOCATE_KEY_URL_PREFIX).append("\">Show Exported Key File</a>");
+      }
 
       String text = buffer.toString();
       notification.showBalloon(myNotificationTitle, text, INFORMATION, new OpenFolderNotificationListener(myProject,
-                                                                                                          bundlePathsByModule));
+                                                                                                          bundlePathsByModule,
+                                                                                                          myExportedKeyFile));
     }
     else {
       // Platform does not support showing the location of a file.
@@ -214,10 +232,12 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
   static class OpenFolderNotificationListener extends NotificationListener.Adapter {
     @NotNull private final Project myProject;
     @NotNull private final Map<String, File> myBundlePathsPerModule;
+    @Nullable private final File myExportedKeyFile;
 
-    OpenFolderNotificationListener(@NotNull Project project, @NotNull Map<String, File> apkPathsPerModule) {
+    OpenFolderNotificationListener(@NotNull Project project, @NotNull Map<String, File> apkPathsPerModule, @Nullable File exportedKeyFile) {
       myProject = project;
       myBundlePathsPerModule = apkPathsPerModule;
+      myExportedKeyFile = exportedKeyFile;
     }
 
     @Override
@@ -233,6 +253,9 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
       }
       else if (description.startsWith(LOCATE_URL_PREFIX)) {
         openBundleDirectory(description.substring(LOCATE_URL_PREFIX.length()));
+      }
+      else if (description.startsWith(LOCATE_KEY_URL_PREFIX)) {
+        openKeyDirectory();
       }
     }
 
@@ -259,12 +282,21 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
     }
 
     private void openBundleDirectory(String path) {
-      File apkPath = myBundlePathsPerModule.get(path);
-      assert apkPath != null;
-      if (apkPath.isFile()) {
-        apkPath = apkPath.getParentFile();
+      showFileOrDirectory(myBundlePathsPerModule.get(path));
+    }
+
+    private void openKeyDirectory() {
+      assert myExportedKeyFile != null;
+      showFileOrDirectory(myExportedKeyFile);
+    }
+
+    private static void showFileOrDirectory(@NotNull File file) {
+      if (file.isFile()) {
+        ShowFilePathAction.openFile(file);
       }
-      ShowFilePathAction.openDirectory(apkPath);
+      else {
+        ShowFilePathAction.openDirectory(file.getParentFile());
+      }
     }
 
     @Override

@@ -55,7 +55,7 @@ public class GoToBundleLocationTaskTest extends IdeaTestCase {
     myBundleFilePath = createTempDir("bundleFileLocation");
     Map<Module, File> modulesToPaths = Collections.singletonMap(getModule(), myBundleFilePath);
 
-    myTask = new GoToBundleLocationTask(getProject(), NOTIFICATION_TITLE, null, modulesToPaths);
+    myTask = new GoToBundleLocationTask(getProject(), NOTIFICATION_TITLE, null, modulesToPaths, null);
     new IdeComponents(myProject).replaceProjectService(AndroidNotification.class, myMockNotification);
   }
 
@@ -81,7 +81,7 @@ public class GoToBundleLocationTaskTest extends IdeaTestCase {
       String message = getModuleNotificationMessage(moduleName);
       Map<String, File> bundlePathsPerModule = Collections.singletonMap(moduleName, myBundleFilePath);
       verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, INFORMATION,
-                                             new OpenFolderNotificationListener(myProject, bundlePathsPerModule));
+                                             new OpenFolderNotificationListener(myProject, bundlePathsPerModule, null));
     }
   }
 
