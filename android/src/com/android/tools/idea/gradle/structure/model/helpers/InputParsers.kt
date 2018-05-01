@@ -17,7 +17,9 @@
 
 package com.android.tools.idea.gradle.structure.model.helpers
 
+import com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil.parseFromGradleString
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.intellij.pom.java.LanguageLevel
 import java.io.File
 
 fun parseString(context: Any?, text: String): ParsedValue<String> =
@@ -62,3 +64,9 @@ fun parseInt(context: Any?, text: String): ParsedValue<Int> =
         ParsedValue.Set.Invalid<Int>(dslText = text, errorMessage = "'$text' is not a valid integer value")
       }
     }
+
+fun parseLanguageLevel(context: Any?, text: String): ParsedValue<LanguageLevel> =
+  parseFromGradleString(text)?.let { ParsedValue.Set.Parsed(value = it) }
+  ?: ParsedValue.Set.Invalid(dslText = text, errorMessage = "'$text' is not a valid language level")
+
+fun formatLanguageLevel(context: Any?, value: LanguageLevel): String = value.toJavaVersion().toString()
