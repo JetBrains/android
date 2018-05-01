@@ -99,12 +99,12 @@ data class DslText(val mode: DslMode, val text: String?)
  * Returns the default text representation of [ParsedValue] with any well-known values resolved into their full names according
  * to [wellKnownValues].
  */
-fun <PropertyT> ParsedValue<PropertyT>.getText(wellKnownValues: Map<PropertyT?, String>? = null) = when (this) {
-  is ParsedValue.NotSet -> wellKnownValues?.get(null) ?: ""
+fun <PropertyT> ParsedValue<PropertyT>.getText() = when (this) {
+  is ParsedValue.NotSet -> ""
   is ParsedValue.Set.Parsed -> {
     val dsl = dslText ?: DslText(DslMode.LITERAL, null)
     when (dsl.mode) {
-      DslMode.LITERAL -> if (value == null) "" else (wellKnownValues?.get(value) ?: value.toString())
+      DslMode.LITERAL -> value?.toString() ?: ""
       DslMode.REFERENCE -> "\$${dsl.text}"
       DslMode.OTHER_UNPARSED_DSL_TEXT -> "\$\$${dsl.text}"
       DslMode.INTERPOLATED_STRING -> "\"${dsl.text}\""
