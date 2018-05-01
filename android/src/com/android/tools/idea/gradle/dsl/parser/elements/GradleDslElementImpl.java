@@ -31,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isNonExpressionPropertiesElement;
 import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT_BLOCK_NAME;
 
 public abstract class GradleDslElementImpl implements GradleDslElement {
@@ -320,7 +321,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement {
   public Map<String, GradleDslElement> getInScopeElements() {
     Map<String, GradleDslElement> results = new LinkedHashMap<>();
 
-    if (this instanceof GradlePropertiesDslElement) {
+    if (isNonExpressionPropertiesElement(this)) {
       GradlePropertiesDslElement thisElement = (GradlePropertiesDslElement)this;
       results.putAll(thisElement.getVariableElements());
     }
@@ -329,7 +330,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement {
     GradleDslElement currentElement = this;
     while (currentElement != null && currentElement.getParent() != null) {
       currentElement = currentElement.getParent();
-      if (currentElement instanceof GradlePropertiesDslElement) {
+      if (isNonExpressionPropertiesElement(currentElement)) {
         GradlePropertiesDslElement element = (GradlePropertiesDslElement)currentElement;
         results.putAll(element.getVariableElements());
       }

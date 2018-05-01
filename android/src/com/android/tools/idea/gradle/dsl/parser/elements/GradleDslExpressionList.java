@@ -16,23 +16,17 @@
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
-import com.google.common.collect.Lists;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
  * Represents an element which consists a list of {@link GradleDslSimpleExpression}s.
  */
-public final class GradleDslExpressionList extends GradleDslElementImpl implements GradleDslExpression {
-  @NotNull private final List<GradleDslExpression> myExpressions = Lists.newArrayList();
-  @NotNull private final List<GradleDslExpression> myUnsavedExpressions = Lists.newArrayList();
-
+public final class GradleDslExpressionList extends GradlePropertiesDslElement implements GradleDslExpression {
   private final boolean myAppendToArgumentListWithOneElement;
   // This boolean controls whether of not the empty list element should be deleted on a call to delete in one of
   // its children. For non-literal lists (e.g merges "merge1", "merge2") #shouldBeDeleted() always returns true since we
@@ -71,50 +65,45 @@ public final class GradleDslExpressionList extends GradleDslElementImpl implemen
   }
 
   public void addParsedExpression(@NotNull GradleDslExpression expression) {
-    expression.setParent(this);
-    myExpressions.add(expression);
-    myUnsavedExpressions.add(expression);
+    super.addParsedElement(expression);
   }
 
   public void addNewExpression(@NotNull GradleDslExpression expression) {
-    expression.setParent(this);
-    myUnsavedExpressions.add(expression);
-    setModified(true);
-    updateDependenciesOnAddElement(expression);
+    setNewElement(expression);
   }
 
   public void addNewExpression(@NotNull GradleDslExpression expression, int index) {
-    expression.setParent(this);
-    myUnsavedExpressions.add(index, expression);
-    setModified(true);
-    updateDependenciesOnAddElement(expression);
+    addNewElementAt(index, expression);
   }
 
   @SuppressWarnings("SuspiciousMethodCalls") // We pass in a superclass instance to remove.
   public void removeElement(@NotNull GradleDslElement element) {
-    if (myUnsavedExpressions.remove(element)) {
-      setModified(true);
-    }
-    updateDependenciesOnRemoveElement(element);
+    super.removeProperty(element);
   }
 
   public GradleDslExpression getElementAt(int index) {
-    if (index < 0 || index > myUnsavedExpressions.size()) {
+    List<GradleDslExpression> expressions = getPropertyElements(GradleDslExpression.class);
+    if (index < 0 || index > expressions.size()) {
       return null;
     }
-    return myUnsavedExpressions.get(index);
+    return expressions.get(index);
   }
 
   @SuppressWarnings("SuspiciousMethodCalls") // We pass in a superclass instance to remove.
   public int findIndexOf(@NotNull GradleDslElement element) {
-    return myUnsavedExpressions.indexOf(element);
+    List<GradleDslExpression> expressions = getPropertyElements(GradleDslExpression.class);
+    for (int i = 0; i < expressions.size(); i++) {
+      if (expressions.get(i).equals(element)) {
+        return i;
+      }
+    }
+    return -1;
   }
 
   void addNewLiteral(@NotNull Object value) {
     GradleDslLiteral literal = new GradleDslLiteral(this, myName);
     literal.setValue(value);
-    myUnsavedExpressions.add(literal);
-    setModified(true);
+    addNewExpression(literal);
   }
 
   /**
@@ -123,8 +112,7 @@ public final class GradleDslExpressionList extends GradleDslElementImpl implemen
   void removeExpression(@NotNull Object value) {
     for (GradleDslSimpleExpression expression : getSimpleExpressions()) {
       if (value.equals(expression.getValue())) {
-        myUnsavedExpressions.remove(expression);
-        setModified(true);
+        super.removeProperty(expression);
         updateDependenciesOnRemoveElement(expression);
         return;
       }
@@ -141,18 +129,12 @@ public final class GradleDslExpressionList extends GradleDslElementImpl implemen
   }
 
   public void replaceExpression(@NotNull GradleDslExpression oldExpression, @NotNull GradleDslExpression newExpression) {
-    int index = myUnsavedExpressions.indexOf(oldExpression);
-    assert index != -1;
-    newExpression.setParent(this);
-    myUnsavedExpressions.set(index, newExpression);
-    updateDependenciesOnReplaceElement(oldExpression, newExpression);
+    super.replaceElement(oldExpression, newExpression);
   }
 
   @NotNull
   public List<GradleDslExpression> getExpressions() {
-    List<GradleDslExpression> result = Lists.newArrayList();
-    result.addAll(myUnsavedExpressions);
-    return result;
+    return getPropertyElements(GradleDslExpression.class);
   }
 
   @NotNull
@@ -174,23 +156,6 @@ public final class GradleDslExpressionList extends GradleDslElementImpl implemen
     return myAppendToArgumentListWithOneElement;
   }
 
-  /**
-   * This method should <b>not</b> be called outside of the GradleDslWriter classes.
-   * <p>
-   * If you need to add expressions to this GradleDslExpressionList please use
-   * {@link #addNewExpression(GradleDslSimpleExpression) addNewExpression} followed by a call to {@link #apply() apply}
-   * to ensure the changes are written to the underlying file.
-   */
-  public void commitExpressions(@NotNull PsiElement psiElement) {
-    for (GradleDslExpression expression : myUnsavedExpressions) {
-      if (expression.getPsiElement() == null) {
-        expression.setPsiElement(psiElement);
-        expression.applyChanges();
-      }
-    }
-    saveExpressions();
-  }
-
   @Override
   @Nullable
   public PsiElement create() {
@@ -205,72 +170,9 @@ public final class GradleDslExpressionList extends GradleDslElementImpl implemen
 
   @Override
   protected void apply() {
-    PsiElement psiElement = create();
-
     getDslFile().getWriter().applyDslExpressionList(this);
 
-    for (GradleDslExpression expression : myExpressions) {
-      if (!myUnsavedExpressions.contains(expression)) {
-        expression.delete();
-      }
-    }
-
-    if (psiElement != null) {
-      for (int i = 0; i < myUnsavedExpressions.size(); i++) {
-        GradleDslExpression expression = myUnsavedExpressions.get(i);
-        if (expression.getPsiElement() == null) {
-          // See GroovyDslUtil#shouldAddToListInternal for why this workaround is needed.
-          if (i > 0) {
-            expression.setPsiElement(myUnsavedExpressions.get(i - 1).getExpression());
-          }
-          else {
-            expression.setPsiElement(psiElement);
-          }
-          expression.applyChanges();
-          if (i > 0) {
-            expression.setPsiElement(psiElement);
-          }
-        }
-      }
-    }
-    saveExpressions();
-
-    for (GradleDslExpression expression : myExpressions) {
-      if (expression.isModified()) {
-        expression.applyChanges();
-      }
-    }
-  }
-
-  @Override
-  protected void reset() {
-    myUnsavedExpressions.clear();
-    myUnsavedExpressions.addAll(myExpressions);
-    for (GradleDslExpression expression : myExpressions) {
-      if (expression.isModified()) {
-        expression.resetState();
-      }
-    }
-  }
-
-  @Override
-  @NotNull
-  public Collection<GradleDslElement> getChildren() {
-    List<GradleDslExpression> expressions = getExpressions();
-    List<GradleDslElement> children = new ArrayList<>(expressions.size());
-    children.addAll(expressions);
-    return children;
-  }
-
-  private void saveExpressions() {
-    myExpressions.clear();
-    myExpressions.addAll(myUnsavedExpressions);
-  }
-
-  @Override
-  @NotNull
-  public List<GradleReferenceInjection> getDependencies() {
-    return myUnsavedExpressions.stream().map(GradleDslElement::getDependencies).flatMap(Collection::stream).collect(Collectors.toList());
+    super.apply();
   }
 
   @Override
@@ -281,5 +183,61 @@ public final class GradleDslExpressionList extends GradleDslElementImpl implemen
 
   public boolean shouldBeDeleted() {
     return !isLiteralList() || myShouldBeDeleted;
+  }
+
+  @Override
+  @NotNull
+  public List<GradleReferenceInjection> getResolvedVariables() {
+    return getDependencies().stream().filter(e -> e.isResolved()).collect(Collectors.toList());
+  }
+
+  // The following methods ensure that only GradleDslExpressions can be added to this GradlePropertiesDslElement.
+
+  @Override
+  public void setParsedElement(@NotNull GradleDslElement element) {
+    assert element instanceof GradleDslExpression;
+    super.setParsedElement(element);
+  }
+
+  @Override
+  public void addParsedElement(@NotNull GradleDslElement element) {
+    assert element instanceof GradleDslExpression;
+    super.addParsedElement(element);
+  }
+
+  @Override
+  protected void addParsedResettingElement(@NotNull GradleDslElement element, @NotNull String propertyToReset) {
+    assert element instanceof GradleDslExpression;
+    super.addParsedResettingElement(element, propertyToReset);
+  }
+
+  @Override
+  public void addToParsedExpressionList(@NotNull String property, @NotNull GradleDslElement element) {
+    assert element instanceof GradleDslExpression;
+    super.addToParsedExpressionList(property, element);
+  }
+
+  @NotNull
+  @Override
+  public GradleDslElement setNewElement(@NotNull GradleDslElement newElement) {
+    assert newElement instanceof GradleDslExpression;
+    return super.setNewElement(newElement);
+  }
+
+  @Override
+  public void addNewElementAt(int index, @NotNull GradleDslElement newElement) {
+    assert newElement instanceof GradleDslExpression;
+    List<GradleDslExpression> expressions = getPropertyElements(GradleDslExpression.class);
+    if (index > expressions.size()) {
+      throw new IndexOutOfBoundsException(index + " is out of bounds for size " + expressions.size());
+    }
+    super.addNewElementAt(index, newElement);
+  }
+
+  @NotNull
+  @Override
+  public GradleDslElement replaceElement(@NotNull GradleDslElement oldElement, @NotNull GradleDslElement newElement) {
+    assert newElement instanceof GradleDslExpression && oldElement instanceof GradleDslExpression;
+    return super.replaceElement(oldElement, newElement);
   }
 }

@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
@@ -38,6 +39,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isPropertiesElementOrMap;
 import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement.getStandardProjectKey;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
@@ -49,6 +51,7 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 public abstract class GradleDslSimpleExpression extends GradleDslElementImpl implements GradleDslExpression {
   @NotNull private static final String SINGLE_QUOTES = "\'";
   @NotNull private static final String DOUBLE_QUOTES = "\"";
+  @Nullable private PsiElement myUnsavedConfigBlock;
 
   @Nullable protected PsiElement myExpression;
   // Whether or not this value is part of a cycle. If UNSURE, needs to be computed.
@@ -63,6 +66,26 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
     myHasCycle = ThreeState.UNSURE;
     resolve();
   }
+
+  @Nullable
+  public PsiElement getUnsavedConfigBlock() {
+    return myUnsavedConfigBlock;
+  }
+
+  public void setUnsavedConfigBlock(@Nullable PsiElement configBlock) {
+    myUnsavedConfigBlock = configBlock;
+  }
+
+  public void setConfigBlock(@NotNull PsiElement block) {
+    // For now we only support setting the config block on literals for newly created dependencies.
+    Preconditions.checkState(getPsiElement() == null, "Can't add configuration block to an existing DSL literal.");
+
+    // TODO: Use com.android.tools.idea.gradle.dsl.parser.dependencies.DependencyConfigurationDslElement to add a dependency configuration.
+
+    myUnsavedConfigBlock = block;
+    setModified(true);
+  }
+
 
   @Override
   @Nullable
@@ -376,7 +399,7 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
       }
 
       // All elements we find must be GradlePropertiesDslElement or references them on all but the last iteration.
-      if (!(element instanceof GradlePropertiesDslElement)) {
+      if (!isPropertiesElementOrMap(element)) {
         return null;
       }
       properties = (GradlePropertiesDslElement)element;
@@ -392,7 +415,7 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
     // We need to keep track of the last element we saw to ensure we only check items BEFORE the one we are resolving.
     GradleDslElement lastElement = null;
     while (element != null) {
-      if (element instanceof GradlePropertiesDslElement) {
+      if (isPropertiesElementOrMap(element)) {
         GradleDslElement propertyElement = resolveReferenceOnPropertiesElement((GradlePropertiesDslElement)element, nameParts, lastElement);
         if (propertyElement != null) {
           return propertyElement;

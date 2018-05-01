@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
@@ -31,8 +30,6 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr
  * Represents a literal element.
  */
 public final class GradleDslLiteral extends GradleDslSettableExpression {
-  @Nullable private PsiElement myUnsavedConfigBlock;
-
   public GradleDslLiteral(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, null, name, null);
   }
@@ -42,15 +39,6 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
                           @NotNull GradleNameElement name,
                           @NotNull PsiElement literal) {
     super(parent, psiElement, name, literal);
-  }
-
-  @Nullable
-  public PsiElement getUnsavedConfigBlock() {
-    return myUnsavedConfigBlock;
-  }
-
-  public void setUnsavedConfigBlock(@Nullable PsiElement configBlock) {
-    myUnsavedConfigBlock = configBlock;
   }
 
   @Override
@@ -73,11 +61,6 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
     }
     return ApplicationManager.getApplication()
                              .runReadAction((Computable<Object>)() -> getDslFile().getParser().extractValue(this, element, false));
-  }
-
-  @Nullable
-  public PsiElement getLastCommittedValue() {
-    return myExpression;
   }
 
   /**
@@ -142,16 +125,6 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
       literal.setValue(v);
     }
     return literal;
-  }
-
-  public void setConfigBlock(@NotNull PsiElement block) {
-    // For now we only support setting the config block on literals for newly created dependencies.
-    Preconditions.checkState(getPsiElement() == null, "Can't add configuration block to an existing DSL literal.");
-
-    // TODO: Use com.android.tools.idea.gradle.dsl.parser.dependencies.DependencyConfigurationDslElement to add a dependency configuration.
-
-    myUnsavedConfigBlock = block;
-    setModified(true);
   }
 
   @Override

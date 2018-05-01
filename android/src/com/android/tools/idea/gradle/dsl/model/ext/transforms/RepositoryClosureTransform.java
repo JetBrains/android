@@ -19,6 +19,8 @@ import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isPropertiesElementOrMap;
+
 /**
  * This transform deals with repository elements which support dynamically adding closures when
  * some of their properties are set.
@@ -59,7 +61,7 @@ public class RepositoryClosureTransform extends DefaultTransform {
     if (e.getClosureElement() != null) {
       element = e.getClosureElement().getElement(myElementName);
     }
-    else if (e instanceof GradlePropertiesDslElement) {
+    else if (isPropertiesElementOrMap(e)) {
       element = ((GradlePropertiesDslElement)e).getElement(myElementName);
     }
 
@@ -95,7 +97,7 @@ public class RepositoryClosureTransform extends DefaultTransform {
 
     GradlePropertiesDslElement parent;
     GradleDslElement existingElement;
-    if (oldElement instanceof GradlePropertiesDslElement) {
+    if (isPropertiesElementOrMap(oldElement)) {
       parent = (GradlePropertiesDslElement)oldElement;
       existingElement = parent.getElement(myElementName);
     }

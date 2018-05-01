@@ -26,6 +26,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
+import com.intellij.psi.TokenType;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,6 +44,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplic
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCommandArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrString;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrStringInjection;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
@@ -72,18 +74,18 @@ public final class GroovyDslUtil {
     throw new IllegalArgumentException("Wrong PsiElement type for writer! Must be of type GoovyPsiElement");
   }
 
-  static void addConfigBlock(@NotNull GradleDslLiteral literal) {
-    PsiElement unsavedConfigBlock = literal.getUnsavedConfigBlock();
+  static void addConfigBlock(@NotNull GradleDslSettableExpression expression) {
+    PsiElement unsavedConfigBlock = expression.getUnsavedConfigBlock();
     if (unsavedConfigBlock == null) {
       return;
     }
 
-    GroovyPsiElement psiElement = ensureGroovyPsi(literal.getPsiElement());
+    GroovyPsiElement psiElement = ensureGroovyPsi(expression.getPsiElement());
     if (psiElement == null) {
       return;
     }
 
-    GroovyPsiElementFactory factory = getPsiElementFactory(literal);
+    GroovyPsiElementFactory factory = getPsiElementFactory(expression);
     if (factory == null) {
       return;
     }
@@ -97,7 +99,7 @@ public final class GroovyDslUtil {
     psiElement.addAfter(comma, psiElement.getLastChild());
     psiElement.addAfter(factory.createWhiteSpace(), psiElement.getLastChild());
     psiElement.addAfter(unsavedConfigBlock, psiElement.getLastChild());
-    literal.setUnsavedConfigBlock(null);
+    expression.setUnsavedConfigBlock(null);
   }
 
   @Nullable
@@ -387,6 +389,29 @@ public final class GroovyDslUtil {
   }
 
   @Nullable
+  static PsiElement processListElement(@NotNull GradleDslSettableExpression expression) {
+    GradleDslElement parent = expression.getParent();
+    if (parent == null) {
+      return null;
+    }
+
+    PsiElement parentPsi = parent.create();
+    if (parentPsi == null) {
+      return null;
+    }
+
+    PsiElement newExpressionPsi = expression.getUnsavedValue();
+    if (newExpressionPsi == null) {
+      return null;
+    }
+
+    PsiElement added = createPsiElementInsideList(parent, expression, parentPsi, newExpressionPsi);
+    expression.setPsiElement(added);
+    expression.setModified(false);
+    return expression.getPsiElement();
+  }
+
+  @Nullable
   static PsiElement processMapElement(@NotNull GradleDslSettableExpression expression) {
     GradleDslElement parent = expression.getParent();
     assert parent != null;
@@ -433,6 +458,39 @@ public final class GroovyDslUtil {
     }
   }
 
+  static void applyDslLiteralOrReference(@NotNull GradleDslSettableExpression expression) {
+    PsiElement psiElement = ensureGroovyPsi(expression.getPsiElement());
+    if (psiElement == null) {
+      return;
+    }
+
+    maybeUpdateName(expression);
+
+    GrExpression newLiteral = extractUnsavedExpression(expression);
+    if (newLiteral == null) {
+      return;
+    }
+    PsiElement psiExpression = ensureGroovyPsi(expression.getExpression());
+    if (psiExpression != null) {
+      PsiElement replace = psiExpression.replace(newLiteral);
+      if (replace instanceof GrLiteral) {
+        expression.setExpression(replace);
+      }
+    }
+    else {
+      // This element has just been created and will currently look like "propertyName =" or "propertyName ". Here we add the value.
+      PsiElement added = psiElement.addAfter(newLiteral, psiElement.getLastChild());
+      expression.setExpression(added);
+
+      if (expression.getUnsavedConfigBlock() != null) {
+        addConfigBlock(expression);
+      }
+    }
+
+    expression.reset();
+    expression.setModified(false);
+  }
+
   @Nullable
   static PsiElement createNamedArgumentList(@NotNull GradleDslExpressionList expressionList) {
     GradleDslElement parent = expressionList.getParent();
@@ -445,15 +503,15 @@ public final class GroovyDslUtil {
 
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(parentPsiElement.getProject());
     GrExpression expressionFromText = factory.createExpressionFromText("[]");
-    if (expressionFromText instanceof GrListOrMap) {
-      // Elements need to be added to the list before adding the list to the named argument.
-      GrListOrMap list = (GrListOrMap)expressionFromText;
-      expressionList.commitExpressions(list);
-    }
     GrNamedArgument namedArgument = factory.createNamedArgument(expressionList.getName(), expressionFromText);
     PsiElement added;
     if (parentPsiElement instanceof GrArgumentList) {
-      added = ((GrArgumentList)parentPsiElement).addNamedArgument(namedArgument);
+      GrArgumentList argList = (GrArgumentList)parentPsiElement;
+      // This call can return a dummy PsiElement. We can't use its return value.
+      argList.addNamedArgument(namedArgument);
+
+      GrNamedArgument[] args = argList.getNamedArguments();
+      added = args[args.length - 1];
     }
     else if (parentPsiElement instanceof GrListOrMap) {
       GrListOrMap listOrMap = (GrListOrMap)parentPsiElement;
@@ -565,7 +623,7 @@ public final class GroovyDslUtil {
     node.addLeaf(mCOMMA, ",", newElement.getNode());
   }
 
-  static void emplaceElementToFrontOfList(@NotNull PsiElement listElement, @NotNull PsiElement newElement) {
+  static PsiElement emplaceElementToFrontOfList(@NotNull PsiElement listElement, @NotNull PsiElement newElement) {
     assert listElement instanceof GrListOrMap || listElement instanceof GrArgumentList;
     final ASTNode node = listElement.getNode();
     if (listElement instanceof GrListOrMap) {
@@ -573,15 +631,19 @@ public final class GroovyDslUtil {
       final ASTNode anchor = list.getLBrack().getNode().getTreeNext();
       if (!list.isEmpty()) {
         node.addLeaf(mCOMMA, ",", anchor);
+        node.addLeaf(TokenType.WHITE_SPACE, " ", anchor);
       }
       // We want to anchor this off the added mCOMMA node.
       node.addChild(newElement.getNode(), list.getLBrack().getNode().getTreeNext());
     }
     else if (((GrArgumentList)listElement).getLeftParen() != null) {
       GrArgumentList list = (GrArgumentList)listElement;
+      PsiElement leftParen = list.getLeftParen();
+      assert leftParen != null;
       final ASTNode anchor = list.getLeftParen().getNode().getTreeNext();
       if (list.getAllArguments().length != 0) {
         node.addLeaf(mCOMMA, ",", anchor);
+        node.addLeaf(TokenType.WHITE_SPACE, " ", anchor);
       }
       node.addChild(newElement.getNode(), list.getLeftParen().getNode().getTreeNext());
     }
@@ -589,10 +651,13 @@ public final class GroovyDslUtil {
       ASTNode anchor = getFirstASTNode(listElement);
       if (anchor != null) {
         node.addLeaf(mCOMMA, ",", anchor);
+        node.addLeaf(TokenType.WHITE_SPACE, " ", anchor);
       }
       // We want to anchor this off the added mCOMMA node
       node.addChild(newElement.getNode(), getFirstASTNode(listElement));
     }
+
+    return newElement;
   }
 
   @Nullable
@@ -605,27 +670,22 @@ public final class GroovyDslUtil {
   }
 
   @NotNull
-  static PsiElement createPsiElementInsideList(@NotNull GradleDslElement dslElement,
+  static PsiElement createPsiElementInsideList(@NotNull GradleDslElement parentDslElement,
+                                               @NotNull GradleDslElement dslElement,
                                                @NotNull PsiElement parentPsiElement,
                                                @NotNull PsiElement newElement) {
     PsiElement added;
-    if ((parentPsiElement instanceof GrListOrMap || parentPsiElement instanceof GrArgumentList) &&
-        dslElement.getParent() instanceof GradleDslExpressionList) {
-      // Add to the front when we are inserting the element into a list
-      emplaceElementToFrontOfList(parentPsiElement, newElement);
-      added = newElement;
-    }
-    else if (parentPsiElement instanceof GrListOrMap || // Entries in [].
-             (parentPsiElement instanceof GrArgumentList &&
-              !(parentPsiElement instanceof GrCommandArgumentList))) { // Method call arguments in ().
-      added = parentPsiElement.addBefore(newElement, parentPsiElement.getLastChild()); // add before ) or ]
-    }
-    else if (shouldAddToListInternal(dslElement)) {
-      emplaceElementIntoList(parentPsiElement, parentPsiElement.getParent(), newElement);
+    GradleDslElement anchor = parentDslElement.requestAnchor(dslElement);
+    if (shouldAddToListInternal(dslElement) && anchor != null) {
+      // Get the anchor
+      PsiElement anchorPsi = anchor.getPsiElement();
+      assert anchorPsi != null;
+
+      emplaceElementIntoList(anchorPsi, parentPsiElement, newElement);
       added = newElement;
     }
     else {
-      added = parentPsiElement.addAfter(newElement, parentPsiElement.getLastChild());
+      added = emplaceElementToFrontOfList(parentPsiElement, newElement);
     }
 
     return added;

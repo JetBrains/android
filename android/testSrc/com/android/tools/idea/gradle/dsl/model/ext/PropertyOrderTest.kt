@@ -963,9 +963,9 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     writeToBuildFile(text)
 
     val buildModel = gradleBuildModel
-    val extModel = buildModel.ext()
 
     run {
+      val extModel = buildModel.ext()
       val firstPropertyModel = extModel.findProperty("prop")
       val secondPropertyModel = extModel.findProperty("prop1")
       val thirdPropertyModel = extModel.findProperty("prop2")
@@ -990,6 +990,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     applyChangesAndReparse(buildModel)
 
     run {
+      val extModel = buildModel.ext()
       val firstPropertyModel = extModel.findProperty("prop")
       val secondPropertyModel = extModel.findProperty("prop1")
       val thirdPropertyModel = extModel.findProperty("prop2")

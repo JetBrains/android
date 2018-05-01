@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -61,7 +62,8 @@ public abstract class GradleDslBlockModel implements GradleDslModel {
   @Override
   @NotNull
   public List<GradlePropertyModel> getDeclaredProperties() {
-    return myDslElement.getContainedElements(true).stream().filter(e -> !(e instanceof GradlePropertiesDslElement))
+    return myDslElement.getContainedElements(true).stream()
+                       .filter(e -> e instanceof GradleDslExpression)
                        .map(e -> new GradlePropertyModelImpl(e)).collect(Collectors.toList());
   }
 

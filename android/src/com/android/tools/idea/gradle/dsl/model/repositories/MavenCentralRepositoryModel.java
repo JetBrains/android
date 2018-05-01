@@ -22,6 +22,8 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElem
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isPropertiesElementOrMap;
+
 /**
  * Represents a repository defined with mavenCentral().
  */
@@ -38,7 +40,7 @@ public class MavenCentralRepositoryModel extends UrlBasedRepositoryModelImpl {
 
   @NotNull
   public ResolvedPropertyModel artifactUrls() {
-    if (myDslElement instanceof GradlePropertiesDslElement) {
+    if (isPropertiesElementOrMap(myDslElement)) {
       return GradlePropertyModelBuilder.create((GradlePropertiesDslElement)myDslElement, ARTIFACT_URLS).asMethod(true).buildResolved();
     }
     else {
