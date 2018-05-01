@@ -102,7 +102,7 @@ public class DeleteStringAction extends AbstractAction {
       // remove all in a single action (so we can undo it in 1 go)
       new WriteCommandAction.Simple(myPanel.getFacet().getModule().getProject(), "Delete multiple strings") {
         @Override
-        protected void run() throws Throwable {
+        protected void run() {
           for (int row : rows) {
             for (int col : cols) {
               table.getModel().setValueAt("", row, col);
