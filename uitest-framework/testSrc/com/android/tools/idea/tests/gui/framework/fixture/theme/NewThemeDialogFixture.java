@@ -19,7 +19,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeaDialogFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.util.Ref;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JComboBoxFixture;
@@ -33,18 +32,16 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOk
 public class NewThemeDialogFixture extends IdeaDialogFixture<DialogWrapper> {
   @NotNull
   public static NewThemeDialogFixture findDialog(@NotNull Robot robot) {
-    Ref<DialogWrapper> wrapperRef = new Ref<>();
     JDialog dialog = GuiTests.waitUntilShowing(robot, new GenericTypeMatcher<JDialog>(JDialog.class){
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
         if (!"New Theme".equals(dialog.getTitle())) {
           return false;
         }
-        wrapperRef.set(getDialogWrapperFrom(dialog, DialogWrapper.class));
         return true;
       }
     });
-    return new NewThemeDialogFixture(robot, dialog, wrapperRef.get());
+    return new NewThemeDialogFixture(robot, dialog, getDialogWrapperFrom(dialog, DialogWrapper.class));
   }
 
   private NewThemeDialogFixture(@NotNull Robot robot,
