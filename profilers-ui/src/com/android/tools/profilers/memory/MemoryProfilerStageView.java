@@ -39,7 +39,6 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
@@ -61,8 +60,6 @@ import java.util.concurrent.TimeUnit;
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS;
 import static com.android.tools.profilers.ProfilerLayout.*;
-import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
-import static java.awt.event.InputEvent.META_DOWN_MASK;
 
 public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   private static Logger getLogger() {
@@ -309,9 +306,12 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     StudioProfilers profilers = getStage().getStudioProfilers();
     ProfilerTimeline timeline = profilers.getTimeline();
     Range viewRange = getTimeline().getViewRange();
+    mySelectionComponent = new SelectionComponent(getStage().getSelectionModel(), timeline.getViewRange());
+    mySelectionComponent.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
     RangeTooltipComponent tooltip =
       new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(),
-                                getTooltipPanel(), ProfilerLayeredPane.class);
+                                getTooltipPanel(), ProfilerLayeredPane.class,
+                                () -> mySelectionComponent.getMode() != SelectionComponent.Mode.MOVE);
     TabularLayout layout = new TabularLayout("*");
     JPanel panel = new JBPanel(layout);
     panel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
@@ -374,18 +374,18 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     DurationDataRenderer<GcDurationData> gcRenderer =
       new DurationDataRenderer.Builder<>(memoryUsage.getGcDurations(), Color.BLACK)
         .setIcon(StudioIcons.Profiler.Events.GARBAGE_EVENT)
+        // Need to offset the GcDurationData by the margin difference between the overlay component and the
+        // line chart. This ensures we are able to render the Gc events in the proper locations on the line.
         .setLabelOffsets(-StudioIcons.Profiler.Events.GARBAGE_EVENT.getIconWidth() / 2f,
-                         StudioIcons.Profiler.Events.GARBAGE_EVENT.getIconHeight() / 2f)
+                         StudioIcons.Profiler.Events.GARBAGE_EVENT.getIconHeight() / 2f + Y_AXIS_TOP_MARGIN)
         .setHoverHandler(getStage().getTooltipLegends().getGcDurationLegend()::setPickData)
         .setClickRegionPadding(0, 0)
         .build();
     lineChart.addCustomRenderer(gcRenderer);
 
-    mySelectionComponent = new SelectionComponent(getStage().getSelectionModel(), timeline.getViewRange());
-    mySelectionComponent.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
     final JPanel overlayPanel = new JBPanel(new BorderLayout());
     overlayPanel.setOpaque(false);
-    overlayPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
+    overlayPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
     final OverlayComponent overlay = new OverlayComponent(mySelectionComponent);
     overlay.addDurationDataRenderer(gcRenderer);
     overlayPanel.add(overlay, BorderLayout.CENTER);

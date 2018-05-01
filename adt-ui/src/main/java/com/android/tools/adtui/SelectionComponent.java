@@ -17,6 +17,7 @@ package com.android.tools.adtui;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SelectionModel;
+import com.android.tools.adtui.ui.AdtUiCursors;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,9 +38,13 @@ public final class SelectionComponent extends AnimatedComponent {
 
   private static final Color DEFAULT_SELECTION_BORDER = new JBColor(new Color(0x4C0478DA, true), new Color(0x4C0478DA, true));
 
+  private static final Color DRAG_BAR_COLOR = new JBColor(new Color(0x1a000000, true), new Color(0x33000000, true));
+
   private static final Color DEFAULT_HANDLE = new JBColor(0x696868, 0xD6D6D6);
 
   private static final int HANDLE_HEIGHT = 40;
+
+  private static final int DRAG_BAR_HEIGHT = 26;
 
   static final int HANDLE_WIDTH = 5;
 
@@ -47,12 +52,14 @@ public final class SelectionComponent extends AnimatedComponent {
 
   private int myMousePressed;
 
-  private enum Mode {
+  private int myMouseMovedX;
+
+  public enum Mode {
     /** The default mode: nothing is happening */
     NONE,
     /** User is currently creating / sizing a new selection. */
     CREATE,
-    /** User is moving a selection. */
+    /** User is over the drag bar, or moving a selection. */
     MOVE,
     /** User is adjusting the min. */
     ADJUST_MIN,
@@ -95,7 +102,7 @@ public final class SelectionComponent extends AnimatedComponent {
       public void mousePressed(MouseEvent e) {
         if (SwingUtilities.isLeftMouseButton(e)) {
           requestFocusInWindow();
-          myMode = getModeAtCurrentPosition(e.getX());
+          myMode = getModeAtCurrentPosition(e.getX(), e.getY());
           if (myMode == Mode.CREATE) {
             myModel.beginUpdate();
             double value = xToRange(e.getX());
@@ -112,7 +119,9 @@ public final class SelectionComponent extends AnimatedComponent {
           if (myMode == Mode.CREATE) {
             myModel.endUpdate();
           }
-          myMode = Mode.NONE;
+          myMode = getModeAtCurrentPosition(e.getX(), e.getY());
+          myMousePressed = -1;
+          updateCursor(myMode, myMousePressed);
           opaqueRepaint();
         }
       }
@@ -130,6 +139,7 @@ public final class SelectionComponent extends AnimatedComponent {
         double rangeDelta = current - pressed;
         double min = myModel.getSelectionRange().getMin();
         double max = myModel.getSelectionRange().getMax();
+        myMouseMovedX = e.getX();
         switch (myMode) {
           case ADJUST_MIN:
             if (min + rangeDelta > max) {
@@ -167,7 +177,9 @@ public final class SelectionComponent extends AnimatedComponent {
 
       @Override
       public void mouseMoved(MouseEvent e) {
-        updateCursor(getModeAtCurrentPosition(e.getX()), e.getX());
+        myMode = getModeAtCurrentPosition(e.getX(), e.getY());
+        updateCursor(myMode, e.getX());
+        myMouseMovedX = e.getX();
       }
     });
     addKeyListener(new KeyAdapter() {
@@ -212,6 +224,7 @@ public final class SelectionComponent extends AnimatedComponent {
     myModel.set(min + minDelta, max + maxDelta);
     myModel.endUpdate();
   }
+
   private double xToRange(int x) {
     Range range = myViewRange;
     return x / getSize().getWidth() * range.getLength() + range.getMin();
@@ -226,7 +239,7 @@ public final class SelectionComponent extends AnimatedComponent {
     return  Math.min(Math.max((float)(dim.getWidth() * ((value - range.getMin()) / (range.getMax() - range.getMin()))), 0), dim.width);
   }
 
-  private Mode getModeAtCurrentPosition(int x) {
+  private Mode getModeAtCurrentPosition(int x, int y) {
     Dimension size = getSize();
     double startXPos = rangeToX(myModel.getSelectionRange().getMin(), size);
     double endXPos = rangeToX(myModel.getSelectionRange().getMax(), size);
@@ -236,7 +249,7 @@ public final class SelectionComponent extends AnimatedComponent {
     else if (endXPos < x && x < endXPos + HANDLE_WIDTH) {
       return Mode.ADJUST_MAX;
     }
-    else if (startXPos <= x && x <= endXPos) {
+    else if (startXPos <= x && x <= endXPos && y <= DRAG_BAR_HEIGHT) {
       return Mode.MOVE;
     }
     return Mode.CREATE;
@@ -251,7 +264,7 @@ public final class SelectionComponent extends AnimatedComponent {
         setCursor(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR));
         break;
       case MOVE:
-        setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+        setCursor(myMousePressed == -1 ? AdtUiCursors.GRAB : AdtUiCursors.GRABBING);
         break;
       case CREATE:
         if (myMode == Mode.CREATE) {
@@ -289,6 +302,11 @@ public final class SelectionComponent extends AnimatedComponent {
     });
   }
 
+  @NotNull
+  public Mode getMode() {
+    return myMode;
+  }
+
   @Override
   protected void draw(Graphics2D g, Dimension dim) {
     if (myModel.getSelectionRange().isEmpty()) {
@@ -302,6 +320,11 @@ public final class SelectionComponent extends AnimatedComponent {
     Rectangle2D.Float rect = new Rectangle2D.Float(startXPos, 0, endXPos - startXPos, dim.height);
     g.fill(rect);
 
+    if (myMouseMovedX > startXPos && myMouseMovedX < endXPos) {
+      g.setColor(DRAG_BAR_COLOR);
+      g.fill(new Rectangle2D.Float(startXPos, 0, endXPos - startXPos, DRAG_BAR_HEIGHT));
+    }
+
     // Draw vertical lines, one for each endsValue.
     g.setColor(DEFAULT_SELECTION_BORDER);
     Path2D.Float path = new Path2D.Float();
@@ -311,10 +334,8 @@ public final class SelectionComponent extends AnimatedComponent {
     path.lineTo(endXPos - 1, 0);
     g.draw(path);
 
-    if (myMode != Mode.CREATE) {
-      drawHandle(g, startXPos, dim.height, 1.0f);
-      drawHandle(g, endXPos, dim.height, -1.0f);
-    }
+    drawHandle(g, startXPos, dim.height, 1.0f);
+    drawHandle(g, endXPos, dim.height, -1.0f);
   }
 
   private void drawHandle(Graphics2D g, float x, float height, float direction) {
