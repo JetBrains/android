@@ -395,6 +395,17 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     setModified(true);
   }
 
+  public <T> void addNewElementBeforeAllOfClass(@NotNull GradleDslElement newElement, @NotNull Class<T> clazz) {
+    List<GradleDslElement> elements = getAllElements();
+    int index = elements.size() - 1;
+    for (int i = 0; i < elements.size() - 1; i++) {
+      if (clazz.isInstance(elements.get(i))) {
+         index = i;
+      }
+    }
+    addNewElementAt(index, newElement);
+  }
+
   @VisibleForTesting
   public void moveElementTo(int index, @NotNull GradleDslElement newElement) {
     assert newElement.getParent() == this;
