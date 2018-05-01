@@ -127,7 +127,6 @@ public class SmartStepIntoTest extends DebuggerTestBase {
       out.set(methodsList);
       return true;
     });
-    assertThat(out.get()).isNotNull();
 
     // Get data model by reflection.
     JBList popupList = out.get();
