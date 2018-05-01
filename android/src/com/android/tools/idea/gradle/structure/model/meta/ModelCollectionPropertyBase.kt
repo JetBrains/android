@@ -23,6 +23,7 @@ abstract class ModelCollectionPropertyBase<in ContextT, in ModelT, out ResolvedT
   abstract val clearParsedValue: ParsedT.() -> Unit
   abstract val setParsedRawValue: (ParsedT.(DslText) -> Unit)
   abstract val parser: (ContextT, String) -> ParsedValue<ValueT>
+  abstract val formatter: (ContextT, ValueT) -> String
   abstract val knownValuesGetter: (ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<ValueT>>>
 
   fun setParsedValue(model: ModelT, value: ParsedValue<CollectionT>) {
@@ -48,6 +49,8 @@ abstract class ModelCollectionPropertyBase<in ContextT, in ModelT, out ResolvedT
 
 
   fun parse(context: ContextT, value: String): ParsedValue<ValueT> = parser(context, value)
+
+  fun format(context: ContextT, value: ValueT): String = formatter(context, value)
 
   fun getKnownValues(context: ContextT, model: ModelT): ListenableFuture<List<ValueDescriptor<ValueT>>> = knownValuesGetter(context, model)
 

@@ -49,6 +49,7 @@ class SimplePropertyEditor<ContextT, ModelT, PropertyT : Any, out ModelPropertyT
   private var knownValueRenderers: Map<PropertyT?, ValueRenderer> = mapOf()
   private var disposed = false
   private var knownValuesFuture: ListenableFuture<Unit>? = null  // Accessed only from the EDT.
+  private val formatter = property.valueFormatter(context)
 
   override val component: JComponent = this
   override val statusComponent: HtmlLabel = HtmlLabel().also {
@@ -89,7 +90,7 @@ class SimplePropertyEditor<ContextT, ModelT, PropertyT : Any, out ModelPropertyT
     val availableVariables: List<ParsedValue.Set.Parsed<PropertyT>>? = getAvailableVariables()
 
     fun receiveKnownValuesOnEdt(it: List<ValueDescriptor<PropertyT>>?) {
-      val possibleValues = buildKnownValueRenderers(it, property.getDefaultValue(model))
+      val possibleValues = buildKnownValueRenderers(it, formatter, property.getDefaultValue(model))
       val knownValues = possibleValues.keys.map {
         if (it != null) ParsedValue.Set.Parsed(it)
         else ParsedValue.NotSet
@@ -128,8 +129,6 @@ class SimplePropertyEditor<ContextT, ModelT, PropertyT : Any, out ModelPropertyT
   }
 
   private fun getStatusHtmlText(value: PropertyValue<PropertyT>): String {
-    // TODO(solodkyy): Consider resolving well-known values and handling long string.
-    fun PropertyT?.formatValue() = this?.toString()
 
     val parsedValue = value.parsedValue
     val resolvedValue = value.resolved
@@ -142,7 +141,7 @@ class SimplePropertyEditor<ContextT, ModelT, PropertyT : Any, out ModelPropertyT
     }
     val resolvedValueText = when (resolvedValue) {
       is ResolvedValue.Set -> when {
-        effectiveEditorValue != resolvedValue.resolved -> resolvedValue.resolved.formatValue()
+        effectiveEditorValue != resolvedValue.resolved -> resolvedValue.resolved?.formatter()
         else -> null
       }
       is ResolvedValue.NotResolved -> null
@@ -193,14 +192,13 @@ class SimplePropertyEditor<ContextT, ModelT, PropertyT : Any, out ModelPropertyT
     else -> property.parse(context, text)
   }
 
-
   override fun toEditorText(anObject: ParsedValue<PropertyT>?): String = when (anObject) {
     null -> ""
-    else -> anObject.getText()
+    else -> anObject.getText(formatter)
   }
 
   override fun TextRenderer.renderCell(value: ParsedValue<PropertyT>?) {
-    (value ?: ParsedValue.NotSet).renderTo(this, knownValueRenderers)
+    (value ?: ParsedValue.NotSet).renderTo(this, formatter, knownValueRenderers)
   }
 
   init {

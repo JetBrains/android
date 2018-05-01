@@ -29,6 +29,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT
   itemValueSetter: ResolvedPropertyModel.(ValueT) -> Unit,
   getParsedProperty: ParsedT.() -> ResolvedPropertyModel,
   parse: (ContextT, String) -> ParsedValue<ValueT>,
+  format: (ContextT, ValueT) -> String = { _, value -> value.toString() },
   getKnownValues: ((ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<ValueT>>>)? = null
 ) =
   ModelListPropertyImpl(
@@ -42,6 +43,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT
     { getParsedProperty().delete() },
     { getParsedProperty().setDslText(it) },
     { context: ContextT, value -> if (value.isBlank()) ParsedValue.NotSet else parse(context, value.trim()) },
+    format,
     { context: ContextT, model -> if (getKnownValues != null) getKnownValues(context, model) else immediateFuture(listOf()) }
   )
 
@@ -56,6 +58,7 @@ class ModelListPropertyImpl<in ContextT, in ModelT, out ResolvedT, ParsedT, Valu
   override val clearParsedValue: ParsedT.() -> Unit,
   override val setParsedRawValue: (ParsedT.(DslText) -> Unit),
   override val parser: (ContextT, String) -> ParsedValue<ValueT>,
+  override val formatter: (ContextT, ValueT) -> String,
   override val knownValuesGetter: (ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<ValueT>>>
 ) : ModelCollectionPropertyBase<ContextT, ModelT, ResolvedT, ParsedT, List<ValueT>, ValueT>(), ModelListProperty<ContextT, ModelT, ValueT> {
 

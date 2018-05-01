@@ -32,6 +32,7 @@ import kotlin.reflect.KProperty
  * @param getter the getter function to get the value of the [ResolvedPropertyModel]
  * @param setter the setter function to change the value of the [ResolvedPropertyModel]
  * @param parse the parser of the text representation of [PropertyT]. See notes in: [ModelSimpleProperty]
+ * @param format the formatter for values of type [PropertyT]
  * @param getKnownValues the function to get a list of the known value for the given instance of [ModelT]. See: [ModelSimpleProperty]
  */
 // NOTE: This is an extension function supposed to be invoked on model descriptors to make the type inference work.
@@ -50,6 +51,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   getter: ResolvedPropertyModelT.() -> PropertyT?,
   setter: ResolvedPropertyModelT.(PropertyT) -> Unit,
   parse: (ContextT, String) -> ParsedValue<PropertyT>,
+  format: (ContextT, PropertyT) -> String = { _, value -> value.toString() },
   getKnownValues: ((ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>)? = null
 ) =
   ModelSimplePropertyImpl(
@@ -62,6 +64,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
     { if (it != null) getParsedProperty().setter(it) else getParsedProperty().delete() },
     { getParsedProperty().setDslText(it) },
     { context: ContextT, value: String -> if (value.isBlank()) ParsedValue.NotSet else parse(context, value.trim()) },
+    format,
     { context: ContextT, model: ModelT -> if (getKnownValues != null) getKnownValues(context, model) else immediateFuture(listOf()) }
   )
 
@@ -77,6 +80,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
  * @param setParsedValue the setter function to change the value of the property in the build files
  * @param clearParsedValue the function to remove the configuration of the property from the build files
  * @param parse the parser of the text representation of [PropertyT]. See notes in: [ModelSimpleProperty]
+ * @param format the formatter for values of type [PropertyT]
  * @param getKnownValues the function to get a list of the known value for the given instance of [ModelT]. See: [ModelSimpleProperty]
  */
 // NOTE: This is an extension function supposed to be invoked on model descriptors to make the type inference work.
@@ -91,6 +95,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT
     setParsedRawValue: (ParsedT.(DslText) -> Unit)? = null,
     clearParsedValue: ParsedT.() -> Unit,
     parse: (ContextT, String) -> ParsedValue<PropertyT>,
+    format: (ContextT, PropertyT) -> String = { _, value -> value.toString() },
     getKnownValues: ((ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>)? = null
 ) =
     ModelSimplePropertyImpl(
@@ -111,6 +116,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT
           }
         },
         { context: ContextT, value -> if (value.isBlank()) ParsedValue.NotSet else parse(context, value.trim()) },
+        format,
         { context: ContextT, model -> if (getKnownValues != null) getKnownValues(context, model) else immediateFuture(listOf()) }
     )
 
@@ -124,6 +130,7 @@ class ModelSimplePropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, Proper
     private val setParsedValue: (ParsedT.(PropertyT?) -> Unit),
     private val setParsedRawValue: (ParsedT.(DslText) -> Unit),
     private val parser: (ContextT, String) -> ParsedValue<PropertyT>,
+    private val formatter: (ContextT, PropertyT) -> String,
     private val knownValuesGetter: (ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>
 ) : ModelSimpleProperty<ContextT, ModelT, PropertyT> {
   override fun getValue(thisRef: ModelT, property: KProperty<*>): ParsedValue<PropertyT> = getParsedValue(thisRef)
@@ -169,6 +176,8 @@ class ModelSimplePropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, Proper
   override fun getDefaultValue(model: ModelT): PropertyT? = defaultValueGetter(model)
 
   override fun parse(context: ContextT, value: String): ParsedValue<PropertyT> = parser(context, value)
+
+  override fun format(context: ContextT, value: PropertyT): String = formatter(context, value)
 
   override fun getKnownValues(context: ContextT, model: ModelT): ListenableFuture<List<ValueDescriptor<PropertyT>>> =
     knownValuesGetter(context, model)

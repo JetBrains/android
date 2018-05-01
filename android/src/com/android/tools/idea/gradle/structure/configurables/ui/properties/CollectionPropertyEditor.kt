@@ -52,8 +52,9 @@ CollectionPropertyEditor<ContextT, ModelT, out ModelPropertyT : ModelCollectionP
   val statusComponent: JComponent? = null
   private var beingLoaded = false
   protected var tableModel: DefaultTableModel? = null ; private set
+  private val formatter = property.valueFormatter(context)
   private val knownValueRenderers: Map<ValueT?, ValueRenderer> =
-    buildKnownValueRenderers(property.getKnownValues(context, model).get(), null)
+    buildKnownValueRenderers(property.getKnownValues(context, model).get(), formatter, null)
 
   protected val table: JBTable = JBTable()
     .apply {
@@ -98,7 +99,7 @@ CollectionPropertyEditor<ContextT, ModelT, out ModelPropertyT : ModelCollectionP
    * in [MyCellEditor].
    */
   protected inner class Value(val value: ParsedValue<ValueT>) {
-    override fun toString(): String = value.getText()
+    override fun toString(): String = value.getText(formatter)
   }
 
   inner class MyCellRenderer: TableCellRenderer {
@@ -110,7 +111,7 @@ CollectionPropertyEditor<ContextT, ModelT, out ModelPropertyT : ModelCollectionP
                                                column: Int): Component {
       @Suppress("UNCHECKED_CAST")
       val parsedValue = (value as CollectionPropertyEditor<ContextT, *, *, ValueT>.Value?)?.value ?: ParsedValue.NotSet
-      return SimpleColoredComponent().also { parsedValue.renderTo(it.toRenderer(), knownValueRenderers) }
+      return SimpleColoredComponent().also { parsedValue.renderTo(it.toRenderer(), formatter, knownValueRenderers) }
     }
 
   }
@@ -156,6 +157,7 @@ CollectionPropertyEditor<ContextT, ModelT, out ModelPropertyT : ModelCollectionP
       override fun setParsedValue(model: Unit, value: ParsedValue<ValueT>) = setValueAt(currentRow, value)
       override fun getDefaultValue(model: Unit): ValueT? = null
       override fun parse(context: ContextT, value: String): ParsedValue<ValueT> = property.parse(context, value)
+      override fun format(context: ContextT, value: ValueT): String = property.format(context, value)
       override fun getKnownValues(context: ContextT, model: Unit): ListenableFuture<List<ValueDescriptor<ValueT>>> =
         property.getKnownValues(context, this@CollectionPropertyEditor.model)
 
@@ -177,5 +179,6 @@ class SimplePropertyStub<ValueT : Any> : ModelSimpleProperty<Any?, Unit, ValueT>
   override fun getValue(thisRef: Unit, property: KProperty<*>): ParsedValue<ValueT> = ParsedValue.NotSet
   override fun setValue(thisRef: Unit, property: KProperty<*>, value: ParsedValue<ValueT>) = Unit
   override fun parse(context: Any?, value: String): ParsedValue<ValueT> = ParsedValue.NotSet
+  override fun format(context: Any?, value: ValueT): String = ""
   override fun getKnownValues(context: Any?, model: Unit): ListenableFuture<List<ValueDescriptor<ValueT>>> = immediateFuture(listOf())
 }

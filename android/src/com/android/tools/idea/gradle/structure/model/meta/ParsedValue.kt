@@ -96,15 +96,14 @@ enum class DslMode {
 data class DslText(val mode: DslMode, val text: String?)
 
 /**
- * Returns the default text representation of [ParsedValue] with any well-known values resolved into their full names according
- * to [wellKnownValues].
+ * Returns the text representation of [ParsedValue] with its value formatted by [formatValue].
  */
-fun <PropertyT> ParsedValue<PropertyT>.getText() = when (this) {
+fun <PropertyT> ParsedValue<PropertyT>.getText(formatValue: PropertyT.() -> String) = when (this) {
   is ParsedValue.NotSet -> ""
   is ParsedValue.Set.Parsed -> {
     val dsl = dslText ?: DslText(DslMode.LITERAL, null)
     when (dsl.mode) {
-      DslMode.LITERAL -> value?.toString() ?: ""
+      DslMode.LITERAL -> value?.formatValue() ?: ""
       DslMode.REFERENCE -> "\$${dsl.text}"
       DslMode.OTHER_UNPARSED_DSL_TEXT -> "\$\$${dsl.text}"
       DslMode.INTERPOLATED_STRING -> "\"${dsl.text}\""

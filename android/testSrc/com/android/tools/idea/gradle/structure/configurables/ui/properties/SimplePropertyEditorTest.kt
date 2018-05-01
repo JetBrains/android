@@ -91,6 +91,7 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
         else -> ParsedValue.Set.Parsed(value = it)
       }
     },
+    formatter = { _, value -> value },
     knownValuesGetter = { _: Nothing?, _ -> wellKnownValuesFuture })
 
   override fun setUp() {
