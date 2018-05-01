@@ -127,6 +127,14 @@ public class Gantt extends JPanel implements GanttCommands {
     return myChart.mySelectedKeyFrame;
   }
 
+  public MotionSceneModel.TransitionTag getTransitionTag( ) {
+    return myChart.myModel.getTransitionTag(0);
+  }
+
+  public MotionSceneModel.OnSwipeTag getOnSwipeTag( ) {
+    return myChart.myModel.getOnSwipeTag();
+  }
+
   static class IntFilter extends DocumentFilter {
     @Override
     public void insertString(FilterBypass fb, int offset, String string,

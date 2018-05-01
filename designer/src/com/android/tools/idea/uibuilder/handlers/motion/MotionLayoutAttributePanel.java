@@ -143,12 +143,8 @@ public class MotionLayoutAttributePanel implements AccessoryPanelInterface {
     if (myTimelinePanel != null && mySelection != null) {
       myNlModel = mySelection.getModel();
       MotionSceneModel.KeyFrame keyframe = myTimelinePanel.getSelectedKeyframe();
-      if (keyframe != null) {
-        MotionSceneModel.TransitionTag transitionTag = keyframe.getModel().getTransitionTag(0);
-        myTransitionPanel.setTransitionTag(transitionTag);
-        MotionSceneModel.OnSwipeTag onSwipeTag = keyframe.getModel().getOnSwipeTag();
-        myOnSwipeTagPanel.setOnSwipeTag(onSwipeTag);
-      }
+      myTransitionPanel.setTransitionTag(myTimelinePanel.getTransitionTag());
+      myOnSwipeTagPanel.setOnSwipeTag(myTimelinePanel.getOnSwipeTag());
       myCurrentKeyframe = keyframe;
 
       // fill out the key frame attributes

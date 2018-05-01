@@ -141,6 +141,7 @@ public class OnSwipePanel extends TagPanel {
   }
 
   public void setOnSwipeTag(MotionSceneModel.OnSwipeTag tag) {
+    setVisible( (tag != null));
     if (tag == null) {
       setVisible(false);
       return;
