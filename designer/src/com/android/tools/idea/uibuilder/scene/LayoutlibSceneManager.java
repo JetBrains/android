@@ -112,6 +112,8 @@ public class LayoutlibSceneManager extends SceneManager {
   private final ReentrantReadWriteLock myRenderResultLock = new ReentrantReadWriteLock();
   @GuardedBy("myRenderResultLock")
   private RenderResult myRenderResult;
+  @GuardedBy("myRenderResultLock")
+  private RenderResult myLastSuccessfulRenderResult;
   // Variables to track previous values of the configuration bar for tracking purposes
   private String myPreviousDeviceName;
   private Locale myPreviousLocale;
@@ -247,7 +249,11 @@ public class LayoutlibSceneManager extends SceneManager {
         if (myRenderResult != null) {
           myRenderResult.dispose();
         }
+        if (myLastSuccessfulRenderResult != null) {
+          myLastSuccessfulRenderResult.dispose();
+        }
         myRenderResult = null;
+        myLastSuccessfulRenderResult = null;
       }
       finally {
         myRenderResultLock.writeLock().unlock();
@@ -775,16 +781,33 @@ public class LayoutlibSceneManager extends SceneManager {
     updateHierarchy(result);
     myRenderResultLock.writeLock().lock();
     try {
-      if (myRenderResult != null) {
-        myRenderResult.dispose();
-      }
-      myRenderResult = result;
+      updateCachedRenderResult(result);
     }
     finally {
       myRenderResultLock.writeLock().unlock();
     }
 
     return resultTask != null;
+  }
+
+  @GuardedBy("myRenderResultLock")
+  private void updateCachedRenderResult(RenderResult result) {
+    if (result != null && result.getRenderResult().isSuccess()) {
+      if (myLastSuccessfulRenderResult != null) {
+        myLastSuccessfulRenderResult.dispose();
+      }
+      myLastSuccessfulRenderResult = null;
+      if (myRenderResult != null) {
+        myRenderResult.dispose();
+      }
+    }
+    else if (myRenderResult != null && myRenderResult.getRenderResult().isSuccess()) {
+      if (myLastSuccessfulRenderResult != null) {
+        myLastSuccessfulRenderResult.dispose();
+      }
+      myLastSuccessfulRenderResult = myRenderResult;
+    }
+    myRenderResult = result;
   }
 
   @VisibleForTesting
@@ -874,10 +897,7 @@ public class LayoutlibSceneManager extends SceneManager {
     }
     myRenderResultLock.writeLock().lock();
     try {
-      if (myRenderResult != null) {
-        myRenderResult.dispose();
-      }
-      myRenderResult = result;
+      updateCachedRenderResult(result);
       // Downgrade the write lock to read lock
       myRenderResultLock.readLock().lock();
     }
