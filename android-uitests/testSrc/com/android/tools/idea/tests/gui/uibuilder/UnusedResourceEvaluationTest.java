@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -47,7 +46,7 @@ public class UnusedResourceEvaluationTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/70635124
+  @RunIn(TestGroup.QA)
   public void removeUnusedResources() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("NoUnusedResourceApp");
     ideFrame.invokeMenuPath("Refactor", "Remove Unused Resources...");
