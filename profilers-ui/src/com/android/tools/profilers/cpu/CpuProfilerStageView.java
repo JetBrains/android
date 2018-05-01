@@ -48,7 +48,6 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
-import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
@@ -896,10 +895,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
                                                   boolean selected,
                                                   boolean hasFocus) {
       if (value == CpuProfilerStage.CONFIG_SEPARATOR_ENTRY) {
-        TitledSeparator separator = new TitledSeparator("");
-        separator
-          .setBorder(JBUI.Borders.empty(0, TitledSeparator.SEPARATOR_LEFT_INSET * -1, 0, TitledSeparator.SEPARATOR_RIGHT_INSET * -1));
-        return separator;
+        return new JSeparator();
       }
       return super.getListCellRendererComponent(list, value, index, selected, hasFocus);
     }
