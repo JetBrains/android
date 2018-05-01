@@ -76,6 +76,7 @@ public class StudioIcons {
     public static final Icon ZOOM_ACTUAL = load("/studio/icons/common/zoom-actual.png"); // 16x16
     public static final Icon ZOOM_IN = load("/studio/icons/common/zoom-in.png"); // 16x16
     public static final Icon ZOOM_OUT = load("/studio/icons/common/zoom-out.png"); // 16x16
+    public static final Icon ZOOM_SELECT = load("/studio/icons/common/zoom-select.png"); // 16x16
   }
 
   public static class Cursors {
