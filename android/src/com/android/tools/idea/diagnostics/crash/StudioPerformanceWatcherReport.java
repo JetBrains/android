@@ -44,6 +44,8 @@ public class StudioPerformanceWatcherReport extends BaseStudioReport {
 
   @Override
   protected void serializeTo(@NonNull MultipartEntityBuilder builder) {
+    super.serializeTo(builder);
+
     String edtStack = ThreadDumper.getEdtStackForCrash(threadDump);
 
     builder.addTextBody(StudioExceptionReport.KEY_EXCEPTION_INFO,

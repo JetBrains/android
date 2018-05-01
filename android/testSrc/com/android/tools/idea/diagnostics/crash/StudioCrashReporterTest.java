@@ -17,16 +17,22 @@ package com.android.tools.idea.diagnostics.crash;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.tools.analytics.AnalyticsSettings;
+import com.android.tools.analytics.NullUsageTracker;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.analytics.crash.CrashReport;
 import com.android.tools.analytics.crash.GoogleCrashReporter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.hamcrest.core.SubstringMatcher;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Constructor;
@@ -59,6 +65,23 @@ public class StudioCrashReporterTest {
   private static final Throwable ourException =
     createExceptionFromDesc(SAMPLE_EXCEPTION, new RuntimeException("This is a test exception message"));
 
+  @Test
+  public void ideBrandIncludedInExceptionReport() throws Exception {
+    UsageTracker usageTracker = new NullUsageTracker(new AnalyticsSettings(), null);
+    usageTracker.setIdeBrand(AndroidStudioEvent.IdeBrand.ANDROID_STUDIO);
+    try {
+      UsageTracker.setInstanceForTest(usageTracker);
+      CrashReport report =
+        new StudioExceptionReport.Builder()
+          .setThrowable(new RuntimeException("Test Exception Message"))
+          .build();
+
+      String content = getSerializedContent(report);
+      assertRequestContainsField(content, "ideBrand", "ANDROID_STUDIO");
+    } finally {
+      UsageTracker.cleanAfterTesting();
+    }
+  }
 
   @Test
   public void serializeNonGracefulExit() throws Exception {
@@ -67,11 +90,7 @@ public class StudioCrashReporterTest {
         .setDescriptions(Lists.newArrayList("1.2.3.4\n1.8.0_152-release-1136-b01"))
         .build();
 
-    MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-    report.serialize(builder);
-    HttpEntity httpEntity = builder.build();
-    String content = new String(ByteStreams.toByteArray(httpEntity.getContent()), Charset.defaultCharset());
-
+    String content = getSerializedContent(report);
     assertRequestContainsField(content, "exception_info",
                                "com.android.tools.idea.diagnostics.crash.exception.NonGracefulExitException");
   }
@@ -84,11 +103,7 @@ public class StudioCrashReporterTest {
         .setIsJvmCrash(true)
         .build();
 
-    MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-    report.serialize(builder);
-    HttpEntity httpEntity = builder.build();
-    String request = new String(ByteStreams.toByteArray(httpEntity.getContent()), Charset.defaultCharset());
-
+    String request = getSerializedContent(report);
     assertRequestContainsField(request, "exception_info",
                                "com.android.tools.idea.diagnostics.crash.exception.JvmCrashException");
   }
@@ -108,18 +123,14 @@ public class StudioCrashReporterTest {
 
     doReturn("1.2.3.4").when(report).getKotlinPluginVersionDescription();
 
-    MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-    report.serialize(builder);
-    HttpEntity httpEntity = builder.build();
-    String request = new String(ByteStreams.toByteArray(httpEntity.getContent()), Charset.defaultCharset());
-
+    String request = getSerializedContent(report);
     assertRequestContainsField(request, "kotlinVersion", "1.2.3.4");
   }
 
   private static void assertRequestContainsField(final String requestBody, final String name, final String value) {
     assertThat(requestBody, new RegexMatcher(
       "(?s).*\r?\nContent-Disposition: form-data; name=\"" + Pattern.quote(name) + "\"\r?\n" +
-      "Content-Type: .*?\r?\n" +
+      "Content-Type: [^\r\n]*?\r?\n" +
       "Content-Transfer-Encoding: 8bit\r?\n" +
       "\r?\n" +
       Pattern.quote(value) + "\r?\n.*"
@@ -134,11 +145,7 @@ public class StudioCrashReporterTest {
         .setThreadDump("Not a thread dump")
         .build();
 
-    MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-    report.serialize(builder);
-    HttpEntity httpEntity = builder.build();
-    String request = new String(ByteStreams.toByteArray(httpEntity.getContent()), Charset.defaultCharset());
-
+    String request = getSerializedContent(report);
     assertRequestContainsField(request, "exception_info", "com.android.ApplicationNotResponding: ");
   }
 
@@ -153,14 +160,19 @@ public class StudioCrashReporterTest {
                        "\tat sun.misc.Unsafe.park(Native Method)\n\n")
         .build();
 
-    MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-    report.serialize(builder);
-    HttpEntity httpEntity = builder.build();
-    String request = new String(ByteStreams.toByteArray(httpEntity.getContent()), Charset.defaultCharset());
+    String request = getSerializedContent(report);
 
     assertRequestContainsField(request, "exception_info",
                                 "com.android.ApplicationNotResponding: AWT-EventQueue-0 WAITING on java.util.concurrent.FutureTask@12345678\n" +
                                 "\tat sun.misc.Unsafe.park(Native Method)");
+  }
+
+  @NotNull
+  private static String getSerializedContent(CrashReport report) throws IOException {
+    MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+    report.serialize(builder);
+    HttpEntity httpEntity = builder.build();
+    return new String(ByteStreams.toByteArray(httpEntity.getContent()), Charset.defaultCharset());
   }
 
   public static void main(String[] args) {

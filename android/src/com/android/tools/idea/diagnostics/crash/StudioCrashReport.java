@@ -46,6 +46,8 @@ public class StudioCrashReport extends BaseStudioReport {
 
   @Override
   protected void serializeTo(@NonNull MultipartEntityBuilder builder) {
+    super.serializeTo(builder);
+
     builder.addTextBody("numCrashes", Integer.toString(descriptions.size()));
     builder.addTextBody("crashDesc", Joiner.on("\n\n").join(descriptions));
 

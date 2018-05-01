@@ -17,7 +17,10 @@ package com.android.tools.idea.diagnostics.crash;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.analytics.crash.CrashReport;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 
 import java.util.Map;
 
@@ -27,5 +30,11 @@ abstract class BaseStudioReport extends CrashReport {
                           @Nullable Map<String, String> productData,
                           @NonNull String type) {
     super(StudioCrashReporter.PRODUCT_ANDROID_STUDIO, version, productData, type);
+  }
+
+  @Override
+  protected void serializeTo(@NonNull MultipartEntityBuilder builder) {
+    AndroidStudioEvent.IdeBrand ideBrand = UsageTracker.getInstance().getIdeBrand();
+    builder.addTextBody("ideBrand", ideBrand.getValueDescriptor().getName());
   }
 }
