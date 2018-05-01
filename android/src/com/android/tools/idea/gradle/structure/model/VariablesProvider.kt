@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
+import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyContext
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+
 /**
  * An interface providing access to variables available in the specific scope.
  */
 interface VariablesProvider {
   /**
-   * Returns a list of variable available in the scope which are suitable for use with
-   * properties of type [T] (referred to by [type]).
+   * Returns a list of variables available in the scope which are suitable for use with
+   * [property].
    */
-  // TODO(solodkyy): Consider returning list of [PsVariable].
-  fun <T> getAvailableVariablesForType(type: Class<T>): List<Pair<String, T?>>
+  fun <ContextT, ModelT, ValueT : Any> getAvailableVariablesFor(context: ContextT,
+    property: ModelPropertyContext<ContextT, ModelT, ValueT>): List<ParsedValue.Set.Parsed<ValueT>>
 }

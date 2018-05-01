@@ -167,12 +167,7 @@ class SimplePropertyEditor<ContextT, ModelT, PropertyT : Any, out ModelPropertyT
   }
 
   private fun getAvailableVariables(): List<ParsedValue.Set.Parsed<PropertyT>>? =
-    variablesProvider?.getAvailableVariablesForType(elementType)?.map {
-      ParsedValue.Set.Parsed(
-        value = it.second,
-        dslText = DslText(mode = DslMode.REFERENCE, text = it.first)
-      )
-    }
+    variablesProvider?.getAvailableVariablesFor(context, property)
 
   private fun addFocusGainedListener(listener: () -> Unit) {
     val focusListener = object : FocusListener {

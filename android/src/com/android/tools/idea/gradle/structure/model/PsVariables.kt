@@ -16,11 +16,17 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
-import java.io.File
+import com.android.tools.idea.gradle.structure.model.meta.DslMode
+import com.android.tools.idea.gradle.structure.model.meta.DslText
+import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyContext
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 
 class PsVariables(private val module: PsModule) : VariablesProvider {
-  override fun <T> getAvailableVariablesForType(type: Class<T>): List<Pair<String, T?>> =
-      // TODO(solodkyy): Merge with variables available at the project level.
+  override fun <ContextT, ModelT, ValueT : Any> getAvailableVariablesFor(
+    context: ContextT,
+    property: ModelPropertyContext<ContextT, ModelT, ValueT>
+  ): List<ParsedValue.Set.Parsed<ValueT>> =
+  // TODO(solodkyy): Merge with variables available at the project level.
     module.parsedModel?.inScopeProperties.orEmpty()
       .map { it.key to it.value.resolve() }
       .flatMap {
@@ -34,20 +40,15 @@ class PsVariables(private val module: PsModule) : VariablesProvider {
         }
       }
       .map {
-        val value = it.second.getValue(GradlePropertyModel.OBJECT_TYPE)
-          ?.let {
-            when {
-              // TODO(solodkyy): Find out how to abstract this.
-              it is Int && type == String::class.java -> it.toString()
-              it is String && type == File::class.java -> File(it)
-              // Int and Integer are not exactly the same in Kotlin and the 'cast' below does not work.
-              it is Int &&type == Int::class.java -> it
-              else -> it
-            }
-          }
-        it.first to (if (type.isInstance(value)) type.cast(value) else null)
+        it.first to it.second.getValue(GradlePropertyModel.OBJECT_TYPE)?.let { property.parse(context, it.toString()) }
       }
-      .filter { it.second != null }
+      .mapNotNull {
+        val value = it.second
+        when(value) {
+          is ParsedValue.Set.Parsed<ValueT> -> ParsedValue.Set.Parsed(value.value, DslText(DslMode.REFERENCE, it.first))
+          else -> null
+        }
+      }
 
   fun getModuleVariables(): List<PsVariable> = module.parsedModel?.ext()?.properties?.map { PsVariable(it, module) }.orEmpty()
 }
