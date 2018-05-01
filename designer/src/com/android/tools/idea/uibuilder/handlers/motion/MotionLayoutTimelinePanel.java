@@ -116,6 +116,17 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     return myPanel.getSelectedKey(mySelection.getId());
   }
 
+
+  @Nullable
+  public MotionSceneModel.TransitionTag getTransitionTag() {
+    return myPanel.getTransitionTag();
+  }
+
+  @Nullable
+  public MotionSceneModel.OnSwipeTag getOnSwipeTag() {
+    return myPanel.getOnSwipeTag();
+  }
+
   @Override
   public void updateAccessoryPanelWithSelection(@NotNull AccessoryPanel.Type type,
                                                 @NotNull List<NlComponent> selection) {

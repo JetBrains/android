@@ -72,7 +72,7 @@ public class AttributeTagPanel extends TagPanel {
     myAddRemovePanel.myRemoveButton.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
-        myPopupMenu.show(e.getComponent(), e.getX(), e.getY());
+         deleteAttr(myBasePanel.myNlModel,myTable.getSelectedRow());
       }
     });
 
@@ -161,7 +161,9 @@ public class AttributeTagPanel extends TagPanel {
   public void setKeyFrame(MotionSceneModel.KeyFrame keyframe) {
     myKeyAttrTableModel.setKeyFrame(keyframe);
     myAddRemovePanel.myAddButton.setVisible(keyframe != null);
+    setVisible(keyframe != null);
     if (keyframe == null) {
+
       return;
     }
     setupPopup(keyframe);
