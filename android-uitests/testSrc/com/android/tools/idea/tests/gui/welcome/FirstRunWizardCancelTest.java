@@ -22,10 +22,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.welcome.FirstRunWizardFixture;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
@@ -34,6 +31,7 @@ import static com.android.tools.idea.flags.StudioFlags.NPW_FIRST_RUN_WIZARD;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
+@Ignore("b/79945618")
 @RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith(GuiTestRemoteRunner.class)
 public class FirstRunWizardCancelTest {
