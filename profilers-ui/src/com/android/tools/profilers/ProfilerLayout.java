@@ -73,9 +73,9 @@ public class ProfilerLayout {
 
   public static final int PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER = JBUI.scale(16);
   public static final int PROFILING_INSTRUCTIONS_ICON_PADDING = JBUI.scale(1);
-  public static final Font PROFILING_INSTRUCTIONS_FONT = AdtUiUtils.DEFAULT_FONT.deriveFont(15f);
-  public static final Font INFO_MESSAGE_HEADER_FONT = AdtUiUtils.DEFAULT_FONT.deriveFont(14f);
-  public static final Font INFO_MESSAGE_DESCRIPTION_FONT = AdtUiUtils.DEFAULT_FONT.deriveFont(12f);
+  public static final Font PROFILING_INSTRUCTIONS_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(5f);
+  public static final Font INFO_MESSAGE_HEADER_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(4f);
+  public static final Font INFO_MESSAGE_DESCRIPTION_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(2f);
 
   public static final int FILTER_TEXT_FIELD_WIDTH = JBUI.scale(245);
   public static final int FILTER_TEXT_FIELD_TRIGGER_DELAY_MS = 250;
@@ -85,7 +85,7 @@ public class ProfilerLayout {
   public static final int TOOLBAR_HEIGHT = JBUI.scale(25) + 5;
   public static final Border TOOLBAR_LABEL_BORDER = JBUI.Borders.empty(3, 8, 3, 3);
   public static final Border TOOLBAR_ICON_BORDER = JBUI.Borders.empty(4);
-  public static final Font TOOLBAR_LABEL_FONT = AdtUiUtils.DEFAULT_FONT.deriveFont(11f);
+  public static final Font TOOLBAR_LABEL_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(1);
 
   /**
    * Used in the CPU threads/kernel cell renderer's to set the preferred height.
