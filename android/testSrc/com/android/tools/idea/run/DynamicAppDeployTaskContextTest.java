@@ -59,4 +59,39 @@ public class DynamicAppDeployTaskContextTest {
     assertThat(context.isPatchBuild()).isEqualTo(false);
     assertThat(context.getArtifacts()).containsExactly(new File("app.apk"), new File("feature2.apk"));
   }
+
+  @Test
+  public void getArtifactsFiltersDisabledFeaturesWithSpecialNames() {
+    List<ApkFileUnit> files = new ArrayList<>();
+    files.add(new ApkFileUnit("app", new File("app.apk")));
+    files.add(new ApkFileUnit("dynamic_feature1", new File("dynamic-feature1.apk")));
+    files.add(new ApkFileUnit("feature2", new File("feature2.apk")));
+    ApkInfo apkInfo = new ApkInfo(files, "myAppId");
+
+    List<String> disabledFeatures = new ArrayList<>();
+    disabledFeatures.add("dynamic-feature1");
+
+    DynamicAppDeployTaskContext context = new DynamicAppDeployTaskContext(apkInfo, disabledFeatures);
+
+    assertThat(context.getApplicationId()).isEqualTo("myAppId");
+    assertThat(context.isPatchBuild()).isEqualTo(false);
+    assertThat(context.getArtifacts()).containsExactly(new File("app.apk"), new File("feature2.apk"));
+  }
+
+  @Test
+  public void getArtifactsFiltersDoesNotFilterFeaturesWithSpecialNames() {
+    List<ApkFileUnit> files = new ArrayList<>();
+    files.add(new ApkFileUnit("app", new File("app.apk")));
+    files.add(new ApkFileUnit("dynamic_feature1", new File("dynamic-feature1.apk")));
+    files.add(new ApkFileUnit("feature2", new File("feature2.apk")));
+    ApkInfo apkInfo = new ApkInfo(files, "myAppId");
+
+    List<String> disabledFeatures = new ArrayList<>();
+
+    DynamicAppDeployTaskContext context = new DynamicAppDeployTaskContext(apkInfo, disabledFeatures);
+
+    assertThat(context.getApplicationId()).isEqualTo("myAppId");
+    assertThat(context.isPatchBuild()).isEqualTo(false);
+    assertThat(context.getArtifacts()).containsExactly(new File("app.apk"), new File("dynamic-feature1.apk"), new File("feature2.apk"));
+  }
 }
