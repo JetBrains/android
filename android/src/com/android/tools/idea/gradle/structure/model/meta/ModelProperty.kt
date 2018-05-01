@@ -89,6 +89,7 @@ interface ModelSimpleProperty<in ContextT, in ModelT, PropertyT : Any> :
   ModelProperty<ModelT, PropertyT>,
   ModelPropertyContext<ContextT, ModelT, PropertyT>
 typealias SimpleProperty<ModelT, PropertyT> = ModelSimpleProperty<Nothing?, ModelT, PropertyT>
+
 /**
  * A UI descriptor of a collection property.
  */

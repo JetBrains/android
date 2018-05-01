@@ -16,8 +16,10 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
+import com.android.tools.idea.gradle.structure.model.meta.*
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
+import com.google.common.util.concurrent.ListenableFuture
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.MatcherAssert.assertThat
@@ -47,39 +49,35 @@ class PsVariablesTest : AndroidGradleTestCase() {
   }
 
   fun testGetAvailableVariablesForType() {
+    val stringWithDotsProperty: ModelPropertyContext<Nothing?, Any, String> = object : ModelPropertyContext<Nothing?, Any, String> {
+      override fun parse(context: Nothing?, value: String): ParsedValue<String> = when {
+        value.contains(".") -> ParsedValue.Set.Parsed(value)
+        else -> ParsedValue.Set.Invalid(value, "invalid")
+      }
+
+      override fun format(context: Nothing?, value: String): String = throw UnsupportedOperationException()
+
+      override fun getKnownValues(context: Nothing?, model: Any): ListenableFuture<List<ValueDescriptor<String>>> =
+        throw UnsupportedOperationException()
+    }
     loadProject(TestProjectPaths.PSD_SAMPLE)
     val psProject = PsProject(project)
     val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
     run {
-      val variables = psAppModule.variables.getAvailableVariablesForType(String::class.java)
-      assertThat(variables.size, equalTo(9))
+      val variables = psAppModule.variables.getAvailableVariablesFor(null, stringWithDotsProperty).toSet()
       assertThat(
         variables,
-        hasItems<Pair<String, String?>>(
-          "myVariable" to "26.1.0",
-          "variable1" to "1.3",
-          "anotherVariable" to "3.0.1",
-          "moreVariable" to "1234",
-          "varInt" to "1",  // Integers are compatible with Strings. This is often used in Gradle configs.
-          "varRefString" to "1.3",
-          "mapVariable.a" to "\"double\" quotes",
-          "mapVariable.b" to "'single' quotes",
-          "someVar" to "Present"
-        )
-      )
-    }
-
-    run {
-      // Note: when boxed it is still java.lang.Integer rather than Kotlin Int type.
-      val variables = psAppModule.variables.getAvailableVariablesForType(Integer::class.java)
-      assertThat(variables.size, equalTo(1))
-      assertThat(
-        variables,
-        @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
-        hasItems<Pair<String, Integer?>>(
-          "varInt" to (1 as Integer)
+        equalTo(
+          setOf(
+            ("myVariable" to "26.1.0").asParsed(),
+            ("variable1" to "1.3").asParsed(),
+            ("anotherVariable" to "3.0.1").asParsed(),
+            ("varRefString" to "1.3").asParsed()
+          )
         )
       )
     }
   }
 }
+
+private fun <T : Any> Pair<String, T>.asParsed() = ParsedValue.Set.Parsed(dslText = DslText(DslMode.REFERENCE, first), value = second)

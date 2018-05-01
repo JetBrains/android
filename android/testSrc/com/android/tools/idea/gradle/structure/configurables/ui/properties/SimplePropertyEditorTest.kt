@@ -206,10 +206,10 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
     val variablesProvider = mock(VariablesProvider::class.java)
     val var1 = "var1" to "val1"
     val var2 = "var2" to "val2"
-    `when`(variablesProvider.getAvailableVariablesForType(String::class.java)).thenReturn(
+    `when`(variablesProvider.getAvailableVariablesFor(null, property)).thenReturn(
       listOf(
-        var1,
-        var2
+        var1.asParsed(),
+        var2.asParsed()
       )
     )
     val editor = simplePropertyEditor(null, model, property, variablesProvider)
@@ -221,10 +221,10 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
     val variablesProvider = mock(VariablesProvider::class.java)
     val var1 = "var1" to "val1"
     val var2 = "var2" to "val2"
-    `when`(variablesProvider.getAvailableVariablesForType(String::class.java)).thenReturn(
+    `when`(variablesProvider.getAvailableVariablesFor(null, property)).thenReturn(
       listOf(
-        var1,
-        var2
+        var1.asParsed(),
+        var2.asParsed()
       )
     )
     val editor = simplePropertyEditor(null, model, property, variablesProvider)
