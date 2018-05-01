@@ -64,6 +64,9 @@ private fun getProjectProperties(project: Project): PropertiesFile? {
   return if (psiPropertiesFile is PropertiesFile) psiPropertiesFile else null
 }
 
+private const val USE_ANDROIDX_PROPERTY = "android.useAndroidX"
+private const val ENABLE_JETIFIER_PROPERTY = "android.enableJetifier"
+
 class MigrateToAndroidxProcessor(val project: Project,
                                  private val migrationMap: List<AppCompatMigrationEntry>) : BaseRefactoringProcessor(project) {
 
@@ -147,6 +150,13 @@ class MigrateToAndroidxProcessor(val project: Project,
     refsToShorten.clear()
     try {
       CommandProcessor.getInstance().markCurrentCommandAsGlobal(project)
+
+      // Add gradle properties to enable the androidx handling
+      getProjectProperties(project)?.let {
+        it.findPropertyByKey(USE_ANDROIDX_PROPERTY) ?: it.addProperty(USE_ANDROIDX_PROPERTY, "true")
+        it.findPropertyByKey(ENABLE_JETIFIER_PROPERTY) ?: it.addProperty(ENABLE_JETIFIER_PROPERTY, "true")
+      }
+
       val smartPointerManager = SmartPointerManager.getInstance(myProject)
       usages
         .filterIsInstance<MigrateToAppCompatUsageInfo>()
@@ -154,12 +164,6 @@ class MigrateToAndroidxProcessor(val project: Project,
         .filter { it.isValid }
         .map { smartPointerManager.createSmartPsiElementPointer(it) }
         .forEach { refsToShorten.add(it) }
-
-      // Add gradle properties to enable the androidx handling
-      getProjectProperties(project)?.let {
-        it.findPropertyByKey("android.useAndroidX") ?: it.addProperty("android.useAndroidX", "true")
-        it.findPropertyByKey("android.enableJetifier") ?: it.addProperty("android.enableJetifier", "true")
-      }
     }
     catch (e: IncorrectOperationException) {
       RefactoringUIUtil.processIncorrectOperation(project, e)
