@@ -30,7 +30,6 @@ import org.junit.runner.RunWith;
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
 import static com.google.common.truth.Truth.assertThat;
 
-@RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith(GuiTestRunner.class)
 public class CreateNewMobileProjectTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
