@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Represents an element which consists of a map from properties of type {@link String} and values of type {@link GradleDslSimpleExpression}.
@@ -89,5 +93,11 @@ public final class GradleDslExpressionMap extends GradlePropertiesDslElement imp
 
   public boolean shouldBeDeleted() {
     return !isLiteralMap() || myShouldBeDeleted;
+  }
+
+  @Override
+  @NotNull
+  public List<GradleReferenceInjection> getResolvedVariables() {
+    return getDependencies().stream().filter(e -> e.isResolved()).collect(Collectors.toList());
   }
 }

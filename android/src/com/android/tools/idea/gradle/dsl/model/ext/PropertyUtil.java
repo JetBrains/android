@@ -83,17 +83,6 @@ public class PropertyUtil {
         ((GradlePropertiesDslElement)holder).setNewElement(newElement);
       }
     }
-    else if (holder instanceof GradleDslExpressionList) {
-      assert newElement instanceof GradleDslExpression;
-      GradleDslExpressionList list = (GradleDslExpressionList)holder;
-      if (oldElement != null) {
-        assert oldElement instanceof GradleDslExpression;
-        list.replaceExpression((GradleDslExpression)oldElement, (GradleDslExpression)newElement);
-      }
-      else {
-        list.addNewExpression((GradleDslSimpleExpression)newElement, list.getExpressions().size());
-      }
-    }
     else if (holder instanceof GradleDslMethodCall) {
       assert newElement instanceof GradleDslExpression;
       GradleDslMethodCall methodCall = (GradleDslMethodCall)holder;
@@ -119,10 +108,6 @@ public class PropertyUtil {
 
     if (holder instanceof GradlePropertiesDslElement) {
       ((GradlePropertiesDslElement)holder).removeProperty(element);
-    }
-    else if (holder instanceof GradleDslExpressionList) {
-      GradleDslExpressionList list = (GradleDslExpressionList)holder;
-      list.removeElement(element);
     }
     else if (holder instanceof GradleDslMethodCall) {
       GradleDslMethodCall methodCall = (GradleDslMethodCall)holder;
@@ -194,5 +179,13 @@ public class PropertyUtil {
     }
     String result = builder.toString();
     return result.isEmpty() ? null : result;
+  }
+
+  public static boolean isNonExpressionPropertiesElement(@Nullable GradleDslElement e) {
+    return e instanceof GradlePropertiesDslElement && !(e instanceof GradleDslExpression);
+  }
+
+  public static boolean isPropertiesElementOrMap(@Nullable GradleDslElement e) {
+    return e instanceof GradlePropertiesDslElement && !(e instanceof GradleDslExpressionList);
   }
 }

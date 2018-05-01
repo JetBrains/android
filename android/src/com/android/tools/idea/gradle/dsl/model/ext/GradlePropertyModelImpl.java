@@ -57,7 +57,6 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
 
     GradleDslElement parent = element.getParent();
     assert (parent instanceof GradlePropertiesDslElement ||
-            parent instanceof GradleDslExpressionList ||
             parent instanceof GradleDslMethodCall) : "Property found to be invalid, this should never happen!";
     myPropertyHolder = parent;
 

@@ -31,6 +31,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isPropertiesElementOrMap;
 import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.PROPERTY_PLACEMENT;
 import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.*;
 
@@ -102,9 +103,6 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   }
 
   private ElementState replacePropertyInternal(@NotNull GradleDslElement element, @NotNull GradleDslElement newElement) {
-    // Make sure the properties have the same name.
-    assert newElement.getFullName().equals(element.getFullName());
-
     updateDependenciesOnReplaceElement(element, newElement);
 
     ElementState oldState = myProperties.replaceElement(element, newElement);
@@ -133,7 +131,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
           continue;
         }
       }
-      else if (newProperty instanceof GradlePropertiesDslElement) {
+      else if (isPropertiesElementOrMap(newProperty)) {
         // If the element we are trying to add a GradlePropertiesDslElement that doesn't exist, create it.
         GradlePropertiesDslElement createdElement =
           getDslFile().getParser().getBlockElement(Arrays.asList(entry.getKey().split("\\.")), this);
@@ -151,7 +149,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
 
   /**
    * Sets or replaces the given {@code property} value with the give {@code element}.
-   * <p>
+   *
    * <p>This method should be used when the given {@code property} is defined using an assigned statement.
    */
   public void setParsedElement(@NotNull GradleDslElement element) {
@@ -161,7 +159,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
 
   /**
    * Sets or replaces the given {@code property} value with the given {@code element}.
-   * <p>
+   *
    * <p>This method should be used when the given {@code property} is defined using an application statement. As the application statements
    * can have different meanings like append vs replace for list elements, the sub classes can override this method to do the right thing
    * for any given property.
@@ -173,7 +171,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
 
   /**
    * Sets or replaces the given {@code property} value with the given {@code element}.
-   * <p>
+   *
    * <p>This method should be used when the given {@code property} would reset the effect of the other property. Ex: {@code reset()} method
    * in android.splits.abi block will reset the effect of the previously defined {@code includes} element.
    */
@@ -269,6 +267,11 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   @NotNull
   public Map<String, GradleDslElement> getElements() {
     return getElementsWhere(ANY_FILTER);
+  }
+
+  @NotNull
+  public List<GradleDslElement> getAllElements() {
+    return myProperties.getElementsWhere(ANY_FILTER);
   }
 
   @NotNull
@@ -372,7 +375,6 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
    */
   @NotNull
   public GradleDslElement setNewElement(@NotNull GradleDslElement newElement) {
-    assert !newElement.getName().isEmpty();
     newElement.setParent(this);
     addPropertyInternal(newElement, TO_BE_ADDED);
     setModified(true);
@@ -380,7 +382,6 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   }
 
   public void addNewElementAt(int index, @NotNull GradleDslElement newElement) {
-    assert !newElement.getName().isEmpty();
     newElement.setParent(this);
     addPropertyInternal(index, newElement, TO_BE_ADDED);
     setModified(true);
@@ -388,14 +389,13 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
 
   @VisibleForTesting
   public void moveElementTo(int index, @NotNull GradleDslElement newElement) {
-    assert !newElement.getName().isEmpty();
     assert newElement.getParent() == this;
     myProperties.moveElementToIndex(newElement, index);
   }
 
   @NotNull
   public GradleDslElement replaceElement(@NotNull GradleDslElement oldElement, @NotNull GradleDslElement newElement) {
-    assert !oldElement.getName().isEmpty() && !newElement.getName().isEmpty();
+    newElement.setParent(this);
     List<GradlePropertiesDslElement> holders = new ArrayList<>();
     holders.add(this);
     holders.addAll(oldElement.getHolders());
@@ -479,9 +479,9 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
 
   /**
    * Marks the given {@code property} for removal.
-   * <p>
+   *
    * <p>The actual property will be removed from Gradle file when {@link #apply()} method is invoked.
-   * <p>
+   *
    * <p>The property will be un-marked for removal when {@link #reset()} method is invoked.
    */
   public GradlePropertiesDslElement removeProperty(@NotNull String property) {
@@ -525,7 +525,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   @Override
   @NotNull
   public Collection<GradleDslElement> getChildren() {
-    return getPropertyElements().values();
+    return getAllElements();
   }
 
   @Override
@@ -539,7 +539,11 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
       result.addAll(getVariableElements().values());
     }
 
-    List<GradlePropertiesDslElement> holders = getPropertyElements(GradlePropertiesDslElement.class);
+    // We don't want to include lists and maps in this.
+    List<GradlePropertiesDslElement> holders =
+      getPropertyElements(GradlePropertiesDslElement.class).stream().filter(e -> !(e instanceof GradleDslExpression))
+                                                           .collect(Collectors.toList());
+
     holders.forEach(e -> result.addAll(e.getContainedElements(includeProperties)));
     return result;
   }

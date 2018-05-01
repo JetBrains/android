@@ -225,7 +225,7 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
     assertThat(fileTrees).hasSize(1);
     FileTreeDependencyModel fileTree = fileTrees.get(0);
     verifyPropertyModel(fileTree.dir(), STRING_TYPE, "libs", STRING, DERIVED, 0, "dir");
-    verifyListProperty(fileTree.includes(), ImmutableList.of("*.aar", "*.jar"), true);
+    verifyListProperty(fileTree.includes(), ImmutableList.of("*.jar", "*.aar"), true);
     assertMissingProperty(fileTree.excludes());
   }
 
