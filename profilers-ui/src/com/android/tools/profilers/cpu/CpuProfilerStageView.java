@@ -183,13 +183,14 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     getTooltipBinder().bind(EventActivityTooltip.class, EventActivityTooltipView::new);
     getTooltipBinder().bind(EventSimpleEventTooltip.class, EventSimpleEventTooltipView::new);
     getTooltipPanel().setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
+    mySelection = new SelectionComponent(getStage().getSelectionModel(), getTimeline().getViewRange());
+    mySelection.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
     myTooltipComponent = new RangeTooltipComponent(timeline.getTooltipRange(),
                                                    timeline.getViewRange(),
                                                    timeline.getDataRange(),
                                                    getTooltipPanel(),
-                                                   ProfilerLayeredPane.class);
-    mySelection = new SelectionComponent(getStage().getSelectionModel(), getTimeline().getViewRange());
-    mySelection.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
+                                                   ProfilerLayeredPane.class,
+                                                   () -> mySelection.getMode() != SelectionComponent.Mode.MOVE);
     myThreads = new DragAndDropList<>(myStage.getThreadStates());
     myCpus = new JBList<>(myStage.getCpuKernelModel());
 
@@ -498,7 +499,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     overlay.addMouseListener(usageListener);
     overlayPanel.addMouseListener(usageListener);
     overlayPanel.setOpaque(false);
-    overlayPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
     overlayPanel.add(overlay, BorderLayout.CENTER);
 
     // Double-clicking the chart should remove a capture selection if one exists.

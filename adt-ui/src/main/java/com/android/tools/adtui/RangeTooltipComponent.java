@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.Range;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
@@ -25,6 +26,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Path2D;
+import java.util.function.Supplier;
 
 /**
  * A tooltip to be shown over some ranged chart with a vertical line to mark its horizontal position.
@@ -44,22 +46,32 @@ public final class RangeTooltipComponent extends AnimatedComponent {
   @NotNull
   private final TooltipComponent myTooltipComponent;
 
+  /**
+   * Supplier that determines if our seek component is visible or not. This is determined in addition to
+   * other requirements of showing if the tooltip is visible or not see {@link #draw(Graphics2D, Dimension)}
+   */
+  @NotNull
+  private final Supplier<Boolean> myShowSeekComponent;
+
   @Nullable
   private Point myLastPoint;
 
   public RangeTooltipComponent(@NotNull Range hightlight, @NotNull Range view, @NotNull Range data, Component component,
-                               @Nullable Class<? extends JLayeredPane> preferredTooltipParent) {
+                               @Nullable Class<? extends JLayeredPane> preferredTooltipParent,
+                               @NotNull Supplier<Boolean> showSeekComponent) {
     myHighlightRange = hightlight;
     myViewRange = view;
     myDataRange = data;
+    myShowSeekComponent = showSeekComponent;
 
     myTooltipComponent = new TooltipComponent.Builder(component, this).setPreferredParentClass(preferredTooltipParent).build();
     myViewRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::viewRangeChanged);
     myHighlightRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::highlightRangeChanged);
   }
 
+  @VisibleForTesting
   public RangeTooltipComponent(@NotNull Range hightlight, @NotNull Range view, @NotNull Range data, Component component) {
-    this(hightlight, view, data, component, null);
+    this(hightlight, view, data, component, null, () -> true);
   }
 
   public void registerListenersOn(Component component) {
@@ -124,15 +136,17 @@ public final class RangeTooltipComponent extends AnimatedComponent {
     }
     myTooltipComponent.setVisible(true);
 
-    float x = rangeToX(myHighlightRange.getMin());
-    float pos = (float)(x * dim.getWidth());
+    if (myShowSeekComponent.get()) {
+      float x = rangeToX(myHighlightRange.getMin());
+      float pos = (float)(x * dim.getWidth());
 
-    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    g.setColor(HIGHLIGHT_COLOR);
-    g.setStroke(new BasicStroke(2.0f));
-    Path2D.Float path = new Path2D.Float();
-    path.moveTo(pos, 0);
-    path.lineTo(pos, dim.getHeight());
-    g.draw(path);
+      g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+      g.setColor(HIGHLIGHT_COLOR);
+      g.setStroke(new BasicStroke(2.0f));
+      Path2D.Float path = new Path2D.Float();
+      path.moveTo(pos, 0);
+      path.lineTo(pos, dim.getHeight());
+      g.draw(path);
+    }
   }
 }

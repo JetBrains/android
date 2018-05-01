@@ -88,7 +88,7 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
 
     RangeTooltipComponent
       tooltip = new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(), getTooltipPanel(),
-                                          ProfilerLayeredPane.class);
+                                          ProfilerLayeredPane.class, () -> true);
 
     getTooltipBinder().bind(NetworkMonitorTooltip.class, NetworkMonitorTooltipView::new);
     getTooltipBinder().bind(CpuMonitorTooltip.class, CpuMonitorTooltipView::new);
