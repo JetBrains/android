@@ -28,6 +28,7 @@ import com.android.tools.profilers.*;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,9 +55,9 @@ import static com.android.tools.profilers.ProfilerLayout.*;
  * Displays network connection information of all threads.
  */
 final class ThreadsView {
-  private static final int STATE_HEIGHT = 15;
-  private static final int SELECTION_OUTLINE_PADDING = 3;
-  private static final int SELECTION_OUTLINE_BORDER = 2;
+  private static final int STATE_HEIGHT = JBUI.scale(15);
+  private static final int SELECTION_OUTLINE_PADDING = JBUI.scale(3);
+  private static final int SELECTION_OUTLINE_BORDER = JBUI.scale(2);
   private static final int ROW_HEIGHT = STATE_HEIGHT + 2 * (SELECTION_OUTLINE_BORDER + SELECTION_OUTLINE_PADDING);
 
   @NotNull
