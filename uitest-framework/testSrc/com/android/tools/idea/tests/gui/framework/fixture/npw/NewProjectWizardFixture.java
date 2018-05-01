@@ -19,7 +19,6 @@ import com.android.tools.adtui.ASGallery;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JListFixture;
@@ -27,9 +26,6 @@ import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.util.List;
-
-import static com.google.common.collect.Lists.newArrayList;
 
 public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWizardFixture> {
   @NotNull
@@ -80,19 +76,9 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
 
   @NotNull
   public NewProjectWizardFixture clickFinish() {
-    List<Project> previouslyOpenProjects = newArrayList(ProjectManager.getInstance().getOpenProjects());
     super.clickFinish(Wait.seconds(10));
-
-    List<Project> newOpenProjects = newArrayList();
-    Wait.seconds(5).expecting("Project to be open")
-      .until(() -> {
-        newOpenProjects.addAll(newArrayList(ProjectManager.getInstance().getOpenProjects()));
-        newOpenProjects.removeAll(previouslyOpenProjects);
-        return !newOpenProjects.isEmpty();
-      });
-
-    GuiTests.waitForProjectIndexingToFinish(newOpenProjects.get(0));
-
+    Wait.seconds(5).expecting("project to be open").until(() -> ProjectManager.getInstance().getOpenProjects().length == 1);
+    GuiTests.waitForProjectIndexingToFinish(ProjectManager.getInstance().getOpenProjects()[0]);
     return myself();
   }
 }
