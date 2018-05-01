@@ -36,6 +36,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
@@ -134,6 +135,7 @@ public class RenderService extends AndroidFacetScopedService {
         ourRenderingExecutor.awaitTermination(timeoutSeconds, TimeUnit.SECONDS);
       }
       catch (InterruptedException ignored) {
+        Logger.getInstance(RenderService.class).warn("The RenderExecutor does not shutdown after " + timeoutSeconds + " seconds");
       }
     }
 
