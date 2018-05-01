@@ -26,6 +26,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSyste
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.wm.impl.content.BaseLabel;
 import com.intellij.openapi.wm.impl.content.ContentTabLabelFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,7 +37,7 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class VulkanCrashesTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);

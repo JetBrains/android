@@ -27,6 +27,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.util.StringTextMatcher
 import org.junit.After
 import org.junit.Before
@@ -36,7 +37,7 @@ import org.junit.runner.RunWith
 import java.io.IOException
 import java.net.Socket
 
-@RunWith(GuiTestRunner::class)
+@RunWith(GuiTestRemoteRunner::class)
 class CreateAndRunInstantAppTest {
   @Rule @JvmField val guiTest = GuiTestRule()
   @Rule @JvmField val emulator = EmulatorTestRule()

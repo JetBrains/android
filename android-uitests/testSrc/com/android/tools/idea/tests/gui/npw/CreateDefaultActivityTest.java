@@ -24,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActivityStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
@@ -36,7 +37,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.text.StringUtil.getOccurrenceCount;
 import static org.junit.Assert.assertEquals;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class CreateDefaultActivityTest {
   private static final String PROVIDED_ACTIVITY = "app/src/main/java/google/simpleapplication/MyActivity.java";
   private static final String PROVIDED_MANIFEST = "app/src/main/AndroidManifest.xml";

@@ -24,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Rule;
 import org.junit.Test;
@@ -35,7 +36,7 @@ import java.util.regex.Pattern;
 import static com.android.tools.idea.tests.gui.instantrun.InstantRunTestUtility.extractPidFromOutput;
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class CmakeHotSwapTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

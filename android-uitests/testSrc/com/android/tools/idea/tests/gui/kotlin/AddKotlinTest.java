@@ -21,6 +21,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
@@ -28,7 +29,7 @@ import org.junit.runner.RunWith;
 
 import static com.android.tools.idea.tests.gui.kotlin.ProjectWithKotlinTestUtil.createKotlinFileAndClassAndVerify;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class AddKotlinTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.LinkCppProjectFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,7 +32,7 @@ import static com.android.tools.idea.tests.gui.npw.NewCppProjectTestUtil.createC
 import static com.android.tools.idea.tests.gui.npw.NewCppProjectTestUtil.getExternalNativeBuildRegExp;
 import static com.android.tools.idea.tests.gui.npw.NewCppProjectTestUtil.runAppOnEmulator;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class AddRemoveCppDependencyTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
