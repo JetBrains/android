@@ -28,13 +28,18 @@ fun booleanValues(context: Any?, model: Any?): ListenableFuture<List<ValueDescri
 fun installedSdksAsStrings(context: Any?, model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
   immediateFuture(installedEnvironments().androidSdks.map { ValueDescriptor(it.value.toString(), it.description) })
 
-fun installedSdksAsInts(context: Any?, model: Any?): ListenableFuture<List<ValueDescriptor<Int>>> = immediateFuture(installedEnvironments().androidSdks)
-fun installedBuildTools(context: Any?, model: Any?): ListenableFuture<List<ValueDescriptor<String>>> = immediateFuture(installedEnvironments().buildTools)
-fun installedCompiledApis(context: Any?, model: Any?): ListenableFuture<List<ValueDescriptor<String>>> = immediateFuture(installedEnvironments().compiledApis)
+fun installedSdksAsInts(context: Any?, model: Any?): ListenableFuture<List<ValueDescriptor<Int>>> =
+  immediateFuture(installedEnvironments().androidSdks)
+
+fun installedBuildTools(context: Any?, model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
+  immediateFuture(installedEnvironments().buildTools)
+
+fun installedCompiledApis(context: Any?, model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
+  immediateFuture(installedEnvironments().compiledApis)
 
 fun languageLevels(context: Any?, model: Any?): ListenableFuture<List<ValueDescriptor<LanguageLevel>>> = immediateFuture(listOf(
-    ValueDescriptor(value = LanguageLevel.JDK_1_6, description = "1.6"),
-    ValueDescriptor(value = LanguageLevel.JDK_1_7, description = "1.7"),
-    ValueDescriptor(value = LanguageLevel.JDK_1_8, description = "1.8")
+  ValueDescriptor(value = LanguageLevel.JDK_1_6, description = "Java 6"),
+  ValueDescriptor(value = LanguageLevel.JDK_1_7, description = "Java 7"),
+  ValueDescriptor(value = LanguageLevel.JDK_1_8, description = "Java 8")
 ))
 
