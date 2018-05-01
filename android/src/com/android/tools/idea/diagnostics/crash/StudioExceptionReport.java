@@ -56,6 +56,8 @@ public class StudioExceptionReport extends BaseStudioReport {
 
   @Override
   protected void serializeTo(@NonNull MultipartEntityBuilder builder) {
+    super.serializeTo(builder);
+
     builder.addTextBody(KEY_EXCEPTION_INFO, exceptionInfo);
     // Capture kotlin version for kotlin exceptions.
     if (isKotlinOnStack()) {
