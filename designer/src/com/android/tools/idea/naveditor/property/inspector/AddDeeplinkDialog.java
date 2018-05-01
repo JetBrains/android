@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.property.inspector;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlComponent;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
@@ -28,7 +29,8 @@ import java.net.URISyntaxException;
 import static com.android.SdkConstants.*;
 
 public class AddDeeplinkDialog extends DialogWrapper {
-  private JTextField myUriField;
+  @VisibleForTesting
+  JTextField myUriField;
   private JCheckBox myAutoVerify;
   private JPanel myContentPanel;
 
@@ -56,7 +58,8 @@ public class AddDeeplinkDialog extends DialogWrapper {
       return new ValidationInfo("URI must be set!", myUriField);
     }
     try {
-      new URI(myUriField.getText());
+      // replace placeholders with "dummy"
+      new URI(myUriField.getText().replaceAll("\\{[^}]*\\}", "dummy"));
     }
     catch (URISyntaxException e) {
       return new ValidationInfo("Invalid URI!", myUriField);
