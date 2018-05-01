@@ -17,9 +17,7 @@ package com.android.tools.idea.editors.strings;
 
 import com.android.tools.adtui.font.FontUtil;
 import com.android.tools.idea.actions.BrowserHelpAction;
-import com.android.tools.idea.editors.strings.table.StringResourceTable;
-import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
-import com.android.tools.idea.editors.strings.table.StringTableCellEditor;
+import com.android.tools.idea.editors.strings.table.*;
 import com.android.tools.idea.rendering.Locale;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
@@ -32,19 +30,19 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLoadingPanel;
-import com.intellij.ui.table.JBTable;
+import com.intellij.uiDesigner.core.GridConstraints;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.event.DocumentListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusListener;
 
-final class StringResourceViewPanel implements Disposable {
+public final class StringResourceViewPanel implements Disposable {
   private final JBLoadingPanel myLoadingPanel;
   private JPanel myContainer;
   private StringResourceTable myTable;
@@ -61,18 +59,20 @@ final class StringResourceViewPanel implements Disposable {
 
   StringResourceViewPanel(AndroidFacet facet, Disposable parentDisposable) {
     myFacet = facet;
-
-    myLoadingPanel = new JBLoadingPanel(new BorderLayout(), this, 200);
-    myLoadingPanel.setName("translationsEditor");
-    myLoadingPanel.add(myContainer);
-
-    ActionToolbar toolbar = createToolbar();
-    myToolbarPanel.add(toolbar.getComponent(), BorderLayout.CENTER);
-
-    initTable();
     Disposer.register(parentDisposable, this);
 
+    myToolbarPanel.add(createToolbar().getComponent());
+
+    GridConstraints constraints = new GridConstraints();
+    constraints.setFill(GridConstraints.FILL_BOTH);
+    constraints.setRow(1);
+
+    myContainer.add(myTable.getScrollPane(), constraints);
+
+    myLoadingPanel = new JBLoadingPanel(new BorderLayout(), this, 200);
     myLoadingPanel.setLoadingText("Loading string resource data");
+    myLoadingPanel.setName("translationsEditor");
+    myLoadingPanel.add(myContainer);
     myLoadingPanel.startLoading();
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
@@ -111,14 +111,15 @@ final class StringResourceViewPanel implements Disposable {
   }
 
   private void createTable() {
-    myTable = new StringResourceTable();
-
     myRemoveKeysAction = new RemoveKeysAction(this);
     myDeleteAction = new DeleteStringAction(this);
     myGoToAction = new GoToDeclarationAction(this);
 
-    ActionMap actionMap = myTable.getActionMap();
-    actionMap.put("delete", myDeleteAction);
+    myTable = new StringResourceTable();
+
+    myTable.putInActionMap("delete", myDeleteAction);
+    myTable.addFrozenColumnTableListener(new CellSelectionListener());
+    myTable.addFrozenColumnTableListener(new RemoveLocaleMouseListener(this));
   }
 
   private void createTablePopupMenu() {
@@ -126,25 +127,15 @@ final class StringResourceViewPanel implements Disposable {
     JMenuItem goTo = menu.add(myGoToAction);
     JMenuItem delete = menu.add(myDeleteAction);
 
-    myTable.addMouseListener(new MouseAdapter() {
+    myTable.addFrozenColumnTableListener(new FrozenColumnTableListener() {
       @Override
-      public void mousePressed(@NotNull MouseEvent e) {
-        openPopup(e);
-      }
+      public void cellPopupTriggered(@NotNull FrozenColumnTableEvent event) {
+        myGoToAction.update(goTo, event);
+        myDeleteAction.update(delete, event);
 
-      @Override
-      public void mouseReleased(@NotNull MouseEvent e) {
-        openPopup(e);
-      }
-
-      private void openPopup(@NotNull MouseEvent e) {
-        if (!e.isPopupTrigger()) {
-          return;
-        }
-        myGoToAction.update(goTo, e);
-        myDeleteAction.update(delete, e);
         if (goTo.isVisible() || delete.isVisible()) {
-          menu.show(myTable, e.getX(), e.getY());
+          Point point = event.getPoint();
+          menu.show(event.getSubcomponent(), point.x, point.y);
         }
       }
     });
@@ -159,7 +150,7 @@ final class StringResourceViewPanel implements Disposable {
   }
 
   private void createTranslationTextField() {
-    JTextField textField = new TranslationsEditorTextField(myTable, myTable::getSelectedColumnModelIndex);
+    JTextField textField = new TranslationsEditorTextField(myTable, myTable::getSelectedModelColumnIndex);
     new TranslationsEditorPasteAction().registerCustomShortcutSet(textField, this);
 
     myTranslationTextField = new TextFieldWithBrowseButton(textField, new ShowMultilineActionListener(), this);
@@ -197,36 +188,24 @@ final class StringResourceViewPanel implements Disposable {
     return toolbar;
   }
 
-  private void initTable() {
-    ListSelectionListener listener = new CellSelectionListener();
-
-    myTable.getColumnModel().getSelectionModel().addListSelectionListener(listener);
-    myTable.getSelectionModel().addListSelectionListener(listener);
-
-    myTable.getTableHeader().addMouseListener(new RemoveLocaleMouseListener(this));
-  }
-
   @NotNull
   JBLoadingPanel getLoadingPanel() {
     return myLoadingPanel;
   }
 
   @NotNull
-  public JBTable getPreferredFocusedComponent() {
+  public StringResourceTable getTable() {
     return myTable;
   }
 
-  StringResourceTable getTable() {
-    return myTable;
+  @NotNull
+  JComponent getPreferredFocusedComponent() {
+    return myTable.getScrollableTable();
   }
 
-  private class CellSelectionListener implements ListSelectionListener {
+  private final class CellSelectionListener implements FrozenColumnTableListener {
     @Override
-    public void valueChanged(ListSelectionEvent e) {
-      if (e.getValueIsAdjusting()) {
-        return;
-      }
-
+    public void selectedCellChanged() {
       if (myTable.getSelectedColumnCount() != 1 || myTable.getSelectedRowCount() != 1) {
         setTextAndEditable(myKeyTextField, "", false);
         setTextAndEditable(myDefaultValueTextField.getTextField(), "", false);
@@ -241,8 +220,8 @@ final class StringResourceViewPanel implements Disposable {
       myTranslationTextField.setEnabled(true);
       StringResourceTableModel model = myTable.getModel();
 
-      int row = myTable.getSelectedRowModelIndex();
-      int column = myTable.getSelectedColumnModelIndex();
+      int row = myTable.getSelectedModelRowIndex();
+      int column = myTable.getSelectedModelColumnIndex();
       Object locale = model.getLocale(column);
 
       // TODO: Keys are not editable; we want them to be refactor operations
@@ -294,8 +273,8 @@ final class StringResourceViewPanel implements Disposable {
         return;
       }
 
-      int row = myTable.getSelectedRowModelIndex();
-      int column = myTable.getSelectedColumnModelIndex();
+      int row = myTable.getSelectedModelRowIndex();
+      int column = myTable.getSelectedModelColumnIndex();
 
       StringResourceTableModel model = myTable.getModel();
       String value = (String)model.getValueAt(row, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
