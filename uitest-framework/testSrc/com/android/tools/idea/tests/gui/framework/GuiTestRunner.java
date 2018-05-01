@@ -29,6 +29,7 @@ import org.junit.runners.model.TestClass;
 import java.awt.*;
 import java.lang.reflect.Method;
 
+@Deprecated
 public class GuiTestRunner extends BlockJUnit4ClassRunner {
   protected final TargetBuildSystem.BuildSystem myBuildSystem;
   private TestClass myTestClass;
