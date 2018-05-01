@@ -35,26 +35,6 @@ class ParsedValueTest {
   }
 
   @Test
-  fun parsedValueGetText_wellKnownValue() {
-    assertThat(ParsedValue.NotSet.getText(mapOf(null to "(def)", 1 to "one")), equalTo("(def)"))
-    assertThat(
-      ParsedValue.Set.Parsed(1, DslText(mode = DslMode.LITERAL, text = "1")).getText(
-        mapOf(null to "(def)", 1 to "one")
-      ), equalTo("one")
-    )
-    assertThat(ParsedValue.Set.Parsed("a").getText(mapOf("AA" as String? to "Long text")), equalTo("a"))
-    assertThat(ParsedValue.Set.Parsed("AA").getText(mapOf("AA" as String? to "Long text")), equalTo("Long text"))
-    assertThat(ParsedValue.Set.Parsed(1, DslText(mode = DslMode.REFERENCE, text = "var")).getText(), equalTo("\$var"))
-    assertThat(
-      ParsedValue.Set.Parsed(
-        "AA",
-        DslText(mode = DslMode.REFERENCE, text = "var")
-      ).getText(mapOf("AA" as String? to "Variables are more important")),
-      equalTo("\$var")
-    )
-  }
-
-  @Test
   fun parsedValueGetText_unparsed() {
     assertThat(
       ParsedValue.Set.Parsed(value = null, dslText = DslText(mode = DslMode.OTHER_UNPARSED_DSL_TEXT, text = "doSomething()")).getText(),
