@@ -54,7 +54,7 @@ final class RemoveKeysAction extends AnAction {
     StringResourceRepository repository = model.getRepository();
     Project project = myPanel.getFacet().getModule().getProject();
 
-    PsiElement[] keys = Arrays.stream(table.getSelectedRowModelIndices())
+    PsiElement[] keys = Arrays.stream(table.getSelectedModelRowIndices())
       .mapToObj(index -> model.getStringResourceAt(index).getKey())
       .flatMap(key -> repository.getItems(key).stream())
       .map(item -> LocalResourceRepository.getItemTag(project, item))

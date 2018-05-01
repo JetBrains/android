@@ -39,10 +39,13 @@ public class StringsCellRenderer extends ColoredTableCellRenderer {
       s = clip(s);
     }
 
-    row = table.convertRowIndexToModel(row);
-    column = table.convertColumnIndexToModel(column);
+    // TODO(b/80482325) SubTableModel is leaking here. FrozenColumnTable clients should be completely unaware of it.
+    SubTableModel model = (SubTableModel)table.getModel();
 
-    String problem = ((StringResourceTableModel)table.getModel()).getCellProblem(row, column);
+    row = table.convertRowIndexToModel(row);
+    column = model.convertColumnIndexToDelegate(table.convertColumnIndexToModel(column));
+
+    String problem = ((StringResourceTableModel)model.delegate()).getCellProblem(row, column);
     SimpleTextAttributes attributes;
 
     if (problem == null) {
