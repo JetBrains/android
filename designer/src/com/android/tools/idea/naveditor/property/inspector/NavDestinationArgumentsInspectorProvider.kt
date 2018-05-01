@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.naveditor.property.inspector
 
-import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.editors.NlComponentEditor
@@ -30,14 +29,13 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.uibuilder.property.editors.BrowsePanel
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener
 import com.android.tools.idea.uibuilder.property.editors.NlTableCellEditor
-import com.intellij.icons.AllIcons
 import com.intellij.ui.InplaceButton
-import com.intellij.ui.JBColor
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
@@ -159,7 +157,7 @@ class NavDestinationArgumentsInspectorProvider : InspectorProvider<NavProperties
       table.columnModel.getColumn(2).cellEditor = cellEditor
 
       panel.add(table, BorderLayout.CENTER)
-      val plus = InplaceButton("Add Argument", addIcon) {
+      val plus = InplaceButton("Add Argument", StudioIcons.Common.ADD) {
         table.cellEditor?.stopCellEditing()
         argumentProperty.addRow()
         tableModel.fireTableDataChanged()
@@ -209,5 +207,3 @@ private class MyCellRenderer(emptyText: String) : TableCellRenderer {
     }
   }
 }
-
-private val addIcon = ColoredIconGenerator.generateColoredIcon(AllIcons.General.Add, JBColor.GRAY.rgb)
