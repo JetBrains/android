@@ -26,6 +26,9 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.awt.font.TextAttribute;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -69,6 +72,8 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
       liveDotWrapper.setBorder(TOOLBAR_ICON_BORDER);
       liveDotWrapper.setOpaque(false);
       LiveSessionDot liveDot = new LiveSessionDot();
+      liveDot.setToolTipText("Currently Profiling");
+      addMouseListeningComponents(liveDot);
       liveDotWrapper.add(liveDot, BorderLayout.CENTER);
       panel.add(liveDotWrapper, new TabularLayout.Constraint(0, 1));
     }
@@ -76,6 +81,9 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
     JLabel sessionName = new JLabel(getArtifact().getName());
     sessionName.setBorder(LABEL_PADDING);
     sessionName.setFont(STATUS_FONT);
+    // Display a tooltip in case there isn't enough space to show the full name in the session's panel.
+    sessionName.setToolTipText(getArtifact().getName());
+    addMouseListeningComponents(sessionName);
     panel.add(sessionName, new TabularLayout.Constraint(1, 0, 1, 3));
 
     JLabel durationLabel = new JLabel(getArtifact().getSubtitle());

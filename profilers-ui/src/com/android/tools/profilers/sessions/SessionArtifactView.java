@@ -16,11 +16,9 @@
 package com.android.tools.profilers.sessions;
 
 import com.android.tools.adtui.TabularLayout;
-import com.android.tools.adtui.TooltipComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.ContextMenuInstaller;
-import com.android.tools.profilers.ProfilerLayeredPane;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.intellij.util.ui.AsyncProcessIcon;
@@ -34,6 +32,7 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.Collections;
 
 import static com.android.tools.profilers.ProfilerColors.HOVERED_SESSION_COLOR;
@@ -60,16 +59,13 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
 
   @NotNull private final JComponent myArtifactView;
 
-  @NotNull private final TooltipComponent myTooltipComponent;
-  /**
-   * This is essentially a clone of myArtifactView used for display in the TooltipComponent.
-   */
-  @NotNull private final JComponent myTooltipArtifactView;
+  @NotNull private final java.util.List<JComponent> myMouseListeningComponents;
 
   public SessionArtifactView(@NotNull ArtifactDrawInfo artifactDrawInfo, @NotNull T artifact) {
     myArtifactDrawInfo = artifactDrawInfo;
     myArtifact = artifact;
     myObserver = new AspectObserver();
+    myMouseListeningComponents = new ArrayList<>();
 
     myArtifactView = buildComponent();
     myArtifactView.setBackground(HOVERED_SESSION_COLOR);
@@ -77,43 +73,12 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
     setLayout(new BorderLayout());
     add(myArtifactView, BorderLayout.CENTER);
 
-    initializeListeners();
-
     // Context menus set up
     ContextMenuInstaller contextMenuInstaller = artifactDrawInfo.mySessionsView.getIdeProfilerComponents().createContextMenuInstaller();
     getContextMenus().forEach(menu -> contextMenuInstaller.installGenericContextMenu(this, menu));
-    // The tooltip view mimics exactly what's shown in the Sessions panel. But by wrapping it in a TooltipComponent it appears floating
-    // when the Sessions panel does not have enough space to show the entire view.
-    myTooltipArtifactView = buildComponent();
-    myTooltipArtifactView.setBackground(HOVERED_SESSION_COLOR);
-    myTooltipComponent = new TooltipComponent.Builder(myTooltipArtifactView, this)
-      .setPreferredParentClass(ProfilerLayeredPane.class)
-      .setAnchored(true)
-      .setShowDropShadow(false)
-      .build();
-    myTooltipComponent.registerListenersOn(this);
-  }
 
-  private void initializeListeners() {
-    // Mouse listener to handle selection and hover effects.
-    addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        if (SwingUtilities.isLeftMouseButton(e)) {
-          myArtifact.onSelect();
-        }
-      }
-
-      @Override
-      public void mouseEntered(MouseEvent e) {
-        showHoverState(true);
-      }
-
-      @Override
-      public void mouseExited(MouseEvent e) {
-        showHoverState(false);
-      }
-    });
+    addMouseListeningComponents(this);
+    initializeMouseListeners();
 
     addComponentListener(new ComponentAdapter() {
       @Override
@@ -127,6 +92,39 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
         }
       }
     });
+  }
+
+  /**
+   * Adding other mouse listeners (e.g. setting tooltips) in children components within the SessionArtifactView will prevent mouse events
+   * to propagate to the view itself for handling common logic such as selection and hover. Here we can add those children components to
+   * also handle the common logic on their own.
+   */
+  protected void addMouseListeningComponents(@NotNull JComponent comp) {
+    myMouseListeningComponents.add(comp);
+  }
+
+  private void initializeMouseListeners() {
+    for (JComponent comp : myMouseListeningComponents) {
+      // Mouse listener to handle selection and hover effects.
+      comp.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+          if (SwingUtilities.isLeftMouseButton(e)) {
+            myArtifact.onSelect();
+          }
+        }
+
+        @Override
+        public void mouseEntered(MouseEvent e) {
+          showHoverState(true);
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+          showHoverState(false);
+        }
+      });
+    }
   }
 
   @NotNull
@@ -158,15 +156,9 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
 
   protected abstract JComponent buildComponent();
 
-  private void showHoverState(boolean hover) {
-    boolean isTooltipNeeded = getSize().width < myTooltipArtifactView.getPreferredSize().width;
+  protected void showHoverState(boolean hover) {
     myArtifactView.setOpaque(hover);
-    if (isTooltipNeeded) {
-      myTooltipArtifactView.setVisible(isTooltipNeeded);
-    }
-    else {
-      myArtifactView.repaint();
-    }
+    myArtifactView.repaint();
   }
 
   /**
