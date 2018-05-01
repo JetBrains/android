@@ -22,13 +22,15 @@ import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
 import com.android.tools.idea.observable.core.*;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
-import com.android.tools.idea.templates.Parameter;
-import com.android.tools.idea.templates.TemplateManager;
+import com.android.tools.idea.templates.*;
 import com.android.tools.idea.wizard.model.WizardModel;
+import com.google.common.collect.Maps;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
 
@@ -92,7 +94,7 @@ public final class NewProjectModuleModel extends WizardModel {
     String projectLocation = myProjectModel.projectLocation().get();
     boolean hasCompanionApp = myHasCompanionApp.get();
 
-    myNewModuleModel.moduleName().set(hasCompanionApp ? getModuleName(myFormFactor.get()) : SdkConstants.APP_PREFIX);
+    initMainModule();
 
     Map<String, Object> projectTemplateValues = myProjectModel.getTemplateValues();
     addModuleToProject(myNewModuleModel, myFormFactor.get(), myProjectModel, projectTemplateValues);
@@ -120,7 +122,7 @@ public final class NewProjectModuleModel extends WizardModel {
       myNewModuleModel.setDefaultRenderTemplateValues(newRenderTemplateModel, project);
     }
     else {
-      addRenderDefaultTemplateValues(newRenderTemplateModel.getTemplateHandle(), newRenderTemplateModel.getTemplateValues());
+      addRenderDefaultTemplateValues(newRenderTemplateModel);
       myNewModuleModel.getRenderTemplateValues().setValue(newRenderTemplateModel.getTemplateValues());
     }
 
@@ -134,6 +136,22 @@ public final class NewProjectModuleModel extends WizardModel {
     else {
       newRenderTemplateModel.handleFinished();
     }
+  }
+
+  private void initMainModule() {
+    String moduleName;
+    if (myHasCompanionApp.get()) {
+      moduleName = getModuleName(myFormFactor.get());
+    }
+    else if (myNewModuleModel.instantApp().get()) {
+      moduleName = myNewModuleModel.splitName().get();
+      myNewModuleModel.packageName().set(myNewModuleModel.computedFeatureModulePackageName().get());
+    }
+    else {
+      moduleName = SdkConstants.APP_PREFIX;
+    }
+
+    myNewModuleModel.moduleName().set(moduleName);
   }
 
   @NotNull
@@ -180,7 +198,7 @@ public final class NewProjectModuleModel extends WizardModel {
     TemplateHandle renderTemplateHandle = new TemplateHandle(renderTemplateFile);
 
     RenderTemplateModel companionRenderModel = new RenderTemplateModel(moduleModel, renderTemplateHandle, namedModuleTemplate, "");
-    addRenderDefaultTemplateValues(renderTemplateHandle, companionRenderModel.getTemplateValues());
+    addRenderDefaultTemplateValues(companionRenderModel);
 
     return companionRenderModel;
   }
@@ -194,14 +212,28 @@ public final class NewProjectModuleModel extends WizardModel {
     return formFactor.id.replaceAll("\\s", "_").toLowerCase(Locale.US);
   }
 
-  private static void addRenderDefaultTemplateValues(@NotNull TemplateHandle templateHandle, @NotNull Map<String, Object> templateValues) {
-    for (Parameter parameter : templateHandle.getMetadata().getParameters()) {
-      if (parameter.type == Parameter.Type.STRING) {
-        templateValues.put(parameter.id, parameter.initial);
-      }
-      else if (parameter.type == Parameter.Type.BOOLEAN) {
-        templateValues.put(parameter.id, Boolean.valueOf(parameter.initial));
-      }
+  private static void addRenderDefaultTemplateValues(RenderTemplateModel renderTemplateModel) {
+    Map<String, Object>  templateValues = renderTemplateModel.getTemplateValues();
+    TemplateMetadata templateMetadata = renderTemplateModel.getTemplateHandle().getMetadata();
+    Map<Parameter, Object> userValues = Maps.newHashMap();
+    Map<String, Object>  additionalValues = Maps.newHashMap();
+
+    String packageName = renderTemplateModel.packageName().get();
+    boolean isInstantApp = renderTemplateModel.instantApp().get();
+    new TemplateValueInjector(additionalValues)
+      .addTemplateAdditionalValues(packageName, isInstantApp, renderTemplateModel.getTemplate());
+    additionalValues.put(ATTR_PACKAGE_NAME, renderTemplateModel.packageName().get());
+
+    try {
+      Collection<Parameter> renderParameters = templateMetadata.getParameters();
+      Map<Parameter, Object> parameterValues = ParameterValueResolver.resolve(renderParameters, userValues, additionalValues);
+      parameterValues.forEach(((parameter, value) -> templateValues.put(parameter.id, value)));
+    } catch (CircularParameterDependencyException e) {
+      getLog().error("Circular dependency between parameters in template %1$s", e, templateMetadata.getTitle());
     }
+  }
+
+  private static Logger getLog() {
+    return Logger.getInstance(NewProjectModuleModel.class);
   }
 }

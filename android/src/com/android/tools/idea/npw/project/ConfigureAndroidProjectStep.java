@@ -196,8 +196,11 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   @Override
   protected void onProceeding() {
     myProjectModel.enableKotlinSupport().set(myProjectLanguage.getSelectedItem() == Language.KOTLIN);
-    getModel().hasCompanionApp()
-      .set((myWearCheck.isVisible() && myWearCheck.isSelected()) || (myTvCheck.isVisible() && myTvCheck.isSelected()));
+    getModel().hasCompanionApp().set(
+      (myWearCheck.isVisible() && myWearCheck.isSelected()) ||
+      (myTvCheck.isVisible() && myTvCheck.isSelected()) ||
+      getModel().formFactor().get() == FormFactor.CAR // Auto is not a standalone module (but rather a modification to a mobile module)
+    );
 
     myInstallRequests.clear();
     myInstallLicenseRequests.clear();

@@ -67,7 +67,6 @@ import java.util.*;
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
-import static com.android.tools.idea.npw.model.NewProjectModel.getInitialDomain;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 /**
@@ -378,12 +377,11 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
 
     try {
       int projectType = getModel().getAndroidFacet() == null ? -1 : getModel().getAndroidFacet().getConfiguration().getProjectType();
+      boolean isInstantApp = projectType == PROJECT_TYPE_FEATURE || getModel().instantApp().get();
+
       Map<String, Object> additionalValues = Maps.newHashMap();
-      additionalValues.put(ATTR_PACKAGE_NAME, getModel().packageName().get());
-      ObjectProperty<NamedModuleTemplate> template = getModel().getTemplate();
-      additionalValues.put(ATTR_SOURCE_PROVIDER_NAME, template.get().getName());
-      additionalValues.put(ATTR_IS_INSTANT_APP, projectType == PROJECT_TYPE_FEATURE || getModel().instantApp().get());
-      additionalValues.put(ATTR_COMPANY_DOMAIN, getInitialDomain(false));
+      new TemplateValueInjector(additionalValues)
+        .addTemplateAdditionalValues(getModel().packageName().get(), isInstantApp, getModel().getTemplate());
 
       Map<String, Object> allValues = Maps.newHashMap(additionalValues);
 
