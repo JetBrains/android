@@ -68,6 +68,13 @@ interface ModelPropertyContext<in ContextT, in ModelT, ValueT : Any> {
   fun parse(context: ContextT, value: String): ParsedValue<ValueT>
 
   /**
+   * Formats the text representation of [value].
+   *
+   * This is up to the parser to decide whether [value] is valid, invalid or is a DSL expression.
+   */
+  fun format(context: ContextT, value: ValueT): String
+
+  /**
    * Returns a list of well-known values (constants) with their short human-readable descriptions that are applicable to the property.
    */
   fun getKnownValues(context: ContextT, model: ModelT): ListenableFuture<List<ValueDescriptor<ValueT>>>
@@ -131,7 +138,15 @@ fun <ContextT, ModelT, PropertyT : Any> ModelSimpleProperty<ContextT, ModelT, Pr
 
     override fun parse(context: ContextT, value: String): ParsedValue<PropertyT> = it.parse(context, value)
 
+    override fun format(context: ContextT, value: PropertyT): String = it.format(context, value)
+
     override fun getKnownValues(context: ContextT, model: Unit): ListenableFuture<List<ValueDescriptor<PropertyT>>> =
       it.getKnownValues(context, boundModel)
   }
 }
+
+/**
+ * Creates a value formatter function that can be passed to [ParsedValue] renderers.
+ */
+fun <ContextT, ModelT, ValueT : Any> ModelPropertyContext<ContextT, ModelT, ValueT>.valueFormatter(context: ContextT): ValueT.() -> String =
+  { this@valueFormatter.format(context, this) }

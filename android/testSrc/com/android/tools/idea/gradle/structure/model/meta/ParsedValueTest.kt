@@ -23,21 +23,24 @@ class ParsedValueTest {
 
   @Test
   fun parsedValueGetText() {
-    assertThat(ParsedValue.NotSet.getText(), equalTo(""))
-    assertThat(ParsedValue.Set.Parsed(1, DslText(mode = DslMode.LITERAL, text = "1")).getText(), equalTo("1"))
-    assertThat(ParsedValue.Set.Parsed("a", DslText(mode = DslMode.LITERAL, text = "1")).getText(), equalTo("a"))
-    assertThat(ParsedValue.Set.Parsed("AA", DslText(mode = DslMode.REFERENCE, text = "var")).getText(), equalTo("\$var"))
+
+    assertThat(ParsedValue.NotSet.getText(Any::testToString), equalTo(""))
+    assertThat(ParsedValue.Set.Parsed(1, DslText(mode = DslMode.LITERAL, text = "1")).getText(Any::testToString), equalTo("1@"))
+    assertThat(ParsedValue.Set.Parsed("a", DslText(mode = DslMode.LITERAL, text = "1")).getText(Any::testToString), equalTo("a@"))
+    assertThat(ParsedValue.Set.Parsed("AA", DslText(mode = DslMode.REFERENCE, text = "var")).getText(Any::testToString), equalTo("\$var"))
     assertThat(
-      ParsedValue.Set.Parsed("Z QQ Z", DslText(mode = DslMode.INTERPOLATED_STRING, text = "Z \$var Z")).getText(),
+      ParsedValue.Set.Parsed("Z QQ Z", DslText(mode = DslMode.INTERPOLATED_STRING, text = "Z \$var Z")).getText(Any::testToString),
       equalTo("\"Z \$var Z\"")
     )
-    assertThat(ParsedValue.Set.Invalid<String>("fun1()", "cannot be parsed").getText(), equalTo("\$\$fun1()"))
+    assertThat(ParsedValue.Set.Invalid<String>("fun1()", "cannot be parsed").getText(Any::testToString), equalTo("\$\$fun1()"))
   }
 
   @Test
   fun parsedValueGetText_unparsed() {
     assertThat(
-      ParsedValue.Set.Parsed(value = null, dslText = DslText(mode = DslMode.OTHER_UNPARSED_DSL_TEXT, text = "doSomething()")).getText(),
+      ParsedValue.Set.Parsed(
+        value = null,
+        dslText = DslText(mode = DslMode.OTHER_UNPARSED_DSL_TEXT, text = "doSomething()")).getText(Any::testToString),
       equalTo("\$\$doSomething()")
     )
   }
@@ -90,3 +93,7 @@ class ParsedValueTest {
   }
 
 }
+
+// Use custom toString() in tests to ensure it is called when it is appropriate.
+private fun Any.testToString() = toString() + "@"
+

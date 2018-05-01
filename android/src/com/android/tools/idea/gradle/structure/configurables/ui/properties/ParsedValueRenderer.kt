@@ -42,7 +42,11 @@ private val codeAttributes = SimpleTextAttributes.REGULAR_ATTRIBUTES.derive(STYL
 /**
  * Renders the receiver to the [textRenderer] with any known values handled by renderers from [knownValues].
  */
-fun <PropertyT : Any> ParsedValue<PropertyT>.renderTo(textRenderer: TextRenderer, knownValues: Map<PropertyT?, ValueRenderer>) =
+fun <PropertyT : Any> ParsedValue<PropertyT>.renderTo(
+  textRenderer: TextRenderer,
+  formatValue: PropertyT.() -> String,
+  knownValues: Map<PropertyT?, ValueRenderer>
+) =
   let { value ->
     val knownRenderer = when {
       value === ParsedValue.NotSet -> knownValues[null]
@@ -52,7 +56,7 @@ fun <PropertyT : Any> ParsedValue<PropertyT>.renderTo(textRenderer: TextRenderer
     when {
       knownRenderer != null -> knownRenderer.renderTo(textRenderer)
       value is ParsedValue.Set.Parsed && value.dslText?.mode == DslMode.REFERENCE -> {
-        textRenderer.append(value.getText(), variableNameAttributes)
+        textRenderer.append(value.getText(formatValue), variableNameAttributes)
         if (value.value != null) {
           textRenderer.append(" : ", commentAttributes)
           val valueDescription = knownValues[value.value]
@@ -60,14 +64,14 @@ fun <PropertyT : Any> ParsedValue<PropertyT>.renderTo(textRenderer: TextRenderer
             valueDescription.renderTo(makeCommentRenderer(textRenderer))
           }
           else {
-            textRenderer.append(value.value.toString(), commentAttributes)
+            textRenderer.append(value.value.formatValue(), commentAttributes)
           }
         }
       }
       value is ParsedValue.Set.Parsed && value.dslText?.mode == DslMode.INTERPOLATED_STRING -> {
-        textRenderer.append(value.getText(), variableNameAttributes)
+        textRenderer.append(value.getText(formatValue), variableNameAttributes)
         if (value.value != null) {
-          textRenderer.append(" : \"${value.value}\"", commentAttributes)
+          textRenderer.append(" : \"${value.value.formatValue()}\"", commentAttributes)
         }
       }
       value is ParsedValue.Set.Parsed && value.dslText?.mode == DslMode.OTHER_UNPARSED_DSL_TEXT -> {
@@ -78,7 +82,7 @@ fun <PropertyT : Any> ParsedValue<PropertyT>.renderTo(textRenderer: TextRenderer
         textRenderer.append("${value.dslText} ", regularAttributes)
         textRenderer.append("(${value.errorMessage.takeUnless { it == "" } ?: "invalid value"})", errorAttributes)
       }
-      else -> textRenderer.append(value.getText(), regularAttributes)
+      else -> textRenderer.append(value.getText(formatValue), regularAttributes)
     }
   }
 
@@ -86,7 +90,7 @@ fun <PropertyT : Any> ParsedValue<PropertyT>.renderTo(textRenderer: TextRenderer
  * Builds renderers for known values described by [ValueDescriptor]s.
  */
 fun <PropertyT : Any> buildKnownValueRenderers(
-  knownValues: List<ValueDescriptor<PropertyT>>?, defaultValue: PropertyT?
+  knownValues: List<ValueDescriptor<PropertyT>>?, formatValue: PropertyT.() -> String, defaultValue: PropertyT?
 ): Map<PropertyT?, ValueRenderer> {
   val knownValuesMap = knownValues?.associate { it.value to it.description }.orEmpty()
   val result = mutableListOf<Pair<PropertyT?, ValueRenderer>>()
@@ -96,7 +100,7 @@ fun <PropertyT : Any> buildKnownValueRenderers(
     result.add(null to object : ValueRenderer {
       override fun renderTo(textRenderer: TextRenderer) {
         val defaultValueDescription = knownValuesMap[defaultValue]
-        textRenderer.append(defaultValue.toString(), defaultAttributes)
+        textRenderer.append(defaultValue.formatValue(), defaultAttributes)
         if (defaultValueDescription != null) {
           textRenderer.append(" ($defaultValueDescription)", defaultAttributes)
         }
@@ -108,11 +112,11 @@ fun <PropertyT : Any> buildKnownValueRenderers(
       it.value to object : ValueRenderer {
         override fun renderTo(textRenderer: TextRenderer) {
           if (it.description != null) {
-            textRenderer.append(it.value?.let { it.toString() + " " } ?: "", regularAttributes)
+            textRenderer.append(it.value?.let { it.formatValue() + " " } ?: "", regularAttributes)
             textRenderer.append("(${it.description})", commentAttributes)
           }
           else {
-            textRenderer.append(it.value?.toString() ?: "", regularAttributes)
+            textRenderer.append(it.value?.formatValue() ?: "", regularAttributes)
           }
         }
       }
