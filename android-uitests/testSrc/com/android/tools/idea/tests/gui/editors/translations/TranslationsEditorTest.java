@@ -90,11 +90,10 @@ public final class TranslationsEditorTest {
 
   private void openTranslationsEditor(@NotNull Path path) {
     EditorFixture editor = myGuiTest.ideFrame().getEditor();
+    editor.open(path, Tab.EDITOR);
 
-    EditorNotificationPanelFixture notificationPanel = editor.open(path, Tab.EDITOR)
-      .awaitNotification("Edit translations for all locales in the translations editor.");
-
-    notificationPanel.performAction("Open editor");
+    EditorNotificationPanelFixture panel = editor.awaitNotification("Edit translations for all locales in the translations editor.");
+    panel.performAction("Open editor");
 
     editor.getTranslationsEditor().finishLoading();
   }
@@ -188,9 +187,9 @@ public final class TranslationsEditorTest {
     table.pressAndReleaseKey(TableCell.row(1).column(KEY_COLUMN), KeyPressInfo.keyCode(KeyEvent.VK_DELETE));
 
     DeleteDialogFixture.find(myGuiTest.robot(), "Delete")
-      .safe(false)
-      .clickOk()
-      .waitUntilNotShowing();
+                       .safe(false)
+                       .clickOk()
+                       .waitUntilNotShowing();
 
     translationsEditor.finishLoading();
     assertEquals(Arrays.asList("app_name", "action_settings", "some_id", "cancel", "app_name"), table.columnAt(KEY_COLUMN));
@@ -214,9 +213,9 @@ public final class TranslationsEditorTest {
     table.pressAndReleaseKey(TableCell.row(1).column(KEY_COLUMN), KeyPressInfo.keyCode(KeyEvent.VK_DELETE));
 
     DeleteDialogFixture.find(myGuiTest.robot(), "Delete")
-      .clickOk()
-      .waitForUnsafeDialog()
-      .deleteAnyway();
+                       .clickOk()
+                       .waitForUnsafeDialog()
+                       .deleteAnyway();
 
     translationsEditor.finishLoading();
     assertEquals(Arrays.asList("app_name", "action_settings", "some_id", "cancel", "app_name"), table.columnAt(KEY_COLUMN));
@@ -289,8 +288,8 @@ public final class TranslationsEditorTest {
       int width = optionalWidth.getAsInt();
 
       IntStream.range(DEFAULT_VALUE_COLUMN, table.getColumnCount())
-        .mapToObj(table::getColumn)
-        .forEach(column -> assertEquals(width, column.getPreferredWidth()));
+               .mapToObj(table::getColumn)
+               .forEach(column -> assertEquals(width, column.getPreferredWidth()));
     }
     else {
       fail();

@@ -120,10 +120,7 @@ public final class StringResourceTable extends FrozenColumnTable {
   @Override
   public void setModel(@NotNull TableModel model) {
     super.setModel(model);
-    TableRowSorter<StringResourceTableModel> sorter = getRowSorter();
-    if (sorter != null) { // can be null when called from constructor
-      sorter.setModel(getModel());
-    }
+    getRowSorter().setModel((StringResourceTableModel)model);
 
     if (myColumnPreferredWidthsSet) {
       return;
@@ -141,8 +138,8 @@ public final class StringResourceTable extends FrozenColumnTable {
       int width = optionalWidth.getAsInt();
 
       IntStream.range(convertColumnIndexToView(StringResourceTableModel.DEFAULT_VALUE_COLUMN), getColumnCount())
-        .mapToObj(this::getColumn)
-        .forEach(column -> column.setPreferredWidth(width));
+               .mapToObj(this::getColumn)
+               .forEach(column -> column.setPreferredWidth(width));
     }
 
     myColumnPreferredWidthsSet = true;
@@ -169,8 +166,8 @@ public final class StringResourceTable extends FrozenColumnTable {
   @VisibleForTesting
   public OptionalInt getDefaultValueAndLocaleColumnPreferredWidths() {
     return IntStream.range(convertColumnIndexToView(StringResourceTableModel.DEFAULT_VALUE_COLUMN), getColumnCount())
-      .map(column -> getPreferredWidth(getHeaderRenderer(column), getColumnName(column), -1, column))
-      .max();
+                    .map(column -> getPreferredWidth(getHeaderRenderer(column), getColumnName(column), -1, column))
+                    .max();
   }
 
   @NotNull

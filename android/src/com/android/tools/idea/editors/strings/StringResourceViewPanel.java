@@ -89,13 +89,21 @@ public final class StringResourceViewPanel implements Disposable {
   }
 
   void addDocumentListener(@NotNull DocumentListener listener) {
-    ((StringTableCellEditor)myTable.getDefaultEditor(String.class)).getComponent().getDocument().addDocumentListener(listener);
+    StringTableCellEditor editor = (StringTableCellEditor)myTable.getDefaultEditor(String.class);
+    assert editor != null;
+
+    editor.getComponent().getDocument().addDocumentListener(listener);
+
     myDefaultValueTextField.getTextField().getDocument().addDocumentListener(listener);
     myTranslationTextField.getTextField().getDocument().addDocumentListener(listener);
   }
 
   void addFocusListener(@NotNull FocusListener listener) {
-    ((StringTableCellEditor)myTable.getDefaultEditor(String.class)).getComponent().addFocusListener(listener);
+    DefaultCellEditor editor = (DefaultCellEditor)myTable.getDefaultEditor(String.class);
+    assert editor != null;
+
+    editor.getComponent().addFocusListener(listener);
+
     myDefaultValueTextField.getTextField().addFocusListener(listener);
     myTranslationTextField.getTextField().addFocusListener(listener);
   }
@@ -246,7 +254,7 @@ public final class StringResourceViewPanel implements Disposable {
   /**
    * Check if the provided value can be edited inline or has to be edited using the multiline text field.
    *
-   * A Value can be edited inline if it contains no "\n" character.
+   * <p>A Value can be edited inline if it contains no "\n" character.
    *
    * @param value The value to check
    * @return true is the value can be edited inline, false if it has to be edited with the multiline text field
