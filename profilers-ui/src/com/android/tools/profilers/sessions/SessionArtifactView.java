@@ -51,8 +51,8 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
   protected static final Border ARTIFACT_PADDING = JBUI.Borders.empty(2, 9, 2, 4);
   protected static final Border LABEL_PADDING = JBUI.Borders.empty(1, 8, 1, 0);
 
-  protected static final Font TITLE_FONT = AdtUiUtils.DEFAULT_FONT.deriveFont(13f);
-  protected static final Font STATUS_FONT = AdtUiUtils.DEFAULT_FONT.deriveFont(11f);
+  protected static final Font TITLE_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(3);
+  protected static final Font STATUS_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(1);
 
   @NotNull private final T myArtifact;
   @NotNull private final ArtifactDrawInfo myArtifactDrawInfo;
@@ -82,7 +82,6 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
     // Context menus set up
     ContextMenuInstaller contextMenuInstaller = artifactDrawInfo.mySessionsView.getIdeProfilerComponents().createContextMenuInstaller();
     getContextMenus().forEach(menu -> contextMenuInstaller.installGenericContextMenu(this, menu));
-
     // The tooltip view mimics exactly what's shown in the Sessions panel. But by wrapping it in a TooltipComponent it appears floating
     // when the Sessions panel does not have enough space to show the entire view.
     myTooltipArtifactView = buildComponent();
