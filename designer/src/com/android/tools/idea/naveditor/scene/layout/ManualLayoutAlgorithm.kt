@@ -101,11 +101,11 @@ class ManualLayoutAlgorithm(private val module: Module) : NavSceneLayoutAlgorith
       return true
     }
 
-    val tag = component.nlComponent.tagPointer
+    val tag = SmartPointerManager.createPointer(component.nlComponent.tag)
     var positions = tagPositionMap[tag]
     if (positions == null) {
       reload(component.nlComponent.model.file, true)
-      positions = tagPositionMap[tag] ?: return false
+      positions = tagPositionMap[SmartPointerManager.createPointer(component.nlComponent.tag)] ?: return false
     }
     val location = positions.myPosition ?: return false
     component.setPosition(location.x, location.y)
