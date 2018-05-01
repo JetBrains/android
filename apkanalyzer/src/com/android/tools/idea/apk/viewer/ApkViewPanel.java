@@ -127,7 +127,8 @@ public class ApkViewPanel implements TreeSelectionListener {
       Futures.transformAsync(apkParser.constructTreeStructure(),
                              input -> {
                                assert input != null;
-                               return apkParser.getApplicationInfo(pathToAapt, Archives.getFirstManifestArchive(input));
+                               ArchiveEntry entry = Archives.getFirstManifestArchiveEntry(input);
+                               return apkParser.getApplicationInfo(pathToAapt, entry);
                              }, PooledThreadExecutor.INSTANCE);
 
     Futures.addCallback(applicationInfo, new FutureCallBackAdapter<AndroidApplicationInfo>() {
