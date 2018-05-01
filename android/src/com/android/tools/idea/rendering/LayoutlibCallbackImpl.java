@@ -114,7 +114,6 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   private boolean myUsed;
   private Set<File> myParserFiles;
   private int myParserCount;
-  private ParserFactory myParserFactory;
   @NotNull public ImmutableMap<String, TagSnapshot> myAaptDeclaredResources = ImmutableMap.of();
   private final Map<String, ResourceValue> myFontFamilies;
   private ProjectFonts myProjectFonts;
@@ -213,8 +212,8 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    * This implementation goes through the output directory of the project and loads the
    * <code>.class</code> file directly.
    */
-  @Nullable
   @Override
+  @Nullable
   @SuppressWarnings("unchecked")
   public Object loadView(@NotNull String className, @NotNull Class[] constructorSignature, @NotNull Object[] constructorParameters)
       throws ClassNotFoundException {
@@ -275,9 +274,9 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   }
 
   @Nullable
-  private static XmlPullParser getParserFromText(@NotNull ParserFactory factory, String fileName, @NotNull String text) {
+  private static XmlPullParser getParserFromText(String fileName, @NotNull String text) {
     try {
-      XmlPullParser parser = factory.createParser(fileName);
+      XmlPullParser parser = new NamedParser(fileName);
       parser.setInput(new StringReader(text));
       return parser;
     }
@@ -320,14 +319,14 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
                 return null;
               }
 
-              return getParserFromText(getParserFactory(), fileName, fontFamilyXml);
+              return getParserFromText(fileName, fontFamilyXml);
             }
           }
 
           String psiText = ApplicationManager.getApplication().isReadAccessAllowed()
                            ? psiFile.getText()
                            : ApplicationManager.getApplication().runReadAction((Computable<String>)psiFile::getText);
-          return getParserFromText(getParserFactory(), fileName, psiText);
+          return getParserFromText(fileName, psiText);
         }
       }
       return null;
@@ -814,15 +813,6 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
 
   @NotNull
   @Override
-  public ParserFactory getParserFactory() {
-    if (myParserFactory == null) {
-      myParserFactory = new ParserFactoryImpl();
-    }
-    return myParserFactory;
-  }
-
-  @NotNull
-  @Override
   public Class<?> findClass(@NotNull String name) throws ClassNotFoundException {
     try {
       Class<?> aClass = myClassLoader.loadClass(name, false);
@@ -834,7 +824,6 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     catch (InconvertibleClassError e) {
       throw new ClassNotFoundException(name + " not found.", e);
     }
-
   }
 
   @NotNull
@@ -845,14 +834,6 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
 
   public void setAdaptiveIconMaskPath(@NotNull String adaptiveIconMaskPath) {
     myAdaptiveIconMaskPath = adaptiveIconMaskPath;
-  }
-
-  private static class ParserFactoryImpl extends ParserFactory {
-    @NotNull
-    @Override
-    public XmlPullParser createParser(@Nullable String debugName) {
-      return new NamedParser(debugName);
-    }
   }
 
   private static class NamedParser extends KXmlParser {
