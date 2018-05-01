@@ -34,8 +34,10 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.npw.module.ConfigureAndroidModuleStep;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
+import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.KeystoreUtils;
@@ -68,6 +70,7 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEAT
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
 import static com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommendedBuildToolsRevision;
 import static com.android.tools.idea.npw.model.JavaToKotlinHandler.getJavaToKotlinConversionProvider;
+import static com.android.tools.idea.npw.model.NewProjectModel.getInitialDomain;
 import static com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore;
 import static com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
@@ -377,6 +380,16 @@ public final class TemplateValueInjector {
   public void addGradleVersions(@Nullable Project project) {
     myTemplateValues.put(ATTR_GRADLE_PLUGIN_VERSION, determineGradlePluginVersion(project));
     myTemplateValues.put(ATTR_GRADLE_VERSION, SdkConstants.GRADLE_LATEST_VERSION);
+  }
+
+  public TemplateValueInjector addTemplateAdditionalValues(@NotNull String packageName, boolean isInstantApp,
+                                                           @NotNull ObjectProperty<NamedModuleTemplate> template) {
+    myTemplateValues.put(ATTR_PACKAGE_NAME, packageName);
+    myTemplateValues.put(ATTR_SOURCE_PROVIDER_NAME, template.get().getName());
+    myTemplateValues.put(ATTR_IS_INSTANT_APP, isInstantApp);
+    myTemplateValues.put(ATTR_COMPANY_DOMAIN, getInitialDomain(false));
+
+    return this;
   }
 
   private void addKotlinVersion() {
