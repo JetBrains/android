@@ -18,20 +18,22 @@ package com.android.tools.idea.tests.gui.dynamicfeature
 import com.android.flags.junit.RestoreFlagRule
 import com.android.tools.idea.flags.StudioFlags.NPW_DYNAMIC_APP_MODULE
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
+@Ignore("b/79945618")
 @RunIn(TestGroup.PROJECT_WIZARD)
-@RunWith(GuiTestRunner::class)
+@RunWith(GuiTestRemoteRunner::class)
 class AddDynamicFeatureTest {
   @Rule
   @JvmField
