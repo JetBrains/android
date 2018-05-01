@@ -239,7 +239,12 @@ public class MockupTest extends MockupTestCase {
     final Mockup mockup = Mockup.create(component);
     assertNotNull(mockup);
 
-    NlDesignSurface surface = new NlDesignSurface(getProject(), false, getProject());
+    NlDesignSurface surface = new NlDesignSurface(getProject(), false, getProject()) {
+      @Override
+      public void requestRender() {
+        // No need for layoutlib render
+      }
+    };
     surface.setModel(model);
     final ScreenView screenView = new ScreenView(surface, surface.getSceneManager()) {
       @Override
@@ -262,7 +267,12 @@ public class MockupTest extends MockupTestCase {
     final Mockup mockup = Mockup.create(component);
     assertNotNull(mockup);
 
-    NlDesignSurface surface = new NlDesignSurface(getProject(), false, getProject());
+    NlDesignSurface surface = new NlDesignSurface(getProject(), false, getProject()) {
+      @Override
+      public void requestRender() {
+        // No need for layoutlib render
+      }
+    };
     surface.setModel(model);
     final ScreenView screenView = new ScreenView(surface, surface.getSceneManager()) {
       @Override

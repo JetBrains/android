@@ -293,7 +293,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * Add an {@link NlModel} to DesignSurface. If it is added before then nothing happens.
    * @param model the added {@link NlModel}
    */
-  public void addModel(@NotNull NlModel model) {
+  private void addModelImpl(@NotNull NlModel model) {
     // No need to add same model twice.
     if (myModelToSceneManagers.containsKey(model)) {
       return;
@@ -304,46 +304,56 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     SceneManager manager = createSceneManager(model);
 
     myModelToSceneManagers.put(model, manager);
+  }
+
+  /**
+   * Add an {@link NlModel} to DesignSurface. If it is added before then nothing happens.
+   * @param model the added {@link NlModel}
+   */
+  public void addModel(@NotNull NlModel model) {
+    addModelImpl(model);
 
     reactivateInteractionManager();
-
-    layoutContent();
-    repaint();
-
     zoomToFit();
+    requestRender();
   }
 
   /**
    * Remove an {@link NlModel} from DesignSurface. If it isn't added before then nothing happens.
-   * @param model the added {@link NlModel}
-   * @return the removed SceneManager
+   * @param model the {@link NlModel} to remove
+   * @returns true if the model existed and was removed
    */
   @Nullable
-  public SceneManager removeModel(@NotNull NlModel model) {
-    if (!myModelToSceneManagers.containsKey(model)) {
-      return null;
+  private boolean removeModelImpl(@NotNull NlModel model) {
+    SceneManager manager = myModelToSceneManagers.remove(model);
+    if (manager == null) {
+      return false;
     }
+
+    model.deactivate(this);
 
     model.getConfiguration().removeListener(myConfigurationListener);
     model.removeListener(myModelListener);
-
-    SceneManager manager = myModelToSceneManagers.remove(model);
-    assert manager != null;
-
 
     // Removed the added layers.
     removeLayers(manager.getLayers());
 
     Disposer.dispose(manager);
+    return true;
+  }
+
+  /**
+   * Remove an {@link NlModel} from DesignSurface. If it isn't added before then nothing happens.
+   * @param model the {@link NlModel} to remove
+   */
+  public void removeModel(@NotNull NlModel model) {
+    if (!removeModelImpl(model)) {
+      return;
+    }
 
     reactivateInteractionManager();
-
-    layoutContent();
-    repaint();
-
     zoomToFit();
-
-    return manager;
+    requestRender();
   }
 
   /**
@@ -358,15 +368,19 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
 
     if (oldModel != null) {
-      removeModel(oldModel);
+      removeModelImpl(oldModel);
     }
 
     // Should not have any other NlModel in this use case.
     assert myModelToSceneManagers.isEmpty();
 
     if (model != null) {
-      addModel(model);
+      addModelImpl(model);
     }
+
+    reactivateInteractionManager();
+    zoomToFit();
+    requestRender();
 
     for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
       listener.modelChanged(this, model);
