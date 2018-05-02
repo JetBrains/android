@@ -1265,7 +1265,7 @@ class DomPsiConverter {
         return application.runReadAction((Computable<String>)this::getValue);
       }
 
-      String value = myAttribute.getValue();
+      String value = myAttribute.getDisplayValue();
       if (value == null) {
         value = "";
       }

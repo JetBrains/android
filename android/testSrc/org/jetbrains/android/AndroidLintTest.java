@@ -208,6 +208,12 @@ public class AndroidLintTest extends AndroidTestCase {
     doTestHighlighting(new AndroidLintMissingPrefixInspection(), "/res/layout/layout.xml", "xml");
   }
 
+  public void testActions() throws Exception {
+    // Regression test for issue 79120601
+    doTestNoFix(new AndroidLintValidActionsXmlInspection(),
+                "/res/xml/actions.xml", "xml");
+  }
+
   public void testDuplicatedIds() throws Exception {
     doTestNoFix(new AndroidLintDuplicateIdsInspection(),
                 "/res/layout/layout.xml", "xml");
