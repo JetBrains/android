@@ -158,8 +158,18 @@ class MigrateToAndroidxProcessor(val project: Project,
       }
 
       val smartPointerManager = SmartPointerManager.getInstance(myProject)
-      usages
+
+      // We need to process first the class migrations since they have higher priority. If we don't,
+      // the package refactoring would be applied first and then the class would incorrectly be refactored.
+
+      // Group the ClassMigrationUsageInfo so we can process the class migration first
+      val groupedUsages = usages
         .filterIsInstance<MigrateToAppCompatUsageInfo>()
+        .groupBy { it is ClassMigrationUsageInfo }
+
+      arrayOf(true, false)
+        .mapNotNull { groupedUsages[it] }
+        .flatMap { it }
         .mapNotNull { it.applyChange(migration) }
         .filter { it.isValid }
         .map { smartPointerManager.createSmartPsiElementPointer(it) }
