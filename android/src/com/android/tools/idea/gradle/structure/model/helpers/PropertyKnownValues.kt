@@ -18,6 +18,7 @@
 package com.android.tools.idea.gradle.structure.model.helpers
 
 import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
+import com.android.tools.idea.gradle.structure.model.meta.getText
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.pom.java.LanguageLevel
@@ -26,7 +27,7 @@ fun booleanValues(context: Any?, model: Any?): ListenableFuture<List<ValueDescri
   immediateFuture(listOf(ValueDescriptor(value = false), ValueDescriptor(value = true)))
 
 fun installedSdksAsStrings(context: Any?, model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
-  immediateFuture(installedEnvironments().androidSdks.map { ValueDescriptor(it.value.toString(), it.description) })
+  immediateFuture(installedEnvironments().androidSdks.map { ValueDescriptor(it.value.getText { toString() }, it.description) })
 
 fun installedSdksAsInts(context: Any?, model: Any?): ListenableFuture<List<ValueDescriptor<Int>>> =
   immediateFuture(installedEnvironments().androidSdks)

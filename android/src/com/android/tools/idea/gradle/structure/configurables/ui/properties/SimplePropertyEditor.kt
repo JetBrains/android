@@ -46,7 +46,7 @@ class SimplePropertyEditor<ContextT, ModelT, PropertyT : Any, out ModelPropertyT
   val property: ModelPropertyT,
   private val variablesProvider: VariablesProvider?
 ) : RenderedComboBox<ParsedValue<PropertyT>>(DefaultComboBoxModel<ParsedValue<PropertyT>>()), ModelPropertyEditor<ModelT, PropertyT> {
-  private var knownValueRenderers: Map<PropertyT?, ValueRenderer> = mapOf()
+  private var knownValueRenderers: Map<ParsedValue<PropertyT>, ValueRenderer> = mapOf()
   private var disposed = false
   private var knownValuesFuture: ListenableFuture<Unit>? = null  // Accessed only from the EDT.
   private val formatter = property.valueFormatter(context)
@@ -91,10 +91,7 @@ class SimplePropertyEditor<ContextT, ModelT, PropertyT : Any, out ModelPropertyT
 
     fun receiveKnownValuesOnEdt(it: List<ValueDescriptor<PropertyT>>?) {
       val possibleValues = buildKnownValueRenderers(it, formatter, property.getDefaultValue(model))
-      val knownValues = possibleValues.keys.map {
-        if (it != null) ParsedValue.Set.Parsed(it, DslText.Literal)
-        else ParsedValue.NotSet
-      } + availableVariables.orEmpty()
+      val knownValues = possibleValues.keys.toList() + availableVariables.orEmpty()
       knownValueRenderers = possibleValues
 
       setKnownValues(knownValues)

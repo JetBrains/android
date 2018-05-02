@@ -53,7 +53,7 @@ CollectionPropertyEditor<ContextT, ModelT, out ModelPropertyT : ModelCollectionP
   private var beingLoaded = false
   protected var tableModel: DefaultTableModel? = null ; private set
   private val formatter = property.valueFormatter(context)
-  private val knownValueRenderers: Map<ValueT?, ValueRenderer> =
+  private val knownValueRenderers: Map<ParsedValue<ValueT>, ValueRenderer> =
     buildKnownValueRenderers(property.getKnownValues(context, model).get(), formatter, null)
 
   protected val table: JBTable = JBTable()
