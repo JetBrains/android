@@ -17,7 +17,6 @@ package com.android.tools.idea.profilers.actions;
 
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
-import com.intellij.icons.AllIcons;
 import com.intellij.idea.ActionsBundle;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -37,10 +36,7 @@ public final class NavigateToCodeAction extends AnAction {
     String title = ActionsBundle.actionText("EditSource");
     Presentation presentation = getTemplatePresentation();
     presentation.setText(title);
-    presentation.setIcon(AllIcons.Actions.EditSource);
     presentation.setDescription(ActionsBundle.actionDescription("EditSource"));
-    // TODO shortcuts
-    // setShortcutSet(ActionManager.getInstance().getAction(IdeActions.ACTION_EDIT_SOURCE).getShortcutSet());
   }
 
   @Override

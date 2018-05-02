@@ -19,13 +19,16 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.ContextMenuInstaller;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerLayout;
-import com.android.tools.profilers.stacktrace.CodeLocation;
-import com.android.tools.profilers.stacktrace.StackTraceModel;
-import com.android.tools.profilers.stacktrace.StackTraceView;
-import com.android.tools.profilers.stacktrace.ThreadId;
+import com.android.tools.profilers.stacktrace.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.CopyProvider;
+import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.DoubleClickListener;
@@ -35,10 +38,12 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -50,7 +55,7 @@ import java.util.function.Supplier;
 
 import static com.intellij.ui.SimpleTextAttributes.*;
 
-public class IntelliJStackTraceView extends AspectObserver implements StackTraceView {
+public class IntelliJStackTraceView extends AspectObserver implements StackTraceView, DataProvider, CopyProvider {
   @NotNull
   private final Project myProject;
 
@@ -69,6 +74,9 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
   @NotNull
   private final JBList myListView;
 
+  @NotNull
+  private final StackElementRenderer myRenderer;
+
   public IntelliJStackTraceView(@NotNull Project project,
                                 @NotNull StackTraceModel model) {
     this(project, model, IntelliJCodeElement::new);
@@ -85,10 +93,13 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
     myListView = new JBList(myListModel);
     myListView.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myListView.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
-    myListView.setCellRenderer(new StackElementRenderer());
+    myRenderer = new StackElementRenderer();
+    myListView.setCellRenderer(myRenderer);
     myScrollPane = new JBScrollPane(myListView);
     myScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     myScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+
+    DataManager.registerDataProvider(myListView, this);
 
     myListView.addListSelectionListener(e -> {
       if (myListView.getSelectedValue() == null) {
@@ -181,6 +192,10 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
     });
   }
 
+  public void installGenericContextMenu(@NotNull ContextMenuInstaller installer, @NotNull ContextMenuItem contextMenuItem) {
+    installer.installGenericContextMenu(myListView, contextMenuItem);
+  }
+
   @NotNull
   @Override
   public StackTraceModel getModel() {
@@ -199,6 +214,38 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
 
   public void clearSelection() {
     myListView.clearSelection();
+  }
+
+  @Override
+  public boolean isCopyEnabled(@NotNull DataContext dataContext) {
+    return true;
+  }
+
+  @Override
+  public boolean isCopyVisible(@NotNull DataContext dataContext) {
+    return true;
+  }
+
+  /**
+   * Copies the selected list item to the clipboard. The copied text rendering is the same as the list rendering.
+   */
+  @Override
+  public void performCopy(@NotNull DataContext dataContext) {
+    int selectedIndex = myListView.getSelectedIndex();
+    if (selectedIndex >= 0 && selectedIndex < myListView.getItemsCount()) {
+      myRenderer.getListCellRendererComponent(myListView, myListModel.getElementAt(selectedIndex), selectedIndex, true, false);
+      String data = String.valueOf(myRenderer.getCharSequence(false));
+      CopyPasteManager.getInstance().setContents(new StringSelection(data));
+    }
+  }
+
+  @Nullable
+  @Override
+  public Object getData(String dataId) {
+    if (PlatformDataKeys.COPY_PROVIDER.is(dataId)) {
+      return this;
+    }
+    return null;
   }
 
   public int getSelectedIndex() {
