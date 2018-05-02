@@ -28,14 +28,15 @@ import org.junit.Assert.assertArrayEquals
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.util.*
+import kotlin.collections.ArrayList
 
 class KeystoreStepTest : IdeaTestCase() {
   private lateinit var ideComponents: IdeComponents
-  private lateinit var facets: List<AndroidFacet>
+  private lateinit var facets: MutableList<AndroidFacet>
   override fun setUp() {
     super.setUp()
     ideComponents = IdeComponents(myProject)
-    facets = Collections.emptyList()
+    facets = ArrayList()
   }
 
   fun testEnableEncryptedKeyExportFlagFalse() {
@@ -52,6 +53,41 @@ class KeystoreStepTest : IdeaTestCase() {
     val keystoreStep = KeystoreStep(wizard, true, facets)
     keystoreStep._init()
     assertEquals(true, keystoreStep.exportKeysCheckBox.isVisible)
+  }
+
+  fun testModuelDropDownEnabledByDefault() {
+    val wizard = setupWizardHelper()
+    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
+    val keystoreStep = KeystoreStep(wizard, true, facets)
+    assertEquals(true, keystoreStep.myModuleCombo.isEnabled)
+  }
+
+  fun testMooduleDropDownDisabledWhenOnlyOneFacet() {
+    val wizard = setupWizardHelper()
+    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
+    facets.add(mock(AndroidFacet::class.java))
+    val keystoreStep = KeystoreStep(wizard, true, facets)
+    keystoreStep._init()
+    assertEquals(false, keystoreStep.myModuleCombo.isEnabled)
+  }
+
+  fun testUpdatesInvalidSelection() {
+    // if the current selected facet is no longer in the list of facets, then it should be updated to the first one in the list
+    val wizard = setupWizardHelper()
+    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
+    val mockFacet = mock(AndroidFacet::class.java)
+    val mockFacet2 = mock(AndroidFacet::class.java)
+    facets.add(mockFacet)
+    facets.add(mockFacet2)
+    val keystoreStep = KeystoreStep(wizard, true, facets)
+    keystoreStep._init()
+    assertEquals(mockFacet, keystoreStep.myModuleCombo.selectedItem)
+
+    // remove the selected facet
+    keystoreStep.myFacets.removeAt(0)
+
+    keystoreStep._init()
+    assertEquals(mockFacet2, keystoreStep.myModuleCombo.selectedItem)
   }
 
   fun setupWizardHelper(): ExportSignedPackageWizard
