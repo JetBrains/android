@@ -24,4 +24,15 @@ public class DevicePropertyUtilTest extends TestCase {
     assertEquals("Sony Ericsson", DevicePropertyUtil.fixManufacturerName("sony ericsson"));
     assertEquals("Samsung", DevicePropertyUtil.fixManufacturerName("samsung"));
   }
+
+  public void testGetBuild() {
+    assertEquals("Android 8.0.0, API 26", DevicePropertyUtil.getBuild("8.0.0", null, "26"));
+    assertEquals("Android 8.0.1, API 27", DevicePropertyUtil.getBuild("8.0.1", "REL", "27"));
+    assertEquals("Android 7.7", DevicePropertyUtil.getBuild("7.7", null, null));
+    assertEquals("Android 7.8.9", DevicePropertyUtil.getBuild("7.8.9", "REL", null));
+    assertEquals("Android P, API Q", DevicePropertyUtil.getBuild("P", "Q", "27"));
+    assertEquals(", API 25", DevicePropertyUtil.getBuild(null, null, "25"));
+    assertEquals(", API P", DevicePropertyUtil.getBuild(null, "P", "25"));
+    assertEquals("", DevicePropertyUtil.getBuild(null, null, null));
+  }
 }
