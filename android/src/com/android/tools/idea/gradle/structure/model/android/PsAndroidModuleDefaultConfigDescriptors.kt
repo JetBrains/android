@@ -19,6 +19,7 @@ import com.android.builder.model.ProductFlavor
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel
 import com.android.tools.idea.gradle.structure.model.helpers.*
 import com.android.tools.idea.gradle.structure.model.meta.*
+import com.google.common.util.concurrent.Futures.immediateFuture
 import java.io.File
 
 object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModuleDefaultConfig, ProductFlavor, ProductFlavorModel> {
@@ -69,6 +70,17 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
     setter = { setValue(it) },
     parse = ::parseBoolean,
     getKnownValues = ::booleanValues
+  )
+
+  val signingConfig: SimpleProperty<PsAndroidModuleDefaultConfig, Unit> = property(
+    "Signing Config",
+    getResolvedValue = { null },
+    getParsedProperty = { signingConfig() },
+    getter = { asUnit() },
+    setter = {},
+    parse = ::parseReferenceOnly,
+    format = ::formatUnit,
+    getKnownValues = { _, model -> signingConfigs(model.module) }
   )
 
   val targetSdkVersion: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(

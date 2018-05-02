@@ -45,6 +45,14 @@ fun ResolvedPropertyModel.asFile(): File? = when (valueType) {
   else -> null
 }
 
+/**
+ * Returns [Unit] if the property is not null and returns [null] otherwise.
+ */
+fun ResolvedPropertyModel.asUnit(): Unit? = when (valueType) {
+  ValueType.NONE -> null
+  else -> Unit
+}
+
 fun ResolvedPropertyModel.clear() = unresolvedModel.delete()
 fun ResolvedPropertyModel.dslText(): DslText? {
   val text = getRawValue(GradlePropertyModel.OBJECT_TYPE)?.toString()

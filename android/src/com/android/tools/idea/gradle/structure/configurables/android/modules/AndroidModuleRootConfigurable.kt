@@ -50,6 +50,7 @@ fun defaultConfigPropertiesModel() =
             uiProperty(PsAndroidModuleDefaultConfigDescriptors.targetSdkVersion, ::simplePropertyEditor),
             uiProperty(PsAndroidModuleDefaultConfigDescriptors.minSdkVersion, ::simplePropertyEditor),
             uiProperty(PsAndroidModuleDefaultConfigDescriptors.maxSdkVersion, ::simplePropertyEditor),
+            uiProperty(PsAndroidModuleDefaultConfigDescriptors.signingConfig, ::simplePropertyEditor),
             uiProperty(PsAndroidModuleDefaultConfigDescriptors.proGuardFiles, listPropertyEditor(::simplePropertyEditor)),
             uiProperty(PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders, mapPropertyEditor(::simplePropertyEditor)),
             uiProperty(PsAndroidModuleDefaultConfigDescriptors.multiDexEnabled, ::simplePropertyEditor),

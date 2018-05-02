@@ -70,6 +70,7 @@ fun productFlavorPropertiesModel() =
             uiProperty(PsProductFlavor.ProductFlavorDescriptors.applicationId, ::simplePropertyEditor),
             uiProperty(PsProductFlavor.ProductFlavorDescriptors.targetSdkVersion, ::simplePropertyEditor),
             uiProperty(PsProductFlavor.ProductFlavorDescriptors.maxSdkVersion, ::simplePropertyEditor),
+            uiProperty(PsProductFlavor.ProductFlavorDescriptors.signingConfig, ::simplePropertyEditor),
             uiProperty(PsProductFlavor.ProductFlavorDescriptors.proGuardFiles, listPropertyEditor(::simplePropertyEditor)),
             uiProperty(PsProductFlavor.ProductFlavorDescriptors.manifestPlaceholders, mapPropertyEditor(::simplePropertyEditor)),
             uiProperty(PsProductFlavor.ProductFlavorDescriptors.multiDexEnabled, ::simplePropertyEditor),
