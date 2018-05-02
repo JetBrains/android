@@ -343,6 +343,7 @@ public class SingleWidgetView extends JPanel {
     if (component != null) {
       Scout.arrangeWidgets(bottom, Collections.singletonList(component), false);
       ComponentModification modification = new ComponentModification(component, "Connect Constraint");
+      component.startAttributeTransaction().applyToModification(modification);
       modification.commit();
     }
   }
