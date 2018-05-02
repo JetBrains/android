@@ -16,7 +16,10 @@
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
 import com.android.tools.idea.gradle.structure.configurables.ui.TextRenderer
-import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.meta.DslText
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
+import com.android.tools.idea.gradle.structure.model.meta.getText
 import com.intellij.ui.JBColor
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SimpleTextAttributes.STYLE_WAVED
@@ -42,21 +45,17 @@ private val codeAttributes = SimpleTextAttributes.REGULAR_ATTRIBUTES.derive(STYL
 fun <PropertyT : Any> ParsedValue<PropertyT>.renderTo(
   textRenderer: TextRenderer,
   formatValue: PropertyT.() -> String,
-  knownValues: Map<PropertyT?, ValueRenderer>
+  knownValues: Map<ParsedValue<PropertyT>, ValueRenderer>
 ) =
   let { value ->
-    val knownRenderer = when {
-      value === ParsedValue.NotSet -> knownValues[null]
-      value is ParsedValue.Set.Parsed && value.dslText === DslText.Literal -> knownValues[value.value]
-      else -> null
-    }
+    val knownRenderer = knownValues[value]
     when {
       knownRenderer != null -> knownRenderer.renderTo(textRenderer)
       value is ParsedValue.Set.Parsed && value.dslText is DslText.Reference -> {
         textRenderer.append(value.getText(formatValue), variableNameAttributes)
         if (value.value != null) {
           textRenderer.append(" : ", commentAttributes)
-          val valueDescription = knownValues[value.value]
+          val valueDescription = knownValues[ParsedValue.Set.Parsed(value.value, DslText.Literal)]
           if (valueDescription != null) {
             valueDescription.renderTo(makeCommentRenderer(textRenderer))
           }
@@ -88,15 +87,13 @@ fun <PropertyT : Any> ParsedValue<PropertyT>.renderTo(
  */
 fun <PropertyT : Any> buildKnownValueRenderers(
   knownValues: List<ValueDescriptor<PropertyT>>?, formatValue: PropertyT.() -> String, defaultValue: PropertyT?
-): Map<PropertyT?, ValueRenderer> {
+): Map<ParsedValue<PropertyT>, ValueRenderer> {
   val knownValuesMap = knownValues?.associate { it.value to it.description }.orEmpty()
-  val result = mutableListOf<Pair<PropertyT?, ValueRenderer>>()
+  val result = mutableListOf<Pair<ParsedValue<PropertyT>, ValueRenderer>>()
   if (defaultValue != null) {
-    // Note: having this value prevents users from inputting string value "($default)". However, since there are just few properties with
-    // default string values and the values in parentheses do not make sense it is safe to recognize this value as NotSet.
-    result.add(null to object : ValueRenderer {
+    result.add(ParsedValue.NotSet to object : ValueRenderer {
       override fun renderTo(textRenderer: TextRenderer) {
-        val defaultValueDescription = knownValuesMap[defaultValue]
+        val defaultValueDescription = knownValuesMap[ParsedValue.Set.Parsed(defaultValue, DslText.Literal)]
         textRenderer.append(defaultValue.formatValue(), defaultAttributes)
         if (defaultValueDescription != null) {
           textRenderer.append(" ($defaultValueDescription)", defaultAttributes)
@@ -108,12 +105,14 @@ fun <PropertyT : Any> buildKnownValueRenderers(
     result.addAll(knownValues.map {
       it.value to object : ValueRenderer {
         override fun renderTo(textRenderer: TextRenderer) {
-          if (it.description != null) {
-            textRenderer.append(it.value?.let { it.formatValue() + " " } ?: "", regularAttributes)
-            textRenderer.append("(${it.description})", commentAttributes)
+          if (it.value !== ParsedValue.NotSet) {
+            it.value.renderTo(textRenderer, formatValue, mapOf())
+            if (it.description != null) {
+              textRenderer.append(" ", regularAttributes)
+            }
           }
-          else {
-            textRenderer.append(it.value?.formatValue() ?: "", regularAttributes)
+          if (it.description != null) {
+            textRenderer.append("(${it.description})", commentAttributes)
           }
         }
       }
