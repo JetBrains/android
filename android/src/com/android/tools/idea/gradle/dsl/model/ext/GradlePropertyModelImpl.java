@@ -355,6 +355,29 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     return element.getPsiElement();
   }
 
+  @Nullable
+  @Override
+  public PsiElement getExpressionPsiElement() {
+    return getExpressionPsiElement(false);
+  }
+
+  @Nullable
+  @Override
+  public PsiElement getFullExpressionPsiElement() {
+    return getExpressionPsiElement(true);
+  }
+
+  @Nullable
+  private PsiElement getExpressionPsiElement(boolean fullExpression) {
+    // We don't use the transform here
+    GradleDslElement element = fullExpression ? myElement : getElement();
+    if (element instanceof GradleDslExpression) {
+      return ((GradleDslExpression)element).getExpression();
+    }
+
+    return element == null ? null : element.getPsiElement();
+  }
+
   @Override
   public void rename(@NotNull String name) {
     // If we have no backing element then just alter the name that we will change.

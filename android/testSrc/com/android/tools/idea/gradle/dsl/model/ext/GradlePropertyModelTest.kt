@@ -23,6 +23,8 @@ import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VfsUtil
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Ignore
 import org.junit.Test
 import java.io.File
@@ -3657,6 +3659,58 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       verifyPropertyModel(newRefModel, STRING_TYPE, "ref", STRING, type, 1)
       assertEquals("${'$'}{prop2}", newRefModel.getRawValue(STRING_TYPE))
     }
+  }
+
+  @Test
+  fun testObtainExpressionPsiElement() {
+    val text = """
+               android {
+                 signingConfigs {
+                   myConfig {
+                     storeFile file('my_file.txt')
+                     storePassword System.getenv("KSTOREPWD")
+                   }
+                 }
+               }
+
+               ext {
+                 prop1 = 'value'
+                 prop2 = 25
+                 prop3 = true
+                 prop4 = [ "key": 'val']
+                 prop5 = [ 'val1', 'val2', "val3"]
+                 prop6 = 25.3
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    val extModel = buildModel.ext()
+
+    assertThat(extModel.findProperty("prop1").expressionPsiElement!!.text, equalTo("'value'"))
+    assertThat(extModel.findProperty("prop1").fullExpressionPsiElement!!.text, equalTo("'value'"))
+    assertThat(extModel.findProperty("prop2").expressionPsiElement!!.text, equalTo("25"))
+    assertThat(extModel.findProperty("prop2").fullExpressionPsiElement!!.text, equalTo("25"))
+    assertThat(extModel.findProperty("prop3").expressionPsiElement!!.text, equalTo("true"))
+    assertThat(extModel.findProperty("prop3").fullExpressionPsiElement!!.text, equalTo("true"))
+    assertThat(extModel.findProperty("prop4").expressionPsiElement!!.text, equalTo("[ \"key\": 'val']"))
+    assertThat(extModel.findProperty("prop4").fullExpressionPsiElement!!.text, equalTo("[ \"key\": 'val']"))
+    assertThat(extModel.findProperty("prop5").expressionPsiElement!!.text, equalTo("[ 'val1', 'val2', \"val3\"]"))
+    assertThat(extModel.findProperty("prop5").fullExpressionPsiElement!!.text, equalTo("[ 'val1', 'val2', \"val3\"]"))
+    assertThat(extModel.findProperty("prop6").expressionPsiElement!!.text, equalTo("25.3"))
+    assertThat(extModel.findProperty("prop6").fullExpressionPsiElement!!.text, equalTo("25.3"))
+
+    val mapItem = extModel.findProperty("prop4").getMapValue("key")
+    val listItem = extModel.findProperty("prop5").getListValue("val2")!!
+    assertThat(mapItem.expressionPsiElement!!.text, equalTo("'val'"))
+    assertThat(mapItem.fullExpressionPsiElement!!.text, equalTo("'val'"))
+    assertThat(listItem.expressionPsiElement!!.text, equalTo("'val2'"))
+    assertThat(listItem.fullExpressionPsiElement!!.text, equalTo("'val2'"))
+
+    val configModel = buildModel.android()!!.signingConfigs()[0]!!
+    assertThat(configModel.storeFile().expressionPsiElement!!.text, equalTo("'my_file.txt'"))
+    assertThat(configModel.storeFile().fullExpressionPsiElement!!.text, equalTo("file('my_file.txt')"))
+    assertThat(configModel.storePassword().expressionPsiElement!!.text, equalTo("\"KSTOREPWD\""))
+    assertThat(configModel.storePassword().fullExpressionPsiElement!!.text, equalTo("System.getenv(\"KSTOREPWD\")"))
   }
 
   private fun checkContainsValue(models: Collection<GradlePropertyModel>, model: GradlePropertyModel) {

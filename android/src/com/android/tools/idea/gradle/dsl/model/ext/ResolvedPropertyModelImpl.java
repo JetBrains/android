@@ -157,6 +157,18 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
 
   @Nullable
   @Override
+  public PsiElement getExpressionPsiElement() {
+    return myRealModel.getExpressionPsiElement();
+  }
+
+  @Nullable
+  @Override
+  public PsiElement getFullExpressionPsiElement() {
+    return myRealModel.getFullExpressionPsiElement();
+  }
+
+  @Nullable
+  @Override
   public String toString() {
     return resolveModel().toString();
   }
