@@ -25,9 +25,10 @@ public interface UiMessageHandler {
   void displayErrorMessage(@NotNull JComponent parent, @NotNull String title, @NotNull String message);
 
   /**
-   * @param doNotShowSettingSaver function to save the settings of whether the dialog should be shown next time.
+   * @param doNotShowSettingSaver if not null, a "do not ask again" option will be shown, and the function will be invoked to save the
+   *                              settings of whether the dialog should be shown next time.
    * @return true if ok. false if cancelled.
    */
   boolean displayOkCancelMessage(@NotNull String title, @NotNull String message, @NotNull String okText, @NotNull String cancelText,
-                                 @Nullable Icon icon, @NotNull String doNotShowMessage, @NotNull Consumer<Boolean> doNotShowSettingSaver);
+                                 @Nullable Icon icon, @Nullable Consumer<Boolean> doNotShowSettingSaver);
 }

@@ -209,7 +209,6 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
                                             @NotNull String okText,
                                             @NotNull String cancelText,
                                             @Nullable Icon icon,
-                                            @NotNull String doNotShowMessage,
                                             @NotNull com.intellij.util.Consumer<Boolean> doNotShowSettingSaver) {
         return true;
       }

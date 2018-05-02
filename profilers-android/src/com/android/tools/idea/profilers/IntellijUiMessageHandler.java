@@ -25,6 +25,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 public class IntellijUiMessageHandler implements UiMessageHandler {
+  private static final String DO_NOT_SHOW_TEXT = "Do not ask me again";
+
   @Override
   public void displayErrorMessage(@NotNull JComponent parent, @NotNull String title, @NotNull String message) {
     Messages.showErrorDialog(parent, message, title);
@@ -36,19 +38,23 @@ public class IntellijUiMessageHandler implements UiMessageHandler {
                                      @NotNull String okText,
                                      @NotNull String cancelText,
                                      @Nullable Icon icon,
-                                     @NotNull String doNotShowMessage,
-                                     @NotNull Consumer<Boolean> doNotShowSettingSaver) {
-    return Messages.OK == Messages.showOkCancelDialog(message, title, okText, cancelText, icon, new DialogWrapper.DoNotAskOption.Adapter() {
-      @Override
-      public void rememberChoice(boolean isSelected, int exitCode) {
-        doNotShowSettingSaver.consume(isSelected);
-      }
+                                     @Nullable Consumer<Boolean> doNotShowSettingSaver) {
+    if (doNotShowSettingSaver == null) {
+      return Messages.OK == Messages.showOkCancelDialog(message, title, okText, cancelText, icon);
+    }
 
-      @NotNull
-      @Override
-      public String getDoNotShowMessage() {
-        return doNotShowMessage;
-      }
-    });
+    return Messages.OK ==
+           Messages.showOkCancelDialog(message, title, okText, cancelText, icon, new DialogWrapper.DoNotAskOption.Adapter() {
+             @Override
+             public void rememberChoice(boolean isSelected, int exitCode) {
+               doNotShowSettingSaver.consume(isSelected);
+             }
+
+             @NotNull
+             @Override
+             public String getDoNotShowMessage() {
+               return DO_NOT_SHOW_TEXT;
+             }
+           });
   }
 }
