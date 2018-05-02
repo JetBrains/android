@@ -17,6 +17,7 @@ package com.android.tools.profilers.sessions;
 
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.stdui.StandardColors;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.ProfilerAction;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
@@ -48,7 +49,7 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
   private static final Border DIVIDER_BORDER = JBUI.Borders.customLine(SESSION_DIVIDER_COLOR, 1, 0, 0, 0);
   private static final Border COMPONENT_PADDING = JBUI.Borders.empty(4, 2, 4, 4);
   private static final Font SESSION_TIME_FONT =
-    TITLE_FONT.deriveFont(Collections.singletonMap(TextAttribute.WEIGHT, TextAttribute.WEIGHT_BOLD));
+    TITLE_FONT.deriveFont(Collections.singletonMap(TextAttribute.WEIGHT, TextAttribute.WEIGHT_DEMIBOLD));
 
   public SessionItemView(@NotNull ArtifactDrawInfo artifactDrawInfo, @NotNull SessionItem artifact) {
     super(artifactDrawInfo, artifact);
@@ -65,6 +66,7 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
     JLabel startTime = new JLabel(timeFormat.format(new Date(getArtifact().getSessionMetaData().getStartTimestampEpochMs())));
     startTime.setBorder(LABEL_PADDING);
     startTime.setFont(SESSION_TIME_FONT);
+    startTime.setForeground(StandardColors.TEXT_COLOR);
     panel.add(startTime, new TabularLayout.Constraint(0, 0));
     JPanel liveDotWrapper = new JPanel(new BorderLayout());
     // Session is ongoing.
@@ -81,6 +83,7 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
     JLabel sessionName = new JLabel(getArtifact().getName());
     sessionName.setBorder(LABEL_PADDING);
     sessionName.setFont(STATUS_FONT);
+    sessionName.setForeground(StandardColors.TEXT_COLOR);
     // Display a tooltip in case there isn't enough space to show the full name in the session's panel.
     sessionName.setToolTipText(getArtifact().getName());
     addMouseListeningComponents(sessionName);
@@ -90,7 +93,7 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
     durationLabel.setBorder(LABEL_PADDING);
     durationLabel.setFont(STATUS_FONT);
     durationLabel
-      .setForeground(AdtUiUtils.overlayColor(durationLabel.getBackground().getRGB(), durationLabel.getForeground().getRGB(), 0.6f));
+      .setForeground(AdtUiUtils.overlayColor(durationLabel.getBackground().getRGB(), StandardColors.TEXT_COLOR.getRGB(), 0.6f));
     // Only show duration for non-imported sessions.
     if (getArtifact().getSessionMetaData().getType() == Common.SessionMetaData.SessionType.FULL) {
       panel.add(durationLabel, new TabularLayout.Constraint(2, 0, 1, 3));
