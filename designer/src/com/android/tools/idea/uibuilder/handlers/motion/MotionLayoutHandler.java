@@ -97,6 +97,21 @@ public class MotionLayoutHandler extends ConstraintLayoutHandler implements NlCo
     return new MotionLayoutSceneInteraction(screenView, component);
   }
 
+  @NotNull
+  @Override
+  public List<Target> createChildTargets(@NotNull SceneComponent parentComponent, @NotNull SceneComponent childComponent) {
+    MotionLayoutTimelinePanel panel = getTimeline(childComponent.getNlComponent());
+    if (panel != null) {
+      if (panel.getCurrentState() == MotionLayoutTimelinePanel.State.TL_PLAY
+          || panel.getCurrentState() == MotionLayoutTimelinePanel.State.TL_PAUSE
+          || panel.getCurrentState() == MotionLayoutTimelinePanel.State.TL_TRANSITION) {
+        ImmutableList.Builder<Target> listBuilder = new ImmutableList.Builder<>();
+        return listBuilder.build();
+      }
+    }
+    return super.createChildTargets(parentComponent, childComponent);
+  }
+
   /////////////////////////////////////////////////////////////////////////////////////////////////
   // Delegation of NlComponent
   /////////////////////////////////////////////////////////////////////////////////////////////////

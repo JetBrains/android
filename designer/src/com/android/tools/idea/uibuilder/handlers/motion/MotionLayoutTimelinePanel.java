@@ -22,6 +22,7 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlComponentDelegate;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
@@ -31,6 +32,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.timeline.GanttEventListe
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -152,11 +154,11 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     }
 
     // component is a motion layout
-    addDelegate();
     if (myMotionLayout != component) {
       myMotionLayout = component;
       loadMotionScene();
     }
+    addDelegate();
   }
 
   private void addDelegate() {
@@ -299,6 +301,10 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     }
     myCurrentState = state;
     myInStateChange = false;
+    SceneComponent root = mySurface.getScene().getRoot();
+    if (root != null) {
+      root.updateTargets();
+    }
   }
 
   private void startPlaying() {

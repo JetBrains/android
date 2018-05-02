@@ -244,7 +244,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
         String type = connectTypes[i];
         DecoratorUtilities.ViewStates current, prev;
         if (componentCurrentState != DecoratorUtilities.ViewStates.SELECTED) { // selection fix
-          // TODO we need to have a clear mechinisem for selection event to propagate
+          // TODO we need to have a clear mechanism for selection event to propagate
           current = DecoratorUtilities.getTimedChange_value(c, type);
           if (current == DecoratorUtilities.ViewStates.SELECTED) { // we need to turn off
             long t = (componentChangeStateTime != null) ? componentChangeStateTime : System.nanoTime();
