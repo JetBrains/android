@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,6 +47,7 @@ public class AccessoryPanel extends JPanel implements DesignSurfaceListener, Mod
 
   public AccessoryPanel(@NotNull Type type, boolean handlesVisibility) {
     super(new BorderLayout());
+    setBorder(JBUI.Borders.empty());
     myType = type;
     myHandlesVisibility = handlesVisibility;
   }

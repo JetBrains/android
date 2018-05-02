@@ -76,6 +76,7 @@ public class MotionLayoutAttributePanel implements AccessoryPanelInterface {
     };
 
     myAttribGroups = new JPanel();
+    myAttribGroups.setBorder(JBUI.Borders.empty());
     myAttribGroups.setLayout(new GridBagLayout());
     myAttribGroups.setBackground(ourMainBackground);
 
@@ -99,6 +100,7 @@ public class MotionLayoutAttributePanel implements AccessoryPanelInterface {
     myAttribGroups.add(Box.createVerticalGlue(), gbc);
 
     JScrollPane scrollPane = new JBScrollPane(myAttribGroups);
+    scrollPane.setBorder(JBUI.Borders.empty());
     panel.add(scrollPane, BorderLayout.CENTER);
     panel.setBackground(ourMainBackground);
     return panel;
@@ -137,6 +139,10 @@ public class MotionLayoutAttributePanel implements AccessoryPanelInterface {
   @Override
   public void updateAfterModelDerivedDataChanged() {
     updatePanel();
+  }
+
+  public void clearSelectedKeyframe() {
+    myTimelinePanel.clearSelectedKeyframe();
   }
 
   private void updatePanel() {

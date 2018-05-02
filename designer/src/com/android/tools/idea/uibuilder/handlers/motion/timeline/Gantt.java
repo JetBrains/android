@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.timeline;
 
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 
@@ -54,6 +55,7 @@ public class Gantt extends JPanel implements GanttCommands {
     myScrollPane.setColumnHeaderView(myColumnHead);
     myScrollPane.setRowHeaderView(myViewList);
     myScrollPane.setCorner(ScrollPaneConstants.UPPER_LEFT_CORNER, myTrackControls);
+    myScrollPane.setBorder(JBUI.Borders.customLine(JBColor.border(), 1, 0, 0, 0));
     JViewport viewPort = myScrollPane.getViewport();
     viewPort.setScrollMode(JViewport.BLIT_SCROLL_MODE);
     viewPort.setScrollMode(JViewport.BACKINGSTORE_SCROLL_MODE);
@@ -125,6 +127,10 @@ public class Gantt extends JPanel implements GanttCommands {
 
   public MotionSceneModel.KeyFrame getSelectedKey(String id) {
     return myChart.mySelectedKeyFrame;
+  }
+
+  public void clearSelectedKey() {
+    myChart.mySelectedKeyFrame = null;
   }
 
   public MotionSceneModel.TransitionTag getTransitionTag( ) {

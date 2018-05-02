@@ -17,9 +17,11 @@ package com.android.tools.idea.uibuilder.handlers.motion.timeline;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString;
+import com.android.tools.idea.uibuilder.model.NlModelHelper;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -27,13 +29,13 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.NamedNodeMap;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.AUTO_URI;
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.*;
 
 /**
@@ -103,8 +105,8 @@ public class MotionSceneModel {
 
         XmlTag createdTag = keyFrame.createChildTag(type, null, "", false);
         createdTag = keyFrame.addSubTag(createdTag, false);
-        createdTag.setAttribute(KeyAttributes_framePosition, SdkConstants.AUTO_URI, Integer.toString(framePosition));
-        createdTag.setAttribute(KeyAttributes_target, SdkConstants.AUTO_URI, "@id/" + name);
+        createdTag.setAttribute(KeyAttributes_framePosition, AUTO_URI, Integer.toString(framePosition));
+        createdTag.setAttribute(KeyAttributes_target, AUTO_URI, "@id/" + name);
       }
     });
     if (myNlModel != null) {
@@ -209,87 +211,109 @@ public class MotionSceneModel {
     }
 
     /**
-     * TODO fix this it is broken
-     *
-     * @param nlModel
-     * @param key
-     * @param value
+     * Delete an attribute from a KeyFrame.
      */
-    public void deleteAttribute(NlModel nlModel, String key) {
-      if (BROKEN) {
-        return;
+    public boolean deleteAttribute(@NotNull NlModel model, @NotNull String attributeName) {
+      if (attributeName.equals(KeyAttributes_target) || attributeName.equals(KeyAttributes_framePosition)) {
+        // TODO: Find out why these are called in the first place...
+        return false;
       }
-      XmlFile xmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(myMotionSceneModel.myProject, myMotionSceneModel.myVirtualFile);
-
-      WriteCommandAction.runWriteCommandAction(myMotionSceneModel.myProject, new Runnable() {
-        @Override
-        public void run() {
-          XmlTag[] tagKeyFrames = xmlFile.getRootTag().findSubTags(MotionSceneKeyFrames);
-          for (int i = 0; i < tagKeyFrames.length; i++) {
-            XmlTag tagKeyFrame = tagKeyFrames[i];
-            XmlTag[] tagkey = tagKeyFrame.getSubTags();
-
-            for (int j = 0; j < tagkey.length; j++) {
-              XmlTag xmlTag = tagkey[j];
-              if (match(xmlTag)) {
-                String head = MotionNameSpace;
-                if (isAndroidAttribute(key)) {
-                  head = AndroidNameSpace;
-                }
-                xmlTag.setAttribute(head + key, null);
-              }
-            }
-          }
-        }
-      });
-      if (nlModel != null) {
-        // TODO: we may want to do live edits instead, but LayoutLib needs
-        // anyway to save the file to disk, so...
+      XmlFile xmlFile = motionSceneFile();
+      XmlTag tag = findKeyFrameTag();
+      if (tag == null) {
+        return false;
+      }
+      String command = "Delete " + attributeName + " attribute";
+      String namespace = findAttributeNamespace(tag, attributeName);
+      if (namespace == null) {
+        return false;
+      }
+      Runnable operation = () -> {
+        tag.setAttribute(attributeName, namespace, null);
+        model.notifyModified(NlModel.ChangeType.EDIT);
+        // Temporary for LayoutLib:
         LayoutPullParsers.saveFileIfNecessary(xmlFile);
-        nlModel.notifyModified(NlModel.ChangeType.EDIT);
-      }
-      parse(key, null);
+      };
+
+      WriteCommandAction.runWriteCommandAction(myMotionSceneModel.myProject, command, null, operation, xmlFile);
+      myAttributes.remove(attributeName);
+      return true;
     }
 
-    public void deleteTag(NlModel model) {
+    public boolean deleteTag(@NotNull NlModel model) {
+      XmlFile xmlFile = motionSceneFile();
+      XmlTag tag = findKeyFrameTag();
+      if (tag == null) {
+        return false;
+      }
+      String command = "Delete key attributes for: " + target;
+      Runnable operation = () -> {
+        tag.delete();
+        model.notifyModified(NlModel.ChangeType.EDIT);
+        // Temporary for LayoutLib:
+        LayoutPullParsers.saveFileIfNecessary(xmlFile);
+      };
+      WriteCommandAction.runWriteCommandAction(myMotionSceneModel.myProject, command, null, operation, xmlFile);
+      return true;
     }
 
     /**
-     * @param nlModel
-     * @param key
-     * @param value
+     * Set the value of a KeyFrame attribute.
      */
-    public void setValue(NlModel nlModel, String key, String value) {
-      XmlFile xmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(myMotionSceneModel.myProject, myMotionSceneModel.myVirtualFile);
-
-      WriteCommandAction.runWriteCommandAction(myMotionSceneModel.myProject, new Runnable() {
-        @Override
-        public void run() {
-          XmlTag[] tagKeyFrames = xmlFile.getRootTag().findSubTags(MotionSceneKeyFrames);
-          for (int i = 0; i < tagKeyFrames.length; i++) {
-            XmlTag tagKeyFrame = tagKeyFrames[i];
-            XmlTag[] tagkey = tagKeyFrame.getSubTags();
-
-            for (int j = 0; j < tagkey.length; j++) {
-              XmlTag xmlTag = tagkey[j];
-              if (match(xmlTag)) {
-                String head = MotionNameSpace;
-                if (isAndroidAttribute(key)) {
-                  head = AndroidNameSpace;
-                }
-                xmlTag.setAttribute(head + key, value);
-              }
-            }
-          }
-        }
-      });
-      if (nlModel != null) {
-        // TODO: we may want to do live edits instead, but LayoutLib needs
-        // anyway to save the file to disk, so...
-        LayoutPullParsers.saveFileIfNecessary(xmlFile);
-        nlModel.notifyModified(NlModel.ChangeType.EDIT);
+    public void setValue(@NotNull NlModel model, @NotNull String key, @NotNull String value) {
+      XmlFile xmlFile = motionSceneFile();
+      XmlTag tag = findKeyFrameTag();
+      if (tag == null) {
+        return;
       }
+      String command = "Delete " + key + " attribute";
+      String namespace = isAndroidAttribute(key) ? ANDROID_URI : AUTO_URI;
+      Runnable operation = () -> {
+        tag.setAttribute(key, namespace, value);
+        model.notifyModified(NlModel.ChangeType.EDIT);
+        // Temporary for LayoutLib:
+        LayoutPullParsers.saveFileIfNecessary(xmlFile);
+      };
+
+      WriteCommandAction.runWriteCommandAction(myMotionSceneModel.myProject, command, null, operation, xmlFile);
       parse(key, value);
+    }
+
+    private XmlFile motionSceneFile() {
+      return (XmlFile)AndroidPsiUtils.getPsiFileSafely(myMotionSceneModel.myProject, myMotionSceneModel.myVirtualFile);
+    }
+
+    @Nullable
+    private String findAttributeNamespace(@NotNull XmlTag tag, @NotNull String attributeName) {
+      for (XmlAttribute attribute : tag.getAttributes()) {
+        if (attributeName.equals(attribute.getLocalName())) {
+          return attribute.getNamespace();
+        }
+      }
+      return null;
+    }
+
+    /**
+     * Find the {@link XmlTag} corresponding to this {@link KeyFrame}
+     */
+    @Nullable
+    private XmlTag findKeyFrameTag() {
+      XmlFile xmlFile = motionSceneFile();
+      XmlTag root = xmlFile != null ? xmlFile.getRootTag() : null;
+      if (root == null) {
+        return null;
+      }
+      XmlTag[] keyFrames = root.findSubTags(MotionSceneKeyFrames);
+      if (keyFrames.length == 0) {
+        return null;
+      }
+      XmlTag[] keyAttributes = keyFrames[0].findSubTags(KeyTypeAttributes);
+      for (XmlTag tag : keyAttributes) {
+        if (match(tag)) {
+          return tag;
+        }
+      }
+      return null;
     }
 
     /**
