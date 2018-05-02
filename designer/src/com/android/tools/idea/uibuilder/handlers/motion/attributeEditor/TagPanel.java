@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.motion.attributeEditor;
 
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutAttributePanel;
+import com.intellij.util.ui.JBUI;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -37,9 +38,11 @@ public class TagPanel extends JPanel {
     myBasePanel = basePanel;
     setLayout(new GridBagLayout());
     setBackground(EditorUtils.ourMainBackground);
+    setBorder(JBUI.Borders.empty());
     myTitle.setForeground(EditorUtils.ourTagColor);
     myTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
     myTitle.setFont(myTitle.getFont().deriveFont(Font.BOLD));
+    myTitle.setBorder(JBUI.Borders.empty(4));
   }
 
   protected void deleteAttr(NlModel nlModel, int selection) {

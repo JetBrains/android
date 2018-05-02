@@ -118,6 +118,9 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     return myPanel.getSelectedKey(mySelection.getId());
   }
 
+  public void clearSelectedKeyframe() {
+    myPanel.clearSelectedKey();
+  }
 
   @Nullable
   public MotionSceneModel.TransitionTag getTransitionTag() {

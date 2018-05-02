@@ -24,7 +24,7 @@ import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.table.AbstractTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -112,7 +112,9 @@ public class AttributeTagPanel extends TagPanel {
       }
       EditorUtils.AttributesNamesHolder holder = new EditorUtils.AttributesNamesHolder(s);
       String []def = myKeyframe.getDefault(s);
-      myAttributes.put(holder, (def!=null && def.length>0)?def[0]:"");
+      String value = def !=null && def.length > 0 ? def[0] : "";
+      myKeyframe.setValue(myBasePanel.myNlModel, s, value);
+      myAttributes.put(holder, value);
       myAttributesNames.add(holder);
       myKeyAttrTableModel.fireTableRowsInserted(myAttributesNames.size() - 1, myAttributesNames.size());
     }
@@ -120,12 +122,17 @@ public class AttributeTagPanel extends TagPanel {
 
   @Override
   protected void deleteAttr(NlModel nlModel, int selection) {
-    myKeyframe.deleteAttribute(nlModel, myKeyAttrTableModel.getValueAt(selection, 0).toString());
+    if (myKeyframe.deleteAttribute(nlModel, myKeyAttrTableModel.getValueAt(selection, 0).toString())) {
+      myKeyAttrTableModel.removeRow(selection);
+    }
   }
 
   @Override
   protected void deleteTag(NlModel nlModel) {
-    myKeyframe.deleteTag(nlModel);
+    if (myKeyframe.deleteTag(nlModel)) {
+      setVisible(false);
+      myBasePanel.clearSelectedKeyframe();
+    }
   }
 
   private void setupPopup(MotionSceneModel.KeyFrame keyframe) {
@@ -209,7 +216,7 @@ public class AttributeTagPanel extends TagPanel {
 
   //=========================KeyAttrTableModel=====================================//
 
-  class KeyAttrTableModel extends DefaultTableModel {
+  class KeyAttrTableModel extends AbstractTableModel {
 
     @Override
     public int getRowCount() {
@@ -217,6 +224,16 @@ public class AttributeTagPanel extends TagPanel {
         return 0;
       }
       return myAttributes.size();
+    }
+
+    public void removeRow(int rowIndex) {
+      if (rowIndex < 0 || rowIndex >= getRowCount()) {
+        throw new ArrayIndexOutOfBoundsException(rowIndex);
+      }
+      EditorUtils.AttributesNamesHolder holder = myAttributesNames.get(rowIndex);
+      myAttributesNames.remove(rowIndex);
+      myAttributes.remove(holder);
+      fireTableRowsDeleted(rowIndex, rowIndex);
     }
 
     @Override
