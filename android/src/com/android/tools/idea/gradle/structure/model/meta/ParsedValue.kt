@@ -48,7 +48,7 @@ sealed class ParsedValue<out T> {
         /**
          * The text of the DSL expression (if not trivial)
          */
-        val dslText: DslText? = null
+        val dslText: DslText
     ) : Set<T>()
 
     /**
@@ -69,31 +69,26 @@ sealed class ParsedValue<out T> {
 }
 
 /**
- * Defines kinds of DSL expressions supported in PSD.
+ * The text of a DSL expression if applicable together with its intended or parsed usage mode.
  */
-enum class DslMode {
+sealed class DslText {
   /**
    * An expression which explicitly represents a parsed value.
    */
-  LITERAL,
+  object Literal: DslText()
   /**
    * An expression which is a direct reference to another property or variable.
    */
-  REFERENCE,
+  data class Reference(val text: String): DslText()
   /**
    * An expression of type [String] containing other DSL expressions in a form of ${expression}.
    */
-  INTERPOLATED_STRING,
+  data class InterpolatedString(val text: String): DslText()
   /**
    * Any other DSL expression which does not fall into any of the cases above.
    */
-  OTHER_UNPARSED_DSL_TEXT
+  data class OtherUnparsedDslText(val text: String): DslText()
 }
-
-/**
- * The text of a DSL expression together with its intended or parsed usage mode.
- */
-data class DslText(val mode: DslMode, val text: String?)
 
 /**
  * Returns the text representation of [ParsedValue] with its value formatted by [formatValue].
@@ -101,12 +96,12 @@ data class DslText(val mode: DslMode, val text: String?)
 fun <PropertyT> ParsedValue<PropertyT>.getText(formatValue: PropertyT.() -> String) = when (this) {
   is ParsedValue.NotSet -> ""
   is ParsedValue.Set.Parsed -> {
-    val dsl = dslText ?: DslText(DslMode.LITERAL, null)
-    when (dsl.mode) {
-      DslMode.LITERAL -> value?.formatValue() ?: ""
-      DslMode.REFERENCE -> "\$${dsl.text}"
-      DslMode.OTHER_UNPARSED_DSL_TEXT -> "\$\$${dsl.text}"
-      DslMode.INTERPOLATED_STRING -> "\"${dsl.text}\""
+    val dsl = dslText
+    when (dsl) {
+      DslText.Literal -> value?.formatValue() ?: ""
+      is DslText.Reference -> "\$${dsl.text}"
+      is DslText.OtherUnparsedDslText -> "\$\$${dsl.text}"
+      is DslText.InterpolatedString -> "\"${dsl.text}\""
     }
   }
   // TODO(b/72088462) Decide on how to handle unparsed DSL text.
@@ -116,8 +111,9 @@ fun <PropertyT> ParsedValue<PropertyT>.getText(formatValue: PropertyT.() -> Stri
 
 fun <T : Any> makeParsedValue(parsed: T?, dslText: DslText?): ParsedValue<T> = when {
   (parsed == null && dslText == null) -> ParsedValue.NotSet
-  parsed == null && dslText?.mode != DslMode.OTHER_UNPARSED_DSL_TEXT -> ParsedValue.Set.Invalid(dslText?.text.orEmpty(), "Invalid value")
-  else -> ParsedValue.Set.Parsed(value = parsed, dslText = dslText)
+  (parsed == null && dslText === DslText.Literal) -> ParsedValue.Set.Invalid("", "Invalid value")
+  (parsed == null && dslText is DslText.Reference) -> ParsedValue.Set.Invalid(dslText.text, "Unresolved reference: '${dslText.text}'")
+  else -> ParsedValue.Set.Parsed(value = parsed, dslText = dslText ?: DslText.Literal)
 }
 
 

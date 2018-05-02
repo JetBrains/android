@@ -18,6 +18,7 @@
 package com.android.tools.idea.gradle.structure.model.helpers
 
 import com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil.parseFromGradleString
+import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.intellij.pom.java.LanguageLevel
 import java.io.File
@@ -26,13 +27,13 @@ fun parseString(context: Any?, text: String): ParsedValue<String> =
     if (text == "")
       ParsedValue.NotSet
     else
-      ParsedValue.Set.Parsed(value = text)
+      ParsedValue.Set.Parsed(text, DslText.Literal)
 
 fun parseFile(context: Any?, text: String): ParsedValue<File> =
     if (text == "")
       ParsedValue.NotSet
     else
-      ParsedValue.Set.Parsed(value = File(text))
+      ParsedValue.Set.Parsed(File(text), DslText.Literal)
 
 inline fun <reified T> parseEnum(text: String, parser: (String) -> T?): ParsedValue<T> =
     if (text == "")
@@ -40,7 +41,7 @@ inline fun <reified T> parseEnum(text: String, parser: (String) -> T?): ParsedVa
     else {
       val parsed = parser(text)
       if (parsed != null)
-        ParsedValue.Set.Parsed(value = parsed)
+        ParsedValue.Set.Parsed(parsed, DslText.Literal)
       else
         ParsedValue.Set.Invalid(text, "'${text}' is not a valid value of type ${T::class.simpleName}")
     }
@@ -48,8 +49,8 @@ inline fun <reified T> parseEnum(text: String, parser: (String) -> T?): ParsedVa
 fun parseBoolean(context: Any?, text: String): ParsedValue<Boolean> =
     when {
       text == "" -> ParsedValue.NotSet
-      text.equals("true", ignoreCase = true) -> ParsedValue.Set.Parsed(value = true)
-      text.equals("false", ignoreCase = true) -> ParsedValue.Set.Parsed(value = false)
+      text.equals("true", ignoreCase = true) -> ParsedValue.Set.Parsed(true, DslText.Literal)
+      text.equals("false", ignoreCase = true) -> ParsedValue.Set.Parsed(false, DslText.Literal)
       else -> ParsedValue.Set.Invalid(text, "Unknown boolean value: '$text'. Expected 'true' or 'false'")
     }
 
@@ -58,7 +59,7 @@ fun parseInt(context: Any?, text: String): ParsedValue<Int> =
       ParsedValue.NotSet
     else {
       try {
-        ParsedValue.Set.Parsed(value = text.toInt())
+        ParsedValue.Set.Parsed(text.toInt(), DslText.Literal)
       }
       catch (ex: NumberFormatException) {
         ParsedValue.Set.Invalid<Int>(dslText = text, errorMessage = "'$text' is not a valid integer value")
@@ -66,7 +67,7 @@ fun parseInt(context: Any?, text: String): ParsedValue<Int> =
     }
 
 fun parseLanguageLevel(context: Any?, text: String): ParsedValue<LanguageLevel> =
-  parseFromGradleString(text)?.let { ParsedValue.Set.Parsed(value = it) }
+  parseFromGradleString(text)?.let { ParsedValue.Set.Parsed(it, DslText.Literal) }
   ?: ParsedValue.Set.Invalid(dslText = text, errorMessage = "'$text' is not a valid language level")
 
 fun formatLanguageLevel(context: Any?, value: LanguageLevel): String = value.toJavaVersion().toString()

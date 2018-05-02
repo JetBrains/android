@@ -32,14 +32,13 @@ abstract class ModelCollectionPropertyBase<in ContextT, in ModelT, out ResolvedT
       is ParsedValue.NotSet -> parsedModel.clearParsedValue()
       is ParsedValue.Set.Parsed -> {
         val dsl = value.dslText
-        when (dsl?.mode) {
+        when (dsl) {
           // Dsl modes.
-          DslMode.REFERENCE -> parsedModel.setParsedRawValue(dsl)
-          DslMode.INTERPOLATED_STRING -> parsedModel.setParsedRawValue(dsl)
-          DslMode.OTHER_UNPARSED_DSL_TEXT -> parsedModel.setParsedRawValue(dsl)
+          is DslText.Reference -> parsedModel.setParsedRawValue(dsl)
+          is DslText.InterpolatedString -> parsedModel.setParsedRawValue(dsl)
+          is DslText.OtherUnparsedDslText -> parsedModel.setParsedRawValue(dsl)
           // Literal modes are not supported. getEditableValues() should be used.
-          DslMode.LITERAL -> UnsupportedOperationException()
-          null -> UnsupportedOperationException()
+          DslText.Literal -> UnsupportedOperationException()
         }
       }
       is ParsedValue.Set.Invalid -> throw IllegalArgumentException()
@@ -85,14 +84,13 @@ fun <T : Any> makeItemProperty(
         is ParsedValue.NotSet -> resolvedProperty.delete()
         is ParsedValue.Set.Parsed -> {
           val dsl = value.dslText
-          when (dsl?.mode) {
+          when (dsl) {
             // Dsl modes.
-            DslMode.REFERENCE -> resolvedProperty.setDslText(dsl)
-            DslMode.INTERPOLATED_STRING -> resolvedProperty.setDslText(dsl)
-            DslMode.OTHER_UNPARSED_DSL_TEXT -> resolvedProperty.setDslText(dsl)
+            is DslText.Reference -> resolvedProperty.setDslText(dsl)
+            is DslText.InterpolatedString -> resolvedProperty.setDslText(dsl)
+            is DslText.OtherUnparsedDslText -> resolvedProperty.setDslText(dsl)
             // Literal modes.
-            DslMode.LITERAL -> resolvedProperty.setTypedValue(value.value!!)
-            null -> resolvedProperty.setTypedValue(value.value!!)
+            DslText.Literal -> resolvedProperty.setTypedValue(value.value!!)
           }
         }
         is ParsedValue.Set.Invalid -> throw IllegalArgumentException()

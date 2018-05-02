@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.tools.idea.gradle.structure.model.PsProject
+import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.testing.TestProjectPaths.*
 import com.google.common.collect.Lists
@@ -53,7 +54,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     appModule.addNewFlavorDimension("new")
     // A product flavor is required for successful sync.
     val newInNew = appModule.addNewProductFlavor("new_in_new")
-    newInNew.dimension = ParsedValue.Set.Parsed("new", null)
+    newInNew.dimension = ParsedValue.Set.Parsed("new", DslText.Literal)
     appModule.applyChanges()
 
     requestSyncAndWait()
@@ -364,7 +365,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertThat(signingConfigs.map { it.name }).containsExactly("myConfig", "debug").inOrder()
 
     val myConfig = appModule.addNewSigningConfig("config2")
-    myConfig.storeFile = ParsedValue.Set.Parsed(File("/tmp/1"), null)
+    myConfig.storeFile = ParsedValue.Set.Parsed(File("/tmp/1"), DslText.Literal)
 
     assertNotNull(myConfig)
     assertTrue(myConfig.isDeclared)

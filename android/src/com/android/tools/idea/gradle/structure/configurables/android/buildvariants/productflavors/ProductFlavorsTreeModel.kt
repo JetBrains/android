@@ -17,6 +17,7 @@ import com.android.tools.idea.gradle.structure.configurables.ConfigurablesTreeMo
 import com.android.tools.idea.gradle.structure.configurables.NamedContainerConfigurableBase
 import com.android.tools.idea.gradle.structure.configurables.createConfigurablesTree
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
+import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.intellij.openapi.ui.NamedConfigurable
 import javax.swing.tree.DefaultMutableTreeNode
@@ -29,7 +30,7 @@ class ProductFlavorsTreeModel(
   fun createProductFlavor(newName: String, currentDimension: String?): Pair<ProductFlavorConfigurable, DefaultMutableTreeNode> {
     val productFlavor = module.addNewProductFlavor(newName)
     if (currentDimension != null) {
-      productFlavor.dimension = ParsedValue.Set.Parsed(currentDimension)
+      productFlavor.dimension = ParsedValue.Set.Parsed(currentDimension, DslText.Literal)
     }
     val configurable = ProductFlavorConfigurable(productFlavor)
     // TODO: properly handle not found and pre 3.0

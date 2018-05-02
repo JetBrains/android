@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
 import com.android.tools.idea.gradle.structure.configurables.ui.TextRenderer
-import com.android.tools.idea.gradle.structure.model.meta.DslMode
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
@@ -90,7 +89,7 @@ class ParsedValueRendererTest {
 
   @Test
   fun testRenderParsedValue_setValue() {
-    val one = ParsedValue.Set.Parsed(1)
+    val one = ParsedValue.Set.Parsed(1, DslText.Literal)
     assertThat(one.testRenderWith<Int>(buildKnownValueRenderers(listOf(), Any::testToString, null)), equalTo("1@"))
     assertThat(one.testRenderWith<Int>(buildKnownValueRenderers(listOf(ValueDescriptor(1, "One")), Any::testToString, null)),
                equalTo("1@ <comment>(One)"))
@@ -98,7 +97,7 @@ class ParsedValueRendererTest {
 
   @Test
   fun testRenderParsedValue_setValueWitLiteral() {
-    val one = ParsedValue.Set.Parsed(1, DslText(DslMode.LITERAL, "1"))
+    val one = ParsedValue.Set.Parsed(1, DslText.Literal)
     assertThat(one.testRenderWith<Int>(buildKnownValueRenderers(listOf(), Any::testToString, null)), equalTo("1@"))
     assertThat(one.testRenderWith<Int>(buildKnownValueRenderers(listOf(ValueDescriptor(1, "One")), Any::testToString, null)),
                equalTo("1@ <comment>(One)"))
@@ -106,7 +105,7 @@ class ParsedValueRendererTest {
 
   @Test
   fun testRenderParsedValue_setReference() {
-    val var1 = ParsedValue.Set.Parsed(1, DslText(DslMode.REFERENCE, "var1"))
+    val var1 = ParsedValue.Set.Parsed(1, DslText.Reference("var1"))
     assertThat(var1.testRenderWith<Int>(buildKnownValueRenderers(listOf(), Any::testToString, null)),
                equalTo("<b><var>\$var1</b><comment> : 1@"))
     assertThat(var1.testRenderWith<Int>(buildKnownValueRenderers(listOf(ValueDescriptor(1, "One")), Any::testToString, null)),
@@ -115,7 +114,7 @@ class ParsedValueRendererTest {
 
   @Test
   fun testRenderParsedValue_setInterpolatedString() {
-    val interpolated = ParsedValue.Set.Parsed("a nd b", DslText(DslMode.INTERPOLATED_STRING, "\$var1 and \$var2"))
+    val interpolated = ParsedValue.Set.Parsed("a nd b", DslText.InterpolatedString("\$var1 and \$var2"))
     // TODO(b/77618752): Variable references should be highlighted separately.
     assertThat(interpolated.testRenderWith<String>(buildKnownValueRenderers(listOf(), Any::testToString, null)),
                equalTo("<b><var>\"\$var1 and \$var2\"</b><comment> : \"a nd b@\""))
@@ -126,7 +125,7 @@ class ParsedValueRendererTest {
 
   @Test
   fun testRenderParsedValue_setOtherDsl() {
-    val dsl = ParsedValue.Set.Parsed(null, DslText(DslMode.OTHER_UNPARSED_DSL_TEXT, "doSomething()"))
+    val dsl = ParsedValue.Set.Parsed(null, DslText.OtherUnparsedDslText("doSomething()"))
     assertThat(dsl.testRenderWith<String>(buildKnownValueRenderers(listOf(), Any::testToString, null)),
                equalTo("<b><var>\$\$</b><w>doSomething()"))
   }

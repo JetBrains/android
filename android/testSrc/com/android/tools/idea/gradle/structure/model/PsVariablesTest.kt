@@ -51,7 +51,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
   fun testGetAvailableVariablesForType() {
     val stringWithDotsProperty: ModelPropertyContext<Nothing?, Any, String> = object : ModelPropertyContext<Nothing?, Any, String> {
       override fun parse(context: Nothing?, value: String): ParsedValue<String> = when {
-        value.contains(".") -> ParsedValue.Set.Parsed(value)
+        value.contains(".") -> ParsedValue.Set.Parsed(value, DslText.Literal)
         else -> ParsedValue.Set.Invalid(value, "invalid")
       }
 
@@ -80,4 +80,4 @@ class PsVariablesTest : AndroidGradleTestCase() {
   }
 }
 
-private fun <T : Any> Pair<String, T>.asParsed() = ParsedValue.Set.Parsed(dslText = DslText(DslMode.REFERENCE, first), value = second)
+private fun <T : Any> Pair<String, T>.asParsed() = ParsedValue.Set.Parsed(dslText = DslText.Reference(first), value = second)

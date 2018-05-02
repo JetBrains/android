@@ -109,10 +109,10 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT
         {
           when {
             setParsedRawValue == null -> throw UnsupportedOperationException("setParsedRawValue is undefined for property '$description'")
-            it.mode == DslMode.REFERENCE -> setParsedRawValue(it)
-            it.mode == DslMode.INTERPOLATED_STRING -> setParsedRawValue(it)
-            it.mode == DslMode.OTHER_UNPARSED_DSL_TEXT -> setParsedRawValue(it)
-            else -> throw UnsupportedOperationException("Unknown DslMode: ${it.mode}")
+            it is DslText.Reference -> setParsedRawValue(it)
+            it is DslText.InterpolatedString -> setParsedRawValue(it)
+            it is DslText.OtherUnparsedDslText -> setParsedRawValue(it)
+            else -> throw UnsupportedOperationException()
           }
         },
         { context: ContextT, value -> if (value.isBlank()) ParsedValue.NotSet else parse(context, value.trim()) },
@@ -157,14 +157,13 @@ class ModelSimplePropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, Proper
       is ParsedValue.NotSet -> parsedModel.setParsedValue(null)
       is ParsedValue.Set.Parsed -> {
         val dsl = value.dslText
-        when (dsl?.mode) {
+        when (dsl) {
           // Dsl modes.
-          DslMode.REFERENCE -> parsedModel.setParsedRawValue(dsl)
-          DslMode.INTERPOLATED_STRING -> parsedModel.setParsedRawValue(dsl)
-          DslMode.OTHER_UNPARSED_DSL_TEXT -> parsedModel.setParsedRawValue(dsl)
+          is DslText.Reference -> parsedModel.setParsedRawValue(dsl)
+          is DslText.InterpolatedString -> parsedModel.setParsedRawValue(dsl)
+          is DslText.OtherUnparsedDslText -> parsedModel.setParsedRawValue(dsl)
           // Literal modes.
-          DslMode.LITERAL -> parsedModel.setParsedValue(value.value)
-          null -> parsedModel.setParsedValue(value.value)
+          DslText.Literal -> parsedModel.setParsedValue(value.value)
         }
       }
       is ParsedValue.Set.Invalid -> throw IllegalArgumentException()

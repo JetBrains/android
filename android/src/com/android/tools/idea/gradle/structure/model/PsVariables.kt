@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
-import com.android.tools.idea.gradle.structure.model.meta.DslMode
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyContext
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
@@ -45,7 +44,7 @@ class PsVariables(private val module: PsModule) : VariablesProvider {
       .mapNotNull {
         val value = it.second
         when(value) {
-          is ParsedValue.Set.Parsed<ValueT> -> ParsedValue.Set.Parsed(value.value, DslText(DslMode.REFERENCE, it.first))
+          is ParsedValue.Set.Parsed<ValueT> -> ParsedValue.Set.Parsed(value.value, DslText.Reference(it.first))
           else -> null
         }
       }
