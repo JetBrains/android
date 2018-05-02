@@ -185,7 +185,11 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
               ref.setName(newName);
             }
           }
-          else if (reference != null && MigrateToAppCompatUtil.isKotlinSimpleNameReference(reference)) {
+          else if (reference != null &&
+                   MigrateToAppCompatUtil.isKotlinSimpleNameReference(reference) &&
+                   (element.getParent() != null && element.getParent().getText().equals(mapEntry.myOldName))) {
+            // Before changing the package, we verify that this is actually the correct refactoring by seeing
+            // if the element matches the old package name. This is a workaround for b/78800780
             return reference.bindToElement(aPackage);
           }
         }
