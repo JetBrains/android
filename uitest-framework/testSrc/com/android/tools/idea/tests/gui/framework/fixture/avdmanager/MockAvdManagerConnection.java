@@ -73,20 +73,26 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
   }
 
   public void killEmulator() {
-    AndroidDebugBridge adb = AndroidDebugBridge.createBridge(getAdbBinary().getAbsolutePath(), false);
+    try {
+      AndroidDebugBridge.init(false);
+      AndroidDebugBridge adb = AndroidDebugBridge.createBridge(getAdbBinary().getAbsolutePath(), false);
 
-    Collection<IDevice> emulatorDevices = new ArrayList<>();
-    for (IDevice device : adb.getDevices()) {
-      EmulatorConsole emulatorConsole = EmulatorConsole.getConsole(device);
-      if (emulatorConsole != null) {
-        emulatorConsole.kill();
-        emulatorDevices.add(device);
+      Collection<IDevice> emulatorDevices = new ArrayList<>();
+      for (IDevice device : adb.getDevices()) {
+        EmulatorConsole emulatorConsole = EmulatorConsole.getConsole(device);
+        if (emulatorConsole != null) {
+          emulatorConsole.kill();
+          emulatorDevices.add(device);
+        }
       }
-    }
 
-    giveEmulatorsChanceToExit(emulatorDevices, adb);
-    // Force kill remaining emulators that didn't exit
-    killEmulatorProcesses();
+      giveEmulatorsChanceToExit(emulatorDevices, adb);
+      // Force kill remaining emulators that didn't exit
+      killEmulatorProcesses();
+    }
+    finally {
+      AndroidDebugBridge.terminate();
+    }
   }
 
   public void killEmulatorProcesses() {
