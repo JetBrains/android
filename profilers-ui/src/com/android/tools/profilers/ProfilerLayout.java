@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.adtui.common.AdtUiUtils;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
@@ -36,8 +35,6 @@ public class ProfilerLayout {
   public static final int MARKER_LENGTH = JBUI.scale(5);
 
   public static final int TIME_AXIS_HEIGHT = JBUI.scale(15);
-
-  public static final float TOOLTIP_FONT_SIZE = 11f;
 
   /**
    * Common space left on top of a vertical axis to make sure label text can fit there
@@ -73,9 +70,6 @@ public class ProfilerLayout {
 
   public static final int PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER = JBUI.scale(16);
   public static final int PROFILING_INSTRUCTIONS_ICON_PADDING = JBUI.scale(1);
-  public static final Font PROFILING_INSTRUCTIONS_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(5f);
-  public static final Font INFO_MESSAGE_HEADER_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(4f);
-  public static final Font INFO_MESSAGE_DESCRIPTION_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(2f);
 
   public static final int FILTER_TEXT_FIELD_WIDTH = JBUI.scale(245);
   public static final int FILTER_TEXT_FIELD_TRIGGER_DELAY_MS = 250;
@@ -85,7 +79,6 @@ public class ProfilerLayout {
   public static final int TOOLBAR_HEIGHT = JBUI.scale(25) + 5;
   public static final Border TOOLBAR_LABEL_BORDER = JBUI.Borders.empty(3, 8, 3, 3);
   public static final Border TOOLBAR_ICON_BORDER = JBUI.Borders.empty(4);
-  public static final Font TOOLBAR_LABEL_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(1);
 
   /**
    * Used in the CPU threads/kernel cell renderer's to set the preferred height.

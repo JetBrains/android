@@ -62,10 +62,10 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     myEventsPanel.setBorder(BorderFactory.createEmptyBorder(1, 0, 1, 0));
     JLabel showLabel = new JLabel("Show");
     showLabel.setBorder(new JBEmptyBorder(0, 11, 0, 8));
-    showLabel.setFont(showLabel.getFont().deriveFont(12f));
+    showLabel.setFont(ProfilerFonts.STANDARD_FONT);
     myEventsPanel.add(showLabel, new TabularLayout.Constraint(0, 0));
     JComponent configurationComponent = getConfigurationComponent();
-    configurationComponent.setFont(showLabel.getFont().deriveFont(12f));
+    configurationComponent.setFont(ProfilerFonts.STANDARD_FONT);
     myEventsPanel.add(configurationComponent, new TabularLayout.Constraint(0, 1));
     myEventsPanel.add(getSelectionTimeLabel(), new TabularLayout.Constraint(0, 3));
 
@@ -245,7 +245,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     JPanel toolBar = new JPanel(createToolbarLayout());
     JLabel textLabel = new JLabel();
     textLabel.setText("Modeled");
-    textLabel.setFont(textLabel.getFont().deriveFont(13.0f));
+    textLabel.setFont(ProfilerFonts.H4_FONT);
     textLabel.setBorder(new JBEmptyBorder(4, 8, 4, 7));
     toolBar.add(textLabel);
 
@@ -258,7 +258,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     textPane.setBorder(TOOLTIP_BORDER);
     textPane.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
     textPane.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
-    textPane.setFont(iconLabel.getFont().deriveFont(TOOLTIP_FONT_SIZE));
+    textPane.setFont(ProfilerFonts.TOOLTIP_FONT);
     TooltipComponent tooltip =
       new TooltipComponent.Builder(textPane, iconLabel).setPreferredParentClass(ProfilerLayeredPane.class).build();
     tooltip.registerListenersOn(iconLabel);
@@ -283,7 +283,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     assert parent.getLayout().getClass() == TabularLayout.class;
     InstructionsPanel panel =
       new InstructionsPanel.Builder(
-        new TextInstruction(SwingUtilities2.getFontMetrics(parent, PROFILING_INSTRUCTIONS_FONT), "Select a range to inspect energy events"))
+        new TextInstruction(SwingUtilities2.getFontMetrics(parent, ProfilerFonts.H2_FONT), "Select a range to inspect energy events"))
         .setEaseOut(getStage().getInstructionsEaseOutModel(), instructionPanel -> parent.remove(instructionPanel))
         .setBackgroundCornerRadius(PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER, PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER)
         .build();

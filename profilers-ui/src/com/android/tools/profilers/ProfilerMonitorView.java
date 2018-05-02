@@ -32,6 +32,9 @@ import java.awt.event.FocusListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+import static com.android.tools.profilers.ProfilerFonts.H2_FONT;
+import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
+
 public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends AspectObserver {
 
   private static final int MINIMUM_MONITOR_HEIGHT = JBUI.scale(50);
@@ -117,7 +120,7 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
     JLabel disabledMessage = new JLabel(getDisabledMessage());
     disabledMessage.setHorizontalAlignment(SwingConstants.CENTER);
     disabledMessage.setVerticalAlignment(SwingConstants.CENTER);
-    disabledMessage.setFont(disabledMessage.getFont().deriveFont(15.5f));
+    disabledMessage.setFont(H2_FONT);
     myContainer.add(disabledMessage, new TabularLayout.Constraint(0, 0, 3));
 
     HyperlinkLabel linkToConfigMessage = new HyperlinkLabel();
@@ -129,7 +132,7 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
       }
     });
     myContainer.add(linkToConfigMessage, new TabularLayout.Constraint(1, 1));
-    linkToConfigMessage.setFont(linkToConfigMessage.getFont().deriveFont(12f));
+    linkToConfigMessage.setFont(STANDARD_FONT);
   }
 
   /**

@@ -292,7 +292,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     myCaptureButton.addActionListener(event -> capture());
 
     myCaptureStatus = new JLabel("");
-    myCaptureStatus.setFont(AdtUiUtils.DEFAULT_FONT.deriveFont(12f));
+    myCaptureStatus.setFont(ProfilerFonts.STANDARD_FONT);
     myCaptureStatus.setBorder(JBUI.Borders.emptyLeft(5));
     myCaptureStatus.setForeground(ProfilerColors.CPU_CAPTURE_STATUS);
 
@@ -418,8 +418,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   }
 
   private void configureHelpTipPanel() {
-    FontMetrics headerMetrics = SwingUtilities2.getFontMetrics(myHelpTipPanel, INFO_MESSAGE_HEADER_FONT);
-    FontMetrics bodyMetrics = SwingUtilities2.getFontMetrics(myHelpTipPanel, INFO_MESSAGE_DESCRIPTION_FONT);
+    FontMetrics headerMetrics = SwingUtilities2.getFontMetrics(myHelpTipPanel, ProfilerFonts.H3_FONT);
+    FontMetrics bodyMetrics = SwingUtilities2.getFontMetrics(myHelpTipPanel, ProfilerFonts.STANDARD_FONT);
     InstructionsPanel infoMessage = new InstructionsPanel.Builder(
       new TextInstruction(headerMetrics, "Thread details unavailable"),
       new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
@@ -438,7 +438,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     panel.setOpaque(false);
     panel.setBackground(new Color(0, 0, 0, 0));
     InstructionsPanel infoMessage = new InstructionsPanel.Builder(
-      new TextInstruction(SwingUtilities2.getFontMetrics(panel, INFO_MESSAGE_HEADER_FONT), "Cpu usage details unavailable"))
+      new TextInstruction(SwingUtilities2.getFontMetrics(panel, ProfilerFonts.H3_FONT), "Cpu usage details unavailable"))
       .setColors(JBColor.foreground(), null)
       .build();
     panel.add(infoMessage);
@@ -835,7 +835,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     Icon recordIcon = UIUtil.isUnderDarcula()
                       ? IconUtil.darker(StudioIcons.Profiler.Toolbar.RECORD, 3)
                       : IconUtil.brighter(StudioIcons.Profiler.Toolbar.RECORD, 3);
-    FontMetrics metrics = SwingUtilities2.getFontMetrics(parent, PROFILING_INSTRUCTIONS_FONT);
+    FontMetrics metrics = SwingUtilities2.getFontMetrics(parent, ProfilerFonts.H2_FONT);
     InstructionsPanel panel = new InstructionsPanel.Builder(new TextInstruction(metrics, "Click "),
                                                             new IconInstruction(recordIcon, PROFILING_INSTRUCTIONS_ICON_PADDING, null),
                                                             new TextInstruction(metrics, " to start method profiling"))

@@ -293,7 +293,7 @@ final class ThreadsView {
       myStage = stage;
       myDataList = data;
       myRange = stage.getStudioProfilers().getTimeline().getSelectionRange();
-      setFont(AdtUiUtils.DEFAULT_FONT);
+      setFont(ProfilerFonts.SMALL_FONT);
       setForeground(Color.BLACK);
       setBackground(ProfilerColors.DEFAULT_BACKGROUND);
       myTable = table;
@@ -382,7 +382,7 @@ final class ThreadsView {
       myContent = new JPanel(new TabularLayout("*", "*"));
       myContent.setBorder(TOOLTIP_BORDER);
       myContent.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
-      myContent.setFont(myContent.getFont().deriveFont(TOOLTIP_FONT_SIZE));
+      myContent.setFont(ProfilerFonts.TOOLTIP_FONT);
 
       myTooltipComponent = new TooltipComponent.Builder(myContent, table).setPreferredParentClass(ProfilerLayeredPane.class).build();
       myTooltipComponent.registerListenersOn(table);
@@ -442,7 +442,7 @@ final class ThreadsView {
     private static JLabel newTooltipLabel(String text) {
       JLabel label = new JLabel(text);
       label.setForeground(ProfilerColors.TOOLTIP_TEXT);
-      label.setFont(label.getFont().deriveFont(TOOLTIP_FONT_SIZE));
+      label.setFont(ProfilerFonts.TOOLTIP_FONT);
       return label;
     }
 

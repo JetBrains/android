@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
+
 /**
  * A collection of common UI constants, components, and utility methods shared throughout the
  * various {@link TabContent} subclasses.
@@ -40,7 +42,6 @@ import java.util.stream.Collectors;
 final class TabUiUtils {
 
   public static final int SCROLL_UNIT = JBUI.scale(10);
-  public static final float FIELD_FONT_SIZE = 12.f;
   // Padding to be aligned with the tab title on the left.
   public static final int HORIZONTAL_PADDING = 15;
 
@@ -48,7 +49,6 @@ final class TabUiUtils {
   public static final int PAGE_VGAP = JBUI.scale(28);
   public static final int SECTION_VGAP = JBUI.scale(10);
   public static final int HGAP = JBUI.scale(22);
-  public static final float TITLE_FONT_SIZE = 14.f;
 
   public static final String SECTION_TITLE_HEADERS = "Headers";
 
@@ -164,8 +164,7 @@ final class TabUiUtils {
     textPane.setBorder(null);
     textPane.setEditable(false);
     textPane.setText(text);
-    Font labelFont = UIManager.getFont("Label.font");
-    String rule = "body { font-family: " + labelFont.getFamily() + "; font-size: " + FIELD_FONT_SIZE + "pt; }";
+    String rule = "body { font-family: " + STANDARD_FONT.getFamily() + "; font-size: " + STANDARD_FONT.getSize2D() + "pt; }";
     ((HTMLDocument)textPane.getDocument()).getStyleSheet().addRule(rule);
     return textPane;
   }
@@ -178,7 +177,7 @@ final class TabUiUtils {
       // Some Swing components simply have no font set - skip over them
       return;
     }
-    c.setFont(c.getFont().deriveFont(Font.PLAIN, FIELD_FONT_SIZE));
+    c.setFont(c.getFont().deriveFont(Font.PLAIN, STANDARD_FONT.getSize2D()));
   }
 
   /**

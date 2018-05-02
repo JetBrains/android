@@ -33,6 +33,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
+
 /**
  * View to display a single network request and its detailed information.
  */
@@ -58,7 +60,7 @@ public class ConnectionDetailsView extends JPanel {
     JPanel rootPanel = new JPanel(new TabularLayout("*,Fit-", "Fit-,*"));
 
     myTabsPanel = new CommonTabbedPane();
-    myTabsPanel.setFont(UIManager.getFont("Label.font").deriveFont(TabUiUtils.FIELD_FONT_SIZE));
+    myTabsPanel.setFont(STANDARD_FONT);
 
     populateTabs();
 

@@ -23,10 +23,7 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.AxisComponentModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
-import com.android.tools.profilers.BorderlessTableCellRenderer;
-import com.android.tools.profilers.HoverRowTable;
-import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerLayeredPane;
+import com.android.tools.profilers.*;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
@@ -209,7 +206,7 @@ final class ConnectionsView {
     textPane.setBorder(TOOLTIP_BORDER);
     textPane.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
     textPane.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
-    textPane.setFont(myConnectionsTable.getFont().deriveFont(TOOLTIP_FONT_SIZE));
+    textPane.setFont(ProfilerFonts.TOOLTIP_FONT);
     TooltipComponent tooltip =
       new TooltipComponent.Builder(textPane, myConnectionsTable).setPreferredParentClass(ProfilerLayeredPane.class).build();
     tooltip.registerListenersOn(myConnectionsTable);

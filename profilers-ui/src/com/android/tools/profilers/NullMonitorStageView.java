@@ -27,6 +27,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.android.tools.profilers.ProfilerFonts.H1_FONT;
 import static com.android.tools.profilers.ProfilerLayout.PROFILING_INSTRUCTIONS_ICON_PADDING;
 
 /**
@@ -66,7 +67,7 @@ public class NullMonitorStageView extends StageView<NullMonitorStage> {
     myTitle.setHorizontalAlignment(SwingConstants.CENTER);
     myTitle.setVerticalAlignment(SwingConstants.TOP);
     myTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
-    myTitle.setFont(myTitle.getFont().deriveFont(21.0f));
+    myTitle.setFont(H1_FONT);
     myTitle.setForeground(new JBColor(0x000000, 0xFFFFFF));
     topPanel.add(myTitle);
     topPanel.add(Box.createRigidArea(new Dimension(1, 15)));

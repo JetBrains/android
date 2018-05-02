@@ -148,7 +148,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     myHeapDumpButton.setToolTipText(myHeapDumpAction.getDefaultToolTipText());
 
     myCaptureElapsedTime = new JLabel("");
-    myCaptureElapsedTime.setFont(AdtUiUtils.DEFAULT_FONT.deriveFont(12f));
+    myCaptureElapsedTime.setFont(ProfilerFonts.STANDARD_FONT);
     myCaptureElapsedTime.setBorder(JBUI.Borders.emptyLeft(5));
     myCaptureElapsedTime.setForeground(ProfilerColors.CPU_CAPTURE_STATUS);
 
@@ -561,7 +561,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
                         ? IconUtil.darker(StudioIcons.Profiler.Toolbar.HEAP_DUMP, 6)
                         : IconUtil.brighter(StudioIcons.Profiler.Toolbar.HEAP_DUMP, 6);
     RenderInstruction[] instructions;
-    FontMetrics metrics = SwingUtilities2.getFontMetrics(parent, PROFILING_INSTRUCTIONS_FONT);
+    FontMetrics metrics = SwingUtilities2.getFontMetrics(parent, ProfilerFonts.H2_FONT);
     if (getStage().useLiveAllocationTracking()) {
       RenderInstruction[] liveAllocInstructions = {
         new TextInstruction(metrics, "Select a range to inspect allocations"),

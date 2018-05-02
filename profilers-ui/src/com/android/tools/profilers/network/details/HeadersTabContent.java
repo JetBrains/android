@@ -25,8 +25,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.Map;
-import java.util.TreeMap;
+
+import static com.android.tools.profilers.ProfilerFonts.H3_FONT;
 
 /**
  * Tab which shows a list of request and response headers for a request.
@@ -47,7 +47,7 @@ final class HeadersTabContent extends TabContent {
     panel.setBorder(new JBEmptyBorder(0, TabUiUtils.HGAP, 0, 0));
 
     JLabel titleLabel = new OverviewTabContent.NoWrapBoldLabel(title);
-    titleLabel.setFont(titleLabel.getFont().deriveFont(TabUiUtils.TITLE_FONT_SIZE));
+    titleLabel.setFont(H3_FONT);
     panel.add(titleLabel, new TabularLayout.Constraint(0, 0));
     panel.add(TabUiUtils.createMapComponent(header.getFields()), new TabularLayout.Constraint(1, 0));
     new TreeWalker(panel).descendantStream().forEach(c -> {

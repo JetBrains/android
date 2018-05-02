@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.ProfilerColors;
@@ -26,6 +25,8 @@ import com.intellij.ui.ColorUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+
+import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_FONT;
 
 public class CpuThreadsTooltipView extends ProfilerTooltipView {
   @NotNull private final CpuThreadsTooltip myTooltip;
@@ -39,7 +40,7 @@ public class CpuThreadsTooltipView extends ProfilerTooltipView {
     myTimeline = view.getTimeline();
     myTooltip = tooltip;
     myContent = new JLabel();
-    myContent.setFont(AdtUiUtils.DEFAULT_FONT);
+    myContent.setFont(TOOLTIP_FONT);
     myContent.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
     tooltip.addDependency(this).onChange(CpuThreadsTooltip.Aspect.THREAD_STATE, this::stateChanged);
   }

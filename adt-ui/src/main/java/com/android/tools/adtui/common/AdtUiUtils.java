@@ -49,7 +49,7 @@ public final class AdtUiUtils {
   /**
    * Default font to be used in the profiler UI.
    */
-  public static final JBFont DEFAULT_FONT = JBFont.create(new Font(null, Font.PLAIN, 10));
+  public static final JBFont DEFAULT_FONT = JBUI.Fonts.label(10f);
 
   /**
    * Default font color of charts, and component labels.
