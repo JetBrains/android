@@ -570,8 +570,8 @@ class NavSceneTest : NavTestCase() {
             "DrawRectangle,1,520x400x70x19,ff1886f7,2,6\n" +
             "DrawTruncatedText,3,Nested Graph,520x400x70x19,ff1886f7,Default:1:9,true\n" +
             "DrawTruncatedText,3,subnav,520x390x70x5,ff656565,Default:0:9,false\n" +
-            "DrawFilledCircle,6,591x409,fff5f5f5,0:3:54\n" +
-            "DrawCircle,7,591x409,ff1886f7,2,0:2:54\n" +
+            "DrawFilledCircle,6,590x409,fff5f5f5,0:3:54\n" +
+            "DrawCircle,7,590x409,ff1886f7,2,0:2:54\n" +
             "\n" +
             "UNClip\n", list.generateSortedDisplayList(context)
     )
@@ -597,8 +597,8 @@ class NavSceneTest : NavTestCase() {
             "DrawRectangle,1,520x400x70x19,ff1886f7,2,6\n" +
             "DrawTruncatedText,3,Nested Graph,520x400x70x19,ff1886f7,Default:1:9,true\n" +
             "DrawTruncatedText,3,subnav,520x390x70x5,ff656565,Default:0:9,false\n" +
-            "DrawFilledCircle,6,591x409,fff5f5f5,3:0:54\n" +
-            "DrawCircle,7,591x409,ff1886f7,2,2:0:54\n" +
+            "DrawFilledCircle,6,590x409,fff5f5f5,3:0:54\n" +
+            "DrawCircle,7,590x409,ff1886f7,2,2:0:54\n" +
             "\n" +
             "UNClip\n", list.generateSortedDisplayList(context)
     )

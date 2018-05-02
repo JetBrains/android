@@ -42,6 +42,7 @@ import java.util.List;
 
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_ACTION_HANDLE_BACKGROUND_LEVEL;
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_ACTION_HANDLE_LEVEL;
+import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.FRAGMENT_BORDER_SPACING;
 
 /**
  * {@linkplain ActionHandleTarget} is a target for handling drag-creation of actions.
@@ -52,7 +53,6 @@ public class ActionHandleTarget extends NavBaseTarget {
   @NavCoordinate private static final int INNER_RADIUS_LARGE = JBUI.scale(8);
   @NavCoordinate private static final int OUTER_RADIUS_SMALL = JBUI.scale(7);
   @NavCoordinate private static final int OUTER_RADIUS_LARGE = JBUI.scale(11);
-  @NavCoordinate private static final int HORIZONTAL_OFFSET = JBUI.scale(3);
   private static final int DURATION = 200;
   @SwingCoordinate private static final int STROKE_WIDTH = 2;
   private static String DRAG_CREATE_IN_PROGRESS = "DRAG_CREATE_IN_PROGRESS";
@@ -92,7 +92,11 @@ public class ActionHandleTarget extends NavBaseTarget {
                         @NavCoordinate int t,
                         @NavCoordinate int r,
                         @NavCoordinate int b) {
-    layoutCircle(r + HORIZONTAL_OFFSET, t + (b - t) / 2, myHandleState.myOuterRadius);
+    @NavCoordinate int x = r;
+    if (NavComponentHelperKt.isFragment(getComponent().getNlComponent())) {
+      x += FRAGMENT_BORDER_SPACING + 2;
+    }
+    layoutCircle(x, t + (b - t) / 2, myHandleState.myOuterRadius);
     return false;
   }
 

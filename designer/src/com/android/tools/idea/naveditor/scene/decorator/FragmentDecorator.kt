@@ -31,8 +31,6 @@ import java.awt.Rectangle
  * [SceneDecorator] responsible for creating draw commands for one fragment in the navigation editor.
  */
 
-@NavCoordinate private val FRAGMENT_BORDER_SPACING = JBUI.scale(2)
-
 class FragmentDecorator : NavScreenDecorator() {
   override fun addContent(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {
     super.addContent(list, time, sceneContext, component)
