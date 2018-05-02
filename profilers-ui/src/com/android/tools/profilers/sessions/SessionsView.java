@@ -20,6 +20,7 @@ import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.stdui.CommonAction;
 import com.android.tools.adtui.stdui.CommonButton;
+import com.android.tools.adtui.stdui.StandardColors;
 import com.android.tools.adtui.stdui.menu.CommonDropDownButton;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.*;
@@ -314,6 +315,7 @@ public class SessionsView extends AspectObserver {
       label.setAlignmentY(Component.CENTER_ALIGNMENT);
       label.setBorder(TOOLBAR_LABEL_BORDER);
       label.setFont(ProfilerFonts.SMALL_FONT);
+      label.setForeground(StandardColors.TEXT_COLOR);
       toolbar.add(label);
       toolbar.add(Box.createHorizontalGlue());
       toolbar.add(myProcessSelectionDropDown);

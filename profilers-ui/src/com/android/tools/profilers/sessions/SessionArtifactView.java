@@ -18,6 +18,7 @@ package com.android.tools.profilers.sessions;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.stdui.StandardColors;
 import com.android.tools.profilers.ContextMenuInstaller;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
@@ -43,11 +44,11 @@ import static com.android.tools.profilers.ProfilerColors.SELECTED_SESSION_COLOR;
  */
 public abstract class SessionArtifactView<T extends SessionArtifact> extends JPanel {
 
-  protected static final Border ARTIFACT_ICON_BORDER = JBUI.Borders.empty(4, 0);
+  protected static final Border ARTIFACT_ICON_BORDER = JBUI.Borders.empty(2, 0);
   protected static final Border SELECTED_BORDER = JBUI.Borders.customLine(SELECTED_SESSION_COLOR, 0, 3, 0, 0);
   protected static final Border UNSELECTED_BORDER = JBUI.Borders.empty(0, 3, 0, 0);
 
-  protected static final Border ARTIFACT_PADDING = JBUI.Borders.empty(2, 9, 2, 4);
+  protected static final Border ARTIFACT_PADDING = JBUI.Borders.empty(3, 9, 3, 4);
   protected static final Border LABEL_PADDING = JBUI.Borders.empty(1, 8, 1, 0);
 
   protected static final Font TITLE_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(3);
@@ -172,24 +173,25 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
     // 1st row for showing name, 2nd row for time.
     JPanel panel = new JPanel(new TabularLayout("Fit,*", "Fit,Fit"));
 
-    if (isOngoing) {
-      AsyncProcessIcon loadingIcon = new AsyncProcessIcon("");
-      loadingIcon.setBorder(ARTIFACT_ICON_BORDER);
-      panel.add(loadingIcon, new TabularLayout.Constraint(0, 0));
-    }
-    else {
-      JLabel iconLabel = new JLabel(icon);
-      iconLabel.setBorder(ARTIFACT_ICON_BORDER);
-      panel.add(iconLabel, new TabularLayout.Constraint(0, 0));
-    }
+    JPanel iconPanel = new JPanel();
+    iconPanel.setLayout(new BoxLayout(iconPanel, BoxLayout.Y_AXIS));
+    iconPanel.setOpaque(false);
+    JComponent iconLabel = isOngoing ? new AsyncProcessIcon("") : new JLabel(icon);
+    iconLabel.setBorder(ARTIFACT_ICON_BORDER);
+    iconPanel.add(iconLabel);
+    iconPanel.add(Box.createHorizontalGlue());
+    panel.add(iconPanel, new TabularLayout.Constraint(0, 0, 2, 1));
 
     JLabel artifactName = new JLabel(name);
     artifactName.setBorder(LABEL_PADDING);
     artifactName.setFont(TITLE_FONT);
+    artifactName.setForeground(StandardColors.TEXT_COLOR);
 
     JLabel artifactTime = new JLabel(subtitle);
     artifactTime.setBorder(LABEL_PADDING);
     artifactTime.setFont(STATUS_FONT);
+    artifactTime
+      .setForeground(AdtUiUtils.overlayColor(artifactTime.getBackground().getRGB(), StandardColors.TEXT_COLOR.getRGB(), 0.6f));
     panel.add(artifactName, new TabularLayout.Constraint(0, 1));
     panel.add(artifactTime, new TabularLayout.Constraint(1, 1));
 
