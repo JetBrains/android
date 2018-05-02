@@ -51,7 +51,6 @@ import org.jetbrains.annotations.TestOnly;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
@@ -60,7 +59,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.ui.UIUtil.findComponentOfType;
 import static com.intellij.util.ui.UIUtil.findComponentsOfType;
 import static org.fest.reflect.core.Reflection.method;
-import static org.junit.Assert.fail;
 
 public class ExecutionToolWindowFixture extends ToolWindowFixture {
   public static class ContentFixture {
@@ -214,43 +212,28 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
           Matchers.byText(ActionMenuItem.class, "Add Watchpoint"));
       myRobot.click(addWatchpoint);
 
-      Ref<JPanel> out = new Ref<>();
-      Wait.seconds(5).expecting("").until(() -> {
-        // Check the dialog is showing and enabled by checking key components within it are showing and enabled.
-        Collection<JPanel> allFound = myRobot.finder().findAll(ideFrame.target(), Matchers.byType(JPanel.class));
-        JPanel watchpointJpanel = null;
-        int componentWithMnemonicsCount = 0;
-        for (JPanel jPanel : allFound) {
+      JPanel watchpointConfig = myRobot.finder().find(ideFrame.target(), new GenericTypeMatcher<JPanel>(JPanel.class) {
+        @Override
+        protected boolean isMatching(@NotNull JPanel jPanel) {
           try {
             if (jPanel instanceof ComponentWithMnemonics) {
-              componentWithMnemonicsCount++;
               myRobot.finder().find(jPanel, Matchers.byText(JCheckBox.class, "Enabled"));
               myRobot.finder().find(jPanel, Matchers.byText(JCheckBox.class, "Suspend"));
               myRobot.finder().find(jPanel, Matchers.byText(JLabel.class, "Access Type:"));
               myRobot.finder().find(jPanel, Matchers.byText(LinkLabel.class, "More (Ctrl+Shift+F8)"));
               myRobot.finder().find(jPanel, Matchers.byText(JButton.class, "Done"));
-              watchpointJpanel = jPanel;
+              return true;
             }
           }
           catch (ComponentLookupException e) {
             return false;
           }
-        }
 
-        if (watchpointJpanel == null) {
           return false;
         }
-
-        if (componentWithMnemonicsCount > 1) {
-          fail("Found more than one ComponentWithMnemonics type which matches the criteria.");
-        }
-
-        out.set(watchpointJpanel);
-        return true;
       });
-      assertThat(out.get()).isNotNull();
 
-      return new WatchpointConfigFixture(myRobot, out.get());
+      return new WatchpointConfigFixture(myRobot, watchpointConfig);
     }
 
     public void clickResumeButton() {
