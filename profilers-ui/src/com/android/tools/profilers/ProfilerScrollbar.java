@@ -34,9 +34,14 @@ import java.util.concurrent.TimeUnit;
  */
 public final class ProfilerScrollbar extends JBScrollBar {
   /**
-   * The percentage of the current view range's length to zoom/pan per mouse wheel click.
+   * The percentage of the current view range's length to zoom per mouse wheel click.
    */
-  private static final float VIEW_PERCENTAGE_PER_MOUSEHWEEL_FACTOR = 0.005f;
+  private static final float VIEW_ZOOM_PERCENTAGE_PER_MOUSEHWEEL_FACTOR = 0.050f;
+
+  /**
+   * The percentage of the current view range's length to pan per mouse wheel click.
+   */
+  private static final float VIEW_PAN_PERCENTAGE_PER_MOUSEHWEEL_FACTOR = 0.005f;
 
   /**
    * Work in ms to keep things compatible with scrollbar's integer api.
@@ -83,16 +88,15 @@ public final class ProfilerScrollbar extends JBScrollBar {
     });
     zoomPanComponent.addMouseWheelListener(e -> {
       int count = e.getWheelRotation();
-      double deltaUs = getWheelDelta() * count;
       boolean isMenuKeyDown = AdtUiUtils.isActionKeyDown(e);
       if (isMenuKeyDown) {
         double anchor = ((float)e.getX() / e.getComponent().getWidth());
-        myTimeline.zoom(deltaUs, anchor);
+        myTimeline.zoom(getZoomWheelDelta() * count, anchor);
       }
       else if (isScrollable()) {
-        myTimeline.pan(deltaUs);
+        myTimeline.pan(getPanWheelDelta() * count);
       }
-      myCheckStream = deltaUs > 0;
+      myCheckStream = count > 0;
     });
 
     // Ensure the scrollbar is set to the correct initial state.
@@ -100,8 +104,13 @@ public final class ProfilerScrollbar extends JBScrollBar {
   }
 
   @VisibleForTesting
-  public double getWheelDelta() {
-    return myTimeline.getViewRange().getLength() * VIEW_PERCENTAGE_PER_MOUSEHWEEL_FACTOR;
+  public double getZoomWheelDelta() {
+    return myTimeline.getViewRange().getLength() * VIEW_ZOOM_PERCENTAGE_PER_MOUSEHWEEL_FACTOR;
+  }
+
+  @VisibleForTesting
+  public double getPanWheelDelta() {
+    return myTimeline.getViewRange().getLength() * VIEW_PAN_PERCENTAGE_PER_MOUSEHWEEL_FACTOR;
   }
 
   private void modelChanged() {

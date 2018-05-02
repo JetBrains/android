@@ -18,6 +18,7 @@ package com.android.tools.profilers;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.updater.Updater;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
@@ -28,430 +29,458 @@ public class ProfilerTimelineTest {
 
   public static final double DELTA = 0.001;
 
+  private Range myDataRange;
+  private Range myViewRange;
+  private ProfilerTimeline myTimeline;
+  private FakeTimer myTimer;
+
+  @Before
+  public void setup() {
+    myTimer = new FakeTimer();
+    Updater updater = new Updater(myTimer);
+    myTimeline = new ProfilerTimeline(updater);
+    myDataRange = myTimeline.getDataRange();
+    myViewRange = myTimeline.getViewRange();
+  }
+
   @Test
   public void streaming() {
-    Updater updater = new Updater(new FakeTimer());
-    ProfilerTimeline timeline = new ProfilerTimeline(updater);
-    Range dataRange = timeline.getDataRange();
-    Range viewRange = timeline.getViewRange();
-    dataRange.set(0, TimeUnit.SECONDS.toMicros(60));
-    viewRange.set(0, 10);
+    myDataRange.set(0, TimeUnit.SECONDS.toMicros(60));
+    myViewRange.set(0, 10);
 
-    assertFalse(timeline.isStreaming());
-    assertTrue(timeline.canStream());
+    assertFalse(myTimeline.isStreaming());
+    assertTrue(myTimeline.canStream());
 
     // Make sure streaming cannot be enabled if canStream is false.
-    timeline.setCanStream(false);
-    timeline.setStreaming(true);
-    assertFalse(timeline.canStream());
-    assertFalse(timeline.isStreaming());
-    assertEquals(10, viewRange.getMax(), 0);
-    assertEquals(10, viewRange.getLength(), 0);
+    myTimeline.setCanStream(false);
+    myTimeline.setStreaming(true);
+    assertFalse(myTimeline.canStream());
+    assertFalse(myTimeline.isStreaming());
+    assertEquals(10, myViewRange.getMax(), 0);
+    assertEquals(10, myViewRange.getLength(), 0);
 
     // Turn canStream + streaming on
-    timeline.setCanStream(true);
-    timeline.setStreaming(true);
-    assertTrue(timeline.canStream());
-    assertTrue(timeline.isStreaming());
+    myTimeline.setCanStream(true);
+    myTimeline.setStreaming(true);
+    assertTrue(myTimeline.canStream());
+    assertTrue(myTimeline.isStreaming());
     // Give time to update
-    timeline.update(TimeUnit.SECONDS.toNanos(10));
-    assertEquals(dataRange.getMax(), viewRange.getMax(), 0);
-    assertEquals(10, viewRange.getLength(), 0);
+    myTimeline.update(TimeUnit.SECONDS.toNanos(10));
+    assertEquals(myDataRange.getMax(), myViewRange.getMax(), 0);
+    assertEquals(10, myViewRange.getLength(), 0);
 
     // Turn canStream off
-    timeline.setCanStream(false);
-    assertFalse(timeline.canStream());
-    assertFalse(timeline.isStreaming());
+    myTimeline.setCanStream(false);
+    assertFalse(myTimeline.canStream());
+    assertFalse(myTimeline.isStreaming());
   }
 
   @Test
   public void testZoomIn() {
-    Updater updater = new Updater(new FakeTimer());
-    ProfilerTimeline timeline = new ProfilerTimeline(updater);
-    Range dataRange = timeline.getDataRange();
-    Range viewRange = timeline.getViewRange();
-    dataRange.set(0, 100);
-    viewRange.set(10, 90);
+    myTimeline.reset(0, TimeUnit.MICROSECONDS.toNanos(100));
+    myTimeline.setStreaming(false);
+    myTimeline.setIsPaused(true);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(1));
+    myViewRange.set(10, 90);
 
-    timeline.zoom(-10, .5);
-    assertEquals(15, viewRange.getMin(), DELTA);
-    assertEquals(85, viewRange.getMax(), DELTA);
+    myTimeline.zoom(-10, .5);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(1));
+    assertEquals(15, myViewRange.getMin(), DELTA);
+    assertEquals(85, myViewRange.getMax(), DELTA);
 
-    timeline.zoom(-10, .1);
-    assertEquals(16, viewRange.getMin(), DELTA);
-    assertEquals(76, viewRange.getMax(), DELTA);
+    myTimeline.zoom(-10, .1);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(1));
+    assertEquals(16, myViewRange.getMin(), DELTA);
+    assertEquals(76, myViewRange.getMax(), DELTA);
 
-    timeline.zoom(-10, 0);
-    assertEquals(16, viewRange.getMin(), DELTA);
-    assertEquals(66, viewRange.getMax(), DELTA);
+    myTimeline.zoom(-10, 0);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(1));
+    assertEquals(16, myViewRange.getMin(), DELTA);
+    assertEquals(66, myViewRange.getMax(), DELTA);
 
-    timeline.zoom(-10, 1);
-    assertEquals(26, viewRange.getMin(), DELTA);
-    assertEquals(66, viewRange.getMax(), DELTA);
+    myTimeline.zoom(-10, 1);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(1));
+    assertEquals(26, myViewRange.getMin(), DELTA);
+    assertEquals(66, myViewRange.getMax(), DELTA);
   }
 
   @Test
   public void testZoomingAdjustStreamingMode() {
-    Updater updater = new Updater(new FakeTimer());
-    ProfilerTimeline timeline = new ProfilerTimeline(updater);
-    Range dataRange = timeline.getDataRange();
-    Range viewRange = timeline.getViewRange();
-    timeline.reset(0, TimeUnit.MICROSECONDS.toNanos(100));
-    viewRange.set(50, 100);
+    myTimeline.reset(0, TimeUnit.MICROSECONDS.toNanos(100));
+    myViewRange.set(50, 100);
     //put timeline in streaming mode, zooming should take it out, if our view range is less than data range.
-    assertTrue(timeline.isStreaming());
-    timeline.zoom(-10, .5);
-    assertEquals(55, viewRange.getMin(), DELTA);
-    assertEquals(95, viewRange.getMax(), DELTA);
-    assertFalse(timeline.isStreaming());
+    assertTrue(myTimeline.isStreaming());
+    myTimeline.zoom(-10, .5);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(1));
+    assertEquals(55, myViewRange.getMin(), DELTA);
+    assertEquals(95, myViewRange.getMax(), DELTA);
+    assertFalse(myTimeline.isStreaming());
 
     //our timeline should continue streaming if our view range is greater than our data range, and we were initially streaming.
-    timeline.reset(0, TimeUnit.MICROSECONDS.toNanos(100));
-    viewRange.set(-100, 100);
-    assertTrue(timeline.isStreaming());
-    timeline.zoom(-10, .5);
-    assertEquals(-95, viewRange.getMin(), DELTA);
-    assertEquals(100, viewRange.getMax(), DELTA);
-    assertTrue(timeline.isStreaming());
+    myTimeline.reset(0, TimeUnit.MICROSECONDS.toNanos(100));
+    myTimer.tick(0);
+    myViewRange.set(-100, 100);
+    assertTrue(myTimeline.isStreaming());
+    myTimeline.zoom(-10, .5);
+    assertTrue(myTimeline.isStreaming());
+    // Need to pause the timeline so the tick doesn't increase the internal device time.
+    myTimeline.setIsPaused(true);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(1));
+    assertEquals(-95, myViewRange.getMin(), DELTA);
+    assertEquals(100, myViewRange.getMax(), DELTA);
   }
 
   @Test
   public void testZoomOut() {
-    FakeTimer timer = new FakeTimer();
-    Updater updater = new Updater(timer);
-    ProfilerTimeline timeline = new ProfilerTimeline(updater);
-    Range dataRange = timeline.getDataRange();
-    Range viewRange = timeline.getViewRange();
-    dataRange.set(0, 100);
-    viewRange.set(70, 70);
+    myTimeline.reset(0, TimeUnit.MICROSECONDS.toNanos(100));
+    myTimeline.setStreaming(false);
+    myTimeline.setIsPaused(true);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(1));
+    myViewRange.set(70, 70);
 
     // Not blocked
-    timeline.zoom(40, .5);
-    assertEquals(50, viewRange.getMin(), DELTA);
-    assertEquals(90, viewRange.getMax(), DELTA);
+    myTimeline.zoom(40, .5);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(1));
+    assertEquals(50, myViewRange.getMin(), DELTA);
+    assertEquals(90, myViewRange.getMax(), DELTA);
 
     // Blocked to the right, use all the remaining offset to the left
-    timeline.zoom(40, .5);
-    assertEquals(20, viewRange.getMin(), DELTA);
-    assertEquals(100, viewRange.getMax(), DELTA);
+    myTimeline.zoom(40, .5);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(1));
+    assertEquals(20, myViewRange.getMin(), DELTA);
+    assertEquals(100, myViewRange.getMax(), DELTA);
 
     // Expands to cover all the data range, with more space on the left
-    viewRange.set(50, 95);
-    timeline.zoom(60, .9);
-    assertEquals(0, viewRange.getMin(), DELTA);
-    assertEquals(100, viewRange.getMax(), DELTA);
+    myViewRange.set(50, 95);
+    myTimeline.zoom(60, .9);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(1));
+    assertEquals(0, myViewRange.getMin(), DELTA);
+    assertEquals(100, myViewRange.getMax(), DELTA);
 
     // Expands to cover all the data range, with more space on the right
-    viewRange.set(5, 55);
-    timeline.zoom(60, .1);
-    assertEquals(0, viewRange.getMin(), DELTA);
-    assertEquals(100, viewRange.getMax(), DELTA);
+    myViewRange.set(5, 55);
+    myTimeline.zoom(60, .1);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(1));
+    assertEquals(0, myViewRange.getMin(), DELTA);
+    assertEquals(100, myViewRange.getMax(), DELTA);
 
     // Blocked to the left, use all the remaining offset to the right
-    viewRange.set(5, 15);
-    timeline.zoom(60, .1);
-    assertEquals(0, viewRange.getMin(), DELTA);
-    assertEquals(70, viewRange.getMax(), DELTA);
+    myViewRange.set(5, 15);
+    myTimeline.zoom(60, .1);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(1));
+    assertEquals(0, myViewRange.getMin(), DELTA);
+    assertEquals(70, myViewRange.getMax(), DELTA);
 
     // Test zoomOutBy
-    viewRange.set(0, 10);
-    assertEquals(10, viewRange.getLength(), DELTA);
-    timeline.zoomOutBy(20);
-    timer.tick(TimeUnit.SECONDS.toNanos(10)); // Time enough to complete zooming out
+    myViewRange.set(0, 10);
+    assertEquals(10, myViewRange.getLength(), DELTA);
+    myTimeline.zoom(20);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(10)); // Time enough to complete zooming out
     // We can't zoom out further than 0, so we zoom out towards the right side. The view range should be [0, 30]
-    assertEquals(0, viewRange.getMin(), DELTA);
-    assertEquals(30, viewRange.getMax(), DELTA);
-    assertEquals(30, viewRange.getLength(), DELTA);
+    assertEquals(0, myViewRange.getMin(), DELTA);
+    assertEquals(30, myViewRange.getMax(), DELTA);
+    assertEquals(30, myViewRange.getLength(), DELTA);
 
-    viewRange.set(50, 60);
-    assertEquals(10, viewRange.getLength(), DELTA);
-    timeline.zoomOutBy(20);
-    timer.tick(TimeUnit.SECONDS.toNanos(10)); // Time enough to complete zooming out
+    myViewRange.set(50, 60);
+    assertEquals(10, myViewRange.getLength(), DELTA);
+    myTimeline.zoom(20);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(10)); // Time enough to complete zooming out
     // We should zoom out evenly on both sides, so the view range should be [40, 70]
-    assertEquals(40, viewRange.getMin(), DELTA);
-    assertEquals(70, viewRange.getMax(), DELTA);
-    assertEquals(30, viewRange.getLength(), DELTA);
+    assertEquals(40, myViewRange.getMin(), DELTA);
+    assertEquals(70, myViewRange.getMax(), DELTA);
+    assertEquals(30, myViewRange.getLength(), DELTA);
   }
 
   @Test
   public void testZoomOutWhenDataNotFullyCoverView() {
-    Updater updater = new Updater(new FakeTimer());
-    ProfilerTimeline timeline = new ProfilerTimeline(updater);
-    Range dataRange = timeline.getDataRange();
-    Range viewRange = timeline.getViewRange();
-    dataRange.set(50, 100);
-    viewRange.set(30, 100);
+    myTimeline.reset(TimeUnit.MICROSECONDS.toNanos(50), TimeUnit.MICROSECONDS.toNanos(100));
+    myTimeline.setStreaming(false);
+    myTimeline.setIsPaused(true);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(1));
+    myViewRange.set(30, 100);
 
-    timeline.zoom(20, 1);
-    assertEquals(10, viewRange.getMin(), DELTA);
-    assertEquals(100, viewRange.getMax(), DELTA);
+    myTimeline.zoom(20, 1);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(1));
+    assertEquals(10, myViewRange.getMin(), DELTA);
+    assertEquals(100, myViewRange.getMax(), DELTA);
 
-    timeline.zoom(-20, 1);
-    assertEquals(30, viewRange.getMin(), DELTA);
-    assertEquals(100, viewRange.getMax(), DELTA);
+    myTimeline.zoom(-20, 1);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(1));
+    assertEquals(30, myViewRange.getMin(), DELTA);
+    assertEquals(100, myViewRange.getMax(), DELTA);
   }
 
   @Test
   public void testPan() {
-    Updater updater = new Updater(new FakeTimer());
-    ProfilerTimeline timeline = new ProfilerTimeline(updater);
-    Range dataRange = timeline.getDataRange();
-    Range viewRange = timeline.getViewRange();
-    dataRange.set(0, 100);
-    viewRange.set(20, 30);
+    myDataRange.set(0, 100);
+    myViewRange.set(20, 30);
 
-    timeline.pan(10);
-    assertEquals(30, viewRange.getMin(), DELTA);
-    assertEquals(40, viewRange.getMax(), DELTA);
+    myTimeline.pan(10);
+    assertEquals(30, myViewRange.getMin(), DELTA);
+    assertEquals(40, myViewRange.getMax(), DELTA);
 
-    timeline.pan(-40);
-    assertEquals(0, viewRange.getMin(), DELTA);
-    assertEquals(10, viewRange.getMax(), DELTA);
+    myTimeline.pan(-40);
+    assertEquals(0, myViewRange.getMin(), DELTA);
+    assertEquals(10, myViewRange.getMax(), DELTA);
 
-    timeline.pan(140);
-    assertEquals(90, viewRange.getMin(), DELTA);
-    assertEquals(100, viewRange.getMax(), DELTA);
-    assertFalse(timeline.isStreaming());
+    myTimeline.pan(140);
+    assertEquals(90, myViewRange.getMin(), DELTA);
+    assertEquals(100, myViewRange.getMax(), DELTA);
+    assertFalse(myTimeline.isStreaming());
 
-    timeline.setStreaming(true);
-    assertTrue(timeline.isStreaming());
+    myTimeline.setStreaming(true);
+    assertTrue(myTimeline.isStreaming());
     // Test moving to the left stops streaming
-    timeline.pan(-10);
-    assertFalse(timeline.isStreaming());
+    myTimeline.pan(-10);
+    assertFalse(myTimeline.isStreaming());
 
-    timeline.setStreaming(true);
-    assertTrue(timeline.isStreaming());
+    myTimeline.setStreaming(true);
+    assertTrue(myTimeline.isStreaming());
     // Tests moving to the right doesn't stop streaming
-    timeline.pan(10);
-    assertTrue(timeline.isStreaming());
+    myTimeline.pan(10);
+    assertTrue(myTimeline.isStreaming());
     // Test moving past the end doesn't stop streaming either
-    timeline.pan(10);
+    myTimeline.pan(10);
   }
 
   @Test
   public void testPause() {
-    Updater updater = new Updater(new FakeTimer());
-    ProfilerTimeline timeline = new ProfilerTimeline(updater);
-    Range dataRange = timeline.getDataRange();
-    Range viewRange = timeline.getViewRange();
-    dataRange.set(0, 100);
-    viewRange.set(0, 30);
+    myDataRange.set(0, 100);
+    myViewRange.set(0, 30);
 
-    timeline.setStreaming(true);
-    timeline.update(TimeUnit.SECONDS.toNanos(10));
-    assertEquals(dataRange.getMax(), viewRange.getMax(), 0);
-    assertEquals(30, viewRange.getLength(), 0);
-    assertEquals(TimeUnit.SECONDS.toMicros(10), dataRange.getMax(), 0);
+    myTimeline.setStreaming(true);
+    myTimeline.update(TimeUnit.SECONDS.toNanos(10));
+    assertEquals(myDataRange.getMax(), myViewRange.getMax(), 0);
+    assertEquals(30, myViewRange.getLength(), 0);
+    assertEquals(TimeUnit.SECONDS.toMicros(10), myDataRange.getMax(), 0);
 
-    timeline.setIsPaused(true);
-    timeline.update(TimeUnit.SECONDS.toNanos(10));
-    assertEquals(dataRange.getMax(), viewRange.getMax(), 0);
-    assertEquals(30, viewRange.getLength(), 0);
-    assertEquals(TimeUnit.SECONDS.toMicros(10), dataRange.getMax(), 0);
-    assertFalse(timeline.isStreaming());
-    assertTrue(timeline.isPaused());
+    myTimeline.setIsPaused(true);
+    myTimeline.update(TimeUnit.SECONDS.toNanos(10));
+    assertEquals(myDataRange.getMax(), myViewRange.getMax(), 0);
+    assertEquals(30, myViewRange.getLength(), 0);
+    assertEquals(TimeUnit.SECONDS.toMicros(10), myDataRange.getMax(), 0);
+    assertFalse(myTimeline.isStreaming());
+    assertTrue(myTimeline.isPaused());
 
-    timeline.setIsPaused(false);
-    timeline.update(TimeUnit.SECONDS.toNanos(10));
-    assertEquals(dataRange.getMax(), viewRange.getMax(), 0);
-    assertEquals(30, viewRange.getLength(), 0);
-    assertEquals(TimeUnit.SECONDS.toMicros(30), dataRange.getMax(), 0);
+    myTimeline.setIsPaused(false);
+    myTimeline.update(TimeUnit.SECONDS.toNanos(10));
+    assertEquals(myDataRange.getMax(), myViewRange.getMax(), 0);
+    assertEquals(30, myViewRange.getLength(), 0);
+    assertEquals(TimeUnit.SECONDS.toMicros(30), myDataRange.getMax(), 0);
   }
 
   @Test
   public void testReset() {
     long resetTimeNs = TimeUnit.SECONDS.toNanos(10);
     long updateTimeNs = TimeUnit.SECONDS.toNanos(15);
-    FakeTimer timer = new FakeTimer();
-    timer.setCurrentTimeNs(resetTimeNs);
-
-    Updater updater = new Updater(timer);
-    ProfilerTimeline timeline = new ProfilerTimeline(updater);
-    assertFalse(timeline.isStreaming());
-    Range dataRange = timeline.getDataRange();
+    myTimer.setCurrentTimeNs(resetTimeNs);
+    assertFalse(myTimeline.isStreaming());
     long startTimeNs = TimeUnit.SECONDS.toNanos(20);
     long endTimeNs = TimeUnit.SECONDS.toNanos(40);
-    timeline.reset(startTimeNs, endTimeNs);
+    myTimeline.reset(startTimeNs, endTimeNs);
 
     // Timeline should be streaming after reset
-    assertTrue(timeline.isStreaming());
+    assertTrue(myTimeline.isStreaming());
     // Timeline should not be paused after reset
-    assertFalse(timeline.isPaused());
+    assertFalse(myTimeline.isPaused());
 
     // Timeline data range should be [startTimeNs, endTimeNs] after reset
-    assertEquals(TimeUnit.NANOSECONDS.toMicros(startTimeNs), timeline.getDataRange().getMin(), 0);
-    assertEquals(TimeUnit.NANOSECONDS.toMicros(endTimeNs), timeline.getDataRange().getMax(), 0);
+    assertEquals(TimeUnit.NANOSECONDS.toMicros(startTimeNs), myDataRange.getMin(), 0);
+    assertEquals(TimeUnit.NANOSECONDS.toMicros(endTimeNs), myDataRange.getMax(), 0);
 
     // Timeline view range should be [endTimeNs - DEFAULT_VIEW_LENGTH_US, endTimeNs] after reset
     assertEquals(TimeUnit.NANOSECONDS.toMicros(endTimeNs) - ProfilerTimeline.DEFAULT_VIEW_LENGTH_US,
-                 timeline.getViewRange().getMin(), 0);
-    assertEquals(TimeUnit.NANOSECONDS.toMicros(endTimeNs), timeline.getViewRange().getMax(), 0);
+                 myViewRange.getMin(), 0);
+    assertEquals(TimeUnit.NANOSECONDS.toMicros(endTimeNs), myViewRange.getMax(), 0);
 
-    timer.setCurrentTimeNs(updateTimeNs);
-    timeline.update(TimeUnit.SECONDS.toNanos(20));
+    myTimer.setCurrentTimeNs(updateTimeNs);
+    myTimeline.update(TimeUnit.SECONDS.toNanos(20));
     // Validate that either those we pass in 20 seconds to update, the timeline is only update for the duration between the reset+update
     // invocations.
-    assertEquals(TimeUnit.SECONDS.toMicros(20), dataRange.getMin(), 0);
-    assertEquals(TimeUnit.SECONDS.toMicros(45), dataRange.getMax(), 0);
+    assertEquals(TimeUnit.SECONDS.toMicros(20), myDataRange.getMin(), 0);
+    assertEquals(TimeUnit.SECONDS.toMicros(45), myDataRange.getMax(), 0);
 
     // Validate that subsequent update works as normal
-    timer.setCurrentTimeNs(updateTimeNs * 2);
-    timeline.update(TimeUnit.SECONDS.toNanos(20));
-    assertEquals(TimeUnit.SECONDS.toMicros(20), dataRange.getMin(), 0);
-    assertEquals(TimeUnit.SECONDS.toMicros(65), dataRange.getMax(), 0);
+    myTimer.setCurrentTimeNs(updateTimeNs * 2);
+    myTimeline.update(TimeUnit.SECONDS.toNanos(20));
+    assertEquals(TimeUnit.SECONDS.toMicros(20), myDataRange.getMin(), 0);
+    assertEquals(TimeUnit.SECONDS.toMicros(65), myDataRange.getMax(), 0);
   }
 
   @Test
   public void testIdentityTimeConversionConversion() {
-    Updater updater = new Updater(new FakeTimer());
-    ProfilerTimeline timeline = new ProfilerTimeline(updater);
-    assertEquals(1, timeline.convertToRelativeTimeUs(1000));
+    assertEquals(1, myTimeline.convertToRelativeTimeUs(1000));
   }
 
   @Test
   public void testTimeConversionWithOffset() {
     final long OFFSET = 5000;
-    Updater updater = new Updater(new FakeTimer());
-    ProfilerTimeline timeline = new ProfilerTimeline(updater);
-    timeline.reset(OFFSET, OFFSET);
-    assertEquals(OFFSET, timeline.getDataStartTimeNs());
-    assertEquals(0, timeline.convertToRelativeTimeUs(5000));
-    assertEquals(6, timeline.convertToRelativeTimeUs(11000));
-    assertEquals(-6, timeline.convertToRelativeTimeUs(-1000));
+    myTimeline.reset(OFFSET, OFFSET);
+    assertEquals(OFFSET, myTimeline.getDataStartTimeNs());
+    assertEquals(0, myTimeline.convertToRelativeTimeUs(5000));
+    assertEquals(6, myTimeline.convertToRelativeTimeUs(11000));
+    assertEquals(-6, myTimeline.convertToRelativeTimeUs(-1000));
+  }
+
+  @Test
+  public void frameRangeWithPercent() {
+    myTimeline.reset(0, TimeUnit.MICROSECONDS.toNanos(100));
+    myTimeline.setStreaming(false);
+    myTimeline.setIsPaused(true);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(1));
+    myViewRange.set(0, 100);
+
+    // Test view gets set to target range without padding.
+    Range targetRange = new Range( 50, 70);
+    myTimeline.frameViewToRange(targetRange, 0);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(1));
+    assertEquals(targetRange.getMin(), myViewRange.getMin(), DELTA);
+    assertEquals(targetRange.getMax(), myViewRange.getMax(), DELTA);
+
+    // Test view gets set to target range with padding. Also outside current view.
+    targetRange = new Range( 80, 90);
+    myTimeline.frameViewToRange(targetRange, .1);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(1));
+    assertEquals(79, myViewRange.getMin(), DELTA);
+    assertEquals(91, myViewRange.getMax(), DELTA);
+
+    // Test view gets set to target range capped at max data.
+    targetRange = new Range( 50, myDataRange.getMax() + 10);
+    myTimeline.frameViewToRange(targetRange, .5);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(1));
+    assertEquals(20, myViewRange.getMin(), DELTA);
+    assertEquals(myDataRange.getMax(), myViewRange.getMax(), DELTA);
+  }
+
+  @Test
+  public void frameRangeDisablesStreaming() {
+    myTimeline.reset(0, TimeUnit.MICROSECONDS.toNanos(100));
+    myTimeline.setStreaming(true);
+    myTimeline.frameViewToRange(new Range( 50, 70), 0);
+    assertFalse(myTimeline.isStreaming());
   }
 
   @Test
   public void jumpToTargetOnTheLeft() {
-    FakeTimer timer = new FakeTimer();
-    ProfilerTimeline timeline = new ProfilerTimeline(new Updater(timer));
-    Range viewRange = timeline.getViewRange();
     // Give time to make data range non-empty, streaming will update the data range.
-    timer.tick(TimeUnit.MICROSECONDS.toNanos(300));
+    myTimer.tick(TimeUnit.MICROSECONDS.toNanos(300));
 
     // View range initially:      #####
     //         target range: #
     //     View range after: #####
-    viewRange.set(50, 100);
+    myViewRange.set(50, 100);
     Range targetRange = new Range(0, 10);
-    timeline.setStreaming(true);
-    timeline.adjustRangeCloseToMiddleView(targetRange);
-    timer.tick(TimeUnit.SECONDS.toNanos(10)); // Give plenty of time to animate.
-    assertFalse(timeline.isStreaming());
+    myTimeline.setStreaming(true);
+    myTimeline.adjustRangeCloseToMiddleView(targetRange);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(10)); // Give plenty of time to animate.
+    assertFalse(myTimeline.isStreaming());
 
     // target range is smaller than view range, so view range keeps the same length
-    assertEquals(0, viewRange.getMin(), DELTA);
-    assertEquals(50, viewRange.getMax(), DELTA);
+    assertEquals(0, myViewRange.getMin(), DELTA);
+    assertEquals(50, myViewRange.getMax(), DELTA);
 
     // View range initially:           #####
     //         target range: ##########
     //     View range after: ##########
-    viewRange.set(100, 150);
+    myViewRange.set(100, 150);
     targetRange.set(0, 100);
-    timeline.setStreaming(true);
-    timeline.adjustRangeCloseToMiddleView(targetRange);
-    timer.tick(TimeUnit.SECONDS.toNanos(10)); // Give plenty of time to animate.
-    assertFalse(timeline.isStreaming());
+    myTimeline.setStreaming(true);
+    myTimeline.adjustRangeCloseToMiddleView(targetRange);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(10)); // Give plenty of time to animate.
+    assertFalse(myTimeline.isStreaming());
     // target range is larger than view range, so view range zooms out and grows to fit the target
-    assertEquals(0, viewRange.getMin(), DELTA);
-    assertEquals(100, viewRange.getMax(), DELTA);
+    assertEquals(0, myViewRange.getMin(), DELTA);
+    assertEquals(100, myViewRange.getMax(), DELTA);
 
     // View range initially:           #####
     //         target range:         ####
     //     View range after:         #####
-    viewRange.set(100, 150);
+    myViewRange.set(100, 150);
     targetRange.set(90, 120);
-    timeline.setStreaming(true);
-    timeline.adjustRangeCloseToMiddleView(targetRange);
-    timer.tick(TimeUnit.SECONDS.toNanos(10)); // Give plenty of time to animate.
-    assertFalse(timeline.isStreaming());
+    myTimeline.setStreaming(true);
+    myTimeline.adjustRangeCloseToMiddleView(targetRange);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(10)); // Give plenty of time to animate.
+    assertFalse(myTimeline.isStreaming());
     // target range is partially outside of the view range, bring it back just enough so it fits the view range, make 105 as the middle.
-    assertEquals(80, viewRange.getMin(), DELTA);
-    assertEquals(130, viewRange.getMax(), DELTA);
+    assertEquals(80, myViewRange.getMin(), DELTA);
+    assertEquals(130, myViewRange.getMax(), DELTA);
   }
 
   @Test
   public void jumpToTargetOnTheRight() {
-    FakeTimer timer = new FakeTimer();
-    ProfilerTimeline timeline = new ProfilerTimeline(new Updater(timer));
-    Range viewRange = timeline.getViewRange();
     // Give time to make data range non-empty, streaming will update the data range.
-    timer.tick(TimeUnit.MICROSECONDS.toNanos(300));
-    Range dataRange = timeline.getDataRange();
-
+    myTimer.tick(TimeUnit.MICROSECONDS.toNanos(300));
     // View range initially: #####
     //         target range:      #
     //     View range after:  #####
-    viewRange.set(50, 100);
+    myViewRange.set(50, 100);
     Range targetRange = new Range(100, 110);
-    timeline.setStreaming(true);
-    timeline.adjustRangeCloseToMiddleView(targetRange);
-    timer.tick(TimeUnit.SECONDS.toNanos(10)); // Give plenty of time to animate.
-    assertFalse(timeline.isStreaming());
+    myTimeline.setStreaming(true);
+    myTimeline.adjustRangeCloseToMiddleView(targetRange);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(10)); // Give plenty of time to animate.
+    assertFalse(myTimeline.isStreaming());
     // target range is smaller than view range, so view range keeps the same length
-    assertEquals(80, viewRange.getMin(), DELTA);
-    assertEquals(130, viewRange.getMax(), DELTA);
+    assertEquals(80, myViewRange.getMin(), DELTA);
+    assertEquals(130, myViewRange.getMax(), DELTA);
 
     // View range initially: #####
     //         target range:      ##########
     //     View range after:      ##########
     // Uses a dynamic range max as streaming will change the data range.
-    double targetRangeMax = dataRange.getMax();
-    viewRange.set(targetRangeMax - 200, targetRangeMax - 100);
+    double targetRangeMax = myDataRange.getMax();
+    myViewRange.set(targetRangeMax - 200, targetRangeMax - 100);
     targetRange.set(targetRangeMax - 100, targetRangeMax);
-    timeline.setStreaming(true);
-    timeline.adjustRangeCloseToMiddleView(targetRange);
-    timer.tick(TimeUnit.SECONDS.toNanos(10)); // Give plenty of time to animate.
-    assertFalse(timeline.isStreaming());
+    myTimeline.setStreaming(true);
+    myTimeline.adjustRangeCloseToMiddleView(targetRange);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(10)); // Give plenty of time to animate.
+    assertFalse(myTimeline.isStreaming());
     // target range is larger than view range, so view range zooms out and grows to fit the target
-    assertEquals(targetRangeMax - 100, viewRange.getMin(), DELTA);
-    assertEquals(targetRangeMax, viewRange.getMax(), DELTA);
+    assertEquals(targetRangeMax - 100, myViewRange.getMin(), DELTA);
+    assertEquals(targetRangeMax, myViewRange.getMax(), DELTA);
 
     // View range initially: #####
     //         target range:    ####
     //     View range after:   #####
-    viewRange.set(100, 150);
+    myViewRange.set(100, 150);
     targetRange.set(130, 170);
-    timeline.setStreaming(true);
-    timeline.adjustRangeCloseToMiddleView(targetRange);
-    timer.tick(TimeUnit.SECONDS.toNanos(10)); // Give plenty of time to animate.
-    assertFalse(timeline.isStreaming());
+    myTimeline.setStreaming(true);
+    myTimeline.adjustRangeCloseToMiddleView(targetRange);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(10)); // Give plenty of time to animate.
+    assertFalse(myTimeline.isStreaming());
     // target range is partially outside of the view range, bring it back just enough so it fits the view range, and make 125 the middle.
-    assertEquals(125, viewRange.getMin(), DELTA);
-    assertEquals(175, viewRange.getMax(), DELTA);
+    assertEquals(125, myViewRange.getMin(), DELTA);
+    assertEquals(175, myViewRange.getMax(), DELTA);
   }
 
   @Test
   public void jumpToTargetWithinViewRange() {
-    FakeTimer timer = new FakeTimer();
-    ProfilerTimeline timeline = new ProfilerTimeline(new Updater(timer));
-    Range viewRange = timeline.getViewRange();
     // Give time to make data range non-empty, streaming will update the data range.
-    timer.tick(TimeUnit.MICROSECONDS.toNanos(300));
+    myTimer.tick(TimeUnit.MICROSECONDS.toNanos(300));
 
     // View range initially: #####
     //         target range:  ##
     //     View range after: #####
-    viewRange.set(50, 100);
+    myViewRange.set(50, 100);
     Range targetRange = new Range(60, 80);
-    timeline.setStreaming(true);
-    timeline.adjustRangeCloseToMiddleView(targetRange);
-    timer.tick(TimeUnit.SECONDS.toNanos(10)); // Give plenty of time to animate.
-    assertFalse(timeline.isStreaming());
+    myTimeline.setStreaming(true);
+    myTimeline.adjustRangeCloseToMiddleView(targetRange);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(10)); // Give plenty of time to animate.
+    assertFalse(myTimeline.isStreaming());
     // target range is smaller than view range, so view range keeps the same length and there is no need to move, and make 70 the middle.
-    assertEquals(45, viewRange.getMin(), DELTA);
-    assertEquals(95, viewRange.getMax(), DELTA);
+    assertEquals(45, myViewRange.getMin(), DELTA);
+    assertEquals(95, myViewRange.getMax(), DELTA);
 
     // View range initially:      #####
     //         target range: ###############
     //     View range after: ###############
-    viewRange.set(50, 100);
+    myViewRange.set(50, 100);
     targetRange.set(0, 150);
-    timeline.setStreaming(true);
-    timeline.adjustRangeCloseToMiddleView(targetRange);
-    timer.tick(TimeUnit.SECONDS.toNanos(10)); // Give plenty of time to animate.
-    assertFalse(timeline.isStreaming());
+    myTimeline.setStreaming(true);
+    myTimeline.adjustRangeCloseToMiddleView(targetRange);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(10)); // Give plenty of time to animate.
+    assertFalse(myTimeline.isStreaming());
     // target range is larger than view range (in fact contains the view range) so view range zooms out and grows to fit the target
-    assertEquals(0, viewRange.getMin(), DELTA);
-    assertEquals(150, viewRange.getMax(), DELTA);
+    assertEquals(0, myViewRange.getMin(), DELTA);
+    assertEquals(150, myViewRange.getMax(), DELTA);
   }
 }

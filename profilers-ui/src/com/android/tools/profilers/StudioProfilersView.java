@@ -18,6 +18,7 @@ package com.android.tools.profilers;
 import com.android.tools.adtui.flat.FlatComboBox;
 import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.android.tools.profiler.proto.Common;
@@ -230,7 +231,8 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
                                                   myProfiler::getDevice,
                                                   myProfiler::setDevice);
       myProfiler.addDependency(this)
-        .onChange(ProfilerAspect.DEVICES, () -> myProfiler.getIdeServices().getFeatureTracker().trackChangeDevice(myProfiler.getDevice()));
+                .onChange(ProfilerAspect.DEVICES,
+                          () -> myProfiler.getIdeServices().getFeatureTracker().trackChangeDevice(myProfiler.getDevice()));
       devices.bind();
       deviceCombo.setRenderer(new DeviceComboBoxRenderer());
 
@@ -240,8 +242,8 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
                                                     myProfiler::getProcess,
                                                     myProfiler::setProcess);
       myProfiler.addDependency(this)
-        .onChange(ProfilerAspect.PROCESSES,
-                  () -> myProfiler.getIdeServices().getFeatureTracker().trackChangeProcess(myProfiler.getProcess()));
+                .onChange(ProfilerAspect.PROCESSES,
+                          () -> myProfiler.getIdeServices().getFeatureTracker().trackChangeProcess(myProfiler.getProcess()));
       processes.bind();
       processCombo.setRenderer(new ProcessComboBoxRenderer());
 
@@ -275,8 +277,9 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     });
     ProfilerAction zoomOutAction =
       new ProfilerAction.Builder("Zoom out").setContainerComponent(myStageComponent).setActionRunnable(() -> zoomOut.doClick(0))
-        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, SHORTCUT_MODIFIER_MASK_NUMBER),
-                       KeyStroke.getKeyStroke(KeyEvent.VK_SUBTRACT, SHORTCUT_MODIFIER_MASK_NUMBER)).build();
+                                            .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, SHORTCUT_MODIFIER_MASK_NUMBER),
+                                                           KeyStroke.getKeyStroke(KeyEvent.VK_SUBTRACT, SHORTCUT_MODIFIER_MASK_NUMBER))
+                                            .build();
 
     zoomOut.setToolTipText(zoomOutAction.getDefaultToolTipText());
     rightToolbar.add(zoomOut);
@@ -289,10 +292,10 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     });
     ProfilerAction zoomInAction =
       new ProfilerAction.Builder("Zoom in").setContainerComponent(myStageComponent)
-        .setActionRunnable(() -> zoomIn.doClick())
-        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, SHORTCUT_MODIFIER_MASK_NUMBER),
-                       KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, SHORTCUT_MODIFIER_MASK_NUMBER),
-                       KeyStroke.getKeyStroke(KeyEvent.VK_ADD, SHORTCUT_MODIFIER_MASK_NUMBER)).build();
+                                           .setActionRunnable(() -> zoomIn.doClick())
+                                           .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, SHORTCUT_MODIFIER_MASK_NUMBER),
+                                                          KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, SHORTCUT_MODIFIER_MASK_NUMBER),
+                                                          KeyStroke.getKeyStroke(KeyEvent.VK_ADD, SHORTCUT_MODIFIER_MASK_NUMBER)).build();
     zoomIn.setToolTipText(zoomInAction.getDefaultToolTipText());
     rightToolbar.add(zoomIn);
 
@@ -304,10 +307,27 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     });
     ProfilerAction resetZoomAction =
       new ProfilerAction.Builder("Reset zoom").setContainerComponent(myStageComponent)
-        .setActionRunnable(() -> resetZoom.doClick(0))
-        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, 0), KeyStroke.getKeyStroke(KeyEvent.VK_0, 0)).build();
+                                              .setActionRunnable(() -> resetZoom.doClick(0))
+                                              .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, 0),
+                                                             KeyStroke.getKeyStroke(KeyEvent.VK_0, 0)).build();
     resetZoom.setToolTipText(resetZoomAction.getDefaultToolTipText());
     rightToolbar.add(resetZoom);
+
+    CommonButton frameSelection = new CommonButton(StudioIcons.Common.ZOOM_SELECT);
+    frameSelection.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Common.ZOOM_SELECT));
+    frameSelection.addActionListener(event -> {
+      timeline.frameViewToRange(timeline.getSelectionRange(), 0.1);
+    });
+    ProfilerAction frameSelectionAction =
+      new ProfilerAction.Builder("Zoom to Selection").setContainerComponent(myStageComponent)
+                                                     .setActionRunnable(() -> frameSelection.doClick(0))
+                                                     .setEnableBooleanSupplier(() -> !timeline.getSelectionRange().isEmpty() &&
+                                                                                     !timeline.getSelectionRange().isPoint())
+                                                     .build();
+    frameSelection.setToolTipText(frameSelectionAction.getDefaultToolTipText());
+    rightToolbar.add(frameSelection);
+    timeline.getSelectionRange().addDependency(this)
+            .onChange(Range.Aspect.RANGE, () -> frameSelection.setEnabled(frameSelectionAction.isEnabled()));
 
     myGoLiveToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
     myGoLiveToolbar.add(new FlatSeparator());
@@ -322,14 +342,17 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     // Configure shortcuts for GoLive
     ProfilerAction attachAction =
       new ProfilerAction.Builder("Attach to Live").setContainerComponent(myStageComponent)
-        .setActionRunnable(() -> myGoLive.doClick(0))
-        .setEnableBooleanSupplier(() -> !myGoLive.isSelected() && myStageView.navigationControllersEnabled())
-        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, SHORTCUT_MODIFIER_MASK_NUMBER)).build();
+                                                  .setActionRunnable(() -> myGoLive.doClick(0))
+                                                  .setEnableBooleanSupplier(
+                                                    () -> !myGoLive.isSelected() && myStageView.navigationControllersEnabled())
+                                                  .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, SHORTCUT_MODIFIER_MASK_NUMBER))
+                                                  .build();
     ProfilerAction detachAction =
       new ProfilerAction.Builder("Detach from Live").setContainerComponent(myStageComponent)
-        .setActionRunnable(() -> myGoLive.doClick(0))
-        .setEnableBooleanSupplier(() -> myGoLive.isSelected() && myStageView.navigationControllersEnabled())
-        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0)).build();
+                                                    .setActionRunnable(() -> myGoLive.doClick(0))
+                                                    .setEnableBooleanSupplier(
+                                                      () -> myGoLive.isSelected() && myStageView.navigationControllersEnabled())
+                                                    .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0)).build();
 
     myGoLive.setToolTipText(detachAction.getDefaultToolTipText());
     myGoLive.addActionListener(event -> {
@@ -342,7 +365,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     rightToolbar.add(myGoLiveToolbar);
 
     ProfilerContextMenu.createIfAbsent(myStageComponent)
-      .add(attachAction, detachAction, ContextMenuItem.SEPARATOR, zoomInAction, zoomOutAction);
+                       .add(attachAction, detachAction, ContextMenuItem.SEPARATOR, zoomInAction, zoomOutAction);
 
     Runnable toggleToolButtons = () -> {
       boolean isValidSession = !Common.Session.getDefaultInstance().equals(myProfiler.getSessionsManager().getSelectedSession());
@@ -350,6 +373,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       zoomOut.setEnabled(isValidSession);
       zoomIn.setEnabled(isValidSession);
       resetZoom.setEnabled(isValidSession);
+      frameSelection.setEnabled(isValidSession && frameSelectionAction.isEnabled());
       myGoLive.setEnabled(isAlive);
       myGoLive.setSelected(isAlive);
     };
@@ -423,7 +447,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   public void installCommonMenuItems(@NotNull JComponent component) {
     ContextMenuInstaller contextMenuInstaller = getIdeProfilerComponents().createContextMenuInstaller();
     ProfilerContextMenu.createIfAbsent(myStageComponent).getContextMenuItems()
-      .forEach(item -> contextMenuInstaller.installGenericContextMenu(component, item));
+                       .forEach(item -> contextMenuInstaller.installGenericContextMenu(component, item));
   }
 
   @VisibleForTesting

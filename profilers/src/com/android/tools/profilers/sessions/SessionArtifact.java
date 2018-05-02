@@ -95,7 +95,7 @@ public interface SessionArtifact<T extends GeneratedMessageV3> extends Updatable
     double viewRange90PercentLength = 0.9 * timeline.getViewRange().getLength();
     double currentOngoingCaptureLength = timeline.getDataRange().getMax() - startTimeUs;
     if (currentOngoingCaptureLength > viewRange90PercentLength) {
-      timeline.zoomOutBy(currentOngoingCaptureLength - viewRange90PercentLength);
+      timeline.zoom(currentOngoingCaptureLength - viewRange90PercentLength);
     }
 
     // Then jump to live.

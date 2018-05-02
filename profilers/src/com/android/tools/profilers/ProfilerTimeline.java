@@ -33,6 +33,21 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
     STREAMING
   }
 
+  /**
+   * The view range is multiplied by this value to determine the new view range when zooming.
+   */
+  public static final double DEFAULT_ZOOM_PERCENT = 0.25;
+
+  /**
+   * The mid point of our view used for zooming.
+   */
+  public static final double ZOOM_MIDDLE_FOCAL_POINT = 0.5;
+
+  /**
+   * How many nanoseconds left in our zoom before we just clamp to our final value.
+   */
+  public static final float ZOOM_LERP_THRESHOLD_NS = 10;
+
   @VisibleForTesting
   public static final long DEFAULT_VIEW_LENGTH_US = TimeUnit.SECONDS.toMicros(30);
 
@@ -45,7 +60,21 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
   private boolean myStreaming;
 
   private float myStreamingFactor;
-  private double myZoomLeft;
+
+  /**
+   * This range stores the delta between the requested view range and the current view range.
+   * Eg: Current View =    |---------|
+   * Requested View =        |----|
+   * Range in myZoomLeft = |-|    |--| the length between the two segments are stored in min
+   * and max respectively.
+   * We store the delta in the Range instead of the target view range because we don't want
+   * to have more than one point of truth. For example, if we are live and we zoom in/out we
+   * would store one value for the zoom, however our live calculation would request another
+   * value creating a conflict in which value should be the source of truth. By storing the
+   * delta we resolve this by allowing the go live set the view to its requested value
+   * then adjusting the min / max values by their computed adjusted amounts.
+   */
+  private Range myZoomLeft;
 
   private boolean myCanStream = true;
   private long myDataStartTimeNs;
@@ -68,6 +97,7 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
   public ProfilerTimeline(@NotNull Updater updater) {
     myDataRangeUs = new Range(0, 0);
     myViewRangeUs = new Range(0, 0);
+    myZoomLeft = new Range(0, 0);
     mySelectionRangeUs = new Range(); // Empty range
     myTooltipRangeUs = new Range(); // Empty range
 
@@ -116,7 +146,8 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
   }
 
   public void toggleStreaming() {
-    myZoomLeft = 0.0;
+    // We cannot clear the zoom because Range#clear sets the min/max values to Double.MIN/MAX.
+    myZoomLeft.set(0, 0);
     setStreaming(!isStreaming());
   }
 
@@ -183,11 +214,31 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
     else {
       myStreamingFactor = 0.0f;
     }
-    double left = Updater.lerp(myZoomLeft, 0.0, 0.95f, elapsedNs, myViewRangeUs.getLength() * 0.0001f);
-    zoom(myZoomLeft - left, myStreaming ? 1.0 : 0.5f);
-    myZoomLeft = left;
+    handleZoomView(elapsedNs);
 
     handleJumpToTargetMax(elapsedNs);
+  }
+
+  /**
+   * Handles updating the view range by the delta stored in our {@link #myZoomLeft} value.
+   * If we have a delta stored in {@link #myZoomLeft} we apply a percentage of that value to
+   * our current view, and reduce the delta currently stored.
+   * Eg: View = 10, 100
+   * myZoomLeft = 30,-30
+   * After we call this function we end up with
+   * View = 20, 90
+   * myZoomLeft = 20, -20.
+   */
+  private void handleZoomView(long elapsedNs) {
+    if (myZoomLeft.getMin() != 0 || myZoomLeft.getMax() != 0) {
+      double min = Updater.lerp(0, myZoomLeft.getMin(), 0.99999f, elapsedNs, ZOOM_LERP_THRESHOLD_NS);
+      double max = Updater.lerp(0, myZoomLeft.getMax(), 0.99999f, elapsedNs, ZOOM_LERP_THRESHOLD_NS);
+      myZoomLeft.set(myZoomLeft.getMin() - min, myZoomLeft.getMax() - max);
+      if (myViewRangeUs.getMax() + max > myDataRangeUs.getMax()) {
+        max = myDataRangeUs.getMax() - myViewRangeUs.getMax();
+      }
+      myViewRangeUs.set(myViewRangeUs.getMin() + min, myViewRangeUs.getMax() + max);
+    }
   }
 
   /**
@@ -227,7 +278,7 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
     // First, zoom out until the target range fits the view range.
     double delta = target.getLength() - myViewRangeUs.getLength();
     if (delta > 0) {
-      myZoomLeft += delta;
+      zoom(delta);
       // If we need to zoom out, it means the target range will occupy the full view range, so the target max should be its max.
       myTargetRangeMaxUs = target.getMax();
     }
@@ -261,6 +312,13 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
     myTargetRangeMaxUs = Math.min(targetMax, myDataRangeUs.getMax());
   }
 
+  /**
+   * Calculates a zoom within the current data bounds. If a zoom extends beyond data max the left over is applied to the view minimum.
+   *
+   * @param deltaUs the amount of time request to change the view by.
+   * @param percent a ratio between 0 and 1 that determines the focal point of the zoom. 1 applies the full delta to the min while 0 applies
+   *                the full delta to the max.
+   */
   public void zoom(double deltaUs, double percent) {
     if (deltaUs == 0.0) {
       return;
@@ -268,6 +326,7 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
     if (deltaUs < 0 && percent < 1.0 && myViewRangeUs.getMin() >= myDataRangeUs.getMin()) {
       setStreaming(false);
     }
+    myZoomLeft.clear();
     double minUs = myViewRangeUs.getMin() - deltaUs * percent;
     double maxUs = myViewRangeUs.getMax() + deltaUs * (1 - percent);
     // When the view range is not fully covered, reset minUs to data range could change zoomLeft from zero to a large number.
@@ -289,29 +348,52 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
     if (isDataRangeFullyCoveredByViewRange) {
       minUs = Math.max(minUs, myDataRangeUs.getMin());
     }
-    myViewRangeUs.set(minUs, maxUs);
+    myZoomLeft.set(minUs - myViewRangeUs.getMin(), maxUs - myViewRangeUs.getMax());
   }
 
   /**
-   * Zooms out by 10% of the current view range length.
+   * Zooms out by {@link DEFAULT_ZOOM_PERCENT} of the current view range length.
    */
   public void zoomOut() {
-    zoomOutBy(myViewRangeUs.getLength() * 0.1f);
+    zoom(myViewRangeUs.getLength() * DEFAULT_ZOOM_PERCENT);
   }
 
   /**
    * Zooms out by a given amount in microseconds.
    */
-  public void zoomOutBy(double amountUs) {
-    myZoomLeft += amountUs;
+  public void zoom(double amountUs) {
+    zoom(amountUs, ZOOM_MIDDLE_FOCAL_POINT);
   }
 
+  /**
+   * Zooms in by {@link DEFAULT_ZOOM_PERCENT} of the current view range length.
+   */
   public void zoomIn() {
-    myZoomLeft -= myViewRangeUs.getLength() * 0.1f;
+    zoom(-myViewRangeUs.getLength() * DEFAULT_ZOOM_PERCENT);
   }
 
   public void resetZoom() {
-    myZoomLeft = DEFAULT_VIEW_LENGTH_US - myViewRangeUs.getLength();
+    // If we are streaming we reset the default zoom keeping our max view aligned with our data max.
+    // Otherwise we reset the view using the middle of the current view.
+    zoom(DEFAULT_VIEW_LENGTH_US - myViewRangeUs.getLength(), isStreaming() ? 1 : ZOOM_MIDDLE_FOCAL_POINT);
+  }
+
+  /**
+   * Zoom and pans the view range to the specified target range.
+   * @param targetRangeUs target range to lerp view to.
+   * @param leftRightPaddingPercent how much space to leave on both sides of the range to leave as padding.
+   */
+  public void frameViewToRange(Range targetRangeUs, double leftRightPaddingPercent) {
+    setStreaming(false);
+    Range finalRange = new Range(targetRangeUs.getMin() - targetRangeUs.getLength() * leftRightPaddingPercent,
+                                 targetRangeUs.getMax() + targetRangeUs.getLength() * leftRightPaddingPercent);
+
+    // Cap requested view to max data.
+    if (finalRange.getMax() > myDataRangeUs.getMax()) {
+      finalRange.setMax(myDataRangeUs.getMax());
+    }
+    myZoomLeft.set(finalRange.getMin() - myViewRangeUs.getMin(),
+                   finalRange.getMax() - myViewRangeUs.getMax());
   }
 
   public void pan(double deltaUs) {
