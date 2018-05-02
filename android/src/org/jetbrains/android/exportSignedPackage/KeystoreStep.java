@@ -20,6 +20,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
+import com.android.tools.idea.instantapp.InstantApps;
 import com.intellij.ide.passwordSafe.PasswordSafe;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.wizard.CommitStepException;
@@ -53,6 +54,7 @@ import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE;
 
@@ -82,7 +84,8 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
   private JTextField myKeyStorePathField;
   private JButton myLoadKeyStoreButton;
   private JBCheckBox myRememberPasswordCheckBox;
-  private JComboBox myModuleCombo;
+  @VisibleForTesting
+  JComboBox myModuleCombo;
   private JPanel myGradlePanel;
   private HyperlinkLabel myCloseAndUpdateLink;
   private JBLabel myKeyStorePathLabel;
@@ -93,12 +96,16 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
 
   private final ExportSignedPackageWizard myWizard;
   private final boolean myUseGradleForSigning;
-  private AndroidFacet mySelection;
+  @VisibleForTesting
+  AndroidFacet mySelection;
+  @VisibleForTesting
+  final List<AndroidFacet> myFacets;
 
   public KeystoreStep(@NotNull ExportSignedPackageWizard wizard,
                       boolean useGradleForSigning,
                       @NotNull List<AndroidFacet> facets) {
     myWizard = wizard;
+    myFacets = facets;
     myUseGradleForSigning = useGradleForSigning;
     final Project project = wizard.getProject();
 
@@ -121,20 +128,6 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
       }
     }
 
-    if (!facets.isEmpty()) {
-      mySelection = facets.get(0);
-      String moduleName = PropertiesComponent.getInstance(wizard.getProject()).getValue(MODULE_PROPERTY);
-      if (moduleName != null) {
-        for (AndroidFacet facet : facets) {
-          if (moduleName.equals(facet.getModule().getName())) {
-            mySelection = facet;
-            break;
-          }
-        }
-      }
-    }
-
-    myModuleCombo.setModel(new CollectionComboBoxModel(facets, mySelection));
     myModuleCombo.setRenderer(new ListCellRendererWrapper<AndroidFacet>() {
       @Override
       public void customize(JList list, AndroidFacet value, int index, boolean selected, boolean hasFocus) {
@@ -144,7 +137,6 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
         setIcon(ModuleType.get(module).getIcon());
       }
     });
-    myModuleCombo.setEnabled(facets.size() > 1);
     myCloseAndUpdateLink.setHyperlinkText(AndroidBundle.message("android.export.package.bundle.gradle.update"));
     myCloseAndUpdateLink.addHyperlinkListener(new HyperlinkListener() {
       @Override
@@ -161,9 +153,10 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
   @Override
   public void _init() {
     super._init();
-    updateSelection(mySelection);
+    boolean isBundle = myWizard.getTargetType().equals(ExportSignedPackageWizard.BUNDLE);
+    updateModuleDropdown(isBundle);
 
-    if(myWizard.getTargetType().equals(ExportSignedPackageWizard.BUNDLE)) {
+    if(isBundle) {
       final GenerateSignedApkSettings settings = GenerateSignedApkSettings.getInstance(myWizard.getProject());
       myExportKeysCheckBox.setSelected(settings.EXPORT_PRIVATE_KEY);
       myGoogleAppSigningLabel.setHyperlinkText(" (needed to enroll your app in ",
@@ -177,6 +170,38 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
       myGoogleAppSigningLabel.setVisible(false);
     }
 
+  }
+
+  private void updateModuleDropdown(boolean isBundle) {
+    List<AndroidFacet> facets = isBundle ? filteredFacets(myFacets) : myFacets;
+    myModuleCombo.setEnabled(facets.size() > 1);
+    if (!facets.isEmpty()) {
+      if (mySelection == null) {
+        String moduleName = PropertiesComponent.getInstance(myWizard.getProject()).getValue(MODULE_PROPERTY);
+        if (moduleName != null) {
+          for (AndroidFacet facet : facets) {
+            if (moduleName.equals(facet.getModule().getName())) {
+              mySelection = facet;
+              break;
+            }
+          }
+        }
+      }
+
+      // it's possible for mySelection to be filtered out if user goes from apk -> select an instant app module -> back to build a bundle
+      // switch to the first valid facet in that case.
+      if (!facets.contains(mySelection)) {
+        mySelection = facets.get(0);
+      }
+
+      myModuleCombo.setModel(new CollectionComboBoxModel(facets, mySelection));
+      updateSelection(mySelection);
+    }
+  }
+
+  // Instant Apps cannot be built as bundles
+  private List<AndroidFacet> filteredFacets(List<AndroidFacet> facets) {
+    return facets.stream().filter(f -> !InstantApps.isInstantAppApplicationModule(f.getModule())).collect(Collectors.toList());
   }
 
   private void updateSelection(@Nullable AndroidFacet selectedItem) {
