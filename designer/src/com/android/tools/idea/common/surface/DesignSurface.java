@@ -92,7 +92,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private List<PanZoomListener> myZoomListeners;
   private final ActionManager myActionManager;
   @NotNull private WeakReference<FileEditor> myFileEditorDelegate = new WeakReference<>(null);
-
   protected final LinkedHashMap<NlModel, SceneManager> myModelToSceneManagers = new LinkedHashMap<>();
 
   private final SelectionModel mySelectionModel;
@@ -260,8 +259,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @Nullable
   public NlModel getModel() {
-    List<NlModel> models = getModels();
-    return models.isEmpty() ? null : models.get(0);
+    return Iterables.getFirst(myModelToSceneManagers.keySet(), null);
   }
 
   /**
@@ -332,9 +330,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   /**
    * Sets the current {@link NlModel} to DesignSurface.
-   * @deprecated This function is going to be removed. Use {@link #addModel(NlModel)} and {@link #removeModel(NlModel)} instead.
+   * @see #addModel(NlModel)
+   * @see #removeModel(NlModel)
    */
-  @Deprecated
   public void setModel(@Nullable NlModel model) {
     NlModel oldModel = getModel();
     if (model == oldModel) {
@@ -873,7 +871,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @see #getSceneManager(NlModel)
    * @see SceneManager#getScene()
    */
-  @Deprecated
   @Nullable
   public Scene getScene() {
     SceneManager sceneManager = getSceneManager();
@@ -881,9 +878,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   /**
-   * @deprecated Use {@link #getSceneManager(NlModel)} instead.
+   * @see #getSceneManager(NlModel)
    */
-  @Deprecated
   @Nullable
   public SceneManager getSceneManager() {
     NlModel model = getModel();
