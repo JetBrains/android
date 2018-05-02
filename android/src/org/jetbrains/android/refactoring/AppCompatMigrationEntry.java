@@ -24,6 +24,7 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.containers.SmartHashSet;
+import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.ChangeXmlAttrUsageInfo;
 import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.ChangeXmlAttrValueUsageInfo;
 import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.ChangeXmlTagUsageInfo;
@@ -84,12 +85,19 @@ public class AppCompatMigrationEntry {
 
   public static final int CHANGE_GRADLE_DEPENDENCY = 10;
 
+  /**
+   * Entry denoting a package version update (no group or artifact name change)
+   */
+  public static final int UPGRADE_GRADLE_DEPENDENCY_VERSION = 11;
+
+  @MagicConstant(valuesFromClass = AppCompatMigrationEntry.class)
   protected final int myType;
 
-  public AppCompatMigrationEntry(int type) {
+  public AppCompatMigrationEntry(@MagicConstant(valuesFromClass = AppCompatMigrationEntry.class) int type) {
     myType = type;
   }
 
+  @MagicConstant(valuesFromClass = AppCompatMigrationEntry.class)
   public int getType() {
     return myType;
   }
@@ -104,7 +112,7 @@ public class AppCompatMigrationEntry {
     public static final int FLAG_MENU = 0x02;
     public static final int FLAG_STYLE = 0x04;
 
-    public XmlElementMigration(int type) {
+    public XmlElementMigration(@MagicConstant(valuesFromClass = AppCompatMigrationEntry.class) int type) {
       super(type);
     }
 
@@ -294,10 +302,11 @@ public class AppCompatMigrationEntry {
       this(CHANGE_METHOD, oldClassName, oldMethodName, newClassName, newMethodName);
     }
 
-    protected MethodMigrationEntry(int type, @NonNull String oldClassName,
-                         @NonNull String oldMethodName,
-                         @NonNull String newClassName,
-                         @NonNull String newMethodName) {
+    protected MethodMigrationEntry(@MagicConstant(valuesFromClass = AppCompatMigrationEntry.class) int type,
+                                   @NonNull String oldClassName,
+                                   @NonNull String oldMethodName,
+                                   @NonNull String newClassName,
+                                   @NonNull String newMethodName) {
       super(type);
       myOldClassName = oldClassName;
       myOldMethodName = oldMethodName;
@@ -321,42 +330,101 @@ public class AppCompatMigrationEntry {
     }
   }
 
-  static class GradleDependencyMigrationEntry extends AppCompatMigrationEntry {
+  static abstract class GradleMigrationEntry extends AppCompatMigrationEntry {
+    @NotNull private final String myNewGroupName;
+    @NotNull private final String myNewArtifactName;
+    @NotNull private final String myNewBaseVersion;
 
-    @NotNull final String myOldGroupName;
-    @NotNull final String myOldArtifactName;
-    @NotNull final String myNewGroupName;
-    @NotNull final String myNewArtifactName;
-    @NotNull final String myNewBaseVersion;
+    public GradleMigrationEntry(@MagicConstant(valuesFromClass = AppCompatMigrationEntry.class) int type,
+                                @NotNull String newGroupName,
+                                @NotNull String newArtifactName,
+                                @NotNull String newBaseVersion) {
+      super(type);
 
-    public GradleDependencyMigrationEntry(@NotNull String oldGroupName, @NotNull String oldArtifactName,
-                                          @NotNull String newGroupName, @NotNull String newArtifactName, @NotNull String newBaseVersion) {
-      super(CHANGE_GRADLE_DEPENDENCY);
-      myOldGroupName = oldGroupName;
-      myOldArtifactName = oldArtifactName;
       myNewGroupName = newGroupName;
       myNewArtifactName = newArtifactName;
       myNewBaseVersion = newBaseVersion;
     }
 
+    @NotNull
+    public abstract Pair<String, String> compactKey();
+
+    /**
+     * Returns the gradle coordinates compact notation but allows replacing the pre-defined version for this artifact with a different one.
+     * The given withVersion will only be used if it's higher than this entry base version
+     */
+    @NotNull
+    public String toCompactNotation(@NotNull String withVersion) {
+      String newVersionString = getNewBaseVersion();
+      GradleCoordinate newVersion = GradleCoordinate.parseVersionOnly(withVersion);
+      GradleCoordinate baseVersion = GradleCoordinate.parseVersionOnly(newVersionString);
+
+      String useVersion;
+      if (GradleCoordinate.COMPARE_PLUS_HIGHER.compare(newVersion, baseVersion) < 0) {
+        // The given version is lower than the base version, use the baseVersion
+        useVersion = newVersionString;
+      }
+      else {
+        useVersion = withVersion;
+      }
+
+      return new GradleCoordinate(getNewGroupName(), getNewArtifactName(), useVersion).toString();
+    }
+
+    @NotNull
+    public String getNewGroupName() {
+      return myNewGroupName;
+    }
+
+    @NotNull
+    public String getNewArtifactName() {
+      return myNewArtifactName;
+    }
+
+    @NotNull
+    public String getNewBaseVersion() {
+      return myNewBaseVersion;
+    }
+  }
+
+  static class GradleDependencyMigrationEntry extends GradleMigrationEntry {
+
+    @NotNull private final String myOldGroupName;
+    @NotNull private final String myOldArtifactName;
+
+    public GradleDependencyMigrationEntry(@NotNull String oldGroupName, @NotNull String oldArtifactName,
+                                          @NotNull String newGroupName, @NotNull String newArtifactName, @NotNull String newBaseVersion) {
+      super(CHANGE_GRADLE_DEPENDENCY, newGroupName, newArtifactName, newBaseVersion);
+      myOldGroupName = oldGroupName;
+      myOldArtifactName = oldArtifactName;
+    }
+
+    @Override
+    @NotNull
     public Pair<String, String> compactKey() {
       return Pair.create(myOldGroupName, myOldArtifactName);
     }
 
-    /**
-     * Returns the gradle coordinates compact notation
-     */
     @NotNull
-    public String toCompactNotation() {
-      return new GradleCoordinate(myNewGroupName, myNewArtifactName, myNewBaseVersion).toString();
+    public String getOldArtifactName() {
+      return myOldArtifactName;
     }
 
-    /**
-     * Same as {@link #toCompactNotation()} but allows replacing the pre-defined version for this artifact with a different one
-         */
     @NotNull
-    public String toCompactNotation(@NotNull String withVersion) {
-      return new GradleCoordinate(myNewGroupName, myNewArtifactName, withVersion).toString();
+    public String getOldGroupName() {
+      return myOldGroupName;
+    }
+  }
+
+  static class UpdateGradleDepedencyVersionMigrationEntry extends GradleMigrationEntry {
+    public UpdateGradleDepedencyVersionMigrationEntry(@NotNull String groupName, @NotNull String artifactName, @NotNull String newBaseVersion) {
+      super(UPGRADE_GRADLE_DEPENDENCY_VERSION, groupName, artifactName, newBaseVersion);
+    }
+
+    @NotNull
+    @Override
+    public Pair<String, String> compactKey() {
+      return Pair.create(getNewGroupName(), getNewArtifactName());
     }
   }
 }

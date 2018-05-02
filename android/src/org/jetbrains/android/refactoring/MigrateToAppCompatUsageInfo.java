@@ -16,9 +16,9 @@
 package org.jetbrains.android.refactoring;
 
 import com.android.annotations.NonNull;
-import com.android.repository.io.FileOpUtils;
-import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.templates.RepositoryUrlManager;
+import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.repository.GradleCoordinate;
+import com.android.internal.util.function.TriFunction;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
@@ -30,7 +30,6 @@ import org.jetbrains.android.refactoring.AppCompatMigrationEntry.AttributeMigrat
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.AttributeValueMigrationEntry;
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.GradleDependencyMigrationEntry;
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.ReplaceMethodCallMigrationEntry;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,10 +37,12 @@ import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrString;
+import org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil;
+
+import static org.jetbrains.android.refactoring.AppCompatMigrationEntry.*;
 
 abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
 
@@ -67,9 +68,9 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
    * e.g. Activity#getFragmentManager to AppCompatActivity#getSupportFragmentManager
    */
   static class ChangeMethodUsageInfo extends MigrateToAppCompatUsageInfo {
-    final AppCompatMigrationEntry.MethodMigrationEntry myEntry;
+    final MethodMigrationEntry myEntry;
 
-    public ChangeMethodUsageInfo(PsiReference ref, @NotNull AppCompatMigrationEntry.MethodMigrationEntry entry) {
+    public ChangeMethodUsageInfo(PsiReference ref, @NotNull MethodMigrationEntry entry) {
       super(ref);
       myEntry = entry;
     }
@@ -91,9 +92,9 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
    * UsageInfo specific for migrating a class
    */
   static class ClassMigrationUsageInfo extends MigrateToAppCompatUsageInfo {
-    final AppCompatMigrationEntry.ClassMigrationEntry mapEntry;
+    final ClassMigrationEntry mapEntry;
 
-    public ClassMigrationUsageInfo(@NotNull UsageInfo info, @NotNull AppCompatMigrationEntry.ClassMigrationEntry mapEntry) {
+    public ClassMigrationUsageInfo(@NotNull UsageInfo info, @NotNull ClassMigrationEntry mapEntry) {
       //noinspection ConstantConditions
       super(info.getElement());
       this.mapEntry = mapEntry;
@@ -153,9 +154,9 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
    * UsageInfo specific to migrating a package
    */
   static class PackageMigrationUsageInfo extends MigrateToAppCompatUsageInfo {
-    final AppCompatMigrationEntry.PackageMigrationEntry mapEntry;
+    final PackageMigrationEntry mapEntry;
 
-    public PackageMigrationUsageInfo(@NotNull UsageInfo info, @NotNull AppCompatMigrationEntry.PackageMigrationEntry mapEntry) {
+    public PackageMigrationUsageInfo(@NotNull UsageInfo info, @NotNull PackageMigrationEntry mapEntry) {
       //noinspection ConstantConditions
       super(info.getElement());
       this.mapEntry = mapEntry;
@@ -352,10 +353,10 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
   }
 
   static class ChangeXmlTagUsageInfo extends MigrateToAppCompatUsageInfo {
-    private final AppCompatMigrationEntry.XmlTagMigrationEntry myEntry;
+    private final XmlTagMigrationEntry myEntry;
 
     public ChangeXmlTagUsageInfo(@NotNull PsiElement element,
-                                 @NotNull AppCompatMigrationEntry.XmlTagMigrationEntry entry) {
+                                 @NotNull XmlTagMigrationEntry entry) {
       super(element);
       myEntry = entry;
     }
@@ -432,31 +433,17 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
   }
 
   static class GradleDependencyUsageInfo extends MigrateToAppCompatUsageInfo {
+    // (groupName, artifactName, defaultVersion) -> version
+    @NotNull
+    private final TriFunction<String, String, String, String> myGetLibraryRevisionFunction;
+    private final GradleMigrationEntry mapEntry;
 
-    private final GradleDependencyMigrationEntry mapEntry;
-
-    public GradleDependencyUsageInfo(@NotNull PsiElement element, @NonNull GradleDependencyMigrationEntry entry) {
+    public GradleDependencyUsageInfo(@NotNull PsiElement element,
+                                     @NonNull GradleMigrationEntry entry,
+                                     @NotNull TriFunction<String, String, String, String> versionProvider) {
       super(element);
       mapEntry = entry;
-    }
-
-    @NotNull
-    private static String getLibraryRevision(@NotNull GradleDependencyMigrationEntry entry) {
-      AndroidSdkData sdk = AndroidSdks.getInstance().tryToChooseAndroidSdk();
-      if (sdk != null) {
-        String revision =
-          RepositoryUrlManager.get().getLibraryRevision(entry.myNewGroupName,
-                                                        entry.myNewArtifactName,
-                                                        null,
-                                                        true,
-                                                        sdk.getLocation(),
-                                                        FileOpUtils.create());
-        if (revision != null) {
-          return revision;
-        }
-      }
-
-      return entry.myNewBaseVersion;
+      myGetLibraryRevisionFunction = versionProvider;
     }
 
     @Nullable
@@ -496,34 +483,127 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
         if (group == null || name == null || version == null) {
           return null;
         }
-        renameElement(group, mapEntry.myOldGroupName, mapEntry.myNewGroupName);
-        renameElement(name, mapEntry.myOldArtifactName, mapEntry.myNewArtifactName);
+
+        if (mapEntry instanceof GradleDependencyMigrationEntry) {
+          GradleDependencyMigrationEntry depEntry = (GradleDependencyMigrationEntry)mapEntry;
+          renameElement(group, depEntry.getOldGroupName(), depEntry.getNewGroupName());
+          renameElement(name, depEntry.getOldArtifactName(), depEntry.getNewArtifactName());
+        }
         if (version.getReference() != null) {
-          version.getReference().handleElementRename(getLibraryRevision(mapEntry));
+          String newVersion;
+          if (mapEntry instanceof UpdateGradleDepedencyVersionMigrationEntry) {
+            // For version upgrades get the highest of the existing one and the old one
+            newVersion = getHighestVersion(version.getText(), mapEntry.getNewBaseVersion());
+
+            if (newVersion == null) {
+              // In version upgrades, if we can not check the version, leave as it is
+              return null;
+            }
+          }
+          else {
+            newVersion = mapEntry.getNewBaseVersion();
+          }
+          version.getReference().handleElementRename(
+            myGetLibraryRevisionFunction.apply(mapEntry.getNewGroupName(), mapEntry.getNewArtifactName(), newVersion));
         }
       }
       else if (element.getReference() != null) {
+        String newVersion;
+        if (mapEntry instanceof UpdateGradleDepedencyVersionMigrationEntry) {
+          GradleCoordinate existingCoordinate = GradleCoordinate.parseCoordinateString(element.getReference().getCanonicalText());
+          // For version upgrades get the highest of the existing one and the old one
+          newVersion = getHighestVersion(existingCoordinate, mapEntry.getNewBaseVersion());
+
+          if (newVersion == null) {
+            // In version upgrades, if we can not check the version, leave as it is
+            return null;
+          }
+        }
+        else {
+          newVersion = mapEntry.getNewBaseVersion();
+        }
+
+
         PsiElement parent = element.getParent();
         if (element instanceof GrReferenceExpression && parent != null) {
           // This is likely to be an expression that resolves to the artifact, replace it with a literal
           GrLiteral newLiteral = GroovyPsiElementFactory
             .getInstance(getProject())
-            .createLiteralFromValue(mapEntry.toCompactNotation(getLibraryRevision(mapEntry)));
+            .createLiteralFromValue(mapEntry.toCompactNotation(
+              myGetLibraryRevisionFunction.apply(mapEntry.getNewGroupName(), mapEntry.getNewArtifactName(), newVersion)));
           parent.replace(newLiteral);
         }
         else {
           // this was declared as a string literal for example
           // implementation 'com.android.support.constraint:constraint-layout:1.0.2'
-          element.getReference().handleElementRename(mapEntry.toCompactNotation(getLibraryRevision(mapEntry)));
+          element.getReference().handleElementRename(mapEntry.toCompactNotation(
+            myGetLibraryRevisionFunction.apply(mapEntry.getNewGroupName(), mapEntry.getNewArtifactName(), newVersion)));
         }
       } else if (element instanceof GrString) {
+        String newVersion;
+        if (mapEntry instanceof UpdateGradleDepedencyVersionMigrationEntry) {
+          GradleCoordinate existingCoordinate = GradleCoordinate.parseCoordinateString(GrStringUtil.removeQuotes(element.getText()));
+
+          // For version upgrades get the highest of the existing one and the old one
+          newVersion = getHighestVersion(existingCoordinate, mapEntry.getNewBaseVersion());
+          if (newVersion == null) {
+            // In version upgrades, if we can not check the version, leave as it is
+            return null;
+          }
+        }
+        else {
+          newVersion = mapEntry.getNewBaseVersion();
+        }
+
         // This is just a literal string, replace it
         GrLiteral newLiteral = GroovyPsiElementFactory
           .getInstance(getProject())
-          .createLiteralFromValue(mapEntry.toCompactNotation(getLibraryRevision(mapEntry)));
+          .createLiteralFromValue(
+            mapEntry.toCompactNotation(
+              myGetLibraryRevisionFunction.apply(mapEntry.getNewGroupName(), mapEntry.getNewArtifactName(), newVersion)));
         element.replace(newLiteral);
       }
       return null;
+    }
+
+    /**
+     * Returns the highest of two gradle coordinates. The first one might be null or a variable like "$var"
+     */
+    @VisibleForTesting
+    @Nullable
+    static String getHighestVersion(@Nullable String a, @NotNull String defaultVersion) {
+      if (a == null) {
+        return defaultVersion;
+      }
+
+      if (a.startsWith("$")) {
+        // This is a variable, can not compute the highest version
+        return null;
+      }
+
+      GradleCoordinate versionA = GradleCoordinate.parseVersionOnly(a);
+      GradleCoordinate versionB = GradleCoordinate.parseVersionOnly(defaultVersion);
+      if (GradleCoordinate.COMPARE_PLUS_HIGHER.compare(versionA, versionB) >= 0) {
+        return a;
+      }
+
+      return defaultVersion;
+    }
+
+    /**
+     * Returns the highest of two gradle coordinates. The first one is a full version, the second one
+     * just the version to compare.
+     */
+    @VisibleForTesting
+    @Nullable
+    static String getHighestVersion(@Nullable GradleCoordinate coordinate, @NotNull String defaultVersion) {
+      if (coordinate == null) {
+        return defaultVersion;
+      }
+
+      return coordinate.getVersion() != null ?
+             getHighestVersion(coordinate.getVersion().toString(), defaultVersion) :
+             defaultVersion;
     }
 
     private static void renameElement(PsiElement current, String oldName, String newName) {

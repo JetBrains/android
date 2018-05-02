@@ -152,6 +152,10 @@ class MigrateToAndroidxHandler : RefactoringActionHandler {
         classesAndCoordinates.add(GradleDependencyMigrationEntry(oldGroupName, oldArtifactName, newGroupName, newArtifactName, newBaseVersion))
       }
 
+      override fun visitGradleCoordinateUpgrade(groupName: String, artifactName: String, newBaseVersion: String) {
+        classesAndCoordinates.add(
+          UpdateGradleDepedencyVersionMigrationEntry(groupName, artifactName, newBaseVersion))
+      }
     })
 
     // Packages need to be sorted so the refactoring is applied correctly. We need to apply

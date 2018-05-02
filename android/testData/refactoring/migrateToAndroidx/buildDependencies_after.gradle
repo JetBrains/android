@@ -39,9 +39,13 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
     implementation 'androidx.constraint:base:2.0.0-alpha1'
+    implementation 'androidx.recyclerview:recyclerview:1.0.0-alpha1'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.1.0-alpha1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0-alpha1'
     implementation group: 'androidx.appcompat', name:'base', version:'1.0.0-alpha1'
     implementation 'androidx.exifinterface:exifinterface:1.0.0-alpha1'
+    implementation "androidx.core:core-ktx:1.0.0-alpha1"
+    implementation 'androidx.core:newer-core-ktx:2.0.0-alpha1'
+    implementation "androidx.core:variable-ktx:$variable"
 }

@@ -18,10 +18,13 @@ package org.jetbrains.android.refactoring
 import com.android.SdkConstants.FN_GRADLE_PROPERTIES
 import com.android.builder.model.TestOptions.Execution
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.repository.io.FileOpUtils
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.sdk.AndroidSdks
+import com.android.tools.idea.templates.RepositoryUrlManager
 import com.google.common.collect.Range
 import com.google.common.collect.RangeMap
 import com.google.common.collect.TreeRangeMap
@@ -72,15 +75,35 @@ private fun getProjectProperties(project: Project): PropertiesFile? {
 private fun isImportElement(element: PsiElement?): Boolean =
   element != null && (element.node?.elementType.toString() == "IMPORT_LIST" || isImportElement(element.parent))
 
+/**
+ * Returns the latest available version for the given `AppCompatMigrationEntry.GradleMigrationEntry`
+ */
+private fun getLibraryRevision(newGroupName: String, newArtifactName: String, defaultVersion: String): String {
+  val sdk = AndroidSdks.getInstance().tryToChooseAndroidSdk()
+  if (sdk != null) {
+    val revision = RepositoryUrlManager.get().getLibraryRevision(newGroupName,
+                                                                 newArtifactName, null,
+                                                                 true,
+                                                                 sdk.location,
+                                                                 FileOpUtils.create())
+    if (revision != null) {
+      return revision
+    }
+  }
+
+  return defaultVersion
+}
+
 private const val USE_ANDROIDX_PROPERTY = "android.useAndroidX"
 private const val ENABLE_JETIFIER_PROPERTY = "android.enableJetifier"
 
 open class MigrateToAndroidxProcessor(val project: Project,
-                                 private val migrationMap: List<AppCompatMigrationEntry>) : BaseRefactoringProcessor(project) {
-
+                                 private val migrationMap: List<AppCompatMigrationEntry>,
+                                 versionProvider: ((String, String, String) -> String)? = null) : BaseRefactoringProcessor(project) {
   private val elements: MutableList<PsiElement> = ArrayList()
   private var psiMigration: PsiMigration? = startMigration(project)
   private val refsToShorten: MutableList<SmartPsiElementPointer<PsiElement>> = ArrayList()
+  private val versionProvider = versionProvider ?: ::getLibraryRevision
 
   final override fun createUsageViewDescriptor(usages: Array<out UsageInfo>) = MigrateToAndroidxUsageViewDescriptor(elements.toTypedArray())
 
@@ -108,7 +131,7 @@ open class MigrateToAndroidxProcessor(val project: Project,
 
     try {
       psiMigration?.let { migration ->
-        val gradleDependencyEntries = mutableMapOf<com.intellij.openapi.util.Pair<String, String>, GradleDependencyMigrationEntry>()
+        val gradleDependencyEntries = mutableMapOf<com.intellij.openapi.util.Pair<String, String>, GradleMigrationEntry>()
         for (entry in migrationMap) {
           when (entry.type) {
             CHANGE_CLASS -> {
@@ -135,6 +158,10 @@ open class MigrateToAndroidxProcessor(val project: Project,
             }
             CHANGE_GRADLE_DEPENDENCY -> {
               val migrationEntry = entry as GradleDependencyMigrationEntry
+              gradleDependencyEntries[migrationEntry.compactKey()] = migrationEntry
+            }
+            UPGRADE_GRADLE_DEPENDENCY_VERSION -> {
+              val migrationEntry = entry as UpdateGradleDepedencyVersionMigrationEntry
               gradleDependencyEntries[migrationEntry.compactKey()] = migrationEntry
             }
           }
@@ -301,7 +328,7 @@ open class MigrateToAndroidxProcessor(val project: Project,
   }
 
   private fun findUsagesInBuildFiles(project: Project,
-                                     gradleDependencyEntries: Map<Pair<String, String>, GradleDependencyMigrationEntry>)
+                                     gradleDependencyEntries: Map<Pair<String, String>, GradleMigrationEntry>)
     : List<UsageInfo> {
     val gradleUsages = mutableListOf<UsageInfo>()
     if (gradleDependencyEntries.isEmpty()) {
@@ -319,7 +346,7 @@ open class MigrateToAndroidxProcessor(val project: Project,
           val gc = GradleCoordinate.parseCoordinateString(compactDependencyNotation) ?: continue
           val key: Pair<String, String> = Pair.create(gc.groupId, gc.artifactId)
           val entry = gradleDependencyEntries[key] ?: continue
-          gradleUsages.add(MigrateToAppCompatUsageInfo.GradleDependencyUsageInfo(psiElement, entry))
+          gradleUsages.add(MigrateToAppCompatUsageInfo.GradleDependencyUsageInfo(psiElement, entry, versionProvider))
         }
       }
 

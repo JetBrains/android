@@ -75,13 +75,24 @@ class MigrateToAndroidxTest : AndroidTestCase() {
                                                 "androidx.appcompat", "base", "1.0.0-alpha1"))
       .withEntry(GradleDependencyMigrationEntry("com.android.support.constraint", "constraint-layout",
                                                 "androidx.constraint", "base", "2.0.0-alpha1"))
+      .withEntry(GradleDependencyMigrationEntry("com.android.support", "recyclerview-v7",
+                                                "androidx.recyclerview", "recyclerview", "1.0.0-alpha1"))
       .withEntry(GradleDependencyMigrationEntry("com.android.support.test", "runner",
                                                 "androidx.test", "runner", "1.1.0-alpha1"))
-      .withEntry(GradleDependencyMigrationEntry("com.android.support.test.espresso", "espresso-core",
-                                                "androidx.test.espresso", "espresso-core", "3.1.0-alpha1"))
+      .withEntry(GradleDependencyMigrationEntry("com.android.support.test.espresso", "espresso-core", "androidx.test.espresso", "espresso-core", "3.1.0-alpha1"))
       .withEntry(GradleDependencyMigrationEntry("com.android.support", "exifinterface",
                                                 "androidx.exifinterface", "exifinterface", "1.0.0-alpha1"))
+      .withEntry(
+        UpdateGradleDepedencyVersionMigrationEntry("androidx.core", "core-ktx",
+                                                   "1.0.0-alpha1"))
+      .withEntry(UpdateGradleDepedencyVersionMigrationEntry("androidx.core",
+                                                            "newer-core-ktx",
+                                                            "1.5.0"))
+      .withEntry(UpdateGradleDepedencyVersionMigrationEntry("androidx.core",
+                                                            "variable-ktx",
+                                                            "1.0.0-alpha1"))
       .withFileInProject("buildDependencies.gradle", "build.gradle")
+      .withVersionProvider { _, _, defaultVersion -> defaultVersion }
       .run(myFixture)
   }
 
@@ -92,6 +103,7 @@ class MigrateToAndroidxTest : AndroidTestCase() {
   internal class AndroidxMigrationBuilder {
     val paths = mutableMapOf<String, String>()
     val entries = mutableListOf<AppCompatMigrationEntry>()
+    var versionProvider: ((String,  String,  String) -> String)? = null
 
     fun withFileInProject(pathRelativeToBase: String, targetPath: String) = apply {
       paths[pathRelativeToBase] = targetPath
@@ -109,7 +121,7 @@ class MigrateToAndroidxTest : AndroidTestCase() {
 
       PsiDocumentManager.getInstance(fixture.project).commitAllDocuments()
 
-      object : MigrateToAndroidxProcessor(fixture.project, entries) {
+      object : MigrateToAndroidxProcessor(fixture.project, entries, versionProvider) {
         override fun findUsages(): Array<UsageInfo> {
           // Shuffle the findUsages result since the elements when executing the actual
           // refactoring, the elements might be in different order
@@ -123,6 +135,11 @@ class MigrateToAndroidxTest : AndroidTestCase() {
         val afterFile = key.substring(0, key.indexOf(ext)) + "_after" + ext
         fixture.checkResultByFile(value, BASE_PATH + afterFile, true)
       }
+    }
+
+    fun withVersionProvider(versionProvider: (String,  String,  String) -> String): AndroidxMigrationBuilder {
+      this.versionProvider = versionProvider
+      return this
     }
   }
 }
