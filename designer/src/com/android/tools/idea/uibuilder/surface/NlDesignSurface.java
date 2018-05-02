@@ -20,6 +20,7 @@ import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneInteraction;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.*;
 import com.android.tools.idea.configurations.Configuration;
@@ -658,12 +659,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
         return null;
       }
     }
-    // Check if we have a ViewGroupHandler that might want
-    // to handle the entire interaction
-    ViewGroupHandler viewGroupHandler = component != null ? NlComponentHelperKt.getViewGroupHandler(component) : null;
-    if (viewGroupHandler == null) {
-      return null;
-    }
 
     Interaction interaction = null;
 
@@ -680,7 +675,16 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
 
     if (interaction == null) {
-      interaction = viewGroupHandler.createInteraction(screenView, component);
+      // Check if we have a ViewGroupHandler that might want
+      // to handle the entire interaction
+      ViewGroupHandler viewGroupHandler = component != null ? NlComponentHelperKt.getViewGroupHandler(component) : null;
+      if (viewGroupHandler != null) {
+        interaction = viewGroupHandler.createInteraction(screenView, component);
+      }
+    }
+
+    if (interaction == null) {
+      interaction = new SceneInteraction(screenView);
     }
     return interaction;
   }
