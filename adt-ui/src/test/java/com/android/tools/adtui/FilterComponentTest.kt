@@ -18,6 +18,7 @@ package com.android.tools.adtui
 import com.android.tools.adtui.stdui.CommonToggleButton
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import java.awt.BorderLayout
 import java.util.concurrent.CountDownLatch
@@ -47,6 +48,8 @@ class FilterComponentTest {
     assertThat(myFilterComponent.isVisible).isFalse()
   }
 
+  // b/76172927 fix the flakiness of the test and remove @Ignore.
+  @Ignore
   @Test
   fun changeFilterContent() {
     val latch = CountDownLatch(3)
