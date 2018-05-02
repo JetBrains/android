@@ -16,6 +16,8 @@
 package com.android.tools.idea.profilers.stacktrace;
 
 import com.android.tools.idea.profilers.IntellijContextMenuInstaller;
+import com.android.tools.profilers.ContextMenuInstaller;
+import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.stacktrace.StackTraceGroup;
 import com.android.tools.profilers.stacktrace.StackTraceModel;
 import com.android.tools.profilers.stacktrace.StackTraceView;
@@ -39,7 +41,12 @@ public class IntelliJStackTraceGroup implements StackTraceGroup {
   public IntelliJStackTraceGroup(@NotNull Project project) {
     this(project, (p, m) -> {
       IntelliJStackTraceView view = new IntelliJStackTraceView(p, m);
-      view.installNavigationContextMenu(new IntellijContextMenuInstaller());
+      ContextMenuInstaller installer = new IntellijContextMenuInstaller();
+      view.installNavigationContextMenu(installer);
+      view.installGenericContextMenu(installer, ContextMenuItem.SEPARATOR);
+      // Adds context menu to copy the selected line in the stack trace view. This is needed for users to search a specific line anywhere,
+      // specially when the navigation is not available for third party code.
+      view.installGenericContextMenu(installer, ContextMenuItem.COPY);
       return view;
     });
   }

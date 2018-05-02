@@ -20,12 +20,15 @@ import com.android.tools.profilers.ContextMenuInstaller;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
+import com.intellij.ide.actions.CopyAction;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.ui.PopupHandler;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
@@ -45,6 +48,18 @@ public class IntellijContextMenuInstaller implements ContextMenuInstaller {
     DefaultActionGroup popupGroup = createOrGetActionGroup(component);
     if (contextMenuItem.equals(ContextMenuItem.SEPARATOR)) {
       popupGroup.addSeparator();
+      return;
+    }
+
+    // Reuses the IDE CopyAction, it makes the action component provides the data without exposing the internal implementation.
+    if (contextMenuItem.equals(ContextMenuItem.COPY)) {
+      popupGroup.add(new CopyAction() {
+        {
+          getTemplatePresentation().setText(contextMenuItem.getText());
+          getTemplatePresentation().setIcon(contextMenuItem.getIcon());
+          registerCustomShortcutSet(CommonShortcuts.getCopy(), component);
+        }
+      });
       return;
     }
 

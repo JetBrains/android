@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.stacktrace;
 
+import com.intellij.icons.AllIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,6 +46,30 @@ public interface ContextMenuItem extends Runnable {
     @Override
     public void run() {
 
+    }
+  };
+
+  ContextMenuItem COPY = new ContextMenuItem() {
+
+    @NotNull
+    @Override
+    public String getText() {
+      return "Copy";
+    }
+
+    @Nullable
+    @Override
+    public Icon getIcon() {
+      return AllIcons.Actions.Copy;
+    }
+
+    @Override
+    public boolean isEnabled() {
+      return false;
+    }
+
+    @Override
+    public void run() {
     }
   };
 
