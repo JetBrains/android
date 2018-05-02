@@ -36,6 +36,8 @@ import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.model.NlModelHelper;
+import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
@@ -291,5 +293,10 @@ public class ViewEditorImpl extends ViewEditor {
   @NotNull
   public static ViewEditor getOrCreate(@NotNull Scene scene) {
     return ((LayoutlibSceneManager)scene.getSceneManager()).getViewEditor();
+  }
+
+  @Override
+  public boolean moduleDependsOnAppCompat() {
+    return NlModelHelperKt.moduleDependsOnAppCompat(myModel);
   }
 }
