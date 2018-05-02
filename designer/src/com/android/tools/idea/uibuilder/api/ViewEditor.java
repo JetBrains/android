@@ -215,4 +215,9 @@ public abstract class ViewEditor {
 
 
   public abstract void openResourceFile(@NotNull String resourceId);
+
+  /**
+   * Returns true if the current module depends on AppCompat.
+   */
+  public abstract boolean moduleDependsOnAppCompat();
 }

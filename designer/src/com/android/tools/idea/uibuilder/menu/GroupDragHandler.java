@@ -162,20 +162,15 @@ final class GroupDragHandler extends DragHandler {
   }
 
   private void updateShowAsActionAttribute() {
+    // TODO: Adjust for correct namespace
+    String namespace = editor.moduleDependsOnAppCompat() ? AUTO_URI : ANDROID_URI;
     if (isActionBarGroupActive()) {
       // TODO Handle more than one item
-      myItems.get(0).setAttribute(getNamespace(), ATTR_SHOW_AS_ACTION, VALUE_ALWAYS);
+      myItems.get(0).setAttribute(namespace, ATTR_SHOW_AS_ACTION, VALUE_ALWAYS);
     }
     else {
-      myItems.get(0).removeAttribute(getNamespace(), ATTR_SHOW_AS_ACTION);
+      myItems.get(0).removeAttribute(namespace, ATTR_SHOW_AS_ACTION);
     }
-  }
-
-  private String getNamespace() {
-    return editor.getDependencyManager().isModuleDependency(GoogleMavenArtifactId.APP_COMPAT_V7, editor.getModel().getFacet()) ||
-           editor.getDependencyManager().isModuleDependency(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7, editor.getModel().getFacet())
-           ? AUTO_URI
-           : ANDROID_URI;
   }
 
   @Nullable

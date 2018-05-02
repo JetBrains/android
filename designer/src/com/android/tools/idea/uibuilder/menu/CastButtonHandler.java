@@ -17,7 +17,11 @@ package com.android.tools.idea.uibuilder.menu;
 
 import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.common.model.NlAttributesHolder;
+import com.android.tools.idea.common.model.NlComponent;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
 
 import static com.android.SdkConstants.*;
 
@@ -32,5 +36,11 @@ public final class CastButtonHandler extends MenuHandler {
     return tagName.startsWith(ANDROIDX_PKG_PREFIX) ?
            AndroidxNameUtils.getCoordinateMapping(MEDIA_ROUTER_LIB_ARTIFACT) :
            MEDIA_ROUTER_LIB_ARTIFACT;
+  }
+
+  @NotNull
+  @Override
+  public Icon getIcon(@NotNull NlComponent component) {
+    return StudioIcons.Menu.CAST;
   }
 }
