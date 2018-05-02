@@ -29,6 +29,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 
+import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
+
 /**
  * Detailed information view of energy duration, for wake locks, alarms, etc.
  */
@@ -44,7 +46,7 @@ public class EnergyDetailsView extends JPanel {
     JPanel titlePanel = new JPanel(new BorderLayout());
     titlePanel.setBorder(AdtUiUtils.DEFAULT_BOTTOM_BORDER);
     myTitleLabel = new JLabel();
-    myTitleLabel.setFont(AdtUiUtils.DEFAULT_FONT.deriveFont(12.0f));
+    myTitleLabel.setFont(STANDARD_FONT);
     myTitleLabel.setBorder(new JBEmptyBorder(6, 10, 6, 3));
     titlePanel.add(myTitleLabel, BorderLayout.WEST);
     CloseButton closeButton = new CloseButton(e -> stageView.getStage().setSelectedDuration(null));

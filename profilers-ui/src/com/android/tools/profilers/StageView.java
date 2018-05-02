@@ -16,7 +16,6 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.AxisComponent;
-import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
@@ -27,6 +26,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 import java.util.concurrent.TimeUnit;
+
+import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
 
 public abstract class StageView<T extends Stage> extends AspectObserver {
   private final T myStage;
@@ -66,7 +67,7 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
     myTooltipBinder = new ViewBinder<>();
 
     mySelectionTimeLabel = new JLabel("");
-    mySelectionTimeLabel.setFont(AdtUiUtils.DEFAULT_FONT.deriveFont(12f));
+    mySelectionTimeLabel.setFont(STANDARD_FONT);
     mySelectionTimeLabel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
     stage.getStudioProfilers().addDependency(this).onChange(ProfilerAspect.TOOLTIP, this::tooltipChanged);

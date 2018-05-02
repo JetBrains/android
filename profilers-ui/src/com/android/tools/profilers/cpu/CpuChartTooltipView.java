@@ -30,6 +30,8 @@ import javax.swing.border.EmptyBorder;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_FONT;
+
 class CpuChartTooltipView extends MouseAdapter {
   @NotNull
   private final HTreeChart<CaptureNode> myChart;
@@ -72,14 +74,14 @@ class CpuChartTooltipView extends MouseAdapter {
 
     myContent.removeAll();
     JLabel nameLabel = new JLabel(node.getData().getFullName());
-    nameLabel.setFont(nameLabel.getFont().deriveFont(ProfilerLayout.TOOLTIP_FONT_SIZE));
+    nameLabel.setFont(TOOLTIP_FONT);
     nameLabel.setForeground(ProfilerColors.TOOLTIP_TEXT);
     myContent.add(nameLabel, new TabularLayout.Constraint(0, 0));
 
     JLabel durationLabel = new JLabel(String.format("%s - %s (%s)", TimeFormatter.getFullClockString(start),
                                                     TimeFormatter.getFullClockString(end),
                                                     TimeFormatter.getSingleUnitDurationString(node.getDuration())));
-    durationLabel.setFont(durationLabel.getFont().deriveFont(ProfilerLayout.TOOLTIP_FONT_SIZE));
+    durationLabel.setFont(TOOLTIP_FONT);
     durationLabel.setForeground(ProfilerColors.TOOLTIP_TIME_COLOR);
     durationLabel.setBorder(new EmptyBorder(5, 0, 0, 0));
     myContent.add(durationLabel, new TabularLayout.Constraint(1, 0));

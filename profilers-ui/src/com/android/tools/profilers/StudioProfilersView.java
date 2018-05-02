@@ -59,7 +59,9 @@ import java.awt.event.MouseEvent;
 import java.util.function.BiFunction;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_BOTTOM_BORDER;
+import static com.android.tools.profilers.ProfilerFonts.H4_FONT;
 import static com.android.tools.profilers.ProfilerLayout.TOOLBAR_HEIGHT;
+import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
 import static com.android.tools.profilers.sessions.SessionsView.SESSION_EXPANDED_WIDTH;
 import static com.android.tools.profilers.sessions.SessionsView.SESSION_IS_COLLAPSED;
 import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
@@ -256,7 +258,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
 
     if (!myProfiler.getIdeServices().getFeatureConfig().isSessionsEnabled()) {
       CommonButton endSession = new CommonButton("End Session");
-      endSession.setFont(endSession.getFont().deriveFont(12.f));
+      endSession.setFont(STANDARD_FONT);
       endSession.setBorder(new JBEmptyBorder(4, 7, 4, 7));
       endSession.addActionListener(event -> myProfiler.stop());
       endSession.setToolTipText("Stop profiling and close tab");
@@ -312,7 +314,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
 
     myGoLive = new CommonToggleButton("Live", StudioIcons.Profiler.Toolbar.GOTO_LIVE);
     myGoLive.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.GOTO_LIVE));
-    myGoLive.setFont(myGoLive.getFont().deriveFont(13.f));
+    myGoLive.setFont(H4_FONT);
     myGoLive.setHorizontalTextPosition(SwingConstants.LEFT);
     myGoLive.setHorizontalAlignment(SwingConstants.LEFT);
     myGoLive.setBorder(new JBEmptyBorder(3, 8, 3, 7));

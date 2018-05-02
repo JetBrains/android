@@ -19,10 +19,7 @@ import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
-import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerMonitor;
-import com.android.tools.profilers.ProfilerMonitorView;
-import com.android.tools.profilers.StudioProfilersView;
+import com.android.tools.profilers.*;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBEmptyBorder;
@@ -49,12 +46,12 @@ public class EnergyMonitorView extends ProfilerMonitorView<EnergyMonitor> {
   protected void populateDisabledView(JPanel container) {
     container.setLayout(new TabularLayout("*,Fit-,*", "*,Fit-,Fit-,*"));
     JLabel disabledMessage = new JLabel("Energy profiler unavailable");
-    disabledMessage.setFont(disabledMessage.getFont().deriveFont(15.5f));
+    disabledMessage.setFont(ProfilerFonts.H2_FONT);
     disabledMessage.setHorizontalAlignment(SwingConstants.CENTER);
     disabledMessage.setBorder(new JBEmptyBorder(0, 0, 6, 0));
     container.add(disabledMessage, new TabularLayout.Constraint(1, 0, 3));
     HyperlinkLabel linkToConfigMessage = new HyperlinkLabel();
-    linkToConfigMessage.setFont(linkToConfigMessage.getFont().deriveFont(12f));
+    linkToConfigMessage.setFont(ProfilerFonts.STANDARD_FONT);
     // TODO (73396137): Add real target URL.
     linkToConfigMessage.setHyperlinkText("Supported only on devices running Android 8.0 (API level 26) and higher. ", "", "");
     container.add(linkToConfigMessage, new TabularLayout.Constraint(2, 1));

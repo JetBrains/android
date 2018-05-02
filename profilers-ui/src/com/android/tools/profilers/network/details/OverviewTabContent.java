@@ -58,6 +58,8 @@ import java.io.File;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongFunction;
 
+import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
+
 /**
  * Tab which shows a bunch of useful, high level information for a network request.
  *
@@ -217,7 +219,7 @@ final class OverviewTabContent extends TabContent {
 
     // TODO: Add waiting time in (currently hidden because it's always 0)
     LegendComponent legend = new LegendComponent.Builder(legendModel).setLeftPadding(0).setVerticalPadding(JBUI.scale(8)).build();
-    legend.setFont(legend.getFont().deriveFont(TabUiUtils.FIELD_FONT_SIZE));
+    legend.setFont(STANDARD_FONT);
     legend.configure(sentLegend,
                      new LegendConfig(LegendConfig.IconType.BOX, connectionsChart.getColors().getColor(NetworkState.SENDING)));
     legend.configure(receivedLegend,
@@ -341,7 +343,7 @@ final class OverviewTabContent extends TabContent {
       setLineWrap(true);
       setEditable(false);
       setBackground(UIUtil.getLabelBackground());
-      setFont(UIManager.getFont("Label.font").deriveFont(TabUiUtils.FIELD_FONT_SIZE).deriveFont(ImmutableMap.of(
+      setFont(STANDARD_FONT.deriveFont(ImmutableMap.of(
         TextAttribute.FOREGROUND, PlatformColors.BLUE,
         TextAttribute.BACKGROUND, UIUtil.getLabelBackground())));
 

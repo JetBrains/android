@@ -112,12 +112,12 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
 
     JPanel infoPanel = new JPanel(new BorderLayout());
     InstructionsPanel infoMessage = new InstructionsPanel.Builder(
-      new TextInstruction(SwingUtilities2.getFontMetrics(infoPanel, INFO_MESSAGE_HEADER_FONT), "Network profiling data unavailable"),
+      new TextInstruction(SwingUtilities2.getFontMetrics(infoPanel, ProfilerFonts.H3_FONT), "Network profiling data unavailable"),
       new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-      new TextInstruction(SwingUtilities2.getFontMetrics(infoPanel, INFO_MESSAGE_DESCRIPTION_FONT),
+      new TextInstruction(SwingUtilities2.getFontMetrics(infoPanel, ProfilerFonts.STANDARD_FONT),
                           "There is no information for the network traffic you've selected."),
       new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-      new UrlInstruction(INFO_MESSAGE_DESCRIPTION_FONT, "Learn More",
+      new UrlInstruction(ProfilerFonts.STANDARD_FONT, "Learn More",
                          "https://developer.android.com/r/studio-ui/network-profiler-troubleshoot-connections.html"))
       .setColors(JBColor.foreground(), null)
       .build();
@@ -285,7 +285,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
   private void installProfilingInstructions(@NotNull JPanel parent) {
     assert parent.getLayout().getClass() == TabularLayout.class;
     InstructionsPanel panel =
-      new InstructionsPanel.Builder(new TextInstruction(SwingUtilities2.getFontMetrics(parent, PROFILING_INSTRUCTIONS_FONT),
+      new InstructionsPanel.Builder(new TextInstruction(SwingUtilities2.getFontMetrics(parent, ProfilerFonts.H2_FONT),
                                                         "Select a range to inspect network traffic"))
         .setEaseOut(getStage().getInstructionsEaseOutModel(), instructionsPanel -> parent.remove(instructionsPanel))
         .setBackgroundCornerRadius(PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER, PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER)

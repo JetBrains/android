@@ -37,6 +37,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
+
 /**
  * Tab which shows a request's headers and payload.
  */
@@ -111,7 +113,7 @@ final class RequestTabContent extends TabContent {
       Color toggleHoverColor = AdtUiUtils.overlayColor(toggleLabel.getBackground().getRGB(), toggleLabel.getForeground().getRGB(), 0.9f);
       Color toggleDefaultColor = AdtUiUtils.overlayColor(toggleLabel.getBackground().getRGB(), toggleHoverColor.getRGB(), 0.6f);
       toggleLabel.setForeground(toggleDefaultColor);
-      toggleLabel.setFont(UIManager.getFont("Label.font").deriveFont(TabUiUtils.FIELD_FONT_SIZE));
+      toggleLabel.setFont(STANDARD_FONT);
       toggleLabel.setBorder(new JBEmptyBorder(0, 10, 0, 5));
       toggleLabel.addMouseListener(new MouseAdapter() {
         @Override

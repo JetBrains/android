@@ -23,6 +23,7 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.ContextMenuInstaller;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute;
 import com.android.tools.profilers.stacktrace.CodeLocation;
@@ -348,18 +349,18 @@ final class MemoryClassifierView extends AspectObserver {
 
     if (myStage.getSelectedCapture().isExportable()) {
       myHelpTipPanel = new InstructionsPanel.Builder(
-        new TextInstruction(SwingUtilities2.getFontMetrics(myClassifierPanel, INFO_MESSAGE_HEADER_FONT), HELP_TIP_HEADER_EXPLICIT_CAPTURE),
+        new TextInstruction(SwingUtilities2.getFontMetrics(myClassifierPanel, ProfilerFonts.H3_FONT), HELP_TIP_HEADER_EXPLICIT_CAPTURE),
         new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-        new TextInstruction(SwingUtilities2.getFontMetrics(myClassifierPanel, INFO_MESSAGE_DESCRIPTION_FONT),
+        new TextInstruction(SwingUtilities2.getFontMetrics(myClassifierPanel, ProfilerFonts.STANDARD_FONT),
                             HELP_TIP_DESCRIPTION_EXPLICIT_CAPTURE))
         .setColors(JBColor.foreground(), null)
         .build();
     }
     else {
       myHelpTipPanel = new InstructionsPanel.Builder(
-        new TextInstruction(SwingUtilities2.getFontMetrics(myClassifierPanel, INFO_MESSAGE_HEADER_FONT), HELP_TIP_HEADER_LIVE_ALLOCATION),
+        new TextInstruction(SwingUtilities2.getFontMetrics(myClassifierPanel, ProfilerFonts.H3_FONT), HELP_TIP_HEADER_LIVE_ALLOCATION),
         new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-        new TextInstruction(SwingUtilities2.getFontMetrics(myClassifierPanel, INFO_MESSAGE_DESCRIPTION_FONT),
+        new TextInstruction(SwingUtilities2.getFontMetrics(myClassifierPanel, ProfilerFonts.STANDARD_FONT),
                             HELP_TIP_DESCRIPTION_LIVE_ALLOCATION))
         .setColors(JBColor.foreground(), null)
         .build();

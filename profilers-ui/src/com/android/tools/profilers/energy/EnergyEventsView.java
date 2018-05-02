@@ -44,6 +44,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static com.android.tools.profilers.ProfilerFonts.H2_FONT;
 import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
 
 /**
@@ -134,7 +135,7 @@ public final class EnergyEventsView {
     TableUtils.setTableHeaderBorder(myEventsTable, ProfilerLayout.TABLE_COLUMN_HEADER_BORDER);
 
     myEventsTable.getEmptyText().setText("No system events for the selected range or filter.");
-    myEventsTable.getEmptyText().getComponent().setFont(myEventsTable.getFont().deriveFont(15f));
+    myEventsTable.getEmptyText().getComponent().setFont(H2_FONT);
 
     myEventsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myEventsTable.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
