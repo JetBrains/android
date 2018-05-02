@@ -29,7 +29,7 @@ import com.intellij.ui.SimpleTextAttributes.merge
  * A sequence of actions to render a represented value onto a [TextRenderer].
  */
 interface ValueRenderer {
-  fun renderTo(textRenderer: TextRenderer)
+  fun renderTo(textRenderer: TextRenderer): Boolean
 }
 
 private val variableNameAttributes = merge(SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES, SimpleTextAttributes(0, JBColor.blue))
@@ -40,13 +40,14 @@ private val errorAttributes = SimpleTextAttributes.ERROR_ATTRIBUTES
 private val codeAttributes = SimpleTextAttributes.REGULAR_ATTRIBUTES.derive(STYLE_WAVED, null, null, null)
 
 /**
- * Renders the receiver to the [textRenderer] with any known values handled by renderers from [knownValues].
+ * Renders the receiver to the [textRenderer] with any known values handled by renderers from [knownValues]. Returns [true] in the case of
+ * non-empty output.
  */
 fun <PropertyT : Any> ParsedValue<PropertyT>.renderTo(
   textRenderer: TextRenderer,
   formatValue: PropertyT.() -> String,
   knownValues: Map<ParsedValue<PropertyT>, ValueRenderer>
-) =
+): Boolean =
   let { value ->
     val knownRenderer = knownValues[value]
     when {
@@ -54,31 +55,43 @@ fun <PropertyT : Any> ParsedValue<PropertyT>.renderTo(
       value is ParsedValue.Set.Parsed && value.dslText is DslText.Reference -> {
         textRenderer.append(value.getText(formatValue), variableNameAttributes)
         if (value.value != null) {
-          textRenderer.append(" : ", commentAttributes)
           val valueDescription = knownValues[ParsedValue.Set.Parsed(value.value, DslText.Literal)]
           if (valueDescription != null) {
+            textRenderer.append(" : ", commentAttributes)
             valueDescription.renderTo(makeCommentRenderer(textRenderer))
           }
           else {
-            textRenderer.append(value.value.formatValue(), commentAttributes)
+            val formattedValue = value.value.formatValue()
+            if (!formattedValue.isEmpty()) {
+              textRenderer.append(" : ", commentAttributes)
+              textRenderer.append(formattedValue, commentAttributes)
+            }
           }
         }
+        true
       }
       value is ParsedValue.Set.Parsed && value.dslText is DslText.InterpolatedString -> {
         textRenderer.append(value.getText(formatValue), variableNameAttributes)
         if (value.value != null) {
           textRenderer.append(" : \"${value.value.formatValue()}\"", commentAttributes)
         }
+        true
       }
       value is ParsedValue.Set.Parsed && value.dslText is DslText.OtherUnparsedDslText -> {
         textRenderer.append("\$\$", variableNameAttributes)
         textRenderer.append(value.dslText.text, codeAttributes)
+        true
       }
       value is ParsedValue.Set.Invalid -> {
         textRenderer.append("${value.dslText} ", regularAttributes)
         textRenderer.append("(${value.errorMessage.takeUnless { it == "" } ?: "invalid value"})", errorAttributes)
+        true
       }
-      else -> textRenderer.append(value.getText(formatValue), regularAttributes)
+      else -> {
+        val formattedText = value.getText(formatValue)
+        textRenderer.append(formattedText, regularAttributes)
+        formattedText.isNotEmpty()
+      }
     }
   }
 
@@ -92,28 +105,38 @@ fun <PropertyT : Any> buildKnownValueRenderers(
   val result = mutableListOf<Pair<ParsedValue<PropertyT>, ValueRenderer>>()
   if (defaultValue != null) {
     result.add(ParsedValue.NotSet to object : ValueRenderer {
-      override fun renderTo(textRenderer: TextRenderer) {
+      override fun renderTo(textRenderer: TextRenderer): Boolean {
         val defaultValueDescription = knownValuesMap[ParsedValue.Set.Parsed(defaultValue, DslText.Literal)]
-        textRenderer.append(defaultValue.formatValue(), defaultAttributes)
+        val formattedValue = defaultValue.formatValue()
+        textRenderer.append(formattedValue, defaultAttributes)
         if (defaultValueDescription != null) {
-          textRenderer.append(" ($defaultValueDescription)", defaultAttributes)
+          if (!formattedValue.isEmpty()) {
+            textRenderer.append(" ", defaultAttributes)
+          }
+          textRenderer.append("($defaultValueDescription)", defaultAttributes)
         }
+        return formattedValue.isNotEmpty() || defaultValueDescription != null
       }
     })
   }
   if (knownValues != null) {
     result.addAll(knownValues.map {
       it.value to object : ValueRenderer {
-        override fun renderTo(textRenderer: TextRenderer) {
-          if (it.value !== ParsedValue.NotSet) {
-            it.value.renderTo(textRenderer, formatValue, mapOf())
-            if (it.description != null) {
+        override fun renderTo(textRenderer: TextRenderer): Boolean {
+          val notEmptyValue = if (it.value !== ParsedValue.NotSet) {
+            val notEmptyValue = it.value.renderTo(textRenderer, formatValue, mapOf())
+            if (notEmptyValue && it.description != null) {
               textRenderer.append(" ", regularAttributes)
             }
+            notEmptyValue
+          }
+          else {
+            false
           }
           if (it.description != null) {
             textRenderer.append("(${it.description})", commentAttributes)
           }
+          return notEmptyValue || it.description != null
         }
       }
     })
