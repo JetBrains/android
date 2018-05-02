@@ -16,7 +16,10 @@
 package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.tools.idea.gradle.structure.model.PsProject
-import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.meta.DslText
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.ResolvedValue
+import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import org.hamcrest.CoreMatchers.*
@@ -29,8 +32,8 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
   private fun <T> ResolvedValue<T>.asTestValue(): T? = (this as? ResolvedValue.Set<T>)?.resolved
   private fun <T> ParsedValue<T>.asTestValue(): T? = (this as? ParsedValue.Set.Parsed<T>)?.value
   private fun <T> ParsedValue<T>.asUnparsedValue(): String? =
-    (this as? ParsedValue.Set.Parsed<T>)?.takeIf { it.dslText?.mode == DslMode.OTHER_UNPARSED_DSL_TEXT }?.dslText?.text
-  private fun <T : Any> T.asParsed(): ParsedValue<T> = ParsedValue.Set.Parsed(value = this)
+    ((this as? ParsedValue.Set.Parsed<T>)?.dslText as? DslText.OtherUnparsedDslText)?.text
+  private fun <T : Any> T.asParsed(): ParsedValue<T> = ParsedValue.Set.Parsed(this, DslText.Literal)
 
   fun testProperties() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
@@ -334,7 +337,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     PsBuildType.BuildTypeDescriptors.proGuardFiles.setParsedValue(
       buildType,
       ParsedValue.Set.Parsed(
-        dslText = DslText(DslMode.REFERENCE, "varProGuardFiles"),
+        dslText = DslText.Reference("varProGuardFiles"),
         value = null
       )
     )
@@ -344,8 +347,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
       val parsedProGuardFilesValue = proGuardFilesValue.parsedValue as? ParsedValue.Set.Parsed
       val proGuardFiles = PsBuildType.BuildTypeDescriptors.proGuardFiles.getEditableValues(buildType).map { it.getValue(Unit) }
 
-      assertThat(parsedProGuardFilesValue?.dslText?.mode, equalTo(DslMode.REFERENCE))
-      assertThat(parsedProGuardFilesValue?.dslText?.text, equalTo("varProGuardFiles"))
+      assertThat(parsedProGuardFilesValue?.dslText, equalTo<DslText?>(DslText.Reference("varProGuardFiles")))
 
       assertThat(proGuardFiles.size, equalTo(2))
       // TODO(b/72814329): Resolved values are not yet supported on list properties.

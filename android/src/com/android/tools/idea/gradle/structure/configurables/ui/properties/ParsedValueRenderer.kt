@@ -16,10 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
 import com.android.tools.idea.gradle.structure.configurables.ui.TextRenderer
-import com.android.tools.idea.gradle.structure.model.meta.DslMode
-import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
-import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
-import com.android.tools.idea.gradle.structure.model.meta.getText
+import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.ui.JBColor
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SimpleTextAttributes.STYLE_WAVED
@@ -50,12 +47,12 @@ fun <PropertyT : Any> ParsedValue<PropertyT>.renderTo(
   let { value ->
     val knownRenderer = when {
       value === ParsedValue.NotSet -> knownValues[null]
-      value is ParsedValue.Set.Parsed && (value.dslText?.mode ?: DslMode.LITERAL) == DslMode.LITERAL -> knownValues[value.value]
+      value is ParsedValue.Set.Parsed && value.dslText === DslText.Literal -> knownValues[value.value]
       else -> null
     }
     when {
       knownRenderer != null -> knownRenderer.renderTo(textRenderer)
-      value is ParsedValue.Set.Parsed && value.dslText?.mode == DslMode.REFERENCE -> {
+      value is ParsedValue.Set.Parsed && value.dslText is DslText.Reference -> {
         textRenderer.append(value.getText(formatValue), variableNameAttributes)
         if (value.value != null) {
           textRenderer.append(" : ", commentAttributes)
@@ -68,15 +65,15 @@ fun <PropertyT : Any> ParsedValue<PropertyT>.renderTo(
           }
         }
       }
-      value is ParsedValue.Set.Parsed && value.dslText?.mode == DslMode.INTERPOLATED_STRING -> {
+      value is ParsedValue.Set.Parsed && value.dslText is DslText.InterpolatedString -> {
         textRenderer.append(value.getText(formatValue), variableNameAttributes)
         if (value.value != null) {
           textRenderer.append(" : \"${value.value.formatValue()}\"", commentAttributes)
         }
       }
-      value is ParsedValue.Set.Parsed && value.dslText?.mode == DslMode.OTHER_UNPARSED_DSL_TEXT -> {
+      value is ParsedValue.Set.Parsed && value.dslText is DslText.OtherUnparsedDslText -> {
         textRenderer.append("\$\$", variableNameAttributes)
-        textRenderer.append(value.dslText.text.orEmpty(), codeAttributes)
+        textRenderer.append(value.dslText.text, codeAttributes)
       }
       value is ParsedValue.Set.Invalid -> {
         textRenderer.append("${value.dslText} ", regularAttributes)

@@ -50,24 +50,21 @@ fun ResolvedPropertyModel.dslText(): DslText? {
   val text = getRawValue(GradlePropertyModel.OBJECT_TYPE)?.toString()
   return when {
     text == null && unresolvedModel.valueType == GradlePropertyModel.ValueType.NONE -> null
-    else -> {
-      DslText(
-          mode = when {
-            unresolvedModel.valueType == ValueType.REFERENCE && dependencies.isEmpty() -> DslMode.OTHER_UNPARSED_DSL_TEXT
-            unresolvedModel.valueType == ValueType.UNKNOWN -> DslMode.OTHER_UNPARSED_DSL_TEXT
-            unresolvedModel.valueType == ValueType.REFERENCE -> DslMode.REFERENCE
-            dependencies.isEmpty() -> DslMode.LITERAL
-            unresolvedModel.valueType == ValueType.STRING -> DslMode.INTERPOLATED_STRING
-            else -> throw IllegalStateException("Property value of type ${unresolvedModel.valueType} with dependencies is not supported.")
-          },
-          text = text)
-    }
+    text == null ->
+      throw IllegalStateException(
+        "The raw value of property '${unresolvedModel.fullyQualifiedName}' is null while its type is: ${unresolvedModel.valueType}")
+    unresolvedModel.valueType == ValueType.REFERENCE && dependencies.isEmpty() -> DslText.OtherUnparsedDslText(text)
+    unresolvedModel.valueType == ValueType.UNKNOWN -> DslText.OtherUnparsedDslText(text)
+    unresolvedModel.valueType == ValueType.REFERENCE -> DslText.Reference(text)
+    dependencies.isEmpty() -> DslText.Literal
+    unresolvedModel.valueType == ValueType.STRING -> DslText.InterpolatedString(text)
+    else -> throw IllegalStateException("Property value of type ${unresolvedModel.valueType} with dependencies is not supported.")
   }
 }
 
-fun ResolvedPropertyModel.setDslText(value: DslText) = when (value.mode) {
-  DslMode.REFERENCE -> unresolvedModel.setValue(ReferenceTo(value.text!!))  // null text is invalid here.
-  DslMode.LITERAL -> throw IllegalArgumentException("Literal values should not be set via DslText.")
-  DslMode.INTERPOLATED_STRING -> unresolvedModel.setValue(GradlePropertyModel.iStr(value.text!!))  // null text is invalid here.
-  DslMode.OTHER_UNPARSED_DSL_TEXT -> TODO("Setting unparsed dsl text is not yet supported.")
+fun ResolvedPropertyModel.setDslText(value: DslText) = when (value) {
+  is DslText.Reference -> unresolvedModel.setValue(ReferenceTo(value.text))  // null text is invalid here.
+  is DslText.InterpolatedString -> unresolvedModel.setValue(GradlePropertyModel.iStr(value.text))  // null text is invalid here.
+  is DslText.OtherUnparsedDslText -> TODO("Setting unparsed dsl text is not yet supported.")
+  DslText.Literal -> throw IllegalArgumentException("Literal values should not be set via DslText.")
 }

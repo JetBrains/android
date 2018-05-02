@@ -92,7 +92,7 @@ class SimplePropertyEditor<ContextT, ModelT, PropertyT : Any, out ModelPropertyT
     fun receiveKnownValuesOnEdt(it: List<ValueDescriptor<PropertyT>>?) {
       val possibleValues = buildKnownValueRenderers(it, formatter, property.getDefaultValue(model))
       val knownValues = possibleValues.keys.map {
-        if (it != null) ParsedValue.Set.Parsed(it)
+        if (it != null) ParsedValue.Set.Parsed(it, DslText.Literal)
         else ParsedValue.NotSet
       } + availableVariables.orEmpty()
       knownValueRenderers = possibleValues
@@ -179,11 +179,11 @@ class SimplePropertyEditor<ContextT, ModelT, PropertyT : Any, out ModelPropertyT
   }
 
   override fun parseEditorText(text: String): ParsedValue<PropertyT>? = when {
-    text.startsWith("\$\$") -> ParsedValue.Set.Parsed(value = null, dslText = DslText(DslMode.OTHER_UNPARSED_DSL_TEXT, text.substring(2)))
-    text.startsWith("\$") -> ParsedValue.Set.Parsed<PropertyT>(value = null, dslText = DslText(DslMode.REFERENCE, text.substring(1)))
+    text.startsWith("\$\$") -> ParsedValue.Set.Parsed(value = null, dslText = DslText.OtherUnparsedDslText(text.substring(2)))
+    text.startsWith("\$") -> ParsedValue.Set.Parsed<PropertyT>(value = null, dslText = DslText.Reference(text.substring(1)))
     text.startsWith("\"") && text.endsWith("\"") ->
       ParsedValue.Set.Parsed<PropertyT>(value = null,
-                                        dslText = DslText(DslMode.INTERPOLATED_STRING, text.substring(1, text.length - 1)))
+                                        dslText = DslText.InterpolatedString(text.substring(1, text.length - 1)))
     else -> property.parse(context, text)
   }
 
@@ -225,9 +225,5 @@ inline fun <ContextT, ModelT, reified PropertyT : Any, ModelPropertyT : ModelSim
 ): SimplePropertyEditor<ContextT, ModelT, PropertyT, ModelPropertyT> =
   SimplePropertyEditor(context, PropertyT::class.java, model, property, variablesProvider)
 
-private fun <T : Any> ParsedValue<T>.normalizeForEditorAndLookup() =
-  if (this is ParsedValue.Set.Parsed && value != null && dslText?.mode == DslMode.LITERAL)
-    ParsedValue.Set.Parsed(dslText = null, value = value)
-  else
-    this
+private fun <T : Any> ParsedValue<T>.normalizeForEditorAndLookup() = this
 
