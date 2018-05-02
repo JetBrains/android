@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.editors;
 
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ApkViewerFixture;
@@ -68,8 +67,8 @@ public class ApkViewerTest {
 
     IdeFrameFixture ideFrame = guiTest.importSimpleLocalApplication();
 
-    ProjectViewFixture projectView = ideFrame.invokeMenuPath("Build", "Build APK(s)")
-      .waitForBuildToFinish(BuildMode.ASSEMBLE)
+    ProjectViewFixture projectView = ideFrame.invokeMenuPath("Build", "Build Bundle(s) / APK(s)", "Build APK(s)")
+      .waitForBuildToFinish(BuildMode.ASSEMBLE, Wait.seconds(180))
       .getProjectView();
 
     PaneFixture paneFixture = projectView.selectPane(ProjectViewPane.ID, "Project");
@@ -91,7 +90,7 @@ public class ApkViewerTest {
       .enterText("\nSystem.out.println(\"Hello.\");")
       .close();
 
-    ideFrame.invokeMenuPath("Build", "Build APK(s)")
-      .waitForBuildToFinish(BuildMode.ASSEMBLE);
+    ideFrame.invokeMenuPath("Build", "Build Bundle(s) / APK(s)", "Build APK(s)")
+      .waitForBuildToFinish(BuildMode.ASSEMBLE, Wait.seconds(180));
   }
 }
