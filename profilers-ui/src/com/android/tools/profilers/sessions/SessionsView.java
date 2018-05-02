@@ -57,6 +57,13 @@ import static com.android.tools.profilers.StudioProfilers.buildDeviceName;
 public class SessionsView extends AspectObserver {
 
   private static final String HIDE_STOP_PROMPT = "session.hide.stop.prompt";
+  private static final String HIDE_RESTART_PROMPT = "session.hide.restart.prompt";
+  private static final String CONFIRM_END_TITLE = "End Session";
+  private static final String CONFIRM_END_MESSAGE = "Are you sure you want to end the current profiling session?";
+  private static final String CONFIRM_RESTART_MESSAGE =
+    "Selecting a different process stops the current profiler session and starts a new one. Do you want to continue?";
+  private static final String CONFIRM_BUTTON_TEXT = "Yes";
+  private static final String CANCEL_BUTTON_TEXT = "Cancel";
 
   /**
    * Preference string for whether the sessions UI is collapsed (bool).
@@ -143,23 +150,17 @@ public class SessionsView extends AspectObserver {
         boolean confirmed = true;
         if (!myProfilers.getIdeServices().getTemporaryProfilerPreferences().getBoolean(HIDE_STOP_PROMPT, false)) {
           confirmed = myIdeProfilerComponents.createUiMessageHandler().displayOkCancelMessage(
-            "Confirm End",
-            "Are you sure you want to end the current profiler session?",
-            "End",
-            "Cancel",
+            CONFIRM_END_TITLE,
+            CONFIRM_END_MESSAGE,
+            CONFIRM_BUTTON_TEXT,
+            CANCEL_BUTTON_TEXT,
             null,
-            "Do not ask me again",
             result -> myProfilers.getIdeServices().getTemporaryProfilerPreferences().setBoolean(HIDE_STOP_PROMPT, result)
           );
         }
 
         if (confirmed) {
-          // We should not start auto-profiling other things if the user manually stops a session.
-          myProfilers.setAutoProfilingEnabled(false);
-          // Unselect the device and process which stops the session. This also avoids them from appearing to be selected in the process
-          // selection dropdown even after the session has stopped.
-          myProfilers.setDevice(null);
-          myProfilers.getIdeServices().getFeatureTracker().trackStopSession();
+          stopProfilingSession();
         }
       }
     });
@@ -364,13 +365,20 @@ public class SessionsView extends AspectObserver {
     }
   }
 
+  void stopProfilingSession() {
+    // We should not start auto-profiling other things if the user manually stops a session.
+    myProfilers.setAutoProfilingEnabled(false);
+    // Unselect the device and process which stops the session. This also avoids them from appearing to be selected in the process
+    // selection dropdown even after the session has stopped.
+    myProfilers.setDevice(null);
+    myProfilers.getIdeServices().getFeatureTracker().trackStopSession();
+  }
+
   private void refreshProcessDropdown() {
     Map<Common.Device, java.util.List<Common.Process>> processMap = myProfilers.getDeviceProcessMap();
     myProcessSelectionAction.clear();
     addImportAction();
 
-    Common.Device selectedDevice = myProfilers.getDevice();
-    Common.Process selectedProcess = myProfilers.getProcess();
     // Rebuild the action tree.
     Set<Common.Device> devices = processMap.keySet().stream()
                                            .filter(device -> device.getState() == Common.Device.State.ONLINE).collect(Collectors.toSet());
@@ -396,12 +404,33 @@ public class SessionsView extends AspectObserver {
           for (Common.Process process : processes) {
             CommonAction processAction = new CommonAction(String.format("%s (%d)", process.getName(), process.getPid()), null);
             processAction.setAction(() -> {
+              // First warn and stop the currently profiling session if there is one.
+              if (SessionsManager.isSessionAlive(myProfilers.getSessionsManager().getProfilingSession())) {
+                boolean confirmed = true;
+                if (!myProfilers.getIdeServices().getTemporaryProfilerPreferences().getBoolean(HIDE_RESTART_PROMPT, false)) {
+                  confirmed = myIdeProfilerComponents.createUiMessageHandler().displayOkCancelMessage(
+                    CONFIRM_END_TITLE,
+                    CONFIRM_RESTART_MESSAGE,
+                    CONFIRM_BUTTON_TEXT,
+                    CANCEL_BUTTON_TEXT,
+                    null,
+                    result -> myProfilers.getIdeServices().getTemporaryProfilerPreferences().setBoolean(HIDE_RESTART_PROMPT, result)
+                  );
+                }
+
+                if (!confirmed) {
+                  // Do not continue to start a new session.
+                  return;
+                }
+
+                stopProfilingSession();
+              }
+
               myProfilers.setDevice(device);
               myProfilers.setProcess(process);
               myProfilers.getIdeServices().getFeatureTracker().trackCreateSession(Common.SessionMetaData.SessionType.FULL,
                                                                                   SessionsManager.SessionCreationSource.MANUAL);
             });
-            processAction.setSelected(process.equals(selectedProcess));
 
             String preferredProcess = myProfilers.getPreferredProcessName();
             // Do a prefix instead of exact match as they could be multiple candidates from the same project.
@@ -430,7 +459,6 @@ public class SessionsView extends AspectObserver {
             deviceAction.addChildrenActions(otherProcessesFlyout);
           }
         }
-        deviceAction.setSelected(device.equals(selectedDevice));
         myProcessSelectionAction.addChildrenActions(deviceAction);
       }
     }

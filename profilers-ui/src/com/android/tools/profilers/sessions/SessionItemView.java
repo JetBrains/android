@@ -21,7 +21,10 @@ import com.android.tools.adtui.stdui.StandardColors;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.ProfilerAction;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
+import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.util.ui.JBUI;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -33,6 +36,7 @@ import java.awt.event.MouseMotionAdapter;
 import java.awt.font.TextAttribute;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -133,10 +137,19 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
 
   @Override
   protected List<ContextMenuItem> getContextMenus() {
-    ProfilerAction action = new ProfilerAction.Builder("Delete")
+    boolean canEndSession = SessionsManager.isSessionAlive(getArtifact().getSession());
+    Icon endIcon =
+      canEndSession ? StudioIcons.Profiler.Toolbar.STOP_SESSION : IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.STOP_SESSION);
+    ProfilerAction endAction = new ProfilerAction.Builder("End session")
+      .setEnableBooleanSupplier(() -> canEndSession)
+      .setActionRunnable(() -> getSessionsView().stopProfilingSession())
+      .setIcon(endIcon)
+      .build();
+    ProfilerAction deleteAction = new ProfilerAction.Builder("Delete")
       .setActionRunnable(() -> getArtifact().deleteSession())
       .build();
-    return Collections.singletonList(action);
+
+    return ImmutableList.of(endAction, ContextMenuItem.SEPARATOR, deleteAction);
   }
 
   /**

@@ -249,7 +249,6 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
             "Yes",
             "Cancel",
             null,
-            "Do not ask me again",
             result -> myProfilers.getIdeServices().getTemporaryProfilerPreferences().setBoolean(HIDE_STOP_PROMPT, result)
           );
 

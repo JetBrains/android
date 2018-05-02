@@ -142,7 +142,6 @@ class SessionsViewTest {
     var selectionAction = mySessionsView.processSelectionAction
     assertThat(selectionAction.childrenActionCount).isEqualTo(3)
     var loadAction = selectionAction.childrenActions.first { c -> c.text == "Load from file..." }
-    assertThat(loadAction.isSelected).isFalse()
     assertThat(loadAction.isEnabled).isTrue()
     assertThat(loadAction.childrenActionCount).isEqualTo(0)
     assertThat(selectionAction.childrenActions[1]).isInstanceOf(CommonAction.SeparatorAction::class.java)
@@ -154,11 +153,9 @@ class SessionsViewTest {
     assertThat(selectionAction.childrenActionCount).isEqualTo(3)
     assertThat(selectionAction.childrenActions[1]).isInstanceOf(CommonAction.SeparatorAction::class.java)
     loadAction = selectionAction.childrenActions.first { c -> c.text == "Load from file..." }
-    assertThat(loadAction.isSelected).isFalse()
     assertThat(loadAction.isEnabled).isTrue()
     assertThat(loadAction.childrenActionCount).isEqualTo(0)
     var deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
-    assertThat(deviceAction1.isSelected).isTrue()
     assertThat(deviceAction1.isEnabled).isTrue()
     assertThat(deviceAction1.childrenActionCount).isEqualTo(1)
     assertThat(deviceAction1.childrenActions[0].text).isEqualTo(SessionsView.NO_DEBUGGABLE_PROCESSES)
@@ -169,27 +166,22 @@ class SessionsViewTest {
     myProfilers.process = process1
     assertThat(selectionAction.childrenActionCount).isEqualTo(3)
     deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
-    assertThat(deviceAction1.isSelected).isTrue()
     assertThat(deviceAction1.isEnabled).isTrue()
     assertThat(deviceAction1.childrenActionCount).isEqualTo(1)
     var processAction1 = deviceAction1.childrenActions.first { c -> c.text == "Process1 (10)" }
-    assertThat(processAction1.isSelected).isTrue()
     assertThat(processAction1.childrenActionCount).isEqualTo(0)
 
     myProfilerService.addProcess(device1, otherProcess1)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     assertThat(selectionAction.childrenActionCount).isEqualTo(3)
     deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
-    assertThat(deviceAction1.isSelected).isTrue()
     assertThat(deviceAction1.isEnabled).isTrue()
     assertThat(deviceAction1.childrenActionCount).isEqualTo(3)  // process1 + separator + "other processes"
     processAction1 = deviceAction1.childrenActions.first { c -> c.text == "Process1 (10)" }
-    assertThat(processAction1.isSelected).isTrue()
     assertThat(deviceAction1.childrenActions[1]).isInstanceOf(CommonAction.SeparatorAction::class.java)
     var processAction2 = deviceAction1.childrenActions
       .first { c -> c.text == "Other processes" }.childrenActions
       .first { c -> c.text == "Other1 (20)" }
-    assertThat(processAction2.isSelected).isFalse()
 
     // Test the reverse case of having only "other" processes
     myProfilerService.addDevice(device2)
@@ -197,24 +189,19 @@ class SessionsViewTest {
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     assertThat(selectionAction.childrenActionCount).isEqualTo(4)
     deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
-    assertThat(deviceAction1.isSelected).isTrue()
     assertThat(deviceAction1.isEnabled).isTrue()
     assertThat(deviceAction1.childrenActionCount).isEqualTo(3)  // process1 + separator + "other processes"
     processAction1 = deviceAction1.childrenActions.first { c -> c.text == "Process1 (10)" }
-    assertThat(processAction1.isSelected).isTrue()
     assertThat(deviceAction1.childrenActions[1]).isInstanceOf(CommonAction.SeparatorAction::class.java)
     processAction2 = deviceAction1.childrenActions
       .first { c -> c.text == "Other processes" }.childrenActions
       .first { c -> c.text == "Other1 (20)" }
-    assertThat(processAction2.isSelected).isFalse()
     var deviceAction2 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer2 Model2" }
-    assertThat(deviceAction2.isSelected).isFalse()
     assertThat(deviceAction2.isEnabled).isTrue()
     assertThat(deviceAction2.childrenActionCount).isEqualTo(1) // There should be no separator in this case.
     var processAction3 = deviceAction2.childrenActions
       .first { c -> c.text == "Other processes" }.childrenActions
       .first { c -> c.text == "Other2 (30)" }
-    assertThat(processAction3.isSelected).isFalse()
   }
 
   @Test
@@ -247,10 +234,8 @@ class SessionsViewTest {
     var selectionAction = mySessionsView.processSelectionAction
     assertThat(selectionAction.childrenActions.any { c -> c.text == "Manufacturer1 Model1" }).isFalse()
     val aliveDeviceAction = selectionAction.childrenActions.first { c -> c.text == "Manufacturer2 Model2" }
-    assertThat(aliveDeviceAction.isSelected).isTrue()
     assertThat(aliveDeviceAction.childrenActionCount).isEqualTo(1)
     var processAction1 = aliveDeviceAction.childrenActions.first { c -> c.text == "Process4 (40)" }
-    assertThat(processAction1.isSelected).isTrue()
     assertThat(processAction1.childrenActionCount).isEqualTo(0)
   }
 
