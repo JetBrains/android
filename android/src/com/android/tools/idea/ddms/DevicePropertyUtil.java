@@ -64,19 +64,22 @@ public class DevicePropertyUtil {
 
   @NotNull
   public static String getBuild(@NotNull IDevice d) {
-    return getBuild(d.getProperty(IDevice.PROP_BUILD_VERSION),  d.getProperty(IDevice.PROP_BUILD_API_LEVEL));
+    return getBuild(d.getProperty(IDevice.PROP_BUILD_VERSION),
+                    d.getProperty(IDevice.PROP_BUILD_CODENAME),
+                    d.getProperty(IDevice.PROP_BUILD_API_LEVEL));
   }
 
   @NotNull
-  public static String getBuild(@Nullable String buildVersion, @Nullable String apiLevel) {
+  public static String getBuild(@Nullable String buildVersion, @Nullable String codeName, @Nullable String apiLevel) {
     StringBuilder sb = new StringBuilder(20);
     if (buildVersion != null) {
       sb.append("Android ");
       sb.append(buildVersion);
     }
 
-    if (apiLevel != null) {
-      sb.append(String.format(", API %1$s", apiLevel));
+    String apiString = (codeName == null || codeName.equals("REL")) ? apiLevel : codeName;
+    if (apiString != null) {
+      sb.append(String.format(", API %1$s", apiString));
     }
 
     return sb.toString();
