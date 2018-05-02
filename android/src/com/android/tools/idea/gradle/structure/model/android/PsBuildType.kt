@@ -161,6 +161,17 @@ open class PsBuildType(
       parse = ::parseInt
     )
 
+    val signingConfig: SimpleProperty<PsBuildType, Unit> = property(
+      "Signing Config",
+      getResolvedValue = { null },
+      getParsedProperty = { signingConfig() },
+      getter = { asUnit() },
+      setter = {},
+      parse = ::parseReferenceOnly,
+      format = ::formatUnit,
+      getKnownValues = { _, model -> signingConfigs(model.parent) }
+    )
+
     val testCoverageEnabled: SimpleProperty<PsBuildType, Boolean> = property(
       "Test Coverage Enabled",
       defaultValueGetter = { false },

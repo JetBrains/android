@@ -70,4 +70,9 @@ fun parseLanguageLevel(context: Any?, text: String): ParsedValue<LanguageLevel> 
   parseFromGradleString(text)?.let { ParsedValue.Set.Parsed(it, DslText.Literal) }
   ?: ParsedValue.Set.Invalid(dslText = text, errorMessage = "'$text' is not a valid language level")
 
+fun parseReferenceOnly(context: Any?, text: String): ParsedValue<Unit> =
+  ParsedValue.Set.Invalid(text, "A signing config reference should be in a form of '\$configName'")
+
 fun formatLanguageLevel(context: Any?, value: LanguageLevel): String = value.toJavaVersion().toString()
+
+fun formatUnit(context: Any?, value: Unit): String = ""

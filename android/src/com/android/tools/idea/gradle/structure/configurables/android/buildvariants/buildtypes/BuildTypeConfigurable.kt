@@ -36,6 +36,7 @@ fun buildTypePropertiesModel() =
             uiProperty(PsBuildType.BuildTypeDescriptors.jniDebuggable, ::simplePropertyEditor),
             uiProperty(PsBuildType.BuildTypeDescriptors.renderscriptDebuggable, ::simplePropertyEditor),
             uiProperty(PsBuildType.BuildTypeDescriptors.renderscriptOptimLevel, ::simplePropertyEditor),
+            uiProperty(PsBuildType.BuildTypeDescriptors.signingConfig, ::simplePropertyEditor),
             uiProperty(PsBuildType.BuildTypeDescriptors.proGuardFiles, listPropertyEditor(::simplePropertyEditor)),
             uiProperty(PsBuildType.BuildTypeDescriptors.manifestPlaceholders, mapPropertyEditor(::simplePropertyEditor)),
             uiProperty(PsBuildType.BuildTypeDescriptors.minifyEnabled, ::simplePropertyEditor),

@@ -56,7 +56,8 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     // TODO(b/70501607): Decide on val pseudoLocalesEnabled = PsBuildType.BuildTypeDescriptors.pseudoLocalesEnabled.getValue(buildType)
     val renderscriptDebuggable = PsBuildType.BuildTypeDescriptors.renderscriptDebuggable.getValue(buildType)
     val renderscriptOptimLevel = PsBuildType.BuildTypeDescriptors.renderscriptOptimLevel.getValue(buildType)
-    // TODO(b/70501607): Decide on val testCoverageEnabled = PsBuildType.BuildTypeDescriptors.testCoverageEnabled.getValue(buildType)
+    val signingConfig = PsBuildType.BuildTypeDescriptors.signingConfig.getValue(buildType)
+// TODO(b/70501607): Decide on val testCoverageEnabled = PsBuildType.BuildTypeDescriptors.testCoverageEnabled.getValue(buildType)
     val versionNameSuffix = PsBuildType.BuildTypeDescriptors.versionNameSuffix.getValue(buildType)
     val zipAlignEnabled = PsBuildType.BuildTypeDescriptors.zipAlignEnabled.getValue(buildType)
     val proGuardFiles = PsBuildType.BuildTypeDescriptors.proGuardFiles.getEditableValues(buildType).map { it.getValue(Unit) }
@@ -82,6 +83,11 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
 
     assertThat(renderscriptOptimLevel.resolved.asTestValue(), equalTo(2))
     assertThat(renderscriptOptimLevel.parsedValue.asTestValue(), equalTo(2))
+
+    assertThat(signingConfig.resolved.asTestValue(), nullValue())
+    assertThat(
+      signingConfig.parsedValue,
+      equalTo<ParsedValue<Unit>>(ParsedValue.Set.Parsed(Unit, DslText.Reference("signingConfigs.myConfig"))))
 
     assertThat(versionNameSuffix.resolved.asTestValue(), equalTo("vsuffix"))
     assertThat(versionNameSuffix.parsedValue.asTestValue(), equalTo("vsuffix"))
@@ -161,6 +167,8 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     assertThat(renderscriptOptimLevel.resolved.asTestValue(), equalTo(3))
     assertThat(renderscriptOptimLevel.parsedValue.asTestValue(), nullValue())
 
+    // TODO(b/79142681) signingConfig resolved value is always null.
+
     assertThat(versionNameSuffix.resolved.asTestValue(), nullValue())
     assertThat(versionNameSuffix.parsedValue.asTestValue(), nullValue())
 
@@ -193,6 +201,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     buildType.renderscriptOptimLevel = 3.asParsed()
     buildType.versionNameSuffix = "new_vsuffix".asParsed()
     buildType.zipAlignEnabled = false.asParsed()
+    PsBuildType.BuildTypeDescriptors.signingConfig.setParsedValue(buildType, ParsedValue.NotSet)
     PsBuildType.BuildTypeDescriptors.proGuardFiles.deleteItem(buildType, 1)
     val editableProGuardFiles = PsBuildType.BuildTypeDescriptors.proGuardFiles.getEditableValues(buildType)
     editableProGuardFiles[1].setParsedValue(Unit, File("a.txt").asParsed())
@@ -213,6 +222,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
       // TODO(b/70501607): Decide on val pseudoLocalesEnabled = PsBuildType.BuildTypeDescriptors.pseudoLocalesEnabled.getValue(buildType)
       val renderscriptDebuggable = PsBuildType.BuildTypeDescriptors.renderscriptDebuggable.getValue(buildType)
       val renderscriptOptimLevel = PsBuildType.BuildTypeDescriptors.renderscriptOptimLevel.getValue(buildType)
+      val signingConfig = PsBuildType.BuildTypeDescriptors.signingConfig.getValue(buildType)
       // TODO(b/70501607): Decide on val testCoverageEnabled = PsBuildType.BuildTypeDescriptors.testCoverageEnabled.getValue(buildType)
       val versionNameSuffix = PsBuildType.BuildTypeDescriptors.versionNameSuffix.getValue(buildType)
       val zipAlignEnabled = PsBuildType.BuildTypeDescriptors.zipAlignEnabled.getValue(buildType)
@@ -226,6 +236,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
       assertThat(multiDexEnabled.parsedValue.asTestValue(), equalTo(false))
       assertThat(renderscriptDebuggable.parsedValue.asTestValue(), equalTo(true))
       assertThat(renderscriptOptimLevel.parsedValue.asTestValue(), equalTo(3))
+      assertThat(signingConfig.parsedValue.asTestValue(), nullValue())
       assertThat(versionNameSuffix.parsedValue.asTestValue(), equalTo("new_vsuffix"))
       assertThat(zipAlignEnabled.parsedValue.asTestValue(), equalTo(false))
 
@@ -249,6 +260,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
         assertThat(multiDexEnabled.parsedValue.asTestValue(), equalTo(multiDexEnabled.resolved.asTestValue()))
         assertThat(renderscriptDebuggable.parsedValue.asTestValue(), equalTo(renderscriptDebuggable.resolved.asTestValue()))
         assertThat(renderscriptOptimLevel.parsedValue.asTestValue(), equalTo(renderscriptOptimLevel.resolved.asTestValue()))
+        // TODO(b/79142681) signingConfig resolved value is always null.
         assertThat(versionNameSuffix.parsedValue.asTestValue(), equalTo(versionNameSuffix.resolved.asTestValue()))
         assertThat(zipAlignEnabled.parsedValue.asTestValue(), equalTo(zipAlignEnabled.resolved.asTestValue()))
 

@@ -110,6 +110,17 @@ open class PsProductFlavor(
       getKnownValues = ::booleanValues
     )
 
+    val signingConfig: SimpleProperty<PsProductFlavor, Unit> = property(
+      "Signing Config",
+      getResolvedValue = { null },
+      getParsedProperty = { signingConfig() },
+      getter = { asUnit() },
+      setter = {},
+      parse = ::parseReferenceOnly,
+      format = ::formatUnit,
+      getKnownValues = { _, model -> signingConfigs(model.parent) }
+    )
+
     val targetSdkVersion: SimpleProperty<PsProductFlavor, String> = property(
       "Target SDK Version",
       getResolvedValue = { targetSdkVersion?.apiLevel?.toString() },

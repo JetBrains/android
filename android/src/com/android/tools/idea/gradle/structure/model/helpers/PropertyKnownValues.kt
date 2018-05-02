@@ -17,6 +17,9 @@
 
 package com.android.tools.idea.gradle.structure.model.helpers
 
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
+import com.android.tools.idea.gradle.structure.model.meta.DslText
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
 import com.android.tools.idea.gradle.structure.model.meta.getText
 import com.google.common.util.concurrent.Futures.immediateFuture
@@ -44,3 +47,6 @@ fun languageLevels(context: Any?, model: Any?): ListenableFuture<List<ValueDescr
   ValueDescriptor(value = LanguageLevel.JDK_1_8, description = "Java 8")
 ))
 
+fun signingConfigs(module: PsAndroidModule): ListenableFuture<List<ValueDescriptor<Unit>>> = immediateFuture(module.signingConfigs.map {
+  ValueDescriptor(ParsedValue.Set.Parsed(Unit, DslText.Reference("signingConfigs.${it.name}")))
+})

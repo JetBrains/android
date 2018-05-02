@@ -45,6 +45,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     val maxSdkVersion = PsAndroidModuleDefaultConfigDescriptors.maxSdkVersion.getValue(defaultConfig)
     val minSdkVersion = PsAndroidModuleDefaultConfigDescriptors.minSdkVersion.getValue(defaultConfig)
     val multiDexEnabled = PsAndroidModuleDefaultConfigDescriptors.multiDexEnabled.getValue(defaultConfig)
+    val signingConfig = PsAndroidModuleDefaultConfigDescriptors.signingConfig.getValue(defaultConfig)
     val targetSdkVersion = PsAndroidModuleDefaultConfigDescriptors.targetSdkVersion.getValue(defaultConfig)
     val testApplicationId = PsAndroidModuleDefaultConfigDescriptors.testApplicationId.getValue(defaultConfig)
     // TODO(b/70501607): Decide on val testFunctionalTest = PsAndroidModuleDefaultConfigDescriptors.testFunctionalTest.getValue(defaultConfig)
@@ -69,6 +70,9 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
 
     assertThat(multiDexEnabled.resolved.asTestValue(), nullValue())
     assertThat(multiDexEnabled.parsedValue.asTestValue(), nullValue())
+
+    assertThat(signingConfig.resolved.asTestValue(), nullValue())
+    assertThat(signingConfig.parsedValue.asTestValue(), nullValue())
 
     assertThat(targetSdkVersion.resolved.asTestValue(), equalTo("19"))
     // TODO(b/71988818) assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo("19"))
@@ -123,6 +127,8 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     defaultConfig.versionCode = "3".asParsed()
     defaultConfig.versionName = "3.0".asParsed()
     defaultConfig.manifestPlaceholders = mapOf("cc" to "CCC", "dd" to "NotDDD", "zz" to "zz").asParsed()
+    PsAndroidModuleDefaultConfigDescriptors.signingConfig.setParsedValue(
+      defaultConfig, ParsedValue.Set.Parsed(Unit, DslText.Reference("signingConfigs.myConfig")))
     PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders.getEditableValues(defaultConfig)["dd"]?.setParsedValue(
       Unit,
       "EEE".asParsed()
@@ -136,6 +142,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
       val maxSdkVersion = PsAndroidModuleDefaultConfigDescriptors.maxSdkVersion.getValue(defaultConfig)
       val minSdkVersion = PsAndroidModuleDefaultConfigDescriptors.minSdkVersion.getValue(defaultConfig)
       val multiDexEnabled = PsAndroidModuleDefaultConfigDescriptors.multiDexEnabled.getValue(defaultConfig)
+      val signingConfig = PsAndroidModuleDefaultConfigDescriptors.signingConfig.getValue(defaultConfig)
       val targetSdkVersion = PsAndroidModuleDefaultConfigDescriptors.targetSdkVersion.getValue(defaultConfig)
       val testApplicationId = PsAndroidModuleDefaultConfigDescriptors.testApplicationId.getValue(defaultConfig)
       // TODO(b/70501607): Decide on val testFunctionalTest = PsAndroidModuleDefaultConfigDescriptors.testFunctionalTest.getValue(defaultConfig)
@@ -149,6 +156,10 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
       assertThat(maxSdkVersion.parsedValue.asTestValue(), equalTo(26))
       assertThat(minSdkVersion.parsedValue.asTestValue(), equalTo("11"))
       assertThat(multiDexEnabled.parsedValue.asTestValue(), equalTo(true))
+      assertThat(signingConfig.resolved.asTestValue(), nullValue())
+      assertThat(
+        signingConfig.parsedValue,
+        equalTo<ParsedValue<Unit>>(ParsedValue.Set.Parsed(Unit, DslText.Reference("signingConfigs.myConfig"))))
       // TODO(b/71988818)
       assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo("21"))
       assertThat(testApplicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.unpaid.failed_test"))
@@ -162,6 +173,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
         assertThat(maxSdkVersion.parsedValue.asTestValue(), equalTo(maxSdkVersion.resolved.asTestValue()))
         assertThat(minSdkVersion.parsedValue.asTestValue(), equalTo(minSdkVersion.resolved.asTestValue()))
         assertThat(multiDexEnabled.parsedValue.asTestValue(), equalTo(multiDexEnabled.resolved.asTestValue()))
+        // TODO(b/79142681) signingConfig resolved value is always null.
         // TODO(b/71988818)
         assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo(targetSdkVersion.resolved.asTestValue()))
         assertThat(testApplicationId.parsedValue.asTestValue(), equalTo(testApplicationId.resolved.asTestValue()))
