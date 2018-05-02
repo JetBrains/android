@@ -17,7 +17,6 @@ package com.android.tools.idea.profilers;
 
 import com.android.tools.idea.diagnostics.crash.exception.NoPiiException;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
@@ -42,8 +41,6 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -322,19 +319,6 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       .stream()
       .map(ProfilingConfiguration::fromProto)
       .collect(Collectors.toList());
-  }
-
-  @NotNull
-  @Override
-  public String getApplicationId() {
-    Module[] modules = ModuleManager.getInstance(myProject).getModules();
-    for (Module module : modules) {
-      AndroidModuleModel model = AndroidModuleModel.get(module);
-      if (model != null) {
-        return model.getApplicationId();
-      }
-    }
-    throw new IllegalStateException("No Android module found for the project.");
   }
 
   @Override
