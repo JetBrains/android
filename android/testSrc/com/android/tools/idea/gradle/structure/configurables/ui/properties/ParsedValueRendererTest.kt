@@ -128,6 +128,17 @@ class ParsedValueRendererTest {
   }
 
   @Test
+  fun testRenderParsedValue_setEmptyValue() {
+    val one = ParsedValue.Set.Parsed("", DslText.Literal)
+    assertThat(
+      testRender { one.renderTo(this, Any::toString, buildKnownValueRenderers<String>(listOf(), Any::toString, null)) },
+      equalTo(""))
+    assertThat(
+      testRender { one.renderTo(this, Any::toString, buildKnownValueRenderers(listOf(ValueDescriptor("", "One")), Any::toString, null)) },
+      equalTo("<comment>(One)"))
+  }
+
+  @Test
   fun testRenderParsedValue_setValueWitLiteral() {
     val one = ParsedValue.Set.Parsed(1, DslText.Literal)
     assertThat(one.testRenderWith<Int>(buildKnownValueRenderers(listOf(), Any::testToString, null)), equalTo("1@"))
@@ -142,6 +153,14 @@ class ParsedValueRendererTest {
                equalTo("<b><var>\$var1</b><comment> : 1@"))
     assertThat(var1.testRenderWith<Int>(buildKnownValueRenderers(listOf(ValueDescriptor(1, "One")), Any::testToString, null)),
                equalTo("<b><var>\$var1</b><comment> : 1@ (One)"))
+  }
+
+  @Test
+  fun testRenderParsedValue_setReferenceToEmpty() {
+    val var1 = ParsedValue.Set.Parsed("", DslText.Reference("var1"))
+    assertThat(
+      testRender { var1.renderTo(this, Any::toString, buildKnownValueRenderers<String>(listOf(), Any::toString, null)) },
+      equalTo("<b><var>\$var1"))
   }
 
   @Test
