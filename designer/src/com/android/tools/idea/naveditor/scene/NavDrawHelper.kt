@@ -64,6 +64,9 @@ val ACTION_STROKE = BasicStroke(ACTION_STROKE_WIDTH, CAP_BUTT, JOIN_ROUND)
 val DASHED_ACTION_STROKE = BasicStroke(ACTION_STROKE_WIDTH, CAP_BUTT, JOIN_ROUND, DASHED_STROKE_CYCLE,
     floatArrayOf(DASHED_STROKE_CYCLE), DASHED_STROKE_CYCLE)
 
+@JvmField
+@NavCoordinate val FRAGMENT_BORDER_SPACING = JBUI.scale(2)
+
 fun frameColor(context: SceneContext, component: SceneComponent): Color {
   val colorSet = context.colorSet
 
