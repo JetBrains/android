@@ -22,7 +22,6 @@ import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.FakeCodeNavigator;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -355,12 +354,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
                                                                CpuProfiler.CpuProfilerType.ATRACE,
                                                                CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
     return ImmutableList.of(artSampled, artInstrumented, simpleperf, atrace);
-  }
-
-  @NotNull
-  @Override
-  public String getApplicationId() {
-    return "some.id";
   }
 
   @Override

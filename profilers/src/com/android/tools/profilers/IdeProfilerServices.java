@@ -129,12 +129,6 @@ public interface IdeProfilerServices {
   List<ProfilingConfiguration> getDefaultCpuProfilerConfigs();
 
   /**
-   * Returns the application ID. For example, "com.google.sample.tunnel".
-   */
-  @NotNull
-  String getApplicationId();
-
-  /**
    * Whether a native CPU profiling configuration is preferred over a Java one.
    * Native configurations can be preferred for native projects, for instance.
    */
