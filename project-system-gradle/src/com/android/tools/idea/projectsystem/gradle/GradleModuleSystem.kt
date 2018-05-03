@@ -83,18 +83,6 @@ class GradleModuleSystem(val module: Module, @TestOnly private val mavenReposito
         .mapNotNull { GoogleMavenArtifactId.forCoordinate(it) }
   }
 
-  override fun getDeclaredVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion? {
-    // Check for compile dependencies from the gradle build file
-    val configurationName = GradleUtil.mapConfigurationName(CommonConfigurationNames.COMPILE, GradleUtil.getAndroidGradleModelVersionInUse(module), false)
-
-    return GradleBuildModel.get(module)?.let {
-      it.dependencies().artifacts(configurationName)
-          .filter { artifactId.toString() == "${it.group()}:${it.name().forceString()}" }
-          .map { parseDependencyVersion(it.version().toString()) }
-          .firstOrNull()
-    }
-  }
-
   override fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate? {
     // Check for android library dependencies from the build model
     val androidModuleModel = AndroidModuleModel.get(module) ?: throw DependencyManagementException(

@@ -73,9 +73,6 @@ class TestProjectSystem(val project: Project) : AndroidProjectSystem, AndroidPro
       override fun getResolvedVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion? =
         TestDependencyVersion(myDependenciesByModule[module].firstOrNull { GoogleMavenArtifactId.forCoordinate(it) == artifactId }?.version)
 
-      override fun getDeclaredVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion? =
-        TestDependencyVersion(myDependenciesByModule[module].firstOrNull { GoogleMavenArtifactId.forCoordinate(it) == artifactId }?.version)
-
       override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? =
         myDependenciesByModule[module].firstOrNull { it.matches(coordinate) }
 

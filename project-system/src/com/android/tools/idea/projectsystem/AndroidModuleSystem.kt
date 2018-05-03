@@ -45,15 +45,6 @@ interface AndroidModuleSystem {
   fun getResolvedVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion?
 
   /**
-   * Returns the version of the given [artifactId] accessible to sources contained in this module as declared in the build system,
-   * or null if it is not specified. Build systems such as Gradle allow users to specify a dependency such as x.y.+, which it will
-   * resolve to a specific version at build time. This method returns the version declared in the build script.
-   * Use [AndroidProjectSystem.getResolvedVersion] if you want the resolved version.
-   */
-  @Throws(DependencyManagementException::class)
-  fun getDeclaredVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion?
-
-  /**
    * Returns the dependency accessible to sources contained in this module referenced by its [GradleCoordinate] as registered with the
    * build system (e.g. build.gradle for Gradle, BUILD for bazel, etc). Build systems such as Gradle allow users to specify a dependency
    * such as x.y.+, which it will resolve to a specific version at sync time. This method returns the version registered in the build
