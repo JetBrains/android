@@ -1581,10 +1581,13 @@ public class TemplateTest extends AndroidGradleTestCase {
     ApplicationManager.getApplication().runWriteAction(() -> {
       int minSdkVersion = Integer.parseInt((String)moduleState.get(ATTR_MIN_API));
       IconGenerator iconGenerator = new LauncherLegacyIconGenerator(minSdkVersion);
-      iconGenerator.outputName().set("ic_launcher");
-      iconGenerator.sourceAsset().setValue(new ImageAsset());
-      createProject(projectState, myFixture.getProject(), iconGenerator);
-      Disposer.dispose(iconGenerator);
+      try {
+        iconGenerator.outputName().set("ic_launcher");
+        iconGenerator.sourceAsset().setValue(new ImageAsset());
+        createProject(projectState, myFixture.getProject(), iconGenerator);
+      } finally {
+        Disposer.dispose(iconGenerator);
+      }
       FileDocumentManager.getInstance().saveAllDocuments();
     });
 
