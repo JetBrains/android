@@ -116,6 +116,7 @@ public class GuiTestRule implements TestRule {
       .around(myLeakCheck)
       .around(new IdeHandling())
       .around(new ScreenshotOnFailure())
+      .around(new SavePerformanceOnFailure())
       .around(myTimeout);
 
     // Perf logging currently writes data to the Bazel-specific TEST_UNDECLARED_OUTPUTS_DIR. Skipp logging if running outside of Bazel.
