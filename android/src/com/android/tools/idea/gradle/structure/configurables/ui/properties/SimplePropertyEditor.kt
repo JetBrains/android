@@ -23,13 +23,16 @@ import com.android.tools.idea.gradle.structure.model.meta.*
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.ui.components.fields.ExtendableTextField
 import java.awt.Dimension
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import javax.swing.DefaultComboBoxModel
+import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.text.DefaultCaret
 
@@ -192,6 +195,16 @@ class SimplePropertyEditor<ContextT, ModelT, PropertyT : Any, out ModelPropertyT
   override fun TextRenderer.renderCell(value: ParsedValue<PropertyT>?) {
     (value ?: ParsedValue.NotSet).renderTo(this, formatter, knownValueRenderers)
   }
+
+  override fun createEditorExtensions(): List<Extension> = listOf(
+    object : Extension {
+      override fun getIcon(hovered: Boolean): Icon = AllIcons.Nodes.Variable
+      override fun getTooltip(): String = "Bind to New Variable..."
+      override fun getActionOnClick(): Runnable = Runnable {
+        TODO("Bind to new variable is not implemented")
+      }
+    }
+  )
 
   init {
     setEditable(true)
