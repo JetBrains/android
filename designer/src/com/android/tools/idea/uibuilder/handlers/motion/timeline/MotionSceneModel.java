@@ -295,6 +295,30 @@ public class MotionSceneModel {
     }
 
     /**
+     * Find the {@link XmlTag} corresponding to this {@link KeyFrame} type.
+     */
+    @Nullable
+    @Override
+    public XmlTag findMyTag() {
+      XmlFile xmlFile = myMotionSceneModel.motionSceneFile();
+      XmlTag root = xmlFile != null ? xmlFile.getRootTag() : null;
+      if (root == null) {
+        return null;
+      }
+      XmlTag[] keyFrames = root.findSubTags(MotionSceneKeyFrames);
+      if (keyFrames.length == 0) {
+        return null;
+      }
+      XmlTag[] keyFrame = keyFrames[0].getSubTags();
+      for (XmlTag tag : keyFrame) {
+        if (match(tag)) {
+          return tag;
+        }
+      }
+      return null;
+    }
+
+    /**
      * Delete an attribute from a KeyFrame.
      */
     @Override
@@ -327,30 +351,6 @@ public class MotionSceneModel {
       }
       parse(key, value);
       return true;
-    }
-
-    /**
-     * Find the {@link XmlTag} corresponding to this {@link KeyFrame}
-     */
-    @Nullable
-    @Override
-    public XmlTag findMyTag() {
-      XmlFile xmlFile = myMotionSceneModel.motionSceneFile();
-      XmlTag root = xmlFile != null ? xmlFile.getRootTag() : null;
-      if (root == null) {
-        return null;
-      }
-      XmlTag[] keyFrames = root.findSubTags(MotionSceneKeyFrames);
-      if (keyFrames.length == 0) {
-        return null;
-      }
-      XmlTag[] keyAttributes = keyFrames[0].findSubTags(KeyTypeAttributes);
-      for (XmlTag tag : keyAttributes) {
-        if (match(tag)) {
-          return tag;
-        }
-      }
-      return null;
     }
 
     /**
