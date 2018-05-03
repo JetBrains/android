@@ -72,7 +72,7 @@ class AddDynamicFeatureTest {
     createDefaultDynamicModule(ideFrame)
 
     ideFrame.editor
-      .open("dynamic-feature/src/main/AndroidManifest.xml")
+      .open("dynamic_feature/src/main/AndroidManifest.xml")
       .currentFileContents.run {
       assertThat(this).contains("""dist:onDemand="true"""")
       assertThat(this).contains("""<dist:fusing include="true" />""")
@@ -154,7 +154,7 @@ class AddDynamicFeatureTest {
    * 1. The new Dynamic Feature Module is shown in the project explorer pane.
    * 2. Open the app Module strings.xml (not the *dynamic* Module strings.xml) and check that a
    * new string was added for "title_activity_login"
-   * 3. Open the "dynamic-feature" module strings.xml and check there are new strings
+   * 3. Open the "dynamic_feature" module strings.xml and check there are new strings
    * like: "prompt_email", "prompt_password", "error_invalid_email", etc
    * </pre>
    */
@@ -176,7 +176,7 @@ class AddDynamicFeatureTest {
     }
 
     ideFrame.editor
-      .open("dynamic-feature/src/main/res/values/strings.xml")
+      .open("dynamic_feature/src/main/res/values/strings.xml")
       .currentFileContents.run {
       assertThat(this).contains("prompt_email")
       assertThat(this).contains("prompt_password")
@@ -197,7 +197,7 @@ class AddDynamicFeatureTest {
    * 5. Go to File -> New -> Google -> Google Maps Activity -> Finish
    * Verify:
    * 1. The new Dynamic Feature Module is shown in the project explorer pane.
-   * 2. Open the "dynamic-feature" module build.gradle check that play-services-maps was not added.
+   * 2. Open the "dynamic_feature" module build.gradle check that play-services-maps was not added.
    * 3. Open the "app" module build.gradle and check that play-services-maps was added with "api" dependency.
    * </pre>
    */
@@ -213,7 +213,7 @@ class AddDynamicFeatureTest {
       .waitForGradleProjectSyncToFinish()
 
     ideFrame.editor
-      .open("dynamic-feature/build.gradle")
+      .open("dynamic_feature/build.gradle")
       .currentFileContents.run {
       assertThat(this).doesNotContain("play-services-maps")
     }
@@ -235,7 +235,7 @@ class AddDynamicFeatureTest {
       .waitForGradleProjectSyncToFinish()
       .projectView
       .selectAndroidPane()
-      .clickPath("dynamic-feature")
+      .clickPath("dynamic_feature")
 
     return ideFrame
   }
