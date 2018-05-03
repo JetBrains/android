@@ -241,8 +241,13 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
               return;
             }
 
-            createPerfdProxy();
-            getLogger().info(String.format("PerfdProxy successfully created for device: %s", myDevice));
+            try {
+              createPerfdProxy();
+              getLogger().info(String.format("PerfdProxy successfully created for device: %s", myDevice));
+            }
+            catch (AdbCommandRejectedException | IOException | TimeoutException e) {
+              getLogger().warn(String.format("PerfdProxy failed for device: %s", myDevice), e);
+            }
           }
 
           @Override
@@ -430,7 +435,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
       myDevice.pushFile(configFile.getAbsolutePath(), devicePath + fileName);
     }
 
-    private void createPerfdProxy() {
+    private void createPerfdProxy() throws TimeoutException, AdbCommandRejectedException, IOException {
       try {
         myLocalPort = NetUtils.findAvailableSocketPort();
         if (myLocalPort < 0) {
@@ -488,7 +493,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         if (myPerfdProxy != null) {
           myPerfdProxy.disconnect();
         }
-        throw new RuntimeException(e);
+        throw e;
       }
     }
 
