@@ -111,6 +111,7 @@ class NavDestinationArgumentsInspectorProvider : InspectorProvider<NavProperties
       val panel = JPanel(BorderLayout())
       val tableModel = NavArgumentsTableModel(argumentProperty)
       val table = JBTable(tableModel)
+      table.isOpaque = false
       table.rowHeight = NAV_ARGUMENTS_ROW_HEIGHT
       table.name = NAV_ARGUMENTS_COMPONENT_NAME
       table.rowSelectionAllowed = true
@@ -193,10 +194,11 @@ private class MyCellRenderer(emptyText: String) : TableCellRenderer {
       if (isSelected && (table?.hasFocus() == true || table?.isEditing == true)) {
         it.foreground = table.selectionForeground
         it.background = table.selectionBackground
+        it.isOpaque = true
       }
       else {
         it.foreground = table?.foreground
-        it.background = if (isSelected) UIUtil.getListUnfocusedSelectionBackground() else table?.background
+        it.isOpaque = false
       }
       when (column) {
         0 -> it.toolTipText = "The name of the argument"

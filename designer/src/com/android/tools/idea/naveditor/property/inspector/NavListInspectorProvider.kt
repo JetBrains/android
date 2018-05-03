@@ -124,16 +124,14 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
     override fun attachToInspector(inspector: InspectorPanel<NavPropertiesManager>) {
       val panel = JPanel(BorderLayout())
       list = JBList<NlProperty>(displayProperties)
+      list.isOpaque = false
       list.name = NAV_LIST_COMPONENT_NAME
       list.selectionMode = ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
       list.fixedCellWidth = 1
       list.cellRenderer = object: ColoredListCellRenderer<NlProperty>() {
         override fun customizeCellRenderer(list: JList<out NlProperty>, value: NlProperty?, index: Int, selected: Boolean, hasFocus: Boolean) {
           icon = if (selected && hasFocus) whiteIcon else this@NavListInspectorProvider.icon
-          if (selected && !hasFocus) {
-            background = UIUtil.getListUnfocusedSelectionBackground()
-            mySelectionForeground = UIUtil.getListForeground()
-          }
+          isOpaque = selected && hasFocus
           val name = value?.name ?: ""
           val id = displayIdSuffix(value)
           append(name)

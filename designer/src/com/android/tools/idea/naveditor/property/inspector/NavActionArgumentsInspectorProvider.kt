@@ -100,6 +100,7 @@ class NavActionArgumentsInspectorProvider : InspectorProvider<NavPropertiesManag
       table.rowHeight = NAV_ARGUMENTS_ROW_HEIGHT
       table.minimumSize = Dimension(0, 36)
       table.emptyText.text = "No arguments on the destination"
+      table.isOpaque = false
 
       val nameCellRenderer = JBTextField()
       nameCellRenderer.isEnabled = false
