@@ -31,7 +31,7 @@ import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
-import com.android.tools.idea.uibuilder.model.ItemTransferable;
+import com.android.tools.idea.common.model.ItemTransferable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;

@@ -753,6 +753,20 @@ public class NlComponent implements NlAttributesHolder {
     removeNamespaceAttributes();
   }
 
+  public void postCreateFromTransferrable(@NotNull DnDTransferComponent dndComponent) {
+    XmlModelComponentMixin mixin = getMixin();
+    if (mixin != null) {
+      mixin.postCreateFromTransferrable(dndComponent);
+    }
+  }
+
+  public boolean postCreate(@Nullable DesignSurface surface, @NotNull InsertType insertType) {
+    XmlModelComponentMixin mixin = getMixin();
+    if (mixin != null) {
+      return mixin.postCreate(surface, insertType);
+    }
+    return true;
+  }
 
   /**
    * Given a root tag which is not yet part of the current document, (1) look up any namespaces defined on that root tag, transfer
@@ -877,10 +891,14 @@ public class NlComponent implements NlAttributesHolder {
       return ImmutableSet.of();
     }
 
-    public void beforeMove(@NotNull InsertType insertType, @NotNull NlComponent receiver, @NotNull Set<String> ids) {
+    public void beforeMove(@NotNull InsertType insertType, @NotNull NlComponent receiver, @NotNull Set<String> ids) {}
+
+    public void afterMove(@NotNull InsertType insertType, @NotNull NlComponent receiver, @Nullable DesignSurface surface) {}
+
+    public boolean postCreate(@Nullable DesignSurface surface, @NotNull InsertType insertType) {
+      return true;
     }
 
-    public void afterMove(@NotNull InsertType insertType, @NotNull NlComponent receiver, @Nullable DesignSurface surface) {
-    }
+    public void postCreateFromTransferrable(DnDTransferComponent dndComponent) {}
   }
 }

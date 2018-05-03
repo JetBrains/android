@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
+import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,8 +50,8 @@ public interface DelegatedTreeEventHandler {
    * use it in the implementation of the {@link Transferable} interface.
    * <p>
    * If the {@link DelegatedTreeEventHandler} can also handle {@link NlComponent} it can use an
-   * {@link com.android.tools.idea.uibuilder.model.ItemTransferable} and/or
-   * the {@link com.android.tools.idea.uibuilder.model.ItemTransferable#DESIGNER_FLAVOR}
+   * {@link ItemTransferable} and/or
+   * the {@link ItemTransferable#DESIGNER_FLAVOR}
    */
   Transferable getTransferable(TreePath[] paths);
 }

@@ -15,18 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.handlers
 
-import com.android.SdkConstants.ATTR_NAV_GRAPH
-import com.android.SdkConstants.AUTO_URI
+import com.android.SdkConstants.*
 import com.android.resources.ResourceType
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.uibuilder.LayoutTestCase
-import com.android.tools.idea.uibuilder.model.createComponent
+import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.psi.XmlElementFactory
 import org.jetbrains.android.AndroidTestCase
-import com.android.SdkConstants.ATTR_DEFAULT_NAV_HOST
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.util.*
@@ -75,9 +73,10 @@ class FragmentHandlerTest : LayoutTestCase() {
         "        android:name=\"androidx.navigation.fragment.NavHostFragment\"\n/>");
     val editor = mock(ViewEditorImpl::class.java)
     `when`(editor.displayResourceInput("Navigation Graphs", EnumSet.of(ResourceType.NAVIGATION))).thenReturn("@navigation/testNav")
+    (model.surface.sceneManager as SyncLayoutlibSceneManager).setCustomViewEditor(editor)
     WriteCommandAction.runWriteCommandAction(
         model.project, null, null,
-        Runnable { model.createComponent(editor, tag, model.find("outer"), null, InsertType.CREATE) },
+        Runnable { model.createComponent(model.surface, tag, model.find("outer"), null, InsertType.CREATE) },
         model.file
     )
     val newFragment = model.find("fragment")!!

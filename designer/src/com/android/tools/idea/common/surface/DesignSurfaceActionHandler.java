@@ -23,11 +23,9 @@ import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
-import com.android.tools.idea.uibuilder.model.DnDTransferItem;
-import com.android.tools.idea.uibuilder.model.ItemTransferable;
-import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
+import com.android.tools.idea.common.model.DnDTransferItem;
+import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.CutProvider;
@@ -228,8 +226,7 @@ public class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, 
     DragType dragType = transferItem.isCut() ? DragType.MOVE : DragType.PASTE;
     InsertType insertType = model.determineInsertType(dragType, transferItem, checkOnly);
 
-    // TODO: support nav editor
-    List<NlComponent> pasted = NlModelHelperKt.createComponents(model, sceneView, transferItem, insertType);
+    List<NlComponent> pasted = model.createComponents(transferItem, insertType, mySurface);
     if (!model.canAddComponents(pasted, receiver, before, checkOnly)) {
       return false;
     }

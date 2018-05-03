@@ -18,10 +18,7 @@ package com.android.tools.idea.uibuilder.structure;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
-import com.android.tools.idea.common.model.AttributesTransaction;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlComponentUtil;
-import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
@@ -131,7 +128,7 @@ public class NlDropListener extends DropTargetAdapter {
         }
         else {
           // TODO: support nav editor
-          myDragged.addAll(NlTreeUtil.keepOnlyAncestors(NlModelHelperKt.createComponents(model, scene, myTransferItem, insertType)));
+          myDragged.addAll(NlTreeUtil.keepOnlyAncestors(model.createComponents(myTransferItem, insertType, scene.getDesignSurface())));
         }
         return insertType;
       }

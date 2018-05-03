@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.property.inspector
 
 import com.android.SdkConstants.*
+import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.property.NavDeeplinkProperty
@@ -35,7 +36,7 @@ class NavDeeplinkInspectorProvider :
       WriteCommandAction.runWriteCommandAction(null, {
         val realComponent = existing ?: run {
           val tag = parents[0].tag.createChildTag(TAG_DEEP_LINK, null, null, false)
-          parents[0].model.createComponent(tag, parents[0], null)
+          parents[0].model.createComponent(null, tag, parents[0], null, InsertType.CREATE)
         }
         realComponent.setAttribute(
             AUTO_URI, ATTR_URI, deeplinkDialog.uri)

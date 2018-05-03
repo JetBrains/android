@@ -18,6 +18,7 @@ package com.android.tools.idea.naveditor.model
 import com.android.SdkConstants
 import com.android.SdkConstants.*
 import com.android.annotations.VisibleForTesting
+import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.BooleanAutoAttributeDelegate
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.StringAttributeDelegate
@@ -252,7 +253,7 @@ fun NlComponent.createNestedGraph(): NlComponent {
 
 private fun NlComponent.createChild(tagName: String): NlComponent {
   val newTag = tag.createChildTag(tagName, null, null, false)
-  val child = model.createComponent(newTag, this, null)
+  val child = model.createComponent(null, newTag, this, null, InsertType.CREATE)
   child.ensureId()
   return child
 }

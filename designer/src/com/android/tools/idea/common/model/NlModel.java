@@ -25,6 +25,7 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.util.XmlTagUtil;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.naveditor.model.NavComponentHelper;
@@ -37,7 +38,6 @@ import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeList
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlModelHelper;
@@ -865,13 +865,17 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * <p/>
    * Note: The caller is responsible for calling {@link #notifyModified(ChangeType)} if the creation completes successfully.
    *
-   * @param tag    The XmlTag for the component.
-   * @param parent The parent to add this component to.
-   * @param before The sibling to insert immediately before, or null to append
+   * @param surface    The current DesignSurface. Only used by postCreate, so if your postCreate doesn't use it it's not necessary.
+   * @param tag        The XmlTag for the component.
+   * @param parent     The parent to add this component to.
+   * @param before     The sibling to insert immediately before, or null to append
+   * @param insertType The reason for this creation.
    */
-  public NlComponent createComponent(@NotNull XmlTag tag,
+  public NlComponent createComponent(@Nullable DesignSurface surface,
+                                     @NotNull XmlTag tag,
                                      @Nullable NlComponent parent,
-                                     @Nullable NlComponent before) {
+                                     @Nullable NlComponent before,
+                                     @NotNull InsertType insertType) {
     if (parent != null) {
       // Creating a component intended to be inserted into an existing layout
       XmlTag parentTag = parent.getTag();
@@ -890,13 +894,15 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     if (parent != null) {
       parent.addChild(child, before);
     }
-
-    return child;
+    if (child.postCreate(surface, insertType)) {
+      return child;
+    }
+    return null;
   }
 
   /**
    * Simply create a component. In most cases you probably want
-   * {@link #createComponent(XmlTag, NlComponent, NlComponent)}.
+   * {@link #createComponent(DesignSurface, XmlTag, NlComponent, NlComponent, InsertType)}.
    */
   public NlComponent createComponent(@NotNull XmlTag tag) {
     NlComponent component = new NlComponent(this, tag);
@@ -915,6 +921,22 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
     return component;
   }
+
+  public List<NlComponent> createComponents(@NotNull DnDTransferItem item, @NotNull InsertType insertType, @NotNull DesignSurface surface) {
+    List<NlComponent> components = new ArrayList<>(item.getComponents().size());
+    for (DnDTransferComponent dndComponent : item.getComponents()) {
+      XmlTag tag = XmlTagUtil.createTag(getProject(), dndComponent.getRepresentation());
+      NlComponent component = createComponent(surface, tag, null, null, insertType);
+      if (component == null) {
+        // User may have cancelled
+        return Collections.emptyList();
+      }
+      component.postCreateFromTransferrable(dndComponent);
+      components.add(component);
+    }
+    return components;
+  }
+
 
   /**
    * Returns true if the specified components can be added to the specified receiver.

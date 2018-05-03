@@ -15,40 +15,31 @@
  */
 package com.android.tools.idea.uibuilder.model
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.CLASS_APP_COMPAT_ACTIVITY
 import com.android.resources.Density
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.State
 import com.android.tools.idea.avdmanager.AvdScreenData
-import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.editor.NlEditor
 import com.android.tools.idea.common.editor.NlEditorProvider
 import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.model.NlDependencyManager
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.scene.Scene
-import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.common.util.XmlTagUtil.createTag
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ConfigurationMatcher
 import com.android.tools.idea.model.MergedManifest
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
-import com.android.tools.idea.uibuilder.api.*
-import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.android.tools.idea.util.dependsOn
-import com.google.common.collect.ImmutableList
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.xml.XmlTag
 import org.jetbrains.android.facet.AndroidFacet
-import java.util.*
 
 /*
  * Layout editor-specific helper methods and data for NlModel
@@ -157,94 +148,6 @@ fun NlModel.overrideConfigurationDensity(density: Density) {
       .forEach { it.pixelDensity = density }
 
   configuration.setEffectiveDevice(device, device.defaultState)
-}
-
-/**
- * Creates a new component of the given type. It will optionally insert it as a child of the given parent (and optionally
- * right before the given sibling or null to append at the end.)
- *
- *
- * Note: This operation can only be called when the caller is already holding a write lock. This will be the
- * case from [ViewHandler] callbacks such as [ViewHandler.onCreate] and [DragHandler.commit].
- *
- *
- * Note: The caller is responsible for calling [.notifyModified] if the creation completes successfully.
-
- * @param editor     A ViewEditor used to handle pixel to dp computations in view handlers, etc.
- * @param tag        The XmlTag for the component.
- * @param parent     The parent to add this component to.
- * @param before     The sibling to insert immediately before, or null to append
- * @param insertType The type of insertion
- */
-fun NlModel.createComponent(editor: ViewEditor,
-                            tag: XmlTag,
-                            parent: NlComponent?,
-                            before: NlComponent?,
-                            insertType: InsertType
-): NlComponent? {
-  val child = createComponent(tag, parent, before)
-  val realTag = child.tag
-  if (parent != null) {
-    // Required attribute for all views; drop handlers can adjust as necessary
-    if (realTag.getAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI) == null) {
-      realTag.setAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI, VALUE_WRAP_CONTENT)
-    }
-    if (realTag.getAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI) == null) {
-      realTag.setAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI, VALUE_WRAP_CONTENT)
-    }
-  }
-  else {
-    // No namespace yet: use the default prefix instead
-    if (realTag.getAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_WIDTH) == null) {
-      realTag.setAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT)
-    }
-    if (realTag.getAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_HEIGHT) == null) {
-      realTag.setAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
-    }
-  }
-
-  // Notify view handlers
-  val viewHandlerManager = ViewHandlerManager.get(project)
-  val childHandler = viewHandlerManager.getHandler(child)
-
-  if (childHandler != null) {
-    var ok = childHandler.onCreate(editor, parent, child, insertType)
-    if (parent != null) {
-      ok = ok and NlDependencyManager.get().addDependencies((ImmutableList.of<NlComponent>(child)), facet)
-    }
-    if (!ok) {
-      parent?.removeChild(child)
-      realTag.delete()
-      return null
-    }
-  }
-  if (parent != null) {
-    val parentHandler = viewHandlerManager.getHandler(parent)
-    (parentHandler as? ViewGroupHandler)?.onChildInserted(editor, parent, child, insertType)
-  }
-
-  return child
-}
-
-@Deprecated("This function is going to be removed.", ReplaceWith("NlModel.createComponents(Scene, DnDTransferItem, InsertType)"))
-fun NlModel.createComponents(sceneView: SceneView,
-                             item: DnDTransferItem,
-                             insertType: InsertType
-) = createComponents(sceneView.scene, item, insertType)
-
-fun NlModel.createComponents(scene: Scene,
-                             item: DnDTransferItem,
-                             insertType: InsertType
-): List<NlComponent> {
-  val components = ArrayList<NlComponent>(item.components.size)
-  for (dndComponent in item.components) {
-    val tag = createTag(project, dndComponent.representation)
-    val component = createComponent(ViewEditorImpl.getOrCreate(scene), tag, null, null, insertType) ?: return Collections.emptyList()  // User may have cancelled
-    component.w = dndComponent.width
-    component.h = dndComponent.height
-    components.add(component)
-  }
-  return components
 }
 
 fun NlModel.moduleDependsOnAppCompat(): Boolean {
