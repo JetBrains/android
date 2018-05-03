@@ -240,7 +240,7 @@ public class ThemeSelectorTest {
       .getEditor()
       .close()  // TODO: Make the test work without having to close the theme editor
       .open("app/build.gradle")
-      .moveBetween("implementation 'com.android.support:app", "")
+      .moveBetween("compile 'com.android.support:app", "")
       .invokeAction(EditorFixture.EditorAction.DELETE_LINE)
       .invokeAction(EditorFixture.EditorAction.SAVE)
       .awaitNotification(
