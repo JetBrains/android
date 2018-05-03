@@ -72,7 +72,7 @@ class ListUsbDevicesActionStateManagerTest : AndroidTestCase() {
     `when`(testUsbDeviceCollector.getPlatform()).thenReturn(Platform.Windows)
     `when`(testUsbDeviceCollector.listUsbDevices()).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()))
     myStateManager.refresh()
-    TestCase.assertEquals(myStateManager.getState(project, emptyActionData), DefaultActionState.COMPLETE)
+    TestCase.assertEquals(myStateManager.getState(project, emptyActionData), DefaultActionState.ERROR)
   }
 
   @Test

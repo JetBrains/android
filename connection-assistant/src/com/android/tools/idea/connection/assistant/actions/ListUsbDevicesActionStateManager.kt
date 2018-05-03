@@ -34,7 +34,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.android.util.AndroidBundle
-import java.io.IOException
 import java.util.*
 import java.util.concurrent.CompletableFuture
 
@@ -70,30 +69,30 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
 
   private fun getDevices(): CompletableFuture<List<UsbDevice>> {
     return myDevicesFuture.exceptionally(
-        {
-          Logger.warn(it)
-          Collections.emptyList()
-        }
+      {
+        Logger.warn(it)
+        Collections.emptyList()
+      }
     )
   }
 
   fun refresh() {
     myDevicesFuture = usbDeviceCollector.listUsbDevices()
     getDevices().thenAccept(
-        {
-          if (!myProject.isDisposed) {
-            UsageTracker.getInstance()
-              .log(
-                AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.CONNECTION_ASSISTANT_EVENT)
-                  .setConnectionAssistantEvent(
-                    ConnectionAssistantEvent.newBuilder()
-                      .setType(ConnectionAssistantEvent.ConnectionAssistantEventType.USB_DEVICES_DETECTED)
-                      .setUsbDevicesDetected(it.size)
-                  )
-              )
-            refreshDependencyState(myProject)
-          }
+      {
+        if (!myProject.isDisposed) {
+          UsageTracker.getInstance()
+            .log(
+              AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.CONNECTION_ASSISTANT_EVENT)
+                .setConnectionAssistantEvent(
+                  ConnectionAssistantEvent.newBuilder()
+                    .setType(ConnectionAssistantEvent.ConnectionAssistantEventType.USB_DEVICES_DETECTED)
+                    .setUsbDevicesDetected(it.size)
+                )
+            )
+          refreshDependencyState(myProject)
         }
+      }
     )
     refreshDependencyState(myProject)
   }
@@ -103,7 +102,7 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
   }
 
   override fun getState(project: Project, actionData: ActionData): AssistActionState {
-    if (usbDeviceCollector.getPlatform() == Platform.Windows) return DefaultActionState.COMPLETE
+    if (usbDeviceCollector.getPlatform() == Platform.Windows) return DefaultActionState.ERROR
     if (!myDevicesFuture.isDone) return DefaultActionState.IN_PROGRESS
 
     return if (getDevices().get().isEmpty()) DefaultActionState.ERROR_RETRY else CustomSuccessState
@@ -119,27 +118,37 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
 
   private fun generateMessage(): String {
     if (!myDevicesFuture.isDone) return "Loading..."
-    if (getDevices().get().isEmpty()) return AndroidBundle.message("connection.assistant.usb.no_devices")
-
     val htmlBuilder = HtmlBuilder()
-    if (usbDeviceCollector.getPlatform() == Platform.Windows) {
-      htmlBuilder.addHtml(
-          "<b>Install device drivers.</b> If you want to connect a device for testing, " +
-              "then you need to install the appropriate USB drivers. For more information, read the " +
-              "<a href=\"https://developer.android.com/studio/run/oem-usb.html\">online documentation</a>."
-      ).newline().newline()
+    val devices = myDevicesFuture.get().sortedBy { it.name }
+    if (usbDeviceCollector.getPlatform() == Platform.Windows && devices.isEmpty()) {
+      htmlBuilder.addHtml("Connection Assistant currently does not support detecting USB devices on the Windows operating system.").newline()
+      return htmlBuilder.closeHtmlBody().html
     }
 
-    val devices = myDevicesFuture.get().sortedBy { it.name }
-    htmlBuilder
-      .addHtml("<span style=\"color: ${UIUtils.getCssColor(UIUtils.getSuccessColor())};\">Android Studio detected the following ${devices.size} USB device(s):</span>")
-      .newline()
-    devices.forEach { (name, _, productId) ->
-      htmlBuilder.addHtml("<p>")
-        .addHtml("<b>$name</b> ($productId)")
-        .newlineIfNecessary().addHtml("</p>")
+    if (usbDeviceCollector.getPlatform() == Platform.Windows) {
+      htmlBuilder.addHtml(
+        "<p><b>Install device drivers.</b> If you want to connect a device for testing, " +
+        "then you need to install the appropriate USB drivers. For more information, read the " +
+        "<a href=\"https://developer.android.com/studio/run/oem-usb.html\">online documentation</a>.</p>"
+      ).newline()
+    }
+
+    if (devices.isEmpty()) {
+      htmlBuilder.addHtml("<p>" + AndroidBundle.message("connection.assistant.usb.no_devices") + "</p>")
+    }
+    else {
+      htmlBuilder
+        .addHtml("<span style=\"color: ${UIUtils.getCssColor(
+          UIUtils.getSuccessColor())};\">Android Studio detected the following ${devices.size} USB device(s):</span>")
+        .newline()
+      devices.forEach { (name, _, productId) ->
+        htmlBuilder.addHtml("<p>")
+          .addHtml("<b>$name</b> ($productId)")
+          .newlineIfNecessary().addHtml("</p>")
+      }
     }
 
     return htmlBuilder.closeHtmlBody().html
   }
+
 }
