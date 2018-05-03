@@ -38,13 +38,6 @@ interface AndroidModuleSystem {
   fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate>
 
   /**
-   * Returns the version of the given [artifactId] as accessible to sources contained in this module, or null if that dependency is
-   * not available to sources contained in this module.
-   */
-  @Throws(DependencyManagementException::class)
-  fun getResolvedVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion?
-
-  /**
    * Returns the dependency accessible to sources contained in this module referenced by its [GradleCoordinate] as registered with the
    * build system (e.g. build.gradle for Gradle, BUILD for bazel, etc). Build systems such as Gradle allow users to specify a dependency
    * such as x.y.+, which it will resolve to a specific version at sync time. This method returns the version registered in the build

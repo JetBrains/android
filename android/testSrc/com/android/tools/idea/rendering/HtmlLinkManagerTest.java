@@ -102,12 +102,6 @@ public class HtmlLinkManagerTest extends TestCase {
 
       @Nullable
       @Override
-      public GoogleMavenArtifactVersion getResolvedVersion(@NotNull GoogleMavenArtifactId artifactId) throws DependencyManagementException {
-        return null;
-      }
-
-      @Nullable
-      @Override
       public GradleCoordinate getResolvedDependency(@NotNull GradleCoordinate coordinate) throws DependencyManagementException {
         return null;
       }

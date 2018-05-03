@@ -30,7 +30,6 @@ import com.android.tools.idea.lint.LintIdeClient;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactVersion;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -551,8 +550,8 @@ public class RepositoryUrlManager {
     for (GoogleMavenArtifactId artifactId : GoogleMavenArtifactId.values()) {
       // Note: Only the old style support library have version dependencies, so explicitly check the group ID:
       if (artifactId.isPlatformSupportLibrary() && artifactId.getMavenGroupId().equals(ImportModule.SUPPORT_GROUP_ID)) {
-        GoogleMavenArtifactVersion artifactVersion = moduleSystem.getResolvedVersion(artifactId);
-        GradleVersion version = artifactVersion != null ? artifactVersion.getMavenVersion() : null;
+        GradleCoordinate coordinate = moduleSystem.getResolvedDependency(artifactId.getCoordinate("+"));
+        GradleVersion version = coordinate != null ? coordinate.getVersion() : null;
         if (version != null) {
           if (highest == null || version.compareTo(highest) > 0) {
             highest = version;
@@ -590,8 +589,8 @@ public class RepositoryUrlManager {
     for (GoogleMavenArtifactId artifactId : GoogleMavenArtifactId.values()) {
       // Only consider Androidx
       if (artifactId.isAndroidxPlatformLibrary()) {
-        GoogleMavenArtifactVersion artifactVersion = moduleSystem.getResolvedVersion(artifactId);
-        GradleVersion version = artifactVersion != null ? artifactVersion.getMavenVersion() : null;
+        GradleCoordinate coordinate = moduleSystem.getResolvedDependency(artifactId.getCoordinate("+"));
+        GradleVersion version = coordinate != null ? coordinate.getVersion() : null;
         if (version != null) {
           if (highest == null || version.compareTo(highest) > 0) {
             highest = version;
