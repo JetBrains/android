@@ -110,19 +110,27 @@ public class OnSwipePanel extends TagPanel {
 
   @Override
   protected void deleteAttr(NlModel nlModel, int selection) {
+    String attributeName = (String)myTable.getValueAt(selection, 0);
+    if (myOnSwipeTag != null && myOnSwipeTag.deleteAttribute(nlModel, attributeName)) {
+      myTableModel.removeRow(selection);
+    }
   }
 
   @Override
   protected void deleteTag(NlModel nlModel) {
-    myOnSwipeTag.deletTag(nlModel);
+    if (myOnSwipeTag != null && myOnSwipeTag.deleteTag(nlModel)) {
+      setVisible(false);
+    }
   }
 
   public ActionListener myAddItemAction = new ActionListener() {
     @Override
     public void actionPerformed(ActionEvent e) {
-      String s = ((JMenuItem)e.getSource()).getText();
-      data.add(new Vector<Object>(Arrays.asList(s, "")));
-      myTableModel.fireTableRowsInserted(data.size() - 1, data.size());
+      String attributeName = ((JMenuItem)e.getSource()).getText();
+      String value = "";
+      if (myOnSwipeTag != null && myOnSwipeTag.setValue(myBasePanel.myNlModel, attributeName, value)) {
+        myTableModel.addRow(new Object[]{attributeName, value});
+      }
     }
   };
 

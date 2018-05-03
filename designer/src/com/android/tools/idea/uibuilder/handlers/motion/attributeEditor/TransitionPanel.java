@@ -20,6 +20,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutAttributePan
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.ui.table.JBTable;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -38,10 +39,11 @@ import java.util.Vector;
  * Used for the Main Transition tag
  */
 public class TransitionPanel extends TagPanel {
-  Vector<String> colNames = new Vector<String>(Arrays.asList("Name", "Value"));
-  Vector<Vector<Object>> data = new Vector<>();
-  DefaultTableModel myTableModel = new DefaultTableModel(data, colNames);
-  JBPopupMenu myPopupMenu = new JBPopupMenu("Add Attribute");
+  private Vector<String> colNames = new Vector<String>(Arrays.asList("Name", "Value"));
+  private Vector<Vector<Object>> data = new Vector<>();
+  private DefaultTableModel myTableModel = new DefaultTableModel(data, colNames);
+  private MotionSceneModel.TransitionTag myTag;
+  private JBPopupMenu myPopupMenu = new JBPopupMenu("Add Attribute");
 
   public TransitionPanel(MotionLayoutAttributePanel panel) {
     super(panel);
@@ -97,10 +99,13 @@ public class TransitionPanel extends TagPanel {
 
   public ActionListener myAddItemAction = new ActionListener() {
     @Override
-    public void actionPerformed(ActionEvent e) {
-      String s = ((JMenuItem)e.getSource()).getText();
-      data.add(new Vector<Object>(Arrays.asList(s, "")));
-      myTableModel.fireTableRowsInserted(data.size() - 1, data.size());
+    public void actionPerformed(@NotNull ActionEvent event) {
+      String attributeName = ((JMenuItem)event.getSource()).getText();
+      String value = "";
+      if (myTag == null || !myTag.setValue(myBasePanel.myNlModel, attributeName, value)) {
+        return;
+      }
+      myTableModel.addRow(new Object[]{attributeName, value});
     }
   };
 
@@ -120,9 +125,15 @@ public class TransitionPanel extends TagPanel {
 
   @Override
   protected void deleteAttr(NlModel nlModel, int selection) {
+    String attributeName = (String)myTable.getValueAt(selection, 0);
+    if (myTag == null || !myTag.deleteAttribute(nlModel, attributeName)) {
+      return;
+    }
+    myTableModel.removeRow(selection);
   }
 
   public void setTransitionTag(MotionSceneModel.TransitionTag tag) {
+    myTag = tag;
     HashMap<String, Object> attr = tag.getAttributes();
     data.clear();
     for (String s : attr.keySet()) {

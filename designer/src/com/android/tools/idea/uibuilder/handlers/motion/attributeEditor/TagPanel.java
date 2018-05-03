@@ -55,7 +55,7 @@ public class TagPanel extends JPanel {
     if (myRemoveTagButton != null) {
       myRemoveTagButton.addActionListener(e -> deleteTag(myBasePanel.myNlModel));
     }
-    myAddRemovePanel.myRemoveButton.addActionListener((e)-> deleteAttr(myBasePanel.myNlModel, myTable.getSelectedColumn()));
+    myAddRemovePanel.myRemoveButton.addActionListener((e)-> deleteAttr(myBasePanel.myNlModel, myTable.getSelectedRow()));
     myTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
       @Override
       public void valueChanged(ListSelectionEvent e) {
