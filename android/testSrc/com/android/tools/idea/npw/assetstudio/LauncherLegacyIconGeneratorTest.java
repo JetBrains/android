@@ -46,8 +46,11 @@ public class LauncherLegacyIconGeneratorTest {
     options.generateWebIcon = generateWebIcon;
 
     LauncherLegacyIconGenerator generator = new LauncherLegacyIconGenerator(15);
-    BitmapGeneratorTests.checkGraphic(5 + (generateWebIcon ? 1 : 0), "launcher", baseName, generator, options);
-    Disposer.dispose(generator);
+    try {
+      BitmapGeneratorTests.checkGraphic(5 + (generateWebIcon ? 1 : 0), "launcher", baseName, generator, options);
+    } finally {
+      Disposer.dispose(generator);
+    }
   }
 
   @Test
