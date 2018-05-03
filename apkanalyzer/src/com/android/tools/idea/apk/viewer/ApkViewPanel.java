@@ -179,6 +179,7 @@ public class ApkViewPanel implements TreeSelectionListener {
                             UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                                              .setKind(AndroidStudioEvent.EventKind.APK_ANALYZER_STATS)
                                                              .setProjectId(AnonymizerUtil.anonymizeUtf8(applicationId))
+                                                             .setRawProjectId(applicationId)
                                                              .setApkAnalyzerStats(
                                                                ApkAnalyzerStats.newBuilder().setCompressedSize(compressed)
                                                                  .setUncompressedSize(uncompressed)

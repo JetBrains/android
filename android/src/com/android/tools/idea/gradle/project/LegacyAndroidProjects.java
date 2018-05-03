@@ -71,8 +71,7 @@ class LegacyAndroidProjects {
   }
 
   void trackProject() {
-    UsageTracker usageTracker = UsageTracker.getInstance();
-    if (!usageTracker.getAnalyticsSettings().hasOptedIn()) {
+    if (!UsageTracker.getInstance().getAnalyticsSettings().hasOptedIn()) {
       return;
     }
 
@@ -98,8 +97,12 @@ class LegacyAndroidProjects {
         }
         if (packageName != null) {
           AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder();
-          event.setCategory(GRADLE).setKind(LEGACY_IDEA_ANDROID_PROJECT).setProjectId(AnonymizerUtil.anonymizeUtf8(packageName));
-          usageTracker.log(event);
+          event
+            .setCategory(GRADLE)
+            .setKind(LEGACY_IDEA_ANDROID_PROJECT)
+            .setProjectId(AnonymizerUtil.anonymizeUtf8(packageName))
+            .setRawProjectId(packageName);
+          UsageTracker.getInstance().log(event);
         }
       }
     });
