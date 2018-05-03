@@ -190,7 +190,8 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
       UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                      .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
                                      .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_OPEN)
-                                     .setProjectId(AnonymizerUtil.anonymizeUtf8(appId)));
+                                     .setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
+                                     .setRawProjectId(appId));
     }
     return ShowSettingsUtil.getInstance().editConfigurable(myProject, this, advanceInit);
   }
@@ -271,7 +272,8 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
       UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                      .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
                                      .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_SAVE)
-                                     .setProjectId(AnonymizerUtil.anonymizeUtf8(appId)));
+                                     .setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
+                                     .setRawProjectId(appId));
     }
 
     validateState();
@@ -286,7 +288,9 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
           UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                          .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
                                          .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_LEFT_NAV_SAVE)
-                                         .setProjectId(AnonymizerUtil.anonymizeUtf8(appId)));
+                                         .setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
+                                         .setRawProjectId(appId)
+          );
         }
         dataChanged = true;
         configurable.apply();
@@ -445,7 +449,8 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
       UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                      .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
                                      .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_LEFT_NAV_CLICK)
-                                     .setProjectId(AnonymizerUtil.anonymizeUtf8(appId)));
+                                     .setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
+                                     .setRawProjectId(appId));
     }
     JComponent content = configurable.createComponent();
     assert content != null;

@@ -130,7 +130,8 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
           UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                            .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
                                            .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_TOP_TAB_CLICK)
-                                           .setProjectId(AnonymizerUtil.anonymizeUtf8(appId)));
+                                           .setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
+                                           .setRawProjectId(appId));
         }
       });
 
@@ -164,7 +165,8 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
         UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                        .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
                                        .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_TOP_TAB_SAVE)
-                                       .setProjectId(AnonymizerUtil.anonymizeUtf8(appId)));
+                                       .setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
+                                       .setRawProjectId(appId));
       }
       editor.saveData();
       editor.apply();
