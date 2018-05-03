@@ -20,6 +20,7 @@ import com.android.tools.adtui.instructions.InstructionsRenderer;
 import com.android.tools.adtui.instructions.NewRowInstruction;
 import com.android.tools.adtui.instructions.RenderInstruction;
 import com.android.tools.adtui.instructions.TextInstruction;
+import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profiler.proto.EnergyProfiler;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.JBUI;
@@ -132,7 +133,7 @@ public class EnergyEventsTableTooltipInfoComponent extends AnimatedComponent {
 
       if (myModel.getCurrentSelectedEvent() == null) {
         if (frequency != 0) {
-          String frequencyString = myModel.getFormattedDuration(frequency);
+          String frequencyString = TimeFormatter.getSingleUnitDurationString(frequency);
           renderNameValuePair("Repeats", "Every " + frequencyString);
         }
       }
@@ -178,7 +179,7 @@ public class EnergyEventsTableTooltipInfoComponent extends AnimatedComponent {
       long frequency = TimeUnit.MILLISECONDS.toMicros(firstEvent.getLocationUpdateRequested().getRequest().getIntervalMs());
       if (myModel.getCurrentSelectedEvent() == null) {
         if (frequency != 0) {
-          String frequencyString = myModel.getFormattedDuration(frequency);
+          String frequencyString = TimeFormatter.getSingleUnitDurationString(frequency);
           renderNameValuePair("Frequency", "Every " + frequencyString);
         }
       }

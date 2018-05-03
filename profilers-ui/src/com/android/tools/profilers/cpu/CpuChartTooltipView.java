@@ -19,7 +19,7 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TooltipComponent;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerLayeredPane;
 import com.android.tools.profilers.ProfilerLayout;
@@ -76,9 +76,9 @@ class CpuChartTooltipView extends MouseAdapter {
     nameLabel.setForeground(ProfilerColors.TOOLTIP_TEXT);
     myContent.add(nameLabel, new TabularLayout.Constraint(0, 0));
 
-    JLabel durationLabel = new JLabel(String.format("%s - %s (%s)", TimeAxisFormatter.DEFAULT.getClockFormattedString(start),
-                                                    TimeAxisFormatter.DEFAULT.getClockFormattedString(end),
-                                                    TimeAxisFormatter.DEFAULT.getFormattedDuration(node.getDuration())));
+    JLabel durationLabel = new JLabel(String.format("%s - %s (%s)", TimeFormatter.getFullClockString(start),
+                                                    TimeFormatter.getFullClockString(end),
+                                                    TimeFormatter.getSingleUnitDurationString(node.getDuration())));
     durationLabel.setFont(durationLabel.getFont().deriveFont(ProfilerLayout.TOOLTIP_FONT_SIZE));
     durationLabel.setForeground(ProfilerColors.TOOLTIP_TIME_COLOR);
     durationLabel.setBorder(new EmptyBorder(5, 0, 0, 0));

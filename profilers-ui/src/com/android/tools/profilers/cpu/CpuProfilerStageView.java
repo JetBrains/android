@@ -28,7 +28,7 @@ import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.DefaultDurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.ui.HideablePanel;
 import com.android.tools.profiler.proto.CpuProfiler.TraceInitiationType;
@@ -885,8 +885,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     Range range = getStage().getStudioProfilers().getTimeline().getDataRange();
     long min = (long)(info.getRange().getMin() - range.getMin());
     long max = (long)(info.getRange().getMax() - range.getMin());
-    return String.format("%s - %s", TimeAxisFormatter.DEFAULT.getClockFormattedString(min),
-                         TimeAxisFormatter.DEFAULT.getClockFormattedString(max));
+    return String.format("%s - %s", TimeFormatter.getFullClockString(min), TimeFormatter.getFullClockString(max));
   }
 
   private void updateCaptureState() {
@@ -972,7 +971,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     if (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING) {
       long elapsedTimeUs = myStage.getCaptureElapsedTimeUs();
       String text =
-        String.format("Recording - %s", TimeAxisFormatter.DEFAULT.getClockFormattedString(elapsedTimeUs));
+        String.format("Recording - %s", TimeFormatter.getSemiSimplifiedClockString(elapsedTimeUs));
       myCaptureStatus.setText(text);
     }
   }

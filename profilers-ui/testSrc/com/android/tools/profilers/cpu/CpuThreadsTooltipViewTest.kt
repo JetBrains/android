@@ -55,11 +55,11 @@ class CpuThreadsTooltipViewTest {
     val threadSeries = ThreadStateDataSeries(cpuStage, ProfilersTestData.SESSION_DATA, 1)
 
     cpuThreadsTooltip.setThread("myThread", threadSeries)
-    assertThat(cpuThreadsTooltipView.headingText).contains("00:00:01.000")
+    assertThat(cpuThreadsTooltipView.headingText).contains("00:01.000")
     assertThat(cpuThreadsTooltipView.content).isEqualTo("<html>myThread <span style='color:#888888'>1s</span><br>Running</html>")
 
     cpuThreadsTooltip.setThread("newThread", threadSeries)
-    assertThat(cpuThreadsTooltipView.headingText).contains("00:00:01.000")
+    assertThat(cpuThreadsTooltipView.headingText).contains("00:01.000")
     assertThat(cpuThreadsTooltipView.content).isEqualTo("<html>newThread <span style='color:#888888'>1s</span><br>Running</html>")
   }
 
