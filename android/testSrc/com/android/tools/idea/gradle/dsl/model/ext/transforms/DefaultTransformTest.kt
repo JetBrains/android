@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.dsl.model.ext.transforms
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslReference
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.IsEqual.equalTo
 import org.junit.Test
@@ -53,8 +52,9 @@ class DefaultTransformTest : TransformTestCase() {
 
   @Test
   fun testBindReuseReference() {
-    val inputElement = createReference()
-    val resultElement = transform.bind(gradleDslFile, inputElement, ReferenceTo("prop"), "unused") as GradleDslReference
+    val inputElement = createLiteral()
+    inputElement.setValue(ReferenceTo("fakeRef"))
+    val resultElement = transform.bind(gradleDslFile, inputElement, ReferenceTo("prop"), "unused") as GradleDslLiteral
     assertThat(resultElement.referenceText, equalTo("prop"))
     assertThat(resultElement.nameElement, equalTo(inputElement.nameElement))
   }
@@ -62,14 +62,15 @@ class DefaultTransformTest : TransformTestCase() {
   @Test
   fun testBindCreateReferenceReuseName() {
     val inputElement = createLiteral()
-    val resultElement = transform.bind(gradleDslFile, inputElement, ReferenceTo("prop"), "unused") as GradleDslReference
+    val resultElement = transform.bind(gradleDslFile, inputElement, ReferenceTo("prop"), "unused") as GradleDslLiteral
     assertThat(resultElement.referenceText, equalTo("prop"))
     assertThat(resultElement.nameElement, equalTo(inputElement.nameElement))
   }
 
   @Test
   fun testBindCreateLiteralReuseName() {
-    val inputElement = createReference()
+    val inputElement = createLiteral()
+    inputElement.setValue(ReferenceTo("fakeRef"))
     val resultElement = transform.bind(gradleDslFile, inputElement, true, "unused") as GradleDslLiteral
     assertThat(resultElement.value as Boolean, equalTo(true))
     assertThat(resultElement.nameElement, equalTo(inputElement.nameElement))

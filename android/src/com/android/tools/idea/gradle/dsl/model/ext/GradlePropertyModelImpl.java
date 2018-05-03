@@ -114,8 +114,8 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       GradleDslExpressionList list = (GradleDslExpressionList)element;
       if (list.getExpressions().size() == 1) {
         GradleDslExpression expression = list.getElementAt(0);
-        if (expression instanceof GradleDslReference) {
-          GradleDslReference reference = (GradleDslReference)expression;
+        if (expression instanceof GradleDslLiteral && ((GradleDslLiteral)expression).isReference()) {
+          GradleDslLiteral reference = (GradleDslLiteral)expression;
           GradleReferenceInjection injection = reference.getReferenceInjection();
           if (injection != null) {
             return injection.getToBeInjected();
@@ -457,7 +457,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     else if (element instanceof GradleDslExpressionList) {
       return LIST;
     }
-    else if (element instanceof GradleDslReference) {
+    else if (element instanceof GradleDslLiteral && ((GradleDslLiteral)element).isReference()) {
       return REFERENCE;
     }
     else if ((element instanceof GradleDslMethodCall &&
@@ -513,7 +513,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     else if (valueType == REFERENCE) {
       // For references only display the reference text for both resolved and unresolved values.
       // Users should follow the reference to obtain the value.
-      GradleDslReference ref = (GradleDslReference)element;
+      GradleDslLiteral ref = (GradleDslLiteral)element;
       String refText = ref.getReferenceText();
       value = refText == null ? null : typeReference.castTo(refText);
     }
@@ -541,8 +541,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     }
 
     T result = typeReference.castTo(value);
-    // Attempt to cast to a string if requested. But only do this for unresolved values,
-    // or when my type is BOOLEAN, STRING or INTEGER.
+    // Attempt to cast to a string if requested. But only do this for unresolved values.
     if (result == null && typeReference.getType().equals(String.class)) {
       result = typeReference.castTo(value.toString());
     }

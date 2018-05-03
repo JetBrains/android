@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
+import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,11 +39,10 @@ public final class ProductFlavorDslElement extends AbstractFlavorTypeDslElement 
     if (property.equals("testInstrumentationRunnerArguments")) {
       // This deals with references to maps.
       GradleDslElement oldElement = element;
-      while (element instanceof GradleDslReference) {
-        GradleDslReference reference = (GradleDslReference)element;
-        if (reference.getReferenceInjection() != null) {
-          element = reference.getReferenceInjection().getToBeInjected();
-        }
+      while (element instanceof GradleDslLiteral && ((GradleDslLiteral)element).isReference()) {
+        GradleReferenceInjection injection = ((GradleDslLiteral)element).getReferenceInjection();
+        assert injection != null;
+        element = injection.getToBeInjected();
       }
       if (!(element instanceof GradleDslExpressionMap)) {
         return;

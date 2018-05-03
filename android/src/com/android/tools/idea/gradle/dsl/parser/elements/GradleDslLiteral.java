@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
+import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
@@ -30,15 +32,21 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr
  * Represents a literal element.
  */
 public final class GradleDslLiteral extends GradleDslSettableExpression {
+  private boolean myIsReference;
+
   public GradleDslLiteral(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, null, name, null);
+    // Will be set in the call to #setValue
+    myIsReference = false;
   }
 
   public GradleDslLiteral(@NotNull GradleDslElement parent,
                           @NotNull PsiElement psiElement,
                           @NotNull GradleNameElement name,
-                          @NotNull PsiElement literal) {
+                          @NotNull PsiElement literal,
+                          boolean isReference) {
     super(parent, psiElement, name, literal);
+    myIsReference = isReference;
   }
 
   @Override
@@ -90,6 +98,12 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
   @Override
   public void setValue(@NotNull Object value) {
     checkForValidValue(value);
+    if (value instanceof ReferenceTo) {
+      myIsReference = true;
+    }
+    else {
+      myIsReference = false;
+    }
     PsiElement element =
       ApplicationManager.getApplication().runReadAction((Computable<PsiElement>)() -> getDslFile().getParser().convertToPsiElement(value));
     setUnsavedValue(element);
@@ -153,5 +167,24 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
   @Override
   protected void apply() {
     getDslFile().getWriter().applyDslLiteral(this);
+  }
+
+  @Nullable
+  public GradleReferenceInjection getReferenceInjection() {
+    return myDependencies.isEmpty() ? null : myDependencies.get(0);
+  }
+
+  @Nullable
+  public String getReferenceText() {
+    if (!myIsReference) {
+      return null;
+    }
+
+    PsiElement element = getCurrentElement();
+    return element != null ? getPsiText(element) : null;
+  }
+
+  public boolean isReference() {
+    return myIsReference;
   }
 }
