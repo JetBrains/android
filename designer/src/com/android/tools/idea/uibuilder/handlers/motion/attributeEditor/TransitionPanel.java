@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.attributeEditor;
 
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutAttributePanel;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.intellij.openapi.ui.JBPopupMenu;
@@ -35,6 +34,8 @@ import java.util.HashMap;
 import java.util.Set;
 import java.util.Vector;
 
+import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
+
 /**
  * Used for the Main Transition tag
  */
@@ -50,6 +51,7 @@ public class TransitionPanel extends TagPanel {
     myTitle.setText("Transition");
     myTable = new JBTable(myTableModel);
     setup();
+    myTable.setSelectionMode(SINGLE_SELECTION);
     myTable.setDefaultRenderer(EditorUtils.AttributesNamesHolder.class, new EditorUtils.AttributesNamesCellRenderer());
     myTable.setDefaultRenderer(String.class, new EditorUtils.AttributesValueCellRenderer());
 
@@ -102,7 +104,7 @@ public class TransitionPanel extends TagPanel {
     public void actionPerformed(@NotNull ActionEvent event) {
       String attributeName = ((JMenuItem)event.getSource()).getText();
       String value = "";
-      if (myTag == null || !myTag.setValue(myBasePanel.myNlModel, attributeName, value)) {
+      if (myTag == null || !myTag.setValue(attributeName, value)) {
         return;
       }
       myTableModel.addRow(new Object[]{attributeName, value});
@@ -124,9 +126,9 @@ public class TransitionPanel extends TagPanel {
   }
 
   @Override
-  protected void deleteAttr(NlModel nlModel, int selection) {
+  protected void deleteAttr(int selection) {
     String attributeName = (String)myTable.getValueAt(selection, 0);
-    if (myTag == null || !myTag.deleteAttribute(nlModel, attributeName)) {
+    if (myTag == null || !myTag.deleteAttribute(attributeName)) {
       return;
     }
     myTableModel.removeRow(selection);

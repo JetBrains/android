@@ -435,9 +435,9 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
    * @param attributeName
    * @param value
    */
-  public void setKeyframeAttribute(@NotNull NlModel model, @NotNull String attributeName, float value) {
+  public void setKeyframeAttribute(@NotNull String attributeName, float value) {
     MotionSceneModel.KeyFrame keyFrame = myPanel.getChart().getSelectedKeyFrame();
-    keyFrame.setValue(model, attributeName, Float.toString(value));
+    keyFrame.setValue(attributeName, Float.toString(value));
   }
 
   /**
@@ -445,9 +445,9 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
    * @param model
    * @param values
    */
-  public void setKeyframeAttributes(@NotNull NlModel model, @NotNull HashMap<String, String> values) {
+  public void setKeyframeAttributes(@NotNull HashMap<String, String> values) {
     MotionSceneModel.KeyFrame keyFrame = myPanel.getChart().getSelectedKeyFrame();
-    keyFrame.setValues(model, values);
+    keyFrame.setValues(values);
   }
 
   // TODO: merge with the above parse function

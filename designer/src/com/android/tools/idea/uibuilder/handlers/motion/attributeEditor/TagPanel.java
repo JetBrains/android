@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.attributeEditor;
 
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutAttributePanel;
 import com.intellij.util.ui.JBUI;
 
@@ -45,17 +44,17 @@ public class TagPanel extends JPanel {
     myTitle.setBorder(JBUI.Borders.empty(4));
   }
 
-  protected void deleteAttr(NlModel nlModel, int selection) {
+  protected void deleteAttr(int selection) {
   }
 
-  protected void deleteTag(NlModel nlModel) {
+  protected void deleteTag() {
   }
 
   protected void setup() {
     if (myRemoveTagButton != null) {
-      myRemoveTagButton.addActionListener(e -> deleteTag(myBasePanel.myNlModel));
+      myRemoveTagButton.addActionListener(e -> deleteTag());
     }
-    myAddRemovePanel.myRemoveButton.addActionListener((e)-> deleteAttr(myBasePanel.myNlModel, myTable.getSelectedRow()));
+    myAddRemovePanel.myRemoveButton.addActionListener((e)-> deleteAttr(myTable.getSelectedRow()));
     myTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
       @Override
       public void valueChanged(ListSelectionEvent e) {
