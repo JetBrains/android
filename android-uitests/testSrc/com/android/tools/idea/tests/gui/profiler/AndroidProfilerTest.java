@@ -34,6 +34,7 @@ import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,6 +45,7 @@ import java.io.IOException;
 import static com.android.fakeadbserver.DeviceState.HostConnectionType.USB;
 import static com.google.common.truth.Truth.assertThat;
 
+@Ignore("b/79200296")
 @RunWith(GuiTestRunner.class)
 public class AndroidProfilerTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
