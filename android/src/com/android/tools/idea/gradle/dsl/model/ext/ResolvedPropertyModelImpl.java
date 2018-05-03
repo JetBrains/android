@@ -223,6 +223,11 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
   }
 
   @Override
+  public boolean isModified() {
+    return myRealModel.isModified();
+  }
+
+  @Override
   @NotNull
   public GradlePropertyModel getUnresolvedModel() {
     return myRealModel;

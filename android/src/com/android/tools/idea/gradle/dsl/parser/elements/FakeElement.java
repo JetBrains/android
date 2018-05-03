@@ -180,4 +180,9 @@ public abstract class FakeElement extends GradleDslSettableExpression {
    * @param value the value to set.
    */
   protected abstract void consumeValue(@Nullable Object value);
+
+  @NotNull
+  public GradleDslElement getRealExpression() {
+    return myRealExpression;
+  }
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.api.dependencies;
 
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,6 +42,9 @@ public interface ArtifactDependencyModel extends DependencyModel {
   /**
    * @return the model representing this entire dependency, this will be either a MAP_TYPE model for map form dependencies. Or
    * a STRING_TYPE model for compact notation.
+   * Note: In teh case where this is of STRING_TYPE, the return value of {@link GradlePropertyModel#isModified()} will be shared between
+   * all models returned by this class. I.e if you modify the version, this model along will models for name, group, classifier and
+   * extension will all be modified.
    */
   @NotNull
   ResolvedPropertyModel completeModel();

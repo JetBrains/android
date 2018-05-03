@@ -124,21 +124,25 @@ public final class GradleDslMethodCall extends GradleDslSimpleExpression {
   @Override
   @Nullable
   public Object getValue() {
-    // If we only have one argument then just return its value. This allows us to correctly
-    // parse functions that are used to set properties.
-    List<GradleDslExpression> args = getArguments();
-    if (args.size() == 1 && args.get(0) instanceof GradleDslSimpleExpression) {
-      return ((GradleDslSimpleExpression)args.get(0)).getValue();
-    }
-
-    PsiElement psiElement = getPsiElement();
-    return psiElement != null ? getPsiText(psiElement) : null;
+    return getValueFromArgList(getArguments());
   }
 
   @Override
   @Nullable
   public Object getUnresolvedValue() {
     return getValue();
+  }
+
+  @Nullable
+  private Object getValueFromArgList(@NotNull List<? extends GradleDslElement> args) {
+    // If we only have one argument then just return its value. This allows us to correctly
+    // parse functions that are used to set properties.
+    if (args.size() == 1 && args.get(0) instanceof GradleDslSimpleExpression) {
+      return ((GradleDslSimpleExpression)args.get(0)).getValue();
+    }
+
+    PsiElement psiElement = getPsiElement();
+    return psiElement != null ? getPsiText(psiElement) : null;
   }
 
   @Override

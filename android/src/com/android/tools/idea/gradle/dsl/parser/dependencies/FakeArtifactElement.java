@@ -49,9 +49,9 @@ public class FakeArtifactElement extends FakeElement {
     mySetter = setFunc;
   }
 
-  @Nullable
   @Override
-  protected Object produceValue() {
+  @Nullable
+  public Object produceValue() {
     GradleDslSimpleExpression resolved = PropertyUtil.resolveElement(myRealExpression);
     ArtifactDependencySpec spec = getSpec(resolved);
 
