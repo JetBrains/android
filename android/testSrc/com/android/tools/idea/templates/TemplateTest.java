@@ -51,7 +51,6 @@ import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
-import com.android.utils.PathUtils;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -184,29 +183,6 @@ public class TemplateTest extends AndroidGradleTestCase {
     if ("GoogleMapsActivity".equals(templateName)) return true;  // b/72260139
     if ("SliceProvider".equals(templateName)) return true;  // b/78197770
     return false;
-  }
-
-  /** This flag is is needed because the file system on Foundry does not support non-ASCII file names. */
-  private static final boolean FILE_SYSTEM_SUPPORTS_NON_ASCII_FILE_NAMES = doesFileSystemSupportNonAsciiFileNames();
-
-  private static boolean doesFileSystemSupportNonAsciiFileNames() {
-    File tempDir = TestUtils.createTempDirDeletedOnExit();
-    try {
-      String filename = "你所有的基地都属于我们.txt";
-      File file = new File(tempDir, filename);
-      //noinspection ResultOfMethodCallIgnored
-      file.createNewFile();
-      return Arrays.asList(tempDir.list()).contains(filename);
-    } catch (IOException e) {
-      return false; // Assume that the file system does not support non-ASCII file names if we were not able to create such a file.
-    } finally {
-      try {
-        PathUtils.deleteRecursivelyIfExists(tempDir.toPath());
-      }
-      catch (IOException e) {
-        // Not much we can do.
-      }
-    }
   }
 
   /**
@@ -1560,19 +1536,11 @@ public class TemplateTest extends AndroidGradleTestCase {
       return "app";
     } else if (activityState != null && activityState.hasAttr(ATTR_KOTLIN_SUPPORT) && activityState.getBoolean(ATTR_KOTLIN_SUPPORT)) {
       // Filed: https://youtrack.jetbrains.com/issue/KT-18767
-      // Note: kotlin plugin fails when running `:compileDebugKotin` with a project name containing a comma => ","
-      // So the projectName contains characters other than a comma
-      if (FILE_SYSTEM_SUPPORTS_NON_ASCII_FILE_NAMES) {
-        return projectName + specialChars + nonAsciiChars;
-      } else {
-        return projectName + specialChars;
-      }
+      // Note: Kotlin plugin fails when running `:compileDebugKotlin` with a project name containing a comma => ","
+      // So the projectName contains characters other than a comma.
+      return projectName + specialChars + nonAsciiChars;
     } else {
-      if (FILE_SYSTEM_SUPPORTS_NON_ASCII_FILE_NAMES) {
-        return projectName + specialChars + ',' + nonAsciiChars;
-      } else {
-        return projectName + specialChars + ',';
-      }
+      return projectName + specialChars + ',' + nonAsciiChars;
     }
   }
 
