@@ -32,6 +32,10 @@ public class MotionLayoutComponentHelper {
   private Method mySetKeyframePositionMethod;
   private Method motionLayoutAccess;
   private Method mySetAttributesMethod;
+  private Method myGetKeyframeMethod;
+  private Method mySetKeyframeMethod;
+  private Method myGetPositionKeyframeMethod;
+  private Method myGetKeyframeAtLocationMethod;
 
   public static final int PATH_PERCENT = 0;
   public static final int PATH_PERPENDICULAR = 1;
@@ -42,6 +46,152 @@ public class MotionLayoutComponentHelper {
 
   public MotionLayoutComponentHelper(@NotNull NlComponent component) {
     myTransitionLayoutComponent = component;
+  }
+
+  public Object getKeyframeAtLocation(Object view, float x, float y) {
+    ViewInfo info = NlComponentHelperKt.getViewInfo(myTransitionLayoutComponent);
+    if (info == null) {
+      return null;
+    }
+    Object instance = info.getViewObject();
+    if (myGetKeyframeAtLocationMethod == null) {
+      try {
+        myGetKeyframeAtLocationMethod = instance.getClass().getMethod("getKeyframeAtLocation",
+                                                                      Object.class, float.class, float.class);
+      }
+      catch (NoSuchMethodException e) {
+        e.printStackTrace();
+      }
+    }
+
+    if (myGetKeyframeAtLocationMethod != null) {
+      try {
+        return RenderService.runRenderAction(() -> {
+          try {
+            return myGetKeyframeAtLocationMethod.invoke(instance, view, x, y);
+          }
+          catch (Exception e) {
+            myGetKeyframeAtLocationMethod = null;
+            e.printStackTrace();
+          }
+          return null;
+        });
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+
+    return null;
+  }
+
+  public boolean getPositionKeyframe(Object keyframe, Object view, float x, float y, String[] attributes, float[] values) {
+    ViewInfo info = NlComponentHelperKt.getViewInfo(myTransitionLayoutComponent);
+    if (info == null) {
+      return false;
+    }
+    Object instance = info.getViewObject();
+    if (myGetPositionKeyframeMethod == null) {
+      try {
+        myGetPositionKeyframeMethod = instance.getClass().getMethod("getPositionKeyframe",
+                                                            Object.class, Object.class, float.class, float.class,
+                                                            String[].class, float[].class);
+      }
+      catch (NoSuchMethodException e) {
+        e.printStackTrace();
+      }
+    }
+
+    if (myGetPositionKeyframeMethod != null) {
+      try {
+        return RenderService.runRenderAction(() -> {
+          try {
+            return myGetPositionKeyframeMethod.invoke(instance, keyframe, view, x, y, attributes, values);
+          }
+          catch (Exception e) {
+            myGetPositionKeyframeMethod = null;
+            e.printStackTrace();
+          }
+          return false;
+        }) == Boolean.TRUE;
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+
+    return false;
+  }
+
+  public Object getKeyframe(int type, int target, int position) {
+    ViewInfo info = NlComponentHelperKt.getViewInfo(myTransitionLayoutComponent);
+    if (info == null) {
+      return null;
+    }
+    Object instance = info.getViewObject();
+    if (myGetKeyframeMethod == null) {
+      try {
+        myGetKeyframeMethod = instance.getClass().getMethod("getKeyframe",
+                                                              int.class, int.class, int.class);
+      }
+      catch (NoSuchMethodException e) {
+        e.printStackTrace();
+      }
+    }
+
+    if (myGetKeyframeMethod != null) {
+      try {
+        return RenderService.runRenderAction(() -> {
+          try {
+            return myGetKeyframeMethod.invoke(instance, type, target, position);
+          }
+          catch (Exception e) {
+            myGetKeyframeMethod = null;
+            e.printStackTrace();
+          }
+          return null;
+        });
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+
+    return null;
+  }
+
+  public void setKeyframe(Object keyframe, String tag, Object value) {
+    ViewInfo info = NlComponentHelperKt.getViewInfo(myTransitionLayoutComponent);
+    if (info == null) {
+      return;
+    }
+    Object instance = info.getViewObject();
+    if (mySetKeyframeMethod == null) {
+      try {
+        mySetKeyframeMethod = instance.getClass().getMethod("setKeyframe",
+                                                            Object.class, String.class, Object.class);
+      }
+      catch (NoSuchMethodException e) {
+        e.printStackTrace();
+      }
+    }
+
+    if (mySetKeyframeMethod != null) {
+      try {
+        RenderService.runRenderAction(() -> {
+          try {
+            mySetKeyframeMethod.invoke(instance, keyframe, tag, value);
+          }
+          catch (Exception e) {
+            mySetKeyframeMethod = null;
+            e.printStackTrace();
+          }
+        });
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
   }
 
   public void setAttributes(int dpiValue, String constraintSetId, Object view, Object attributes) {

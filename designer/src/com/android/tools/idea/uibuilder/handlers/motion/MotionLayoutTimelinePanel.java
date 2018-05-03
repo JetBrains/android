@@ -32,7 +32,6 @@ import com.android.tools.idea.uibuilder.handlers.motion.timeline.GanttEventListe
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -179,7 +178,6 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
       String referencedFile =
         myMotionLayout.getAttribute(SdkConstants.AUTO_URI, "transition"); // TODO SdkConstants.ATTR_MOTION_SCENE_REFERENCE);
       parseMotionScene(myMotionLayout, referencedFile);
-      setState(TL_UNKNOWN);
     }
     switch (myPanel.getMode()) {
       case START:
@@ -193,13 +191,13 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
         break;
       case TRANSITION:
         float position = myPanel.getChart().getProgress();
-        framePosition(position);
+        setProgress(position);
         break;
       case END:
         setState(TL_END);
         break;
       case UNKNOWN:
-        setState(TL_UNKNOWN);
+        setState(TL_START);
         break;
       default:
     }
@@ -249,7 +247,7 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
   }
 
   @Override
-  public void framePosition(float percent) {
+  public void setProgress(float percent) {
     if (!myMotionLayoutComponentHelper.setProgress(percent)) {
       myMotionLayoutComponentHelper = new MotionLayoutComponentHelper(myMotionLayout);
     }
@@ -407,6 +405,11 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
   @Override
   public void onInit(GanttCommands commands) {
     mGanttCommands = commands;
+  }
+
+  public void setKeyframeAttribute(NlModel model, String attributeName, float value) {
+    MotionSceneModel.KeyFrame keyFrame = myPanel.getChart().getSelectedKeyFrame();
+    keyFrame.setValue(model, attributeName, Float.toString(value));
   }
 
   // TODO: merge with the above parse function

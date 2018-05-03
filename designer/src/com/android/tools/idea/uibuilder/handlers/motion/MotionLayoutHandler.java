@@ -30,6 +30,7 @@ import com.android.tools.idea.uibuilder.api.CustomPanel;
 import com.android.tools.idea.uibuilder.handlers.assistant.TransitionLayoutAssistantPanel;
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragTarget;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory;
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -106,6 +107,9 @@ public class MotionLayoutHandler extends ConstraintLayoutHandler implements NlCo
           || panel.getCurrentState() == MotionLayoutTimelinePanel.State.TL_PAUSE
           || panel.getCurrentState() == MotionLayoutTimelinePanel.State.TL_TRANSITION) {
         ImmutableList.Builder<Target> listBuilder = new ImmutableList.Builder<>();
+        listBuilder.add(
+          new ConstraintDragTarget()
+        );
         return listBuilder.build();
       }
     }
@@ -121,7 +125,7 @@ public class MotionLayoutHandler extends ConstraintLayoutHandler implements NlCo
     return this;
   }
 
-  private MotionLayoutTimelinePanel getTimeline(@NotNull NlComponent component) {
+  public static MotionLayoutTimelinePanel getTimeline(@NotNull NlComponent component) {
     Object property = component.getClientProperty(MotionLayoutTimelinePanel.TIMELINE);
     if (property == null && component.getParent() != null) {
       // need to grab the timeline from the MotionLayout component...
