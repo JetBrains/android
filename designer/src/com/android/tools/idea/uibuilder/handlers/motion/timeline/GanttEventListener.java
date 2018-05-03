@@ -23,7 +23,7 @@ import java.awt.event.ActionEvent;
 public interface GanttEventListener {
   enum Actions {START_ACTION, PLAY_ACTION, END_ACTION, LOOP_ACTION, SLOW_MOTION}
 
-  void framePosition(float percent);
+  void setProgress(float percent);
 
   void buttonPressed(ActionEvent e, Actions action);
 

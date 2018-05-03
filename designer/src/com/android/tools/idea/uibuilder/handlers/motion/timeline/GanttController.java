@@ -34,7 +34,7 @@ public class GanttController {
 
   public void framePosition(float percent) {
     if (myListener != null) {
-      myListener.framePosition(percent);
+      myListener.setProgress(percent);
     }
   }
 

@@ -19,6 +19,7 @@ package com.android.tools.idea.uibuilder.handlers.motion.timeline;
  * Basic commands for to the Gantt system
  */
 public interface GanttCommands {
+
   enum Mode {UNKNOWN, START, PLAY, PAUSE, TRANSITION, END}
 
   void setProgress(float percent);

@@ -138,6 +138,9 @@ public class Gantt extends JPanel implements GanttCommands {
   }
 
   public MotionSceneModel.TransitionTag getTransitionTag( ) {
+    if (myChart.myModel == null) {
+      return null;
+    }
     return myChart.myModel.getTransitionTag(0);
   }
 
