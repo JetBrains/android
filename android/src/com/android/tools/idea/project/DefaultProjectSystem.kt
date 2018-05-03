@@ -87,8 +87,6 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
 
       override fun getResolvedVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion? = null
 
-      override fun getDeclaredVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion? = null
-
       override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? = null
 
       override fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate? = null

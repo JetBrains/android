@@ -85,7 +85,7 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
     // 1. RecyclerView artifact should not be declared in build script.
     // 2. RecyclerView should not be declared or resolved.
     assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isNotEmpty();
-    assertFalse(isRecyclerViewDeclared());
+    assertFalse(isRecyclerViewRegistered());
     assertFalse(isRecyclerViewResolved());
 
     boolean result = dependencyManager.addDependenciesAndSync(myModules.getAppModule(), dependencies, null);
@@ -95,7 +95,7 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
     // 2. RecyclerView should be declared and resolved (because the required artifact has been synced)
     assertTrue(result);
     assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isEmpty();
-    assertTrue(isRecyclerViewDeclared());
+    assertTrue(isRecyclerViewRegistered());
     assertTrue(isRecyclerViewResolved());
   }
 
@@ -108,7 +108,7 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
     // 1. RecyclerView artifact should not be declared in build script.
     //    // 2. RecyclerView should not be declared or resolved.
     assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isNotEmpty();
-    assertFalse(isRecyclerViewDeclared());
+    assertFalse(isRecyclerViewRegistered());
     assertFalse(isRecyclerViewResolved());
 
     boolean result = dependencyManager.addDependenciesWithoutSync(myModules.getAppModule(), dependencies);
@@ -118,7 +118,7 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
     // 2. RecyclerView should be declared but NOT yet resolved (because we didn't sync)
     assertTrue(result);
     assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isEmpty();
-    assertTrue(isRecyclerViewDeclared());
+    assertTrue(isRecyclerViewRegistered());
     assertFalse(isRecyclerViewResolved());
   }
 
@@ -134,9 +134,9 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
     assertThat(missing.get(0).toString()).isEqualTo("com.android.support:recyclerview-v7:25.3.1");
   }
 
-  private boolean isRecyclerViewDeclared() {
+  private boolean isRecyclerViewRegistered() {
     return ProjectSystemUtil.getModuleSystem(myModules.getAppModule())
-             .getDeclaredVersion(GoogleMavenArtifactId.RECYCLERVIEW_V7) != null;
+             .getRegisteredDependency(GoogleMavenArtifactId.RECYCLERVIEW_V7.getCoordinate("+")) != null;
   }
 
   private boolean isRecyclerViewResolved() {

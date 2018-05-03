@@ -79,11 +79,12 @@ class DependencyManagementTest : IdeaTestCase() {
   fun testAddNonPlatformSupportDependency() {
     projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myModule, GradleVersion(1337, 600613))
 
+    val constraintLayoutQuery = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
     val dependenciesNotAdded = myModule.addDependencies(
-      Collections.singletonList(GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")), false)
+      Collections.singletonList(constraintLayoutQuery), false)
 
-    Truth.assertThat(myModule.getModuleSystem().getDeclaredVersion(GoogleMavenArtifactId.CONSTRAINT_LAYOUT)).isEqualTo(
-      TestProjectSystem.TEST_VERSION_LATEST)
+    Truth.assertThat(myModule.getModuleSystem().getRegisteredDependency(constraintLayoutQuery)).isEqualTo(
+      constraintLayoutQuery)
     Truth.assertThat(dependenciesNotAdded.isEmpty()).isTrue()
   }
 
