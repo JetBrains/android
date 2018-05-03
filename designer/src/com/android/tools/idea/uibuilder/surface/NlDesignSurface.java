@@ -449,8 +449,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @NotNull
   @Override
   protected Dimension getPreferredContentSize(int availableWidth, int availableHeight) {
-    SceneManager manager = getSceneManager();
-    SceneView primarySceneView = manager != null ? manager.getSceneView() : null;
+    SceneManager primarySceneManager = getSceneManager();
+    SceneView primarySceneView = primarySceneManager != null ? primarySceneManager.getSceneView() : null;
     if (primarySceneView == null) {
       return JBUI.emptySize();
     }
@@ -461,14 +461,21 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
     // TODO: adjust it to better result.
     for (SceneManager sceneManager: myModelToSceneManagers.values()) {
-      Dimension size = sceneManager.getSceneView().getSize();
+      if (sceneManager == primarySceneManager) {
+        continue;
+      }
+      Dimension size = sceneManager.getSceneView().getPreferredSize();
       if (isStackVertically()) {
+        requiredWidth = Math.max(requiredWidth, size.width);
+
         requiredHeight += size.height;
         requiredHeight += SCREEN_DELTA;
       }
       else {
         requiredWidth += size.width;
         requiredWidth += SCREEN_DELTA;
+
+        requiredHeight = Math.max(requiredHeight, size.height);
       }
     }
 
