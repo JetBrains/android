@@ -19,7 +19,7 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TooltipComponent;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.JBEmptyBorder;
 import org.jetbrains.annotations.NotNull;
@@ -62,7 +62,7 @@ public abstract class ProfilerTooltipView extends AspectObserver {
   private void updateHeader() {
     Range range = myTimeline.getTooltipRange();
     if (!range.isEmpty()) {
-      String time = TimeAxisFormatter.DEFAULT.getClockFormattedString((long)(range.getMin() - myTimeline.getDataRange().getMin()));
+      String time = TimeFormatter.getSemiSimplifiedClockString((long)(range.getMin() - myTimeline.getDataRange().getMin()));
       myHeadingLabel.setText(time);
       updateMaximumLabelDimensions();
     }

@@ -73,7 +73,7 @@ class EventSimpleEventTooltipViewTest {
         .setEndTimestamp(TEST_START_TIME_NS + TimeUnit.SECONDS.toNanos(durationSeconds))
         .build())
     myTimer.tick(TimeUnit.SECONDS.toNanos(1))
-    assertThat(mySimpleEventTooltipView!!.headingText).matches("00:00:01.001")
+    assertThat(mySimpleEventTooltipView!!.headingText).matches("00:01.001")
     assertThat(mySimpleEventTooltipView!!.contentText).matches(title)
     assertThat(mySimpleEventTooltipView!!.durationText).matches(String.format("Duration: %ds", durationSeconds))
     assertThat(mySimpleEventTooltipView!!.startText).matches("Start: 1s")

@@ -72,7 +72,7 @@ class CpuKernelTooltipViewTest {
     val series = AtraceDataSeries<CpuThreadInfo>(myStage, { _ -> testSeriesData })
     myRange.set(1.0, 1.0)
     myCpuKernelTooltip.setCpuSeries(series)
-    assertThat(myCpuKernelTooltipView.headingText).contains("00:00:00.000")
+    assertThat(myCpuKernelTooltipView.headingText).contains("+ 1 μs")
     assertThat(myCpuKernelTooltipView.text).isEqualTo("<html>Thread at <span style='color:#888888'>0.00ms</span><br>Cpu</html>")
   }
 

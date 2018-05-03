@@ -57,7 +57,7 @@ class EventActivityTooltipViewTest {
             0
         ))
     myTimer.tick(TimeUnit.SECONDS.toNanos(2))
-    assertThat(myActivityTooltipView.headingText).matches("00:00:01.001")
+    assertThat(myActivityTooltipView.headingText).matches("00:01.001")
     assertThat(myActivityTooltipView.contentText).matches(ACTIVITY_NAME)
     assertThat(myActivityTooltipView.durationText).matches("1s - 3s")
   }
@@ -75,7 +75,7 @@ class EventActivityTooltipViewTest {
             0
         ))
     myTimer.tick(TimeUnit.SECONDS.toNanos(2))
-    assertThat(myActivityTooltipView.headingText).matches("00:00:01.001")
+    assertThat(myActivityTooltipView.headingText).matches("00:01.001")
     assertThat(myActivityTooltipView.contentText).matches(String.format("%s - destroyed", ACTIVITY_NAME))
     assertThat(myActivityTooltipView.durationText).matches("1s - 2s")
   }
@@ -84,7 +84,7 @@ class EventActivityTooltipViewTest {
   fun testGetTitleTextNone() {
     myTimer.tick(1)
     val text = myActivityTooltipView.headingText
-    assertEquals("00:00:01.001", text)
+    assertEquals("00:01.001", text)
   }
 
   private fun buildActivityEvent(name: String,

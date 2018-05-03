@@ -17,6 +17,7 @@ package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.ProfilerTooltipView;
@@ -49,9 +50,9 @@ public final class NetworkRadioTooltipView extends ProfilerTooltipView {
   private void stateChanged() {
     NetworkRadioTooltip.RadioStateData radioStateData = myTooltip.getRadioStateData();
     if (radioStateData != null) {
-      String min = TimeAxisFormatter.DEFAULT.getClockFormattedString(
+      String min = TimeFormatter.getFullClockString(
         (long)(radioStateData.getRadioStateRange().getMin() - myTimeline.getDataRange().getMin()));
-      String max = TimeAxisFormatter.DEFAULT.getClockFormattedString(
+      String max =TimeFormatter.getFullClockString(
         (long)(radioStateData.getRadioStateRange().getMax() - myTimeline.getDataRange().getMin()));
       myContentLabel.setText(radioStateData.getRadioState().name());
       myTimeRangeLabel.setText(String.format("%s - %s", min, max));

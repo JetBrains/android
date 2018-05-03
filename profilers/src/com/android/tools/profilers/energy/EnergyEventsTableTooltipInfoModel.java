@@ -19,6 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profiler.proto.EnergyProfiler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,7 +36,6 @@ public class EnergyEventsTableTooltipInfoModel extends AspectModel<EnergyEventsT
   }
 
   @NotNull final private Range myGlobalRange;
-  @NotNull final private TimeAxisFormatter myFormatter = new TimeAxisFormatter(1, 4, 1);
   final private long mySystemTimeDelta;
 
   @Nullable private EnergyDuration myDuration;
@@ -102,11 +102,7 @@ public class EnergyEventsTableTooltipInfoModel extends AspectModel<EnergyEventsT
   }
 
   public String getSimplifiedClockFormattedString(long timestampUs) {
-    return myFormatter.getSimplifiedClockFormattedString(timestampUs - (long)myGlobalRange.getMin());
-  }
-
-  public String getFormattedDuration(long timestampUs) {
-    return myFormatter.getFormattedDuration(timestampUs);
+    return TimeFormatter.getSimplifiedClockString(timestampUs - (long)myGlobalRange.getMin());
   }
 
   public String getRangeString() {
@@ -129,7 +125,9 @@ public class EnergyEventsTableTooltipInfoModel extends AspectModel<EnergyEventsT
     }
 
     String endTime =
-      lastEvent.getIsTerminal() ? getSimplifiedClockFormattedString(TimeUnit.NANOSECONDS.toMicros(lastEvent.getTimestamp())) : unknownString;
+      lastEvent.getIsTerminal()
+      ? getSimplifiedClockFormattedString(TimeUnit.NANOSECONDS.toMicros(lastEvent.getTimestamp()))
+      : unknownString;
     return startTime + " - " + endTime;
   }
 
@@ -142,6 +140,7 @@ public class EnergyEventsTableTooltipInfoModel extends AspectModel<EnergyEventsT
     if (!lastEvent.getIsTerminal()) {
       return null;
     }
-    return getFormattedDuration(TimeUnit.NANOSECONDS.toMicros(lastEvent.getTimestamp() - firstEvent.getTimestamp()));
+    return TimeFormatter.getSingleUnitDurationString(
+      TimeUnit.NANOSECONDS.toMicros(lastEvent.getTimestamp() - firstEvent.getTimestamp()));
   }
 }

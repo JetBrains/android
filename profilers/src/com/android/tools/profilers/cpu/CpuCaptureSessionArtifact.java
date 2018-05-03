@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler.*;
 import com.android.tools.profilers.StudioProfilers;
@@ -91,7 +92,7 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<TraceInfo> {
     }
     else {
       // Otherwise, we show the formatted timestamp of the capture relative to the session start time.
-      return TimeAxisFormatter.DEFAULT.getClockFormattedString(TimeUnit.NANOSECONDS.toMicros(getTimestampNs()));
+      return TimeFormatter.getFullClockString(TimeUnit.NANOSECONDS.toMicros(getTimestampNs()));
     }
   }
 

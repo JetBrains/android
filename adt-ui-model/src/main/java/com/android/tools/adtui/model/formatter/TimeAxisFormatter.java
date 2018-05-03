@@ -122,68 +122,6 @@ public final class TimeAxisFormatter extends BaseAxisFormatter {
     return builder.toString();
   }
 
-  /**
-   * Return the formatted time String in the form of hh:mm:ss.sss
-   */
-  @NotNull
-  public String getClockFormattedString(long micro) {
-    long milli = TimeUnit.MICROSECONDS.toMillis(micro) % TimeUnit.SECONDS.toMillis(1);
-    long sec = TimeUnit.MICROSECONDS.toSeconds(micro) % TimeUnit.MINUTES.toSeconds(1);
-    long min = TimeUnit.MICROSECONDS.toMinutes(micro) % TimeUnit.HOURS.toMinutes(1);
-    long hour = TimeUnit.MICROSECONDS.toHours(micro);
-
-    return String.format("%02d:%02d:%02d.%03d", hour, min, sec, milli);
-  }
-
-  /**
-   * Return the simplified formatted time String in the form of "hh:mm:ss.sss".
-   * Zero hour value is truncated e.g. "02:11.125".
-   * Zero minute value is truncated if hour value is zero too e.g. "11.125".
-   */
-  @NotNull
-  public String getSimplifiedClockFormattedString(long micro) {
-    long milli = TimeUnit.MICROSECONDS.toMillis(micro) % TimeUnit.SECONDS.toMillis(1);
-    long sec = TimeUnit.MICROSECONDS.toSeconds(micro) % TimeUnit.MINUTES.toSeconds(1);
-    long min = TimeUnit.MICROSECONDS.toMinutes(micro) % TimeUnit.HOURS.toMinutes(1);
-    long hour = TimeUnit.MICROSECONDS.toHours(micro);
-
-    StringBuilder builder = new StringBuilder();
-    if (hour != 0) {
-      builder.append(String.format("%02d:", hour));
-    }
-    if (hour != 0 || min != 0) {
-      builder.append(String.format("%02d:", min));
-    }
-    builder.append(String.format("%02d.%03d", sec, milli));
-    return builder.toString();
-  }
-
-  @NotNull
-  public String getFormattedDuration(long micros) {
-    String[] units = new String[]{"μs", "ms", "s", "m", "h"};
-
-    float[] multipliers = new float[]{
-      1,
-      TimeUnit.MILLISECONDS.toMicros(1),
-      TimeUnit.SECONDS.toMicros(1),
-      TimeUnit.MINUTES.toMicros(1),
-      TimeUnit.HOURS.toMicros(1)
-    };
-
-    assert multipliers.length == units.length;
-
-    long value = micros;
-    String unit = units[0];
-    for (int i = units.length - 1; i >= 0; --i) {
-      if (micros / multipliers[i] >= 1) {
-        value = Math.round(micros / multipliers[i]);
-        unit = units[i];
-        break;
-      }
-    }
-    return String.format("%d %s", value, unit);
-  }
-
   @Override
   protected int getNumUnits() {
     return UNITS.length;

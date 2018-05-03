@@ -16,7 +16,7 @@
 package com.android.tools.profilers.energy;
 
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.ui.HideablePanel;
 import com.android.tools.profiler.proto.EnergyProfiler;
 import com.android.tools.profilers.stacktrace.StackTraceGroup;
@@ -68,7 +68,7 @@ public final class EnergyCallstackView extends JPanel {
       // Sets a border on the ListView so the horizontal scroll bar doesn't hide the bottom of the content. Also the ListView cannot resize
       // properly when the scroll pane resize, wrap it in a JPanel. So move the list view out of the original scroll pane.
       if (traceComponent instanceof JScrollPane) {
-        traceComponent = (JComponent) ((JScrollPane)traceComponent).getViewport().getComponent(0);
+        traceComponent = (JComponent)((JScrollPane)traceComponent).getViewport().getComponent(0);
         traceComponent.setBorder(new JBEmptyBorder(0, 0, 12, 0));
         JPanel wrapperPanel = new JPanel(new BorderLayout());
         wrapperPanel.add(traceComponent, BorderLayout.CENTER);
@@ -76,7 +76,7 @@ public final class EnergyCallstackView extends JPanel {
         traceComponent = AdtUiUtils.createNestedVScrollPane(wrapperPanel);
       }
 
-      String time = TimeAxisFormatter.DEFAULT.getClockFormattedString(TimeUnit.NANOSECONDS.toMicros(event.getTimestamp() - startTimeNs));
+      String time = TimeFormatter.getFullClockString(TimeUnit.NANOSECONDS.toMicros(event.getTimestamp() - startTimeNs));
       String description = time + "&nbsp;&nbsp;" + EnergyDuration.getMetadataName(event.getMetadataCase());
       HideablePanel hideablePanel = new HideablePanel.Builder(description, traceComponent)
         .setContentBorder(new JBEmptyBorder(5, 0, 0, 0))
