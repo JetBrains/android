@@ -38,7 +38,7 @@ import static com.intellij.xml.util.XmlUtil.XML_NAMESPACE_URI;
  * <p>See Also: <a href="http://www.xmlpull.org/">XML Pull Parsing</a>
  * @see Resources.XmlNode
  */
-public final class AarPullParser implements XmlPullParser {
+public class AarPullParser implements XmlPullParser {
   private InputStream myStream;
   private int myEventType;
   /** A stack of XML nodes reflecting a path from the root to the current node. */
@@ -98,12 +98,12 @@ public final class AarPullParser implements XmlPullParser {
   }
 
   @Override
-  public int getDepth() {
+  public final int getDepth() {
     return myNodeStack.size();
   }
 
   @Override
-  public int getLineNumber() {
+  public final int getLineNumber() {
     if (myEventType == START_DOCUMENT) {
       return 1;
     }
@@ -115,7 +115,7 @@ public final class AarPullParser implements XmlPullParser {
   }
 
   @Override
-  public int getColumnNumber() {
+  public final int getColumnNumber() {
     if (myEventType == START_DOCUMENT) {
       return 0;
     }
@@ -240,11 +240,13 @@ public final class AarPullParser implements XmlPullParser {
   }
 
   @Override
+  @NotNull
   public String getAttributeValue(int index) {
     return getAttribute(index).getValue();
   }
 
   @Override
+  @Nullable
   public String getAttributeValue(@Nullable String namespace, @NotNull String name) {
     Resources.XmlElement element = getCurrentElement();
     if (element == null || myEventType != START_TAG) {
@@ -268,12 +270,16 @@ public final class AarPullParser implements XmlPullParser {
   }
 
   @Override
-  public int getEventType() {
+  public final int getEventType() {
     return myEventType;
   }
 
   @Override
-  public int next() throws IOException {
+  public int next() throws XmlPullParserException, IOException {
+    if (myStream == null) {
+      throw new XmlPullParserException("Input is not set");
+    }
+
     switch (myEventType) {
       case END_DOCUMENT:
         break;
@@ -330,7 +336,7 @@ public final class AarPullParser implements XmlPullParser {
   }
 
   @Override
-  public int nextToken() throws IOException {
+  public int nextToken() throws XmlPullParserException, IOException {
     return next();
   }
 
@@ -373,6 +379,9 @@ public final class AarPullParser implements XmlPullParser {
 
   @Override
   public int getNamespaceCount(int depth) {
+    if (depth > myNodeStack.size()) {
+      throw new IllegalArgumentException("Requested depth (" + depth + ") is greater than current (" + myNodeStack.size() + ")");
+    }
     int count = 0;
     for (int i = 0; i < depth; i++) {
       Resources.XmlNode node = myNodeStack.get(i);
