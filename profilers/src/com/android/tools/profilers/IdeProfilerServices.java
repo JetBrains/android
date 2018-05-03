@@ -16,7 +16,6 @@
 package com.android.tools.profilers;
 
 import com.android.tools.profilers.analytics.FeatureTracker;
-import com.android.tools.profilers.cpu.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import org.jetbrains.annotations.NotNull;
@@ -52,7 +51,7 @@ public interface IdeProfilerServices {
 
   /**
    * Returns a service that can navigate to a target code location.
-   *
+   * <p>
    * Implementors of this method should be sure to return the same instance each time, not a new
    * instance per call.
    */
@@ -61,7 +60,7 @@ public interface IdeProfilerServices {
 
   /**
    * Returns an opt-in service that can report when certain features were used.
-   *
+   * <p>
    * Implementors of this method should be sure to return the same instance each time, not a new
    * instance per call.
    */
@@ -70,11 +69,11 @@ public interface IdeProfilerServices {
 
   /**
    * Either enable advanced profiling or present the user with UI to make enabling it easy.
-   *
+   * <p>
    * By default, advanced profiling features are not turned on, as they require instrumenting the
    * user's code, which at the very least requires a rebuild. Moreover, this may even potentially
    * interfere with the user's app logic or slow it down.
-   *
+   * <p>
    * If this method is called, it means the user has expressed an intention to enable advanced
    * profiling. It is up to the implementor of this method to help the user accomplish this
    * request.
@@ -97,18 +96,6 @@ public interface IdeProfilerServices {
    */
   @NotNull
   ProfilerPreferences getPersistentProfilerPreferences();
-
-  /**
-   * Open the dialog for managing the CPU profiling configurations.
-   *
-   * @param profilerModel    {@link CpuProfilerConfigModel} corresponding to the {@link ProfilingConfiguration} to be selected when opening
-                             the dialog.
-   * @param deviceLevel      API level of the device.
-   * @param dialogCallback   Callback to be called once the dialog is closed. Takes a {@link ProfilingConfiguration}
-   *                         that was selected on the configurations list when the dialog was closed.
-   */
-  void openCpuProfilingConfigurationsDialog(CpuProfilerConfigModel profilerModel, int deviceLevel,
-                                            Consumer<ProfilingConfiguration> dialogCallback);
 
   /**
    * Displays a yes/no dialog warning the user the trace file is too large to be parsed and asking them if parsing should proceed.
@@ -149,6 +136,7 @@ public interface IdeProfilerServices {
    * This function should only be called when we are sure there is no PII within the exception message.
    * The NoPiiException uploads the full exception message to the crash report site. This can then be
    * to diagnose and root cause issues.
+   *
    * @param t throwable to be wrapped. The exception should not contain PII within the message.
    */
   void reportNoPiiException(@NotNull Throwable t);

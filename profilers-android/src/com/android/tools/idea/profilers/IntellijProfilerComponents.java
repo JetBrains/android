@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.profilers;
 
+import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigurationsDialog;
 import com.android.tools.idea.profilers.stacktrace.IntelliJStackTraceGroup;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.cpu.CpuProfilerConfigModel;
+import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.stacktrace.DataViewer;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.android.tools.profilers.stacktrace.StackTraceGroup;
@@ -39,6 +43,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Collection;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class IntellijProfilerComponents implements IdeProfilerComponents {
 
@@ -53,8 +58,11 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
 
   @NotNull private final Project myProject;
 
-  public IntellijProfilerComponents(@NotNull Project project) {
+  @NotNull private final FeatureTracker myFeatureTracker;
+
+  public IntellijProfilerComponents(@NotNull Project project, @NotNull FeatureTracker featureTracker) {
     myProject = project;
+    myFeatureTracker = featureTracker;
   }
 
   @NotNull
@@ -175,5 +183,16 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
   @Override
   public UiMessageHandler createUiMessageHandler() {
     return new IntellijUiMessageHandler();
+  }
+
+  @Override
+  public void openCpuProfilingConfigurationsDialog(@NotNull CpuProfilerConfigModel model, int deviceLevel,
+                                                   @NotNull Consumer<ProfilingConfiguration> dialogCallback) {
+    CpuProfilingConfigurationsDialog dialog = new CpuProfilingConfigurationsDialog(myProject,
+                                                                                   deviceLevel,
+                                                                                   model,
+                                                                                   dialogCallback,
+                                                                                   myFeatureTracker);
+    dialog.show();
   }
 }

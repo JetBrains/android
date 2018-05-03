@@ -54,22 +54,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   private static final SingleUnitAxisFormatter CPU_USAGE_FORMATTER = new SingleUnitAxisFormatter(1, 5, 10, "%");
   private static final SingleUnitAxisFormatter NUM_THREADS_AXIS = new SingleUnitAxisFormatter(1, 5, 1, "");
   /**
-   * Fake configuration to represent "Edit configurations..." entry on the profiling configurations combobox.
-   */
-  static final ProfilingConfiguration EDIT_CONFIGURATIONS_ENTRY = new ProfilingConfiguration();
-  /**
-   * Fake configuration to represent a separator on the profiling configurations combobox.
-   */
-  static final ProfilingConfiguration CONFIG_SEPARATOR_ENTRY = new ProfilingConfiguration();
-
-  /**
-   * A fake configuration shown when an API-initiated tracing is in progress. It exists for UX purpose only and isn't something
-   * we want to perserve across stages. Therefore, it exists inside {@link CpuProfilerStage}.
-   */
-  private final ProfilingConfiguration API_INITIATED_TRACING_PROFILING_CONFIG =
-    new ProfilingConfiguration("Debug API (Java)", CpuProfilerType.ART, CpuProfiler.CpuProfilerConfiguration.Mode.UNSTATED);
-
-  /**
    * Percentage of space on either side of an imported trace.
    */
   static final double IMPORTED_TRACE_VIEW_EXPAND_PERCENTAGE = 0.1;
@@ -461,6 +445,11 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   public EventMonitor getEventMonitor() {
     return myEventMonitor;
+  }
+
+  @NotNull
+  public CpuProfilerConfigModel getProfilerConfigModel() {
+    return myProfilerConfigModel;
   }
 
   public boolean isSelectionFailure() {
@@ -1070,60 +1059,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     filterMetadata.setTotalElementCount(myCaptureModel.getNodeCount());
     filterMetadata.setFilterTextLength(filter == null ? 0 : filter.pattern().length());
     featureTracker.trackFilterMetadata(filterMetadata);
-  }
-
-  public void openProfilingConfigurationsDialog() {
-    Consumer<ProfilingConfiguration> dialogCallback = (configuration) -> {
-      myAspect.changed(CpuProfilerAspect.PROFILING_CONFIGURATION);
-      // If there was a configuration selected when the dialog was closed,
-      // make sure to select it in the combobox
-      if (configuration != null) {
-        setProfilingConfiguration(configuration);
-      }
-    };
-    Common.Device selectedDevice = getStudioProfilers().getDevice();
-    int deviceFeatureLevel = selectedDevice != null ? selectedDevice.getFeatureLevel() : 0;
-    getStudioProfilers().getIdeServices().openCpuProfilingConfigurationsDialog(myProfilerConfigModel, deviceFeatureLevel, dialogCallback);
-    getStudioProfilers().getIdeServices().getFeatureTracker().trackOpenProfilingConfigDialog();
-  }
-
-  @NotNull
-  public ProfilingConfiguration getProfilingConfiguration() {
-    // Show fake, short-lived API_INITIATED_TRACING_PROFILING_CONFIG while API-initiated tracing is in progress.
-    if (isApiInitiatedTracingInProgress()) {
-      return API_INITIATED_TRACING_PROFILING_CONFIG;
-    }
-    return myProfilerConfigModel.getProfilingConfiguration();
-  }
-
-  public void setProfilingConfiguration(@NotNull ProfilingConfiguration mode) {
-    if (mode == EDIT_CONFIGURATIONS_ENTRY) {
-      openProfilingConfigurationsDialog();
-    }
-    else if (mode != CONFIG_SEPARATOR_ENTRY) {
-      myProfilerConfigModel.setProfilingConfiguration(mode);
-    }
-    myAspect.changed(CpuProfilerAspect.PROFILING_CONFIGURATION);
-  }
-
-  @NotNull
-  public List<ProfilingConfiguration> getProfilingConfigurations() {
-    ArrayList<ProfilingConfiguration> configs = new ArrayList<>();
-    // Show fake, short-lived API_INITIATED_TRACING_PROFILING_CONFIG while API-initiated tracing is in progress.
-    if (isApiInitiatedTracingInProgress()) {
-      configs.add(API_INITIATED_TRACING_PROFILING_CONFIG);
-      return configs;
-    }
-    configs.add(EDIT_CONFIGURATIONS_ENTRY);
-
-    List<ProfilingConfiguration> customEntries = myProfilerConfigModel.getCustomProfilingConfigurationsDeviceFiltered();
-    if (!customEntries.isEmpty()) {
-      configs.add(CONFIG_SEPARATOR_ENTRY);
-      configs.addAll(customEntries);
-    }
-    configs.add(CONFIG_SEPARATOR_ENTRY);
-    configs.addAll(myProfilerConfigModel.getDefaultProfilingConfigurations());
-    return configs;
   }
 
   public boolean isApiInitiatedTracingInProgress() {

@@ -40,12 +40,9 @@ import com.android.tools.profilers.sessions.SessionsManager;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBList;
@@ -53,7 +50,6 @@ import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.JBEmptyBorder;
-import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
@@ -159,7 +155,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   @Nullable private CpuCaptureView myCaptureView;
 
-  @NotNull private final JComboBox<ProfilingConfiguration> myProfilingConfigurationCombo;
+  @NotNull private final CpuProfilingConfigurationView myProfilingConfigurationView;
 
   /**
    * Panel to let user know to take a capture.
@@ -303,8 +299,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     myCaptureViewLoading = getProfilersView().getIdeProfilerComponents().createLoadingPanel(-1);
     myCaptureViewLoading.setLoadingText("Parsing capture...");
 
-    myProfilingConfigurationCombo = new ComboBox<>();
-    configureProfilingConfigCombo();
+    myProfilingConfigurationView = new CpuProfilingConfigurationView(myStage, getIdeComponents());
 
     updateCaptureState();
     installContextMenu();
@@ -420,43 +415,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       (e) -> getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackToggleCpuKernelHideablePanel());
     scrollingCpus.setBorder(JBUI.Borders.empty());
     monitorCpuThreadsPanel.add(hideableCpus, new TabularLayout.Constraint(KERNEL_PANEL_ROW, 0));
-  }
-
-  private void configureProfilingConfigCombo() {
-    JComboBoxView<ProfilingConfiguration, CpuProfilerAspect> profilingConfiguration =
-      new JComboBoxView<>(myProfilingConfigurationCombo, myStage.getAspect(), CpuProfilerAspect.PROFILING_CONFIGURATION,
-                          myStage::getProfilingConfigurations, myStage::getProfilingConfiguration, myStage::setProfilingConfiguration);
-    profilingConfiguration.bind();
-    // Do not support keyboard accessibility until it is supported product-wide in Studio.
-    myProfilingConfigurationCombo.setFocusable(false);
-    myProfilingConfigurationCombo.addKeyListener(new KeyAdapter() {
-      /**
-       * Select the next item, skipping over any separators encountered
-       */
-      private void skipSeparators(int indexDelta) {
-        int selectedIndex = myProfilingConfigurationCombo.getSelectedIndex() + indexDelta;
-        if (selectedIndex < 0 || selectedIndex == myProfilingConfigurationCombo.getItemCount()) {
-          return;
-        }
-        while (myProfilingConfigurationCombo.getItemAt(selectedIndex) == CpuProfilerStage.CONFIG_SEPARATOR_ENTRY) {
-          selectedIndex += indexDelta;
-        }
-        myProfilingConfigurationCombo.setSelectedIndex(selectedIndex);
-      }
-
-      @Override
-      public void keyPressed(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_DOWN) {
-          skipSeparators(1);
-          e.consume();
-        }
-        else if (e.getKeyCode() == KeyEvent.VK_UP) {
-          skipSeparators(-1);
-          e.consume();
-        }
-      }
-    });
-    myProfilingConfigurationCombo.setRenderer(new ProfilingConfigurationRenderer());
   }
 
   private void configureHelpTipPanel() {
@@ -771,6 +729,12 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     }
   }
 
+  @VisibleForTesting
+  @NotNull
+  CpuProfilingConfigurationView getProfilingConfigurationView() {
+    return myProfilingConfigurationView;
+  }
+
   private static Logger getLogger() {
     return Logger.getInstance(CpuProfilerStageView.class);
   }
@@ -882,40 +846,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     parent.add(panel, new TabularLayout.Constraint(0, 0));
   }
 
-  private static class ProfilingConfigurationRenderer extends ColoredListCellRenderer<ProfilingConfiguration> {
-    ProfilingConfigurationRenderer() {
-      super();
-      setIpad(new JBInsets(0, UIUtil.isUnderNativeMacLookAndFeel() ? 5 : UIUtil.getListCellHPadding(), 0, 0));
-    }
-
-    @Override
-    public Component getListCellRendererComponent(JList<? extends ProfilingConfiguration> list,
-                                                  ProfilingConfiguration value,
-                                                  int index,
-                                                  boolean selected,
-                                                  boolean hasFocus) {
-      if (value == CpuProfilerStage.CONFIG_SEPARATOR_ENTRY) {
-        return new JSeparator();
-      }
-      return super.getListCellRendererComponent(list, value, index, selected, hasFocus);
-    }
-
-    @Override
-    protected void customizeCellRenderer(@NotNull JList<? extends ProfilingConfiguration> list,
-                                         ProfilingConfiguration value,
-                                         int index,
-                                         boolean selected,
-                                         boolean hasFocus) {
-      if (value == CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY) {
-        setIcon(AllIcons.Actions.EditSource);
-        append("Edit configurations...");
-      }
-      else {
-        append(value.getName());
-      }
-    }
-  }
-
   @Override
   public JComponent getToolbar() {
     // We shouldn't display the CPU toolbar in import trace mode, so we return an empty panel.
@@ -925,7 +855,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     JPanel panel = new JPanel(new BorderLayout());
     JPanel toolbar = new JPanel(createToolbarLayout());
 
-    toolbar.add(myProfilingConfigurationCombo);
+    toolbar.add(myProfilingConfigurationView.getComponent());
     toolbar.add(Box.createHorizontalStrut(3));
     toolbar.add(myCaptureButton);
     toolbar.add(myCaptureStatus);
@@ -967,7 +897,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         myCaptureStatus.setText("");
         myCaptureButton.setToolTipText("Record a method trace");
         myCaptureButton.setIcon(StudioIcons.Profiler.Toolbar.RECORD);
-        myProfilingConfigurationCombo.setEnabled(true);
+        myProfilingConfigurationView.getComponent().setEnabled(true);
         // TODO: replace with loading icon
         myCaptureButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.RECORD));
         break;
@@ -981,7 +911,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         myCaptureStatus.setText("");
         myCaptureButton.setToolTipText("Stop recording");
         myCaptureButton.setIcon(StudioIcons.Profiler.Toolbar.STOP_RECORDING);
-        myProfilingConfigurationCombo.setEnabled(false);
+        myProfilingConfigurationView.getComponent().setEnabled(false);
         // TODO: replace with loading icon
         myCaptureButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.STOP_RECORDING));
         break;
@@ -996,7 +926,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         myCaptureButton.setEnabled(false);
         myCaptureStatus.setText("Starting record...");
         myCaptureButton.setToolTipText("");
-        myProfilingConfigurationCombo.setEnabled(false);
+        myProfilingConfigurationView.getComponent().setEnabled(false);
         break;
       case START_FAILURE:
         mySplitter.setSecondComponent(null);
@@ -1005,7 +935,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         myCaptureButton.setEnabled(false);
         myCaptureStatus.setText("Stopping record...");
         myCaptureButton.setToolTipText("");
-        myProfilingConfigurationCombo.setEnabled(false);
+        myProfilingConfigurationView.getComponent().setEnabled(false);
         break;
       case STOP_FAILURE:
         mySplitter.setSecondComponent(null);

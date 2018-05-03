@@ -68,7 +68,8 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
                   .runWhenProjectIsInitialized(
                     () -> myProfilers.setPreferredProcess(null, getPreferredProcessName(myProject), null));
 
-    myView = new StudioProfilersView(myProfilers, new IntellijProfilerComponents(myProject));
+    myView =
+      new StudioProfilersView(myProfilers, new IntellijProfilerComponents(myProject, myProfilers.getIdeServices().getFeatureTracker()));
     myLayeredPane = new ProfilerLayeredPane();
     service.getDataStoreService().setNoPiiExceptionHanlder(myProfilers.getIdeServices()::reportNoPiiException);
     initializeUi();
@@ -103,10 +104,10 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
   /**
    * Sets the profiler's auto-profiling process in case it has been unset.
    *
-   * @param module            The module being profiled.
-   * @param device            The target {@link IDevice} that the app will launch in.
-   * @param processPredicate  Additional filter used for choosing the most desirable process. e.g. Process of a particular pid,
-   *                          or process that starts after a certain time.
+   * @param module           The module being profiled.
+   * @param device           The target {@link IDevice} that the app will launch in.
+   * @param processPredicate Additional filter used for choosing the most desirable process. e.g. Process of a particular pid,
+   *                         or process that starts after a certain time.
    */
   public void profileModule(@NotNull Module module, @NotNull IDevice device, @Nullable Predicate<Common.Process> processPredicate) {
     myProfilers.setPreferredProcess(getDeviceDisplayName(device), getModuleName(module), processPredicate);

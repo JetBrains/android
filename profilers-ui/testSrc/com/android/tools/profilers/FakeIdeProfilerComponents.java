@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.profilers.cpu.CpuProfilerConfigModel;
+import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.stacktrace.*;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.TextFieldWithHistory;
@@ -212,6 +214,12 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
         return true;
       }
     };
+  }
+
+  @Override
+  public void openCpuProfilingConfigurationsDialog(@NotNull CpuProfilerConfigModel model, int deviceLevel,
+                                                   @NotNull Consumer<ProfilingConfiguration> callbackDialog) {
+    // No-op.
   }
 
   public static final class StackTraceGroupStub implements StackTraceGroup {
