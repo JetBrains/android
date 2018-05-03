@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.util.PropertiesMap;
 import com.intellij.openapi.application.ApplicationManager;
@@ -39,6 +40,7 @@ import static com.android.SdkConstants.PREFIX_ANDROID;
  */
 public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
   private final Map<Object, PropertiesMap> myDefaultProperties;
+  private ViewEditor myCustomViewEditor;
 
   public SyncLayoutlibSceneManager(@NotNull SyncNlModel model) {
     super(model, model.getSurface(), EdtExecutorService.getInstance());
@@ -103,5 +105,15 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
     // TODO: Update for namespace support:
     String key = (namespace == ResourceNamespace.ANDROID ? PREFIX_ANDROID : "") + attributeName;
     map.put(key, new PropertiesMap.Property(resourceValue, value));
+  }
+
+  public void setCustomViewEditor(@NotNull ViewEditor editor) {
+    myCustomViewEditor = editor;
+  }
+
+  @NotNull
+  @Override
+  public ViewEditor getViewEditor() {
+    return myCustomViewEditor != null ? myCustomViewEditor : super.getViewEditor();
   }
 }

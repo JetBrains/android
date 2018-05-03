@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.common.model;
 
-import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
-import com.android.tools.idea.uibuilder.model.DnDTransferItem;
-import com.android.tools.idea.uibuilder.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.util.ListenerCollection;
 import com.android.utils.ImmutableCollectors;
@@ -51,6 +48,7 @@ public class SelectionModel {
   }
 
   public void setSelection(@NotNull List<NlComponent> components, @Nullable NlComponent primary) {
+    //noinspection EqualsBetweenInconvertibleTypes   This currentlly erroneously shows on this line during psq
     if (components.equals(mySelection)) {
       return;
     }

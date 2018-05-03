@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.scene
 
 import com.android.tools.idea.avdmanager.DeviceManagerConnection
+import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.editor.NlEditor
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneComponent
@@ -439,7 +440,7 @@ class NavSceneTest : NavTestCase() {
     object : WriteCommandAction<Any?>(project, "Add") {
       override fun run(result: Result<Any?>) {
         val tag = rootComponent.tag.createChildTag("fragment", null, null, true)
-        val newComponent = surface.model!!.createComponent(tag, rootComponent, null)
+        val newComponent = surface.model!!.createComponent(surface, tag, rootComponent, null, InsertType.CREATE)
         surface.selectionModel.setSelection(ImmutableList.of(newComponent))
         newComponent.assignId("myId")
       }

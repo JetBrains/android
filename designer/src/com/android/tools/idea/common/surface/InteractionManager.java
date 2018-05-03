@@ -732,9 +732,9 @@ public class InteractionManager {
         DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
         InsertType insertType = model.determineInsertType(dragType, item, true /* preview */);
 
-        // TODO: support nav editor
         List<NlComponent> dragged = ApplicationManager.getApplication()
-          .runWriteAction((Computable<List<NlComponent>>)() -> NlModelHelperKt.createComponents(model, sceneView, item, insertType));
+                                                      .runWriteAction((Computable<List<NlComponent>>)() -> model
+                                                        .createComponents(item, insertType, mySurface));
 
         if (dragged == null) {
           event.reject();
@@ -849,8 +849,7 @@ public class InteractionManager {
         components = mySurface.getSelectionModel().getSelection();
       }
       else {
-        // TODO: support nav editor
-        components = NlModelHelperKt.createComponents(model, sceneView, item, insertType);
+        components = model.createComponents(item, insertType, mySurface);
 
         if (components.isEmpty()) {
           return null;  // User cancelled

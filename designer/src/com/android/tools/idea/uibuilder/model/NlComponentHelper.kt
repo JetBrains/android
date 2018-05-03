@@ -26,7 +26,9 @@ import com.android.support.AndroidxName
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.command.NlWriteCommandAction
 import com.android.tools.idea.common.model.AndroidCoordinate
+import com.android.tools.idea.common.model.DnDTransferComponent
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.model.NlDependencyManager
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.api.*
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
@@ -376,7 +378,7 @@ fun NlComponent.createChild(editor: ViewEditor,
   val tagName = NlComponentHelper.viewClassToTag(fqcn)
   val tag = tag.createChildTag(tagName, null, null, false)
 
-  return model.createComponent(editor, tag, this, before, insertType)
+  return model.createComponent(editor.scene.designSurface, tag, this, before, insertType)
 }
 
 fun NlComponent.clearAttributes() {
@@ -504,6 +506,58 @@ class NlComponentMixin(component: NlComponent)
       realInsertType = if (component.parent === receiver) InsertType.MOVE_WITHIN else InsertType.MOVE_INTO
     }
     receiver.viewGroupHandler?.onChildInserted(ViewEditorImpl(component.model, surface?.scene), receiver, component, realInsertType)
+  }
+
+  override fun postCreate(surface: DesignSurface?, insertType: InsertType): Boolean {
+    if (surface == null) {
+      return false
+    }
+    val realTag = component.tag
+    if (component.parent != null) {
+      // Required attribute for all views; drop handlers can adjust as necessary
+      if (realTag.getAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI) == null) {
+        realTag.setAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI, VALUE_WRAP_CONTENT)
+      }
+      if (realTag.getAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI) == null) {
+        realTag.setAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI, VALUE_WRAP_CONTENT)
+      }
+    }
+    else {
+      // No namespace yet: use the default prefix instead
+      if (realTag.getAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_WIDTH) == null) {
+        realTag.setAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT)
+      }
+      if (realTag.getAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_HEIGHT) == null) {
+        realTag.setAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
+      }
+    }
+
+    // Notify view handlers
+    val viewHandlerManager = ViewHandlerManager.get(component.model.project)
+    val childHandler = viewHandlerManager.getHandler(component)
+
+    val editor = ViewEditorImpl.getOrCreate(surface.scene ?: return false)
+    if (childHandler != null) {
+      var ok = childHandler.onCreate(editor, component.parent, component, insertType)
+      if (component.parent != null) {
+        ok = ok and NlDependencyManager.get().addDependencies((listOf(component)), component.model.facet)
+      }
+      if (!ok) {
+        component.parent?.removeChild(component)
+        realTag.delete()
+        return false
+      }
+    }
+    component.parent?.let {
+      val parentHandler = viewHandlerManager.getHandler(it)
+      (parentHandler as? ViewGroupHandler)?.onChildInserted(editor, it, component, insertType)
+    }
+    return true
+  }
+
+  override fun postCreateFromTransferrable(dndComponent: DnDTransferComponent) {
+    component.w = dndComponent.width
+    component.h = dndComponent.height
   }
 }
 

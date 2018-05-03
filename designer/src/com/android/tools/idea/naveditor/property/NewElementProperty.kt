@@ -1,6 +1,7 @@
 package com.android.tools.idea.naveditor.property
 
 import com.android.ide.common.resources.ResourceResolver
+import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.property.NlProperty
@@ -40,7 +41,7 @@ open class NewElementProperty(private val parent: NlComponent, private val tagNa
     }
     val newComponent = WriteCommandAction.runWriteCommandAction(null, Computable<NlComponent> {
       val tag = parent.tag.createChildTag(tagName, null, null, false)
-      val result = parent.model.createComponent(tag, parent, null)
+      val result = parent.model.createComponent(null, tag, parent, null, InsertType.CREATE)
       result.setAttribute(namespace, attrName, value as String)
       result
     })

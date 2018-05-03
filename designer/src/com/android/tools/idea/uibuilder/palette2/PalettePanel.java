@@ -31,10 +31,9 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
-import com.android.tools.idea.uibuilder.model.DnDTransferItem;
-import com.android.tools.idea.uibuilder.model.ItemTransferable;
-import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
+import com.android.tools.idea.common.model.DnDTransferComponent;
+import com.android.tools.idea.common.model.DnDTransferItem;
+import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.BrowserUtil;
@@ -544,7 +543,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
       DnDTransferItem dndItem = new DnDTransferItem(dndComponent);
       InsertType insertType = model.determineInsertType(DragType.COPY, dndItem, checkOnly /* preview */);
 
-      List<NlComponent> toAdd = NlModelHelperKt.createComponents(model, sceneView, dndItem, insertType);
+      List<NlComponent> toAdd = model.createComponents(dndItem, insertType, myDesignSurface);
 
       NlComponent root = roots.get(0);
       if (!model.canAddComponents(toAdd, root, null, checkOnly)) {

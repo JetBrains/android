@@ -16,6 +16,7 @@ package com.android.tools.idea.naveditor.editor
 import com.android.SdkConstants
 import com.android.annotations.VisibleForTesting
 import com.android.resources.ResourceType
+import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.util.iconToImage
 import com.android.tools.idea.naveditor.model.schema
@@ -83,7 +84,7 @@ sealed class Destination {
       object : WriteCommandAction<Unit>(model.project, "Add $className", model.file) {
         override fun run(result: Result<Unit>) {
           val tag = parent.tag.createChildTag(tag, null, null, true)
-          val newComponent = model.createComponent(tag, parent, null)
+          val newComponent = model.createComponent(null, tag, parent, null, InsertType.CREATE)
           newComponent.assignId(idBase)
           newComponent.setAndroidAttribute(SdkConstants.ATTR_NAME, qualifiedName)
           newComponent.setAndroidAttribute(SdkConstants.ATTR_LABEL, label)
@@ -107,7 +108,7 @@ sealed class Destination {
       object : WriteCommandAction<Unit>(model.project, "Add include", model.file) {
         override fun run(result: Result<Unit>) {
           val tag = parent.tag.createChildTag(SdkConstants.TAG_INCLUDE, null, null, true)
-          val newComponent = model.createComponent(tag, parent, null)
+          val newComponent = model.createComponent(null, tag, parent, null, InsertType.CREATE)
           newComponent.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_GRAPH,
               "@${ResourceType.NAVIGATION.getName()}/${FileUtil.getNameWithoutExtension(graph)}")
           component = newComponent
