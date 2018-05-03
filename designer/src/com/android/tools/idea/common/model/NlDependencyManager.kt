@@ -19,7 +19,7 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
-import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.dependsOn
 import com.intellij.openapi.application.ex.ApplicationManagerEx
 import com.intellij.openapi.module.Module
@@ -67,7 +67,7 @@ class NlDependencyManager private constructor(private val dependencyManager: Dep
    * @return the revision or null if the module does not depend on the specified library or the maven version is unknown.
    */
   fun getModuleDependencyVersion(artifactId: GoogleMavenArtifactId, facet: AndroidFacet): GradleVersion? =
-      facet.module.project.getProjectSystem().getModuleSystem(facet.module).getResolvedVersion(artifactId)?.mavenVersion
+      facet.module.getModuleSystem().getResolvedDependency(artifactId.getCoordinate("+"))?.version
 
   /**
    * Check if there is any missing dependencies and ask the user only if they are some.

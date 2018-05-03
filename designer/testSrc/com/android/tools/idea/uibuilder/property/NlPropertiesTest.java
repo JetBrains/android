@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.adtui.ptable.StarState;
 import com.android.tools.idea.common.model.NlModel;
@@ -23,7 +24,6 @@ import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemComponent;
-import com.android.tools.idea.projectsystem.gradle.GradleDependencyVersion;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Table;
@@ -32,6 +32,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.ArgumentMatcher;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -40,7 +41,6 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.property.NlProperties.STARRED_PROP;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 public class NlPropertiesTest extends PropertyTestCase {
@@ -416,13 +416,15 @@ public class NlPropertiesTest extends PropertyTestCase {
 
   private void setUpAppCompat() {
     GradleVersion gradleVersion = GradleVersion.parse(String.format("%1$d.0.0", MOST_RECENT_API_LEVEL));
-    GradleDependencyVersion version = new GradleDependencyVersion(gradleVersion);
+    GradleCoordinate appCompatCoordinate = GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate(gradleVersion.toString());
     ProjectSystemComponent projectSystem = mock(ProjectSystemComponent.class);
     AndroidProjectSystem androidProjectSystem = mock(AndroidProjectSystem.class);
     AndroidModuleSystem androidModuleSystem = mock(AndroidModuleSystem.class);
     when(projectSystem.getProjectSystem()).thenReturn(androidProjectSystem);
     when(androidProjectSystem.getModuleSystem(any(Module.class))).thenReturn(androidModuleSystem);
-    when(androidModuleSystem.getResolvedVersion(eq(GoogleMavenArtifactId.APP_COMPAT_V7))).thenReturn(version);
+    ArgumentMatcher<GradleCoordinate> appCompatMatcher =
+      arg ->  arg instanceof GradleCoordinate && arg.isSameArtifact(appCompatCoordinate);
+    when(androidModuleSystem.getResolvedDependency(argThat(appCompatMatcher))).thenReturn(appCompatCoordinate);
     registerProjectComponentImplementation(ProjectSystemComponent.class, projectSystem);
     myFixture.addFileToProject("src/android/support/v7/app/AppCompatImageView.java", APPCOMPAT_ACTIVITY);
     myFixture.addFileToProject("src/android/support/v7/widget/AppCompatImageView.java", APPCOMPAT_IMAGE_VIEW_SOURCE);

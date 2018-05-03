@@ -59,19 +59,6 @@ class GradleModuleSystem(val module: Module, @TestOnly private val mavenReposito
     gradleDependencyManager.addDependenciesWithoutSync(module, singleCoordinateList)
   }
 
-  override fun getResolvedVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion? {
-    // Check for android library dependencies from the build model
-    val androidModuleModel = AndroidModuleModel.get(module) ?:
-        throw DependencyManagementException("Could not find android module model for module $module",
-            DependencyManagementException.ErrorCodes.BUILD_SYSTEM_NOT_READY)
-
-    return androidModuleModel.selectedMainCompileLevel2Dependencies.androidLibraries
-        .asSequence()
-        .mapNotNull { GradleCoordinate.parseCoordinateString(it.artifactAddress) }
-        .find { "${it.groupId}:${it.artifactId}" == artifactId.toString() }
-        ?.let { GradleDependencyVersion(it.version) }
-  }
-
   override fun getDependencies(): Sequence<GoogleMavenArtifactId> {
     val androidModuleModel = AndroidModuleModel.get(module) ?:
         throw DependencyManagementException("Could not find android module model for module $module",

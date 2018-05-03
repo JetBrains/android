@@ -141,6 +141,6 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
 
   private boolean isRecyclerViewResolved() {
     return ProjectSystemUtil.getModuleSystem(myModules.getAppModule())
-             .getResolvedVersion(GoogleMavenArtifactId.RECYCLERVIEW_V7) != null;
+             .getResolvedDependency(GoogleMavenArtifactId.RECYCLERVIEW_V7.getCoordinate("+")) != null;
   }
 }
