@@ -45,19 +45,20 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
-  private final CpuProfilerConfigModel myProfilerModel;
-  private Consumer<ProfilingConfiguration> myOnCloseCallback;
+  @NotNull private final CpuProfilerConfigModel myProfilerModel;
+
+  @NotNull private Consumer<ProfilingConfiguration> myOnCloseCallback;
+
   private final int myDeviceLevel;
 
-  public CpuProfilingConfigurationsDialog(final Project project,
+  public CpuProfilingConfigurationsDialog(@NotNull final Project project,
                                           int deviceLevel,
-                                          CpuProfilerConfigModel model,
-                                          Consumer<ProfilingConfiguration> onCloseCallback,
-                                          FeatureTracker featureTracker) {
+                                          @NotNull CpuProfilerConfigModel model,
+                                          @NotNull Consumer<ProfilingConfiguration> onCloseCallback,
+                                          @NotNull FeatureTracker featureTracker) {
     super(project, new ProfilingConfigurable(project, model, deviceLevel, featureTracker), IdeModalityType.IDE);
     myProfilerModel = model;
     myOnCloseCallback = onCloseCallback;
@@ -167,7 +168,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
       // Add default configurations
       for (ProfilingConfiguration configuration : myProfilerModel.getDefaultProfilingConfigurations()) {
-          myConfigurationsModel.addElement(configuration);
+        myConfigurationsModel.addElement(configuration);
       }
       myDefaultConfigurationsCount = myProfilerModel.getDefaultProfilingConfigurations().size();
     }

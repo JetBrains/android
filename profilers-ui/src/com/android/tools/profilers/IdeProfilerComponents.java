@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.profilers.cpu.CpuProfilerConfigModel;
+import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.stacktrace.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,11 +24,12 @@ import javax.swing.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Collection;
+import java.util.function.Consumer;
 
 /**
  * Abstractions for various, custom UI components that are useful to use throughout the profilers,
  * which should be implemented by any system wishing to display our profilers.
- *
+ * <p>
  * Note: Expectations are that methods in here should alwayws return a created component. In other
  * words, this shouldn't become a home for 'void' utility methods. If such methods are needed,
  * create a helper interface with those void methods, and return that instead.
@@ -70,4 +73,16 @@ public interface IdeProfilerComponents {
 
   @NotNull
   UiMessageHandler createUiMessageHandler();
+
+  /**
+   * Open the dialog for managing the CPU profiling configurations.
+   *
+   * @param profilerModel  {@link CpuProfilerConfigModel} corresponding to the {@link ProfilingConfiguration} to be selected when opening
+   *                       the dialog.
+   * @param deviceLevel    API level of the device.
+   * @param dialogCallback Callback to be called once the dialog is closed. Takes a {@link ProfilingConfiguration}
+   *                       that was selected on the configurations list when the dialog was closed.
+   */
+  void openCpuProfilingConfigurationsDialog(@NotNull CpuProfilerConfigModel profilerModel, int deviceLevel,
+                                            @NotNull Consumer<ProfilingConfiguration> dialogCallback);
 }

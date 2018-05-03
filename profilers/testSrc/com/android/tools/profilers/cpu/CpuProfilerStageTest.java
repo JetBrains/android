@@ -104,7 +104,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     ProfilingConfiguration instrumented = new ProfilingConfiguration("My Instrumented Config",
                                                                      CpuProfiler.CpuProfilerType.ART,
                                                                      CpuProfiler.CpuProfilerConfiguration.Mode.INSTRUMENTED);
-    myStage.setProfilingConfiguration(instrumented);
+    myStage.getProfilerConfigModel().setProfilingConfiguration(instrumented);
     startCapturing();
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
   }
@@ -642,7 +642,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(tooltip.getCpuThreadInfo()).isNull();
 
     // Test Series
-    tooltipRange.set(11,11);
+    tooltipRange.set(11, 11);
     List<SeriesData<CpuThreadInfo>> cpuSeriesData = new ArrayList<>();
     cpuSeriesData.add(new SeriesData<>(5, CpuThreadInfo.NULL_THREAD));
     cpuSeriesData.add(new SeriesData<>(10, new CpuThreadInfo(0, "Test", 0, "Test")));
@@ -716,35 +716,12 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void editConfigurationsEntryCantBeSetAsProfilingConfiguration() {
-    assertThat(myStage.getProfilingConfiguration()).isNotNull();
-    // ART Sampled should be the default configuration when starting the stage,
-    // as it's the first configuration on the list.
-    assertThat(myStage.getProfilingConfiguration().getName()).isEqualTo(ProfilingConfiguration.ART_SAMPLED);
-
-    // Set a new configuration and check it's actually set as stage's profiling configuration
-    ProfilingConfiguration instrumented = new ProfilingConfiguration(ProfilingConfiguration.ART_INSTRUMENTED,
-                                                                     CpuProfiler.CpuProfilerType.ART,
-                                                                     CpuProfiler.CpuProfilerConfiguration.Mode.INSTRUMENTED);
-    myStage.setProfilingConfiguration(instrumented);
-    assertThat(myStage.getProfilingConfiguration().getName()).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED);
-
-    // Set CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY as profiling configuration
-    // and check it doesn't actually replace the current configuration
-    myStage.setProfilingConfiguration(CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY);
-    assertThat(myStage.getProfilingConfiguration().getName()).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED);
-
-    // Just sanity check "Instrumented" is not the name of CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY
-    assertThat(CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY.getName()).isNotEqualTo(ProfilingConfiguration.ART_INSTRUMENTED);
-  }
-
-  @Test
   public void stopProfilerIsConsistentToStartProfiler() throws IOException {
     assertThat(myCpuService.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
     ProfilingConfiguration config1 = new ProfilingConfiguration("My Config",
                                                                 CpuProfiler.CpuProfilerType.SIMPLEPERF,
                                                                 CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
-    myStage.setProfilingConfiguration(config1);
+    myStage.getProfilerConfigModel().setProfilingConfiguration(config1);
     myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString("simpleperf.trace"));
     captureSuccessfully();
     assertThat(myCpuService.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLEPERF);
@@ -754,11 +731,11 @@ public class CpuProfilerStageTest extends AspectObserver {
                                                                 CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
 
     myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString("valid_trace.trace"));
-    myStage.setProfilingConfiguration(config2);
+    myStage.getProfilerConfigModel().setProfilingConfiguration(config2);
     // Start capturing with ART
     startCapturingSuccess();
     // Change the profiling configurations in the middle of the capture and stop capturing
-    myStage.setProfilingConfiguration(config1);
+    myStage.getProfilerConfigModel().setProfilingConfiguration(config1);
     stopCapturing();
     // Stop profiler should be the same as the one passed in the start request
     assertThat(myCpuService.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
@@ -774,13 +751,13 @@ public class CpuProfilerStageTest extends AspectObserver {
     myStage = new CpuProfilerStage(myStage.getStudioProfilers());
     myStage.enter();
     // ART Sampled should be the default configuration when there is no preference for a native config.
-    assertThat(myStage.getProfilingConfiguration().getName()).isEqualTo(ProfilingConfiguration.ART_SAMPLED);
+    assertThat(myStage.getProfilerConfigModel().getProfilingConfiguration().getName()).isEqualTo(ProfilingConfiguration.ART_SAMPLED);
 
     myServices.setNativeProfilingConfigurationPreferred(true);
     myStage = new CpuProfilerStage(myStage.getStudioProfilers());
     myStage.enter();
     // Simpleperf should be the default configuration when a native config is preferred.
-    assertThat(myStage.getProfilingConfiguration().getName()).isEqualTo(ProfilingConfiguration.SIMPLEPERF);
+    assertThat(myStage.getProfilerConfigModel().getProfilingConfiguration().getName()).isEqualTo(ProfilingConfiguration.SIMPLEPERF);
   }
 
   @Test
@@ -789,7 +766,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     ProfilingConfiguration config1 = new ProfilingConfiguration("My Config",
                                                                 CpuProfiler.CpuProfilerType.SIMPLEPERF,
                                                                 CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
-    myStage.setProfilingConfiguration(config1);
+    myStage.getProfilerConfigModel().setProfilingConfiguration(config1);
     startCapturingSuccess();
 
     // Go back to monitor stage and go back to a new Cpu profiler stage
@@ -815,41 +792,6 @@ public class CpuProfilerStageTest extends AspectObserver {
       ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastCpuCaptureMetadata().getProfilingConfiguration();
     assertThat(trackedConfig.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLEPERF);
     assertThat(trackedConfig.getMode()).isEqualTo(CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
-  }
-
-  @Test
-  public void apiInitiatedCaptureShouldShowSpecialConfig() {
-    assertThat(myCpuService.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
-    ProfilingConfiguration config1 = new ProfilingConfiguration("My Config",
-                                                                CpuProfiler.CpuProfilerType.SIMPLEPERF,
-                                                                CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
-    myStage.setProfilingConfiguration(config1);
-
-    // Verify non-API-initiated config before the API tracing starts.
-    assertThat(myStage.getProfilingConfiguration()).isEqualTo(config1);
-    assertThat(myStage.getProfilingConfigurations().size()).isGreaterThan(1);
-
-    // API-initiated tracing starts.
-    CpuProfiler.CpuProfilerConfiguration apiTracingconfig =
-      CpuProfiler.CpuProfilerConfiguration.newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.ART).build();
-    long startTimestamp = 100;
-    myCpuService.setOngoingCaptureConfiguration(apiTracingconfig, startTimestamp, CpuProfiler.TraceInitiationType.INITIATED_BY_API);
-    myStage.updateProfilingState();
-
-    // Verify the configuration is set to the special config properly.
-    assertThat(myStage.getProfilingConfiguration().getName()).isEqualTo("Debug API (Java)");
-    assertThat(myStage.getProfilingConfiguration().getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
-    assertThat(myStage.getProfilingConfigurations().size()).isEqualTo(1);
-    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
-
-    // API-initiated tracing ends.
-    myCpuService.setAppBeingProfiled(false);
-    myStage.updateProfilingState();
-
-    // Verify the configuration is set back to the config before API-initiated tracing.
-    assertThat(myStage.getProfilingConfiguration()).isEqualTo(config1);
-    assertThat(myStage.getProfilingConfigurations().size()).isGreaterThan(1);
-    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
   }
 
   @Test
@@ -1003,11 +945,11 @@ public class CpuProfilerStageTest extends AspectObserver {
   @Test
   public void configurationShouldBeTheOnGoingProfilingAfterExitAndEnter() {
     ProfilingConfiguration testConfig = new ProfilingConfiguration(ProfilingConfiguration.SIMPLEPERF,
-                                                                         CpuProfiler.CpuProfilerType.SIMPLEPERF,
-                                                                         CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
-    myStage.setProfilingConfiguration(testConfig);
+                                                                   CpuProfiler.CpuProfilerType.SIMPLEPERF,
+                                                                   CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
+    myStage.getProfilerConfigModel().setProfilingConfiguration(testConfig);
     startCapturingSuccess();
-    assertThat(myStage.getProfilingConfiguration()).isEqualTo(testConfig);
+    assertThat(myStage.getProfilerConfigModel().getProfilingConfiguration()).isEqualTo(testConfig);
     myStage.exit();
 
     // Enter CpuProfilerStage again.
@@ -1017,7 +959,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     newStage.getStudioProfilers().setStage(newStage);
 
     assertThat(newStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
-    assertThat(newStage.getProfilingConfiguration()).isEqualTo(testConfig);
+    assertThat(newStage.getProfilerConfigModel().getProfilingConfiguration()).isEqualTo(testConfig);
   }
 
   @Test
@@ -1025,8 +967,8 @@ public class CpuProfilerStageTest extends AspectObserver {
     ProfilingConfiguration testConfig = new ProfilingConfiguration(ProfilingConfiguration.SIMPLEPERF,
                                                                    CpuProfiler.CpuProfilerType.SIMPLEPERF,
                                                                    CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
-    myStage.setProfilingConfiguration(testConfig);
-    assertThat(myStage.getProfilingConfiguration()).isEqualTo(testConfig);
+    myStage.getProfilerConfigModel().setProfilingConfiguration(testConfig);
+    assertThat(myStage.getProfilerConfigModel().getProfilingConfiguration()).isEqualTo(testConfig);
     myStage.exit();
 
     // Enter CpuProfilerStage again.
@@ -1035,7 +977,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     CpuProfilerStage newStage = new CpuProfilerStage(profilers);
     newStage.getStudioProfilers().setStage(newStage);
 
-    assertThat(newStage.getProfilingConfiguration()).isEqualTo(testConfig);
+    assertThat(newStage.getProfilerConfigModel().getProfilingConfiguration()).isEqualTo(testConfig);
   }
 
   @Test
@@ -1148,24 +1090,13 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void nullProcessShouldNotThrowException() {
-    // Set a device to null (e.g. when stop profiling) should not crash the CpuProfilerStage
-    myStage.getStudioProfilers().setDevice(null);
-    assertThat(myStage.getStudioProfilers().getDevice()).isNull();
-
-    // Open the profiling configurations dialog with null device shouldn't crash CpuProfilerStage.
-    // Dialog is expected to be open so the user can edit configurations to be used by other devices later.
-    myStage.openProfilingConfigurationsDialog();
-  }
-
-  @Test
   public void cpuMetadataSuccessfulCapture() {
     ProfilingConfiguration config = new ProfilingConfiguration("My Config",
                                                                CpuProfiler.CpuProfilerType.ART,
                                                                CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
     config.setProfilingSamplingIntervalUs(10);
     config.setProfilingBufferSizeInMb(15);
-    myStage.setProfilingConfiguration(config);
+    myStage.getProfilerConfigModel().setProfilingConfiguration(config);
     captureSuccessfully();
     CpuCaptureMetadata metadata = ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastCpuCaptureMetadata();
     assertThat(metadata.getStatus()).isEqualTo(CpuCaptureMetadata.CaptureStatus.SUCCESS);
@@ -1188,7 +1119,7 @@ public class CpuProfilerStageTest extends AspectObserver {
                                                                CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
     config.setProfilingSamplingIntervalUs(10);
     config.setProfilingBufferSizeInMb(15);
-    myStage.setProfilingConfiguration(config);
+    myStage.getProfilerConfigModel().setProfilingConfiguration(config);
 
     startCapturingSuccess();
     myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.FAILURE);
@@ -1219,7 +1150,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS);
     myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString("simpleperf.trace"));
     myCpuService.setValidTrace(true);
-    myStage.setProfilingConfiguration(config);
+    myStage.getProfilerConfigModel().setProfilingConfiguration(config);
 
     startCapturingSuccess();
     stopCapturing();
@@ -1250,7 +1181,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     ByteString largeTraceFile = ByteString.copyFrom(new byte[CpuCaptureParser.MAX_SUPPORTED_TRACE_SIZE + 1]);
     myCpuService.setTrace(largeTraceFile);
     myCpuService.setValidTrace(true);
-    myStage.setProfilingConfiguration(config);
+    myStage.getProfilerConfigModel().setProfilingConfiguration(config);
     myServices.setShouldParseLongTraces(false);
 
     startCapturingSuccess();
@@ -1279,7 +1210,7 @@ public class CpuProfilerStageTest extends AspectObserver {
                                                                CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
     config.setProfilingSamplingIntervalUs(10);
     config.setProfilingBufferSizeInMb(15);
-    myStage.setProfilingConfiguration(config);
+    myStage.getProfilerConfigModel().setProfilingConfiguration(config);
     startCapturingSuccess();
 
     // Sequence of states that should happen after stopping a capture that failures to parse the trace
@@ -1416,7 +1347,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     ProfilingConfiguration config = new ProfilingConfiguration("My Config",
                                                                CpuProfiler.CpuProfilerType.ART,
                                                                CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
-    myStage.setProfilingConfiguration(config);
+    myStage.getProfilerConfigModel().setProfilingConfiguration(config);
 
     startCapturingSuccess();
     myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.FAILURE);
@@ -1447,7 +1378,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS);
     myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString("simpleperf.trace"));
     myCpuService.setValidTrace(true);
-    myStage.setProfilingConfiguration(config);
+    myStage.getProfilerConfigModel().setProfilingConfiguration(config);
     startCapturingSuccess();
 
     // Sequence of states that should happen after stopping a capture that fails to be parsed

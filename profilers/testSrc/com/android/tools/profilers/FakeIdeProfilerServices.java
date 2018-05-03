@@ -17,7 +17,6 @@ package com.android.tools.profilers;
 
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.analytics.FeatureTracker;
-import com.android.tools.profilers.cpu.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.FakeCodeNavigator;
@@ -306,12 +305,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   @Override
   public ProfilerPreferences getPersistentProfilerPreferences() {
     return myPersistentPreferences;
-  }
-
-  @Override
-  public void openCpuProfilingConfigurationsDialog(CpuProfilerConfigModel model, int deviceLevel,
-                                                   Consumer<ProfilingConfiguration> callbackDialog) {
-    // No-op.
   }
 
   @Override

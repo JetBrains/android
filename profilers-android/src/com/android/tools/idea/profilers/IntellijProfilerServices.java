@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigService;
-import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigurationsDialog;
 import com.android.tools.idea.profilers.stacktrace.IntellijCodeNavigator;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
@@ -30,7 +29,6 @@ import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ProfilerPreferences;
 import com.android.tools.profilers.analytics.FeatureTracker;
-import com.android.tools.profilers.cpu.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.google.common.collect.ImmutableList;
@@ -264,17 +262,6 @@ public class IntellijProfilerServices implements IdeProfilerServices {
   @Override
   public ProfilerPreferences getPersistentProfilerPreferences() {
     return myPersistentPreferences;
-  }
-
-  @Override
-  public void openCpuProfilingConfigurationsDialog(CpuProfilerConfigModel model, int deviceLevel,
-                                                   Consumer<ProfilingConfiguration> dialogCallback) {
-    CpuProfilingConfigurationsDialog dialog = new CpuProfilingConfigurationsDialog(myProject,
-                                                                                   deviceLevel,
-                                                                                   model,
-                                                                                   dialogCallback,
-                                                                                   myFeatureTracker);
-    dialog.show();
   }
 
   @Override
