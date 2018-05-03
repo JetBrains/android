@@ -173,6 +173,17 @@ public class GroovyDslParser implements GradleDslParser {
   public Object extractValue(@NotNull GradleDslSimpleExpression context, @NotNull PsiElement literal, boolean resolve) {
     ApplicationManager.getApplication().assertReadAccessAllowed();
 
+    if (literal instanceof GrReferenceExpression || literal instanceof GrIndexProperty) {
+      if (resolve) {
+        GradleDslElement e = context.resolveReference(literal.getText(), true);
+        // Only attempt to get the value if its a simple expression.
+        if (e instanceof GradleDslSimpleExpression) {
+          return ((GradleDslSimpleExpression)e).getValue();
+        }
+      }
+      return literal.getText();
+    }
+
     if (!(literal instanceof GrLiteral)) {
       return null;
     }
@@ -517,11 +528,11 @@ public class GroovyDslParser implements GradleDslParser {
                                                    @NotNull GradleNameElement propertyName,
                                                    @NotNull GrExpression propertyExpression) {
     if (propertyExpression instanceof GrLiteral) { // ex: compileSdkVersion 23 or compileSdkVersion = "android-23"
-      return new GradleDslLiteral(parentElement, psiElement, propertyName, propertyExpression);
+      return new GradleDslLiteral(parentElement, psiElement, propertyName, propertyExpression, false);
     }
 
     if (propertyExpression instanceof GrReferenceExpression) { // ex: compileSdkVersion SDK_VERSION or sourceCompatibility = VERSION_1_5
-      return new GradleDslReference(parentElement, psiElement, propertyName, propertyExpression);
+      return new GradleDslLiteral(parentElement, psiElement, propertyName, propertyExpression, true);
     }
 
     if (propertyExpression instanceof GrMethodCallExpression) { // ex: compile project("someProject")
@@ -537,7 +548,7 @@ public class GroovyDslParser implements GradleDslParser {
     }
 
     if (propertyExpression instanceof GrIndexProperty) {
-      return new GradleDslReference(parentElement, psiElement, propertyName, propertyExpression);
+      return new GradleDslLiteral(parentElement, psiElement, propertyName, propertyExpression, true);
     }
 
     if (propertyExpression instanceof GrNewExpression) {

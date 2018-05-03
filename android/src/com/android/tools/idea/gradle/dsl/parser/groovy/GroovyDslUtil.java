@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
@@ -40,13 +41,11 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrVariableDeclaratio
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCommandArgumentList;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.*;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrString;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrStringInjection;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrIndexProperty;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.params.GrParameterList;
 
@@ -252,7 +251,7 @@ public final class GroovyDslUtil {
       if (listOrMap.isMap() && listOrMap.getNamedArguments().length == 0) {
         listOrMap.delete();
       }
-      else if (listOrMap.getInitializers().length == 0) {
+      else if (!listOrMap.isMap() && listOrMap.getInitializers().length == 0) {
         listOrMap.delete();
       }
     }
@@ -473,7 +472,7 @@ public final class GroovyDslUtil {
     PsiElement psiExpression = ensureGroovyPsi(expression.getExpression());
     if (psiExpression != null) {
       PsiElement replace = psiExpression.replace(newLiteral);
-      if (replace instanceof GrLiteral) {
+      if (replace instanceof GrLiteral || replace instanceof GrReferenceExpression || replace instanceof GrIndexProperty) {
         expression.setExpression(replace);
       }
     }
@@ -774,6 +773,12 @@ public final class GroovyDslUtil {
                                                        @NotNull PsiElement psiElement,
                                                        boolean includeUnresolved) {
     ApplicationManager.getApplication().assertReadAccessAllowed();
+
+    if (psiElement instanceof GrReferenceExpression || psiElement instanceof GrIndexProperty) {
+      String text = psiElement.getText();
+      GradleDslElement element = context.resolveReference(text, true);
+      return ImmutableList.of(new GradleReferenceInjection(context, element, psiElement, text));
+    }
 
     if (!(psiElement instanceof GrString)) {
       return Collections.emptyList();

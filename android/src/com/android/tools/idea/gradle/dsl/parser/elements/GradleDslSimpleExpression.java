@@ -358,9 +358,9 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
 
         element = map.getPropertyElement(index);
       }
-      else if (element instanceof GradleDslReference) {
+      else if (element instanceof GradleDslLiteral && ((GradleDslLiteral)element).isReference()) {
         // Follow the reference through then look for the element again.
-        GradleDslReference reference = (GradleDslReference)element;
+        GradleDslLiteral reference = (GradleDslLiteral)element;
         GradleReferenceInjection injection = reference.getReferenceInjection();
         if (injection == null) {
           element = null;
@@ -388,9 +388,9 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
     for (int i = 0; i < nameParts.size() - 1; i++) {
       // Only look for variables on the first iteration, otherwise only properties should be accessible.
       element = extractElementFromProperties(properties, nameParts.get(i), i == 0, child);
-      while (element instanceof GradleDslReference) {
+      while (element instanceof GradleDslLiteral && ((GradleDslLiteral)element).isReference()) {
         // Attempt to follow references
-        GradleReferenceInjection injection = ((GradleDslReference)element).getReferenceInjection();
+        GradleReferenceInjection injection = ((GradleDslLiteral)element).getReferenceInjection();
         if (injection == null) {
           return null;
         }

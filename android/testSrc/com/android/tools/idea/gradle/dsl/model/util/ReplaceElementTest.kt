@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.util
 
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.replaceElement
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.TransformTestCase
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
@@ -30,7 +31,8 @@ class ReplaceElementTest : TransformTestCase() {
     gradleDslFile.setNewElement(holder)
     val oldElement = createLiteral()
     holder.addParsedExpression(oldElement)
-    val newElement = createReference()
+    val newElement = createLiteral()
+    newElement.setValue(ReferenceTo("fakeRef"))
     replaceElement(holder, oldElement, newElement)
     assertThat(holder.arguments.size, equalTo(1))
     assertThat(holder.arguments, hasItem(newElement))
@@ -44,7 +46,8 @@ class ReplaceElementTest : TransformTestCase() {
     gradleDslFile.setNewElement(holder)
     val oldElement = createLiteral("literal")
     holder.addParsedExpression(oldElement)
-    val newElement = createReference("reference")
+    val newElement = createLiteral("reference")
+    newElement.setValue(ReferenceTo("fakeRef"))
     try {
       replaceElement(holder, oldElement, newElement)
       fail()

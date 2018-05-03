@@ -242,28 +242,6 @@ public class GroovyDslWriter implements GradleDslWriter {
   }
 
   @Override
-  public PsiElement createDslReference(@NotNull GradleDslReference reference) {
-    return createDslLiteralOrReference(reference);
-  }
-
-  @Override
-  public void applyDslReference(@NotNull GradleDslReference reference) {
-    applyDslLiteralOrReference(reference);
-  }
-
-  @Override
-  public void deleteDslReference(@NotNull GradleDslReference reference) {
-    PsiElement expression = reference.getExpression();
-    if (expression == null) {
-      return;
-    }
-    PsiElement parent = expression.getParent();
-    expression.delete();
-    maybeDeleteIfEmpty(parent, reference);
-    removePsiIfInvalid(reference);
-  }
-
-  @Override
   public PsiElement createDslMethodCall(@NotNull GradleDslMethodCall methodCall) {
     PsiElement psiElement = methodCall.getPsiElement();
     if (psiElement != null && psiElement.isValid()) {

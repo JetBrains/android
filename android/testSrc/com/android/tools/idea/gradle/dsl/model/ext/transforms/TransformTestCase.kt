@@ -58,10 +58,6 @@ open class TransformTestCase : GradleFileModelTestCase() {
     return GradleDslLiteral(parent, GradleNameElement.create(name.copy()))
   }
 
-  protected fun createReference(name: String = "fake", parent: GradleDslElement = gradleDslFile): GradleDslReference {
-    return GradleDslReference(parent, GradleNameElement.create("fake"))
-  }
-
   protected fun createMethodCall(methodName: String,
                                  statement: String = "unusedStatement",
                                  parent: GradleDslElement = gradleDslFile): GradleDslMethodCall {

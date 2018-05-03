@@ -163,7 +163,7 @@ class SingleArgumentMethodTransformTest : TransformTestCase() {
     assertThat(resultElement.name, equalTo("statement"))
     assertThat(resultElement.methodName, equalTo(methodName))
     assertThat(resultElement.arguments.size, equalTo(1))
-    val argumentElement = resultElement.arguments[0] as GradleDslReference
+    val argumentElement = resultElement.arguments[0] as GradleDslLiteral
     assertThat(argumentElement.referenceText as String, equalTo("prop"))
     // Name is kept form the literal.
     assertTrue(argumentElement.nameElement.isEmpty)

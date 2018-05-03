@@ -3173,7 +3173,6 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       verifyPropertyModel(properties["var6"], STRING_TYPE, "swan", STRING, VARIABLE, 0)
       // TODO: Should not be visible, this needs line number support to correctly hide itself.
       verifyPropertyModel(properties["var3"], STRING_TYPE, "goldeneye", STRING, VARIABLE, 0)
-
     }
   }
 

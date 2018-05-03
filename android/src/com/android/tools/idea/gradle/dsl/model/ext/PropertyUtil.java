@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.dsl.model.ext;
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
-import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.DefaultTransform;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.FileTransform;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
@@ -40,11 +39,8 @@ public class PropertyUtil {
                                                                          @Nullable GradleDslElement oldElement,
                                                                          @NotNull Object value,
                                                                          @NotNull GradleNameElement name) {
-    boolean isReference = value instanceof ReferenceTo;
-
     // Check if we can reuse the element.
-    if (!isReference && oldElement instanceof GradleDslLiteral ||
-        isReference && oldElement instanceof GradleDslReference) {
+    if (oldElement instanceof GradleDslLiteral) {
       GradleDslSimpleExpression expression = (GradleDslSimpleExpression)oldElement;
       expression.setValue(value);
       return expression;
@@ -60,14 +56,7 @@ public class PropertyUtil {
 
   @NotNull
   public static GradleDslSimpleExpression createBasicExpression(@NotNull GradleDslElement parent, @NotNull Object value, @NotNull GradleNameElement name) {
-    GradleDslSimpleExpression newElement;
-    if (value instanceof ReferenceTo) {
-      newElement = new GradleDslReference(parent, name);
-    }
-    else {
-      newElement = new GradleDslLiteral(parent, name);
-    }
-
+    GradleDslSimpleExpression newElement = new GradleDslLiteral(parent, name);
     newElement.setValue(value);
     return newElement;
   }
@@ -144,8 +133,8 @@ public class PropertyUtil {
    */
   @NotNull
   public static GradleDslSimpleExpression resolveElement(@NotNull GradleDslSimpleExpression expression) {
-    while (expression instanceof GradleDslReference && !expression.hasCycle()) {
-      GradleReferenceInjection injection = ((GradleDslReference)expression).getReferenceInjection();
+    while (expression instanceof GradleDslLiteral && ((GradleDslLiteral)expression).isReference() && !expression.hasCycle()) {
+      GradleReferenceInjection injection = ((GradleDslLiteral)expression).getReferenceInjection();
       if (injection == null) {
         return expression;
       }

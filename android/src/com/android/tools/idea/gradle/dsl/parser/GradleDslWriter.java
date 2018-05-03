@@ -54,12 +54,6 @@ public interface GradleDslWriter {
 
   void deleteDslLiteral(@NotNull GradleDslLiteral literal);
 
-  PsiElement createDslReference(@NotNull GradleDslReference reference);
-
-  void applyDslReference(@NotNull GradleDslReference reference);
-
-  void deleteDslReference(@NotNull GradleDslReference reference);
-
   PsiElement createDslMethodCall(@NotNull GradleDslMethodCall methodCall);
 
   void applyDslMethodCall(@NotNull GradleDslMethodCall methodCall);
@@ -90,15 +84,6 @@ public interface GradleDslWriter {
 
     @Override
     public void deleteDslLiteral(@NotNull GradleDslLiteral literal) { }
-
-    @Override
-    public PsiElement createDslReference(@NotNull GradleDslReference reference) { return null; }
-
-    @Override
-    public void applyDslReference(@NotNull GradleDslReference reference) { }
-
-    @Override
-    public void deleteDslReference(@NotNull GradleDslReference reference) { }
 
     @Override
     public PsiElement createDslMethodCall(@NotNull GradleDslMethodCall methodCall) { return null; }

@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslReference;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -57,7 +56,7 @@ public class GradleBuildFile extends GradleDslFile {
   @Override
   public void setParsedElement(@NotNull GradleDslElement element) {
     if ((SOURCE_COMPATIBILITY_ATTRIBUTE_NAME.equals(element.getName()) || TARGET_COMPATIBILITY_ATTRIBUTE_NAME.equals(element.getName())) &&
-        (element instanceof GradleDslLiteral || element instanceof GradleDslReference)) {
+        (element instanceof GradleDslLiteral)) {
       JavaDslElement javaDslElement = getPropertyElement(JAVA_BLOCK_NAME, JavaDslElement.class);
       if (javaDslElement == null) {
         javaDslElement = new JavaDslElement(this);
