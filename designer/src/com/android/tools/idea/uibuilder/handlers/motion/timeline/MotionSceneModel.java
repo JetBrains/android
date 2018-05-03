@@ -23,6 +23,8 @@ import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
@@ -33,10 +35,8 @@ import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.NamedNodeMap;
 
 import javax.swing.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.AUTO_URI;
@@ -170,24 +170,28 @@ public class MotionSceneModel {
       return false;
     }
 
-    public boolean deleteTag(@NotNull NlModel model, @NotNull String command) {
+    protected void completeSceneModelUpdate() {
+      // Temporary for LayoutLib:
+      myMotionSceneModel.myNlModel.notifyModified(NlModel.ChangeType.EDIT);
       XmlFile xmlFile = myMotionSceneModel.motionSceneFile();
+      LayoutPullParsers.saveFileIfNecessary(xmlFile);
+    }
+
+    public boolean deleteTag(@NotNull String command) {
       XmlTag tag = findMyTag();
       if (tag == null) {
         return false;
       }
       Runnable operation = () -> {
         tag.delete();
-        model.notifyModified(NlModel.ChangeType.EDIT);
-        // Temporary for LayoutLib:
-        LayoutPullParsers.saveFileIfNecessary(xmlFile);
       };
+      XmlFile xmlFile = myMotionSceneModel.motionSceneFile();
       WriteCommandAction.runWriteCommandAction(myMotionSceneModel.myProject, command, null, operation, xmlFile);
+      completeSceneModelUpdate();
       return true;
     }
 
-    public boolean setValues(@NotNull NlModel model, @NotNull HashMap<String, String> values) {
-      XmlFile xmlFile = myMotionSceneModel.motionSceneFile();
+    public boolean setValues(@NotNull HashMap<String, String> values) {
       XmlTag tag = findMyTag();
       if (tag == null) {
         return false;
@@ -201,34 +205,34 @@ public class MotionSceneModel {
         }
       };
 
+      XmlFile xmlFile = myMotionSceneModel.motionSceneFile();
       WriteCommandAction.runWriteCommandAction(myMotionSceneModel.myProject, command, null, operation, xmlFile);
-      // Temporary for LayoutLib:
-      LayoutPullParsers.saveFileIfNecessary(xmlFile);
-      model.notifyModified(NlModel.ChangeType.EDIT);
+      completeSceneModelUpdate();
       return true;
     }
 
-    public boolean setValue(@NotNull NlModel model, @NotNull String key, @NotNull String value) {
-      XmlFile xmlFile = myMotionSceneModel.motionSceneFile();
-      XmlTag tag = findMyTag();
-      if (tag == null) {
-        return false;
-      }
+    protected boolean setValue(@NotNull XmlTag tag, @NotNull String key, @NotNull String value) {
       String command = "Set " + key + " attribute";
       String namespace = isAndroidAttribute(key) ? ANDROID_URI : AUTO_URI;
       Runnable operation = () -> {
         tag.setAttribute(key, namespace, value);
-        model.notifyModified(NlModel.ChangeType.EDIT);
-        // Temporary for LayoutLib:
-        LayoutPullParsers.saveFileIfNecessary(xmlFile);
       };
 
+      XmlFile xmlFile = myMotionSceneModel.motionSceneFile();
       WriteCommandAction.runWriteCommandAction(myMotionSceneModel.myProject, command, null, operation, xmlFile);
+      completeSceneModelUpdate();
       return true;
     }
 
-    public boolean deleteAttribute(@NotNull NlModel model, @NotNull String attributeName) {
-      XmlFile xmlFile = myMotionSceneModel.motionSceneFile();
+    public boolean setValue(@NotNull String key, @NotNull String value) {
+      XmlTag tag = findMyTag();
+      if (tag == null) {
+        return false;
+      }
+      return setValue(tag, key, value);
+    }
+
+    public boolean deleteAttribute(@NotNull String attributeName) {
       XmlTag tag = findMyTag();
       if (tag == null) {
         return false;
@@ -240,12 +244,11 @@ public class MotionSceneModel {
       }
       Runnable operation = () -> {
         tag.setAttribute(attributeName, namespace, null);
-        model.notifyModified(NlModel.ChangeType.EDIT);
-        // Temporary for LayoutLib:
-        LayoutPullParsers.saveFileIfNecessary(xmlFile);
       };
 
+      XmlFile xmlFile = myMotionSceneModel.motionSceneFile();
       WriteCommandAction.runWriteCommandAction(myMotionSceneModel.myProject, command, null, operation, xmlFile);
+      completeSceneModelUpdate();
       return true;
     }
 
@@ -275,6 +278,11 @@ public class MotionSceneModel {
     }
 
     public abstract String[] getDefault(String key);
+
+    public CustomAttributes createCustomAttribute(@NotNull String key, @NotNull CustomAttributes.Type type, @NotNull String value) {
+      // TODO: Do we need to support this for other tags than KeyAttributes ?
+      throw new UnsupportedOperationException();
+    }
 
     public String getString(String type) {
       if ("target".equals(type)) {
@@ -372,31 +380,31 @@ public class MotionSceneModel {
      * Delete an attribute from a KeyFrame.
      */
     @Override
-    public boolean deleteAttribute(@NotNull NlModel model, @NotNull String attributeName) {
+    public boolean deleteAttribute(@NotNull String attributeName) {
       // Never delete these required attributes:
       if (attributeName.equals(KeyAttributes_target) ||
           attributeName.equals(KeyAttributes_framePosition)) {
         // TODO: Find out why these are called in the first place...
         return false;
       }
-      if (!super.deleteAttribute(model, attributeName)) {
+      if (!super.deleteAttribute(attributeName)) {
         return false;
       }
       myAttributes.remove(attributeName);
       return true;
     }
 
-    public boolean deleteTag(@NotNull NlModel model) {
+    public boolean deleteTag() {
       String command = "Delete key attributes for: " + target;
-      return super.deleteTag(model, command);
+      return super.deleteTag(command);
     }
 
     /**
      * Set the value of a KeyFrame attribute.
      */
     @Override
-    public boolean setValue(@NotNull NlModel model, @NotNull String key, @NotNull String value) {
-      if (!super.setValue(model, key, value)) {
+    public boolean setValue(@NotNull String key, @NotNull String value) {
+      if (!super.setValue(key, value)) {
         return false;
       }
       parse(key, value);
@@ -405,14 +413,10 @@ public class MotionSceneModel {
 
     /**
      * Set multiple values of a Keyframe in one go
-     * @param model
-     * @param key
-     * @param value
-     * @return
      */
     @Override
-    public boolean setValues(@NotNull NlModel model, @NotNull HashMap<String, String> values) {
-      if (!super.setValues(model, values)) {
+    public boolean setValues(@NotNull HashMap<String, String> values) {
+      if (!super.setValues(values)) {
         return false;
       }
       for (String key : values.keySet()) {
@@ -764,11 +768,11 @@ public class MotionSceneModel {
     }
 
     @Override
-    public boolean isAndroidAttribute(String str) {
+    public boolean isAndroidAttribute(@NotNull String attributeName) {
       if (myAndroidAttributes == null) {
         myAndroidAttributes = new HashSet<>(Arrays.asList(ourPossibleStandardAttr));
       }
-      return myAndroidAttributes.contains(str);
+      return myAndroidAttributes.contains(attributeName);
     }
 
     public KeyAttributes(MotionSceneModel motionSceneModel) {
@@ -802,42 +806,31 @@ public class MotionSceneModel {
       }
     }
 
-    /**
-     * @param nlModel
-     * @param key
-     * @param value
-     */
-    public void createCustomAttribute(NlModel nlModel, String key, CustomAttributes.Type type, String value) {
-      XmlFile xmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(myMotionSceneModel.myProject, myMotionSceneModel.myVirtualFile);
-
-      WriteCommandAction.runWriteCommandAction(myMotionSceneModel.myProject, new Runnable() {
-        @Override
-        public void run() {
-          XmlTag[] tagKeyFrames = xmlFile.getRootTag().findSubTags(MotionSceneKeyFrames);
-          for (int i = 0; i < tagKeyFrames.length; i++) {
-            XmlTag tagKeyFrame = tagKeyFrames[i];
-            XmlTag[] tagkey = tagKeyFrame.getSubTags();
-
-            for (int j = 0; j < tagkey.length; j++) {
-              XmlTag xmlTag = tagkey[j];
-              if (match(xmlTag)) {
-                String head = MotionNameSpace;
-                if (isAndroidAttribute(key)) {
-                  head = AndroidNameSpace;
-                }
-                xmlTag.setAttribute(head + key, value);
-              }
-            }
-          }
-        }
-      });
-      if (nlModel != null) {
-        // TODO: we may want to do live edits instead, but LayoutLib needs
-        // anyway to save the file to disk, so...
-        LayoutPullParsers.saveFileIfNecessary(xmlFile);
-        nlModel.notifyModified(NlModel.ChangeType.EDIT);
+    @Override
+    @Nullable
+    public CustomAttributes createCustomAttribute(@NotNull String key, @NotNull CustomAttributes.Type type, @NotNull String value) {
+      XmlTag keyFrame = findMyTag();
+      if (keyFrame == null) {
+        return null;
       }
-      parse(key, value);
+      List<CustomAttributes> existing =
+        myCustomAttributes.stream().filter(attr -> key.equals(attr.getAttributeName())).collect(Collectors.toList());
+      for (CustomAttributes attr : existing) {
+        attr.deleteTag();
+      }
+      Computable<CustomAttributes> operation = () -> {
+        XmlTag createdTag = keyFrame.createChildTag(KeyAttributes_customAttribute, null, "", false);
+        createdTag = keyFrame.addSubTag(createdTag, false);
+        createdTag.setAttribute(CustomAttributes_attributeName, AUTO_URI, key);
+        createdTag.setAttribute(type.getTagName(), AUTO_URI, StringUtil.isNotEmpty(value) ? value : type.getDefaultValue());
+        CustomAttributes custom = new CustomAttributes(this);
+        Arrays.stream(createdTag.getAttributes()).forEach(attr -> custom.parse(attr.getLocalName(), attr.getValue()));
+        myCustomAttributes.add(custom);
+        return custom;
+      };
+      CustomAttributes newAttribute = WriteCommandAction.runWriteCommandAction(myMotionSceneModel.myProject, operation);
+      completeSceneModelUpdate();
+      return newAttribute;
     }
   }
 
@@ -923,11 +916,11 @@ public class MotionSceneModel {
     }
 
     @Override
-    public boolean isAndroidAttribute(String str) {
+    public boolean isAndroidAttribute(@NotNull String attributeName) {
       if (myAndroidAttributes == null) {
         myAndroidAttributes = new HashSet<>(Arrays.asList(ourPossibleStandardAttr));
       }
-      return myAndroidAttributes.contains(str);
+      return myAndroidAttributes.contains(attributeName);
     }
 
     public KeyCycle(MotionSceneModel motionSceneModel) {
@@ -1002,48 +995,102 @@ public class MotionSceneModel {
       myAttributes.put(name, value);
     }
   }
+
   /* ===========================CustomAttributes===================================*/
 
-  public static class CustomAttributes implements AttributeParse {
-    final KeyAttributes parentKeyAttributes;
-    HashMap<String, Object> myAttributes = new HashMap<>();
-    public static String[] ourPossibleAttr = {
-      "attributeName",
-      "customColorValue",
-      "customIntegerValue",
-      "customFloatValue",
-      "customDimension",
-    };
-    public static String[][] ourDefaults = {
-      {},
-      {"#FFF"},
-      {"2"},
-      {"1.0"},
-      {"20dp"}
-    };
+  public static class CustomAttributes extends BaseTag implements AttributeParse {
+    private final KeyAttributes parentKeyAttributes;
+    private final HashMap<String, Object> myAttributes = new HashMap<>();
+
+    @Nullable
+    public String getAttributeName() {
+      return (String)myAttributes.get(CustomAttributes_attributeName);
+    }
 
     @Override
     public String toString() {
       return Arrays.toString(myAttributes.keySet().toArray());
     }
 
-    public String[] getPossibleAttr() {
-      return ourPossibleAttr;
+    public boolean deleteTag() {
+      if (!super.deleteTag("Remove custom attribute")) {
+        return false;
+      }
+      parentKeyAttributes.getCustomAttr().remove(this);
+      return true;
     }
 
-    public void deleteTag(NlModel model) {
+    @Override
+    public boolean setValue(@NotNull String key, @NotNull String value) {
+
+      if (!super.setValue(key, value)) {
+        return false;
+      }
+      parse(key, value);
+      return true;
     }
 
-    enum Type {
-      CUSTOM_COLOR,
-      CUSTOM_INTEGER,
-      CUSTOM_FLOAT,
-      CUSTOM_STRING,
-      CUSTOM_DIMENSION,
-      CUSTOM_BOOLEAN
+    @Override
+    public boolean deleteAttribute(@NotNull String attributeName) {
+      throw new UnsupportedOperationException();
     }
 
-    public CustomAttributes(KeyAttributes frame) {
+    @Override
+    @Nullable
+    public XmlTag findMyTag() {
+      String attributeName = (String)myAttributes.get(CustomAttributes_attributeName);
+      if (StringUtil.isEmpty(attributeName)) {
+        return null;
+      }
+      XmlTag parent = parentKeyAttributes.findMyTag();
+      if (parent == null) {
+        return null;
+      }
+      XmlTag[] customAttrs = parent.findSubTags(KeyAttributes_customAttribute);
+      for (XmlTag tag : customAttrs) {
+        if (attributeName.equals(tag.getAttributeValue(CustomAttributes_attributeName, AUTO_URI))) {
+          return tag;
+        }
+      }
+      return null;
+    }
+
+    public enum Type {
+      CUSTOM_COLOR("Color", CustomAttributes_customColorValue, "#FFF"),
+      CUSTOM_INTEGER("Integer", CustomAttributes_customIntegerValue, "2"),
+      CUSTOM_FLOAT("Float", CustomAttributes_customFloatValue, "1.0"),
+      CUSTOM_STRING("String", CustomAttributes_customStringValue, "Example"),
+      CUSTOM_DIMENSION("Dimension", CustomAttributes_customDimensionValue, "20dp"),
+      CUSTOM_BOOLEAN("Boolean", CustomAttributes_customBooleanValue, "true");
+
+      private final String myStringValue;
+      private final String myTagName;
+      private final String myDefaultValue;
+
+      @NotNull
+      public String getTagName() {
+        return myTagName;
+      }
+
+      @NotNull
+      public String getDefaultValue() {
+        return myDefaultValue;
+      }
+
+      @Override
+      public String toString() {
+        return myStringValue;
+      }
+
+      Type(@NotNull String stringValue, @NotNull String tagName, @NotNull String defaultValue) {
+        myStringValue = stringValue;
+        myTagName = tagName;
+        myDefaultValue = defaultValue;
+      }
+    }
+
+    public CustomAttributes(@NotNull KeyAttributes frame) {
+      super(frame.getModel());
       parentKeyAttributes = frame;
     }
 
@@ -1165,13 +1212,13 @@ public class MotionSceneModel {
     }
 
     @Override
-    public boolean deleteTag(@NotNull NlModel model, @NotNull String command) {
+    public boolean deleteTag(@NotNull String command) {
       throw new UnsupportedOperationException();
     }
 
     @Override
-    public boolean setValue(@NotNull NlModel model, @NotNull String key, @NotNull String value) {
-      if (!super.setValue(model, key, value)) {
+    public boolean setValue(@NotNull String key, @NotNull String value) {
+      if (!super.setValue(key, value)) {
         return false;
       }
       parse(key, value);
@@ -1179,8 +1226,8 @@ public class MotionSceneModel {
     }
 
     @Override
-    public boolean deleteAttribute(@NotNull NlModel model, @NotNull String attributeName) {
-      if (!super.deleteAttribute(model, attributeName)) {
+    public boolean deleteAttribute(@NotNull String attributeName) {
+      if (!super.deleteAttribute(attributeName)) {
         return false;
       }
       myAllAttributes.remove(attributeName);
@@ -1236,16 +1283,16 @@ public class MotionSceneModel {
     }
 
     @Override
-    public boolean deleteAttribute(@NotNull NlModel model, @NotNull String attributeName) {
-      if (!super.deleteAttribute(model, attributeName)) {
+    public boolean deleteAttribute(@NotNull String attributeName) {
+      if (!super.deleteAttribute(attributeName)) {
         return false;
       }
       myAllAttributes.remove(attributeName);
       return true;
     }
 
-    public boolean deleteTag(NlModel model) {
-      return deleteTag(model, "Delete OnSwing");
+    public boolean deleteTag() {
+      return deleteTag("Delete OnSwing");
     }
   }
 

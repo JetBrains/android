@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.attributeEditor;
 
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutAttributePanel;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.TimeLineIcons;
 import com.intellij.openapi.ui.JBPopupMenu;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI;
 
@@ -36,6 +36,7 @@ import java.util.Set;
 
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.CustomLabel;
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.KeyPositionCartesian_transitionEasing;
+import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
 
 /**
  * Panel used to show KeyFrames (Pos, Cycle and Attributes)
@@ -57,6 +58,7 @@ public class AttributeTagPanel extends TagPanel {
     myRemoveTagButton = EditorUtils.makeButton(TimeLineIcons.REMOVE_TAG);
     setup();
 
+    myTable.setSelectionMode(SINGLE_SELECTION);
     myTable.setDefaultRenderer(EditorUtils.AttributesNamesHolder.class, new EditorUtils.AttributesNamesCellRenderer());
     myTable.setDefaultRenderer(String.class, new EditorUtils.AttributesValueCellRenderer());
 
@@ -72,7 +74,7 @@ public class AttributeTagPanel extends TagPanel {
     myAddRemovePanel.myRemoveButton.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
-         deleteAttr(myBasePanel.myNlModel,myTable.getSelectedRow());
+         deleteAttr(myTable.getSelectedRow());
       }
     });
 
@@ -108,12 +110,24 @@ public class AttributeTagPanel extends TagPanel {
     public void actionPerformed(ActionEvent e) {
       String s = ((JMenuItem)e.getSource()).getText();
       if (CustomLabel.equals(s)) { // add custom attribute
+        NewCustomAttributePanel newAttributePanel = new NewCustomAttributePanel();
+        newAttributePanel.show();
+        if (newAttributePanel.isOK()) {
+          String attributeName = newAttributePanel.getAttributeName();
+          String value = newAttributePanel.getInitialValue();
+          MotionSceneModel.CustomAttributes.Type type = newAttributePanel.getType();
+          if (StringUtil.isNotEmpty(attributeName)) {
+            myKeyframe.createCustomAttribute(attributeName, type, value);
+          }
+            // TODO: update UI model
+            // Object[] data = new Object[]{attributeName, value};
+        }
         return;
       }
       EditorUtils.AttributesNamesHolder holder = new EditorUtils.AttributesNamesHolder(s);
       String []def = myKeyframe.getDefault(s);
       String value = def !=null && def.length > 0 ? def[0] : "";
-      myKeyframe.setValue(myBasePanel.myNlModel, s, value);
+      myKeyframe.setValue(s, value);
       myAttributes.put(holder, value);
       myAttributesNames.add(holder);
       myKeyAttrTableModel.fireTableRowsInserted(myAttributesNames.size() - 1, myAttributesNames.size());
@@ -121,15 +135,15 @@ public class AttributeTagPanel extends TagPanel {
   };
 
   @Override
-  protected void deleteAttr(NlModel nlModel, int selection) {
-    if (myKeyframe.deleteAttribute(nlModel, myKeyAttrTableModel.getValueAt(selection, 0).toString())) {
+  protected void deleteAttr(int selection) {
+    if (myKeyframe.deleteAttribute(myKeyAttrTableModel.getValueAt(selection, 0).toString())) {
       myKeyAttrTableModel.removeRow(selection);
     }
   }
 
   @Override
-  protected void deleteTag(NlModel nlModel) {
-    if (myKeyframe.deleteTag(nlModel)) {
+  protected void deleteTag() {
+    if (myKeyframe.deleteTag()) {
       setVisible(false);
       myBasePanel.clearSelectedKeyframe();
     }
@@ -162,7 +176,7 @@ public class AttributeTagPanel extends TagPanel {
   }
 
   private void saveEasing(String value) {
-    myBasePanel.myCurrentKeyframe.setValue(myBasePanel.myNlModel, KeyPositionCartesian_transitionEasing, value);
+    myBasePanel.myCurrentKeyframe.setValue(KeyPositionCartesian_transitionEasing, value);
   }
 
   public void setKeyFrame(MotionSceneModel.KeyFrame keyframe) {
@@ -276,7 +290,7 @@ public class AttributeTagPanel extends TagPanel {
         return;
       }
       String key = getValueAt(rowIndex, 0).toString();
-      myBasePanel.myCurrentKeyframe.setValue(myBasePanel.myNlModel, key, aValue.toString());
+      myBasePanel.myCurrentKeyframe.setValue(key, aValue.toString());
     }
 
     public void setKeyFrame(MotionSceneModel.KeyFrame keyframe) {

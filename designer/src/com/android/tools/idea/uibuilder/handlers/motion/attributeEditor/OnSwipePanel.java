@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.attributeEditor;
 
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutAttributePanel;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.TimeLineIcons;
@@ -35,6 +34,8 @@ import java.util.HashMap;
 import java.util.Set;
 import java.util.Vector;
 
+import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
+
 /**
  * Used for OnSwipeControls
  */
@@ -51,6 +52,7 @@ public class OnSwipePanel extends TagPanel {
     myTable = new JBTable(myTableModel);
     myRemoveTagButton = EditorUtils.makeButton(TimeLineIcons.REMOVE_TAG);
     setup();
+    myTable.setSelectionMode(SINGLE_SELECTION);
     myTable.setDefaultRenderer(EditorUtils.AttributesNamesHolder.class, new EditorUtils.AttributesNamesCellRenderer());
     myTable.setDefaultRenderer(String.class, new EditorUtils.AttributesValueCellRenderer());
 
@@ -109,16 +111,16 @@ public class OnSwipePanel extends TagPanel {
 
 
   @Override
-  protected void deleteAttr(NlModel nlModel, int selection) {
+  protected void deleteAttr(int selection) {
     String attributeName = (String)myTable.getValueAt(selection, 0);
-    if (myOnSwipeTag != null && myOnSwipeTag.deleteAttribute(nlModel, attributeName)) {
+    if (myOnSwipeTag != null && myOnSwipeTag.deleteAttribute(attributeName)) {
       myTableModel.removeRow(selection);
     }
   }
 
   @Override
-  protected void deleteTag(NlModel nlModel) {
-    if (myOnSwipeTag != null && myOnSwipeTag.deleteTag(nlModel)) {
+  protected void deleteTag() {
+    if (myOnSwipeTag != null && myOnSwipeTag.deleteTag()) {
       setVisible(false);
     }
   }
@@ -128,7 +130,7 @@ public class OnSwipePanel extends TagPanel {
     public void actionPerformed(ActionEvent e) {
       String attributeName = ((JMenuItem)e.getSource()).getText();
       String value = "";
-      if (myOnSwipeTag != null && myOnSwipeTag.setValue(myBasePanel.myNlModel, attributeName, value)) {
+      if (myOnSwipeTag != null && myOnSwipeTag.setValue(attributeName, value)) {
         myTableModel.addRow(new Object[]{attributeName, value});
       }
     }

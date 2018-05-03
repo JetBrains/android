@@ -161,7 +161,7 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
             HashMap<String, String> values = new HashMap<>();
             values.put(positionAttributes[0], Float.toString(positionsValues[0]));
             values.put(positionAttributes[1], Float.toString(positionsValues[1]));
-            panel.setKeyframeAttributes(selected.getModel(), values);
+            panel.setKeyframeAttributes(values);
           }
         }
       }

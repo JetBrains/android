@@ -15,36 +15,34 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.attributeEditor;
 
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutAttributePanel;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.TimeLineIcons;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Set;
 import java.util.Vector;
+
+import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
 
 /**
  * Used to show custom attributes
  */
 public class CustomAttributePanel extends TagPanel {
-  Vector<String> colNames = new Vector<String>(Arrays.asList("Name", "Value"));
-  Vector<Vector<Object>> data = new Vector<>();
-  DefaultTableModel myTableModel = new DefaultTableModel(data, colNames);
-  JBPopupMenu myPopupMenu = new JBPopupMenu("Add Attribute");
-  MotionSceneModel.CustomAttributes myCustomAttributes;
+  private final Vector<String> colNames = new Vector<String>(Arrays.asList("Name", "Value"));
+  private final Vector<Vector<Object>> data = new Vector<>();
+  private final DefaultTableModel myTableModel = new CustomAttrTableModel(data, colNames);
+  private final JBPopupMenu myPopupMenu = new JBPopupMenu("Add Attribute");
+  private MotionSceneModel.CustomAttributes myCustomAttributes;
 
   public CustomAttributePanel(MotionLayoutAttributePanel panel) {
     super(panel);
@@ -56,6 +54,7 @@ public class CustomAttributePanel extends TagPanel {
     int pix = JBUI.scale(5);
     setBorder(JBUI.Borders.empty(0, pix));
 
+    myTable.setSelectionMode(SINGLE_SELECTION);
     myTable.setDefaultRenderer(EditorUtils.AttributesNamesHolder.class, new EditorUtils.AttributesNamesCellRenderer());
     myTable.setDefaultRenderer(String.class, new EditorUtils.AttributesValueCellRenderer());
 
@@ -76,13 +75,8 @@ public class CustomAttributePanel extends TagPanel {
     });
 
     myPopupMenu.add(new JMenuItem("test1"));
-
-    myAddRemovePanel.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mousePressed(MouseEvent e) {
-        myPopupMenu.show(e.getComponent(), e.getX(), e.getY());
-      }
-    });
+    myAddRemovePanel.myAddButton.setVisible(false);
+    myAddRemovePanel.myRemoveButton.setVisible(false);
 
     GridBagConstraints gbc = new GridBagConstraints();
 
@@ -112,45 +106,45 @@ public class CustomAttributePanel extends TagPanel {
   }
 
   @Override
-  protected void deleteTag(NlModel nlModel) {
-    myCustomAttributes.deleteTag(nlModel);
+  protected void deleteTag() {
+    if (myCustomAttributes != null && myCustomAttributes.deleteTag()) {
+      setVisible(false);
+    }
   }
 
   @Override
-  protected void deleteAttr(NlModel nlModel, int selection) {
-  }
-
-  public ActionListener myAddItemAction = new ActionListener() {
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      String s = ((JMenuItem)e.getSource()).getText();
-      data.add(new Vector<Object>(Arrays.asList(s, "")));
-      myTableModel.fireTableRowsInserted(data.size() - 1, data.size());
-    }
-  };
-
-  private void setupPopup(MotionSceneModel.CustomAttributes tag) {
-    myPopupMenu.removeAll();
-    String[] names = tag.getPossibleAttr();
-    Set<String> current = tag.getAttributes().keySet();
-    for (int i = 0; i < names.length; i++) {
-      if (current.contains(names[i])) {
-        continue;
-      }
-      JMenuItem menuItem = new JMenuItem(names[i]);
-      menuItem.addActionListener(myAddItemAction);
-      myPopupMenu.add(menuItem);
-    }
+  protected void deleteAttr(int selection) {
+    throw new UnsupportedOperationException();
   }
 
   public void setTag(MotionSceneModel.CustomAttributes tag) {
+    myCustomAttributes = tag;
     HashMap<String, Object> attr = tag.getAttributes();
     data.clear();
     for (String s : attr.keySet()) {
       Vector<Object> v = new Vector<Object>(Arrays.asList(s, attr.get(s)));
       data.add(v);
     }
+    data.sort(Comparator.comparing(row -> ((String)row.get(0))));
     myTableModel.fireTableDataChanged();
-    setupPopup(tag);
+  }
+
+  private class CustomAttrTableModel extends DefaultTableModel {
+
+    private CustomAttrTableModel(@NotNull Vector data, @NotNull Vector columnNames) {
+      super(data, columnNames);
+    }
+
+    @Override
+    public void setValueAt(@NotNull Object value, int rowIndex, int columnIndex) {
+      super.setValueAt(value, rowIndex, columnIndex);
+      String key = getValueAt(rowIndex, 0).toString();
+      myCustomAttributes.setValue(key, (String)value);
+    }
+
+    @Override
+    public boolean isCellEditable(int rowIndex, int columnIndex) {
+      return columnIndex == 1;
+    }
   }
 }
