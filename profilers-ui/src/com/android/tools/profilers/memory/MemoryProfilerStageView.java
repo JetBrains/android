@@ -44,6 +44,7 @@ import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.IconUtil;
 import com.intellij.util.PlatformIcons;
+import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
@@ -603,6 +604,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     headingPanel.add(toolbar, BorderLayout.WEST);
 
     JPanel buttonToolbar = new JPanel(createToolbarLayout());
+    buttonToolbar.setBorder(new JBEmptyBorder(3, 0, 0, 0));
+    buttonToolbar.setOpaque(false);
     if (!getStage().isMemoryCaptureOnly()) {
       buttonToolbar.add(getSelectionTimeLabel());
     }
@@ -615,7 +618,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       filterComponent.addOnFilterChange((pattern, model) -> getStage().selectCaptureFilter(pattern, model));
       headingPanel.add(filterComponent, BorderLayout.SOUTH);
       filterComponent.setVisible(false);
-      filterComponent.setBorder(AdtUiUtils.DEFAULT_TOP_BORDER);
+      filterComponent.setBorder(new JBEmptyBorder(0, 4, 0, 0));
       FilterComponent.configureKeyBindingAndFocusBehaviors(capturePanel, filterComponent, button);
     }
     headingPanel.add(buttonToolbar, BorderLayout.EAST);

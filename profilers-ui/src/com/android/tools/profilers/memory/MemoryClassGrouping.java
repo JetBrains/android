@@ -15,29 +15,30 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.flat.FlatComboBox;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping;
-import com.intellij.util.ui.JBEmptyBorder;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.openapi.ui.ComboBox;
+import com.intellij.ui.EnumComboBoxModel;
+import com.intellij.ui.ListCellRendererWrapper;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.plaf.basic.BasicComboBoxRenderer;
 
 public class MemoryClassGrouping extends AspectObserver {
   @NotNull private final MemoryProfilerStage myStage;
-  @NotNull private final FlatComboBox<ClassGrouping> myComboBox;
+  @NotNull private final JComboBox<ClassGrouping> myComboBox;
 
   public MemoryClassGrouping(@NotNull MemoryProfilerStage stage) {
     myStage = stage;
 
     myStage.getAspect().addDependency(this).onChange(MemoryProfilerAspect.CLASS_GROUPING, this::groupingChanged);
-    myComboBox = new FlatComboBox<>();
-    myComboBox.setModel(new DefaultComboBoxModel<>(ClassGrouping.values()));
-    BasicComboBoxRenderer comboBoxRenderer = new BasicComboBoxRenderer();
-    comboBoxRenderer.setBorder(new JBEmptyBorder(UIUtil.getListCellPadding()));
-    myComboBox.setRenderer(comboBoxRenderer);
+    myComboBox = new ComboBox<>(new EnumComboBoxModel<>(ClassGrouping.class));
+    myComboBox.setRenderer(new ListCellRendererWrapper<ClassGrouping>() {
+      @Override
+      public void customize(JList list, ClassGrouping value, int index, boolean selected, boolean hasFocus) {
+        setText(value.myLabel);
+      }
+    });
     myComboBox.addActionListener(e -> {
       Object item = myComboBox.getSelectedItem();
       if (item != null && item instanceof ClassGrouping) {
@@ -47,7 +48,7 @@ public class MemoryClassGrouping extends AspectObserver {
   }
 
   @NotNull
-  FlatComboBox<ClassGrouping> getComponent() {
+  JComboBox<ClassGrouping> getComponent() {
     return myComboBox;
   }
 

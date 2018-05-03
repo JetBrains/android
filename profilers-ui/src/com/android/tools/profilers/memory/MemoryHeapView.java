@@ -15,10 +15,10 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.flat.FlatComboBox;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.HeapSet;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.ColoredListCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,7 +30,7 @@ import java.util.Objects;
 public class MemoryHeapView extends AspectObserver {
   @NotNull private final MemoryProfilerStage myStage;
 
-  @NotNull private FlatComboBox<HeapSet> myComboBox = new FlatComboBox<>();
+  @NotNull private JComboBox<HeapSet> myComboBox = new ComboBox<>();
 
   @Nullable private CaptureObject myCaptureObject = null;
 
@@ -53,7 +53,7 @@ public class MemoryHeapView extends AspectObserver {
   }
 
   @NotNull
-  FlatComboBox<HeapSet> getComponent() {
+  JComboBox<HeapSet> getComponent() {
     return myComboBox;
   }
 

@@ -15,21 +15,19 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.TabularLayout;
-import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.util.ui.JBEmptyBorder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.io.FileOutputStream;
-import java.io.IOException;
+
+import static com.android.tools.profilers.ProfilerLayout.createToolbarLayout;
 
 public final class MemoryCaptureView extends AspectObserver {
   private static Logger getLogger() {
@@ -50,10 +48,9 @@ public final class MemoryCaptureView extends AspectObserver {
       .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::reset)
       .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::refresh);
 
-    myPanel = new JPanel(new TabularLayout("Fit-,Fit-", "*"));
-
+    myPanel = new JPanel(createToolbarLayout());
     myLabel = new JLabel();
-    myLabel.setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 3));
+    myLabel.setBorder(new JBEmptyBorder(0, 11, 0, 3));
     reset();
   }
 
@@ -80,8 +77,8 @@ public final class MemoryCaptureView extends AspectObserver {
 
     if (validCapture) {
       myLabel.setText(myCaptureObject.getName());
-      myPanel.add(myLabel, new TabularLayout.Constraint(0, 0));
-      myPanel.add(new FlatSeparator(), new TabularLayout.Constraint(0, 1));
+      myPanel.add(myLabel);
+      myPanel.add(new FlatSeparator());
     }
   }
 }
