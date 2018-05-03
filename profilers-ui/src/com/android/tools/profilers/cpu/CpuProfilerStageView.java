@@ -29,7 +29,6 @@ import com.android.tools.adtui.model.DefaultDurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
-import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.ui.HideablePanel;
 import com.android.tools.profiler.proto.CpuProfiler.TraceInitiationType;
 import com.android.tools.profilers.*;
@@ -49,6 +48,7 @@ import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.IconUtil;
+import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -289,7 +289,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     mySplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
     getComponent().add(mySplitter, BorderLayout.CENTER);
 
-    myCaptureButton = new CommonButton();
+    myCaptureButton = new JButton();
     myCaptureButton.addActionListener(event -> capture());
 
     myCaptureStatus = new JLabel("");
@@ -424,9 +424,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     InstructionsPanel infoMessage = new InstructionsPanel.Builder(
       new TextInstruction(headerMetrics, "Thread details unavailable"),
       new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-      new TextInstruction(bodyMetrics, "Click the record button "),
-      new IconInstruction(StudioIcons.Profiler.Toolbar.RECORD, PROFILING_INSTRUCTIONS_ICON_PADDING, null),
-      new TextInstruction(bodyMetrics, " to start CPU profiling"),
+      new TextInstruction(bodyMetrics, "Click the record button to start CPU profiling"),
       new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
       new TextInstruction(bodyMetrics, "or select a capture in the timeline."))
       .setColors(JBColor.foreground(), null)
@@ -810,8 +808,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   private void installRecordMenuItem(ContextMenuInstaller contextMenuInstaller) {
     ProfilerAction record = new ProfilerAction.Builder(() -> myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING
                                                              ? "Stop recording" : "Record CPU trace")
-      .setIcon(() -> myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING
-                     ? StudioIcons.Profiler.Toolbar.STOP_RECORDING : StudioIcons.Profiler.Toolbar.RECORD)
       .setEnableBooleanSupplier(() -> !myStage.isImportTraceMode() && (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING
                                                                        || myStage.getCaptureState() == CpuProfilerStage.CaptureState.IDLE))
       .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_R, AdtUiUtils.getActionMask()))
@@ -856,10 +852,13 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     JPanel toolbar = new JPanel(createToolbarLayout());
 
     toolbar.add(myProfilingConfigurationView.getComponent());
-    toolbar.add(Box.createHorizontalStrut(3));
     toolbar.add(myCaptureButton);
     toolbar.add(myCaptureStatus);
 
+    // The toolbar is 30pt high so we change the default height of the button/combo box to be 29pt so we have a padding.
+    myCaptureButton.setPreferredSize(JBDimension.create(myCaptureButton.getPreferredSize()).withHeight(TOOLBAR_HEIGHT - 1));
+    myProfilingConfigurationView.getComponent().setPreferredSize(
+      JBDimension.create(myProfilingConfigurationView.getComponent().getPreferredSize()).withHeight(TOOLBAR_HEIGHT - 1));
     SessionsManager sessions = getStage().getStudioProfilers().getSessionsManager();
     sessions.addDependency(this).onChange(SessionAspect.SELECTED_SESSION, () -> myCaptureButton.setEnabled(shouldEnableCaptureButton()));
     myCaptureButton.setEnabled(shouldEnableCaptureButton());
@@ -893,12 +892,10 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     switch (myStage.getCaptureState()) {
       case IDLE:
         myCaptureButton.setEnabled(true);
+        myCaptureButton.setText("Record");
         myCaptureStatus.setText("");
-        myCaptureButton.setToolTipText("Record a method trace");
-        myCaptureButton.setIcon(StudioIcons.Profiler.Toolbar.RECORD);
+        myCaptureButton.setToolTipText("Record a trace");
         myProfilingConfigurationView.getComponent().setEnabled(true);
-        // TODO: replace with loading icon
-        myCaptureButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.RECORD));
         break;
       case CAPTURING:
         if (getStage().getCaptureInitiationType().equals(TraceInitiationType.INITIATED_BY_API)) {
@@ -907,12 +904,10 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         else {
           myCaptureButton.setEnabled(true);
         }
+        myCaptureButton.setText("Stop");
         myCaptureStatus.setText("");
         myCaptureButton.setToolTipText("Stop recording");
-        myCaptureButton.setIcon(StudioIcons.Profiler.Toolbar.STOP_RECORDING);
         myProfilingConfigurationView.getComponent().setEnabled(false);
-        // TODO: replace with loading icon
-        myCaptureButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.STOP_RECORDING));
         break;
       case PARSING:
         myCaptureViewLoading.startLoading();
@@ -970,9 +965,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   private void updateCaptureElapsedTime() {
     if (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING) {
       long elapsedTimeUs = myStage.getCaptureElapsedTimeUs();
-      String text =
-        String.format("Recording - %s", TimeFormatter.getSemiSimplifiedClockString(elapsedTimeUs));
-      myCaptureStatus.setText(text);
+      myCaptureStatus.setText(TimeFormatter.getSemiSimplifiedClockString(elapsedTimeUs));
     }
   }
 
