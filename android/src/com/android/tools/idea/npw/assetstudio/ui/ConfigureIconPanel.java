@@ -542,7 +542,6 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
     myActiveAssetBindings.releaseAll();
     myListeners.releaseAll();
     myAssetListeners.clear();
-    myIconGenerator.dispose();
   }
 
   private enum AssetType {
