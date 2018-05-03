@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.*;
 import com.android.ide.common.gradle.model.*;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
@@ -68,7 +69,7 @@ import static com.intellij.util.ArrayUtil.contains;
  */
 public class AndroidModuleModel implements AndroidModel, ModuleModel {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 3L;
+  private static final long serialVersionUID = 4L;
 
   private static final String[] TEST_ARTIFACT_NAMES = {ARTIFACT_UNIT_TEST, ARTIFACT_ANDROID_TEST};
   private static final AndroidVersion NOT_SPECIFIED = new AndroidVersion(0, null);
@@ -170,10 +171,10 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   private void populateVariantsByName() {
     myAndroidProject.forEachVariant(variant -> myVariantsByName.put(variant.getName(), variant));
     if (myUsingSingleVariantSync) {
-      myVariantNames.addAll(myAndroidProject.getVariantNames());
+      myVariantNames = new HashSet<>(myAndroidProject.getVariantNames());
     }
     else {
-      myVariantNames.addAll(myVariantsByName.keySet());
+      myVariantNames = new HashSet<>(myVariantsByName.keySet());
     }
   }
 
@@ -736,12 +737,18 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     return null;
   }
 
+  @VisibleForTesting
+  boolean isUsingSingleVariantSync() {
+    return myUsingSingleVariantSync;
+  }
+
   private void writeObject(ObjectOutputStream out) throws IOException {
     out.writeObject(myProjectSystemId);
     out.writeObject(myModuleName);
     out.writeObject(myRootDirPath);
     out.writeObject(myAndroidProject);
     out.writeObject(mySelectedVariantName);
+    out.writeBoolean(myUsingSingleVariantSync);
   }
 
   private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
@@ -749,6 +756,8 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     myModuleName = (String)in.readObject();
     myRootDirPath = (File)in.readObject();
     myAndroidProject = (IdeAndroidProject)in.readObject();
+    String variantName = (String)in.readObject();
+    myUsingSingleVariantSync = in.readBoolean();
 
     parseAndSetModelVersion();
     myFeatures = new AndroidModelFeatures(myModelVersion);
@@ -762,7 +771,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     populateProductFlavorsByName();
     populateVariantsByName();
 
-    setSelectedVariantName((String)in.readObject());
+    setSelectedVariantName(variantName);
   }
 
   private void parseAndSetModelVersion() {
