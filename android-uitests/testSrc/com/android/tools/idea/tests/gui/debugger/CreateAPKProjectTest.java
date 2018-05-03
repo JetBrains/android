@@ -79,7 +79,7 @@ public class CreateAPKProjectTest extends DebuggerTestBase {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/70731570
   public void createProjectFromLocallyBuiltApk() throws Exception {
     File projectRoot = buildApkLocally("ApkDebug");
 
