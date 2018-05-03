@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.FAKE;
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.DEFAULT_TRANSFORM;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.*;
 
 public class GradlePropertyModelImpl implements GradlePropertyModel {
   @Nullable protected GradleDslElement myElement;
@@ -401,6 +401,29 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     element.rename(name);
     // myName needs to be consistent with the elements name.
     myName = myElement.getName();
+  }
+
+  @Override
+  public boolean isModified() {
+    GradleDslElement element = myElement;
+    if (element != null) {
+      if (element instanceof FakeElement) {
+        // FakeElements need special handling as they are not connected to the tree doe findOriginalElement will be null.
+        return isFakeElementModified((FakeElement)element);
+      }
+
+      GradleDslElement originalElement = findOriginalElement(myPropertyHolder, element);
+      return originalElement == null || isElementModified(originalElement, element);
+    }
+
+    GradlePropertiesDslElement holder;
+    if (myPropertyHolder instanceof GradleDslMethodCall) {
+      holder = ((GradleDslMethodCall)myPropertyHolder).getArgumentsElement();
+    }
+    else {
+      holder = (GradlePropertiesDslElement)myPropertyHolder;
+    }
+    return holder.getOriginalElementForNameAndType(myName, myPropertyType) != null;
   }
 
   @Override

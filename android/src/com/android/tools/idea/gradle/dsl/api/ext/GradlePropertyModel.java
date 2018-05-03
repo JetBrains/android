@@ -294,4 +294,9 @@ public interface GradlePropertyModel {
    * explicit name, i.e list values. This method will rename keys if called on properties inside maps.
    */
   void rename(@NotNull String name);
+
+  /**
+   * @return whether or not this property has been modified since it was obtained from the file.
+   */
+  boolean isModified();
 }

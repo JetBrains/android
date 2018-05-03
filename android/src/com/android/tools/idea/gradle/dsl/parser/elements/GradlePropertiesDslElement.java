@@ -65,10 +65,10 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   private void addPropertyInternal(@NotNull GradleDslElement element, @NotNull ElementState state) {
     if (this instanceof ExtDslElement && state == TO_BE_ADDED) {
       int index = reorderAndMaybeGetNewIndex(element);
-      myProperties.addElementAtIndex(element, state, index);
+      myProperties.addElementAtIndex(element, state, index, false);
     }
     else {
-      myProperties.addElement(element, state);
+      myProperties.addElement(element, state, state == EXISTING);
     }
 
     if (state == TO_BE_ADDED) {
@@ -77,7 +77,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   }
 
   private void addPropertyInternal(int index, @NotNull GradleDslElement element, @NotNull ElementState state) {
-    myProperties.addElementAtIndex(element, state, index);
+    myProperties.addElementAtIndex(element, state, index, state == EXISTING);
     if (state == TO_BE_ADDED) {
       updateDependenciesOnAddElement(element);
     }
@@ -369,6 +369,27 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     return myProperties.getElementsWhere(e -> e.myElement.getName().equals(propertyName) && PROPERTY_FILTER.test(e));
   }
 
+  @NotNull
+  public List<GradleDslElement> getOriginalElements() {
+    return myProperties.myElements.stream().filter(e -> e.myExistsOnFile).map(e -> e.myElement).collect(Collectors.toList());
+  }
+
+  @Nullable
+  public GradleDslElement getOriginalElementForNameAndType(@NotNull String name, @NotNull PropertyType type) {
+    return myProperties.myElements.stream().filter(
+      e -> e.myElement.getName().equals(name) && e.myExistsOnFile && e.myElement.getElementType() == type).map(e -> e.myElement)
+                                  .reduce((a, b) -> b).orElse(null);
+  }
+
+  /**
+   * @return all the current elements with the state TO_BE_ADDED or EXISTING.
+   */
+  @NotNull
+  public List<GradleDslElement> getCurrentElements() {
+    return myProperties.myElements.stream().filter(e -> e.myElementState == TO_BE_ADDED || e.myElementState == EXISTING)
+                                  .map(e -> e.myElement).collect(Collectors.toList());
+  }
+
   /**
    * Adds the given element to the to-be added elements list, which are applied when {@link #apply()} method is invoked
    * or discarded when the {@lik #resetState()} method is invoked.
@@ -634,10 +655,14 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     private static class ElementItem {
       @NotNull private GradleDslElement myElement;
       @NotNull private ElementState myElementState;
+      // Whether or not this element item exists in THIS DSL file. While element state == EXISTING implies this is true,
+      // the reserve doesn't apply.
+      private boolean myExistsOnFile;
 
-      private ElementItem(@NotNull GradleDslElement element, @NotNull ElementState state) {
+      private ElementItem(@NotNull GradleDslElement element, @NotNull ElementState state, boolean existsOnFile) {
         myElement = element;
         myElementState = state;
+        myExistsOnFile = existsOnFile;
       }
     }
 
@@ -689,12 +714,12 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
       return lastElement;
     }
 
-    private void addElement(@NotNull GradleDslElement newElement, @NotNull ElementState state) {
-      myElements.add(new ElementItem(newElement, state));
+    private void addElement(@NotNull GradleDslElement newElement, @NotNull ElementState state, boolean onFile) {
+      myElements.add(new ElementItem(newElement, state, onFile));
     }
 
-    private void addElementAtIndex(@NotNull GradleDslElement newElement, @NotNull ElementState state, int index) {
-      myElements.add(getRealIndex(index, newElement), new ElementItem(newElement, state));
+    private void addElementAtIndex(@NotNull GradleDslElement newElement, @NotNull ElementState state, int index, boolean onFile) {
+      myElements.add(getRealIndex(index, newElement), new ElementItem(newElement, state, onFile));
     }
 
     // Note: The index position is calculated AFTER the element has been removed from the list.
@@ -760,7 +785,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
           if (oldState == APPLIED || oldState == HIDDEN) {
             newState = oldState;
           }
-          myElements.add(i, new ElementItem(newElement, newState));
+          myElements.add(i, new ElementItem(newElement, newState, false));
           return oldState;
         }
       }
