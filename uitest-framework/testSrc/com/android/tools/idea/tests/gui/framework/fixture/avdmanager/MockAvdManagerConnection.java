@@ -74,7 +74,7 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
 
   public void killEmulator() {
     try {
-      AndroidDebugBridge.init(false);
+      AndroidDebugBridge.initIfNeeded(false);
       AndroidDebugBridge adb = AndroidDebugBridge.createBridge(getAdbBinary().getAbsolutePath(), false);
 
       Collection<IDevice> emulatorDevices = new ArrayList<>();
