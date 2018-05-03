@@ -19,10 +19,16 @@ import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBTextField
+import com.intellij.ui.components.fields.ExtendableTextField
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.StatusText
+import java.awt.Component
+import java.awt.Graphics
+import java.awt.Insets
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import javax.swing.*
+import javax.swing.border.Border
 import javax.swing.plaf.basic.BasicComboBoxEditor
 
 /**
@@ -38,6 +44,8 @@ interface TextRenderer {
 abstract class RenderedComboBox<T>(
   private val itemsModel: DefaultComboBoxModel<T>
 ) : JComboBox<T>() {
+
+  interface Extension : ExtendableTextField.Extension
 
   private var lastValueSet: T? = null
   protected var beingLoaded = false
@@ -121,9 +129,21 @@ abstract class RenderedComboBox<T>(
 
     override fun getItem(): Any? = parseEditorText(editor.text.trim())
 
+
     override fun createEditorComponent(): JTextField {
-      val field = JBTextField()
-      field.border = null
+      val field =
+        object : ExtendableTextField() {
+          init {
+            setExtensions(createEditorExtensions())
+          }
+
+          override fun setBorder(border: Border?) {
+            // ComboBox sets empty borders and we need to reserve space for icons. If [ExtendableTextField] is used as a standalone
+            // component it creates DarculaTextBorder which which similarly reserves the required space.
+            // We do not check whether [border] is [DarculaTextBorder] here to avoid not necessary dependencies.
+            super.setBorder(border?.adjustBorder(this))
+          }
+        }
       field.addFocusListener(object : FocusListener {
         override fun focusGained(e: FocusEvent) {
           update(e)
@@ -145,10 +165,10 @@ abstract class RenderedComboBox<T>(
       return field
     }
 
-    override fun getEditorComponent(): JBTextField {
-      return super.getEditorComponent() as JBTextField
-    }
+    override fun getEditorComponent(): JBTextField = super.getEditorComponent() as JBTextField
   }
+
+  open fun createEditorExtensions(): List<Extension> = listOf()
 
   private val comboBoxRenderer = object : ColoredListCellRenderer<T>() {
     override fun customizeCellRenderer(list: JList<out T>,
@@ -178,3 +198,18 @@ internal fun SimpleColoredComponent.toRenderer() = object : TextRenderer {
     this@toRenderer.append(text, attributes)
   }
 }
+
+class AdjustedBorder(val border: Border, val component: Component, val icons: Int) : Border {
+  override fun isBorderOpaque(): Boolean = border.isBorderOpaque
+
+  override fun paintBorder(c: Component?, g: Graphics?, x: Int, y: Int, width: Int, height: Int) =
+    border.paintBorder(c, g, x, y, width, height)
+
+  override fun getBorderInsets(c: Component?): Insets =
+    border.getBorderInsets(c).let {
+      Insets(it.top, it.left, it.bottom, it.right + if (component.isFocusOwner) icons else 0)
+    }
+}
+
+private fun Border.adjustBorder(component: ExtendableTextField) =
+  AdjustedBorder(this, component, component.extensions?.sumBy { it.preferredSpace } ?: 0)
