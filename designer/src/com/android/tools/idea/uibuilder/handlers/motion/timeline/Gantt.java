@@ -115,6 +115,10 @@ public class Gantt extends JPanel implements GanttCommands {
     myColumnHead.addMouseMotionListener(timeLineMouse);
     myColumnHead.addMouseWheelListener(timeLineMouse);
     myColumnHead.addMouseListener(timeLineMouse);
+
+    // Require some extra vertical space such that we initially show a few lines in the chart.
+    Dimension min = getMinimumSize();
+    setMinimumSize(new Dimension(min.width, 2 * min.height));
   }
 
   void selectionChanged() {

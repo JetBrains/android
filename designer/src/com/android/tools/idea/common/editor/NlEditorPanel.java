@@ -18,6 +18,7 @@ package com.android.tools.idea.common.editor;
 import com.android.tools.adtui.common.AdtPrimaryPanel;
 import com.android.tools.adtui.workbench.*;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.common.error.IssuePanelSplitter;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -27,7 +28,6 @@ import com.android.tools.idea.naveditor.structure.StructurePanel;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.common.error.IssuePanelSplitter;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupToolDefinition;
 import com.android.tools.idea.uibuilder.palette2.PaletteDefinition;
@@ -45,6 +45,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.JBSplitter;
+import com.intellij.ui.OnePixelSplitter;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -162,10 +163,17 @@ public class NlEditorPanel extends JPanel implements Disposable {
 
     JComponent toolbarComponent = mySurface.getActionManager().createToolbar();
     myContentPanel.add(toolbarComponent, BorderLayout.NORTH);
-    myContentPanel.add(mySurface);
 
     if (myAccessoryPanel != null) {
-      myContentPanel.add(myAccessoryPanel, BorderLayout.SOUTH);
+      boolean verticalSplitter = StudioFlags.NELE_MOTION_HORIZONTAL.get();
+      OnePixelSplitter splitter = new OnePixelSplitter(verticalSplitter, 1f, 0.5f, 1f);
+      splitter.setHonorComponentsMinimumSize(true);
+      splitter.setFirstComponent(mySurface);
+      splitter.setSecondComponent(myAccessoryPanel);
+      myContentPanel.add(splitter, BorderLayout.CENTER);
+    }
+    else {
+      myContentPanel.add(mySurface, BorderLayout.CENTER);
     }
 
     List<ToolWindowDefinition<DesignSurface>> tools = new ArrayList<>(4);

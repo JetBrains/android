@@ -255,6 +255,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     return myAdaptiveIconShape;
   }
 
+  @NotNull
   public JPanel getAccessoryPanel() {
     return myAccessoryPanel;
   }
