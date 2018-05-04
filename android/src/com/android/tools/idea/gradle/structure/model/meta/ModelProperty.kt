@@ -55,7 +55,11 @@ interface ModelProperty<in ModelT, PropertyT : Any> :
    */
   val description: String
 
-  fun getDefaultValue(model: ModelT): PropertyT?
+  /**
+   * The function to get the default value of the property for a given model, or null if the default value of the property cannot be
+   * determined.
+   */
+  val defaultValueGetter: ((ModelT) -> PropertyT?)?
 }
 
 /**
@@ -144,7 +148,7 @@ fun <ContextT, ModelT, PropertyT : Any> ModelSimpleProperty<ContextT, ModelT, Pr
 
     override val description: String = it.description
 
-    override fun getDefaultValue(model: Unit): PropertyT? = it.getDefaultValue(boundModel)
+    override val defaultValueGetter: ((Unit) -> PropertyT?)? = it.defaultValueGetter?.let { getter -> { _ -> getter(boundModel) } }
 
     override fun getValue(thisRef: Unit, property: KProperty<*>): ParsedValue<PropertyT> = it.getValue(boundModel, property)
 

@@ -155,7 +155,7 @@ CollectionPropertyEditor<ContextT, ModelT, out ModelPropertyT : ModelCollectionP
       override fun getParsedValue(model: Unit): ParsedValue<ValueT> = getValueAt(currentRow)
       override fun getResolvedValue(model: Unit): ResolvedValue<ValueT> = ResolvedValue.NotResolved()
       override fun setParsedValue(model: Unit, value: ParsedValue<ValueT>) = setValueAt(currentRow, value)
-      override fun getDefaultValue(model: Unit): ValueT? = null
+      override val defaultValueGetter: ((Unit) -> ValueT?)? = null
       override fun parse(context: ContextT, value: String): ParsedValue<ValueT> = property.parse(context, value)
       override fun format(context: ContextT, value: ValueT): String = property.format(context, value)
       override fun getKnownValues(context: ContextT, model: Unit): ListenableFuture<KnownValues<ValueT>> =
@@ -175,7 +175,7 @@ class SimplePropertyStub<ValueT : Any> : ModelSimpleProperty<Any?, Unit, ValueT>
   override fun setParsedValue(model: Unit, value: ParsedValue<ValueT>) = Unit
   override fun getResolvedValue(model: Unit): ResolvedValue<ValueT> = ResolvedValue.NotResolved()
   override val description: String = ""
-  override fun getDefaultValue(model: Unit): ValueT? = null
+  override val defaultValueGetter: ((Unit) -> ValueT?)? = null
   override fun getValue(thisRef: Unit, property: KProperty<*>): ParsedValue<ValueT> = ParsedValue.NotSet
   override fun setValue(thisRef: Unit, property: KProperty<*>, value: ParsedValue<ValueT>) = Unit
   override fun parse(context: Any?, value: String): ParsedValue<ValueT> = ParsedValue.NotSet
