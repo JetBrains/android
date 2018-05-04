@@ -86,12 +86,15 @@ public class Gantt extends JPanel implements GanttCommands {
         repaint();
       }
 
+      private float clamp(float value, float min, float max) {
+        return Math.max(min, Math.min(value, max));
+      }
+
       @Override
       public void mouseDragged(MouseEvent e) {
         int pos = e.getX();
-        myChart.setTimeCursorMs((pos - myChart.myChartLeftInset) / myChart.myPixelsPerMs);
-        myChart.setTimeCursorMs(Math.max(0, myChart.getTimeCursorMs()));
-        myChart.setTimeCursorMs(Math.min(myChart.myAnimationTotalTimeMs, myChart.getTimeCursorMs()));
+        float timeCursorMs = (pos - myChart.myChartLeftInset) / myChart.myPixelsPerMs;
+        myChart.setTimeCursorMs(clamp(timeCursorMs, 0, myChart.myAnimationTotalTimeMs));
         float percent = myChart.getTimeCursorMs() / myChart.myAnimationTotalTimeMs;
 
         JViewport viewPort = (JViewport)SwingUtilities.getAncestorOfClass(JViewport.class, myRowGraphc);
@@ -108,6 +111,17 @@ public class Gantt extends JPanel implements GanttCommands {
           rec.x += dx / 2; // TODO fix this is a simple hack to prevent ugly double paint
           myRowGraphc.scrollRectToVisible(rec);
         }
+        repaint();
+      }
+
+      @Override
+      public void mouseReleased(MouseEvent e) {
+        // quantize on mouse up
+        float pos = ((int)(100 * myChart.getTimeCursorMs() / myChart.getAnimationTotalTimeMs())) / 100f;
+        float timeCursorMs  = pos * myChart.getAnimationTotalTimeMs();
+        myChart.setTimeCursorMs(clamp(timeCursorMs, 0, myChart.myAnimationTotalTimeMs));
+        float percent = myChart.getTimeCursorMs() / myChart.myAnimationTotalTimeMs;
+        myGanttController.framePosition(percent);
         repaint();
       }
     };
