@@ -24,6 +24,7 @@ import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.EmptyIcon;
+import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
@@ -50,7 +51,7 @@ class ViewList extends JPanel implements Gantt.ChartElement {
   Chart myChart;
   boolean myInternal;
 
-  private static final Icon mySpacerIcon = JBUI.scale(EmptyIcon.create(0, Chart.ourGraphHeight));
+  private static final Icon mySpacerIcon = JBUI.scale(EmptyIcon.create(0, 0));
 
   JPanel myAddPanel = new JPanel(null) {
     @Override
@@ -377,8 +378,10 @@ class ViewList extends JPanel implements Gantt.ChartElement {
   }
 
   private static class MyDefaultTreeCellRenderer extends DefaultTreeCellRenderer {
+    public static final JBEmptyBorder TEXT_PADDING_BORDER = JBUI.Borders.empty(2, 0);
 
     MyDefaultTreeCellRenderer() {
+      setBorder(TEXT_PADDING_BORDER);
       setBackgroundNonSelectionColor(StudioColorsKt.getSecondaryPanelBackground());
     }
 
