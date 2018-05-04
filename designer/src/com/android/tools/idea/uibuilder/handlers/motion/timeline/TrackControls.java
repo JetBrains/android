@@ -9,11 +9,9 @@ import com.intellij.openapi.ui.popup.LightweightWindowEvent;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.JBUI;
-import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.border.MatteBorder;
 import javax.swing.plaf.ButtonUI;
 import javax.swing.plaf.basic.BasicButtonUI;
 import java.awt.*;
@@ -29,7 +27,7 @@ public class TrackControls extends JPanel {
 
   private final Chart mChart;
 
-  JButton myCircle  = new CommonButton(TimeLineIcons.CIRCLE_PLAY);
+  JButton myCircle  = new CommonButton(TimeLineIcons.SLOW_MOTION);
   JButton myPrevKeyFrame  = new CommonButton(TimeLineIcons.BACKWARD);
   JButton myPlayButton = new CommonButton(TimeLineIcons.PLAY);
   JButton myNextKeyFrame = new CommonButton(TimeLineIcons.FORWARD);
@@ -37,13 +35,6 @@ public class TrackControls extends JPanel {
   public static final int NO_OF_BUTTONS = 5;
 
   JButton[] myButtons = {myCircle, myPrevKeyFrame, myPlayButton, myNextKeyFrame, myLoop};
-  private static final Icon[] myIcons = {
-    StudioIcons.LayoutEditor.Motion.SLOW_MOTION,
-    StudioIcons.LayoutEditor.Motion.GO_TO_START,
-    StudioIcons.LayoutEditor.Motion.PLAY,
-    StudioIcons.LayoutEditor.Motion.GO_TO_END,
-    StudioIcons.LayoutEditor.Motion.LOOP
-  };
 
   static GanttEventListener.Actions[] actions = {
     GanttEventListener.Actions.SLOW_MOTION,
