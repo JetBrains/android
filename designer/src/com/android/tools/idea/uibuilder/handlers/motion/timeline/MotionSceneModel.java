@@ -16,18 +16,23 @@
 package com.android.tools.idea.uibuilder.handlers.motion.timeline;
 
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.NamedNodeMap;
 
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -67,10 +72,33 @@ public class MotionSceneModel {
   // Represents a single view in the motion scene
   public static class MotionSceneView {
     String mid;
+    Icon myIcon;
     MotionSceneModel myModel;
     public ArrayList<KeyPosition> myKeyPositions = new ArrayList<>();
     public ArrayList<KeyAttributes> myKeyAttributes = new ArrayList<>();
     public ArrayList<KeyCycle> myKeyCycles = new ArrayList<>();
+
+    @NotNull
+    public Icon getIcon() {
+      if (myIcon == null) {
+        myIcon = findIcon();
+      }
+      return myIcon;
+    }
+
+    @NotNull
+    private Icon findIcon() {
+      NlComponent component = myModel.myNlModel.find(mid);
+      if (component == null) {
+        return StudioIcons.LayoutEditor.Palette.VIEW;
+      }
+      ViewHandlerManager manager = ViewHandlerManager.get(myModel.myProject);
+      ViewHandler handler = manager.getHandler(component);
+      if (handler == null) {
+        return StudioIcons.LayoutEditor.Palette.VIEW;
+      }
+      return handler.getIcon(component);
+    }
   }
 
   public MotionSceneView getMotionSceneView(@NotNull String viewId) {

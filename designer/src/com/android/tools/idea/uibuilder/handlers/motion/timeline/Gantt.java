@@ -361,6 +361,10 @@ public class Gantt extends JPanel implements GanttCommands {
       return myName;
     }
 
+    public Icon getIcon() {
+      return mKeyFrames.getIcon();
+    }
+
     ViewElement(String name) {
     }
   }
