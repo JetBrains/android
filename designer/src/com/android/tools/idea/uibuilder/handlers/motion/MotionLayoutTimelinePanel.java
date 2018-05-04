@@ -161,7 +161,25 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
       myMotionLayout = component;
       loadMotionScene();
     }
+    updateState();
     addDelegate();
+  }
+
+  public void updateState() {
+    if (myCurrentState == State.TL_UNKNOWN) {
+      float position = myPanel.getChart().getProgress();
+      if (position == 0) {
+        setState(TL_START);
+      } else if (position == 1) {
+        setState(TL_END);
+      } else {
+        setState(TL_UNKNOWN);
+      }
+      SceneComponent root = mySurface.getScene().getRoot();
+      if (root != null) {
+        root.updateTargets();
+      }
+    }
   }
 
   private void addDelegate() {

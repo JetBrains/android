@@ -105,7 +105,8 @@ public class MotionLayoutHandler extends ConstraintLayoutHandler implements NlCo
     if (panel != null) {
       if (panel.getCurrentState() == MotionLayoutTimelinePanel.State.TL_PLAY
           || panel.getCurrentState() == MotionLayoutTimelinePanel.State.TL_PAUSE
-          || panel.getCurrentState() == MotionLayoutTimelinePanel.State.TL_TRANSITION) {
+          || panel.getCurrentState() == MotionLayoutTimelinePanel.State.TL_TRANSITION
+          || panel.getCurrentState() == MotionLayoutTimelinePanel.State.TL_UNKNOWN) {
         ImmutableList.Builder<Target> listBuilder = new ImmutableList.Builder<>();
         listBuilder.add(
           new ConstraintDragTarget()

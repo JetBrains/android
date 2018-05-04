@@ -286,7 +286,7 @@ public class MotionLayoutComponentDelegate implements NlComponentDelegate {
     NlComponent parent = modification.getComponent().getParent();
     ViewInfo info = NlComponentHelperKt.getViewInfo(modification.getComponent());
 
-    if (info.getViewObject() == null) {
+    if (info == null || (info != null && info.getViewObject() == null)) {
       return;
     }
 
