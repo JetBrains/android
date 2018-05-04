@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.kotlin;
 
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
@@ -68,7 +67,7 @@ public class JavaToKotlinConversionTest {
   @Test
   public void testJavaToKotlinConversion() throws Exception {
     IdeFrameFixture ideFrameFixture =
-      guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
+      guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleLocalApplication");
 
     EditorFixture editor = ideFrameFixture.getEditor();
 
