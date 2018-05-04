@@ -86,6 +86,9 @@ class DesignSurfaceTest: LayoutTestCase() {
 }
 
 private class TestDesignSurface(project: Project, disposible: Disposable): DesignSurface(project, SelectionModel(), disposible) {
+  override fun createActionHandler(): DesignSurfaceActionHandler {
+    throw UnsupportedOperationException("Action handler not implemented for TestDesignSurface")
+  }
 
   override fun getSceneScalingFactor() = 1f
 

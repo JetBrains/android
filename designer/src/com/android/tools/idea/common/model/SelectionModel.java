@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.model;
 
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.util.ListenerCollection;
 import com.android.utils.ImmutableCollectors;
 import com.google.common.collect.ImmutableList;
@@ -119,14 +118,5 @@ public class SelectionModel {
   /** Returns true if the given component is part of the selection */
   public boolean isSelected(@NotNull NlComponent component) {
     return mySelection.contains(component);
-  }
-
-  public ItemTransferable getTransferable(long modelId) {
-    ImmutableList<DnDTransferComponent> components =
-      mySelection.stream().map(component -> new DnDTransferComponent(component.getTagName(), component.getTag().getText(),
-                                                                     NlComponentHelperKt.getW(component),
-                                                                     NlComponentHelperKt.getH(component))).collect(
-        ImmutableCollectors.toImmutableList());
-    return new ItemTransferable(new DnDTransferItem(modelId, components));
   }
 }

@@ -20,6 +20,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.TargetProvider;
 import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.naveditor.model.NavComponentHelper;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import org.jetbrains.android.dom.navigation.NavActionElement;
@@ -67,7 +68,7 @@ public class NavScreenTargetProvider implements TargetProvider {
         }
       });
     result.add(new ScreenDragTarget(sceneComponent));
-    if (schema.getDestinationSubtags(nlComponent.getTagName()).containsKey(NavActionElement.class)) {
+    if (NavComponentHelperKt.getSupportsActions(nlComponent)) {
       result.add(new ActionHandleTarget(sceneComponent));
     }
 

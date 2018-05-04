@@ -245,7 +245,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
       ))
       .build();
     mySurface.setModel(model);
-    DesignSurfaceActionHandler handler = new DesignSurfaceActionHandler(mySurface);
+    DesignSurfaceActionHandler handler = new NlDesignSurfaceActionHandler(mySurface);
     DataContext dataContext = Mockito.mock(DataContext.class);
     NlComponent button = model.find("cuteLittleButton");
     mySurface.getSelectionModel().setSelection(ImmutableList.of(button));
@@ -277,7 +277,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
       ))
       .build();
     mySurface.setModel(model);
-    DesignSurfaceActionHandler handler = new DesignSurfaceActionHandler(mySurface);
+    DesignSurfaceActionHandler handler = new NlDesignSurfaceActionHandler(mySurface);
     DataContext dataContext = Mockito.mock(DataContext.class);
     NlComponent button = model.find("cuteLittleButton");
     mySurface.getSelectionModel().setSelection(ImmutableList.of(button));
@@ -313,7 +313,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
       ))
       .build();
     mySurface.setModel(model);
-    DesignSurfaceActionHandler handler = new DesignSurfaceActionHandler(mySurface);
+    DesignSurfaceActionHandler handler = new NlDesignSurfaceActionHandler(mySurface);
     DataContext dataContext = Mockito.mock(DataContext.class);
     NlComponent button = model.find("cuteLittleButton");
     NlComponent button2 = model.find("cuteLittleButton2");
@@ -353,7 +353,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
       ))
       .build();
     mySurface.setModel(model);
-    DesignSurfaceActionHandler handler = new DesignSurfaceActionHandler(mySurface);
+    DesignSurfaceActionHandler handler = new NlDesignSurfaceActionHandler(mySurface);
     DataContext dataContext = Mockito.mock(DataContext.class);
     NlComponent button = model.find("cuteLittleButton");
     NlComponent button2 = model.find("cuteLittleButton2");
@@ -381,7 +381,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
       ))
       .build();
     mySurface.setModel(model);
-    DesignSurfaceActionHandler handler = new DesignSurfaceActionHandler(mySurface);
+    DesignSurfaceActionHandler handler = new NlDesignSurfaceActionHandler(mySurface);
     DataContext dataContext = Mockito.mock(DataContext.class);
     NlComponent button = model.find("cuteLittleButton");
     mySurface.getSelectionModel().setSelection(ImmutableList.of(button));
@@ -414,7 +414,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
       ))
       .build();
     mySurface.setModel(model);
-    DesignSurfaceActionHandler handler = new DesignSurfaceActionHandler(mySurface);
+    DesignSurfaceActionHandler handler = new NlDesignSurfaceActionHandler(mySurface);
     DataContext dataContext = Mockito.mock(DataContext.class);
     NlComponent button = model.find("cuteLittleButton");
     mySurface.getSelectionModel().setSelection(ImmutableList.of(button));

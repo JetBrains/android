@@ -21,10 +21,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurfaceShortcut
 import com.android.tools.idea.gradle.actions.SelectBuildVariantAction
 import com.android.tools.idea.naveditor.actions.*
-import com.android.tools.idea.naveditor.model.isAction
-import com.android.tools.idea.naveditor.model.isDestination
-import com.android.tools.idea.naveditor.model.isNavigation
-import com.android.tools.idea.naveditor.model.uiName
+import com.android.tools.idea.naveditor.model.*
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -83,6 +80,14 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
     group.add(createNestedGraphGroup(mySurface.selectionModel.selection))
 
     group.addSeparator()
+    addCutCopyPasteDeleteGroup(group, actionManager)
+  }
+
+  private fun addCutCopyPasteDeleteGroup(group: DefaultActionGroup,
+                                         actionManager: com.intellij.openapi.actionSystem.ActionManager) {
+    group.add(actionManager.getAction(IdeActions.ACTION_CUT))
+    group.add(actionManager.getAction(IdeActions.ACTION_COPY))
+    group.add(actionManager.getAction(IdeActions.ACTION_PASTE))
     group.add(actionManager.getAction(IdeActions.ACTION_DELETE))
   }
 
@@ -112,7 +117,7 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
     group.add(StartDestinationAction(component))
 
     group.addSeparator()
-    group.add(actionManager.getAction(IdeActions.ACTION_DELETE))
+    addCutCopyPasteDeleteGroup(group, actionManager)
 
     group.addSeparator()
     group.add(gotoComponentAction)
@@ -127,14 +132,13 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
     group.add(EditExistingAction(mySurface, parent, component))
 
     group.addSeparator()
-    group.add(actionManager.getAction(IdeActions.ACTION_DELETE))
+    addCutCopyPasteDeleteGroup(group, actionManager)
   }
 
   private fun createAddActionGroup(component: NlComponent): DefaultActionGroup {
     val group = DefaultActionGroup("Add Action", true)
 
-    val enabled = mySurface.schema.getDestinationSubtags(component.tagName).containsKey(NavActionElement::class.java)
-    if (enabled) {
+    if (component.supportsActions) {
       group.add(ToDestinationAction(mySurface, component))
       group.add(ToSelfAction(mySurface, component))
       group.add(ReturnToSourceAction(mySurface, component))

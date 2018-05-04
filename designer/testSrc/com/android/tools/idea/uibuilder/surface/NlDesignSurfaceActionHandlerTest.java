@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.common.surface;
+package com.android.tools.idea.uibuilder.surface;
 
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurfaceActionHandler;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.ide.CopyPasteManager;
@@ -31,6 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.Mock;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
@@ -41,7 +45,7 @@ import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-public class DesignSurfaceActionHandlerTest extends LayoutTestCase {
+public class NlDesignSurfaceActionHandlerTest extends LayoutTestCase {
 
   private NlDesignSurface mySurface;
   private Disposable myDisposable;
@@ -78,7 +82,7 @@ public class DesignSurfaceActionHandlerTest extends LayoutTestCase {
       }
     };
     mySurface.setModel(myModel);
-    mySurfaceActionHandler = new DesignSurfaceActionHandler(mySurface, myCopyPasteManager);
+    mySurfaceActionHandler = new NlDesignSurfaceActionHandler(mySurface, myCopyPasteManager);
 
     myButton = findFirst(BUTTON);
     myTextView = findFirst(TEXT_VIEW);
@@ -114,7 +118,7 @@ public class DesignSurfaceActionHandlerTest extends LayoutTestCase {
 
       @Override
       public void tryClosure() throws NullPointerException {
-        new DesignSurfaceActionHandler(mySurface).performCopy(context);
+        new NlDesignSurfaceActionHandler(mySurface).performCopy(context);
       }
     });
   }
@@ -138,7 +142,7 @@ public class DesignSurfaceActionHandlerTest extends LayoutTestCase {
 
   public void testPasteWillChangeSelectionToPastedComponent() {
     // Need to use the real copyPasteManager for checking the result of selection model.
-    mySurfaceActionHandler = new DesignSurfaceActionHandler(mySurface, CopyPasteManager.getInstance());
+    mySurfaceActionHandler = new NlDesignSurfaceActionHandler(mySurface);
 
     assertEquals(3, myModel.getComponents().get(0).getChildCount());
 
@@ -214,5 +218,12 @@ public class DesignSurfaceActionHandlerTest extends LayoutTestCase {
       }
     }
     return null;
+  }
+
+  public void testFoo1() {
+    ImmutableList<Integer> l1 = ImmutableList.of(1);
+    List<Integer> l2 = new ArrayList<>();
+    l2.add(1);
+    l2.equals(l1);
   }
 }

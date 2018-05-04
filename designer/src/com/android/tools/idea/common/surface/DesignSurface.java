@@ -32,6 +32,9 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.common.model.ItemTransferable;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.utils.ImmutableCollectors;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -250,7 +253,22 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   public ItemTransferable getSelectionAsTransferable() {
     NlModel model = getModel();
-    return getSelectionModel().getTransferable(model != null ? model.getId() : 0);
+
+    ImmutableList<DnDTransferComponent> components =
+      getSelectionModel().getSelection().stream()
+                         .map(component -> {
+                           // TODO: improve this
+                           int w = 0;
+                           int h = 0;
+                           if (this instanceof NlDesignSurface) {
+                             w = NlComponentHelperKt.getW(component);
+                             h = NlComponentHelperKt.getW(component);
+                           }
+                           return new DnDTransferComponent(component.getTagName(), component.getTag().getText(), w, h);
+                         })
+                         .collect(
+        ImmutableCollectors.toImmutableList());
+    return new ItemTransferable(new DnDTransferItem(model != null ? model.getId() : 0, components));
   }
 
   /**
@@ -1295,10 +1313,13 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
              PlatformDataKeys.CUT_PROVIDER.is(dataId) ||
              PlatformDataKeys.COPY_PROVIDER.is(dataId) ||
              PlatformDataKeys.PASTE_PROVIDER.is(dataId)) {
-      return new DesignSurfaceActionHandler(this);
+      return createActionHandler();
     }
     return myLayeredPane.getData(dataId);
   }
+
+  @NotNull
+  abstract protected DesignSurfaceActionHandler createActionHandler();
 
   /**
    * Returns true we shouldn't currently try to relayout our content (e.g. if some other operations is in progress).
