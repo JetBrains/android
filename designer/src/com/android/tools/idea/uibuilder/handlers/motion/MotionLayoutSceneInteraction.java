@@ -75,6 +75,9 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
   MotionLayoutTimelinePanel.State getState() {
     MotionLayoutTimelinePanel panel = MotionLayoutHandler.getTimeline(myPrimary);
     if (panel != null) {
+      if (panel.getCurrentState() == MotionLayoutTimelinePanel.State.TL_UNKNOWN) {
+        panel.updateState();
+      }
       return panel.getCurrentState();
     }
     return MotionLayoutTimelinePanel.State.TL_UNKNOWN;

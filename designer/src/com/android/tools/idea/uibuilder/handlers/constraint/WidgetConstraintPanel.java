@@ -435,6 +435,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     myWriteAction = new NlWriteCommandAction(Collections.singletonList(component), "Change Widget", () -> {
       myModification.setAttribute(nameSpace, attribute, value);
       myModification.commit();
+      myModification = null;
     });
 
     myTimer.restart();
