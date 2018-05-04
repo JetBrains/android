@@ -129,10 +129,10 @@ class ModelSimplePropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, Proper
     private val getParsedRawValue: ParsedT.() -> DslText?,
     private val setParsedValue: (ParsedT.(PropertyT?) -> Unit),
     private val setParsedRawValue: (ParsedT.(DslText) -> Unit),
-    private val parser: (ContextT, String) -> ParsedValue<PropertyT>,
-    private val formatter: (ContextT, PropertyT) -> String,
-    private val knownValuesGetter: (ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>
-) : ModelSimpleProperty<ContextT, ModelT, PropertyT> {
+    override val parser: (ContextT, String) -> ParsedValue<PropertyT>,
+    override val formatter: (ContextT, PropertyT) -> String,
+    override val knownValuesGetter: (ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>
+) : ModelPropertyBase<ContextT, ModelT, PropertyT>(), ModelSimpleProperty<ContextT, ModelT, PropertyT> {
   override fun getValue(thisRef: ModelT, property: KProperty<*>): ParsedValue<PropertyT> = getParsedValue(thisRef)
 
   override fun setValue(thisRef: ModelT, property: KProperty<*>, value: ParsedValue<PropertyT>) = setParsedValue(thisRef, value)
@@ -173,13 +173,6 @@ class ModelSimplePropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, Proper
   }
 
   override fun getDefaultValue(model: ModelT): PropertyT? = defaultValueGetter(model)
-
-  override fun parse(context: ContextT, value: String): ParsedValue<PropertyT> = parser(context, value)
-
-  override fun format(context: ContextT, value: PropertyT): String = formatter(context, value)
-
-  override fun getKnownValues(context: ContextT, model: ModelT): ListenableFuture<List<ValueDescriptor<PropertyT>>> =
-    knownValuesGetter(context, model)
 
   private fun ModelT.setModified() = modelDescriptor.setModified(this)
 }

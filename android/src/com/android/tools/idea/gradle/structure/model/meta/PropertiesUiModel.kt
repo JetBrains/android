@@ -70,7 +70,7 @@ inline fun <ContextT, ModelT, reified PropertyT : Any, ModelPropertyT : ModelPro
   PropertyUiModelImpl(context, property, editorFactory)
 
 class PropertyUiModelImpl<in ContextT, in ModelT, PropertyT : Any, out ModelPropertyT : ModelProperty<ModelT, PropertyT>>(
-  private val context:ContextT,
+  private val context: ContextT,
   private val property: ModelPropertyT,
   private val editorFactory: PropertyEditorFactory<ContextT, ModelT, ModelPropertyT, PropertyT>
 ) : PropertyUiModel<ContextT, ModelT, PropertyT> {
