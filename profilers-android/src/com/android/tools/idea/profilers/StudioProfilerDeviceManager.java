@@ -18,6 +18,7 @@ package com.android.tools.idea.profilers;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ddmlib.*;
+import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.datastore.DataStoreService;
@@ -46,8 +47,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.*;
 
 import static com.android.ddmlib.IDevice.CHANGE_STATE;
 
@@ -81,10 +84,12 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
   @NotNull
   private final DataStoreService myDataStoreService;
   private boolean isAdbInitialized;
+
   /**
-   * Maps a device to its correspondent {@link PerfdProxy}.
+   * We rely on the concurrency guarantees of the {@link ConcurrentHashMap} to synchronize our {@link DeviceContext} accesses.
+   * All accesses to the {@link DeviceContext} must be through its synchronization methods.
    */
-  private Map<IDevice, PerfdProxy> myDeviceProxies;
+  private final Map<String, DeviceContext> mySerialToDeviceContextMap = new ConcurrentHashMap<>();
 
   public StudioProfilerDeviceManager(@NotNull DataStoreService dataStoreService) {
     myDataStoreService = dataStoreService;
@@ -92,7 +97,6 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
     AndroidDebugBridge.addDeviceChangeListener(this);
     // TODO: Once adb API doesn't require a project, move initialization to constructor and remove this flag.
     isAdbInitialized = false;
-    myDeviceProxies = new HashMap<>();
   }
 
   @Override
@@ -114,7 +118,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         }
 
         @Override
-        public void onFailure(Throwable t) {
+        public void onFailure(@NotNull Throwable t) {
           getLogger().warn(String.format("getDebugBridge %s failed", adb.getAbsolutePath()));
         }
       }, EdtExecutor.INSTANCE);
@@ -146,18 +150,10 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
     }
   }
 
-  private void disconnectProxies() {
-    synchronized (myDeviceProxies) {
-      // Copy values because proxy.disconnect() modifies the map
-      ArrayList<PerfdProxy> proxies = new ArrayList<>(myDeviceProxies.values());
-      for (PerfdProxy proxy : proxies) {
-        proxy.disconnect();
-      }
-    }
-  }
-
   @Override
   public void deviceConnected(@NonNull IDevice device) {
+    mySerialToDeviceContextMap.computeIfAbsent(device.getSerialNumber(), serial -> new DeviceContext());
+
     if (device.isOnline()) {
       spawnPerfd(device);
     }
@@ -165,28 +161,64 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
 
   @Override
   public void deviceDisconnected(@NonNull IDevice device) {
+    disconnectProxy(device);
   }
 
   @Override
   public void deviceChanged(@NonNull IDevice device, int changeMask) {
-    if ((changeMask & CHANGE_STATE) != 0 && device.isOnline()) {
-      spawnPerfd(device);
+    if ((changeMask & CHANGE_STATE) != 0) {
+      if (device.isOnline()) {
+        spawnPerfd(device);
+      }
+      else {
+        disconnectProxy(device);
+      }
     }
   }
 
-  private void spawnPerfd(@NonNull IDevice device) {
-    PerfdThread thread = new PerfdThread(device, myDataStoreService);
-    thread.start();
+  @NotNull
+  private Runnable getDisconnectRunnable(@NotNull String serialNumber) {
+    return () -> mySerialToDeviceContextMap.compute(serialNumber, (unused, context) -> {
+      assert context != null;
+      PerfdProxy proxy = context.myLastKnownPerfdProxy;
+      if (proxy != null) {
+        proxy.disconnect();
+      }
+      context.myLastKnownPerfdProxy = null;
+      return context;
+    });
   }
 
-  private class PerfdThread extends Thread {
-    private final DataStoreService myDataStore;
-    private final IDevice myDevice;
+  private void disconnectProxy(@NonNull IDevice device) {
+    mySerialToDeviceContextMap.compute(device.getSerialNumber(), (serial, context) -> {
+      assert context != null;
+      context.myExecutor.execute(getDisconnectRunnable(serial));
+      return context;
+    });
+  }
+
+  private void disconnectProxies() {
+    mySerialToDeviceContextMap.forEach((serial, context) -> {
+      assert context != null;
+      context.myExecutor.execute(getDisconnectRunnable(serial));
+    });
+  }
+
+  private void spawnPerfd(@NonNull IDevice device) {
+    mySerialToDeviceContextMap.compute(device.getSerialNumber(), (serial, context) -> {
+      assert context != null && (context.myLastKnownPerfdProxy == null || context.myLastKnownPerfdProxy.getDevice() != device);
+      context.myExecutor.execute(new PerfdThread(device, myDataStoreService));
+      return context;
+    });
+  }
+
+  private class PerfdThread implements Runnable {
+    @NotNull private final DataStoreService myDataStore;
+    @NotNull private final IDevice myDevice;
     private int myLocalPort;
-    private PerfdProxy myPerfdProxy;
+    private volatile PerfdProxy myPerfdProxy;
 
     public PerfdThread(@NotNull IDevice device, @NotNull DataStoreService datastore) {
-      super("Perfd Thread: " + device.getSerialNumber());
       myDataStore = datastore;
       myDevice = device;
       myLocalPort = 0;
@@ -225,19 +257,20 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
           public void addOutput(byte[] data, int offset, int length) {
             String s = new String(data, offset, length, Charsets.UTF_8);
             getLogger().info("[perfd]: " + s);
-            synchronized (myDeviceProxies) {
-              if (myDeviceProxies.containsKey(myDevice)) {
+
+            mySerialToDeviceContextMap.compute(myDevice.getSerialNumber(), (serial, context) -> {
+              assert context != null;
+              if (context.myLastKnownPerfdProxy != null) {
                 getLogger().info(String.format("PerfdProxy was already created for device: %s", myDevice));
-                return;
               }
-            }
+              return context;
+            });
 
             // On supported API levels (Lollipop+), we should only start the proxy once perfd has successfully launched the grpc server.
             // This is indicated by a "Server listening on ADDRESS" printout from perfd (ADDRESS can vary depending on pre-O vs JVMTI).
             // The reason for this check is because we get linker warnings when starting perfd on pre-M devices (an issue which would not
             // be fixed by now), and we need to avoid starting the proxy in those cases.
-            if (myDevice.getVersion().getApiLevel() >= AndroidVersion.VersionCodes.LOLLIPOP
-              && !s.startsWith("Server listening on")) {
+            if (myDevice.getVersion().getApiLevel() >= AndroidVersion.VersionCodes.LOLLIPOP && !s.startsWith("Server listening on")) {
               return;
             }
 
@@ -351,21 +384,23 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
       String libperfaFilename = "libperfa.so";
       String libperfaDeviceFilenameFormat = "libperfa_%s.so"; // e.g. libperfa_arm64.so
 
-      pushAbiDependentBinaryFiles(devicePath, jvmtiResourcesReleasePath, jvmtiResourcesDevPath, libperfaFilename, libperfaDeviceFilenameFormat);
+      pushAbiDependentBinaryFiles(devicePath, jvmtiResourcesReleasePath, jvmtiResourcesDevPath, libperfaFilename,
+                                  libperfaDeviceFilenameFormat);
     }
 
     /**
      * Push one binary for each supported ABI CPU architecture, i.e. CPU family. ABI of same CPU family can share the same binary,
      * like "armeabi" and "armeabi-v7a", which share the "arm".
-     * @param devicePath            Device path where the binaries should be pushed to.
-     * @param hostReleaseDir        Host release path containing the binaries to be pushed to device.
-     * @param hostDevDir            Host development path containing the binaries to be pushed to device.
-     * @param hostFilename          Filename of the original binaries on the host.
-     * @param deviceFilenameFormat  Format of the binaries filename on device. The binaries have the same name in the host because they're
-     *                              usually placed on different folders. On the device, however, the binaries are all placed inside
-     *                              {@code devicePath}, so they need different names, each one identifying the ABI corresponding to the
-     *                              binary. For instance, the format "libperfa_%s.so" can generate binaries named "libperfa_arm.so",
-     *                              "libperfa_x86_64.so", etc.
+     *
+     * @param devicePath           Device path where the binaries should be pushed to.
+     * @param hostReleaseDir       Host release path containing the binaries to be pushed to device.
+     * @param hostDevDir           Host development path containing the binaries to be pushed to device.
+     * @param hostFilename         Filename of the original binaries on the host.
+     * @param deviceFilenameFormat Format of the binaries filename on device. The binaries have the same name in the host because they're
+     *                             usually placed on different folders. On the device, however, the binaries are all placed inside
+     *                             {@code devicePath}, so they need different names, each one identifying the ABI corresponding to the
+     *                             binary. For instance, the format "libperfa_%s.so" can generate binaries named "libperfa_arm.so",
+     *                             "libperfa_x86_64.so", etc.
      * @throws AdbCommandRejectedException
      * @throws IOException
      */
@@ -411,22 +446,22 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
       Agent.SocketType socketType = StudioFlags.PROFILER_USE_JVMTI.get() && isAtLeastO(myDevice)
                                     ? Agent.SocketType.ABSTRACT_SOCKET
                                     : Agent.SocketType.UNSPECIFIED_SOCKET;
-      Agent.AgentConfig agentConfig = Agent.AgentConfig.newBuilder().setUseJvmti(StudioFlags.PROFILER_USE_JVMTI.get())
-        .setMemConfig(Agent.AgentConfig.MemoryConfig.newBuilder()
-                        .setUseLiveAlloc(StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get())
-                        .setMaxStackDepth(LIVE_ALLOCATION_STACK_DEPTH)
-                        .setTrackGlobalJniRefs(StudioFlags.PROFILER_TRACK_JNI_REFS.get())
-                        .build())
-        .setProfilerNetworkRequestPayload(StudioFlags.PROFILER_NETWORK_REQUEST_PAYLOAD.get())
-        .setSocketType(socketType)
-        .setServiceAddress("127.0.0.1:" + DEVICE_PORT)
-        // Using "@" to indicate an abstract socket in unix.
-        .setServiceSocketName("@" + DEVICE_SOCKET_NAME)
-        .setEnergyProfilerEnabled(StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get())
-        .setCpuApiTracingEnabled(StudioFlags.PROFILER_CPU_API_TRACING.get())
-        .setAndroidFeatureLevel(myDevice.getVersion().getFeatureLevel())
-        .setCpuConfig(Agent.AgentConfig.CpuConfig.newBuilder().setArtStopTimeoutSec(CPU_ART_STOP_TIMEOUT_SEC))
-        .build();
+      Agent.AgentConfig agentConfig =
+        Agent.AgentConfig
+          .newBuilder().setUseJvmti(StudioFlags.PROFILER_USE_JVMTI.get())
+          .setMemConfig(
+            Agent.AgentConfig.MemoryConfig
+              .newBuilder()
+              .setUseLiveAlloc(StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get()).setMaxStackDepth(LIVE_ALLOCATION_STACK_DEPTH)
+              .setTrackGlobalJniRefs(StudioFlags.PROFILER_TRACK_JNI_REFS.get()).build())
+          .setProfilerNetworkRequestPayload(StudioFlags.PROFILER_NETWORK_REQUEST_PAYLOAD.get())
+          .setSocketType(socketType).setServiceAddress("127.0.0.1:" + DEVICE_PORT)
+          // Using "@" to indicate an abstract socket in unix.
+          .setServiceSocketName("@" + DEVICE_SOCKET_NAME).setEnergyProfilerEnabled(StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get())
+          .setCpuApiTracingEnabled(StudioFlags.PROFILER_CPU_API_TRACING.get())
+          .setAndroidFeatureLevel(myDevice.getVersion().getFeatureLevel())
+          .setCpuConfig(Agent.AgentConfig.CpuConfig.newBuilder().setArtStopTimeoutSec(CPU_ART_STOP_TIMEOUT_SEC))
+          .build();
 
       File configFile = FileUtil.createTempFile(fileName, null, true);
       OutputStream oStream = new FileOutputStream(configFile);
@@ -471,16 +506,11 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         String channelName = myDevice.getSerialNumber();
         myPerfdProxy = new PerfdProxy(myDevice, perfdChannel, channelName);
         myPerfdProxy.connect();
-        // Add the proxy to the proxies map.
-        synchronized (myDeviceProxies) {
-          myDeviceProxies.put(myDevice, myPerfdProxy);
-        }
-        myPerfdProxy.setOnDisconnectCallback(() -> {
-          synchronized (myDeviceProxies) {
-            if (myDeviceProxies.containsKey(myDevice)) {
-              myDeviceProxies.remove(myDevice);
-            }
-          }
+
+        mySerialToDeviceContextMap.compute(myDevice.getSerialNumber(), (serial, context) -> {
+          assert context != null;
+          context.myLastKnownPerfdProxy = myPerfdProxy;
+          return context;
         });
 
         // TODO using directexecutor for this channel freezes up grpc calls that are redirected to the device (e.g. GetTimes)
@@ -554,5 +584,10 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
     private boolean hasErrors() {
       return myHasErrors;
     }
+  }
+
+  private static class DeviceContext {
+    @NotNull private final ExecutorService myExecutor = new ThreadPoolExecutor(0, 1, 1L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+    @Nullable private PerfdProxy myLastKnownPerfdProxy;
   }
 }
