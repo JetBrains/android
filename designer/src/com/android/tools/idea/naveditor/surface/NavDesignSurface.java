@@ -25,10 +25,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.*;
-import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.Interaction;
-import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.common.surface.ZoomType;
+import com.android.tools.idea.common.surface.*;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.naveditor.editor.NavActionManager;
@@ -524,12 +521,10 @@ public class NavDesignSurface extends DesignSurface {
     zoomToFit();
   }
 
+  @NotNull
   @Override
-  public Object getData(String dataId) {
-    if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId)) {
-      return new NavDesignSurfaceActionHandler(this);
-    }
-    return super.getData(dataId);
+  protected DesignSurfaceActionHandler createActionHandler() {
+    return new NavDesignSurfaceActionHandler(this);
   }
 
   @NotNull

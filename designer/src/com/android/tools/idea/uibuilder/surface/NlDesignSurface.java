@@ -721,4 +721,10 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
     return new DragDropInteraction(this, dragged);
   }
+
+  @NotNull
+  @Override
+  protected DesignSurfaceActionHandler createActionHandler() {
+    return new NlDesignSurfaceActionHandler(this);
+  }
 }

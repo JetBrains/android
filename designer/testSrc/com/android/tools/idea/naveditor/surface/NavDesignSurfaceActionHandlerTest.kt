@@ -18,6 +18,9 @@ package com.android.tools.idea.naveditor.surface
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.intellij.ide.impl.DataManagerImpl
+import com.intellij.openapi.actionSystem.DataContext
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
 
 class NavDesignSurfaceActionHandlerTest : NavTestCase() {
   fun testDelete() {
@@ -53,4 +56,144 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     handler.deleteElement(context)
     assertEquals(surface.selectionModel.selection, model.components)
   }
+
+  fun testGetPasteTarget() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1") {
+          action("a1", destination = "fragment2")
+        }
+        fragment("fragment2")
+        navigation("subnav") {
+          fragment("fragment3")
+        }
+      }
+    }
+    val surface = model.surface as NavDesignSurface
+    val handler = NavDesignSurfaceActionHandler(surface)
+
+    val root = model.components[0]
+    val subnav = model.find("subnav")
+
+    assertEquals(root, handler.pasteTarget)
+    surface.selectionModel.setSelection(listOf())
+    assertEquals(root, handler.pasteTarget)
+    val a1 = model.find("a1")
+    surface.selectionModel.setSelection(listOf(a1))
+    assertEquals(a1, handler.pasteTarget)
+    surface.selectionModel.setSelection(listOf(subnav))
+    assertEquals(subnav, handler.pasteTarget)
+
+    `when`(surface.currentNavigation).thenReturn(subnav)
+    surface.selectionModel.setSelection(listOf())
+    assertEquals(subnav, handler.pasteTarget)
+    surface.selectionModel.setSelection(listOf(subnav))
+    assertEquals(subnav, handler.pasteTarget)
+    val fragment3 = model.find("fragment3")
+    surface.selectionModel.setSelection(listOf(fragment3))
+    assertEquals(fragment3, handler.pasteTarget)
+  }
+
+  fun testCanHandleChildren() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1") {
+          action("a1", destination = "fragment2")
+          action("a2", destination = "subnav")
+        }
+        fragment("fragment2")
+        navigation("subnav") {
+          fragment("fragment3")
+        }
+      }
+    }
+
+    val surface = model.surface as NavDesignSurface
+    val handler = NavDesignSurfaceActionHandler(surface)
+
+    val root = model.components[0]
+    val subnav = model.find("subnav")!!
+    val fragment1 = model.find("fragment1")!!
+    val action1 = model.find("a1")!!
+    val action2 = model.find("a2")!!
+
+    assertTrue(handler.canHandleChildren(root, listOf(fragment1)))
+    assertTrue(handler.canHandleChildren(root, listOf(action1, fragment1)))
+    assertTrue(handler.canHandleChildren(fragment1, listOf(action1)))
+    assertFalse(handler.canHandleChildren(action1, listOf(fragment1)))
+    assertFalse(handler.canHandleChildren(action1, listOf(action2)))
+    assertTrue(handler.canHandleChildren(subnav, listOf(action1)))
+    assertFalse(handler.canHandleChildren(subnav, listOf(fragment1)))
+
+    `when`(surface.currentNavigation).thenReturn(subnav)
+    assertTrue(handler.canHandleChildren(subnav, listOf(fragment1)))
+  }
+
+  fun testCutPasteToSubnav() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1") {
+          action("a1", destination = "fragment2")
+          action("a2", destination = "subnav")
+        }
+        fragment("fragment2")
+        navigation("subnav") {
+          fragment("fragment3")
+        }
+      }
+    }
+
+    val root = model.components[0]
+    val subnav = model.find("subnav")!!
+    val fragment1 = model.find("fragment1")!!
+    val fragment2 = model.find("fragment2")!!
+
+    val surface = NavDesignSurface(project, project)
+    surface.model = model
+    val handler = NavDesignSurfaceActionHandler(surface)
+
+    surface.selectionModel.setSelection(listOf(fragment1))
+    handler.performCut(mock(DataContext::class.java))
+    surface.currentNavigation = subnav
+    surface.selectionModel.clear()
+    handler.performPaste(mock(DataContext::class.java))
+
+    assertSameElements(root.children, fragment2, subnav)
+    assertSameElements(subnav.children.map { it.id }, "fragment1", "fragment3")
+  }
+
+  fun testCutPasteAction() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1") {
+          action("a1", destination = "fragment2")
+          action("a2", destination = "subnav")
+        }
+        fragment("fragment2")
+        navigation("subnav") {
+          fragment("fragment3")
+        }
+      }
+    }
+
+    val subnav = model.find("subnav")!!
+    val fragment1 = model.find("fragment1")!!
+    val fragment2 = model.find("fragment2")!!
+    val action1 = model.find("a1")!!
+    val action2 = model.find("a2")!!
+
+    val surface = NavDesignSurface(project, project)
+    surface.model = model
+    val handler = NavDesignSurfaceActionHandler(surface)
+
+    surface.selectionModel.setSelection(listOf(action1))
+    handler.performCut(mock(DataContext::class.java))
+    surface.currentNavigation = subnav
+    surface.selectionModel.setSelection(listOf(fragment2))
+    handler.performPaste(mock(DataContext::class.java))
+
+    assertSameElements(fragment1.children, action2)
+    assertSameElements(fragment2.children.map { it.id }, "a1")
+  }
+
 }

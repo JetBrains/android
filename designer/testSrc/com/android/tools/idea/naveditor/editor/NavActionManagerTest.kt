@@ -24,7 +24,10 @@ import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.actions.*
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.intellij.ide.actions.CopyAction
+import com.intellij.ide.actions.CutAction
 import com.intellij.ide.actions.DeleteAction
+import com.intellij.ide.actions.PasteAction
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.Separator
@@ -114,16 +117,19 @@ class NavActionManagerTest : NavTestCase() {
 
     var items = menuGroup.getChildren(null)
 
-    assertEquals(9, items.size)
+    assertEquals(12, items.size)
     validateItem(items[0], ActivateComponentAction::class.java, "Edit", false)
     validateItem(items[1], Separator::class.java, null, true)
     validateItem(items[2], ActionGroup::class.java, "Add Action", true)
     validateItem(items[3], ActionGroup::class.java, "Move to Nested Graph", true)
     validateItem(items[4], StartDestinationAction::class.java, "Set as Start Destination", true)
     validateItem(items[5], Separator::class.java, null, true)
-    validateItem(items[6], DeleteAction::class.java, "Delete", true)
-    validateItem(items[7], Separator::class.java, null, true)
-    validateItem(items[8], GotoComponentAction::class.java, "Go to XML", true)
+    validateItem(items[6], CutAction::class.java, "Cut", true)
+    validateItem(items[7], CopyAction::class.java, "Copy", true)
+    validateItem(items[8], PasteAction::class.java, "Paste", true)
+    validateItem(items[9], DeleteAction::class.java, "Delete", true)
+    validateItem(items[10], Separator::class.java, null, true)
+    validateItem(items[11], GotoComponentAction::class.java, "Go to XML", true)
 
     val addActionItems = (items[2] as ActionGroup).getChildren(null)
     assertEquals(4, addActionItems.size)
@@ -162,16 +168,19 @@ class NavActionManagerTest : NavTestCase() {
 
     val items = menuGroup.getChildren(null)
 
-    assertEquals(9, items.size)
+    assertEquals(12, items.size)
     validateItem(items[0], ActivateComponentAction::class.java, "Edit", false)
     validateItem(items[1], Separator::class.java, null, true)
     validateItem(items[2], ActionGroup::class.java, "Add Action", false)
     validateItem(items[3], ActionGroup::class.java, "Move to Nested Graph", true)
     validateItem(items[4], StartDestinationAction::class.java, "Set as Start Destination", false)
     validateItem(items[5], Separator::class.java, null, true)
-    validateItem(items[6], DeleteAction::class.java, "Delete", true)
-    validateItem(items[7], Separator::class.java, null, true)
-    validateItem(items[8], GotoComponentAction::class.java, "Go to XML", true)
+    validateItem(items[6], CutAction::class.java, "Cut", true)
+    validateItem(items[7], CopyAction::class.java, "Copy", true)
+    validateItem(items[8], PasteAction::class.java, "Paste", true)
+    validateItem(items[9], DeleteAction::class.java, "Delete", true)
+    validateItem(items[10], Separator::class.java, null, true)
+    validateItem(items[11], GotoComponentAction::class.java, "Go to XML", true)
 
     val nestedGraphItems = (items[3] as ActionGroup).getChildren(null)
     assertEquals(1, nestedGraphItems.size)
@@ -191,16 +200,19 @@ class NavActionManagerTest : NavTestCase() {
 
     val items = menuGroup.getChildren(null)
 
-    assertEquals(9, items.size)
+    assertEquals(12, items.size)
     validateItem(items[0], ActivateComponentAction::class.java, "Open", true)
     validateItem(items[1], Separator::class.java, null, true)
     validateItem(items[2], ActionGroup::class.java, "Add Action", true)
     validateItem(items[3], ActionGroup::class.java, "Move to Nested Graph", true)
     validateItem(items[4], StartDestinationAction::class.java, "Set as Start Destination", false)
     validateItem(items[5], Separator::class.java, null, true)
-    validateItem(items[6], DeleteAction::class.java, "Delete", true)
-    validateItem(items[7], Separator::class.java, null, true)
-    validateItem(items[8], GotoComponentAction::class.java, "Go to XML", true)
+    validateItem(items[6], CutAction::class.java, "Cut", true)
+    validateItem(items[7], CopyAction::class.java, "Copy", true)
+    validateItem(items[8], PasteAction::class.java, "Paste", true)
+    validateItem(items[9], DeleteAction::class.java, "Delete", true)
+    validateItem(items[10], Separator::class.java, null, true)
+    validateItem(items[11], GotoComponentAction::class.java, "Go to XML", true)
 
     val addActionItems = (items[2] as ActionGroup).getChildren(null)
     assertEquals(4, addActionItems.size)
@@ -227,16 +239,19 @@ class NavActionManagerTest : NavTestCase() {
 
     val items = menuGroup.getChildren(null)
 
-    assertEquals(9, items.size)
+    assertEquals(12, items.size)
     validateItem(items[0], ActivateComponentAction::class.java, "Open", true)
     validateItem(items[1], Separator::class.java, null, true)
     validateItem(items[2], ActionGroup::class.java, "Add Action", false)
     validateItem(items[3], ActionGroup::class.java, "Move to Nested Graph", true)
     validateItem(items[4], StartDestinationAction::class.java, "Set as Start Destination", true)
     validateItem(items[5], Separator::class.java, null, true)
-    validateItem(items[6], DeleteAction::class.java, "Delete", true)
-    validateItem(items[7], Separator::class.java, null, true)
-    validateItem(items[8], GotoComponentAction::class.java, "Go to XML", true)
+    validateItem(items[6], CutAction::class.java, "Cut", true)
+    validateItem(items[7], CopyAction::class.java, "Copy", true)
+    validateItem(items[8], PasteAction::class.java, "Paste", true)
+    validateItem(items[9], DeleteAction::class.java, "Delete", true)
+    validateItem(items[10], Separator::class.java, null, true)
+    validateItem(items[11], GotoComponentAction::class.java, "Go to XML", true)
 
     val nestedGraphItems = (items[3] as ActionGroup).getChildren(null)
     assertEquals(1, nestedGraphItems.size)
@@ -283,10 +298,13 @@ class NavActionManagerTest : NavTestCase() {
     val menuGroup = actionManager.createPopupMenu(com.intellij.openapi.actionSystem.ActionManager.getInstance(), fragment1)
     val items = menuGroup.getChildren(null)
 
-    assertEquals(3, items.size)
+    assertEquals(6, items.size)
     validateItem(items[0], ActionGroup::class.java, "Move to Nested Graph", true)
     validateItem(items[1], Separator::class.java, null, true)
-    validateItem(items[2], DeleteAction::class.java, "Delete", true)
+    validateItem(items[2], CutAction::class.java, "Cut", true)
+    validateItem(items[3], CopyAction::class.java, "Copy", true)
+    validateItem(items[4], PasteAction::class.java, "Paste", true)
+    validateItem(items[5], DeleteAction::class.java, "Delete", true)
 
     val nestedGraphItems = (items[0] as ActionGroup).getChildren(null)
     assertEquals(1, nestedGraphItems.size)
@@ -309,10 +327,13 @@ class NavActionManagerTest : NavTestCase() {
     val menuGroup = actionManager.createPopupMenu(com.intellij.openapi.actionSystem.ActionManager.getInstance(), action1)
     val items = menuGroup.getChildren(null)
 
-    assertEquals(3, items.size)
+    assertEquals(6, items.size)
     validateItem(items[0], EditExistingAction::class.java, "Edit", true)
     validateItem(items[1], Separator::class.java, null, true)
-    validateItem(items[2], DeleteAction::class.java, "Delete", true)
+    validateItem(items[2], CutAction::class.java, "Cut", true)
+    validateItem(items[3], CopyAction::class.java, "Copy", true)
+    validateItem(items[4], PasteAction::class.java, "Paste", true)
+    validateItem(items[5], DeleteAction::class.java, "Delete", true)
   }
 
   private fun validateItem(item: AnAction, c: Class<*>, name: String?, enabled: Boolean) {
