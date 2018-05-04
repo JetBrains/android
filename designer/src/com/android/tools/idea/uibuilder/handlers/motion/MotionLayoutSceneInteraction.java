@@ -96,7 +96,15 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
         MotionSceneModel.KeyFrame keyFrame = panel.getSelectedKeyframe();
         if (keyFrame != null) {
           ResourceIdManager manager = ResourceIdManager.get(component.getModel().getModule());
-          Integer resolved = manager.getCompiledId(new ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, component.getId()));
+          ResourceReference reference = new ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, component.getId());
+          Integer resolved = manager.getCompiledId(reference);
+          if (resolved == null) {
+            if (component.getDelegate() != null && component.getDelegate() instanceof MotionLayoutComponentDelegate) {
+              ((MotionLayoutComponentDelegate) component.getDelegate()).updateIds(component);
+              reference = new ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, component.getId());
+              resolved = manager.getOrGenerateId(reference);
+            }
+          }
           myKeyframe = myMotionHelper.getKeyframe(3, resolved,  keyFrame.getFramePosition());
         } else {
           Object view = NlComponentHelperKt.getViewInfo(selected).getViewObject();
