@@ -42,7 +42,7 @@ import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
 public class TransitionPanel extends TagPanel {
   private Vector<String> colNames = new Vector<String>(Arrays.asList("Name", "Value"));
   private Vector<Vector<Object>> data = new Vector<>();
-  private DefaultTableModel myTableModel = new DefaultTableModel(data, colNames);
+  private DefaultTableModel myTableModel = new TransitionTableModel(data, colNames);
   private MotionSceneModel.TransitionTag myTag;
   private JBPopupMenu myPopupMenu = new JBPopupMenu("Add Attribute");
 
@@ -144,5 +144,24 @@ public class TransitionPanel extends TagPanel {
     }
     myTableModel.fireTableDataChanged();
     setupPopup(tag);
+  }
+
+  private class TransitionTableModel extends DefaultTableModel {
+
+    private TransitionTableModel(@NotNull Vector data, @NotNull Vector columnNames) {
+      super(data, columnNames);
+    }
+
+    @Override
+    public void setValueAt(@NotNull Object value, int rowIndex, int columnIndex) {
+      super.setValueAt(value, rowIndex, columnIndex);
+      String key = getValueAt(rowIndex, 0).toString();
+      myTag.setValue(key, (String)value);
+    }
+
+    @Override
+    public boolean isCellEditable(int rowIndex, int columnIndex) {
+      return columnIndex == 1;
+    }
   }
 }

@@ -20,6 +20,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneMode
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.TimeLineIcons;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.ui.table.JBTable;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -42,7 +43,7 @@ import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
 public class OnSwipePanel extends TagPanel {
   private Vector<String> colNames = new Vector<String>(Arrays.asList("Name", "Value"));
   private Vector<Vector<Object>> data = new Vector<>();
-  private DefaultTableModel myTableModel = new DefaultTableModel(data, colNames);
+  private DefaultTableModel myTableModel = new OnSwipeTableModel(data, colNames);
   MotionSceneModel.OnSwipeTag myOnSwipeTag;
   private JBPopupMenu myPopupMenu = new JBPopupMenu("Add Attribute");
 
@@ -165,5 +166,24 @@ public class OnSwipePanel extends TagPanel {
     myTableModel.fireTableDataChanged();
     setupPopup(tag, attr.keySet());
     setVisible(true);
+  }
+
+  private class OnSwipeTableModel extends DefaultTableModel {
+
+    private OnSwipeTableModel(@NotNull Vector data, @NotNull Vector columnNames) {
+      super(data, columnNames);
+    }
+
+    @Override
+    public void setValueAt(@NotNull Object value, int rowIndex, int columnIndex) {
+      super.setValueAt(value, rowIndex, columnIndex);
+      String key = getValueAt(rowIndex, 0).toString();
+      myOnSwipeTag.setValue(key, (String)value);
+    }
+
+    @Override
+    public boolean isCellEditable(int rowIndex, int columnIndex) {
+      return columnIndex == 1;
+    }
   }
 }
