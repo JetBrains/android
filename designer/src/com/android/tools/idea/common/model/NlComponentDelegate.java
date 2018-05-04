@@ -17,6 +17,7 @@ package com.android.tools.idea.common.model;
 
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
+import com.android.utils.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,4 +48,6 @@ public interface NlComponentDelegate {
   void clearCaches();
 
   void willRemoveChild(@NotNull NlComponent component);
+
+  boolean commitToMotionScene(Pair<String, String> key);
 }

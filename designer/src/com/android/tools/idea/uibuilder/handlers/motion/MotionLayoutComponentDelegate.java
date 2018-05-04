@@ -247,6 +247,12 @@ public class MotionLayoutComponentDelegate implements NlComponentDelegate {
   }
 
   @Override
+  public boolean commitToMotionScene(Pair<String, String> key) {
+    // allows more fine-grained commit per attributes if needed
+    return true;
+  }
+
+  @Override
   public List<AttributeSnapshot> getAttributes(NlComponent component) {
     List<AttributeSnapshot> attributes = null;
     if (USE_CACHE) {
