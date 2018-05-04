@@ -17,7 +17,13 @@ package com.android.tools.idea.res;
 
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.rendering.api.AssetRepository;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.fonts.DownloadableFontCacheService;
+import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
+import com.google.common.io.Files;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -25,6 +31,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,6 +41,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -41,7 +50,7 @@ import java.util.stream.Stream;
  * Finds an asset in all the asset directories and returns the input stream.
  */
 public class AssetRepositoryImpl extends AssetRepository implements Disposable {
-
+  private static File myFrameworkResDir;
   private AndroidFacet myFacet;
 
   public AssetRepositoryImpl(@NotNull AndroidFacet facet) {
@@ -162,7 +171,26 @@ public class AssetRepositoryImpl extends AssetRepository implements Disposable {
       .map(path -> manager.findFileByUrl("file://" + path))
       .filter(Objects::nonNull);
 
-    return Stream.concat(dirsFromSources, dirsFromAars);
+    Stream<VirtualFile> frameworkDirs = Stream.of(getSdkResFolder(facet))
+      .filter(Objects::nonNull)
+      .map(path -> manager.findFileByUrl("file://" + path))
+      .filter(Objects::nonNull);
+    return Stream.concat(Stream.concat(dirsFromSources, dirsFromAars), frameworkDirs);
+  }
+
+  @Nullable
+  private static File getSdkResFolder(@NotNull AndroidFacet facet) {
+    if (myFrameworkResDir == null) {
+      ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(facet);
+      IAndroidTarget target = manager.getHighestApiTarget();
+      if (target == null) {
+        return null;
+      }
+      CompatibilityRenderTarget compatibilityTarget = StudioEmbeddedRenderTarget.getCompatibilityTarget(target);
+      String sdkPlatformPath = Files.simplifyPath(compatibilityTarget.getLocation());
+      myFrameworkResDir = new File(sdkPlatformPath + "/data/res");
+    }
+    return myFrameworkResDir;
   }
 
   @Override

@@ -74,9 +74,8 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
 
   /**
    * Returns a CompatibilityRenderTarget that will use StudioEmbeddedRenderTarget to do the rendering
-   * @throws IOException if the local layoutlib distribution is not found
    */
-  public static CompatibilityRenderTarget getCompatibilityTarget(@NotNull IAndroidTarget target) throws IOException {
+  public static CompatibilityRenderTarget getCompatibilityTarget(@NotNull IAndroidTarget target) {
     if (ourDisableEmbeddedTargetForTesting) {
       return new CompatibilityRenderTarget(target, target.getVersion().getApiLevel(), target);
     }
@@ -91,14 +90,14 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
     return new CompatibilityRenderTarget(getInstance(), api, target);
   }
 
-  private static StudioEmbeddedRenderTarget getInstance() throws IOException {
+  private static StudioEmbeddedRenderTarget getInstance() {
     if (ourStudioEmbeddedTarget == null) {
       ourStudioEmbeddedTarget = new StudioEmbeddedRenderTarget();
     }
     return ourStudioEmbeddedTarget;
   }
 
-  private StudioEmbeddedRenderTarget() throws IOException {
+  private StudioEmbeddedRenderTarget() {
     myBasePath = getEmbeddedLayoutLibPath();
   }
 
