@@ -92,12 +92,11 @@ class SimplePropertyEditor<ContextT, ModelT, PropertyT : Any, out ModelPropertyT
   fun loadKnownValues() {
     val availableVariables: List<ParsedValue.Set.Parsed<PropertyT>>? = getAvailableVariables()
 
-    fun receiveKnownValuesOnEdt(it: List<ValueDescriptor<PropertyT>>?) {
-      val possibleValues = buildKnownValueRenderers(it, formatter, property.getDefaultValue(model))
-      val knownValues = possibleValues.keys.toList() + availableVariables.orEmpty()
+    fun receiveKnownValuesOnEdt(knownValues: KnownValues<PropertyT>) {
+      val possibleValues = buildKnownValueRenderers(knownValues, formatter, property.getDefaultValue(model))
       knownValueRenderers = possibleValues
-
-      setKnownValues(knownValues)
+      setKnownValues(
+        possibleValues.keys.toList() + availableVariables.orEmpty())
     }
 
     knownValuesFuture?.cancel(false)
@@ -105,7 +104,7 @@ class SimplePropertyEditor<ContextT, ModelT, PropertyT : Any, out ModelPropertyT
     knownValuesFuture = Futures.transform(
       property.getKnownValues(context, model),
       {
-        receiveKnownValuesOnEdt(it)
+        receiveKnownValuesOnEdt(it!!)
         knownValuesFuture = null
       },
       {

@@ -122,7 +122,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
     assertThat(productFlavor, notNullValue()); productFlavor!!
 
     assertThat(
-      PsProductFlavor.ProductFlavorDescriptors.dimension.getKnownValues(null, productFlavor).get(),
+      PsProductFlavor.ProductFlavorDescriptors.dimension.getKnownValues(null, productFlavor).get().literals,
       hasItems(ValueDescriptor("foo", "foo"), ValueDescriptor("bar", "bar")))
   }
 

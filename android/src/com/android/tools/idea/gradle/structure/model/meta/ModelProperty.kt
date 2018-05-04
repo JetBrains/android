@@ -58,6 +58,18 @@ interface ModelProperty<in ModelT, PropertyT : Any> :
   fun getDefaultValue(model: ModelT): PropertyT?
 }
 
+/**
+ * Metadata describing the well-known values for a property.
+ */
+@Suppress("AddVarianceModifier")
+interface KnownValues<ValueT> {
+  val literals: List<ValueDescriptor<ValueT>>
+}
+
+fun <T> emptyKnownValues() = object: KnownValues<T> {
+  override val literals: List<ValueDescriptor<T>> = listOf()
+}
+
 @Suppress("AddVarianceModifier")  // PSQ erroneously reports AddVarianceModifier on ValueT here.
 interface ModelPropertyContext<in ContextT, in ModelT, ValueT : Any> {
   /**
@@ -77,7 +89,7 @@ interface ModelPropertyContext<in ContextT, in ModelT, ValueT : Any> {
   /**
    * Returns a list of well-known values (constants) with their short human-readable descriptions that are applicable to the property.
    */
-  fun getKnownValues(context: ContextT, model: ModelT): ListenableFuture<List<ValueDescriptor<ValueT>>>
+  fun getKnownValues(context: ContextT, model: ModelT): ListenableFuture<KnownValues<ValueT>>
 }
 
 /**
@@ -141,7 +153,7 @@ fun <ContextT, ModelT, PropertyT : Any> ModelSimpleProperty<ContextT, ModelT, Pr
 
     override fun format(context: ContextT, value: PropertyT): String = it.format(context, value)
 
-    override fun getKnownValues(context: ContextT, model: Unit): ListenableFuture<List<ValueDescriptor<PropertyT>>> =
+    override fun getKnownValues(context: ContextT, model: Unit): ListenableFuture<KnownValues<PropertyT>> =
       it.getKnownValues(context, boundModel)
   }
 }

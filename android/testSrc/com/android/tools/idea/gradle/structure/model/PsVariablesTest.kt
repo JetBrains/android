@@ -57,7 +57,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
 
       override fun format(context: Nothing?, value: String): String = throw UnsupportedOperationException()
 
-      override fun getKnownValues(context: Nothing?, model: Any): ListenableFuture<List<ValueDescriptor<String>>> =
+      override fun getKnownValues(context: Nothing?, model: Any): ListenableFuture<KnownValues<String>> =
         throw UnsupportedOperationException()
     }
     loadProject(TestProjectPaths.PSD_SAMPLE)

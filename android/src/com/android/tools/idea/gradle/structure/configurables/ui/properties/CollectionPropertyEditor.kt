@@ -158,7 +158,7 @@ CollectionPropertyEditor<ContextT, ModelT, out ModelPropertyT : ModelCollectionP
       override fun getDefaultValue(model: Unit): ValueT? = null
       override fun parse(context: ContextT, value: String): ParsedValue<ValueT> = property.parse(context, value)
       override fun format(context: ContextT, value: ValueT): String = property.format(context, value)
-      override fun getKnownValues(context: ContextT, model: Unit): ListenableFuture<List<ValueDescriptor<ValueT>>> =
+      override fun getKnownValues(context: ContextT, model: Unit): ListenableFuture<KnownValues<ValueT>> =
         property.getKnownValues(context, this@CollectionPropertyEditor.model)
 
       override fun getValue(thisRef: Unit, property: KProperty<*>): ParsedValue<ValueT> =
@@ -180,5 +180,5 @@ class SimplePropertyStub<ValueT : Any> : ModelSimpleProperty<Any?, Unit, ValueT>
   override fun setValue(thisRef: Unit, property: KProperty<*>, value: ParsedValue<ValueT>) = Unit
   override fun parse(context: Any?, value: String): ParsedValue<ValueT> = ParsedValue.NotSet
   override fun format(context: Any?, value: ValueT): String = ""
-  override fun getKnownValues(context: Any?, model: Unit): ListenableFuture<List<ValueDescriptor<ValueT>>> = immediateFuture(listOf())
+  override fun getKnownValues(context: Any?, model: Unit): ListenableFuture<KnownValues<ValueT>> = immediateFuture(emptyKnownValues())
 }
