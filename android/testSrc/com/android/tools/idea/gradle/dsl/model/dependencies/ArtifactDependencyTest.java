@@ -38,6 +38,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.Valu
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*;
 import static com.google.common.truth.Truth.assertThat;
+import static org.hamcrest.core.IsEqual.equalTo;
 
 /**
  * Tests for {@link DependenciesModelImpl} and {@link ArtifactDependencyModelImpl}.
@@ -1462,6 +1463,33 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertFalse(buildModel.isModified());
   }
 
+  @Test
+  public void testSetIStrInCompactNotation() throws IOException {
+    String text = "dependencies {\n" +
+                  "  testCompile 'org.gradle.test.classifiers:service:1.0'\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependencies = buildModel.dependencies();
+
+    List<ArtifactDependencyModel> artifacts = dependencies.artifacts();
+    ArtifactDependencyModel artifact = artifacts.get(0);
+
+    artifact.version().setValue(iStr("3.2.1"));
+
+    applyChangesAndReparse(buildModel);
+
+    dependencies = buildModel.dependencies();
+
+    artifacts = dependencies.artifacts();
+    artifact = artifacts.get(0);
+    assertThat(artifact.completeModel().toString()).isEqualTo("org.gradle.test.classifiers:service:3.2.1");
+    String expected = "dependencies {\n" +
+                      "  testCompile \"org.gradle.test.classifiers:service:3.2.1\"\n" +
+                      "}";
+    verifyFileContents(myBuildFile, expected);
+  }
 
   @Test
   public void testParseFullReferencesCompactApplication() throws IOException {
