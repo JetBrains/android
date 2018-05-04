@@ -438,6 +438,10 @@ public class StudioIcons {
       public static final Icon VOLUME_UP = load("/studio/icons/profiler/events/volume-up.png"); // 22x22
     }
 
+    public static class Files {
+      public static final Icon PROFILER_CAPTURE = load("/studio/icons/profiler/files/profiler-capture.png"); // 16x16
+    }
+
     public static class Overlays {
       public static final Icon ARRAY_STACK = load("/studio/icons/profiler/overlays/array-stack.png"); // 16x16
       public static final Icon CLASS_STACK = load("/studio/icons/profiler/overlays/class-stack.png"); // 16x16

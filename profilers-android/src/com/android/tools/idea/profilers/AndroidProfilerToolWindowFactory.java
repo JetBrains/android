@@ -81,8 +81,12 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
     toolWindow.show(null);
   }
 
+  /**
+   * Gets the {@link AndroidProfilerToolWindow} corresponding to a given {@link Project} if it was already created by
+   * {@link #createContent(Project, ToolWindow)}. Otherwise, returns null.
+   */
   @Nullable
-  static AndroidProfilerToolWindow getProfilerToolWindow(@NotNull Project project) {
+  public static AndroidProfilerToolWindow getProfilerToolWindow(@NotNull Project project) {
     ToolWindow window = ToolWindowManagerEx.getInstanceEx(project).getToolWindow(ID);
     if (window == null) {
       return null;
