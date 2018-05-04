@@ -67,6 +67,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     myServices = new FakeIdeProfilerServices();
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), myServices, myTimer);
     // One second must be enough for new devices (and processes) to be picked up
+    profilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myStage = new CpuProfilerStage(profilers);
     myStage.getStudioProfilers().setStage(myStage);

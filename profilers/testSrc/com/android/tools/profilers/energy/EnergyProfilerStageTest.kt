@@ -94,6 +94,7 @@ class EnergyProfilerStageTest {
     myStage = EnergyProfilerStage(StudioProfilers(grpcChannel.client, services, timer))
     myStage.studioProfilers.timeline.viewRange.set(TimeUnit.SECONDS.toMicros(0).toDouble(), TimeUnit.SECONDS.toMicros(5).toDouble())
     myStage.studioProfilers.stage = myStage
+    myStage.studioProfilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null)
   }
 
   @Test

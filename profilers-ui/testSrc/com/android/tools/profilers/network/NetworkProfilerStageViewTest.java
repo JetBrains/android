@@ -85,7 +85,7 @@ public class NetworkProfilerStageViewTest {
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), ideProfilerServices, myTimer);
     myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));
-
+    profilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null);
     // StudioProfilersView initialization needs to happen after the tick, as during setDevice/setProcess the StudioMonitorStage is
     // constructed. If the StudioMonitorStageView is constructed as well, grpc exceptions will be thrown due to lack of various services
     // in the channel, and the tick loop would not complete properly to set the process and agent status.

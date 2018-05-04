@@ -17,7 +17,6 @@ package com.android.tools.profilers.memory;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.FakeTimer;
-import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.heap.SnapshotBuilder;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
@@ -175,5 +174,8 @@ public class MemoryProfilerTest {
       .build();
     myProfilerService.addDevice(device);
     myProfilerService.addProcess(device, process);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    myStudioProfiler.setDevice(device);
+    myStudioProfiler.setProcess(process);
   }
 }

@@ -546,8 +546,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       }
     }
 
-    // No preferred candidate. Choose a new process if we are not already waiting for the preferred process.
-    return myAutoProfilingEnabled && myPreferredProcessName == null ? processes.get(0) : null;
+    return null;
   }
 
   @NotNull
