@@ -198,7 +198,7 @@ public final class StateChart<T> extends AnimatedComponent {
     // TODO support interpolation.
     float rectHeight = 1.0f / seriesSize;
     float gap = rectHeight * myHeightGap;
-    float barHeight = (1.0f - gap) * rectHeight;
+    float barHeight = rectHeight - gap;
 
     clearRectangles();
 
@@ -261,7 +261,7 @@ public final class StateChart<T> extends AnimatedComponent {
     long transformTime = stopwatch.getElapsedSinceLastDeltaNs();
 
     g2d.setFont(getFont());
-    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
 
     assert myRectangles.size() == myRectangleValues.size();
     List<Rectangle2D.Float> transformedShapes = new ArrayList<>(myRectangles.size());

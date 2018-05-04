@@ -15,8 +15,10 @@
  */
 package com.android.tools.profilers.energy;
 
+import com.android.tools.adtui.chart.statechart.DefaultStateChartReducer;
 import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.chart.statechart.StateChartColorProvider;
+import com.android.tools.adtui.chart.statechart.StateChartConfig;
 import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.Range;
@@ -67,6 +69,6 @@ public final class EnergyEventStateChart {
 
   @NotNull
   public static StateChart<EnergyEvent> create(@NotNull StateChartModel<EnergyEvent> model) {
-    return new StateChart<>(model, DURATION_STATE_COLOR_PROVIDER);
+    return new StateChart<>(model, new StateChartConfig<>(new DefaultStateChartReducer<>(), 1, 1, 0.33f), DURATION_STATE_COLOR_PROVIDER);
   }
 }
