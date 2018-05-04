@@ -278,7 +278,6 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   private static XmlPullParser getParserFromText(@NotNull ParserFactory factory, String fileName, @NotNull String text) {
     try {
       XmlPullParser parser = factory.createParser(fileName);
-      parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
       parser.setInput(new StringReader(text));
       return parser;
     }
@@ -867,6 +866,11 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
 
     public NamedParser(@Nullable String name) {
       myName = name;
+      try {
+        setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
+      } catch (XmlPullParserException e) {
+        throw new Error("internal error", e);
+      }
     }
 
     @Override
