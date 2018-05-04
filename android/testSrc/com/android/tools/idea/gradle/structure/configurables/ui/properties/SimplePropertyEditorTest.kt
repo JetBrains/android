@@ -92,7 +92,8 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
       }
     },
     formatter = { _, value -> value },
-    knownValuesGetter = { _: Nothing?, _ -> wellKnownValuesFuture })
+    knownValuesGetter = { _: Nothing?, _ -> wellKnownValuesFuture },
+    variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE)
 
   override fun setUp() {
     super.setUp()
@@ -204,12 +205,14 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
 
   fun testLoadsDropDownList() {
     val variablesProvider = mock(VariablesProvider::class.java)
-    val var1 = "var1" to "val1"
-    val var2 = "var2" to "val2"
+    val var1 = "var1" to "1"
+    val var2 = "var2" to "2"
+    val var3 = "var3" to "3"
     `when`(variablesProvider.getAvailableVariablesFor(null, property)).thenReturn(
       listOf(
         var1.asParsed(),
-        var2.asParsed()
+        var2.asParsed(),
+        var3.asParsed()
       )
     )
     val editor = simplePropertyEditor(null, model, property, variablesProvider)
@@ -219,12 +222,14 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
 
   fun testReloadsDropDownList() {
     val variablesProvider = mock(VariablesProvider::class.java)
-    val var1 = "var1" to "val1"
-    val var2 = "var2" to "val2"
+    val var1 = "var1" to "1"
+    val var2 = "var2" to "2"
+    val var3 = "var3" to "3"
     `when`(variablesProvider.getAvailableVariablesFor(null, property)).thenReturn(
       listOf(
         var1.asParsed(),
-        var2.asParsed()
+        var2.asParsed(),
+        var3.asParsed()
       )
     )
     val editor = simplePropertyEditor(null, model, property, variablesProvider)
@@ -236,7 +241,8 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
     editor.simulateEditorGotFocus()
 
     assertThat(editor.getModel().getItems(),
-               hasItems("1".asSimpleParsed(), "2".asSimpleParsed(), "3".asSimpleParsed(), var1.asParsed(), var2.asParsed()))
+               hasItems("1".asSimpleParsed(), "2".asSimpleParsed(), "3".asSimpleParsed(),
+                        var1.asParsed(), var2.asParsed(), var3.asParsed()))
     assertThat(parsedModel.value, equalTo("2"))
     assertThat<Any?>(editor.selectedItem, equalTo("2".asSimpleParsed()))
 
@@ -244,7 +250,7 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
     editor.simulateEditorGotFocus()
 
     assertThat(editor.getModel().getItems(),
-               hasItems("1".asSimpleParsed(), "3".asSimpleParsed(), var1.asParsed(), var2.asParsed()))
+               hasItems("1".asSimpleParsed(), "3".asSimpleParsed(), var1.asParsed(), var3.asParsed()))
     assertThat(parsedModel.value, equalTo("2"))
     assertThat<Any?>(editor.selectedItem, equalTo("2".asSimpleParsed()))
   }
@@ -371,4 +377,4 @@ private fun SimplePropertyEditor<*, *, *, *>.commitTestText(text: String) {
 }
 
 private fun SimplePropertyEditor<*, *, *, *>.testWatermark(): String? =
-  ((this.getEditor() as? BasicComboBoxEditor)?.editorComponent as? JBTextField)?.emptyText?.text
+  ((this.getEditor() as? BasicComboBoxEditor)?.editorComponent as? JBTextField)?.emptyText?.text   

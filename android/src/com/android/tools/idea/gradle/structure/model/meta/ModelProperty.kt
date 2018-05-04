@@ -59,15 +59,16 @@ interface ModelProperty<in ModelT, PropertyT : Any> :
 }
 
 /**
- * Metadata describing the well-known values for a property.
+ * Metadata describing the well-known values and recognising variables suitable for a property.
  */
-@Suppress("AddVarianceModifier")
 interface KnownValues<ValueT> {
   val literals: List<ValueDescriptor<ValueT>>
+  fun isSuitableVariable(variable: ParsedValue.Set.Parsed<ValueT>): Boolean
 }
 
 fun <T> emptyKnownValues() = object: KnownValues<T> {
   override val literals: List<ValueDescriptor<T>> = listOf()
+  override fun isSuitableVariable(variable: ParsedValue.Set.Parsed<T>): Boolean = false
 }
 
 @Suppress("AddVarianceModifier")  // PSQ erroneously reports AddVarianceModifier on ValueT here.
