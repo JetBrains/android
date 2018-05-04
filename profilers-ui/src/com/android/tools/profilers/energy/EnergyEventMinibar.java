@@ -58,7 +58,7 @@ public final class EnergyEventMinibar {
 
     JPanel eventChartContainer = new JPanel(new BorderLayout());
     eventChartContainer.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
-    eventChartContainer.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+    eventChartContainer.setBorder(BorderFactory.createEmptyBorder(4, 0, 4, 0));
     eventChartContainer.add(eventChart);
 
     root.add(labelContainer, new TabularLayout.Constraint(0, 0));
