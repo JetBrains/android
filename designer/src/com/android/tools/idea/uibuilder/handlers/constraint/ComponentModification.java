@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlAttributesHolder;
@@ -94,6 +95,22 @@ public class ComponentModification implements NlAttributesHolder {
   public void commit() {
     if (myComponentDelegate != null && myComponentDelegate.handlesCommit(this)) {
       myComponentDelegate.commit(this);
+
+      // We have to verify if there is attributes that need to be committed to the component directly
+      AttributesTransaction transaction = null;
+      for (Pair<String, String> key : myAttributes.keySet()) {
+        if (!myComponentDelegate.commitToMotionScene(key)) {
+          String value = myAttributes.get(key);
+          if (transaction == null) {
+            transaction = myComponent.startAttributeTransaction();
+          }
+          transaction.setAttribute(key.getFirst(), key.getSecond(), value);
+        }
+      }
+      if (transaction != null) {
+        transaction.apply();
+        NlWriteCommandAction.run(myComponent, myLabel, transaction::commit);
+      }
     } else {
       AttributesTransaction transaction = myComponent.startAttributeTransaction();
       for (Pair<String, String> key : myAttributes.keySet()) {
@@ -108,7 +125,13 @@ public class ComponentModification implements NlAttributesHolder {
   public void commitTo(XmlTag view) {
     for (Pair<String, String> key : myAttributes.keySet()) {
       String value = myAttributes.get(key);
-      view.setAttribute(key.getSecond(), key.getFirst(), value);
+      if (myComponentDelegate == null || myComponentDelegate.commitToMotionScene(key)) {
+        String namespace = key.getFirst();
+        if (namespace.equalsIgnoreCase(SdkConstants.TOOLS_URI)) {
+          namespace = SdkConstants.AUTO_URI;
+        }
+        view.setAttribute(key.getSecond(), namespace, value);
+      }
     }
   }
 }

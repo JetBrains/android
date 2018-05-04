@@ -34,6 +34,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDr
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory;
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.utils.Pair;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -227,6 +228,11 @@ public class MotionLayoutHandler extends ConstraintLayoutHandler implements NlCo
   @Override
   public void willRemoveChild(@NotNull NlComponent component) {
     // nmothing here
+  }
+
+  @Override
+  public boolean commitToMotionScene(Pair<String, String> key) {
+    return false;
   }
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
