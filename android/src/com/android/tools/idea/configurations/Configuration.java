@@ -1272,7 +1272,6 @@ public class Configuration implements Disposable, ModificationTracker {
     return myModificationCount;
   }
 
-
   /**
    * Returns a target that is only suitable to be used for rendering (as opposed to a target that can be used for attribute resolution).
    */
@@ -1282,13 +1281,6 @@ public class Configuration implements Disposable, ModificationTracker {
       return null;
     }
 
-    try {
-      return StudioEmbeddedRenderTarget.getCompatibilityTarget(target);
-    }
-    catch (IOException e) {
-      assert false : "Unable to load embedded layoutlib";
-    }
-
-    return null;
+    return StudioEmbeddedRenderTarget.getCompatibilityTarget(target);
   }
 }
