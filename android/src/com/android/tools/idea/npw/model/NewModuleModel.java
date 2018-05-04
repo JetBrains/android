@@ -77,7 +77,7 @@ public final class NewModuleModel extends WizardModel {
     myIsLibrary.addListener(sender -> updateApplicationName());
     myIsInstantApp.addListener(sender -> updateApplicationName());
 
-    myMultiTemplateRenderer = new MultiTemplateRenderer();
+    myMultiTemplateRenderer = new MultiTemplateRenderer(project);
   }
 
   public NewModuleModel(@NotNull NewProjectModel projectModel, @NotNull File templateFile) {
@@ -264,13 +264,10 @@ public final class NewModuleModel extends WizardModel {
         .withCommandName("New Module")
         .withDryRun(dryRun)
         .withShowErrors(true)
+        .withPerformSync(false)
         .withOutputRoot(projectRoot)
         .withModuleRoot(moduleRoot)
         .withParams(templateState)
-        //.withPerformSync(myPerformSyncIfNecessary) // TODO: Check that we still need this
-        //.intoTargetFiles(myState.get(TARGET_FILES_KEY))
-        //.intoOpenFiles(myState.get(FILES_TO_OPEN_KEY))
-        //.intoDependencies(myState.get(DEPENDENCIES_KEY))
         .build();
       // @formatter:on
       return template.render(context, dryRun);

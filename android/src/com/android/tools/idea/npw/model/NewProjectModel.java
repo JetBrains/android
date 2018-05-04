@@ -86,7 +86,7 @@ public class NewProjectModel extends WizardModel {
   private final OptionalProperty<Project> myProject = new OptionalValueProperty<>();
   private final Map<String, Object> myTemplateValues = Maps.newHashMap();
   private final Set<NewModuleModel> myNewModels = new HashSet<>();
-  private final MultiTemplateRenderer myMultiTemplateRenderer = new MultiTemplateRenderer();
+  private final MultiTemplateRenderer myMultiTemplateRenderer = new MultiTemplateRenderer(null);
   private final BoolProperty myEnableKotlinSupport = new BoolValueProperty();
 
   private static Logger getLogger() {
@@ -328,6 +328,7 @@ public class NewProjectModel extends WizardModel {
         .withCommandName("New Project")
         .withDryRun(dryRun)
         .withShowErrors(true)
+        .withPerformSync(false) // Project importing will Sync
         .withParams(params)
         .build();
       // @formatter:on

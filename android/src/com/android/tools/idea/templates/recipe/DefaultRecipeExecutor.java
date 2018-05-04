@@ -33,6 +33,7 @@ import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.collect.SetMultimap;
 import com.intellij.diff.comparison.ComparisonManager;
 import com.intellij.diff.comparison.ComparisonPolicy;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
@@ -63,6 +64,8 @@ import static com.android.tools.idea.gradle.dsl.api.GradleBuildModel.parseBuildF
 import static com.android.tools.idea.gradle.util.GradleProjects.isBuildWithGradle;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePath;
+import static com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason.PROJECT_LOADED;
+import static com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED;
 import static com.android.tools.idea.templates.FreemarkerUtils.processFreemarkerTemplate;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.templates.TemplateUtils.*;
@@ -725,8 +728,12 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
     }
 
     public void requestSync(@NotNull Project project) {
-      ProjectSystemSyncManager.SyncReason reason = project.isInitialized() ? ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED : ProjectSystemSyncManager.SyncReason.PROJECT_LOADED;
-      ProjectSystemUtil.getProjectSystem(project).getSyncManager().syncProject(reason, true);
+      ProjectSystemSyncManager syncManager = ProjectSystemUtil.getProjectSystem(project).getSyncManager();
+      if (syncManager.isSyncInProgress()) {
+        getLog().error("Added new files with Project Sync in progress");
+      }
+
+      syncManager.syncProject(project.isInitialized() ? PROJECT_MODIFIED : PROJECT_LOADED, true);
     }
   }
 
@@ -768,5 +775,9 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
     @Override
     public void requestSync(@NotNull Project project) {
     }
+  }
+
+  private static Logger getLog() {
+    return Logger.getInstance(DefaultRecipeExecutor.class);
   }
 }
