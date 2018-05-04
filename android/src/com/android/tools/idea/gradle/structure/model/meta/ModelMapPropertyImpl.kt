@@ -116,7 +116,7 @@ class ModelMapPropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, ValueT : 
     }
   }
 
-  override fun getDefaultValue(model: ModelT): Map<String, ValueT>? = mapOf()
+  override val defaultValueGetter: ((ModelT) -> Map<String, ValueT>?)? = null
 }
 
 fun <T : Any> ResolvedPropertyModel?.asParsedMapValue(

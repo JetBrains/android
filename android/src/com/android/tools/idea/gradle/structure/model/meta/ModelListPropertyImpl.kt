@@ -99,7 +99,7 @@ class ModelListPropertyImpl<in ContextT, in ModelT, out ResolvedT, ParsedT, Valu
     }
   }
 
-  override fun getDefaultValue(model: ModelT): List<ValueT>? = listOf()
+  override val defaultValueGetter: ((ModelT) -> List<ValueT>?)? = null
 }
 
 fun <T : Any> ResolvedPropertyModel?.asParsedListValue(

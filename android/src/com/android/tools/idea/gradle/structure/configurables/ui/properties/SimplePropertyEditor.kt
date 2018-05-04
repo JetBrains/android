@@ -92,7 +92,7 @@ class SimplePropertyEditor<ContextT, ModelT, PropertyT : Any, out ModelPropertyT
     val availableVariables: List<ParsedValue.Set.Parsed<PropertyT>>? = getAvailableVariables()
 
     fun receiveKnownValuesOnEdt(knownValues: KnownValues<PropertyT>) {
-      val possibleValues = buildKnownValueRenderers(knownValues, formatter, property.getDefaultValue(model))
+      val possibleValues = buildKnownValueRenderers(knownValues, formatter, property.defaultValueGetter?.invoke(model))
       knownValueRenderers = possibleValues
       setKnownValues(
         possibleValues.keys.toList() + availableVariables?.filter { knownValues.isSuitableVariable(it) }.orEmpty())
@@ -130,11 +130,12 @@ class SimplePropertyEditor<ContextT, ModelT, PropertyT : Any, out ModelPropertyT
 
     val parsedValue = value.parsedValue
     val resolvedValue = value.resolved
-    val defaultValue = property.getDefaultValue(model)
-
     val effectiveEditorValue = when (parsedValue) {
       is ParsedValue.Set.Parsed -> parsedValue.value
-      is ParsedValue.NotSet -> defaultValue
+      is ParsedValue.NotSet -> {
+        val defaultValueGetter = property.defaultValueGetter ?: return ""
+        defaultValueGetter(model)
+      }
       else -> null
     }
     val resolvedValueText = when (resolvedValue) {

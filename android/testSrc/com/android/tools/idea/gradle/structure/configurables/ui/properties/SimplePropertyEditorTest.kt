@@ -69,10 +69,10 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
   private var wellKnownValuesFuture: ListenableFuture<List<ValueDescriptor<String>>> =
     immediateFuture(listOf(ValueDescriptor("1", "one"), ValueDescriptor("2", "two")))
 
-  private val property = ModelSimplePropertyImpl(
+  private val property get() = ModelSimplePropertyImpl(
     modelDescriptor,
     "Description",
-    defaultValueGetter = { defaultValue },
+    defaultValueGetter = defaultValue?.let { { _ : Model -> it } },
     getResolvedValue = { value },
     getParsedValue = { value },
     getParsedRawValue = { dsl ?: if (value != null) DslText.Literal else null },
@@ -108,6 +108,7 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
 
   fun testLoadsValueNotMatchingResolved() {
     resolvedModel.value = "other"
+    defaultValue = null  // It should not matter whether it is set ot not. Make sure that if it is not set we still report the difference.
     val editor = simplePropertyEditor(null, model, property)
     assertThat<Any?>(editor.selectedItem, equalTo("value".asSimpleParsed()))
     assertThat(editor.testPlainTextStatus, equalTo(" -> other"))
@@ -150,10 +151,28 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
     assertThat(editor.testPlainTextStatus, equalTo(""))
   }
 
-  fun testLoadsNotSetValue_noDefault() {
+  fun testLoadsNotSetValue_resolved() {
     parsedModel.dsl = null
     parsedModel.value = null
-    resolvedModel.value = null
+    resolvedModel.value = "default"  // Matches the "default" value.
+    val editor = simplePropertyEditor(null, model, property)
+    assertThat<Any?>(editor.selectedItem, equalTo(ParsedValue.NotSet))
+    assertThat(editor.testPlainTextStatus, equalTo(""))
+  }
+
+  fun testLoadsNotSetValue_resolvedNonDefault() {
+    parsedModel.dsl = null
+    parsedModel.value = null
+    resolvedModel.value = "resolved"
+    val editor = simplePropertyEditor(null, model, property)
+    assertThat<Any?>(editor.selectedItem, equalTo(ParsedValue.NotSet))
+    assertThat(editor.testPlainTextStatus, equalTo(" -> resolved"))
+  }
+
+  fun testLoadsNotSetValue_noDefault_resolved() {
+    parsedModel.dsl = null
+    parsedModel.value = null
+    resolvedModel.value = "resolved"
     defaultValue = null
     val editor = simplePropertyEditor(null, model, property)
     assertThat<Any?>(editor.selectedItem, equalTo(ParsedValue.NotSet))
@@ -208,6 +227,7 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
     val var1 = "var1" to "1"
     val var2 = "var2" to "2"
     val var3 = "var3" to "3"
+    val property = this.property
     `when`(variablesProvider.getAvailableVariablesFor(null, property)).thenReturn(
       listOf(
         var1.asParsed(),
@@ -225,6 +245,7 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
     val var1 = "var1" to "1"
     val var2 = "var2" to "2"
     val var3 = "var3" to "3"
+    val property = this.property
     `when`(variablesProvider.getAvailableVariablesFor(null, property)).thenReturn(
       listOf(
         var1.asParsed(),
