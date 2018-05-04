@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 
-import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_FONT;
+import static com.android.tools.profilers.ProfilerFonts.H3_FONT;
 
 public abstract class ProfilerTooltipView extends AspectObserver {
   @NotNull
@@ -50,7 +50,7 @@ public abstract class ProfilerTooltipView extends AspectObserver {
     myTimeline = timeline;
     myHeadingLabel = new JLabel();
     myHeadingLabel.setForeground(ProfilerColors.TOOLTIP_TEXT);
-    myFont = TOOLTIP_FONT;
+    myFont = H3_FONT;
     myMaximumLabelHeight = myHeadingLabel.getFontMetrics(myFont).getHeight();
     myHeadingLabel.setFont(myFont);
     timeline.getTooltipRange().addDependency(this).onChange(Range.Aspect.RANGE, this::updateHeader);
@@ -94,7 +94,7 @@ public abstract class ProfilerTooltipView extends AspectObserver {
     myHeadingLabel.setMinimumSize(new Dimension(myMaximumWidth, myMaximumLabelHeight));
     updateMaximumLabelDimensions();
 
-    TooltipPanel tooltipPanel = new TooltipPanel(new TabularLayout("*", "Fit-,5px,*"));
+    TooltipPanel tooltipPanel = new TooltipPanel(new TabularLayout("*", "Fit-,8px,*"));
     tooltipPanel.add(myHeadingLabel, new TabularLayout.Constraint(0, 0));
     tooltipPanel.add(myTooltipContent, new TabularLayout.Constraint(2, 0));
     tooltipPanel.setForeground(ProfilerColors.TOOLTIP_TEXT);
