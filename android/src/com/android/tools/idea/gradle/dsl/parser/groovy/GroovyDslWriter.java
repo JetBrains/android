@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.groovy;
 
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter;
+import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.project.Project;
@@ -100,7 +101,8 @@ public class GroovyDslWriter implements GradleDslWriter {
 
     // If the parent doesn't have a psi element, the anchor will be used to create the parent in getParentPsi.
     // In this case we want to be placed in the newly made parent so we ignore our anchor.
-    if (needToCreateParent(element)) {
+    // 'apply' groups are an exception, as they don't have a psi element but we should still use their anchor to insert correctly.
+    if (needToCreateParent(element) && !(element.getParent() instanceof ApplyDslElement)) {
       anchorAfter = null;
     }
     PsiElement parentPsiElement = getParentPsi(element);
