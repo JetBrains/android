@@ -36,7 +36,6 @@ import java.nio.BufferUnderflowException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 
 /**
  * Manages the parsing of traces into {@link CpuCapture} objects and provide a way to retrieve them.
@@ -100,6 +99,18 @@ public class CpuCaptureParser {
   @Nullable
   String getTraceFilePath(int traceId) {
     return myTraceFiles.get(traceId);
+  }
+
+  /**
+   * Abort every capture parsing that might still be in progress.
+   */
+  void abortParsing() {
+    myCaptures.forEach((id, capture) -> {
+      boolean isCaptureCancelled = capture.cancel(true);
+      if (!isCaptureCancelled) {
+        getLogger().warn(String.format("Parsing of capture %d was not properly cancelled.", id));
+      }
+    });
   }
 
   /**

@@ -29,6 +29,8 @@ import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.network.FakeNetworkService;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.google.common.collect.Iterators;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -38,6 +40,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -1485,6 +1488,56 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
+  public void abortParsingImportTraceFileShowsABalloon() {
+    StudioProfilers profilers = myStage.getStudioProfilers();
+    myServices.enableImportTrace(true);
+    myServices.enableSessionsView(true);
+    File traceFile = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
+
+    FakeParserCancelParsing parser = new FakeParserCancelParsing(myServices);
+    CpuProfilerStage stage = new CpuProfilerStage(profilers, traceFile, parser);
+    stage.enter();
+    // Import trace mode is enabled successfully
+    assertThat(stage.isImportTraceMode()).isTrue();
+
+    // We should show a balloon saying the parsing was aborted, because FakeParserCancelParsing emulates a cancelled parsing task
+    assertThat(myServices.getErrorBalloonTitle()).isEqualTo(CpuProfilerStage.PARSING_ABORTED_BALLOON_TITLE);
+    assertThat(myServices.getErrorBalloonBody()).isEqualTo(CpuProfilerStage.PARSING_IMPORTED_TRACE_ABORTED_BALLOON_TEXT);
+    assertThat(myServices.getErrorBalloonUrl()).isNull();
+    assertThat(myServices.getErrorBalloonUrlText()).isNull();
+  }
+
+  @Test
+  public void abortParsingRecordedTraceFileShowsABalloon() {
+    StudioProfilers profilers = myStage.getStudioProfilers();
+    FakeParserCancelParsing parser = new FakeParserCancelParsing(myServices);
+    CpuProfilerStage stage = new CpuProfilerStage(profilers, null, parser);
+    stage.enter();
+    myCpuService.setStartProfilingStatus(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS);
+    stage.startCapturing();
+    myCpuService.setValidTrace(true);
+    stopCapturing(stage);
+
+    // We should show a balloon saying the parsing was aborted, because FakeParserCancelParsing emulates a cancelled parsing task
+    assertThat(myServices.getErrorBalloonTitle()).isEqualTo(CpuProfilerStage.PARSING_ABORTED_BALLOON_TITLE);
+    assertThat(myServices.getErrorBalloonBody()).isEqualTo(CpuProfilerStage.PARSING_RECORDED_TRACE_ABORTED_BALLOON_TEXT);
+    assertThat(myServices.getErrorBalloonUrl()).isNull();
+    assertThat(myServices.getErrorBalloonUrlText()).isNull();
+  }
+
+  @Test
+  public void exitStageShouldCallParserAbort() {
+    StudioProfilers profilers = myStage.getStudioProfilers();
+
+    FakeParserCancelParsing parser = new FakeParserCancelParsing(myServices);
+    CpuProfilerStage stage = new CpuProfilerStage(profilers, null, parser);
+    stage.enter();
+    assertThat(parser.isAbortParsingCalled()).isFalse();
+    stage.exit();
+    assertThat(parser.isAbortParsingCalled()).isTrue();
+  }
+
+  @Test
   public void captureIsSetWhenOpeningStageInImportTraceMode() {
     StudioProfilers profilers = myStage.getStudioProfilers();
     myServices.enableImportTrace(true);
@@ -1693,5 +1746,47 @@ public class CpuProfilerStageTest extends AspectObserver {
 
   private void stopCapturing() {
     stopCapturing(myStage);
+  }
+
+  /**
+   * An instance of {@link CpuCaptureParser} that will always cancel the {@link CompletableFuture<CpuCapture>} task responsible for parsing
+   * a trace into a {@link CpuCapture}. This way, we can test the behavior of {@link CpuProfilerStage} when such scenario happens.
+   */
+  private static class FakeParserCancelParsing extends CpuCaptureParser {
+
+    private boolean myAbortParsingCalled = false;
+
+    public FakeParserCancelParsing(@NotNull IdeProfilerServices services) {
+      super(services);
+    }
+
+    @Override
+    void abortParsing() {
+      myAbortParsingCalled = true;
+      super.abortParsing();
+    }
+
+    @Nullable
+    @Override
+    public CompletableFuture<CpuCapture> parse(@NotNull Common.Session session,
+                                               int traceId,
+                                               @NotNull ByteString traceData,
+                                               CpuProfiler.CpuProfilerType profilerType) {
+      CompletableFuture<CpuCapture> capture = new CompletableFuture<>();
+      capture.cancel(true);
+      return capture;
+    }
+
+    @Nullable
+    @Override
+    public CompletableFuture<CpuCapture> parse(File traceFile) {
+      CompletableFuture<CpuCapture> capture = new CompletableFuture<>();
+      capture.cancel(true);
+      return capture;
+    }
+
+    public boolean isAbortParsingCalled() {
+      return myAbortParsingCalled;
+    }
   }
 }
