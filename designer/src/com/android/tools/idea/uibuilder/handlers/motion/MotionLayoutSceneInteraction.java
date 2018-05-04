@@ -32,6 +32,8 @@ import com.google.common.collect.ImmutableList;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
+
 class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
 
   private NlComponent myPrimary;
@@ -127,6 +129,7 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
             if (myMotionHelper.getPositionKeyframe(myKeyframe, view, fx, fy, positionAttributes, positionsValues)) {
               myMotionHelper.setKeyframe(myKeyframe, positionAttributes[0], positionsValues[0]);
               myMotionHelper.setKeyframe(myKeyframe, positionAttributes[1], positionsValues[1]);
+              myMotionHelper.setKeyframe(myKeyframe, "drawPath", 4);
               myPrimary.getModel().notifyLiveUpdate(false);
             }
           }
@@ -152,8 +155,10 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
           positionAttributes[1] = "verticalPosition_inDeltaY";
           float[] positionsValues = new float[2];
           if (myMotionHelper.getPositionKeyframe(myKeyframe, view, fx, fy, positionAttributes, positionsValues)) {
-            panel.setKeyframeAttribute(selected.getModel(), "horizontalPosition_inDeltaX", positionsValues[0]);
-            panel.setKeyframeAttribute(selected.getModel(), "verticalPosition_inDeltaY", positionsValues[1]);
+            HashMap<String, String> values = new HashMap<>();
+            values.put(positionAttributes[0], Float.toString(positionsValues[0]));
+            values.put(positionAttributes[1], Float.toString(positionsValues[1]));
+            panel.setKeyframeAttributes(selected.getModel(), values);
           }
         }
       }

@@ -158,13 +158,35 @@ public class MotionSceneModel {
       return true;
     }
 
+    public boolean setValues(@NotNull NlModel model, @NotNull HashMap<String, String> values) {
+      XmlFile xmlFile = myMotionSceneModel.motionSceneFile();
+      XmlTag tag = findMyTag();
+      if (tag == null) {
+        return false;
+      }
+      String command = "Set attributes";
+      Runnable operation = () -> {
+        for (String key : values.keySet()) {
+          String value = values.get(key);
+          String namespace = isAndroidAttribute(key) ? ANDROID_URI : AUTO_URI;
+          tag.setAttribute(key, namespace, value);
+        }
+      };
+
+      WriteCommandAction.runWriteCommandAction(myMotionSceneModel.myProject, command, null, operation, xmlFile);
+      // Temporary for LayoutLib:
+      LayoutPullParsers.saveFileIfNecessary(xmlFile);
+      model.notifyModified(NlModel.ChangeType.EDIT);
+      return true;
+    }
+
     public boolean setValue(@NotNull NlModel model, @NotNull String key, @NotNull String value) {
       XmlFile xmlFile = myMotionSceneModel.motionSceneFile();
       XmlTag tag = findMyTag();
       if (tag == null) {
         return false;
       }
-      String command = "Delete " + key + " attribute";
+      String command = "Set " + key + " attribute";
       String namespace = isAndroidAttribute(key) ? ANDROID_URI : AUTO_URI;
       Runnable operation = () -> {
         tag.setAttribute(key, namespace, value);
@@ -350,6 +372,24 @@ public class MotionSceneModel {
         return false;
       }
       parse(key, value);
+      return true;
+    }
+
+    /**
+     * Set multiple values of a Keyframe in one go
+     * @param model
+     * @param key
+     * @param value
+     * @return
+     */
+    @Override
+    public boolean setValues(@NotNull NlModel model, @NotNull HashMap<String, String> values) {
+      if (!super.setValues(model, values)) {
+        return false;
+      }
+      for (String key : values.keySet()) {
+        parse(key, values.get(key));
+      }
       return true;
     }
 

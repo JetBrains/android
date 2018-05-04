@@ -49,6 +49,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutTimelinePanel.State.*;
@@ -182,6 +183,7 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     switch (myPanel.getMode()) {
       case START:
         setState(TL_START);
+        setProgress(0);
         break;
       case PLAY:
         setState(TL_PLAY);
@@ -195,9 +197,11 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
         break;
       case END:
         setState(TL_END);
+        setProgress(1);
         break;
       case UNKNOWN:
         setState(TL_START);
+        setProgress(0);
         break;
       default:
     }
@@ -407,9 +411,25 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     mGanttCommands = commands;
   }
 
-  public void setKeyframeAttribute(NlModel model, String attributeName, float value) {
+  /**
+   * Set the value of the attribute on the currently selected keyframe
+   * @param model
+   * @param attributeName
+   * @param value
+   */
+  public void setKeyframeAttribute(@NotNull NlModel model, @NotNull String attributeName, float value) {
     MotionSceneModel.KeyFrame keyFrame = myPanel.getChart().getSelectedKeyFrame();
     keyFrame.setValue(model, attributeName, Float.toString(value));
+  }
+
+  /**
+   * Set multiple values atomically on the currently selected keyframe
+   * @param model
+   * @param values
+   */
+  public void setKeyframeAttributes(@NotNull NlModel model, @NotNull HashMap<String, String> values) {
+    MotionSceneModel.KeyFrame keyFrame = myPanel.getChart().getSelectedKeyFrame();
+    keyFrame.setValues(model, values);
   }
 
   // TODO: merge with the above parse function
