@@ -63,7 +63,9 @@ public class ApplyDslElement extends GradlePropertiesDslElement {
   @Override
   @Nullable
   public PsiElement getPsiElement() {
-    return null; // This class is used to just group different kinds of apply statements and is never used to create a new element.
+    // This class is used to just group different kinds of apply statements, we make sure to return the parents PsiElement to ensure
+    // elements can be positioned correctly.
+    return myParent == null ? null : myParent.getPsiElement();
   }
 
   @Override

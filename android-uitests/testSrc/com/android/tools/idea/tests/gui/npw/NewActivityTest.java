@@ -123,7 +123,7 @@ public class NewActivityTest {
   }
 
   @Test
-  public void createActivityWithNonDefaultPackage() throws Exception{
+  public void createActivityWithNonDefaultPackage() throws Exception {
     myConfigActivity.enterTextFieldValue(ActivityTextField.PACKAGE_NAME, "google.test2");
     myDialog.clickFinish();
 
