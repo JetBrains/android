@@ -330,7 +330,7 @@ public class MotionLayoutComponentDelegate implements NlComponentDelegate {
    * Make sure we have usable Ids, even if only temporary
    * @param component
    */
-  private void updateIds(@NotNull NlComponent component) {
+  void updateIds(@NotNull NlComponent component) {
     ResourceIdManager manager = ResourceIdManager.get(component.getModel().getModule());
     updateId(manager, component);
     if (NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.CLASS_MOTION_LAYOUT)) {
