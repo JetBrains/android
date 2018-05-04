@@ -95,7 +95,7 @@ public class LegendComponent extends AnimatedComponent {
     myVerticalPadding = builder.myVerticalPadding;
     myModel.addDependency(myAspectObserver)
       .onChange(LegendComponentModel.Aspect.LEGEND, this::modelChanged);
-    setFont(AdtUiUtils.DEFAULT_FONT);
+    setFont(AdtUiUtils.DEFAULT_FONT.deriveFont(builder.myTextSize));
     modelChanged();
   }
 
@@ -216,11 +216,13 @@ public class LegendComponent extends AnimatedComponent {
   public static final class Builder {
     private static final int DEFAULT_PADDING_X_PX = JBUI.scale(1); // Should at least be 1 to avoid borders getting clipped.
     private static final int DEFAULT_PADDING_Y_PX = JBUI.scale(5);
+    private static final float DEFAULT_TEXT_SIZE = JBUI.scale(12);
 
     private final LegendComponentModel myModel;
     private int myLeftPadding = DEFAULT_PADDING_X_PX;
     private int myRightPadding = DEFAULT_PADDING_X_PX;
     private int myVerticalPadding = DEFAULT_PADDING_Y_PX;
+    private float myTextSize = DEFAULT_TEXT_SIZE;
     private Orientation myOrientation = Orientation.HORIZONTAL;
 
     public Builder(@NotNull LegendComponentModel model) {
@@ -249,6 +251,12 @@ public class LegendComponent extends AnimatedComponent {
     public Builder setHorizontalPadding(int padding) {
       setLeftPadding(padding);
       setRightPadding(padding);
+      return this;
+    }
+
+    @NotNull
+    public Builder setTextSize(int size) {
+      myTextSize = size;
       return this;
     }
 
