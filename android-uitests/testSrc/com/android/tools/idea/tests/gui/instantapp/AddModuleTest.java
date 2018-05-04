@@ -62,7 +62,7 @@ public class AddModuleTest {
     NewModuleWizardFixture newModDialog = NewModuleWizardFixture.find(ideFrame);
 
     newModDialog.chooseModuleType("Instant App Feature Module")
-      .clickNextToStep("Creates a new Android module.")
+      .clickNextToStep("Creates a new Android Instant App Feature module.")
       .clickNextToStep("Add an Activity to Mobile")
       .clickNextToStep("Configure Activity")
       .clickFinish();
