@@ -43,6 +43,7 @@ import com.intellij.psi.impl.migration.PsiMigrationManager
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.refactoring.RefactoringBundle
+import com.intellij.refactoring.RefactoringHelper
 import com.intellij.refactoring.listeners.RefactoringEventData
 import com.intellij.refactoring.util.RefactoringUIUtil
 import com.intellij.usageView.UsageInfo
@@ -182,6 +183,12 @@ class MigrateToAndroidxProcessor(val project: Project,
       migration.finish()
     }
   }
+
+  /**
+   * We do not want to apply OptimizeImportsRefactoring since the project might be broken after changing the imports.
+   * This is a workaround for http://b/79220682
+   */
+  override fun shouldApplyRefactoringHelper(key: RefactoringHelper<*>): Boolean = false
 
   override fun performPsiSpoilingRefactoring() {
     val styleManager = JavaCodeStyleManager.getInstance(myProject)
