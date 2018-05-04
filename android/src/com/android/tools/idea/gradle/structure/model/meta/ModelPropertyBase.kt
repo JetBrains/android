@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.meta
 
+import com.android.tools.idea.projectsystem.transform
 import com.google.common.util.concurrent.ListenableFuture
 
 abstract class ModelPropertyBase<in ContextT, in ModelT, ValueT : Any> :
@@ -27,6 +28,10 @@ abstract class ModelPropertyBase<in ContextT, in ModelT, ValueT : Any> :
 
   final override fun format(context: ContextT, value: ValueT): String = formatter(context, value)
 
-  final override fun getKnownValues(context: ContextT, model: ModelT): ListenableFuture<List<ValueDescriptor<ValueT>>> =
-    knownValuesGetter(context, model)
+  final override fun getKnownValues(context: ContextT, model: ModelT): ListenableFuture<KnownValues<ValueT>> =
+    knownValuesGetter(context, model).transform {
+      object : KnownValues<ValueT> {
+        override val literals: List<ValueDescriptor<ValueT>> = it
+      }
+    }
 }

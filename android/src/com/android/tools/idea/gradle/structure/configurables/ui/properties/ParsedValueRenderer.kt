@@ -16,10 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
 import com.android.tools.idea.gradle.structure.configurables.ui.TextRenderer
-import com.android.tools.idea.gradle.structure.model.meta.DslText
-import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
-import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
-import com.android.tools.idea.gradle.structure.model.meta.getText
+import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.ui.JBColor
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SimpleTextAttributes.STYLE_WAVED
@@ -99,9 +96,9 @@ fun <PropertyT : Any> ParsedValue<PropertyT>.renderTo(
  * Builds renderers for known values described by [ValueDescriptor]s.
  */
 fun <PropertyT : Any> buildKnownValueRenderers(
-  knownValues: List<ValueDescriptor<PropertyT>>?, formatValue: PropertyT.() -> String, defaultValue: PropertyT?
+  knownValues: KnownValues<PropertyT>, formatValue: PropertyT.() -> String, defaultValue: PropertyT?
 ): Map<ParsedValue<PropertyT>, ValueRenderer> {
-  val knownValuesMap = knownValues?.associate { it.value to it.description }.orEmpty()
+  val knownValuesMap = knownValues.literals.associate { it.value to it.description }
   val result = mutableListOf<Pair<ParsedValue<PropertyT>, ValueRenderer>>()
   if (defaultValue != null) {
     result.add(ParsedValue.NotSet to object : ValueRenderer {
@@ -119,28 +116,26 @@ fun <PropertyT : Any> buildKnownValueRenderers(
       }
     })
   }
-  if (knownValues != null) {
-    result.addAll(knownValues.map {
-      it.value to object : ValueRenderer {
-        override fun renderTo(textRenderer: TextRenderer): Boolean {
-          val notEmptyValue = if (it.value !== ParsedValue.NotSet) {
-            val notEmptyValue = it.value.renderTo(textRenderer, formatValue, mapOf())
-            if (notEmptyValue && it.description != null) {
-              textRenderer.append(" ", regularAttributes)
-            }
-            notEmptyValue
+  result.addAll(knownValues.literals.map {
+    it.value to object : ValueRenderer {
+      override fun renderTo(textRenderer: TextRenderer): Boolean {
+        val notEmptyValue = if (it.value !== ParsedValue.NotSet) {
+          val notEmptyValue = it.value.renderTo(textRenderer, formatValue, mapOf())
+          if (notEmptyValue && it.description != null) {
+            textRenderer.append(" ", regularAttributes)
           }
-          else {
-            false
-          }
-          if (it.description != null) {
-            textRenderer.append("(${it.description})", commentAttributes)
-          }
-          return notEmptyValue || it.description != null
+          notEmptyValue
         }
+        else {
+          false
+        }
+        if (it.description != null) {
+          textRenderer.append("(${it.description})", commentAttributes)
+        }
+        return notEmptyValue || it.description != null
       }
-    })
-  }
+    }
+  })
   return result.associate { it.first to it.second }
 }
 
