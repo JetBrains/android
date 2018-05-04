@@ -15,10 +15,15 @@
  */
 package com.android.tools.idea.npw.model;
 
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED;
 
 /**
  * Sometimes, there are several separate classes which want to render templates, in some order, but the whole process should be aborted if
@@ -44,8 +49,13 @@ public final class MultiTemplateRenderer {
     void render();
   }
 
+  private final Project myProject;
   private final List<TemplateRenderer> myTemplateRenderers = new ArrayList<>();
   private int myRequestCount = 1;
+
+  public MultiTemplateRenderer(@Nullable Project project) {
+    this.myProject = project;
+  }
 
   /**
    * Call this method to indicate that one more render is available. Every call to this method needs to be later matched by a
@@ -101,6 +111,10 @@ public final class MultiTemplateRenderer {
 
       for (TemplateRenderer renderer : myTemplateRenderers) {
         renderer.render();
+      }
+
+      if (myProject != null) {
+        ProjectSystemUtil.getProjectSystem(myProject).getSyncManager().syncProject(PROJECT_MODIFIED, true);
       }
     }
   }

@@ -98,7 +98,7 @@ public final class RenderTemplateModel extends WizardModel {
     myTemplates = new ObjectValueProperty<>(template);
     myTemplateHandle = templateHandle;
     myCommandName = commandName;
-    myMultiTemplateRenderer = new MultiTemplateRenderer();
+    myMultiTemplateRenderer = new MultiTemplateRenderer(project);
     myLanguageSet = new ObjectValueProperty<>(getInitialSourceLanguage(project));
     myShouldOpenFiles = shouldOpenFiles;
     init();
@@ -326,6 +326,7 @@ public final class RenderTemplateModel extends WizardModel {
       .withCommandName(myCommandName)
       .withDryRun(dryRun)
       .withShowErrors(true)
+      .withPerformSync(false)
       .withModuleRoot(paths.getModuleRoot())
       .withModule(getModule())
       .withParams(myTemplateValues)
