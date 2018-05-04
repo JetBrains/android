@@ -33,6 +33,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.ClassInheritorsSearch
@@ -293,7 +294,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       if (psiFile is XmlFile && resourceManager.getFileResourceFolderType(psiFile) == ResourceFolderType.LAYOUT) {
         layoutFile = psiFile
       }
-      if (psiFile is PsiJavaFile) {
+      if (psiFile is PsiClassOwner) {
         psiClass = psiFile.classes[0]
       }
     }
