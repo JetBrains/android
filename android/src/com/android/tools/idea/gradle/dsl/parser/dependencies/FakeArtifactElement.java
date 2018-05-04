@@ -27,6 +27,7 @@ import java.util.function.Function;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr;
 import static com.intellij.openapi.util.text.StringUtil.isQuotedString;
+import static com.intellij.openapi.util.text.StringUtil.unquoteString;
 
 /**
  * FakeElement representing part of an artifact in compact notation. This allows us to represent each component as its own property.
@@ -66,23 +67,38 @@ public class FakeArtifactElement extends FakeElement {
 
   @Override
   protected void consumeValue(@Nullable Object value) {
+    assert myCanDelete || value != null;
     GradleDslSimpleExpression resolved = PropertyUtil.resolveElement(myRealExpression);
     ArtifactDependencySpec spec = getSpec(resolved);
     if (spec == null) {
       throw new IllegalArgumentException("Could not create ArtifactDependencySpec from: " + value);
     }
     assert value instanceof String || value instanceof ReferenceTo || value == null;
-    String strValue = (value instanceof ReferenceTo) ? "${" + ((ReferenceTo)value).getText() + "}" : (String)value;
+    boolean shouldQuote = false;
+    String strValue = null;
+    if (value instanceof ReferenceTo) {
+      strValue = "${" + ((ReferenceTo)value).getText() + "}";
+      shouldQuote = true;
+    }
+    else if (value != null) {
+      strValue = (String)value;
+      if (isDoubleQuotedString(strValue)) {
+        shouldQuote = true;
+        strValue = unquoteString((String)value);
+      }
+    }
     mySetter.accept(spec, strValue);
-    if (strValue != null &&
-        (value instanceof ReferenceTo ||
-         isQuotedString(strValue) ||
-         resolved.getDslFile().getParser().shouldInterpolate(resolved))) {
+    if (shouldQuote ||
+        resolved.getDslFile().getParser().shouldInterpolate(resolved)) {
       myRealExpression.setValue(iStr(spec.compactNotation()));
     }
     else {
       myRealExpression.setValue(spec.compactNotation());
     }
+  }
+
+  private static boolean isDoubleQuotedString(@NotNull String str) {
+    return isQuotedString(str) && str.charAt(0) == '\"';
   }
 
   @Nullable
