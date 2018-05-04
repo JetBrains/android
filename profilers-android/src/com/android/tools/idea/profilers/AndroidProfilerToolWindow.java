@@ -32,6 +32,7 @@ import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ToolWindowManagerAdapter;
@@ -43,11 +44,17 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.io.File;
 import java.util.function.Predicate;
 
 public class AndroidProfilerToolWindow extends AspectObserver implements Disposable {
 
   private static final String HIDE_STOP_PROMPT = "profilers.hide.stop.prompt";
+
+  private static final String OPEN_FILE_FAILURE_BALLOON_TITLE = "Failed to open file";
+
+  private static final String OPEN_FILE_FAILURE_BALLOON_TEXT = "The profiler was unable to open the selected file. Please try opening it " +
+                                                               "again or select a different file.";
 
   @NotNull
   private final StudioProfilersView myView;
@@ -126,6 +133,15 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
    */
   public void profileModule(@NotNull Module module, @NotNull IDevice device, @Nullable Predicate<Common.Process> processPredicate) {
     myProfilers.setPreferredProcess(getDeviceDisplayName(device), getModuleName(module), processPredicate);
+  }
+
+  /**
+   * Tries to import a file into an imported session of the profilers and shows an error balloon if it fails to do so.
+   */
+  public void openFile(@NotNull VirtualFile file) {
+    if (!myProfilers.getSessionsManager().importSessionFromFile(new File(file.getPath()))) {
+      myProfilers.getIdeServices().showErrorBalloon(OPEN_FILE_FAILURE_BALLOON_TITLE, OPEN_FILE_FAILURE_BALLOON_TEXT, null, null);
+    }
   }
 
   private void modeChanged() {

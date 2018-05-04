@@ -119,6 +119,11 @@ public final class StudioFlags {
     "Add the option to export CPU trace files when right-clicking a CPU capture.",
     true);
 
+  public static final Flag<Boolean> PROFILER_OPEN_CAPTURES = Flag.create(
+    PROFILER, "profiler.open.captures", "Enable opening .trace and .hprof files",
+    "Allow opening .hprof and .trace files in Android Studio (e.g. File -> Open) which imports them into Android Profiler.",
+    false);
+
   public static final Flag<Boolean> PROFILER_STARTUP_CPU_PROFILING = Flag.create(
     PROFILER, "startup.cpu.profiling", "Enable startup CPU Profiling",
     "Record a method trace on startup by enabling it in the Profiler tab of Run/Debug configuration.",
