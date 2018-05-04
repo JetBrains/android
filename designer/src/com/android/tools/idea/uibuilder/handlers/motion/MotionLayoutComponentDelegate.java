@@ -28,6 +28,7 @@ import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
+import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.utils.Pair;
 import com.intellij.openapi.application.Result;
@@ -301,6 +302,10 @@ public class MotionLayoutComponentDelegate implements NlComponentDelegate {
         if (value.startsWith("@id/") || value.startsWith("@+id/")) {
           value = value.substring(value.indexOf('/') + 1);
           Integer resolved = manager.getCompiledId(new ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, value));
+          if (resolved == null) {
+            updateIds(modification.getComponent());
+            resolved = manager.getOrGenerateId(new ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, value));
+          }
           if (resolved != null) {
             value = resolved.toString();
           }
@@ -313,6 +318,42 @@ public class MotionLayoutComponentDelegate implements NlComponentDelegate {
 
     helper.setAttributes(dpiValue, constraintSetId, info.getViewObject(), attributes);
     helper.setProgress(position);
+  }
+
+  /**
+   * Make sure we have usable Ids, even if only temporary
+   * @param component
+   */
+  private void updateIds(@NotNull NlComponent component) {
+    ResourceIdManager manager = ResourceIdManager.get(component.getModel().getModule());
+    updateId(manager, component);
+    if (NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.CLASS_MOTION_LAYOUT)) {
+      for (NlComponent child : component.getChildren()) {
+        updateId(manager, child);
+      }
+    }
+    component = component.getParent();
+    if (component != null && NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.CLASS_MOTION_LAYOUT)) {
+      for (NlComponent child : component.getChildren()) {
+        updateId(manager, child);
+      }
+    }
+  }
+
+  private void updateId(@NotNull ResourceIdManager manager, @NotNull NlComponent component) {
+    String id = component.getId();
+    ResourceReference reference = new ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, id);
+    Integer resolved = manager.getCompiledId(reference);
+    if (resolved == null) {
+      resolved = manager.getOrGenerateId(reference);
+      if (resolved != null) {
+        ViewInfo view = NlComponentHelperKt.getViewInfo(component);
+        if (view != null && view.getViewObject() != null) {
+          android.view.View androidView = (android.view.View) view.getViewObject();
+          androidView.setId(resolved.intValue());
+        }
+      }
+    }
   }
 
   @Override
