@@ -42,6 +42,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.android.tools.profilers.FakeProfilerService.FAKE_DEVICE_NAME;
+import static com.android.tools.profilers.FakeProfilerService.FAKE_PROCESS_NAME;
 import static com.google.common.truth.Truth.assertThat;
 
 public class StudioProfilersViewTest {
@@ -63,6 +65,7 @@ public class StudioProfilersViewTest {
     myTimer = new FakeTimer();
     myProfilerServices.enableEnergyProfiler(true);
     myProfilers = new StudioProfilers(myGrpcChannel.getClient(), myProfilerServices, myTimer);
+    myProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
     // Make sure a process is selected
     myView = new StudioProfilersView(myProfilers, new FakeIdeProfilerComponents());
     myView.bind(FakeStage.class, FakeView::new);

@@ -24,6 +24,8 @@ import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profilers.*
+import com.android.tools.profilers.FakeProfilerService.FAKE_DEVICE_NAME
+import com.android.tools.profilers.FakeProfilerService.FAKE_PROCESS_NAME
 import com.android.tools.profilers.cpu.CpuProfilerStageView.KERNEL_VIEW_SPLITTER_RATIO
 import com.android.tools.profilers.cpu.CpuProfilerStageView.SPLITTER_DEFAULT_RATIO
 import com.android.tools.profilers.cpu.atrace.AtraceParser
@@ -69,6 +71,8 @@ class CpuProfilerStageViewTest {
   @Before
   fun setUp() {
     val profilers = StudioProfilers(myGrpcChannel.client, myIdeServices, myTimer)
+    profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
+
     // One second must be enough for new devices (and processes) to be picked up
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
@@ -234,12 +238,6 @@ class CpuProfilerStageViewTest {
 
   @Test
   fun testHideablePanelsHaveItemCountsAsTitle() {
-    // Create default device and process for a default session.
-    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
-    val process1 = Common.Process.newBuilder().setPid(2652).setState(Common.Process.State.ALIVE).build()
-    // Create a session and a ongoing profiling session.
-    myStage.studioProfilers.sessionsManager.endCurrentSession()
-    myStage.studioProfilers.sessionsManager.beginSession(device, process1)
     myStage.studioProfilers.stage = myStage
     myCpuService.profilerType = CpuProfiler.CpuProfilerType.ATRACE
     myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)

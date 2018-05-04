@@ -30,6 +30,8 @@ import java.util.Map;
 public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase {
   public static final String VERSION = "3141592";
   public static final long FAKE_DEVICE_ID = 1234;
+  public static final String FAKE_DEVICE_NAME = "FakeDevice";
+  public static final String FAKE_PROCESS_NAME = "FakeProcess";
 
   private final Map<Long, Common.Device> myDevices;
   private final MultiMap<Common.Device, Common.Process> myProcesses;
@@ -63,7 +65,8 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     if (connected) {
       Common.Device device = Common.Device.newBuilder()
         .setDeviceId(FAKE_DEVICE_ID)
-        .setSerial("FakeDevice")
+        .setSerial(FAKE_DEVICE_NAME)
+        .setModel(FAKE_DEVICE_NAME)
         .setState(Common.Device.State.ONLINE)
         .build();
       Common.Process process = Common.Process.newBuilder()
@@ -71,7 +74,7 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
         .setPid(1)
         .setDeviceId(FAKE_DEVICE_ID)
         .setState(Common.Process.State.ALIVE)
-        .setName("FakeProcess")
+        .setName(FAKE_PROCESS_NAME)
         .build();
       addDevice(device);
       addProcess(device, process);

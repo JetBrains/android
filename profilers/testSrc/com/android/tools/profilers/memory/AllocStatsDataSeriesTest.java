@@ -51,6 +51,7 @@ public class AllocStatsDataSeriesTest {
     FakeTimer timer = new FakeTimer();
     myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
     StudioProfilers studioProfilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), timer);
+    studioProfilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null);
     timer.tick(TimeUnit.SECONDS.toNanos(1));
 
     MemoryData memoryData = MemoryData.newBuilder()

@@ -63,11 +63,6 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
     ProfilerClient client = service.getProfilerClient();
     myProfilers = new StudioProfilers(client, new IntellijProfilerServices(myProject));
 
-    // By default, we only auto-profile the app associated with the project.
-    StartupManager.getInstance(project)
-                  .runWhenProjectIsInitialized(
-                    () -> myProfilers.setPreferredProcess(null, getPreferredProcessName(myProject), null));
-
     myView =
       new StudioProfilersView(myProfilers, new IntellijProfilerComponents(myProject, myProfilers.getIdeServices().getFeatureTracker()));
     myLayeredPane = new ProfilerLayeredPane();

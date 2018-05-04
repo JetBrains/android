@@ -480,6 +480,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
       .build();
     myProfilerService.addDevice(device);
     myProfilerService.addProcess(device, process);
+    myStage.getStudioProfilers().setPreferredProcess("FakeDevice", "FakeProcess", null);
 
     MemoryData memoryData = MemoryData.newBuilder()
       .setEndTimestamp(FakeTimer.ONE_SECOND_IN_NS)

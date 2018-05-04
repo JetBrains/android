@@ -442,7 +442,8 @@ class SessionsManagerTest {
     myProfilerService.addProcess(device, process1)
     myProfilerService.addProcess(device, process2)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-
+    myProfilers.device = device
+    myProfilers.process = process1
     // Create a finished session and a ongoing profiling session.
     myManager.endCurrentSession()
     val session1 = myManager.selectedSession
