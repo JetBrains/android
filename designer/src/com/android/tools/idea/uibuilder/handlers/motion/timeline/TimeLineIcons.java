@@ -20,7 +20,7 @@ import icons.StudioIcons;
 import javax.swing.*;
 
 /**
- * Icons used byt TimelinePanel
+ * Icons used by TimelinePanel
  */
 public class TimeLineIcons {
   public static final Icon SLOW_MOTION = StudioIcons.LayoutEditor.Motion.SLOW_MOTION;

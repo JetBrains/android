@@ -402,7 +402,11 @@ class ViewList extends JPanel implements Gantt.ChartElement {
         return c;
       }
 
-      if (node.getParent() == root) {
+      Object userObject = node.getUserObject();
+      if (userObject instanceof Gantt.ViewElement) {
+        setIcon(((Gantt.ViewElement)userObject).getIcon());
+      }
+      else if (node.getParent() == root) {
         setIcon(StudioIcons.LayoutEditor.Palette.VIEW);
       }
       else if (node instanceof GraphMode) {
@@ -411,7 +415,7 @@ class ViewList extends JPanel implements Gantt.ChartElement {
       else {
         setIcon(EmptyIcon.ICON_0);
       }
-      setText(node.getUserObject().toString());
+      setText(userObject.toString());
       setBackgroundSelectionColor(UIUtil.getTreeSelectionBackground(hasFocus));
       return c;
     }
