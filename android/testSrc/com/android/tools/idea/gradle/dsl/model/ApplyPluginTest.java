@@ -17,10 +17,8 @@ package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
-import com.android.tools.idea.gradle.dsl.parser.java.ParserTestUtilKt;
 import com.google.common.collect.ImmutableList;
 import com.intellij.psi.PsiElement;
-import org.gradle.internal.impldep.org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
@@ -360,11 +358,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     verifyPropertyModel(buildModel.appliedPlugins().get(1).name(), STRING_TYPE, "kotlin-plugin-extensions", STRING, DERIVED, 0);
     verifyPropertyModel(buildModel.appliedPlugins().get(2).name(), STRING_TYPE, "some-other-plugin", STRING, DERIVED, 0);
 
-    ParserTestUtilKt.print(buildModel);
-
     applyChangesAndReparse(buildModel);
-
-    System.out.println(FileUtils.readFileToString(myBuildFile));
 
     verifyPropertyModel(buildModel.appliedPlugins().get(0).name(), STRING_TYPE, "kotlin-android", STRING, DERIVED, 0);
     verifyPropertyModel(buildModel.appliedPlugins().get(1).name(), STRING_TYPE, "kotlin-plugin-extensions", STRING, DERIVED, 0);
