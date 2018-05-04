@@ -19,10 +19,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.model.createNestedGraph
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 
-class AddToNewGraphAction(
-  mySurface: NavDesignSurface,
-  components: List<NlComponent>
-) : AddToGraphAction(mySurface, components, "New Graph") {
+class AddToNewGraphAction(mySurface: NavDesignSurface) : AddToGraphAction(mySurface, "New Graph") {
   override fun newParent(): NlComponent {
     return mySurface.currentNavigation.createNestedGraph()
   }
