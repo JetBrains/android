@@ -27,7 +27,9 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.ShortcutSet
+import com.intellij.openapi.util.SystemInfo
 import org.jetbrains.android.dom.navigation.NavActionElement
+import java.awt.Toolkit
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import javax.swing.JComponent
@@ -44,6 +46,7 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
   private val selectNextAction: AnAction = SelectNextAction(surface)
   private val selectPreviousAction: AnAction = SelectPreviousAction(surface)
   private val selectAllAction: AnAction = SelectAllAction(surface)
+  private val addToNewGraphAction: AnAction = AddToNewGraphAction(surface)
 
   // Open for testing only
   open val addDestinationMenu by lazy { AddDestinationMenu(mySurface) }
@@ -53,6 +56,9 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
     selectNextAction.registerCustomShortcutSet(KeyEvent.VK_TAB, 0, mySurface)
     selectPreviousAction.registerCustomShortcutSet(KeyEvent.VK_TAB, InputEvent.SHIFT_DOWN_MASK, mySurface)
     ActionManager.registerAction(selectAllAction, IdeActions.ACTION_SELECT_ALL, component)
+
+    val keyEvent = if (SystemInfo.isMac) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK
+    addToNewGraphAction.registerCustomShortcutSet(KeyEvent.VK_G, keyEvent, mySurface)
   }
 
   override fun createPopupMenu(
@@ -65,7 +71,6 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
       return group
     }
 
-    // TODO: Add group for action context menu items
     when {
       mySurface.selectionModel.selection.count() > 1 -> addMultiSelectionGroup(group, actionManager)
       leafComponent == mySurface.currentNavigation -> addSurfaceGroup(group)
@@ -152,13 +157,13 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
     // TODO: Add shortcut
     val group = DefaultActionGroup("Move to Nested Graph", true)
     val currentNavigation = mySurface.currentNavigation
-    group.add(AddToNewGraphAction(mySurface, components))
+    group.add(addToNewGraphAction)
 
     val subnavs = currentNavigation.children.filter { it.isNavigation && !components.contains(it) }
     if (!subnavs.isEmpty()) {
       group.addSeparator()
       for (graph in subnavs) {
-        group.add(AddToExistingGraphAction(mySurface, components, graph.uiName, graph))
+        group.add(AddToExistingGraphAction(mySurface, graph.uiName, graph))
       }
     }
 

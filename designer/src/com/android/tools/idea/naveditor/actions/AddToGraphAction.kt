@@ -19,6 +19,7 @@ import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.model.actionDestinationId
 import com.android.tools.idea.naveditor.model.isAction
+import com.android.tools.idea.naveditor.model.isDestination
 import com.android.tools.idea.naveditor.model.startDestination
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.actionSystem.AnAction
@@ -28,17 +29,19 @@ import kotlin.streams.toList
 
 abstract class AddToGraphAction(
   protected val mySurface: NavDesignSurface,
-  private val components: List<NlComponent>,
   name: String
 ) : AnAction(name) {
 
-  // TODO: Should we set the start action here?
   override fun actionPerformed(e: AnActionEvent?) {
-    WriteCommandAction.runWriteCommandAction(
-        null
-    ) {
+    val currentNavigation = mySurface.currentNavigation
+    val components = mySurface.selectionModel.selection.filter { it.isDestination && it.parent == currentNavigation }
+
+    if (components.isEmpty()) {
+      return
+    }
+
+    WriteCommandAction.runWriteCommandAction(mySurface.project, "Add to Nested Graph", null, Runnable {
       val graph = newParent()
-      val currentNavigation = mySurface.currentNavigation
       val ids = components.map { it.id }
       // Pick an arbitrary destination to be the start destination,
       // but give preference to destinations with incoming actions
@@ -60,7 +63,8 @@ abstract class AddToGraphAction(
         graph.startDestination = candidate
       }
       mySurface.selectionModel.setSelection(listOf(graph))
-    }
+
+    }, mySurface.model!!.file)
   }
 
   protected abstract fun newParent(): NlComponent

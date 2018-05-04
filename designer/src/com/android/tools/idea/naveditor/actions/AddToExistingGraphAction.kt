@@ -20,10 +20,9 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface
 
 class AddToExistingGraphAction(
   mySurface: NavDesignSurface,
-  components: List<NlComponent>,
   name: String,
   private val graph: NlComponent
-) : AddToGraphAction(mySurface, components, name) {
+) : AddToGraphAction(mySurface, name) {
   override fun newParent(): NlComponent {
     return graph
   }

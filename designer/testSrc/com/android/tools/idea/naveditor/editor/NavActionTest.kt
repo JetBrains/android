@@ -143,11 +143,27 @@ class NavActionTest : NavTestCase() {
       }
     }
 
+    val surface = model.surface as NavDesignSurface
+    surface.selectionModel.setSelection(listOf())
+    val action = AddToNewGraphAction(surface)
+
+    action.actionPerformed(null)
+
+    assertEquals(
+      "NlComponent{tag=<navigation>, instance=0}\n" +
+      "    NlComponent{tag=<fragment>, instance=1}\n" +
+      "        NlComponent{tag=<action>, instance=2}\n" +
+      "    NlComponent{tag=<fragment>, instance=3}\n" +
+      "        NlComponent{tag=<action>, instance=4}\n" +
+      "    NlComponent{tag=<fragment>, instance=5}\n" +
+      "    NlComponent{tag=<navigation>, instance=6}\n" +
+      "        NlComponent{tag=<fragment>, instance=7}\n" +
+      "            NlComponent{tag=<action>, instance=8}", NlTreeDumper().toTree(model.components)
+    )
+
     val fragment2 = model.find("fragment2")!!
     val fragment3 = model.find("fragment3")!!
-
-    val surface = model.surface as NavDesignSurface
-    val action = AddToNewGraphAction(surface, listOf(fragment2, fragment3))
+    surface.selectionModel.setSelection(listOf(fragment2, fragment3))
     action.actionPerformed(null)
 
     assertEquals(
@@ -218,12 +234,28 @@ class NavActionTest : NavTestCase() {
       }
     }
 
+    val surface = model.surface as NavDesignSurface
+    surface.selectionModel.setSelection(listOf())
+    val navigation1 = model.find("navigation1")!!
+    val action = AddToExistingGraphAction(surface,"navigation", navigation1)
+    action.actionPerformed(null)
+
+    assertEquals(
+      "NlComponent{tag=<navigation>, instance=0}\n" +
+      "    NlComponent{tag=<fragment>, instance=1}\n" +
+      "        NlComponent{tag=<action>, instance=2}\n" +
+      "    NlComponent{tag=<fragment>, instance=3}\n" +
+      "        NlComponent{tag=<action>, instance=4}\n" +
+      "    NlComponent{tag=<fragment>, instance=5}\n" +
+      "    NlComponent{tag=<navigation>, instance=6}\n" +
+      "        NlComponent{tag=<fragment>, instance=7}\n" +
+      "            NlComponent{tag=<action>, instance=8}", NlTreeDumper().toTree(model.components)
+    )
+
     val fragment2 = model.find("fragment2")!!
     val fragment3 = model.find("fragment3")!!
-    val navigation1 = model.find("navigation1")!!
 
-    val surface = model.surface as NavDesignSurface
-    val action = AddToExistingGraphAction(surface, listOf(fragment2, fragment3), "navigation", navigation1)
+    surface.selectionModel.setSelection(listOf(fragment2, fragment3))
     action.actionPerformed(null)
 
     assertEquals(
