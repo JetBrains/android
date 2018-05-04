@@ -19,11 +19,14 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.CharsetToolkit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.*;
 
 /**
@@ -160,28 +163,45 @@ public class HttpData {
    */
   @NotNull
   public static String getUrlName(@NotNull String url) {
-    URI uri = URI.create(url);
-    String name = uri.getPath() != null ? StringUtil.trimTrailing(uri.getPath(), '/') : "";
-    if (name.isEmpty()) {
-      return uri.getHost();
-    }
-    name = name.lastIndexOf('/') != -1 ? name.substring(name.lastIndexOf('/') + 1) : name;
-    if (uri.getQuery() != null) {
-      name += "?" + uri.getQuery();
-    }
-
-    // URL might be encoded an arbitrarily deep number of times. Keep decoding until we peel away the final layer.
-    // Usually this is only expected to loop once or twice.
-    // See more: http://stackoverflow.com/questions/3617784/plus-signs-being-replaced-for-252520
     try {
+      // Run encode on the incoming url once, just in case, as this can prevent URI.create from
+      // throwing a syntax exception in some cases. This encode will be decoded, below.
+      URI uri = URI.create(URLEncoder.encode(url, CharsetToolkit.UTF8));
+      String name = uri.getPath() != null ? StringUtil.trimTrailing(uri.getPath(), '/') : "";
+      if (name.isEmpty()) {
+        return uri.getHost();
+      }
+      name = name.lastIndexOf('/') != -1 ? name.substring(name.lastIndexOf('/') + 1) : name;
+      if (uri.getQuery() != null) {
+        name += "?" + uri.getQuery();
+      }
+
+      // URL might be encoded an arbitrarily deep number of times. Keep decoding until we peel away the final layer.
+      // Usually this is only expected to loop once or twice.
+      // See more: http://stackoverflow.com/questions/3617784/plus-signs-being-replaced-for-252520
       String lastName;
       do {
         lastName = name;
-        name = URLDecoder.decode(name, "UTF-8");
-      } while (!name.equals(lastName));
-    } catch (Exception ignored) {
+        name = URLDecoder.decode(name, CharsetToolkit.UTF8);
+      }
+      while (!name.equals(lastName));
+      return name;
     }
-    return name;
+    catch (UnsupportedEncodingException | IllegalArgumentException ignored) {
+      // If here, it most likely means the url we are tracking is invalid in some way (formatting
+      // or encoding). We try to recover gracefully by employing a simpler, less sophisticated
+      // approach - return all text after the last slash. Keep in mind that this fallback
+      // case should rarely, if ever, be used in practice.
+
+      // url.length() - 2 eliminates the case where the last character in the URL is a slash
+      // e.g. "www.example.com/name/" -> "name/", not ""
+      int lastSlash = url.lastIndexOf('/', url.length() - 2);
+      if (lastSlash >= 0) {
+        return url.substring(lastSlash + 1);
+      }
+
+      return url;
+    }
   }
 
   @Override

@@ -16,11 +16,11 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.android.tools.profilers.network.httpdata.Payload;
 import com.android.tools.profilers.network.httpdata.StackTrace;
 import com.google.common.collect.ImmutableMap;
-import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.fail;
 
 public class HttpDataTest {
   @Test
@@ -126,12 +125,9 @@ public class HttpDataTest {
   }
 
   @Test
-  public void urlNameDecoded() {
+  public void urlNameWithSpacesDecoded() {
     String notEncoded = "https://www.google.com/test test";
-    try {
-      HttpData.getUrlName(notEncoded);
-      fail(String.format("Not-encoded URL %s should be invalid.", notEncoded));
-    } catch (IllegalArgumentException ignored) {}
+    assertThat(HttpData.getUrlName(notEncoded)).isEqualTo("test test");
     String singleEncoded = "https://www.google.com/test%20test";
     assertThat(HttpData.getUrlName(singleEncoded)).isEqualTo("test test");
     String tripleEncoded = "https://www.google.com/test%252520test";
@@ -146,12 +142,30 @@ public class HttpDataTest {
 
 
   @Test
-  public void urlReturnedAsIsIfUnableToDecode() {
-    String url = "https://www.google.com/test%25-2test";
-    // Tries 2 times url decoding:
-    // 1. test%25-2test -> test%-2test
-    // 2. test%-2test -> can't decode -2 so throws an exception
-    assertThat(HttpData.getUrlName(url)).isEqualTo("test%-2test");
+  public void invalidUrlsReturnsTextAfterLastSlash() {
+    {
+      // "%25-2" doesn't decode correctly
+      // 1. test%25-2test -> test%-2test
+      // 2. test%-2test -> can't decode -2 so throws an exception
+
+      assertThat(HttpData.getUrlName("https://www.google.com/a/b/c/test%25-2test")).isEqualTo("test%25-2test");
+      assertThat(HttpData.getUrlName("https://www.google.com/a/b/c/test%25-2test/")).isEqualTo("test%25-2test/");
+    }
+
+    assertThat(HttpData.getUrlName("this.is.an.invalid.url/test")).isEqualTo("test");
+  }
+
+  @Test
+  public void invalidUrlsReturnedInFullUrl() {
+    String url = "this.is.an.invalid.url";
+    assertThat(HttpData.getUrlName(url)).isEqualTo(url);
+  }
+
+  @Test
+  public void getUrlNameCanHandlePipeCharacter() {
+    String url = "https://www.google.com/q?prop=hello|world";
+    // If it wasn't handled properly, the | character would cause a URI syntax exception
+    assertThat(HttpData.getUrlName(url)).isEqualTo("q?prop=hello|world");
   }
 
   @Test
