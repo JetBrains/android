@@ -17,8 +17,10 @@ package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
+import com.android.tools.idea.gradle.dsl.parser.java.ParserTestUtilKt;
 import com.google.common.collect.ImmutableList;
 import com.intellij.psi.PsiElement;
+import org.gradle.internal.impldep.org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
@@ -343,6 +345,75 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
 
     assertSize(0, buildModel.appliedPlugins());
+  }
+
+  @Test
+  public void testInsertPluginOrder() throws Exception {
+    String text = "";
+    writeToBuildFile(text);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    buildModel.applyPlugin("kotlin-android");
+    buildModel.applyPlugin("kotlin-plugin-extensions");
+    buildModel.applyPlugin("some-other-plugin");
+
+    verifyPropertyModel(buildModel.appliedPlugins().get(0).name(), STRING_TYPE, "kotlin-android", STRING, DERIVED, 0);
+    verifyPropertyModel(buildModel.appliedPlugins().get(1).name(), STRING_TYPE, "kotlin-plugin-extensions", STRING, DERIVED, 0);
+    verifyPropertyModel(buildModel.appliedPlugins().get(2).name(), STRING_TYPE, "some-other-plugin", STRING, DERIVED, 0);
+
+    ParserTestUtilKt.print(buildModel);
+
+    applyChangesAndReparse(buildModel);
+
+    System.out.println(FileUtils.readFileToString(myBuildFile));
+
+    verifyPropertyModel(buildModel.appliedPlugins().get(0).name(), STRING_TYPE, "kotlin-android", STRING, DERIVED, 0);
+    verifyPropertyModel(buildModel.appliedPlugins().get(1).name(), STRING_TYPE, "kotlin-plugin-extensions", STRING, DERIVED, 0);
+    verifyPropertyModel(buildModel.appliedPlugins().get(2).name(), STRING_TYPE, "some-other-plugin", STRING, DERIVED, 0);
+
+    String expected = "apply plugin: 'kotlin-android'\n" +
+                      "apply plugin: 'kotlin-plugin-extensions'\n" +
+                      "apply plugin: 'some-other-plugin'";
+    verifyFileContents(myBuildFile, expected);
+  }
+
+  @Test
+  public void testApplyPluginAtStart() throws Exception {
+    String text = "allprojects {\n" +
+                  "  repositories {\n" +
+                  "    jcenter()\n" +
+                  "  }\n" +
+                  "}\n" +
+                  "repositories {\n" +
+                  "  google()\n" +
+                  "}";
+    writeToBuildFile(text);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    buildModel.applyPlugin("kotlin-android");
+    buildModel.applyPlugin("kotlin-plugin-extensions");
+    buildModel.applyPlugin("some-other-plugin");
+
+    verifyPropertyModel(buildModel.appliedPlugins().get(0).name(), STRING_TYPE, "kotlin-android", STRING, DERIVED, 0);
+    verifyPropertyModel(buildModel.appliedPlugins().get(1).name(), STRING_TYPE, "kotlin-plugin-extensions", STRING, DERIVED, 0);
+    verifyPropertyModel(buildModel.appliedPlugins().get(2).name(), STRING_TYPE, "some-other-plugin", STRING, DERIVED, 0);
+
+    applyChangesAndReparse(buildModel);
+
+    verifyPropertyModel(buildModel.appliedPlugins().get(0).name(), STRING_TYPE, "kotlin-android", STRING, DERIVED, 0);
+    verifyPropertyModel(buildModel.appliedPlugins().get(1).name(), STRING_TYPE, "kotlin-plugin-extensions", STRING, DERIVED, 0);
+    verifyPropertyModel(buildModel.appliedPlugins().get(2).name(), STRING_TYPE, "some-other-plugin", STRING, DERIVED, 0);
+
+    String expected = "apply plugin: 'kotlin-android'\n" +
+                      "apply plugin: 'kotlin-plugin-extensions'\n" +
+                      "apply plugin: 'some-other-plugin'\n" +
+                      "allprojects {\n" +
+                      "  repositories {\n" +
+                      "    jcenter()\n" +
+                      "  }\n" +
+                      "}\n" +
+                      "repositories {\n" +
+                      "  google()\n" +
+                      "}";
+    verifyFileContents(myBuildFile, expected);
   }
 
   private static void verifyAppliedPluginsAndText(GradleBuildModel buildModel, String buildText) {
