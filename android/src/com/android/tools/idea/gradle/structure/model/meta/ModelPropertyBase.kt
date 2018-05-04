@@ -23,6 +23,7 @@ abstract class ModelPropertyBase<in ContextT, in ModelT, ValueT : Any> :
   abstract val parser: (ContextT, String) -> ParsedValue<ValueT>
   abstract val formatter: (ContextT, ValueT) -> String
   abstract val knownValuesGetter: (ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<ValueT>>>
+  open val variableMatchingStrategy: VariableMatchingStrategy get() = VariableMatchingStrategy.BY_TYPE
 
   final override fun parse(context: ContextT, value: String): ParsedValue<ValueT> = parser(context, value)
 
@@ -31,7 +32,10 @@ abstract class ModelPropertyBase<in ContextT, in ModelT, ValueT : Any> :
   final override fun getKnownValues(context: ContextT, model: ModelT): ListenableFuture<KnownValues<ValueT>> =
     knownValuesGetter(context, model).transform {
       object : KnownValues<ValueT> {
+        private val knownValues = variableMatchingStrategy.prepare(it)
         override val literals: List<ValueDescriptor<ValueT>> = it
+        override fun isSuitableVariable(variable: ParsedValue.Set.Parsed<ValueT>): Boolean = variableMatchingStrategy.matches(variable, knownValues)
       }
     }
 }
+

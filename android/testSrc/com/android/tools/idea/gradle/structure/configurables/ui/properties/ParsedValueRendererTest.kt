@@ -262,4 +262,5 @@ private fun Any.testToString() = toString() + "@"
 
 private fun <T> knownValuesFrom(literals: List<ValueDescriptor<T>>) = object : KnownValues<T> {
   override val literals: List<ValueDescriptor<T>> = literals
+  override fun isSuitableVariable(variable: ParsedValue.Set.Parsed<T>): Boolean = true
 }

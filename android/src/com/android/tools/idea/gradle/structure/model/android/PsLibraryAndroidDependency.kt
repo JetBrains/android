@@ -79,7 +79,8 @@ open class PsDeclaredLibraryAndroidDependency(
           {
             it!!.toVersionValueDescriptors()
           })
-      }
+      },
+      variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE
     )
   }
 }

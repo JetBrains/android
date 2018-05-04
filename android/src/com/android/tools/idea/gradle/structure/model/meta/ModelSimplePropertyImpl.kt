@@ -52,7 +52,8 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   setter: ResolvedPropertyModelT.(PropertyT) -> Unit,
   parse: (ContextT, String) -> ParsedValue<PropertyT>,
   format: (ContextT, PropertyT) -> String = { _, value -> value.toString() },
-  getKnownValues: ((ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>)? = null
+  getKnownValues: ((ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>)? = null,
+  variableMatchingStrategy: VariableMatchingStrategy = VariableMatchingStrategy.BY_TYPE
 ) =
   ModelSimplePropertyImpl(
     this,
@@ -65,7 +66,8 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
     { getParsedProperty().setDslText(it) },
     { context: ContextT, value: String -> if (value.isBlank()) ParsedValue.NotSet else parse(context, value.trim()) },
     format,
-    { context: ContextT, model: ModelT -> if (getKnownValues != null) getKnownValues(context, model) else immediateFuture(listOf()) }
+    { context: ContextT, model: ModelT -> if (getKnownValues != null) getKnownValues(context, model) else immediateFuture(listOf()) },
+    variableMatchingStrategy
   )
 
 /**
@@ -85,28 +87,29 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
  */
 // NOTE: This is an extension function supposed to be invoked on model descriptors to make the type inference work.
 fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT, PropertyT : Any, ContextT> T.property(
-    description: String,
-    default: PropertyT? = null,
-    defaultValueGetter: (ModelT) -> PropertyT? = { default },
-    getResolvedValue: ResolvedT.() -> PropertyT?,
-    getParsedValue: ParsedT.() -> PropertyT?,
-    getParsedRawValue: ParsedT.() -> DslText?,
-    setParsedValue: ParsedT.(PropertyT) -> Unit,
-    setParsedRawValue: (ParsedT.(DslText) -> Unit)? = null,
-    clearParsedValue: ParsedT.() -> Unit,
-    parse: (ContextT, String) -> ParsedValue<PropertyT>,
-    format: (ContextT, PropertyT) -> String = { _, value -> value.toString() },
-    getKnownValues: ((ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>)? = null
+  description: String,
+  default: PropertyT? = null,
+  defaultValueGetter: (ModelT) -> PropertyT? = { default },
+  getResolvedValue: ResolvedT.() -> PropertyT?,
+  getParsedValue: ParsedT.() -> PropertyT?,
+  getParsedRawValue: ParsedT.() -> DslText?,
+  setParsedValue: ParsedT.(PropertyT) -> Unit,
+  setParsedRawValue: (ParsedT.(DslText) -> Unit)? = null,
+  clearParsedValue: ParsedT.() -> Unit,
+  parse: (ContextT, String) -> ParsedValue<PropertyT>,
+  format: (ContextT, PropertyT) -> String = { _, value -> value.toString() },
+  getKnownValues: ((ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>)? = null,
+  variableMatchingStrategy: VariableMatchingStrategy = VariableMatchingStrategy.BY_TYPE
 ) =
     ModelSimplePropertyImpl(
-        this,
-        description,
-        defaultValueGetter,
-        getResolvedValue,
-        getParsedValue,
-        getParsedRawValue,
-        { if (it != null) setParsedValue(it) else clearParsedValue() },
-        {
+      this,
+      description,
+      defaultValueGetter,
+      getResolvedValue,
+      getParsedValue,
+      getParsedRawValue,
+      { if (it != null) setParsedValue(it) else clearParsedValue() },
+      {
           when {
             setParsedRawValue == null -> throw UnsupportedOperationException("setParsedRawValue is undefined for property '$description'")
             it is DslText.Reference -> setParsedRawValue(it)
@@ -115,9 +118,10 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT
             else -> throw UnsupportedOperationException()
           }
         },
-        { context: ContextT, value -> if (value.isBlank()) ParsedValue.NotSet else parse(context, value.trim()) },
-        format,
-        { context: ContextT, model -> if (getKnownValues != null) getKnownValues(context, model) else immediateFuture(listOf()) }
+      { context: ContextT, value -> if (value.isBlank()) ParsedValue.NotSet else parse(context, value.trim()) },
+      format,
+      { context: ContextT, model -> if (getKnownValues != null) getKnownValues(context, model) else immediateFuture(listOf()) },
+      variableMatchingStrategy
     )
 
 class ModelSimplePropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
@@ -131,7 +135,8 @@ class ModelSimplePropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, Proper
     private val setParsedRawValue: (ParsedT.(DslText) -> Unit),
     override val parser: (ContextT, String) -> ParsedValue<PropertyT>,
     override val formatter: (ContextT, PropertyT) -> String,
-    override val knownValuesGetter: (ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>
+    override val knownValuesGetter: (ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>,
+    override val variableMatchingStrategy: VariableMatchingStrategy
 ) : ModelPropertyBase<ContextT, ModelT, PropertyT>(), ModelSimpleProperty<ContextT, ModelT, PropertyT> {
   override fun getValue(thisRef: ModelT, property: KProperty<*>): ParsedValue<PropertyT> = getParsedValue(thisRef)
 

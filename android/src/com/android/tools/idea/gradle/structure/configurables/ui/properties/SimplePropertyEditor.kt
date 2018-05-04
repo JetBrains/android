@@ -27,7 +27,6 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.ui.ComboBox
-import com.intellij.ui.components.fields.ExtendableTextField
 import java.awt.Dimension
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
@@ -96,7 +95,7 @@ class SimplePropertyEditor<ContextT, ModelT, PropertyT : Any, out ModelPropertyT
       val possibleValues = buildKnownValueRenderers(knownValues, formatter, property.getDefaultValue(model))
       knownValueRenderers = possibleValues
       setKnownValues(
-        possibleValues.keys.toList() + availableVariables.orEmpty())
+        possibleValues.keys.toList() + availableVariables?.filter { knownValues.isSuitableVariable(it) }.orEmpty())
     }
 
     knownValuesFuture?.cancel(false)
