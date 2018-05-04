@@ -44,9 +44,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.ide.DeleteProvider;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -60,6 +58,7 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.reference.SoftReference;
 import com.intellij.ui.JBColor;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.ui.UIUtil;
@@ -91,12 +90,11 @@ import static com.android.annotations.VisibleForTesting.Visibility;
 public class NavDesignSurface extends DesignSurface {
   private static final int SCROLL_DURATION_MS = 300;
 
-  private NavigationSchema mySchema;
   private NlComponent myCurrentNavigation;
   @VisibleForTesting
   AtomicReference<Future<?>> myScheduleRef = new AtomicReference<>();
 
-  private static final WeakHashMap<AndroidFacet, ConfigurationManager> ourConfigurationManagers = new WeakHashMap<>();
+  private static final WeakHashMap<AndroidFacet, SoftReference<ConfigurationManager>> ourConfigurationManagers = new WeakHashMap<>();
 
   public NavDesignSurface(@NotNull Project project, @NotNull Disposable parentDisposable) {
     super(project, new SelectionModel(), parentDisposable);
@@ -339,7 +337,7 @@ public class NavDesignSurface extends DesignSurface {
     }
     String tagName = component.getTagName();
     String id;
-    if (getSchema().getDestinationType(tagName) == NavigationSchema.DestinationType.NAVIGATION) {
+    if (getSceneManager().getSchema().getDestinationType(tagName) == NavigationSchema.DestinationType.NAVIGATION) {
       if (tagName.equals(TAG_INCLUDE)) {
         id = component.getAttribute(SdkConstants.AUTO_URI, ATTR_GRAPH);
         if (id == null) {
@@ -537,10 +535,14 @@ public class NavDesignSurface extends DesignSurface {
   @NotNull
   @Override
   public ConfigurationManager getConfigurationManager(@NotNull AndroidFacet facet) {
-    ConfigurationManager result = ourConfigurationManagers.get(facet);
+    SoftReference<ConfigurationManager> ref = ourConfigurationManagers.get(facet);
+    ConfigurationManager result = null;
+    if (ref != null) {
+      result = ref.get();
+    }
     if (result == null) {
       result = ConfigurationManager.create(facet.getModule());
-      ourConfigurationManagers.put(facet, result);
+      ourConfigurationManagers.put(facet, new SoftReference<>(result));
     }
     return result;
   }
