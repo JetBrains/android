@@ -179,7 +179,6 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
     getStudioProfilers().getUpdater().register(myConnectionsAxis);
     getStudioProfilers().getUpdater().register(myLegends);
     getStudioProfilers().getUpdater().register(myTooltipLegends);
-    getStudioProfilers().getUpdater().register(myHttpDataFetcher);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
@@ -194,7 +193,6 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
     getStudioProfilers().getUpdater().unregister(myConnectionsAxis);
     getStudioProfilers().getUpdater().unregister(myLegends);
     getStudioProfilers().getUpdater().unregister(myTooltipLegends);
-    getStudioProfilers().getUpdater().unregister(myHttpDataFetcher);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(this);
 
