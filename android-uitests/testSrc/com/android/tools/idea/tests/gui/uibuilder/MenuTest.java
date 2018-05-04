@@ -159,9 +159,9 @@ public final class MenuTest {
                       "    xmlns:tools=\"http://schemas.android.com/tools\">\n" +
                       "    <item\n" +
                       "        android:id=\"@+id/app_bar_search\"\n" +
-                      "        android:actionViewClass=\"android.widget.SearchView\"\n" +
                       "        android:icon=\"@drawable/ic_search_black_24dp\"\n" +
                       "        android:title=\"Search\"\n" +
+                      "        app:actionViewClass=\"android.widget.SearchView\"\n" +
                       "        app:showAsAction=\"always\" />\n" +
                       "    <item\n" +
                       "        android:id=\"@+id/action_settings\"\n" +
