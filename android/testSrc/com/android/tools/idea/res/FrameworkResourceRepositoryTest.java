@@ -24,10 +24,12 @@ import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -54,25 +56,14 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
    */
   @NotNull
   private File getSdkResFolder() {
-    IAndroidTarget androidTarget = getLayoutLibTarget(myModule);
-    assertNotNull(androidTarget);
-    String sdkPlatformPath = Files.simplifyPath(androidTarget.getLocation());
-    return new File(sdkPlatformPath + "/data/res");
-  }
-
-  @NotNull
-  private static IAndroidTarget getLayoutLibTarget(@NotNull Module module) {
-    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(module);
-
-    for (IAndroidTarget target : manager.getTargets()) {
-      if (ConfigurationManager.isLayoutLibTarget(target)) {
-        manager.setTarget(target);
-        break;
-      }
+    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
+    IAndroidTarget target = manager.getHighestApiTarget();
+    if (target == null) {
+      fail();
     }
-    FolderConfiguration folderConfig = new FolderConfiguration();
-    Configuration configuration = Configuration.create(manager, null, folderConfig);
-    return configuration.getTarget();
+    CompatibilityRenderTarget compatibilityTarget = StudioEmbeddedRenderTarget.getCompatibilityTarget(target);
+    String sdkPlatformPath = Files.simplifyPath(compatibilityTarget.getLocation());
+    return new File(sdkPlatformPath + "/data/res");
   }
 
   @Override
