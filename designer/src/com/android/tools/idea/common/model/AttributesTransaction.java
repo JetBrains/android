@@ -182,7 +182,7 @@ public class AttributesTransaction implements NlAttributesHolder {
     return myComponent;
   }
 
-  private boolean finishTransaction() {
+  boolean finishTransaction() {
     assert isValid;
     isValid = false;
 

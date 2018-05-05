@@ -18,10 +18,7 @@ package com.android.tools.idea.uibuilder.api;
 import com.android.SdkConstants;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.common.model.AndroidCoordinate;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlComponentDelegate;
-import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.ComponentProvider;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -208,7 +205,13 @@ public class ViewGroupHandler extends ViewHandler {
     return false;
   }
 
-  public void cleanUpAttributes(@NotNull NlComponent child) {
+  /**
+   * Gives a chance to the handler to clean up the attributes of the component upon save
+   * @param component
+   * @param attributes
+   */
+  public void cleanUpAttributes(@NotNull NlComponent component, @NotNull NlAttributesHolder attributes) {
+    // do nothing
   }
 
   /**

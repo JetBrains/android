@@ -349,6 +349,12 @@ public class NlComponent implements NlAttributesHolder {
     return stripId(id);
   }
 
+  public void clearTransaction() {
+    if (myCurrentTransaction != null) {
+      myCurrentTransaction.finishTransaction();
+    }
+  }
+
   @Nullable
   public static String stripId(@Nullable String id) {
     if (id != null) {

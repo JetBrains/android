@@ -60,7 +60,6 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   private boolean mConfiguringUI = false;
   @Nullable NlComponent mComponent;
   private static final int UNCONNECTED = -1;
-  private Runnable myWriteAction;
   private ComponentModification myModification;
 
   private final static int SLIDER_DEFAULT = 50;
@@ -68,8 +67,14 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   public final static String HORIZONTAL_BIAS_SLIDER = "horizontalBiasSlider";
   private final static int DELAY_BEFORE_COMMIT = 400; // ms
   @Nullable private final Timer myTimer = new Timer(DELAY_BEFORE_COMMIT, (c) -> {
-    if (myWriteAction != null) {
-      ApplicationManager.getApplication().invokeLater(myWriteAction);
+    if (myModification != null) {
+      ApplicationManager.getApplication().invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          myModification.commit();
+          myModification = null;
+        }
+      });
     }
   });
 
@@ -431,13 +436,6 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     myModification.apply();
     model.notifyLiveUpdate(false);
     myTimer.setRepeats(false);
-
-    myWriteAction = new NlWriteCommandAction(Collections.singletonList(component), "Change Widget", () -> {
-      myModification.setAttribute(nameSpace, attribute, value);
-      myModification.commit();
-      myModification = null;
-    });
-
     myTimer.restart();
   }
 

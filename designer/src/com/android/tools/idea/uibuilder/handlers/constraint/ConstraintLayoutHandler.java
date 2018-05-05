@@ -22,6 +22,7 @@ import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.ComponentProvider;
 import com.android.tools.idea.common.scene.Scene;
@@ -428,10 +429,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   }
 
   @Override
-  public void cleanUpAttributes(@NotNull NlComponent child) {
-    AttributesTransaction transaction = child.startAttributeTransaction();
-    ConstraintComponentUtilities.cleanup(transaction, child);
-    transaction.commit();
+  public void cleanUpAttributes(@NotNull NlComponent component, @NotNull NlAttributesHolder attributes) {
+    ConstraintComponentUtilities.cleanup(attributes, component);
   }
 
   /**
