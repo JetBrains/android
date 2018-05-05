@@ -20,7 +20,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
-import static org.junit.Assert.*;
+import static com.google.common.truth.Truth.assertThat;
 
 public class SelectionModelTest {
   private Range mySelection;
@@ -31,163 +31,163 @@ public class SelectionModelTest {
   }
 
   @Test
-  public void testSetWithNoConstraints() throws Exception {
+  public void testSetWithNoConstraints() {
     SelectionModel selection = new SelectionModel(mySelection);
     selection.set(10, 20);
-    assertEquals(10, mySelection.getMin(), Float.MIN_VALUE);
-    assertEquals(20, mySelection.getMax(), Float.MIN_VALUE);
+    assertThat(mySelection.getMin()).isWithin(Float.MIN_VALUE).of(10);
+    assertThat(mySelection.getMax()).isWithin(Float.MIN_VALUE).of(20);
   }
 
   @Test
-  public void testSetWithPartialConstraint() throws Exception {
+  public void testSetWithPartialConstraint() {
     SelectionModel selection = new SelectionModel(mySelection);
     selection.addConstraint(createConstraint(false, true, 0, 5, 15, 20, 35, 40));
 
     selection.set(10, 18);
 
-    assertEquals(15, mySelection.getMin(), Float.MIN_VALUE);
-    assertEquals(18, mySelection.getMax(), Float.MIN_VALUE);
+    assertThat(mySelection.getMin()).isWithin(Float.MIN_VALUE).of(15);
+    assertThat(mySelection.getMax()).isWithin(Float.MIN_VALUE).of(18);
   }
 
   @Test
-  public void testSetWithPartialConstraintEmpty() throws Exception {
+  public void testSetWithPartialConstraintEmpty() {
     SelectionModel selection = new SelectionModel(mySelection);
     selection.addConstraint(createConstraint(false, true, 0, 5, 15, 20, 35, 40));
 
     selection.set(10, 12);
 
-    assertTrue(mySelection.isEmpty());
+    assertThat(mySelection.isEmpty()).isTrue();
   }
 
   @Test
-  public void testSelectionPrefersCurrentOne() throws Exception {
+  public void testSelectionPrefersCurrentOne() {
     SelectionModel selection = new SelectionModel(mySelection);
     selection.addConstraint(createConstraint(false, true, 0, 5, 15, 20, 35, 40));
     selection.set(18, 20);
-    assertEquals(18, mySelection.getMin(), Float.MIN_VALUE);
-    assertEquals(20, mySelection.getMax(), Float.MIN_VALUE);
+    assertThat(mySelection.getMin()).isWithin(Float.MIN_VALUE).of(18);
+    assertThat(mySelection.getMax()).isWithin(Float.MIN_VALUE).of(20);
 
     // This overlaps with two constraints, it should choose the one it's using
     selection.set(3, 18);
-    assertEquals(15, mySelection.getMin(), Float.MIN_VALUE);
-    assertEquals(18, mySelection.getMax(), Float.MIN_VALUE);
+    assertThat(mySelection.getMin()).isWithin(Float.MIN_VALUE).of(15);
+    assertThat(mySelection.getMax()).isWithin(Float.MIN_VALUE).of(18);
 
     // In both directions
     selection.set(16, 39);
-    assertEquals(16, mySelection.getMin(), Float.MIN_VALUE);
-    assertEquals(20, mySelection.getMax(), Float.MIN_VALUE);
+    assertThat(mySelection.getMin()).isWithin(Float.MIN_VALUE).of(16);
+    assertThat(mySelection.getMax()).isWithin(Float.MIN_VALUE).of(20);
   }
 
   @Test
-  public void testFullSelection() throws Exception {
+  public void testFullSelection() {
     SelectionModel selection = new SelectionModel(mySelection);
     selection.addConstraint(createConstraint(false, false, 0, 5, 15, 20, 35, 40));
 
     selection.set(10, 18);
 
-    assertEquals(15, mySelection.getMin(), Float.MIN_VALUE);
-    assertEquals(20, mySelection.getMax(), Float.MIN_VALUE);
+    assertThat(mySelection.getMin()).isWithin(Float.MIN_VALUE).of(15);
+    assertThat(mySelection.getMax()).isWithin(Float.MIN_VALUE).of(20);
   }
 
   @Test
-  public void testNestedFullConstraints() throws Exception {
+  public void testNestedFullConstraints() {
     SelectionModel selection = new SelectionModel(mySelection);
     selection.addConstraint(createConstraint(false, false, 2, 3, 18, 19, 38, 39));
     selection.addConstraint(createConstraint(false, false, 0, 5, 15, 20, 35, 40));
 
     selection.set(0, 1);
-    assertEquals(0, mySelection.getMin(), Float.MIN_VALUE);
-    assertEquals(5, mySelection.getMax(), Float.MIN_VALUE);
+    assertThat(mySelection.getMin()).isWithin(Float.MIN_VALUE).of(0);
+    assertThat(mySelection.getMax()).isWithin(Float.MIN_VALUE).of(5);
 
     selection.set(2.5, 2.6);
-    assertEquals(2, mySelection.getMin(), Float.MIN_VALUE);
-    assertEquals(3, mySelection.getMax(), Float.MIN_VALUE);
+    assertThat(mySelection.getMin()).isWithin(Float.MIN_VALUE).of(2);
+    assertThat(mySelection.getMax()).isWithin(Float.MIN_VALUE).of(3);
 
     selection.set(4, 5);
-    assertEquals(0, mySelection.getMin(), Float.MIN_VALUE);
-    assertEquals(5, mySelection.getMax(), Float.MIN_VALUE);
+    assertThat(mySelection.getMin()).isWithin(Float.MIN_VALUE).of(0);
+    assertThat(mySelection.getMax()).isWithin(Float.MIN_VALUE).of(5);
 
     selection.set(35, 36);
-    assertEquals(35, mySelection.getMin(), Float.MIN_VALUE);
-    assertEquals(40, mySelection.getMax(), Float.MIN_VALUE);
+    assertThat(mySelection.getMin()).isWithin(Float.MIN_VALUE).of(35);
+    assertThat(mySelection.getMax()).isWithin(Float.MIN_VALUE).of(40);
 
     selection.set(38.5, 38.6);
-    assertEquals(38, mySelection.getMin(), Float.MIN_VALUE);
-    assertEquals(39, mySelection.getMax(), Float.MIN_VALUE);
+    assertThat(mySelection.getMin()).isWithin(Float.MIN_VALUE).of(38);
+    assertThat(mySelection.getMax()).isWithin(Float.MIN_VALUE).of(39);
 
     selection.set(39.5, 39.6);
-    assertEquals(35, mySelection.getMin(), Float.MIN_VALUE);
-    assertEquals(40, mySelection.getMax(), Float.MIN_VALUE);
+    assertThat(mySelection.getMin()).isWithin(Float.MIN_VALUE).of(35);
+    assertThat(mySelection.getMax()).isWithin(Float.MIN_VALUE).of(40);
   }
 
   @Test
-  public void testFullWithNestedPartialConstraints() throws Exception {
+  public void testFullWithNestedPartialConstraints() {
     SelectionModel selection = new SelectionModel(mySelection);
     selection.addConstraint(createConstraint(false, true, 2, 3, 18, 19, 38, 39));
     selection.addConstraint(createConstraint(false, false, 0, 5, 15, 20, 35, 40));
 
     selection.set(0, 1);
-    assertEquals(0, mySelection.getMin(), Float.MIN_VALUE);
-    assertEquals(5, mySelection.getMax(), Float.MIN_VALUE);
+    assertThat(mySelection.getMin()).isWithin(Float.MIN_VALUE).of(0);
+    assertThat(mySelection.getMax()).isWithin(Float.MIN_VALUE).of(5);
 
     selection.set(2.5, 2.6);
-    assertEquals(2.5, mySelection.getMin(), Float.MIN_VALUE);
-    assertEquals(2.6, mySelection.getMax(), Float.MIN_VALUE);
+    assertThat(mySelection.getMin()).isWithin(Float.MIN_VALUE).of(2.5);
+    assertThat(mySelection.getMax()).isWithin(Float.MIN_VALUE).of(2.6);
 
     selection.set(4, 5);
-    assertEquals(0, mySelection.getMin(), Float.MIN_VALUE);
-    assertEquals(5, mySelection.getMax(), Float.MIN_VALUE);
+    assertThat(mySelection.getMin()).isWithin(Float.MIN_VALUE).of(0);
+    assertThat(mySelection.getMax()).isWithin(Float.MIN_VALUE).of(5);
 
     selection.set(35, 36);
-    assertEquals(35, mySelection.getMin(), Float.MIN_VALUE);
-    assertEquals(40, mySelection.getMax(), Float.MIN_VALUE);
+    assertThat(mySelection.getMin()).isWithin(Float.MIN_VALUE).of(35);
+    assertThat(mySelection.getMax()).isWithin(Float.MIN_VALUE).of(40);
 
     selection.set(38.5, 38.6);
-    assertEquals(38.5, mySelection.getMin(), Float.MIN_VALUE);
-    assertEquals(38.6, mySelection.getMax(), Float.MIN_VALUE);
+    assertThat(mySelection.getMin()).isWithin(Float.MIN_VALUE).of(38.5);
+    assertThat(mySelection.getMax()).isWithin(Float.MIN_VALUE).of(38.6);
 
     selection.set(39.5, 39.6);
-    assertEquals(35, mySelection.getMin(), Float.MIN_VALUE);
-    assertEquals(40, mySelection.getMax(), Float.MIN_VALUE);
+    assertThat(mySelection.getMin()).isWithin(Float.MIN_VALUE).of(35);
+    assertThat(mySelection.getMax()).isWithin(Float.MIN_VALUE).of(40);
   }
 
   @Test
-  public void testPartialWithNestedFullConstraints() throws Exception {
+  public void testPartialWithNestedFullConstraints() {
     SelectionModel selection = new SelectionModel(mySelection);
     selection.addConstraint(createConstraint(false, true, 0, 5, 15, 20, 35, 40));
     selection.addConstraint(createConstraint(false, false, 2, 3, 18, 19, 38, 39));
 
     selection.set(0, 1);
-    assertEquals(0, mySelection.getMin(), Float.MIN_VALUE);
-    assertEquals(1, mySelection.getMax(), Float.MIN_VALUE);
+    assertThat(mySelection.getMin()).isWithin(Float.MIN_VALUE).of(0);
+    assertThat(mySelection.getMax()).isWithin(Float.MIN_VALUE).of(1);
 
     // SelectionModel selects the first constraint that intersects the previous selected range. If we don't clear the selection, the partial
     // constrain would have been used instead.
     selection.clear();
     selection.set(2.5, 2.6);
-    assertEquals(2, mySelection.getMin(), Float.MIN_VALUE);
-    assertEquals(3, mySelection.getMax(), Float.MIN_VALUE);
+    assertThat(mySelection.getMin()).isWithin(Float.MIN_VALUE).of(2);
+    assertThat(mySelection.getMax()).isWithin(Float.MIN_VALUE).of(3);
 
     selection.set(4, 5);
-    assertEquals(4, mySelection.getMin(), Float.MIN_VALUE);
-    assertEquals(5, mySelection.getMax(), Float.MIN_VALUE);
+    assertThat(mySelection.getMin()).isWithin(Float.MIN_VALUE).of(4);
+    assertThat(mySelection.getMax()).isWithin(Float.MIN_VALUE).of(5);
 
     selection.set(35, 36);
-    assertEquals(35, mySelection.getMin(), Float.MIN_VALUE);
-    assertEquals(36, mySelection.getMax(), Float.MIN_VALUE);
+    assertThat(mySelection.getMin()).isWithin(Float.MIN_VALUE).of(35);
+    assertThat(mySelection.getMax()).isWithin(Float.MIN_VALUE).of(36);
 
     selection.clear();
     selection.set(38.5, 38.6);
-    assertEquals(38, mySelection.getMin(), Float.MIN_VALUE);
-    assertEquals(39, mySelection.getMax(), Float.MIN_VALUE);
+    assertThat(mySelection.getMin()).isWithin(Float.MIN_VALUE).of(38);
+    assertThat(mySelection.getMax()).isWithin(Float.MIN_VALUE).of(39);
 
     selection.set(39.5, 39.6);
-    assertEquals(39.5, mySelection.getMin(), Float.MIN_VALUE);
-    assertEquals(39.6, mySelection.getMax(), Float.MIN_VALUE);
+    assertThat(mySelection.getMin()).isWithin(Float.MIN_VALUE).of(39.5);
+    assertThat(mySelection.getMax()).isWithin(Float.MIN_VALUE).of(39.6);
   }
 
   @Test
-  public void testListenersFiredAsExpected() throws Exception {
+  public void testListenersFiredAsExpected() {
     SelectionModel model = new SelectionModel(mySelection);
 
     final int SELECTION_CREATED = 0;
@@ -214,29 +214,29 @@ public class SelectionModelTest {
     // Basic selection modification
     Arrays.fill(event, false);
     model.set(1, 2);
-    assertTrue(event[SELECTION_CREATED]);
+    assertThat(event[SELECTION_CREATED]).isTrue();
     event[SELECTION_CREATED] = false;
     model.set(1, 3);
-    assertFalse(event[SELECTION_CREATED]);
-    assertFalse(event[SELECTION_CLEARED]);
-    assertFalse(event[SELECTION_FAILED]);
+    assertThat(event[SELECTION_CREATED]).isFalse();
+    assertThat(event[SELECTION_CLEARED]).isFalse();
+    assertThat(event[SELECTION_FAILED]).isFalse();
     model.clear();
-    assertTrue(event[SELECTION_CLEARED]);
-    assertFalse(event[SELECTION_FAILED]);
+    assertThat(event[SELECTION_CLEARED]).isTrue();
+    assertThat(event[SELECTION_FAILED]).isFalse();
 
     // Selection creation not fired if not changed
     model.set(1, 2);
     event[SELECTION_CREATED] = false;
     model.set(1, 2);
-    assertFalse(event[SELECTION_CREATED]);
-    assertFalse(event[SELECTION_FAILED]);
+    assertThat(event[SELECTION_CREATED]).isFalse();
+    assertThat(event[SELECTION_FAILED]).isFalse();
 
     // Selection clear not fired if not changed
     model.clear();
     event[SELECTION_CLEARED] = false;
     model.clear();
-    assertFalse(event[SELECTION_CLEARED]);
-    assertFalse(event[SELECTION_FAILED]);
+    assertThat(event[SELECTION_CLEARED]).isFalse();
+    assertThat(event[SELECTION_FAILED]).isFalse();
 
     // Selection creation only fired after updating is finished
     model.clear();
@@ -244,37 +244,38 @@ public class SelectionModelTest {
     model.beginUpdate();
     model.set(3, 4);
     model.set(3, 5);
-    assertFalse(event[SELECTION_CREATED]);
-    assertFalse(event[SELECTION_FAILED]);
+    assertThat(event[SELECTION_CREATED]).isFalse();
+    assertThat(event[SELECTION_FAILED]).isFalse();
     model.endUpdate();
-    assertTrue(event[SELECTION_CREATED]);
-    assertFalse(event[SELECTION_FAILED]);
+    assertThat(event[SELECTION_CREATED]).isTrue();
+    assertThat(event[SELECTION_FAILED]).isFalse();
 
     // Selection clear only fired after updating is finished
     model.set(1, 2);
     event[SELECTION_CLEARED] = false;
     model.beginUpdate();
     model.clear();
-    assertFalse(event[SELECTION_CLEARED]);
-    assertFalse(event[SELECTION_FAILED]);
+    assertThat(event[SELECTION_CLEARED]).isFalse();
+    assertThat(event[SELECTION_FAILED]).isFalse();
     model.endUpdate();
-    assertTrue(event[SELECTION_CLEARED]);
-    assertFalse(event[SELECTION_FAILED]);
+    assertThat(event[SELECTION_CLEARED]).isTrue();
+    assertThat(event[SELECTION_FAILED]).isFalse();
 
+    // Selection failed is fired when attempting to select constrained ranges
     model.clear();
     Arrays.fill(event, false);
     model.addConstraint(createConstraint(false, true, 0, 1));
     model.addConstraint(createConstraint(false, false, 2, 3));
     model.addConstraint(createConstraint(true, true, 5, Long.MAX_VALUE));
     model.set(0.25, 0.75);
-    assertFalse(event[SELECTION_FAILED]);
+    assertThat(event[SELECTION_FAILED]).isFalse();
     model.set(1.25, 1.75);
-    assertTrue(event[SELECTION_FAILED]);
+    assertThat(event[SELECTION_FAILED]).isTrue();
     event[SELECTION_FAILED] = false;
     model.set(2.25, 2.75);
-    assertFalse(event[SELECTION_FAILED]);
+    assertThat(event[SELECTION_FAILED]).isFalse();
     model.set(7.5, 10);
-    assertFalse(event[SELECTION_FAILED]);
+    assertThat(event[SELECTION_FAILED]).isFalse();
   }
 
   @Test
@@ -298,51 +299,51 @@ public class SelectionModelTest {
     });
 
     model.set(2.5, 2.5);
-    assertEquals(0, counts[CLEARED]);
-    assertEquals(1, counts[CREATED]);
-    Arrays.setAll(counts, operand -> 0);
+    assertThat(counts[CLEARED]).isEqualTo(0);
+    assertThat(counts[CREATED]).isEqualTo(1);
+    Arrays.fill(counts, 0);
 
     model.set(4, 5);
-    assertEquals(1, counts[CLEARED]);
-    assertEquals(0, counts[CREATED]);
-    Arrays.setAll(counts, operand -> 0);
+    assertThat(counts[CLEARED]).isEqualTo(1);
+    assertThat(counts[CREATED]).isEqualTo(0);
+    Arrays.fill(counts, 0);
 
     model.set(7, 9);
-    assertEquals(0, counts[CLEARED]);
-    assertEquals(0, counts[CREATED]);
-    Arrays.setAll(counts, operand -> 0);
+    assertThat(counts[CLEARED]).isEqualTo(0);
+    assertThat(counts[CREATED]).isEqualTo(0);
+    Arrays.fill(counts, 0);
 
     model.set(18, 19);
-    assertEquals(0, counts[CLEARED]);
-    assertEquals(1, counts[CREATED]);
-    Arrays.setAll(counts, operand -> 0);
+    assertThat(counts[CLEARED]).isEqualTo(0);
+    assertThat(counts[CREATED]).isEqualTo(1);
+    Arrays.fill(counts, 0);
 
     model.set(38.5, 38.7);
-    assertEquals(0, counts[CLEARED]);
-    assertEquals(1, counts[CREATED]);
-    Arrays.setAll(counts, operand -> 0);
+    assertThat(counts[CLEARED]).isEqualTo(0);
+    assertThat(counts[CREATED]).isEqualTo(1);
+    Arrays.fill(counts, 0);
 
     model.set(38.3, 38.4);
-    assertEquals(0, counts[CLEARED]);
-    assertEquals(0, counts[CREATED]);
-    Arrays.setAll(counts, operand -> 0);
+    assertThat(counts[CLEARED]).isEqualTo(0);
+    assertThat(counts[CREATED]).isEqualTo(0);
+    Arrays.fill(counts, 0);
   }
 
   @Test
-  public void testCanSelectUnfinishedDurationData() throws Exception {
+  public void testCanSelectUnfinishedDurationData() {
     SelectionModel selection = new SelectionModel(mySelection);
     selection.addConstraint(createConstraint(false, true, 0, Long.MAX_VALUE));
     selection.set(10, 12);
-    assertTrue(mySelection.isEmpty());
+    assertThat(mySelection.isEmpty()).isTrue();
   }
 
   @Test
-  public void testCannotSelectUnfinishedDurationData() throws Exception {
+  public void testCannotSelectUnfinishedDurationData() {
     SelectionModel selection = new SelectionModel(mySelection);
     selection.addConstraint(createConstraint(true, true, 0, Long.MAX_VALUE));
     selection.set(10, 12);
-    assertEquals(10, mySelection.getMin(), Float.MIN_VALUE);
-    assertEquals(12, mySelection.getMax(), Float.MIN_VALUE);
+    assertThat(mySelection.getMin()).isWithin(Float.MIN_VALUE).of(10);
+    assertThat(mySelection.getMax()).isWithin(Float.MIN_VALUE).of(12);
   }
 
   private DurationDataModel<DefaultConfigurableDurationData> createConstraint(boolean selectableWhenUnspecifiedDuration, boolean selectPartialRange, long... values) {
