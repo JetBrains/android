@@ -278,4 +278,17 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
   public String getCalledByTraceId() {
     return getEventList().stream().filter(e -> !e.getTraceId().isEmpty()).map(e -> e.getTraceId()).findFirst().orElse("");
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    EnergyDuration duration = (EnergyDuration)o;
+    return myEventList.equals(duration.myEventList);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(myEventList);
+  }
 }
