@@ -52,21 +52,14 @@ import static com.android.SdkConstants.FN_RESOURCE_TEXT;
 public class FileResourceRepository extends LocalResourceRepository {
   private static final Logger LOG = Logger.getInstance(FileResourceRepository.class);
   protected final ResourceTable myFullTable = new ResourceTable();
-  /**
-   * A collection of resource id names found in the R.txt file if the file referenced by this repository is an AAR.
-   * The Ids obtained using {@link #getItemsOfType(ResourceType)} by passing in {@link ResourceType#ID} only contains
-   * a subset of IDs (top level ones like layout file names, and id resources in values xml file). Ids declared inside
-   * layouts and menus (using "@+id/") are not included. This is done for efficiency. However, such IDs can be obtained
-   * from the R.txt file, if present. And hence, this collection includes all id names from the R.txt file, but doesn't
-   * have the associated {@link ResourceItem} with it.
-   */
-  @Nullable protected Map<String, Integer> myAarDeclaredIds;
+  /** @see #getAllDeclaredIds() */
+  @Nullable private Map<String, Integer> myAarDeclaredIds;
 
   @NotNull private final File myResourceDirectory;
-  @NotNull ResourceNamespace myNamespace;
+  @NotNull private final ResourceNamespace myNamespace;
   @Nullable private final String myLibraryName;
 
-  /** R.txt file associated with the repository. This is only available for aars. */
+  /** R.txt file associated with the repository. This is only available for AARs. */
   @Nullable private File myResourceTextFile;
 
   private final static Map<File, FileResourceRepository> ourCache = ContainerUtil.createSoftValueMap();
@@ -108,14 +101,7 @@ public class FileResourceRepository extends LocalResourceRepository {
       LOG.error("Failed to initialize resources", e);
     }
 
-    // Look for a R.txt file which describes the available id's; this is
-    // available both in an exploded-aar folder as well as in the build-cache
-    // for AAR files
-    File rDotTxt = new File(resourceDirectory.getParentFile(), FN_RESOURCE_TEXT);
-    if (rDotTxt.exists()) {
-      repository.myResourceTextFile = rDotTxt;
-      repository.myAarDeclaredIds = RDotTxtParser.getIds(rDotTxt);
-    }
+    repository.loadRTxt(resourceDirectory.getParentFile());
 
     return repository;
   }
@@ -126,6 +112,21 @@ public class FileResourceRepository extends LocalResourceRepository {
                                                      @Nullable String libraryName) {
     assert ApplicationManager.getApplication() == null || ApplicationManager.getApplication().isUnitTestMode();
     return create(resourceDirectory, namespace, libraryName);
+  }
+
+  /**
+   * Loads resource IDs from R.txt file.
+   *
+   * @param directory the directory containing R.txt file
+   */
+  protected void loadRTxt(@NotNull File directory) {
+    // Look for a R.txt file which describes the available id's; this is available both
+    // in an exploded-aar folder as well as in the build-cache for AAR files.
+    File rDotTxt = new File(directory, FN_RESOURCE_TEXT);
+    if (rDotTxt.exists()) {
+      myResourceTextFile = rDotTxt;
+      myAarDeclaredIds = RDotTxtParser.getIds(rDotTxt);
+    }
   }
 
   @Nullable
@@ -142,9 +143,17 @@ public class FileResourceRepository extends LocalResourceRepository {
     return myResourceDirectory;
   }
 
+  /**
+   * Returns the namespace of all resources in this repository.
+   */
+  @NotNull
+  public final ResourceNamespace getNamespace() {
+    return myNamespace;
+  }
+
   @Override
   @Nullable
-  public String getLibraryName() {
+  public final String getLibraryName() {
     return myLibraryName;
   }
 
@@ -193,7 +202,14 @@ public class FileResourceRepository extends LocalResourceRepository {
     return myFullTable.rowKeySet();
   }
 
-  /** @see #myAarDeclaredIds */
+  /**
+   * Returns a collection of resource id names found in the R.txt file if the file referenced by this repository is an AAR.
+   * The Ids obtained using {@link #getItemsOfType(ResourceType)} by passing in {@link ResourceType#ID} only contains
+   * a subset of IDs (top level ones like layout file names, and id resources in values xml file). Ids declared inside
+   * layouts and menus (using "@+id/") are not included. This is done for efficiency. However, such IDs can be obtained
+   * from the R.txt file, if present. And hence, this collection includes all id names from the R.txt file, but doesn't
+   * have the associated {@link ResourceItem} with it.
+   */
   @Nullable
   public Map<String, Integer> getAllDeclaredIds() {
     return myAarDeclaredIds;
