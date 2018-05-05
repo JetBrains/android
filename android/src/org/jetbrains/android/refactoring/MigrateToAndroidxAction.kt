@@ -130,15 +130,16 @@ class MigrateToAndroidxHandler : RefactoringActionHandler {
 
   @VisibleForTesting
   private fun parseMigrationMap(): List<AppCompatMigrationEntry> {
-    val result = mutableListOf<AppCompatMigrationEntry>()
+    val classesAndCoordinates = mutableListOf<AppCompatMigrationEntry>()
+    val packages =  mutableListOf<PackageMigrationEntry>()
 
     parseMigrationFile(object: MigrationParserVisitor {
       override fun visitClass(old: String, new: String) {
-        result.add(ClassMigrationEntry(old, new))
+        classesAndCoordinates.add(ClassMigrationEntry(old, new))
       }
 
       override fun visitPackage(old: String, new: String) {
-        result.add(PackageMigrationEntry(old, new))
+        packages.add(PackageMigrationEntry(old, new))
       }
 
       override fun visitGradleCoordinate(
@@ -148,11 +149,16 @@ class MigrateToAndroidxHandler : RefactoringActionHandler {
         newArtifactName: String,
         newBaseVersion: String
       ) {
-        result.add(GradleDependencyMigrationEntry(oldGroupName, oldArtifactName, newGroupName, newArtifactName, newBaseVersion))
+        classesAndCoordinates.add(GradleDependencyMigrationEntry(oldGroupName, oldArtifactName, newGroupName, newArtifactName, newBaseVersion))
       }
 
     })
 
-    return result
+    // Packages need to be sorted so the refactoring is applied correctly. We need to apply
+    // the longest names first so, if there are conflicting refactorings, the longest one
+    // is applied first.
+    packages.sortByDescending { it.myOldName.length }
+    classesAndCoordinates.addAll(packages)
+    return classesAndCoordinates
   }
 }
