@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.scene.layout;
 
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
@@ -44,13 +45,10 @@ public class DummyAlgorithm implements NavSceneLayoutAlgorithm {
 
   @Override
   public boolean layout(@NotNull SceneComponent component) {
-    /*
-    TODO: we shouldn't be layout out non-destinations, but doing so breaks some tests.
-    Add this in and update tests when there's more time.
-
     if (!NavComponentHelperKt.isDestination(component.getNlComponent())) {
       return false;
-    }*/
+    }
+
     NavigationSchema.DestinationType type = mySchema.getDestinationType(component.getNlComponent().getTagName());
     if (type == NavigationSchema.DestinationType.NAVIGATION && component.getParent() == null) {
       return true;

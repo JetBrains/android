@@ -346,19 +346,30 @@ public class NavSceneManager extends SceneManager {
   }
 
   private void layoutAll(@NotNull SceneComponent root) {
-    root.flatten().filter(component -> component.getParent() != null).forEach(component -> component.setPosition(0, 0));
-    root.flatten().filter(component -> component.getParent() != null).forEach(component -> {
+    List<SceneComponent> destinations = new ArrayList<>();
+
+    for (SceneComponent child : root.getChildren()) {
+      if (NavComponentHelperKt.isDestination(child.getNlComponent())) {
+        destinations.add(child);
+      }
+    }
+
+    for (SceneComponent destination : destinations) {
+      destination.setPosition(0, 0);
+    }
+
+    for (SceneComponent destination : destinations) {
       for (NavSceneLayoutAlgorithm algorithm : myLayoutAlgorithms) {
-        if (algorithm.layout(component)) {
+        if (algorithm.layout(destination)) {
           // If the algorithm that laid out the component can't persist the position, assume the position hasn't been persisted and
           // needs to be
           if (!algorithm.canSave()) {
-            save(component);
+            save(destination);
           }
           break;
         }
       }
-    });
+    }
 
     HashSet<String> connectedActionSources = new HashSet<>();
     HashSet<String> connectedActionDestinations = new HashSet<>();
