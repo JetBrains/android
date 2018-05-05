@@ -66,6 +66,8 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
   private Gantt myPanel;
   private GanttCommands mGanttCommands;
   private Timer myPositionTimer;
+  public static boolean myLoopMode;
+  public static boolean myDirectionBackward;
   private float myLastPos;
   private NlComponent mySelection;
   MotionLayoutAttributePanel myMotionLayoutAttributePanel;
@@ -205,9 +207,11 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
         break;
       case PLAY:
         setState(TL_PLAY);
+        myDirectionBackward = false;
         break;
       case PAUSE:
         setState(TL_PAUSE);
+        myDirectionBackward = false;
         break;
       case TRANSITION:
         float position = myPanel.getChart().getProgress();
@@ -344,8 +348,28 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
         increment = speedMultiplier * timer_delay_in_ms / timeMs;
       }
       float value = myLastPos + increment;
-      if (value > 1) {
-        value = 0;
+      if (myDirectionBackward) {
+        value = myLastPos - increment;
+        if (value < 0) {
+          if (myLoopMode) {
+            value = 0;
+            myDirectionBackward = false;
+          }
+          else {
+            value = 100;
+          }
+        }
+      }
+      else {
+        if (value > 1) {
+          if (myLoopMode) {
+            value = 1;
+            myDirectionBackward = true;
+          }
+          else {
+            value = 0;
+          }
+        }
       }
       myLastPos = value;
       if (!myMotionLayoutComponentHelper.setProgress(value)) {
@@ -376,6 +400,13 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
         break;
       case END_ACTION:
         setState(State.TL_END);
+        break;
+      case LOOP_ACTION:
+        myLoopMode = ! myLoopMode;
+        myDirectionBackward = false;
+        if (myCurrentState == TL_PAUSE) {
+          setState(State.TL_PLAY);
+        }
         break;
       case PLAY_ACTION:
       case SLOW_MOTION:
