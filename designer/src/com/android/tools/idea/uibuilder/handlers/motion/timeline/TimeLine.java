@@ -129,15 +129,16 @@ public class TimeLine extends JPanel {
       int ascent = fm.getAscent();
       int descent = fm.getDescent();
       int text_height = fm.getHeight();
+      int top = text_height / 2;
       int tcount = 0;
       for (float i = minx; i <= maxx + e; i += mTickX) {
         int ix = (int)(draw_width * (i - minx) / (maxx - minx) + ins_left);
         ticks[tcount++] = ix;
-        g.drawLine(ix, ins_top, ix, h - ins_botom);
+        g.drawLine(ix, top + text_height, ix, h - ins_botom);
         String str = df.format(i);
         int sw = fm.stringWidth(str) / 2;
 
-        g.drawString(str, ix + 1, h - descent);
+        g.drawString(str, ix - sw, ascent + top);
       }
       return tcount;
     }
