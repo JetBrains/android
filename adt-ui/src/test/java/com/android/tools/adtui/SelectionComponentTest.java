@@ -25,8 +25,7 @@ import org.junit.Test;
 
 import java.awt.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static com.google.common.truth.Truth.assertThat;
 
 public class SelectionComponentTest {
 
@@ -37,11 +36,11 @@ public class SelectionComponentTest {
     SelectionModel model = new SelectionModel(new Range());
     SelectionComponent component = new SelectionComponent(model, new Range(0, 100));
     component.setSize(100, 100);
-    assertTrue(model.getSelectionRange().isEmpty());
+    assertThat(model.getSelectionRange().isEmpty()).isTrue();
     new FakeUi(component).mouse.click(20, 50);
-    assertEquals(20, model.getSelectionRange().getMin(), DELTA);
-    assertEquals(20, model.getSelectionRange().getMax(), DELTA);
-    assertEquals(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR), component.getCursor());
+    assertThat(model.getSelectionRange().getMin()).isWithin(DELTA).of(20);
+    assertThat(model.getSelectionRange().getMax()).isWithin(DELTA).of(20);
+    assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
   }
 
   @Test
@@ -49,12 +48,12 @@ public class SelectionComponentTest {
     SelectionModel model = new SelectionModel(new Range(20, 40));
     SelectionComponent component = new SelectionComponent(model, new Range(20, 120));
     component.setSize(100, 100);
-    assertEquals(20, model.getSelectionRange().getMin(), DELTA);
-    assertEquals(40, model.getSelectionRange().getMax(), DELTA);
+    assertThat(model.getSelectionRange().getMin()).isWithin(DELTA).of(20);
+    assertThat(model.getSelectionRange().getMax()).isWithin(DELTA).of(40);
     new FakeUi(component).mouse.click(60, 50);
-    assertEquals(80, model.getSelectionRange().getMin(), DELTA);
-    assertEquals(80, model.getSelectionRange().getMax(), DELTA);
-    assertEquals(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR), component.getCursor());
+    assertThat(model.getSelectionRange().getMin()).isWithin(DELTA).of(80);
+    assertThat(model.getSelectionRange().getMax()).isWithin(DELTA).of(80);
+    assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
   }
 
   @Test
@@ -62,12 +61,12 @@ public class SelectionComponentTest {
     SelectionModel model = new SelectionModel(new Range(40, 60));
     SelectionComponent component = new SelectionComponent(model, new Range(20, 120));
     component.setSize(100, 100);
-    assertEquals(40, model.getSelectionRange().getMin(), DELTA);
-    assertEquals(60, model.getSelectionRange().getMax(), DELTA);
+    assertThat(model.getSelectionRange().getMin()).isWithin(DELTA).of(40);
+    assertThat(model.getSelectionRange().getMax()).isWithin(DELTA).of(60);
     FakeUi ui = new FakeUi(component);
     ui.keyboard.setFocus(component);
     ui.keyboard.press(FakeKeyboard.Key.ESC);
-    assertTrue(model.getSelectionRange().isEmpty());
+    assertThat(model.getSelectionRange().isEmpty()).isTrue();
   }
 
   @Test
@@ -84,9 +83,9 @@ public class SelectionComponentTest {
     component.setSize(100, 100);
     FakeUi ui = new FakeUi(component);
     ui.mouse.press(50, 0);
-    assertEquals(0, event[0]);
+    assertThat(event[0]).isEqualTo(0);
     ui.mouse.release();
-    assertEquals(1, event[0]);
+    assertThat(event[0]).isEqualTo(1);
   }
 
   @Test
@@ -96,13 +95,13 @@ public class SelectionComponentTest {
     component.setSize(100, 100);
     FakeUi ui = new FakeUi(component);
     ui.mouse.press(getMinHandleX(model), 0);
-    assertEquals(10, model.getSelectionRange().getMin(), DELTA);
-    assertEquals(20, model.getSelectionRange().getMax(), DELTA);
-    assertEquals(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR), component.getCursor());
+    assertThat(model.getSelectionRange().getMin()).isWithin(DELTA).of(10);
+    assertThat(model.getSelectionRange().getMax()).isWithin(DELTA).of(20);
+    assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
     ui.mouse.dragDelta(-5, 0);
-    assertEquals(5, model.getSelectionRange().getMin(), DELTA);
-    assertEquals(20, model.getSelectionRange().getMax(), DELTA);
-    assertEquals(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR), component.getCursor());
+    assertThat(model.getSelectionRange().getMin()).isWithin(DELTA).of(5);
+    assertThat(model.getSelectionRange().getMax()).isWithin(DELTA).of(20);
+    assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
   }
 
   @Test
@@ -112,13 +111,13 @@ public class SelectionComponentTest {
     component.setSize(100, 100);
     FakeUi ui = new FakeUi(component);
     ui.mouse.press(getMaxHandleX(model), 0);
-    assertEquals(10, model.getSelectionRange().getMin(), DELTA);
-    assertEquals(20, model.getSelectionRange().getMax(), DELTA);
-    assertEquals(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR), component.getCursor());
+    assertThat(model.getSelectionRange().getMin()).isWithin(DELTA).of(10);
+    assertThat(model.getSelectionRange().getMax()).isWithin(DELTA).of(20);
+    assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR));
     ui.mouse.dragDelta(20, 0);
-    assertEquals(10, model.getSelectionRange().getMin(), DELTA);
-    assertEquals(40, model.getSelectionRange().getMax(), DELTA);
-    assertEquals(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR), component.getCursor());
+    assertThat(model.getSelectionRange().getMin()).isWithin(DELTA).of(10);
+    assertThat(model.getSelectionRange().getMax()).isWithin(DELTA).of(40);
+    assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR));
   }
 
   @Test
@@ -128,14 +127,14 @@ public class SelectionComponentTest {
     component.setSize(100, 100);
     FakeUi ui = new FakeUi(component);
     ui.mouse.press(45, 15);
-    assertEquals(40, model.getSelectionRange().getMin(), DELTA);
-    assertEquals(50, model.getSelectionRange().getMax(), DELTA);
-    assertEquals(AdtUiCursors.GRABBING, component.getCursor());
+    assertThat(model.getSelectionRange().getMin()).isWithin(DELTA).of(40);
+    assertThat(model.getSelectionRange().getMax()).isWithin(DELTA).of(50);
+    assertThat(component.getCursor()).isEqualTo(AdtUiCursors.GRABBING);
     ui.mouse.dragDelta(40, 0);
-    assertEquals(80, model.getSelectionRange().getMin(), DELTA);
-    assertEquals(90, model.getSelectionRange().getMax(), DELTA);
+    assertThat(model.getSelectionRange().getMin()).isWithin(DELTA).of(80);
+    assertThat(model.getSelectionRange().getMax()).isWithin(DELTA).of(90);
     ui.mouse.release();
-    assertEquals(AdtUiCursors.GRAB, component.getCursor());
+    assertThat(component.getCursor()).isEqualTo(AdtUiCursors.GRAB);
   }
 
   @Test
@@ -145,14 +144,14 @@ public class SelectionComponentTest {
     component.setSize(100, 100);
     FakeUi ui = new FakeUi(component);
     ui.mouse.press(45, 50);
-    assertEquals(45, model.getSelectionRange().getMin(), DELTA);
-    assertEquals(45, model.getSelectionRange().getMax(), DELTA);
-    assertEquals(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR), component.getCursor());
+    assertThat(model.getSelectionRange().getMin()).isWithin(DELTA).of(45);
+    assertThat(model.getSelectionRange().getMax()).isWithin(DELTA).of(45);
+    assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
     ui.mouse.dragDelta(40, 0);
-    assertEquals(45, model.getSelectionRange().getMin(), DELTA);
-    assertEquals(85, model.getSelectionRange().getMax(), DELTA);
+    assertThat(model.getSelectionRange().getMin()).isWithin(DELTA).of(45);
+    assertThat(model.getSelectionRange().getMax()).isWithin(DELTA).of(85);
     ui.mouse.release();
-    assertEquals(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR), component.getCursor());
+    assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
   }
 
   @Test
@@ -162,13 +161,13 @@ public class SelectionComponentTest {
     component.setSize(100, 100);
     FakeUi ui = new FakeUi(component);
     ui.mouse.press(getMinHandleX(model), 0);
-    assertEquals(10, model.getSelectionRange().getMin(), DELTA);
-    assertEquals(20, model.getSelectionRange().getMax(), DELTA);
-    assertEquals(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR), component.getCursor());
+    assertThat(model.getSelectionRange().getMin()).isWithin(DELTA).of(10);
+    assertThat(model.getSelectionRange().getMax()).isWithin(DELTA).of(20);
+    assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
     ui.mouse.dragDelta(90, 0);
-    assertEquals(20, model.getSelectionRange().getMin(), DELTA);
-    assertEquals(100, model.getSelectionRange().getMax(), DELTA);
-    assertEquals(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR), component.getCursor());
+    assertThat(model.getSelectionRange().getMin()).isWithin(DELTA).of(20);
+    assertThat(model.getSelectionRange().getMax()).isWithin(DELTA).of(100);
+    assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR));
   }
 
   @Test
@@ -178,13 +177,13 @@ public class SelectionComponentTest {
     component.setSize(100, 100);
     FakeUi ui = new FakeUi(component);
     ui.mouse.press(getMaxHandleX(model), 0);
-    assertEquals(10, model.getSelectionRange().getMin(), DELTA);
-    assertEquals(20, model.getSelectionRange().getMax(), DELTA);
-    assertEquals(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR), component.getCursor());
+    assertThat(model.getSelectionRange().getMin()).isWithin(DELTA).of(10);
+    assertThat(model.getSelectionRange().getMax()).isWithin(DELTA).of(20);
+    assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR));
     ui.mouse.dragDelta(-20, 0);
-    assertEquals(0, model.getSelectionRange().getMin(), DELTA);
-    assertEquals(10, model.getSelectionRange().getMax(), DELTA);
-    assertEquals(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR), component.getCursor());
+    assertThat(model.getSelectionRange().getMin()).isWithin(DELTA).of(0);
+    assertThat(model.getSelectionRange().getMax()).isWithin(DELTA).of(10);
+    assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
   }
 
   @Test
@@ -237,28 +236,28 @@ public class SelectionComponentTest {
 
     // Moving to min handle should change cursor to east resize cursor.
     ui.mouse.moveTo(getMinHandleX(model), 0);
-    assertEquals(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR), component.getCursor());
-    assertEquals(SelectionComponent.Mode.ADJUST_MIN, component.getMode());
+    assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
+    assertThat(component.getMode()).isEqualTo(SelectionComponent.Mode.ADJUST_MIN);
 
     // Moving inside the range should change cursor to default cursor.
     ui.mouse.moveTo(15, 0);
-    assertEquals(AdtUiCursors.GRABBING, component.getCursor());
-    assertEquals(SelectionComponent.Mode.MOVE, component.getMode());
+    assertThat(component.getCursor()).isEqualTo(AdtUiCursors.GRABBING);
+    assertThat(component.getMode()).isEqualTo(SelectionComponent.Mode.MOVE);
 
     // Moving inside the range should change cursor to default cursor.
     ui.mouse.moveTo(15, 50);
-    assertEquals(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR), component.getCursor());
-    assertEquals(SelectionComponent.Mode.CREATE, component.getMode());
+    assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR));
+    assertThat(component.getMode()).isEqualTo(SelectionComponent.Mode.CREATE);
 
     // Moving to max handle should change cursor to west resize cursor.
     ui.mouse.moveTo(getMaxHandleX(model), 50);
-    assertEquals(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR), component.getCursor());
-    assertEquals(SelectionComponent.Mode.ADJUST_MAX, component.getMode());
+    assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR));
+    assertThat(component.getMode()).isEqualTo(SelectionComponent.Mode.ADJUST_MAX);
 
     // Moving outside the range should change cursor to default.
     ui.mouse.moveTo(0, 0);
-    assertEquals(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR), component.getCursor());
-    assertEquals(SelectionComponent.Mode.CREATE, component.getMode());
+    assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
+    assertThat(component.getMode()).isEqualTo(SelectionComponent.Mode.CREATE);
   }
 
   @Test
@@ -269,18 +268,18 @@ public class SelectionComponentTest {
     FakeUi ui = new FakeUi(component);
 
     ui.mouse.press(30, 0);
-    assertEquals(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR), component.getCursor());
+    assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
     ui.mouse.dragTo(40, 0);
-    assertEquals(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR), component.getCursor());
+    assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR));
     ui.mouse.dragTo(20, 0);
-    assertEquals(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR), component.getCursor());
+    assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
     ui.mouse.release();
   }
 
   private void shiftAndValidateShift(FakeUi ui, SelectionModel model, FakeKeyboard.Key key, int min, int max) {
     ui.keyboard.press(key);
-    assertEquals(min, model.getSelectionRange().getMin(), DELTA);
-    assertEquals(max, model.getSelectionRange().getMax(), DELTA);
+    assertThat(model.getSelectionRange().getMin()).isWithin(DELTA).of(min);
+    assertThat(model.getSelectionRange().getMax()).isWithin(DELTA).of(max);
     ui.keyboard.release(key);
   }
 
