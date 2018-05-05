@@ -17,6 +17,7 @@ package org.jetbrains.android.refactoring
 
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import com.intellij.usageView.UsageInfo
 import junit.framework.TestCase
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.*
@@ -41,6 +42,19 @@ class MigrateToAndroidxTest : AndroidTestCase() {
       .withEntry(ClassMigrationEntry("android.support.design.widget.CoordinatorLayout", "androidx.widget.CoordinatorLayout"))
       .withEntry(PackageMigrationEntry("android.support.v7", "androidx"))
       .withEntry(PackageMigrationEntry("android.support.design", "androidx.design"))
+      .run(myFixture)
+  }
+
+  /**
+   * Test to ensure that longer [PackageMigrationEntry] take precedence.
+   */
+  fun testMigrateWithConflictingPackageNames() {
+    AndroidxMigrationBuilder()
+      .withFileInProject("MainActivity.java", "src/p1/p2/MainActivity.java")
+      .withEntry(ClassMigrationEntry("android.support.design.widget.CoordinatorLayout", "androidx.widget.CoordinatorLayout"))
+      .withEntry(PackageMigrationEntry("android.support.v7", "androidx"))
+      .withEntry(PackageMigrationEntry("android.support.design", "androidx.design"))
+      .withEntry(PackageMigrationEntry("android.support", "wrong"))
       .run(myFixture)
   }
 
@@ -93,7 +107,13 @@ class MigrateToAndroidxTest : AndroidTestCase() {
 
       PsiDocumentManager.getInstance(fixture.project).commitAllDocuments()
 
-      MigrateToAndroidxProcessor(fixture.project, entries).run()
+      object : MigrateToAndroidxProcessor(fixture.project, entries) {
+        override fun findUsages(): Array<UsageInfo> {
+          // Shuffle the findUsages result since the elements when executing the actual
+          // refactoring, the elements might be in different order
+          return super.findUsages().asList().shuffled().toTypedArray()
+        }
+      }.run()
 
       // validate results
       for ((key, value) in paths.entries) {

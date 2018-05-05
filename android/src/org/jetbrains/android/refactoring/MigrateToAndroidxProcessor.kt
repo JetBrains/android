@@ -55,6 +55,10 @@ import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral
 import java.io.File
 
+private const val CLASS_MIGRATION_BASE_PRIORITY = 1_000_000
+private const val PACKAGE_MIGRATION_BASE_PRIORITY = 1_000
+private const val DEFAULT_MIGRATION_BASE_PRIORITY = 0
+
 /**
  * Returns a [PropertiesFile] instance for the `gradle.properties` file in the given project or null if it does not exist.
  */
@@ -65,17 +69,20 @@ private fun getProjectProperties(project: Project): PropertiesFile? {
   return if (psiPropertiesFile is PropertiesFile) psiPropertiesFile else null
 }
 
+private fun isImportElement(element: PsiElement?): Boolean =
+  element != null && (element.node?.elementType.toString() == "IMPORT_LIST" || isImportElement(element.parent))
+
 private const val USE_ANDROIDX_PROPERTY = "android.useAndroidX"
 private const val ENABLE_JETIFIER_PROPERTY = "android.enableJetifier"
 
-class MigrateToAndroidxProcessor(val project: Project,
+open class MigrateToAndroidxProcessor(val project: Project,
                                  private val migrationMap: List<AppCompatMigrationEntry>) : BaseRefactoringProcessor(project) {
 
   private val elements: MutableList<PsiElement> = ArrayList()
   private var psiMigration: PsiMigration? = startMigration(project)
   private val refsToShorten: MutableList<SmartPsiElementPointer<PsiElement>> = ArrayList()
 
-  override fun createUsageViewDescriptor(usages: Array<out UsageInfo>) = MigrateToAndroidxUsageViewDescriptor(elements.toTypedArray())
+  final override fun createUsageViewDescriptor(usages: Array<out UsageInfo>) = MigrateToAndroidxUsageViewDescriptor(elements.toTypedArray())
 
   private fun startMigration(project: Project): PsiMigration {
     val migration = PsiMigrationManager.getInstance(project).startMigration()
@@ -160,17 +167,30 @@ class MigrateToAndroidxProcessor(val project: Project,
 
       val smartPointerManager = SmartPointerManager.getInstance(myProject)
 
-      // We need to process first the class migrations since they have higher priority. If we don't,
-      // the package refactoring would be applied first and then the class would incorrectly be refactored.
-
-      // Group the ClassMigrationUsageInfo so we can process the class migration first
-      val groupedUsages = usages
+      usages
         .filterIsInstance<MigrateToAppCompatUsageInfo>()
-        .groupBy { it is ClassMigrationUsageInfo }
+        .sortedByDescending {
+          // The refactoring operations need to be done in a specific order to work correctly.
+          // We need to refactor the imports first in order to allow shortenReferences to work (since it needs
+          // to check that the imports are there).
+          // We need to process first the class migrations since they have higher priority. If we don't,
+          // the package refactoring would be applied first and then the class would incorrectly be refactored.
+          // Then, we need to first process the longest package names so, if there are conflicting refactorings,
+          // the most specific one applies.
 
-      arrayOf(true, false)
-        .mapNotNull { groupedUsages[it] }
-        .flatMap { it }
+          var value = when (it) {
+            is ClassMigrationUsageInfo -> CLASS_MIGRATION_BASE_PRIORITY
+            is PackageMigrationUsageInfo -> PACKAGE_MIGRATION_BASE_PRIORITY + it.mapEntry.myOldName.length
+            else -> DEFAULT_MIGRATION_BASE_PRIORITY
+          }
+
+          if (isImportElement(it.element)) {
+            // This is an import, promote
+            value += 1000
+          }
+
+          value
+        }
         .mapNotNull { it.applyChange(migration) }
         .filter { it.isValid }
         .map { smartPointerManager.createSmartPsiElementPointer(it) }
