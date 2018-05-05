@@ -104,8 +104,13 @@ public final class SelectionComponent extends AnimatedComponent {
           requestFocusInWindow();
           myMode = getModeAtCurrentPosition(e.getX(), e.getY());
           if (myMode == Mode.CREATE) {
-            myModel.beginUpdate();
+            // We clear the selection model explicitly, to make sure the "set" call below fires a
+            // selection creation event (instead of the model thinking we're modifying an existing
+            // selection)
+            myModel.clear();
+
             double value = xToRange(e.getX());
+            myModel.beginUpdate();
             myModel.set(value, value);
           }
           myMousePressed = e.getX();
