@@ -20,7 +20,6 @@ import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneMode
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.TimeLineIcons;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.ui.table.JBTable;
-import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -50,9 +49,6 @@ public class CustomAttributePanel extends TagPanel {
     myTable = new JBTable(myTableModel);
     myRemoveTagButton = EditorUtils.makeButton(TimeLineIcons.REMOVE_TAG);
     setup();
-
-    int pix = JBUI.scale(5);
-    setBorder(JBUI.Borders.empty(0, pix));
 
     myTable.setSelectionMode(SINGLE_SELECTION);
     myTable.setDefaultRenderer(EditorUtils.AttributesNamesHolder.class, new EditorUtils.AttributesNamesCellRenderer());
