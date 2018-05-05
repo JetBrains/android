@@ -23,9 +23,9 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Tests for {@link AarStyledStringDecoder}.
+ * Tests for {@link ProtoStyledStringDecoder}.
  */
-public class AarStyledStringDecoderTest {
+public class ProtoStyledStringDecoderTest {
   private static final String STYLED_STRING_PROTO = "" +
       "value: \"aabbccddeeffgghhii\"\n" +
       "span: {\n" +
@@ -61,6 +61,6 @@ public class AarStyledStringDecoderTest {
     StyledString.Builder builder = StyledString.newBuilder();
     TextFormat.merge(STYLED_STRING_PROTO, ExtensionRegistry.getEmptyRegistry(), builder);
     StyledString styledString = builder.build();
-    assertEquals(STYLED_STRING_XML, AarStyledStringDecoder.getRawXmlValue(styledString));
+    assertEquals(STYLED_STRING_XML, ProtoStyledStringDecoder.getRawXmlValue(styledString));
   }
 }

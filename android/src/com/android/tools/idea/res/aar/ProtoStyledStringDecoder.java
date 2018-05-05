@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * Static methods for converting {@link Resources.StyledString} proto message back to the original XML string.
  */
-class AarStyledStringDecoder {
+class ProtoStyledStringDecoder {
   /**
    * Decodes the given {@link Resources.StyledString} proto message to obtain the original XML string.
    *
@@ -101,5 +101,5 @@ class AarStyledStringDecoder {
   }
 
   /** Do not instantiate. All methods are static. */
-  private AarStyledStringDecoder() {}
+  private ProtoStyledStringDecoder() {}
 }

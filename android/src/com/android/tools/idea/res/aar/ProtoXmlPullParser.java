@@ -38,7 +38,7 @@ import static com.intellij.xml.util.XmlUtil.XML_NAMESPACE_URI;
  * <p>See Also: <a href="http://www.xmlpull.org/">XML Pull Parsing</a>
  * @see Resources.XmlNode
  */
-public class AarPullParser implements XmlPullParser {
+public class ProtoXmlPullParser implements XmlPullParser {
   private InputStream myStream;
   private int myEventType;
   /** A stack of XML nodes reflecting a path from the root to the current node. */

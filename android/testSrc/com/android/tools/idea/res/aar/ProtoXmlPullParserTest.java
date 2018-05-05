@@ -33,9 +33,9 @@ import static org.junit.Assert.assertTrue;
 import static org.xmlpull.v1.XmlPullParser.*;
 
 /**
- * Tests for {@link AarPullParser}.
+ * Tests for {@link ProtoXmlPullParser}.
  */
-public class AarPullParserTest {
+public class ProtoXmlPullParserTest {
   private static final String LAYOUT_PROTO = "" +
       "element: {\n" +
       "  namespace_declaration: {\n" +
@@ -273,7 +273,7 @@ public class AarPullParserTest {
     return outputStream.toByteArray();
   }
 
-  private static void checkStandardNamespaces(@NotNull AarPullParser parser) {
+  private static void checkStandardNamespaces(@NotNull ProtoXmlPullParser parser) {
     assertEquals(0, parser.getNamespaceCount(0));
     for (int depth = 1; depth <= parser.getDepth(); depth++) {
       assertEquals(2, parser.getNamespaceCount(depth));
@@ -289,7 +289,7 @@ public class AarPullParserTest {
   @Test
   public void testParsing() throws Exception {
     try (InputStream stream = new ByteArrayInputStream(protoToByteArray(LAYOUT_PROTO))) {
-      AarPullParser parser = new AarPullParser();
+      ProtoXmlPullParser parser = new ProtoXmlPullParser();
       parser.setInput(stream, null);
       assertEquals(START_DOCUMENT, parser.getEventType());
       assertEquals(0, parser.getDepth());
