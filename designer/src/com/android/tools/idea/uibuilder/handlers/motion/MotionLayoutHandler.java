@@ -26,7 +26,6 @@ import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
-import com.android.tools.idea.uibuilder.api.CustomPanel;
 import com.android.tools.idea.uibuilder.handlers.assistant.TransitionLayoutAssistantPanel;
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
@@ -42,14 +41,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.SdkConstants.ATTR_TRANSITION_POSITION;
+import static com.android.SdkConstants.ATTR_TRANSITION_SHOW_PATHS;
 
 public class MotionLayoutHandler extends ConstraintLayoutHandler implements NlComponentDelegate {
 
   @Override
   @NotNull
   public List<String> getInspectorProperties() {
-    return ImmutableList.of(ATTR_TRANSITION_POSITION);
+    return ImmutableList.of(ATTR_TRANSITION_SHOW_PATHS);
   }
 
   @Nullable
