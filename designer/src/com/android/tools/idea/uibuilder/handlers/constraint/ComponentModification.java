@@ -95,6 +95,7 @@ public class ComponentModification implements NlAttributesHolder {
   public void commit() {
     if (myComponentDelegate != null && myComponentDelegate.handlesCommit(this)) {
       myComponentDelegate.commit(this);
+      myComponent.clearTransaction(); // make sure to clean things here too
 
       // We have to verify if there is attributes that need to be committed to the component directly
       AttributesTransaction transaction = null;

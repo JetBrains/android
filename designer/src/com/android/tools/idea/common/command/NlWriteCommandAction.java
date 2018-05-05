@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.command;
 
+import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.templates.TemplateUtils;
@@ -101,7 +102,9 @@ public final class NlWriteCommandAction implements Runnable {
         return;
       }
 
-      handler.cleanUpAttributes(component);
+      AttributesTransaction transaction = component.startAttributeTransaction();
+      handler.cleanUpAttributes(component, transaction);
+      transaction.commit();
     }
 
     private void reformatAndRearrange(@NotNull NlComponent component) {
