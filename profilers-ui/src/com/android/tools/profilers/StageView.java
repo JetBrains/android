@@ -25,6 +25,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
@@ -66,10 +68,7 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
     myTooltipPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
     myTooltipBinder = new ViewBinder<>();
 
-    mySelectionTimeLabel = new JLabel("");
-    mySelectionTimeLabel.setFont(STANDARD_FONT);
-    mySelectionTimeLabel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
-
+    mySelectionTimeLabel = createSelectionTimeLabel();
     stage.getStudioProfilers().addDependency(this).onChange(ProfilerAspect.TOOLTIP, this::tooltipChanged);
     stage.getStudioProfilers().getTimeline().getSelectionRange().addDependency(this).onChange(Range.Aspect.RANGE, this::selectionChanged);
     selectionChanged();
@@ -184,5 +183,31 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
                                                  TimeFormatter.getSimplifiedClockString(selectionMinUs),
                                                  TimeFormatter.getSimplifiedClockString(selectionMaxUs)));
     }
+  }
+
+  @NotNull
+  private JLabel createSelectionTimeLabel() {
+    JLabel selectionTimeLabel = new JLabel("");
+    selectionTimeLabel.setFont(STANDARD_FONT);
+    selectionTimeLabel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+    selectionTimeLabel.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        ProfilerTimeline timeline = getStage().getStudioProfilers().getTimeline();
+        Range selectionRange = timeline.getSelectionRange();
+        if (!selectionRange.isEmpty()) {
+          // Zoom to view when the selection range is not point, otherwise adjust the view range only.
+          if (!selectionRange.isPoint()) {
+            timeline.frameViewToRange(selectionRange);
+          }
+          else {
+            timeline.adjustRangeCloseToMiddleView(selectionRange);
+          }
+        }
+      }
+    });
+    selectionTimeLabel.setToolTipText("Selected range");
+    selectionTimeLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    return selectionTimeLabel;
   }
 }
