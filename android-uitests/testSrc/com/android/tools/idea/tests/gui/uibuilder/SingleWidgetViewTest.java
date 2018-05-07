@@ -57,7 +57,11 @@ public class SingleWidgetViewTest {
     // Make sure the Button is been selected.
     design.findView("Button", 0).click();
 
-    ConstraintLayoutViewInspectorFixture view = design.getPropertiesPanel().waitForPanelLoading().getConstraintLayoutViewInspector();
+    ConstraintLayoutViewInspectorFixture view = design
+      .getPropertiesPanel()
+      .openAsInspector()
+      .waitForPanelLoading()
+      .getConstraintLayoutViewInspector();
     view.setAllMargins(10);
     design.waitForRenderToFinish();
     view.scrollAllMargins(3);
