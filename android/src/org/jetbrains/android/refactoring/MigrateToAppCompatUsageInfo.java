@@ -101,6 +101,11 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
 
     @Override
     public PsiElement applyChange(@NotNull PsiMigration psiMigration) {
+      if (mapEntry.myOldName.equals(mapEntry.myNewName)) {
+        // No-op migration rule
+        return null;
+      }
+
       // Here we need to either find or create the class so that imports/class names can be resolved.
       PsiClass aClass = MigrateToAppCompatUtil.findOrCreateClass(getProject(), psiMigration, mapEntry.myNewName);
 
@@ -158,6 +163,11 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
 
     @Override
     public PsiElement applyChange(@NotNull PsiMigration migration) {
+      if (mapEntry.myOldName.equals(mapEntry.myNewName)) {
+        // No-op migration rule
+        return null;
+      }
+
       PsiPackage aPackage = MigrateToAppCompatUtil.findOrCreatePackage(getProject(), migration, mapEntry.myNewName);
       PsiElement element = getElement();
       if (element == null || !element.isValid()) {
