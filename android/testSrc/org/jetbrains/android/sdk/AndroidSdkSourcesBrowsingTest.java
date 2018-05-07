@@ -1,7 +1,6 @@
 package org.jetbrains.android.sdk;
 
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.res.AndroidInternalRClassFinder;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -15,10 +14,12 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlAttributeValue;
 import org.jetbrains.android.AndroidSdkResolveScopeProvider;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.augment.AndroidPsiElementFinder;
 import org.jetbrains.android.dom.wrappers.FileResourceElementWrapper;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 
@@ -144,12 +145,12 @@ public class AndroidSdkSourcesBrowsingTest extends AndroidTestCase {
     GlobalSearchScope scope = activity.getNavigationElement().getResolveScope();
     assertInstanceOf(scope, AndroidSdkResolveScopeProvider.MyJdkScope.class);
 
-    assertNotNull(facade.findClass(AndroidInternalRClassFinder.INTERNAL_R_CLASS_QNAME, scope));
-    assertNotNull(facade.findClass(AndroidInternalRClassFinder.INTERNAL_R_CLASS_QNAME + ".string", scope));
+    assertNotNull(facade.findClass(AndroidPsiElementFinder.INTERNAL_R_CLASS_QNAME, scope));
+    assertNotNull(facade.findClass(AndroidPsiElementFinder.INTERNAL_R_CLASS_QNAME + ".string", scope));
 
-    PsiClass[] classes = facade.findClasses(AndroidInternalRClassFinder.INTERNAL_R_CLASS_QNAME, scope);
+    PsiClass[] classes = facade.findClasses(AndroidPsiElementFinder.INTERNAL_R_CLASS_QNAME, scope);
     assertEquals(1, classes.length);
-    classes = facade.findClasses(AndroidInternalRClassFinder.INTERNAL_R_CLASS_QNAME + ".string", scope);
+    classes = facade.findClasses(AndroidPsiElementFinder.INTERNAL_R_CLASS_QNAME + ".string", scope);
     assertEquals(1, classes.length);
   }
 

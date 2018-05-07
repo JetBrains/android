@@ -2,7 +2,6 @@ package org.jetbrains.android.augment;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.AndroidInternalRClassFinder;
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Key;
@@ -45,7 +44,7 @@ public class AndroidInternalRClass extends AndroidLightClassBase {
   @Nullable
   @Override
   public String getQualifiedName() {
-    return AndroidInternalRClassFinder.INTERNAL_R_CLASS_QNAME;
+    return AndroidPsiElementFinder.INTERNAL_R_CLASS_QNAME;
   }
 
   @Override

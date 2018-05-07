@@ -28,7 +28,6 @@ iml_module(
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
         "//tools/analytics-library/protos:analytics-protos[module]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
-        "//tools/base/flags:studio.android.sdktools.flags[module]",
     ],
 )
 

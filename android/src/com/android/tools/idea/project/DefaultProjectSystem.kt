@@ -21,7 +21,6 @@ import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.projectsystem.*
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
-import com.android.tools.idea.res.AndroidAugmentedRClassesElementFinder
 import com.android.tools.idea.sdk.AndroidSdks
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -104,8 +103,4 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
       }
     }
   }
-
-  override fun getPsiElementFinders() = listOf(AndroidAugmentedRClassesElementFinder.INSTANCE)
-
-  override fun getAugmentRClasses() = true
 }
