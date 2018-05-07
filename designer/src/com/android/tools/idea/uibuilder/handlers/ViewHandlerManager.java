@@ -242,9 +242,10 @@ public class ViewHandlerManager implements ProjectComponent {
       case CHECKED_TEXT_VIEW:
         return new CheckedTextViewHandler();
       case CHECK_BOX:
-      case CHIP:
       case RADIO_BUTTON:
         return new CheckBoxHandler();
+      case CHIP:
+        return new ChipHandler();
       case CHIP_GROUP:
         return new ChipGroupHandler();
       case CHRONOMETER:

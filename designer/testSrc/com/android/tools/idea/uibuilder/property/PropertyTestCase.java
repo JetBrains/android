@@ -78,6 +78,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   protected NlComponent myImageViewInCollapsingToolbarLayout;
   protected NlComponent myTabLayout;
   protected NlComponent myRelativeLayout;
+  protected NlComponent myChip;
   protected NlComponent myViewTag;
   protected NlComponent myFragment;
   protected SyncNlModel myModel;
@@ -119,6 +120,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     myImageViewInCollapsingToolbarLayout = myComponentMap.get("imgv");
     myTabLayout = myComponentMap.get("tabLayout");
     myRelativeLayout = myComponentMap.get("relativeLayout");
+    myChip = myComponentMap.get("chip");
     myViewTag = myComponentMap.get("viewTag");
     myFragment = myComponentMap.get("fragmentTag");
     myDesignSurface = (NlDesignSurface)myModel.getSurface();
@@ -158,6 +160,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
       myImageViewInCollapsingToolbarLayout = null;
       myTabLayout = null;
       myRelativeLayout = null;
+      myChip = null;
       myModel = null;
       myDesignSurface = null;
       myPropertiesManager = null;
@@ -361,6 +364,17 @@ public abstract class PropertyTestCase extends LayoutTestCase {
                                            .width("wrap_content")
                                            .height("wrap_content")
                                            .text("ButtonInLinearLayout"),
+                                         component(CHIP_GROUP)
+                                           .withBounds(400, 200, 100, 100)
+                                           .id("@id/chip_group")
+                                           .width("wrap_content")
+                                           .height("wrap_content")
+                                           .children(
+                                             component(CHIP)
+                                               .withBounds(400, 200, 100, 30)
+                                               .id("@id/chip")
+                                               .width("wrap_content")
+                                               .height("wrap_content")),
                                          component(COLLAPSING_TOOLBAR_LAYOUT.defaultName())
                                            .withBounds(400, 300, 100, 200)
                                            .children(
