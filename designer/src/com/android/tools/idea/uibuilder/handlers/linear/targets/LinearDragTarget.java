@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.handlers.linear.targets;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
-import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -91,7 +90,7 @@ public class LinearDragTarget extends DragBaseTarget {
       int ny = min(max(y, -middle), parentHeight + middle);
       ny = snapper.trySnapVertical(ny).orElse(ny);
       myComponent.setPosition(nx, ny, false);
-      closestTarget = snapper.getSappedVerticalTarget();
+      closestTarget = snapper.getSnappedVerticalTarget();
     }
     else {
       int middle = myComponent.getDrawWidth() / 2;
@@ -100,7 +99,7 @@ public class LinearDragTarget extends DragBaseTarget {
       nx = snapper.trySnapHorizontal(nx).orElse(nx);
       int ny = myIsDragFromPalette ? y : myComponent.getDrawY();
       myComponent.setPosition(nx, ny, false);
-      closestTarget = snapper.getSappedHorizontalTarget();
+      closestTarget = snapper.getSnappedHorizontalTarget();
     }
 
     if (myClosest != closestTarget) {

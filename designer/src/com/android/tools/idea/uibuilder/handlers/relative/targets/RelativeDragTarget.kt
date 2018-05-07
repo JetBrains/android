@@ -140,7 +140,7 @@ class RelativeDragTarget : DragBaseTarget() {
 
       if (snappedX.isPresent) {
         targetNotchSnapper.applyNotches(attributes)
-        myTargetX = targetNotchSnapper.sappedHorizontalTarget as BaseRelativeTarget?
+        myTargetX = targetNotchSnapper.snappedHorizontalTarget as BaseRelativeTarget?
         myTargetX?.myIsHighlight = true
 
         targetNotchSnapper.clearSnappedNotches()
@@ -219,7 +219,7 @@ class RelativeDragTarget : DragBaseTarget() {
 
       if (snappedY.isPresent) {
         targetNotchSnapper.applyNotches(attributes)
-        myTargetY = targetNotchSnapper.sappedVerticalTarget as BaseRelativeTarget?
+        myTargetY = targetNotchSnapper.snappedVerticalTarget as BaseRelativeTarget?
         myTargetY?.myIsHighlight = true
 
         targetNotchSnapper.clearSnappedNotches()

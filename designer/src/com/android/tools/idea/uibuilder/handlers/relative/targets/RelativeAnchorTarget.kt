@@ -130,7 +130,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
     myComponent.scene.needsLayout(Scene.ANIMATED_LAYOUT)
   }
 
-  override fun mouseDrag(x: Int, y: Int, ignored: MutableList<Target>) {
+  override fun mouseDrag(x: Int, y: Int, ignored: List<Target>) {
     super.mouseDrag(x, y, ignored)
     if (isParent) {
       return
