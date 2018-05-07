@@ -172,10 +172,12 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
     return myViewRangeUs;
   }
 
+  @NotNull
   public Range getSelectionRange() {
     return mySelectionRangeUs;
   }
 
+  @NotNull
   public Range getTooltipRange() {
     return myTooltipRangeUs;
   }
@@ -383,6 +385,13 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
     // If we are streaming we reset the default zoom keeping our max view aligned with our data max.
     // Otherwise we reset the view using the middle of the current view.
     zoom(DEFAULT_VIEW_LENGTH_US - myViewRangeUs.getLength(), isStreaming() ? 1 : ZOOM_MIDDLE_FOCAL_POINT);
+  }
+
+  /**
+   * Zoom and pans the view range to the specified target range. See {@link #frameViewToRange(Range, double)}.
+   */
+  public void frameViewToRange(Range targetRangeUs) {
+    frameViewToRange(targetRangeUs, 0.1);
   }
 
   /**
