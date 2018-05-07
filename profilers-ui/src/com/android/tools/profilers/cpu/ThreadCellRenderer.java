@@ -19,6 +19,7 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.chart.statechart.StateChartColorProvider;
+import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.updater.UpdatableManager;
@@ -35,8 +36,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ThreadCellRenderer extends CpuCellRenderer<CpuThreadsModel.RangedCpuThread, CpuProfilerStage.ThreadState> {
-
-  private static final int SIZE_IN_PIXELS = 19;
   /**
    * Maps a {@link StateChart} to a {@link EnumColors} helper class to return the proper color object for the {@link StateChart}
    */
@@ -60,6 +59,7 @@ public class ThreadCellRenderer extends CpuCellRenderer<CpuThreadsModel.RangedCp
                                                 int index,
                                                 boolean isSelected,
                                                 boolean cellHasFocus) {
+    Icon reorderIcon = StudioIcons.Common.REORDER;
     JPanel panel = new JPanel(new TabularLayout("150px,*", "*"));
     panel.setBorder(ProfilerLayout.CPU_THREADS_BORDER);
     panel.setPreferredSize(JBDimension.create(panel.getPreferredSize()).withHeight(ProfilerLayout.CPU_THREADS_LINE_HEIGHT));
@@ -67,7 +67,7 @@ public class ThreadCellRenderer extends CpuCellRenderer<CpuThreadsModel.RangedCp
 
     myLabel.setText(value.getName());
     myLabel.setIcon(null);
-    myLabel.setBorder(JBUI.Borders.emptyLeft(StudioIcons.Menu.MENU.getIconWidth() + myLabel.getIconTextGap()));
+    myLabel.setBorder(JBUI.Borders.emptyLeft(reorderIcon.getIconWidth() + myLabel.getIconTextGap()));
     myLabel.setBackground(ProfilerColors.THREAD_LABEL_BACKGROUND);
     myLabel.setForeground(ProfilerColors.THREAD_LABEL_TEXT);
 
@@ -98,7 +98,7 @@ public class ThreadCellRenderer extends CpuCellRenderer<CpuThreadsModel.RangedCp
       panel.add(overlay, new TabularLayout.Constraint(0, 0, 2));
       // Draw drag icon next to label
       myLabel.setBorder(JBUI.Borders.empty());
-      myLabel.setIcon(StudioIcons.Menu.MENU);
+      myLabel.setIcon(isSelected ? ColoredIconGenerator.INSTANCE.generateWhiteIcon(reorderIcon) : reorderIcon);
     }
 
     panel.add(myLabel, new TabularLayout.Constraint(0, 0));
