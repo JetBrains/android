@@ -20,8 +20,9 @@ import com.android.ddmlib.IDevice;
 import com.android.fakeadbserver.FakeAdbServer;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.AndroidProfilerToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.google.common.truth.Correspondence;
@@ -29,12 +30,12 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,8 +46,8 @@ import java.io.IOException;
 import static com.android.fakeadbserver.DeviceState.HostConnectionType.USB;
 import static com.google.common.truth.Truth.assertThat;
 
-@Ignore("b/79200296")
-@RunWith(GuiTestRunner.class)
+@RunIn(TestGroup.UNRELIABLE)  // until we know b/79200296 is fixed
+@RunWith(GuiTestRemoteRunner.class)
 public class AndroidProfilerTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
