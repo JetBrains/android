@@ -91,6 +91,9 @@ public abstract class PaletteComponentHandler {
     else if (tagName.startsWith(ANDROID_SUPPORT_DESIGN_PKG)) {
       return DESIGN_LIB_ARTIFACT;
     }
+    else if (tagName.startsWith(ANDROID_MATERIAL_PKG)) {
+      return ANDROIDX_MATERIAL_ARTIFACT;
+    }
     else if (tagName.startsWith(ANDROID_SUPPORT_LEANBACK_V17_PKG)) {
       return LEANBACK_V17_ARTIFACT;
     }
