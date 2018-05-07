@@ -302,9 +302,13 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
           ToolWindow window = ToolWindowManagerEx.getInstanceEx(project).getToolWindow(AndroidProfilerToolWindowFactory.ID);
           if (window != null) {
             window.setShowStripeButton(true);
-            AndroidProfilerToolWindow profilerToolWindow = AndroidProfilerToolWindowFactory.getProfilerToolWindow(project);
-            if (profilerToolWindow != null) {
-              profilerToolWindow.profileModule(myModule, device, p -> p.getStartTimestampNs() >= currentDeviceTimeNs);
+            // If the window is currently not shown, either if the users click on Run/Debug or if they manually collapse/hide the window,
+            // then we shouldn't start profiling the launched app.
+            if (window.isVisible()) {
+              AndroidProfilerToolWindow profilerToolWindow = AndroidProfilerToolWindowFactory.getProfilerToolWindow(project);
+              if (profilerToolWindow != null) {
+                profilerToolWindow.profileModule(myModule, device, p -> p.getStartTimestampNs() >= currentDeviceTimeNs);
+              }
             }
           }
         });
