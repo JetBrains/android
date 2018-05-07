@@ -1,7 +1,6 @@
 package org.jetbrains.android.augment;
 
 import com.android.resources.ResourceType;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.psi.PsiClass;
@@ -29,10 +28,6 @@ public class AndroidPsiAugmentProvider extends PsiAugmentProvider {
   @NotNull
   @Override
   public <Psi extends PsiElement> List<Psi> getAugments(@NotNull PsiElement element, @NotNull Class<Psi> type) {
-    if (!ProjectSystemUtil.getProjectSystem(element.getProject()).getAugmentRClasses()) {
-      return Collections.emptyList();
-    }
-
     if ((type != PsiClass.class && type != PsiField.class) ||
         !(element instanceof PsiExtensibleClass)) {
       return Collections.emptyList();

@@ -337,13 +337,6 @@ public final class StudioFlags {
     .create(NDK, "enhancednativeheadersupport", "Enable enhanced native header support",
             "If enabled, project system view will show a new include node with organized header files", true);
 
-  private static final FlagGroup EDITOR = new FlagGroup(FLAGS, "editor", "Editor features");
-  public static final Flag<Boolean> IN_MEMORY_R_CLASSES = Flag.create(
-    EDITOR,
-    "in.memory.r.classes",
-    "Generate R classes fully in memory",
-    "If enabled, R classes are generated in memory", false);
-
   private StudioFlags() {
   }
 }
