@@ -71,6 +71,7 @@ public class TextInspectorProviderTest extends PropertyTestCase {
     assertThat(isApplicable(myProvider, myTextView)).isTrue();
     assertThat(isApplicable(myProvider, myCheckBox1)).isTrue();
     assertThat(isApplicable(myProvider, myProgressBar)).isFalse();
+    assertThat(isApplicable(myProvider, myChip)).isFalse();
     assertThat(isApplicable(myProvider, myTextView, myCheckBox1, mySwitch)).isTrue();
     assertThat(isApplicable(myProvider, myTextView, myCheckBox1, mySwitch, myMerge)).isFalse();
   }
