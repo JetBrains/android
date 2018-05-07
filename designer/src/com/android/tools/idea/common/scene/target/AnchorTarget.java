@@ -399,7 +399,7 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
     }
     Notch notch = new Notch.Circle(owner, x, y, null);
     // Make it bigger for snapping.
-    notch.setGap(ANCHOR_SIZE * 5);
+    notch.setGap(ANCHOR_SIZE * 3);
     notch.setTarget(this);
     notchBuilder.add(notch);
   }
