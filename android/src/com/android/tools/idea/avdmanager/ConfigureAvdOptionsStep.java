@@ -1348,11 +1348,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
             myAvdConfigurationOptionHelpPanel.clearValues();
           }
         }
-
-        if (component.getParent() instanceof JComponent) {
-          final JComponent parent = (JComponent)component.getParent();
-          parent.scrollRectToVisible(component.getBounds());
-        }
       }
     }
   };
