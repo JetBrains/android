@@ -37,7 +37,7 @@ public final class ModuleValidator implements Validator<String> {
   private @Nullable Project myProject; // May be null for new projects
   private @NotNull PathValidator myPathValidator;
   private @NotNull StringProperty myProjectPath;
-  private final CharMatcher ILLEGAL_CHARACTER_MATCHER = CharMatcher.anyOf("[/\\'-");
+  private final CharMatcher ILLEGAL_CHARACTER_MATCHER = CharMatcher.anyOf("[/\\'");
 
   public ModuleValidator(@NotNull Project project) {
     this(new StringValueProperty(project.getBasePath()));
