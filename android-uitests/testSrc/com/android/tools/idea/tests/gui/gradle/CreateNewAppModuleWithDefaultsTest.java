@@ -54,11 +54,11 @@ public class CreateNewAppModuleWithDefaultsTest {
            .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
            .chooseModuleType("Phone & Tablet Module")
            .clickNextToStep("Phone & Tablet Module")
-           .setModuleName("application-module")
+           .setModuleName("application_module")
            .clickNextToStep("Add an Activity to Mobile")
            .chooseActivity("Add No Activity")
            .clickFinish()
            .waitForGradleProjectSyncToFinish();
-    assertAbout(file()).that(guiTest.getProjectPath("application-module")).isDirectory();
+    assertAbout(file()).that(guiTest.getProjectPath("application_module")).isDirectory();
   }
 }

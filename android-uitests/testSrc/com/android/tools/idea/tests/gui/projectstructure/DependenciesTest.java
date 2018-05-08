@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResul
 import com.android.tools.idea.gradle.structure.editors.ModuleDependenciesTableItem;
 import com.android.tools.idea.gradle.structure.editors.ModuleDependenciesTableModel;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -120,12 +119,12 @@ public class DependenciesTest {
     ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .chooseModuleType(ANDROID_LIBRARY)
       .clickNextToStep(ANDROID_LIBRARY)
-      .setModuleName("library-module")
+      .setModuleName("library_module")
       .clickFinish()
       .waitForGradleProjectSyncToFinish();
 
     EditorFixture editor = ideFrame.getEditor()
-      .open("/library-module/build.gradle")
+      .open("/library_module/build.gradle")
       .select("dependencies \\{()")
       .enterText("\ncompile 'com.google.code.gson:gson:2.6.2'\n");
 
@@ -137,7 +136,7 @@ public class DependenciesTest {
 
     ProjectStructureDialogFixture.find(ideFrame)
       .selectDependenciesTab()
-      .addModuleDependency(":library-module")
+      .addModuleDependency(":library_module")
       .clickOk();
 
     editor.open("/app/src/main/java/android/com/app/MainActivity.java")
@@ -149,10 +148,10 @@ public class DependenciesTest {
     // Create a class in the library and check the build.
     ideFrame.getProjectView()
       .selectProjectPane()
-      .clickPath(APP_NAME, "library-module", "src", "main", "java", "android.com.library_module");
+      .clickPath(APP_NAME, "library_module", "src", "main", "java", "android.com.library_module");
 
     invokeNewFileDialog().setName("LibraryClass").clickOk();
-    editor.open("/library-module/src/main/java/android/com/library_module/LibraryClass.java")
+    editor.open("/library_module/src/main/java/android/com/library_module/LibraryClass.java")
       .select("()public class LibraryClass")
       .enterText("import com.google.gson.Gson;\n\n")
       .select("public class LibraryClass \\{()")
