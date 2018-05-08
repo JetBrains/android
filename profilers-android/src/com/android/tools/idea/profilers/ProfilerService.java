@@ -30,21 +30,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.nio.file.Paths;
-import java.util.HashSet;
-import java.util.Set;
 
 public class ProfilerService implements Disposable {
-  @NotNull
-  private static Set<Project> myInitializedServices = new HashSet<>();
 
   public static ProfilerService getInstance(@NotNull Project project) {
     ProfilerService service = ServiceManager.getService(project, ProfilerService.class);
-    myInitializedServices.add(project);
     return service;
-  }
-
-  public static boolean isServiceInitialized(@NotNull Project project) {
-    return myInitializedServices.contains(project);
   }
 
   private static final String DATASTORE_NAME_PREFIX = "DataStoreService";
