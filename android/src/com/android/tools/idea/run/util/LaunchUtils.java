@@ -22,10 +22,9 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.run.activity.ActivityLocatorUtils;
 import com.android.utils.XmlUtils;
-import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.Executor;
+import com.intellij.execution.impl.ExecutionManagerImpl;
 import com.intellij.execution.ui.RunContentDescriptor;
-import com.intellij.execution.ui.RunContentManager;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
@@ -143,9 +142,7 @@ public class LaunchUtils {
           @Override
           public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
             if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-              final RunContentManager contentManager = ExecutionManager.getInstance(project).getContentManager();
-
-              for (RunContentDescriptor d : contentManager.getAllDescriptors()) {
+              for (RunContentDescriptor d : ExecutionManagerImpl.getAllDescriptors(project)) {
                 if (sessionName.equals(d.getDisplayName())) {
                   final Content content = d.getAttachedContent();
                   if (content != null) {

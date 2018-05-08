@@ -17,8 +17,6 @@ package com.android.tools.idea.fd.actions;
 
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
-import com.android.tools.ir.client.AppState;
-import com.android.tools.ir.client.InstantRunClient;
 import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunSettings;
@@ -27,9 +25,12 @@ import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.run.AndroidProcessHandler;
 import com.android.tools.idea.run.AndroidSessionInfo;
+import com.android.tools.ir.client.AppState;
+import com.android.tools.ir.client.InstantRunClient;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.execution.ExecutionManager;
+import com.intellij.execution.impl.ExecutionManagerImpl;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -166,7 +167,7 @@ public class RestartActivityAction extends AnAction {
       return Collections.emptyList();
     }
 
-    List<RunContentDescriptor> runningProcesses = ExecutionManager.getInstance(project).getContentManager().getAllDescriptors();
+    List<RunContentDescriptor> runningProcesses = ExecutionManagerImpl.getAllDescriptors(project);
     if (runningProcesses.isEmpty()) {
       return Collections.emptyList();
     }
