@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
+import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -71,8 +72,16 @@ public interface GradleBuildModel extends GradleFileModel {
     return GradleModelProvider.get().parseBuildFile(file, project, moduleName);
   }
 
+  /**
+   * DO NOT USE. Use {#plugins()} instead. This method is required to keep plugin compatibility with the android plugin 3.1 and below.
+   * This method may be removed in the future.
+   */
+  @Deprecated
   @NotNull
-  List<PluginModel> appliedPlugins();
+  List<GradleNotNullValue<String>> appliedPlugins();
+
+  @NotNull
+  List<PluginModel> plugins();
 
   PluginModel applyPlugin(@NotNull String plugin);
 
