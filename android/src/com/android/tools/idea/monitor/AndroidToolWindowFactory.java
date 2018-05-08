@@ -1,18 +1,4 @@
-/*
- * Copyright 2000-2010 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 
 package com.android.tools.idea.monitor;
 
@@ -58,8 +44,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.openapi.wm.ex.ToolWindowManagerAdapter;
-import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLoadingPanel;
@@ -74,7 +59,6 @@ import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -86,7 +70,6 @@ import java.util.List;
 public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, Condition<Project> {
   private static final String ANDROID_LOGCAT_CONTENT_ID = "Android Logcat";
 
-  @NonNls private static final String ADBLOGS_CONTENT_ID = "AdbLogsContent";
   public static final Key<DevicePanel> DEVICES_PANEL_KEY = Key.create("DevicePanel");
 
   @Override
@@ -220,7 +203,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
   }
 
   private static Content createLogcatContent(RunnerLayoutUi layoutUi, final Project project, AndroidLogcatView logcatView) {
-    ToolWindowManagerEx.getInstanceEx(project).addToolWindowManagerListener(new ToolWindowManagerAdapter() {
+    project.getMessageBus().connect().subscribe(ToolWindowManagerListener.TOPIC, new ToolWindowManagerListener() {
       boolean myToolWindowVisible;
 
       @Override
