@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
@@ -37,6 +40,19 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     writeToSettingsFile(text);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
     assertEquals("include", ImmutableList.of(":", ":app", ":lib", ":lib:subLib"), settingsModel.modulePaths());
+  }
+
+  @Test
+  public void testIncludedModulePathsWithDotSeparator() throws Exception {
+    String text = "include \":app:app.ext\"\n";
+    writeToBuildFile("");
+    writeToSettingsFile(text);
+    Module newModule = writeToNewSubModule("app.ext", "", "");
+
+    ProjectBuildModel projectModel = ProjectBuildModel.get(myProject);
+    GradleBuildModel buildModel = projectModel.getModuleBuildModel(newModule);
+
+    assertNotNull(buildModel);
   }
 
   @Test

@@ -290,17 +290,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     return getElementsWhere(predicate).get(name);
   }
 
-  /**
-   * Method to check whether a given property string is nested. A property counts as nested if it has move than one component
-   * seperated dots ('.').
-   */
-  private static boolean isPropertyNested(@NotNull String property) {
-    return property.contains(".");
-  }
-
   @Nullable
   public GradleDslElement getVariableElement(@NotNull String property) {
-    assert !isPropertyNested(property);
     return getElementWhere(property, VARIABLE_FILTER);
   }
 
@@ -310,19 +301,16 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
    */
   @Nullable
   public GradleDslElement getPropertyElement(@NotNull String property) {
-    assert !isPropertyNested(property);
     return getElementWhere(property, PROPERTY_FILTER);
   }
 
   @Nullable
   public GradleDslElement getElement(@NotNull String property) {
-    assert !isPropertyNested(property);
     return getElementWhere(property, ANY_FILTER);
   }
 
   @Nullable
   public GradleDslElement getPropertyElementBefore(@Nullable GradleDslElement element, @NotNull String property) {
-    assert !isPropertyNested(property);
     if (element == null) {
       return getElementWhere(property, PROPERTY_FILTER);
     }
@@ -333,7 +321,6 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
 
   @Nullable
   GradleDslElement getElementBefore(@Nullable GradleDslElement element, @NotNull String property) {
-    assert !isPropertyNested(property);
     if (element == null) {
       return getElementWhere(property, ANY_FILTER);
     }
