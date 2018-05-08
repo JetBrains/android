@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.npw;
 
+import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -30,7 +30,7 @@ import org.junit.runner.RunWith;
 import static com.android.tools.idea.tests.gui.npw.NewCppProjectTestUtil.assertAndroidPanePath;
 import static com.android.tools.idea.tests.gui.npw.NewCppProjectTestUtil.createCppProject;
 import static com.android.tools.idea.tests.gui.npw.NewCppProjectTestUtil.getExternalNativeBuildRegExp;
-import static com.android.tools.idea.tests.gui.npw.NewCppProjectTestUtil.runAppOnEmulator;
+import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class AddRemoveCppDependencyTest {
@@ -52,12 +52,12 @@ public class AddRemoveCppDependencyTest {
    *   3. Sync gradle; verify that the project's app/cpp files are gone but app/java remains
    *   4. Go to File -> Link C++ Project with Gradle
    *   5. Leave the build system dropdown on cmake and select ${projectDir}/app/CMakeLists.txt for project path (Verify 1, 2)
-   *   6. Run (Verify 3)
+   *   6. Build project
    *
    *   Verification:
    *   1) Verify that the externalNativeBuild section of build.gradle reappears with cmake.path CMakeLists.txt
    *   2) Verify that app/cpp reappears and contains native-lib.cpp
-   *   3) Verify that the project builds and runs on an emulator
+   *   3) Project is built successfully
    *   </pre>
    */
   @RunIn(TestGroup.SANITY)
@@ -92,6 +92,7 @@ public class AddRemoveCppDependencyTest {
 
     assertAndroidPanePath(true, guiTest, "app", "cpp", "native-lib.cpp"); // app/cpp reappears and contains native-lib.cpp
 
-    runAppOnEmulator(ideFixture);
+    GradleInvocationResult result = ideFixture.invokeProjectMake();
+    assertThat(result.isBuildSuccessful()).isTrue();
   }
 }
