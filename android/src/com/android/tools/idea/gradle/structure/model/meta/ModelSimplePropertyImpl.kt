@@ -69,59 +69,6 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
     variableMatchingStrategy
   )
 
-/**
- * Makes a descriptor of a simple-typed property of a model of type [ModelT] described by the model descriptor.
- *
- * @param description the description of the property as it should appear int he UI
- * @param default the default value the property takes if not configured or null
- * @param defaultValueGetter the function returning the default value of the property for the given model (overwrites [default] if
- *        defined)
- * @param getResolvedValue the function to get the value of the property as it was resolved by Gradle
- * @param getParsedValue the function to get the value of the property as it was parsed
- * @param setParsedValue the setter function to change the value of the property in the build files
- * @param clearParsedValue the function to remove the configuration of the property from the build files
- * @param parse the parser of the text representation of [PropertyT]. See notes in: [ModelSimpleProperty]
- * @param format the formatter for values of type [PropertyT]
- * @param getKnownValues the function to get a list of the known value for the given instance of [ModelT]. See: [ModelSimpleProperty]
- */
-// NOTE: This is an extension function supposed to be invoked on model descriptors to make the type inference work.
-fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT, PropertyT : Any, ContextT> T.property(
-  description: String,
-  defaultValueGetter: ((ModelT) -> PropertyT?)? = null,
-  getResolvedValue: ResolvedT.() -> PropertyT?,
-  getParsedValue: ParsedT.() -> PropertyT?,
-  getParsedRawValue: ParsedT.() -> DslText?,
-  setParsedValue: ParsedT.(PropertyT) -> Unit,
-  setParsedRawValue: (ParsedT.(DslText) -> Unit)? = null,
-  clearParsedValue: ParsedT.() -> Unit,
-  parse: (ContextT, String) -> ParsedValue<PropertyT>,
-  format: (ContextT, PropertyT) -> String = { _, value -> value.toString() },
-  getKnownValues: ((ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>)? = null,
-  variableMatchingStrategy: VariableMatchingStrategy = VariableMatchingStrategy.BY_TYPE
-) =
-    ModelSimplePropertyImpl(
-      this,
-      description,
-      defaultValueGetter,
-      getResolvedValue,
-      getParsedValue,
-      getParsedRawValue,
-      { if (it != null) setParsedValue(it) else clearParsedValue() },
-      {
-          when {
-            setParsedRawValue == null -> throw UnsupportedOperationException("setParsedRawValue is undefined for property '$description'")
-            it is DslText.Reference -> setParsedRawValue(it)
-            it is DslText.InterpolatedString -> setParsedRawValue(it)
-            it is DslText.OtherUnparsedDslText -> setParsedRawValue(it)
-            else -> throw UnsupportedOperationException()
-          }
-        },
-      { context: ContextT, value -> if (value.isBlank()) ParsedValue.NotSet else parse(context, value.trim()) },
-      format,
-      { context: ContextT, model -> if (getKnownValues != null) getKnownValues(context, model) else immediateFuture(listOf()) },
-      variableMatchingStrategy
-    )
-
 class ModelSimplePropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
   private val modelDescriptor: ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   override val description: String,
