@@ -58,7 +58,7 @@ public class AndroidProfilerProgramRunner extends AndroidBaseProgramRunner {
 
     ToolWindowManagerEx.getInstanceEx(env.getProject()).getToolWindow(AndroidProfilerToolWindowFactory.ID).show(null);
 
-    StudioFeatureTracker featureTracker = new StudioFeatureTracker();
+    StudioFeatureTracker featureTracker = new StudioFeatureTracker(env.getProject());
     featureTracker.trackRunWithProfiling();
 
     return descriptor;

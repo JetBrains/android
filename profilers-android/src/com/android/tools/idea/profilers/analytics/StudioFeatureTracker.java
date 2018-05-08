@@ -17,6 +17,7 @@ package com.android.tools.idea.profilers.analytics;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.stats.AnonymizerUtil;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.EnergyProfiler;
@@ -40,6 +41,7 @@ import com.android.tools.profilers.sessions.SessionsManager;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.*;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,6 +54,13 @@ public final class StudioFeatureTracker implements FeatureTracker {
 
   @Nullable
   private Common.Process myActiveProcess;
+
+  @NotNull
+  private Project myTrackingProject;
+
+  public StudioFeatureTracker(@NotNull Project trackingProject) {
+    myTrackingProject = trackingProject;
+  }
 
   private final ImmutableMap<Class<? extends Stage>, AndroidProfilerEvent.Stage> STAGE_MAP =
     ImmutableMap.<Class<? extends Stage>, AndroidProfilerEvent.Stage>builder()
@@ -420,7 +429,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
    */
   @NotNull
   private Tracker newTracker(AndroidProfilerEvent.Type eventType) {
-    return new Tracker(eventType, myCurrStage);
+    return new Tracker(myTrackingProject, eventType, myCurrStage);
   }
 
   /**
@@ -435,6 +444,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
   private static final class Tracker {
     @NotNull private final AndroidProfilerEvent.Type myEventType;
     @NotNull private final AndroidProfilerEvent.Stage myCurrStage;
+    @NotNull private final Project myTrackingProject;
     @Nullable private Common.Device myDevice;
     @Nullable private com.android.tools.profilers.cpu.CpuCaptureMetadata myCpuCaptureMetadata;
     @Nullable private CpuImportTraceMetadata myCpuImportTraceMetadata;
@@ -448,9 +458,12 @@ public final class StudioFeatureTracker implements FeatureTracker {
 
     private AndroidProfilerEvent.MemoryHeap myMemoryHeap = AndroidProfilerEvent.MemoryHeap.UNKNOWN_HEAP;
 
-    public Tracker(@NotNull AndroidProfilerEvent.Type eventType, @NotNull AndroidProfilerEvent.Stage stage) {
+    public Tracker(@NotNull Project trackingProject,
+                   @NotNull AndroidProfilerEvent.Type eventType,
+                   @NotNull AndroidProfilerEvent.Stage stage) {
       myEventType = eventType;
       myCurrStage = stage;
+      myTrackingProject = trackingProject;
     }
 
     @NotNull
@@ -554,9 +567,12 @@ public final class StudioFeatureTracker implements FeatureTracker {
           break;
       }
 
+      String packageName = myTrackingProject.getName();
       AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder()
-        .setKind(AndroidStudioEvent.EventKind.ANDROID_PROFILER)
-        .setAndroidProfilerEvent(profilerEvent);
+                                                           .setKind(AndroidStudioEvent.EventKind.ANDROID_PROFILER)
+                                                           .setAndroidProfilerEvent(profilerEvent)
+                                                           .setProjectId(AnonymizerUtil.anonymizeUtf8(packageName))
+                                                           .setRawProjectId(packageName);
 
       if (myDevice != null) {
         event.setDeviceInfo(
