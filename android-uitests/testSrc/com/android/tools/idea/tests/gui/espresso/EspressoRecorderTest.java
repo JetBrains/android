@@ -123,9 +123,6 @@ public class EspressoRecorderTest {
 
     popupList.get().clickItem("Wrapper[MyActivityTest]");
 
-    // TODO remove this line. Requires updating the deploy target picker dialog fixture to properly show us names. See http://b/74779369
-    emulator.getEmulatorConnection().killEmulator();
-
     DeployTargetPickerDialogFixture.find(guiTest.robot())
       .selectDevice(avdName)
       .clickOk();
