@@ -76,7 +76,7 @@ public class SelectionComponentTest {
     model.addListener(new SelectionListener() {
       @Override
       public void selectionCreated() {
-        event[0]++;
+        event[0] = 1;
       }
     });
     SelectionComponent component = new SelectionComponent(model, new Range(20, 120));
@@ -86,39 +86,6 @@ public class SelectionComponentTest {
     assertThat(event[0]).isEqualTo(0);
     ui.mouse.release();
     assertThat(event[0]).isEqualTo(1);
-  }
-
-  @Test
-  public void createSelectionEventIsFiredForEachTimeANewSelectionRangeIsCreated() {
-    int[] event = new int[1];
-    SelectionModel model = new SelectionModel(new Range());
-    model.addListener(new SelectionListener() {
-      @Override
-      public void selectionCreated() {
-        event[0]++;
-      }
-    });
-    SelectionComponent component = new SelectionComponent(model, new Range(20, 120));
-    component.setSize(100, 100);
-    FakeUi ui = new FakeUi(component);
-
-    ui.mouse.press(50, 0);
-    ui.mouse.dragDelta(5, 0);
-    ui.mouse.release();
-    assertThat(event[0]).isEqualTo(1);
-
-    // Click outside the recently created selection, to create a new one.
-    ui.mouse.press(60, 0);
-    ui.mouse.dragDelta(10, 0);
-    ui.mouse.release();
-    assertThat(event[0]).isEqualTo(2);
-
-    // Drag inside the previous selection, to move it.
-    // Sanity check this does not fire a creation event.
-    ui.mouse.press(65, 0);
-    ui.mouse.dragDelta(-5, 0);
-    ui.mouse.release();
-    assertThat(event[0]).isEqualTo(2);
   }
 
   @Test
