@@ -73,15 +73,16 @@ import static java.awt.event.InputEvent.SHIFT_DOWN_MASK;
 public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   private enum PanelSpacing {
     /**
-     * String to represent the portion of the stage that the cpu monitor accounts for.
+     * String to represent the portion of the stage that the cpu monitor accounts for. This value ends up being roughly 40%
+     * when the threads/kernel panels are also expanded.
      */
-    MONITOR_PANEL_SPACING("130px"),
+    MONITOR_PANEL_SPACING("4*"),
 
     /**
      * String to represent the threads/kernel view when an element expanded. This value is used in the initial sizing as well
      * as the sizing for when the {@link HideablePanel} is expanded from a collapsed state.
      */
-    HIDEABLE_PANEL_EXPANDED("*"),
+    HIDEABLE_PANEL_EXPANDED("6*"),
 
     /**
      * String to represent the threads view when an element is hidden. This value is used when the {@link HideablePanel} is
@@ -260,11 +261,11 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     ProfilerScrollbar scrollbar = new ProfilerScrollbar(timeline, details);
 
     TabularLayout monitorCpuThreadsLayout = new TabularLayout("*");
-    // The cpu monitor is fixed size.
+    // The cpu monitor takes up 40%.
     monitorCpuThreadsLayout.setRowSizing(MONITOR_PANEL_ROW, PanelSpacing.MONITOR_PANEL_SPACING.toString());
     // The CPU list is hidden by default so we use "Fit" making it be 0.
     monitorCpuThreadsLayout.setRowSizing(KERNEL_PANEL_ROW, PanelSpacing.HIDEABLE_PANEL_FIT.toString());
-    // The threads list is expanded and takes up remaining space.
+    // The threads list is expanded and takes up roughly 60%.
     monitorCpuThreadsLayout.setRowSizing(THREADS_PANEL_ROW, PanelSpacing.HIDEABLE_PANEL_EXPANDED.toString());
 
     final JPanel monitorCpuThreadsPanel = new JBPanel(monitorCpuThreadsLayout);
