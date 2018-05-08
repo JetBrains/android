@@ -86,7 +86,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     // But if we do a copy, we need to update it whenever the real file changes. So we listen to changes
     // in the VFS as long as this editor is open.
     MessageBusConnection connection = project.getMessageBus().connect(this);
-    connection.subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener.Adapter() {
+    connection.subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
       @Override
       public void after(@NotNull List<? extends VFileEvent> events) {
         for (VFileEvent event : events) {
