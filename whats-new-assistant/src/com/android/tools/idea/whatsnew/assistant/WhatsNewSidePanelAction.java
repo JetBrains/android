@@ -118,10 +118,6 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
     }
 
     @Override
-    public void toolWindowRegistered(@NotNull String id) {
-    }
-
-    @Override
     public void toolWindowUnregistered(@NotNull String id, @NotNull ToolWindow toolWindow) {
       if (id.equals(OpenAssistSidePanelAction.TOOL_WINDOW_TITLE)) {
         myProjectToListenerMap.remove(myProject);
