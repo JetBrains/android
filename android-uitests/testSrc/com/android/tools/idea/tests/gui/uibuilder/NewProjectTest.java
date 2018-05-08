@@ -114,7 +114,7 @@ public class NewProjectTest {
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Android Library")
       .clickNextToStep("Android Library")
-      .setModuleName("library-module")
+      .setModuleName("library_module")
       .clickFinish()
       .waitForGradleProjectSyncToFinish(Wait.seconds(30));
 
@@ -123,7 +123,7 @@ public class NewProjectTest {
     String gradleFileContents = guiTest.ideFrame()
       .getProjectView()
       .selectProjectPane()
-      .clickPath(RIGHT_BUTTON, "MyTestApp", "library-module")
+      .clickPath(RIGHT_BUTTON, "MyTestApp", "library_module")
       .openFromMenu(ProjectStructureDialogFixture::find, "Open Module Settings")
       .selectPropertiesTab()
       .setCompileSdkVersion("API 24: Android 7.0 (Nougat)")
@@ -133,7 +133,7 @@ public class NewProjectTest {
       .setTargetCompatibility("1.7")
       .clickOk()
       .getEditor()
-      .open("/library-module/build.gradle")
+      .open("/library_module/build.gradle")
       .getCurrentFileContents();
 
     assertThat(gradleFileContents).contains("compileSdkVersion 24");

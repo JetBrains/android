@@ -54,9 +54,9 @@ public class CreateNewLibraryModuleWithDefaultsTest {
            .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
            .chooseModuleType("Android Library")
            .clickNextToStep("Android Library")
-           .setModuleName("library-module")
+           .setModuleName("library_module")
            .clickFinish()
            .waitForGradleProjectSyncToFinish();
-    assertAbout(file()).that(guiTest.getProjectPath("library-module")).isDirectory();
+    assertAbout(file()).that(guiTest.getProjectPath("library_module")).isDirectory();
   }
 }
