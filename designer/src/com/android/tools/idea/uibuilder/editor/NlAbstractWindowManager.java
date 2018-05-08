@@ -44,7 +44,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public abstract class NlAbstractWindowManager extends LightToolWindowManager {
-
   private ToolWindowType myPreviousWindowType;
   private ToolWindowAnchor myPreviousWindowAnchor;
   /** The design surface the tool window is attached to, if any */
@@ -61,7 +60,7 @@ public abstract class NlAbstractWindowManager extends LightToolWindowManager {
     myToolWindow.setAutoHide(false);
     myPreviousWindowType = myToolWindow.getType();
     myPreviousWindowAnchor = getEditorMode();
-    myProject.getMessageBus().connect().subscribe(ToolWindowManagerListener.TOPIC, new ToolWindowManagerListener() {
+    myProject.getMessageBus().connect(this).subscribe(ToolWindowManagerListener.TOPIC, new ToolWindowManagerListener() {
       @Override
       public void stateChanged() {
         if (myProject.isDisposed()) {
