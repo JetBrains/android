@@ -114,7 +114,6 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
 
   override fun send(message: MessageFromServer) {
     postingMessages.put(message)
-    LOG.info("Add message to send pool: $message ")
   }
 
   override fun receive(): MessageFromClient {
@@ -132,15 +131,12 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
   private fun stopServer() {
     if (!running) return
     serverSendThread.objectOutputStream.close()
-    LOG.info("Object output stream closed")
     serverSendThread.interrupt()
-    LOG.info("Server Send Thread joined")
     serverReceiveThread.objectInputStream.close()
-    LOG.info("Object input stream closed")
     serverReceiveThread.interrupt()
-    LOG.info("Server Receive Thread joined")
     connection.close()
     running = false
+    LOG.info("Server stopped.")
   }
 
   private fun stopClient() {
@@ -168,11 +164,10 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
   inner class ServerSendThread(val connection: Socket, val objectOutputStream: ObjectOutputStream) : Thread(SEND_THREAD) {
 
     override fun run() {
-      LOG.info("Server Send Thread started")
       try {
         while (!connection.isClosed) {
           val message = postingMessages.take()
-          LOG.info("Sending message: $message ")
+          LOG.debug("Sending message: $message ")
           objectOutputStream.writeObject(message)
         }
       }
@@ -193,10 +188,9 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
 
     override fun run() {
       try {
-        LOG.info("Server Receive Thread started")
         while (!connection.isClosed) {
           val message = objectInputStream.readObject() as MessageFromClient
-          LOG.info("Receiving message: $message")
+          LOG.debug("Receiving message: $message")
           receivingMessages.put(message)
         }
       }

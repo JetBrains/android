@@ -55,12 +55,7 @@ open class GuiTestRemoteRunner @Throws(InitializationError::class)
 
   constructor(testClass: Class<*>) : this(testClass, TargetBuildSystem.BuildSystem.GRADLE)
 
-  val SERVER_LOG = Logger.getLogger("#com.intellij.testGuiFramework.framework.GuiTestRemoteRunner[SERVER]")!!
   val criticalError = Ref<Boolean>(false)
-
-  init {
-    SERVER_LOG.level = Level.INFO
-  }
 
   override fun runChild(method: FrameworkMethod, notifier: RunNotifier) {
     if (GuiTestStarter.isGuiTestThread())
@@ -74,7 +69,6 @@ open class GuiTestRemoteRunner @Throws(InitializationError::class)
     val eachNotifier = EachTestNotifier(notifier, description)
     if (criticalError.get()) { eachNotifier.fireTestIgnored(); return }
 
-    SERVER_LOG.info("Starting test on server side: ${testClass.name}#${method.name}")
     val server = JUnitServerHolder.getServer(notifier)
 
     try {
