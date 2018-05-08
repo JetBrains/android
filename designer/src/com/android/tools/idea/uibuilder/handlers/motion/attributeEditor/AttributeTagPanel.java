@@ -216,7 +216,7 @@ public class AttributeTagPanel extends TagPanel {
     }
     if (keyframe instanceof MotionSceneModel.KeyAttributes) {
       MotionSceneModel.KeyAttributes ka = (MotionSceneModel.KeyAttributes)keyframe;
-      for (MotionSceneModel.CustomAttributes attributes : ka.getCustomAttr()) {
+      for (MotionSceneModel.CustomAttributes attributes : ka.getCustomAttributes()) {
         CustomAttributePanel cap = new CustomAttributePanel(myBasePanel);
         cap.setTag(attributes);
         myCustomAttributePanels.add(cap);

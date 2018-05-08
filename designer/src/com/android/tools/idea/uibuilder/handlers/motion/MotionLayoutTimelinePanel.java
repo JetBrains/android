@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion;
 
+import com.android.tools.idea.uibuilder.handlers.motion.property2.TimelineListener;
+import com.android.tools.idea.uibuilder.handlers.motion.property2.TimelineOwner;
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -58,10 +60,11 @@ import static com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutTimel
 /**
  * The Timeline Accessory Panel for MotionLayout editing
  */
-class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventListener, ModelListener {
+class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventListener, ModelListener, TimelineOwner {
 
   private final ViewGroupHandler.AccessoryPanelVisibility myVisibilityCallback;
   private final DesignSurface mySurface;
+  private final List<TimelineListener> myTimelineListeners;
   private NlComponent myMotionLayout;
   private MotionLayoutComponentHelper myMotionLayoutComponentHelper;
   private Gantt myPanel;
@@ -88,13 +91,14 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
 
   private State myCurrentState = TL_UNKNOWN;
 
-  public static final String TIMELINE = "Timeline";
+  public static final String TIMELINE = TimelineOwner.TIMELINE_PROPERTY;
 
   public MotionLayoutTimelinePanel(@NotNull DesignSurface surface,
                                    @NotNull NlComponent parent,
                                    @NotNull ViewGroupHandler.AccessoryPanelVisibility visibility) {
     mySurface = surface;
     myVisibilityCallback = visibility;
+    myTimelineListeners = new ArrayList<>();
 
     myMotionLayoutComponentHelper = new MotionLayoutComponentHelper(parent);
     parent.putClientProperty(TIMELINE, this);
@@ -303,6 +307,7 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
       // make sure this happens after our update.
       myMotionLayoutAttributePanel.updateAfterModelDerivedDataChanged();
     }
+    myTimelineListeners.forEach(listener -> listener.updateSelection(getSelectedKeyframe()));
   }
 
   @Override
@@ -459,6 +464,7 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     if (myMotionLayoutAttributePanel != null) {
       myMotionLayoutAttributePanel.updateSelection();
     }
+    myTimelineListeners.forEach(listener -> listener.updateSelection(getSelectedKeyframe()));
     String selectedElementName = myPanel.getChart().getSelectedKeyView();
     if (selectedElementName != null) {
       List<NlComponent> selection = getSelectionFrom(myMotionLayout, selectedElementName);
@@ -623,5 +629,15 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
 
   public void setMotionLayoutAttributePanel(MotionLayoutAttributePanel panel) {
     myMotionLayoutAttributePanel = panel;
+  }
+
+  @Override
+  public void addTimelineListener(@NotNull TimelineListener listener) {
+    myTimelineListeners.add(listener);
+  }
+
+  @Override
+  public void removeTimeLineListener(@NotNull TimelineListener listener) {
+    myTimelineListeners.remove(listener);
   }
 }
