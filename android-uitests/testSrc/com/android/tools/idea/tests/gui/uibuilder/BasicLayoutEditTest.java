@@ -53,7 +53,7 @@ public class BasicLayoutEditTest {
    *   1. The added component shows up in the xml
    * </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE)  // b/77856035
+  @RunIn(TestGroup.SANITY)
   @TargetBuildSystem({TargetBuildSystem.BuildSystem.GRADLE, TargetBuildSystem.BuildSystem.BAZEL})
   @Test
   public void basicLayoutEdit() throws Exception {
