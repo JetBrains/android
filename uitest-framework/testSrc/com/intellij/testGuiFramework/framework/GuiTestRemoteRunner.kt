@@ -80,8 +80,9 @@ open class GuiTestRemoteRunner @Throws(InitializationError::class)
     }
     catch (e: Exception) {
       e.printStackTrace()
-      notifier.fireTestIgnored(description)
-      throw RuntimeException(e)
+      eachNotifier.addFailure(e)
+      eachNotifier.fireTestFinished()
+      return
     }
     var testIsRunning = true
     while(testIsRunning) {
@@ -89,7 +90,8 @@ open class GuiTestRemoteRunner @Throws(InitializationError::class)
         server.receive()
       } catch (e: SocketException) {
         LOG.warn(e.message)
-        eachNotifier.fireTestIgnored()
+        eachNotifier.addFailure(e)
+        eachNotifier.fireTestFinished()
         return
       }
       when (message) {
