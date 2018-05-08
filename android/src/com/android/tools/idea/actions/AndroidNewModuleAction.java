@@ -16,6 +16,8 @@
 
 package com.android.tools.idea.actions;
 
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.npw.module.ChooseModuleTypeStep;
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
 import com.android.tools.idea.npw.module.ModuleGalleryEntry;
@@ -50,6 +52,8 @@ public class AndroidNewModuleAction extends AnAction implements DumbAware {
     Project project = e.getProject();
     boolean isAvailable = project != null && ProjectSystemUtil.getProjectSystem(project).allowsFileCreation();
     e.getPresentation().setVisible(isAvailable);
+    boolean isEnabled = project != null && !GradleSyncState.getInstance(project).isSyncInProgress();
+    e.getPresentation().setEnabled(isEnabled);
   }
 
   @Override
