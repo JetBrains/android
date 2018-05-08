@@ -129,7 +129,7 @@ public class AndroidPluginInfo {
     BuildFileProcessor.getInstance().processRecursively(project, buildModel -> {
       boolean keepSearchingForAppModule = searchForAppModule && result.appVirtualFile == null;
       if (keepSearchingForAppModule) {
-        List<String> pluginIds = PluginModel.extractNames(buildModel.appliedPlugins());
+        List<String> pluginIds = PluginModel.extractNames(buildModel.plugins());
         for (AndroidPluginGeneration generation : AndroidPluginGeneration.values()) {
           if (generation.isApplicationPluginIdIn(pluginIds)) {
             result.appVirtualFile = buildModel.getVirtualFile();

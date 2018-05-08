@@ -176,7 +176,7 @@ public abstract class AndroidPluginGeneration {
     // Now look at the applied plugins in the build.gradle file.
     GradleBuildModel buildModel = GradleBuildModel.get(module);
     if (buildModel != null) {
-      List<String> appliedPlugins = PluginModel.extractNames(buildModel.appliedPlugins());
+      List<String> appliedPlugins = PluginModel.extractNames(buildModel.plugins());
       for (AndroidPluginGeneration generation : ourValues) {
         if (appliedPlugins.contains(generation.getApplicationPluginId()) || appliedPlugins.contains(generation.getLibraryPluginId())) {
           return generation;
