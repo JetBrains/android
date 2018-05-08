@@ -67,11 +67,10 @@ class PsSigningConfig(
     val storePassword: SimpleProperty<PsSigningConfig, String> = property(
       "Store Password",
       getResolvedValue = { storePassword },
+      getParsedProperty = { storePassword().resolve() },
       // TODO: Properly handle other password types.
-      getParsedValue = { storePassword().resolve().asString() },
-      getParsedRawValue = { storePassword().resolve().dslText() },
-      setParsedValue = { storePassword().setValue(it) },
-      clearParsedValue = { storePassword().delete() },
+      getter = { asString() },
+      setter = { setValue(it) },
       parse = ::parseString
     )
 
@@ -97,11 +96,10 @@ class PsSigningConfig(
     val keyPassword: SimpleProperty<PsSigningConfig, String> = property(
       "Key Password",
       getResolvedValue = { keyPassword },
+      getParsedProperty = { keyPassword().resolve() },
       // TODO: Properly handle other password types.
-      getParsedValue = { keyPassword().resolve().asString() },
-      getParsedRawValue = { keyPassword().resolve().dslText() },
-      setParsedValue = { keyPassword().setValue(it) },
-      clearParsedValue = { keyPassword().delete() },
+      getter = { asString() },
+      setter = { setValue(it) },
       parse = ::parseString
     )
   }
