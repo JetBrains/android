@@ -95,7 +95,8 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 /**
  * Contents of the "Project Structure" dialog, for Gradle-based Android projects, in Android Studio.
  */
-public class AndroidProjectStructureConfigurable extends BaseConfigurable implements GradleSyncListener, SearchableConfigurable, Configurable.NoScroll {
+public class AndroidProjectStructureConfigurable extends BaseConfigurable
+  implements GradleSyncListener, SearchableConfigurable, Configurable.NoScroll {
   public static final DataKey<AndroidProjectStructureConfigurable> KEY = DataKey.create("AndroidProjectStructureConfiguration");
 
   private static final Logger LOG = Logger.getInstance(AndroidProjectStructureConfigurable.class);
@@ -188,10 +189,10 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     if (appId != null) {
 
       UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                     .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
-                                     .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_OPEN)
-                                     .setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
-                                     .setRawProjectId(appId));
+                                                       .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
+                                                       .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_OPEN)
+                                                       .setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
+                                                       .setRawProjectId(appId));
     }
     return ShowSettingsUtil.getInstance().editConfigurable(myProject, this, advanceInit);
   }
@@ -270,10 +271,10 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     String appId = getApplicationId(myProject);
     if (appId != null) {
       UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                     .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
-                                     .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_SAVE)
-                                     .setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
-                                     .setRawProjectId(appId));
+                                                       .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
+                                                       .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_SAVE)
+                                                       .setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
+                                                       .setRawProjectId(appId));
     }
 
     validateState();
@@ -282,14 +283,14 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     }
 
     boolean dataChanged = false;
-    for (Configurable configurable: myConfigurables) {
+    for (Configurable configurable : myConfigurables) {
       if (configurable.isModified()) {
         if (appId != null) {
           UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                         .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
-                                         .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_LEFT_NAV_SAVE)
-                                         .setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
-                                         .setRawProjectId(appId)
+                                                           .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
+                                                           .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_LEFT_NAV_SAVE)
+                                                           .setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
+                                                           .setRawProjectId(appId)
           );
         }
         dataChanged = true;
@@ -308,7 +309,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     AccessToken token = HeavyProcessLatch.INSTANCE.processStarted("Resetting project structure");
 
     try {
-      for (Configurable configurable: myConfigurables) {
+      for (Configurable configurable : myConfigurables) {
         configurable.reset();
       }
 
@@ -388,7 +389,8 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
         mySidePanel.reset();
         if (toSelect != null) {
           mySidePanel.select(toSelect);
-        } else {
+        }
+        else {
           mySidePanel.selectSdk();
         }
       }
@@ -447,10 +449,10 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     String appId = getApplicationId(myProject);
     if (appId != null) {
       UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                     .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
-                                     .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_LEFT_NAV_CLICK)
-                                     .setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
-                                     .setRawProjectId(appId));
+                                                       .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
+                                                       .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_LEFT_NAV_CLICK)
+                                                       .setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
+                                                       .setRawProjectId(appId));
     }
     JComponent content = configurable.createComponent();
     assert content != null;
@@ -545,7 +547,8 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     public Object getData(@NonNls final String dataId) {
       if (KEY.is(dataId)) {
         return AndroidProjectStructureConfigurable.this;
-      } else {
+      }
+      else {
         return null;
       }
     }
@@ -579,7 +582,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
         @Nullable
         public String getTooltipFor(Object value) {
           if (value instanceof AndroidModuleConfigurable) {
-            Module module = (Module) ((AndroidModuleConfigurable)value).getEditableObject();
+            Module module = (Module)((AndroidModuleConfigurable)value).getEditableObject();
             return new File(module.getModuleFilePath()).getAbsolutePath();
           }
           return null;
@@ -589,7 +592,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
         @Nullable
         public Icon getIconFor(Object value) {
           if (value instanceof AndroidModuleConfigurable) {
-            Module module = (Module) ((AndroidModuleConfigurable)value).getEditableObject();
+            Module module = (Module)((AndroidModuleConfigurable)value).getEditableObject();
             return module.isDisposed() ? StudioIcons.Shell.Filetree.ANDROID_MODULE : GradleUtil.getModuleIcon(module);
           }
           return null;
@@ -627,7 +630,8 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
         DefaultActionGroup group = new DefaultActionGroup();
         group.add(createAddAction());
         group.add(new DeleteModuleAction(this));
-        JComponent toolbar = ActionManager.getInstance().createActionToolbar("AndroidProjectStructureConfigurable", group, true).getComponent();
+        JComponent toolbar =
+          ActionManager.getInstance().createActionToolbar("AndroidProjectStructureConfigurable", group, true).getComponent();
         add(toolbar, BorderLayout.NORTH);
       }
     }
@@ -685,8 +689,8 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
         Object object = myListModel.elementAt(i);
         if (object instanceof AndroidModuleConfigurable &&
             ((AndroidModuleConfigurable)object).getEditableObject() == module) {
-            myList.setSelectedValue(object, true);
-            return (AndroidModuleConfigurable)object;
+          myList.setSelectedValue(object, true);
+          return (AndroidModuleConfigurable)object;
         }
       }
       return null;
@@ -825,8 +829,11 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
 
     @Override
     public void update(AnActionEvent e) {
+      Project project = e.getProject();
       Object selectedValue = mySidePanel.myList.getSelectedValue();
-      e.getPresentation().setEnabled(selectedValue instanceof AndroidModuleConfigurable);
+      e.getPresentation()
+       .setEnabled(
+         selectedValue instanceof AndroidModuleConfigurable && project != null && !GradleSyncState.getInstance(project).isSyncInProgress());
     }
   }
 }
