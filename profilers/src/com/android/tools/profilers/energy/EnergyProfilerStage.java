@@ -26,6 +26,7 @@ import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.analytics.energy.EnergyEventMetadata;
+import com.android.tools.profilers.analytics.energy.EnergyRangeMetadata;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
@@ -70,6 +71,9 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
     myLegends = new EnergyUsageLegends(myDetailedUsage, profilers.getTimeline().getDataRange());
     myUsageTooltipLegends = new EnergyUsageLegends(myDetailedUsage, profilers.getTimeline().getTooltipRange());
     myEventTooltipLegends = new EnergyEventLegends(new DetailedEnergyEventsCount(profilers), profilers.getTimeline().getTooltipRange());
+
+    EnergyEventsDataSeries eventsDataSeries = new EnergyEventsDataSeries(profilers.getClient(), profilers.getSession());
+
     mySelectionModel = new SelectionModel(profilers.getTimeline().getSelectionRange());
     mySelectionModel.setSelectionEnabled(profilers.isAgentAttached());
     profilers.addDependency(myAspectObserver)
@@ -79,7 +83,17 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
       public void selectionCreated() {
         setProfilerMode(ProfilerMode.EXPANDED);
         profilers.getIdeServices().getFeatureTracker().trackSelectRange();
-        // TODO(b/74004663): Add featureTracker#trackSelectEnergyRange() call here
+        List<EnergyEvent> energyEvents =
+          eventsDataSeries
+            .getDataForXRange(mySelectionModel.getSelectionRange())
+            .stream()
+            .map(seriesData -> seriesData.value)
+            .collect(Collectors.toList());
+        if (!energyEvents.isEmpty()) {
+          List<EnergyDuration> energyDurations = EnergyDuration.groupById(energyEvents);
+          profilers.getIdeServices().getFeatureTracker().trackSelectEnergyRange(new EnergyRangeMetadata(energyDurations));
+        }
+
         profilers.getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_ENERGY_SELECTION, true);
         myInstructionsEaseOutModel.setCurrentPercentage(1);
       }
@@ -92,15 +106,13 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
     myFetcher =
       new EnergyEventsFetcher(profilers.getClient().getEnergyClient(), profilers.getSession(), profilers.getTimeline().getSelectionRange());
 
-    EnergyEventsDataSeries sourceSeries = new EnergyEventsDataSeries(profilers.getClient(), profilers.getSession());
-
     myEventModel = new StateChartModel<>();
     Range range = profilers.getTimeline().getViewRange();
     // StateChart renders series in reverse order
     myEventModel.addSeries(
-      new RangedSeries<>(range, new MergedEnergyEventsDataSeries(sourceSeries, EnergyDuration.Kind.ALARM, EnergyDuration.Kind.JOB)));
-    myEventModel.addSeries(new RangedSeries<>(range, new MergedEnergyEventsDataSeries(sourceSeries, EnergyDuration.Kind.WAKE_LOCK)));
-    myEventModel.addSeries(new RangedSeries<>(range, new MergedEnergyEventsDataSeries(sourceSeries, EnergyDuration.Kind.LOCATION)));
+      new RangedSeries<>(range, new MergedEnergyEventsDataSeries(eventsDataSeries, EnergyDuration.Kind.ALARM, EnergyDuration.Kind.JOB)));
+    myEventModel.addSeries(new RangedSeries<>(range, new MergedEnergyEventsDataSeries(eventsDataSeries, EnergyDuration.Kind.WAKE_LOCK)));
+    myEventModel.addSeries(new RangedSeries<>(range, new MergedEnergyEventsDataSeries(eventsDataSeries, EnergyDuration.Kind.LOCATION)));
 
     myInstructionsEaseOutModel = new EaseOutModel(profilers.getUpdater(), PROFILING_INSTRUCTIONS_EASE_OUT_NS);
 
