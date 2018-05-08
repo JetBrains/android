@@ -20,7 +20,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.bazel.fixture.BazelConsoleToolWindowFixture
 import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem
 import com.google.common.truth.Truth.assertThat
-import com.intellij.lang.annotation.HighlightSeverity
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -48,12 +47,4 @@ class BazelStartupSyncTest {
     assertThat(console.hasSyncErrors()).isFalse()
   }
 
-  @Test
-  @TargetBuildSystem(TargetBuildSystem.BuildSystem.BAZEL)
-  fun openFileWithoutErrors() {
-    val editor = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleBazelApplication", "java/com/foo/gallery/BUILD")
-        .editor
-        .open("../SimpleBazelApplication/java/com/foo/gallery/activities/MainActivity.java")
-    assertThat(editor.getHighlights(HighlightSeverity.ERROR).size == 0).isTrue()
-  }
 }
