@@ -162,9 +162,16 @@ public class MotionSceneModel {
 
   public static abstract class BaseTag {
     protected final MotionSceneModel myMotionSceneModel;
+    protected final String myTitle;
 
-    public BaseTag(@NotNull MotionSceneModel model) {
+    public BaseTag(@NotNull MotionSceneModel model, @NotNull String title) {
       myMotionSceneModel = model;
+      myTitle = title;
+    }
+
+    @NotNull
+    public String getTitle() {
+      return myTitle;
     }
 
     @NotNull
@@ -242,6 +249,17 @@ public class MotionSceneModel {
       return setValue(tag, key, value);
     }
 
+    @NotNull
+    public abstract Set<String> getAttributeNames();
+
+    @NotNull
+    public List<CustomAttributes> getCustomAttributes() {
+      return Collections.emptyList();
+    }
+
+    @Nullable
+    public abstract String getValue(@NotNull String key);
+
     public boolean deleteAttribute(@NotNull String attributeName) {
       XmlTag tag = findMyTag();
       if (tag == null) {
@@ -283,8 +301,28 @@ public class MotionSceneModel {
     HashMap<String, Object> myAttributes = new HashMap<>();
     protected String[] myPossibleAttr;
 
-    public KeyFrame(@NotNull MotionSceneModel motionSceneModel) {
-      super(motionSceneModel);
+    public KeyFrame(@NotNull MotionSceneModel motionSceneModel, @NotNull String title) {
+      super(motionSceneModel, title);
+    }
+
+    @Override
+    @Nullable
+    public String getValue(@NotNull String key) {
+      switch (key) {
+        case Key_framePosition:
+          return String.valueOf(framePosition);
+        case KeyCycle_target:
+          return target;
+        default:
+          Object value = myAttributes.get(key);
+          return value != null ? value.toString() : null;
+      }
+    }
+
+    @Override
+    @NotNull
+    public Set<String> getAttributeNames() {
+      return myAttributes.keySet();
     }
 
     public abstract String[] getDefault(String key);
@@ -466,7 +504,7 @@ public class MotionSceneModel {
     }
 
     public String getEasingCurve() {
-      return (String)myAttributes.get(KeyPositionCartesian_transitionEasing);
+      return (String)myAttributes.get(Key_frameTransitionEasing);
     }
   }
 
@@ -475,7 +513,7 @@ public class MotionSceneModel {
   public static abstract class KeyPosition extends KeyFrame {
     String transitionEasing = null;
 
-    public KeyPosition(MotionSceneModel motionSceneModel) { super(motionSceneModel); }
+    public KeyPosition(MotionSceneModel motionSceneModel) { super(motionSceneModel, KeyPositionTitle); }
 
     @Override
     public float getFloat(String type) {
@@ -524,6 +562,7 @@ public class MotionSceneModel {
       {"0.5"}
     };
 
+
     @Override
     public String[] getDefault(String key) {
       for (int i = 0; i < ourPossibleAttr.length; i++) {
@@ -549,6 +588,19 @@ public class MotionSceneModel {
         attributes.put(KeyPositionPath_perpendicularPath_percent, (Float)perpendicularPath_percent);
       }
       super.fill(attributes);
+    }
+
+    @Override
+    @Nullable
+    public String getValue(@NotNull String key) {
+      switch (key) {
+        case KeyPositionPath_path_percent:
+          return String.valueOf(path_percent);
+        case KeyPositionPath_perpendicularPath_percent:
+          return String.valueOf(perpendicularPath_percent);
+        default:
+          return super.getValue(key);
+      }
     }
 
     @Override
@@ -676,6 +728,27 @@ public class MotionSceneModel {
     }
 
     @Override
+    @Nullable
+    public String getValue(@NotNull String key) {
+      switch (key) {
+        case KeyPositionCartesian_horizontalPosition_inDeltaX:
+          return String.valueOf(horizontalPosition_inDeltaX);
+        case KeyPositionCartesian_horizontalPosition_inDeltaY:
+          return String.valueOf(horizontalPosition_inDeltaY);
+        case KeyPositionCartesian_verticalPosition_inDeltaX:
+          return String.valueOf(verticalPosition_inDeltaX);
+        case KeyPositionCartesian_verticalPosition_inDeltaY:
+          return String.valueOf(verticalPosition_inDeltaY);
+        case KeyPositionCartesian_horizontalPercent:
+          return String.valueOf(horizontalPercent);
+        case KeyPositionCartesian_verticalPercent:
+          return String.valueOf(verticalPercent);
+        default:
+          return super.getValue(key);
+      }
+    }
+
+    @Override
     void parse(String node, String value) {
       if (node.endsWith(KeyPositionCartesian_horizontalPosition_inDeltaX)) {
         horizontalPosition_inDeltaX = Float.parseFloat(value);
@@ -763,7 +836,9 @@ public class MotionSceneModel {
     };
     HashSet<String> myAndroidAttributes = null;
 
-    public ArrayList<CustomAttributes> getCustomAttr() {
+    @Override
+    @NotNull
+    public List<CustomAttributes> getCustomAttributes() {
       return myCustomAttributes;
     }
 
@@ -786,7 +861,7 @@ public class MotionSceneModel {
     }
 
     public KeyAttributes(MotionSceneModel motionSceneModel) {
-      super(motionSceneModel);
+      super(motionSceneModel, KeyAttributesTitle);
       mType = KeyTypeAttributes;
       myPossibleAttr = ourPossibleAttr;
     }
@@ -798,6 +873,17 @@ public class MotionSceneModel {
         attributes.put(KeyAttributes_curveFit, curveFit);
       }
       super.fill(attributes);
+    }
+
+    @Override
+    @Nullable
+    public String getValue(@NotNull String key) {
+      switch (key) {
+        case KeyAttributes_curveFit:
+          return curveFit;
+        default:
+          return super.getValue(key);
+      }
     }
 
     @Override
@@ -934,7 +1020,7 @@ public class MotionSceneModel {
     }
 
     public KeyCycle(MotionSceneModel motionSceneModel) {
-      super(motionSceneModel);
+      super(motionSceneModel, KeyCycleTitle);
       super.mType = KeyTypeCycle;
       myPossibleAttr = ourPossibleAttr;
     }
@@ -952,6 +1038,21 @@ public class MotionSceneModel {
         attributes.put(KeyCycle_waveOffset, waveShape);
       }
       super.fill(attributes);
+    }
+
+    @Override
+    @Nullable
+    public String getValue(@NotNull String key) {
+      switch (key) {
+        case KeyCycle_waveOffset:
+          return String.valueOf(waveOffset);
+        case KeyCycle_wavePeriod:
+          return String.valueOf(wavePeriod);
+        case KeyCycle_waveShape:
+          return String.valueOf(waveShape);
+        default:
+          return super.getValue(key);
+      }
     }
 
     @Override
@@ -1017,6 +1118,14 @@ public class MotionSceneModel {
       return (String)myAttributes.get(CustomAttributes_attributeName);
     }
 
+    @Nullable
+    public String getValueTagName() {
+      return Arrays.stream(Type.values()).map(key -> key.getTagName())
+                   .filter(tag -> myAttributes.containsKey(tag))
+                   .findFirst()
+                   .orElse(null);
+    }
+
     @Override
     public String toString() {
       return Arrays.toString(myAttributes.keySet().toArray());
@@ -1026,13 +1135,25 @@ public class MotionSceneModel {
       if (!super.deleteTag("Remove custom attribute")) {
         return false;
       }
-      parentKeyAttributes.getCustomAttr().remove(this);
+      parentKeyAttributes.getCustomAttributes().remove(this);
       return true;
     }
 
     @Override
-    public boolean setValue(@NotNull String key, @NotNull String value) {
+    @NotNull
+    public Set<String> getAttributeNames() {
+      return Collections.singleton(getAttributeName());
+    }
 
+    @Override
+    @Nullable
+    public String getValue(@NotNull String key) {
+      Object value = myAttributes.get(key);
+      return value != null ? value.toString() : null;
+    }
+
+    @Override
+    public boolean setValue(@NotNull String key, @NotNull String value) {
       if (!super.setValue(key, value)) {
         return false;
       }
@@ -1100,7 +1221,7 @@ public class MotionSceneModel {
     }
 
     public CustomAttributes(@NotNull KeyAttributes frame) {
-      super(frame.getModel());
+      super(frame.getModel(), "");
       parentKeyAttributes = frame;
     }
 
@@ -1163,7 +1284,7 @@ public class MotionSceneModel {
     }
 
     TransitionTag(MotionSceneModel model) {
-      super(model);
+      super(model, TransitionTitle);
       myPossibleAttr = ourPossibleAttr;
     }
 
@@ -1227,6 +1348,19 @@ public class MotionSceneModel {
     }
 
     @Override
+    @NotNull
+    public Set<String> getAttributeNames() {
+      return myAllAttributes.keySet();
+    }
+
+    @Override
+    @Nullable
+    public String getValue(@NotNull String key) {
+      Object value = myAllAttributes.get(key);
+      return value != null ? value.toString() : null;
+    }
+
+    @Override
     public boolean setValue(@NotNull String key, @NotNull String value) {
       if (!super.setValue(key, value)) {
         return false;
@@ -1267,7 +1401,7 @@ public class MotionSceneModel {
     }
 
     OnSwipeTag(@NotNull MotionSceneModel model) {
-      super(model);
+      super(model, OnSwipeTitle);
       myPossibleAttr = ourPossibleAttr;
     }
 
@@ -1290,6 +1424,19 @@ public class MotionSceneModel {
     public void parse(String name, String value) {
       name = name.substring(name.lastIndexOf(':') + 1);
       myAllAttributes.put(name, value);
+    }
+
+    @Override
+    @Nullable
+    public String getValue(@NotNull String key) {
+      Object value = myAllAttributes.get(key);
+      return value != null ? value.toString() : null;
+    }
+
+    @Override
+    @NotNull
+    public Set<String> getAttributeNames() {
+      return myAllAttributes.keySet();
     }
 
     @Override

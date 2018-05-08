@@ -4,7 +4,13 @@ import java.util.Arrays;
 import java.util.HashSet;
 
 public class MotionSceneString {
-      public static final String CustomLabel =  "Custom...";
+      public static final String CustomLabel = "Custom...";
+      public static final String TransitionTitle = "Transition";
+      public static final String KeyAttributesTitle = "Targeted Attributes";
+      public static final String KeyPositionTitle = "Position";
+      public static final String KeyCycleTitle = "Cycle";
+      public static final String OnSwipeTitle = "OnSwipe";
+
       public static final String MotionNameSpace = "motion:";
       public static final String AndroidNameSpace = "android:";
 
@@ -25,6 +31,8 @@ public class MotionSceneString {
       public static final  String KeyTypePositionPath="KeyPositionPath";
 
       public static final  String Key_framePosition="framePosition";
+      public static final  String Key_frameTarget="target";
+      public static final  String Key_frameTransitionEasing="transitionEasing";
       public static final  String KeyAttributes_android_orientation="orientation";
       public static final  String KeyAttributes_android_visibility="visibility";
       public static final  String KeyAttributes_android_alpha="alpha";
