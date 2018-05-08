@@ -126,7 +126,7 @@ public class DebuggerTestUtil {
         .build()
     );
 
-    DebuggerTestUtil.debugAppAndWaitForSessionToStart(ideFrame, guiTest, "app", avdName, Wait.seconds(120));
+    DebuggerTestUtil.debugAppAndWaitForSessionToStart(ideFrame, guiTest, "app", avdName, Wait.seconds(180));
 
     ideFrame.stopApp();
     ProjectViewFixture.PaneFixture projectPane = ideFrame.getProjectView().selectProjectPane();
