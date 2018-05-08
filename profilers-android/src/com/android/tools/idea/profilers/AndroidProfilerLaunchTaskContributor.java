@@ -293,8 +293,8 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
 
     @Override
     public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
-      // We only profile the process that is launched and detected by the profilers after the current device time.
-      // This is to avoid profiling the previous application instance in case it is still running.
+      // We only profile the process that is launched and detected by the profilers after the current device time. This is to avoid
+      // profiling the previous application instance in case it is still running.
       long currentDeviceTimeNs = getCurrentDeviceTime(device);
       ApplicationManager.getApplication().invokeLater(
         () -> {
@@ -319,11 +319,6 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
      * Attempt to get the current time of the device.
      */
     private long getCurrentDeviceTime(@NotNull IDevice device) {
-      // If it's not a profile launch avoid initializing the service as it is an expensive call.
-      if (!isProfilerLaunch(myLaunchOptions) && !ProfilerService.isServiceInitialized(myModule.getProject())) {
-        return Long.MIN_VALUE;
-      }
-
       long startTimeNs = Long.MIN_VALUE;
       ProfilerService profilerService = ProfilerService.getInstance(myModule.getProject());
       // If we are launching from the "Profile" action, wait for perfd to start properly to get the time.
