@@ -417,10 +417,10 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
         .flatMap(x -> {
           File root = resDir.getParentFile();
           List<File> directories = new ArrayList<>();
-          x = x.getParentFile();
-          while (x != null && !Objects.equals(x, root)) {
-            directories.add(x);
-            x = x.getParentFile();
+          File f = x.getParentFile();
+          while (f != null && !Objects.equals(f, root)) {
+            directories.add(f);
+            f = f.getParentFile();
           }
           return directories.stream();
         })
