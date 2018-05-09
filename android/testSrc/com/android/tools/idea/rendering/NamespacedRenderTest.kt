@@ -20,6 +20,7 @@ import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.openapi.vfs.VirtualFile
+import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 
 class NamespacedRenderTest : AndroidGradleTestCase() {
@@ -62,7 +63,7 @@ class NamespacedRenderTest : AndroidGradleTestCase() {
     configuration: Configuration,
     goldenImage: String
   ) {
-    val task = RenderTestUtil.createRenderTask(myModules.appModule, layout, configuration)
+    val task = RenderTestUtil.createRenderTask(AndroidFacet.getInstance(myModules.appModule)!!, layout, configuration)
     val result = task.render().get().renderedImage.copy!!
 
     ImageDiffUtil.assertImageSimilar(

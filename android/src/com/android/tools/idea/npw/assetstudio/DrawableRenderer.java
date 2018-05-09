@@ -47,6 +47,7 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
@@ -76,8 +77,8 @@ public class DrawableRenderer implements Disposable {
     myRenderTaskFuture = FutureUtils.executeOnPooledThread(() -> {
       try {
         Configuration configuration = ThemeEditorUtils.getConfigurationForModule(module);
-        RenderService service = RenderService.getInstance(facet);
-        RenderTask renderTask = service.createTask(null, configuration, logger, myParserFactory);
+        RenderService service = RenderService.getInstance(module.getProject());
+        RenderTask renderTask = service.createTask(facet, null, configuration, logger, myParserFactory);
         assert renderTask != null;
         renderTask.getLayoutlibCallback().setLogger(logger);
         if (logger.hasProblems()) {

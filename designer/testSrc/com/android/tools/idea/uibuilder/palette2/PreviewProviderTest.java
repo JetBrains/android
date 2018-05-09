@@ -22,12 +22,12 @@ import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
-import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.palette.NlPaletteModel;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -77,13 +77,13 @@ public class PreviewProviderTest extends LayoutTestCase {
     myPreviewProvider.myRenderTimeoutSeconds = Long.MAX_VALUE;
     RenderService.shutdownRenderExecutor(5);
     RenderService.initializeRenderExecutor();
-    RenderService.setForTesting(myFacet, new MyRenderService(myFacet));
+    RenderService.setForTesting(getProject(), new MyRenderService(getProject()));
   }
 
   @Override
   public void tearDown() throws Exception {
     try {
-      RenderService.setForTesting(myFacet, null);
+      RenderService.setForTesting(getProject(), null);
       Disposer.dispose(myPreviewProvider);
       RenderTestUtil.waitForRenderTaskDisposeToFinish();
       myPreviewProvider = null;
@@ -135,17 +135,18 @@ public class PreviewProviderTest extends LayoutTestCase {
   // Disable security manager during tests (for bazel)
   private static class MyRenderService extends RenderService {
 
-    public MyRenderService(@NotNull AndroidFacet facet) {
-      super(facet);
+    public MyRenderService(@NotNull Project project) {
+      super(project);
     }
 
     @Nullable
     @Override
-    public RenderTask createTask(@Nullable PsiFile psiFile,
+    public RenderTask createTask(@NotNull AndroidFacet facet,
+                                 @Nullable PsiFile psiFile,
                                  @NotNull Configuration configuration,
                                  @NotNull RenderLogger logger,
                                  @Nullable ILayoutPullParserFactory parserFactory) {
-      RenderTask task = super.createTask(psiFile, configuration, logger, parserFactory);
+      RenderTask task = super.createTask(facet, psiFile, configuration, logger, parserFactory);
       assert task != null;
       task.disableSecurityManager();
       return task;

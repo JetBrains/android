@@ -25,6 +25,7 @@ import com.android.tools.idea.rendering.RenderTestUtil;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -70,14 +71,15 @@ public class ViewLoaderTest extends AndroidTestCase {
   }
 
   public void testMissingClass() throws Exception {
-    RenderLogger logger = RenderService.getInstance(myFacet).createLogger();
+    Project project = myModule.getProject();
+    RenderLogger logger = RenderService.getInstance(project).createLogger(myFacet);
     ViewLoader viewLoader = new ViewLoader(myLayoutLib, myFacet, logger, null);
 
     assertNull(viewLoader.loadClass("broken.brokenclass", true));
     assertTrue(logger.hasErrors());
     assertThat(logger.getMissingClasses(), hasItem("broken.brokenclass"));
 
-    logger = RenderService.getInstance(myFacet).createLogger();
+    logger = RenderService.getInstance(project).createLogger(myFacet);
     viewLoader = new ViewLoader(myLayoutLib, myFacet, logger, null);
 
     try {
@@ -87,14 +89,14 @@ public class ViewLoaderTest extends AndroidTestCase {
     catch (ClassNotFoundException ignored) {
     }
 
-    logger = RenderService.getInstance(myFacet).createLogger();
+    logger = RenderService.getInstance(project).createLogger(myFacet);
     viewLoader = new ViewLoader(myLayoutLib, myFacet, logger, null);
     assertNull(viewLoader.loadClass("broken.brokenclass", false));
     assertFalse(logger.hasErrors());
   }
 
   public void testRClassLoad() throws ClassNotFoundException {
-    RenderLogger logger = RenderService.getInstance(myFacet).createLogger();
+    RenderLogger logger = RenderService.getInstance(myModule.getProject()).createLogger(myFacet);
     ViewLoader viewLoader = new ViewLoader(myLayoutLib, myFacet, logger, null);
 
     // No LocalResourceRepository exists prior to calling loadAndParseRClass. It will get created during the call.

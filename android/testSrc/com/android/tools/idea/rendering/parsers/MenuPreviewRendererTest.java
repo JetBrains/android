@@ -48,7 +48,7 @@ public class MenuPreviewRendererTest extends AndroidTestCase {
     myFixture.copyFileToProject("menus/strings.xml", "res/menu/strings.xml");
     VirtualFile file = myFixture.copyFileToProject("menus/menu1.xml", "res/menu/menu1.xml");
     assertNotNull(file);
-    RenderTask task = RenderTaskTestUtil.createRenderTask(myModule, file);
+    RenderTask task = RenderTaskTestUtil.createRenderTask(myFacet, file);
     assertNotNull(task);
     ILayoutPullParser parser = LayoutPullParsers.create(task);
     assertTrue(parser instanceof DomPullParser);
@@ -73,7 +73,7 @@ public class MenuPreviewRendererTest extends AndroidTestCase {
     assertNotNull(file);
     Configuration configuration =
       RenderTestUtil.getConfiguration(myModule, file, RenderTestUtil.DEFAULT_DEVICE_ID, "@android:style/Theme.Holo.Light");
-    RenderTask task = RenderTestUtil.createRenderTask(myModule, file, configuration);
+    RenderTask task = RenderTestUtil.createRenderTask(myFacet, file, configuration);
     assertNotNull(task);
 
     RenderTestUtil.checkRendering(task, getTestDataPath() + "/render/thumbnails/menu/menu1-light.png");

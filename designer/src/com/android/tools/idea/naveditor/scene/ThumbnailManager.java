@@ -84,9 +84,8 @@ public class ThumbnailManager extends AndroidFacetScopedService {
       return CompletableFuture.completedFuture(cached);
     }
 
-    RenderService renderService = RenderService.getInstance(getFacet());
-    RenderLogger logger = renderService.createLogger();
-    RenderTask task = createTask(xmlFile, configuration, renderService, logger);
+    RenderService renderService = RenderService.getInstance(getModule().getProject());
+    RenderTask task = createTask(getFacet(), xmlFile, configuration, renderService);
     CompletableFuture<BufferedImage> result = new CompletableFuture<>();
     if (task != null) {
       ListenableFuture<RenderResult> renderResult = task.render();
@@ -110,10 +109,11 @@ public class ThumbnailManager extends AndroidFacetScopedService {
   }
 
   @Nullable
-  protected RenderTask createTask(@NotNull XmlFile file,
+  protected RenderTask createTask(@NotNull AndroidFacet facet,
+                                  @NotNull XmlFile file,
                                   @NotNull Configuration configuration,
-                                  RenderService renderService, RenderLogger logger) {
-    RenderTask task = renderService.createTask(file, configuration, logger);
+                                  RenderService renderService) {
+    RenderTask task = renderService.createTask(facet, file, configuration);
     if (task != null) {
       task.setDecorations(false);
     }

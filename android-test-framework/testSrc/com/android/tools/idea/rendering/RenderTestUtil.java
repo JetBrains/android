@@ -148,22 +148,21 @@ public class RenderTestUtil {
   }
 
   @NotNull
-  protected static RenderTask createRenderTask(@NotNull Module module, @NotNull VirtualFile file, @NotNull Configuration configuration, @NotNull RenderLogger logger) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
+  protected static RenderTask createRenderTask(@NotNull AndroidFacet facet, @NotNull VirtualFile file, @NotNull Configuration configuration, @NotNull RenderLogger logger) {
+    Module module = facet.getModule();
     PsiFile psiFile = PsiManager.getInstance(module.getProject()).findFile(file);
     assertNotNull(psiFile);
-    assertNotNull(facet);
-    RenderService renderService = RenderService.getInstance(facet);
-    final RenderTask task = renderService.createTask(psiFile, configuration, logger, null);
+    RenderService renderService = RenderService.getInstance(module.getProject());
+    final RenderTask task = renderService.createTask(facet, psiFile, configuration, logger, null);
     assertNotNull(task);
     task.disableSecurityManager();
     return task;
   }
 
   @NotNull
-  public static RenderTask createRenderTask(@NotNull Module module, @NotNull VirtualFile file, @NotNull Configuration configuration) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    return createRenderTask(module, file, configuration, RenderService.getInstance(facet).createLogger());
+  public static RenderTask createRenderTask(@NotNull AndroidFacet facet, @NotNull VirtualFile file, @NotNull Configuration configuration) {
+    RenderService renderService = RenderService.getInstance(facet.getModule().getProject());
+    return createRenderTask(facet, file, configuration, renderService.createLogger(facet));
   }
 
   public static void checkRendering(@NotNull RenderTask task, @NotNull String thumbnailPath) throws IOException {

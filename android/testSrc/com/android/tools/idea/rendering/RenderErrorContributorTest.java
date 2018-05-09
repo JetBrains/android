@@ -226,9 +226,9 @@ public class RenderErrorContributorTest extends AndroidTestCase {
     // If we are using the embedded layoutlib, use a recent theme to avoid missing styles errors.
     configuration.setTheme("android:Theme.Material");
 
-    RenderService renderService = RenderService.getInstance(facet);
-    RenderLogger logger = renderService.createLogger();
-    final RenderTask task = renderService.createTask(psiFile, configuration, logger, null);
+    RenderService renderService = RenderService.getInstance(myModule.getProject());
+    RenderLogger logger = renderService.createLogger(facet);
+    final RenderTask task = renderService.createTask(facet, psiFile, configuration, logger, null);
     assertNotNull(task);
     task.disableSecurityManager();
     RenderResult render = RenderTestUtil.renderOnSeparateThread(task);

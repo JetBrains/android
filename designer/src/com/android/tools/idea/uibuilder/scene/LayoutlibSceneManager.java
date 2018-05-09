@@ -62,6 +62,7 @@ import com.intellij.util.Alarm;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
@@ -752,14 +753,14 @@ public class LayoutlibSceneManager extends SceneManager {
 
       // Record the current version we're rendering from; we'll use that in #activate to make sure we're picking up any
       // external changes
-      myRenderedVersion = resourceNotificationManager.getCurrentVersion(getModel().getFacet(), getModel().getFile(), configuration);
+      AndroidFacet facet = getModel().getFacet();
+      myRenderedVersion = resourceNotificationManager.getCurrentVersion(facet, getModel().getFile(), configuration);
 
-      RenderService renderService = RenderService.getInstance(getModel().getFacet());
-      RenderLogger logger = renderService.createLogger();
+      RenderService renderService = RenderService.getInstance(getModel().getProject());
       if (myRenderTask != null && !myRenderTask.isDisposed()) {
         myRenderTask.dispose();
       }
-      myRenderTask = renderService.createTask(getModel().getFile(), configuration, logger);
+      myRenderTask = renderService.createTask(facet, getModel().getFile(), configuration);
       setupRenderTask(myRenderTask);
       if (myRenderTask != null) {
         myRenderTask.getLayoutlibCallback()
