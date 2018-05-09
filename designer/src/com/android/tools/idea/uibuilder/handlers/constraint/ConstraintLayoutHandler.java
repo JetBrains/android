@@ -100,12 +100,12 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     new NlIcon(StudioIcons.LayoutEditor.Toolbar.BASELINE_ALIGNED, StudioIcons.LayoutEditor.Toolbar.BASELINE_ALIGNED_CONSTRAINT);
 
   private static boolean ourAutoConnect;
-  private final static String ADD_VERTICAL_BARRIER = "Add Vertical barrier";
+  private final static String ADD_VERTICAL_BARRIER = "Add Vertical Barrier";
   private final static String ADD_HORIZONTAL_BARRIER = "Add Horizontal Barrier";
   private final static String ADD_TO_BARRIER = "Add to Barrier";
   private final static String ADD_LAYER = "Add Layer";
   private final static String ADD_GROUP = "Add Group";
-  private final static String ADD_CONSTRAINTS_SET = "Add set of Constraints";
+  private final static String ADD_CONSTRAINTS_SET = "Add Set of Constraints";
   @VisibleForTesting
   public static final String EDIT_BASELINE_ACTION_TOOLTIP = "Edit Baseline";
 
@@ -182,7 +182,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       Lists.newArrayList(
         new ToggleVisibilityAction(SHOW_CONSTRAINTS_PREF_KEY, "Show Constraints", true),
         new ToggleVisibilityAction(SHOW_MARGINS_PREF_KEY, "Show Margins", true),
-        new ToggleVisibilityAction(FADE_UNSELECTED_VIEWS, "Fade Unselected views ", false)
+        new ToggleVisibilityAction(FADE_UNSELECTED_VIEWS, "Fade Unselected Views ", false)
       )
     )));
     actions.add(new ToggleAutoConnectAction());
