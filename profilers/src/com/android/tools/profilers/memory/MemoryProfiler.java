@@ -26,6 +26,7 @@ import com.android.tools.profiler.proto.Profiler.TimeResponse;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.StatusRuntimeException;
@@ -36,6 +37,8 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -241,5 +244,16 @@ public class MemoryProfiler extends StudioProfiler {
         getLogger().warn("Failed to export allocation records:\n" + exception);
       }
     }
+  }
+
+  /**
+   * Generate a default name for a memory capture to be exported. The name suggested is based on the current timestamp and the capture type.
+   */
+  @NotNull
+  static String generateCaptureFileName() {
+    StringBuilder builder = new StringBuilder("memory-");
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss");
+    builder.append(LocalDateTime.now().format(formatter));
+    return builder.toString();
   }
 }

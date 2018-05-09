@@ -513,7 +513,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
            getCaptureIntersectingWithMouseX(x).isExportable(),
       x -> getIdeComponents().createExportDialog().open(
         () -> "Export capture to file",
-        () -> getCaptureIntersectingWithMouseX(x).getName(),
+        () -> MemoryProfiler.generateCaptureFileName(),
         () -> getCaptureIntersectingWithMouseX(x).getExportableExtension(),
         file -> getStage().getStudioProfilers().getIdeServices().saveFile(
           file,

@@ -47,7 +47,7 @@ public final class HprofArtifactView extends SessionArtifactView<HprofSessionArt
       .setActionRunnable(() -> {
         getSessionsView().getIdeProfilerComponents().createExportDialog().open(
           () -> "Export As",
-          () -> getArtifact().getName(),
+          () -> MemoryProfiler.generateCaptureFileName(),
           () -> "hprof",
           file -> getSessionsView().getProfilers().getIdeServices()
                                    .saveFile(file, outputStream -> getArtifact().saveToFile(outputStream), null));

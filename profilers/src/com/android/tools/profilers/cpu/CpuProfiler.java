@@ -189,7 +189,6 @@ public class CpuProfiler extends StudioProfiler {
     StringBuilder traceName = new StringBuilder(String.format("cpu-%s-", StringUtil.toLowerCase(profilerType.name())));
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss");
     traceName.append(LocalDateTime.now().format(formatter));
-    traceName.append(".trace");
     return traceName.toString();
   }
 }
