@@ -100,7 +100,8 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
         }
       }
 
-      if (!InstantAppSdks.getInstance().shouldUseSdkLibraryToRun()) {
+      if (myFacet.getConfiguration().getProjectType() != PROJECT_TYPE_INSTANTAPP ||
+          !InstantAppSdks.getInstance().shouldUseSdkLibraryToRun()) {
         // A separate deep link launch task is not necessary if launch will be handled by
         // RunInstantAppTask
         LaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(myApplicationIdProvider, myFacet,
