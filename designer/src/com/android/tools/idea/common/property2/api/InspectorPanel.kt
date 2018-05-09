@@ -76,9 +76,4 @@ interface InspectorPanel {
    * Add a [component] (usually a JPanel) to the inspector, and return the new [InspectorLineModel].
    */
   fun addComponent(component: JComponent): InspectorLineModel
-
-  /**
-   * Add a separator line to the inspector.
-   */
-  fun addSeparator(): InspectorLineModel
 }

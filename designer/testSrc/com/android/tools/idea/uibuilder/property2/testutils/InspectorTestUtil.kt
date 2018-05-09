@@ -68,6 +68,7 @@ class FakeInspectorLine(val type: LineType) : InspectorLineModel {
   override var visible = true
   override var hidden = false
   override var focusable = true
+  override var parent: InspectorLineModel? = null
   var title: String? = null
   var editorModel: PropertyEditorModel? = null
   var tableModel: PTableModel? = null
@@ -132,12 +133,6 @@ class FakeInspectorPanel : InspectorPanel {
 
   override fun addComponent(component: JComponent): InspectorLineModel {
     val line = FakeInspectorLine(LineType.PANEL)
-    lines.add(line)
-    return line
-  }
-
-  override fun addSeparator(): InspectorLineModel {
-    val line = FakeInspectorLine(LineType.SEPARATOR)
     lines.add(line)
     return line
   }

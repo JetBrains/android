@@ -25,11 +25,18 @@ import com.android.tools.idea.common.property2.impl.model.TableLineModel
 import com.android.tools.idea.common.property2.impl.ui.*
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import com.intellij.ui.JBColor
 import com.intellij.ui.ScrollPaneFactory
+import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
+import java.awt.Font
 import java.util.*
-import javax.swing.*
+import javax.swing.BorderFactory
+import javax.swing.JComponent
+import javax.swing.JPanel
+import javax.swing.ScrollPaneConstants
 import kotlin.properties.Delegates
 
 private const val VERTICAL_SCROLLING_UNIT_INCREMENT = 3
@@ -174,10 +181,14 @@ class PropertiesPanel(parentDisposable: Disposable) : Disposable, PropertiesMode
   }
 }
 
+private const val TITLE_SEPARATOR_HEIGHT = 4
+
 class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
   private val inspectorModel = InspectorPanelModel()
   private val inspector = InspectorPanelImpl(inspectorModel, parentDisposable)
   private val gotoNextLine: (InspectorLineModel) -> Unit = { inspectorModel.moveToNextLineEditor(it) }
+  private val boldFont = UIUtil.getLabelFont().deriveFont(Font.BOLD)
+  private var lastAddedNonTitleLine: InspectorLineModel? = null
 
   val component = createScrollPane(inspector)
 
@@ -192,6 +203,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
   fun clear() {
     inspectorModel.clear()
     inspector.removeAll()
+    lastAddedNonTitleLine = null
   }
 
   fun propertyValuesChanged() {
@@ -215,12 +227,19 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
   }
 
   override fun addTitle(title: String): InspectorLineModel {
+    addSeparatorBeforeTitle()
     val model = CollapsibleLabelModel(title)
     val label = CollapsibleLabel(model)
-    label.border = JBUI.Borders.emptyLeft(LEFT_HORIZONTAL_CONTENT_BORDER_SIZE)
     inspectorModel.add(model)
     inspector.addLineElement(label)
+    label.font = boldFont
+    label.isOpaque = true
+    label.border = JBUI.Borders.merge(
+      JBUI.Borders.empty(TITLE_SEPARATOR_HEIGHT, LEFT_HORIZONTAL_CONTENT_BORDER_SIZE, TITLE_SEPARATOR_HEIGHT, 0),
+      JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0), true)
+    label.background = UIUtil.getPanelBackground()
     model.gotoNextLine = gotoNextLine
+    model.separatorAfterTitle = addSeparator(bottomDivider = false)
     return model
   }
 
@@ -232,6 +251,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
     inspectorModel.add(model)
     inspector.addLineElement(label, editor)
     model.gotoNextLine = gotoNextLine
+    lastAddedNonTitleLine = model
     return model
   }
 
@@ -241,6 +261,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
     inspectorModel.add(model)
     inspector.addLineElement(editor.component)
     model.gotoNextLine = gotoNextLine
+    lastAddedNonTitleLine = model
     return model
   }
 
@@ -250,10 +271,24 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
     inspectorModel.add(model)
     inspector.addLineElement(wrapper)
     model.gotoNextLine = gotoNextLine
+    lastAddedNonTitleLine = model
     return model
   }
 
-  override fun addSeparator(): InspectorLineModel {
-    return addComponent(JSeparator())
+  private fun addSeparatorBeforeTitle() {
+    val lastLine = lastAddedNonTitleLine ?: return
+    val separator = addSeparator(bottomDivider = true)
+    lastLine.parent?.addChild(separator)
+  }
+
+  private fun addSeparator(bottomDivider: Boolean): InspectorLineModel {
+    val component = JPanel()
+    val bottom = if (bottomDivider) 1 else 0
+    component.preferredSize = JBDimension(0, TITLE_SEPARATOR_HEIGHT)
+    component.background = inspector.background
+    component.border = JBUI.Borders.customLine(JBColor.border(), 0, 0, bottom, 0)
+    val line = addComponent(component)
+    lastAddedNonTitleLine = null
+    return line
   }
 }
