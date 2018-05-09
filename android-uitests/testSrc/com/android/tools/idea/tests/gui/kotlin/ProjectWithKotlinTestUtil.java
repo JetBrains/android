@@ -29,20 +29,20 @@ import java.util.regex.Pattern;
 
 public class ProjectWithKotlinTestUtil {
 
-  private static final String CLASS_NAME = "KotlinClass";
-  private static final String KOTLIN_EXTENSION = ".kt";
-  private static final String FILE_NAME = "KotlinFile";
-  private static final String APP = "app";
-  private static final String SRC = "src";
-  private static final String MAIN = "main";
-  private static final String JAVA = "java";
-  private static final String MENU_FILE = "File";
-  private static final String MENU_NEW = "New";
-  private static final String KOTLIN_FILE_CLASS = "Kotlin File/Class";
-  private static final String INTERFACE_NAME = "KotlinInterface";
-  private static final String ENUM_NAME = "KotlinEnum";
-  private static final String OBJECT_NAME = "KotlinObject";
-  private static final Pattern RUN_OUTPUT =
+  public static final String CLASS_NAME = "KotlinClass";
+  public static final String KOTLIN_EXTENSION = ".kt";
+  public static final String FILE_NAME = "KotlinFile";
+  public static final String APP = "app";
+  public static final String SRC = "src";
+  public static final String MAIN = "main";
+  public static final String JAVA = "java";
+  public static final String MENU_FILE = "File";
+  public static final String MENU_NEW = "New";
+  public static final String KOTLIN_FILE_CLASS = "Kotlin File/Class";
+  public static final String INTERFACE_NAME = "KotlinInterface";
+  public static final String ENUM_NAME = "KotlinEnum";
+  public static final String OBJECT_NAME = "KotlinObject";
+  public static final Pattern RUN_OUTPUT =
     Pattern.compile(".*Connected to process (\\d+) .*", Pattern.DOTALL);
 
   protected static void createKotlinFileAndClassAndVerify(@NotNull String projectDirName,
@@ -85,7 +85,7 @@ public class ProjectWithKotlinTestUtil {
                    .waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 60);
   }
 
-  private static void newKotlinFileAndClass(@NotNull ProjectViewFixture.PaneFixture projectPane,
+  protected static void newKotlinFileAndClass(@NotNull ProjectViewFixture.PaneFixture projectPane,
                                      @NotNull IdeFrameFixture ideFrameFixture,
                                      @NotNull String projectName,
                                      @NotNull String packageName,
