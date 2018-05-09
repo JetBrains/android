@@ -52,8 +52,8 @@ abstract class ModelCollectionPropertyBase<in ContextT, in ModelT, out ResolvedT
     }
   }
 
-  protected fun makePropertyCore(it: ModelPropertyParsedCore<ValueT>, resolvedValueGetter: () -> ValueT?): ModelPropertyCore<ValueT> =
-    object : ModelPropertyCore<ValueT>, ModelPropertyParsedCore<ValueT> by it {
+  protected fun ModelPropertyParsedCore<ValueT>.makePropertyCore(resolvedValueGetter: () -> ValueT?): ModelPropertyCore<ValueT> =
+    object : ModelPropertyCore<ValueT>, ModelPropertyParsedCore<ValueT> by this {
       override val defaultValueGetter: (() -> ValueT?)? = null
 
       override fun getResolvedValue(): ResolvedValue<ValueT> =
@@ -67,29 +67,9 @@ fun <T : Any> makeItemProperty(
   resolvedProperty: ResolvedPropertyModel,
   getTypedValue: ResolvedPropertyModel.() -> T?,
   setTypedValue: ResolvedPropertyModel.(T) -> Unit
-): ModelPropertyCore<T> =
-  object : ModelPropertyCore<T> {
-    override val defaultValueGetter: (() -> T?)? = null
-
-    override fun getParsedValue(): ParsedValue<T> = makeParsedValue(resolvedProperty.getTypedValue(), resolvedProperty.dslText())
-
-    override fun setParsedValue(value: ParsedValue<T>) {
-      when (value) {
-        is ParsedValue.NotSet -> resolvedProperty.delete()
-        is ParsedValue.Set.Parsed -> {
-          val dsl = value.dslText
-          when (dsl) {
-            // Dsl modes.
-            is DslText.Reference -> resolvedProperty.setDslText(dsl)
-            is DslText.InterpolatedString -> resolvedProperty.setDslText(dsl)
-            is DslText.OtherUnparsedDslText -> resolvedProperty.setDslText(dsl)
-            // Literal modes.
-            DslText.Literal -> resolvedProperty.setTypedValue(value.value!!)
-          }
-        }
-        is ParsedValue.Set.Invalid -> throw IllegalArgumentException()
-      }
-    }
-
-    override fun getResolvedValue(): ResolvedValue<T> = ResolvedValue.NotResolved()
-  }
+): ModelPropertyParsedCore<T> = object: ModelPropertyParsedCoreImpl<T>() {
+  override fun getParsedProperty(): ResolvedPropertyModel? = resolvedProperty
+  override val getter: ResolvedPropertyModel.() -> T? = getTypedValue
+  override val setter: ResolvedPropertyModel.(T) -> Unit = setTypedValue
+  override fun setModified() = Unit
+}

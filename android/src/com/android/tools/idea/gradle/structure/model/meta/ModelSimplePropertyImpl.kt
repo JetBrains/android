@@ -50,85 +50,104 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   setter: ResolvedPropertyModel.(PropertyT) -> Unit,
   parse: (ContextT, String) -> ParsedValue<PropertyT>,
   format: (ContextT, PropertyT) -> String = { _, value -> value.toString() },
-  getKnownValues: ((ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>)? = null,
+  getKnownValues: ((ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>) = { _, _ -> immediateFuture(listOf()) },
   variableMatchingStrategy: VariableMatchingStrategy = VariableMatchingStrategy.BY_TYPE
-) =
-  ModelSimplePropertyImpl(
-    this,
-    description,
-    defaultValueGetter,
-    getResolvedValue,
-    { getParsedProperty().getter() },
-    { getParsedProperty().dslText() },
-    { if (it != null) getParsedProperty().setter(it) else getParsedProperty().delete() },
-    { getParsedProperty().setDslText(it) },
-    { context: ContextT, value: String -> if (value.isBlank()) ParsedValue.NotSet else parse(context, value.trim()) },
-    format,
-    { context: ContextT, model: ModelT -> if (getKnownValues != null) getKnownValues(context, model) else immediateFuture(listOf()) },
-    variableMatchingStrategy
-  )
+): ModelSimpleProperty<ContextT, ModelT, PropertyT> = ModelSimplePropertyImpl(
+  this,
+  description,
+  defaultValueGetter,
+  getResolvedValue,
+  getParsedProperty,
+  getter,
+  setter,
+  parse,
+  format,
+  getKnownValues,
+  variableMatchingStrategy
+)
 
 class ModelSimplePropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
   private val modelDescriptor: ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   override val description: String,
   val defaultValueGetter: ((ModelT) -> PropertyT?)?,
   private val getResolvedValue: ResolvedT.() -> PropertyT?,
-  private val getParsedValue: ParsedT.() -> PropertyT?,
-  private val getParsedRawValue: ParsedT.() -> DslText?,
-  private val setParsedValue: (ParsedT.(PropertyT?) -> Unit),
-  private val setParsedRawValue: (ParsedT.(DslText) -> Unit),
+  private val getParsedProperty: ParsedT.() -> ResolvedPropertyModel,
+  private val getter: ResolvedPropertyModel.() -> PropertyT?,
+  private val setter: ResolvedPropertyModel.(PropertyT) -> Unit,
   override val parser: (ContextT, String) -> ParsedValue<PropertyT>,
   override val formatter: (ContextT, PropertyT) -> String,
   override val knownValuesGetter: (ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>,
   override val variableMatchingStrategy: VariableMatchingStrategy
 ) : ModelPropertyBase<ContextT, ModelT, PropertyT>(), ModelSimpleProperty<ContextT, ModelT, PropertyT> {
-  override fun getValue(thisRef: ModelT, property: KProperty<*>): ParsedValue<PropertyT> = getParsedValue(thisRef)
+  override fun getValue(thisRef: ModelT, property: KProperty<*>): ParsedValue<PropertyT> =
+    getParsedValue(modelDescriptor.getParsed(thisRef)?.getParsedProperty(), getter)
 
-  override fun setValue(thisRef: ModelT, property: KProperty<*>, value: ParsedValue<PropertyT>) = setParsedValue(thisRef, value)
-
-  override fun bind(model: ModelT): ModelPropertyCore<PropertyT> = object : ModelPropertyCore<PropertyT> {
-    override fun getParsedValue(): ParsedValue<PropertyT> = this@ModelSimplePropertyImpl.getParsedValue(model)
-    override fun getResolvedValue(): ResolvedValue<PropertyT> = this@ModelSimplePropertyImpl.getResolvedValue(model)
-    override fun setParsedValue(value: ParsedValue<PropertyT>) = this@ModelSimplePropertyImpl.setParsedValue(model, value)
-    override val defaultValueGetter: (() -> PropertyT?)? = this@ModelSimplePropertyImpl.defaultValueGetter?.let { { it(model) } }
+  override fun setValue(thisRef: ModelT, property: KProperty<*>, value: ParsedValue<PropertyT>) {
+    setParsedValue((modelDescriptor.getParsed(thisRef) ?: throw IllegalStateException()).getParsedProperty(), setter, value)
+    thisRef.setModified()
   }
 
-  private fun getParsedValue(model: ModelT): ParsedValue<PropertyT> {
-    val parsedModel = modelDescriptor.getParsed(model)
-    return makeParsedValue(parsedModel?.getParsedValue(), parsedModel?.getParsedRawValue())
-  }
-
-  private fun getResolvedValue(model: ModelT): ResolvedValue<PropertyT> {
-    val resolvedModel = modelDescriptor.getResolved(model)
-    val resolved: PropertyT? = resolvedModel?.getResolvedValue()
-    return when (resolvedModel) {
-      null -> ResolvedValue.NotResolved()
-      else -> ResolvedValue.Set(resolved)
-    }
-  }
-
-  private fun setParsedValue(model: ModelT, value: ParsedValue<PropertyT>) {
-    val parsedModel = modelDescriptor.getParsed(model) ?: throw IllegalStateException()
-    when (value) {
-      is ParsedValue.NotSet -> parsedModel.setParsedValue(null)
-      is ParsedValue.Set.Parsed -> {
-        val dsl = value.dslText
-        when (dsl) {
-        // Dsl modes.
-          is DslText.Reference -> parsedModel.setParsedRawValue(dsl)
-          is DslText.InterpolatedString -> parsedModel.setParsedRawValue(dsl)
-          is DslText.OtherUnparsedDslText -> parsedModel.setParsedRawValue(dsl)
-        // Literal modes.
-          DslText.Literal -> parsedModel.setParsedValue(value.value)
+  override fun bind(model: ModelT): ModelPropertyCore<PropertyT> =
+    object : ModelPropertyParsedCoreImpl<PropertyT>(), ModelPropertyCore<PropertyT> {
+      override fun getParsedProperty(): ResolvedPropertyModel? = modelDescriptor.getParsed(model)?.getParsedProperty()
+      override val getter: ResolvedPropertyModel.() -> PropertyT? = this@ModelSimplePropertyImpl.getter
+      override val setter: ResolvedPropertyModel.(PropertyT) -> Unit = this@ModelSimplePropertyImpl.setter
+      override fun setModified() = modelDescriptor.setModified(model)
+      override fun getResolvedValue(): ResolvedValue<PropertyT> {
+        val resolvedModel = modelDescriptor.getResolved(model)
+        val resolved: PropertyT? = resolvedModel?.getResolvedValue()
+        return when (resolvedModel) {
+          null -> ResolvedValue.NotResolved()
+          else -> ResolvedValue.Set(resolved)
         }
       }
-      is ParsedValue.Set.Invalid -> throw IllegalArgumentException()
-    }
 
-    // TODO: handle the case of "debug" which is always present and thus might not have a parsed model.
-    model.setModified()
-  }
+      override val defaultValueGetter: (() -> PropertyT?)? = this@ModelSimplePropertyImpl.defaultValueGetter?.let { { it(model) } }
+    }
 
   private fun ModelT.setModified() = modelDescriptor.setModified(this)
 }
 
+abstract class ModelPropertyParsedCoreImpl<PropertyT : Any> : ModelPropertyParsedCore<PropertyT> {
+  abstract fun getParsedProperty(): ResolvedPropertyModel?
+  abstract val getter: ResolvedPropertyModel.() -> PropertyT?
+  abstract val setter: ResolvedPropertyModel.(PropertyT) -> Unit
+  abstract fun setModified()
+
+  override fun getParsedValue(): ParsedValue<PropertyT> = getParsedValue(getParsedProperty(), getter)
+
+  override fun setParsedValue(value: ParsedValue<PropertyT>) {
+    setParsedValue(getParsedProperty() ?: throw IllegalStateException(), setter, value)
+    setModified()
+  }
+}
+
+private fun <T : Any> getParsedValue(property: ResolvedPropertyModel?, getter: ResolvedPropertyModel.() -> T?): ParsedValue<T> =
+  makeParsedValue(property?.getter(), property?.dslText())
+
+private fun <T : Any> setParsedValue(parsedProperty: ResolvedPropertyModel,
+                                     setter: ResolvedPropertyModel.(T) -> Unit,
+                                     value: ParsedValue<T>) {
+  when (value) {
+    is ParsedValue.NotSet -> {
+      parsedProperty.delete()
+    }
+    is ParsedValue.Set.Parsed -> {
+      val dsl = value.dslText
+      when (dsl) {
+      // Dsl modes.
+        is DslText.Reference -> parsedProperty.setDslText(dsl)
+        is DslText.InterpolatedString -> parsedProperty.setDslText(dsl)
+        is DslText.OtherUnparsedDslText -> parsedProperty.setDslText(dsl)
+      // Literal modes.
+        DslText.Literal -> if (value.value != null) {
+          parsedProperty.setter(value.value)
+        }
+        else {
+          parsedProperty.delete()
+        }
+      }
+    }
+    is ParsedValue.Set.Invalid -> throw IllegalArgumentException()
+  }
+}
