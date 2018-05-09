@@ -48,6 +48,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
+import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.util.containers.ContainerUtil;
 import org.intellij.images.editor.ImageEditor;
 import org.intellij.images.editor.ImageFileEditor;
@@ -205,6 +206,14 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     setModal(false);
     setTitle(AndroidBundle.message("android.ddms.actions.screenshot"));
     init();
+  }
+
+  /**
+   * Makes the screenshot viewer's focus on the image itself when opened, to allow keyboard shortcut copying
+   */
+  @Override
+  public JComponent getPreferredFocusedComponent() {
+    return myImageFileEditor.getComponent();
   }
 
   // returns the list of descriptors capable of framing the given image
@@ -402,6 +411,9 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
     imageEditor.getDocument().setValue(image);
     pack();
+
+    // After image has updated, set the focus to image to allow keyboard shortcut copying
+    IdeFocusManager.getInstance(myProject).requestFocusInProject(getPreferredFocusedComponent(), myProject);
   }
 
   private FileEditorProvider getImageFileEditorProvider() {
