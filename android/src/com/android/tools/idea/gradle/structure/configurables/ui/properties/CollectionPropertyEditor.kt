@@ -41,7 +41,8 @@ CollectionPropertyEditor<out ModelPropertyT : ModelCollectionPropertyCore<*>, Va
   val property: ModelPropertyT,
   val propertyContext: ModelPropertyContext<ValueT>,
   private val editor: PropertyEditorFactory<ModelPropertyCore<ValueT>, ModelPropertyContext<ValueT>, ValueT>,
-  private val variablesProvider: VariablesProvider?
+  private val variablesProvider: VariablesProvider?,
+  private val extensions: List<EditorExtensionAction>
 ) : JPanel(BorderLayout()) {
 
   val component: JComponent get() = this
@@ -86,7 +87,7 @@ CollectionPropertyEditor<out ModelPropertyT : ModelCollectionPropertyCore<*>, Va
   protected abstract fun addItem()
   protected abstract fun removeItem()
 
-  private fun calculateMinRowHeight() = editor(SimplePropertyStub(), propertyContext, null).component.minimumSize.height
+  private fun calculateMinRowHeight() = editor(SimplePropertyStub(), propertyContext, null, extensions).component.minimumSize.height
 
   protected fun ParsedValue<ValueT>.toTableModelValue() = Value(this)
 
@@ -120,7 +121,7 @@ CollectionPropertyEditor<out ModelPropertyT : ModelCollectionPropertyCore<*>, Va
 
     override fun getTableCellEditorComponent(table: JTable?, value: Any?, isSelected: Boolean, row: Int, column: Int): Component? {
       currentRow = row
-      val editor = this@CollectionPropertyEditor.editor(bindingProperty, propertyContext, variablesProvider)
+      val editor = this@CollectionPropertyEditor.editor(bindingProperty, propertyContext, variablesProvider, extensions)
       lastEditor = editor
       lastValue = null
       return editor.component

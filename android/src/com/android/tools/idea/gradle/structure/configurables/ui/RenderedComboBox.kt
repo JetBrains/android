@@ -20,7 +20,6 @@ import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.components.fields.ExtendableTextField
-import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.StatusText
 import java.awt.Component
 import java.awt.Graphics
@@ -54,7 +53,7 @@ abstract class RenderedComboBox<T>(
   /**
    * Returns [true] if the value currently being edited in the combo-box editor differs the last manually set value.
    */
-  protected fun isEditorChanged() = parseEditorText(editor.item.toString()) != lastValueSet
+  fun isEditorChanged() = parseEditorText(editor.item.toString()) != lastValueSet
 
   /**
    *  Parses [text] and converts it to the value of type [T] if possible, otherwise returns null.
@@ -73,6 +72,7 @@ abstract class RenderedComboBox<T>(
 
   // Make the methods callable from the constructor.
   final override fun setRenderer(renderer: ListCellRenderer<in T>?) = super.setRenderer(renderer)
+
   final override fun setEditor(anEditor: ComboBoxEditor?) = super.setEditor(anEditor)
 
   /**
@@ -81,7 +81,7 @@ abstract class RenderedComboBox<T>(
    * Note: It might be necessary to call setValue() in response to selectedItemChanged if the value returned by [parseEditorText] needs
    *       to be further enriched to render the proper presentation.
    */
-  protected fun setValue(value: T) {
+  fun setValue(value: T) {
     beingLoaded = true
     try {
       lastValueSet = value
@@ -108,7 +108,7 @@ abstract class RenderedComboBox<T>(
    *
    * Note: The exact presentation of items is determined by [TextRenderer.renderCell].
    */
-  protected fun setKnownValues(knownValues: List<T>) {
+  fun setKnownValues(knownValues: List<T>) {
     beingLoaded = true
     try {
       val selectedItem = itemsModel.selectedItem

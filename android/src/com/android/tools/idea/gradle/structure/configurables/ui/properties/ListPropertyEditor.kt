@@ -29,9 +29,10 @@ class ListPropertyEditor<ValueT : Any, out ModelPropertyT : ModelListPropertyCor
   property: ModelPropertyT,
   propertyContext: ModelPropertyContext<ValueT>,
   editor: PropertyEditorFactory<ModelPropertyCore<ValueT>, ModelPropertyContext<ValueT>, ValueT>,
-  variablesProvider: VariablesProvider?
+  variablesProvider: VariablesProvider?,
+  extensions: List<EditorExtensionAction>
 ) :
-  CollectionPropertyEditor<ModelPropertyT, ValueT>(property, propertyContext, editor, variablesProvider),
+  CollectionPropertyEditor<ModelPropertyT, ValueT>(property, propertyContext, editor, variablesProvider, extensions),
   ModelPropertyEditor<List<ValueT>> {
 
   override fun updateProperty() = throw UnsupportedOperationException()
@@ -96,5 +97,7 @@ class ListPropertyEditor<ValueT : Any, out ModelPropertyT : ModelListPropertyCor
 fun <ValueT : Any, ModelPropertyT : ModelListPropertyCore<ValueT>> listPropertyEditor(
   editor: PropertyEditorFactory<ModelPropertyCore<ValueT>, ModelPropertyContext<ValueT>, ValueT>
 ):
-    PropertyEditorFactory<ModelPropertyT, ModelPropertyContext<ValueT>, List<ValueT>> =
-    { property, propertyContext, variablesProvider -> ListPropertyEditor(property, propertyContext, editor, variablesProvider) }
+  PropertyEditorFactory<ModelPropertyT, ModelPropertyContext<ValueT>, List<ValueT>> =
+  { property, propertyContext, variablesProvider, extensions ->
+    ListPropertyEditor(property, propertyContext, editor, variablesProvider, extensions)
+  }

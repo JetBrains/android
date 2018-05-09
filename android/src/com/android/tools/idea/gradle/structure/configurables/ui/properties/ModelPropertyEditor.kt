@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
+import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyContext
+import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyCore
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.intellij.openapi.Disposable
+import javax.swing.Icon
 import javax.swing.JComponent
 
 /**
@@ -45,4 +48,14 @@ interface ModelPropertyEditor<out ValueT> : Disposable {
    * Updates the bound property to the current value of the editor.
    */
   fun updateProperty()
+}
+
+/**
+ * A descriptor of an additional property editor action provided as an editor extension.
+ */
+interface EditorExtensionAction {
+  val title: String
+  val tooltip: String
+  val icon: Icon
+  fun <T: Any> invoke(property: ModelPropertyCore<T>, editor: ModelPropertyEditor<T>)
 }

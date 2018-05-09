@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.gradle.structure.model.meta
 
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.EditorExtensionAction
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditor
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.VariablesProvider
+import com.intellij.icons.AllIcons
+import javax.swing.Icon
 
 /**
  * A model of the UI for editing the properties of a model of type [ModelT].
@@ -44,14 +47,14 @@ interface PropertyUiModel<in ModelT, out PropertyT> {
 
 typealias
   PropertyEditorFactory<ModelPropertyCoreT, ModelPropertyContextT, PropertyT> =
-  (ModelPropertyCoreT, ModelPropertyContextT, VariablesProvider?) -> ModelPropertyEditor<PropertyT>
+  (ModelPropertyCoreT, ModelPropertyContextT, VariablesProvider?, List<EditorExtensionAction>) -> ModelPropertyEditor<PropertyT>
 
 /**
  * Creates a UI property model describing how to represent [property] for editing.
  *
  * @param editorFactory the function to create an editor bound to [property]
  */
-fun <ModelT, PropertyT : Any, ValueT : Any, ModelPropertyCoreT,
+fun <ModelT, PropertyT : Any, ValueT : Any, ModelPropertyCoreT : ModelPropertyCore<PropertyT>,
   ModelPropertyT : ModelProperty<Nothing?, ModelT, PropertyT, ValueT, ModelPropertyCoreT>> uiProperty(
   property: ModelPropertyT,
   editorFactory: PropertyEditorFactory<ModelPropertyCoreT, ModelPropertyContext<ValueT>, PropertyT>
@@ -59,7 +62,7 @@ fun <ModelT, PropertyT : Any, ValueT : Any, ModelPropertyCoreT,
   PropertyUiModelImpl(property, editorFactory, null)
 
 class PropertyUiModelImpl<in ContextT, in ModelT, PropertyT : Any, ValueT : Any,
-  out ModelPropertyCoreT, out ModelPropertyT : ModelProperty<ContextT, ModelT, PropertyT, ValueT, ModelPropertyCoreT>>(
+  out ModelPropertyCoreT : ModelPropertyCore<PropertyT>, out ModelPropertyT : ModelProperty<ContextT, ModelT, PropertyT, ValueT, ModelPropertyCoreT>>(
   private val property: ModelPropertyT,
   private val editorFactory: PropertyEditorFactory<ModelPropertyCoreT, ModelPropertyContext<ValueT>, PropertyT>,
   private val context: ContextT
@@ -69,6 +72,17 @@ class PropertyUiModelImpl<in ContextT, in ModelT, PropertyT : Any, ValueT : Any,
     : ModelPropertyEditor<PropertyT> {
     val boundProperty = property.bind(model)
     val boundContext = property.bindContext(context, model)
-    return editorFactory(boundProperty, boundContext, module.variables)
+    return editorFactory(boundProperty, boundContext, module.variables, createEditorExtensions())
   }
+
+  private fun createEditorExtensions(): List<EditorExtensionAction> =
+    listOf(
+      object : EditorExtensionAction {
+        override val title: String = "Bind to New Variable"
+        override val tooltip: String = "Bind to New Variable"
+        override val icon: Icon = AllIcons.Nodes.Variable
+        override fun <T: Any> invoke(property: ModelPropertyCore<T>, editor: ModelPropertyEditor<T>) {
+          TODO()
+        }
+      })
 }
