@@ -17,7 +17,10 @@ package com.android.tools.idea.testartifacts.junit;
 
 import com.android.tools.idea.IdeInfo;
 import com.intellij.execution.configuration.ConfigurationFactoryEx;
-import com.intellij.execution.configurations.*;
+import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.execution.configurations.ConfigurationTypeUtil;
+import com.intellij.execution.configurations.ModuleBasedConfiguration;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.junit.JUnitConfigurationType;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
@@ -31,16 +34,19 @@ import javax.swing.*;
  * Android implementation of {@link JUnitConfigurationType} for running local unit tests. Dual test scopes is supported.
  */
 public class AndroidJUnitConfigurationType extends JUnitConfigurationType {
-  private static final Icon ANDROID_TEST_ICON;
   private static final String ANDROID_JUNIT_DESCRIPTION = "Android JUnit test configuration";
   private static final String ANDROID_JUNIT_NAME = "Android JUnit";
   private static final String ANDROID_JUNIT_ID = "AndroidJUnit";
 
-  static {
-    LayeredIcon icon = new LayeredIcon(2);
-    icon.setIcon(AndroidIcons.AndroidModule, 0);
-    icon.setIcon(AllIcons.Nodes.JunitTestMark, 1);
-    ANDROID_TEST_ICON = icon;
+  private static class Lazy {
+    private static final Icon ANDROID_TEST_ICON;
+
+    static {
+      LayeredIcon icon = new LayeredIcon(2);
+      icon.setIcon(AndroidIcons.AndroidModule, 0);
+      icon.setIcon(AllIcons.Nodes.JunitTestMark, 1);
+      ANDROID_TEST_ICON = icon;
+    }
   }
 
   private final ConfigurationFactory myFactory;
@@ -76,7 +82,7 @@ public class AndroidJUnitConfigurationType extends JUnitConfigurationType {
   @Override
   public Icon getIcon() {
     // Uses the standard JUnit icon if in AndroidStudio and otherwise, another icon
-    return IdeInfo.getInstance().isAndroidStudio() ? AllIcons.RunConfigurations.Junit : ANDROID_TEST_ICON;
+    return IdeInfo.getInstance().isAndroidStudio() ? AllIcons.RunConfigurations.Junit : Lazy.ANDROID_TEST_ICON;
   }
 
   @Override
