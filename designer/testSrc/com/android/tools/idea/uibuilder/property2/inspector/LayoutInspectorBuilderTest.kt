@@ -36,11 +36,10 @@ class LayoutInspectorBuilderTest {
       val builder = LayoutInspectorBuilder(projectRule.project, util.editorProvider)
       addLayoutProperties(util)
       builder.attachToInspector(util.inspector, util.properties)
-      assertThat(util.inspector.lines).hasSize(3)
-      assertThat(util.inspector.lines[0].type).isEqualTo(LineType.SEPARATOR)
-      assertThat(util.inspector.lines[1].type).isEqualTo(LineType.TITLE)
-      assertThat(util.inspector.lines[1].title).isEqualTo("layout")
-      assertThat(util.inspector.lines[2].editorModel?.property?.name).isEqualTo(ATTR_LAYOUT_WEIGHT)
+      assertThat(util.inspector.lines).hasSize(2)
+      assertThat(util.inspector.lines[0].type).isEqualTo(LineType.TITLE)
+      assertThat(util.inspector.lines[0].title).isEqualTo("layout")
+      assertThat(util.inspector.lines[1].editorModel?.property?.name).isEqualTo(ATTR_LAYOUT_WEIGHT)
     }
   }
 

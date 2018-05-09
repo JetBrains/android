@@ -35,6 +35,13 @@ interface InspectorLineModel {
   var visible: Boolean
 
   /**
+   * Parent if this line is a subsection of [parent].
+   *
+   * The inspector will set this property when a parent is adding a child.
+   */
+  var parent: InspectorLineModel?
+
+  /**
    * If true, this line should be hidden at all times.
    *
    * An [InspectorBuilder] may choose to hide certain lines based on the

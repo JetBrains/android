@@ -25,7 +25,6 @@ class ProgressBarInspectorBuilder(private val editorProvider: EditorProvider<Nel
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
     if (!isApplicable(properties)) return
 
-    inspector.addSeparator()
     val progressBarLabel = inspector.addExpandableTitle("ProgressBar")
     addEditor(inspector, properties["", ATTR_STYLE], progressBarLabel)
     val drawable = addEditor(inspector, properties[ANDROID_URI, ATTR_PROGRESS_DRAWABLE], progressBarLabel)

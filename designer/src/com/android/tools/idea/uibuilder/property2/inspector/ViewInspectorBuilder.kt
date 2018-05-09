@@ -52,7 +52,6 @@ class ViewInspectorBuilder(project: Project, private val editorProvider: EditorP
     val custom = setupCustomPanel(tagName, properties)
     if (attributes.isEmpty() && custom == null) return
 
-    inspector.addSeparator()
     val titleModel = inspector.addExpandableTitle(tagName.substring(tagName.lastIndexOf('.') + 1))
 
     if (custom != null) {

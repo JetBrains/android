@@ -28,6 +28,8 @@ private const val ERROR_NOT_FOCUSABLE = "Component is not focusable"
 open class GenericInspectorLineModel : InspectorLineModel {
   private var listeners = mutableListOf<ValueChangedListener>()
 
+  override var parent: InspectorLineModel? = null
+
   override var hidden = false
     set(value) {
       field = value

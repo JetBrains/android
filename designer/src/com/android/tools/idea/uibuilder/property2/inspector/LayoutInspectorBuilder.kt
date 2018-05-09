@@ -44,8 +44,8 @@ class LayoutInspectorBuilder(project: Project, private val editorProvider: Edito
     val custom = setupCustomPanel(properties)
     if (!isApplicable(attributes, custom, properties)) return
 
-    inspector.addSeparator()
     val titleModel = inspector.addExpandableTitle("layout")
+
     if (custom != null) {
       val customLine = inspector.addComponent(custom)
       titleModel.addChild(customLine)

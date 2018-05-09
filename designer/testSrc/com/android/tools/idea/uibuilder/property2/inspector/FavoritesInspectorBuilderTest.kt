@@ -51,12 +51,11 @@ class FavoritesInspectorBuilderTest {
       util.addProperty(ANDROID_URI, ATTR_GRAVITY, NelePropertyType.STRING)
       util.addProperty(ANDROID_URI, ATTR_PADDING_BOTTOM, NelePropertyType.INTEGER)
       builder.attachToInspector(util.inspector, util.properties)
-      assertThat(util.inspector.lines).hasSize(4)
-      assertThat(util.inspector.lines[0].type).isEqualTo(LineType.SEPARATOR)
-      assertThat(util.inspector.lines[1].title).isEqualTo("Favorite Attributes")
-      assertThat(util.inspector.lines[1].expandable).isTrue()
-      assertThat(util.inspector.lines[2].editorModel?.property?.name).isEqualTo(ATTR_GRAVITY)
-      assertThat(util.inspector.lines[3].editorModel?.property?.name).isEqualTo(ATTR_PADDING_BOTTOM)
+      assertThat(util.inspector.lines).hasSize(3)
+      assertThat(util.inspector.lines[0].title).isEqualTo("Favorite Attributes")
+      assertThat(util.inspector.lines[0].expandable).isTrue()
+      assertThat(util.inspector.lines[1].editorModel?.property?.name).isEqualTo(ATTR_GRAVITY)
+      assertThat(util.inspector.lines[2].editorModel?.property?.name).isEqualTo(ATTR_PADDING_BOTTOM)
     }
   }
 }

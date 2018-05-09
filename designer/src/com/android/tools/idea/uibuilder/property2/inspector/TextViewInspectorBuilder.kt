@@ -44,7 +44,6 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NelePr
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
     if (!isApplicable(properties)) return
 
-    inspector.addSeparator()
     val textViewLabel = inspector.addExpandableTitle("TextView")
     addEditor(inspector, properties[ANDROID_URI, ATTR_TEXT], textViewLabel)
     addEditor(inspector, getDesignProperty(properties, ATTR_TEXT), textViewLabel)

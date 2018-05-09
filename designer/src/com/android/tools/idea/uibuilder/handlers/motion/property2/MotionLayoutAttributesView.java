@@ -58,12 +58,10 @@ public class MotionLayoutAttributesView {
         return;
       }
       inspector.addEditor(myEditorProvider.invoke(position));
-      inspector.addSeparator();
 
       Set<String> excluded = ImmutableSet.of(Key_frameTarget, Key_framePosition);
       MotionSceneModel.BaseTag tag = position.getTag();
       InspectorLineModel title = inspector.addExpandableTitle(tag.getTitle(), true);
-      title.addChild(inspector.addSeparator());
 
       List<MotionPropertyItem> attributes = properties.getValues().stream()
                                                       .filter(item -> !excluded.contains(item.getName()))

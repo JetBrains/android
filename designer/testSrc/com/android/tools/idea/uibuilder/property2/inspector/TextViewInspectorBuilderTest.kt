@@ -41,21 +41,20 @@ class TextViewInspectorBuilderTest {
       val builder = TextViewInspectorBuilder(util.editorProvider)
       addRequiredProperties(util)
       builder.attachToInspector(util.inspector, util.properties)
-      assertThat(util.inspector.lines).hasSize(11)
-      assertThat(util.inspector.lines[0].type).isEqualTo(LineType.SEPARATOR)
-      assertThat(util.inspector.lines[1].type).isEqualTo(LineType.TITLE)
-      assertThat(util.inspector.lines[1].title).isEqualTo("TextView")
+      assertThat(util.inspector.lines).hasSize(10)
+      assertThat(util.inspector.lines[0].type).isEqualTo(LineType.TITLE)
+      assertThat(util.inspector.lines[0].title).isEqualTo("TextView")
+      assertThat(util.inspector.lines[1].editorModel?.property?.name).isEqualTo(ATTR_TEXT)
+      assertThat(util.inspector.lines[1].editorModel?.property?.namespace).isEqualTo(ANDROID_URI)
       assertThat(util.inspector.lines[2].editorModel?.property?.name).isEqualTo(ATTR_TEXT)
-      assertThat(util.inspector.lines[2].editorModel?.property?.namespace).isEqualTo(ANDROID_URI)
-      assertThat(util.inspector.lines[3].editorModel?.property?.name).isEqualTo(ATTR_TEXT)
-      assertThat(util.inspector.lines[3].editorModel?.property?.namespace).isEqualTo(TOOLS_URI)
-      assertThat(util.inspector.lines[4].editorModel?.property?.name).isEqualTo(ATTR_CONTENT_DESCRIPTION)
-      assertThat(util.inspector.lines[5].editorModel?.property?.name).isEqualTo(ATTR_TEXT_APPEARANCE)
-      assertThat(util.inspector.lines[6].editorModel?.property?.name).isEqualTo(ATTR_TYPEFACE)
-      assertThat(util.inspector.lines[7].editorModel?.property?.name).isEqualTo(ATTR_TEXT_SIZE)
-      assertThat(util.inspector.lines[8].editorModel?.property?.name).isEqualTo(ATTR_LINE_SPACING_EXTRA)
-      assertThat(util.inspector.lines[9].editorModel?.property?.name).isEqualTo(ATTR_TEXT_COLOR)
-      assertThat(util.inspector.lines[10].editorModel?.property?.name).isEqualTo(ATTR_TEXT_STYLE)
+      assertThat(util.inspector.lines[2].editorModel?.property?.namespace).isEqualTo(TOOLS_URI)
+      assertThat(util.inspector.lines[3].editorModel?.property?.name).isEqualTo(ATTR_CONTENT_DESCRIPTION)
+      assertThat(util.inspector.lines[4].editorModel?.property?.name).isEqualTo(ATTR_TEXT_APPEARANCE)
+      assertThat(util.inspector.lines[5].editorModel?.property?.name).isEqualTo(ATTR_TYPEFACE)
+      assertThat(util.inspector.lines[6].editorModel?.property?.name).isEqualTo(ATTR_TEXT_SIZE)
+      assertThat(util.inspector.lines[7].editorModel?.property?.name).isEqualTo(ATTR_LINE_SPACING_EXTRA)
+      assertThat(util.inspector.lines[8].editorModel?.property?.name).isEqualTo(ATTR_TEXT_COLOR)
+      assertThat(util.inspector.lines[9].editorModel?.property?.name).isEqualTo(ATTR_TEXT_STYLE)
     }
   }
 
@@ -68,9 +67,9 @@ class TextViewInspectorBuilderTest {
       util.addProperty(ANDROID_URI, ATTR_FONT_FAMILY, NelePropertyType.STRING)
       addOptionalProperties(util)
       builder.attachToInspector(util.inspector, util.properties)
-      assertThat(util.inspector.lines).hasSize(13)
-      assertThat(util.inspector.lines[6].editorModel?.property?.name).isEqualTo(ATTR_FONT_FAMILY)
-      assertThat(util.inspector.lines[12].editorModel?.property?.name).isEqualTo(ATTR_TEXT_ALIGNMENT)
+      assertThat(util.inspector.lines).hasSize(12)
+      assertThat(util.inspector.lines[5].editorModel?.property?.name).isEqualTo(ATTR_FONT_FAMILY)
+      assertThat(util.inspector.lines[11].editorModel?.property?.name).isEqualTo(ATTR_TEXT_ALIGNMENT)
     }
   }
 
@@ -82,9 +81,9 @@ class TextViewInspectorBuilderTest {
       addRequiredProperties(util)
       addOptionalProperties(util)
       builder.attachToInspector(util.inspector, util.properties)
-      assertThat(util.inspector.lines).hasSize(13)
-      assertThat(util.inspector.lines[6].editorModel?.property?.name).isEqualTo(ATTR_FONT_FAMILY)
-      val line = util.inspector.lines[11].editorModel as HorizontalEditorPanelModel
+      assertThat(util.inspector.lines).hasSize(12)
+      assertThat(util.inspector.lines[5].editorModel?.property?.name).isEqualTo(ATTR_FONT_FAMILY)
+      val line = util.inspector.lines[10].editorModel as HorizontalEditorPanelModel
       assertThat(line.models).hasSize(3)
       checkToggleButtonModel(line.models[0], "Bold", TEXT_STYLE_BOLD, "true", "false")
       checkToggleButtonModel(line.models[1], "Italics", TEXT_STYLE_ITALIC, "true", "false")
@@ -100,7 +99,7 @@ class TextViewInspectorBuilderTest {
       addRequiredProperties(util)
       addOptionalProperties(util)
       builder.attachToInspector(util.inspector, util.properties)
-      val line = util.inspector.lines[12].editorModel as HorizontalEditorPanelModel
+      val line = util.inspector.lines[11].editorModel as HorizontalEditorPanelModel
       assertThat(line.models).hasSize(5)
       checkToggleButtonModel(line.models[0], "Align Start of View", TEXT_ALIGN_LAYOUT_LEFT, TextAlignment.VIEW_START)
       checkToggleButtonModel(line.models[1], "Align Start of Text", TEXT_ALIGN_LEFT, TextAlignment.TEXT_START)
@@ -141,9 +140,9 @@ class TextViewInspectorBuilderTest {
       addRequiredProperties(util)
       util.addProperty(ANDROID_URI, ATTR_FONT_FAMILY, NelePropertyType.STRING)
       builder.attachToInspector(util.inspector, util.properties)
-      assertThat(util.inspector.lines).hasSize(12)
-      val title = util.inspector.lines[1]
-      val textAppearance = util.inspector.lines[5]
+      assertThat(util.inspector.lines).hasSize(11)
+      val title = util.inspector.lines[0]
+      val textAppearance = util.inspector.lines[4]
       assertThat(title.expandable).isTrue()
       assertThat(title.expanded).isTrue()
       assertThat(title.childProperties)

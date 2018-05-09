@@ -35,7 +35,6 @@ class FavoritesInspectorBuilder(
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
     if (!isApplicable(properties)) return
 
-    inspector.addSeparator()
     val titleModel = inspector.addExpandableTitle("Favorite Attributes", initiallyExpanded = false)
     for (propertyName in starredProperties) {
       // TODO: Handle other namespaces
