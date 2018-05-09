@@ -26,7 +26,7 @@ import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
-import com.android.tools.idea.uibuilder.handlers.assistant.TransitionLayoutAssistantPanel;
+import com.android.tools.idea.uibuilder.handlers.assistant.MotionLayoutAssistantPanel;
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragTarget;
@@ -57,7 +57,7 @@ public class MotionLayoutHandler extends ConstraintLayoutHandler implements NlCo
       return null;
     }
 
-    return (context) -> new TransitionLayoutAssistantPanel(surface, context.getComponent(), context.getDoClose());
+    return (context) -> new MotionLayoutAssistantPanel(surface, context.getComponent(), context.getDoClose());
   }
 
   @NotNull
