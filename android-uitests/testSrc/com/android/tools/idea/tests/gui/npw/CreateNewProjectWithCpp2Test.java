@@ -15,15 +15,24 @@
  */
 package com.android.tools.idea.tests.gui.npw;
 
-import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.fakeadbserver.DeviceState;
+import com.android.fakeadbserver.FakeAdbServer;
+import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
+import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import org.jetbrains.annotations.NotNull;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 
 import static com.android.tools.idea.tests.gui.npw.NewCppProjectTestUtil.createNewProjectWithCpp;
 
@@ -31,7 +40,40 @@ import static com.android.tools.idea.tests.gui.npw.NewCppProjectTestUtil.createN
 public class CreateNewProjectWithCpp2Test {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule(false);
+
+  private FakeAdbServer fakeAdbServer;
+
+  @Before
+  public void setupFakeAdbServer() throws IOException, InterruptedException, ExecutionException {
+    String username = System.getProperty("user.name");
+    ActivityManagerCommandHandler.ProcessStarter startCmdHandler = new ActivityManagerCommandHandler.ProcessStarter() {
+      @NotNull
+      @Override
+      public String startProcess(@NotNull DeviceState deviceState) {
+        deviceState.startClient(1234, 1235, "com.example."+ username + ".myapplication", false);
+        return "";
+      }
+    };
+
+    FakeAdbServer.Builder adbBuilder = new FakeAdbServer.Builder();
+    adbBuilder.installDefaultCommandHandlers()
+              .setShellCommandHandler(ActivityManagerCommandHandler.COMMAND, () -> new ActivityManagerCommandHandler(startCmdHandler))
+              .setDeviceCommandHandler(JdwpCommandHandler.COMMAND, JdwpCommandHandler::new);
+
+    fakeAdbServer = adbBuilder.build();
+    DeviceState fakeDevice = fakeAdbServer.connectDevice(
+      "test_device",
+      "Google",
+      "Nexus 5X",
+      "8.1",
+      "27",
+      DeviceState.HostConnectionType.LOCAL
+    ).get();
+    fakeDevice.setDeviceStatus(DeviceState.DeviceStatus.ONLINE);
+
+    fakeAdbServer.start();
+    AndroidDebugBridge.enableFakeAdbServerMode(fakeAdbServer.getPort());
+  }
 
   /**
    * Verify creating a new project from default template.
@@ -54,5 +96,12 @@ public class CreateNewProjectWithCpp2Test {
   @Test
   public void createNewProjectWithCpp2() throws Exception {
     createNewProjectWithCpp(true, false, guiTest);
+  }
+
+  @After
+  public void shutdownFakeAdb() throws Exception {
+    AndroidDebugBridge.terminate();
+    AndroidDebugBridge.disableFakeAdbServerMode();
+    fakeAdbServer.close();
   }
 }
