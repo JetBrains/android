@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.npw;
 
-import com.android.tools.idea.tests.gui.emulator.EmulatorGenerator;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
@@ -24,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
+import org.fest.swing.util.StringTextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 
@@ -73,10 +73,8 @@ public class NewCppProjectTestUtil {
   }
 
   protected static void runAppOnEmulator(@NotNull IdeFrameFixture ideFrame) {
-    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrame.invokeAvdManager());
-
     ideFrame.runApp(APP_NAME)
-            .selectDevice(avdName)
+            .selectDevice(new StringTextMatcher("Google Nexus 5X"))
             .clickOk();
 
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
