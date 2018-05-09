@@ -32,19 +32,21 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 public class AndroidTestRunConfigurationType implements ConfigurationType {
-  private static final Icon ANDROID_TEST_ICON;
+  private static class Lazy {
+    private static final Icon ANDROID_TEST_ICON;
 
-  static {
-    LayeredIcon icon = new LayeredIcon(2);
-    icon.setIcon(AndroidIcons.AndroidModule, 0);
-    icon.setIcon(AllIcons.Nodes.JunitTestMark, 1);
-    ANDROID_TEST_ICON = icon;
+    static {
+      LayeredIcon icon = new LayeredIcon(2);
+      icon.setIcon(AndroidIcons.AndroidModule, 0);
+      icon.setIcon(AllIcons.Nodes.JunitTestMark, 1);
+      ANDROID_TEST_ICON = icon;
+    }
   }
 
   private final ConfigurationFactory myFactory = new AndroidRunConfigurationType.AndroidRunConfigurationFactory(this) {
     @NotNull
     @Override
-    public RunConfiguration createTemplateConfiguration(Project project) {
+    public RunConfiguration createTemplateConfiguration(@NotNull Project project) {
       return new AndroidTestRunConfiguration(project, this);
     }
   };
@@ -65,7 +67,7 @@ public class AndroidTestRunConfigurationType implements ConfigurationType {
 
   @Override
   public Icon getIcon() {
-    return ANDROID_TEST_ICON;
+    return Lazy.ANDROID_TEST_ICON;
   }
 
   @Override
