@@ -261,7 +261,7 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
 
     wellKnownValuesFuture = immediateFuture(listOf(ValueDescriptor("1", "one"), ValueDescriptor("2", "two"), ValueDescriptor("3", "three")))
     editor.commitTestText("2")
-    editor.simulateEditorGotFocus()
+    editor.reload()
 
     assertThat(editor.getModel().getItems(),
                hasItems("1".asSimpleParsed(), "2".asSimpleParsed(), "3".asSimpleParsed(),
@@ -270,7 +270,7 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
     assertThat<Any?>(editor.selectedItem, equalTo("2".asSimpleParsed()))
 
     wellKnownValuesFuture = immediateFuture(listOf(ValueDescriptor("1", "one"), ValueDescriptor("3", "three")))
-    editor.simulateEditorGotFocus()
+    editor.reload()
 
     assertThat(editor.getModel().getItems(),
                hasItems("1".asSimpleParsed(), "3".asSimpleParsed(), var1.asParsed(), var3.asParsed()))
@@ -348,7 +348,7 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
     // to test updateProperty() method.
     assumeThat(parsedModel.value, equalTo("value"))
 
-    assertThat(editor.toEditorText(editor.getValue()), equalTo("abc"))
+    assertThat(editor.component.toEditorText(editor.getValue()), equalTo("abc"))
     assertThat<DslText>((editor.getValue() as ParsedValue.Set.Parsed).dslText, equalTo(DslText.Literal))
   }
 
@@ -368,12 +368,6 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
   }
 }
 
-private fun SimplePropertyEditor<*, *>.simulateEditorGotFocus() {
-  // Directly invoke the action the editor performs on receiving the focus since the detached component cannot be focused.
-  loadKnownValues()
-  reloadValue()
-}
-
 private val spacesMatcher = Regex("\\s+")
 private val HtmlLabel.normalizedPlainText: String get() = document.getText(0, document.length).replace(spacesMatcher, " ")
 private val SimplePropertyEditor<*, *>.testPlainTextStatus: String
@@ -390,14 +384,16 @@ private fun <T> ListModel<T>.getItems(): List<T> {
 private fun String.asSimpleParsed(): ParsedValue<String> = ParsedValue.Set.Parsed(this, DslText.Literal)
 private fun String.asParsed(): ParsedValue<String> = ParsedValue.Set.Parsed(value = this, dslText = DslText.Literal)
 private fun <T : Any> Pair<String, T>.asParsed() = ParsedValue.Set.Parsed(dslText = DslText.Reference(first), value = second)
+private val SimplePropertyEditor<*, *>.selectedItem get() = component.selectedItem
+private fun <T : Any> SimplePropertyEditor<T, *>.getModel() = component.model
 private fun SimplePropertyEditor<*, *>.setTestText(text: String) {
-  (getEditor().editorComponent as JTextComponent).text = text
+  (component.editor.editorComponent as JTextComponent).text = text
 }
 
 private fun SimplePropertyEditor<*, *>.commitTestText(text: String) {
   setTestText(text)
-  actionPerformed(ActionEvent(getEditor(), 0, null))
+  component.actionPerformed(ActionEvent(component.editor, 0, null))
 }
 
 private fun SimplePropertyEditor<*, *>.testWatermark(): String? =
-  ((this.getEditor() as? BasicComboBoxEditor)?.editorComponent as? JBTextField)?.emptyText?.text
+  ((component.editor as? BasicComboBoxEditor)?.editorComponent as? JBTextField)?.emptyText?.text

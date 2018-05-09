@@ -33,8 +33,9 @@ class MapPropertyEditor<ValueT : Any, out ModelPropertyT : ModelMapPropertyCore<
   property: ModelPropertyT,
   propertyContext: ModelPropertyContext<ValueT>,
   editor: PropertyEditorFactory<ModelPropertyCore<ValueT>, ModelPropertyContext<ValueT>, ValueT>,
-  variablesProvider: VariablesProvider?
-) : CollectionPropertyEditor<ModelPropertyT, ValueT>(property, propertyContext, editor, variablesProvider),
+  variablesProvider: VariablesProvider?,
+  extensions: List<EditorExtensionAction>
+) : CollectionPropertyEditor<ModelPropertyT, ValueT>(property, propertyContext, editor, variablesProvider, extensions),
     ModelPropertyEditor<Map<String, ValueT>> {
 
   init {
@@ -169,5 +170,7 @@ class MapPropertyEditor<ValueT : Any, out ModelPropertyT : ModelMapPropertyCore<
 fun <ValueT : Any, ModelPropertyT : ModelMapPropertyCore<ValueT>> mapPropertyEditor(
   editor: PropertyEditorFactory<ModelPropertyCore<ValueT>, ModelPropertyContext<ValueT>, ValueT>
 ):
-    PropertyEditorFactory<ModelPropertyT, ModelPropertyContext<ValueT>, Map<String, ValueT>> =
-  { property, propertyContext, variablesProvider -> MapPropertyEditor(property, propertyContext, editor, variablesProvider) }
+  PropertyEditorFactory<ModelPropertyT, ModelPropertyContext<ValueT>, Map<String, ValueT>> =
+  { property, propertyContext, variablesProvider, extensions ->
+    MapPropertyEditor(property, propertyContext, editor, variablesProvider, extensions)
+  }

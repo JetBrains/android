@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.structure.model.meta.*
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.ui.ComboBox
@@ -32,7 +31,6 @@ import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import javax.swing.DefaultComboBoxModel
 import javax.swing.Icon
-import javax.swing.JComponent
 import javax.swing.text.DefaultCaret
 
 /**
@@ -44,39 +42,175 @@ import javax.swing.text.DefaultCaret
 class SimplePropertyEditor<PropertyT : Any, out ModelPropertyT : ModelPropertyCore<PropertyT>>(
   val property: ModelPropertyT,
   private val propertyContext: ModelPropertyContext<PropertyT>,
-  private val variablesProvider: VariablesProvider?
-) : RenderedComboBox<ParsedValue<PropertyT>>(DefaultComboBoxModel<ParsedValue<PropertyT>>()), ModelPropertyEditor<PropertyT> {
+  private val variablesProvider: VariablesProvider?,
+  private val extensions: List<EditorExtensionAction>
+) : ModelPropertyEditor<PropertyT> {
   private var knownValueRenderers: Map<ParsedValue<PropertyT>, ValueRenderer> = mapOf()
   private var disposed = false
   private var knownValuesFuture: ListenableFuture<Unit>? = null  // Accessed only from the EDT.
   private val formatter = propertyContext.valueFormatter()
 
-  override val component: JComponent = this
+  private val renderedComboBox = object : RenderedComboBox<ParsedValue<PropertyT>>(DefaultComboBoxModel()) {
+
+    override fun getPreferredSize(): Dimension {
+      val dimensions = super.getPreferredSize()
+      return if (dimensions.width < 200) {
+        Dimension(200, dimensions.height)
+      }
+      else dimensions
+    }
+
+    override fun parseEditorText(text: String): ParsedValue<PropertyT>? = when {
+      text.startsWith("\$\$") -> ParsedValue.Set.Parsed(value = null, dslText = DslText.OtherUnparsedDslText(text.substring(2)))
+      text.startsWith("\$") -> ParsedValue.Set.Parsed<PropertyT>(value = null, dslText = DslText.Reference(text.substring(1)))
+      text.startsWith("\"") && text.endsWith("\"") ->
+        ParsedValue.Set.Parsed<PropertyT>(value = null,
+                                          dslText = DslText.InterpolatedString(text.substring(1, text.length - 1)))
+      else -> propertyContext.parse(text)
+    }
+
+    override fun toEditorText(anObject: ParsedValue<PropertyT>?): String = when (anObject) {
+      null -> ""
+      else -> anObject.getText(formatter)
+    }
+
+    override fun TextRenderer.renderCell(value: ParsedValue<PropertyT>?) {
+      (value ?: ParsedValue.NotSet).renderTo(this, formatter, knownValueRenderers)
+    }
+
+    override fun createEditorExtensions(): List<Extension> = extensions.map {
+      makeComboBoxExtension(it, property, this@SimplePropertyEditor)
+    }
+
+    @VisibleForTesting
+    fun loadKnownValues() {
+      val availableVariables: List<ParsedValue.Set.Parsed<PropertyT>>? = getAvailableVariables()
+
+      fun receiveKnownValuesOnEdt(knownValues: KnownValues<PropertyT>) {
+        val possibleValues = buildKnownValueRenderers(knownValues, formatter, property.defaultValueGetter?.invoke())
+        knownValueRenderers = possibleValues
+        setKnownValues(
+          possibleValues.keys.toList() + availableVariables?.filter { knownValues.isSuitableVariable(it) }.orEmpty())
+      }
+
+      knownValuesFuture?.cancel(false)
+
+      knownValuesFuture = Futures.transform(
+        propertyContext.getKnownValues(),
+        {
+          receiveKnownValuesOnEdt(it!!)
+          knownValuesFuture = null
+        },
+        {
+          val application = ApplicationManager.getApplication()
+          if (application.isDispatchThread) {
+            it.run()
+          }
+          else {
+            application.invokeLater(it, ModalityState.any())
+          }
+        })
+    }
+
+    private fun loadValue(value: PropertyValue<PropertyT>) {
+      setValue(value.parsedValue.normalizeForEditorAndLookup())
+      setStatusHtmlText(getStatusHtmlText(value))
+    }
+
+    private fun setStatusHtmlText(statusHtmlText: String) {
+      statusComponent.text = statusHtmlText
+    }
+
+    private fun getStatusHtmlText(value: PropertyValue<PropertyT>): String {
+
+      val parsedValue = value.parsedValue
+      val resolvedValue = value.resolved
+      val effectiveEditorValue = when (parsedValue) {
+        is ParsedValue.Set.Parsed -> parsedValue.value
+        is ParsedValue.NotSet -> {
+          val defaultValueGetter = property.defaultValueGetter ?: return ""
+          defaultValueGetter()
+        }
+        else -> null
+      }
+      val resolvedValueText = when (resolvedValue) {
+        is ResolvedValue.Set -> when {
+          effectiveEditorValue != resolvedValue.resolved -> resolvedValue.resolved?.formatter()
+          else -> null
+        }
+        is ResolvedValue.NotResolved -> null
+      }
+      return buildString {
+        if (resolvedValueText != null) {
+          append(" -> ")
+          append(resolvedValueText)
+        }
+      }
+    }
+
+    @VisibleForTesting
+    fun reloadValue() {
+      loadValue(property.getValue())
+    }
+
+    internal fun applyChanges(value: ParsedValue<PropertyT>) {
+      when (value) {
+        is ParsedValue.Set.Invalid -> Unit
+        else -> property.setParsedValue(value)
+      }
+    }
+
+    private fun getAvailableVariables(): List<ParsedValue.Set.Parsed<PropertyT>>? =
+      variablesProvider?.getAvailableVariablesFor(propertyContext)
+
+    fun addFocusGainedListener(listener: () -> Unit) {
+      val focusListener = object : FocusListener {
+        override fun focusLost(e: FocusEvent?) = Unit
+        override fun focusGained(e: FocusEvent?) = listener()
+      }
+      editor.editorComponent.addFocusListener(focusListener)
+      addFocusListener(focusListener)
+    }
+
+    init {
+      setEditable(true)
+
+      loadKnownValues()
+
+      addActionListener {
+        if (!disposed && !beingLoaded) {
+          updateProperty()
+          reloadValue()
+        }
+      }
+
+      addFocusGainedListener {
+        if (!disposed) {
+          loadKnownValues()
+          reloadValue()
+        }
+      }
+    }
+  }
+
+  override val component: RenderedComboBox<ParsedValue<PropertyT>> = renderedComboBox
   override val statusComponent: HtmlLabel = HtmlLabel().also {
     // Note: this is important to be the first step to prevent automatic scrolling of the container to the last added label.
     (it.caret as DefaultCaret).updatePolicy = DefaultCaret.NEVER_UPDATE
-    HtmlLabel.setUpAsHtmlLabel(it, font)
-  }
-
-  override fun getPreferredSize(): Dimension {
-    val dimensions = super.getPreferredSize()
-    return if (dimensions.width < 200) {
-      Dimension(200, dimensions.height)
-    }
-    else dimensions
+    HtmlLabel.setUpAsHtmlLabel(it, renderedComboBox.font)
   }
 
   override fun getValue(): ParsedValue<PropertyT> =
     @Suppress("UNCHECKED_CAST")
-    (editor.item as ParsedValue<PropertyT>)
+    (renderedComboBox.editor.item as ParsedValue<PropertyT>)
 
   override fun updateProperty() {
     if (disposed) throw IllegalStateException()
     // It is important to avoid applying the unchanged values since the application
     // process while not intended may change the "psi"-representation of the value.
     // it is especially important in the case of invalid/unparsed values.
-    if (isEditorChanged()) {
-      applyChanges(getValue())
+    if (renderedComboBox.isEditorChanged()) {
+      renderedComboBox.applyChanges(getValue())
     }
   }
 
@@ -86,150 +220,32 @@ class SimplePropertyEditor<PropertyT : Any, out ModelPropertyT : ModelPropertyCo
   }
 
   @VisibleForTesting
-  fun loadKnownValues() {
-    val availableVariables: List<ParsedValue.Set.Parsed<PropertyT>>? = getAvailableVariables()
-
-    fun receiveKnownValuesOnEdt(knownValues: KnownValues<PropertyT>) {
-      val possibleValues = buildKnownValueRenderers(knownValues, formatter, property.defaultValueGetter?.invoke())
-      knownValueRenderers = possibleValues
-      setKnownValues(
-        possibleValues.keys.toList() + availableVariables?.filter { knownValues.isSuitableVariable(it) }.orEmpty())
-    }
-
-    knownValuesFuture?.cancel(false)
-
-    knownValuesFuture = Futures.transform(
-      propertyContext.getKnownValues(),
-      {
-        receiveKnownValuesOnEdt(it!!)
-        knownValuesFuture = null
-      },
-      {
-        val application = ApplicationManager.getApplication()
-        if (application.isDispatchThread) {
-          it.run()
-        }
-        else {
-          application.invokeLater(it, ModalityState.any())
-        }
-      })
+  fun reload() {
+    renderedComboBox.loadKnownValues()
+    renderedComboBox.reloadValue()
   }
-
-  private fun loadValue(value: PropertyValue<PropertyT>) {
-    setValue(value.parsedValue.normalizeForEditorAndLookup())
-    setStatusHtmlText(getStatusHtmlText(value))
-  }
-
-  private fun setStatusHtmlText(statusHtmlText: String) {
-    statusComponent.text = statusHtmlText
-  }
-
-  private fun getStatusHtmlText(value: PropertyValue<PropertyT>): String {
-
-    val parsedValue = value.parsedValue
-    val resolvedValue = value.resolved
-    val effectiveEditorValue = when (parsedValue) {
-      is ParsedValue.Set.Parsed -> parsedValue.value
-      is ParsedValue.NotSet -> {
-        val defaultValueGetter = property.defaultValueGetter ?: return ""
-        defaultValueGetter()
-      }
-      else -> null
-    }
-    val resolvedValueText = when (resolvedValue) {
-      is ResolvedValue.Set -> when {
-        effectiveEditorValue != resolvedValue.resolved -> resolvedValue.resolved?.formatter()
-        else -> null
-      }
-      is ResolvedValue.NotResolved -> null
-    }
-    return buildString {
-      if (resolvedValueText != null) {
-        append(" -> ")
-        append(resolvedValueText)
-      }
-    }
-  }
-
-  @VisibleForTesting
-  fun reloadValue() {
-    loadValue(property.getValue())
-  }
-
-  private fun applyChanges(value: ParsedValue<PropertyT>) {
-    when (value) {
-      is ParsedValue.Set.Invalid -> Unit
-      else -> property.setParsedValue(value)
-    }
-  }
-
-  private fun getAvailableVariables(): List<ParsedValue.Set.Parsed<PropertyT>>? =
-    variablesProvider?.getAvailableVariablesFor(propertyContext)
-
-  private fun addFocusGainedListener(listener: () -> Unit) {
-    val focusListener = object : FocusListener {
-      override fun focusLost(e: FocusEvent?) = Unit
-      override fun focusGained(e: FocusEvent?) = listener()
-    }
-    editor.editorComponent.addFocusListener(focusListener)
-    addFocusListener(focusListener)
-  }
-
-  override fun parseEditorText(text: String): ParsedValue<PropertyT>? = when {
-    text.startsWith("\$\$") -> ParsedValue.Set.Parsed(value = null, dslText = DslText.OtherUnparsedDslText(text.substring(2)))
-    text.startsWith("\$") -> ParsedValue.Set.Parsed<PropertyT>(value = null, dslText = DslText.Reference(text.substring(1)))
-    text.startsWith("\"") && text.endsWith("\"") ->
-      ParsedValue.Set.Parsed<PropertyT>(value = null,
-                                        dslText = DslText.InterpolatedString(text.substring(1, text.length - 1)))
-    else -> propertyContext.parse(text)
-  }
-
-  override fun toEditorText(anObject: ParsedValue<PropertyT>?): String = when (anObject) {
-    null -> ""
-    else -> anObject.getText(formatter)
-  }
-
-  override fun TextRenderer.renderCell(value: ParsedValue<PropertyT>?) {
-    (value ?: ParsedValue.NotSet).renderTo(this, formatter, knownValueRenderers)
-  }
-
-  override fun createEditorExtensions(): List<Extension> = listOf(
-    object : Extension {
-      override fun getIcon(hovered: Boolean): Icon = AllIcons.Nodes.Variable
-      override fun getTooltip(): String = "Bind to New Variable..."
-      override fun getActionOnClick(): Runnable = Runnable {
-        TODO("Bind to new variable is not implemented")
-      }
-    }
-  )
 
   init {
-    setEditable(true)
-
-    loadKnownValues()
-
-    addActionListener {
-      if (!disposed && !beingLoaded) {
-        updateProperty()
-        reloadValue()
-      }
-    }
-    addFocusGainedListener {
-      if (!disposed) {
-        loadKnownValues()
-        reloadValue()
-      }
-    }
-    reloadValue()
+    renderedComboBox.reloadValue()
   }
 }
 
 inline fun <reified PropertyT : Any, ModelPropertyT : ModelPropertyCore<PropertyT>> simplePropertyEditor(
   property: ModelPropertyT,
   propertyContext: ModelPropertyContext<PropertyT>,
-  variablesProvider: VariablesProvider? = null
+  variablesProvider: VariablesProvider? = null,
+  extensions: List<EditorExtensionAction> = listOf()
 ): SimplePropertyEditor<PropertyT, ModelPropertyT> =
-  SimplePropertyEditor(property, propertyContext, variablesProvider)
+  SimplePropertyEditor(property, propertyContext, variablesProvider, extensions)
 
 private fun <T : Any> ParsedValue<T>.normalizeForEditorAndLookup() = this
+
+private fun <T : Any> makeComboBoxExtension(action: EditorExtensionAction,
+                                            property: ModelPropertyCore<T>,
+                                            editor: ModelPropertyEditor<T>) =
+  object : RenderedComboBox.Extension {
+    override fun getIcon(hovered: Boolean): Icon = action.icon
+    override fun getTooltip(): String = action.tooltip
+    override fun getActionOnClick(): Runnable = Runnable { action.invoke(property, editor) }
+  }
 
