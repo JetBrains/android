@@ -124,9 +124,9 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
       g.setPaint(idleColor);
       // The Idle time is drawn at the end of our total time, as such we start at our X + our idle time.
       // The width is then defined as the total width minus our idle time ratio.
-      g.fill(new Rectangle2D.Double(drawingArea.getX() + cpuIdleTimeRatio,
+      g.fill(new Rectangle2D.Double(drawingArea.getX() + drawingArea.getWidth() - cpuIdleTimeRatio,
                                     drawingArea.getY(),
-                                    drawingArea.getWidth() - cpuIdleTimeRatio,
+                                    cpuIdleTimeRatio,
                                     drawingArea.getHeight()));
     }
 
