@@ -63,7 +63,7 @@ public class IconFactoryTest extends AndroidTestCase {
 
   public void testIconFromPath() {
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, myDrawableFile);
-    RenderTask task = RenderTestUtil.createRenderTask(myModule, myDrawableFile, configuration);
+    RenderTask task = RenderTestUtil.createRenderTask(myFacet, myDrawableFile, configuration);
     Supplier<RenderTask> taskSupplier = () -> task;
 
     IconFactory factory = new IconFactory(taskSupplier);
@@ -74,7 +74,7 @@ public class IconFactoryTest extends AndroidTestCase {
 
   public void testIconFromFromDrawable() throws InterruptedException {
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, myDrawableFile);
-    RenderTask task = RenderTestUtil.createRenderTask(myModule, myDrawableFile, configuration);
+    RenderTask task = RenderTestUtil.createRenderTask(myFacet, myDrawableFile, configuration);
     Supplier<RenderTask> taskSupplier = () -> task;
 
     IconFactory factory = new IconFactory(taskSupplier);

@@ -77,7 +77,7 @@ public class LayoutPullParsersTest extends AndroidTestCase {
   public void testRenderDrawable() throws Exception {
     VirtualFile file = myFixture.copyFileToProject("drawables/progress_horizontal.xml", "res/drawable/progress_horizontal.xml");
     assertNotNull(file);
-    RenderTask task = RenderTaskTestUtil.createRenderTask(myModule, file);
+    RenderTask task = RenderTaskTestUtil.createRenderTask(myFacet, file);
     assertNotNull(task);
     ILayoutPullParser parser = LayoutPullParsers.create(task);
     assertTrue(parser instanceof DomPullParser);
@@ -113,7 +113,7 @@ public class LayoutPullParsersTest extends AndroidTestCase {
     VirtualFile redBox = myFixture.addFileToProject("res/drawable/box.xml", redBoxContent).getVirtualFile();
     VirtualFile blueBox = myFixture.addFileToProject("res/drawable-xxxhdpi/box.xml", blueBoxContent).getVirtualFile();
 
-    RenderTask task = RenderTaskTestUtil.createRenderTask(myModule, redBox);
+    RenderTask task = RenderTaskTestUtil.createRenderTask(myFacet, redBox);
     assertNotNull(task);
     ILayoutPullParser parser = LayoutPullParsers.create(task);
     assertTrue(parser instanceof DomPullParser);
@@ -131,7 +131,7 @@ public class LayoutPullParsersTest extends AndroidTestCase {
 
     assertEquals(expectedLayout, actualLayout);
 
-    task = RenderTaskTestUtil.createRenderTask(myModule, blueBox);
+    task = RenderTaskTestUtil.createRenderTask(myFacet, blueBox);
     assertNotNull(task);
     parser = LayoutPullParsers.create(task);
     assertTrue(parser instanceof DomPullParser);
@@ -154,7 +154,7 @@ public class LayoutPullParsersTest extends AndroidTestCase {
 
   public void testRenderMenuWithShowInNavigationViewAttribute() throws Exception {
     RenderTask task = RenderTaskTestUtil
-      .createRenderTask(myModule, myFixture.copyFileToProject("menus/activity_main_drawer.xml", "res/menu/activity_main_drawer.xml"));
+      .createRenderTask(myFacet, myFixture.copyFileToProject("menus/activity_main_drawer.xml", "res/menu/activity_main_drawer.xml"));
 
     DomPullParser parser = (DomPullParser)LayoutPullParsers.create(task);
     assert parser != null;
@@ -175,7 +175,7 @@ public class LayoutPullParsersTest extends AndroidTestCase {
     // TODO: Replace the drawable with an actual adaptive-icon (see TODO below)
     VirtualFile file = myFixture.copyFileToProject("drawables/progress_horizontal.xml", "res/mipmap/adaptive.xml");
     assertNotNull(file);
-    RenderTask task = RenderTaskTestUtil.createRenderTask(myModule, file);
+    RenderTask task = RenderTaskTestUtil.createRenderTask(myFacet, file);
     assertNotNull(task);
     ILayoutPullParser parser = LayoutPullParsers.create(task);
     assertTrue(parser instanceof DomPullParser);
@@ -203,7 +203,7 @@ public class LayoutPullParsersTest extends AndroidTestCase {
     myFixture.copyFileToProject("fonts/customfont.ttf", "res/font/fontb.ttf");
     VirtualFile file = myFixture.copyFileToProject("fonts/my_font_family.xml", "res/font/my_font_family.xml");
     assertNotNull(file);
-    RenderTask task = RenderTaskTestUtil.createRenderTask(myModule, file);
+    RenderTask task = RenderTaskTestUtil.createRenderTask(myFacet, file);
     assertNotNull(task);
     ILayoutPullParser parser = LayoutPullParsers.create(task);
     assertTrue(parser instanceof DomPullParser);

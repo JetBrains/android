@@ -44,6 +44,7 @@ import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -950,10 +951,11 @@ public class Scene implements SelectionListener, Disposable {
     }
     NlModel model = neleComponent.getModel();
     XmlFile xmlFile = model.getFile();
+    Module module = model.getModule();
+    RenderService renderService = RenderService.getInstance(module.getProject());
     AndroidFacet facet = model.getFacet();
-    RenderService renderService = RenderService.getInstance(facet);
-    RenderLogger logger = renderService.createLogger();
-    final RenderTask task = renderService.createTask(xmlFile, model.getConfiguration(), logger, null);
+    RenderLogger logger = renderService.createLogger(facet);
+    final RenderTask task = renderService.createTask(facet, xmlFile, model.getConfiguration(), logger, null);
     if (task == null) {
       return null;
     }

@@ -247,9 +247,9 @@ public class PreviewProvider implements Disposable {
       if (facet == null) {
         return null;
       }
-      RenderService renderService = RenderService.getInstance(facet);
-      RenderLogger logger = renderService.createLogger();
-      myRenderTask = renderService.createTask(null, configuration, logger, null);
+      RenderService renderService = RenderService.getInstance(module.getProject());
+      RenderLogger logger = renderService.createLogger(facet);
+      myRenderTask = renderService.createTask(facet, null, configuration, logger, null);
     }
 
     return myRenderTask;

@@ -185,9 +185,9 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
     myMessages.add(message);
   }
 
-  @Nullable
+  @NotNull
   public List<RenderProblem> getMessages() {
-    return myMessages;
+    return myMessages != null ? myMessages : Collections.emptyList();
   }
 
   /**

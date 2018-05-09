@@ -47,11 +47,11 @@ public class TestableThumbnailManager extends ThumbnailManager {
 
   @Nullable
   @Override
-  protected RenderTask createTask(@NotNull XmlFile file,
+  protected RenderTask createTask(@NotNull AndroidFacet facet,
+                                  @NotNull XmlFile file,
                                   @NotNull Configuration configuration,
-                                  RenderService renderService,
-                                  RenderLogger logger) {
-    RenderTask task = super.createTask(file, configuration, renderService, logger);
+                                  RenderService renderService) {
+    RenderTask task = super.createTask(facet, file, configuration, renderService);
     if (task != null) {
       task.disableSecurityManager();
     }

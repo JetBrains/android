@@ -35,11 +35,13 @@ import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.ShutDownTracker;
 import com.intellij.psi.PsiFile;
@@ -48,7 +50,6 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidFacetScopedService;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -68,7 +69,7 @@ import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 /**
  * The {@link RenderService} provides rendering and layout information for Android layouts. This is a wrapper around the layout library.
  */
-public class RenderService extends AndroidFacetScopedService {
+public class RenderService implements Disposable {
   /** Number of ms that we will wait for the rendering thread to return before timing out */
   private static final long DEFAULT_RENDER_THREAD_TIMEOUT_MS = Long.getLong("layoutlib.thread.timeout",
                                                                             TimeUnit.SECONDS.toMillis(
@@ -92,6 +93,8 @@ public class RenderService extends AndroidFacetScopedService {
     // Register the executor to be shutdown on close
     ShutDownTracker.getInstance().registerShutdownTask(RenderService::shutdownRenderExecutor);
   }
+
+  private final Project myProject;
 
   private static void innerInitializeRenderExecutor() {
     ourRenderingExecutor = new ThreadPoolExecutor(0, 1,
@@ -152,23 +155,24 @@ public class RenderService extends AndroidFacetScopedService {
    * @return the {@linkplain RenderService} for the given facet.
    */
   @NotNull
-  public static RenderService getInstance(@NotNull AndroidFacet facet) {
-    RenderService renderService = facet.getUserData(KEY);
+  public static RenderService getInstance(@NotNull Project project) {
+    RenderService renderService = project.getUserData(KEY);
     if (renderService == null) {
-      renderService = new RenderService(facet);
-      facet.putUserData(KEY, renderService);
+      renderService = new RenderService(project);
+      project.putUserData(KEY, renderService);
     }
     return renderService;
   }
 
   @TestOnly
-  public static void setForTesting(@NotNull AndroidFacet facet, @Nullable RenderService renderService) {
-    facet.putUserData(KEY, renderService);
+  public static void setForTesting(@NotNull Project project, @Nullable RenderService renderService) {
+    project.putUserData(KEY, renderService);
   }
 
   @VisibleForTesting
-  protected RenderService(@NotNull AndroidFacet facet) {
-    super(facet);
+  protected RenderService(@NotNull Project project) {
+    myProject = project;
+    Disposer.register(project, this);
   }
 
   @Nullable
@@ -213,8 +217,8 @@ public class RenderService extends AndroidFacetScopedService {
   }
 
   @NotNull
-  public RenderLogger createLogger() {
-    Module module = getModule();
+  public RenderLogger createLogger(@NotNull AndroidFacet facet) {
+    Module module = facet.getModule();
     return new RenderLogger(module.getName(), module, myCredential);
   }
 
@@ -224,10 +228,10 @@ public class RenderService extends AndroidFacetScopedService {
    * @return a {@link RenderService} which can perform rendering services
    */
   @Nullable
-  final public RenderTask createTask(@Nullable PsiFile psiFile,
-                               @NotNull Configuration configuration,
-                               @NotNull RenderLogger logger) {
-    return createTask(psiFile, configuration, logger, null);
+  final public RenderTask createTask(@NotNull AndroidFacet facet,
+                               @Nullable PsiFile psiFile,
+                               @NotNull Configuration configuration) {
+    return createTask(facet, psiFile, configuration, null);
   }
 
   /**
@@ -236,12 +240,26 @@ public class RenderService extends AndroidFacetScopedService {
    * @return a {@link RenderService} which can perform rendering services
    */
   @Nullable
-  public RenderTask createTask(@Nullable PsiFile psiFile,
+  final public RenderTask createTask(@NotNull AndroidFacet facet,
+                               @Nullable PsiFile psiFile,
+                               @NotNull Configuration configuration,
+                               @Nullable ILayoutPullParserFactory parserFactory) {
+    return createTask(facet, psiFile, configuration, createLogger(facet), parserFactory);
+
+  }
+
+  /**
+   * Creates a new {@link RenderService} associated with the given editor.
+   *
+   * @return a {@link RenderService} which can perform rendering services
+   */
+  @Nullable
+  public RenderTask createTask(@NotNull AndroidFacet facet,
+                               @Nullable PsiFile psiFile,
                                @NotNull Configuration configuration,
                                @NotNull RenderLogger logger,
                                @Nullable ILayoutPullParserFactory parserFactory) {
-    Module module = getModule();
-    AndroidPlatform platform = getPlatform(module, logger);
+    AndroidPlatform platform = getPlatform(facet, logger);
     if (platform == null) {
       return null;
     }
@@ -252,9 +270,10 @@ public class RenderService extends AndroidFacetScopedService {
       return null;
     }
 
+    Module module = facet.getModule();
     LayoutLibrary layoutLib;
     try {
-      layoutLib = platform.getSdkData().getTargetData(target).getLayoutLibrary(getProject());
+      layoutLib = platform.getSdkData().getTargetData(target).getLayoutLibrary(module.getProject());
       if (layoutLib == null) {
         String message = AndroidBundle.message("android.layout.preview.cannot.load.library.error");
         logger.addMessage(RenderProblem.createPlain(ERROR, message));
@@ -301,8 +320,9 @@ public class RenderService extends AndroidFacetScopedService {
 
     try {
       RenderTask task =
-          new RenderTask(this, configuration, logger, layoutLib, device, myCredential, StudioCrashReporter.getInstance(), myImagePool,
-                         parserFactory);
+        new RenderTask(facet, this, configuration, logger, layoutLib,
+                       device, myCredential, StudioCrashReporter.getInstance(), myImagePool,
+                       parserFactory);
       if (psiFile instanceof XmlFile) {
         task.setXmlFile((XmlFile)psiFile);
       }
@@ -310,7 +330,7 @@ public class RenderService extends AndroidFacetScopedService {
       return task;
     } catch (IllegalStateException | IncorrectOperationException | AssertionError e) {
       // Ignore the exception if it was generated when the facet is being disposed (project is being closed)
-      if (!isDisposed() && !getFacet().isDisposed()) {
+      if (!module.isDisposed()) {
         throw e;
       }
     }
@@ -319,23 +339,19 @@ public class RenderService extends AndroidFacetScopedService {
   }
 
   @Override
-  protected void onServiceDisposal(@NotNull AndroidFacet facet) {
-    facet.putUserData(KEY, null);
+  public void dispose() {
+    myProject.putUserData(KEY, null);
     myImagePool.dispose();
   }
 
-  @NotNull
-  public Project getProject() {
-    return getModule().getProject();
+  @Nullable
+  public AndroidPlatform getPlatform(@NotNull AndroidFacet facet) {
+    return AndroidPlatform.getInstance(facet.getModule());
   }
 
   @Nullable
-  public AndroidPlatform getPlatform() {
-    return AndroidPlatform.getInstance(getModule());
-  }
-
-  @Nullable
-  private static AndroidPlatform getPlatform(@NotNull final Module module, @Nullable RenderLogger logger) {
+  private static AndroidPlatform getPlatform(@NotNull final AndroidFacet facet, @Nullable RenderLogger logger) {
+    Module module = facet.getModule();
     AndroidPlatform platform = AndroidPlatform.getInstance(module);
     if (platform == null && logger != null) {
       if (!AndroidMavenUtil.isMavenizedModule(module)) {

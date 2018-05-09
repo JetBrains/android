@@ -109,7 +109,8 @@ public class RenderTask {
   /**
    * Don't create this task directly; obtain via {@link RenderService}
    */
-  RenderTask(@NotNull RenderService renderService,
+  RenderTask(@NotNull AndroidFacet facet,
+             @NotNull RenderService renderService,
              @NotNull Configuration configuration,
              @NotNull RenderLogger logger,
              @NotNull LayoutLibrary layoutLib,
@@ -122,9 +123,6 @@ public class RenderTask {
     myCredential = credential;
     myCrashReporter = crashReporter;
     myImagePool = imagePool;
-
-    AndroidFacet facet = renderService.getFacet();
-    Module module = facet.getModule();
     myAssetRepository = new AssetRepositoryImpl(facet);
     myHardwareConfigHelper = new HardwareConfigHelper(device);
 
@@ -135,6 +133,7 @@ public class RenderTask {
     myLayoutLib = layoutLib;
     LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(facet);
     ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
+    Module module = facet.getModule();
     myLayoutlibCallback =
         new LayoutlibCallbackImpl(this, myLayoutLib, appResources, module, facet, myLogger, myCredential, actionBarHandler, parserFactory);
     if (ResourceIdManager.get(module).getFinalIdsUsed()) {
@@ -142,11 +141,11 @@ public class RenderTask {
     }
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(facet);
     myLocale = configuration.getLocale();
-    myContext = new RenderTaskContext(renderService.getProject(),
+    myContext = new RenderTaskContext(module.getProject(),
                                       module,
                                       configuration,
                                       moduleInfo,
-                                      renderService.getPlatform());
+                                      renderService.getPlatform(facet));
   }
 
   public void setXmlFile(@NotNull XmlFile file) {

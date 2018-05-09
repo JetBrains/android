@@ -18,15 +18,16 @@ package com.android.tools.idea.rendering;
 import com.android.tools.idea.configurations.Configuration;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 public class RenderTaskTestUtil {
   private static final String DEFAULT_THEME_STYLE = "@android:style/Theme.Holo";
 
   @NotNull
-  public static RenderTask createRenderTask(@NotNull Module module, @NotNull VirtualFile file) {
+  public static RenderTask createRenderTask(@NotNull AndroidFacet facet, @NotNull VirtualFile file) {
     Configuration
-      configuration = RenderTestUtil.getConfiguration(module, file, RenderTestUtil.DEFAULT_DEVICE_ID, DEFAULT_THEME_STYLE);
-    return RenderTestUtil.createRenderTask(module, file, configuration);
+      configuration = RenderTestUtil.getConfiguration(facet.getModule(), file, RenderTestUtil.DEFAULT_DEVICE_ID, DEFAULT_THEME_STYLE);
+    return RenderTestUtil.createRenderTask(facet, file, configuration);
   }
 }

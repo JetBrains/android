@@ -165,10 +165,9 @@ public class ViewEditorImpl extends ViewEditor {
 
       NlModel model = myModel;
       XmlFile xmlFile = model.getFile();
-      AndroidFacet facet = model.getFacet();
-      RenderService renderService = RenderService.getInstance(facet);
-      RenderLogger logger = renderService.createLogger();
-      final RenderTask task = renderService.createTask(xmlFile, getConfiguration(), logger, null);
+      Module module = model.getModule();
+      RenderService renderService = RenderService.getInstance(module.getProject());
+      final RenderTask task = renderService.createTask(model.getFacet(), xmlFile, getConfiguration(), null);
       if (task == null) {
         return null;
       }

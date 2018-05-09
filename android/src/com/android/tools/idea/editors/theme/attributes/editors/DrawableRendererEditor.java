@@ -61,9 +61,9 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
   public static RenderTask configureRenderTask(@NotNull final Module module, @NotNull final Configuration configuration) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assert facet != null;
-    final RenderService service = RenderService.getInstance(facet);
+    final RenderService service = RenderService.getInstance(module.getProject());
     RenderLogger logger = new RenderLogger("ThemeEditorLogger", null);
-    RenderTask task = service.createTask(null, configuration, logger, null);
+    RenderTask task = service.createTask(facet, null, configuration, logger, null);
     assert task != null;
     task.getLayoutlibCallback().setLogger(logger);
     return task;
