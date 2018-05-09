@@ -26,7 +26,9 @@ import com.android.tools.profilers.sessions.SessionsManager;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
@@ -69,6 +71,14 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
     ProfilerService service = ProfilerService.getInstance(myProject);
     ProfilerClient client = service.getProfilerClient();
     myProfilers = new StudioProfilers(client, new IntellijProfilerServices(myProject));
+
+    // Sets the preferred process. Note the always-false predicate, which prevents the Profilers to immediately starts profiling an app that
+    // is already running.
+    StartupManager.getInstance(project)
+                  .runWhenProjectIsInitialized(
+                    () -> myProfilers.setPreferredProcess(null,
+                                                          getPreferredProcessName(myProject),
+                                                          p -> false));
 
     myIdeProfilerComponents = new IntellijProfilerComponents(myProject, myProfilers.getIdeServices().getFeatureTracker());
     myView = new StudioProfilersView(myProfilers, myIdeProfilerComponents);
@@ -158,6 +168,17 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
 
   public JComponent getComponent() {
     return myLayeredPane;
+  }
+
+  @Nullable
+  private static String getPreferredProcessName(@NotNull Project project) {
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      String moduleName = getModuleName(module);
+      if (moduleName != null) {
+        return moduleName;
+      }
+    }
+    return null;
   }
 
   @Nullable
