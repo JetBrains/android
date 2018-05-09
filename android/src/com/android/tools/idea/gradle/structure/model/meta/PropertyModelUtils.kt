@@ -19,6 +19,8 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
+import com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil
+import com.intellij.pom.java.LanguageLevel
 import java.io.File
 
 fun ResolvedPropertyModel.asString(): String? = when (valueType) {
@@ -45,6 +47,9 @@ fun ResolvedPropertyModel.asFile(): File? = when (valueType) {
   else -> null
 }
 
+fun ResolvedPropertyModel.asLanguageLevel(): LanguageLevel? =
+  getValue(GradlePropertyModel.STRING_TYPE)?.let { LanguageLevelUtil.parseFromGradleString(it) }
+
 /**
  * Returns [Unit] if the property is not null and returns [null] otherwise.
  */
@@ -52,6 +57,9 @@ fun ResolvedPropertyModel.asUnit(): Unit? = when (valueType) {
   ValueType.NONE -> null
   else -> Unit
 }
+
+fun ResolvedPropertyModel.setLanguageLevel(value: LanguageLevel) =
+  setValue(LanguageLevelUtil.convertToGradleString(value, getValue(GradlePropertyModel.STRING_TYPE)))
 
 fun ResolvedPropertyModel.clear() = unresolvedModel.delete()
 fun ResolvedPropertyModel.dslText(): DslText? {

@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.structure.model.android
 import com.android.ide.common.gradle.model.IdeAndroidProject
 import com.android.sdklib.AndroidTargetHash
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil
 import com.android.tools.idea.gradle.structure.model.helpers.*
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.pom.java.LanguageLevel
@@ -56,7 +58,7 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidPro
     "Source Compatibility",
     getResolvedValue = { LanguageLevel.parse(javaCompileOptions.sourceCompatibility) },
     getParsedProperty = { compileOptions().sourceCompatibility() },
-    getter = { toLanguageLevel() },
+    getter = { asLanguageLevel() },
     setter = { setLanguageLevel(it) },
     parse = ::parseLanguageLevel,
     format = ::formatLanguageLevel,
@@ -67,7 +69,7 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidPro
     "Target Compatibility",
     getResolvedValue = { LanguageLevel.parse(javaCompileOptions.targetCompatibility) },
     getParsedProperty = { compileOptions().targetCompatibility() },
-    getter = { toLanguageLevel() },
+    getter = { asLanguageLevel() },
     setter = { setLanguageLevel(it) },
     parse = ::parseLanguageLevel,
     format = ::formatLanguageLevel,
