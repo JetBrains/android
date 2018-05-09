@@ -15,28 +15,26 @@
  */
 package com.android.tools.idea.tests.gui.kotlin;
 
-import com.android.tools.idea.tests.gui.emulator.DeleteAvdsRule;
-import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import com.android.tools.idea.tests.gui.framework.fixture.ConfigureKotlinDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPanelFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
 
-import static com.android.tools.idea.tests.gui.kotlin.ProjectWithKotlinTestUtil.createKotlinFileAndClassAndVerify;
+import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class AddKotlinTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  private final EmulatorTestRule emulator = new EmulatorTestRule();
-  @Rule public final RuleChain emulatorRules = RuleChain
-    .outerRule(new DeleteAvdsRule())
-    .around(emulator);
+
   private static final String PROJECT_DIR_NAME = "LinkProjectWithKotlin";
   private static final String PACKAGE_NAME = "com.android.linkprojectwithkotlin";
 
@@ -67,6 +65,52 @@ public class AddKotlinTest {
   @Test
   @RunIn(TestGroup.SANITY)
   public void addKotlinClass() throws Exception {
-    createKotlinFileAndClassAndVerify(PROJECT_DIR_NAME, PACKAGE_NAME, false, guiTest, emulator);
+    IdeFrameFixture ideFrameFixture =
+      guiTest.importProjectAndWaitForProjectSyncToFinish(PROJECT_DIR_NAME);
+
+    ProjectViewFixture.PaneFixture projectPane = ideFrameFixture.getProjectView().selectProjectPane();
+
+    ProjectWithKotlinTestUtil.newKotlinFileAndClass(
+      projectPane,
+      ideFrameFixture,
+      PROJECT_DIR_NAME,
+      PACKAGE_NAME,
+      ProjectWithKotlinTestUtil.CLASS_NAME,
+      "Class");
+    ProjectWithKotlinTestUtil.newKotlinFileAndClass(projectPane,
+      ideFrameFixture,
+      PROJECT_DIR_NAME,
+      PACKAGE_NAME,
+      ProjectWithKotlinTestUtil.FILE_NAME,
+      "File");
+    ProjectWithKotlinTestUtil.newKotlinFileAndClass(projectPane,
+      ideFrameFixture,
+      PROJECT_DIR_NAME,
+      PACKAGE_NAME,
+      ProjectWithKotlinTestUtil.INTERFACE_NAME,
+      "Interface");
+    ProjectWithKotlinTestUtil.newKotlinFileAndClass(projectPane,
+      ideFrameFixture,
+      PROJECT_DIR_NAME,
+      PACKAGE_NAME,
+      ProjectWithKotlinTestUtil.ENUM_NAME,
+      "Enum class");
+    ProjectWithKotlinTestUtil.newKotlinFileAndClass(projectPane,
+      ideFrameFixture,
+      PROJECT_DIR_NAME,
+      PACKAGE_NAME,
+      ProjectWithKotlinTestUtil.OBJECT_NAME,
+      "Object");
+
+    EditorNotificationPanelFixture editorNotificationPanelFixture =
+      ideFrameFixture.getEditor().awaitNotification("Kotlin not configured");
+    editorNotificationPanelFixture.performActionWithoutWaitingForDisappearance("Configure");
+
+    // As default, "All modules containing Kotlin files" option is selected for now.
+    ConfigureKotlinDialogFixture.find(ideFrameFixture)
+                                .clickOk();
+    ideFrameFixture.requestProjectSync();
+
+    assertThat(ideFrameFixture.invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 }
