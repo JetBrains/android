@@ -16,25 +16,28 @@
 package com.android.tools.datastore.database;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.datastore.LogService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.protobuf3jarjar.InvalidProtocolBufferException;
-import com.intellij.openapi.diagnostic.Logger;
 import gnu.trove.TLongHashSet;
-import gnu.trove.TLongObjectHashMap;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.*;
 
 public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocationTable.MemoryStatements> {
+  @NotNull private final LogService myLogService;
+
   public enum MemoryStatements {
     INSERT_CLASS("INSERT OR IGNORE INTO Memory_AllocatedClass (Session, Tag, AllocTime, Name) VALUES (?, ?, ?, ?)"),
     INSERT_ALLOC("INSERT OR IGNORE INTO Memory_AllocationEvents " +
@@ -128,8 +131,13 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
   private int myAllocationCountLimit = 5000000;
   private final static byte[] EMPTY_BYTE_ARRAY = new byte[0];
 
-  private static Logger getLogger() {
-    return Logger.getInstance(MemoryLiveAllocationTable.class);
+  @NotNull
+  private LogService.Logger getLogger() {
+    return myLogService.getLogger(MemoryLiveAllocationTable.class);
+  }
+
+  public MemoryLiveAllocationTable(@NotNull LogService logService) {
+    myLogService = logService;
   }
 
   @Override
@@ -194,11 +202,14 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       long timestamp = Long.MIN_VALUE;
       while (allocResult.next()) {
         long allocTime = allocResult.getLong(3);
-        MemoryProfiler.AllocationEvent event = MemoryProfiler.AllocationEvent.newBuilder()
+        MemoryProfiler.AllocationEvent event = MemoryProfiler.AllocationEvent
+          .newBuilder()
           .setAllocData(
-            MemoryProfiler.AllocationEvent.Allocation.newBuilder().setTag(allocResult.getInt(1)).setClassTag(allocResult.getInt(2))
-              .setSize(allocResult.getLong(4)).setLength(allocResult.getInt(5)).setThreadId(allocResult.getInt(6))
-              .setStackId(allocResult.getInt(7)).setHeapId(allocResult.getInt(8)).build())
+            MemoryProfiler.AllocationEvent.Allocation
+              .newBuilder().setTag(allocResult.getInt(1)).setClassTag(allocResult.getInt(2))
+              .setSize(allocResult.getLong(4)).setLength(allocResult.getInt(5))
+              .setThreadId(allocResult.getInt(6)).setStackId(allocResult.getInt(7))
+              .setHeapId(allocResult.getInt(8)).build())
           .setTimestamp(allocTime).build();
         sampleBuilder.addEvents(event);
         timestamp = Math.max(timestamp, allocTime);
@@ -221,11 +232,13 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
 
       while (allocResult.next()) {
         long allocTime = allocResult.getLong(3);
-        MemoryProfiler.AllocationEvent event = MemoryProfiler.AllocationEvent.newBuilder()
+        MemoryProfiler.AllocationEvent event = MemoryProfiler.AllocationEvent
+          .newBuilder()
           .setAllocData(
-            MemoryProfiler.AllocationEvent.Allocation.newBuilder().setTag(allocResult.getInt(1)).setClassTag(allocResult.getInt(2))
-              .setSize(allocResult.getLong(5)).setLength(allocResult.getInt(6)).setThreadId(allocResult.getInt(7))
-              .setStackId(allocResult.getInt(8)).setHeapId(allocResult.getInt(9)).build())
+            MemoryProfiler.AllocationEvent.Allocation
+              .newBuilder().setTag(allocResult.getInt(1)).setClassTag(allocResult.getInt(2)).setSize(allocResult.getLong(5))
+              .setLength(allocResult.getInt(6)).setThreadId(allocResult.getInt(7)).setStackId(allocResult.getInt(8))
+              .setHeapId(allocResult.getInt(9)).build())
           .setTimestamp(allocTime).build();
         sampleBuilder.addEvents(event);
         timestamp = Math.max(timestamp, allocTime);
@@ -234,11 +247,13 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       ResultSet freeResult = executeQuery(QUERY_ALLOC_BY_FREE_TIME, session.getSessionId(), startTime, endTime);
       while (freeResult.next()) {
         long freeTime = freeResult.getLong(4);
-        MemoryProfiler.AllocationEvent event = MemoryProfiler.AllocationEvent.newBuilder()
-          .setFreeData(
-            MemoryProfiler.AllocationEvent.Deallocation.newBuilder().setTag(freeResult.getInt(1)).setClassTag(freeResult.getInt(2))
-              .setSize(freeResult.getLong(5)).setLength(freeResult.getInt(6)).setThreadId(freeResult.getInt(7))
-              .setStackId(freeResult.getInt(8)).setHeapId(freeResult.getInt(9)).build())
+        MemoryProfiler.AllocationEvent event = MemoryProfiler.AllocationEvent
+          .newBuilder().setFreeData(
+            MemoryProfiler.AllocationEvent.Deallocation
+              .newBuilder().setTag(freeResult.getInt(1)).setClassTag(freeResult.getInt(2)).setSize(freeResult.getLong(5))
+              .setLength(freeResult.getInt(6)).setThreadId(freeResult.getInt(7)).setStackId(freeResult.getInt(8))
+              .setHeapId(freeResult.getInt(9))
+              .build())
           .setTimestamp(freeTime).build();
         sampleBuilder.addEvents(event);
         timestamp = Math.max(timestamp, freeTime);
@@ -306,7 +321,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
           // Instead, they will be fetched on demand as needed by the UI.
           AllocationStack.SmallFrame frame =
             AllocationStack.SmallFrame.newBuilder().setMethodId(encodedStack.getMethodIds(i)).setLineNumber(encodedStack.getLineNumbers(i))
-              .build();
+                                      .build();
           frameBuilder.addFrames(frame);
         }
         stackBuilder.setSmallStack(frameBuilder);
@@ -521,7 +536,8 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     try {
       ResultSet result = executeQuery(QUERY_NATIVE_FRAMES_TO_SYMBOLIZE, session.getSessionId(), maxCount);
       while (result.next()) {
-        NativeCallStack.NativeFrame frame = NativeCallStack.NativeFrame.newBuilder()
+        NativeCallStack.NativeFrame frame = NativeCallStack.NativeFrame
+          .newBuilder()
           .setModuleName(result.getString("Module"))
           .setModuleOffset(result.getLong("Offset"))
           .setAddress(result.getLong("Address"))
@@ -721,7 +737,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
    * Converts jni class names into java names
    * e.g. Ljava/lang/String; -> java.lang.String
    * e.g. [[Ljava/lang/Object; -> java.lang.Object[][]
-   *
+   * <p>
    * JNI primitive type names are converted too
    * e.g. Z -> boolean
    */

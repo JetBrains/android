@@ -66,6 +66,7 @@ public class EventService extends EventServiceGrpc.EventServiceImplBase implemen
    * This function responds with a stream of activities and the state changes for the activities within a given range.
    * Note if the caller request activities for range X to Y. The response will return all activities in range X to Y in addition
    * to at most {@link INCLUDED_STATE_CHANGES_BEFORE_START_COUNT} states before X.
+   *
    * @param request
    * @param responseObserver
    */

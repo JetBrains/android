@@ -51,36 +51,31 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   private static final long BASE_TIME_NS = TimeUnit.DAYS.toNanos(1);
   private static final long ONE_SECOND_MS = TimeUnit.SECONDS.toMillis(1);
   private static final long TEN_SECONDS_MS = TimeUnit.SECONDS.toMillis(10);
-  private static final GetThreadsResponse.Thread THREAD1 = GetThreadsResponse.Thread.newBuilder()
+  private static final GetThreadsResponse.Thread THREAD1 = GetThreadsResponse.Thread
+    .newBuilder()
     .setTid(THREAD_ID)
     .setName(THREAD_NAME)
-    .addActivities(GetThreadsResponse.ThreadActivity.newBuilder()
-                     .setNewState(GetThreadsResponse.State.WAITING)
-                     .setTimestamp(delayFromBase(0))
-                     .build())
-    .addActivities(GetThreadsResponse.ThreadActivity.newBuilder()
-                     .setNewState(GetThreadsResponse.State.RUNNING)
-                     .setTimestamp(delayFromBase(4))
-                     .build())
-    .addActivities(GetThreadsResponse.ThreadActivity.newBuilder()
-                     .setNewState(GetThreadsResponse.State.STOPPED)
-                     .setTimestamp(delayFromBase(5))
-                     .build())
-    .addActivities(GetThreadsResponse.ThreadActivity.newBuilder()
-                     .setNewState(GetThreadsResponse.State.DEAD)
-                     .setTimestamp(delayFromBase(15))
-                     .build())
+    .addActivities(
+      GetThreadsResponse.ThreadActivity
+        .newBuilder().setNewState(GetThreadsResponse.State.WAITING).setTimestamp(delayFromBase(0)).build())
+    .addActivities(
+      GetThreadsResponse.ThreadActivity
+        .newBuilder().setNewState(GetThreadsResponse.State.RUNNING).setTimestamp(delayFromBase(4)).build())
+    .addActivities(
+      GetThreadsResponse.ThreadActivity
+        .newBuilder().setNewState(GetThreadsResponse.State.STOPPED).setTimestamp(delayFromBase(5)).build())
+    .addActivities(
+      GetThreadsResponse.ThreadActivity
+        .newBuilder().setNewState(GetThreadsResponse.State.DEAD).setTimestamp(delayFromBase(15)).build())
     .build();
-  private static final GetThreadsResponse.Thread THREAD2 = GetThreadsResponse.Thread.newBuilder()
-    .setTid(THREAD_ID_2)
-    .setName(THREAD_NAME_2)
-    .addActivities(GetThreadsResponse.ThreadActivity.newBuilder()
-                     .setNewState(GetThreadsResponse.State.RUNNING)
-                     .setTimestamp(delayFromBase(3))
-                     .build())
+  private static final GetThreadsResponse.Thread THREAD2 = GetThreadsResponse.Thread
+    .newBuilder().setTid(THREAD_ID_2).setName(THREAD_NAME_2).addActivities(
+      GetThreadsResponse.ThreadActivity
+        .newBuilder().setNewState(GetThreadsResponse.State.RUNNING).setTimestamp(delayFromBase(3)).build())
     .build();
 
-  private static final CpuUsageData CPU_USAGE_DATA = CpuUsageData.newBuilder()
+  private static final CpuUsageData CPU_USAGE_DATA = CpuUsageData
+    .newBuilder()
     .setAppCpuTimeInMillisec(ONE_SECOND_MS)
     .setElapsedTimeInMillisec(TEN_SECONDS_MS)
     .setSystemCpuTimeInMillisec(ONE_SECOND_MS * 2)
@@ -130,14 +125,9 @@ public class CpuDataPollerTest extends DataStorePollerTest {
 
   @Test
   public void testGetDataInRange() {
-    CpuDataRequest request = CpuDataRequest.newBuilder()
-      .setSession(SESSION)
-      .setStartTimestamp(0)
-      .setEndTimestamp(delayFromBase(10))
-      .build();
-    CpuDataResponse expectedResponse = CpuDataResponse.newBuilder()
-      .addData(CPU_USAGE_DATA)
-      .build();
+    CpuDataRequest request = CpuDataRequest
+      .newBuilder().setSession(SESSION).setStartTimestamp(0).setEndTimestamp(delayFromBase(10)).build();
+    CpuDataResponse expectedResponse = CpuDataResponse.newBuilder().addData(CPU_USAGE_DATA).build();
     StreamObserver<CpuDataResponse> observer = mock(StreamObserver.class);
     myCpuService.getData(request, observer);
     validateResponse(observer, expectedResponse);
@@ -147,11 +137,8 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   public void testGetDataCachedResponse() {
     StreamObserver<CpuDataResponse> observer = mock(StreamObserver.class);
 
-    CpuDataRequest request = CpuDataRequest.newBuilder()
-      .setSession(SESSION)
-      .setStartTimestamp(BASE_TIME_NS)
-      .setEndTimestamp(delayFromBase(20))
-      .build();
+    CpuDataRequest request = CpuDataRequest
+      .newBuilder().setSession(SESSION).setStartTimestamp(BASE_TIME_NS).setEndTimestamp(delayFromBase(20)).build();
     // Workaround to modify the expected response inside doAnswer.
     CpuDataResponse[] expectedResponse = new CpuDataResponse[1];
     doAnswer(invocation -> {
@@ -165,11 +152,8 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     myCpuService.getData(request, observer);
 
     // Create a different request with the same arguments of the previous one.
-    CpuDataRequest request2 = CpuDataRequest.newBuilder()
-      .setSession(SESSION)
-      .setStartTimestamp(BASE_TIME_NS)
-      .setEndTimestamp(delayFromBase(20))
-      .build();
+    CpuDataRequest request2 = CpuDataRequest
+      .newBuilder().setSession(SESSION).setStartTimestamp(BASE_TIME_NS).setEndTimestamp(delayFromBase(20)).build();
     doAnswer(invocation -> {
       // invocation.getArguments() should have just a CpuDataResponse in its arguments.
       assertTrue(invocation.getArguments().length == 1);
@@ -181,11 +165,8 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     myCpuService.getData(request2, observer);
 
     // Create yet another request with some different arguments than the previous ones.
-    CpuDataRequest request3 = CpuDataRequest.newBuilder()
-      .setSession(SESSION)
-      .setStartTimestamp(BASE_TIME_NS)
-      .setEndTimestamp(delayFromBase(21))
-      .build();
+    CpuDataRequest request3 = CpuDataRequest
+      .newBuilder().setSession(SESSION).setStartTimestamp(BASE_TIME_NS).setEndTimestamp(delayFromBase(21)).build();
     doAnswer(invocation -> {
       // invocation.getArguments() should have just a CpuDataResponse in its arguments.
       assertTrue(invocation.getArguments().length == 1);
@@ -199,13 +180,10 @@ public class CpuDataPollerTest extends DataStorePollerTest {
 
   @Test
   public void testGetDataExcludeStart() {
-    CpuDataRequest request = CpuDataRequest.newBuilder()
-      .setSession(SESSION)
-      .setStartTimestamp(delayFromBase(11))
-      .setEndTimestamp(Long.MAX_VALUE)
-      .build();
+    CpuDataRequest request = CpuDataRequest
+      .newBuilder().setSession(SESSION).setStartTimestamp(delayFromBase(11)).setEndTimestamp(Long.MAX_VALUE).build();
     CpuDataResponse expectedResponse = CpuDataResponse.newBuilder()
-      .build();
+                                                      .build();
     StreamObserver<CpuDataResponse> observer = mock(StreamObserver.class);
     myCpuService.getData(request, observer);
     validateResponse(observer, expectedResponse);
@@ -214,26 +192,18 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   @Test
   public void traceProfilerTypeShouldBeCorrectlySet() {
     CpuProfilerType traceType = CpuProfilerType.SIMPLEPERF;
-    CpuProfilingAppStartRequest startRequest = CpuProfilingAppStartRequest.newBuilder()
-      .setConfiguration(CpuProfilerConfiguration.newBuilder().setProfilerType(traceType))
-      .build();
+    CpuProfilingAppStartRequest startRequest = CpuProfilingAppStartRequest
+      .newBuilder().setConfiguration(CpuProfilerConfiguration.newBuilder().setProfilerType(traceType)).build();
     StreamObserver<CpuProfilingAppStartResponse> startObserver = mock(StreamObserver.class);
     myCpuService.startProfilingApp(startRequest, startObserver);
-    CpuProfilingAppStopRequest stopRequest = CpuProfilingAppStopRequest.newBuilder()
-      .setProfilerType(traceType)
-      .build();
+    CpuProfilingAppStopRequest stopRequest = CpuProfilingAppStopRequest.newBuilder().setProfilerType(traceType).build();
     StreamObserver<CpuProfilingAppStopResponse> stopObserver = mock(StreamObserver.class);
     myFakeCpuService.setStopProfilingAppStatus(CpuProfilingAppStopResponse.Status.SUCCESS);
     myCpuService.stopProfilingApp(stopRequest, stopObserver);
 
-    GetTraceRequest request = GetTraceRequest.newBuilder()
-      .setTraceId(TRACE_ID)
-      .build();
-    GetTraceResponse expectedResponse = GetTraceResponse.newBuilder()
-      .setStatus(GetTraceResponse.Status.SUCCESS)
-      .setData(TRACE_DATA)
-      .setProfilerType(traceType)
-      .build();
+    GetTraceRequest request = GetTraceRequest.newBuilder().setTraceId(TRACE_ID).build();
+    GetTraceResponse expectedResponse = GetTraceResponse
+      .newBuilder().setStatus(GetTraceResponse.Status.SUCCESS).setData(TRACE_DATA).setProfilerType(traceType).build();
     StreamObserver<GetTraceResponse> observer = mock(StreamObserver.class);
     myCpuService.getTrace(request, observer);
     validateResponse(observer, expectedResponse);
@@ -249,12 +219,9 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     myFakeCpuService.setStopProfilingAppStatus(CpuProfilingAppStopResponse.Status.FAILURE);
     myCpuService.stopProfilingApp(stopRequest, stopObserver);
 
-    GetTraceRequest request = GetTraceRequest.newBuilder()
-      .setTraceId(TRACE_ID)
-      .build();
-    GetTraceResponse expectedResponse = GetTraceResponse.newBuilder()
-      .setStatus(GetTraceResponse.Status.FAILURE) // Trace should not be persisted. Therefore, the request should fail
-      .build();
+    GetTraceRequest request = GetTraceRequest.newBuilder().setTraceId(TRACE_ID).build();
+    // Trace should not be persisted. Therefore, the request should fail (failure status).
+    GetTraceResponse expectedResponse = GetTraceResponse.newBuilder().setStatus(GetTraceResponse.Status.FAILURE).build();
     StreamObserver<GetTraceResponse> observer = mock(StreamObserver.class);
     myCpuService.getTrace(request, observer);
     validateResponse(observer, expectedResponse);
@@ -270,13 +237,9 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     myFakeCpuService.setStopProfilingAppStatus(CpuProfilingAppStopResponse.Status.SUCCESS);
     myCpuService.stopProfilingApp(stopRequest, stopObserver);
 
-    GetTraceRequest request = GetTraceRequest.newBuilder()
-      .setTraceId(TRACE_ID)
-      .build();
-    GetTraceResponse expectedResponse = GetTraceResponse.newBuilder()
-      .setStatus(GetTraceResponse.Status.SUCCESS)
-      .setData(TRACE_DATA)
-      .build();
+    GetTraceRequest request = GetTraceRequest.newBuilder().setTraceId(TRACE_ID).build();
+    GetTraceResponse expectedResponse = GetTraceResponse
+      .newBuilder().setStatus(GetTraceResponse.Status.SUCCESS).setData(TRACE_DATA).build();
     StreamObserver<GetTraceResponse> observer = mock(StreamObserver.class);
     myCpuService.getTrace(request, observer);
     validateResponse(observer, expectedResponse);
@@ -284,42 +247,35 @@ public class CpuDataPollerTest extends DataStorePollerTest {
 
   @Test
   public void testGetThreadsInRange() {
-    GetThreadsRequest request = GetThreadsRequest.newBuilder()
-      .setSession(SESSION)
-      .setStartTimestamp(BASE_TIME_NS)
-      .setEndTimestamp(delayFromBase(20))
-      .build();
-    GetThreadsResponse expectedResponse = GetThreadsResponse.newBuilder()
+    GetThreadsRequest request = GetThreadsRequest
+      .newBuilder().setSession(SESSION).setStartTimestamp(BASE_TIME_NS).setEndTimestamp(delayFromBase(20)).build();
+    GetThreadsResponse expectedResponse = GetThreadsResponse
+      .newBuilder()
       // Threads are returned ordered by id
-      .addThreads(GetThreadsResponse.Thread.newBuilder()
-                    .setTid(THREAD_ID_2)
-                    .setName(THREAD_NAME_2)
-                    // Actual activity
-                    .addActivities(GetThreadsResponse.ThreadActivity.newBuilder()
-                                     .setNewState(GetThreadsResponse.State.RUNNING)
-                                     .setTimestamp(delayFromBase(3))
-                                     .build())
-                    .build())
-      .addThreads(GetThreadsResponse.Thread.newBuilder()
-                    .setTid(THREAD_ID)
-                    .setName(THREAD_NAME)
-                    .addActivities(GetThreadsResponse.ThreadActivity.newBuilder()
-                                     .setNewState(GetThreadsResponse.State.WAITING)
-                                     .setTimestamp(delayFromBase(0))
-                                     .build())
-                    .addActivities(GetThreadsResponse.ThreadActivity.newBuilder()
-                                     .setNewState(GetThreadsResponse.State.RUNNING)
-                                     .setTimestamp(delayFromBase(4))
-                                     .build())
-                    .addActivities(GetThreadsResponse.ThreadActivity.newBuilder()
-                                     .setNewState(GetThreadsResponse.State.STOPPED)
-                                     .setTimestamp(delayFromBase(5))
-                                     .build())
-                    .addActivities(GetThreadsResponse.ThreadActivity.newBuilder()
-                                     .setNewState(GetThreadsResponse.State.DEAD)
-                                     .setTimestamp(delayFromBase(15))
-                                     .build())
-                    .build())
+      .addThreads(
+        GetThreadsResponse.Thread
+          .newBuilder().setTid(THREAD_ID_2).setName(THREAD_NAME_2)
+          // Actual activity
+          .addActivities(
+            GetThreadsResponse.ThreadActivity
+              .newBuilder().setNewState(GetThreadsResponse.State.RUNNING).setTimestamp(delayFromBase(3)).build())
+          .build())
+      .addThreads(
+        GetThreadsResponse.Thread
+          .newBuilder().setTid(THREAD_ID).setName(THREAD_NAME)
+          .addActivities(
+            GetThreadsResponse.ThreadActivity
+              .newBuilder().setNewState(GetThreadsResponse.State.WAITING).setTimestamp(delayFromBase(0)).build())
+          .addActivities(
+            GetThreadsResponse.ThreadActivity
+              .newBuilder().setNewState(GetThreadsResponse.State.RUNNING).setTimestamp(delayFromBase(4)).build())
+          .addActivities(
+            GetThreadsResponse.ThreadActivity
+              .newBuilder().setNewState(GetThreadsResponse.State.STOPPED).setTimestamp(delayFromBase(5)).build())
+          .addActivities(
+            GetThreadsResponse.ThreadActivity
+              .newBuilder().setNewState(GetThreadsResponse.State.DEAD).setTimestamp(delayFromBase(15)).build())
+          .build())
       .build();
     StreamObserver<GetThreadsResponse> observer = mock(StreamObserver.class);
     myCpuService.getThreads(request, observer);
@@ -330,11 +286,8 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   public void testGetThreadsCachedResponse() {
     StreamObserver<GetThreadsResponse> observer = mock(StreamObserver.class);
 
-    GetThreadsRequest request = GetThreadsRequest.newBuilder()
-      .setSession(SESSION)
-      .setStartTimestamp(BASE_TIME_NS)
-      .setEndTimestamp(delayFromBase(20))
-      .build();
+    GetThreadsRequest request = GetThreadsRequest
+      .newBuilder().setSession(SESSION).setStartTimestamp(BASE_TIME_NS).setEndTimestamp(delayFromBase(20)).build();
     // Workaround to modify the expected response inside doAnswer.
     GetThreadsResponse[] expectedResponse = new GetThreadsResponse[1];
     doAnswer(invocation -> {
@@ -348,11 +301,8 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     myCpuService.getThreads(request, observer);
 
     // Create a different request with the same arguments of the previous one.
-    GetThreadsRequest request2 = GetThreadsRequest.newBuilder()
-      .setSession(SESSION)
-      .setStartTimestamp(BASE_TIME_NS)
-      .setEndTimestamp(delayFromBase(20))
-      .build();
+    GetThreadsRequest request2 = GetThreadsRequest
+      .newBuilder().setSession(SESSION).setStartTimestamp(BASE_TIME_NS).setEndTimestamp(delayFromBase(20)).build();
     doAnswer(invocation -> {
       // invocation.getArguments() should have just a GetThreadsResponse in its arguments.
       assertTrue(invocation.getArguments().length == 1);
@@ -364,11 +314,8 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     myCpuService.getThreads(request2, observer);
 
     // Create yet another request with some different arguments than the previous ones.
-    GetThreadsRequest request3 = GetThreadsRequest.newBuilder()
-      .setSession(SESSION)
-      .setStartTimestamp(BASE_TIME_NS)
-      .setEndTimestamp(delayFromBase(21))
-      .build();
+    GetThreadsRequest request3 = GetThreadsRequest
+      .newBuilder().setSession(SESSION).setStartTimestamp(BASE_TIME_NS).setEndTimestamp(delayFromBase(21)).build();
     doAnswer(invocation -> {
       // invocation.getArguments() should have just a GetThreadsResponse in its arguments.
       assertTrue(invocation.getArguments().length == 1);
@@ -384,23 +331,25 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   public void getDeadThreadBeforeRange() {
     long startTimestamp = delayFromBase(20);
     GetThreadsRequest request = GetThreadsRequest.newBuilder()
-      .setSession(SESSION)
-      .setStartTimestamp(startTimestamp)
-      .setEndTimestamp(delayFromBase(40))
-      .build();
-    GetThreadsResponse expectedResponse = GetThreadsResponse.newBuilder()
+                                                 .setSession(SESSION)
+                                                 .setStartTimestamp(startTimestamp)
+                                                 .setEndTimestamp(delayFromBase(40))
+                                                 .build();
+    GetThreadsResponse expectedResponse = GetThreadsResponse
+      .newBuilder()
       // THREAD_ID is not returned because it died before the requested range start
-      .addThreads(GetThreadsResponse.Thread.newBuilder()
-                    .setTid(THREAD_ID_2)
-                    .setName(THREAD_NAME_2)
-                    .addActivities(GetThreadsResponse.ThreadActivity.newBuilder()
-                                     .setNewState(GetThreadsResponse.State.RUNNING)
-                                     // As there was no activity during the request range, the state of the thread
-                                     // in the last initial states snapshot is set to the start timestamp of the
-                                     // request.
-                                     .setTimestamp(startTimestamp)
-                                     .build())
-                    .build())
+      .addThreads(
+        GetThreadsResponse.Thread
+          .newBuilder().setTid(THREAD_ID_2).setName(THREAD_NAME_2).addActivities(
+          GetThreadsResponse.ThreadActivity
+            .newBuilder()
+            .setNewState(GetThreadsResponse.State.RUNNING)
+            // As there was no activity during the request range, the state of the thread
+            // in the last initial states snapshot is set to the start timestamp of the
+            // request.
+            .setTimestamp(startTimestamp)
+            .build())
+          .build())
       .build();
     StreamObserver<GetThreadsResponse> observer = mock(StreamObserver.class);
     myCpuService.getThreads(request, observer);
@@ -409,25 +358,18 @@ public class CpuDataPollerTest extends DataStorePollerTest {
 
   @Test
   public void testGetTraceInfo() {
-    SaveTraceInfoRequest saveRequest = SaveTraceInfoRequest.newBuilder()
+    SaveTraceInfoRequest saveRequest = SaveTraceInfoRequest
+      .newBuilder()
       .setSession(SESSION)
-      .setTraceInfo(TraceInfo.newBuilder()
-                      .setFromTimestamp(BASE_TIME_NS)
-                      .setToTimestamp(BASE_TIME_NS)
-                      .setTraceId(TRACE_ID))
+      .setTraceInfo(TraceInfo.newBuilder().setFromTimestamp(BASE_TIME_NS).setToTimestamp(BASE_TIME_NS).setTraceId(TRACE_ID))
       .build();
     myCpuService.saveTraceInfo(saveRequest, mock(StreamObserver.class));
 
-    GetTraceInfoRequest request = GetTraceInfoRequest.newBuilder()
-      .setSession(SESSION)
-      .setFromTimestamp(BASE_TIME_NS)
-      .setToTimestamp(Long.MAX_VALUE)
-      .build();
-    GetTraceInfoResponse expectedResponse = GetTraceInfoResponse.newBuilder()
-      .addTraceInfo(TraceInfo.newBuilder()
-                      .setFromTimestamp(BASE_TIME_NS)
-                      .setToTimestamp(BASE_TIME_NS)
-                      .setTraceId(TRACE_ID))
+    GetTraceInfoRequest request = GetTraceInfoRequest
+      .newBuilder().setSession(SESSION).setFromTimestamp(BASE_TIME_NS).setToTimestamp(Long.MAX_VALUE).build();
+    GetTraceInfoResponse expectedResponse = GetTraceInfoResponse
+      .newBuilder().addTraceInfo(
+        TraceInfo.newBuilder().setFromTimestamp(BASE_TIME_NS).setToTimestamp(BASE_TIME_NS).setTraceId(TRACE_ID))
       .build();
     StreamObserver<GetTraceInfoResponse> observer = mock(StreamObserver.class);
     myCpuService.getTraceInfo(request, observer);
@@ -438,11 +380,8 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   public void testGetTraceInfoCachedResponse() {
     StreamObserver<GetTraceInfoResponse> observer = mock(StreamObserver.class);
 
-    GetTraceInfoRequest request = GetTraceInfoRequest.newBuilder()
-      .setSession(SESSION)
-      .setFromTimestamp(BASE_TIME_NS)
-      .setToTimestamp(delayFromBase(20))
-      .build();
+    GetTraceInfoRequest request = GetTraceInfoRequest
+      .newBuilder().setSession(SESSION).setFromTimestamp(BASE_TIME_NS).setToTimestamp(delayFromBase(20)).build();
     // Workaround to modify the expected response inside doAnswer.
     GetTraceInfoResponse[] expectedResponse = new GetTraceInfoResponse[1];
     doAnswer(invocation -> {
@@ -456,11 +395,8 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     myCpuService.getTraceInfo(request, observer);
 
     // Create a different request with the same arguments of the previous one.
-    GetTraceInfoRequest request2 = GetTraceInfoRequest.newBuilder()
-      .setSession(SESSION)
-      .setFromTimestamp(BASE_TIME_NS)
-      .setToTimestamp(delayFromBase(20))
-      .build();
+    GetTraceInfoRequest request2 = GetTraceInfoRequest
+      .newBuilder().setSession(SESSION).setFromTimestamp(BASE_TIME_NS).setToTimestamp(delayFromBase(20)).build();
     doAnswer(invocation -> {
       // invocation.getArguments() should have just a GetTraceInfoResponse in its arguments.
       assertTrue(invocation.getArguments().length == 1);
@@ -472,11 +408,8 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     myCpuService.getTraceInfo(request2, observer);
 
     // Create yet another request with some different arguments than the previous ones.
-    GetTraceInfoRequest request3 = GetTraceInfoRequest.newBuilder()
-      .setSession(SESSION)
-      .setFromTimestamp(BASE_TIME_NS)
-      .setToTimestamp(delayFromBase(21))
-      .build();
+    GetTraceInfoRequest request3 = GetTraceInfoRequest
+      .newBuilder().setSession(SESSION).setFromTimestamp(BASE_TIME_NS).setToTimestamp(delayFromBase(21)).build();
     doAnswer(invocation -> {
       // invocation.getArguments() should have just a GetTraceInfoResponse in its arguments.
       assertTrue(invocation.getArguments().length == 1);
@@ -501,10 +434,8 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     // myLastCheckBeingProfiledTimestamp starts at 1 and is incremented each time checkAppProfilingState is called.
     // We called it once when startMonitoringApp and another time when calling getPollTicker().run().
     int expectedTimestamp = 2;
-    ProfilingStateResponse expectedResponse = ProfilingStateResponse.newBuilder()
-      .setCheckTimestamp(expectedTimestamp)
-      .setBeingProfiled(true)
-      .build();
+    ProfilingStateResponse expectedResponse = ProfilingStateResponse
+      .newBuilder().setCheckTimestamp(expectedTimestamp).setBeingProfiled(true).build();
 
     ProfilingStateRequest request = ProfilingStateRequest.newBuilder().setSession(SESSION).build();
     StreamObserver<ProfilingStateResponse> observer = mock(StreamObserver.class);
@@ -515,9 +446,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     stopMonitoringApp();
 
     // A response with max timestamp and being_profiled = false should be returned, as the session is ended.
-    expectedResponse = ProfilingStateResponse.newBuilder()
-      .setCheckTimestamp(Long.MAX_VALUE)
-      .build();
+    expectedResponse = ProfilingStateResponse.newBuilder().setCheckTimestamp(Long.MAX_VALUE).build();
     // Sanity check that getBeingProfiled is false. We do that because false is the default value and validateResponse fails if we
     // specify default values in the expected response.
     assertFalse(expectedResponse.getBeingProfiled());
@@ -546,19 +475,15 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     @Override
     public void checkAppProfilingState(ProfilingStateRequest request,
                                        StreamObserver<ProfilingStateResponse> responseObserver) {
-      ProfilingStateResponse response = ProfilingStateResponse.newBuilder()
-        .setCheckTimestamp(myLastCheckBeingProfiledTimestamp++)
-        .setBeingProfiled(myIsBeingProfiled)
-        .build();
+      ProfilingStateResponse response = ProfilingStateResponse
+        .newBuilder().setCheckTimestamp(myLastCheckBeingProfiledTimestamp++).setBeingProfiled(myIsBeingProfiled).build();
       responseObserver.onNext(response);
       responseObserver.onCompleted();
     }
 
     @Override
     public void getData(CpuDataRequest request, StreamObserver<CpuDataResponse> responseObserver) {
-      CpuDataResponse response = CpuDataResponse.newBuilder()
-        .addData(CPU_USAGE_DATA)
-        .build();
+      CpuDataResponse response = CpuDataResponse.newBuilder().addData(CPU_USAGE_DATA).build();
       responseObserver.onNext(response);
       responseObserver.onCompleted();
     }
@@ -610,11 +535,8 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     @Override
     public void stopProfilingApp(CpuProfilingAppStopRequest request,
                                  StreamObserver<CpuProfilingAppStopResponse> responseObserver) {
-      responseObserver.onNext(CpuProfilingAppStopResponse.newBuilder()
-                                .setTraceId(TRACE_ID)
-                                .setTrace(TRACE_DATA)
-                                .setStatus(myStopProfilingAppStatus)
-                                .build());
+      responseObserver.onNext(
+        CpuProfilingAppStopResponse.newBuilder().setTraceId(TRACE_ID).setTrace(TRACE_DATA).setStatus(myStopProfilingAppStatus).build());
       responseObserver.onCompleted();
     }
 

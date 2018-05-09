@@ -15,6 +15,7 @@
  */
 package com.android.tools.datastore.poller;
 
+import com.android.tools.datastore.LogService;
 import com.android.tools.datastore.database.MemoryLiveAllocationTable;
 import com.android.tools.datastore.database.ProfilerTable;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
@@ -23,7 +24,6 @@ import com.android.tools.nativeSymbolizer.Symbol;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.NativeCallStack;
 import com.android.tools.profiler.proto.Profiler;
-import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,6 +40,8 @@ public class NativeSymbolsPoller extends PollRunner {
   private final Common.Session mySession;
   @NotNull
   private final NativeSymbolizer mySymbolizer;
+  @NotNull
+  private final LogService myLogService;
   private final int MAX_SYMBOLS_PER_REQUEST = 1000;
 
   @Nullable
@@ -48,17 +50,19 @@ public class NativeSymbolsPoller extends PollRunner {
   public NativeSymbolsPoller(@NotNull Common.Session session,
                              @NotNull MemoryLiveAllocationTable liveAllocationTable,
                              @NotNull ProfilerTable profilerTable,
-                             @NotNull NativeSymbolizer symbolizer) {
+                             @NotNull NativeSymbolizer symbolizer,
+                             @NotNull LogService logService) {
     super(POLLING_DELAY_NS);
     mySession = session;
     myLiveAllocationTable = liveAllocationTable;
     myProfilerTable = profilerTable;
     mySymbolizer = symbolizer;
+    myLogService = logService;
   }
 
   @Override
   public void poll() {
-    if (mySymbolizer == null || mySymbolizer instanceof NopSymbolizer) {
+    if (mySymbolizer instanceof NopSymbolizer) {
       return;
     }
 
@@ -76,9 +80,7 @@ public class NativeSymbolsPoller extends PollRunner {
 
     for (NativeCallStack.NativeFrame frame : framesToSymbolize) {
       NativeCallStack.NativeFrame symbolizedFrame = symbolize(frame);
-      if (symbolizedFrame != null) {
-        symbolizedFrames.add(symbolizedFrame);
-      }
+      symbolizedFrames.add(symbolizedFrame);
     }
 
     if (!symbolizedFrames.isEmpty()) {
@@ -114,9 +116,9 @@ public class NativeSymbolsPoller extends PollRunner {
       return frame.toBuilder().setSymbolName(unfoundSymbolName).build();
     }
     return frame.toBuilder().setSymbolName(symbol.getName())
-      .setModuleName(symbol.getModule())
-      .setFileName(symbol.getSourceFile())
-      .setLineNumber(symbol.getLineNumber()).build();
+                .setModuleName(symbol.getModule())
+                .setFileName(symbol.getSourceFile())
+                .setLineNumber(symbol.getLineNumber()).build();
   }
 
   private long getOffsetOfPreviousInstruction(long offset) {
@@ -130,7 +132,7 @@ public class NativeSymbolsPoller extends PollRunner {
   }
 
   @NotNull
-  private final static Logger getLogger() {
-    return Logger.getInstance(NativeSymbolsPoller.class.getCanonicalName());
+  private LogService.Logger getLogger() {
+    return myLogService.getLogger(NativeSymbolsPoller.class.getCanonicalName());
   }
 }

@@ -16,10 +16,10 @@
 package com.android.tools.datastore.database;
 
 import com.android.tools.datastore.DataStoreDatabase;
+import com.android.tools.datastore.FakeLogService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
-import com.intellij.openapi.util.io.FileUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,8 +47,8 @@ public class CpuTableTest {
 
   @Before
   public void setUp() throws Exception {
-    myDbFile = FileUtil.createTempFile("CpuTable", "mysql");
-    myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath(), DataStoreDatabase.Characteristic.DURABLE);
+    myDbFile = File.createTempFile("CpuTable", "mysql");
+    myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath(), DataStoreDatabase.Characteristic.DURABLE, new FakeLogService());
     myTable = new CpuTable();
     myTable.initialize(myDatabase.getConnection());
     populateDatabase();
@@ -57,52 +57,45 @@ public class CpuTableTest {
   @After
   public void tearDown() {
     myDatabase.disconnect();
-    FileUtil.delete(myDbFile);
+    //noinspection ResultOfMethodCallIgnored
+    myDbFile.delete();
   }
 
   private void populateDatabase() {
 
     for (int i = 0; i < TEST_DATA; i++) {
-      CpuProfiler.CpuUsageData testData = CpuProfiler.CpuUsageData.newBuilder()
-        .setAppCpuTimeInMillisec(SESSION_ONE_OFFSET + i)
-        .setSystemCpuTimeInMillisec(SESSION_ONE_OFFSET + i)
-        .setElapsedTimeInMillisec(SESSION_ONE_OFFSET + i)
-        .setEndTimestamp(SESSION_ONE_OFFSET + i).build();
+      CpuProfiler.CpuUsageData testData = CpuProfiler.CpuUsageData
+        .newBuilder().setAppCpuTimeInMillisec(SESSION_ONE_OFFSET + i).setSystemCpuTimeInMillisec(SESSION_ONE_OFFSET + i)
+        .setElapsedTimeInMillisec(SESSION_ONE_OFFSET + i).setEndTimestamp(SESSION_ONE_OFFSET + i).build();
       myTable.insert(SESSION_HUNDREDS, testData);
     }
 
     for (int i = 0; i < TEST_DATA; i++) {
-      CpuProfiler.CpuUsageData testData = CpuProfiler.CpuUsageData.newBuilder()
-        .setAppCpuTimeInMillisec(SESSION_TWO_OFFSET + i)
-        .setSystemCpuTimeInMillisec(SESSION_TWO_OFFSET + i)
-        .setElapsedTimeInMillisec(SESSION_TWO_OFFSET + i)
-        .setEndTimestamp(SESSION_TWO_OFFSET + i).build();
+      CpuProfiler.CpuUsageData testData = CpuProfiler.CpuUsageData
+        .newBuilder().setAppCpuTimeInMillisec(SESSION_TWO_OFFSET + i).setSystemCpuTimeInMillisec(SESSION_TWO_OFFSET + i)
+        .setElapsedTimeInMillisec(SESSION_TWO_OFFSET + i).setEndTimestamp(SESSION_TWO_OFFSET + i).build();
       myTable.insert(SESSION_THOUSANDS, testData);
     }
 
     List<CpuProfiler.GetThreadsResponse.ThreadActivity> activities = new ArrayList<>();
     for (int i = 0; i < TEST_DATA; i++) {
-      activities.add(CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder()
-                       .setTimestamp(SESSION_ONE_OFFSET + i)
-                       .setNewState(CpuProfiler.GetThreadsResponse.State.SLEEPING)
-                       .build());
+      activities.add(
+        CpuProfiler.GetThreadsResponse.ThreadActivity
+          .newBuilder().setTimestamp(SESSION_ONE_OFFSET + i).setNewState(CpuProfiler.GetThreadsResponse.State.SLEEPING).build());
     }
     myTable.insertActivities(SESSION_HUNDREDS, SESSION_ONE_OFFSET, "Thread 100", activities);
     activities.clear();
     for (int i = 0; i < TEST_DATA; i++) {
-      activities.add(CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder()
-                       .setTimestamp(SESSION_TWO_OFFSET + i)
-                       .setNewState(CpuProfiler.GetThreadsResponse.State.RUNNING)
-                       .build());
+      activities.add(
+        CpuProfiler.GetThreadsResponse.ThreadActivity
+          .newBuilder().setTimestamp(SESSION_TWO_OFFSET + i).setNewState(CpuProfiler.GetThreadsResponse.State.RUNNING).build());
     }
     myTable.insertActivities(SESSION_THOUSANDS, SESSION_TWO_OFFSET, "Thread 1000", activities);
 
     for (int i = 0; i < TEST_DATA; i++) {
-      CpuProfiler.TraceInfo trace = CpuProfiler.TraceInfo.newBuilder()
-        .setTraceId(SESSION_ONE_OFFSET + i)
-        .setProfilerType(CpuProfiler.CpuProfilerType.ART)
-        .setFromTimestamp(SESSION_ONE_OFFSET + i)
-        .setToTimestamp(SESSION_ONE_OFFSET + 1 + i)
+      CpuProfiler.TraceInfo trace = CpuProfiler.TraceInfo
+        .newBuilder().setTraceId(SESSION_ONE_OFFSET + i).setProfilerType(CpuProfiler.CpuProfilerType.ART)
+        .setFromTimestamp(SESSION_ONE_OFFSET + i).setToTimestamp(SESSION_ONE_OFFSET + 1 + i)
         .build();
 
       myTable
@@ -113,11 +106,8 @@ public class CpuTableTest {
 
   @Test
   public void testGetData() {
-    CpuProfiler.CpuDataRequest request = CpuProfiler.CpuDataRequest.newBuilder()
-      .setSession(SESSION_HUNDREDS)
-      .setStartTimestamp(SESSION_ONE_OFFSET)
-      .setEndTimestamp(Long.MAX_VALUE)
-      .build();
+    CpuProfiler.CpuDataRequest request = CpuProfiler.CpuDataRequest
+      .newBuilder().setSession(SESSION_HUNDREDS).setStartTimestamp(SESSION_ONE_OFFSET).setEndTimestamp(Long.MAX_VALUE).build();
     List<CpuProfiler.CpuUsageData> response = myTable.getCpuDataByRequest(request);
 
     // Validate that we have data from start timestamp (exclusive) to end timestamp (inclusive)
@@ -135,8 +125,8 @@ public class CpuTableTest {
 
   @Test
   public void testGetDataInvalidSession() {
-    CpuProfiler.CpuDataRequest request = CpuProfiler.CpuDataRequest.newBuilder()
-      .setSession(Common.Session.getDefaultInstance())
+    CpuProfiler.CpuDataRequest request = CpuProfiler.CpuDataRequest
+      .newBuilder().setSession(Common.Session.getDefaultInstance())
       .setStartTimestamp(SESSION_ONE_OFFSET)
       .setEndTimestamp(SESSION_ONE_OFFSET + (TEST_DATA - 1))
       .build();
@@ -147,11 +137,8 @@ public class CpuTableTest {
 
   @Test
   public void testGetDataInvalidTimeRange() {
-    CpuProfiler.CpuDataRequest request = CpuProfiler.CpuDataRequest.newBuilder()
-      .setSession(SESSION_HUNDREDS)
-      .setStartTimestamp(0)
-      .setEndTimestamp(10)
-      .build();
+    CpuProfiler.CpuDataRequest request = CpuProfiler.CpuDataRequest
+      .newBuilder().setSession(SESSION_HUNDREDS).setStartTimestamp(0).setEndTimestamp(10).build();
     List<CpuProfiler.CpuUsageData> response = myTable.getCpuDataByRequest(request);
 
     assertEquals(0, response.size());
@@ -159,10 +146,8 @@ public class CpuTableTest {
 
   @Test
   public void testGetThreadsDataByRequest() {
-    CpuProfiler.GetThreadsRequest request = CpuProfiler.GetThreadsRequest.newBuilder()
-      .setSession(SESSION_HUNDREDS)
-      .setStartTimestamp(SESSION_ONE_OFFSET)
-      .setEndTimestamp(SESSION_ONE_OFFSET + (TEST_DATA - 1))
+    CpuProfiler.GetThreadsRequest request = CpuProfiler.GetThreadsRequest
+      .newBuilder().setSession(SESSION_HUNDREDS).setStartTimestamp(SESSION_ONE_OFFSET).setEndTimestamp(SESSION_ONE_OFFSET + (TEST_DATA - 1))
       .build();
     List<CpuProfiler.GetThreadsResponse.Thread> response = myTable.getThreadsDataByRequest(request);
 
@@ -178,11 +163,9 @@ public class CpuTableTest {
 
   @Test
   public void testGetThreadsDataByRequestInvalidSession() {
-    CpuProfiler.GetThreadsRequest request = CpuProfiler.GetThreadsRequest.newBuilder()
-      .setSession(Common.Session.getDefaultInstance())
-      .setStartTimestamp(SESSION_ONE_OFFSET)
-      .setEndTimestamp(SESSION_ONE_OFFSET + (TEST_DATA - 1))
-      .build();
+    CpuProfiler.GetThreadsRequest request = CpuProfiler.GetThreadsRequest
+      .newBuilder().setSession(Common.Session.getDefaultInstance()).setStartTimestamp(SESSION_ONE_OFFSET)
+      .setEndTimestamp(SESSION_ONE_OFFSET + (TEST_DATA - 1)).build();
     List<CpuProfiler.GetThreadsResponse.Thread> response = myTable.getThreadsDataByRequest(request);
 
     assertEquals(0, response.size());
@@ -190,11 +173,8 @@ public class CpuTableTest {
 
   @Test
   public void testGetThreadsDataByRequestInvalidTiming() {
-    CpuProfiler.GetThreadsRequest request = CpuProfiler.GetThreadsRequest.newBuilder()
-      .setSession(SESSION_HUNDREDS)
-      .setStartTimestamp(0)
-      .setEndTimestamp(10)
-      .build();
+    CpuProfiler.GetThreadsRequest request = CpuProfiler.GetThreadsRequest
+      .newBuilder().setSession(SESSION_HUNDREDS).setStartTimestamp(0).setEndTimestamp(10).build();
     List<CpuProfiler.GetThreadsResponse.Thread> response = myTable.getThreadsDataByRequest(request);
 
     assertEquals(0, response.size());
@@ -202,11 +182,8 @@ public class CpuTableTest {
 
   @Test
   public void testGetThreadsDataByRequestSessionSpecific() {
-    CpuProfiler.GetThreadsRequest request = CpuProfiler.GetThreadsRequest.newBuilder()
-      .setSession(SESSION_HUNDREDS)
-      .setStartTimestamp(0)
-      .setEndTimestamp(Long.MAX_VALUE)
-      .build();
+    CpuProfiler.GetThreadsRequest request = CpuProfiler.GetThreadsRequest
+      .newBuilder().setSession(SESSION_HUNDREDS).setStartTimestamp(0).setEndTimestamp(Long.MAX_VALUE).build();
     List<CpuProfiler.GetThreadsResponse.Thread> response = myTable.getThreadsDataByRequest(request);
 
     assertEquals(1, response.size());
@@ -221,11 +198,8 @@ public class CpuTableTest {
 
   @Test
   public void testGetTraceInfo() {
-    CpuProfiler.GetTraceInfoRequest request = CpuProfiler.GetTraceInfoRequest.newBuilder()
-      .setSession(SESSION_HUNDREDS)
-      .setFromTimestamp(0)
-      .setToTimestamp(Long.MAX_VALUE)
-      .build();
+    CpuProfiler.GetTraceInfoRequest request = CpuProfiler.GetTraceInfoRequest
+      .newBuilder().setSession(SESSION_HUNDREDS).setFromTimestamp(0).setToTimestamp(Long.MAX_VALUE).build();
     List<CpuProfiler.TraceInfo> traceInfo = myTable.getTraceInfo(request);
     assertEquals(TEST_DATA, traceInfo.size());
     for (int i = 0; i < traceInfo.size(); i++) {
@@ -243,32 +217,23 @@ public class CpuTableTest {
 
   @Test
   public void testGetTraceByRequestInvalidSession() {
-    CpuProfiler.GetTraceInfoRequest request = CpuProfiler.GetTraceInfoRequest.newBuilder()
-      .setSession(SESSION_THOUSANDS)
-      .setFromTimestamp(0)
-      .setToTimestamp(Long.MAX_VALUE)
-      .build();
+    CpuProfiler.GetTraceInfoRequest request = CpuProfiler.GetTraceInfoRequest
+      .newBuilder().setSession(SESSION_THOUSANDS).setFromTimestamp(0).setToTimestamp(Long.MAX_VALUE).build();
     List<CpuProfiler.TraceInfo> traceInfo = myTable.getTraceInfo(request);
     assertEquals(0, traceInfo.size());
   }
 
   @Test
   public void beingProfiledStateIsBasedOnSession() {
-    CpuProfiler.CpuProfilerConfiguration simpleperfConfig = CpuProfiler.CpuProfilerConfiguration.newBuilder()
-      .setProfilerType(CpuProfiler.CpuProfilerType.SIMPLEPERF)
-      .build();
-    CpuProfiler.ProfilingStateResponse response1 = CpuProfiler.ProfilingStateResponse.newBuilder()
-      .setBeingProfiled(true)
-      .setConfiguration(simpleperfConfig)
-      .build();
+    CpuProfiler.CpuProfilerConfiguration simpleperfConfig = CpuProfiler.CpuProfilerConfiguration
+      .newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.SIMPLEPERF).build();
+    CpuProfiler.ProfilingStateResponse response1 = CpuProfiler.ProfilingStateResponse
+      .newBuilder().setBeingProfiled(true).setConfiguration(simpleperfConfig).build();
 
-    CpuProfiler.CpuProfilerConfiguration artConfig = CpuProfiler.CpuProfilerConfiguration.newBuilder()
-      .setProfilerType(CpuProfiler.CpuProfilerType.ART)
-      .build();
-    CpuProfiler.ProfilingStateResponse response2 = CpuProfiler.ProfilingStateResponse.newBuilder()
-      .setBeingProfiled(true)
-      .setConfiguration(artConfig)
-      .build();
+    CpuProfiler.CpuProfilerConfiguration artConfig = CpuProfiler.CpuProfilerConfiguration
+      .newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.ART).build();
+    CpuProfiler.ProfilingStateResponse response2 = CpuProfiler.ProfilingStateResponse
+      .newBuilder().setBeingProfiled(true).setConfiguration(artConfig).build();
 
     Common.Session aliveSession = Common.Session.newBuilder().setSessionId(3L).setEndTimestamp(Long.MAX_VALUE /* alive */).build();
 
@@ -289,28 +254,18 @@ public class CpuTableTest {
 
   @Test
   public void latestBeingProfiledStateShouldBeReturned() {
-    CpuProfiler.CpuProfilerConfiguration simpleperfConfig = CpuProfiler.CpuProfilerConfiguration.newBuilder()
-      .setProfilerType(CpuProfiler.CpuProfilerType.SIMPLEPERF)
-      .build();
-    CpuProfiler.ProfilingStateResponse response1 = CpuProfiler.ProfilingStateResponse.newBuilder()
-      .setBeingProfiled(true)
-      .setCheckTimestamp(1)
-      .setConfiguration(simpleperfConfig)
-      .build();
+    CpuProfiler.CpuProfilerConfiguration simpleperfConfig = CpuProfiler.CpuProfilerConfiguration
+      .newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.SIMPLEPERF).build();
+    CpuProfiler.ProfilingStateResponse response1 = CpuProfiler.ProfilingStateResponse
+      .newBuilder().setBeingProfiled(true).setCheckTimestamp(1).setConfiguration(simpleperfConfig).build();
 
-    CpuProfiler.CpuProfilerConfiguration artConfig = CpuProfiler.CpuProfilerConfiguration.newBuilder()
-      .setProfilerType(CpuProfiler.CpuProfilerType.ART)
-      .build();
-    CpuProfiler.ProfilingStateResponse response2 = CpuProfiler.ProfilingStateResponse.newBuilder()
-      .setBeingProfiled(true)
-      .setCheckTimestamp(10)
-      .setConfiguration(artConfig)
-      .build();
+    CpuProfiler.CpuProfilerConfiguration artConfig = CpuProfiler.CpuProfilerConfiguration
+      .newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.ART).build();
+    CpuProfiler.ProfilingStateResponse response2 = CpuProfiler.ProfilingStateResponse
+      .newBuilder().setBeingProfiled(true).setCheckTimestamp(10).setConfiguration(artConfig).build();
 
-    CpuProfiler.ProfilingStateResponse response3 = CpuProfiler.ProfilingStateResponse.newBuilder()
-      .setCheckTimestamp(5)
-      .setBeingProfiled(false)
-      .build();
+    CpuProfiler.ProfilingStateResponse response3 = CpuProfiler.ProfilingStateResponse
+      .newBuilder().setCheckTimestamp(5).setBeingProfiled(false).build();
 
 
     myTable.insertProfilingStateData(SESSION_HUNDREDS, response1);

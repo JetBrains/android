@@ -16,16 +16,17 @@
 package com.android.tools.datastore.database;
 
 import com.android.tools.datastore.DataStoreDatabase;
+import com.android.tools.datastore.FakeLogService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack.StackFrame;
 import com.google.common.truth.Truth;
-import com.intellij.openapi.util.io.FileUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -35,82 +36,88 @@ public class MemoryLiveAllocationTableTest {
   private static final Common.Session INVALID_SESSION = Common.Session.newBuilder().setSessionId(-1L).setDeviceId(4321).setPid(-1).build();
 
   // Live allocation test data
-  private final int HEAP0 = 0;
-  private final int HEAP1 = 1;
-  private final int STACK1 = 1;
-  private final int STACK2 = 2;
-  private final long METHOD1 = 10;
-  private final long METHOD2 = 11;
-  private final long METHOD3 = 12;
-  private final int THREAD1 = 100;
-  private final int THREAD2 = 101;
-  private final int THREAD3 = 103;
-  private final int CLASS1 = 1000;
-  private final int CLASS2 = 1001;
-  private final int KLASS1_INSTANCE1_TAG = 1002;
-  private final int KLASS1_INSTANCE2_TAG = 1003;
-  private final int KLASS2_INSTANCE1_TAG = 1004;
-  private final int KLASS2_INSTANCE2_TAG = 1005;
-  private final int LINE1 = 10000;
-  private final int LINE2 = 10001;
-  private final int LINE3 = 10002;
+  private static final int HEAP0 = 0;
+  private static final int HEAP1 = 1;
+  private static final int STACK1 = 1;
+  private static final int STACK2 = 2;
+  private static final long METHOD1 = 10;
+  private static final long METHOD2 = 11;
+  private static final long METHOD3 = 12;
+  private static final int THREAD1 = 100;
+  private static final int THREAD2 = 101;
+  private static final int THREAD3 = 103;
+  private static final int CLASS1 = 1000;
+  private static final int CLASS2 = 1001;
+  private static final int KLASS1_INSTANCE1_TAG = 1002;
+  private static final int KLASS1_INSTANCE2_TAG = 1003;
+  private static final int KLASS2_INSTANCE1_TAG = 1004;
+  private static final int KLASS2_INSTANCE2_TAG = 1005;
+  private static final int LINE1 = 10000;
+  private static final int LINE2 = 10001;
+  private static final int LINE3 = 10002;
   private final List<Long> STACK_METHODS1 = Arrays.asList(METHOD1, METHOD2);
   private final List<Long> STACK_METHODS2 = Arrays.asList(METHOD2, METHOD3);
   private final List<Integer> STACK_LINES1 = Arrays.asList(LINE1, LINE2);
   private final List<Integer> STACK_LINES2 = Arrays.asList(LINE2, LINE3);
-  private final String THREAD1_NAME = "Thread1";
-  private final String THREAD2_NAME = "Thread2";
-  private final String METHOD1_NAME = "Method1";
-  private final String METHOD2_NAME = "Method2";
-  private final String METHOD3_NAME = "Method3";
-  private final String JNI_KLASS1_NAME = "Ljava/lang/Klass1;";
-  private final String JNI_KLASS2_NAME = "[[Ljava/lang/Klass2;";
-  private final String JNI_KLASS3_NAME = "[[[Ljava/lang/Klass3;";
-  private final String JAVA_KLASS1_NAME = "java.lang.Klass1";
-  private final String JAVA_KLASS2_NAME = "java.lang.Klass2[][]";
-  private final long CLASS1_TIME = 10;
-  private final long CLASS2_TIME = 15;
-  private final long STACK1_TIME = 12;
-  private final long STACK2_TIME = 17;
-  private final long THREAD1_TIME = 13;
-  private final long THREAD2_TIME = 18;
-  private final long NATIVE_ADDRESS1 = 1300;
-  private final long NATIVE_ADDRESS2 = 2300;
-  private final long NATIVE_ADDRESS3 = 3300;
-  private final long NATIVE_ADDRESS4 = 4300;
-  private final long NATIVE_LIB_OFFSET = 100;
-  private final String NATIVE_LIB1 = "/path/to/native/lib1.so";
-  private final String NATIVE_LIB2 = "/path/to/native/lib2.so";
-  private final String NATIVE_LIB3 = "/path/to/native/lib3.so";
-  private final long JNI_REF_VALUE1 = 2001;
-  private final long JNI_REF_VALUE2 = 2002;
-  private final long JNI_REF_VALUE3 = 2003;
+  private static final String THREAD1_NAME = "Thread1";
+  private static final String THREAD2_NAME = "Thread2";
+  private static final String METHOD1_NAME = "Method1";
+  private static final String METHOD2_NAME = "Method2";
+  private static final String METHOD3_NAME = "Method3";
+  private static final String JNI_KLASS1_NAME = "Ljava/lang/Klass1;";
+  private static final String JNI_KLASS2_NAME = "[[Ljava/lang/Klass2;";
+  private static final String JNI_KLASS3_NAME = "[[[Ljava/lang/Klass3;";
+  private static final String JAVA_KLASS1_NAME = "java.lang.Klass1";
+  private static final String JAVA_KLASS2_NAME = "java.lang.Klass2[][]";
+  private static final long CLASS1_TIME = 10;
+  private static final long CLASS2_TIME = 15;
+  private static final long STACK1_TIME = 12;
+  private static final long STACK2_TIME = 17;
+  private static final long THREAD1_TIME = 13;
+  private static final long THREAD2_TIME = 18;
+  private static final long NATIVE_ADDRESS1 = 1300;
+  private static final long NATIVE_ADDRESS2 = 2300;
+  private static final long NATIVE_ADDRESS3 = 3300;
+  private static final long NATIVE_ADDRESS4 = 4300;
+  private static final long NATIVE_LIB_OFFSET = 100;
+  private static final String NATIVE_LIB1 = "/path/to/native/lib1.so";
+  private static final String NATIVE_LIB2 = "/path/to/native/lib2.so";
+  private static final String NATIVE_LIB3 = "/path/to/native/lib3.so";
+  private static final long JNI_REF_VALUE1 = 2001;
+  private static final long JNI_REF_VALUE2 = 2002;
+  private static final long JNI_REF_VALUE3 = 2003;
 
   private File myDbFile;
   private MemoryLiveAllocationTable myAllocationTable;
   private DataStoreDatabase myDatabase;
 
   @Before
-  public void setUp() throws Exception {
-    myDbFile = FileUtil.createTempFile("MemoryStatsTable", "mysql");
-    myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath(), DataStoreDatabase.Characteristic.PERFORMANT);
-    myAllocationTable = new MemoryLiveAllocationTable();
+  public void setUp() throws IOException {
+    myDbFile = File.createTempFile("MemoryStatsTable", "mysql");
+    myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath(), DataStoreDatabase.Characteristic.PERFORMANT, new FakeLogService());
+    myAllocationTable = new MemoryLiveAllocationTable(new FakeLogService());
     myAllocationTable.initialize(myDatabase.getConnection());
   }
 
   @After
-  public void tearDown() throws Exception {
+  public void tearDown() {
     myDatabase.disconnect();
     //noinspection ResultOfMethodCallIgnored
     myDbFile.delete();
   }
 
   @Test
-  public void testIgnoreDuplicatedAllocationData() throws Exception {
-    AllocationEvent alloc1 = AllocationEvent.newBuilder()
-      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(CLASS1)).setTimestamp(0).build();
-    AllocationEvent dupAlloc1 = AllocationEvent.newBuilder()
-      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(CLASS2)).setTimestamp(6).build();
+  public void testIgnoreDuplicatedAllocationData() {
+    AllocationEvent alloc1 = AllocationEvent
+      .newBuilder()
+      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(CLASS1))
+      .setTimestamp(0)
+      .build();
+    AllocationEvent dupAlloc1 = AllocationEvent
+      .newBuilder()
+      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(CLASS2))
+      .setTimestamp(6)
+      .build();
 
     BatchAllocationSample insertSample = BatchAllocationSample.newBuilder().addEvents(alloc1).addEvents(dupAlloc1).build();
     myAllocationTable.insertAllocationData(VALID_SESSION, insertSample);
@@ -132,17 +139,20 @@ public class MemoryLiveAllocationTableTest {
 
   private MemoryMap createMemoryMap() {
     MemoryMap.Builder memMap = MemoryMap.newBuilder();
-    memMap.addRegions(MemoryMap.MemoryRegion.newBuilder()
-                          .setStartAddress((NATIVE_ADDRESS1 - NATIVE_LIB_OFFSET))
-                          .setEndAddress(NATIVE_ADDRESS1 + NATIVE_LIB_OFFSET)
-                          .setName(NATIVE_LIB1));
+    memMap.addRegions(MemoryMap.MemoryRegion
+                        .newBuilder()
+                        .setStartAddress((NATIVE_ADDRESS1 - NATIVE_LIB_OFFSET))
+                        .setEndAddress(NATIVE_ADDRESS1 + NATIVE_LIB_OFFSET)
+                        .setName(NATIVE_LIB1));
 
-    memMap.addRegions(MemoryMap.MemoryRegion.newBuilder()
+    memMap.addRegions(MemoryMap.MemoryRegion
+                        .newBuilder()
                         .setStartAddress((NATIVE_ADDRESS2 - NATIVE_LIB_OFFSET))
                         .setEndAddress(NATIVE_ADDRESS2 + NATIVE_LIB_OFFSET)
                         .setName(NATIVE_LIB2));
 
-    memMap.addRegions(MemoryMap.MemoryRegion.newBuilder()
+    memMap.addRegions(MemoryMap.MemoryRegion
+                        .newBuilder()
                         .setStartAddress((NATIVE_ADDRESS3 - NATIVE_LIB_OFFSET))
                         .setEndAddress(NATIVE_ADDRESS3 + NATIVE_LIB_OFFSET)
                         .setName(NATIVE_LIB3));
@@ -161,7 +171,8 @@ public class MemoryLiveAllocationTableTest {
       insertBatchBuilder.setMemoryMap(createMemoryMap());
       for (int counter = 1; counter <= BATCH_SIZE; counter++) {
         int seed = iteration * BATCH_SIZE * 2 + counter;
-        JNIGlobalReferenceEvent alloc = JNIGlobalReferenceEvent.newBuilder()
+        JNIGlobalReferenceEvent alloc = JNIGlobalReferenceEvent
+          .newBuilder()
           .setEventType(JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF)
           .setObjectTag(KLASS1_INSTANCE1_TAG + seed)
           .setRefValue(JNI_REF_VALUE1 + seed)
@@ -173,13 +184,15 @@ public class MemoryLiveAllocationTableTest {
 
       for (int counter = 1; counter <= BATCH_SIZE; counter++) {
         int seed = iteration * BATCH_SIZE * 2 + counter;
-        JNIGlobalReferenceEvent dealloc = JNIGlobalReferenceEvent.newBuilder()
+        JNIGlobalReferenceEvent dealloc = JNIGlobalReferenceEvent
+          .newBuilder()
           .setEventType(JNIGlobalReferenceEvent.Type.DELETE_GLOBAL_REF)
           .setObjectTag(KLASS1_INSTANCE1_TAG + seed)
           .setRefValue(JNI_REF_VALUE1 + seed)
           .setThreadId(THREAD3)
           .setBacktrace(createBacktrace(NATIVE_ADDRESS2, NATIVE_ADDRESS1))
-          .setTimestamp(seed + 1).build();
+          .setTimestamp(seed + 1)
+          .build();
         insertBatchBuilder.addEvents(dealloc);
       }
 
@@ -197,30 +210,36 @@ public class MemoryLiveAllocationTableTest {
   }
 
   @Test
-  public void testNativeSymbolResolution() throws Exception {
-    JNIGlobalReferenceEvent alloc1 = JNIGlobalReferenceEvent.newBuilder()
+  public void testNativeSymbolResolution() {
+    JNIGlobalReferenceEvent alloc1 = JNIGlobalReferenceEvent
+      .newBuilder()
       .setEventType(JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF)
       .setObjectTag(KLASS1_INSTANCE1_TAG)
       .setRefValue(JNI_REF_VALUE1)
       .setThreadId(THREAD1)
       .setBacktrace(createBacktrace(NATIVE_ADDRESS1, NATIVE_ADDRESS2, NATIVE_ADDRESS4))
-      .setTimestamp(1).build();
+      .setTimestamp(1)
+      .build();
 
-    JNIGlobalReferenceEvent alloc2 = JNIGlobalReferenceEvent.newBuilder()
+    JNIGlobalReferenceEvent alloc2 = JNIGlobalReferenceEvent
+      .newBuilder()
       .setEventType(JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF)
       .setObjectTag(KLASS1_INSTANCE2_TAG)
       .setRefValue(JNI_REF_VALUE2)
       .setThreadId(THREAD2)
       .setBacktrace(createBacktrace(NATIVE_ADDRESS1, NATIVE_ADDRESS3, NATIVE_ADDRESS4))
-      .setTimestamp(5).build();
+      .setTimestamp(5)
+      .build();
 
-    JNIGlobalReferenceEvent dealloc1 = JNIGlobalReferenceEvent.newBuilder()
+    JNIGlobalReferenceEvent dealloc1 = JNIGlobalReferenceEvent
+      .newBuilder()
       .setEventType(JNIGlobalReferenceEvent.Type.DELETE_GLOBAL_REF)
       .setObjectTag(KLASS1_INSTANCE1_TAG)
       .setRefValue(JNI_REF_VALUE1)
       .setThreadId(THREAD3)
       .setBacktrace(createBacktrace(NATIVE_ADDRESS1, NATIVE_ADDRESS2, NATIVE_ADDRESS3, NATIVE_ADDRESS4))
-      .setTimestamp(10).build();
+      .setTimestamp(10)
+      .build();
 
     BatchJNIGlobalRefEvent.Builder insertBatch = BatchJNIGlobalRefEvent.newBuilder();
     insertBatch.setMemoryMap(createMemoryMap());
@@ -259,8 +278,8 @@ public class MemoryLiveAllocationTableTest {
     List<NativeCallStack.NativeFrame> framesToResolve2 = myAllocationTable.queryNotsymbolizedNativeFrames(VALID_SESSION, 1000);
     Truth.assertThat(framesToResolve2).isEmpty();
 
-    NativeCallStack callStack = myAllocationTable.resolveNativeBacktrace(VALID_SESSION,
-                                             createBacktrace(NATIVE_ADDRESS1, NATIVE_ADDRESS2, NATIVE_ADDRESS3, NATIVE_ADDRESS4));
+    NativeCallStack callStack = myAllocationTable.resolveNativeBacktrace(
+      VALID_SESSION, createBacktrace(NATIVE_ADDRESS1, NATIVE_ADDRESS2, NATIVE_ADDRESS3, NATIVE_ADDRESS4));
 
     Truth.assertThat(callStack.getFramesCount()).isEqualTo(4);
     frame1 = callStack.getFrames(0);
@@ -285,9 +304,10 @@ public class MemoryLiveAllocationTableTest {
   }
 
   @Test
-  public void testInsertAndQueryJniRefEvents() throws Exception {
+  public void testInsertAndQueryJniRefEvents() {
     // create jni ref for instance 1 at t=1
-    JNIGlobalReferenceEvent alloc1 = JNIGlobalReferenceEvent.newBuilder()
+    JNIGlobalReferenceEvent alloc1 = JNIGlobalReferenceEvent
+      .newBuilder()
       .setEventType(JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF)
       .setObjectTag(KLASS1_INSTANCE1_TAG)
       .setRefValue(JNI_REF_VALUE1)
@@ -296,7 +316,8 @@ public class MemoryLiveAllocationTableTest {
       .setTimestamp(1).build();
 
     // create jni ref for instance 2 at t=5
-    JNIGlobalReferenceEvent alloc2 = JNIGlobalReferenceEvent.newBuilder()
+    JNIGlobalReferenceEvent alloc2 = JNIGlobalReferenceEvent
+      .newBuilder()
       .setEventType(JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF)
       .setObjectTag(KLASS1_INSTANCE2_TAG)
       .setRefValue(JNI_REF_VALUE2)
@@ -305,7 +326,8 @@ public class MemoryLiveAllocationTableTest {
       .setTimestamp(5).build();
 
     // free jni ref for instance 1 at t=10
-    JNIGlobalReferenceEvent dealloc1 = JNIGlobalReferenceEvent.newBuilder()
+    JNIGlobalReferenceEvent dealloc1 = JNIGlobalReferenceEvent
+      .newBuilder()
       .setEventType(JNIGlobalReferenceEvent.Type.DELETE_GLOBAL_REF)
       .setObjectTag(KLASS1_INSTANCE1_TAG)
       .setRefValue(JNI_REF_VALUE1)
@@ -366,15 +388,17 @@ public class MemoryLiveAllocationTableTest {
   }
 
   @Test
-  public void testJniRefEventsWithEmptyBacktrace() throws Exception {
-    JNIGlobalReferenceEvent alloc1 = JNIGlobalReferenceEvent.newBuilder()
+  public void testJniRefEventsWithEmptyBacktrace() {
+    JNIGlobalReferenceEvent alloc1 = JNIGlobalReferenceEvent
+      .newBuilder()
       .setEventType(JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF)
       .setObjectTag(KLASS1_INSTANCE1_TAG)
       .setRefValue(JNI_REF_VALUE1)
       .setThreadId(THREAD1)
       .setTimestamp(1).build();
 
-    JNIGlobalReferenceEvent alloc2 = JNIGlobalReferenceEvent.newBuilder()
+    JNIGlobalReferenceEvent alloc2 = JNIGlobalReferenceEvent
+      .newBuilder()
       .setEventType(JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF)
       .setObjectTag(KLASS1_INSTANCE2_TAG)
       .setRefValue(JNI_REF_VALUE2)
@@ -382,7 +406,8 @@ public class MemoryLiveAllocationTableTest {
       .setBacktrace(createBacktrace(NATIVE_ADDRESS2, NATIVE_ADDRESS1))
       .setTimestamp(5).build();
 
-    JNIGlobalReferenceEvent alloc3 = JNIGlobalReferenceEvent.newBuilder()
+    JNIGlobalReferenceEvent alloc3 = JNIGlobalReferenceEvent
+      .newBuilder()
       .setEventType(JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF)
       .setObjectTag(KLASS1_INSTANCE1_TAG)
       .setRefValue(JNI_REF_VALUE3)
@@ -404,28 +429,27 @@ public class MemoryLiveAllocationTableTest {
 
 
   @Test
-  public void testInsertAndQueryAllocationData() throws Exception {
+  public void testInsertAndQueryAllocationData() {
     // A klass1 instance allocation event (t = 0)
-    AllocationEvent alloc1 = AllocationEvent.newBuilder()
-      .setAllocData(
-        AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(CLASS1).setThreadId(THREAD1).setStackId(STACK1)
-          .setHeapId(HEAP0))
+    AllocationEvent alloc1 = AllocationEvent
+      .newBuilder().setAllocData(
+        AllocationEvent.Allocation
+          .newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(CLASS1).setThreadId(THREAD1).setStackId(STACK1).setHeapId(HEAP0))
       .setTimestamp(0).build();
     // A klass1 instance deallocation event (t = 7)
-    AllocationEvent dealloc1 = AllocationEvent.newBuilder()
-      .setFreeData(
-        AllocationEvent.Deallocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(CLASS1).setThreadId(THREAD1).setStackId(STACK1)
-          .setHeapId(HEAP0))
+    AllocationEvent dealloc1 = AllocationEvent
+      .newBuilder().setFreeData(
+        AllocationEvent.Deallocation
+          .newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(CLASS1).setThreadId(THREAD1).setStackId(STACK1).setHeapId(HEAP0))
       .setTimestamp(7).build();
     // A klass2 instance allocation event (t = 6)
-    AllocationEvent alloc2 = AllocationEvent.newBuilder()
-      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS2_INSTANCE1_TAG).setClassTag(CLASS2).setHeapId(HEAP1))
-      .setTimestamp(6).build();
+    AllocationEvent alloc2 = AllocationEvent
+      .newBuilder().setAllocData(
+        AllocationEvent.Allocation
+          .newBuilder().setTag(KLASS2_INSTANCE1_TAG).setClassTag(CLASS2).setHeapId(HEAP1)).setTimestamp(6).build();
 
-    BatchAllocationSample insertSample = BatchAllocationSample.newBuilder()
-      .addEvents(alloc1)
-      .addEvents(dealloc1)
-      .addEvents(alloc2).build();
+    BatchAllocationSample insertSample = BatchAllocationSample
+      .newBuilder().addEvents(alloc1).addEvents(dealloc1).addEvents(alloc2).build();
     myAllocationTable.insertAllocationData(VALID_SESSION, insertSample);
 
     // A query that asks for live objects.
@@ -467,37 +491,39 @@ public class MemoryLiveAllocationTableTest {
   }
 
   @Test
-  public void testLatestDataTimestamp() throws Exception {
+  public void testLatestDataTimestamp() {
     Truth.assertThat(myAllocationTable.getLatestDataTimestamp(VALID_SESSION).getTimestamp()).isEqualTo(0);
 
     // A klass1 instance allocation event (t = 1)
-    AllocationEvent alloc1 = AllocationEvent.newBuilder()
-      .setAllocData(
-        AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(CLASS1).setThreadId(THREAD1).setStackId(STACK1)
-          .setHeapId(HEAP0))
+    AllocationEvent alloc1 = AllocationEvent
+      .newBuilder().setAllocData(
+        AllocationEvent.Allocation
+          .newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(CLASS1).setThreadId(THREAD1).setStackId(STACK1).setHeapId(HEAP0))
       .setTimestamp(1).build();
     myAllocationTable.insertAllocationData(VALID_SESSION, BatchAllocationSample.newBuilder().addEvents(alloc1).build());
     Truth.assertThat(myAllocationTable.getLatestDataTimestamp(VALID_SESSION).getTimestamp()).isEqualTo(1);
 
     // A klass1 instance deallocation event (t = 7)
-    AllocationEvent dealloc1 = AllocationEvent.newBuilder()
-      .setFreeData(
-        AllocationEvent.Deallocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(CLASS1).setThreadId(THREAD1).setStackId(STACK1)
-          .setHeapId(HEAP0))
+    AllocationEvent dealloc1 = AllocationEvent
+      .newBuilder().setFreeData(
+        AllocationEvent.Deallocation
+          .newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(CLASS1).setThreadId(THREAD1).setStackId(STACK1).setHeapId(HEAP0))
       .setTimestamp(7).build();
     myAllocationTable.insertAllocationData(VALID_SESSION, BatchAllocationSample.newBuilder().addEvents(dealloc1).build());
     Truth.assertThat(myAllocationTable.getLatestDataTimestamp(VALID_SESSION).getTimestamp()).isEqualTo(7);
 
     // A klass2 instance allocation event (t = 6)
-    AllocationEvent alloc2 = AllocationEvent.newBuilder()
-      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS2_INSTANCE1_TAG).setClassTag(CLASS2).setHeapId(HEAP1))
+    AllocationEvent alloc2 = AllocationEvent
+      .newBuilder().setAllocData(
+        AllocationEvent.Allocation
+          .newBuilder().setTag(KLASS2_INSTANCE1_TAG).setClassTag(CLASS2).setHeapId(HEAP1))
       .setTimestamp(6).build();
     myAllocationTable.insertAllocationData(VALID_SESSION, BatchAllocationSample.newBuilder().addEvents(alloc2).build());
     Truth.assertThat(myAllocationTable.getLatestDataTimestamp(VALID_SESSION).getTimestamp()).isEqualTo(7);
   }
 
   @Test
-  public void testIgnoreDuplicatedMethodInfo() throws Exception {
+  public void testIgnoreDuplicatedMethodInfo() {
     List<StackFrame> methodsToInsert = new ArrayList<>();
     StackFrame method1 = StackFrame.newBuilder().setMethodId(METHOD1).setMethodName(METHOD1_NAME).setClassName(JNI_KLASS1_NAME).build();
     StackFrame dupMethod1 = StackFrame.newBuilder().setMethodId(METHOD1).setMethodName(METHOD2_NAME).setClassName(JNI_KLASS2_NAME).build();
@@ -512,7 +538,7 @@ public class MemoryLiveAllocationTableTest {
   }
 
   @Test
-  public void testInsertAndQueryMethodInfo() throws Exception {
+  public void testInsertAndQueryMethodInfo() {
     List<StackFrame> methodsToInsert = new ArrayList<>();
     StackFrame method1 = StackFrame.newBuilder().setMethodId(METHOD1).setMethodName(METHOD1_NAME).setClassName(JNI_KLASS1_NAME).build();
     StackFrame method2 = StackFrame.newBuilder().setMethodId(METHOD2).setMethodName(METHOD2_NAME).setClassName(JNI_KLASS2_NAME).build();
@@ -531,18 +557,19 @@ public class MemoryLiveAllocationTableTest {
 
     // Non-existent methods / invalid pid
     Truth.assertThat(myAllocationTable.getStackFrameInfo(INVALID_SESSION, METHOD1))
-      .isEqualTo(StackFrameInfoResponse.getDefaultInstance());
+         .isEqualTo(StackFrameInfoResponse.getDefaultInstance());
     Truth.assertThat(myAllocationTable.getStackFrameInfo(INVALID_SESSION, METHOD2))
-      .isEqualTo(StackFrameInfoResponse.getDefaultInstance());
+         .isEqualTo(StackFrameInfoResponse.getDefaultInstance());
     Truth.assertThat(myAllocationTable.getStackFrameInfo(VALID_SESSION, METHOD3))
-      .isEqualTo(StackFrameInfoResponse.getDefaultInstance());
+         .isEqualTo(StackFrameInfoResponse.getDefaultInstance());
   }
 
   @Test
-  public void testPruningJniRefs() throws Exception {
+  public void testPruningJniRefs() {
     myAllocationTable.setAllocationCountLimit(2);
 
-    JNIGlobalReferenceEvent alloc1 = JNIGlobalReferenceEvent.newBuilder()
+    JNIGlobalReferenceEvent alloc1 = JNIGlobalReferenceEvent
+      .newBuilder()
       .setEventType(JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF)
       .setObjectTag(KLASS1_INSTANCE1_TAG)
       .setRefValue(JNI_REF_VALUE1)
@@ -550,7 +577,8 @@ public class MemoryLiveAllocationTableTest {
       .setBacktrace(createBacktrace(NATIVE_ADDRESS1, NATIVE_ADDRESS2))
       .setTimestamp(1).build();
 
-    JNIGlobalReferenceEvent alloc2 = JNIGlobalReferenceEvent.newBuilder()
+    JNIGlobalReferenceEvent alloc2 = JNIGlobalReferenceEvent
+      .newBuilder()
       .setEventType(JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF)
       .setObjectTag(KLASS1_INSTANCE2_TAG)
       .setRefValue(JNI_REF_VALUE2)
@@ -558,7 +586,8 @@ public class MemoryLiveAllocationTableTest {
       .setBacktrace(createBacktrace(NATIVE_ADDRESS1, NATIVE_ADDRESS2))
       .setTimestamp(3).build();
 
-    JNIGlobalReferenceEvent alloc3 = JNIGlobalReferenceEvent.newBuilder()
+    JNIGlobalReferenceEvent alloc3 = JNIGlobalReferenceEvent
+      .newBuilder()
       .setEventType(JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF)
       .setObjectTag(KLASS2_INSTANCE1_TAG)
       .setRefValue(JNI_REF_VALUE3)
@@ -567,13 +596,14 @@ public class MemoryLiveAllocationTableTest {
       .setTimestamp(4).build();
 
     BatchJNIGlobalRefEvent insertBatch = BatchJNIGlobalRefEvent.newBuilder()
-      .addEvents(alloc1).addEvents(alloc2).addEvents(alloc3).build();
+                                                               .addEvents(alloc1).addEvents(alloc2).addEvents(alloc3).build();
     myAllocationTable.insertJniReferenceData(VALID_SESSION, insertBatch);
 
     BatchJNIGlobalRefEvent queryBatch = myAllocationTable.getJniReferencesSnapshot(VALID_SESSION, 10);
     Truth.assertThat(queryBatch.getEventsCount()).isEqualTo(3);
 
-    JNIGlobalReferenceEvent dealloc2 = JNIGlobalReferenceEvent.newBuilder()
+    JNIGlobalReferenceEvent dealloc2 = JNIGlobalReferenceEvent
+      .newBuilder()
       .setEventType(JNIGlobalReferenceEvent.Type.DELETE_GLOBAL_REF)
       .setObjectTag(KLASS2_INSTANCE1_TAG)
       .setRefValue(JNI_REF_VALUE3)
@@ -581,7 +611,8 @@ public class MemoryLiveAllocationTableTest {
       .setBacktrace(createBacktrace(NATIVE_ADDRESS2, NATIVE_ADDRESS1))
       .setTimestamp(100).build();
 
-    JNIGlobalReferenceEvent dealloc3 = JNIGlobalReferenceEvent.newBuilder()
+    JNIGlobalReferenceEvent dealloc3 = JNIGlobalReferenceEvent
+      .newBuilder()
       .setEventType(JNIGlobalReferenceEvent.Type.DELETE_GLOBAL_REF)
       .setObjectTag(KLASS2_INSTANCE1_TAG)
       .setRefValue(JNI_REF_VALUE3)
@@ -590,7 +621,7 @@ public class MemoryLiveAllocationTableTest {
       .setTimestamp(80).build();
 
     insertBatch = BatchJNIGlobalRefEvent.newBuilder()
-      .addEvents(dealloc2).addEvents(dealloc3).build();
+                                        .addEvents(dealloc2).addEvents(dealloc3).build();
     myAllocationTable.insertJniReferenceData(VALID_SESSION, insertBatch);
 
     // At this time record about JNI_REF_VALUE3 should be pruned.
@@ -601,7 +632,7 @@ public class MemoryLiveAllocationTableTest {
   }
 
   @Test
-  public void testPruningAllocationData() throws Exception {
+  public void testPruningAllocationData() {
     myAllocationTable.setAllocationCountLimit(2);
 
     AllocationContextsResponse contextSample = myAllocationTable.getAllocationContexts(VALID_SESSION, 0, Long.MAX_VALUE);
@@ -619,8 +650,9 @@ public class MemoryLiveAllocationTableTest {
     Truth.assertThat(contextSample.getAllocatedClasses(0)).isEqualTo(expectedKlass1);
 
     // A klass1 instance allocation event (t = 0)
-    AllocationEvent alloc1 = AllocationEvent.newBuilder()
-      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(CLASS1)).setTimestamp(0).build();
+    AllocationEvent alloc1 = AllocationEvent
+      .newBuilder().setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(CLASS1))
+      .setTimestamp(0).build();
     insertSample = BatchAllocationSample.newBuilder().addEvents(alloc1).build();
     myAllocationTable.insertAllocationData(VALID_SESSION, insertSample);
     contextSample = myAllocationTable.getAllocationContexts(VALID_SESSION, 0, Long.MAX_VALUE);
@@ -644,8 +676,9 @@ public class MemoryLiveAllocationTableTest {
     Truth.assertThat(querySample.getEvents(0)).isEqualTo(alloc1);
 
     // A klass2 instance allocation event (t = 2, tag = 101)
-    AllocationEvent alloc2 = AllocationEvent.newBuilder()
-      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS2_INSTANCE1_TAG).setClassTag(CLASS2)).setTimestamp(2).build();
+    AllocationEvent alloc2 = AllocationEvent
+      .newBuilder().setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS2_INSTANCE1_TAG).setClassTag(CLASS2))
+      .setTimestamp(2).build();
     insertSample = BatchAllocationSample.newBuilder().addEvents(alloc2).build();
     myAllocationTable.insertAllocationData(VALID_SESSION, insertSample);
     contextSample = myAllocationTable.getAllocationContexts(VALID_SESSION, 0, Long.MAX_VALUE);
@@ -658,8 +691,9 @@ public class MemoryLiveAllocationTableTest {
     Truth.assertThat(querySample.getEvents(1)).isEqualTo(alloc2);
 
     // A klass1 instance allocation event (t = 3, tag = 102)
-    AllocationEvent alloc3 = AllocationEvent.newBuilder()
-      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE2_TAG).setClassTag(CLASS1)).setTimestamp(3).build();
+    AllocationEvent alloc3 = AllocationEvent
+      .newBuilder().setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE2_TAG).setClassTag(CLASS1)).setTimestamp(3)
+      .build();
     insertSample = BatchAllocationSample.newBuilder().addEvents(alloc3).build();
     myAllocationTable.insertAllocationData(VALID_SESSION, insertSample);
     contextSample = myAllocationTable.getAllocationContexts(VALID_SESSION, 0, Long.MAX_VALUE);
@@ -673,8 +707,8 @@ public class MemoryLiveAllocationTableTest {
     Truth.assertThat(querySample.getEvents(2)).isEqualTo(alloc3);
 
     // A alloc1 instance deallocation event (t = 5, tag = 100)
-    AllocationEvent dealloc1 = AllocationEvent.newBuilder()
-      .setFreeData(AllocationEvent.Deallocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG)).setTimestamp(5).build();
+    AllocationEvent dealloc1 = AllocationEvent
+      .newBuilder().setFreeData(AllocationEvent.Deallocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG)).setTimestamp(5).build();
     insertSample = BatchAllocationSample.newBuilder().addEvents(dealloc1).build();
     myAllocationTable.insertAllocationData(VALID_SESSION, insertSample);
     contextSample = myAllocationTable.getAllocationContexts(VALID_SESSION, 0, Long.MAX_VALUE);
@@ -687,8 +721,9 @@ public class MemoryLiveAllocationTableTest {
     Truth.assertThat(querySample.getEvents(1)).isEqualTo(alloc3);
 
     // A alloc2 instance deallocation event (t = 6, tag = 101)
-    AllocationEvent dealloc2 = AllocationEvent.newBuilder()
-      .setFreeData(AllocationEvent.Deallocation.newBuilder().setTag(KLASS2_INSTANCE1_TAG).setClassTag(CLASS2)).setTimestamp(6).build();
+    AllocationEvent dealloc2 = AllocationEvent
+      .newBuilder().setFreeData(AllocationEvent.Deallocation.newBuilder().setTag(KLASS2_INSTANCE1_TAG).setClassTag(CLASS2))
+      .setTimestamp(6).build();
     insertSample = BatchAllocationSample.newBuilder().addEvents(dealloc2).build();
     myAllocationTable.insertAllocationData(VALID_SESSION, insertSample);
     contextSample = myAllocationTable.getAllocationContexts(VALID_SESSION, 0, Long.MAX_VALUE);
@@ -702,8 +737,9 @@ public class MemoryLiveAllocationTableTest {
     Truth.assertThat(querySample.getEvents(2)).isEqualTo(dealloc2);
 
     // A klass2 instance allocation event (t = 2, tag = 103)
-    AllocationEvent alloc4 = AllocationEvent.newBuilder()
-      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS2_INSTANCE2_TAG).setClassTag(CLASS2)).setTimestamp(7).build();
+    AllocationEvent alloc4 = AllocationEvent
+      .newBuilder().setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS2_INSTANCE2_TAG).setClassTag(CLASS2))
+      .setTimestamp(7).build();
     insertSample = BatchAllocationSample.newBuilder().addEvents(alloc4).build();
     myAllocationTable.insertAllocationData(VALID_SESSION, insertSample);
     contextSample = myAllocationTable.getAllocationContexts(VALID_SESSION, 0, Long.MAX_VALUE);
@@ -717,7 +753,7 @@ public class MemoryLiveAllocationTableTest {
   }
 
   @Test
-  public void testIgnoreDuplicatedAllocationContext() throws Exception {
+  public void testIgnoreDuplicatedAllocationContext() {
     List<StackFrame> methodsToInsert = new ArrayList<>();
     StackFrame method1 = StackFrame.newBuilder().setMethodId(METHOD1).setMethodName(METHOD1_NAME).setClassName(JNI_KLASS1_NAME).build();
     StackFrame method2 = StackFrame.newBuilder().setMethodId(METHOD2).setMethodName(METHOD2_NAME).setClassName(JNI_KLASS2_NAME).build();
@@ -727,10 +763,10 @@ public class MemoryLiveAllocationTableTest {
     List<EncodedAllocationStack> stacksToInsert = new ArrayList<>();
     EncodedAllocationStack stack1 =
       EncodedAllocationStack.newBuilder().setStackId(STACK1).addAllMethodIds(STACK_METHODS1).addAllLineNumbers(STACK_LINES1)
-        .setTimestamp(STACK1_TIME).build();
+                            .setTimestamp(STACK1_TIME).build();
     EncodedAllocationStack dupStack1 =
       EncodedAllocationStack.newBuilder().setStackId(STACK1).addAllMethodIds(STACK_METHODS2).addAllLineNumbers(STACK_LINES2)
-        .setTimestamp(STACK2_TIME).build();
+                            .setTimestamp(STACK2_TIME).build();
     stacksToInsert.add(stack1);
     stacksToInsert.add(dupStack1);
 
@@ -753,11 +789,13 @@ public class MemoryLiveAllocationTableTest {
     myAllocationTable.insertAllocationData(VALID_SESSION, classesBuilder.build());
 
     AllocatedClass expectedKlass1 = class1.toBuilder().setClassName(JAVA_KLASS1_NAME).build();
-    AllocationStack expectedStack1 = AllocationStack.newBuilder()
+    AllocationStack expectedStack1 = AllocationStack
+      .newBuilder()
       .setStackId(STACK1)
-      .setSmallStack(AllocationStack.SmallFrameWrapper.newBuilder()
-                       .addFrames(AllocationStack.SmallFrame.newBuilder().setMethodId(METHOD1).setLineNumber(LINE1))
-                       .addFrames(AllocationStack.SmallFrame.newBuilder().setMethodId(METHOD2).setLineNumber(LINE2)))
+      .setSmallStack(
+        AllocationStack.SmallFrameWrapper
+          .newBuilder().addFrames(AllocationStack.SmallFrame.newBuilder().setMethodId(METHOD1).setLineNumber(LINE1))
+          .addFrames(AllocationStack.SmallFrame.newBuilder().setMethodId(METHOD2).setLineNumber(LINE2)))
       .build();
     ThreadInfo expectedThread = ThreadInfo.newBuilder().setThreadId(THREAD1).setThreadName(THREAD1_NAME).build();
 
@@ -771,7 +809,7 @@ public class MemoryLiveAllocationTableTest {
   }
 
   @Test
-  public void testAllocationContextQueriesAfterInsertion() throws Exception {
+  public void testAllocationContextQueriesAfterInsertion() {
     List<StackFrame> methodsToInsert = new ArrayList<>();
     StackFrame method1 = StackFrame.newBuilder().setMethodId(METHOD1).setMethodName(METHOD1_NAME).setClassName(JNI_KLASS1_NAME).build();
     StackFrame method2 = StackFrame.newBuilder().setMethodId(METHOD2).setMethodName(METHOD2_NAME).setClassName(JNI_KLASS2_NAME).build();
@@ -783,10 +821,10 @@ public class MemoryLiveAllocationTableTest {
     List<EncodedAllocationStack> stacksToInsert = new ArrayList<>();
     EncodedAllocationStack stack1 =
       EncodedAllocationStack.newBuilder().setStackId(STACK1).addAllMethodIds(STACK_METHODS1).addAllLineNumbers(STACK_LINES1)
-        .setTimestamp(STACK1_TIME).build();
+                            .setTimestamp(STACK1_TIME).build();
     EncodedAllocationStack stack2 =
       EncodedAllocationStack.newBuilder().setStackId(STACK2).addAllMethodIds(STACK_METHODS2).addAllLineNumbers(STACK_LINES2)
-        .setTimestamp(STACK2_TIME).build();
+                            .setTimestamp(STACK2_TIME).build();
     stacksToInsert.add(stack1);
     stacksToInsert.add(stack2);
 
@@ -811,17 +849,21 @@ public class MemoryLiveAllocationTableTest {
     AllocatedClass expectedKlass1 = class1.toBuilder().setClassName(JAVA_KLASS1_NAME).build();
     AllocatedClass expectedKlass2 = class2.toBuilder().setClassName(JAVA_KLASS2_NAME).build();
 
-    AllocationStack expectedStack1 = AllocationStack.newBuilder()
+    AllocationStack expectedStack1 = AllocationStack
+      .newBuilder()
       .setStackId(STACK1)
-      .setSmallStack(AllocationStack.SmallFrameWrapper.newBuilder()
-                       .addFrames(AllocationStack.SmallFrame.newBuilder().setMethodId(METHOD1).setLineNumber(LINE1))
-                       .addFrames(AllocationStack.SmallFrame.newBuilder().setMethodId(METHOD2).setLineNumber(LINE2)))
+      .setSmallStack(
+        AllocationStack.SmallFrameWrapper
+          .newBuilder().addFrames(AllocationStack.SmallFrame.newBuilder().setMethodId(METHOD1).setLineNumber(LINE1))
+          .addFrames(AllocationStack.SmallFrame.newBuilder().setMethodId(METHOD2).setLineNumber(LINE2)))
       .build();
-    AllocationStack expectedStack2 = AllocationStack.newBuilder()
+    AllocationStack expectedStack2 = AllocationStack
+      .newBuilder()
       .setStackId(STACK2)
-      .setSmallStack(AllocationStack.SmallFrameWrapper.newBuilder()
-                       .addFrames(AllocationStack.SmallFrame.newBuilder().setMethodId(METHOD2).setLineNumber(LINE2))
-                       .addFrames(AllocationStack.SmallFrame.newBuilder().setMethodId(METHOD3).setLineNumber(LINE3)))
+      .setSmallStack(
+        AllocationStack.SmallFrameWrapper
+          .newBuilder().addFrames(AllocationStack.SmallFrame.newBuilder().setMethodId(METHOD2).setLineNumber(LINE2))
+          .addFrames(AllocationStack.SmallFrame.newBuilder().setMethodId(METHOD3).setLineNumber(LINE3)))
       .build();
     ThreadInfo expectedThread1 = ThreadInfo.newBuilder().setThreadId(THREAD1).setThreadName(THREAD1_NAME).build();
     ThreadInfo expectedThread2 = ThreadInfo.newBuilder().setThreadId(THREAD2).setThreadName(THREAD2_NAME).build();
@@ -844,7 +886,7 @@ public class MemoryLiveAllocationTableTest {
   }
 
   @Test
-  public void testJNIPrimitiveTypesConversion() throws Exception {
+  public void testJNIPrimitiveTypesConversion() {
     BatchAllocationSample.Builder classesBuilder = BatchAllocationSample.newBuilder();
     AllocatedClass boolClass = AllocatedClass.newBuilder().setClassId(1).setClassName("Z").build();
     AllocatedClass byteClass = AllocatedClass.newBuilder().setClassId(2).setClassName("B").build();

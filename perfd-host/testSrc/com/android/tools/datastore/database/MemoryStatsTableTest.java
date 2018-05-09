@@ -16,11 +16,11 @@
 package com.android.tools.datastore.database;
 
 import com.android.tools.datastore.DataStoreDatabase;
+import com.android.tools.datastore.FakeLogService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
-import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
@@ -42,21 +42,21 @@ public class MemoryStatsTableTest {
 
   @Before
   public void setUp() throws Exception {
-    myDbFile = FileUtil.createTempFile("MemoryStatsTable", "mysql");
-    myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath(), DataStoreDatabase.Characteristic.DURABLE);
+    myDbFile = File.createTempFile("MemoryStatsTable", "mysql");
+    myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath(), DataStoreDatabase.Characteristic.DURABLE, new FakeLogService());
     myStatsTable = new MemoryStatsTable();
     myStatsTable.initialize(myDatabase.getConnection());
   }
 
   @After
-  public void tearDown() throws Exception {
+  public void tearDown() {
     myDatabase.disconnect();
     //noinspection ResultOfMethodCallIgnored
     myDbFile.delete();
   }
 
   @Test
-  public void testInsertAndGetData() throws Exception {
+  public void testInsertAndGetData() {
     /*
      * Insert a cascading sequence of sample data into the database:
      * Timestamp:     0 1 2 3 4 5 6 7 8 9
@@ -141,7 +141,7 @@ public class MemoryStatsTableTest {
   }
 
   @Test
-  public void testHeapDumpQueriesAfterInsertion() throws Exception {
+  public void testHeapDumpQueriesAfterInsertion() {
     HeapDumpInfo sample = HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(0).build();
     myStatsTable.insertOrReplaceHeapInfo(VALID_SESSION, sample);
 
@@ -167,7 +167,7 @@ public class MemoryStatsTableTest {
   }
 
   @Test
-  public void testLegacyAllocationsQueriesAfterInsertion() throws Exception {
+  public void testLegacyAllocationsQueriesAfterInsertion() {
     AllocationsInfo sample = AllocationsInfo.newBuilder().setStartTime(1).setEndTime(2).build();
     myStatsTable.insertOrReplaceAllocationsInfo(VALID_SESSION, sample);
 
@@ -177,7 +177,8 @@ public class MemoryStatsTableTest {
     assertNull(myStatsTable.getLegacyAllocationDumpData(VALID_SESSION, sample.getStartTime()));
 
     int stackId = 1;
-    LegacyAllocationEventsResponse events = LegacyAllocationEventsResponse.newBuilder()
+    LegacyAllocationEventsResponse events = LegacyAllocationEventsResponse
+      .newBuilder()
       .addEvents(LegacyAllocationEvent.newBuilder().setClassId(1).setStackId(stackId))
       .addEvents(LegacyAllocationEvent.newBuilder().setClassId(2).setStackId(stackId)).build();
     myStatsTable.updateLegacyAllocationEvents(VALID_SESSION, sample.getStartTime(), events);
@@ -199,7 +200,7 @@ public class MemoryStatsTableTest {
   }
 
   @Test
-  public void testLegacyAllocationContextQueriesAfterInsertion() throws Exception {
+  public void testLegacyAllocationContextQueriesAfterInsertion() {
     int classId1 = 1;
     int classId2 = 2;
     int stackId3 = 3;
@@ -213,7 +214,7 @@ public class MemoryStatsTableTest {
 
     LegacyAllocationContextsRequest request =
       LegacyAllocationContextsRequest.newBuilder().setSession(VALID_SESSION).addClassIds(classId1)
-        .addStackIds(stackId4).build();
+                                     .addStackIds(stackId4).build();
     AllocationContextsResponse response = myStatsTable.getLegacyAllocationContexts(request);
     assertEquals(1, response.getAllocatedClassesCount());
     assertEquals(1, response.getAllocationStacksCount());
@@ -221,7 +222,7 @@ public class MemoryStatsTableTest {
     assertEquals(stack2, response.getAllocationStacks(0));
 
     request = LegacyAllocationContextsRequest.newBuilder().setSession(VALID_SESSION).addClassIds(classId2)
-      .addStackIds(stackId3).build();
+                                             .addStackIds(stackId3).build();
     response = myStatsTable.getLegacyAllocationContexts(request);
     assertEquals(1, response.getAllocatedClassesCount());
     assertEquals(1, response.getAllocationStacksCount());
@@ -230,9 +231,9 @@ public class MemoryStatsTableTest {
   }
 
   @Test
-  public void testAllocationContextNotFound() throws Exception {
-    LegacyAllocationContextsRequest request = LegacyAllocationContextsRequest.newBuilder().setSession(VALID_SESSION)
-      .addClassIds(1).addClassIds(2).addStackIds(1).addStackIds(2).build();
+  public void testAllocationContextNotFound() {
+    LegacyAllocationContextsRequest request = LegacyAllocationContextsRequest
+      .newBuilder().setSession(VALID_SESSION).addClassIds(1).addClassIds(2).addStackIds(1).addStackIds(2).build();
     AllocationContextsResponse response = myStatsTable.getLegacyAllocationContexts(request);
 
     assertEquals(0, response.getAllocatedClassesCount());

@@ -18,7 +18,6 @@ package com.android.tools.datastore.database;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.protobuf3jarjar.InvalidProtocolBufferException;
-import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;

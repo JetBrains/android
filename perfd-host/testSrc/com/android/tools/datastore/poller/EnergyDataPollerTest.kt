@@ -17,6 +17,7 @@ package com.android.tools.datastore.poller
 
 import com.android.tools.datastore.DataStorePollerTest
 import com.android.tools.datastore.DataStoreService
+import com.android.tools.datastore.FakeLogService
 import com.android.tools.datastore.TestGrpcService
 import com.android.tools.datastore.energy.BatteryModel
 import com.android.tools.datastore.energy.PowerProfile
@@ -124,14 +125,14 @@ class EnergyDataPollerTest : DataStorePollerTest() {
       responseObserver: StreamObserver<CpuProfiler.CpuCoreConfigResponse>
     ) {
       responseObserver.onNext(
-          CpuProfiler.CpuCoreConfigResponse.newBuilder().addConfigs(
-              CpuProfiler.CpuCoreConfigResponse.CpuCoreConfigData
-                .newBuilder()
-                .setCore(0)
-                .setMinFrequencyInKhz(300000)
-                .setMaxFrequencyInKhz(2457600)
-                .build()
-          ).build()
+        CpuProfiler.CpuCoreConfigResponse.newBuilder().addConfigs(
+          CpuProfiler.CpuCoreConfigResponse.CpuCoreConfigData
+            .newBuilder()
+            .setCore(0)
+            .setMinFrequencyInKhz(300000)
+            .setMaxFrequencyInKhz(2457600)
+            .build()
+        ).build()
       )
       responseObserver.onCompleted()
 
@@ -176,7 +177,8 @@ class EnergyDataPollerTest : DataStorePollerTest() {
   }
 
   private val dataStoreService = mock(DataStoreService::class.java)
-  private val energyService = EnergyService(BatteryModel(TestPowerProfile(), SAMPLE_INTERVAL_NS), dataStoreService, pollTicker::run)
+  private val energyService = EnergyService(BatteryModel(TestPowerProfile(), SAMPLE_INTERVAL_NS), dataStoreService, pollTicker::run,
+                                            FakeLogService())
 
   private val fakeProfilerService = FakeProfilerService() // Used to provide timestamp
   private val fakeCpuService = FakeCpuService() // Used to provide cpu data that affects energy usage
@@ -186,13 +188,13 @@ class EnergyDataPollerTest : DataStorePollerTest() {
   private val testName = TestName()
 
   private val grpcService = TestGrpcService(
-      EnergyDataPollerTest::class.java,
-      testName,
-      energyService,
-      fakeProfilerService,
-      fakeCpuService,
-      fakeNetworkService,
-      fakeEnergyService
+    EnergyDataPollerTest::class.java,
+    testName,
+    energyService,
+    fakeProfilerService,
+    fakeCpuService,
+    fakeNetworkService,
+    fakeEnergyService
   )
 
   @get:Rule
@@ -206,8 +208,8 @@ class EnergyDataPollerTest : DataStorePollerTest() {
     `when`(dataStoreService.getEnergyClient(ArgumentMatchers.any())).thenReturn(EnergyServiceGrpc.newBlockingStub(grpcService.channel))
 
     energyService.startMonitoringApp(
-        EnergyProfiler.EnergyStartRequest.newBuilder().setSession(SESSION).build(),
-        mock(StreamObserver::class.java) as StreamObserver<EnergyProfiler.EnergyStartResponse>
+      EnergyProfiler.EnergyStartRequest.newBuilder().setSession(SESSION).build(),
+      mock(StreamObserver::class.java) as StreamObserver<EnergyProfiler.EnergyStartResponse>
     )
   }
 
@@ -215,8 +217,8 @@ class EnergyDataPollerTest : DataStorePollerTest() {
   fun tearDown() {
     // Not strictly necessary to do this but it ensures we run all code paths
     energyService.stopMonitoringApp(
-        EnergyProfiler.EnergyStopRequest.newBuilder().setSession(SESSION).build(),
-        mock(StreamObserver::class.java) as StreamObserver<EnergyProfiler.EnergyStopResponse>
+      EnergyProfiler.EnergyStopRequest.newBuilder().setSession(SESSION).build(),
+      mock(StreamObserver::class.java) as StreamObserver<EnergyProfiler.EnergyStopResponse>
     )
   }
 
@@ -244,29 +246,29 @@ class EnergyDataPollerTest : DataStorePollerTest() {
   @Test
   fun cpuEventsAffectEnergySamples() {
     fakeCpuService.dataList = Lists.newArrayList(
-        CpuProfiler.CpuUsageData.newBuilder().setEndTimestamp(0).addCores(
-            CpuProfiler.CpuCoreUsageData.newBuilder().setCore(0).setSystemCpuTimeInMillisec(0).setElapsedTimeInMillisec(0).build())
+      CpuProfiler.CpuUsageData.newBuilder().setEndTimestamp(0).addCores(
+        CpuProfiler.CpuCoreUsageData.newBuilder().setCore(0).setSystemCpuTimeInMillisec(0).setElapsedTimeInMillisec(0).build())
         .build(),
-        // Timestamp rounds from 250ms to nearest bucket, 200ms. CPU at 100%
-        CpuProfiler.CpuUsageData.newBuilder().setEndTimestamp(ONE_FOURTH_SEC_NS)
-          .setElapsedTimeInMillisec(ONE_FOURTH_SEC_MS)
-          .setSystemCpuTimeInMillisec(ONE_FOURTH_SEC_MS)
-          .setAppCpuTimeInMillisec(ONE_FOURTH_SEC_MS)
-          .addCores(
-            CpuProfiler.CpuCoreUsageData.newBuilder()
-              .setCore(0).setSystemCpuTimeInMillisec(ONE_FOURTH_SEC_MS).setElapsedTimeInMillisec(ONE_FOURTH_SEC_MS).build())
-          .build(),
+      // Timestamp rounds from 250ms to nearest bucket, 200ms. CPU at 100%
+      CpuProfiler.CpuUsageData.newBuilder().setEndTimestamp(ONE_FOURTH_SEC_NS)
+        .setElapsedTimeInMillisec(ONE_FOURTH_SEC_MS)
+        .setSystemCpuTimeInMillisec(ONE_FOURTH_SEC_MS)
+        .setAppCpuTimeInMillisec(ONE_FOURTH_SEC_MS)
+        .addCores(
+          CpuProfiler.CpuCoreUsageData.newBuilder()
+            .setCore(0).setSystemCpuTimeInMillisec(ONE_FOURTH_SEC_MS).setElapsedTimeInMillisec(ONE_FOURTH_SEC_MS).build())
+        .build(),
 
-        // Timestamp rounds from 750ms to nearest bucket, 800ms. CPU drops to 50%
-        // (Since previous data, 500ms elapsed but only 250ms app time)
-        CpuProfiler.CpuUsageData.newBuilder().setEndTimestamp(THREE_FOURTH_SEC_NS)
-          .setElapsedTimeInMillisec(THREE_FOURTH_SEC_MS)
-          .setSystemCpuTimeInMillisec(THREE_FOURTH_SEC_MS)
-          .setAppCpuTimeInMillisec(ONE_HALF_SEC_MS)
-          .addCores(
-            CpuProfiler.CpuCoreUsageData.newBuilder()
-              .setCore(0).setSystemCpuTimeInMillisec(THREE_FOURTH_SEC_MS).setElapsedTimeInMillisec(THREE_FOURTH_SEC_MS).build())
-          .build()
+      // Timestamp rounds from 750ms to nearest bucket, 800ms. CPU drops to 50%
+      // (Since previous data, 500ms elapsed but only 250ms app time)
+      CpuProfiler.CpuUsageData.newBuilder().setEndTimestamp(THREE_FOURTH_SEC_NS)
+        .setElapsedTimeInMillisec(THREE_FOURTH_SEC_MS)
+        .setSystemCpuTimeInMillisec(THREE_FOURTH_SEC_MS)
+        .setAppCpuTimeInMillisec(ONE_HALF_SEC_MS)
+        .addCores(
+          CpuProfiler.CpuCoreUsageData.newBuilder()
+            .setCore(0).setSystemCpuTimeInMillisec(THREE_FOURTH_SEC_MS).setElapsedTimeInMillisec(THREE_FOURTH_SEC_MS).build())
+        .build()
     )
 
     fastForward(ONE_SEC_NS)
@@ -280,10 +282,14 @@ class EnergyDataPollerTest : DataStorePollerTest() {
     val responseBuilder = EnergyProfiler.EnergySamplesResponse.newBuilder()
 
     responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(0 * SAMPLE_INTERVAL_NS).setCpuUsage(0).build())
-    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(1 * SAMPLE_INTERVAL_NS).setCpuUsage(TestPowerProfile.CPU_USAGE).build())
-    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(2 * SAMPLE_INTERVAL_NS).setCpuUsage(TestPowerProfile.CPU_USAGE).build())
-    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(3 * SAMPLE_INTERVAL_NS).setCpuUsage(TestPowerProfile.CPU_USAGE).build())
-    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(4 * SAMPLE_INTERVAL_NS).setCpuUsage(TestPowerProfile.CPU_USAGE / 2).build())
+    responseBuilder.addSamples(
+      EnergyProfiler.EnergySample.newBuilder().setTimestamp(1 * SAMPLE_INTERVAL_NS).setCpuUsage(TestPowerProfile.CPU_USAGE).build())
+    responseBuilder.addSamples(
+      EnergyProfiler.EnergySample.newBuilder().setTimestamp(2 * SAMPLE_INTERVAL_NS).setCpuUsage(TestPowerProfile.CPU_USAGE).build())
+    responseBuilder.addSamples(
+      EnergyProfiler.EnergySample.newBuilder().setTimestamp(3 * SAMPLE_INTERVAL_NS).setCpuUsage(TestPowerProfile.CPU_USAGE).build())
+    responseBuilder.addSamples(
+      EnergyProfiler.EnergySample.newBuilder().setTimestamp(4 * SAMPLE_INTERVAL_NS).setCpuUsage(TestPowerProfile.CPU_USAGE / 2).build())
 
     val responseObserver = mock(StreamObserver::class.java) as StreamObserver<EnergyProfiler.EnergySamplesResponse>
     energyService.getSamples(request, responseObserver)
@@ -297,13 +303,13 @@ class EnergyDataPollerTest : DataStorePollerTest() {
     val speedDataIdle = NetworkProfiler.SpeedData.getDefaultInstance()
 
     fakeNetworkService.dataList = Lists.newArrayList(
-        NetworkProfiler.NetworkProfilerData.newBuilder().setEndTimestamp(0).setConnectivityData(NETWORK_WIFI_STATE).build(),
-        // Timestamp rounds from 250ms to nearest bucket, 200ms.
-        NetworkProfiler.NetworkProfilerData.newBuilder().setEndTimestamp(ONE_FOURTH_SEC_NS).setSpeedData(speedDataTx).build(),
-        // Timestamp rounds from 500ms to nearest bucket, 600ms.
-        NetworkProfiler.NetworkProfilerData.newBuilder().setEndTimestamp(ONE_HALF_SEC_NS).setSpeedData(speedDataRx).build(),
-        // Timestamp rounds from 750ms to nearest bucket, 800ms.
-        NetworkProfiler.NetworkProfilerData.newBuilder().setEndTimestamp(THREE_FOURTH_SEC_NS).setSpeedData(speedDataIdle).build()
+      NetworkProfiler.NetworkProfilerData.newBuilder().setEndTimestamp(0).setConnectivityData(NETWORK_WIFI_STATE).build(),
+      // Timestamp rounds from 250ms to nearest bucket, 200ms.
+      NetworkProfiler.NetworkProfilerData.newBuilder().setEndTimestamp(ONE_FOURTH_SEC_NS).setSpeedData(speedDataTx).build(),
+      // Timestamp rounds from 500ms to nearest bucket, 600ms.
+      NetworkProfiler.NetworkProfilerData.newBuilder().setEndTimestamp(ONE_HALF_SEC_NS).setSpeedData(speedDataRx).build(),
+      // Timestamp rounds from 750ms to nearest bucket, 800ms.
+      NetworkProfiler.NetworkProfilerData.newBuilder().setEndTimestamp(THREE_FOURTH_SEC_NS).setSpeedData(speedDataIdle).build()
     )
 
     fastForward(ONE_SEC_NS)
@@ -317,22 +323,22 @@ class EnergyDataPollerTest : DataStorePollerTest() {
     val responseBuilder = EnergyProfiler.EnergySamplesResponse.newBuilder()
 
     responseBuilder.addSamples(
-        EnergyProfiler.EnergySample.newBuilder().setTimestamp(0 * SAMPLE_INTERVAL_NS).setNetworkUsage(0).build()
+      EnergyProfiler.EnergySample.newBuilder().setTimestamp(0 * SAMPLE_INTERVAL_NS).setNetworkUsage(0).build()
     )
     responseBuilder.addSamples(
-        EnergyProfiler.EnergySample.newBuilder().setTimestamp(1 * SAMPLE_INTERVAL_NS).setNetworkUsage(
-            TestPowerProfile.WIFI_ACTIVE
-        ).build()
+      EnergyProfiler.EnergySample.newBuilder().setTimestamp(1 * SAMPLE_INTERVAL_NS).setNetworkUsage(
+        TestPowerProfile.WIFI_ACTIVE
+      ).build()
     )
     responseBuilder.addSamples(
-        EnergyProfiler.EnergySample.newBuilder().setTimestamp(2 * SAMPLE_INTERVAL_NS).setNetworkUsage(
-            TestPowerProfile.WIFI_ACTIVE
-        ).build()
+      EnergyProfiler.EnergySample.newBuilder().setTimestamp(2 * SAMPLE_INTERVAL_NS).setNetworkUsage(
+        TestPowerProfile.WIFI_ACTIVE
+      ).build()
     )
     responseBuilder.addSamples(
-        EnergyProfiler.EnergySample.newBuilder().setTimestamp(3 * SAMPLE_INTERVAL_NS).setNetworkUsage(
-            TestPowerProfile.WIFI_ACTIVE
-        ).build()
+      EnergyProfiler.EnergySample.newBuilder().setTimestamp(3 * SAMPLE_INTERVAL_NS).setNetworkUsage(
+        TestPowerProfile.WIFI_ACTIVE
+      ).build()
     )
     responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(4 * SAMPLE_INTERVAL_NS).setNetworkUsage(0).build())
 
@@ -348,13 +354,13 @@ class EnergyDataPollerTest : DataStorePollerTest() {
     val speedDataIdle = NetworkProfiler.SpeedData.getDefaultInstance()
 
     fakeNetworkService.dataList = Lists.newArrayList(
-        NetworkProfiler.NetworkProfilerData.newBuilder().setEndTimestamp(0).setConnectivityData(NETWORK_RADIO_STATE).build(),
-        // Timestamp rounds from 250ms to nearest bucket, 200ms.
-        NetworkProfiler.NetworkProfilerData.newBuilder().setEndTimestamp(ONE_FOURTH_SEC_NS).setSpeedData(speedDataTx).build(),
-        // Timestamp rounds from 500ms to nearest bucket, 600ms.
-        NetworkProfiler.NetworkProfilerData.newBuilder().setEndTimestamp(ONE_HALF_SEC_NS).setSpeedData(speedDataRx).build(),
-        // Timestamp rounds from 750ms to nearest bucket, 800ms.
-        NetworkProfiler.NetworkProfilerData.newBuilder().setEndTimestamp(THREE_FOURTH_SEC_NS).setSpeedData(speedDataIdle).build()
+      NetworkProfiler.NetworkProfilerData.newBuilder().setEndTimestamp(0).setConnectivityData(NETWORK_RADIO_STATE).build(),
+      // Timestamp rounds from 250ms to nearest bucket, 200ms.
+      NetworkProfiler.NetworkProfilerData.newBuilder().setEndTimestamp(ONE_FOURTH_SEC_NS).setSpeedData(speedDataTx).build(),
+      // Timestamp rounds from 500ms to nearest bucket, 600ms.
+      NetworkProfiler.NetworkProfilerData.newBuilder().setEndTimestamp(ONE_HALF_SEC_NS).setSpeedData(speedDataRx).build(),
+      // Timestamp rounds from 750ms to nearest bucket, 800ms.
+      NetworkProfiler.NetworkProfilerData.newBuilder().setEndTimestamp(THREE_FOURTH_SEC_NS).setSpeedData(speedDataIdle).build()
     )
 
     fastForward(ONE_SEC_NS)
@@ -368,22 +374,22 @@ class EnergyDataPollerTest : DataStorePollerTest() {
     val responseBuilder = EnergyProfiler.EnergySamplesResponse.newBuilder()
 
     responseBuilder.addSamples(
-        EnergyProfiler.EnergySample.newBuilder().setTimestamp(0 * SAMPLE_INTERVAL_NS).setNetworkUsage(0).build()
+      EnergyProfiler.EnergySample.newBuilder().setTimestamp(0 * SAMPLE_INTERVAL_NS).setNetworkUsage(0).build()
     )
     responseBuilder.addSamples(
-        EnergyProfiler.EnergySample.newBuilder().setTimestamp(1 * SAMPLE_INTERVAL_NS).setNetworkUsage(
-            TestPowerProfile.RADIO_ACTIVE
-        ).build()
+      EnergyProfiler.EnergySample.newBuilder().setTimestamp(1 * SAMPLE_INTERVAL_NS).setNetworkUsage(
+        TestPowerProfile.RADIO_ACTIVE
+      ).build()
     )
     responseBuilder.addSamples(
-        EnergyProfiler.EnergySample.newBuilder().setTimestamp(2 * SAMPLE_INTERVAL_NS).setNetworkUsage(
-            TestPowerProfile.RADIO_ACTIVE
-        ).build()
+      EnergyProfiler.EnergySample.newBuilder().setTimestamp(2 * SAMPLE_INTERVAL_NS).setNetworkUsage(
+        TestPowerProfile.RADIO_ACTIVE
+      ).build()
     )
     responseBuilder.addSamples(
-        EnergyProfiler.EnergySample.newBuilder().setTimestamp(3 * SAMPLE_INTERVAL_NS).setNetworkUsage(
-            TestPowerProfile.RADIO_ACTIVE
-        ).build()
+      EnergyProfiler.EnergySample.newBuilder().setTimestamp(3 * SAMPLE_INTERVAL_NS).setNetworkUsage(
+        TestPowerProfile.RADIO_ACTIVE
+      ).build()
     )
     responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(4 * SAMPLE_INTERVAL_NS).setNetworkUsage(0).build())
 
@@ -395,52 +401,64 @@ class EnergyDataPollerTest : DataStorePollerTest() {
   @Test
   fun locationEventsAffectEnergySamples() {
     fakeEnergyService.eventList = Lists.newArrayList(
-        EnergyProfiler.EnergyEvent.newBuilder()
-            .setTimestamp(0)
-            .setLocationChanged(
-                EnergyProfiler.LocationChanged.newBuilder()
-                    .setLocation(EnergyProfiler.Location.newBuilder().setProvider("gps").build())
-                    .build())
-            .build(),
-        EnergyProfiler.EnergyEvent.newBuilder()
-            .setTimestamp(5 * SAMPLE_INTERVAL_NS)
-            .setLocationChanged(
-                EnergyProfiler.LocationChanged.newBuilder()
-                    .setLocation(EnergyProfiler.Location.newBuilder().setProvider("gps").build())
-                    .build())
-            .build(),
-        EnergyProfiler.EnergyEvent.newBuilder()
-            .setTimestamp(10 * SAMPLE_INTERVAL_NS)
-            .setLocationChanged(
-                EnergyProfiler.LocationChanged.newBuilder()
-                    .setLocation(EnergyProfiler.Location.newBuilder().setProvider("gps").build())
-                    .build())
-            .build()
+      EnergyProfiler.EnergyEvent.newBuilder()
+        .setTimestamp(0)
+        .setLocationChanged(
+          EnergyProfiler.LocationChanged.newBuilder()
+            .setLocation(EnergyProfiler.Location.newBuilder().setProvider("gps").build())
+            .build())
+        .build(),
+      EnergyProfiler.EnergyEvent.newBuilder()
+        .setTimestamp(5 * SAMPLE_INTERVAL_NS)
+        .setLocationChanged(
+          EnergyProfiler.LocationChanged.newBuilder()
+            .setLocation(EnergyProfiler.Location.newBuilder().setProvider("gps").build())
+            .build())
+        .build(),
+      EnergyProfiler.EnergyEvent.newBuilder()
+        .setTimestamp(10 * SAMPLE_INTERVAL_NS)
+        .setLocationChanged(
+          EnergyProfiler.LocationChanged.newBuilder()
+            .setLocation(EnergyProfiler.Location.newBuilder().setProvider("gps").build())
+            .build())
+        .build()
     )
     fastForward(3 * ONE_SEC_NS)
 
     val request = EnergyProfiler.EnergyRequest.newBuilder()
-        .setSession(SESSION)
-        .setStartTimestamp(0)
-        .setEndTimestamp(3 * ONE_SEC_NS)
-        .build()
+      .setSession(SESSION)
+      .setStartTimestamp(0)
+      .setEndTimestamp(3 * ONE_SEC_NS)
+      .build()
 
     val responseBuilder = EnergyProfiler.EnergySamplesResponse.newBuilder()
 
-    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(0 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
-    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(1 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
-    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(2 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
-    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(3 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+    responseBuilder.addSamples(
+      EnergyProfiler.EnergySample.newBuilder().setTimestamp(0 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+    responseBuilder.addSamples(
+      EnergyProfiler.EnergySample.newBuilder().setTimestamp(1 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+    responseBuilder.addSamples(
+      EnergyProfiler.EnergySample.newBuilder().setTimestamp(2 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+    responseBuilder.addSamples(
+      EnergyProfiler.EnergySample.newBuilder().setTimestamp(3 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
     responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(4 * SAMPLE_INTERVAL_NS).setLocationUsage(0).build())
-    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(5 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
-    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(6 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
-    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(7 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
-    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(8 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+    responseBuilder.addSamples(
+      EnergyProfiler.EnergySample.newBuilder().setTimestamp(5 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+    responseBuilder.addSamples(
+      EnergyProfiler.EnergySample.newBuilder().setTimestamp(6 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+    responseBuilder.addSamples(
+      EnergyProfiler.EnergySample.newBuilder().setTimestamp(7 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+    responseBuilder.addSamples(
+      EnergyProfiler.EnergySample.newBuilder().setTimestamp(8 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
     responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(9 * SAMPLE_INTERVAL_NS).setLocationUsage(0).build())
-    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(10 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
-    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(11 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
-    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(12 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
-    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(13 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+    responseBuilder.addSamples(
+      EnergyProfiler.EnergySample.newBuilder().setTimestamp(10 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+    responseBuilder.addSamples(
+      EnergyProfiler.EnergySample.newBuilder().setTimestamp(11 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+    responseBuilder.addSamples(
+      EnergyProfiler.EnergySample.newBuilder().setTimestamp(12 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+    responseBuilder.addSamples(
+      EnergyProfiler.EnergySample.newBuilder().setTimestamp(13 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
     responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(14 * SAMPLE_INTERVAL_NS).setLocationUsage(0).build())
 
     val responseObserver = mock(StreamObserver::class.java) as StreamObserver<EnergyProfiler.EnergySamplesResponse>
@@ -475,10 +493,10 @@ class EnergyDataPollerTest : DataStorePollerTest() {
       .build()
 
     fakeEnergyService.eventList = Lists.newArrayList(
-        wakeLock1Acquire,
-        wakeLock2Acquire,
-        wakeLock1Release,
-        wakeLock2Release
+      wakeLock1Acquire,
+      wakeLock2Acquire,
+      wakeLock1Release,
+      wakeLock2Release
     )
 
     fastForward(ONE_SEC_NS)

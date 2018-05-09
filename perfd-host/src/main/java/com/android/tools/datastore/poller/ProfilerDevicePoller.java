@@ -130,9 +130,7 @@ public class ProfilerDevicePoller extends PollRunner implements DataStoreTable.D
 
   private void killProcesses(DeviceId deviceId, Set<Common.Process> processes) {
     for (Common.Process process : processes) {
-      Common.Process updatedProcess = process.toBuilder()
-        .setState(Common.Process.State.DEAD)
-        .build();
+      Common.Process updatedProcess = process.toBuilder().setState(Common.Process.State.DEAD).build();
       myTable.insertOrUpdateProcess(deviceId, updatedProcess);
     }
   }

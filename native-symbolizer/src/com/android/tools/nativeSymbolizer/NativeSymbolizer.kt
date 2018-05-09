@@ -16,7 +16,6 @@
 package com.android.tools.nativeSymbolizer
 
 import com.intellij.ide.plugins.PluginManagerCore
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -29,7 +28,7 @@ data class Symbol(val name: String, val module: String, val sourceFile: String =
 /**
  * Components that can fetch information about native symbols by a module and an offset.
  */
-interface NativeSymbolizer : Disposable {
+interface NativeSymbolizer {
 
   /**
    * Obtains information about a function (symbol) located at a given offset in a given module
@@ -40,7 +39,7 @@ interface NativeSymbolizer : Disposable {
    */
   @Throws(IOException::class)
   fun symbolize(abiArch: String, module: String, offset: Long): Symbol?
-
+  fun stop()
 }
 
 fun createNativeSymbolizer(project: Project): NativeSymbolizer {
@@ -90,8 +89,7 @@ class NopSymbolizer : NativeSymbolizer {
     return null
   }
 
-  override fun dispose() {
-  }
+  override fun stop() {}
 }
 
 internal fun getLogger(): Logger {

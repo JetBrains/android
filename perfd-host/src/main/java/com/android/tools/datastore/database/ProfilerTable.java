@@ -79,7 +79,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
 
   /**
    * Establishes DB connection without creating tables and indexes.
-   *
+   * <p>
    * (Tables and indexes should be already created at this point somewhere else)
    */
   public void initializeConnectionOnly(@NotNull Connection connection) {
@@ -130,7 +130,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
   }
 
   @NotNull
-  public GetDevicesResponse getDevices(@NotNull GetDevicesRequest request) {
+  public GetDevicesResponse getDevices() {
     if (isClosed()) {
       return GetDevicesResponse.getDefaultInstance();
     }
@@ -203,10 +203,10 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
       ResultSet results = executeQuery(ProfilerStatements.SELECT_SESSION_BY_ID, sessionId);
       if (results.next()) {
         builder.setSessionId(results.getLong(1))
-          .setDeviceId(results.getLong(2))
-          .setPid(results.getInt(3))
-          .setStartTimestamp(results.getLong(4))
-          .setEndTimestamp((results.getLong(5)));
+               .setDeviceId(results.getLong(2))
+               .setPid(results.getInt(3))
+               .setStartTimestamp(results.getLong(4))
+               .setEndTimestamp((results.getLong(5)));
       }
     }
     catch (SQLException ex) {
@@ -228,14 +228,12 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
     try {
       ResultSet results = executeQuery(ProfilerStatements.SELECT_SESSION_BY_ID, sessionId);
       while (results.next()) {
-        responseBuilder.setData(Common.SessionMetaData.newBuilder()
-                                  .setSessionId(results.getLong(1))
-                                  .setStartTimestampEpochMs(results.getLong(6))
-                                  .setSessionName(results.getString(7))
-                                  .setJvmtiEnabled(results.getBoolean(8))
-                                  .setLiveAllocationEnabled(results.getBoolean(9))
-                                  .setType(Common.SessionMetaData.SessionType.forNumber(results.getInt(10)))
-                                  .build());
+        responseBuilder.setData(
+          Common.SessionMetaData
+            .newBuilder().setSessionId(results.getLong(1)).setStartTimestampEpochMs(results.getLong(6)).setSessionName(results.getString(7))
+            .setJvmtiEnabled(results.getBoolean(8)).setLiveAllocationEnabled(results.getBoolean(9))
+            .setType(Common.SessionMetaData.SessionType.forNumber(results.getInt(10)))
+            .build());
       }
     }
     catch (SQLException ex) {
@@ -257,13 +255,11 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
     try {
       ResultSet results = executeQuery(ProfilerStatements.SELECT_SESSIONS);
       while (results.next()) {
-        responseBuilder.addSessions(Common.Session.newBuilder()
-                                      .setSessionId(results.getLong(1))
-                                      .setDeviceId(results.getLong(2))
-                                      .setPid(results.getInt(3))
-                                      .setStartTimestamp(results.getLong(4))
-                                      .setEndTimestamp((results.getLong(5)))
-                                      .build());
+        responseBuilder.addSessions(
+          Common.Session
+            .newBuilder().setSessionId(results.getLong(1)).setDeviceId(results.getLong(2)).setPid(results.getInt(3))
+            .setStartTimestamp(results.getLong(4)).setEndTimestamp((results.getLong(5)))
+            .build());
       }
     }
     catch (SQLException ex) {

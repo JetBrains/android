@@ -89,7 +89,7 @@ public final class EnergyTable extends DataStoreTable<EnergyTable.EventStatement
                       " FROM Energy_Event " +
                       " WHERE Session = ? AND Id = ?" +
                       "ORDER BY Timestamp;");
-      }
+    }
     catch (SQLException ex) {
       onError(ex);
     }
@@ -124,9 +124,9 @@ public final class EnergyTable extends DataStoreTable<EnergyTable.EventStatement
    * Return all events that fall within the passed in {@code request}'s time range, in addition to
    * any related events that occurred most recently before the it. This is to ensure that callers
    * know whether an event is continuing into this time range or just started within it.
-   *
+   * <p>
    * For example, if I acquired a wakelock @ t = 1000 and released it @ t = 2000...
-   *
+   * <p>
    * findEvents(0, 500) -> returns nothing
    * findEvents(0, 9999) -> returns acquire and release (both in range)
    * findEvents(1500, 2500) -> returns acquire (before range) and release (in range)

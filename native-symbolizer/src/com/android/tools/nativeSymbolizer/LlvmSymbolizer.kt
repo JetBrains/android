@@ -85,10 +85,6 @@ class LlvmSymbolizer(private val symbolizerExe: String,
     return null
   }
 
-  override fun dispose() {
-    stop()
-  }
-
   private fun getProcHolder() : ProcessHolder {
     var holder = procHolder
     if (holder == null || !holder.process.isAlive) {
@@ -145,7 +141,7 @@ class LlvmSymbolizer(private val symbolizerExe: String,
     procHolder = ProcessHolder(process, stdout, stdin)
   }
 
-  private fun stop() {
+  override fun stop() {
     procHolder?.dispose()
     procHolder = null
   }

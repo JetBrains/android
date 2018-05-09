@@ -21,7 +21,6 @@ import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.NetworkTable;
 import com.android.tools.datastore.poller.NetworkDataPoller;
 import com.android.tools.datastore.poller.PollRunner;
-import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import io.grpc.stub.StreamObserver;

@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @XmlSeeAlso(GrpcCall.class)
-@XmlRootElement(name="GrpcList")
+@XmlRootElement(name = "GrpcList")
 
 /**
  * Container for Grpc calls, this class is the top level node to be serialized for test.
@@ -51,8 +51,8 @@ public class GrpcCallStack {
   public String toString() {
     StringBuilder builder = new StringBuilder();
     builder.append(GrpcCallStack.class.toString());
-    for(GrpcCall call : myGrpcCalls) {
-      builder.append(String.format("\t%s\n",call));
+    for (GrpcCall call : myGrpcCalls) {
+      builder.append(String.format("\t%s\n", call));
     }
     return builder.toString();
   }

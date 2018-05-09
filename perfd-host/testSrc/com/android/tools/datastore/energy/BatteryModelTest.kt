@@ -94,9 +94,9 @@ class BatteryModelTest {
 
     run {
       batteryModel.handleEvent(
-          timeCurrNs,
-          BatteryModel.Event.CPU_USAGE,
-          arrayOf(PowerProfile.CpuCoreUsage(0, 1.0, 0.5, MIN_CPU_FREQUENCY, MAX_CPU_FREQUENCY, MAX_CPU_FREQUENCY, false))
+        timeCurrNs,
+        BatteryModel.Event.CPU_USAGE,
+        arrayOf(PowerProfile.CpuCoreUsage(0, 1.0, 0.5, MIN_CPU_FREQUENCY, MAX_CPU_FREQUENCY, MAX_CPU_FREQUENCY, false))
       )
       val samples = batteryModel.getNSamplesStartingAt(timeCurrNs, 3)
 
@@ -111,9 +111,9 @@ class BatteryModelTest {
 
       timeCurrNs = fastForward(timeCurrNs, samples.size)
       batteryModel.handleEvent(
-          timeCurrNs,
-          BatteryModel.Event.CPU_USAGE,
-          arrayOf(PowerProfile.CpuCoreUsage(0, 0.0, 0.5, MIN_CPU_FREQUENCY, MAX_CPU_FREQUENCY, MAX_CPU_FREQUENCY, false))
+        timeCurrNs,
+        BatteryModel.Event.CPU_USAGE,
+        arrayOf(PowerProfile.CpuCoreUsage(0, 0.0, 0.5, MIN_CPU_FREQUENCY, MAX_CPU_FREQUENCY, MAX_CPU_FREQUENCY, false))
       )
     }
 
@@ -122,13 +122,13 @@ class BatteryModelTest {
       val uploadStartNs = fastForward(timeCurrNs, 2)
 
       batteryModel.handleEvent(downloadStartNs, BatteryModel.Event.NETWORK_USAGE,
-          PowerProfile.NetworkStats(PowerProfile.NetworkType.WIFI, 0, 0))
+                               PowerProfile.NetworkStats(PowerProfile.NetworkType.WIFI, 0, 0))
       batteryModel.handleEvent(downloadStartNs, BatteryModel.Event.NETWORK_USAGE,
-          PowerProfile.NetworkStats(PowerProfile.NetworkType.WIFI, 100, 0))
+                               PowerProfile.NetworkStats(PowerProfile.NetworkType.WIFI, 100, 0))
       batteryModel.handleEvent(uploadStartNs, BatteryModel.Event.NETWORK_USAGE,
-          PowerProfile.NetworkStats(PowerProfile.NetworkType.WIFI, 0, 0))
+                               PowerProfile.NetworkStats(PowerProfile.NetworkType.WIFI, 0, 0))
       batteryModel.handleEvent(uploadStartNs, BatteryModel.Event.NETWORK_USAGE,
-          PowerProfile.NetworkStats(PowerProfile.NetworkType.WIFI, 0, 10))
+                               PowerProfile.NetworkStats(PowerProfile.NetworkType.WIFI, 0, 10))
 
       val samples = batteryModel.getNSamplesStartingAt(timeCurrNs, 4)
 
@@ -147,9 +147,9 @@ class BatteryModelTest {
       timeCurrNs = fastForward(timeCurrNs, samples.size)
 
       batteryModel.handleEvent(timeCurrNs, BatteryModel.Event.NETWORK_USAGE,
-          PowerProfile.NetworkStats(PowerProfile.NetworkType.WIFI, 0, 0))
+                               PowerProfile.NetworkStats(PowerProfile.NetworkType.WIFI, 0, 0))
       batteryModel.handleEvent(timeCurrNs, BatteryModel.Event.NETWORK_USAGE,
-          PowerProfile.NetworkStats(PowerProfile.NetworkType.NONE, 0, 0))
+                               PowerProfile.NetworkStats(PowerProfile.NetworkType.NONE, 0, 0))
     }
 
 
@@ -166,17 +166,17 @@ class BatteryModelTest {
     val timeCurrNs = TimeUnit.SECONDS.toNanos(9999)
 
     batteryModel.handleEvent(timeCurrNs, BatteryModel.Event.NETWORK_USAGE,
-        PowerProfile.NetworkStats(PowerProfile.NetworkType.WIFI, 0, 0))
+                             PowerProfile.NetworkStats(PowerProfile.NetworkType.WIFI, 0, 0))
     batteryModel.handleEvent(timeCurrNs + 1, BatteryModel.Event.NETWORK_USAGE,
-        PowerProfile.NetworkStats(PowerProfile.NetworkType.WIFI, 100, 10))
+                             PowerProfile.NetworkStats(PowerProfile.NetworkType.WIFI, 100, 10))
     batteryModel.handleEvent(timeCurrNs + 2, BatteryModel.Event.NETWORK_USAGE,
-        PowerProfile.NetworkStats(PowerProfile.NetworkType.WIFI, 0, 0))
+                             PowerProfile.NetworkStats(PowerProfile.NetworkType.WIFI, 0, 0))
     batteryModel.handleEvent(timeCurrNs + 3, BatteryModel.Event.NETWORK_USAGE,
-        PowerProfile.NetworkStats(PowerProfile.NetworkType.NONE, 0, 0))
+                             PowerProfile.NetworkStats(PowerProfile.NetworkType.NONE, 0, 0))
     batteryModel.handleEvent(
-        timeCurrNs + 3,
-        BatteryModel.Event.CPU_USAGE,
-        arrayOf(PowerProfile.CpuCoreUsage(0, 1.0, 1.0, MIN_CPU_FREQUENCY, MAX_CPU_FREQUENCY, MAX_CPU_FREQUENCY, false))
+      timeCurrNs + 3,
+      BatteryModel.Event.CPU_USAGE,
+      arrayOf(PowerProfile.CpuCoreUsage(0, 1.0, 1.0, MIN_CPU_FREQUENCY, MAX_CPU_FREQUENCY, MAX_CPU_FREQUENCY, false))
     )
 
     val sample = batteryModel.getNSamplesStartingAt(timeCurrNs, 1)[0]
