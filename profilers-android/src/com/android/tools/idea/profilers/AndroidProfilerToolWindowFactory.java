@@ -22,8 +22,8 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.openapi.wm.ex.ToolWindowManagerAdapter;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
-import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.content.ContentManager;
@@ -41,16 +41,17 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
 
   @Override
   public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
-    ToolWindowManagerEx.getInstanceEx(project).addToolWindowManagerListener(new ToolWindowManagerListener() {
-      @Override
-      public void toolWindowRegistered(@NotNull String id) {
-      }
-
+    ToolWindowManagerEx.getInstanceEx(project).addToolWindowManagerListener(new ToolWindowManagerAdapter() {
       @Override
       public void stateChanged() {
         // We need to query the tool window again, because it might have been unregistered when closing the project.
         ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(ID);
-        if (window != null && window.isVisible() && window.getContentManager().getContentCount() == 0) {
+        if (window == null) {
+          return;
+        }
+
+        AndroidProfilerToolWindow profilerToolWindow = getProfilerToolWindow(project);
+        if (window.isVisible() && profilerToolWindow == null) {
           createContent(project, window);
         }
       }
@@ -96,8 +97,11 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
   }
 
   public static void removeContent(@NotNull ToolWindow toolWindow) {
-    toolWindow.getContentManager().removeAllContents(true);
-    toolWindow.setIcon(StudioIcons.Shell.ToolWindows.ANDROID_PROFILER);
+    if (toolWindow.getContentManager().getContentCount() > 0) {
+      Content content = toolWindow.getContentManager().getContent(0);
+      PROJECT_PROFILER_MAP.remove(content);
+      toolWindow.getContentManager().removeAllContents(true);
+    }
   }
 
   @Override
