@@ -17,6 +17,7 @@ package com.android.tools.profilers;
 
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TooltipComponent;
+import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
@@ -101,6 +102,9 @@ public abstract class ProfilerTooltipView extends AspectObserver {
     tooltipPanel.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
     tooltipPanel.setBorder(new JBEmptyBorder(10, 10, 10, 10));
     updateHeader();
+
+    // Loop all the child components and set the background color so each tooltip doesn't need to do this individually.
+    new TreeWalker(tooltipPanel).descendantStream().forEach((component -> component.setBackground(tooltipPanel.getBackground())));
 
     return tooltipPanel;
   }
