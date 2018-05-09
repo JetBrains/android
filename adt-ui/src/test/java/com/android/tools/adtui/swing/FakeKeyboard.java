@@ -122,7 +122,8 @@ public final class FakeKeyboard {
     }
 
     //noinspection MagicConstant toModifiersCode returns correct magic number type
-    KeyEvent event = new KeyEvent(myFocus, eventType, System.nanoTime(), toModifiersCode(), key.code, (char)key.code);
+    KeyEvent event = new KeyEvent(myFocus, eventType, System.nanoTime(), toModifiersCode(),
+                                  eventType == KeyEvent.KEY_TYPED ? KeyEvent.VK_UNDEFINED : key.code, (char)key.code);
 
     // If you use myFocus.dispatchEvent(), the event goes through a flow which gives other systems
     // a chance to handle it first. The following approach bypasses the event queue and sends the
