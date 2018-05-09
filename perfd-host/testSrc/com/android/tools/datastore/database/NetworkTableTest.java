@@ -16,6 +16,7 @@
 package com.android.tools.datastore.database;
 
 import com.android.tools.datastore.DataStoreDatabase;
+import com.android.tools.datastore.FakeLogService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import org.junit.After;
@@ -42,61 +43,60 @@ public class NetworkTableTest {
   @Before
   public void setUp() throws Exception {
     myDbFile = File.createTempFile("NetworkTable", "mysql");
-    myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath(), DataStoreDatabase.Characteristic.DURABLE);
+    myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath(), DataStoreDatabase.Characteristic.DURABLE, new FakeLogService());
     myTable = new NetworkTable();
     myTable.initialize(myDatabase.getConnection());
     populateDatabase();
   }
 
   @After
-  public void tearDown() throws Exception {
+  public void tearDown() {
     myDatabase.disconnect();
+    //noinspection ResultOfMethodCallIgnored
     myDbFile.delete();
   }
 
   private void populateDatabase() {
     for (int i = 0; i < TEST_DATA; i++) {
-      NetworkProfiler.HttpConnectionData connection = NetworkProfiler.HttpConnectionData.newBuilder()
-        .setConnId(VALID_CONN_ID + i)
-        .setStartTimestamp(100 + i)
-        .setEndTimestamp(101 + i)
-        .build();
-      NetworkProfiler.HttpDetailsResponse request = NetworkProfiler.HttpDetailsResponse.newBuilder()
-        .setRequest(NetworkProfiler.HttpDetailsResponse.Request.newBuilder()
-                      .setUrl("TestUrl"))
-        .build();
-      NetworkProfiler.HttpDetailsResponse threads = NetworkProfiler.HttpDetailsResponse.newBuilder()
-        .setAccessingThreads(NetworkProfiler.HttpDetailsResponse.AccessingThreads.newBuilder()
-                               .addThread(NetworkProfiler.JavaThread.newBuilder().setId(0).setName("threadA"))
-                               .addThread(NetworkProfiler.JavaThread.newBuilder().setId(1).setName("threadB")))
+      NetworkProfiler.HttpConnectionData connection = NetworkProfiler.HttpConnectionData
+        .newBuilder().setConnId(VALID_CONN_ID + i).setStartTimestamp(100 + i).setEndTimestamp(101 + i).build();
+      NetworkProfiler.HttpDetailsResponse request = NetworkProfiler.HttpDetailsResponse
+        .newBuilder().setRequest(NetworkProfiler.HttpDetailsResponse.Request.newBuilder().setUrl("TestUrl")).build();
+      NetworkProfiler.HttpDetailsResponse threads = NetworkProfiler.HttpDetailsResponse
+        .newBuilder()
+        .setAccessingThreads(
+          NetworkProfiler.HttpDetailsResponse.AccessingThreads
+            .newBuilder()
+            .addThread(NetworkProfiler.JavaThread.newBuilder().setId(0).setName("threadA"))
+            .addThread(NetworkProfiler.JavaThread.newBuilder().setId(1).setName("threadB")))
         .build();
       myTable.insertOrReplace(VALID_SESSION, request, null, null, null, threads, connection);
     }
   }
 
   @Test
-  public void testGetHttpDetails() throws Exception {
+  public void testGetHttpDetails() {
     NetworkProfiler.HttpDetailsResponse response =
       myTable.getHttpDetailsResponseById(VALID_CONN_ID, VALID_SESSION, NetworkProfiler.HttpDetailsRequest.Type.REQUEST);
     assertEquals("TestUrl", response.getRequest().getUrl());
   }
 
   @Test
-  public void testGetHttpDetailsInvalidConnId() throws Exception {
+  public void testGetHttpDetailsInvalidConnId() {
     NetworkProfiler.HttpDetailsResponse response =
       myTable.getHttpDetailsResponseById(INVALID_CONN_ID, VALID_SESSION, NetworkProfiler.HttpDetailsRequest.Type.REQUEST);
     assertNull(response);
   }
 
   @Test
-  public void testGetHttpDetailsInvalidSession() throws Exception {
+  public void testGetHttpDetailsInvalidSession() {
     NetworkProfiler.HttpDetailsResponse response =
       myTable.getHttpDetailsResponseById(VALID_CONN_ID, INVALID_SESSION, NetworkProfiler.HttpDetailsRequest.Type.REQUEST);
     assertNull(response);
   }
 
   @Test
-  public void testGetHttpDetailsAccessingThreads() throws Exception {
+  public void testGetHttpDetailsAccessingThreads() {
     NetworkProfiler.HttpDetailsResponse response =
       myTable.getHttpDetailsResponseById(VALID_CONN_ID, VALID_SESSION, NetworkProfiler.HttpDetailsRequest.Type.ACCESSING_THREADS);
     assertEquals(2, response.getAccessingThreads().getThreadCount());
@@ -107,19 +107,16 @@ public class NetworkTableTest {
   }
 
   @Test
-  public void testGetHttpDetailsAccessingThreadsInvalidSession() throws Exception {
+  public void testGetHttpDetailsAccessingThreadsInvalidSession() {
     NetworkProfiler.HttpDetailsResponse response =
       myTable.getHttpDetailsResponseById(VALID_CONN_ID, INVALID_SESSION, NetworkProfiler.HttpDetailsRequest.Type.ACCESSING_THREADS);
     assertNull(response);
   }
 
   @Test
-  public void testGetNetworkConnectionDataByRequest() throws Exception {
-    NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest.newBuilder()
-      .setSession(VALID_SESSION)
-      .setStartTimestamp(100)
-      .setEndTimestamp(101)
-      .build();
+  public void testGetNetworkConnectionDataByRequest() {
+    NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest
+      .newBuilder().setSession(VALID_SESSION).setStartTimestamp(100).setEndTimestamp(101).build();
     List<NetworkProfiler.HttpConnectionData> response = myTable.getNetworkConnectionDataByRequest(request);
     assertEquals(2, response.size());
     int offset = 0;
@@ -131,23 +128,17 @@ public class NetworkTableTest {
   }
 
   @Test
-  public void testGetNetworkConnectionDataByRequestInvalidSession() throws Exception {
-    NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest.newBuilder()
-      .setSession(INVALID_SESSION)
-      .setStartTimestamp(100)
-      .setEndTimestamp(101)
-      .build();
+  public void testGetNetworkConnectionDataByRequestInvalidSession() {
+    NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest
+      .newBuilder().setSession(INVALID_SESSION).setStartTimestamp(100).setEndTimestamp(101).build();
     List<NetworkProfiler.HttpConnectionData> response = myTable.getNetworkConnectionDataByRequest(request);
     assertEquals(0, response.size());
   }
 
   @Test
-  public void testGetNetworkConnectionDataByRequestInvalidRange() throws Exception {
-    NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest.newBuilder()
-      .setSession(VALID_SESSION)
-      .setStartTimestamp(0)
-      .setEndTimestamp(10)
-      .build();
+  public void testGetNetworkConnectionDataByRequestInvalidRange() {
+    NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest
+      .newBuilder().setSession(VALID_SESSION).setStartTimestamp(0).setEndTimestamp(10).build();
     List<NetworkProfiler.HttpConnectionData> response = myTable.getNetworkConnectionDataByRequest(request);
     assertEquals(0, response.size());
   }

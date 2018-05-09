@@ -29,7 +29,7 @@ import java.util.List;
 /**
  * Returns the current used for performing various operations. All methods return values in
  * mA (milliamp).
- *
+ * <p>
  * See also <a href="https://source.android.com/devices/tech/power/#profile-values">this article
  * on power profiles</a>, which this class aims to emulate.
  */

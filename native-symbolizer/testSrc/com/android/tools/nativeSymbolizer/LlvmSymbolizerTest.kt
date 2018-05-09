@@ -133,7 +133,7 @@ class LlvmSymbolizerTest {
         val symbol = symbolizer.symbolize(arch, module, offsetWithinFunction)!!
         Assert.assertNotNull(symbol)
         Assert.assertEquals(name, symbol.name)
-        symbolizer.dispose()
+        symbolizer.stop()
       }
     }
   }

@@ -17,15 +17,16 @@ package com.android.tools.datastore.service;
 
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
-import io.grpc.stub.StreamObserver;
+import com.android.tools.profiler.proto.CpuServiceGrpc;
 
 /**
  * Stores a response of a determined type to avoid making unnecessary queries to the database.
- *
+ * <p>
  * Often, there is no need for querying the database to get the response corresponding to the request made.
  * For example, in the threads monitor each thread has a ThreadStateDataSeries that will call
- * {@link #getThreads(CpuProfiler.GetThreadsRequest, StreamObserver)} passing a request with the same arguments (start/end timestamp,
- * pid, and session). In these cases, we can query the database once and return a cached result for the subsequent calls.
+ * {@link CpuServiceGrpc.CpuServiceBlockingStub#getThreads(CpuProfiler.GetThreadsRequest)} passing a request
+ * with the same arguments (start/end timestamp, pid, and session). In these cases, we can query the database
+ * once and return a cached result for the subsequentcalls.
  *
  * @param <T> type of the response stored
  */

@@ -16,6 +16,7 @@
 package com.android.tools.datastore.database
 
 import com.android.tools.datastore.DataStoreDatabase
+import com.android.tools.datastore.FakeLogService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.EnergyProfiler
 import com.google.common.truth.Truth.assertThat
@@ -61,10 +62,10 @@ class EnergyTableTest {
       for (i in 0 until numSamples) {
         table.insertOrReplace(
           session, EnergyProfiler.EnergySample.newBuilder()
-            .setCpuUsage(i * 100)
-            .setNetworkUsage((numSamples - i) * 100)
-            .setTimestamp((samplePeriod * i).toLong())
-            .build()
+          .setCpuUsage(i * 100)
+          .setNetworkUsage((numSamples - i) * 100)
+          .setTimestamp((samplePeriod * i).toLong())
+          .build()
         )
       }
 
@@ -74,19 +75,19 @@ class EnergyTableTest {
         val eventId = i + 1
         table.insertOrReplace(
           session, EnergyProfiler.EnergyEvent.newBuilder()
-            .setEventId(eventId)
-            .setTimestamp(timeAcquired)
-            .setWakeLockAcquired(EnergyProfiler.WakeLockAcquired.getDefaultInstance())
-            .build()
+          .setEventId(eventId)
+          .setTimestamp(timeAcquired)
+          .setWakeLockAcquired(EnergyProfiler.WakeLockAcquired.getDefaultInstance())
+          .build()
         )
 
         table.insertOrReplace(
           session, EnergyProfiler.EnergyEvent.newBuilder()
-            .setEventId(eventId)
-            .setTimestamp(timeReleased)
-            .setIsTerminal(true)
-            .setWakeLockReleased(EnergyProfiler.WakeLockReleased.getDefaultInstance())
-            .build()
+          .setEventId(eventId)
+          .setTimestamp(timeReleased)
+          .setIsTerminal(true)
+          .setWakeLockReleased(EnergyProfiler.WakeLockReleased.getDefaultInstance())
+          .build()
         )
       }
 
@@ -100,7 +101,7 @@ class EnergyTableTest {
   @Before
   fun setUp() {
     dbFile = File.createTempFile("EnergyTable", "mysql")
-    database = DataStoreDatabase(dbFile.absolutePath, DataStoreDatabase.Characteristic.DURABLE)
+    database = DataStoreDatabase(dbFile.absolutePath, DataStoreDatabase.Characteristic.DURABLE, FakeLogService())
     table = EnergyTable()
     table.initialize(database.connection)
   }
@@ -214,7 +215,7 @@ class EnergyTableTest {
     // Events: 0->500, 1000->1500, 2000->2500, ...
     TablePopulator().setWakeLockEventValues(10, 1000, 500).populate(table, MAIN_SESSION)
 
-    for (id in 1 .. 10) {
+    for (id in 1..10) {
       with(table.findEventGroup(newEnergyGroupRequest(id))!!) {
         assertWithMessage("Event group with ID ${id} is not empty").that(this).hasSize(2) // 2 events per event group
         this.forEach { energyEvent -> assertThat(energyEvent.eventId).isEqualTo(id) }

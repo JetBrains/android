@@ -22,6 +22,7 @@ import com.android.tools.profiler.proto.MemoryProfiler.BatchAllocationSample;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
+import org.jetbrains.annotations.NotNull;
 
 public class MemoryJvmtiDataPoller extends PollRunner {
   private long myDataRequestStartTimestampNs = Long.MIN_VALUE;
@@ -29,9 +30,9 @@ public class MemoryJvmtiDataPoller extends PollRunner {
   private final MemoryLiveAllocationTable myLiveAllocationTable;
   private final Common.Session mySession;
 
-  public MemoryJvmtiDataPoller(Common.Session session,
-                               MemoryLiveAllocationTable liveAllocationTable,
-                               MemoryServiceGrpc.MemoryServiceBlockingStub pollingService) {
+  public MemoryJvmtiDataPoller(@NotNull Common.Session session,
+                               @NotNull MemoryLiveAllocationTable liveAllocationTable,
+                               @NotNull MemoryServiceGrpc.MemoryServiceBlockingStub pollingService) {
     super(POLLING_DELAY_NS);
     mySession = session;
     myLiveAllocationTable = liveAllocationTable;
@@ -40,10 +41,8 @@ public class MemoryJvmtiDataPoller extends PollRunner {
 
   @Override
   public void poll() {
-    MemoryRequest.Builder dataRequestBuilder = MemoryRequest.newBuilder()
-      .setSession(mySession)
-      .setStartTime(myDataRequestStartTimestampNs)
-      .setEndTime(Long.MAX_VALUE);
+    MemoryRequest.Builder dataRequestBuilder = MemoryRequest
+      .newBuilder().setSession(mySession).setStartTime(myDataRequestStartTimestampNs).setEndTime(Long.MAX_VALUE);
     MemoryData response = myPollingService.getJvmtiData(dataRequestBuilder.build());
 
     for (BatchAllocationSample sample : response.getAllocationSamplesList()) {

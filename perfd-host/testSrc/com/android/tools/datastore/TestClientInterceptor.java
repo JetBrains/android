@@ -17,13 +17,11 @@ package com.android.tools.datastore;
 
 import io.grpc.*;
 
-import java.io.FileNotFoundException;
-
 public class TestClientInterceptor implements ClientInterceptor {
 
   private TestGrpcFile myFile;
 
-  TestClientInterceptor(TestGrpcFile validationFile) throws FileNotFoundException {
+  TestClientInterceptor(TestGrpcFile validationFile) {
     myFile = validationFile;
   }
 

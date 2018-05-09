@@ -17,12 +17,12 @@ package com.android.tools.datastore.database;
 
 import com.android.tools.datastore.DataStoreDatabase;
 import com.android.tools.datastore.DeviceId;
+import com.android.tools.datastore.FakeLogService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.Profiler.AgentStatusRequest;
 import com.android.tools.profiler.proto.Profiler.AgentStatusResponse;
 import com.android.tools.profiler.proto.Profiler.GetSessionsResponse;
-import com.intellij.openapi.util.io.FileUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,15 +42,16 @@ public class ProfilerTableTest {
 
   @Before
   public void setUp() throws Exception {
-    myDbFile = FileUtil.createTempFile("ProfileTable", "mysql");
-    myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath(), DataStoreDatabase.Characteristic.DURABLE);
+    myDbFile = File.createTempFile("ProfileTable", "mysql");
+    myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath(), DataStoreDatabase.Characteristic.DURABLE, new FakeLogService());
     myTable = new ProfilerTable();
     myTable.initialize(myDatabase.getConnection());
   }
 
   @After
-  public void tearDown() throws Exception {
+  public void tearDown() {
     myDatabase.disconnect();
+    //noinspection ResultOfMethodCallIgnored
     myDbFile.delete();
   }
 
@@ -72,12 +73,13 @@ public class ProfilerTableTest {
   }
 
   @Test
-  public void testInsertAndGetSessions() throws Exception {
+  public void testInsertAndGetSessions() {
     List<Common.Session> sessions = new ArrayList<>();
     for (int i = 0; i < 10; i++) {
       long startTime = 40 + i;
       String sessionName = Integer.toString(60 + i);
-      Common.Session session = Common.Session.newBuilder()
+      Common.Session session = Common.Session
+        .newBuilder()
         .setSessionId(10 + i)
         .setDeviceId(20 + i)
         .setPid(30 + i)
@@ -114,7 +116,8 @@ public class ProfilerTableTest {
     for (int i = 0; i < 2; i++) {
       long startTime = 40 + i;
       String sessionName = Integer.toString(60 + i);
-      Common.Session session = Common.Session.newBuilder()
+      Common.Session session = Common.Session
+        .newBuilder()
         .setSessionId(10 + i)
         .setDeviceId(20 + i)
         .setPid(30 + i)
@@ -140,13 +143,14 @@ public class ProfilerTableTest {
     for (int i = 0; i < 2; i++) {
       long startTime = 40 + i;
       String sessionName = Integer.toString(60 + i);
-      Common.Session session = Common.Session.newBuilder()
-                                             .setSessionId(10 + i)
-                                             .setDeviceId(20 + i)
-                                             .setPid(30 + i)
-                                             .setStartTimestamp(startTime)
-                                             .setEndTimestamp(Long.MAX_VALUE)
-                                             .build();
+      Common.Session session = Common.Session
+        .newBuilder()
+        .setSessionId(10 + i)
+        .setDeviceId(20 + i)
+        .setPid(30 + i)
+        .setStartTimestamp(startTime)
+        .setEndTimestamp(Long.MAX_VALUE)
+        .build();
 
       myTable.insertOrUpdateSession(session, sessionName, startTime, true, false, Common.SessionMetaData.SessionType.FULL);
       sessions.add(session);
@@ -172,10 +176,9 @@ public class ProfilerTableTest {
       boolean useJvmti = rand.nextBoolean();
       boolean useLiveAllocation = rand.nextBoolean();
       String sessionName = Integer.toString(60 + i);
-      Common.Session session = Common.Session.newBuilder()
-        .setSessionId(sessionId)
-        .build();
-      Common.SessionMetaData metaData = Common.SessionMetaData.newBuilder()
+      Common.Session session = Common.Session.newBuilder().setSessionId(sessionId).build();
+      Common.SessionMetaData metaData = Common.SessionMetaData
+        .newBuilder()
         .setSessionId(sessionId)
         .setStartTimestampEpochMs(startTime)
         .setSessionName(sessionName)
@@ -196,11 +199,8 @@ public class ProfilerTableTest {
   }
 
   @Test
-  public void testAgentStatusCannotDowngrade() throws Exception {
-    Common.Process process = Common.Process.newBuilder()
-      .setPid(99)
-      .setName("FakeProcess")
-      .build();
+  public void testAgentStatusCannotDowngrade() {
+    Common.Process process = Common.Process.newBuilder().setPid(99).setName("FakeProcess").build();
 
     // Setup initial process and status
     AgentStatusResponse status =
@@ -224,12 +224,8 @@ public class ProfilerTableTest {
   }
 
   @Test
-  public void testExistingProcessIsUpdated() throws Exception {
-    Common.Process process = Common.Process.newBuilder()
-      .setPid(99)
-      .setName("FakeProcess")
-      .setState(Common.Process.State.ALIVE)
-      .build();
+  public void testExistingProcessIsUpdated() {
+    Common.Process process = Common.Process.newBuilder().setPid(99).setName("FakeProcess").setState(Common.Process.State.ALIVE).build();
 
     // Setup initial process and status.
     AgentStatusResponse status =

@@ -15,25 +15,27 @@
  */
 package com.android.tools.datastore.energy;
 
+import com.android.tools.datastore.LogService;
 import com.android.tools.datastore.energy.PowerProfile.CpuCoreUsage;
 import com.android.tools.datastore.poller.EnergyDataPoller;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuProfiler.CpuUsageData;
 import com.google.common.primitives.Doubles;
-import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 public class CpuConfig {
+  @NotNull private final LogService myLogService;
   private final int[] myCpuCoreMinFreqInKhz;
   private final int[] myCpuCoreMaxFreqInKhz;
   private final int myBigCoreMaxFrequency;
   private final boolean myIsMinMaxCoreFreqValid;
 
-  public CpuConfig(@NotNull CpuProfiler.CpuCoreConfigResponse message) {
+  public CpuConfig(@NotNull CpuProfiler.CpuCoreConfigResponse message, @NotNull LogService logService) {
     myCpuCoreMinFreqInKhz = new int[message.getConfigsCount()];
     myCpuCoreMaxFreqInKhz = new int[message.getConfigsCount()];
+    myLogService = logService;
 
     // Core ID should always be in the range of [0..num_cores-1] and unique.
     boolean[] myIsCpuCorePopulated = new boolean[message.getConfigsCount()];
@@ -43,9 +45,9 @@ public class CpuConfig {
       for (CpuProfiler.CpuCoreConfigResponse.CpuCoreConfigData config : message.getConfigsList()) {
         int core = config.getCore();
         if (core >= message.getConfigsCount() || myIsCpuCorePopulated[core]) {
-          getLog().debug(core > message.getConfigsCount() ?
-                         String.format("Core index %d is >= the number of configs (%d) reported.", core, message.getConfigsCount()) :
-                         "Core index already populated.");
+          getLogger().debug(core > message.getConfigsCount() ?
+                            String.format("Core index %d is >= the number of configs (%d) reported.", core, message.getConfigsCount()) :
+                            "Core index already populated.");
           isValidCpuCoreConfig = false;
           break;
         }
@@ -54,9 +56,9 @@ public class CpuConfig {
         int minFreq = config.getMinFrequencyInKhz();
         int maxFreq = config.getMaxFrequencyInKhz();
         if (minFreq <= 0 || minFreq >= maxFreq) {
-          getLog().debug(minFreq <= 0 ?
-                         String.format("Min frequency %d <= 0.", minFreq) :
-                         String.format("Min frequency %d >= max frequency of %d.", minFreq, maxFreq));
+          getLogger().debug(minFreq <= 0 ?
+                            String.format("Min frequency %d <= 0.", minFreq) :
+                            String.format("Min frequency %d >= max frequency of %d.", minFreq, maxFreq));
           isValidCpuCoreConfig = false;
           break;
         }
@@ -79,7 +81,7 @@ public class CpuConfig {
       }
     }
     else {
-      getLog().debug("No valid configs found!");
+      getLogger().debug("No valid configs found!");
       myIsMinMaxCoreFreqValid = false;
       myBigCoreMaxFrequency = 0;
     }
@@ -97,7 +99,7 @@ public class CpuConfig {
     // We'll assume that CpuUsageData is more reliable than CpuCoreConfigResponse.
     final int coreCount = currUsageData.getCoresCount();
     if (coreCount != prevUsageData.getCoresCount()) {
-      getLog().info(String.format("CPU config changing from %d to %d cores.", prevUsageData.getCoresCount(), coreCount));
+      getLogger().info(String.format("CPU config changing from %d to %d cores.", prevUsageData.getCoresCount(), coreCount));
       return new CpuCoreUsage[0];
     }
     CpuCoreUsage[] cpuCoresUtilization = new CpuCoreUsage[coreCount];
@@ -152,7 +154,7 @@ public class CpuConfig {
   }
 
   @NotNull
-  private static Logger getLog() {
-    return Logger.getInstance(EnergyDataPoller.class);
+  private LogService.Logger getLogger() {
+    return myLogService.getLogger(EnergyDataPoller.class);
   }
 }

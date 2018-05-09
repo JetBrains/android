@@ -15,13 +15,13 @@
  */
 package com.android.tools.datastore.poller;
 
+import com.android.tools.datastore.LogService;
 import com.android.tools.datastore.database.EnergyTable;
 import com.android.tools.datastore.energy.BatteryModel;
 import com.android.tools.datastore.energy.CpuConfig;
 import com.android.tools.datastore.energy.PowerProfile;
 import com.android.tools.profiler.proto.*;
 import com.android.tools.profiler.proto.CpuProfiler.CpuCoreConfigResponse;
-import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,12 +30,13 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * This class hosts an EnergyService that will provide callers access to all cached energy data.
- *
+ * <p>
  * NOTE: This poller depends on other services (e.g. CPU, Network). Be sure that those service's
  * pollers get called first.
  */
 public final class EnergyDataPoller extends PollRunner {
   @NotNull private final Common.Session mySession;
+  @NotNull private final LogService myLogService;
   @NotNull private final BatteryModel myBatteryModel;
   @NotNull private final EnergyTable myEnergyTable;
   @NotNull private final EnergyServiceGrpc.EnergyServiceBlockingStub myEnergyService;
@@ -59,7 +60,8 @@ public final class EnergyDataPoller extends PollRunner {
                           @NotNull ProfilerServiceGrpc.ProfilerServiceBlockingStub profilerService,
                           @NotNull CpuServiceGrpc.CpuServiceBlockingStub cpuService,
                           @NotNull NetworkServiceGrpc.NetworkServiceBlockingStub networkService,
-                          @NotNull EnergyServiceGrpc.EnergyServiceBlockingStub energyService) {
+                          @NotNull EnergyServiceGrpc.EnergyServiceBlockingStub energyService,
+                          @NotNull LogService logService) {
     super(POLLING_DELAY_NS);
     myBatteryModel = batteryModel;
     myEnergyTable = eventTable;
@@ -68,6 +70,7 @@ public final class EnergyDataPoller extends PollRunner {
     myNetworkService = networkService;
     myEnergyService = energyService;
     mySession = session;
+    myLogService = logService;
 
     myDataRequestStartTimestampNs = queryCurrentTime();
 
@@ -81,7 +84,7 @@ public final class EnergyDataPoller extends PollRunner {
       getLog().debug("Unable to parse CPU frequency files.", e);
     }
 
-    myCpuConfig = new CpuConfig(response);
+    myCpuConfig = new CpuConfig(response, myLogService);
   }
 
   // TODO: Remove this temporary function once we're not creating fake data anymore
@@ -95,11 +98,9 @@ public final class EnergyDataPoller extends PollRunner {
     // TODO: Set endTimestamp with last timestamp from queried data (right now we're creating fake data)
     long endTimestampNs = queryCurrentTime();
 
-    EnergyProfiler.EnergyRequest request = EnergyProfiler.EnergyRequest.newBuilder()
-      .setSession(mySession)
-      .setStartTimestamp(myDataRequestStartTimestampNs)
-      .setEndTimestamp(endTimestampNs) // TODO: Replace with Long.MAX_VALUE when grabbing data from device (see other pollers)
-      .build();
+    // TODO: Replace endTimestampNs with Long.MAX_VALUE when grabbing data from device (see other pollers)
+    EnergyProfiler.EnergyRequest request = EnergyProfiler.EnergyRequest
+      .newBuilder().setSession(mySession).setStartTimestamp(myDataRequestStartTimestampNs).setEndTimestamp(endTimestampNs).build();
 
     addLatestEvents(request); // Update events before samples, so any event with an effect on samples will get reflected in the samples.
     addLatestSamples(request);
@@ -140,12 +141,9 @@ public final class EnergyDataPoller extends PollRunner {
     // Network-related samples
     {
       NetworkProfiler.NetworkDataRequest networkDataRequest =
-        NetworkProfiler.NetworkDataRequest.newBuilder()
-          .setSession(request.getSession())
-          .setStartTimestamp(request.getStartTimestamp())
-          .setEndTimestamp(request.getEndTimestamp())
-          .setType(NetworkProfiler.NetworkDataRequest.Type.ALL)
-          .build();
+        NetworkProfiler.NetworkDataRequest
+          .newBuilder().setSession(request.getSession()).setStartTimestamp(request.getStartTimestamp())
+          .setEndTimestamp(request.getEndTimestamp()).setType(NetworkProfiler.NetworkDataRequest.Type.ALL).build();
 
       NetworkProfiler.NetworkDataResponse networkDataResponse = myNetworkService.getData(networkDataRequest);
       for (NetworkProfiler.NetworkProfilerData networkData : networkDataResponse.getDataList()) {
@@ -178,7 +176,8 @@ public final class EnergyDataPoller extends PollRunner {
         try {
           // TODO: Test on single core phones to see if they report data via "cpu0" or "cpu".
           myCpuConfig = new CpuConfig(
-            myCpuService.getCpuCoreConfig(CpuProfiler.CpuCoreConfigRequest.newBuilder().setDeviceId(mySession.getDeviceId()).build()));
+            myCpuService.getCpuCoreConfig(CpuProfiler.CpuCoreConfigRequest.newBuilder().setDeviceId(mySession.getDeviceId()).build()),
+            myLogService);
         }
         catch (StatusRuntimeException e) {
           getLog().debug(String.format("Unable to parse CPU frequency files. Retries remaining: %d", myCpuConfigRetries), e);
@@ -186,11 +185,8 @@ public final class EnergyDataPoller extends PollRunner {
       }
 
       CpuProfiler.CpuDataRequest cpuDataRequest =
-        CpuProfiler.CpuDataRequest.newBuilder()
-          .setSession(request.getSession())
-          .setStartTimestamp(request.getStartTimestamp())
-          .setEndTimestamp(request.getEndTimestamp())
-          .build();
+        CpuProfiler.CpuDataRequest.newBuilder().setSession(request.getSession()).setStartTimestamp(request.getStartTimestamp())
+                                  .setEndTimestamp(request.getEndTimestamp()).build();
       CpuProfiler.CpuDataResponse cpuDataResponse = myCpuService.getData(cpuDataRequest);
       CpuProfiler.CpuUsageData prevUsageData = myLastData;
 
@@ -212,7 +208,7 @@ public final class EnergyDataPoller extends PollRunner {
   }
 
   @NotNull
-  private static Logger getLog() {
-    return Logger.getInstance(EnergyDataPoller.class);
+  private LogService.Logger getLog() {
+    return myLogService.getLogger(EnergyDataPoller.class);
   }
 }

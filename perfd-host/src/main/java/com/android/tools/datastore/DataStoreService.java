@@ -24,8 +24,6 @@ import com.android.tools.nativeSymbolizer.NopSymbolizer;
 import com.android.tools.profiler.proto.*;
 import com.google.wireless.android.sdk.stats.AndroidProfilerDbStats;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.*;
 import io.grpc.inprocess.InProcessServerBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -45,7 +43,7 @@ import static com.android.tools.datastore.DataStoreDatabase.Characteristic.DURAB
 /**
  * Primary class that initializes the Datastore. This class currently manages connections to perfd and sets up the DataStore service.
  */
-public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallback, Disposable {
+public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallback {
   /**
    * DB report timings are set to occur relatively infrequently, as they include a fair amount of
    * data (~100 bytes). Ideally, we would just send a single reporting event, when the user stopped
@@ -83,10 +81,11 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     }
   }
 
-  private static final Logger getLogger() {
-    return Logger.getInstance(DataStoreService.class.getCanonicalName());
+  private LogService.Logger getLogger() {
+    return myLogService.getLogger(DataStoreService.class.getCanonicalName());
   }
 
+  @NotNull private final LogService myLogService;
   private final String myDatastoreDirectory;
   private final Map<BackingNamespace, DataStoreDatabase> myDatabases = new HashMap<>();
   private final ServerBuilder myServerBuilder;
@@ -111,14 +110,18 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
    */
   public DataStoreService(@NotNull String serviceName,
                           @NotNull String datastoreDirectory,
-                          @NotNull Consumer<Runnable> fetchExecutor) {
-    this(serviceName, datastoreDirectory, fetchExecutor, null);
+                          @NotNull Consumer<Runnable> fetchExecutor,
+                          @NotNull LogService logService) {
+    this(serviceName, datastoreDirectory, fetchExecutor, logService, null);
   }
 
+  @VisibleForTesting
   public DataStoreService(@NotNull String serviceName,
                           @NotNull String datastoreDirectory,
                           @NotNull Consumer<Runnable> fetchExecutor,
-                          ServerInterceptor interceptor) {
+                          @NotNull LogService logService,
+                          @Nullable ServerInterceptor interceptor) {
+    myLogService = logService;
     myFetchExecutor = fetchExecutor;
     myInterceptor = interceptor;
     myDatastoreDirectory = datastoreDirectory;
@@ -147,13 +150,13 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
    * and registered as the set of features the datastore supports.
    */
   public void createPollers() {
-    myProfilerService = new ProfilerService(this, myFetchExecutor);
+    myProfilerService = new ProfilerService(this, myFetchExecutor, myLogService);
     registerService(myProfilerService);
     registerService(new EventService(this, myFetchExecutor));
     registerService(new CpuService(this, myFetchExecutor));
-    registerService(new MemoryService(this, myFetchExecutor));
+    registerService(new MemoryService(this, myFetchExecutor, myLogService));
     registerService(new NetworkService(this, myFetchExecutor));
-    registerService(new EnergyService(this, myFetchExecutor));
+    registerService(new EnergyService(this, myFetchExecutor, myLogService));
   }
 
   @VisibleForTesting
@@ -161,7 +164,7 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
   DataStoreDatabase createDatabase(@NotNull String dbPath,
                                    @NotNull DataStoreDatabase.Characteristic characteristic,
                                    Consumer<Throwable> noPiiExceptionHandler) {
-    return new DataStoreDatabase(dbPath, characteristic, noPiiExceptionHandler);
+    return new DataStoreDatabase(dbPath, characteristic, myLogService, noPiiExceptionHandler);
   }
 
   /**
@@ -235,11 +238,6 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     DataStoreTable.removeDataStoreErrorCallback(this);
   }
 
-
-  @Override
-  public void dispose() {
-    shutdown();
-  }
 
   @VisibleForTesting
   List<ServicePassThrough> getRegisteredServices() {
@@ -356,7 +354,8 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
       dbStats.setAgeSec((int)TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - myStartTime));
       collectReport(dbStats);
 
-      AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder()
+      AndroidStudioEvent.Builder event = AndroidStudioEvent
+        .newBuilder()
         .setKind(AndroidStudioEvent.EventKind.ANDROID_PROFILER_DB_STATS)
         .setAndroidProfilerDbStats(dbStats);
 

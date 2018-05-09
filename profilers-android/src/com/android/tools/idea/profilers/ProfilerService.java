@@ -58,12 +58,12 @@ public class ProfilerService implements Disposable {
     String datastoreDirectory = Paths.get(PathManager.getSystemPath(), ".android").toString() + File.separator;
 
     NativeSymbolizer symbolizer = NativeSymbolizerKt.createNativeSymbolizer(project);
-    Disposer.register(this, symbolizer);
+    Disposer.register(this, () -> symbolizer.stop());
 
     String datastoreName = DATASTORE_NAME_PREFIX + project.getLocationHash();
-    myDataStoreService =
-      new DataStoreService(datastoreName, datastoreDirectory, ApplicationManager.getApplication()::executeOnPooledThread);
-    Disposer.register(this, myDataStoreService);
+    myDataStoreService = new DataStoreService(datastoreName, datastoreDirectory, ApplicationManager.getApplication()::executeOnPooledThread,
+                                              new IntellijLogService());
+    Disposer.register(this, () -> myDataStoreService.shutdown());
     myDataStoreService.setNativeSymbolizer(symbolizer);
 
     myManager = new StudioProfilerDeviceManager(myDataStoreService);

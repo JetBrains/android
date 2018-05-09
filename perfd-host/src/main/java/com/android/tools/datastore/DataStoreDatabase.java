@@ -15,7 +15,6 @@
  */
 package com.android.tools.datastore;
 
-import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -31,9 +30,12 @@ public class DataStoreDatabase {
     PERFORMANT
   }
 
-  private static Logger getLogger() {
-    return Logger.getInstance(DataStoreDatabase.class);
+  @NotNull
+  private LogService.Logger getLogger() {
+    return myLogService.getLogger(DataStoreDatabase.class);
   }
+
+  @NotNull private final LogService myLogService;
 
   private final Connection myConnection;
 
@@ -41,13 +43,16 @@ public class DataStoreDatabase {
    * @param dbPath the path to the backing DB file, if {@link Characteristic#DURABLE}.
    */
   @SuppressWarnings("JDBCResourceOpenedButNotSafelyClosed")
-  public DataStoreDatabase(@NotNull String dbPath, @NotNull Characteristic characteristic) {
-    this(dbPath, characteristic, (t) -> {});
+  public DataStoreDatabase(@NotNull String dbPath, @NotNull Characteristic characteristic, @NotNull LogService logService) {
+    this(dbPath, characteristic, logService, (t) -> {
+    });
   }
 
   public DataStoreDatabase(@NotNull String dbPath,
                            @NotNull Characteristic characteristic,
+                           @NotNull LogService logService,
                            @NotNull Consumer<Throwable> noPiiExceptionHandler) {
+    myLogService = logService;
     Connection connection = null;
     try {
       // For older versions of the JDBC we need to force load the sqlite.JDBC driver to trigger static initializer's and register

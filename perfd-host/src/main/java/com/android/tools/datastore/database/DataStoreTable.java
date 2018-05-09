@@ -15,7 +15,6 @@
  */
 package com.android.tools.datastore.database;
 
-import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
@@ -32,8 +31,7 @@ import java.util.Set;
  * storing results in a database.
  */
 public abstract class DataStoreTable<T extends Enum> {
-  private static final Logger LOG = Logger.getInstance(DataStoreTable.class.getCanonicalName());
-  private static final Set<DataStoreTableErrorCallback> ERROR_CALLBACKS = new HashSet();
+  private static final Set<DataStoreTableErrorCallback> ERROR_CALLBACKS = new HashSet<>();
 
   private Connection myConnection;
   private final ThreadLocal<Map<T, PreparedStatement>> myStatementMap = new ThreadLocal<>();
@@ -76,10 +74,12 @@ public abstract class DataStoreTable<T extends Enum> {
       return true;
     }
   }
+
   /**
    * Error handling is handled in the callbacks. One of the callbacks is
    * expected in the {@link DataStoreService}. One of the callbacks will log all errors
    * without being elided.
+   *
    * @param t A throwable object that contains information about the error encountered.
    */
   protected static void onError(Throwable t) {

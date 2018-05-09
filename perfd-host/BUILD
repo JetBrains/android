@@ -22,14 +22,11 @@ iml_module(
     deps = [
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
         "//tools/idea/.idea/libraries:Trove4j",
-        "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
-        "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
-        "//tools/idea/platform/annotations/common:intellij.platform.annotations.common[module]",
         "//tools/idea/.idea/libraries:studio-profiler-grpc-1.0-jarjar",
         "//tools/idea/.idea/libraries:jcip",
         "//tools/idea/.idea/libraries:mockito[test]",
@@ -37,5 +34,7 @@ iml_module(
         "//tools/analytics-library/protos:analytics-protos[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/native-symbolizer[module]",
+        "//tools/idea/platform/annotations:intellij.platform.annotations.java5[module]",
+        "//tools/idea/.idea/libraries:KotlinJavaRuntime[test]",
     ],
 )

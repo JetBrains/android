@@ -23,7 +23,6 @@ import org.junit.rules.ExternalResource;
 import org.junit.rules.TestName;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -31,7 +30,7 @@ import java.util.UUID;
 
 /**
  * JUnit rule for tests that have a datastore and need to fake a connection to it.
- *
+ * <p>
  * This rule creates a test instance of {@link StudioProfilers} connected over a light,
  * in-process GRPC server that reads from a mock service which provides fake data. Besides creating
  * the {@link StudioProfilers} instance, it also starts up / shuts down the test server automatically.
@@ -79,9 +78,9 @@ public final class TestGrpcService extends ExternalResource {
     myServer.start();
     // TODO: Update to work on windows. PathUtil.getTempPath() fails with bazel
     myTestFile = new File("/tmp/datastoredb");
-    myDatabase = new DataStoreDatabase(myTestFile.getAbsolutePath(), DataStoreDatabase.Characteristic.DURABLE);
+    myDatabase = new DataStoreDatabase(myTestFile.getAbsolutePath(), DataStoreDatabase.Characteristic.DURABLE, new FakeLogService());
     myDataStoreService.getBackingNamespaces()
-      .forEach(namespace -> myDataStoreService.setBackingStore(namespace, myDatabase.getConnection()));
+                      .forEach(namespace -> myDataStoreService.setBackingStore(namespace, myDatabase.getConnection()));
   }
 
   @Override
@@ -103,9 +102,8 @@ public final class TestGrpcService extends ExternalResource {
     myServer.shutdownNow();
   }
 
-  public Channel getChannel() throws FileNotFoundException {
-    return ClientInterceptors.intercept(InProcessChannelBuilder.forName(myGrpcName)
-                                          .usePlaintext(true)
-                                          .build(), new TestClientInterceptor(myRpcFile));
+  public Channel getChannel() {
+    return ClientInterceptors.intercept(
+      InProcessChannelBuilder.forName(myGrpcName).usePlaintext(true).build(), new TestClientInterceptor(myRpcFile));
   }
 }

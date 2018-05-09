@@ -18,6 +18,7 @@ package com.android.tools.datastore.service;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.DeviceId;
+import com.android.tools.datastore.LogService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.EnergyTable;
 import com.android.tools.datastore.energy.BatteryModel;
@@ -43,21 +44,24 @@ public class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase imple
   @NotNull private final DataStoreService myService;
   private final Map<Long, PollRunner> myRunners = new HashMap<>();
   private final Consumer<Runnable> myFetchExecutor;
+  @NotNull private final LogService myLogService;
 
   @SuppressWarnings("unchecked")
   private ResponseData<EnergySamplesResponse> myLastSamplesResponse = ResponseData.createEmpty();
   @SuppressWarnings("unchecked")
   private ResponseData<EnergyEventsResponse> myLastEventsResponse = ResponseData.createEmpty();
 
-  public EnergyService(@NotNull DataStoreService service, @NotNull Consumer<Runnable> fetchExecutor) {
-    this(new BatteryModel(), service, fetchExecutor);
+  public EnergyService(@NotNull DataStoreService service, @NotNull Consumer<Runnable> fetchExecutor, @NotNull LogService logService) {
+    this(new BatteryModel(), service, fetchExecutor, logService);
   }
 
   @VisibleForTesting
-  public EnergyService(@NotNull BatteryModel batteryModel, @NotNull DataStoreService service, Consumer<Runnable> fetchExecutor) {
+  public EnergyService(@NotNull BatteryModel batteryModel, @NotNull DataStoreService service, Consumer<Runnable> fetchExecutor,
+                       @NotNull LogService logService) {
     myBatteryModel = batteryModel;
     myService = service;
     myFetchExecutor = fetchExecutor;
+    myLogService = logService;
     myEnergyTable = new EnergyTable();
   }
 
@@ -76,7 +80,7 @@ public class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase imple
       long sessionId = request.getSession().getSessionId();
       myRunners
         .put(sessionId, new EnergyDataPoller(request.getSession(), myBatteryModel, myEnergyTable, profilerClient, cpuClient, networkClient,
-                                             energyClient));
+                                             energyClient, myLogService));
       myFetchExecutor.accept(myRunners.get(sessionId));
     }
     else {

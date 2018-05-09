@@ -15,6 +15,7 @@
  */
 package com.android.tools.datastore.energy
 
+import com.android.tools.datastore.FakeLogService
 import com.android.tools.profiler.proto.CpuProfiler.*
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
@@ -24,30 +25,30 @@ class CpuConfigTest {
   fun invalidConfigWorks() {
     val message = CpuCoreConfigResponse.newBuilder()
       .addConfigs(
-          CpuCoreConfigResponse.CpuCoreConfigData.newBuilder()
-            .setCore(0).setMinFrequencyInKhz(100).setMaxFrequencyInKhz(100).build()
+        CpuCoreConfigResponse.CpuCoreConfigData.newBuilder()
+          .setCore(0).setMinFrequencyInKhz(100).setMaxFrequencyInKhz(100).build()
       )
       .addConfigs(
-          CpuCoreConfigResponse.CpuCoreConfigData.newBuilder()
-            .setCore(1).setMinFrequencyInKhz(200).setMaxFrequencyInKhz(200).build()
+        CpuCoreConfigResponse.CpuCoreConfigData.newBuilder()
+          .setCore(1).setMinFrequencyInKhz(200).setMaxFrequencyInKhz(200).build()
       )
       .build()
 
-    val config = CpuConfig(message)
+    val config = CpuConfig(message, FakeLogService())
     assertThat(config.isMinMaxCoreFreqValid).isFalse()
 
     val usages = config.getCpuCoreUsages(
-        CpuUsageData.newBuilder()
-          .addCores(CpuCoreUsageData.newBuilder().setCore(0).build())
-          .addCores(CpuCoreUsageData.newBuilder().setCore(1).build())
-          .build(),
-        CpuUsageData.newBuilder()
-          .setAppCpuTimeInMillisec(50)
-          .setElapsedTimeInMillisec(100)
-          .setSystemCpuTimeInMillisec(50)
-          .addCores(CpuCoreUsageData.newBuilder().setCore(0).build())
-          .addCores(CpuCoreUsageData.newBuilder().setCore(1).build())
-          .build()
+      CpuUsageData.newBuilder()
+        .addCores(CpuCoreUsageData.newBuilder().setCore(0).build())
+        .addCores(CpuCoreUsageData.newBuilder().setCore(1).build())
+        .build(),
+      CpuUsageData.newBuilder()
+        .setAppCpuTimeInMillisec(50)
+        .setElapsedTimeInMillisec(100)
+        .setSystemCpuTimeInMillisec(50)
+        .addCores(CpuCoreUsageData.newBuilder().setCore(0).build())
+        .addCores(CpuCoreUsageData.newBuilder().setCore(1).build())
+        .build()
     )
 
     assertThat(usages[0].myAppUsage).isEqualTo(1.0)
@@ -57,7 +58,7 @@ class CpuConfigTest {
   @Test
   fun emptyCoreConfigWorks() {
     val message = CpuCoreConfigResponse.newBuilder().build()
-    val config = CpuConfig(message)
+    val config = CpuConfig(message, FakeLogService())
     assertThat(config.isMinMaxCoreFreqValid).isFalse()
   }
 
@@ -65,33 +66,33 @@ class CpuConfigTest {
   fun validConfigWorks() {
     val message = CpuCoreConfigResponse.newBuilder()
       .addConfigs(
-          CpuCoreConfigResponse.CpuCoreConfigData.newBuilder()
-            .setCore(0).setMinFrequencyInKhz(200).setMaxFrequencyInKhz(400).build()
+        CpuCoreConfigResponse.CpuCoreConfigData.newBuilder()
+          .setCore(0).setMinFrequencyInKhz(200).setMaxFrequencyInKhz(400).build()
       )
       .addConfigs(
-          CpuCoreConfigResponse.CpuCoreConfigData.newBuilder()
-            .setCore(1).setMinFrequencyInKhz(100).setMaxFrequencyInKhz(200).build()
+        CpuCoreConfigResponse.CpuCoreConfigData.newBuilder()
+          .setCore(1).setMinFrequencyInKhz(100).setMaxFrequencyInKhz(200).build()
       )
       .build()
 
-    val config1 = CpuConfig(message)
+    val config1 = CpuConfig(message, FakeLogService())
     assertThat(config1.isMinMaxCoreFreqValid).isTrue()
     val usages1 = config1.getCpuCoreUsages(
-        CpuUsageData.newBuilder()
-          .addCores(CpuCoreUsageData.newBuilder().setCore(0).build())
-          .addCores(CpuCoreUsageData.newBuilder().setCore(1).build())
-          .build(),
-        CpuUsageData.newBuilder()
-          .setAppCpuTimeInMillisec(25)
-          .setElapsedTimeInMillisec(100)
-          .setSystemCpuTimeInMillisec(50)
-          .addCores(
-              CpuCoreUsageData.newBuilder()
-                .setCore(0).setSystemCpuTimeInMillisec(25).setElapsedTimeInMillisec(100).build())
-          .addCores(
-              CpuCoreUsageData.newBuilder()
-                .setCore(1).setSystemCpuTimeInMillisec(75).setElapsedTimeInMillisec(100).build())
-          .build()
+      CpuUsageData.newBuilder()
+        .addCores(CpuCoreUsageData.newBuilder().setCore(0).build())
+        .addCores(CpuCoreUsageData.newBuilder().setCore(1).build())
+        .build(),
+      CpuUsageData.newBuilder()
+        .setAppCpuTimeInMillisec(25)
+        .setElapsedTimeInMillisec(100)
+        .setSystemCpuTimeInMillisec(50)
+        .addCores(
+          CpuCoreUsageData.newBuilder()
+            .setCore(0).setSystemCpuTimeInMillisec(25).setElapsedTimeInMillisec(100).build())
+        .addCores(
+          CpuCoreUsageData.newBuilder()
+            .setCore(1).setSystemCpuTimeInMillisec(75).setElapsedTimeInMillisec(100).build())
+        .build()
     )
 
     assertThat(usages1[0].myAppUsage).isEqualTo(0.5)

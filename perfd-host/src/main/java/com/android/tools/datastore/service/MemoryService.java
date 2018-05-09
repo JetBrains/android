@@ -18,6 +18,7 @@ package com.android.tools.datastore.service;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.DataStoreService.BackingNamespace;
 import com.android.tools.datastore.DeviceId;
+import com.android.tools.datastore.LogService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.MemoryLiveAllocationTable;
 import com.android.tools.datastore.database.MemoryStatsTable;
@@ -27,7 +28,6 @@ import com.android.tools.datastore.poller.MemoryJvmtiDataPoller;
 import com.android.tools.datastore.poller.NativeSymbolsPoller;
 import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
@@ -54,13 +54,15 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   private final ProfilerTable myProfilerTable;
   private final Consumer<Runnable> myFetchExecutor;
   private final DataStoreService myService;
+  private final LogService myLogService;
 
   // TODO Revisit fetch mechanism
-  public MemoryService(@NotNull DataStoreService dataStoreService, Consumer<Runnable> fetchExecutor) {
+  public MemoryService(@NotNull DataStoreService dataStoreService, Consumer<Runnable> fetchExecutor, @NotNull LogService logService) {
+    myLogService = logService;
     myFetchExecutor = fetchExecutor;
     myService = dataStoreService;
     myStatsTable = new MemoryStatsTable();
-    myAllocationsTable = new MemoryLiveAllocationTable();
+    myAllocationsTable = new MemoryLiveAllocationTable(myLogService);
     myProfilerTable = new ProfilerTable();
   }
 
@@ -75,7 +77,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
       myJvmtiRunners.put(sessionId, new MemoryJvmtiDataPoller(session, myAllocationsTable, client));
       myRunners.put(sessionId, new MemoryDataPoller(session, myStatsTable, client, myFetchExecutor));
       mySymbolizationRunners.put(sessionId, new NativeSymbolsPoller(session, myAllocationsTable, myProfilerTable,
-                                                                    myService.getNativeSymbolizer()));
+                                                                    myService.getNativeSymbolizer(), myLogService));
       myFetchExecutor.accept(mySymbolizationRunners.get(sessionId));
       myFetchExecutor.accept(myJvmtiRunners.get(sessionId));
       myFetchExecutor.accept(myRunners.get(sessionId));
@@ -171,7 +173,8 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   public void importHeapDump(ImportHeapDumpRequest request, StreamObserver<ImportHeapDumpResponse> responseObserver) {
     ImportHeapDumpResponse.Builder responseBuilder = ImportHeapDumpResponse.newBuilder();
     myStatsTable.insertOrReplaceHeapInfo(request.getSession(), request.getInfo());
-    myStatsTable.insertHeapDumpData(request.getSession(), request.getInfo().getStartTime(), DumpDataResponse.Status.SUCCESS, request.getData());
+    myStatsTable
+      .insertHeapDumpData(request.getSession(), request.getInfo().getStartTime(), DumpDataResponse.Status.SUCCESS, request.getData());
     responseBuilder.setStatus(ImportHeapDumpResponse.Status.SUCCESS);
     responseObserver.onNext(responseBuilder.build());
     responseObserver.onCompleted();

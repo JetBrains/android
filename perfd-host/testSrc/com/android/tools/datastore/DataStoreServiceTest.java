@@ -59,8 +59,9 @@ public class DataStoreServiceTest extends DataStorePollerTest {
 
   @Before
   public void setUp() throws Exception {
-    myDataStore = new DataStoreService(SERVICE_NAME, SERVICE_PATH, getPollTicker()::run);
-    myService = InProcessServerBuilder.forName(SERVER_NAME)
+    myDataStore = new DataStoreService(SERVICE_NAME, SERVICE_PATH, getPollTicker()::run, new FakeLogService());
+    myService = InProcessServerBuilder
+      .forName(SERVER_NAME)
       .addService(new FakeProfilerService().bindService())
       .addService(new EventServiceStub().bindService())
       .addService(new CpuServiceStub().bindService())
@@ -94,10 +95,10 @@ public class DataStoreServiceTest extends DataStorePollerTest {
 
     List<ServicePassThrough> services = myDataStore.getRegisteredServices();
     for (ServicePassThrough service : services) {
-      assertEquals(expectedServices.contains(service.getClass()), true);
+      assertTrue(expectedServices.contains(service.getClass()));
       expectedServices.remove(service.getClass());
     }
-    assertEquals(expectedServices.size(), 0);
+    assertEquals(0, expectedServices.size());
   }
 
   @Test
@@ -107,7 +108,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
     ProfilerServiceGrpc.ProfilerServiceBlockingStub stub =
       myDataStore.getProfilerClient(DeviceId.of(DEVICE.getDeviceId()));
     VersionResponse response = stub.getVersion(VersionRequest.newBuilder().setDeviceId(DEVICE.getDeviceId()).build());
-    assertEquals(response, EXPECTED_VERSION);
+    assertEquals(EXPECTED_VERSION, response);
   }
 
   @Test
@@ -117,7 +118,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
     ProfilerServiceGrpc.ProfilerServiceBlockingStub stub =
       ProfilerServiceGrpc.newBlockingStub(InProcessChannelBuilder.forName(SERVICE_NAME).usePlaintext(true).build());
     VersionResponse response = stub.getVersion(VersionRequest.newBuilder().setDeviceId(DEVICE.getDeviceId()).build());
-    assertEquals(response, EXPECTED_VERSION);
+    assertEquals(EXPECTED_VERSION, response);
     myDataStore.disconnect(DeviceId.of(DEVICE.getDeviceId()));
     myExpectedException.expect(StatusRuntimeException.class);
     stub.getVersion(VersionRequest.getDefaultInstance());
@@ -131,7 +132,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
   }
 
   @Test
-  public void testSQLFailureCallsbackToExceptionHandler() throws Exception {
+  public void testSQLFailureCallsbackToExceptionHandler() {
     // Teardown datastore created in startup to unregister callbacks.
     myDataStore.shutdown();
     FakeDataStoreService dataStoreService =
@@ -149,7 +150,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
     assertThat(expectedException[0]).isNull();
 
     // Close the connection then test that we get the expected SQLException
-    dataStoreService.getPassthrough().dropProfilerTable();
+    dataStoreService.getPassThrough().dropProfilerTable();
     stub.getAgentStatus(AgentStatusRequest.getDefaultInstance());
     assertThat(expectedException[0]).isInstanceOf(SQLException.class);
 
@@ -200,20 +201,20 @@ public class DataStoreServiceTest extends DataStorePollerTest {
 
   private static class FakeDataStoreService extends DataStoreService {
     private String myDatastoreDirectory;
-    private FakeServicePassthrough myPassthrough;
+    private FakeServicePassThrough myPassthrough;
     private List<String> myCreatedDbPaths;
     private List<DataStoreDatabase.Characteristic> myCreatedCharacteristics;
 
     public FakeDataStoreService(@NotNull String serviceName,
                                 @NotNull String datastoreDirectory,
                                 Consumer<Runnable> fetchExecutor) {
-      super(serviceName, datastoreDirectory, fetchExecutor);
+      super(serviceName, datastoreDirectory, fetchExecutor, new FakeLogService());
       myDatastoreDirectory = datastoreDirectory;
     }
 
     @Override
     public void createPollers() {
-      myPassthrough = new FakeServicePassthrough();
+      myPassthrough = new FakeServicePassThrough();
       registerService(myPassthrough);
     }
 
@@ -244,12 +245,12 @@ public class DataStoreServiceTest extends DataStorePollerTest {
       }
     }
 
-    public FakeServicePassthrough getPassthrough() {
+    public FakeServicePassThrough getPassThrough() {
       return myPassthrough;
     }
   }
 
-  private static class FakeServicePassthrough extends ProfilerServiceGrpc.ProfilerServiceImplBase implements ServicePassThrough {
+  private static class FakeServicePassThrough extends ProfilerServiceGrpc.ProfilerServiceImplBase implements ServicePassThrough {
     @NotNull private final List<BackingNamespace> myNamespaces = Arrays.asList(
       new BackingNamespace("durable", DURABLE), new BackingNamespace("inmemory", PERFORMANT));
 
@@ -291,6 +292,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
         stmt.execute("DROP TABLE Profiler_Processes");
       }
       catch (SQLException ex) {
+        // do nothing
       }
     }
 

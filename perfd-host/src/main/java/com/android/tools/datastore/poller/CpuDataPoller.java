@@ -63,10 +63,8 @@ public class CpuDataPoller extends PollRunner {
   public void poll() throws StatusRuntimeException {
     // Poll usage data.
     long getDataStartNs = myDataRequestStartTimestampNs;
-    CpuProfiler.CpuDataRequest.Builder request = CpuProfiler.CpuDataRequest.newBuilder()
-      .setSession(mySession)
-      .setStartTimestamp(getDataStartNs)
-      .setEndTimestamp(Long.MAX_VALUE);
+    CpuProfiler.CpuDataRequest.Builder request = CpuProfiler.CpuDataRequest
+      .newBuilder().setSession(mySession).setStartTimestamp(getDataStartNs).setEndTimestamp(Long.MAX_VALUE);
     CpuProfiler.CpuDataResponse response = myPollingService.getData(request.build());
     for (CpuProfiler.CpuUsageData data : response.getDataList()) {
       getDataStartNs = Math.max(getDataStartNs, data.getEndTimestamp());
@@ -75,10 +73,8 @@ public class CpuDataPoller extends PollRunner {
 
     // Poll thread activities.
     long getThreadsStartNs = myDataRequestStartTimestampNs;
-    CpuProfiler.GetThreadsRequest.Builder threadsRequest = CpuProfiler.GetThreadsRequest.newBuilder()
-      .setSession(mySession)
-      .setStartTimestamp(getThreadsStartNs)
-      .setEndTimestamp(Long.MAX_VALUE);
+    CpuProfiler.GetThreadsRequest.Builder threadsRequest = CpuProfiler.GetThreadsRequest
+      .newBuilder().setSession(mySession).setStartTimestamp(getThreadsStartNs).setEndTimestamp(Long.MAX_VALUE);
     CpuProfiler.GetThreadsResponse threadsResponse = myPollingService.getThreads(threadsRequest.build());
 
     if (myDataRequestStartTimestampNs == Long.MIN_VALUE) {
@@ -105,10 +101,8 @@ public class CpuDataPoller extends PollRunner {
     myCpuTable.insertProfilingStateData(mySession, myPollingService.checkAppProfilingState(profilingStateRequest));
 
     // Poll trace info.
-    CpuProfiler.GetTraceInfoRequest.Builder traceInfoRequest = CpuProfiler.GetTraceInfoRequest.newBuilder()
-      .setSession(mySession)
-      .setFromTimestamp(myTraceInfoRequestStartTimestampNs)
-      .setToTimestamp(Long.MAX_VALUE);
+    CpuProfiler.GetTraceInfoRequest.Builder traceInfoRequest = CpuProfiler.GetTraceInfoRequest
+      .newBuilder().setSession(mySession).setFromTimestamp(myTraceInfoRequestStartTimestampNs).setToTimestamp(Long.MAX_VALUE);
     CpuProfiler.GetTraceInfoResponse traceInfoResponse = myPollingService.getTraceInfo(traceInfoRequest.build());
     for (CpuProfiler.TraceInfo traceInfo : traceInfoResponse.getTraceInfoList()) {
       if (traceInfo.getInitiationType().equals(CpuProfiler.TraceInitiationType.INITIATED_BY_API)) {
@@ -137,10 +131,8 @@ public class CpuDataPoller extends PollRunner {
     // Before stopping, we need to handle the case where we were profiling. That's done by inserting a ProfilingStateResponse with
     // being_profiled = false and max timestamp to the corresponding table. This way, we'll make sure that checkAppProfilingState will
     // return false next time we check if we're profiling in this session.
-    CpuProfiler.ProfilingStateResponse response = CpuProfiler.ProfilingStateResponse.newBuilder()
-      .setBeingProfiled(false)
-      .setCheckTimestamp(Long.MAX_VALUE)
-      .build();
+    CpuProfiler.ProfilingStateResponse response = CpuProfiler.ProfilingStateResponse
+      .newBuilder().setBeingProfiled(false).setCheckTimestamp(Long.MAX_VALUE).build();
     myCpuTable.insertProfilingStateData(mySession, response);
     super.stop();
   }

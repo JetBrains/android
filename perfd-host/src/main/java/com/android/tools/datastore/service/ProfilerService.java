@@ -17,6 +17,7 @@ package com.android.tools.datastore.service;
 
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.DeviceId;
+import com.android.tools.datastore.LogService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.DataStoreTable;
 import com.android.tools.datastore.database.ProfilerTable;
@@ -25,7 +26,6 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler.*;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.Channel;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
@@ -43,18 +43,22 @@ import java.util.function.Consumer;
 public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase implements ServicePassThrough {
   private final Map<Channel, ProfilerDevicePoller> myPollers = Maps.newHashMap();
   private final Consumer<Runnable> myFetchExecutor;
+  @NotNull private final LogService myLogService;
   private final ProfilerTable myTable;
-  private final DataStoreService myService;
+  @NotNull private final DataStoreService myService;
 
   public ProfilerService(@NotNull DataStoreService service,
-                         Consumer<Runnable> fetchExecutor) {
+                         Consumer<Runnable> fetchExecutor,
+                         @NotNull LogService logService) {
     myService = service;
     myFetchExecutor = fetchExecutor;
+    myLogService = logService;
     myTable = new ProfilerTable();
   }
 
-  private static Logger getLogger() {
-    return Logger.getInstance(ProfilerService.class);
+  @NotNull
+  private LogService.Logger getLogger() {
+    return myLogService.getLogger(ProfilerService.class);
   }
 
   @Override
@@ -85,7 +89,7 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
 
   @Override
   public void getDevices(GetDevicesRequest request, StreamObserver<GetDevicesResponse> observer) {
-    GetDevicesResponse response = myTable.getDevices(request);
+    GetDevicesResponse response = myTable.getDevices();
     observer.onNext(response);
     observer.onCompleted();
   }

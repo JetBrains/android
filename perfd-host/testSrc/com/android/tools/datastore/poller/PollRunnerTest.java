@@ -31,7 +31,7 @@ public class PollRunnerTest {
     new Thread(runner).start();
     assertEquals(runner.isDone(), false);
     assertEquals(runner.isCancelled(), false);
-    while(!runner.isDone()) {
+    while (!runner.isDone()) {
       Thread.yield();
     }
     assertEquals(runner.passed(), true);

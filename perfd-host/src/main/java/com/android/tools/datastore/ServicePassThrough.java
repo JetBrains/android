@@ -39,7 +39,7 @@ public interface ServicePassThrough {
   List<DataStoreService.BackingNamespace> getBackingNamespaces();
 
   /**
-   * @param namespace a namespace corresponding to an entry in the list returned from {@link #getBackingNamespaces()}
+   * @param namespace  a namespace corresponding to an entry in the list returned from {@link #getBackingNamespaces()}
    * @param connection {@link Connection} to the backing store
    */
   void setBackingStore(@NotNull DataStoreService.BackingNamespace namespace, @NotNull Connection connection);
