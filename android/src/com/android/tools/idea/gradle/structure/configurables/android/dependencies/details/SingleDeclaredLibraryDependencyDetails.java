@@ -41,7 +41,7 @@ public class SingleDeclaredLibraryDependencyDetails implements DependencyDetails
 
   @NotNull private final PsContext myContext;
   @Nullable private PsDeclaredLibraryDependency myDependency;
-  @Nullable private ModelPropertyEditor<Unit, ?> myVersionPropertyEditor;
+  @Nullable private ModelPropertyEditor<?> myVersionPropertyEditor;
   @Nullable private JComponent myEditorComponent;
 
   public SingleDeclaredLibraryDependencyDetails(@NotNull PsContext context) {

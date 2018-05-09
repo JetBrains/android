@@ -49,22 +49,22 @@ class PsVariablesTest : AndroidGradleTestCase() {
   }
 
   fun testGetAvailableVariablesForType() {
-    val stringWithDotsProperty: ModelPropertyContext<Nothing?, Any, String> = object : ModelPropertyContext<Nothing?, Any, String> {
-      override fun parse(context: Nothing?, value: String): ParsedValue<String> = when {
+    val stringWithDotsProperty: ModelPropertyContext<String> = object : ModelPropertyContext<String> {
+      override fun parse(value: String): ParsedValue<String> = when {
         value.contains(".") -> ParsedValue.Set.Parsed(value, DslText.Literal)
         else -> ParsedValue.Set.Invalid(value, "invalid")
       }
 
-      override fun format(context: Nothing?, value: String): String = throw UnsupportedOperationException()
+      override fun format(value: String): String = throw UnsupportedOperationException()
 
-      override fun getKnownValues(context: Nothing?, model: Any): ListenableFuture<KnownValues<String>> =
+      override fun getKnownValues(): ListenableFuture<KnownValues<String>> =
         throw UnsupportedOperationException()
     }
     loadProject(TestProjectPaths.PSD_SAMPLE)
     val psProject = PsProject(project)
     val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
     run {
-      val variables = psAppModule.variables.getAvailableVariablesFor(null, stringWithDotsProperty).toSet()
+      val variables = psAppModule.variables.getAvailableVariablesFor(stringWithDotsProperty).toSet()
       assertThat(
         variables,
         equalTo(

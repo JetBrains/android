@@ -43,18 +43,20 @@ abstract class ModelCollectionPropertyBase<in ContextT, in ModelT, out ResolvedT
     model.setModified()
   }
 
-  protected fun ModelPropertyCore<Unit, ValueT>.makeSetModifiedAware(updatedModel: ModelT) = let {
-    object : ModelPropertyCore<Unit, ValueT> by it {
-      override fun setParsedValue(model: Unit, value: ParsedValue<ValueT>) {
-        it.setParsedValue(Unit, value)
+  protected fun ModelPropertyCore<ValueT>.makeSetModifiedAware(updatedModel: ModelT) = let {
+    object : ModelPropertyCore<ValueT> by it {
+      override fun setParsedValue(value: ParsedValue<ValueT>) {
+        it.setParsedValue(value)
         modelDescriptor.setModified(updatedModel)
       }
     }
   }
 
-  protected fun makePropertyCore(it: ModelPropertyParsedCore<Unit, ValueT>, resolvedValueGetter: () -> ValueT?): ModelPropertyCore<Unit, ValueT> =
-    object : ModelPropertyCore<Unit, ValueT>, ModelPropertyParsedCore<Unit, ValueT> by it {
-      override fun getResolvedValue(model: Unit): ResolvedValue<ValueT> =
+  protected fun makePropertyCore(it: ModelPropertyParsedCore<ValueT>, resolvedValueGetter: () -> ValueT?): ModelPropertyCore<ValueT> =
+    object : ModelPropertyCore<ValueT>, ModelPropertyParsedCore<ValueT> by it {
+      override val defaultValueGetter: (() -> ValueT?)? = null
+
+      override fun getResolvedValue(): ResolvedValue<ValueT> =
         resolvedValueGetter().let { if (it != null) ResolvedValue.Set(it) else ResolvedValue.NotResolved() }
     }
 
@@ -65,11 +67,13 @@ fun <T : Any> makeItemProperty(
   resolvedProperty: ResolvedPropertyModel,
   getTypedValue: ResolvedPropertyModel.() -> T?,
   setTypedValue: ResolvedPropertyModel.(T) -> Unit
-): ModelPropertyCore<Unit, T> =
-  object : ModelPropertyCore<Unit, T> {
-    override fun getParsedValue(model: Unit): ParsedValue<T> = makeParsedValue(resolvedProperty.getTypedValue(), resolvedProperty.dslText())
+): ModelPropertyCore<T> =
+  object : ModelPropertyCore<T> {
+    override val defaultValueGetter: (() -> T?)? = null
 
-    override fun setParsedValue(model: Unit, value: ParsedValue<T>) {
+    override fun getParsedValue(): ParsedValue<T> = makeParsedValue(resolvedProperty.getTypedValue(), resolvedProperty.dslText())
+
+    override fun setParsedValue(value: ParsedValue<T>) {
       when (value) {
         is ParsedValue.NotSet -> resolvedProperty.delete()
         is ParsedValue.Set.Parsed -> {
@@ -87,5 +91,5 @@ fun <T : Any> makeItemProperty(
       }
     }
 
-    override fun getResolvedValue(model: Unit): ResolvedValue<T> = ResolvedValue.NotResolved()
+    override fun getResolvedValue(): ResolvedValue<T> = ResolvedValue.NotResolved()
   }

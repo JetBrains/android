@@ -41,17 +41,15 @@ import javax.swing.text.DefaultCaret
  * This is a [ComboBox] based editor allowing manual text entry as well as entry by selecting an item from the list of values provided by
  * [ModelSimpleProperty.getKnownValues]. Text free text input is parsed by [ModelSimpleProperty.parse].
  */
-class SimplePropertyEditor<ContextT, ModelT, PropertyT : Any, out ModelPropertyT : ModelSimpleProperty<ContextT, ModelT, PropertyT>>(
-  val context: ContextT,
-  val elementType: Class<PropertyT>,
-  val model: ModelT,
+class SimplePropertyEditor<PropertyT : Any, out ModelPropertyT : ModelPropertyCore<PropertyT>>(
   val property: ModelPropertyT,
+  private val propertyContext: ModelPropertyContext<PropertyT>,
   private val variablesProvider: VariablesProvider?
-) : RenderedComboBox<ParsedValue<PropertyT>>(DefaultComboBoxModel<ParsedValue<PropertyT>>()), ModelPropertyEditor<ModelT, PropertyT> {
+) : RenderedComboBox<ParsedValue<PropertyT>>(DefaultComboBoxModel<ParsedValue<PropertyT>>()), ModelPropertyEditor<PropertyT> {
   private var knownValueRenderers: Map<ParsedValue<PropertyT>, ValueRenderer> = mapOf()
   private var disposed = false
   private var knownValuesFuture: ListenableFuture<Unit>? = null  // Accessed only from the EDT.
-  private val formatter = property.valueFormatter(context)
+  private val formatter = propertyContext.valueFormatter()
 
   override val component: JComponent = this
   override val statusComponent: HtmlLabel = HtmlLabel().also {
@@ -92,7 +90,7 @@ class SimplePropertyEditor<ContextT, ModelT, PropertyT : Any, out ModelPropertyT
     val availableVariables: List<ParsedValue.Set.Parsed<PropertyT>>? = getAvailableVariables()
 
     fun receiveKnownValuesOnEdt(knownValues: KnownValues<PropertyT>) {
-      val possibleValues = buildKnownValueRenderers(knownValues, formatter, property.defaultValueGetter?.invoke(model))
+      val possibleValues = buildKnownValueRenderers(knownValues, formatter, property.defaultValueGetter?.invoke())
       knownValueRenderers = possibleValues
       setKnownValues(
         possibleValues.keys.toList() + availableVariables?.filter { knownValues.isSuitableVariable(it) }.orEmpty())
@@ -101,7 +99,7 @@ class SimplePropertyEditor<ContextT, ModelT, PropertyT : Any, out ModelPropertyT
     knownValuesFuture?.cancel(false)
 
     knownValuesFuture = Futures.transform(
-      property.getKnownValues(context, model),
+      propertyContext.getKnownValues(),
       {
         receiveKnownValuesOnEdt(it!!)
         knownValuesFuture = null
@@ -134,7 +132,7 @@ class SimplePropertyEditor<ContextT, ModelT, PropertyT : Any, out ModelPropertyT
       is ParsedValue.Set.Parsed -> parsedValue.value
       is ParsedValue.NotSet -> {
         val defaultValueGetter = property.defaultValueGetter ?: return ""
-        defaultValueGetter(model)
+        defaultValueGetter()
       }
       else -> null
     }
@@ -155,18 +153,18 @@ class SimplePropertyEditor<ContextT, ModelT, PropertyT : Any, out ModelPropertyT
 
   @VisibleForTesting
   fun reloadValue() {
-    loadValue(property.getValue(model))
+    loadValue(property.getValue())
   }
 
   private fun applyChanges(value: ParsedValue<PropertyT>) {
     when (value) {
       is ParsedValue.Set.Invalid -> Unit
-      else -> property.setParsedValue(model!!, value)
+      else -> property.setParsedValue(value)
     }
   }
 
   private fun getAvailableVariables(): List<ParsedValue.Set.Parsed<PropertyT>>? =
-    variablesProvider?.getAvailableVariablesFor(context, property)
+    variablesProvider?.getAvailableVariablesFor(propertyContext)
 
   private fun addFocusGainedListener(listener: () -> Unit) {
     val focusListener = object : FocusListener {
@@ -183,7 +181,7 @@ class SimplePropertyEditor<ContextT, ModelT, PropertyT : Any, out ModelPropertyT
     text.startsWith("\"") && text.endsWith("\"") ->
       ParsedValue.Set.Parsed<PropertyT>(value = null,
                                         dslText = DslText.InterpolatedString(text.substring(1, text.length - 1)))
-    else -> property.parse(context, text)
+    else -> propertyContext.parse(text)
   }
 
   override fun toEditorText(anObject: ParsedValue<PropertyT>?): String = when (anObject) {
@@ -226,13 +224,12 @@ class SimplePropertyEditor<ContextT, ModelT, PropertyT : Any, out ModelPropertyT
   }
 }
 
-inline fun <ContextT, ModelT, reified PropertyT : Any, ModelPropertyT : ModelSimpleProperty<ContextT, ModelT, PropertyT>> simplePropertyEditor(
-  context: ContextT,
-  model: ModelT,
+inline fun <reified PropertyT : Any, ModelPropertyT : ModelPropertyCore<PropertyT>> simplePropertyEditor(
   property: ModelPropertyT,
+  propertyContext: ModelPropertyContext<PropertyT>,
   variablesProvider: VariablesProvider? = null
-): SimplePropertyEditor<ContextT, ModelT, PropertyT, ModelPropertyT> =
-  SimplePropertyEditor(context, PropertyT::class.java, model, property, variablesProvider)
+): SimplePropertyEditor<PropertyT, ModelPropertyT> =
+  SimplePropertyEditor(property, propertyContext, variablesProvider)
 
 private fun <T : Any> ParsedValue<T>.normalizeForEditorAndLookup() = this
 

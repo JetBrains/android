@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.structure.model.meta.*
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
 import com.intellij.util.PlatformIcons.LIBRARY_ICON
 import javax.swing.Icon
+import kotlin.reflect.KProperty
 
 class PsLibraryJavaDependency(
   parent: PsJavaModule,
@@ -50,8 +51,16 @@ class PsLibraryJavaDependency(
 
   var version by PsLibraryJavaDependency.Descriptor.version
 
-  override val versionProperty: ModelSimpleProperty<ArtifactRepositorySearchService, Unit, String> get() =
-    PsLibraryJavaDependency.Descriptor.version.bind(this)
+  override val versionProperty: ModelSimpleProperty<ArtifactRepositorySearchService, Unit, String>
+    get() = object : ModelSimpleProperty<ArtifactRepositorySearchService, Unit, String> {
+      override val description: String get() = Descriptor.version.description
+      override fun bind(model: Unit): ModelPropertyCore<String> = Descriptor.version.bind(this@PsLibraryJavaDependency)
+      override fun bindContext(context: ArtifactRepositorySearchService, model: Unit): ModelPropertyContext<String> =
+        Descriptor.version.bindContext(context, this@PsLibraryJavaDependency)
+
+      override fun getValue(thisRef: Unit, property: KProperty<*>): ParsedValue<String> = throw UnsupportedOperationException()
+      override fun setValue(thisRef: Unit, property: KProperty<*>, value: ParsedValue<String>) = throw UnsupportedOperationException()
+    }
 
   object Descriptor : ModelDescriptor<PsLibraryJavaDependency, Nothing, ArtifactDependencyModel> {
     override fun getResolved(model: PsLibraryJavaDependency): Nothing? = null

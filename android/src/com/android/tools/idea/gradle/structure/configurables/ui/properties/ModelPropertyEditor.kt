@@ -22,10 +22,10 @@ import javax.swing.JComponent
 /**
  * A model property editor.
  *
- * The editor wraps a component configured for editing of a specific property of type [ValueT] of a model of type [ModelT].  The editor
- * is bound to an instance of [ModelT] and the property of the bound model is automatically updated with the current value of the editor.
+ * The editor wraps a component configured for editing of a specific property of type [ValueT].  The editor is bound to the property and the
+ * property is automatically updated with the current value of the editor.
  */
-interface ModelPropertyEditor<in ModelT, out ValueT> : Disposable {
+interface ModelPropertyEditor<out ValueT> : Disposable {
   /**
    * The component to be added to the model editor.
    */

@@ -25,12 +25,12 @@ import com.android.tools.idea.gradle.structure.model.VariablesProvider
  *
  * This is the basic UI model defining a set of properties to be edited and their order.
  */
-class PropertiesUiModel<in ModelT>(val properties: List<PropertyUiModel<*, ModelT, *>>)
+class PropertiesUiModel<in ModelT>(val properties: List<PropertyUiModel<ModelT, *>>)
 
 /**
  * A UI model of a property of type [PropertyT] of a model of type [ModelT].
  */
-interface PropertyUiModel<in ContextT, in ModelT, out PropertyT> {
+interface PropertyUiModel<in ModelT, out PropertyT> {
   /**
    * The plain text description of the property as it should appear in the UI.
    */
@@ -39,43 +39,36 @@ interface PropertyUiModel<in ContextT, in ModelT, out PropertyT> {
   /**
    * Creates a property editor bound to a property of [model] which described by this model.
    */
-  fun createEditor(project: PsProject, module: PsModule, model: ModelT): ModelPropertyEditor<ModelT, PropertyT>
+  fun createEditor(project: PsProject, module: PsModule, model: ModelT): ModelPropertyEditor<PropertyT>
 }
 
 typealias
-    PropertyEditorFactory<ContextT, ModelT, ModelPropertyT, PropertyT> =
-      (ContextT, ModelT, ModelPropertyT, VariablesProvider?) -> ModelPropertyEditor<ModelT, PropertyT>
+  PropertyEditorFactory<ModelPropertyCoreT, ModelPropertyContextT, PropertyT> =
+  (ModelPropertyCoreT, ModelPropertyContextT, VariablesProvider?) -> ModelPropertyEditor<PropertyT>
 
 /**
  * Creates a UI property model describing how to represent [property] for editing.
  *
- * @param editorFactory the function to create an editor bound to an instance of [property] a model of type [ModelT]
+ * @param editorFactory the function to create an editor bound to [property]
  */
-inline fun <ModelT, reified PropertyT : Any, ModelPropertyT : ModelProperty<ModelT, PropertyT>> uiProperty(
+fun <ModelT, PropertyT : Any, ValueT : Any, ModelPropertyCoreT,
+  ModelPropertyT : ModelProperty<Nothing?, ModelT, PropertyT, ValueT, ModelPropertyCoreT>> uiProperty(
   property: ModelPropertyT,
-  noinline editorFactory: PropertyEditorFactory<Nothing?, ModelT, ModelPropertyT, PropertyT>
-): PropertyUiModel<*, ModelT, *> =
-  PropertyUiModelImpl(null, property, editorFactory)
+  editorFactory: PropertyEditorFactory<ModelPropertyCoreT, ModelPropertyContext<ValueT>, PropertyT>
+): PropertyUiModel<ModelT, *> =
+  PropertyUiModelImpl(property, editorFactory, null)
 
-/**
- * Creates a UI property model describing how to represent [property] for editing.
- *
- * @param editorFactory the function to create an editor bound to an instance of [property] a model of type [ModelT]
- */
-inline fun <ContextT, ModelT, reified PropertyT : Any, ModelPropertyT : ModelProperty<ModelT, PropertyT>> uiProperty(
-  property: ModelPropertyT,
-  noinline editorFactory: PropertyEditorFactory<ContextT, ModelT, ModelPropertyT, PropertyT>,
-  context: ContextT
-): PropertyUiModel<*, ModelT, *> =
-  PropertyUiModelImpl(context, property, editorFactory)
-
-class PropertyUiModelImpl<in ContextT, in ModelT, PropertyT : Any, out ModelPropertyT : ModelProperty<ModelT, PropertyT>>(
-  private val context: ContextT,
+class PropertyUiModelImpl<in ContextT, in ModelT, PropertyT : Any, ValueT : Any,
+  out ModelPropertyCoreT, out ModelPropertyT : ModelProperty<ContextT, ModelT, PropertyT, ValueT, ModelPropertyCoreT>>(
   private val property: ModelPropertyT,
-  private val editorFactory: PropertyEditorFactory<ContextT, ModelT, ModelPropertyT, PropertyT>
-) : PropertyUiModel<ContextT, ModelT, PropertyT> {
+  private val editorFactory: PropertyEditorFactory<ModelPropertyCoreT, ModelPropertyContext<ValueT>, PropertyT>,
+  private val context: ContextT
+) : PropertyUiModel<ModelT, PropertyT> {
   override val propertyDescription: String = property.description
   override fun createEditor(project: PsProject, module: PsModule, model: ModelT)
-    : ModelPropertyEditor<ModelT, PropertyT> =
-    editorFactory(context, model, property, module.variables)
+    : ModelPropertyEditor<PropertyT> {
+    val boundProperty = property.bind(model)
+    val boundContext = property.bindContext(context, model)
+    return editorFactory(boundProperty, boundContext, module.variables)
+  }
 }

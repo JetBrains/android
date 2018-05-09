@@ -43,10 +43,10 @@ class PsSigningConfigTest : AndroidGradleTestCase() {
     val signingConfig = appModule.findSigningConfig("myConfig")
     assertThat(appModule, notNullValue()); signingConfig!!
 
-    val keyAlias = PsSigningConfig.SigningConfigDescriptors.keyAlias.getValue(signingConfig)
+    val keyAlias = PsSigningConfig.SigningConfigDescriptors.keyAlias.bind(signingConfig).getValue()
     // TODO(b/70501607): Decide on val keyPassword = PsSigningConfig.SigningConfigDescriptors.keyPassword.getValue(signingConfig)
-    val storeFile = PsSigningConfig.SigningConfigDescriptors.storeFile.getValue(signingConfig)
-    val storePassword = PsSigningConfig.SigningConfigDescriptors.storePassword.getValue(signingConfig)
+    val storeFile = PsSigningConfig.SigningConfigDescriptors.storeFile.bind(signingConfig).getValue()
+    val storePassword = PsSigningConfig.SigningConfigDescriptors.storePassword.bind(signingConfig).getValue()
     // TODO(b/70501607): Decide on val storeType = PsSigningConfig.SigningConfigDescriptors.storeType.getValue(signingConfig)
 
     assertThat(keyAlias.resolved.asTestValue(), equalTo("androiddebugkey"))
