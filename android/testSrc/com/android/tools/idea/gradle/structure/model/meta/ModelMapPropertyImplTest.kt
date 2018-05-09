@@ -38,7 +38,7 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
   private fun <T : Any> GradlePropertyModel.wrap(
     parse: (Nothing?, String) -> ParsedValue<T>,
     caster: ResolvedPropertyModel.() -> T?
-  ): ModelMapProperty<Nothing?, ModelMapPropertyImplTest, T> {
+  ): ModelMapPropertyCore<T> {
     val resolved = resolve()
     return TestModelDescriptor.mapProperty(
       "description",
@@ -46,19 +46,19 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
       getParsedProperty = { resolved },
       itemValueGetter = { caster() },
       itemValueSetter = { setValue(it) },
-      parse = { context, value -> parse(context, value) }
-    )
+      parse = { context: Nothing?, value -> parse(context, value) }
+    ).bind(this@ModelMapPropertyImplTest)
   }
 
-  private fun <T : Any> ModelPropertyCore<Unit, T>.testValue() = (getParsedValue(Unit) as? ParsedValue.Set.Parsed<T>)?.value
-  private fun <T : Any> ModelPropertyCore<Unit, T>.testSetValue(value: T?) =
-    setParsedValue(Unit, if (value != null) ParsedValue.Set.Parsed(value, DslText.Literal) else ParsedValue.NotSet)
+  private fun <T : Any> ModelPropertyCore<T>.testValue() = (getParsedValue() as? ParsedValue.Set.Parsed<T>)?.value
+  private fun <T : Any> ModelPropertyCore<T>.testSetValue(value: T?) =
+    setParsedValue(if (value != null) ParsedValue.Set.Parsed(value, DslText.Literal) else ParsedValue.NotSet)
 
-  private fun <T : Any> ModelPropertyCore<Unit, T>.testSetReference(value: String) =
-    setParsedValue(Unit, ParsedValue.Set.Parsed(dslText = DslText.Reference(value), value = null))
+  private fun <T : Any> ModelPropertyCore<T>.testSetReference(value: String) =
+    setParsedValue(ParsedValue.Set.Parsed(dslText = DslText.Reference(value), value = null))
 
-  private fun <T : Any> ModelPropertyCore<Unit, T>.testSetInterpolatedString(value: String) =
-    setParsedValue(Unit, ParsedValue.Set.Parsed(dslText = DslText.InterpolatedString(value), value = null))
+  private fun <T : Any> ModelPropertyCore<T>.testSetInterpolatedString(value: String) =
+    setParsedValue(ParsedValue.Set.Parsed(dslText = DslText.InterpolatedString(value), value = null))
 
   @Test
   fun testPropertyValues() {
@@ -79,8 +79,8 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
     val propMap = extModel.findProperty("propMap").wrap(::parseString, ResolvedPropertyModel::asString)
     val propMapRef = extModel.findProperty("propMapRef").wrap(::parseString, ResolvedPropertyModel::asString)
 
-    fun validateValues(map: ModelMapProperty<Nothing?, ModelMapPropertyImplTest, String>) {
-      val editableValues = map.getEditableValues(this)
+    fun validateValues(map: ModelMapPropertyCore<String>) {
+      val editableValues = map.getEditableValues()
       val propOne = editableValues["one"]
       val propB = editableValues["B"]
       val propC = editableValues["propC1"]
@@ -114,7 +114,7 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
     val extModel = gradleBuildModel.ext()
 
     val map = extModel.findProperty("propMap").wrap(::parseString, ResolvedPropertyModel::asString)
-    var editableValues = map.getEditableValues(this)
+    var editableValues = map.getEditableValues()
 
     editableValues["one"]?.testSetValue("A")
     editableValues["B"]?.testSetReference("propC1")
@@ -123,7 +123,7 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
     editableValues["interpolated"]?.testSetValue("E")
     assertThat(modifiedCount, equalTo(5))
 
-    editableValues = map.getEditableValues(this)
+    editableValues = map.getEditableValues()
     val propA = editableValues["one"]
     val prop3 = editableValues["B"]
     val prop3rd = editableValues["propC"]
@@ -153,18 +153,18 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
     val extModel = gradleBuildModel.ext()
 
     val map = extModel.findProperty("propMap").wrap(::parseString, ResolvedPropertyModel::asString)
-    map.deleteEntry(this, "B")
-    val newInterpolated = map.changeEntryKey(this, "interpolated", "newInterpolated")
-    val newPropC = map.changeEntryKey(this, "propC", "newPropC")
-    val newPropRef = map.changeEntryKey(this, "propRef", "newPropRef")
-    val newOne = map.changeEntryKey(this, "one", "newOne")
+    map.deleteEntry("B")
+    val newInterpolated = map.changeEntryKey("interpolated", "newInterpolated")
+    val newPropC = map.changeEntryKey("propC", "newPropC")
+    val newPropRef = map.changeEntryKey("propRef", "newPropRef")
+    val newOne = map.changeEntryKey("one", "newOne")
     // Add new.
-    val newNew = map.addEntry(this, "new")  // Does not count as modified.
+    val newNew = map.addEntry("new")  // Does not count as modified.
     newNew.testSetValue("new")
     // Add new and change it.
-    val new2 = map.addEntry(this, "new2")  // Does not count as modified.
+    val new2 = map.addEntry("new2")  // Does not count as modified.
     new2.testSetReference("propC1")
-    val newChanged = map.changeEntryKey(this, "new2", "newChanged")
+    val newChanged = map.changeEntryKey("new2", "newChanged")
     assertThat(modifiedCount, equalTo(8))
 
     assertThat(newOne.testValue(), equalTo("1"))
@@ -174,7 +174,7 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
     assertThat(newNew.testValue(), equalTo("new"))
     assertThat(newChanged.testValue(), equalTo("3"))
 
-    val editableValues = map.getEditableValues(this)
+    val editableValues = map.getEditableValues()
     val one = editableValues["newOne"]
     val b = editableValues["newB"]
     val propC = editableValues["newPropC"]

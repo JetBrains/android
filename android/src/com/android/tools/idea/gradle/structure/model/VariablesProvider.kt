@@ -26,6 +26,5 @@ interface VariablesProvider {
    * Returns a list of variables available in the scope which are suitable for use with
    * [property].
    */
-  fun <ContextT, ModelT, ValueT : Any> getAvailableVariablesFor(context: ContextT,
-    property: ModelPropertyContext<ContextT, ModelT, ValueT>): List<ParsedValue.Set.Parsed<ValueT>>
+  fun <ValueT : Any> getAvailableVariablesFor(property: ModelPropertyContext<ValueT>): List<ParsedValue.Set.Parsed<ValueT>>
 }

@@ -40,10 +40,10 @@ class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
     val appModule = project.findModuleByName("app") as PsAndroidModule
     assertThat(appModule, notNullValue())
 
-    val buildToolsVersion = AndroidModuleDescriptors.buildToolsVersion.getValue(appModule)
-    val compileSdkVersion = AndroidModuleDescriptors.compileSdkVersion.getValue(appModule)
-    val sourceCompatibility = AndroidModuleDescriptors.sourceCompatibility.getValue(appModule)
-    val targetCompatibility = AndroidModuleDescriptors.targetCompatibility.getValue(appModule)
+    val buildToolsVersion = AndroidModuleDescriptors.buildToolsVersion.bind(appModule).getValue()
+    val compileSdkVersion = AndroidModuleDescriptors.compileSdkVersion.bind(appModule).getValue()
+    val sourceCompatibility = AndroidModuleDescriptors.sourceCompatibility.bind(appModule).getValue()
+    val targetCompatibility = AndroidModuleDescriptors.targetCompatibility.bind(appModule).getValue()
 
     assertThat(buildToolsVersion.resolved.asTestValue(), equalTo("27.0.3"))
     assertThat(buildToolsVersion.parsedValue.asTestValue(), equalTo("27.0.3"))

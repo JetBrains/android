@@ -35,7 +35,7 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
   private fun <T : Any> GradlePropertyModel.wrap(
     parse: (Nothing?, String) -> ParsedValue<T>,
     caster: ResolvedPropertyModel.() -> T?
-  ): ModelListProperty<Nothing?, Model, T> {
+  ): ModelListPropertyCore<T> {
     val resolved = resolve()
     return Model.listProperty(
       "description",
@@ -43,19 +43,19 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
       getParsedProperty = { resolved },
       itemValueGetter = { caster() },
       itemValueSetter = { setValue(it) },
-      parse = { context, value -> parse(context, value) }
-    )
+      parse = { context: Nothing?, value -> parse(context, value) }
+    ).bind(Model)
   }
 
-  private fun <T : Any> ModelPropertyCore<Unit, T>.testValue() = (getParsedValue(Unit) as? ParsedValue.Set.Parsed<T>)?.value
-  private fun <T : Any> ModelPropertyCore<Unit, T>.testSetValue(value: T?) =
-    setParsedValue(Unit, if (value != null) ParsedValue.Set.Parsed(value, DslText.Literal) else ParsedValue.NotSet)
+  private fun <T : Any> ModelPropertyCore<T>.testValue() = (getParsedValue() as? ParsedValue.Set.Parsed<T>)?.value
+  private fun <T : Any> ModelPropertyCore<T>.testSetValue(value: T?) =
+    setParsedValue(if (value != null) ParsedValue.Set.Parsed(value, DslText.Literal) else ParsedValue.NotSet)
 
-  private fun <T : Any> ModelPropertyCore<Unit, T>.testSetReference(value: String) =
-    setParsedValue(Unit, ParsedValue.Set.Parsed(dslText = DslText.Reference(value), value = null))
+  private fun <T : Any> ModelPropertyCore<T>.testSetReference(value: String) =
+    setParsedValue(ParsedValue.Set.Parsed(dslText = DslText.Reference(value), value = null))
 
-  private fun <T : Any> ModelPropertyCore<Unit, T>.testSetInterpolatedString(value: String) =
-    setParsedValue(Unit, ParsedValue.Set.Parsed(dslText = DslText.InterpolatedString(value), value = null))
+  private fun <T : Any> ModelPropertyCore<T>.testSetInterpolatedString(value: String) =
+    setParsedValue(ParsedValue.Set.Parsed(dslText = DslText.InterpolatedString(value), value = null))
 
   @Test
   fun testPropertyValues() {
@@ -75,8 +75,8 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
     val propList = extModel.findProperty("propList").wrap(::parseString, ResolvedPropertyModel::asString)
     val propListRef = extModel.findProperty("propListRef").wrap(::parseString, ResolvedPropertyModel::asString)
 
-    fun validateValues(list: ModelListProperty<Nothing?, Model, String>) {
-      val editableValues = list.getEditableValues(Model)
+    fun validateValues(list: ModelListPropertyCore<String>) {
+      val editableValues = list.getEditableValues()
       val propA = editableValues[0]
       val propB = editableValues[1]
       val propC = editableValues[2]
@@ -110,7 +110,7 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
     val extModel = buildModel.ext()
 
     val list = extModel.findProperty("propList").wrap(::parseString, ResolvedPropertyModel::asString)
-    var editableValues = list.getEditableValues(Model)
+    var editableValues = list.getEditableValues()
 
     editableValues[0].testSetValue("A")
     editableValues[1].testSetReference("propC")
@@ -120,7 +120,7 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
 
     fun verify(ext: ExtModel) {
       editableValues =
-          ext.findProperty("propList").wrap(::parseString, ResolvedPropertyModel::asString).getEditableValues(Model)
+          ext.findProperty("propList").wrap(::parseString, ResolvedPropertyModel::asString).getEditableValues()
       val propA = editableValues[0]
       val prop3 = editableValues[1]
       val prop3rd = editableValues[2]
@@ -156,18 +156,18 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
 
     val list = extModel.findProperty("propList").wrap(::parseString, ResolvedPropertyModel::asString)
 
-    list.deleteItem(Model, 0)
-    var editableValues = list.getEditableValues(Model)
+    list.deleteItem(0)
+    var editableValues = list.getEditableValues()
     editableValues[0].testSetReference("propC")
     editableValues[1].testSetInterpolatedString("${'$'}{propC}rd")
     editableValues[2].testSetValue("D")
     editableValues[3].testSetValue("E")
 
-    list.addItem(Model, 4).testSetValue("ZZ")
+    list.addItem(4).testSetValue("ZZ")
 
     fun verify(ext: ExtModel) {
       editableValues =
-          ext.findProperty("propList").wrap(::parseString, ResolvedPropertyModel::asString).getEditableValues(Model)
+          ext.findProperty("propList").wrap(::parseString, ResolvedPropertyModel::asString).getEditableValues()
       val prop3 = editableValues[0]
       val prop3rd = editableValues[1]
       val propD = editableValues[2]
@@ -203,18 +203,18 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
 
     val list = extModel.findProperty("propList").wrap(::parseString, ResolvedPropertyModel::asString)
 
-    list.deleteItem(Model, 2)
-    var editableValues = list.getEditableValues(Model)
+    list.deleteItem(2)
+    var editableValues = list.getEditableValues()
     editableValues[0].testSetReference("propC")
     editableValues[1].testSetInterpolatedString("${'$'}{propC}rd")
     editableValues[2].testSetValue("D")
     editableValues[3].testSetValue("E")
 
-    list.addItem(Model, 0).testSetValue("ZZ")
+    list.addItem(0).testSetValue("ZZ")
 
     fun verify(ext: ExtModel) {
       editableValues =
-          ext.findProperty("propList").wrap(::parseString, ResolvedPropertyModel::asString).getEditableValues(Model)
+          ext.findProperty("propList").wrap(::parseString, ResolvedPropertyModel::asString).getEditableValues()
       val propZZ = editableValues[0]
       val prop3 = editableValues[1]
       val prop3rd = editableValues[2]

@@ -30,6 +30,7 @@ import com.google.common.collect.ImmutableSet
 import com.google.common.util.concurrent.Futures
 import com.intellij.util.PlatformIcons.LIBRARY_ICON
 import javax.swing.Icon
+import kotlin.reflect.KProperty
 
 open class PsDeclaredLibraryAndroidDependency(
   parent: PsAndroidModule,
@@ -49,7 +50,16 @@ open class PsDeclaredLibraryAndroidDependency(
   override val joinedConfigurationNames: String = configurationName
 
   var version by Descriptor.version
-  override val versionProperty: ModelSimpleProperty<ArtifactRepositorySearchService, Unit, String> get() = Descriptor.version.bind(this)
+  override val versionProperty: ModelSimpleProperty<ArtifactRepositorySearchService, Unit, String>
+    get() = object : ModelSimpleProperty<ArtifactRepositorySearchService, Unit, String> {
+      override val description: String get() = Descriptor.version.description
+      override fun bind(model: Unit): ModelPropertyCore<String> = Descriptor.version.bind(this@PsDeclaredLibraryAndroidDependency)
+      override fun bindContext(context: ArtifactRepositorySearchService, model: Unit): ModelPropertyContext<String> =
+        Descriptor.version.bindContext(context, this@PsDeclaredLibraryAndroidDependency)
+
+      override fun getValue(thisRef: Unit, property: KProperty<*>): ParsedValue<String> = throw UnsupportedOperationException()
+      override fun setValue(thisRef: Unit, property: KProperty<*>, value: ParsedValue<String>) = throw UnsupportedOperationException()
+    }
 
   object Descriptor : ModelDescriptor<PsDeclaredLibraryAndroidDependency, Nothing, ArtifactDependencyModel> {
     override fun getResolved(model: PsDeclaredLibraryAndroidDependency): Nothing? = null
@@ -93,7 +103,7 @@ open class PsResolvedLibraryAndroidDependency(
   private val parsedModels: Collection<ArtifactDependencyModel>
 ) : PsLibraryAndroidDependency(parent, containers), PsResolvedDependency, PsResolvedLibraryDependency {
   override val isDeclared: Boolean get() = !parsedModels.isEmpty()
-  override val joinedConfigurationNames: String get() = parsedModels.joinToString(separator = ", ") { it.configurationName()}
+  override val joinedConfigurationNames: String get() = parsedModels.joinToString(separator = ", ") { it.configurationName() }
 
   override fun getParsedModels(): List<DependencyModel> = parsedModels.toList()
 

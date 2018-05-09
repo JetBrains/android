@@ -16,10 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
 import com.android.tools.idea.gradle.structure.model.VariablesProvider
-import com.android.tools.idea.gradle.structure.model.meta.ModelMapProperty
-import com.android.tools.idea.gradle.structure.model.meta.ModelSimpleProperty
-import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
-import com.android.tools.idea.gradle.structure.model.meta.PropertyEditorFactory
+import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.util.ui.AbstractTableCellEditor
 import java.awt.Component
 import java.awt.TextField
@@ -32,14 +29,13 @@ import javax.swing.table.TableColumnModel
 /**
  * A property editor [ModelPropertyEditor] for properties of simple map types.
  */
-class MapPropertyEditor<ContextT, ModelT, ValueT : Any, out ModelPropertyT : ModelMapProperty<ContextT, ModelT, ValueT>>(
-  context: ContextT,
-  model: ModelT,
+class MapPropertyEditor<ValueT : Any, out ModelPropertyT : ModelMapPropertyCore<ValueT>>(
   property: ModelPropertyT,
-  editor: PropertyEditorFactory<ContextT, Unit, ModelSimpleProperty<ContextT, Unit, ValueT>, ValueT>,
+  propertyContext: ModelPropertyContext<ValueT>,
+  editor: PropertyEditorFactory<ModelPropertyCore<ValueT>, ModelPropertyContext<ValueT>, ValueT>,
   variablesProvider: VariablesProvider?
-) : CollectionPropertyEditor<ContextT, ModelT, ModelPropertyT, ValueT>(context, model, property, editor, variablesProvider),
-    ModelPropertyEditor<ModelT, Map<String, ValueT>> {
+) : CollectionPropertyEditor<ModelPropertyT, ValueT>(property, propertyContext, editor, variablesProvider),
+    ModelPropertyEditor<Map<String, ValueT>> {
 
   init {
     loadValue()
@@ -51,7 +47,7 @@ class MapPropertyEditor<ContextT, ModelT, ValueT : Any, out ModelPropertyT : Mod
 
   override fun getValueAt(row: Int): ParsedValue<ValueT> {
     val entryKey = keyAt(row)
-    val entryValue = if (entryKey == "") modelValueAt(row) else property.getEditableValues(model)[entryKey]?.getParsedValue(Unit)
+    val entryValue = if (entryKey == "") modelValueAt(row) else property.getEditableValues()[entryKey]?.getParsedValue()
     return entryValue ?: ParsedValue.NotSet
   }
 
@@ -60,7 +56,7 @@ class MapPropertyEditor<ContextT, ModelT, ValueT : Any, out ModelPropertyT : Mod
     // If entryKey == "", we don't need to store the value in the property. It is, however, automatically stored in the table model and
     // it will be transferred to the property when the key value is set.
     if (entryKey != "") {
-      (property.getEditableValues(model)[entryKey] ?: property.addEntry(model, entryKey)).setParsedValue(Unit, value)
+      (property.getEditableValues()[entryKey] ?: property.addEntry(entryKey)).setParsedValue(value)
     }
   }
 
@@ -81,7 +77,7 @@ class MapPropertyEditor<ContextT, ModelT, ValueT : Any, out ModelPropertyT : Mod
         if (table.selectionModel.isSelectedIndex(index)) {
           val key = (tableModel.getValueAt(index, 0) as String?).orEmpty()
           if (key != "") {
-            property.deleteEntry(model, key)
+            property.deleteEntry(key)
             tableModel.removeRow(index)
           }
         }
@@ -93,9 +89,9 @@ class MapPropertyEditor<ContextT, ModelT, ValueT : Any, out ModelPropertyT : Mod
     val tableModel = DefaultTableModel()
     tableModel.addColumn("key")
     tableModel.addColumn("value")
-    val value = property.getEditableValues(model)
+    val value = property.getEditableValues()
     for ((k, v) in value.entries) {
-      tableModel.addRow(arrayOf(k, v.getParsedValue(Unit).toTableModelValue()))
+      tableModel.addRow(arrayOf(k, v.getParsedValue().toTableModelValue()))
     }
     return tableModel
   }
@@ -120,7 +116,7 @@ class MapPropertyEditor<ContextT, ModelT, ValueT : Any, out ModelPropertyT : Mod
 
   private fun modelValueAt(row: Int) =
     @Suppress("UNCHECKED_CAST")  // If it is of type Value, then generic type arguments are correct.
-    (table.model.getValueAt(row, 1) as? CollectionPropertyEditor<ContextT, ModelT, ModelPropertyT, ValueT>.Value)?.value
+    (table.model.getValueAt(row, 1) as? CollectionPropertyEditor<ModelPropertyT, ValueT>.Value)?.value
 
   inner class MyKeyCellEditor : AbstractTableCellEditor() {
     private var currentRow: Int = -1
@@ -143,16 +139,16 @@ class MapPropertyEditor<ContextT, ModelT, ValueT : Any, out ModelPropertyT : Mod
           val newKey = lastEditor!!.text!!
           when {
             oldKey == "" -> {
-              val addedEntry = property.addEntry(model, newKey)
+              val addedEntry = property.addEntry(newKey)
               @Suppress("UNCHECKED_CAST")
               val modelValue: Value? =
-                table.model.getValueAt(currentRow, 1) as? CollectionPropertyEditor<ContextT, ModelT, ModelPropertyT, ValueT>.Value
+                table.model.getValueAt(currentRow, 1) as? CollectionPropertyEditor<ModelPropertyT, ValueT>.Value
               if (modelValue != null) {
-                addedEntry.setParsedValue(Unit, modelValue.value)
+                addedEntry.setParsedValue(modelValue.value)
               }
             }
-            newKey == "" -> property.deleteEntry(model, oldKey)
-            else -> property.changeEntryKey(model, oldKey, newKey)
+            newKey == "" -> property.deleteEntry(oldKey)
+            else -> property.changeEntryKey(oldKey, newKey)
           }
           currentRow = -1
           currentKey = null
@@ -170,8 +166,8 @@ class MapPropertyEditor<ContextT, ModelT, ValueT : Any, out ModelPropertyT : Mod
   }
 }
 
-fun <ContextT, ModelT, ValueT : Any, ModelPropertyT : ModelMapProperty<ContextT, ModelT, ValueT>> mapPropertyEditor(
-  editor: PropertyEditorFactory<ContextT, Unit, ModelSimpleProperty<ContextT, Unit, ValueT>, ValueT>
+fun <ValueT : Any, ModelPropertyT : ModelMapPropertyCore<ValueT>> mapPropertyEditor(
+  editor: PropertyEditorFactory<ModelPropertyCore<ValueT>, ModelPropertyContext<ValueT>, ValueT>
 ):
-    PropertyEditorFactory<ContextT, ModelT, ModelPropertyT, Map<String, ValueT>> =
-  { context, model, property, variablesProvider -> MapPropertyEditor(context, model, property, editor, variablesProvider) }
+    PropertyEditorFactory<ModelPropertyT, ModelPropertyContext<ValueT>, Map<String, ValueT>> =
+  { property, propertyContext, variablesProvider -> MapPropertyEditor(property, propertyContext, editor, variablesProvider) }

@@ -101,7 +101,7 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
   }
 
   fun testLoadsValue() {
-    val editor = simplePropertyEditor(null, model, property)
+    val editor = simplePropertyEditor(property.bind(model), property.bindContext(null, model))
     assertThat<Any?>(editor.selectedItem, equalTo("value".asSimpleParsed()))
     assertThat(editor.testPlainTextStatus, equalTo(""))
   }
@@ -109,7 +109,7 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
   fun testLoadsValueNotMatchingResolved() {
     resolvedModel.value = "other"
     defaultValue = null  // It should not matter whether it is set ot not. Make sure that if it is not set we still report the difference.
-    val editor = simplePropertyEditor(null, model, property)
+    val editor = simplePropertyEditor(property.bind(model), property.bindContext(null, model))
     assertThat<Any?>(editor.selectedItem, equalTo("value".asSimpleParsed()))
     assertThat(editor.testPlainTextStatus, equalTo(" -> other"))
   }
@@ -118,7 +118,7 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
     parsedModel.dsl = DslText.Literal
     parsedModel.value = "1"
     resolvedModel.value = "1"
-    val editor = simplePropertyEditor(null, model, property)
+    val editor = simplePropertyEditor(property.bind(model), property.bindContext(null, model))
     assertThat<Any?>(editor.selectedItem, equalTo("1".asSimpleParsed()))
     assertThat(editor.testPlainTextStatus, equalTo(""))
   }
@@ -130,7 +130,7 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
     val values = wellKnownValuesFuture.get() // Capture default test values.
     val settableWellKnownValuesFuture = SettableFuture.create<List<ValueDescriptor<String>>>()
     wellKnownValuesFuture = settableWellKnownValuesFuture
-    val editor = simplePropertyEditor(null, model, property)
+    val editor = simplePropertyEditor(property.bind(model), property.bindContext(null, model))
     assertThat(editor.testWatermark(), equalTo("1"))
     assertThat<Any?>(editor.selectedItem, equalTo("1".asSimpleParsed()))
     assertThat(editor.testPlainTextStatus, equalTo(""))
@@ -146,7 +146,7 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
     parsedModel.dsl = null
     parsedModel.value = null
     resolvedModel.value = null
-    val editor = simplePropertyEditor(null, model, property)
+    val editor = simplePropertyEditor(property.bind(model), property.bindContext(null, model))
     assertThat<Any?>(editor.selectedItem, equalTo(ParsedValue.NotSet))
     assertThat(editor.testPlainTextStatus, equalTo(""))
   }
@@ -155,7 +155,7 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
     parsedModel.dsl = null
     parsedModel.value = null
     resolvedModel.value = "default"  // Matches the "default" value.
-    val editor = simplePropertyEditor(null, model, property)
+    val editor = simplePropertyEditor(property.bind(model), property.bindContext(null, model))
     assertThat<Any?>(editor.selectedItem, equalTo(ParsedValue.NotSet))
     assertThat(editor.testPlainTextStatus, equalTo(""))
   }
@@ -164,7 +164,7 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
     parsedModel.dsl = null
     parsedModel.value = null
     resolvedModel.value = "resolved"
-    val editor = simplePropertyEditor(null, model, property)
+    val editor = simplePropertyEditor(property.bind(model), property.bindContext(null, model))
     assertThat<Any?>(editor.selectedItem, equalTo(ParsedValue.NotSet))
     assertThat(editor.testPlainTextStatus, equalTo(" -> resolved"))
   }
@@ -174,14 +174,14 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
     parsedModel.value = null
     resolvedModel.value = "resolved"
     defaultValue = null
-    val editor = simplePropertyEditor(null, model, property)
+    val editor = simplePropertyEditor(property.bind(model), property.bindContext(null, model))
     assertThat<Any?>(editor.selectedItem, equalTo(ParsedValue.NotSet))
     assertThat(editor.testPlainTextStatus, equalTo(""))
   }
 
   fun testLoadsReference() {
     parsedModel.dsl = DslText.Reference("some_reference")
-    val editor = simplePropertyEditor(null, model, property)
+    val editor = simplePropertyEditor(property.bind(model), property.bindContext(null, model))
     assertThat<Any?>(editor.selectedItem, equalTo(("some_reference" to "value").asParsed()))
     assertThat(editor.testPlainTextStatus, equalTo(""))
   }
@@ -189,7 +189,7 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
   fun testLoadsReferenceNotMatchingResolved() {
     resolvedModel.value = "other"
     parsedModel.dsl = DslText.Reference("some_reference")
-    val editor = simplePropertyEditor(null, model, property)
+    val editor = simplePropertyEditor(property.bind(model), property.bindContext(null, model))
     assertThat<Any?>(editor.selectedItem, equalTo(("some_reference" to "value").asParsed()))
     assertThat(editor.testPlainTextStatus, equalTo(" -> other"))
   }
@@ -198,7 +198,7 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
     parsedModel.dsl = DslText.Reference("some_reference")
     parsedModel.value = "1"
     resolvedModel.value = "1"
-    val editor = simplePropertyEditor(null, model, property)
+    val editor = simplePropertyEditor(property.bind(model), property.bindContext(null, model))
     assertThat<Any?>(editor.selectedItem, equalTo(("some_reference" to "1").asParsed()))
     assertThat(editor.testPlainTextStatus, equalTo(""))
   }
@@ -207,7 +207,7 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
     parsedModel.dsl = DslText.InterpolatedString("some \${reference}")
     parsedModel.value = "some value"
     resolvedModel.value = "some value"
-    val editor = simplePropertyEditor(null, model, property)
+    val editor = simplePropertyEditor(property.bind(model), property.bindContext(null, model))
     assertThat<Any?>(editor.selectedItem, equalTo(
       ParsedValue.Set.Parsed(value = "some value", dslText = DslText.InterpolatedString("some \${reference}"))))
     assertThat(editor.testPlainTextStatus, equalTo(""))
@@ -216,7 +216,7 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
   fun testLoadsOtherUnparsedDslText() {
     parsedModel.dsl = DslText.OtherUnparsedDslText("1 + z(x)")
     parsedModel.value = null
-    val editor = simplePropertyEditor(null, model, property)
+    val editor = simplePropertyEditor(property.bind(model), property.bindContext(null, model))
     assertThat<Any?>(editor.selectedItem,
                      equalTo(ParsedValue.Set.Parsed(value = null, dslText = DslText.OtherUnparsedDslText("1 + z(x)"))))
     assertThat(editor.testPlainTextStatus, equalTo(" -> value"))
@@ -228,14 +228,15 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
     val var2 = "var2" to "2"
     val var3 = "var3" to "3"
     val property = this.property
-    `when`(variablesProvider.getAvailableVariablesFor(null, property)).thenReturn(
+    val propertyContext = property.bindContext(null, model)
+    `when`(variablesProvider.getAvailableVariablesFor(propertyContext)).thenReturn(
       listOf(
         var1.asParsed(),
         var2.asParsed(),
         var3.asParsed()
       )
     )
-    val editor = simplePropertyEditor(null, model, property, variablesProvider)
+    val editor = simplePropertyEditor(property.bind(model), propertyContext, variablesProvider)
     assertThat(editor.getModel().getItems(),
                hasItems("1".asSimpleParsed(), "2".asSimpleParsed(), var1.asParsed(), var2.asParsed()))
   }
@@ -246,14 +247,15 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
     val var2 = "var2" to "2"
     val var3 = "var3" to "3"
     val property = this.property
-    `when`(variablesProvider.getAvailableVariablesFor(null, property)).thenReturn(
+    val propertyContext = property.bindContext(null, model)
+    `when`(variablesProvider.getAvailableVariablesFor(propertyContext)).thenReturn(
       listOf(
         var1.asParsed(),
         var2.asParsed(),
         var3.asParsed()
       )
     )
-    val editor = simplePropertyEditor(null, model, property, variablesProvider)
+    val editor = simplePropertyEditor(property.bind(model), propertyContext, variablesProvider)
     assertThat(editor.getModel().getItems(),
                hasItems("1".asSimpleParsed(), "2".asSimpleParsed(), var1.asParsed(), var2.asParsed()))
 
@@ -277,7 +279,7 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
   }
 
   fun testUpdatesValue() {
-    val editor = simplePropertyEditor(null, model, property)
+    val editor = simplePropertyEditor(property.bind(model), property.bindContext(null, model))
     editor.commitTestText("abc")
     assertThat(parsedModel.value, equalTo("abc"))
     // TODO(b/73811870): Assert the status message was updated correctly.
@@ -286,7 +288,7 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
   }
 
   fun testUpdatesToNullValue() {
-    val editor = simplePropertyEditor(null, model, property)
+    val editor = simplePropertyEditor(property.bind(model), property.bindContext(null, model))
     editor.commitTestText("")
     assertThat<Any?>(parsedModel.value, nullValue())
     // TODO(b/73811870): Assert the status message was updated correctly.
@@ -295,7 +297,7 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
   }
 
   fun testUpdatesToReference() {
-    val editor = simplePropertyEditor(null, model, property)
+    val editor = simplePropertyEditor(property.bind(model), property.bindContext(null, model))
     val refValue = "value"
     translateDsl[DslText.Reference("other.reference")] = refValue
     editor.commitTestText("\$other.reference")
@@ -308,7 +310,7 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
   }
 
   fun testUpdatesToInterpolatedString() {
-    val editor = simplePropertyEditor(null, model, property)
+    val editor = simplePropertyEditor(property.bind(model), property.bindContext(null, model))
     // TODO(b/72088238): Decide on the exact format.
     val interpolatedValue = "AAA and BBB"
     translateDsl[DslText.InterpolatedString("\$a and \$b")] = interpolatedValue
@@ -329,7 +331,7 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
 
 
   fun testUpdateProperty() {
-    val editor = simplePropertyEditor(null, model, property)
+    val editor = simplePropertyEditor(property.bind(model), property.bindContext(null, model))
     editor.setTestText("abc")
     // Our assumption is that changing the text editor content directly does not immediately raise the notification and thus it is possible
     // to test updateProperty() method.
@@ -340,7 +342,7 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
   }
 
   fun testGetValue() {
-    val editor = simplePropertyEditor(null, model, property)
+    val editor = simplePropertyEditor(property.bind(model), property.bindContext(null, model))
     editor.setTestText("abc")
     // Our assumption is that changing the text editor content directly does not immediately raise the notification and thus it is possible
     // to test updateProperty() method.
@@ -351,7 +353,7 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
   }
 
   fun testDispose() {
-    val editor = simplePropertyEditor(null, model, property)
+    val editor = simplePropertyEditor(property.bind(model), property.bindContext(null, model))
     editor.dispose()
     editor.commitTestText("abc")
     assertThat(parsedModel.value, equalTo("value"))
@@ -359,14 +361,14 @@ class SimplePropertyEditorTest  : UsefulTestCase() {
   }
 
   fun testHandlesInvalidInput() {
-    val editor = simplePropertyEditor(null, model, property)
+    val editor = simplePropertyEditor(property.bind(model), property.bindContext(null, model))
     editor.commitTestText("invalid")  // "invalid" is recognised as an invalid input by the test parser.
     assertThat(parsedModel.value, nullValue())
     assertThat<DslText>(parsedModel.dsl, equalTo(DslText.OtherUnparsedDslText("invalid")))
   }
 }
 
-private fun SimplePropertyEditor<*, *, *, *>.simulateEditorGotFocus() {
+private fun SimplePropertyEditor<*, *>.simulateEditorGotFocus() {
   // Directly invoke the action the editor performs on receiving the focus since the detached component cannot be focused.
   loadKnownValues()
   reloadValue()
@@ -374,7 +376,7 @@ private fun SimplePropertyEditor<*, *, *, *>.simulateEditorGotFocus() {
 
 private val spacesMatcher = Regex("\\s+")
 private val HtmlLabel.normalizedPlainText: String get() = document.getText(0, document.length).replace(spacesMatcher, " ")
-private val SimplePropertyEditor<*, *, *, *>.testPlainTextStatus: String
+private val SimplePropertyEditor<*, *>.testPlainTextStatus: String
   get() = (this.statusComponent as? HtmlLabel)?.normalizedPlainText.orEmpty()
 
 private fun <T> ListModel<T>.getItems(): List<T> {
@@ -388,14 +390,14 @@ private fun <T> ListModel<T>.getItems(): List<T> {
 private fun String.asSimpleParsed(): ParsedValue<String> = ParsedValue.Set.Parsed(this, DslText.Literal)
 private fun String.asParsed(): ParsedValue<String> = ParsedValue.Set.Parsed(value = this, dslText = DslText.Literal)
 private fun <T : Any> Pair<String, T>.asParsed() = ParsedValue.Set.Parsed(dslText = DslText.Reference(first), value = second)
-private fun SimplePropertyEditor<*, *, *, *>.setTestText(text: String) {
+private fun SimplePropertyEditor<*, *>.setTestText(text: String) {
   (getEditor().editorComponent as JTextComponent).text = text
 }
 
-private fun SimplePropertyEditor<*, *, *, *>.commitTestText(text: String) {
+private fun SimplePropertyEditor<*, *>.commitTestText(text: String) {
   setTestText(text)
   actionPerformed(ActionEvent(getEditor(), 0, null))
 }
 
-private fun SimplePropertyEditor<*, *, *, *>.testWatermark(): String? =
-  ((this.getEditor() as? BasicComboBoxEditor)?.editorComponent as? JBTextField)?.emptyText?.text   
+private fun SimplePropertyEditor<*, *>.testWatermark(): String? =
+  ((this.getEditor() as? BasicComboBoxEditor)?.editorComponent as? JBTextField)?.emptyText?.text

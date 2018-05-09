@@ -21,9 +21,8 @@ import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyContext
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 
 class PsVariables(private val module: PsModule) : VariablesProvider {
-  override fun <ContextT, ModelT, ValueT : Any> getAvailableVariablesFor(
-    context: ContextT,
-    property: ModelPropertyContext<ContextT, ModelT, ValueT>
+  override fun <ValueT : Any> getAvailableVariablesFor(
+    property: ModelPropertyContext<ValueT>
   ): List<ParsedValue.Set.Parsed<ValueT>> =
   // TODO(solodkyy): Merge with variables available at the project level.
     module.parsedModel?.inScopeProperties.orEmpty()
@@ -39,7 +38,7 @@ class PsVariables(private val module: PsModule) : VariablesProvider {
         }
       }
       .map {
-        it.first to it.second.getValue(GradlePropertyModel.OBJECT_TYPE)?.let { property.parse(context, it.toString()) }
+        it.first to it.second.getValue(GradlePropertyModel.OBJECT_TYPE)?.let { property.parse(it.toString()) }
       }
       .mapNotNull {
         val value = it.second

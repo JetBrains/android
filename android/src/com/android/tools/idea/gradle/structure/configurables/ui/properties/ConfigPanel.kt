@@ -31,7 +31,7 @@ open class ConfigPanel<in ModelT>(
     private val propertiesModel: PropertiesUiModel<ModelT>
 ) : ConfigPanelUi(), ComponentProvider, Disposable {
   private var model: ModelT? = null
-  private var editors = mutableListOf<ModelPropertyEditor<ModelT, Any?>>()
+  private var editors = mutableListOf<ModelPropertyEditor<Any?>>()
 
   /**
    * Configures the panel for editing of the [model] and binds the editors.
@@ -40,7 +40,7 @@ open class ConfigPanel<in ModelT>(
     this.model = model
     setNumberOfProperties(propertiesModel.properties.size)
     for (property in propertiesModel.properties) {
-      val editor: ModelPropertyEditor<ModelT, Any?> = property.createEditor(module.parent, module, model)
+      val editor: ModelPropertyEditor<Any?> = property.createEditor(module.parent, module, model)
       addPropertyComponents(property.propertyDescription, editor.component, editor.statusComponent)
       editors.add(editor)
     }
