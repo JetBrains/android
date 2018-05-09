@@ -15,32 +15,27 @@
  */
 package com.android.tools.idea.tests.gui.emulator;
 
-import com.android.tools.idea.tests.gui.framework.*;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.BrowseSamplesWizardFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.timing.Wait;
-import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
 
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
+
+import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class ImportSampleProjectTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
-
-  private final EmulatorTestRule emulator = new EmulatorTestRule(false);
-  @Rule public final RuleChain emulatorRules = RuleChain
-    .outerRule(new DeleteAvdsRule())
-    .around(emulator);
-
-  private static final Pattern RUN_OUTPUT = Pattern.compile(".*Connected to process.*", Pattern.DOTALL);
 
   /**
    * To verify that importing a sample project and deploying on test device.
@@ -62,7 +57,7 @@ public class ImportSampleProjectTest {
    */
   @RunIn(TestGroup.SANITY)
   @Test
-  public void importSampleProject() throws Exception {
+  public void importSampleProject() {
     BrowseSamplesWizardFixture samplesWizard = guiTest.welcomeFrame()
                                                       .importCodeSample();
     samplesWizard.selectSample("Ui/Done Bar")
@@ -87,18 +82,6 @@ public class ImportSampleProjectTest {
 
     ideFrameFixture.waitForGradleProjectSyncToFinish(Wait.seconds(120));
 
-    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
-
-    String appName = "Application";
-    ideFrameFixture
-      .runApp(appName)
-      .selectDevice(avdName)
-      .clickOk();
-
-    // Wait for background tasks to finish before requesting Run Tool Window. Otherwise Run Tool Window won't activate.
-    guiTest.waitForBackgroundTasks();
-
-    ideFrameFixture.getRunToolWindow().findContent(appName)
-                   .waitForOutput(new PatternTextMatcher(RUN_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
+    assertThat(ideFrameFixture.invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 }
