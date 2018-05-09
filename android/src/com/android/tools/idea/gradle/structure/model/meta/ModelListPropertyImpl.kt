@@ -52,7 +52,7 @@ class ModelListPropertyImpl<in ContextT, in ModelT, out ResolvedT, ParsedT, Valu
   override val description: String,
   private val getResolvedValue: ResolvedT.() -> List<ValueT>?,
   private val getParsedCollection: ParsedT.() -> List<ModelPropertyParsedCore<ValueT>>?,
-  private val addItem: ParsedT.(Int) -> ModelPropertyCore<ValueT>,
+  private val addItem: ParsedT.(Int) -> ModelPropertyParsedCore<ValueT>,
   private val itemDeleter: ParsedT.(Int) -> Unit,
   private val getParsedRawValue: ParsedT.() -> DslText?,
   override val clearParsedValue: ParsedT.() -> Unit,
@@ -71,13 +71,13 @@ class ModelListPropertyImpl<in ContextT, in ModelT, out ResolvedT, ParsedT, Valu
       .getParsed(model)
       ?.getParsedCollection()
       // TODO(b/72814329): Replace [null] with the matched value.
-      ?.map { makePropertyCore(it, { null }) }
+      ?.map { it.makePropertyCore({ null }) }
       ?.map { it.makeSetModifiedAware(model) }
         ?: listOf()
 
   private fun addItem(model: ModelT, index: Int): ModelPropertyCore<ValueT> =
-    modelDescriptor.getParsed(model)?.addItem(index)?.makeSetModifiedAware(model).also { model.setModified() }
-        ?: throw IllegalStateException()
+    modelDescriptor.getParsed(model)?.addItem(index)?.makePropertyCore { null }?.makeSetModifiedAware(model).also { model.setModified() }
+    ?: throw IllegalStateException()
 
   private fun deleteItem(model: ModelT, index: Int) =
     modelDescriptor.getParsed(model)?.itemDeleter(index).also { model.setModified() } ?: throw IllegalStateException()
@@ -113,7 +113,7 @@ class ModelListPropertyImpl<in ContextT, in ModelT, out ResolvedT, ParsedT, Valu
 fun <T : Any> ResolvedPropertyModel?.asParsedListValue(
   getTypedValue: ResolvedPropertyModel.() -> T?,
   setTypedValue: ResolvedPropertyModel.(T) -> Unit
-): List<ModelPropertyCore<T>>? =
+): List<ModelPropertyParsedCore<T>>? =
   this
     ?.takeIf { valueType == GradlePropertyModel.ValueType.LIST }
     ?.getValue(LIST_TYPE)
@@ -124,7 +124,7 @@ fun <T : Any> ResolvedPropertyModel.addItem(
   index: Int,
   getTypedValue: ResolvedPropertyModel.() -> T?,
   setTypedValue: ResolvedPropertyModel.(T) -> Unit
-): ModelPropertyCore<T> =
+): ModelPropertyParsedCore<T> =
   makeItemProperty(addListValueAt(index).resolve(), getTypedValue, setTypedValue)
 
 fun ResolvedPropertyModel.deleteItem(index: Int) = getValue(LIST_TYPE)?.get(index)?.delete() ?: throw IllegalStateException()

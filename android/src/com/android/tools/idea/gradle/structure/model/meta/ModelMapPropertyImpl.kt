@@ -56,9 +56,9 @@ class ModelMapPropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, ValueT : 
   override val description: String,
   val getResolvedValue: ResolvedT.() -> Map<String, ValueT>?,
   private val getParsedCollection: ParsedT.() -> Map<String, ModelPropertyParsedCore<ValueT>>?,
-  private val addEntry: ParsedT.(String) -> ModelPropertyCore<ValueT>,
+  private val addEntry: ParsedT.(String) -> ModelPropertyParsedCore<ValueT>,
   private val entryDeleter: ParsedT.(String) -> Unit,
-  private val changeEntryKey: ParsedT.(String, String) -> ModelPropertyCore<ValueT>,
+  private val changeEntryKey: ParsedT.(String, String) -> ModelPropertyParsedCore<ValueT>,
   private val getParsedRawValue: ParsedT.() -> DslText?,
   override val clearParsedValue: ParsedT.() -> Unit,
   override val setParsedRawValue: (ParsedT.(DslText) -> Unit),
@@ -76,22 +76,22 @@ class ModelMapPropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, ValueT : 
     return modelDescriptor
       .getParsed(model)
       ?.getParsedCollection()
-      ?.mapValues { makePropertyCore(it.value, resolvedValueGetter = { getResolvedValue(it.key) }) }
+             ?.mapValues { it.value.makePropertyCore { getResolvedValue(it.key) } }
       ?.mapValues { it.value.makeSetModifiedAware(model) }
         ?: mapOf()
   }
 
   private fun addEntry(model: ModelT, key: String): ModelPropertyCore<ValueT> =
       // No need to mark the model modified here since adding an empty property does not really affect its state. However, TODO(b/73059531).
-    modelDescriptor.getParsed(model)?.addEntry(key)?.makeSetModifiedAware(model)
-        ?: throw IllegalStateException()
+    modelDescriptor.getParsed(model)?.addEntry(key)?.makePropertyCore { null }?.makeSetModifiedAware(model)
+    ?: throw IllegalStateException()
 
   private fun deleteEntry(model: ModelT, key: String) =
     modelDescriptor.getParsed(model)?.entryDeleter(key).also { model.setModified() } ?: throw IllegalStateException()
 
   private fun changeEntryKey(model: ModelT, old: String, new: String): ModelPropertyCore<ValueT> =
       // Both make the property modify-aware and make the model modified since both operations involve changing the model.
-    modelDescriptor.getParsed(model)?.changeEntryKey(old, new)?.makeSetModifiedAware(model).also { model.setModified() }
+    modelDescriptor.getParsed(model)?.changeEntryKey(old, new)?.makePropertyCore { null }?.makeSetModifiedAware(model).also { model.setModified() }
         ?: throw IllegalStateException()
 
   private fun getParsedValue(model: ModelT): ParsedValue<Map<String, ValueT>> {
@@ -131,7 +131,7 @@ class ModelMapPropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, ValueT : 
 fun <T : Any> ResolvedPropertyModel?.asParsedMapValue(
   getTypedValue: ResolvedPropertyModel.() -> T?,
   setTypedValue: ResolvedPropertyModel.(T) -> Unit
-): Map<String, ModelPropertyCore<T>>? =
+): Map<String, ModelPropertyParsedCore<T>>? =
   this
     ?.takeIf { valueType == GradlePropertyModel.ValueType.MAP }
     ?.getValue(GradlePropertyModel.MAP_TYPE)
@@ -142,7 +142,7 @@ fun <T : Any> ResolvedPropertyModel.addEntry(
   key: String,
   getTypedValue: ResolvedPropertyModel.() -> T?,
   setTypedValue: ResolvedPropertyModel.(T) -> Unit
-): ModelPropertyCore<T> =
+): ModelPropertyParsedCore<T> =
   makeItemProperty(getMapValue(key).resolve(), getTypedValue, setTypedValue)
 
 fun ResolvedPropertyModel.deleteEntry(key: String) = getMapValue(key).delete()
@@ -152,7 +152,7 @@ fun <T : Any> ResolvedPropertyModel.changeEntryKey(
   new: String,
   getTypedValue: ResolvedPropertyModel.() -> T?,
   setTypedValue: ResolvedPropertyModel.(T) -> Unit
-): ModelPropertyCore<T> {
+): ModelPropertyParsedCore<T> {
   val oldProperty = getMapValue(old)
   // TODO(b/73057388): Simplify to plain oldProperty.getRawValue(OBJECT_TYPE).
   val oldValue = when (oldProperty.valueType) {
