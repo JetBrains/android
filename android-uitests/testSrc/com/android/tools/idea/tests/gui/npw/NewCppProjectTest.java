@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.npw;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
@@ -25,7 +24,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static com.android.tools.idea.tests.gui.npw.NewCppProjectTestUtil.*;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
@@ -38,10 +36,10 @@ public class NewCppProjectTest {
    * This checks that our (default) project templates are warnings-clean.
    * The test then proceeds to make a couple of edits and checks that these do not generate additional warnings either.
    */
-  @RunIn(TestGroup.UNRELIABLE)  // b/78916175 @RunIn(TestGroup.PROJECT_WIZARD)
+  @RunIn(TestGroup.PROJECT_WIZARD)
   @Test
   public void noWarningsInNewProjectWithCpp() {
-    createCppProject(false, false, guiTest);
+    NewCppProjectTestUtil.createCppProject(false, false, guiTest);
 
     String inspectionResults = guiTest.ideFrame()
       .openFromMenu(InspectCodeDialogFixture::find, "Analyze", "Inspect Code...")
