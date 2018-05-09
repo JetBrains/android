@@ -75,7 +75,7 @@ public class GuiTestSuiteRunner extends Suite {
   }
 
   @NotNull
-  public static Class<?>[] getGuiTestClasses(@NotNull Class<?> suiteClass) throws InitializationError {
+  private static Class<?>[] getGuiTestClasses(@NotNull Class<?> suiteClass) throws InitializationError {
     List<File> guiTestClassFiles = Lists.newArrayList();
     File parentDir = getParentDir(suiteClass);
 
