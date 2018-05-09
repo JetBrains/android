@@ -233,7 +233,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    *                      or process that starts after a certain time.
    */
   public void setPreferredProcess(@Nullable String deviceName,
-                                  @Nullable String processName,
+                                  @NotNull String processName,
                                   @Nullable Predicate<Common.Process> processFilter) {
     myPreferredDeviceName = deviceName;
     myPreferredProcessName = processName;
@@ -348,7 +348,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       }
     }
 
-    // Next, prefer the device currently used, either selected by user or automatically
+    // Next, prefer the device currently used.
     if (myDevice != null) {
       for (Common.Device device : devices) {
         if (myDevice.getDeviceId() == device.getDeviceId()) {
@@ -357,27 +357,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       }
     }
 
-    // No preferred candidate. Choose any device that has online processes
-    Common.Device anyDevice = devices.isEmpty() ? null : devices.iterator().next();
-    return myAutoProfilingEnabled && myPreferredDeviceName == null ?
-           devices.stream().filter(this::deviceHasAliveProcesses).findAny().orElse(anyDevice) : null;
-  }
-
-  private boolean deviceHasAliveProcesses(@NotNull Common.Device device) {
-    if (!device.getState().equals(Common.Device.State.ONLINE)) {
-      return false;
-    }
-
-    List<Common.Process> deviceProcesses = myProcesses.get(device);
-    if (deviceProcesses == null) {
-      return false;
-    }
-    for (Common.Process process : deviceProcesses) {
-      if (process.getState().equals(Common.Process.State.ALIVE)) {
-        return true;
-      }
-    }
-    return false;
+    return null;
   }
 
   /**

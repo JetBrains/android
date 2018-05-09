@@ -137,7 +137,7 @@ class SessionsViewTest {
     val otherProcess2 = Common.Process.newBuilder()
       .setPid(30).setDeviceId(2).setName("Other2").setState(Common.Process.State.ALIVE).build()
     // Process* is preferred, Other* should be in the other processes flyout.
-    myProfilers.setPreferredProcess(null, "Process", null)
+    myProfilers.setPreferredProcess("Manufacturer1 Model1", "Process", null)
 
     var selectionAction = mySessionsView.processSelectionAction
     assertThat(selectionAction.childrenActionCount).isEqualTo(3)
@@ -234,7 +234,7 @@ class SessionsViewTest {
     val deadProcess3 = Common.Process.newBuilder()
       .setPid(50).setDeviceId(2).setName("Dead").setState(Common.Process.State.DEAD).build()
     // Also test processes that can be grouped in the fly-out menu.
-    myProfilers.setPreferredProcess(null, "Process4", null)
+    myProfilers.setPreferredProcess("Manufacturer2 Model2", "Process4", null)
 
     myProfilerService.addDevice(deadDevice)
     myProfilerService.addDevice(onlineDevice)
@@ -244,7 +244,6 @@ class SessionsViewTest {
     myProfilerService.addProcess(onlineDevice, aliveProcess2)
     myProfilerService.addProcess(onlineDevice, deadProcess3)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-
     var selectionAction = mySessionsView.processSelectionAction
     assertThat(selectionAction.childrenActions.any { c -> c.text == "Manufacturer1 Model1" }).isFalse()
     val aliveDeviceAction = selectionAction.childrenActions.first { c -> c.text == "Manufacturer2 Model2" }

@@ -41,6 +41,7 @@ public class NullMonitorStageTest {
     Common.Device device = Common.Device.getDefaultInstance();
     myRpcService.addDevice(device);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    profilers.setDevice(device);
     assertEquals(stage.getType(), NullMonitorStage.Type.UNSUPPORTED_DEVICE);
 
     // Update the device to an API < 21
