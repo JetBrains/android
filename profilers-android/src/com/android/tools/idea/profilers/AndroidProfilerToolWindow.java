@@ -26,9 +26,7 @@ import com.android.tools.profilers.sessions.SessionsManager;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.ToolWindow;
@@ -147,17 +145,6 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
 
   public JComponent getComponent() {
     return myLayeredPane;
-  }
-
-  @Nullable
-  private static String getPreferredProcessName(@NotNull Project project) {
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-      String moduleName = getModuleName(module);
-      if (moduleName != null) {
-        return moduleName;
-      }
-    }
-    return null;
   }
 
   @Nullable
