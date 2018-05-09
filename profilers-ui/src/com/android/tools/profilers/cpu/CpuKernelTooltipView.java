@@ -100,6 +100,7 @@ public class CpuKernelTooltipView extends ProfilerTooltipView {
     myCpu.setFont(TOOLTIP_FONT);
     myThread.setBorder(JBUI.Borders.emptyBottom(2));
     myProcess.setBorder(JBUI.Borders.emptyBottom(2));
+    myContent.add(myUnavailableDetails, new TabularLayout.Constraint(0, 0));
     return myContent;
   }
 }

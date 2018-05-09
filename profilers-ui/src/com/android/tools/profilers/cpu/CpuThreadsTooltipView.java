@@ -87,6 +87,7 @@ public class CpuThreadsTooltipView extends ProfilerTooltipView {
     unavailableLabel.setFont(AdtUiUtils.DEFAULT_FONT);
     unavailableLabel.setForeground(ProfilerColors.TOOLTIP_TIME_COLOR);
     myUnavailableDetails.add(unavailableLabel, new TabularLayout.Constraint(1, 0));
+    myContent.add(myUnavailableDetails, new TabularLayout.Constraint(0, 0));
     return myContent;
   }
 
