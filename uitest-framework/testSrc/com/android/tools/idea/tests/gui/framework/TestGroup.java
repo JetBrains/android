@@ -26,26 +26,11 @@ public enum TestGroup {
   EDITING,
   TEST_FRAMEWORK,
   QA,
-  QA_UNRELIABLE(/* per-test forked execution */ true),
-  SANITY(true),
+  QA_UNRELIABLE,
+  SANITY,
   SANITY_BAZEL,
   FAT,
   UNRELIABLE,
   /** Assigned implicitly where group is unspecified; not intended to be specified explicitly. */
-  DEFAULT;
-
-  // This is similar to JUnit's "perTest" forked execution mode, which means each test class within a suite uses a fresh JVM.
-  private final boolean isForked;
-
-  TestGroup() {
-    this(false);
-  }
-
-  TestGroup(boolean fork) {
-    isForked = fork;
-  }
-
-  public boolean isForked() {
-    return isForked;
-  }
+  DEFAULT,
 }
