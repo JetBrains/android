@@ -38,6 +38,8 @@ import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrString;
 
@@ -490,9 +492,20 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
           version.getReference().handleElementRename(getLibraryRevision(mapEntry));
         }
       }
-      else if (element.getReference() != null) { // this was declared as a string literal for example
-        // implementation 'com.android.support.constraint:constraint-layout:1.0.2'
-        element.getReference().handleElementRename(mapEntry.toCompactNotation(getLibraryRevision(mapEntry)));
+      else if (element.getReference() != null) {
+        PsiElement parent = element.getParent();
+        if (element instanceof GrReferenceExpression && parent != null) {
+          // This is likely to be an expression that resolves to the artifact, replace it with a literal
+          GrLiteral newLiteral = GroovyPsiElementFactory
+            .getInstance(getProject())
+            .createLiteralFromValue(mapEntry.toCompactNotation(getLibraryRevision(mapEntry)));
+          parent.replace(newLiteral);
+        }
+        else {
+          // this was declared as a string literal for example
+          // implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+          element.getReference().handleElementRename(mapEntry.toCompactNotation(getLibraryRevision(mapEntry)));
+        }
       } else if (element instanceof GrString) {
         // This is just a literal string, replace it
         GrLiteral newLiteral = GroovyPsiElementFactory
