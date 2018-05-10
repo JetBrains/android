@@ -17,30 +17,31 @@ package com.android.tools.idea.uibuilder.property2.testutils
 
 import com.android.tools.adtui.ptable2.PTableModel
 import com.android.tools.idea.common.property2.api.*
-import com.android.tools.idea.common.property2.impl.support.EditorProviderImpl
+import com.android.tools.idea.common.property2.impl.model.ComboBoxPropertyEditorModel
+import com.android.tools.idea.common.property2.impl.model.FlagPropertyEditorModel
+import com.android.tools.idea.common.property2.impl.model.TextFieldPropertyEditorModel
+import com.android.tools.idea.common.property2.impl.model.ThreeStateBooleanPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.support.PropertiesTableImpl
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider
 import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
-import com.intellij.openapi.Disposable
-import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import org.jetbrains.android.dom.attrs.AttributeFormat
 import org.jetbrains.android.facet.AndroidFacet
 import javax.swing.JComponent
+import javax.swing.JPanel
 
-class InspectorTestUtil(parent: Disposable, facet: AndroidFacet, fixture: JavaCodeInsightTestFixture,
-                        tag: String, parentTag: String = ""): SupportTestUtil(parent, facet, fixture, tag, parentTag) {
-  private val enumSupportProvider = NeleEnumSupportProvider()
-  private val controlTypeProvider = NeleControlTypeProvider()
+class InspectorTestUtil(projectRule: AndroidProjectRule, tag: String, parentTag: String = "")
+  : SupportTestUtil(projectRule.project, AndroidFacet.getInstance(projectRule.module)!!, projectRule.fixture, tag, parentTag) {
   private val _properties: Table<String, String, NelePropertyItem> = HashBasedTable.create()
 
   val properties: PropertiesTable<NelePropertyItem> = PropertiesTableImpl(_properties)
 
-  val editorProvider = EditorProviderImpl(enumSupportProvider, controlTypeProvider)
+  val editorProvider = FakeEditorProviderImpl()
 
   val inspector = FakeInspectorPanel()
 
@@ -60,7 +61,7 @@ class InspectorTestUtil(parent: Disposable, facet: AndroidFacet, fixture: JavaCo
 }
 
 enum class LineType {
-  TITLE, PROPERTY, PANEL, SEPARATOR
+  TITLE, PROPERTY, TABLE, PANEL, SEPARATOR
 }
 
 class FakeInspectorLine(val type: LineType) : InspectorLineModel {
@@ -69,6 +70,7 @@ class FakeInspectorLine(val type: LineType) : InspectorLineModel {
   override var focusable = true
   var title: String? = null
   var editorModel: PropertyEditorModel? = null
+  var tableModel: PTableModel? = null
   var expandable = false
   var expanded = false
   val children = mutableListOf<InspectorLineModel>()
@@ -122,7 +124,10 @@ class FakeInspectorPanel : InspectorPanel {
   }
 
   override fun addTable(tableModel: PTableModel): InspectorLineModel {
-    TODO("not used in tests")
+    val line = FakeInspectorLine(LineType.TABLE)
+    line.tableModel = tableModel
+    lines.add(line)
+    return line
   }
 
   override fun addComponent(component: JComponent): InspectorLineModel {
@@ -135,5 +140,32 @@ class FakeInspectorPanel : InspectorPanel {
     val line = FakeInspectorLine(LineType.SEPARATOR)
     lines.add(line)
     return line
+  }
+}
+
+class FakeEditorProviderImpl: EditorProvider<NelePropertyItem> {
+  private val enumSupportProvider = NeleEnumSupportProvider()
+  private val controlTypeProvider = NeleControlTypeProvider()
+
+  override fun invoke(property: NelePropertyItem): Pair<PropertyEditorModel, JComponent> {
+    val enumSupport = enumSupportProvider(property)
+    val controlType = controlTypeProvider(property, enumSupport)
+
+    when (controlType) {
+      ControlType.COMBO_BOX ->
+        return Pair(ComboBoxPropertyEditorModel(property, enumSupport!!, true), JPanel())
+
+      ControlType.DROPDOWN ->
+        return Pair(ComboBoxPropertyEditorModel(property, enumSupport!!, false), JPanel())
+
+      ControlType.TEXT_EDITOR ->
+        return Pair(TextFieldPropertyEditorModel(property, true), JPanel())
+
+      ControlType.THREE_STATE_BOOLEAN ->
+        return Pair(ThreeStateBooleanPropertyEditorModel(property), JPanel())
+
+      ControlType.FLAG_EDITOR ->
+        return Pair(FlagPropertyEditorModel(property as FlagsPropertyItem<*>), JPanel())
+    }
   }
 }

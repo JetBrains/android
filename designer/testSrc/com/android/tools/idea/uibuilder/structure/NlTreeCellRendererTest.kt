@@ -69,7 +69,6 @@ class NlTreeCellRendererTest {
       override fun getRightChildIndent() = 0
       override fun getPathForRow(tree: JTree?, row: Int) = TreePath(arrayOf(button))
     }
-    NlComponentHelper.registerComponent(button)
     val renderer = NlTreeCellRenderer(badgeHandler)
     val component = renderer.getTreeCellRendererComponent(tree, button, false, false, true, 3, false) as JComponent
     val labels = UIUtil.findComponentsOfType(component, JLabel::class.java)

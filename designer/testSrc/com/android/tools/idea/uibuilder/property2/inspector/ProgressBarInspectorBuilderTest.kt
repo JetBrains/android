@@ -17,118 +17,144 @@ package com.android.tools.idea.uibuilder.property2.inspector
 
 import com.android.SdkConstants.*
 import com.android.tools.idea.common.property2.api.PropertyEditorModel
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
 import com.android.tools.idea.uibuilder.property2.testutils.LineType
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.android.AndroidTestCase
+import org.junit.Rule
+import org.junit.Test
 
-class ProgressBarInspectorBuilderTest: AndroidTestCase() {
+class ProgressBarInspectorBuilderTest {
+  @JvmField @Rule
+  val projectRule = AndroidProjectRule.inMemory()
 
+  @Test
   fun testNotApplicableWhenRequiredPropertyIsMissing() {
-    val util = InspectorTestUtil(testRootDisposable, myFacet, myFixture, PROGRESS_BAR)
-    val builder = ProgressBarInspectorBuilder(util.editorProvider)
-    for (missing in ProgressBarInspectorBuilder.REQUIRED_PROPERTIES) {
-      addRequiredProperties(util)
-      util.removeProperty(ANDROID_URI, missing)
-      builder.attachToInspector(util.inspector, util.properties)
-      assertThat(util.inspector.lines).isEmpty()
+    runInEdtAndWait {
+      val util = InspectorTestUtil(projectRule, PROGRESS_BAR)
+      val builder = ProgressBarInspectorBuilder(util.editorProvider)
+      for (missing in ProgressBarInspectorBuilder.REQUIRED_PROPERTIES) {
+        addRequiredProperties(util)
+        util.removeProperty(ANDROID_URI, missing)
+        builder.attachToInspector(util.inspector, util.properties)
+        assertThat(util.inspector.lines).isEmpty()
+      }
     }
   }
 
+  @Test
   fun testAvailableWithRequiredPropertiesPresent() {
-    val util = InspectorTestUtil(testRootDisposable, myFacet, myFixture, PROGRESS_BAR)
-    val builder = ProgressBarInspectorBuilder(util.editorProvider)
-    addRequiredProperties(util)
-    builder.attachToInspector(util.inspector, util.properties)
-    assertThat(util.inspector.lines).hasSize(10)
-    assertThat(util.inspector.lines[0].type).isEqualTo(LineType.SEPARATOR)
-    assertThat(util.inspector.lines[1].type).isEqualTo(LineType.TITLE)
-    assertThat(util.inspector.lines[1].title).isEqualTo("ProgressBar")
-    assertThat(util.inspector.lines[2].editorModel?.property?.name).isEqualTo(ATTR_STYLE)
-    assertThat(util.inspector.lines[3].editorModel?.property?.name).isEqualTo(ATTR_PROGRESS_DRAWABLE)
-    assertThat(util.inspector.lines[4].editorModel?.property?.name).isEqualTo(ATTR_INDETERMINATE_DRAWABLE)
-    assertThat(util.inspector.lines[5].editorModel?.property?.name).isEqualTo(ATTR_MAXIMUM)
-    assertThat(util.inspector.lines[6].editorModel?.property?.name).isEqualTo(ATTR_PROGRESS)
-    assertThat(util.inspector.lines[7].editorModel?.property?.name).isEqualTo(ATTR_VISIBILITY)
-    assertThat(util.inspector.lines[8].editorModel?.property?.name).isEqualTo(ATTR_VISIBILITY)
-    assertThat(util.inspector.lines[9].editorModel?.property?.name).isEqualTo(ATTR_INDETERMINATE)
+    runInEdtAndWait {
+      val util = InspectorTestUtil(projectRule, PROGRESS_BAR)
+      val builder = ProgressBarInspectorBuilder(util.editorProvider)
+      addRequiredProperties(util)
+      builder.attachToInspector(util.inspector, util.properties)
+      assertThat(util.inspector.lines).hasSize(10)
+      assertThat(util.inspector.lines[0].type).isEqualTo(LineType.SEPARATOR)
+      assertThat(util.inspector.lines[1].type).isEqualTo(LineType.TITLE)
+      assertThat(util.inspector.lines[1].title).isEqualTo("ProgressBar")
+      assertThat(util.inspector.lines[2].editorModel?.property?.name).isEqualTo(ATTR_STYLE)
+      assertThat(util.inspector.lines[3].editorModel?.property?.name).isEqualTo(ATTR_PROGRESS_DRAWABLE)
+      assertThat(util.inspector.lines[4].editorModel?.property?.name).isEqualTo(ATTR_INDETERMINATE_DRAWABLE)
+      assertThat(util.inspector.lines[5].editorModel?.property?.name).isEqualTo(ATTR_MAXIMUM)
+      assertThat(util.inspector.lines[6].editorModel?.property?.name).isEqualTo(ATTR_PROGRESS)
+      assertThat(util.inspector.lines[7].editorModel?.property?.name).isEqualTo(ATTR_VISIBILITY)
+      assertThat(util.inspector.lines[8].editorModel?.property?.name).isEqualTo(ATTR_VISIBILITY)
+      assertThat(util.inspector.lines[9].editorModel?.property?.name).isEqualTo(ATTR_INDETERMINATE)
+    }
   }
 
+  @Test
   fun testOptionalPropertiesPresent() {
-    val util = InspectorTestUtil(testRootDisposable, myFacet, myFixture, PROGRESS_BAR)
-    val builder = ProgressBarInspectorBuilder(util.editorProvider)
-    addRequiredProperties(util)
-    addOptionalProperties(util)
-    builder.attachToInspector(util.inspector, util.properties)
-    assertThat(util.inspector.lines).hasSize(12)
-    assertThat(util.inspector.lines[0].type).isEqualTo(LineType.SEPARATOR)
-    assertThat(util.inspector.lines[1].type).isEqualTo(LineType.TITLE)
-    assertThat(util.inspector.lines[1].title).isEqualTo("ProgressBar")
-    assertThat(util.inspector.lines[2].editorModel?.property?.name).isEqualTo(ATTR_STYLE)
-    assertThat(util.inspector.lines[3].editorModel?.property?.name).isEqualTo(ATTR_PROGRESS_DRAWABLE)
-    assertThat(util.inspector.lines[4].editorModel?.property?.name).isEqualTo(ATTR_INDETERMINATE_DRAWABLE)
-    assertThat(util.inspector.lines[5].editorModel?.property?.name).isEqualTo(ATTR_PROGRESS_TINT)
-    assertThat(util.inspector.lines[6].editorModel?.property?.name).isEqualTo(ATTR_INDETERMINATE_TINT)
-    assertThat(util.inspector.lines[7].editorModel?.property?.name).isEqualTo(ATTR_MAXIMUM)
-    assertThat(util.inspector.lines[8].editorModel?.property?.name).isEqualTo(ATTR_PROGRESS)
-    assertThat(util.inspector.lines[9].editorModel?.property?.name).isEqualTo(ATTR_VISIBILITY)
-    assertThat(util.inspector.lines[10].editorModel?.property?.name).isEqualTo(ATTR_VISIBILITY)
-    assertThat(util.inspector.lines[11].editorModel?.property?.name).isEqualTo(ATTR_INDETERMINATE)
+    runInEdtAndWait {
+      val util = InspectorTestUtil(projectRule, PROGRESS_BAR)
+      val builder = ProgressBarInspectorBuilder(util.editorProvider)
+      addRequiredProperties(util)
+      addOptionalProperties(util)
+      builder.attachToInspector(util.inspector, util.properties)
+      assertThat(util.inspector.lines).hasSize(12)
+      assertThat(util.inspector.lines[0].type).isEqualTo(LineType.SEPARATOR)
+      assertThat(util.inspector.lines[1].type).isEqualTo(LineType.TITLE)
+      assertThat(util.inspector.lines[1].title).isEqualTo("ProgressBar")
+      assertThat(util.inspector.lines[2].editorModel?.property?.name).isEqualTo(ATTR_STYLE)
+      assertThat(util.inspector.lines[3].editorModel?.property?.name).isEqualTo(ATTR_PROGRESS_DRAWABLE)
+      assertThat(util.inspector.lines[4].editorModel?.property?.name).isEqualTo(ATTR_INDETERMINATE_DRAWABLE)
+      assertThat(util.inspector.lines[5].editorModel?.property?.name).isEqualTo(ATTR_PROGRESS_TINT)
+      assertThat(util.inspector.lines[6].editorModel?.property?.name).isEqualTo(ATTR_INDETERMINATE_TINT)
+      assertThat(util.inspector.lines[7].editorModel?.property?.name).isEqualTo(ATTR_MAXIMUM)
+      assertThat(util.inspector.lines[8].editorModel?.property?.name).isEqualTo(ATTR_PROGRESS)
+      assertThat(util.inspector.lines[9].editorModel?.property?.name).isEqualTo(ATTR_VISIBILITY)
+      assertThat(util.inspector.lines[10].editorModel?.property?.name).isEqualTo(ATTR_VISIBILITY)
+      assertThat(util.inspector.lines[11].editorModel?.property?.name).isEqualTo(ATTR_INDETERMINATE)
+    }
   }
 
+  @Test
   fun testInitialHiddenLines() {
-    val util = InspectorTestUtil(testRootDisposable, myFacet, myFixture, PROGRESS_BAR)
-    val builder = ProgressBarInspectorBuilder(util.editorProvider)
-    addRequiredProperties(util)
-    addOptionalProperties(util)
-    builder.attachToInspector(util.inspector, util.properties)
-    assertThat(getHiddenProperties(util)).containsExactly(ATTR_INDETERMINATE_DRAWABLE, ATTR_INDETERMINATE_TINT)
+    runInEdtAndWait {
+      val util = InspectorTestUtil(projectRule, PROGRESS_BAR)
+      val builder = ProgressBarInspectorBuilder(util.editorProvider)
+      addRequiredProperties(util)
+      addOptionalProperties(util)
+      builder.attachToInspector(util.inspector, util.properties)
+      assertThat(getHiddenProperties(util)).containsExactly(ATTR_INDETERMINATE_DRAWABLE, ATTR_INDETERMINATE_TINT)
+    }
   }
 
+  @Test
   fun testInitialHiddenLinesWithIndeterminateOn() {
-    val util = InspectorTestUtil(testRootDisposable, myFacet, myFixture, PROGRESS_BAR)
-    val builder = ProgressBarInspectorBuilder(util.editorProvider)
-    addRequiredProperties(util)
-    addOptionalProperties(util)
-    util.properties[ANDROID_URI, ATTR_INDETERMINATE].value = VALUE_TRUE
-    UIUtil.dispatchAllInvocationEvents()
-    builder.attachToInspector(util.inspector, util.properties)
-    assertThat(getHiddenProperties(util)).containsExactly(ATTR_PROGRESS_DRAWABLE, ATTR_PROGRESS_TINT, ATTR_MAXIMUM, ATTR_PROGRESS)
+    runInEdtAndWait {
+      val util = InspectorTestUtil(projectRule, PROGRESS_BAR)
+      val builder = ProgressBarInspectorBuilder(util.editorProvider)
+      addRequiredProperties(util)
+      addOptionalProperties(util)
+      util.properties[ANDROID_URI, ATTR_INDETERMINATE].value = VALUE_TRUE
+      UIUtil.dispatchAllInvocationEvents()
+      builder.attachToInspector(util.inspector, util.properties)
+      assertThat(getHiddenProperties(util)).containsExactly(ATTR_PROGRESS_DRAWABLE, ATTR_PROGRESS_TINT, ATTR_MAXIMUM, ATTR_PROGRESS)
+    }
   }
 
+  @Test
   fun testInitialHiddenLinesWithIndeterminateOff() {
-    val util = InspectorTestUtil(testRootDisposable, myFacet, myFixture, PROGRESS_BAR)
-    val builder = ProgressBarInspectorBuilder(util.editorProvider)
-    addRequiredProperties(util)
-    addOptionalProperties(util)
-    util.properties[ANDROID_URI, ATTR_INDETERMINATE].value = VALUE_FALSE
-    UIUtil.dispatchAllInvocationEvents()
-    builder.attachToInspector(util.inspector, util.properties)
-    assertThat(getHiddenProperties(util)).containsExactly(ATTR_INDETERMINATE_DRAWABLE, ATTR_INDETERMINATE_TINT)
+    runInEdtAndWait {
+      val util = InspectorTestUtil(projectRule, PROGRESS_BAR)
+      val builder = ProgressBarInspectorBuilder(util.editorProvider)
+      addRequiredProperties(util)
+      addOptionalProperties(util)
+      util.properties[ANDROID_URI, ATTR_INDETERMINATE].value = VALUE_FALSE
+      UIUtil.dispatchAllInvocationEvents()
+      builder.attachToInspector(util.inspector, util.properties)
+      assertThat(getHiddenProperties(util)).containsExactly(ATTR_INDETERMINATE_DRAWABLE, ATTR_INDETERMINATE_TINT)
+    }
   }
 
+  @Test
   fun testUpdateHiddenLinesAfterValueChange() {
-    // setup
-    val util = InspectorTestUtil(testRootDisposable, myFacet, myFixture, PROGRESS_BAR)
-    val builder = ProgressBarInspectorBuilder(util.editorProvider)
-    addRequiredProperties(util)
-    addOptionalProperties(util)
-    builder.attachToInspector(util.inspector, util.properties)
-    assertThat(getHiddenProperties(util)).containsExactly(ATTR_INDETERMINATE_DRAWABLE, ATTR_INDETERMINATE_TINT)
-    val model = getIndeterminateModel(util)
+    runInEdtAndWait {
+      // setup
+      val util = InspectorTestUtil(projectRule, PROGRESS_BAR)
+      val builder = ProgressBarInspectorBuilder(util.editorProvider)
+      addRequiredProperties(util)
+      addOptionalProperties(util)
+      builder.attachToInspector(util.inspector, util.properties)
+      assertThat(getHiddenProperties(util)).containsExactly(ATTR_INDETERMINATE_DRAWABLE, ATTR_INDETERMINATE_TINT)
+      val model = getIndeterminateModel(util)
 
-    // test
-    util.properties[ANDROID_URI, ATTR_INDETERMINATE].value = VALUE_TRUE
-    UIUtil.dispatchAllInvocationEvents()
-    model.refresh()
-    assertThat(getHiddenProperties(util)).containsExactly(ATTR_PROGRESS_DRAWABLE, ATTR_PROGRESS_TINT, ATTR_MAXIMUM, ATTR_PROGRESS)
+      // test
+      util.properties[ANDROID_URI, ATTR_INDETERMINATE].value = VALUE_TRUE
+      UIUtil.dispatchAllInvocationEvents()
+      model.refresh()
+      assertThat(getHiddenProperties(util)).containsExactly(ATTR_PROGRESS_DRAWABLE, ATTR_PROGRESS_TINT, ATTR_MAXIMUM, ATTR_PROGRESS)
 
-    util.properties[ANDROID_URI, ATTR_INDETERMINATE].value = VALUE_FALSE
-    UIUtil.dispatchAllInvocationEvents()
-    model.refresh()
-    assertThat(getHiddenProperties(util)).containsExactly(ATTR_INDETERMINATE_DRAWABLE, ATTR_INDETERMINATE_TINT)
+      util.properties[ANDROID_URI, ATTR_INDETERMINATE].value = VALUE_FALSE
+      UIUtil.dispatchAllInvocationEvents()
+      model.refresh()
+      assertThat(getHiddenProperties(util)).containsExactly(ATTR_INDETERMINATE_DRAWABLE, ATTR_INDETERMINATE_TINT)
+    }
   }
 
   private fun addRequiredProperties(util: InspectorTestUtil) {

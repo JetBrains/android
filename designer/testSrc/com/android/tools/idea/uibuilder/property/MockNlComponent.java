@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.tools.idea.uibuilder.model.NlComponentMixin;
 import com.intellij.psi.SmartPsiElementPointer;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -37,12 +38,16 @@ public class MockNlComponent extends NlComponent {
     when(mockModel.getModule()).thenReturn(facet.getModule());
     SmartPsiElementPointer<XmlTag> mockTagPointer = mock(SmartPsiElementPointer.class);
     when(mockTagPointer.getElement()).thenReturn(tag);
-    return new MockNlComponent(mockModel, tag, mockTagPointer);
+    NlComponent component = new MockNlComponent(mockModel, tag, mockTagPointer);
+    component.setMixin(new NlComponentMixin(component));
+    return component;
   }
 
   public static NlComponent create(@NotNull NlModel model, @NotNull XmlTag tag) {
     SmartPsiElementPointer<XmlTag> mockTagPointer = mock(SmartPsiElementPointer.class);
     when(mockTagPointer.getElement()).thenReturn(tag);
-    return new MockNlComponent(model, tag, mockTagPointer);
+    NlComponent component = new MockNlComponent(model, tag, mockTagPointer);
+    component.setMixin(new NlComponentMixin(component));
+    return component;
   }
 }

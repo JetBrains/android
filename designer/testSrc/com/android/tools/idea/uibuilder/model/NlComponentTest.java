@@ -223,7 +223,7 @@ public final class NlComponentTest extends AndroidTestCase {
     assertEquals("900dp", textViewXmlTag.getAttribute("android:layout_height").getValue());
   }
 
-  public void testRemoveObsoleteAttributes() throws Exception {
+  public void testRemoveObsoleteAttributes() {
     @Language("XML")
     String editText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                       "<RelativeLayout\n" +
@@ -246,7 +246,6 @@ public final class NlComponentTest extends AndroidTestCase {
     assertEquals(1, subTags.length);
 
     NlComponent component = MockNlComponent.create(subTags[0]);
-    component.setMixin(new NlComponentMixin(component));
     CommandProcessor.getInstance().runUndoTransparentAction(component::removeObsoleteAttributes);
 
     @Language("XML")
