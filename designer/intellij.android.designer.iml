@@ -25,7 +25,6 @@
     <orderEntry type="module" module-name="intellij.java.psi.impl" />
     <orderEntry type="module" module-name="intellij.java.indexing" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
-    <orderEntry type="module" module-name="analytics-protos" />
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="analytics-shared" />
     <orderEntry type="module" module-name="intellij.android.wizard" />
@@ -37,5 +36,7 @@
     <orderEntry type="module" module-name="project-system-gradle" />
     <orderEntry type="library" name="kotlin-stdlib-jre8" level="project" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
+    <orderEntry type="library" name="protobuf" level="project" />
+    <orderEntry type="library" name="studio-analytics-proto" level="project" />
   </component>
 </module>

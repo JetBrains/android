@@ -30,7 +30,6 @@ iml_module(
         "//tools/base/apkparser:studio.android.sdktools.binary-resources[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
-        "//tools/analytics-library/protos:analytics-protos[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
@@ -39,5 +38,7 @@ iml_module(
         "//tools/adt/idea/project-system[module]",
         "//tools/adt/idea/smali:intellij.android.smali[module]",
         "//tools/adt/idea/android-lang[module]",
+        "//tools/idea/.idea/libraries:protobuf",
+        "//tools/idea/.idea/libraries:studio-analytics-proto",
     ],
 )

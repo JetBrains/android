@@ -11,11 +11,12 @@
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.platform.lang" />
     <orderEntry type="module" module-name="analytics-tracker" />
-    <orderEntry type="module" module-name="analytics-protos" />
     <orderEntry type="module" module-name="intellij.android.observable" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="intellij.android.wizard" />
     <orderEntry type="module" module-name="intellij.android.wizard.model" />
     <orderEntry type="module" module-name="intellij.android.observable.ui" />
+    <orderEntry type="library" name="protobuf" level="project" />
+    <orderEntry type="library" name="studio-analytics-proto" level="project" />
   </component>
 </module>
