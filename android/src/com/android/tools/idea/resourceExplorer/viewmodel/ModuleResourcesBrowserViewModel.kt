@@ -24,7 +24,7 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ResourceResolverCache
 import com.android.tools.idea.model.MergedManifest
 import com.android.tools.idea.res.ResourceRepositoryManager
-import com.android.tools.idea.res.resolveDrawable
+import com.android.tools.idea.res.resolveDrawableAsVirtualFile
 import com.android.tools.idea.resourceExplorer.importer.SynchronizationManager
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
@@ -32,7 +32,6 @@ import com.android.tools.idea.resourceExplorer.plugin.DesignAssetRendererManager
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.vfs.VfsUtil
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
 import java.awt.Image
@@ -52,18 +51,13 @@ class ModuleResourcesBrowserViewModel(
   val resourceResolver = createResourceResolver()
 
   /**
-   * Return a preview of the [DesignAsset]
+   * Returns a preview of the [DesignAsset].
    */
   fun getDrawablePreview(dimension: Dimension, designAssetSet: DesignAssetSet): ListenableFuture<out Image?> {
     val resolveValue = designAssetSet.resolveValue() ?: return Futures.immediateFuture(null)
-    val drawable = resourceResolver.resolveDrawable(resolveValue, facet.module.project)
-    val file = if (drawable != null) {
-      VfsUtil.findFileByIoFile(drawable, true) ?: return Futures.immediateFuture(null)
-    } else {
-      designAssetSet.getHighestDensityAsset().file
-    }
+    val file = resourceResolver.resolveDrawableAsVirtualFile(resolveValue, facet.module.project) ?: designAssetSet.getHighestDensityAsset().file
     return DesignAssetRendererManager.getInstance().getViewer(file)
-      .getImage(file, facet.module, dimension)
+        .getImage(file, facet.module, dimension)
   }
 
   fun getResourceValues(type: ResourceType): List<DesignAssetSet> {

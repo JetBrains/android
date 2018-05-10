@@ -12,7 +12,10 @@ import com.android.tools.idea.model.ClassJarProvider;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.rendering.RenderClassLoader;
 import com.android.tools.idea.rendering.RenderSecurityManager;
-import com.android.tools.idea.res.*;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceClassRegistry;
+import com.android.tools.idea.res.ResourceIdManager;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.utils.SdkUtils;
 import com.google.common.collect.Maps;
@@ -25,6 +28,7 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashSet;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -33,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -423,8 +428,16 @@ public final class ModuleClassLoader extends RenderClassLoader {
     if (registry == null) {
       return;
     }
-    String packageName = ResourceHelper.getAarPackageName(resourcesDirectory);
-    if (packageName == null) {
+
+    // TODO: Simplify the following code by obtaining the resource namespace from aarResources.
+    String packageName;
+    try {
+      packageName = AndroidManifestUtils.getAarPackageName(resourcesDirectory);
+      if (packageName == null) {
+        return;
+      }
+    }
+    catch (IOException e) {
       return;
     }
 

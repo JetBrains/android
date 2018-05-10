@@ -223,7 +223,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
                      FilenameConstants.EXPLODED_AAR + separatorChar +
                      "my_aar_lib" + separatorChar +
                      "res";
-    FileResourceRepository libraryRepository = FileResourceRepository.get(new File(aarPath), LIBRARY_NAME);
+    FileResourceRepository libraryRepository = FileResourceRepository.create(new File(aarPath), LIBRARY_NAME);
     AppResourceRepository appResources = new AppResourceRepository(myFacet,
                                                                    ImmutableList.of(resourcesA, libraryRepository),
                                                                    Lists.newArrayList(libraryRepository));

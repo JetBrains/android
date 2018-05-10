@@ -23,7 +23,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
@@ -205,13 +204,10 @@ public class IncludeReference {
           // TODO: Do some sort of picking based on best configuration!!
           // I should make sure I also get a configuration that is compatible with
           // my target include! I could stash it in the include reference!
-          File path = ResourceHelper.resolveLayout(resolver, resValue);
-          if (path != null) {
-            VirtualFile source = LocalFileSystem.getInstance().findFileByIoFile(path);
-            if (source != null) {
-              VirtualFile target = file.getVirtualFile();
-              return create(module, source, target);
-            }
+          VirtualFile source = ResourceHelper.resolveLayout(resolver, resValue);
+          if (source != null) {
+            VirtualFile target = file.getVirtualFile();
+            return create(module, source, target);
           }
         }
       }

@@ -21,6 +21,7 @@ import com.android.ide.common.resources.ResourceMergerItem
 import com.android.ide.common.resources.configuration.DensityQualifier
 import com.android.ide.common.resources.configuration.ResourceQualifier
 import com.android.resources.ResourceType
+import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.resourceExplorer.importer.QualifierMatcher
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
@@ -41,7 +42,7 @@ data class DesignAsset(
 
 ) {
   constructor(resourceItem: ResourceItem) : this(
-    file = VfsUtil.findFileByIoFile(resourceItem.source?.toFile()!!, true)!!, // TODO handle assertion
+    file = resourceItem.getSourceAsVirtualFile()!!, // TODO handle assertion
     qualifiers = resourceItem.configuration.qualifiers.toList(),
     type = resourceItem.type,
     name = resourceItem.name,

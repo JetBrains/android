@@ -29,6 +29,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.res.aar.AarResourceRepositoryCache;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -418,7 +419,7 @@ public class ResourceRepositoryManager implements Disposable {
     resetResources();
     ConfigurationManager.getOrCreateInstance(myFacet.getModule()).getResolverCache().reset();
     ResourceFolderRegistry.reset();
-    FileResourceRepository.reset();
+    AarResourceRepositoryCache.getInstance().clear();
   }
 
   public void resetVisibility() {

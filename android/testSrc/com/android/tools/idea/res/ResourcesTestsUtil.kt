@@ -45,7 +45,7 @@ fun createTestAppResourceRepository(facet: AndroidFacet): LocalResourceRepositor
 
 
 fun getTestAarRepository(): FileResourceRepository {
-  return FileResourceRepository.get(
+  return FileResourceRepository.create(
     Paths.get(AndroidTestBase.getTestDataPath(), "rendering", FilenameConstants.EXPLODED_AAR, "my_aar_lib", "res").toFile(),
     AAR_LIBRARY_NAME
   )

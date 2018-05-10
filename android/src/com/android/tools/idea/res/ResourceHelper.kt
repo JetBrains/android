@@ -29,10 +29,11 @@ import com.android.ide.common.resources.ResourceFile
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceItem.*
 import com.android.ide.common.resources.configuration.FolderConfiguration
-import com.android.ide.common.xml.AndroidManifestParser
-import com.android.io.FileWrapper
+import com.android.ide.common.util.PathString
+import com.android.ide.common.util.toPathString
 import com.android.resources.*
 import com.android.tools.idea.AndroidPsiUtils
+import com.android.tools.idea.apk.viewer.ApkFileSystem
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.lint.detector.api.computeResourceName
@@ -49,6 +50,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.vfs.JarFileSystem
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFile
@@ -63,6 +65,8 @@ import org.jetbrains.android.sdk.AndroidPlatform
 import org.jetbrains.annotations.Contract
 import java.awt.Color
 import java.io.File
+import java.net.URI
+import java.net.URISyntaxException
 import java.util.*
 import kotlin.collections.HashSet
 
@@ -252,8 +256,23 @@ fun ResourceItem.getSourceAsVirtualFile(): VirtualFile? {
   if (this is PsiResourceItem) {
     return psiFile?.virtualFile
   }
-  val path = source?.nativePath
-  return if (path == null) null else StandardFileSystems.local().findFileByPath(path)
+  return source?.toVirtualFile()
+}
+
+/**
+ * Returns the [VirtualFile] representing the file resource given its path, or null
+ * if there is no VirtualFile for the resource.
+ */
+fun PathString.toVirtualFile(): VirtualFile? {
+  return when (filesystemUri.scheme) {
+    "apk" -> {
+      val apkFileSystem = ApkFileSystem.getInstance()
+      val root = apkFileSystem.findFileByPath(filesystemUri.path + JarFileSystem.JAR_SEPARATOR)
+      root?.findFileByRelativePath(rawPath)
+    }
+    "file" -> StandardFileSystems.local().findFileByPath(nativePath)
+    else -> null
+  }
 }
 
 /**
@@ -623,8 +642,31 @@ private fun extend(nibble: Long): Long {
  *
  * @param drawable the drawable to resolve
  * @param project the current project
- * @return the corresponding [File], or null
+ * @return the corresponding [VirtualFile], or null
  */
+// TODO: Rename to resolveDrawable when the existing resolveDrawable method is removed.
+fun RenderResources.resolveDrawableAsVirtualFile(drawable: ResourceValue?, project: Project): VirtualFile? {
+  val resolvedDrawable = resolveNullableResValue(drawable) ?: return null
+
+  var result = resolvedDrawable.value
+
+  val stateList = resolveStateList(resolvedDrawable, project)
+  if (stateList != null) {
+    val states = stateList.states
+    if (!states.isEmpty()) {
+      val state = states[states.size - 1]
+      result = state.value
+    }
+  }
+
+  if (result == null) {
+    return null
+  }
+
+  return toFileResourcePathString(result)?.toVirtualFile()
+}
+
+@Deprecated("Use resolveDrawableAsVirtualFile")
 fun RenderResources.resolveDrawable(drawable: ResourceValue?, project: Project): File? {
   val resolvedDrawable = resolveNullableResValue(drawable) ?: return null
 
@@ -643,18 +685,17 @@ fun RenderResources.resolveDrawable(drawable: ResourceValue?, project: Project):
     return null
   }
 
-  val file = File(result)
-  return if (file.isFile) file else null
+  return toFileResourcePathString(result)?.toFile()
 }
 
 /**
  * Tries to resolve the given resource value to an actual layout file.
  *
  * @param layout the layout to resolve
- * @return the corresponding [File], or null
+ * @return the corresponding [PathString], or null
  */
 // TODO(namespaces): require more information here as context for namespaced lookup
-fun RenderResources.resolveLayout(layout: ResourceValue?): File? {
+fun RenderResources.resolveLayout(layout: ResourceValue?): VirtualFile? {
   var resolvedLayout = resolveNullableResValue(layout) ?: return null
   var value = resolvedLayout.value
 
@@ -667,14 +708,60 @@ fun RenderResources.resolveLayout(layout: ResourceValue?): File? {
       resolvedLayout = findResValue(value, resolvedLayout.isFramework) ?: break
       value = resolvedLayout.value
     } else {
-      val file = File(value)
-      return if (file.exists()) file else null
+      return toFileResourcePathString(value)?.toVirtualFile()
     }
 
     depth++
   }
 
   return null
+}
+
+/**
+ * Converts a file resource path from [String] to [PathString]. The supported formats:
+ * - file path, e.g. "/foo/bar/res/layout/my_layout.xml"
+ * - file URL, e.g. "file:///foo/bar/res/layout/my_layout.xml"
+ * - URL of a zipped element inside an APK file, e.g. "apk:/foo/bar/res.apk:res/layout/my_layout.xml"
+ *
+ * @param resourcePath the file resource path to convert
+ * @return the converted resource path, or null if the `resourcePath` doesn't point to a file resource
+ */
+private fun toFileResourcePathString(resourcePath: String): PathString? {
+  if (resourcePath.startsWith("apk:")) {
+    val prefixLength = "apk:".length
+    val colonPos = resourcePath.lastIndexOf(':')
+    if (colonPos < prefixLength) {
+      throw IllegalArgumentException("Invalid resource path \"$resourcePath\"")
+    }
+    return try {
+      val uri = URI("apk", resourcePath.substring(prefixLength, colonPos).replace('\\', '/'), null)
+      PathString(uri, resourcePath.substring(colonPos + 1))
+    }
+    catch (e: URISyntaxException) {
+      null
+    }
+  }
+
+  if (resourcePath.startsWith("file:")) {
+    var prefixLength = "file:".length
+    if (resourcePath.startsWith("//", prefixLength)) {
+      prefixLength += "//".length
+    }
+    return PathString(resourcePath.substring(prefixLength))
+  }
+
+  val file = File(resourcePath)
+  return if (file.isFile) file.toPathString() else null
+}
+
+/**
+ * Checks if the given path points to a file resource. The resource path can point
+ * to either file on disk, or a ZIP file entry. If the candidate path contains
+ * "file:" or "apk:" scheme prefix, the method returns true without doing any I/O.
+ * Otherwise, the local file system is checked for existence of the file.
+ */
+fun isFileResource(candidatePath: String): Boolean {
+  return candidatePath.startsWith("file:") || candidatePath.startsWith("apk:") || File(candidatePath).isFile
 }
 
 /**
@@ -948,19 +1035,6 @@ private fun RenderResources.resolveNullableResValue(res: ResourceValue?): Resour
 fun buildResourceId(packageId: Byte, typeId: Byte, entryId: Short) =
   (packageId.toInt() shl 24) or (typeId.toInt() shl 16) or (entryId.toInt() and 0xffff)
 
-fun getAarPackageName(aarDir: File): String? {
-  val manifest = File(aarDir, ANDROID_MANIFEST_XML)
-  return if (manifest.exists()) {
-    try {
-      AndroidManifestParser.parse(FileWrapper(manifest)).`package`
-    } catch (e: Exception) {
-      null
-    }
-  } else {
-    null
-  }
-}
-
 /**
  * Gets the names of [ResourceItem]s with the given namespace, type and accessibility in the repository.
  *
@@ -974,7 +1048,6 @@ fun AbstractResourceRepository.getResourceItems(
 ): Collection<String> {
   // TODO(b/74325205): remove the need for this.
   val patchedType = if (type == ResourceType.STYLEABLE) ResourceType.DECLARE_STYLEABLE else type
-
 
   // TODO(namespaces): for now FrameworkResourceRepository is the only one that understands accessibility. We need to make all support it.
   return if (this is FrameworkResourceRepository) {
