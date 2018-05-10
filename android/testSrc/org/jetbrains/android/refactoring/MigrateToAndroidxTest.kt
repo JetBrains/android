@@ -79,6 +79,8 @@ class MigrateToAndroidxTest : AndroidTestCase() {
                                                 "androidx.test", "runner", "1.1.0-alpha1"))
       .withEntry(GradleDependencyMigrationEntry("com.android.support.test.espresso", "espresso-core",
                                                 "androidx.test.espresso", "espresso-core", "3.1.0-alpha1"))
+      .withEntry(GradleDependencyMigrationEntry("com.android.support", "exifinterface",
+                                                "androidx.exifinterface", "exifinterface", "1.0.0-alpha1"))
       .withFileInProject("buildDependencies.gradle", "build.gradle")
       .run(myFixture)
   }
