@@ -29,6 +29,7 @@ import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.network.NetworkMonitorTooltip;
 import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.android.tools.profilers.sessions.SessionsView;
+import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.truth.Truth;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import org.jetbrains.annotations.NotNull;
@@ -39,6 +40,7 @@ import org.junit.Test;
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -365,9 +367,41 @@ public class StudioProfilersViewTest {
   public void testGoLiveButtonStates() {
     // Check that go live is initially enabled and toggled
     JToggleButton liveButton = myView.getGoLiveButton();
+    ArrayList<ContextMenuItem> contextMenuItems = ProfilerContextMenu.createIfAbsent(myView.getStageComponent()).getContextMenuItems();
+    ContextMenuItem attachItem = null;
+    ContextMenuItem detachItem = null;
+    for (ContextMenuItem item : contextMenuItems) {
+      if (item.getText().equals("Attach to Live")) {
+        attachItem = item;
+      }
+      else if (item.getText().equals("Detach from Live")) {
+        detachItem = item;
+      }
+    }
+    assertThat(attachItem).isNotNull();
+    assertThat(detachItem).isNotNull();
+
     assertThat(myProfilers.getSessionsManager().isSessionAlive()).isTrue();
     assertThat(liveButton.isEnabled()).isTrue();
     assertThat(liveButton.isSelected()).isTrue();
+    assertThat(attachItem.isEnabled()).isFalse();
+    assertThat(detachItem.isEnabled()).isTrue();
+
+    // Detaching from live should unselect the button.
+    detachItem.run();
+    assertThat(myProfilers.getSessionsManager().isSessionAlive()).isTrue();
+    assertThat(liveButton.isEnabled()).isTrue();
+    assertThat(liveButton.isSelected()).isFalse();
+    assertThat(attachItem.isEnabled()).isTrue();
+    assertThat(detachItem.isEnabled()).isFalse();
+
+    // Attaching to live should select the button again.
+    attachItem.run();
+    assertThat(myProfilers.getSessionsManager().isSessionAlive()).isTrue();
+    assertThat(liveButton.isEnabled()).isTrue();
+    assertThat(liveButton.isSelected()).isTrue();
+    assertThat(attachItem.isEnabled()).isFalse();
+    assertThat(detachItem.isEnabled()).isTrue();
 
     // Stopping the session should disable and unselect the button
     myProfilers.getSessionsManager().endCurrentSession();
@@ -375,6 +409,8 @@ public class StudioProfilersViewTest {
     assertThat(myProfilers.getSessionsManager().isSessionAlive()).isFalse();
     assertThat(liveButton.isEnabled()).isFalse();
     assertThat(liveButton.isSelected()).isFalse();
+    assertThat(attachItem.isEnabled()).isFalse();
+    assertThat(detachItem.isEnabled()).isFalse();
 
     Common.Device onlineDevice = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build();
     Common.Process onlineProcess = Common.Process.newBuilder().setPid(2).setState(Common.Process.State.ALIVE).build();
@@ -383,11 +419,15 @@ public class StudioProfilersViewTest {
     // Live button should be selected when switching to a live session.
     assertThat(liveButton.isEnabled()).isTrue();
     assertThat(liveButton.isSelected()).isTrue();
+    assertThat(attachItem.isEnabled()).isFalse();
+    assertThat(detachItem.isEnabled()).isTrue();
 
     // Switching to a dead session should disable and unselect the button.
     myProfilers.getSessionsManager().setSession(deadSession);
     assertThat(liveButton.isEnabled()).isFalse();
     assertThat(liveButton.isSelected()).isFalse();
+    assertThat(attachItem.isEnabled()).isFalse();
+    assertThat(detachItem.isEnabled()).isFalse();
   }
 
   public void transitionStage(Stage stage) throws Exception {

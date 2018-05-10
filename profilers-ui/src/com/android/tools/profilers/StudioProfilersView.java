@@ -339,19 +339,23 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myGoLive.setHorizontalAlignment(SwingConstants.LEFT);
     myGoLive.setBorder(new JBEmptyBorder(3, 8, 3, 7));
     myGoLive.setIconTextGap(JBUI.scale(8));
-    // Configure shortcuts for GoLive
+    // Configure shortcuts for GoLive.
     ProfilerAction attachAction =
       new ProfilerAction.Builder("Attach to Live").setContainerComponent(myStageComponent)
                                                   .setActionRunnable(() -> myGoLive.doClick(0))
                                                   .setEnableBooleanSupplier(
-                                                    () -> !myGoLive.isSelected() && myStageView.navigationControllersEnabled())
+                                                    () -> myGoLive.isEnabled() &&
+                                                          !myGoLive.isSelected() &&
+                                                          myStageView.navigationControllersEnabled())
                                                   .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, SHORTCUT_MODIFIER_MASK_NUMBER))
                                                   .build();
     ProfilerAction detachAction =
       new ProfilerAction.Builder("Detach from Live").setContainerComponent(myStageComponent)
                                                     .setActionRunnable(() -> myGoLive.doClick(0))
                                                     .setEnableBooleanSupplier(
-                                                      () -> myGoLive.isSelected() && myStageView.navigationControllersEnabled())
+                                                      () -> myGoLive.isEnabled() &&
+                                                            myGoLive.isSelected() &&
+                                                            myStageView.navigationControllersEnabled())
                                                     .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0)).build();
 
     myGoLive.setToolTipText(detachAction.getDefaultToolTipText());
@@ -448,6 +452,11 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     ContextMenuInstaller contextMenuInstaller = getIdeProfilerComponents().createContextMenuInstaller();
     ProfilerContextMenu.createIfAbsent(myStageComponent).getContextMenuItems()
                        .forEach(item -> contextMenuInstaller.installGenericContextMenu(component, item));
+  }
+
+  @VisibleForTesting
+  final JPanel getStageComponent() {
+    return myStageComponent;
   }
 
   @VisibleForTesting
