@@ -54,6 +54,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.*;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.ContainerUtil;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.sdk.AndroidTargetData;
@@ -93,7 +94,7 @@ import static org.jetbrains.android.util.AndroidResourceUtil.XML_FILE_RESOURCE_T
  * <li>Register the psi project listener as a project service instead</li>
  * </ul>
  */
-public final class ResourceFolderRepository extends LocalResourceRepository {
+public final class ResourceFolderRepository extends LocalResourceRepository implements LeafResourceRepository {
   private static final Logger LOG = Logger.getInstance(ResourceFolderRepository.class);
 
   private static final ImmutableSet<ResourceFolderType> XML_RESOURCE_FOLDERS = ImmutableSet.copyOf(XML_FILE_RESOURCE_TYPES.values());
@@ -166,6 +167,12 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   @Nullable
   public String getLibraryName() {
     return null;
+  }
+
+  @Nullable
+  @Override
+  public String getPackageName() {
+    return AndroidManifestUtils.getPackageName(myFacet);
   }
 
   /** NOTE: You should normally use {@link ResourceFolderRegistry#get} rather than this method. */
@@ -801,6 +808,12 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       myFullTable.put(namespace, type, multimap);
     }
     return multimap;
+  }
+
+  @NotNull
+  @Override
+  public ResourceNamespace getNamespace() {
+    return myNamespace;
   }
 
   @Override

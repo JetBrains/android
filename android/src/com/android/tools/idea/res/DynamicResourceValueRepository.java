@@ -35,6 +35,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBusConnection;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,7 +58,7 @@ import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT
  * repositories.
  */
 public class DynamicResourceValueRepository extends LocalResourceRepository
-  implements BuildVariantView.BuildVariantSelectionChangeListener {
+  implements BuildVariantView.BuildVariantSelectionChangeListener, LeafResourceRepository {
   private final AndroidFacet myFacet;
   private final ResourceTable myFullTable = new ResourceTable();
   @NotNull private final ResourceNamespace myNamespace;
@@ -88,6 +89,12 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
     if (!project.isDisposed()) {
       BuildVariantView.getInstance(project).removeListener(this);
     }
+  }
+
+  @Nullable
+  @Override
+  public String getPackageName() {
+    return AndroidManifestUtils.getPackageName(myFacet);
   }
 
   @NotNull
@@ -177,6 +184,12 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
       myFullTable.put(namespace, type, multimap);
     }
     return multimap;
+  }
+
+  @NotNull
+  @Override
+  public ResourceNamespace getNamespace() {
+    return myNamespace;
   }
 
   @Override

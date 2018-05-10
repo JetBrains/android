@@ -19,6 +19,8 @@ import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.*;
+import com.android.ide.common.xml.AndroidManifestParser;
+import com.android.ide.common.xml.ManifestData;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.utils.ILogger;
@@ -27,6 +29,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.NullableLazyValue;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
@@ -35,9 +38,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
+import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
 import static com.android.SdkConstants.FN_RESOURCE_TEXT;
 
 /**
@@ -49,7 +54,7 @@ import static com.android.SdkConstants.FN_RESOURCE_TEXT;
  * <p>Most of the implementation is based on {@link ResourceMerger} which means the behavior is highly
  * consistent with what will happen at build time.
  */
-public class FileResourceRepository extends LocalResourceRepository {
+public class FileResourceRepository extends LocalResourceRepository implements LeafResourceRepository {
   private static final Logger LOG = Logger.getInstance(FileResourceRepository.class);
   protected final ResourceTable myFullTable = new ResourceTable();
   /** @see #getAllDeclaredIds() */
@@ -58,6 +63,11 @@ public class FileResourceRepository extends LocalResourceRepository {
   @NotNull private final File myResourceDirectory;
   @NotNull private final ResourceNamespace myNamespace;
   @Nullable private final String myLibraryName;
+
+  /**
+   * The package name read on-demand from the manifest.
+   */
+  @NotNull private final NullableLazyValue<String> myManifestPackageName;
 
   /** R.txt file associated with the repository. This is only available for AARs. */
   @Nullable private File myResourceTextFile;
@@ -69,6 +79,22 @@ public class FileResourceRepository extends LocalResourceRepository {
     myResourceDirectory = resourceDirectory;
     myNamespace = namespace;
     myLibraryName = libraryName;
+
+    myManifestPackageName = NullableLazyValue.createValue(() -> {
+      File manifest = new File(myResourceDirectory.getParentFile(), FN_ANDROID_MANIFEST_XML);
+      if (!manifest.exists()) {
+        return null;
+      }
+
+      try {
+        ManifestData manifestData = AndroidManifestParser.parse(manifest.toPath());
+        return manifestData.getPackage();
+      }
+      catch (IOException e) {
+        LOG.error("Failed to read manifest " + manifest.getAbsolutePath() + " for library " + myLibraryName, e);
+        return null;
+      }
+    });
   }
 
   @NotNull
@@ -147,6 +173,7 @@ public class FileResourceRepository extends LocalResourceRepository {
    * Returns the namespace of all resources in this repository.
    */
   @NotNull
+  @Override
   public final ResourceNamespace getNamespace() {
     return myNamespace;
   }
@@ -155,6 +182,17 @@ public class FileResourceRepository extends LocalResourceRepository {
   @Nullable
   public final String getLibraryName() {
     return myLibraryName;
+  }
+
+  @Nullable
+  @Override
+  public String getPackageName() {
+    if (myNamespace.getPackageName() != null) {
+      return myNamespace.getPackageName();
+    }
+    else {
+      return myManifestPackageName.getValue();
+    }
   }
 
   private static ResourceMerger createResourceMerger(File file, ResourceNamespace namespace, String libraryName) {

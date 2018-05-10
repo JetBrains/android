@@ -17,19 +17,39 @@
 package org.jetbrains.android.dom.manifest;
 
 import com.android.SdkConstants;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.XmlName;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidManifestUtils {
-  private AndroidManifestUtils() {
-  }
 
-  public static boolean isRequiredAttribute(XmlName attrName, DomElement element) {
-    if (element instanceof CompatibleScreensScreen &&
-        SdkConstants.NS_RESOURCES.equals(attrName.getNamespaceKey())) {
+  public static boolean isRequiredAttribute(@NotNull XmlName attrName, @NotNull DomElement element) {
+    if (element instanceof CompatibleScreensScreen && SdkConstants.NS_RESOURCES.equals(attrName.getNamespaceKey())) {
       final String localName = attrName.getLocalName();
       return "screenSize".equals(localName) || "screenDensity".equals(localName);
     }
     return false;
   }
+
+  @Nullable
+  public static String getPackageName(@NotNull AndroidFacet androidFacet) {
+    return CachedValuesManager.getManager(androidFacet.getModule().getProject()).getCachedValue(androidFacet, () -> {
+      // TODO(namespaces): read the merged manifest.
+      Manifest manifest = androidFacet.getManifest();
+      if (manifest != null) {
+        String packageName = manifest.getPackage().getValue();
+        if (!StringUtil.isEmptyOrSpaces(packageName)) {
+          return CachedValueProvider.Result.create(packageName, manifest.getXmlTag());
+        }
+      }
+      return null;
+    });
+  }
+
+  private AndroidManifestUtils() {}
 }
