@@ -30,10 +30,7 @@ import com.android.tools.adtui.stdui.CommonTabbedPane;
 import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profilers.JComboBoxView;
-import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerFonts;
-import com.android.tools.profilers.ViewBinder;
+import com.android.tools.profilers.*;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
@@ -140,8 +137,8 @@ class CpuCaptureView {
     }
     myTabsPanel.addChangeListener(this::setCaptureDetailToTab);
     myTabsPanel.setOpaque(false);
-
-    myPanel = new JPanel(new TabularLayout("*,Fit-", "Fit-,*"));
+    // TOOLBAR_HEIGHT - 1, so the bottom border of the parent is visible.
+    myPanel = new JPanel(new TabularLayout("*,Fit-", (TOOLBAR_HEIGHT - 1) +"px,*"));
     JPanel toolbar = new JPanel(createToolbarLayout());
     toolbar.add(clockTypeCombo);
     toolbar.add(myView.getSelectionTimeLabel());
