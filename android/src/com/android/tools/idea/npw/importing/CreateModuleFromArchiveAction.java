@@ -45,29 +45,18 @@ import java.util.List;
  */
 public class CreateModuleFromArchiveAction extends WriteCommandAction<Object> {
   @NotNull private Project myProject;
-  @Nullable private GradleSettingsFile mySettingsFile;
   @NotNull private String myGradlePath;
   @NotNull private File myArchivePath;
   private boolean myMove;
   @Nullable private Module myContainingModule;
 
   public CreateModuleFromArchiveAction(@NotNull Project project,
-                                       @NotNull String gradlePath,
-                                       @NotNull String archivePath,
-                                       boolean move,
-                                       @Nullable Module containingModule) {
-    this(project, GradleSettingsFile.get(project), gradlePath, archivePath, move, containingModule);
-  }
-
-  private CreateModuleFromArchiveAction(@NotNull Project project,
-                                        @Nullable GradleSettingsFile settingsFile,
                                         @NotNull String gradlePath,
                                         @NotNull String archivePath,
                                         boolean move,
                                         @Nullable Module containingModule) {
-    super(project, String.format("create module %1$s", gradlePath), settingsFile != null ? settingsFile.getPsiFile() : null);
+    super(project, String.format("create module %1$s", gradlePath));
     myProject = project;
-    mySettingsFile = settingsFile;
     myGradlePath = gradlePath;
     myArchivePath = new File(archivePath);
     myMove = move;
@@ -143,10 +132,7 @@ public class CreateModuleFromArchiveAction extends WriteCommandAction<Object> {
         }
         VirtualFile buildGradle = moduleRoot.createChildData(this, SdkConstants.FN_BUILD_GRADLE);
         VfsUtil.saveText(buildGradle, getBuildGradleText(myArchivePath));
-        if (mySettingsFile == null) {
-          mySettingsFile = GradleSettingsFile.getOrCreate(myProject);
-        }
-        mySettingsFile.addModule(myGradlePath, VfsUtilCore.virtualToIoFile(moduleRoot));
+        GradleSettingsFile.getOrCreate(myProject).addModule(myGradlePath, VfsUtilCore.virtualToIoFile(moduleRoot));
         if (myMove && myContainingModule != null) {
           addDependency(myContainingModule, myGradlePath);
         }
