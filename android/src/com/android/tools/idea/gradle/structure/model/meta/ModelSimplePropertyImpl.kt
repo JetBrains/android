@@ -24,16 +24,15 @@ import kotlin.reflect.KProperty
  * Makes a descriptor of a simple-typed property of a model of type [ModelT] described by the model descriptor.
  *
  * @param description the description of the property as it should appear int he UI
- * @param default the default value the property takes if not configured or null
  * @param defaultValueGetter the function returning the default value of the property for the given model (overwrites [default] if
  *        defined)
- * @param getResolvedValue the function to get the value of the property as it was resolved by Gradle
- * @param getParsedProperty the function to get the [ResolvedPropertyModel] of the property of the parsed model
+ * @param resolvedValueGetter the function to get the value of the property as it was resolved by Gradle
+ * @param parsedPropertyGetter the function to get the [ResolvedPropertyModel] of the property of the parsed model
  * @param getter the getter function to get the value of the [ResolvedPropertyModel]
  * @param setter the setter function to change the value of the [ResolvedPropertyModel]
- * @param parse the parser of the text representation of [PropertyT]. See notes in: [ModelSimpleProperty]
- * @param format the formatter for values of type [PropertyT]
- * @param getKnownValues the function to get a list of the known value for the given instance of [ModelT]. See: [ModelSimpleProperty]
+ * @param parser the parser of the text representation of [PropertyT]. See notes in: [ModelSimpleProperty]
+ * @param formatter the formatter for values of type [PropertyT]
+ * @param knownValuesGetter the function to get a list of the known value for the given instance of [ModelT]. See: [ModelSimpleProperty]
  */
 // NOTE: This is an extension function supposed to be invoked on model descriptors to make the type inference work.
 fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
@@ -44,25 +43,25 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   ContextT> T.property(
   description: String,
   defaultValueGetter: ((ModelT) -> PropertyT?)? = null,
-  getResolvedValue: ResolvedT.() -> PropertyT?,
-  getParsedProperty: ParsedT.() -> ResolvedPropertyModel,
+  resolvedValueGetter: ResolvedT.() -> PropertyT?,
+  parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel,
   getter: ResolvedPropertyModel.() -> PropertyT?,
   setter: ResolvedPropertyModel.(PropertyT) -> Unit,
-  parse: (ContextT, String) -> ParsedValue<PropertyT>,
-  format: (ContextT, PropertyT) -> String = { _, value -> value.toString() },
-  getKnownValues: ((ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>) = { _, _ -> immediateFuture(listOf()) },
+  parser: (ContextT, String) -> ParsedValue<PropertyT>,
+  formatter: (ContextT, PropertyT) -> String = { _, value -> value.toString() },
+  knownValuesGetter: ((ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>) = { _, _ -> immediateFuture(listOf()) },
   variableMatchingStrategy: VariableMatchingStrategy = VariableMatchingStrategy.BY_TYPE
 ): ModelSimpleProperty<ContextT, ModelT, PropertyT> = ModelSimplePropertyImpl(
   this,
   description,
   defaultValueGetter,
-  getResolvedValue,
-  getParsedProperty,
+  resolvedValueGetter,
+  parsedPropertyGetter,
   getter,
   setter,
-  parse,
-  format,
-  getKnownValues,
+  parser,
+  formatter,
+  knownValuesGetter,
   variableMatchingStrategy
 )
 
@@ -70,8 +69,8 @@ class ModelSimplePropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, Proper
   private val modelDescriptor: ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   override val description: String,
   val defaultValueGetter: ((ModelT) -> PropertyT?)?,
-  private val getResolvedValue: ResolvedT.() -> PropertyT?,
-  private val getParsedProperty: ParsedT.() -> ResolvedPropertyModel,
+  private val resolvedValueGetter: ResolvedT.() -> PropertyT?,
+  private val parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel,
   private val getter: ResolvedPropertyModel.() -> PropertyT?,
   private val setter: ResolvedPropertyModel.(PropertyT) -> Unit,
   override val parser: (ContextT, String) -> ParsedValue<PropertyT>,
@@ -80,22 +79,22 @@ class ModelSimplePropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, Proper
   override val variableMatchingStrategy: VariableMatchingStrategy
 ) : ModelPropertyBase<ContextT, ModelT, PropertyT>(), ModelSimpleProperty<ContextT, ModelT, PropertyT> {
   override fun getValue(thisRef: ModelT, property: KProperty<*>): ParsedValue<PropertyT> =
-    getParsedValue(modelDescriptor.getParsed(thisRef)?.getParsedProperty(), getter)
+    getParsedValue(modelDescriptor.getParsed(thisRef)?.parsedPropertyGetter(), getter)
 
   override fun setValue(thisRef: ModelT, property: KProperty<*>, value: ParsedValue<PropertyT>) {
-    setParsedValue((modelDescriptor.getParsed(thisRef) ?: throw IllegalStateException()).getParsedProperty(), setter, value)
+    setParsedValue((modelDescriptor.getParsed(thisRef) ?: throw IllegalStateException()).parsedPropertyGetter(), setter, value)
     thisRef.setModified()
   }
 
   override fun bind(model: ModelT): ModelPropertyCore<PropertyT> =
     object : ModelPropertyParsedCoreImpl<PropertyT>(), ModelPropertyCore<PropertyT> {
-      override fun getParsedProperty(): ResolvedPropertyModel? = modelDescriptor.getParsed(model)?.getParsedProperty()
+      override fun getParsedProperty(): ResolvedPropertyModel? = modelDescriptor.getParsed(model)?.parsedPropertyGetter()
       override val getter: ResolvedPropertyModel.() -> PropertyT? = this@ModelSimplePropertyImpl.getter
       override val setter: ResolvedPropertyModel.(PropertyT) -> Unit = this@ModelSimplePropertyImpl.setter
       override fun setModified() = modelDescriptor.setModified(model)
       override fun getResolvedValue(): ResolvedValue<PropertyT> {
         val resolvedModel = modelDescriptor.getResolved(model)
-        val resolved: PropertyT? = resolvedModel?.getResolvedValue()
+        val resolved: PropertyT? = resolvedModel?.resolvedValueGetter()
         return when (resolvedModel) {
           null -> ResolvedValue.NotResolved()
           else -> ResolvedValue.Set(resolved)

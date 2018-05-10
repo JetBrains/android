@@ -74,11 +74,11 @@ class PsLibraryJavaDependency(
 
     val version: ModelSimpleProperty<ArtifactRepositorySearchService, PsLibraryJavaDependency, String> = property(
       "Version",
-      getResolvedValue = { null },
-      getParsedProperty = { this.version() },
+      resolvedValueGetter = { null },
+      parsedPropertyGetter = { this.version() },
       getter = { asString() },
       setter = { setValue(it) },
-      parse = ::parseString
+      parser = ::parseString
     )
   }
 }

@@ -78,12 +78,12 @@ open class PsDeclaredLibraryAndroidDependency(
     private const val MAX_ARTIFACTS_TO_REQUEST = 50  // Note: we do not expect more than one result per repository.
     val version: ModelSimpleProperty<ArtifactRepositorySearchService, PsDeclaredLibraryAndroidDependency, String> = property(
       "Version",
-      getResolvedValue = { null },
-      getParsedProperty = { this.version() },
+      resolvedValueGetter = { null },
+      parsedPropertyGetter = { this.version() },
       getter = { asString() },
       setter = { setValue(it) },
-      parse = ::parseString,
-      getKnownValues = { searchService: ArtifactRepositorySearchService, model ->
+      parser = ::parseString,
+      knownValuesGetter = { searchService: ArtifactRepositorySearchService, model ->
         Futures.transform(
           searchService.search(SearchRequest(model.spec.name, model.spec.group, MAX_ARTIFACTS_TO_REQUEST, 0)),
           {

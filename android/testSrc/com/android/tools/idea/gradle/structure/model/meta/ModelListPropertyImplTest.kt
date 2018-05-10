@@ -39,11 +39,11 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
     val resolved = resolve()
     return Model.listProperty(
       "description",
-      getResolvedValue = { null },
-      getParsedProperty = { resolved },
-      itemValueGetter = { caster() },
-      itemValueSetter = { setValue(it) },
-      parse = { context: Nothing?, value -> parse(context, value) }
+      resolvedValueGetter = { null },
+      parsedPropertyGetter = { resolved },
+      getter = { caster() },
+      setter = { setValue(it) },
+      parser = { context: Nothing?, value -> parse(context, value) }
     ).bind(Model)
   }
 

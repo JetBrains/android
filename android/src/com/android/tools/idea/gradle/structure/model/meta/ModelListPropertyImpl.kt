@@ -24,27 +24,27 @@ import kotlin.reflect.KProperty
 
 fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT, ValueT : Any, ContextT> T.listProperty(
   description: String,
-  getResolvedValue: ResolvedT.() -> List<ValueT>?,
-  itemValueGetter: ResolvedPropertyModel.() -> ValueT?,
-  itemValueSetter: ResolvedPropertyModel.(ValueT) -> Unit,
-  getParsedProperty: ParsedT.() -> ResolvedPropertyModel,
-  parse: (ContextT, String) -> ParsedValue<ValueT>,
-  format: (ContextT, ValueT) -> String = { _, value -> value.toString() },
-  getKnownValues: ((ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<ValueT>>>)? = null
+  resolvedValueGetter: ResolvedT.() -> List<ValueT>?,
+  getter: ResolvedPropertyModel.() -> ValueT?,
+  setter: ResolvedPropertyModel.(ValueT) -> Unit,
+  parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel,
+  parser: (ContextT, String) -> ParsedValue<ValueT>,
+  formatter: (ContextT, ValueT) -> String = { _, value -> value.toString() },
+  knownValuesGetter: ((ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<ValueT>>>)? = null
 ) =
   ModelListPropertyImpl(
     this,
     description,
-    getResolvedValue,
-    { getParsedProperty().asParsedListValue(itemValueGetter, itemValueSetter) },
-    { index -> getParsedProperty().addItem(index, itemValueGetter, itemValueSetter) },
-    { index -> getParsedProperty().deleteItem(index) },
-    { getParsedProperty().dslText() },
-    { getParsedProperty().delete() },
-    { getParsedProperty().setDslText(it) },
-    { context: ContextT, value -> if (value.isBlank()) ParsedValue.NotSet else parse(context, value.trim()) },
-    format,
-    { context: ContextT, model -> if (getKnownValues != null) getKnownValues(context, model) else immediateFuture(listOf()) }
+    resolvedValueGetter,
+    { parsedPropertyGetter().asParsedListValue(getter, setter) },
+    { index -> parsedPropertyGetter().addItem(index, getter, setter) },
+    { index -> parsedPropertyGetter().deleteItem(index) },
+    { parsedPropertyGetter().dslText() },
+    { parsedPropertyGetter().delete() },
+    { parsedPropertyGetter().setDslText(it) },
+    { context: ContextT, value -> if (value.isBlank()) ParsedValue.NotSet else parser(context, value.trim()) },
+    formatter,
+    { context: ContextT, model -> if (knownValuesGetter != null) knownValuesGetter(context, model) else immediateFuture(listOf()) }
   )
 
 class ModelListPropertyImpl<in ContextT, in ModelT, out ResolvedT, ParsedT, ValueT : Any>(

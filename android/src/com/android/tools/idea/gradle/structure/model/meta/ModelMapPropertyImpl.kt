@@ -27,28 +27,28 @@ import kotlin.reflect.KProperty
 
 fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT, ValueT : Any, ContextT> T.mapProperty(
   description: String,
-  getResolvedValue: ResolvedT.() -> Map<String, ValueT>?,
-  itemValueGetter: ResolvedPropertyModel.() -> ValueT?,
-  itemValueSetter: ResolvedPropertyModel.(ValueT) -> Unit,
-  getParsedProperty: ParsedT.() -> ResolvedPropertyModel,
-  parse: (ContextT, String) -> ParsedValue<ValueT>,
-  format: (ContextT, ValueT) -> String = { _, value -> value.toString() },
-  getKnownValues: ((ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<ValueT>>>)? = null
+  resolvedValueGetter: ResolvedT.() -> Map<String, ValueT>?,
+  getter: ResolvedPropertyModel.() -> ValueT?,
+  setter: ResolvedPropertyModel.(ValueT) -> Unit,
+  parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel,
+  parser: (ContextT, String) -> ParsedValue<ValueT>,
+  formatter: (ContextT, ValueT) -> String = { _, value -> value.toString() },
+  knownValuesGetter: ((ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<ValueT>>>)? = null
 ) =
   ModelMapPropertyImpl(
     this,
     description,
-    getResolvedValue,
-    { getParsedProperty().asParsedMapValue(itemValueGetter, itemValueSetter) },
-    { key -> getParsedProperty().addEntry(key, itemValueGetter, itemValueSetter) },
-    { key -> getParsedProperty().deleteEntry(key) },
-    { old, new -> getParsedProperty().changeEntryKey(old, new, itemValueGetter, itemValueSetter) },
-    { getParsedProperty().dslText() },
-    { getParsedProperty().delete() },
-    { getParsedProperty().setDslText(it) },
-    { context: ContextT, value -> if (value.isBlank()) ParsedValue.NotSet else parse(context, value.trim()) },
-    format,
-    { context: ContextT, model -> if (getKnownValues != null) getKnownValues(context, model) else immediateFuture(listOf()) }
+    resolvedValueGetter,
+    { parsedPropertyGetter().asParsedMapValue(getter, setter) },
+    { key -> parsedPropertyGetter().addEntry(key, getter, setter) },
+    { key -> parsedPropertyGetter().deleteEntry(key) },
+    { old, new -> parsedPropertyGetter().changeEntryKey(old, new, getter, setter) },
+    { parsedPropertyGetter().dslText() },
+    { parsedPropertyGetter().delete() },
+    { parsedPropertyGetter().setDslText(it) },
+    { context: ContextT, value -> if (value.isBlank()) ParsedValue.NotSet else parser(context, value.trim()) },
+    formatter,
+    { context: ContextT, model -> if (knownValuesGetter != null) knownValuesGetter(context, model) else immediateFuture(listOf()) }
   )
 
 class ModelMapPropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, ValueT : Any>(

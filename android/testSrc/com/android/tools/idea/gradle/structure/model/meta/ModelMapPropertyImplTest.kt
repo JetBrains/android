@@ -42,11 +42,11 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
     val resolved = resolve()
     return TestModelDescriptor.mapProperty(
       "description",
-      getResolvedValue = { null },
-      getParsedProperty = { resolved },
-      itemValueGetter = { caster() },
-      itemValueSetter = { setValue(it) },
-      parse = { context: Nothing?, value -> parse(context, value) }
+      resolvedValueGetter = { null },
+      parsedPropertyGetter = { resolved },
+      getter = { caster() },
+      setter = { setValue(it) },
+      parser = { context: Nothing?, value -> parse(context, value) }
     ).bind(this@ModelMapPropertyImplTest)
   }
 
