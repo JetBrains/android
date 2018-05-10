@@ -216,6 +216,7 @@ public class ScreenViewLayer extends Layer {
   @Override
   public void dispose() {
     super.dispose();
+    myLastRenderResult = null;
     myScheduledExecutorService.shutdown();
   }
 
