@@ -23,7 +23,10 @@ import org.jetbrains.annotations.Nullable;
 import trebuchet.io.BufferProducer;
 import trebuchet.io.DataSlice;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.zip.DataFormatException;
@@ -39,7 +42,7 @@ public class AtraceDecompressor implements BufferProducer {
   private static final int BUFFER_SIZE_BYTES = 2048;
   private byte[] myOutputBuffer = new byte[BUFFER_SIZE_BYTES];
   private byte[] myInputBuffer = new byte[BUFFER_SIZE_BYTES];
-  private int myInputBufferOffset = 0;
+  private int myInputBufferOffset = BUFFER_SIZE_BYTES; //We have no data available to read so we point to end of buffer.
   private boolean myIsFinished = false;
   private Queue<String> myLineQueue = new LinkedList<>();
   private String myLastPartialLine = "";
@@ -60,9 +63,8 @@ public class AtraceDecompressor implements BufferProducer {
     myInflater = new Inflater();
 
     // Read the initial header of the input file.
-    myInputStream.read(myInputBuffer, 0, HEADER.size());
+    fillInputBuffer();
     verifyHeader();
-    myInputBufferOffset = 0;
     myLineQueue.add("# Initial Data Required by Importer");
   }
 
@@ -98,14 +100,19 @@ public class AtraceDecompressor implements BufferProducer {
   }
 
   /**
-   * Read as much data as we can from our input file, and set a new input buffer on the inflater.
+   * Read as much data as we can from our input file, and set a new input buffer.
+   */
+  private int fillInputBuffer() throws IOException {
+    shift(myInputBuffer, myInputBufferOffset, 0, myInputBuffer.length - myInputBufferOffset);
+    myInputBufferOffset = myInputBuffer.length - myInputBufferOffset;
+    return myInputStream.read(myInputBuffer, myInputBufferOffset, myInputBuffer.length - myInputBufferOffset);
+  }
+
+  /**
+   * Fill data on the inflater from the input buffer.
    */
   private void fill() throws IOException {
-    if (myInputBufferOffset != 0) {
-      shift(myInputBuffer, myInputBufferOffset, 0, myInputBuffer.length - myInputBufferOffset);
-      myInputBufferOffset = myInputBuffer.length - myInputBufferOffset;
-    }
-    int readAmount = myInputStream.read(myInputBuffer, myInputBufferOffset, myInputBuffer.length - myInputBufferOffset);
+    int readAmount = fillInputBuffer();
     myInflater.setInput(myInputBuffer, 0, readAmount + myInputBufferOffset);
     myInputBufferOffset = 0;
   }
@@ -151,6 +158,12 @@ public class AtraceDecompressor implements BufferProducer {
           break;
         }
         else {
+
+          // We can get into a state where we read the exact amount of data into our buffer and as we reset to the head of our next
+          // file we want to refill the buffer.
+          if (myInputBufferOffset + HEADER.size() >= myInputBuffer.length) {
+            fillInputBuffer();
+          }
           // If we are only done with one chunk of the file, then we read the header and reset our
           // inflater.
           verifyHeader();

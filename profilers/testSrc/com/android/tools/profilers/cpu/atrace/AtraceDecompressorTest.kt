@@ -88,6 +88,17 @@ class AtraceDecompressorTest {
     assertThat(myDecompressor.next()).isNull()
   }
 
+  @Test
+  fun testCaptureLoadsWhenDataFitsExactBufferBounds() {
+    val traceFile = CpuProfilerTestUtils.getTraceFile("exact_size_atrace.ctrace")
+    val decompressor = AtraceDecompressor(traceFile)
+    do {
+      // Read each line until we hit the end of stream.
+      var line = decompressor.nextLine
+    }
+    while (line != null)
+  }
+
   // Adding a kotlin property fopr AtraceDecompressor to assist with iterating lines.
   val AtraceDecompressor.lines: Iterator<String>
     get() = object : Iterator<String> {
