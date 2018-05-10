@@ -46,14 +46,10 @@ class MapPropertyEditor<ValueT : Any, out ModelPropertyT : ModelMapPropertyCore<
 
   override fun dispose() = Unit
 
-  override fun getValueAt(row: Int): ParsedValue<ValueT> = getPropertyFor(keyAt(row)).getParsedValue()
-
-  override fun setValueAt(row: Int, value: ParsedValue<ValueT>) {
-    // TODO(b/79513471): Make sure no entries with empty keys remain when saving.
-    getPropertyFor(keyAt(row)).setParsedValue(value)
-  }
+  override fun getPropertyAt(row: Int) = getPropertyFor(keyAt(row))
 
   // It is fine to add a new property on get. The editor has already added a row for it if it's being requested.
+  // TODO(b/79513471): Make sure no entries with empty keys remain when saving.
   private fun getPropertyFor(entryKey: String) = (property.getEditableValues()[entryKey] ?: property.addEntry(entryKey))
 
   override fun addItem() {

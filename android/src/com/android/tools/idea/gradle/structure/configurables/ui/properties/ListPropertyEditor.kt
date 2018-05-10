@@ -52,10 +52,6 @@ class ListPropertyEditor<ValueT : Any, out ModelPropertyT : ModelListPropertyCor
     return tableModel
   }
 
-  override fun getValueAt(row: Int): ParsedValue<ValueT> = getRowProperty(row).getParsedValue()
-
-  override fun setValueAt(row: Int, value: ParsedValue<ValueT>) = getRowProperty(row).setParsedValue(value)
-
   override fun createColumnModel(): TableColumnModel {
     return DefaultTableColumnModel().apply {
       addColumn(TableColumn(0).apply {
@@ -91,7 +87,7 @@ class ListPropertyEditor<ValueT : Any, out ModelPropertyT : ModelListPropertyCor
     }
   }
 
-  private fun getRowProperty(row: Int) = property.getEditableValues()[row]
+  override fun getPropertyAt(row: Int) = property.getEditableValues()[row]
 }
 
 fun <ValueT : Any, ModelPropertyT : ModelListPropertyCore<ValueT>> listPropertyEditor(

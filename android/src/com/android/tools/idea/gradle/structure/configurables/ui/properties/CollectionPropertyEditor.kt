@@ -82,11 +82,12 @@ CollectionPropertyEditor<out ModelPropertyT : ModelCollectionPropertyCore<*>, Va
 
   protected abstract fun createTableModel(): DefaultTableModel
   protected abstract fun createColumnModel(): TableColumnModel
-  protected abstract fun getValueAt(row: Int): ParsedValue<ValueT>
-  protected abstract fun setValueAt(row: Int, value: ParsedValue<ValueT>)
   protected abstract fun addItem()
   protected abstract fun removeItem()
+  protected abstract fun getPropertyAt(row: Int): ModelPropertyCore<ValueT>
 
+  protected fun getValueAt(row: Int): ParsedValue<ValueT> = getPropertyAt(row).getParsedValue()
+  protected fun setValueAt(row: Int, value: ParsedValue<ValueT>) = getPropertyAt(row).setParsedValue(value)
   private fun calculateMinRowHeight() = editor(SimplePropertyStub(), propertyContext, null, extensions).component.minimumSize.height
 
   protected fun ParsedValue<ValueT>.toTableModelValue() = Value(this)
@@ -115,13 +116,15 @@ CollectionPropertyEditor<out ModelPropertyT : ModelCollectionPropertyCore<*>, Va
 
   inner class MyCellEditor : AbstractTableCellEditor() {
     private var currentRow: Int = -1
+    private var currentRowProperty : ModelPropertyCore<ValueT>? = null
     private var lastEditor: ModelPropertyEditor<ValueT>? = null
     private var lastValue: ParsedValue<ValueT>? = null
-    private val bindingProperty = BindingProperty()
 
     override fun getTableCellEditorComponent(table: JTable?, value: Any?, isSelected: Boolean, row: Int, column: Int): Component? {
       currentRow = row
-      val editor = this@CollectionPropertyEditor.editor(bindingProperty, propertyContext, variablesProvider, extensions)
+      val rowProperty = getPropertyAt(row)
+      currentRowProperty = rowProperty
+      val editor = this@CollectionPropertyEditor.editor(rowProperty, propertyContext, variablesProvider, extensions)
       lastEditor = editor
       lastValue = null
       return editor.component
@@ -129,8 +132,9 @@ CollectionPropertyEditor<out ModelPropertyT : ModelCollectionPropertyCore<*>, Va
 
     override fun stopCellEditing(): Boolean {
       lastEditor?.updateProperty()
-      lastValue = bindingProperty.getParsedValue()
+      lastValue = currentRowProperty?.getParsedValue()
       currentRow = -1
+      currentRowProperty = null
       lastEditor?.dispose()
       lastEditor = null
       fireEditingStopped()
@@ -146,13 +150,6 @@ CollectionPropertyEditor<out ModelPropertyT : ModelCollectionPropertyCore<*>, Va
     }
 
     override fun getCellEditorValue(): Any = (lastValue ?: lastEditor!!.getValue()).toTableModelValue()
-
-    inner class BindingProperty : ModelPropertyCore<ValueT> {
-      override fun getParsedValue(): ParsedValue<ValueT> = getValueAt(currentRow)
-      override fun getResolvedValue(): ResolvedValue<ValueT> = ResolvedValue.NotResolved()
-      override fun setParsedValue(value: ParsedValue<ValueT>) = setValueAt(currentRow, value)
-      override val defaultValueGetter: (() -> ValueT?)? = null
-    }
   }
 }
 
