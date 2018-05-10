@@ -45,12 +45,11 @@ public class CreateNewProjectWithCpp2Test {
 
   @Before
   public void setupFakeAdbServer() throws IOException, InterruptedException, ExecutionException {
-    String username = System.getProperty("user.name");
     ActivityManagerCommandHandler.ProcessStarter startCmdHandler = new ActivityManagerCommandHandler.ProcessStarter() {
       @NotNull
       @Override
       public String startProcess(@NotNull DeviceState deviceState) {
-        deviceState.startClient(1234, 1235, "com.example."+ username + ".myapplication", false);
+        deviceState.startClient(1234, 1235, "com.example.myapplication", false);
         return "";
       }
     };
