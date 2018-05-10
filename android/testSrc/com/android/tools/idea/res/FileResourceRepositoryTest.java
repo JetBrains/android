@@ -87,4 +87,9 @@ public class FileResourceRepositoryTest extends TestCase {
       }
     }
   }
+
+  public void testPackageName() {
+    FileResourceRepository repository = ResourcesTestsUtil.getTestAarRepository();
+    assertThat(repository.getPackageName()).isEqualTo(ResourcesTestsUtil.AAR_PACKAGE_NAME);
+  }
 }

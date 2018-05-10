@@ -63,6 +63,7 @@ import org.jetbrains.android.augment.AndroidPsiElementFinder;
 import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.dom.color.ColorSelector;
 import org.jetbrains.android.dom.drawable.DrawableSelector;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.resources.Item;
 import org.jetbrains.android.dom.resources.ResourceElement;
@@ -217,7 +218,7 @@ public class AndroidResourceUtil {
     JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
 
     Set<PsiClass> rClasses = Sets.newHashSet();
-    String targetPackage = onlyInOwnPackages ? null : manifestPackageForModule(module);
+    String targetPackage = onlyInOwnPackages ? null : AndroidManifestUtils.getPackageName(facet);
     if (targetPackage != null) {
       GlobalSearchScope[] scopes = new GlobalSearchScope[dependentModules.size()];
       int i = 0;
@@ -228,26 +229,17 @@ public class AndroidResourceUtil {
     }
 
     for (Module dependentModule : dependentModules) {
-      String dependentPackage = manifestPackageForModule(dependentModule);
+      AndroidFacet dependentFacet = AndroidFacet.getInstance(dependentModule);
+      if (dependentFacet == null) {
+        continue;
+      }
+      String dependentPackage = AndroidManifestUtils.getPackageName(dependentFacet);
       if (dependentPackage == null || dependentPackage.equals(targetPackage)) {
         continue;
       }
       rClasses.addAll(Arrays.asList(psiFacade.findClasses(packageToRClass(dependentPackage), dependentModule.getModuleScope())));
     }
     return rClasses;
-  }
-
-  @Nullable
-  private static String manifestPackageForModule(@NotNull Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null) {
-      return null;
-    }
-    Manifest manifest = facet.getManifest();
-    if (manifest == null) {
-      return null;
-    }
-    return manifest.getPackage().getValue();
   }
 
   private static void collectDependentModules(@NotNull Graph<Module> graph,

@@ -32,6 +32,7 @@ import java.io.File
 import java.nio.file.Paths
 
 const val AAR_LIBRARY_NAME = "com.test:test-library:1.0.0"
+const val AAR_PACKAGE_NAME = "com.test.testlibrary"
 
 fun createTestAppResourceRepository(facet: AndroidFacet): LocalResourceRepository {
   val moduleResources = createTestModuleRepository(facet, emptyList())
