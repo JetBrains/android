@@ -46,20 +46,15 @@ class MapPropertyEditor<ValueT : Any, out ModelPropertyT : ModelMapPropertyCore<
 
   override fun dispose() = Unit
 
-  override fun getValueAt(row: Int): ParsedValue<ValueT> {
-    val entryKey = keyAt(row)
-    val entryValue = if (entryKey == "") modelValueAt(row) else property.getEditableValues()[entryKey]?.getParsedValue()
-    return entryValue ?: ParsedValue.NotSet
-  }
+  override fun getValueAt(row: Int): ParsedValue<ValueT> = getPropertyFor(keyAt(row)).getParsedValue()
 
   override fun setValueAt(row: Int, value: ParsedValue<ValueT>) {
-    val entryKey = keyAt(row)
-    // If entryKey == "", we don't need to store the value in the property. It is, however, automatically stored in the table model and
-    // it will be transferred to the property when the key value is set.
-    if (entryKey != "") {
-      (property.getEditableValues()[entryKey] ?: property.addEntry(entryKey)).setParsedValue(value)
-    }
+    // TODO(b/79513471): Make sure no entries with empty keys remain when saving.
+    getPropertyFor(keyAt(row)).setParsedValue(value)
   }
+
+  // It is fine to add a new property on get. The editor has already added a row for it if it's being requested.
+  private fun getPropertyFor(entryKey: String) = (property.getEditableValues()[entryKey] ?: property.addEntry(entryKey))
 
   override fun addItem() {
     tableModel?.let { tableModel ->
@@ -77,10 +72,8 @@ class MapPropertyEditor<ValueT : Any, out ModelPropertyT : ModelMapPropertyCore<
       for (index in selection.maxSelectionIndex downTo selection.minSelectionIndex) {
         if (table.selectionModel.isSelectedIndex(index)) {
           val key = (tableModel.getValueAt(index, 0) as String?).orEmpty()
-          if (key != "") {
-            property.deleteEntry(key)
-            tableModel.removeRow(index)
-          }
+          property.deleteEntry(key)
+          tableModel.removeRow(index)
         }
       }
     }
@@ -115,10 +108,6 @@ class MapPropertyEditor<ValueT : Any, out ModelPropertyT : ModelMapPropertyCore<
 
   private fun keyAt(row: Int) = (table.model.getValueAt(row, 0) as? String).orEmpty()
 
-  private fun modelValueAt(row: Int) =
-    @Suppress("UNCHECKED_CAST")  // If it is of type Value, then generic type arguments are correct.
-    (table.model.getValueAt(row, 1) as? CollectionPropertyEditor<ModelPropertyT, ValueT>.Value)?.value
-
   inner class MyKeyCellEditor : AbstractTableCellEditor() {
     private var currentRow: Int = -1
     private var currentKey: String? = null
@@ -138,19 +127,7 @@ class MapPropertyEditor<ValueT : Any, out ModelPropertyT : ModelMapPropertyCore<
         if (it) {
           val oldKey = currentKey!!
           val newKey = lastEditor!!.text!!
-          when {
-            oldKey == "" -> {
-              val addedEntry = property.addEntry(newKey)
-              @Suppress("UNCHECKED_CAST")
-              val modelValue: Value? =
-                table.model.getValueAt(currentRow, 1) as? CollectionPropertyEditor<ModelPropertyT, ValueT>.Value
-              if (modelValue != null) {
-                addedEntry.setParsedValue(modelValue.value)
-              }
-            }
-            newKey == "" -> property.deleteEntry(oldKey)
-            else -> property.changeEntryKey(oldKey, newKey)
-          }
+          property.changeEntryKey(oldKey, newKey)
           currentRow = -1
           currentKey = null
         }
