@@ -19,7 +19,6 @@ import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
-import com.android.tools.idea.Projects;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
@@ -182,8 +181,11 @@ public class GradleTaskFinderTest extends IdeaTestCase {
     ListMultimap<Path, String> tasksPerProject = myTaskFinder.findTasksToExecute(projectPath, myModules, REBUILD, myTestCompileType);
     List<String> tasks = tasksPerProject.get(projectPath.toPath());
 
-    assertThat(tasks).containsExactly(":testFindTasksToExecuteForRebuildingAndroidProject:assembleTask1",
+    assertThat(tasks).containsExactly("clean",
+                                      ":testFindTasksToExecuteForRebuildingAndroidProject:assembleTask1",
                                       ":testFindTasksToExecuteForRebuildingAndroidProject:assembleTask2");
+    // Make sure clean is the first task (b/78443416)
+    assertThat(tasks.get(0)).isEqualTo("clean");
   }
 
   public void testFindTasksToExecuteForCompilingAndroidProject() {
