@@ -37,7 +37,6 @@ iml_module(
         "//tools/idea/java/java-psi-impl:intellij.java.psi.impl[module]",
         "//tools/idea/java/java-indexing-api:intellij.java.indexing[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
-        "//tools/analytics-library/protos:analytics-protos[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/analytics-library/shared:analytics-shared[module]",
         "//tools/adt/idea/wizard:intellij.android.wizard[module]",
@@ -49,6 +48,8 @@ iml_module(
         "//tools/adt/idea/project-system-gradle[module]",
         "//tools/idea/.idea/libraries:kotlin-stdlib-jre8",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
+        "//tools/idea/.idea/libraries:protobuf",
+        "//tools/idea/.idea/libraries:studio-analytics-proto",
     ],
 )
 
@@ -116,7 +117,6 @@ iml_module(
         "//tools/base/pixelprobe:studio.android.sdktools.pixelprobe[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
-        "//tools/analytics-library/protos:analytics-protos[module, test]",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module, test]",
         "//tools/analytics-library/shared:analytics-shared[module, test]",
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding[module, test]",
@@ -132,5 +132,7 @@ iml_module(
         "//tools/adt/idea/project-system-gradle[module, test]",
         "//tools/idea/xml/dom-impl:intellij.xml.dom.impl[module, test]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module, test]",
+        "//tools/idea/.idea/libraries:protobuf",
+        "//tools/idea/.idea/libraries:studio-analytics-proto",
     ],
 )

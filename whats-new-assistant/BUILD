@@ -26,7 +26,8 @@ iml_module(
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
-        "//tools/analytics-library/protos:analytics-protos[module]",
+        "//tools/idea/.idea/libraries:protobuf",
+        "//tools/idea/.idea/libraries:studio-analytics-proto",
     ],
 )
 

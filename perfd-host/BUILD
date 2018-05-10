@@ -31,10 +31,11 @@ iml_module(
         "//tools/idea/.idea/libraries:jcip",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/.idea/libraries:sqlite",
-        "//tools/analytics-library/protos:analytics-protos[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/native-symbolizer[module]",
         "//tools/idea/platform/annotations:intellij.platform.annotations.java5[module]",
         "//tools/idea/.idea/libraries:KotlinJavaRuntime[test]",
+        "//tools/idea/.idea/libraries:protobuf",
+        "//tools/idea/.idea/libraries:studio-analytics-proto",
     ],
 )

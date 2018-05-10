@@ -96,7 +96,6 @@ iml_module(
         "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer[module]",
         "//tools/base/pixelprobe:studio.android.sdktools.pixelprobe[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
-        "//tools/analytics-library/protos:analytics-protos[module]",
         "//tools/analytics-library/shared:analytics-shared[module]",
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/adt/idea/observable:intellij.android.observable[module]",
@@ -122,6 +121,8 @@ iml_module(
         "//tools/analytics-library/crash:analytics-crash[module]",
         "//tools/idea/.idea/libraries:aapt-proto-jarjar",
         "//tools/adt/idea/android/lib:pepk",
+        "//tools/idea/.idea/libraries:protobuf",
+        "//tools/idea/.idea/libraries:studio-analytics-proto",
     ],
 )
 
@@ -206,7 +207,6 @@ iml_module(
         "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
         "//tools/idea/xml/dom-impl:intellij.xml.dom.impl[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
-        "//tools/analytics-library/protos:analytics-protos[module, test]",
         "//tools/idea/.idea/libraries:freemarker[test]",
         "//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl[module, test]",
         "//tools/adt/idea/observable:intellij.android.observable[module, test]",
@@ -260,6 +260,8 @@ iml_module(
         "//tools/idea/.idea/libraries:commons-io",
         "//tools/idea/.idea/libraries:aapt-proto-jarjar",
         "//tools/adt/idea/android/lib:pepk[test]",
+        "//tools/idea/.idea/libraries:protobuf",
+        "//tools/idea/.idea/libraries:studio-analytics-proto",
     ],
 )
 
@@ -295,12 +297,19 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+filegroup(
+    name = "analytics-artifacts",
+    srcs = ["//tools/analytics-library/protos/src/main/proto:studio.proto"],
+    visibility = ["//visibility:public"],
+)
+
 # Various artifacts that the ANT and within-idea studio build depend on.
 filegroup(
     name = "artifacts",
     srcs = [
         ":aapt-proto-artifacts",
         ":aia-artifacts",
+        ":analytics-artifacts",
         ":profiler-artifacts",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
     ],

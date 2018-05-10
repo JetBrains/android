@@ -23,7 +23,6 @@ iml_module(
         "//tools/idea/platform/core-api:intellij.platform.core[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
-        "//tools/analytics-library/protos:analytics-protos[module]",
         "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/base/layoutinspector:studio.android.sdktools.layoutinspector[module]",
@@ -36,6 +35,8 @@ iml_module(
         "//tools/idea/xml/xml-psi-impl:intellij.xml.psi.impl[module]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
+        "//tools/idea/.idea/libraries:protobuf",
+        "//tools/idea/.idea/libraries:studio-analytics-proto",
     ],
 )
 
@@ -72,7 +73,6 @@ iml_module(
         "//tools/idea/platform/core-api:intellij.platform.core[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
-        "//tools/analytics-library/protos:analytics-protos[module]",
         "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/base/layoutinspector:studio.android.sdktools.layoutinspector[module]",

@@ -37,7 +37,6 @@ iml_module(
         "//tools/idea/platform/lang-impl:intellij.platform.lang.impl[module]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
-        "//tools/analytics-library/protos:analytics-protos[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/idea/.idea/libraries:truth[test]",
@@ -46,5 +45,7 @@ iml_module(
         "//tools/vendor/intellij/cidr:intellij.c[module]",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module]",
         "//tools/adt/idea/native-symbolizer[module]",
+        "//tools/idea/.idea/libraries:protobuf",
+        "//tools/idea/.idea/libraries:studio-analytics-proto",
     ],
 )

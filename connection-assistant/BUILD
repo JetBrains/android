@@ -30,7 +30,6 @@ iml_module(
         "//tools/idea/platform/core-api:intellij.platform.core[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/idea/platform/editor-ui-api:intellij.platform.editor[module]",
-        "//tools/analytics-library/protos:analytics-protos[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
         "//tools/base/usb-devices:studio.usb-devices[module]",
@@ -40,6 +39,8 @@ iml_module(
         "//tools/adt/idea/android-adb[module]",
         "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/idea/.idea/libraries:protobuf",
+        "//tools/idea/.idea/libraries:studio-analytics-proto",
     ],
 )
 
@@ -73,7 +74,6 @@ iml_module(
         "//tools/idea/platform/core-api:intellij.platform.core[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/idea/platform/editor-ui-api:intellij.platform.editor[module]",
-        "//tools/analytics-library/protos:analytics-protos[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
         "//tools/base/usb-devices:studio.usb-devices[module]",
@@ -90,5 +90,7 @@ iml_module(
         "//tools/adt/idea/adt-testutils[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/connection-assistant[module, test]",
+        "//tools/idea/.idea/libraries:protobuf",
+        "//tools/idea/.idea/libraries:studio-analytics-proto",
     ],
 )
