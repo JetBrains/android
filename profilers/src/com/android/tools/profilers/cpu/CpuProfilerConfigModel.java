@@ -68,15 +68,19 @@ public class CpuProfilerConfigModel {
   @NotNull
   private final StudioProfilers myProfilers;
 
+  @NotNull
+  private CpuProfilerStage myProfilerStage;
+
   private AspectObserver myAspectObserver;
 
-  public CpuProfilerConfigModel(@NotNull StudioProfilers profilers, CpuProfilerStage profilerStage) {
+  public CpuProfilerConfigModel(@NotNull StudioProfilers profilers, @NotNull CpuProfilerStage profilerStage) {
     myProfilers = profilers;
+    myProfilerStage = profilerStage;
     myCustomProfilingConfigurations = new ArrayList<>();
     myCustomProfilingConfigurationsDeviceFiltered = new ArrayList<>();
     myDefaultProfilingConfigurations = new ArrayList<>();
     myAspectObserver = new AspectObserver();
-    profilerStage.getAspect().addDependency(myAspectObserver)
+    myProfilerStage.getAspect().addDependency(myAspectObserver)
       .onChange(CpuProfilerAspect.PROFILING_CONFIGURATION, this::updateProfilingConfigurations);
   }
 
@@ -87,6 +91,7 @@ public class CpuProfilerConfigModel {
 
   public void setProfilingConfiguration(@NotNull ProfilingConfiguration configuration) {
     myProfilingConfiguration = configuration;
+    myProfilerStage.getAspect().changed(CpuProfilerAspect.PROFILING_CONFIGURATION);
     myProfilers.getIdeServices().getTemporaryProfilerPreferences().setValue(LAST_SELECTED_CONFIGURATION_NAME, configuration.getName());
   }
 
