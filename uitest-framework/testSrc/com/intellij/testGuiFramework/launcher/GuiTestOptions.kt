@@ -16,8 +16,11 @@
 package com.intellij.testGuiFramework.launcher
 
 import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem
-import com.intellij.openapi.application.PathManager
 import java.io.File
+
+enum class RestartPolicy {
+  IDE_ERROR, TEST_FAILURE, EACH_TEST;
+}
 
 object GuiTestOptions {
 
@@ -26,7 +29,7 @@ object GuiTestOptions {
   const val REMOTE_IDE_PATH_KEY = "idea.gui.test.remote.ide.path"
   const val REMOTE_IDE_VM_OPTIONS_PATH_KEY = "idea.gui.test.remote.ide.vmoptions"
   const val IS_RUNNING_ON_RELEASE = "idea.gui.test.running.on.release"
-  const val RESTART_ON_TEST_FAILURE = "idea.gui.test.failure.restart"
+  const val RESTART_POLICY = "idea.gui.test.restart.policy"
 
   var buildSystem = TargetBuildSystem.BuildSystem.GRADLE
 
@@ -41,7 +44,7 @@ object GuiTestOptions {
   fun getRemoteIdePath(): String = getSystemProperty(REMOTE_IDE_PATH_KEY, "undefined")
   fun getVmOptionsFilePath(): String = getSystemProperty(REMOTE_IDE_VM_OPTIONS_PATH_KEY, File(File(getRemoteIdePath()).parent, "studio64.vmoptions").canonicalPath)
   fun isRunningOnRelease(): Boolean = getSystemProperty(IS_RUNNING_ON_RELEASE, false)
-  fun shouldRestartOnTestFailure(): Boolean = getSystemProperty(RESTART_ON_TEST_FAILURE, false)
+  fun getRestartPolicy(): RestartPolicy = RestartPolicy.valueOf(getSystemProperty(RESTART_POLICY, "IDE_ERROR"))
 
   inline fun <reified ReturnType> getSystemProperty(key: String, defaultValue: ReturnType): ReturnType {
     val value = System.getProperty(key) ?: return defaultValue

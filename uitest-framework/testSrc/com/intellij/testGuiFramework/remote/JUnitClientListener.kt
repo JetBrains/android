@@ -15,6 +15,7 @@
  */
 package com.intellij.testGuiFramework.remote
 
+import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.intellij.testGuiFramework.framework.isFirstRun
 import com.intellij.testGuiFramework.framework.isLastRun
 import com.intellij.testGuiFramework.remote.transport.JUnitInfo
@@ -40,16 +41,16 @@ class JUnitClientListener(val sendObjectFun: (JUnitInfo) -> Unit) : RunListener(
 
   override fun testAssumptionFailure(failure: Failure?) {
     sendObjectFun(JUnitInfo(Type.ASSUMPTION_FAILURE, failure.friendlySerializable(), JUnitInfo.getClassAndMethodName(failure!!.description)))
-    if (!isLastRun()) sendObjectFun(JUnitInfo(Type.FINISHED, failure.description, JUnitInfo.getClassAndMethodName(failure.description)))
+    if (!isLastRun()) sendObjectFun(JUnitInfo(Type.FINISHED, failure.description, JUnitInfo.getClassAndMethodName(failure.description), GuiTests.fatalErrorsFromIde().isNotEmpty()))
   }
 
   override fun testFailure(failure: Failure?) {
     sendObjectFun(JUnitInfo(Type.FAILURE, failure!!.exception, JUnitInfo.getClassAndMethodName(failure.description)))
-    if (!isLastRun()) sendObjectFun(JUnitInfo(Type.FINISHED, failure.description, JUnitInfo.getClassAndMethodName(failure.description)))
+    if (!isLastRun()) sendObjectFun(JUnitInfo(Type.FINISHED, failure.description, JUnitInfo.getClassAndMethodName(failure.description), GuiTests.fatalErrorsFromIde().isNotEmpty()))
   }
 
   override fun testFinished(description: Description?) {
-    if (isLastRun()) sendObjectFun(JUnitInfo(Type.FINISHED, description, JUnitInfo.getClassAndMethodName(description!!)))
+    if (isLastRun()) sendObjectFun(JUnitInfo(Type.FINISHED, description, JUnitInfo.getClassAndMethodName(description!!), GuiTests.fatalErrorsFromIde().isNotEmpty()))
   }
 
   override fun testIgnored(description: Description?) {

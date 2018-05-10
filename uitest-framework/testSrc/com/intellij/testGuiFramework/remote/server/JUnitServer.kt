@@ -29,6 +29,8 @@ interface JUnitServer {
 
   fun isRunning(): Boolean
 
+  fun setIdeErrorFlag(value: Boolean)
+
   fun launchIdeAndStart()
 
   fun closeIdeAndStop()
