@@ -20,20 +20,24 @@ import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 abstract class ModelCollectionPropertyBase<in ContextT, in ModelT, out ResolvedT, ParsedT, in CollectionT, ValueT : Any> :
   ModelPropertyBase<ContextT, ModelT, ValueT>() {
   abstract val modelDescriptor: ModelDescriptor<ModelT, ResolvedT, ParsedT>
-  abstract val clearParsedValue: ParsedT.() -> Unit
-  abstract val setParsedRawValue: (ParsedT.(DslText) -> Unit)
+  abstract val parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel
+  abstract val getter: ResolvedPropertyModel.() -> ValueT?
+  abstract val setter: ResolvedPropertyModel.(ValueT) -> Unit
 
   fun setParsedValue(model: ModelT, value: ParsedValue<CollectionT>) {
     val parsedModel = modelDescriptor.getParsed(model) ?: throw IllegalStateException()
+    val parsedProperty = parsedModel.parsedPropertyGetter()
     when (value) {
-      is ParsedValue.NotSet -> parsedModel.clearParsedValue()
+      is ParsedValue.NotSet -> {
+        parsedProperty.delete()
+      }
       is ParsedValue.Set.Parsed -> {
         val dsl = value.dslText
         when (dsl) {
           // Dsl modes.
-          is DslText.Reference -> parsedModel.setParsedRawValue(dsl)
-          is DslText.InterpolatedString -> parsedModel.setParsedRawValue(dsl)
-          is DslText.OtherUnparsedDslText -> parsedModel.setParsedRawValue(dsl)
+          is DslText.Reference -> parsedProperty.setDslText(dsl)
+          is DslText.InterpolatedString -> parsedProperty.setDslText(dsl)
+          is DslText.OtherUnparsedDslText -> parsedProperty.setDslText(dsl)
           // Literal modes are not supported. getEditableValues() should be used.
           DslText.Literal -> UnsupportedOperationException()
         }
