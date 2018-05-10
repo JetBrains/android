@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu
 
 import com.android.sdklib.AndroidVersion
+import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.profiler.proto.Common.Device
 import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType
@@ -46,7 +47,7 @@ class CpuProfilerConfigModelTest {
   fun setup() {
     myProfilers = StudioProfilers(myGrpcChannel.client, myServices)
     myProfilerStage = CpuProfilerStage(myProfilers!!)
-    model = CpuProfilerConfigModel(myProfilers!!, myProfilerStage)
+    model = CpuProfilerConfigModel(myProfilers!!, myProfilerStage!!)
   }
 
   @Test
@@ -208,6 +209,15 @@ class CpuProfilerConfigModelTest {
     assertThat(customConfigs[0].profilerType).isEqualTo(CpuProfilerType.ART)
     assertThat(customConfigs[0].requiredDeviceLevel).isEqualTo(0)
     assertThat(isDefault(customConfigs[0])).isFalse()
+  }
+
+  @Test
+  fun aspectFiredWhenSettingProfilingConfig() {
+    val observer = AspectObserver()
+    var aspectCalled = false
+    myProfilerStage!!.aspect.addDependency(observer).onChange(CpuProfilerAspect.PROFILING_CONFIGURATION, { aspectCalled = true })
+    model!!.profilingConfiguration = ProfilingConfiguration("cfg", CpuProfilerType.ART, CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED)
+    assertThat(aspectCalled).isTrue()
   }
 
   private fun isDefault(configuration: ProfilingConfiguration) = myServices
