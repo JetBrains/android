@@ -150,15 +150,16 @@ public final class GroovyDslUtil {
 
   static void maybeDeleteIfEmpty(@Nullable PsiElement element, @NotNull GradleDslElement dslElement) {
     GradleDslElement parentDslElement = dslElement.getParent();
-    if (parentDslElement instanceof GradleDslExpressionList && !((GradleDslExpressionList)parentDslElement).shouldBeDeleted() ||
-        parentDslElement instanceof GradleDslExpressionMap  && !((GradleDslExpressionMap)parentDslElement).shouldBeDeleted()) {
+    if ((parentDslElement instanceof GradleDslExpressionList && !((GradleDslExpressionList)parentDslElement).shouldBeDeleted()) ||
+        (parentDslElement instanceof GradleDslExpressionMap && !((GradleDslExpressionMap)parentDslElement).shouldBeDeleted()) &&
+        parentDslElement.getPsiElement() == element) {
       // Don't delete parent if empty.
       return;
     }
-    deleteIfEmpty(element);
+    deleteIfEmpty(element, dslElement);
   }
 
-  private static void deleteIfEmpty(@Nullable PsiElement element) {
+  private static void deleteIfEmpty(@Nullable PsiElement element, @NotNull GradleDslElement containingDslElement) {
     if (element == null) {
       return;
     }
@@ -260,7 +261,9 @@ public final class GroovyDslUtil {
       // Give the parent a chance to adapt to the missing child.
       handleElementRemoved(parent, element);
       // If this element is deleted, also delete the parent if it is empty.
-      deleteIfEmpty(parent);
+      GradleDslElement dslParent =
+        element == containingDslElement.getPsiElement() ? containingDslElement.getParent() : containingDslElement;
+      maybeDeleteIfEmpty(parent, dslParent);
     }
   }
 
@@ -280,7 +283,7 @@ public final class GroovyDslUtil {
 
   /**
    * This method is used to edit the PsiTree once an element has been deleted.
-   *
+   * <p>
    * It currently only looks at GrListOrMap to insert a ":" into a map. This is needed because once we delete
    * the final element in a map we are left with [], which is a list.
    */
@@ -601,7 +604,7 @@ public final class GroovyDslUtil {
    * is that when we are applying a GradleDslReference or GradleDslLiteral we don't know whether (1) we are actually in a list and (2)
    * whether the list actually needs us to add a comma. Ideally we would have the apply/create/delete methods of GradleDslExpressionList
    * position the arguments. This is a workaround for now.
-   *
+   * <p>
    * Note: In order to get the position of where to insert the item, we set the PsiElement of the literal/reference to be the previous
    * item in the list (this is done in GradleDslExpressionList) and then set it back once we have called apply.
    */

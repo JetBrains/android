@@ -1969,6 +1969,12 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       assertSize(1, map.entries)
       verifyPropertyModel(map["key2"], STRING_TYPE, "value2", STRING, DERIVED, 0)
     }
+
+    val expected = """
+                   ext {
+                     prop1 = ['key2' : 'value2']
+                   }""".trimIndent()
+    verifyFileContents(myBuildFile, expected)
   }
 
   @Test
@@ -2319,6 +2325,13 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     applyChangesAndReparse(buildModel)
+
+    val expected = """
+                   ext {
+                     def var = "hellO"
+                     prop1 = [key6: 77, key3: [key4: var]]
+                   }""".trimIndent()
+    verifyFileContents(myBuildFile, expected)
 
     // Check everything is in order after a reparse.
     run {
