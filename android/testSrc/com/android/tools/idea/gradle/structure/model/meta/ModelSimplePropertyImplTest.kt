@@ -41,11 +41,11 @@ class ModelSimplePropertyImplTest : GradleFileModelTestCase() {
     val resolved = resolve()
     return Model.property(
       "description",
-      getResolvedValue = { null },
-      getParsedProperty = { resolved },
+      resolvedValueGetter = { null },
+      parsedPropertyGetter = { resolved },
       getter = { caster() },
       setter = { setValue(it) },
-      parse = { context, value -> parse(context, value) }
+      parser = { context, value -> parse(context, value) }
     )
   }
 

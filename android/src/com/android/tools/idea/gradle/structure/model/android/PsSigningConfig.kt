@@ -56,51 +56,51 @@ class PsSigningConfig(
 
     val storeFile: SimpleProperty<PsSigningConfig, File> = property(
       "Store File",
-      getResolvedValue = { storeFile },
-      getParsedProperty = { storeFile() },
+      resolvedValueGetter = { storeFile },
+      parsedPropertyGetter = { storeFile() },
       getter = { asFile() },
       // TODO: Store project relative path if possible.
       setter = { setValue(it.absolutePath) },
-      parse = ::parseFile
+      parser = ::parseFile
     )
 
     val storePassword: SimpleProperty<PsSigningConfig, String> = property(
       "Store Password",
-      getResolvedValue = { storePassword },
-      getParsedProperty = { storePassword().resolve() },
+      resolvedValueGetter = { storePassword },
+      parsedPropertyGetter = { storePassword().resolve() },
       // TODO: Properly handle other password types.
       getter = { asString() },
       setter = { setValue(it) },
-      parse = ::parseString
+      parser = ::parseString
     )
 
     val storeType: SimpleProperty<PsSigningConfig, String> = property(
       "Store Type",
-      getResolvedValue = { storeType },
+      resolvedValueGetter = { storeType },
       // TODO: Properly handle other password types.
-      getParsedProperty = { storeType() },
+      parsedPropertyGetter = { storeType() },
       getter = { asString() },
       setter = { setValue(it) },
-      parse = ::parseString
+      parser = ::parseString
     )
 
     val keyAlias: SimpleProperty<PsSigningConfig, String> = property(
       "Key Alias",
-      getResolvedValue = { keyAlias },
-      getParsedProperty = { keyAlias() },
+      resolvedValueGetter = { keyAlias },
+      parsedPropertyGetter = { keyAlias() },
       getter = { asString() },
       setter = { setValue(it) },
-      parse = ::parseString
+      parser = ::parseString
     )
 
     val keyPassword: SimpleProperty<PsSigningConfig, String> = property(
       "Key Password",
-      getResolvedValue = { keyPassword },
-      getParsedProperty = { keyPassword().resolve() },
+      resolvedValueGetter = { keyPassword },
+      parsedPropertyGetter = { keyPassword().resolve() },
       // TODO: Properly handle other password types.
       getter = { asString() },
       setter = { setValue(it) },
-      parse = ::parseString
+      parser = ::parseString
     )
   }
 }

@@ -19,7 +19,6 @@ import com.android.builder.model.ProductFlavor
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel
 import com.android.tools.idea.gradle.structure.model.helpers.*
 import com.android.tools.idea.gradle.structure.model.meta.*
-import com.google.common.util.concurrent.Futures.immediateFuture
 import java.io.File
 
 object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModuleDefaultConfig, ProductFlavor, ProductFlavorModel> {
@@ -35,145 +34,145 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
 
   val applicationId: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
     "Application ID",
-    getResolvedValue = { applicationId },
-    getParsedProperty = { applicationId() },
+    resolvedValueGetter = { applicationId },
+    parsedPropertyGetter = { applicationId() },
     getter = { asString() },
     setter = { setValue(it) },
-    parse = ::parseString
+    parser = ::parseString
   )
 
   val maxSdkVersion: SimpleProperty<PsAndroidModuleDefaultConfig, Int> = property(
     "Max SDK Version",
-    getResolvedValue = { maxSdkVersion },
-    getParsedProperty = { maxSdkVersion() },
+    resolvedValueGetter = { maxSdkVersion },
+    parsedPropertyGetter = { maxSdkVersion() },
     getter = { asInt() },
     setter = { setValue(it) },
-    parse = ::parseInt,
-    getKnownValues = ::installedSdksAsInts
+    parser = ::parseInt,
+    knownValuesGetter = ::installedSdksAsInts
   )
 
   val minSdkVersion: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
     "Min SDK Version",
-    getResolvedValue = { minSdkVersion?.apiLevel?.toString() },
-    getParsedProperty = { minSdkVersion() },
+    resolvedValueGetter = { minSdkVersion?.apiLevel?.toString() },
+    parsedPropertyGetter = { minSdkVersion() },
     getter = { asString() },
     setter = { setValue(it) },
-    parse = ::parseString,
-    getKnownValues = ::installedSdksAsStrings
+    parser = ::parseString,
+    knownValuesGetter = ::installedSdksAsStrings
   )
 
   val multiDexEnabled: SimpleProperty<PsAndroidModuleDefaultConfig, Boolean> = property(
     "Multi Dex Enabled",
-    getResolvedValue = { multiDexEnabled },
-    getParsedProperty = { multiDexEnabled() },
+    resolvedValueGetter = { multiDexEnabled },
+    parsedPropertyGetter = { multiDexEnabled() },
     getter = { asBoolean() },
     setter = { setValue(it) },
-    parse = ::parseBoolean,
-    getKnownValues = ::booleanValues
+    parser = ::parseBoolean,
+    knownValuesGetter = ::booleanValues
   )
 
   val signingConfig: SimpleProperty<PsAndroidModuleDefaultConfig, Unit> = property(
     "Signing Config",
-    getResolvedValue = { null },
-    getParsedProperty = { signingConfig() },
+    resolvedValueGetter = { null },
+    parsedPropertyGetter = { signingConfig() },
     getter = { asUnit() },
     setter = {},
-    parse = ::parseReferenceOnly,
-    format = ::formatUnit,
-    getKnownValues = { _, model -> signingConfigs(model.module) }
+    parser = ::parseReferenceOnly,
+    formatter = ::formatUnit,
+    knownValuesGetter = { _, model -> signingConfigs(model.module) }
   )
 
   val targetSdkVersion: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
     "Target SDK Version",
-    getResolvedValue = { targetSdkVersion?.apiLevel?.toString() },
-    getParsedProperty = { targetSdkVersion() },
+    resolvedValueGetter = { targetSdkVersion?.apiLevel?.toString() },
+    parsedPropertyGetter = { targetSdkVersion() },
     getter = { asString() },
     setter = { setValue(it) },
-    parse = ::parseString,
-    getKnownValues = ::installedSdksAsStrings
+    parser = ::parseString,
+    knownValuesGetter = ::installedSdksAsStrings
 
   )
 
   val testApplicationId: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
     "Test Application ID",
-    getResolvedValue = { testApplicationId },
-    getParsedProperty = { testApplicationId() },
+    resolvedValueGetter = { testApplicationId },
+    parsedPropertyGetter = { testApplicationId() },
     getter = { asString() },
     setter = { setValue(it) },
-    parse = ::parseString
+    parser = ::parseString
   )
 
   val testFunctionalTest: SimpleProperty<PsAndroidModuleDefaultConfig, Boolean> = property(
     "Test Functional Test",
-    getResolvedValue = { testFunctionalTest },
-    getParsedProperty = { testFunctionalTest() },
+    resolvedValueGetter = { testFunctionalTest },
+    parsedPropertyGetter = { testFunctionalTest() },
     getter = { asBoolean() },
     setter = { setValue(it) },
-    parse = ::parseBoolean,
-    getKnownValues = ::booleanValues
+    parser = ::parseBoolean,
+    knownValuesGetter = ::booleanValues
   )
 
   val testHandleProfiling: SimpleProperty<PsAndroidModuleDefaultConfig, Boolean> = property(
     "Test Handle Profiling",
-    getResolvedValue = { testHandleProfiling },
-    getParsedProperty = { testHandleProfiling() },
+    resolvedValueGetter = { testHandleProfiling },
+    parsedPropertyGetter = { testHandleProfiling() },
     getter = { asBoolean() },
     setter = { setValue(it) },
-    parse = ::parseBoolean,
-    getKnownValues = ::booleanValues
+    parser = ::parseBoolean,
+    knownValuesGetter = ::booleanValues
   )
 
   val testInstrumentationRunner: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
     "Test instrumentation runner class name",
-    getResolvedValue = { testInstrumentationRunner },
-    getParsedProperty = { testInstrumentationRunner() },
+    resolvedValueGetter = { testInstrumentationRunner },
+    parsedPropertyGetter = { testInstrumentationRunner() },
     getter = { asString() },
     setter = { setValue(it) },
-    parse = ::parseString
+    parser = ::parseString
   )
 
   val versionCode: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
     "Version Code",
-    getResolvedValue = { versionCode?.toString() },
-    getParsedProperty = { versionCode() },
+    resolvedValueGetter = { versionCode?.toString() },
+    parsedPropertyGetter = { versionCode() },
     getter = { asString() },
     setter = { setValue(it) },
-    parse = ::parseString
+    parser = ::parseString
   )
 
   val versionName: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
     "Version Name",
-    getResolvedValue = { versionName },
-    getParsedProperty = { versionName() },
+    resolvedValueGetter = { versionName },
+    parsedPropertyGetter = { versionName() },
     getter = { asString() },
     setter = { setValue(it) },
-    parse = ::parseString
+    parser = ::parseString
   )
 
   val proGuardFiles: ListProperty<PsAndroidModuleDefaultConfig, File> = listProperty(
     "Proguard Files",
-    getResolvedValue = { proguardFiles.toList() },
-    getParsedProperty = { proguardFiles() },
-    itemValueGetter = { asFile() },
-    itemValueSetter = { setValue(it.toString()) },
-    parse = ::parseFile
+    resolvedValueGetter = { proguardFiles.toList() },
+    parsedPropertyGetter = { proguardFiles() },
+    getter = { asFile() },
+    setter = { setValue(it.toString()) },
+    parser = ::parseFile
   )
 
   val manifestPlaceholders: MapProperty<PsAndroidModuleDefaultConfig, String> = mapProperty(
     "Manifest Placeholders",
-    getResolvedValue = { manifestPlaceholders.mapValues { it.value.toString() } },
-    getParsedProperty = { manifestPlaceholders() },
-    itemValueGetter = { asString() },
-    itemValueSetter = { setValue(it) },
-    parse = ::parseString
+    resolvedValueGetter = { manifestPlaceholders.mapValues { it.value.toString() } },
+    parsedPropertyGetter = { manifestPlaceholders() },
+    getter = { asString() },
+    setter = { setValue(it) },
+    parser = ::parseString
   )
 
   val testInstrumentationRunnerArguments: MapProperty<PsAndroidModuleDefaultConfig, String> = mapProperty(
     "Test Instrumentation Runner Arguments",
-    getResolvedValue = { testInstrumentationRunnerArguments },
-    getParsedProperty = { testInstrumentationRunnerArguments() },
-    itemValueGetter = { asString() },
-    itemValueSetter = { setValue(it) },
-    parse = ::parseString
+    resolvedValueGetter = { testInstrumentationRunnerArguments },
+    parsedPropertyGetter = { testInstrumentationRunnerArguments() },
+    getter = { asString() },
+    setter = { setValue(it) },
+    parser = ::parseString
   )
 }
