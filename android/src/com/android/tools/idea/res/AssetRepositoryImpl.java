@@ -17,9 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.rendering.api.AssetRepository;
-import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
@@ -31,7 +29,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
-import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +38,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -70,8 +66,8 @@ public class AssetRepositoryImpl extends AssetRepository implements Disposable {
   /**
    * @param mode one of ACCESS_UNKNOWN, ACCESS_STREAMING, ACCESS_RANDOM or ACCESS_BUFFER (int values 0-3).
    */
-  @Nullable
   @Override
+  @Nullable
   public InputStream openAsset(@NotNull String path, int mode) throws IOException {
     assert myFacet != null;
 
@@ -111,16 +107,34 @@ public class AssetRepositoryImpl extends AssetRepository implements Disposable {
   }
 
   /**
-   * It takes an absolute path that does not point to an asset and opens the file. Currently the access is restricted to files under
-   * the resources directories and the downloadable font cache directory.
-   * @param mode one of ACCESS_UNKNOWN, ACCESS_STREAMING, ACCESS_RANDOM or ACCESS_BUFFER (int values 0-3).
+   * It takes an absolute path that does not point to an asset and opens the file. Currently the access
+   * is restricted to files under the resources directories and the downloadable font cache directory.
+   *
+   * @param cookie ignored
+   * @param path the path pointing to a file on disk, or to a ZIP file entry. In the latter case the path
+   *     has the following format: "apk:<i>path_to_zip_file</i>:<i>path_to_zip_entry</i>
+   * @param mode ignored
    */
-  @Nullable
   @Override
+  @Nullable
   public InputStream openNonAsset(int cookie, @NotNull String path, int mode) throws IOException {
     assert myFacet != null;
 
-    VirtualFile file = VirtualFileManager.getInstance().findFileByUrl("file://" + path);
+    if (path.startsWith("apk:")) {
+      return FileResourceOpener.open(path);
+    }
+
+    String url;
+    if (path.startsWith("file://")) {
+      url = path;
+    } else {
+      if (path.startsWith("file:")) {
+        path = path.substring("file:".length());
+      }
+      url = "file://" + path;
+    }
+
+    VirtualFile file = VirtualFileManager.getInstance().findFileByUrl(url);
     if (file == null) {
       return null;
     }
@@ -146,6 +160,14 @@ public class AssetRepositoryImpl extends AssetRepository implements Disposable {
         }
         return null;
       });
+  }
+
+  /**
+   * Checks if the given path points to a file resource.
+   */
+  @Override
+  public boolean isFileResource(@NotNull String path) {
+    return ResourceHelper.isFileResource(path);
   }
 
   /**

@@ -300,7 +300,11 @@ public final class StudioFlags {
   private static final FlagGroup RESOURCES_MANAGEMENT = new FlagGroup(FLAGS, "res.manag", "Resource Management");
   public static final Flag<Boolean> RESOURCE_MANAGER_ENABLED = Flag.create(
     RESOURCES_MANAGEMENT, "enabled", "Enable the new resources management tools",
-    "If enabled, the new resource magement tool are enabled. Subflags will also need to be enabled to enable all available new tools",
+    "If enabled, the new resource management tools are enabled. Subflags will also need to be enabled to enable all available new tools",
+    false);
+  public static final Flag<Boolean> AAR_V2_ENABLED = Flag.create(
+    RESOURCES_MANAGEMENT, "aar.v2", "Enable support for libraries in proto format",
+    "Allows project to depend on libraries in AARv2 format.",
     false);
 
   private static final FlagGroup LAYOUT_INSPECTOR = new FlagGroup(FLAGS, "layout.inspector", "Layout Inspector");

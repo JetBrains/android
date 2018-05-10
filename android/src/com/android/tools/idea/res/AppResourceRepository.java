@@ -19,6 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.projectsystem.FilenameConstants;
+import com.android.tools.idea.res.aar.AarResourceRepositoryCache;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -41,7 +42,6 @@ import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
  * @see ResourceRepositoryManager#getAppResources(boolean)
  */
 class AppResourceRepository extends MultiResourceRepository {
-
   private static final Logger LOG = Logger.getInstance(AppResourceRepository.class);
   static final Key<Boolean> TEMPORARY_RESOURCE_CACHE = Key.create("TemporaryResourceCache");
 
@@ -90,13 +90,17 @@ class AppResourceRepository extends MultiResourceRepository {
     return repositories;
   }
 
-  private static List<FileResourceRepository> computeLibraries(@NotNull final AndroidFacet facet) {
+  private static List<FileResourceRepository> computeLibraries(@NotNull AndroidFacet facet) {
     if (LOG.isDebugEnabled()) {
       LOG.debug("computeLibraries");
     }
 
     List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
-    Map<File, String> aarDirs = ResourceRepositoryManager.findAarLibraries(facet, dependentFacets);
+    // Sort alphabetically to ensure that we keep a consistent order of these libraries.
+    // Otherwise when we jump from libraries initialized from IntelliJ library binary paths
+    // to gradle project state, the order difference will cause the merged project resource
+    // maps to be recomputed.
+    Map<File, String> aarDirs = new TreeMap<>(ResourceRepositoryManager.findAarLibraries(facet, dependentFacets));
 
     if (aarDirs.isEmpty()) {
       if (LOG.isDebugEnabled()) {
@@ -106,23 +110,21 @@ class AppResourceRepository extends MultiResourceRepository {
       return Collections.emptyList();
     }
 
-    List<File> dirs = new ArrayList<>(aarDirs.keySet());
-
-    // Sort alphabetically to ensure that we keep a consistent order of these libraries;
-    // otherwise when we jump from libraries initialized from IntelliJ library binary paths
-    // to gradle project state, the order difference will cause the merged project resource
-    // maps to have to be recomputed
-    Collections.sort(dirs);
-
     if (LOG.isDebugEnabled()) {
-      for (File root : dirs) {
-        LOG.debug("  Dependency: " + anonymizeClassName(aarDirs.get(root)));
+      for (String libraryName : aarDirs.values()) {
+        LOG.debug("  Dependency: " + anonymizeClassName(libraryName));
       }
     }
 
     List<FileResourceRepository> resources = new ArrayList<>(aarDirs.size());
-    for (File root : dirs) {
-      resources.add(FileResourceRepository.get(root, aarDirs.get(root)));
+    // TODO: Load AAR repositories on multiple threads.
+    for (Map.Entry<File, String> entry : aarDirs.entrySet()) {
+      File directory = entry.getKey();
+      String libraryName = entry.getValue();
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("  Dependency: " + anonymizeClassName(libraryName));
+      }
+      resources.add(AarResourceRepositoryCache.getInstance().get(directory, libraryName));
     }
     return resources;
   }

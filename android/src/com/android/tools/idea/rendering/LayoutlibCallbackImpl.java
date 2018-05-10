@@ -31,9 +31,11 @@ import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.parsers.*;
+import com.android.tools.idea.res.FileResourceOpener;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.aar.ProtoXmlPullParser;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.HtmlBuilder;
@@ -41,7 +43,6 @@ import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.collect.*;
-import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -71,6 +72,7 @@ import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.layoutlib.RenderParamsFlags.*;
+import static com.android.tools.idea.res.FileResourceOpener.PROTO_XML_LEAD_BYTE;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 /**
@@ -276,7 +278,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Nullable
   private static XmlPullParser getParserFromText(String fileName, @NotNull String text) {
     try {
-      XmlPullParser parser = new NamedParser(fileName);
+      XmlPullParser parser = new NamedXmlParser(fileName);
       parser.setInput(new StringReader(text));
       return parser;
     }
@@ -339,12 +341,18 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Override
   @Nullable
   public XmlPullParser createXmlParserForFile(@NotNull String fileName) {
-    try (FileInputStream fileStream = new FileInputStream(fileName)) {
-      // Read data fully to memory to be able to close the file stream.
-      ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
-      ByteStreams.copy(fileStream, byteOutputStream);
-      NamedParser parser = new NamedParser(fileName);
-      parser.setInput(new ByteArrayInputStream(byteOutputStream.toByteArray()), null);
+    try {
+      ByteArrayInputStream stream = FileResourceOpener.open(fileName);
+      // Instantiate an XML pull parser based on the contents of the stream.
+      XmlPullParser parser;
+      int c = stream.read();
+      stream.reset();
+      if (c == PROTO_XML_LEAD_BYTE) {
+        parser = new NamedProtoXmlParser(fileName); // Parser for proto XML used in AARs.
+      } else {
+        parser = new NamedXmlParser(fileName); // Parser for regular text XML.
+      }
+      parser.setInput(stream, null);
       return parser;
     } catch (IOException | XmlPullParserException e) {
       return null;
@@ -354,7 +362,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Override
   @NonNull
   public XmlPullParser createXmlParser() {
-    return new NamedParser(null);
+    return new NamedXmlParser(null);
   }
 
   public void setLayoutParser(@Nullable String layoutName, @Nullable ILayoutPullParser layoutParser) {
@@ -836,21 +844,21 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myAdaptiveIconMaskPath = adaptiveIconMaskPath;
   }
 
-  private static class NamedParser extends KXmlParser {
+  private static class NamedXmlParser extends KXmlParser {
     @Nullable
     private final String myName;
     /**
-     * Attribute that caches whether the tools prefix has been defined or not. This allow us to save unnecessary checks in the most common
-     * case ("tools" is not defined).
+     * Attribute that caches whether the tools prefix has been defined or not. This allows us to save
+     * unnecessary checks in the most common case ("tools" is not defined).
      */
     private boolean hasToolsNamespace;
 
-    public NamedParser(@Nullable String name) {
+    public NamedXmlParser(@Nullable String name) {
       myName = name;
       try {
         setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
       } catch (XmlPullParserException e) {
-        throw new Error("internal error", e);
+        throw new Error("Internal error", e);
       }
     }
 
@@ -870,7 +878,59 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     }
 
     @Override
-    public String getAttributeValue(String namespace, String name) {
+    public String getAttributeValue(@Nullable String namespace, @NotNull String name) {
+      if (hasToolsNamespace && ANDROID_URI.equals(namespace)) {
+        // Only for "android:" attribute, we will check if there is a "tools:" version overriding the value
+        String toolsValue = super.getAttributeValue(TOOLS_URI, name);
+        if (toolsValue != null) {
+          return toolsValue;
+        }
+      }
+
+      return super.getAttributeValue(namespace, name);
+    }
+
+    @Override
+    public String toString() {
+      return myName != null ? myName : super.toString();
+    }
+  }
+
+  private static class NamedProtoXmlParser extends ProtoXmlPullParser {
+    @Nullable
+    private final String myName;
+    /**
+     * Attribute that caches whether the tools prefix has been defined or not. This allows us to save
+     * unnecessary checks in the most common case ("tools" is not defined).
+     */
+    private boolean hasToolsNamespace;
+
+    public NamedProtoXmlParser(@Nullable String name) {
+      myName = name;
+      try {
+        setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
+      } catch (XmlPullParserException e) {
+        throw new Error(e);
+      }
+    }
+
+    @Override
+    public int next() throws XmlPullParserException, IOException {
+      int tagType = super.next();
+
+      // We check if the tools namespace is still defined in two cases:
+      // - If it's a start tag and it was defined by a previous tag
+      // - If it WAS defined by a previous tag, and we are closing a tag (going out of scope)
+      if ((!hasToolsNamespace && tagType == XmlPullParser.START_TAG) ||
+          (hasToolsNamespace && tagType == XmlPullParser.END_TAG)) {
+        hasToolsNamespace = getNamespace("tools") != null;
+      }
+
+      return tagType;
+    }
+
+    @Override
+    public String getAttributeValue(@Nullable String namespace, @NotNull String name) {
       if (hasToolsNamespace && ANDROID_URI.equals(namespace)) {
         // Only for "android:" attribute, we will check if there is a "tools:" version overriding the value
         String toolsValue = super.getAttributeValue(TOOLS_URI, name);

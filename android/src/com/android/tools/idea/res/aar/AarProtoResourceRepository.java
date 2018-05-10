@@ -27,13 +27,13 @@ import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
 import com.android.tools.idea.res.FileResourceRepository;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.diagnostic.Logger;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.*;
 import java.net.URI;
@@ -44,8 +44,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
-import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
 
 /**
  * Repository of resources defined in an AAR file where resources are stored in protocol buffer format.
@@ -94,17 +92,20 @@ public class AarProtoResourceRepository extends FileResourceRepository {
   }
 
   /**
-   * Creates a resource repository of an AAR file. The provided folder may either contain unpacked contents
+   * Creates a resource repository for an AAR file. The provided folder may either contain unpacked contents
    * of an AAR file, or unpacked contents of res.apk file extracted from an AAR file.
    *
-   * @param aarFolder the folder containing unpacked contents of an AAR
-   * @return the created resource repository
+   * @param aarFolder the folder containing unpacked contents of an AAR, or unpacked contents of res.apk
+   * @param libraryName the name of the library
+   * @return the created resource repository, or null if {@code aarFolder} does not contain either "res.apk" or "resources.pb"
    */
-  @NotNull
-  public static AarProtoResourceRepository create(@NotNull File aarFolder, @Nullable String libraryName) {
+  @Nullable
+  public static AarProtoResourceRepository createIfProtoAar(@NotNull File aarFolder, @Nullable String libraryName) {
     DataLoader loader = new DataLoader(aarFolder);
     try {
       loader.load();
+    } catch (FileNotFoundException e) {
+      return null;
     } catch (IOException e) {
       LOG.error(e);
       return new AarProtoResourceRepository(aarFolder, getNamespace(loader.packageName), libraryName); // Return an empty repository.
@@ -179,6 +180,18 @@ public class AarProtoResourceRepository extends FileResourceRepository {
     }
   }
 
+  /**
+   * Produces a string to be returned by the {@link AarFileResourceItem#getValue()} method.
+   * The string represents an URL in one of the following formats:
+   * <ul>
+   *  <li>file URL, e.g. "file:///foo/bar/res/layout/my_layout.xml"</li>
+   *  <li>URL of a zipped element inside the res.apk file, e.g. "apk:/foo/bar/res.apk:res/layout/my_layout.xml"</li>
+   * </ul>
+   *
+   * @param relativeResourcePath the relative path of a file resource
+   * @return the URL pointing to to the file resource
+   * @see ResourceHelper#toFileResourcePathString(String)
+   */
   @Nullable
   final String getResourceUrl(@Nullable String relativeResourcePath) {
     return relativeResourcePath == null ? null : myResourceUrlPrefix + relativeResourcePath;
@@ -618,8 +631,8 @@ public class AarProtoResourceRepository extends FileResourceRepository {
 
   private static class DataLoader {
     private final File aarDir;
-    String packageName;
     Resources.ResourceTable resourceTableMsg;
+    String packageName;
     boolean loadedFromResApk;
 
     DataLoader(@NotNull File aarDir) {
@@ -628,49 +641,16 @@ public class AarProtoResourceRepository extends FileResourceRepository {
 
     void load() throws IOException {
       try {
-        packageName = getPackageNameFromManifestFile(aarDir);
         resourceTableMsg = readResourceTableFromResourcesPbFile(aarDir);
+        packageName = AndroidManifestUtils.getPackageNameFromManifestFile(aarDir);
       } catch (FileNotFoundException e) {
         File resApkFile = new File(aarDir, RES_APK);
         try (ZipFile zipFile = new ZipFile(resApkFile)) {
-          packageName = getPackageNameFromResApk(zipFile);
           resourceTableMsg = readResourceTableFromResApk(zipFile);
+          packageName = AndroidManifestUtils.getPackageNameFromResApk(zipFile);
         }
         loadedFromResApk = true;
       }
-    }
-
-    @Nullable
-    private static String getPackageNameFromManifestFile(@NotNull File aarDir) throws IOException {
-      File manifestFile = new File(aarDir, ANDROID_MANIFEST_XML);
-      try (InputStream stream = new BufferedInputStream(new FileInputStream(manifestFile))) {
-        return getPackageName(stream);
-      } catch (XmlPullParserException e) {
-        throw new IOException("File " + manifestFile.getPath() + " has invalid format");
-      }
-    }
-
-    @Nullable
-    private static String getPackageNameFromResApk(@NotNull ZipFile resApk) throws IOException {
-      ZipEntry zipEntry = resApk.getEntry(ANDROID_MANIFEST_XML);
-      if (zipEntry == null) {
-        throw new IOException("\"" + RESOURCE_TABLE_ENTRY + "\" not found in " + resApk.getName());
-      }
-
-      try (InputStream stream = new BufferedInputStream(resApk.getInputStream(zipEntry))) {
-        return getPackageName(stream);
-      } catch (XmlPullParserException e) {
-        throw new IOException("Invalid " + ANDROID_MANIFEST_XML + " in " + resApk.getName());
-      }
-    }
-
-    private static String getPackageName(InputStream stream) throws XmlPullParserException, IOException {
-      XmlPullParser parser = new ProtoXmlPullParser();
-      parser.setInput(stream, null);
-      if (parser.nextTag() == XmlPullParser.START_TAG) {
-        return parser.getAttributeValue(null, "package");
-      }
-      return null;
     }
 
     /**

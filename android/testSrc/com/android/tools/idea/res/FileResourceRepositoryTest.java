@@ -19,13 +19,9 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.google.common.collect.ListMultimap;
-import com.google.common.io.Files;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.util.containers.ContainerUtil;
 import junit.framework.TestCase;
 
-import java.io.File;
 import java.util.List;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
@@ -33,28 +29,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.testFramework.UsefulTestCase.assertSameElements;
 
 public class FileResourceRepositoryTest extends TestCase {
-
-  // flaky after IDEA 181.3007.14 merge (not sure if it was flaky before too)
-  public void ignore_testCacheUseSoftReferences() {
-    File dir = Files.createTempDir();
-    try {
-      assertNotNull(FileResourceRepository.get(dir, null));
-      // We shouldn't clear it out immediately on GC *eligibility*:
-      System.gc();
-      assertNotNull(FileResourceRepository.getCached(dir));
-      // However, in low memory conditions we should:
-      try {
-        PlatformTestUtil.tryGcSoftlyReachableObjects();
-      } catch (Throwable t) {
-        // The above method can throw java.lang.OutOfMemoryError; that's fine for this test
-      }
-      System.gc();
-      assertNull(FileResourceRepository.getCached(dir));
-    }
-    finally {
-      FileUtil.delete(dir);
-    }
-  }
 
   public void testGetAllDeclaredIds() {
     FileResourceRepository repository = ResourcesTestsUtil.getTestAarRepository();

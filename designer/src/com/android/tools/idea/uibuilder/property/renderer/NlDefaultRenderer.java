@@ -28,6 +28,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.GutterIconCache;
 import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
@@ -40,7 +41,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
 import java.util.Set;
 
 public class NlDefaultRenderer extends NlAttributeRenderer {
@@ -121,8 +121,9 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
       return null;
     }
 
-    File file = AndroidColorAnnotator.pickBestBitmap(ResourceHelper.resolveDrawable(resolver, drawable, property.getModel().getProject()));
-    return file == null ? null : GutterIconCache.getInstance().getIcon(file.getPath(), resolver);
+    VirtualFile bitmap = ResourceHelper.resolveDrawableAsVirtualFile(resolver, drawable, property.getModel().getProject());
+    bitmap = AndroidColorAnnotator.pickBestBitmap(bitmap);
+    return bitmap == null ? null : GutterIconCache.getInstance().getIcon(bitmap.getPath(), resolver);
   }
 
   @Nullable

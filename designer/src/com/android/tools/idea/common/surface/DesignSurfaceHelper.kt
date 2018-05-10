@@ -33,7 +33,6 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
-import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
@@ -53,22 +52,12 @@ import java.nio.charset.StandardCharsets
 fun openResource(configuration: Configuration, reference: String, currentFile: VirtualFile?): Boolean {
   val resourceResolver = configuration.resourceResolver ?: return false
   val resValue = resourceResolver.findResValue(reference, false)
-  val path = resourceResolver.resolveLayout(resValue)
-  if (path != null) {
-    val file = LocalFileSystem.getInstance().findFileByIoFile(path)
-    if (file != null) {
-      if (currentFile != null) {
-        return LayoutNavigationManager.getInstance(configuration.module.project).pushFile(currentFile, file)
-      }
-      else {
-        val editors = FileEditorManager.getInstance(configuration.module.project).openFile(file, true, true)
-        if (editors.isNotEmpty()) {
-          return true
-        }
-      }
-    }
+  val file = resourceResolver.resolveLayout(resValue) ?: return false
+  if (currentFile != null) {
+    return LayoutNavigationManager.getInstance(configuration.module.project).pushFile(currentFile, file)
   }
-  return false
+  val editors = FileEditorManager.getInstance(configuration.module.project).openFile(file, true, true)
+  return editors.isNotEmpty()
 }
 
 fun moduleContainsResource(facet: AndroidFacet, type: ResourceType, name: String): Boolean {
@@ -86,7 +75,6 @@ fun copyVectorAssetToMainModuleSourceSet(project: Project, facet: AndroidFacet, 
   catch (exception: IOException) {
     Logger.getInstance(ViewEditorImpl::class.java).warn(exception)
   }
-
 }
 
 fun copyLayoutToMainModuleSourceSet(project: Project, facet: AndroidFacet, layout: String, @Language("XML") xml: String) {

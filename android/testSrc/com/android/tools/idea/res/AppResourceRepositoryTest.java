@@ -116,7 +116,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     assertTrue(moduleRepository.hasResourceItem(RES_AUTO, ResourceType.STRING, "title_card_flip"));
     assertFalse(moduleRepository.hasResourceItem(RES_AUTO, ResourceType.STRING, "non_existent_title_card_flip"));
 
-    FileResourceRepository aar1 = FileResourceRepository.get(VfsUtilCore.virtualToIoFile(res3), null);
+    FileResourceRepository aar1 = FileResourceRepository.create(VfsUtilCore.virtualToIoFile(res3), null);
     appResources.updateRoots(Arrays.asList(projectResources, aar1), Collections.singletonList(aar1));
 
     assertTrue(appResources.hasResourceItem(RES_AUTO, ResourceType.STRING, "another_unique_string"));
@@ -180,7 +180,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     Set<VirtualFile> folders = appResources.getResourceDirs();
     assertSameElements(folders, res1);
 
-    FileResourceRepository aar1 = FileResourceRepository.get(VfsUtilCore.virtualToIoFile(res2), null);
+    FileResourceRepository aar1 = FileResourceRepository.create(VfsUtilCore.virtualToIoFile(res2), null);
     appResources.updateRoots(Arrays.asList(projectResources, aar1), Collections.singletonList(aar1));
 
     Set<VirtualFile> foldersWithAar = appResources.getResourceDirs();
