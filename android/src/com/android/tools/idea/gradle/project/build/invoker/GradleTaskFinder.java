@@ -120,10 +120,6 @@ public class GradleTaskFinder {
         continue;
       }
 
-      if (buildMode == REBUILD && !tasks.isEmpty()) {
-        tasks.keys().elementSet().forEach(key -> tasks.get(key).add(CLEAN_TASK_NAME));
-      }
-
       Set<String> moduleTasks = new LinkedHashSet<>();
       findAndAddGradleBuildTasks(module, buildMode, moduleTasks, testCompileType);
 
@@ -132,6 +128,10 @@ public class GradleTaskFinder {
       moduleTasks.addAll(tasks.get(keyPath));
 
       tasks.removeAll(keyPath);
+      if (buildMode == REBUILD && !moduleTasks.isEmpty()) {
+        // Clean only if other tasks are needed
+        tasks.put(keyPath, CLEAN_TASK_NAME);
+      }
       tasks.putAll(keyPath, moduleTasks);
     }
 
@@ -319,9 +319,7 @@ public class GradleTaskFinder {
   private void addTaskIfSpecified(@NotNull Set<String> tasks, @NotNull String gradlePath, @Nullable String gradleTaskName) {
     if (isNotEmpty(gradleTaskName)) {
       String buildTask = createBuildTask(gradlePath, gradleTaskName);
-      if (!tasks.contains(buildTask)) {
-        tasks.add(buildTask);
-      }
+      tasks.add(buildTask);
     }
   }
 
