@@ -56,6 +56,7 @@ public class NewCppProjectTestUtil {
                                                       .createNewProject();
 
     newProjectWizard.getConfigureAndroidProjectStep()
+                    .enterPackageName("com.example.myapplication")
                     .setCppSupport(true); // Default "App name", "company domain" and "package name"
     newProjectWizard.clickNext();
     newProjectWizard.clickNext(); // Skip "Select minimum SDK Api" step
