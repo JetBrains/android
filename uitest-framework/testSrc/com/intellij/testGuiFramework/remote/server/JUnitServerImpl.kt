@@ -19,6 +19,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testGuiFramework.launcher.GuiTestLauncher
 import com.intellij.testGuiFramework.launcher.GuiTestOptions
+import com.intellij.testGuiFramework.launcher.RestartPolicy
 import com.intellij.testGuiFramework.remote.transport.CloseIdeMessage
 import com.intellij.testGuiFramework.remote.transport.MessageFromClient
 import com.intellij.testGuiFramework.remote.transport.MessageFromServer
@@ -66,26 +67,34 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
 
   private val port: Int
 
+  private var ideError: Boolean = false
+
   init {
     port = serverSocket.localPort
     LOG.level = Level.INFO
     LOG.info("Server running on port $port")
     serverSocket.soTimeout = IDE_STARTUP_TIMEOUT
     notifier.addListener(object : RunListener() {
-      var shouldRestartClient = false
+      var testFailed = false
 
       override fun testFailure(failure: Failure?) {
-        shouldRestartClient = true
+        testFailed = true
         super.testFailure(failure)
       }
 
       override fun testFinished(description: Description?) {
         super.testFinished(description)
-        if (shouldRestartClient && GuiTestOptions.shouldRestartOnTestFailure()) {
+        val shouldRestart = when (GuiTestOptions.getRestartPolicy()) {
+          RestartPolicy.EACH_TEST -> true
+          RestartPolicy.TEST_FAILURE -> testFailed || ideError
+          RestartPolicy.IDE_ERROR -> ideError
+        }
+        if (shouldRestart) {
           closeIdeAndStop()
           launchIdeAndStart()
-          shouldRestartClient = false
         }
+        testFailed = false
+        ideError = false
       }
 
       override fun testRunFinished(result: Result?) {
@@ -127,6 +136,10 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
   }
 
   override fun isRunning(): Boolean = running
+
+  override fun setIdeErrorFlag(value: Boolean) {
+    ideError = value
+  }
 
   private fun stopServer() {
     if (!running) return

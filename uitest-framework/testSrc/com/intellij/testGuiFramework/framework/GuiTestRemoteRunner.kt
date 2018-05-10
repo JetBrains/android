@@ -101,7 +101,11 @@ open class GuiTestRemoteRunner @Throws(InitializationError::class)
             Type.ASSUMPTION_FAILURE -> eachNotifier.addFailedAssumption((message.info.obj as Failure).exception as AssumptionViolatedException)
             Type.IGNORED -> { eachNotifier.fireTestIgnored(); testIsRunning = false }
             Type.FAILURE -> eachNotifier.addFailure(message.info.obj as Throwable)
-            Type.FINISHED -> { eachNotifier.fireTestFinished(); testIsRunning = false }
+            Type.FINISHED -> {
+              server.setIdeErrorFlag(message.info.ideError)
+              eachNotifier.fireTestFinished()
+              testIsRunning = false
+            }
             else -> throw UnsupportedOperationException("Bad message type from client: $message.content.type")
           }
         is RestartIdeMessage -> {
@@ -140,12 +144,7 @@ open class GuiTestRemoteRunner @Throws(InitializationError::class)
 
   private fun runOnClientSide(method: FrameworkMethod, notifier: RunNotifier) {
     LOG.info("Starting test: '${testClass.name}.${method.name}'")
-    // if IDE has fatal errors from a previous test, request a restart
-    if (GuiTests.fatalErrorsFromIde().isNotEmpty()) {
-      GuiTestThread.client?.send(RestartIdeMessage()) ?: throw Exception("JUnitClient is accidentally null")
-    } else {
-      super.runChild(method, notifier)
-    }
+    super.runChild(method, notifier)
   }
 
   companion object {
