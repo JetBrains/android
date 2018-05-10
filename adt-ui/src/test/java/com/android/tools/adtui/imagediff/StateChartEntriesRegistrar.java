@@ -156,15 +156,15 @@ class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
       @Override
       protected void generateTestData() {
         DefaultDataSeries<TestState> series = myData.get(0);
-        series.add(0, TestState.STATE1);
-        series.add(5, TestState.STATE1);
-        series.add(7, TestState.STATE1);
+        series.add(0, TestState.R);
+        series.add(5, TestState.R);
+        series.add(7, TestState.R);
 
-        series.add(8, TestState.STATE2);
-        series.add(12, TestState.STATE2);
-        series.add(16, TestState.STATE2);
-        series.add(50, TestState.STATE2);
-        series.add(101, TestState.STATE2);
+        series.add(8, TestState.B);
+        series.add(12, TestState.B);
+        series.add(16, TestState.B);
+        series.add(50, TestState.B);
+        series.add(101, TestState.B);
       }
     });
   }
@@ -196,15 +196,14 @@ class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
 
     protected enum TestState {
       NONE,
-      STATE1,
-      STATE2
+      R,
+      B
     }
 
     /**
      * Arbitrary values to be added in the state charts.
      */
-    private static final TestState[] MY_VALUES = {TestState.NONE, TestState.STATE1, TestState.STATE2, TestState.NONE, TestState.STATE1,
-      TestState.STATE2};
+    private static final TestState[] MY_VALUES = {TestState.NONE, TestState.R, TestState.B, TestState.NONE, TestState.R, TestState.B};
 
     /**
      * Arbitrary flags to determine if a new state should be added to a state chart at some iteration.
@@ -273,9 +272,9 @@ class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
           switch (value) {
             case NONE:
               return new Color(0, 0, 0, 0);
-            case STATE1:
+            case R:
               return Color.RED;
-            case STATE2:
+            case B:
               return Color.BLUE;
           }
         }
