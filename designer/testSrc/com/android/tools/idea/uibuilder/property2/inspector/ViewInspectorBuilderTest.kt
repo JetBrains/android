@@ -16,43 +16,54 @@
 package com.android.tools.idea.uibuilder.property2.inspector
 
 import com.android.SdkConstants.*
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
 import com.android.tools.idea.uibuilder.property2.testutils.LineType
 import com.google.common.truth.Truth.assertThat
-import org.jetbrains.android.AndroidTestCase
+import com.intellij.testFramework.runInEdtAndWait
+import org.junit.Rule
+import org.junit.Test
 
-class ViewInspectorBuilderTest: AndroidTestCase() {
+class ViewInspectorBuilderTest {
+  @JvmField @Rule
+  val projectRule = AndroidProjectRule.inMemory()
 
+  @Test
   fun testAllButtonProperties() {
-    val util = InspectorTestUtil(testRootDisposable, myFacet, myFixture, BUTTON)
-    val builder = ViewInspectorBuilder(project, util.editorProvider)
-    addButtonProperties(util)
-    builder.attachToInspector(util.inspector, util.properties)
-    assertThat(util.inspector.lines).hasSize(7)
-    assertThat(util.inspector.lines[0].type).isEqualTo(LineType.SEPARATOR)
-    assertThat(util.inspector.lines[1].type).isEqualTo(LineType.TITLE)
-    assertThat(util.inspector.lines[2].editorModel?.property?.name).isEqualTo(ATTR_STATE_LIST_ANIMATOR)
-    assertThat(util.inspector.lines[3].editorModel?.property?.name).isEqualTo(ATTR_ON_CLICK)
-    assertThat(util.inspector.lines[4].editorModel?.property?.name).isEqualTo(ATTR_ELEVATION)
-    assertThat(util.inspector.lines[5].editorModel?.property?.name).isEqualTo(ATTR_BACKGROUND)
-    assertThat(util.inspector.lines[6].editorModel?.property?.name).isEqualTo(ATTR_BACKGROUND_TINT)
+    runInEdtAndWait {
+      val util = InspectorTestUtil(projectRule, BUTTON)
+      val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
+      addButtonProperties(util)
+      builder.attachToInspector(util.inspector, util.properties)
+      assertThat(util.inspector.lines).hasSize(7)
+      assertThat(util.inspector.lines[0].type).isEqualTo(LineType.SEPARATOR)
+      assertThat(util.inspector.lines[1].type).isEqualTo(LineType.TITLE)
+      assertThat(util.inspector.lines[2].editorModel?.property?.name).isEqualTo(ATTR_STATE_LIST_ANIMATOR)
+      assertThat(util.inspector.lines[3].editorModel?.property?.name).isEqualTo(ATTR_ON_CLICK)
+      assertThat(util.inspector.lines[4].editorModel?.property?.name).isEqualTo(ATTR_ELEVATION)
+      assertThat(util.inspector.lines[5].editorModel?.property?.name).isEqualTo(ATTR_BACKGROUND)
+      assertThat(util.inspector.lines[6].editorModel?.property?.name).isEqualTo(ATTR_BACKGROUND_TINT)
+    }
   }
 
+  @Test
   fun testButtonWithSomeMissingProperties() {
-    val util = InspectorTestUtil(testRootDisposable, myFacet, myFixture, BUTTON)
-    val builder = ViewInspectorBuilder(project, util.editorProvider)
-    addButtonProperties(util)
-    util.removeProperty(ANDROID_URI, ATTR_BACKGROUND_TINT)
-    util.removeProperty(ANDROID_URI, ATTR_VISIBILITY)
-    util.removeProperty(ANDROID_URI, ATTR_ON_CLICK)
-    builder.attachToInspector(util.inspector, util.properties)
-    assertThat(util.inspector.lines).hasSize(5)
-    assertThat(util.inspector.lines[0].type).isEqualTo(LineType.SEPARATOR)
-    assertThat(util.inspector.lines[1].type).isEqualTo(LineType.TITLE)
-    assertThat(util.inspector.lines[2].editorModel?.property?.name).isEqualTo(ATTR_STATE_LIST_ANIMATOR)
-    assertThat(util.inspector.lines[3].editorModel?.property?.name).isEqualTo(ATTR_ELEVATION)
-    assertThat(util.inspector.lines[4].editorModel?.property?.name).isEqualTo(ATTR_BACKGROUND)
+    runInEdtAndWait {
+      val util = InspectorTestUtil(projectRule, BUTTON)
+      val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
+      addButtonProperties(util)
+      util.removeProperty(ANDROID_URI, ATTR_BACKGROUND_TINT)
+      util.removeProperty(ANDROID_URI, ATTR_VISIBILITY)
+      util.removeProperty(ANDROID_URI, ATTR_ON_CLICK)
+      builder.attachToInspector(util.inspector, util.properties)
+      assertThat(util.inspector.lines).hasSize(5)
+      assertThat(util.inspector.lines[0].type).isEqualTo(LineType.SEPARATOR)
+      assertThat(util.inspector.lines[1].type).isEqualTo(LineType.TITLE)
+      assertThat(util.inspector.lines[2].editorModel?.property?.name).isEqualTo(ATTR_STATE_LIST_ANIMATOR)
+      assertThat(util.inspector.lines[3].editorModel?.property?.name).isEqualTo(ATTR_ELEVATION)
+      assertThat(util.inspector.lines[4].editorModel?.property?.name).isEqualTo(ATTR_BACKGROUND)
+    }
   }
 
   private fun addButtonProperties(util: InspectorTestUtil) {

@@ -16,24 +16,32 @@
 package com.android.tools.idea.uibuilder.property2.inspector
 
 import com.android.SdkConstants.*
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
 import com.android.tools.idea.uibuilder.property2.testutils.LineType
 import com.google.common.truth.Truth.assertThat
-import org.jetbrains.android.AndroidTestCase
+import com.intellij.testFramework.runInEdtAndWait
+import org.junit.Rule
+import org.junit.Test
 
-class LayoutInspectorBuilderTest: AndroidTestCase() {
+class LayoutInspectorBuilderTest {
+  @JvmField @Rule
+  val projectRule = AndroidProjectRule.inMemory()
 
+  @Test
   fun testLinearLayout() {
-    val util = InspectorTestUtil(testRootDisposable, myFacet, myFixture, TEXT_VIEW, LINEAR_LAYOUT)
-    val builder = LayoutInspectorBuilder(project, util.editorProvider)
-    addLayoutProperties(util)
-    builder.attachToInspector(util.inspector, util.properties)
-    assertThat(util.inspector.lines).hasSize(3)
-    assertThat(util.inspector.lines[0].type).isEqualTo(LineType.SEPARATOR)
-    assertThat(util.inspector.lines[1].type).isEqualTo(LineType.TITLE)
-    assertThat(util.inspector.lines[1].title).isEqualTo("layout")
-    assertThat(util.inspector.lines[2].editorModel?.property?.name).isEqualTo(ATTR_LAYOUT_WEIGHT)
+    runInEdtAndWait {
+      val util = InspectorTestUtil(projectRule, TEXT_VIEW, LINEAR_LAYOUT)
+      val builder = LayoutInspectorBuilder(projectRule.project, util.editorProvider)
+      addLayoutProperties(util)
+      builder.attachToInspector(util.inspector, util.properties)
+      assertThat(util.inspector.lines).hasSize(3)
+      assertThat(util.inspector.lines[0].type).isEqualTo(LineType.SEPARATOR)
+      assertThat(util.inspector.lines[1].type).isEqualTo(LineType.TITLE)
+      assertThat(util.inspector.lines[1].title).isEqualTo("layout")
+      assertThat(util.inspector.lines[2].editorModel?.property?.name).isEqualTo(ATTR_LAYOUT_WEIGHT)
+    }
   }
 
   private fun addLayoutProperties(util: InspectorTestUtil) {
