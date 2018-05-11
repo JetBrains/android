@@ -16,10 +16,9 @@
 package com.android.tools.idea.projectsystem
 
 import com.android.ide.common.repository.GoogleMavenRepository
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
-import com.android.tools.idea.projectsystem.gradle.GradleDependencyVersion
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.testing.IdeComponents
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.IdeaTestCase
@@ -28,11 +27,11 @@ import org.jetbrains.android.AndroidTestBase
 import org.mockito.Mockito
 import org.mockito.Mockito.times
 import java.io.File
-import kotlin.test.assertFailsWith
 
 
 class GradleModuleSystemTest : IdeaTestCase() {
   private lateinit var gradleDependencyManager: GradleDependencyManager
+  private lateinit var gradleProjectSystem: GradleProjectSystem
   private lateinit var gradleModuleSystem: GradleModuleSystem
 
   private val mavenRepository = object : GoogleMavenRepository(File(AndroidTestBase.getTestDataPath(),
@@ -45,54 +44,24 @@ class GradleModuleSystemTest : IdeaTestCase() {
   override fun setUp() {
     super.setUp()
     gradleDependencyManager = IdeComponents(myProject).mockProjectService(GradleDependencyManager::class.java)
+    gradleProjectSystem = GradleProjectSystem(myModule.project, mavenRepository)
     gradleModuleSystem = GradleModuleSystem(myModule, mavenRepository)
   }
 
-  fun testAddDependency() {
-    val toAdd = GoogleMavenArtifactId.CONSTRAINT_LAYOUT
-
-    gradleModuleSystem.addDependencyWithoutSync(toAdd, null, false)
-
+  fun testRegisterDependency() {
+    val coordinate = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
+    gradleModuleSystem.registerDependency(coordinate)
     Mockito.verify<GradleDependencyManager>(gradleDependencyManager, times(1))
-        .addDependenciesWithoutSync(myModule, listOf(getLatestCoordinateForArtifactId(toAdd, false)!!))
+      .addDependenciesWithoutSync(myModule, listOf(coordinate))
   }
 
-  fun testAddPreviewDependency() {
+  fun testPreviewDependencyIsAvailable() {
     // In the test data, NAVIGATION only has a preview version
-    val toAdd = GoogleMavenArtifactId.NAVIGATION
-
-    gradleModuleSystem.addDependencyWithoutSync(toAdd, null, true)
-
-    Mockito.verify<GradleDependencyManager>(gradleDependencyManager, times(1))
-        .addDependenciesWithoutSync(myModule, listOf(getLatestCoordinateForArtifactId(toAdd, true)!!))
+    assertThat(gradleProjectSystem.getAvailableDependency(GoogleMavenArtifactId.NAVIGATION.getCoordinate("+"), true)).isNotNull()
   }
 
-  fun testFailToAddPreviewDependency() {
+  fun testPreviewDependencyIsUnavailable() {
     // In the test data, NAVIGATION only has a preview version
-    val toAdd = GoogleMavenArtifactId.NAVIGATION
-
-    val ex = assertFailsWith(DependencyManagementException::class, "Expected add to fail!") {
-      gradleModuleSystem.addDependencyWithoutSync(toAdd, null, false)
-    }
-    assertThat(ex.errorCode).isEqualTo(DependencyManagementException.ErrorCodes.INVALID_ARTIFACT)
-  }
-
-  fun testAddDependencyWithBadVersion() {
-    val toAdd = GoogleMavenArtifactId.CONSTRAINT_LAYOUT
-    val version = GradleDependencyVersion(null)
-
-    try {
-      gradleModuleSystem.addDependencyWithoutSync(toAdd, version, false)
-      fail("addDependencyWithoutSync should have thrown an exception.")
-    }
-    catch (e: DependencyManagementException) {
-      assertThat(e.errorCode).isEqualTo(DependencyManagementException.ErrorCodes.INVALID_ARTIFACT)
-    }
-  }
-
-  private fun getLatestCoordinateForArtifactId(id: GoogleMavenArtifactId, allowPreview: Boolean): GradleCoordinate? {
-    val wildCardCoordinate = GradleCoordinate.parseCoordinateString(id.toString() + ":+")!!
-    val version = mavenRepository.findVersion(wildCardCoordinate, null, allowPreview)
-    return GradleCoordinate.parseCoordinateString(id.toString() + ":" + version)
+    assertThat(gradleProjectSystem.getAvailableDependency(GoogleMavenArtifactId.NAVIGATION.getCoordinate("+"), false)).isNull()
   }
 }
