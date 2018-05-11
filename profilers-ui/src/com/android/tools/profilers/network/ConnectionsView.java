@@ -138,7 +138,7 @@ final class ConnectionsView {
 
     myConnectionsTable = new HoverRowTable(myTableModel, DEFAULT_HOVER_COLOR);
     customizeConnectionsTable();
-    createTooltip();
+    createTooltip(stageView);
 
     myAspectObserver = new AspectObserver();
     myStage.getAspect().addDependency(myAspectObserver).onChange(NetworkProfilerAspect.SELECTED_CONNECTION, this::updateTableSelection);
@@ -200,7 +200,7 @@ final class ConnectionsView {
     });
   }
 
-  private void createTooltip() {
+  private void createTooltip(@NotNull StageView stageView) {
     JTextPane textPane = new JTextPane();
     textPane.setEditable(false);
     textPane.setBorder(TOOLTIP_BORDER);
@@ -208,7 +208,7 @@ final class ConnectionsView {
     textPane.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
     textPane.setFont(ProfilerFonts.TOOLTIP_BODY_FONT);
     TooltipComponent tooltip =
-      new TooltipComponent.Builder(textPane, myConnectionsTable).setPreferredParentClass(ProfilerLayeredPane.class).build();
+      new TooltipComponent.Builder(textPane, myConnectionsTable, stageView.getProfilersView().getComponent()).build();
     tooltip.registerListenersOn(myConnectionsTable);
     myConnectionsTable.addMouseMotionListener(new MouseAdapter() {
       @Override

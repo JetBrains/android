@@ -24,7 +24,6 @@ import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.JBEmptyBorder;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -38,21 +37,13 @@ public abstract class ProfilerTooltipView extends AspectObserver {
   @NotNull
   private final JLabel myHeadingLabel;
 
-  @Nullable
-  private JComponent myTooltipContent;
-
   protected final Font myFont;
-
-  private final int myMaximumLabelHeight;
-
-  private int myMaximumWidth = 0;
 
   protected ProfilerTooltipView(@NotNull ProfilerTimeline timeline) {
     myTimeline = timeline;
     myHeadingLabel = new JLabel();
     myHeadingLabel.setForeground(ProfilerColors.TOOLTIP_TEXT);
     myFont = TOOLTIP_HEADER_FONT;
-    myMaximumLabelHeight = myHeadingLabel.getFontMetrics(myFont).getHeight();
     myHeadingLabel.setFont(myFont);
     timeline.getTooltipRange().addDependency(this).onChange(Range.Aspect.RANGE, this::updateHeader);
   }
@@ -64,23 +55,12 @@ public abstract class ProfilerTooltipView extends AspectObserver {
 
   private void updateHeader() {
     Range range = myTimeline.getTooltipRange();
-    if (!range.isEmpty()) {
+    if (!range.isEmpty() && range.getMin() >= myTimeline.getDataRange().getMin()) {
       String time = TimeFormatter.getSemiSimplifiedClockString((long)(range.getMin() - myTimeline.getDataRange().getMin()));
       myHeadingLabel.setText(time);
-      updateMaximumLabelDimensions();
     }
     else {
       myHeadingLabel.setText("");
-    }
-  }
-
-  protected final void updateMaximumLabelDimensions() {
-    int oldMaxWidth = myMaximumWidth;
-    myMaximumWidth = Math.max(myMaximumWidth, myHeadingLabel.getPreferredSize().width);
-    myMaximumWidth = Math.max(myMaximumWidth, myTooltipContent == null ? 0 : myTooltipContent.getPreferredSize().width);
-    if (oldMaxWidth != myMaximumWidth) {
-      // Set the minimum size so that the tooltip width doesn't flap.
-      myHeadingLabel.setMinimumSize(new Dimension(myMaximumWidth, myMaximumLabelHeight));
     }
   }
 
@@ -88,16 +68,9 @@ public abstract class ProfilerTooltipView extends AspectObserver {
   protected abstract JComponent createTooltip();
 
   public final JComponent createComponent() {
-    myTooltipContent = createTooltip();
-
-    // Reset label widths when the component changes.
-    myMaximumWidth = 0;
-    myHeadingLabel.setMinimumSize(new Dimension(myMaximumWidth, myMaximumLabelHeight));
-    updateMaximumLabelDimensions();
-
-    TooltipPanel tooltipPanel = new TooltipPanel(new TabularLayout("*", "Fit-,8px,*"));
+    TooltipPanel tooltipPanel = new TooltipPanel(new TabularLayout("Fit", "Fit-,8px,Fit"));
     tooltipPanel.add(myHeadingLabel, new TabularLayout.Constraint(0, 0));
-    tooltipPanel.add(myTooltipContent, new TabularLayout.Constraint(2, 0));
+    tooltipPanel.add(createTooltip(), new TabularLayout.Constraint(2, 0));
     tooltipPanel.setForeground(ProfilerColors.TOOLTIP_TEXT);
     tooltipPanel.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
     tooltipPanel.setBorder(new JBEmptyBorder(10, 10, 10, 10));

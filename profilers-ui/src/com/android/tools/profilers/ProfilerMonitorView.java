@@ -29,8 +29,6 @@ import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
 import static com.android.tools.profilers.ProfilerFonts.H2_FONT;
 import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
@@ -141,23 +139,8 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
    */
   public void registerTooltip(@NotNull RangeTooltipComponent tooltip, Stage stage) {
     JComponent component = getComponent();
+    component.addMouseListener(new ProfilerTooltipMouseAdapter(stage, () -> myMonitor.isEnabled() ? myMonitor.buildTooltip() : null));
     tooltip.registerListenersOn(component);
-    component.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseEntered(MouseEvent e) {
-        if (myMonitor.isEnabled()) {
-          stage.setTooltip(myMonitor.buildTooltip());
-        }
-        else {
-          stage.setTooltip(null);
-        }
-      }
-
-      @Override
-      public void mouseExited(MouseEvent e) {
-        stage.setTooltip(null);
-      }
-    });
   }
 
   abstract protected void populateUi(JPanel container);

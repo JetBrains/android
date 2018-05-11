@@ -311,7 +311,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     mySelectionComponent.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
     RangeTooltipComponent tooltip =
       new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(),
-                                getTooltipPanel(), ProfilerLayeredPane.class,
+                                getTooltipPanel(), getProfilersView().getComponent(),
                                 () -> mySelectionComponent.getMode() != SelectionComponent.Mode.MOVE);
     TabularLayout layout = new TabularLayout("*");
     JPanel panel = new JBPanel(layout);

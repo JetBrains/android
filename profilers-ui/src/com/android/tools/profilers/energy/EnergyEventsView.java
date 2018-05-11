@@ -113,19 +113,19 @@ public final class EnergyEventsView {
   // Intentionally local field, to prevent GC from cleaning it and removing weak listeners
   @SuppressWarnings("FieldCanBeLocal") private AspectObserver myAspectObserver = new AspectObserver();
 
-  public EnergyEventsView(EnergyProfilerStageView stageView) {
+  public EnergyEventsView(@NotNull EnergyProfilerStageView stageView) {
     myStage = stageView.getStage();
     myTableModel = new EventsTableModel(myStage);
     // Add a listener on model to update selection before construct table because otherwise it flickers. The table also adds a listener
     // on model that if the selection is set later then there is a clear and re-selection time gap on the view.
     myTableModel.addTableModelListener(e -> updateTableSelection());
     myEventsTable = new HoverRowTable(myTableModel, ProfilerColors.DEFAULT_HOVER_COLOR);
-    buildEventsTable();
+    buildEventsTable(stageView);
     myStage.getAspect().addDependency(myAspectObserver).onChange(EnergyProfilerAspect.SELECTED_EVENT_DURATION, this::updateTableSelection)
       .onChange(EnergyProfilerAspect.SELECTED_ORIGIN_FILTER, myTableModel::updateTableByOrigin);
   }
 
-  private void buildEventsTable() {
+  private void buildEventsTable(@NotNull StageView stageView) {
     myEventsTable.setAutoCreateRowSorter(true);
     myEventsTable.getColumnModel().getColumn(Column.EVENT.ordinal()).setCellRenderer(new BorderlessTableCellRenderer());
     myEventsTable.getColumnModel().getColumn(Column.DESCRIPTION.ordinal()).setCellRenderer(new BorderlessTableCellRenderer());
@@ -170,7 +170,7 @@ public final class EnergyEventsView {
         myStage.setSelectedDuration(duration);
       }
     });
-    createTooltip();
+    createTooltip(stageView);
   }
 
   private void updateTableSelection() {
@@ -194,13 +194,13 @@ public final class EnergyEventsView {
     return myEventsTable;
   }
 
-  private void createTooltip() {
+  private void createTooltip(@NotNull StageView stageView) {
     EnergyEventsTableTooltipInfoModel tooltipModel = new EnergyEventsTableTooltipInfoModel(myStage.getStudioProfilers().getTimeline().getDataRange());
     EnergyEventsTableTooltipInfoComponent tooltipInfoComponent = new EnergyEventsTableTooltipInfoComponent(tooltipModel);
     tooltipInfoComponent.setForeground(ProfilerColors.TOOLTIP_TEXT);
     tooltipInfoComponent.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
     TooltipComponent tooltip =
-      new TooltipComponent.Builder(tooltipInfoComponent, myEventsTable).setPreferredParentClass(ProfilerLayeredPane.class).build();
+      new TooltipComponent.Builder(tooltipInfoComponent, myEventsTable, stageView.getProfilersView().getComponent()).build();
     tooltip.registerListenersOn(myEventsTable);
 
     // Convert mouse position to the table timeline tooltipRange and update the model.

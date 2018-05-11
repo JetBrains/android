@@ -164,7 +164,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     RangeTooltipComponent tooltip = new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(),
                                                               timeline.getDataRange(),
                                                               getTooltipPanel(),
-                                                              ProfilerLayeredPane.class,
+                                                              getProfilersView().getComponent(),
                                                               () -> selection.getMode() != SelectionComponent.Mode.MOVE);
     TabularLayout layout = new TabularLayout("*");
     JPanel panel = new JBPanel(layout);

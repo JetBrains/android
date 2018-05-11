@@ -179,14 +179,14 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     getTooltipBinder().bind(CpuThreadsTooltip.class, CpuThreadsTooltipView::new);
     getTooltipBinder().bind(EventActivityTooltip.class, EventActivityTooltipView::new);
     getTooltipBinder().bind(EventSimpleEventTooltip.class, EventSimpleEventTooltipView::new);
-    getTooltipPanel().setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
+    getTooltipPanel().setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
     mySelection = new SelectionComponent(getStage().getSelectionModel(), getTimeline().getViewRange());
     mySelection.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
     myTooltipComponent = new RangeTooltipComponent(timeline.getTooltipRange(),
                                                    timeline.getViewRange(),
                                                    timeline.getDataRange(),
                                                    getTooltipPanel(),
-                                                   ProfilerLayeredPane.class,
+                                                   getProfilersView().getComponent(),
                                                    () -> mySelection.getMode() != SelectionComponent.Mode.MOVE);
     myThreads = new DragAndDropList<>(myStage.getThreadStates());
     myCpus = new JBList<>(myStage.getCpuKernelModel());
@@ -345,7 +345,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     });
 
     // Handle Tooltip
-    myTooltipComponent.registerListenersOn(myCpus);
     myCpus.addMouseListener(new ProfilerTooltipMouseAdapter(myStage, () -> new CpuKernelTooltip(myStage)));
     myCpus.addMouseMotionListener(new MouseAdapter() {
       @Override
@@ -360,6 +359,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         }
       }
     });
+    myTooltipComponent.registerListenersOn(myCpus);
 
     // Create hideable panel for CPU list.
     HideablePanel hideableCpus = new HideablePanel.Builder("KERNEL", scrollingCpus)
@@ -551,7 +551,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     scrollingThreads.setBorder(MONITOR_BORDER);
     scrollingThreads.setViewportView(myThreads);
 
-    myTooltipComponent.registerListenersOn(myThreads);
     myThreads.addMouseListener(new ProfilerTooltipMouseAdapter(myStage, () -> new CpuThreadsTooltip(myStage)));
     myThreads.addMouseMotionListener(new MouseAdapter() {
       @Override
@@ -566,6 +565,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         }
       }
     });
+    myTooltipComponent.registerListenersOn(myThreads);
 
     // Add AxisComponent only to scrollable section of threads list.
     final AxisComponent timeAxisGuide = new AxisComponent(myStage.getTimeAxisGuide(), AxisComponent.AxisOrientation.BOTTOM);

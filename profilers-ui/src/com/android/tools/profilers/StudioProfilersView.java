@@ -54,9 +54,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.util.function.BiFunction;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_BOTTOM_BORDER;
@@ -80,6 +78,8 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   private StageView myStageView;
   private final BorderLayout myLayout;
 
+  @NotNull
+  private final ProfilerLayeredPane myLayeredPane;
   /**
    * Splitter between the sessions and main profiler stage panel. We use IJ's {@link ThreeComponentsSplitter} as it supports zero-width
    * divider while still handling mouse resize properly.
@@ -110,6 +110,9 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     mySplitter.setHonorComponentsMinimumSize(true);
     mySplitter.setLastComponent(myStageComponent);
     Disposer.register(this, mySplitter);
+
+    myLayeredPane = new ProfilerLayeredPane(mySplitter);
+
     if (myProfiler.getIdeServices().getFeatureConfig().isSessionsEnabled() && myProfiler.getClient() != null) {
       mySessionsView = new SessionsView(myProfiler, ideProfilerComponents);
       JComponent sessionsComponent = mySessionsView.getComponent();
@@ -445,8 +448,9 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myCommonToolbar.setVisible(!topLevel && myStageView.navigationControllersEnabled());
   }
 
-  public JPanel getComponent() {
-    return mySplitter;
+  @NotNull
+  public JLayeredPane getComponent() {
+    return myLayeredPane;
   }
 
   /**

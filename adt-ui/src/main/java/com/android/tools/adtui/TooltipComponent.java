@@ -29,20 +29,25 @@ public final class TooltipComponent extends AnimatedComponent {
   private static final int TOOLTIP_BORDER_SIZE = 10;
 
   @NotNull
-  private final Component myContent;
+  private final Component myTooltipContent;
 
   @NotNull
   private final Component myOwner;
 
   @NotNull
+  private final JLayeredPane myParent;
+
+  @NotNull
   private final Producer<Boolean> myIsOwnerDisplayable;
+
+  // Minimum size of the tooltip between mouse enter/exit events.
+  // This prevents the tooltip component from flapping due to the content size changing constantly.
+  @NotNull
+  private final Dimension myExpandedSize = new Dimension(0, 0);
 
   private final boolean myAnchoredToOwner;
 
   private final boolean myShowDropShadow;
-
-  @Nullable
-  private final Class<? extends JLayeredPane> myPreferredParentClass;
 
   @Nullable
   private Point myLastPoint;
@@ -50,67 +55,38 @@ public final class TooltipComponent extends AnimatedComponent {
   private final ComponentListener myParentListener;
 
   private TooltipComponent(@NotNull Builder builder) {
-    myContent = builder.myContent;
+    myTooltipContent = builder.myTooltipContent;
     myOwner = builder.myOwner;
+    myParent = builder.myParent;
     myIsOwnerDisplayable = builder.myIsOwnerDisplayable;
-    myPreferredParentClass = builder.myPreferredParentClass;
     myAnchoredToOwner = builder.myAnchoredToOwner;
     myShowDropShadow = builder.myShowDropShadow;
 
-    add(myContent);
-    removeFromParent();
+    myParentListener = new ComponentAdapter() {
+      @Override
+      public void componentResized(ComponentEvent e) {
+        resetBounds();
+      }
+
+      @Override
+      public void componentMoved(ComponentEvent e) {
+        resetBounds();
+      }
+    };
+
+    add(myTooltipContent);
+    setVisible(false);
+    resetBounds();
 
     // Note: invokeLater here is important in order to avoid modifying the hierarchy during a
     // hierarchy event.
-    // We usually handle tooltip removal on mouseexit, but we add this here for possible edge
+    // We usually handle tooltip removal on mouseExit, but we add this here for possible edge
     // cases.
     myOwner.addHierarchyListener(event -> SwingUtilities.invokeLater(() -> {
       if (!myIsOwnerDisplayable.produce()) {
         removeFromParent();
       }
     }));
-
-    myParentListener = new ComponentAdapter() {
-      @Override
-      public void componentResized(ComponentEvent e) {
-        setBounds();
-      }
-
-      @Override
-      public void componentMoved(ComponentEvent e) {
-        setBounds();
-      }
-    };
-  }
-
-  private void recomputeParent() {
-    if (!myIsOwnerDisplayable.produce()) {
-      // No need to walk ancestors if the owner has been removed from the hierarchy
-      removeFromParent();
-      return;
-    }
-
-    JLayeredPane layeredPane = null;
-    for (Component c : new TreeWalker(myOwner).ancestors()) {
-      if (c instanceof JLayeredPane) {
-        layeredPane = (JLayeredPane)c;
-        if (c.getClass() == myPreferredParentClass) {
-          break;
-        }
-      }
-      else if (c instanceof RootPaneContainer) {
-        layeredPane = ((RootPaneContainer)c).getLayeredPane();
-      }
-    }
-
-    if (layeredPane == getParent()) {
-      return;
-    }
-
-    removeFromParent();
-    if (layeredPane != null) {
-      setParent(layeredPane);
-    }
   }
 
   private void removeFromParent() {
@@ -121,22 +97,24 @@ public final class TooltipComponent extends AnimatedComponent {
     }
   }
 
-  private void setParent(@NotNull JLayeredPane parent) {
-    setVisible(true);
-    parent.add(this, JLayeredPane.POPUP_LAYER);
-    parent.addComponentListener(myParentListener);
-    setBounds();
+  private void resetBounds() {
+    setBounds(0, 0, myParent.getWidth(), myParent.getHeight());
   }
 
-  private void setBounds() {
-    Container parent = getParent();
-    if (parent == null) {
-      return;
-    }
-    setBounds(0, 0, parent.getWidth(), parent.getHeight());
+  @NotNull
+  private static Dimension max(@NotNull Dimension a, @NotNull Dimension b) {
+    return new Dimension(Math.max(a.width, b.width), Math.max(a.height, b.height));
   }
 
-  public void registerListenersOn(Component component) {
+  @Override
+  public void doLayout() {
+    Dimension size = getPreferredSize();
+    myExpandedSize.setSize(size.width, 0); // Always let height vary.
+    myTooltipContent.setSize(size);
+    super.doLayout();
+  }
+
+  public void registerListenersOn(@NotNull Component component) {
     MouseAdapter adapter = new MouseAdapter() {
       @Override
       public void mouseMoved(MouseEvent e) {
@@ -144,29 +122,41 @@ public final class TooltipComponent extends AnimatedComponent {
       }
 
       @Override
-      public void mouseExited(MouseEvent e) {
-        myLastPoint = null;
-        if (isVisible()) {
-          removeFromParent();
-        }
-        opaqueRepaint();
-      }
-
-      @Override
       public void mouseDragged(MouseEvent e) {
         handleMove(e);
       }
 
-      private void handleMove(MouseEvent e) {
-        if (!isVisible()) {
-          // Recalculate the dimensions of the content prior to recomputing the parent, as recomputing the parent will cause a relayout.
-          Rectangle oldBounds = myContent.getBounds();
-          Dimension preferredSize = getPreferredSize();
-          myContent.setBounds(oldBounds.x, oldBounds.y, preferredSize.width, preferredSize.height);
+      @Override
+      public void mouseEntered(MouseEvent e) {
+        myExpandedSize.setSize(0, 0);
+        myTooltipContent.setSize(0, 0);
+        myParent.addComponentListener(myParentListener);
+        myParent.add(TooltipComponent.this, JLayeredPane.POPUP_LAYER);
+        setVisible(true);
+        revalidate();
+        opaqueRepaint();
+      }
 
-          recomputeParent();
-        }
+      @Override
+      public void mouseExited(MouseEvent e) {
+        myExpandedSize.setSize(0, 0);
+        myTooltipContent.setSize(0, 0);
+        removeFromParent();
+        setVisible(false);
+        myLastPoint = null;
+        opaqueRepaint();
+      }
+
+      private void handleMove(MouseEvent e) {
         myLastPoint = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), TooltipComponent.this);
+        if (!isVisible()) {
+          // If we turn invisible, then reset the anti-flap size.
+          // This won't work in all cases, since the content could set itself to invisible.
+          myExpandedSize.setSize(0, 0);
+        }
+        if (!myTooltipContent.getPreferredSize().equals(myTooltipContent.getBounds().getSize())) {
+          revalidate();
+        }
         opaqueRepaint();
       }
     };
@@ -176,14 +166,12 @@ public final class TooltipComponent extends AnimatedComponent {
 
   @Override
   public Dimension getPreferredSize() {
-    Dimension preferredSize = myContent.getPreferredSize();
-    Dimension minSize = myContent.getMinimumSize();
-    return new Dimension(Math.max(preferredSize.width, minSize.width), Math.max(preferredSize.height, minSize.height));
+    return max(max(myTooltipContent.getPreferredSize(), myTooltipContent.getMinimumSize()), myExpandedSize);
   }
 
   @Override
   protected void draw(Graphics2D g, Dimension dim) {
-    if (!myContent.isVisible()) {
+    if (!isVisible()) {
       return; // We shouldn't draw the tooltip if its content is not supposed to be visible
     }
     assert myLastPoint != null; // If we're visible, myLastPoint is not null
@@ -202,7 +190,7 @@ public final class TooltipComponent extends AnimatedComponent {
     // TODO Investigate if this works for multiple monitors, especially on Macs?
     int x = Math.max(Math.min(anchorPoint.x + padding, dim.width - preferredSize.width - padding), padding);
     int y = Math.max(Math.min(anchorPoint.y + padding, dim.height - preferredSize.height - padding), padding);
-    myContent.setBounds(x, y, preferredSize.width, preferredSize.height);
+    myTooltipContent.setLocation(x, y);
 
     g.setColor(Color.WHITE);
     g.fillRect(x, y, preferredSize.width, preferredSize.height);
@@ -218,14 +206,14 @@ public final class TooltipComponent extends AnimatedComponent {
         g.draw(rect);
       }
     }
-    myContent.repaint();
+    myTooltipContent.repaint();
   }
 
   public static class Builder {
-    @NotNull private final Component myContent;
-    @NotNull private final Component myOwner;
+    @NotNull private final JComponent myTooltipContent;
+    @NotNull private final JComponent myOwner;
+    @NotNull private final JLayeredPane myParent;
     @NotNull private Producer<Boolean> myIsOwnerDisplayable;
-    @Nullable private Class<? extends JLayeredPane> myPreferredParentClass;
     private boolean myAnchoredToOwner;
     private boolean myShowDropShadow = true;
 
@@ -234,23 +222,16 @@ public final class TooltipComponent extends AnimatedComponent {
      * construction, you should also use {@link TooltipComponent#registerListenersOn(Component)} to ensure the
      * tooltip will show up on mouse movement.
      *
-     * @param owner The suggested owner for this tooltip. The tooltip will walk up the
-     *              tree from this owner searching for a proper place to add itself.
+     * @param tooltipContent The content that will be rendered as contents of the tooltip.
+     * @param owner          The suggested owner for this tooltip. The tooltip will walk up the
+     *                       tree from this owner searching for a proper place to add itself.
+     * @param parent         The top-most layered pane this tooltip will paint over.
      */
-    public Builder(@NotNull Component content, @NotNull Component owner) {
-      myContent = content;
+    public Builder(@NotNull JComponent tooltipContent, @NotNull JComponent owner, @NotNull JLayeredPane parent) {
+      myTooltipContent = tooltipContent;
       myOwner = owner;
+      myParent = parent;
       myIsOwnerDisplayable = myOwner::isDisplayable;
-    }
-
-    /**
-     * @param preferredParentClass If not {@code null}, the type of pane to use as this tooltip's
-     *                             parent (useful if you have a specific parent pane in mind)
-     */
-    @NotNull
-    public Builder setPreferredParentClass(@Nullable Class<? extends JLayeredPane> preferredParentClass) {
-      myPreferredParentClass = preferredParentClass;
-      return this;
     }
 
     /**

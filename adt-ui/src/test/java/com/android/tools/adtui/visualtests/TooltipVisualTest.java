@@ -119,7 +119,7 @@ public class TooltipVisualTest extends VisualTest {
     myTooltip.repaint();
   }
 
-  private static class CheckeredComponent extends Component {
+  private static class CheckeredComponent extends JComponent {
     @Override
     public void paint(Graphics g) {
       g.setColor(Color.WHITE);
