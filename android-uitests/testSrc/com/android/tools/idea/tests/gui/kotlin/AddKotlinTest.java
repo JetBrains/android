@@ -15,20 +15,30 @@
  */
 package com.android.tools.idea.tests.gui.kotlin;
 
+import com.android.tools.idea.npw.template.ConvertJavaToKotlinDefaultImpl;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.ConfigureKotlinDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.concurrent.TimeUnit;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintStream;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -65,7 +75,7 @@ public class AddKotlinTest {
    * <p>
    */
   @Test
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.SANITY_BAZEL)
   public void addKotlinClass() throws Exception {
     IdeFrameFixture ideFrameFixture =
       guiTest.importProjectAndWaitForProjectSyncToFinish(PROJECT_DIR_NAME);
@@ -110,8 +120,54 @@ public class AddKotlinTest {
 
     // As default, "All modules containing Kotlin files" option is selected for now.
     ConfigureKotlinDialogFixture.find(ideFrameFixture)
-                                .clickOk();
+      .clickOk();
+
+    // TODO: the following is a hack. See http://b/79752752 for removal of the hack
+    // The Kotlin plugin version chosen is done with a network request. This does not work
+    // in an environment where network access is unavailable. We need to handle setting
+    // the Kotlin plugin version ourselves temporarily.
+    Wait.seconds(15)
+      .expecting("Gradle Kotlin plugin version to be set")
+      .until(() ->
+        ideFrameFixture.getEditor().open("build.gradle").getCurrentFileContents().contains("ext.kotlin_version")
+      );
+
+    String buildGradleContents = ideFrameFixture.getEditor()
+      .open("build.gradle")
+      .getCurrentFileContents();
+
+    String newBuildGradleContents = buildGradleContents.replaceAll(
+        "ext\\.kotlin_version.*=.*",
+        "ext.kotlin_version = '" + new ConvertJavaToKotlinDefaultImpl().getKotlinVersion() + '\'')
+      .replaceAll(
+        "mavenCentral\\(\\)",
+        ""
+      );
+
+    OutputStream buildGradleOutput = ideFrameFixture.getEditor()
+      .open("build.gradle")
+      .getCurrentFile()
+      .getOutputStream(null);
+    Ref<IOException> ioErrors = new Ref<>();
+    ApplicationManager.getApplication().invokeAndWait(() -> {
+      ApplicationManager.getApplication().runWriteAction(() -> {
+        try (
+          Writer buildGradleWriter = new OutputStreamWriter(buildGradleOutput, StandardCharsets.UTF_8);
+        ) {
+          buildGradleWriter.write(newBuildGradleContents);
+        } catch (IOException writeError) {
+          ioErrors.set(writeError);
+        }
+      });
+    });
+    IOException ioError = ioErrors.get();
+    if (ioError != null) {
+      throw new Exception("Unable to modify build.gradle file", ioError);
+    }
+    // TODO End hack
+
     ideFrameFixture.requestProjectSync();
+    guiTest.testSystem().waitForProjectSyncToFinish(ideFrameFixture);
 
     assertThat(ideFrameFixture.invokeProjectMake().isBuildSuccessful()).isTrue();
   }

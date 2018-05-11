@@ -18,6 +18,7 @@ COMMON_DATA = [
     "//tools/base/templates",
     "//tools/idea/java/jdkAnnotations",
     "//tools/idea:config",
+    "//tools/idea:platform-build-info",
     "//tools/vendor/google/testing/display:xvfb",
 ]
 
@@ -364,7 +365,7 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
-# Sanity test
+# sanity test
 java_test(
     name = "CreateDefaultActivityTest",
     data = COMMON_DATA + [
@@ -380,7 +381,7 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
-# Sanity test
+# sanity test
 java_test(
     name = "GenerateApkWithReleaseVariantTest",
     data = COMMON_DATA + glob([
@@ -394,7 +395,7 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
-# Sanity test
+# sanity test
 java_test(
     name = "ModifyMinSdkAndSyncTest",
     data = COMMON_DATA + glob([
@@ -408,7 +409,7 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
-# Sanity test
+# sanity test
 java_test(
     name = "CreateNewAppModuleWithDefaultsTest",
     data = COMMON_DATA + glob([
@@ -423,7 +424,7 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
-# Sanity test
+# sanity test
 java_test(
     name = "CreateNewLibraryModuleWithDefaultsTest",
     data = COMMON_DATA + glob([
@@ -438,7 +439,7 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
-# Sanity test
+# sanity test
 java_test(
     name = "AddNewBuildTypeTest",
     data = COMMON_DATA + glob([
@@ -465,6 +466,25 @@ java_test(
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# sanity test
+java_test(
+    name = "AddKotlinTest",
+    data = COMMON_DATA + glob([
+        "testData/LinkProjectWithKotlin/**",
+    ]),
+    jvm_flags = [
+        "-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.AddKotlinTest",
+    ],
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_sanity",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [
+        ":intellij.android.guiTests_testlib",
+    ],
 )
 
 java_test(
