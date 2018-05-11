@@ -23,6 +23,7 @@ public class NdkModelFeatures {
   private final boolean myGroupNameSupported;
   private final boolean myExportedHeadersSupported;
   private final boolean myBuildSystemNameSupported;
+  private final boolean mySingleVariantSyncSupported;
 
   public NdkModelFeatures(@Nullable GradleVersion modelVersion) {
     boolean isAtLeastTwoDotTwo = modelVersion != null && modelVersion.compareIgnoringQualifiers("2.0.0") >= 0;
@@ -30,6 +31,8 @@ public class NdkModelFeatures {
     myGroupNameSupported = isAtLeastTwoDotTwo;
     myExportedHeadersSupported = isAtLeastTwoDotTwo;
     myBuildSystemNameSupported = modelVersion != null && modelVersion.compareIgnoringQualifiers("2.2.0") >= 0;
+    // TODO: update this flag when single variant sync for native modules are supported by AGP.
+    mySingleVariantSyncSupported = false;
   }
 
   public boolean isGroupNameSupported() {
@@ -46,5 +49,9 @@ public class NdkModelFeatures {
 
   public boolean isBuildSystemNameSupported() {
     return myBuildSystemNameSupported;
+  }
+
+  public boolean isSingleVariantSyncSupported() {
+    return mySingleVariantSyncSupported;
   }
 }

@@ -18,12 +18,8 @@ package com.android.tools.idea.gradle.project.sync.setup.post;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
-import com.android.tools.idea.gradle.project.ProjectStructure;
+import com.android.tools.idea.gradle.project.*;
 import com.android.tools.idea.gradle.project.ProjectStructure.AndroidPluginVersionsInProject;
-import com.android.tools.idea.gradle.project.RunConfigurationChecker;
-import com.android.tools.idea.gradle.project.SupportedModuleChecker;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -40,6 +36,7 @@ import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDialog;
 import com.android.tools.idea.instantapp.ProvisionTasks;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
@@ -81,8 +78,10 @@ import java.util.*;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.build.BuildStatus.SKIPPED;
 import static com.android.tools.idea.gradle.project.sync.ModuleSetupContext.removeSyncContextDataFrom;
+import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.SINGLE_VARIANT_SYNC;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
+import static com.android.tools.idea.project.messages.MessageType.WARNING;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static java.lang.System.currentTimeMillis;
@@ -211,6 +210,7 @@ public class PostSyncProjectSetup {
     SupportedModuleChecker.getInstance().checkForSupportedModules(myProject);
 
     findAndShowVariantConflicts();
+    warnIfSingleVariantIsEnableButNotSupported();
     myProjectSetup.setUpProject(progressIndicator, false /* sync successful */);
 
     modifyJUnitRunConfigurations();
@@ -230,6 +230,21 @@ public class PostSyncProjectSetup {
     myModuleSetup.setUpModules(null);
 
     finishSuccessfulSync(taskId);
+  }
+
+  private void warnIfSingleVariantIsEnableButNotSupported() {
+    if (StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.get()) {
+      for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+        AndroidModuleModel androidModel = AndroidModuleModel.get(module);
+        if (androidModel != null && !androidModel.getFeatures().isSingleVariantSyncSupported()) {
+          String text =
+            "Single-Variant Sync is enabled but not supported by this version of Gradle. Full Variants Sync was performed instead.";
+          SyncMessage msg = new SyncMessage(SINGLE_VARIANT_SYNC, WARNING, text);
+          GradleSyncMessages.getInstance(myProject).report(msg);
+          return;
+        }
+      }
+    }
   }
 
   private void finishSuccessfulSync(@Nullable ExternalSystemTaskId taskId) {
@@ -374,13 +389,13 @@ public class PostSyncProjectSetup {
     RunManagerImpl runManager = RunManagerImpl.getInstanceImpl(myProject);
     for (BeforeRunTask beforeRunTask : runManager.getBeforeRunTasks(runConfiguration)) {
       if (beforeRunTask.getProviderId().equals(CompileStepBeforeRun.ID)) {
-          if (runManager.getBeforeRunTasks(runConfiguration, MakeBeforeRunTaskProvider.ID).isEmpty()) {
-            BeforeRunTask task = targetProvider.createTask(runConfiguration);
-            if (task != null) {
-              task.setEnabled(true);
-              newBeforeRunTasks.add(task);
-            }
+        if (runManager.getBeforeRunTasks(runConfiguration, MakeBeforeRunTaskProvider.ID).isEmpty()) {
+          BeforeRunTask task = targetProvider.createTask(runConfiguration);
+          if (task != null) {
+            task.setEnabled(true);
+            newBeforeRunTasks.add(task);
           }
+        }
       }
       else {
         newBeforeRunTasks.add(beforeRunTask);
@@ -402,6 +417,7 @@ public class PostSyncProjectSetup {
 
   /**
    * Create a new {@link ExternalSystemTaskId} to be used while doing project setup from cache and adds a StartBuildEvent to build view.
+   *
    * @param project
    * @return
    */
