@@ -32,7 +32,8 @@ public class AndroidModelFeatures {
   private final boolean myPostBuildSyncSupported;
   // Should current module export its module/library dependencies.
   private final boolean myExportDependencies;
-  private final boolean myIsVfsRefreshRequired;
+  private final boolean myVfsRefreshRequired;
+  private final boolean mySingleVariantSyncSupported;
 
   public AndroidModelFeatures(@Nullable GradleVersion modelVersion) {
     myModelVersion = modelVersion;
@@ -59,7 +60,8 @@ public class AndroidModelFeatures {
     // With pre-3.0 AGP, AARs are exploded AFTER Gradle Sync, and IDE does not know when these files becomes available,
     // which causes "unresolved symbol" problem. Refresh file system to make IDE pick up exploded AARs.
     // It is not needed with AGP 3.0+, because AARs are exploded DURING Gradle Sync with 3.0+.
-    myIsVfsRefreshRequired = isPre3dot0Version;
+    myVfsRefreshRequired = isPre3dot0Version;
+    mySingleVariantSyncSupported = modelVersionIsAtLeast("3.2.0");
   }
 
   private boolean modelVersionIsAtLeast(@NotNull String revision) {
@@ -103,6 +105,10 @@ public class AndroidModelFeatures {
   }
 
   public boolean isVfsRefreshAfterBuildRequired() {
-    return myIsVfsRefreshRequired;
+    return myVfsRefreshRequired;
+  }
+
+  public boolean isSingleVariantSyncSupported() {
+    return mySingleVariantSyncSupported;
   }
 }

@@ -171,6 +171,7 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
     assertNotNull(androidProject);
     Collection<Variant> variants = androidProject.getVariants();
     assertThat(variants).isNotEmpty();
+    assertNull(appModels.findModel(Variant.class));
   }
 
   @NotNull

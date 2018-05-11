@@ -102,12 +102,11 @@ public class SyncModuleModels implements GradleModuleModels {
               addVariant(variant);
             }
           }
-
           return androidProject;
         }
       }
       catch (UnsupportedVersionException e) {
-        // Using old version of Gradle.
+        // Using old version of Gradle. Fall back to full variants sync for this module.
       }
     }
     return findAndAddModel(gradleProject, controller, AndroidProject.class);
