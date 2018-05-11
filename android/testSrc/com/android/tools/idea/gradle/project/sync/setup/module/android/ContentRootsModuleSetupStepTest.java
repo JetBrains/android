@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetType;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkVariant;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
@@ -141,7 +142,7 @@ public class ContentRootsModuleSetupStepTest extends IdeaTestCase {
   public void testSetUpNativeModule() {
     // Simulate this is a native module
     NdkModuleModel ndkModuleModel = mock(NdkModuleModel.class);
-    when(ndkModuleModel.getSelectedVariant()).thenReturn(mock(NdkModuleModel.NdkVariant.class));
+    when(ndkModuleModel.getSelectedVariant()).thenReturn(mock(NdkVariant.class));
 
     NdkFacet facet = addNativeAndroidFacet(myModelsProvider);
     facet.setNdkModuleModel(ndkModuleModel);

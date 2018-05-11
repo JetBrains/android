@@ -19,7 +19,6 @@ import com.android.builder.model.*;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
@@ -35,12 +34,13 @@ import static java.util.Collections.sort;
 
 public class NdkModuleModel implements ModuleModel {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 2L;
+  private static final long serialVersionUID = 3L;
 
   @NotNull private String myModuleName;
   @NotNull private File myRootDirPath;
   @NotNull private IdeNativeAndroidProject myAndroidProject;
 
+  @NotNull private transient NdkModelFeatures myFeatures;
   @Nullable private transient GradleVersion myModelVersion;
 
   @NotNull private Map<String, NdkVariant> myVariantsByName = new HashMap<>();
@@ -73,6 +73,7 @@ public class NdkModuleModel implements ModuleModel {
     myAndroidProject = androidProject;
 
     parseAndSetModelVersion();
+    myFeatures = new NdkModelFeatures(myModelVersion);
 
     populateVariantsByName();
     populateToolchainsByName();
@@ -83,17 +84,17 @@ public class NdkModuleModel implements ModuleModel {
 
   private void populateVariantsByName() {
     for (NativeArtifact artifact : myAndroidProject.getArtifacts()) {
-      String variantName = modelVersionIsAtLeast("2.0.0") ? artifact.getGroupName() : artifact.getName();
+      String variantName = myFeatures.isGroupNameSupported() ? artifact.getGroupName() : artifact.getName();
       NdkVariant variant = myVariantsByName.get(variantName);
       if (variant == null) {
-        variant = new NdkVariant(variantName);
+        variant = new NdkVariant(variantName, myFeatures.isExportedHeadersSupported());
         myVariantsByName.put(variant.getName(), variant);
       }
       variant.addArtifact(artifact);
     }
     if (myVariantsByName.isEmpty()) {
       // There will mostly be at least one variant, but create a dummy variant when there are none.
-      myVariantsByName.put("-----", new NdkVariant("-----"));
+      myVariantsByName.put("-----", new NdkVariant("-----", myFeatures.isExportedHeadersSupported()));
     }
   }
 
@@ -133,10 +134,6 @@ public class NdkModuleModel implements ModuleModel {
 
   private void parseAndSetModelVersion() {
     myModelVersion = GradleVersion.tryParse(myAndroidProject.getModelVersion());
-  }
-
-  public boolean modelVersionIsAtLeast(@NotNull String revision) {
-    return myModelVersion != null && myModelVersion.compareIgnoringQualifiers(revision) >= 0;
   }
 
   @Override
@@ -192,6 +189,11 @@ public class NdkModuleModel implements ModuleModel {
     return mySettingsByName.get(settingsName);
   }
 
+  @NotNull
+  public NdkModelFeatures getFeatures() {
+    return myFeatures;
+  }
+
   private void writeObject(ObjectOutputStream out) throws IOException {
     out.writeObject(myModuleName);
     out.writeObject(myRootDirPath);
@@ -206,6 +208,7 @@ public class NdkModuleModel implements ModuleModel {
     mySelectedVariantName = (String)in.readObject();
 
     parseAndSetModelVersion();
+    myFeatures = new NdkModelFeatures(myModelVersion);
 
     myVariantsByName = new HashMap<>();
     myToolchainsByName = new HashMap<>();
@@ -214,50 +217,5 @@ public class NdkModuleModel implements ModuleModel {
     populateVariantsByName();
     populateToolchainsByName();
     populateSettingsByName();
-  }
-
-  public class NdkVariant {
-    @NotNull private final String myVariantName;
-    @NotNull private final Map<String, NativeArtifact> myArtifactsByName = new HashMap<>();
-
-    private NdkVariant(@NotNull String variantName) {
-      myVariantName = variantName;
-    }
-
-    private void addArtifact(@NotNull NativeArtifact artifact) {
-      myArtifactsByName.put(artifact.getName(), artifact);
-    }
-
-    @NotNull
-    public String getName() {
-      return myVariantName;
-    }
-
-    @NotNull
-    public Collection<NativeArtifact> getArtifacts() {
-      return myArtifactsByName.values();
-    }
-
-    @NotNull
-    public Collection<File> getSourceFolders() {
-      Set<File> sourceFolders = new LinkedHashSet<>();
-      for (NativeArtifact artifact : getArtifacts()) {
-        if (modelVersionIsAtLeast("2.0.0")) {
-          for (File headerRoot : artifact.getExportedHeaders()) {
-            sourceFolders.add(headerRoot);
-          }
-        }
-        for (NativeFolder sourceFolder : artifact.getSourceFolders()) {
-          sourceFolders.add(sourceFolder.getFolderPath());
-        }
-        for (NativeFile sourceFile : artifact.getSourceFiles()) {
-          File parentFile = sourceFile.getFilePath().getParentFile();
-          if (parentFile != null) {
-            sourceFolders.add(parentFile);
-          }
-        }
-      }
-      return ImmutableList.copyOf(sourceFolders);
-    }
   }
 }
