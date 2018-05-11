@@ -256,16 +256,14 @@ public class MotionLayoutComponentDelegate implements NlComponentDelegate {
   public List<AttributeSnapshot> getAttributes(NlComponent component) {
     List<AttributeSnapshot> attributes = null;
     if (USE_CACHE) {
-      mCachedAttributes.get(component);
+      attributes = mCachedAttributes.get(component);
     }
     if (attributes == null) {
       XmlTag constrainedView = getConstrainedView(component);
       if (constrainedView != null) {
         attributes = AttributeSnapshot.createAttributesForTag(constrainedView);
-      } else {
-        attributes = Collections.emptyList();
       }
-      if (USE_CACHE) {
+      if (USE_CACHE && attributes != null) {
         mCachedAttributes.put(component, attributes);
       }
     }
