@@ -16,7 +16,7 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceValueMap;
 import com.android.resources.ResourceType;
@@ -172,6 +172,6 @@ public class GutterIconFactoryTest extends AndroidTestCase {
   private static void addColor(ResourceResolver resolver, String colorName, String colorValue) {
     ResourceValueMap resourceValueMap = resolver.getProjectResources().get(ResourceType.COLOR);
 
-    resourceValueMap.put(colorName, new ResourceValue(ResourceNamespace.TODO, ResourceType.COLOR, colorName, colorValue));
+    resourceValueMap.put(colorName, new ResourceValueImpl(ResourceNamespace.TODO, ResourceType.COLOR, colorName, colorValue));
   }
 }

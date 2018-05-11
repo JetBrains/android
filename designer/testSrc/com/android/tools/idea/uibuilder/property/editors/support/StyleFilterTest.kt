@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceNamespace.Resolver.EMPTY_RESOLVER
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.rendering.api.StyleResourceValue
+import com.android.ide.common.rendering.api.StyleResourceValueImpl
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.ResourceValueMap
 import com.android.resources.ResourceType
@@ -140,6 +141,6 @@ class StyleFilterTest : AndroidTestCase() {
   }
 
   private fun mkStyleResourceValue(namespace: ResourceNamespace, name: String, parentStyle: String, library: String): StyleResourceValue {
-    return StyleResourceValue(ResourceReference(namespace, ResourceType.STYLE, name), parentStyle, library)
+    return StyleResourceValueImpl(ResourceReference(namespace, ResourceType.STYLE, name), parentStyle, library)
   }
 }

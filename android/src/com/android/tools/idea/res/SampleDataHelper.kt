@@ -16,6 +16,7 @@
 package com.android.tools.idea.res
 
 import com.android.ide.common.rendering.api.ResourceValue
+import com.android.ide.common.rendering.api.ResourceValueImpl
 import com.android.ide.common.rendering.api.SampleDataResourceValue
 import com.android.resources.ResourceType
 
@@ -43,9 +44,6 @@ fun SampleDataResourceItem.getDrawableResources(): List<ResourceValue> {
   }
   val value = resourceValue as SampleDataResourceValue
   return value.valueAsLines.map { line ->
-    ResourceValue(referenceToSelf.namespace,
-                  ResourceType.DRAWABLE,
-                  referenceToSelf.name, line,
-                  value.libraryName)
+    ResourceValueImpl(referenceToSelf.namespace, ResourceType.DRAWABLE, referenceToSelf.name, line, value.libraryName)
   }
 }

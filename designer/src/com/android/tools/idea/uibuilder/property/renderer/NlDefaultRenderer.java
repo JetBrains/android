@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.ptable.PTable;
@@ -116,7 +117,8 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
   @Nullable
   private static Icon getDrawableIcon(@NotNull ResourceResolver resolver, @NotNull NlProperty property, @NotNull String value) {
     ResourceType type = value.startsWith(SdkConstants.MIPMAP_PREFIX) ? ResourceType.MIPMAP : ResourceType.DRAWABLE;
-    ResourceValue drawable = resolver.resolveResValue(new ResourceValue(new ResourceReference(type, property.getName(), false), value));
+    ResourceValue drawable = resolver.resolveResValue(
+        new ResourceValueImpl(new ResourceReference(type, property.getName(), false), value));
     if (drawable == null) {
       return null;
     }
@@ -128,10 +130,8 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
 
   @Nullable
   private static Icon getColorIcon(@NotNull ResourceResolver resolver, @NotNull NlProperty property, @NotNull String value, int iconSize) {
-    ResourceValue resourceValue = resolver.resolveResValue(new ResourceValue(new ResourceReference(ResourceType.COLOR,
-                                                                                                   property.getName(),
-                                                                                                   false),
-                                                                             value));
+    ResourceValue resourceValue = resolver.resolveResValue(
+        new ResourceValueImpl(new ResourceReference(ResourceType.COLOR, property.getName(),false), value));
     if (resourceValue == null) {
       return null;
     }

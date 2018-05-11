@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.scene;
 
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.Density;
 import com.android.resources.ResourceUrl;
@@ -87,7 +88,7 @@ public class SceneKeepDimensTest extends SceneTest {
   }
 
   private void setFakeResource(String dimension, String value) {
-    ResourceValue resourceValue = new ResourceValue(ResourceUrl.parse(dimension).resolve(RES_AUTO, EMPTY_RESOLVER), value);
+    ResourceValue resourceValue = new ResourceValueImpl(ResourceUrl.parse(dimension).resolve(RES_AUTO, EMPTY_RESOLVER), value);
     ResourceResolver resolver = ResourceResolver.withValues(resourceValue);
 
     Configuration configuration = Mockito.mock(Configuration.class);

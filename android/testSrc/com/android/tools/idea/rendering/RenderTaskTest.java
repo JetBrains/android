@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceType;
@@ -108,7 +109,7 @@ public class RenderTaskTest extends AndroidTestCase {
     RenderTask task = RenderTestUtil.createRenderTask(myModule, drawableFile, configuration, logger);
     // Workaround for a bug in layoutlib that will only fully initialize the static state if a render() call is made.
     task.render().get();
-    ResourceValue resourceValue = new ResourceValue(RES_AUTO, ResourceType.DRAWABLE, "test", "@drawable/test");
+    ResourceValue resourceValue = new ResourceValueImpl(RES_AUTO, ResourceType.DRAWABLE, "test", "@drawable/test");
     BufferedImage result = task.renderDrawable(resourceValue).get();
 
     assertNotNull(result);
@@ -260,7 +261,7 @@ public class RenderTaskTest extends AndroidTestCase {
     RenderLogger logger = mock(RenderLogger.class);
 
     RenderTask task = RenderTestUtil.createRenderTask(myModule, drawableFile, configuration, logger);
-    ResourceValue resourceValue = new ResourceValue(RES_AUTO, ResourceType.DRAWABLE, "test", "@drawable/test");
+    ResourceValue resourceValue = new ResourceValueImpl(RES_AUTO, ResourceType.DRAWABLE, "test", "@drawable/test");
     BufferedImage result = task.renderDrawable(resourceValue).get();
     assertNotNull(result);
 

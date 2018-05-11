@@ -20,7 +20,7 @@ import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.rendering.api.SampleDataResourceValue;
+import com.android.ide.common.rendering.api.SampleDataResourceValueImpl;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.sampledata.SampleDataCsvParser;
@@ -340,7 +340,7 @@ public class SampleDataResourceItem implements ResourceItem {
   public ResourceValue getResourceValue() {
     byte[] content = getContent(() -> myResourceValue = null);
     if (myResourceValue == null) {
-      myResourceValue = new SampleDataResourceValue(getReferenceToSelf(), content);
+      myResourceValue = new SampleDataResourceValueImpl(getReferenceToSelf(), content);
     }
     return myResourceValue;
   }

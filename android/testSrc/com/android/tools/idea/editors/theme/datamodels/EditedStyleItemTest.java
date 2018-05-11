@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.theme.datamodels;
 
 import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.ide.common.rendering.api.StyleItemResourceValueImpl;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.idea.configurations.Configuration;
@@ -41,11 +42,11 @@ public class EditedStyleItemTest extends AndroidTestCase {
     //noinspection ConstantConditions
     List<ConfiguredElement<ItemResourceValue>> items = ImmutableList.of(
       ConfiguredElement.create(FolderConfiguration.getConfigForFolder("values-v21"),
-                               new ItemResourceValue(ResourceNamespace.RES_AUTO, "attribute","otherValue", null)));
+                               new StyleItemResourceValueImpl(ResourceNamespace.RES_AUTO, "attribute", "otherValue", null)));
 
     EditedStyleItem editedStyleItem = new EditedStyleItem(
       ConfiguredElement.create(new FolderConfiguration(),
-                               new ItemResourceValue(ResourceNamespace.RES_AUTO, "attribute", "selectedValue", null)),
+                               new StyleItemResourceValueImpl(ResourceNamespace.RES_AUTO, "attribute", "selectedValue", null)),
       items,
       fakeTheme);
 
