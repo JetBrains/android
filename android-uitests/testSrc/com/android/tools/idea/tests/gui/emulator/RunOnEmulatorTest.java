@@ -16,10 +16,12 @@
 package com.android.tools.idea.tests.gui.emulator;
 
 import com.android.ddmlib.AndroidDebugBridge;
+import com.android.fakeadbserver.CommandHandler;
 import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
 import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler;
+import com.android.fakeadbserver.shellcommandhandlers.ShellCommandHandler;
 import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -28,6 +30,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -35,6 +38,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.Socket;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -71,6 +76,7 @@ public class RunOnEmulatorTest {
         ActivityManagerCommandHandler.COMMAND,
         () -> new ActivityManagerCommandHandler(procStarter)
       )
+      .setShellCommandHandler(LsCommandHandler.COMMAND, LsCommandHandler::new)
       .setDeviceCommandHandler(
         JdwpCommandHandler.COMMAND,
         JdwpCommandHandler::new
@@ -138,5 +144,39 @@ public class RunOnEmulatorTest {
     AndroidDebugBridge.terminate();
     AndroidDebugBridge.disableFakeAdbServerMode();
     fakeAdbServer.close();
+  }
+
+  private static class LsCommandHandler extends ShellCommandHandler {
+    public static final String COMMAND = "ls";
+
+    @Override
+    public boolean invoke(@NotNull FakeAdbServer fakeAdbServer, @NotNull Socket responseSocket, @NotNull DeviceState device, @Nullable String args) {
+      try {
+        OutputStream output = responseSocket.getOutputStream();
+
+        if (args == null) {
+          CommandHandler.writeFail(output);
+          return false;
+        }
+
+        CommandHandler.writeOkay(output);
+
+        String[] filepaths = args.split("\\s+");
+
+        // Treat as if nothing is available
+        StringBuilder respBuilder = new StringBuilder();
+        for (String filepath : filepaths) {
+          respBuilder.append("ls: ").append(filepath).append(": No Such file or directory\n");
+        }
+
+        CommandHandler.writeString(output, respBuilder.toString());
+      }
+      catch (IOException ignored) {
+        // Unable to send anything back to client. Can't do anything, so swallow the exception
+        // and continue on...
+      }
+
+      return false;
+    }
   }
 }
