@@ -19,8 +19,10 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -58,6 +60,15 @@ public final class ExtDslElement extends GradleDslBlockElement {
     GradleDslElement newElement = super.setNewElement(element);
     newElement.setUseAssignment(true);
     return newElement;
+  }
+
+  @Override
+  public void setPsiElement(@Nullable PsiElement psiElement) {
+    // This makes sure the the PsiElement for the ExtDslElement is the first one declared in the file.
+    // This allows all new ext elements to be added to the first ext block so to be more likely to be in scope for using fields.
+    if (getPsiElement() == null || psiElement == null) {
+      super.setPsiElement(psiElement);
+    }
   }
 
   /**
