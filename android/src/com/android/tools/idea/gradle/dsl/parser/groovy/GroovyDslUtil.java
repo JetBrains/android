@@ -26,6 +26,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -732,29 +733,35 @@ public final class GroovyDslUtil {
   static PsiElement getPsiElementForAnchor(@NotNull PsiElement parent, @Nullable GradleDslElement dslAnchor) {
     PsiElement anchorAfter = dslAnchor == null ? null : dslAnchor.getPsiElement();
     if (anchorAfter == null && parent instanceof GrClosableBlock) {
-      PsiElement element = parent.getFirstChild();
-      // Skip the first non-empty element, this is normally the '{' of a closable block.
-      if (element != null) {
-        element = element.getNextSibling();
-      }
-
-      // Find the last empty (no newlines or content) child after the initial element.
-      while (element != null) {
-        element = element.getNextSibling();
-        if (element != null && (Strings.isNullOrEmpty(element.getText()) || element.getText().matches("[\\t ]+"))) {
-          continue;
-        }
-        break;
-      }
-
-      return element == null ? null : element.getPrevSibling();
+      return adjustForCloseableBlock((GrClosableBlock)parent);
     }
     else {
-      while (anchorAfter != null && anchorAfter.getParent() != parent) {
+      while (anchorAfter != null && !(anchorAfter instanceof PsiFile) && anchorAfter.getParent() != parent) {
         anchorAfter = anchorAfter.getParent();
       }
-      return anchorAfter;
+      return anchorAfter instanceof PsiFile
+             ? (parent instanceof GrClosableBlock) ? adjustForCloseableBlock((GrClosableBlock)parent) : null
+             : anchorAfter;
     }
+  }
+
+  private static PsiElement adjustForCloseableBlock(@NotNull GrClosableBlock block) {
+    PsiElement element = block.getFirstChild();
+    // Skip the first non-empty element, this is normally the '{' of a closable block.
+    if (element != null) {
+      element = element.getNextSibling();
+    }
+
+    // Find the last empty (no newlines or content) child after the initial element.
+    while (element != null) {
+      element = element.getNextSibling();
+      if (element != null && (Strings.isNullOrEmpty(element.getText()) || element.getText().matches("[\\t ]+"))) {
+        continue;
+      }
+      break;
+    }
+
+    return element == null ? null : element.getPrevSibling();
   }
 
   static boolean needToCreateParent(@NotNull GradleDslElement element) {

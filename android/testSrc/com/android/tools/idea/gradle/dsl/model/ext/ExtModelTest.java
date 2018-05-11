@@ -29,8 +29,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*;
 
@@ -576,5 +575,84 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertSize(1, buildScriptDeps.artifacts());
     ArtifactDependencyModel dependencyModel = buildScriptDeps.artifacts().get(0);
     verifyPropertyModel(dependencyModel.version(), STRING_TYPE, "$hello", STRING, FAKE, 0);
+  }
+
+  @Test
+  public void testMultipleExtBlocks() throws IOException {
+    String text =
+      "apply plugin: 'com.android.application'\n" +
+      "ext {\n" +
+      "  var1 = \"1.5\"\n" +
+      "}\n" +
+      "android {\n" +
+      "}\n" +
+      "ext {\n" +
+      "}\n" +
+
+      "dependencies {\n" +
+      "  compile fileTree(dir: 'libs', include: ['*.jar'])\n" +
+      "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    ExtModel ext = buildModel.ext();
+
+    ext.findProperty("newProp").setValue(true);
+
+    applyChangesAndReparse(buildModel);
+
+    GradlePropertyModel propertyModel = ext.findProperty("newProp");
+    verifyPropertyModel(propertyModel, BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0);
+    GradlePropertyModel oldModel = ext.findProperty("var1");
+    verifyPropertyModel(oldModel, STRING_TYPE, "1.5", STRING, REGULAR,0);
+
+    String expected =
+      "apply plugin: 'com.android.application'\n" +
+      "ext {\n" +
+      "  var1 = \"1.5\"\n" +
+      "  newProp = true\n" +
+      "}\n" +
+      "android {\n" +
+      "}\n" +
+      "ext {\n" +
+      "}\n" +
+
+      "dependencies {\n" +
+      "  compile fileTree(dir: 'libs', include: ['*.jar'])\n" +
+      "}";
+    verifyFileContents(myBuildFile, expected);
+  }
+
+  @Test
+  public void testExtFlatAndBlock() throws IOException {
+    String text =
+      "ext.hello = 10\n" +
+      "ext {\n" +
+      "  boo = '10'\n" +
+      "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    ExtModel ext = buildModel.ext();
+
+    ext.findProperty("newProp").setValue(true);
+
+    applyChangesAndReparse(buildModel);
+
+    GradlePropertyModel helloModel = ext.findProperty("hello");
+    verifyPropertyModel(helloModel, INTEGER_TYPE, 10, INTEGER, REGULAR, 0);
+    GradlePropertyModel booModel = ext.findProperty("boo");
+    verifyPropertyModel(booModel, STRING_TYPE, "10", STRING, REGULAR, 0);
+    GradlePropertyModel newModel = ext.findProperty("newProp");
+
+    verifyPropertyModel(newModel, BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0);
+
+    String expected =
+      "ext.hello = 10\n" +
+      "ext {\n" +
+      "  boo = '10'\n" +
+      "  newProp = true\n" +
+      "}";
+    verifyFileContents(myBuildFile, expected);
   }
 }
