@@ -33,7 +33,11 @@ import java.util.Set;
  * A common interface for Android module models.
  */
 public interface AndroidModel {
-
+  @Nullable
+  static AndroidModel get(@NotNull Module module) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    return facet != null ? facet.getConfiguration().getModel() : null;
+  }
   /**
    * @return the default source provider.
    * TODO: To be build-system-agnostic, simplify source provider usage.

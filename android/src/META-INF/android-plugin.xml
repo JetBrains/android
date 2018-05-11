@@ -45,6 +45,9 @@
       <implementation-class>org.jetbrains.android.AndroidProjectComponent</implementation-class>
     </component>
     <component>
+      <implementation-class>com.android.tools.idea.stats.ProjectSizeUsageTracker</implementation-class>
+    </component>
+    <component>
       <implementation-class>org.jetbrains.android.AndroidPropertyFilesUpdater</implementation-class>
     </component>
     <component>
