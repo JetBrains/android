@@ -589,7 +589,7 @@ public final class StudioProfilersTest {
   public void preferredDeviceShouldNotOverrideSelectedDevice() {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
-    profilers.setPreferredProcess("Manufacturer Model", null, null);
+    profilers.setPreferredProcess("Manufacturer Model", "ProcessName", null);
 
     // A device with a process that can be profiled
     Common.Device device = createDevice(AndroidVersion.VersionCodes.BASE, "FakeDevice", Common.Device.State.ONLINE);
@@ -668,7 +668,7 @@ public final class StudioProfilersTest {
     assertThat(profilers.getProcess()).isEqualTo(preferredProcess);
 
     // Updating the preferred device should immediately switch over.
-    profilers.setPreferredProcess("Manufacturer2 Model2", null, null);
+    profilers.setPreferredProcess("Manufacturer2 Model2", "PreferredProcess", null);
     assertThat(profilers.getDevice()).isEqualTo(preferredDevice2);
     assertThat(profilers.getProcess()).isNull();
   }

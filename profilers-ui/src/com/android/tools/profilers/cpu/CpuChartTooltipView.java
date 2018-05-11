@@ -53,7 +53,7 @@ class CpuChartTooltipView extends MouseAdapter {
     myContent.setBorder(ProfilerLayout.TOOLTIP_BORDER);
     myContent.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
 
-    myTooltipComponent = new TooltipComponent.Builder(myContent, chart).setPreferredParentClass(ProfilerLayeredPane.class).build();
+    myTooltipComponent = new TooltipComponent.Builder(myContent, chart, myStageView.getProfilersView().getComponent()).build();
     myTooltipComponent.registerListenersOn(chart);
   }
 

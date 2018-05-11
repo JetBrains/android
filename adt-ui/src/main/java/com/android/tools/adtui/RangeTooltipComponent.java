@@ -56,27 +56,24 @@ public final class RangeTooltipComponent extends AnimatedComponent {
   @Nullable
   private Point myLastPoint;
 
-  public RangeTooltipComponent(@NotNull Range hightlight, @NotNull Range view, @NotNull Range data, Component component,
-                               @Nullable Class<? extends JLayeredPane> preferredTooltipParent,
-                               @NotNull Supplier<Boolean> showSeekComponent) {
-    myHighlightRange = hightlight;
+  public RangeTooltipComponent(@NotNull Range highlight, @NotNull Range view, @NotNull Range data, @NotNull JComponent component,
+                               @NotNull JLayeredPane parent, @NotNull Supplier<Boolean> showSeekComponent) {
+    myHighlightRange = highlight;
     myViewRange = view;
     myDataRange = data;
     myShowSeekComponent = showSeekComponent;
 
-    myTooltipComponent = new TooltipComponent.Builder(component, this).setPreferredParentClass(preferredTooltipParent).build();
+    myTooltipComponent = new TooltipComponent.Builder(component, this, parent).build();
     myViewRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::viewRangeChanged);
     myHighlightRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::highlightRangeChanged);
   }
 
   @VisibleForTesting
-  public RangeTooltipComponent(@NotNull Range hightlight, @NotNull Range view, @NotNull Range data, Component component) {
-    this(hightlight, view, data, component, null, () -> true);
+  public RangeTooltipComponent(@NotNull Range hightlight, @NotNull Range view, @NotNull Range data, @NotNull JComponent component) {
+    this(hightlight, view, data, component, new JLayeredPane(), () -> true);
   }
 
-  public void registerListenersOn(Component component) {
-    myTooltipComponent.registerListenersOn(component);
-
+  public void registerListenersOn(@NotNull JComponent component) {
     MouseAdapter adapter = new MouseAdapter() {
       @Override
       public void mouseMoved(MouseEvent e) {
@@ -102,6 +99,9 @@ public final class RangeTooltipComponent extends AnimatedComponent {
     };
     component.addMouseMotionListener(adapter);
     component.addMouseListener(adapter);
+
+    // Add the TooltipComponent listeners after, since they need to be fired after the contents' listeners are fired.
+    myTooltipComponent.registerListenersOn(component);
   }
 
   private void viewRangeChanged() {

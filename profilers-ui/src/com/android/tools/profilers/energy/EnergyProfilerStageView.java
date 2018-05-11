@@ -100,7 +100,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
                                 timeline.getViewRange(),
                                 timeline.getDataRange(),
                                 getTooltipPanel(),
-                                ProfilerLayeredPane.class,
+                                getProfilersView().getComponent(),
                                 () -> selection.getMode() != SelectionComponent.Mode.MOVE);
     TabularLayout layout = new TabularLayout("*");
     JPanel panel = new JBPanel(layout);
@@ -259,16 +259,14 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     textPane.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
     textPane.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
     textPane.setFont(ProfilerFonts.TOOLTIP_BODY_FONT);
-    TooltipComponent tooltip =
-      new TooltipComponent.Builder(textPane, iconLabel).setPreferredParentClass(ProfilerLayeredPane.class).build();
-    tooltip.registerListenersOn(iconLabel);
-
     textPane.setText(
       "The Energy Profiler models your app's estimated energy usage of CPU, Network, and GPS resources of your device. " +
       "It also highlights background events that may contribute to battery drain, " +
       "such as wake locks, alarms, jobs, and location requests.");
-
     textPane.setPreferredSize(new Dimension(350, 0));
+    TooltipComponent tooltip =
+      new TooltipComponent.Builder(textPane, iconLabel, getProfilersView().getComponent()).build();
+    tooltip.registerListenersOn(iconLabel);
 
     JPanel panel = new JPanel(new BorderLayout());
     panel.add(toolBar, BorderLayout.WEST);

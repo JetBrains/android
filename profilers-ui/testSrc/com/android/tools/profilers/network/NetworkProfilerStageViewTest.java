@@ -92,14 +92,14 @@ public class NetworkProfilerStageViewTest {
     profilers.setStage(new NetworkProfilerStage(profilers));
     // Initialize the view after the stage, otherwise it will create the views for the monitoring stage.
     myView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
-    JPanel viewComponent = myView.getComponent();
+    JLayeredPane viewComponent = myView.getComponent();
     viewComponent.setSize(new Dimension(600, 200));
     myFakeUi = new FakeUi(viewComponent);
     profilers.getTimeline().getViewRange().set(0, 60);
   }
 
   @Test
-  public void draggingSelectionOpensConnectionsViewAndPressingEscapeClosesIt() throws Exception {
+  public void draggingSelectionOpensConnectionsViewAndPressingEscapeClosesIt() {
     NetworkProfilerStageView stageView = (NetworkProfilerStageView)myView.getStageView();
 
     TreeWalker stageWalker = new TreeWalker(stageView.getComponent());

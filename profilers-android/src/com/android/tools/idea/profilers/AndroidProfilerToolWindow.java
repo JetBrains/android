@@ -42,8 +42,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.io.File;
 import java.util.function.Predicate;
 
@@ -65,8 +63,6 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
   @NotNull
   private final Project myProject;
   @NotNull
-  private final ProfilerLayeredPane myLayeredPane;
-  @NotNull
   private final IntellijProfilerComponents myIdeProfilerComponents;
   @NotNull
   private final AndroidProfilerWindowManagerListener myToolWindowManagerListener;
@@ -86,16 +82,12 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
 
     // Sets the preferred process. Note the always-false predicate, which prevents the Profilers to immediately starts profiling an app that
     // is already running.
-    StartupManager.getInstance(project)
-                  .runWhenProjectIsInitialized(
-                    () -> myProfilers.setPreferredProcess(null,
-                                                          getPreferredProcessName(myProject),
-                                                          p -> false));
+    StartupManager
+      .getInstance(project)
+      .runWhenProjectIsInitialized(() -> myProfilers.setPreferredProcess(null, getPreferredProcessName(myProject), p -> false));
 
     myIdeProfilerComponents = new IntellijProfilerComponents(myProject, myProfilers.getIdeServices().getFeatureTracker());
     myView = new StudioProfilersView(myProfilers, myIdeProfilerComponents);
-    myLayeredPane = new ProfilerLayeredPane();
-    initializeUi();
     Disposer.register(this, myView);
 
     myProfilers.addDependency(this)
@@ -112,19 +104,6 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
   @NotNull
   StudioProfilers getProfilers() {
     return myProfilers;
-  }
-
-  private void initializeUi() {
-    JComponent content = myView.getComponent();
-    myLayeredPane.add(content, JLayeredPane.DEFAULT_LAYER);
-    myLayeredPane.addComponentListener(new ComponentAdapter() {
-      @Override
-      public void componentResized(ComponentEvent e) {
-        content.setBounds(0, 0, myLayeredPane.getWidth(), myLayeredPane.getHeight());
-        content.revalidate();
-        content.repaint();
-      }
-    });
   }
 
   /**
@@ -186,8 +165,9 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
     myProfilers.stop();
   }
 
+  @NotNull
   public JComponent getComponent() {
-    return myLayeredPane;
+    return myView.getComponent();
   }
 
   @Nullable

@@ -64,7 +64,7 @@ public class StudioProfilersViewTest {
   private FakeUi myUi;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     myTimer = new FakeTimer();
     myProfilerServices.enableEnergyProfiler(true);
     myProfilers = new StudioProfilers(myGrpcChannel.getClient(), myProfilerServices, myTimer);
@@ -73,7 +73,7 @@ public class StudioProfilersViewTest {
     myView = new StudioProfilersView(myProfilers, new FakeIdeProfilerComponents());
     myView.bind(FakeStage.class, FakeView::new);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    JPanel component = myView.getComponent();
+    JLayeredPane component = myView.getComponent();
     component.setSize(1024, 450);
     myUi = new FakeUi(component);
   }
@@ -94,7 +94,7 @@ public class StudioProfilersViewTest {
     myService.addSession(SESSION_O, SESSION_O_METADATA);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myProfilers.getSessionsManager().setSession(SESSION_O);
-    myUi = new FakeUi(myView.getComponent());
+    myUi.layout();
 
     assertThat(myProfilers.getStage()).isInstanceOf(StudioMonitorStage.class);
 
@@ -105,7 +105,7 @@ public class StudioProfilersViewTest {
     // Test that we have the expected number of monitors
     assertThat(points.size()).isEqualTo(4);
 
-    //// Test the first monitor goes to cpu profiler
+    // Test the first monitor goes to cpu profiler
     myUi.mouse.click(points.get(0).x + 1, points.get(0).y + 1);
     assertThat(myProfilers.getStage()).isInstanceOf(CpuProfilerStage.class);
     myProfilers.setMonitoringStage();
@@ -135,7 +135,7 @@ public class StudioProfilersViewTest {
     myService.addSession(SESSION_O, SESSION_O_METADATA);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myProfilers.getSessionsManager().setSession(SESSION_O);
-    myUi = new FakeUi(myView.getComponent());
+    myUi.layout();
 
     assertThat(myProfilers.getStage()).isInstanceOf(StudioMonitorStage.class);
     StudioMonitorStage stage = (StudioMonitorStage)myProfilers.getStage();
@@ -315,7 +315,7 @@ public class StudioProfilersViewTest {
   @Test
   public void testNoStage() throws Exception {
     StudioProfilersView view = new StudioProfilersView(myProfilers, new FakeIdeProfilerComponents());
-    JPanel component = view.getComponent();
+    JLayeredPane component = view.getComponent();
     new ReferenceWalker(myProfilers).assertNotReachable(view, component);
   }
 
@@ -326,7 +326,8 @@ public class StudioProfilersViewTest {
     services.enableSessionsView(false);
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), services, timer);
     StudioProfilersView view = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
-    JComponent splitter = view.getComponent();
+    assertThat(view.getComponent().getComponentCount()).isEqualTo(1);
+    Component splitter = view.getComponent().getComponent(0);
     assertThat(splitter).isInstanceOf(ThreeComponentsSplitter.class);
     assertThat(((ThreeComponentsSplitter)splitter).getFirstComponent()).isNull();
 
@@ -334,7 +335,8 @@ public class StudioProfilersViewTest {
     services.enableSessionsView(true);
     profilers = new StudioProfilers(myGrpcChannel.getClient(), services, timer);
     view = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
-    splitter = view.getComponent();
+    assertThat(view.getComponent().getComponentCount()).isEqualTo(1);
+    splitter = view.getComponent().getComponent(0);
     assertThat(splitter).isInstanceOf(ThreeComponentsSplitter.class);
     assertThat(((ThreeComponentsSplitter)splitter).getFirstComponent()).isNotNull();
   }
@@ -352,7 +354,7 @@ public class StudioProfilersViewTest {
 
     // Fake a resize and re-create the StudioProfilerView, the session UI should maintain the previous dimension
     profilersView.getSessionsView().getExpandButton().doClick();
-    ThreeComponentsSplitter splitter = (ThreeComponentsSplitter)profilersView.getComponent();
+    ThreeComponentsSplitter splitter = (ThreeComponentsSplitter)profilersView.getComponent().getComponent(0);
     assertThat(splitter.getFirstSize()).isEqualTo(SessionsView.getComponentMinimizeSize(true).width);
     splitter.setSize(1024, 450);
     FakeUi ui = new FakeUi(splitter);
@@ -361,7 +363,7 @@ public class StudioProfilersViewTest {
     profilers = new StudioProfilers(myGrpcChannel.getClient(), myProfilerServices, myTimer);
     profilersView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
     assertThat(profilersView.getSessionsView().getCollapsed()).isFalse();
-    assertThat(((ThreeComponentsSplitter)profilersView.getComponent()).getFirstSize()).isEqualTo(splitter.getFirstSize());
+    assertThat(((ThreeComponentsSplitter)profilersView.getComponent().getComponent(0)).getFirstSize()).isEqualTo(splitter.getFirstSize());
   }
 
   @Test
@@ -451,7 +453,7 @@ public class StudioProfilersViewTest {
   }
 
   public void transitionStage(Stage stage) throws Exception {
-    JPanel component = myView.getComponent();
+    JLayeredPane component = myView.getComponent();
     myProfilers.setStage(new FakeStage(myProfilers));
     new ReferenceWalker(myProfilers).assertNotReachable(myView, component);
     myProfilers.setStage(stage);

@@ -84,11 +84,11 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     ProfilerTimeline timeline = stage.getStudioProfilers().getTimeline();
 
     // Use FlowLayout instead of the usual BorderLayout since BorderLayout doesn't respect min/preferred sizes.
-    getTooltipPanel().setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
+    getTooltipPanel().setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
 
     RangeTooltipComponent
       tooltip = new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(), getTooltipPanel(),
-                                          ProfilerLayeredPane.class, () -> true);
+                                          getProfilersView().getComponent(), () -> true);
 
     getTooltipBinder().bind(NetworkMonitorTooltip.class, NetworkMonitorTooltipView::new);
     getTooltipBinder().bind(CpuMonitorTooltip.class, CpuMonitorTooltipView::new);

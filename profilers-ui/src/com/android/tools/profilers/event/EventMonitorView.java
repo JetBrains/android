@@ -81,7 +81,6 @@ public class EventMonitorView extends ProfilerMonitorView<EventMonitor> {
                                  Supplier<ProfilerMonitorTooltip<EventMonitor>> tooltip,
                                  RangeTooltipComponent tooltipComponent,
                                  Stage stage) {
-    tooltipComponent.registerListenersOn(component);
     component.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseEntered(MouseEvent e) {
@@ -99,6 +98,7 @@ public class EventMonitorView extends ProfilerMonitorView<EventMonitor> {
         stage.setTooltip(null);
       }
     });
+    tooltipComponent.registerListenersOn(component);
   }
 
   @Override
