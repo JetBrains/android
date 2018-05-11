@@ -19,6 +19,7 @@ import com.android.builder.model.ClassField;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.util.PathString;
@@ -40,7 +41,7 @@ public class DynamicResourceValueItem implements ResourceItem {
                                   @NotNull ResourceType type,
                                   @NotNull ClassField field) {
     // Dynamic values are always in the "current module", so they don't live in a namespace.
-    myResourceValue = new ResourceValue(namespace, type, field.getName(), field.getValue());
+    myResourceValue = new ResourceValueImpl(namespace, type, field.getName(), field.getValue());
   }
 
 

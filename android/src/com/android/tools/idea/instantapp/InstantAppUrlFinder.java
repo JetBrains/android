@@ -18,6 +18,7 @@ package com.android.tools.idea.instantapp;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -38,9 +39,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.tools.lint.checks.AndroidPatternMatcher.PATTERN_LITERAL;
-import static com.android.tools.lint.checks.AndroidPatternMatcher.PATTERN_PREFIX;
-import static com.android.tools.lint.checks.AndroidPatternMatcher.PATTERN_SIMPLE_GLOB;
+import static com.android.tools.lint.checks.AndroidPatternMatcher.*;
 import static com.android.xml.AndroidManifest.NODE_DATA;
 import static com.android.xml.AndroidManifest.NODE_INTENT;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -335,7 +334,7 @@ public final class InstantAppUrlFinder {
       }
 
       ResourceValue resolvedResource = myResourceResolver.resolveResValue(
-        new ResourceValue(ResourceNamespace.RES_AUTO, ResourceType.STRING, name, value));
+        new ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.STRING, name, value));
 
       return resolvedResource == null ? value : resolvedResource.getValue();
     }

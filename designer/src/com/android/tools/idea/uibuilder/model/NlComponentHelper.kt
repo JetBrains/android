@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.model
 import com.android.SdkConstants.*
 import com.android.annotations.VisibleForTesting
 import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.ide.common.rendering.api.ResourceValue
+import com.android.ide.common.rendering.api.ResourceValueImpl
 import com.android.ide.common.rendering.api.StyleResourceValue
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.resources.ResourceType
@@ -432,7 +432,7 @@ class NlComponentMixin(component: NlComponent)
     val resources = component.model.configuration.resourceResolver ?: return null
 
     // Pretend the style was referenced from a proper resource by constructing a temporary ResourceValue. TODO: aapt namespace?
-    val tmpResourceValue = ResourceValue(ResourceNamespace.TODO, ResourceType.STYLE, component.tagName, styleAttributeValue)
+    val tmpResourceValue = ResourceValueImpl(ResourceNamespace.TODO, ResourceType.STYLE, component.tagName, styleAttributeValue)
 
     val styleResourceValue = resources.resolveResValue(tmpResourceValue) as? StyleResourceValue ?: return null
 

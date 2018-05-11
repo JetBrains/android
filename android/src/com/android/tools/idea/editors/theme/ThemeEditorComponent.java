@@ -17,7 +17,9 @@ package com.android.tools.idea.editors.theme;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.ide.common.rendering.api.StyleItemResourceValueImpl;
 import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.rendering.api.StyleResourceValueImpl;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
@@ -251,9 +253,9 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
        */
       private void restoreOriginalTheme(@NotNull ConfiguredThemeEditorStyle modifiedTheme, @NotNull List<ItemResourceValue> originalItems) {
         StyleResourceValue modifiedResourceValue = modifiedTheme.getStyleResourceValue();
-        StyleResourceValue restoredResourceValue = new StyleResourceValue(modifiedResourceValue.asReference(),
-                                                                          modifiedResourceValue.getParentStyleName(),
-                                                                          modifiedResourceValue.getLibraryName());
+        StyleResourceValue restoredResourceValue = new StyleResourceValueImpl(modifiedResourceValue.asReference(),
+                                                                              modifiedResourceValue.getParentStyleName(),
+                                                                              modifiedResourceValue.getLibraryName());
         for (ItemResourceValue item : originalItems) {
           restoredResourceValue.addItem(item);
         }
@@ -724,7 +726,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
         myModifiedTheme = myThemeEditorContext.getThemeResolver().getTheme(name);
         assert myModifiedTheme != null;
         ItemResourceValue newSelectedValue =
-          new ItemResourceValue(originalValue.getNamespace(), originalValue.getAttrName(), strValue, null);
+            new StyleItemResourceValueImpl(originalValue.getNamespace(), originalValue.getAttrName(), strValue, null);
         myModifiedTheme.getStyleResourceValue().addItem(newSelectedValue);
         myPreviewThemeName = null;
         refreshPreviewPanel(name);

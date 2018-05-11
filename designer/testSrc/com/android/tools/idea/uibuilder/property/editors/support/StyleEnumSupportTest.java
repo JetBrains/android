@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.property.editors.support;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.rendering.api.StyleResourceValueImpl;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.common.model.NlComponent;
@@ -185,10 +186,10 @@ public class StyleEnumSupportTest {
   }
 
   static StyleResourceValue createFrameworkStyle(@NotNull String name) {
-    return new StyleResourceValue(new ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, name), null, null);
+    return new StyleResourceValueImpl(new ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, name), null, null);
   }
 
   static StyleResourceValue createStyle(@NotNull String name, @Nullable String libraryName) {
-    return new StyleResourceValue(new ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STYLE, name), null, libraryName);
+    return new StyleResourceValueImpl(new ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STYLE, name), null, libraryName);
   }
 }

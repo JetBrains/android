@@ -17,7 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.rendering.api.SampleDataResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
@@ -161,10 +161,10 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
 
     // Check reference resolution
     assertEquals("Hello 1", resolver.resolveResValue(
-      new ResourceValue(RES_AUTO, ResourceType.STRING, "test", "@sample/refs")).getValue());
+        new ResourceValueImpl(RES_AUTO, ResourceType.STRING, "test", "@sample/refs")).getValue());
     // @string/invalid does not exist so the sample data will just return the unresolved reference
     assertEquals("@string/invalid", resolver.resolveResValue(
-      new ResourceValue(RES_AUTO, ResourceType.STRING, "test", "@sample/refs")).getValue());
+        new ResourceValueImpl(RES_AUTO, ResourceType.STRING, "test", "@sample/refs")).getValue());
 
     // Check indexing (all calls should return the same)
     assertEquals("Name2", resolver.findResValue("@sample/users.json/users/name[1]", false).getValue());

@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.ui.resourcechooser;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.rendering.api.SampleDataResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
@@ -87,7 +89,7 @@ public abstract class ResourceChooserItem {
 
   @NotNull
   public ResourceValue getResourceValue() {
-    return new ResourceValue(getType(), getName(), getResourceUrl(), isFramework());
+    return new ResourceValueImpl(ResourceNamespace.fromBoolean(isFramework()), getType(), getName(), getResourceUrl());
   }
 
   @Override
@@ -357,7 +359,7 @@ public abstract class ResourceChooserItem {
                           ResourceType.DRAWABLE :
                           myItem.getType();
       SampleDataResourceValue value = getSampleDataResourceValue();
-      return new ResourceValue(myItem.getNamespace(), type, myItem.getName(), value.getValueAsLines().get(0), value.getLibraryName());
+      return new ResourceValueImpl(myItem.getNamespace(), type, myItem.getName(), value.getValueAsLines().get(0), value.getLibraryName());
     }
   }
 }

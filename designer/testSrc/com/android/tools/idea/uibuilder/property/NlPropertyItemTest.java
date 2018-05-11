@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceValueMap;
 import com.android.resources.ResourceType;
@@ -202,9 +202,9 @@ public class NlPropertyItemTest extends PropertyTestCase {
     UIUtil.dispatchAllInvocationEvents();
 
     ResourceValueMap fonts = ResourceValueMap.create();
-    fonts.put("Lobster", new ResourceValue(RES_AUTO, ResourceType.FONT, "Lobster", "/very/long/filename/do/not/use"));
+    fonts.put("Lobster", new ResourceValueImpl(RES_AUTO, ResourceType.FONT, "Lobster", "/very/long/filename/do/not/use"));
     fonts.put("DancingScript",
-              new ResourceValue(RES_AUTO, ResourceType.FONT, "DancingScript", "/very/long/filename/do/not/use"));
+              new ResourceValueImpl(RES_AUTO, ResourceType.FONT, "DancingScript", "/very/long/filename/do/not/use"));
     ResourceResolver resolver = myModel.getConfiguration().getResourceResolver();
     assertThat(resolver).isNotNull();
     resolver.getProjectResources().put(ResourceType.FONT, fonts);

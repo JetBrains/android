@@ -240,7 +240,7 @@ public class AarProtoResourceRepository extends FileResourceRepository {
       case STR: {
         String textValue = itemMsg.getStr().getValue();
         ResourceValue resourceValue =
-            new TextResourceValue(getNamespace(), resourceType, resourceName, textValue, null, getLibraryName());
+            new TextResourceValueImpl(getNamespace(), resourceType, resourceName, textValue, null, getLibraryName());
         return new AarValueResourceItem(resourceValue, configuration, visibility);
       }
 
@@ -259,12 +259,12 @@ public class AarProtoResourceRepository extends FileResourceRepository {
         String textValue = styledStrMsg.getValue();
         String rawXmlValue = ProtoStyledStringDecoder.getRawXmlValue(styledStrMsg);
         ResourceValue resourceValue =
-            new TextResourceValue(getNamespace(), resourceType, resourceName, textValue, rawXmlValue, getLibraryName());
+            new TextResourceValueImpl(getNamespace(), resourceType, resourceName, textValue, rawXmlValue, getLibraryName());
         return new AarValueResourceItem(resourceValue, configuration, visibility);
       }
 
       case ID: {
-        ResourceValue resourceValue = new ResourceValue(getNamespace(), resourceType, resourceName, "", getLibraryName());
+        ResourceValue resourceValue = new ResourceValueImpl(getNamespace(), resourceType, resourceName, "", getLibraryName());
         return new AarValueResourceItem(resourceValue, configuration, visibility);
       }
 
@@ -280,7 +280,7 @@ public class AarProtoResourceRepository extends FileResourceRepository {
   private AarResourceItem createResourceItem(@NotNull ResourceType resourceType, @NotNull String resourceName,
                                              @NotNull AarConfiguration configuration, @NotNull ResourceVisibility visibility,
                                              @Nullable String value) {
-    ResourceValue resourceValue = new ResourceValue(getNamespace(), resourceType, resourceName, value, getLibraryName());
+    ResourceValue resourceValue = new ResourceValueImpl(getNamespace(), resourceType, resourceName, value, getLibraryName());
     return new AarValueResourceItem(resourceValue, configuration, visibility);
   }
 
@@ -319,7 +319,7 @@ public class AarProtoResourceRepository extends FileResourceRepository {
   @Nullable
   private ResourceValue createAttrValue(@NotNull Resources.Attribute attributeMsg, @NotNull ResourceType resourceType,
                                         @NotNull String resourceName) {
-    AttrResourceValue attrValue = new AttrResourceValue(getNamespace(), resourceType, resourceName, getLibraryName());
+    AttrResourceValue attrValue = new AttrResourceValueImpl(getNamespace(), resourceType, resourceName, getLibraryName());
     List<Resources.Attribute.Symbol> symbolList = attributeMsg.getSymbolList();
     if (symbolList.isEmpty() && attributeMsg.getFormatFlags() == Resources.Attribute.FormatFlags.ANY.getNumber()) {
       return null;
@@ -347,7 +347,7 @@ public class AarProtoResourceRepository extends FileResourceRepository {
       myUrlParser.parseResourceUrl(url);
       String name = myUrlParser.withoutType();
       String value = decode(entryMsg.getItem());
-      ItemResourceValue itemValue = new ItemResourceValue(getNamespace(), name, value, getLibraryName());
+      ItemResourceValue itemValue = new StyleItemResourceValueImpl(getNamespace(), name, value, getLibraryName());
       styleValue.addItem(itemValue);
     }
 
@@ -357,13 +357,13 @@ public class AarProtoResourceRepository extends FileResourceRepository {
   @NotNull
   private ResourceValue createDeclaresStyleableValue(@NotNull Resources.Styleable styleableMsg, @NotNull String resourceName) {
     DeclareStyleableResourceValue declareStyleableValue =
-        new DeclareStyleableResourceValue(getNamespace(), ResourceType.DECLARE_STYLEABLE, resourceName, null, getLibraryName());
+        new DeclareStyleableResourceValueImpl(getNamespace(), ResourceType.DECLARE_STYLEABLE, resourceName, null, getLibraryName());
     for (Resources.Styleable.Entry entryMsg : styleableMsg.getEntryList()) {
       String url = entryMsg.getAttr().getName();
       myUrlParser.parseResourceUrl(url);
       String packageName = myUrlParser.getPackageName();
       ResourceNamespace namespace = packageName == null ? getNamespace() : ResourceNamespace.fromPackageName(packageName);
-      AttrResourceValue attrValue = new AttrResourceValue(namespace, ResourceType.ATTR, myUrlParser.getName(), getLibraryName());
+      AttrResourceValue attrValue = new AttrResourceValueImpl(namespace, ResourceType.ATTR, myUrlParser.getName(), getLibraryName());
       declareStyleableValue.addValue(attrValue);
     }
     return declareStyleableValue;
@@ -372,7 +372,7 @@ public class AarProtoResourceRepository extends FileResourceRepository {
   @NotNull
   private ResourceValue createArrayValue(@NotNull Resources.Array arrayMsg, @NotNull ResourceType resourceType,
                                          @NotNull String resourceName) {
-    ArrayResourceValue arrayValue = new ArrayResourceValue(getNamespace(), resourceType, resourceName, getLibraryName());
+    ArrayResourceValue arrayValue = new ArrayResourceValueImpl(getNamespace(), resourceType, resourceName, getLibraryName());
     for (Resources.Array.Element elementMsg : arrayMsg.getElementList()) {
       String text = decode(elementMsg.getItem());
       arrayValue.addElement(text);
@@ -383,7 +383,7 @@ public class AarProtoResourceRepository extends FileResourceRepository {
   @NotNull
   private ResourceValue createPluralsValue(@NotNull Resources.Plural pluralMsg, @NotNull ResourceType resourceType,
                                            @NotNull String resourceName) {
-    PluralsResourceValue pluralsValue = new PluralsResourceValue(getNamespace(), resourceType, resourceName, null, getLibraryName());
+    PluralsResourceValue pluralsValue = new PluralsResourceValueImpl(getNamespace(), resourceType, resourceName, null, getLibraryName());
     for (Resources.Plural.Entry entryMsg : pluralMsg.getEntryList()) {
       String value = decode(entryMsg.getItem());
       String quantity = getQuantity(entryMsg.getArity());

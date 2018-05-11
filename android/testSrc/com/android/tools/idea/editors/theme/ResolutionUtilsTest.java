@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.theme;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.rendering.api.StyleResourceValueImpl;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
@@ -32,14 +33,14 @@ public class ResolutionUtilsTest extends AndroidTestCase {
    */
 
   public void testGetQualifiedName() {
-    StyleResourceValue styleResourceValue = new StyleResourceValue(new ResourceReference(ResourceNamespace.ANDROID,
-                                                                                         ResourceType.STYLE,
-                                                                                         "myStyle"),
-                                                                   null,
-                                                                   null);
+    StyleResourceValue styleResourceValue = new StyleResourceValueImpl(new ResourceReference(ResourceNamespace.ANDROID,
+                                                                                             ResourceType.STYLE,
+                                                                                             "myStyle"),
+                                                                       null,
+                                                                       null);
     assertEquals("android:myStyle", ResolutionUtils.getQualifiedStyleName(styleResourceValue));
 
-    styleResourceValue = new StyleResourceValue(new ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STYLE, "myStyle"),
+    styleResourceValue = new StyleResourceValueImpl(new ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STYLE, "myStyle"),
                                                 null,
                                                 null);
     assertEquals("myStyle", ResolutionUtils.getQualifiedStyleName(styleResourceValue));

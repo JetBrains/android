@@ -18,10 +18,9 @@ package com.android.tools.idea.ui.resourcechooser.icons;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.resources.ResourceType;
-import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.RenderTestUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -30,13 +29,9 @@ import org.gradle.internal.impldep.org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
-
-import static org.mockito.Mockito.mock;
 
 public class IconFactoryTest extends AndroidTestCase {
 
@@ -83,9 +78,9 @@ public class IconFactoryTest extends AndroidTestCase {
     Supplier<RenderTask> taskSupplier = () -> task;
 
     IconFactory factory = new IconFactory(taskSupplier);
-    ResourceValue value = new ResourceValue(new ResourceReference(ResourceNamespace.TODO,
-                                                                  ResourceType.DRAWABLE,
-                                                                  "src"), "@drawable/test");
+    ResourceValue value = new ResourceValueImpl(new ResourceReference(ResourceNamespace.TODO,
+                                                                      ResourceType.DRAWABLE,
+                                                                      "src"), "@drawable/test");
     CountDownLatch latch = new CountDownLatch(1);
     int iconSize = 50;
     Icon placeHolder = EmptyIcon.create(iconSize);

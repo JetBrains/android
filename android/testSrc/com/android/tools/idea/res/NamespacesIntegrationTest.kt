@@ -18,7 +18,7 @@ package com.android.tools.idea.res
 import com.android.builder.model.AaptOptions.Namespacing.DISABLED
 import com.android.builder.model.AaptOptions.Namespacing.REQUIRED
 import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.ide.common.rendering.api.ResourceValue
+import com.android.ide.common.rendering.api.ResourceValueImpl
 import com.android.resources.ResourceType
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -64,7 +64,7 @@ class NamespacesIntegrationTest : AndroidGradleTestCase() {
     fun check(reference: String, resolvesTo: String) {
       assertEquals(
         resolvesTo,
-        resourceResolver.resolveResValue(ResourceValue(appNs, ResourceType.STRING, "dummy", reference))!!.value
+        resourceResolver.resolveResValue(ResourceValueImpl(appNs, ResourceType.STRING, "dummy", reference))!!.value
       )
     }
 
