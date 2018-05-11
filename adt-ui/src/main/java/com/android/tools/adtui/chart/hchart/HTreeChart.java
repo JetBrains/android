@@ -171,6 +171,7 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
       myDataUpdated = false;
     }
     g.setFont(getFont());
+    g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
     if (myRoot == null || myRoot.getChildCount() == 0) {
@@ -205,6 +206,9 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
       g = (Graphics2D)myCanvas.getGraphics();
     }
     g.setFont(getFont());
+    g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
     myDrawnNodes.clear();
     myDrawnNodes.addAll(myNodes);
 
