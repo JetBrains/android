@@ -21,8 +21,13 @@ import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem
+import com.google.common.base.Preconditions.checkState
+import com.google.common.base.Verify
+import com.intellij.openapi.fileEditor.FileEditorManager
+import org.fest.swing.edt.GuiQuery
 import org.fest.swing.timing.Wait
-import org.junit.*
+import org.junit.Rule
+import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import java.util.*
@@ -40,29 +45,47 @@ class AswbGotoDeclarationTest {
     fun data(): List<TargetBuildSystem.BuildSystem> = Collections.singletonList(TargetBuildSystem.BuildSystem.BAZEL)
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/78573145
+  private fun EditorFixture.getCurrentSelection(): String? {
+    return GuiQuery.get {
+      val editor = FileEditorManager.getInstance(guiTest.ideFrame().project).selectedTextEditor
+      checkState(editor != null, "no currently selected text editor")
+      editor!!.caretModel.primaryCaret.selectedText
+    }
+  }
+
+  // Add retry section to avoid b/78573145
+  private fun EditorFixture.select(text: String, retryCount: Int): EditorFixture {
+    var mySelection: String?
+    var count = 0
+    do {
+      mySelection = select("($text)").getCurrentSelection()
+    }
+    while (!(mySelection == text || ++count >= retryCount))
+    Verify.verify(mySelection == text, "Expect to select $text but was $mySelection")
+    return this
+  }
+
   @Test
   @TargetBuildSystem(TargetBuildSystem.BuildSystem.BAZEL)
   fun gotoDeclaration_withExternalResources() {
     guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleBazelApplication", "java/com/foo/gallery/BUILD")
       .editor
       .open("../SimpleBazelApplication/java/com/foo/gallery/activities/MainActivity.java")
-      .moveBetween("R.style", ".Base_Highlight")
+      .select("R.style.Base_Highlight", 3)
       .invokeAction(EditorFixture.EditorAction.GOTO_DECLARATION)
     Wait.seconds(20).expecting("file to open")
-      .until({guiTest.ideFrame().editor.currentFileName.equals("styles.xml")})
+      .until({ guiTest.ideFrame().editor.currentFileName.equals("styles.xml") })
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/76176149
   @Test
   @TargetBuildSystem(TargetBuildSystem.BuildSystem.BAZEL)
   fun gotoDeclaration_withLocalResources() {
     guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleBazelApplication", "java/com/foo/gallery/BUILD")
       .editor
       .open("../SimpleBazelApplication/java/com/foo/gallery/activities/MainActivity.java")
-      .moveBetween("R.menu", ".settings")
+      .select("R.menu.settings", 3)
       .invokeAction(EditorFixture.EditorAction.GOTO_DECLARATION)
     Wait.seconds(20).expecting("file to open")
-      .until({guiTest.ideFrame().editor.currentFileName.equals("settings.xml")})
+      .until({ guiTest.ideFrame().editor.currentFileName.equals("settings.xml") })
   }
 }
