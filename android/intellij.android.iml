@@ -119,5 +119,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="protobuf" level="project" />
   </component>
 </module>
