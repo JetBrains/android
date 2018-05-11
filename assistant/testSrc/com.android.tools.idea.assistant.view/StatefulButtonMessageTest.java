@@ -24,29 +24,29 @@ public class StatefulButtonMessageTest extends TestCase {
 
   public void testNotApplicable() {
     StatefulButtonMessage message = new StatefulButtonMessage("test", DefaultActionState.NOT_APPLICABLE);
-    assertNull(message.myMessageDisplay);
+    assertNull(message.getMessageDisplay());
   }
 
   public void testInProgress() {
     StatefulButtonMessage message = new StatefulButtonMessage("test", DefaultActionState.IN_PROGRESS);
-    assertNull(message.myMessageDisplay);
+    assertNull(message.getMessageDisplay());
   }
 
   public void testComplete() {
     StatefulButtonMessage message = new StatefulButtonMessage("test", DefaultActionState.COMPLETE);
-    assertEquals(message.myMessageDisplay.getIcon(), AllIcons.RunConfigurations.TestPassed);
-    assertEquals(message.myMessageDisplay.getForeground(), UIUtils.getSuccessColor());
+    assertEquals(message.getMessageDisplay().getIcon(), AllIcons.RunConfigurations.TestPassed);
+    assertEquals(message.getMessageDisplay().getForeground(), UIUtils.getSuccessColor());
   }
 
   public void testPartiallyComplete() {
     StatefulButtonMessage message = new StatefulButtonMessage("test", DefaultActionState.PARTIALLY_COMPLETE);
-    assertEquals(message.myMessageDisplay.getIcon(), AllIcons.RunConfigurations.TestPassed);
-    assertEquals(message.myMessageDisplay.getForeground(), UIUtils.getSuccessColor());
+    assertEquals(message.getMessageDisplay().getIcon(), AllIcons.RunConfigurations.TestPassed);
+    assertEquals(message.getMessageDisplay().getForeground(), UIUtils.getSuccessColor());
   }
 
   public void testError() {
     StatefulButtonMessage message = new StatefulButtonMessage("test", DefaultActionState.ERROR);
-    assertEquals(message.myMessageDisplay.getIcon(), AllIcons.RunConfigurations.TestFailed);
-    assertEquals(message.myMessageDisplay.getForeground(), UIUtils.getFailureColor());
+    assertEquals(message.getMessageDisplay().getIcon(), AllIcons.RunConfigurations.TestFailed);
+    assertEquals(message.getMessageDisplay().getForeground(), UIUtils.getFailureColor());
   }
 }
