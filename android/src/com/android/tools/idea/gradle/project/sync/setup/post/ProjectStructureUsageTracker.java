@@ -144,21 +144,21 @@ public class ProjectStructureUsageTracker {
         }
 
         boolean shouldReportNative = false;
-        NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
+        NdkModuleModel ndkModel = NdkModuleModel.get(module);
         NativeBuildSystemType buildSystemType = UNKNOWN_NATIVE_BUILD_SYSTEM_TYPE;
         String moduleName = "";
 
-        if (ndkModuleModel != null) {
+        if (ndkModel != null) {
           shouldReportNative = true;
-          if (ndkModuleModel.modelVersionIsAtLeast("2.2.0")) {
-            for (String buildSystem : ndkModuleModel.getAndroidProject().getBuildSystems()) {
+          if (ndkModel.getFeatures().isBuildSystemNameSupported()) {
+            for (String buildSystem : ndkModel.getAndroidProject().getBuildSystems()) {
               buildSystemType = stringToBuildSystemType(buildSystem);
             }
           }
           else {
             buildSystemType = GRADLE_EXPERIMENTAL;
           }
-          moduleName = AnonymizerUtil.anonymizeUtf8(ndkModuleModel.getModuleName());
+          moduleName = AnonymizerUtil.anonymizeUtf8(ndkModel.getModuleName());
         }
         else if (androidModel != null && areNativeLibrariesPresent(androidModel.getAndroidProject())) {
           shouldReportNative = true;

@@ -19,6 +19,7 @@ import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.NativeArtifact;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkVariant;
 import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludePaths;
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.NativeIncludes;
@@ -73,7 +74,7 @@ public class NdkModuleNode extends AndroidViewModuleNode {
     NativeAndroidProject nativeAndroidProject = ndkModel.getAndroidProject();
     Collection<String> sourceFileExtensions = nativeAndroidProject.getFileExtensions().keySet();
 
-    NdkModuleModel.NdkVariant variant = ndkModel.getSelectedVariant();
+    NdkVariant variant = ndkModel.getSelectedVariant();
     Multimap<String, NativeArtifact> nativeLibraries = HashMultimap.create();
     for (NativeArtifact artifact : variant.getArtifacts()) {
       String artifactOutputFileName = artifact.getOutputFile().getName();
@@ -155,7 +156,7 @@ public class NdkModuleNode extends AndroidViewModuleNode {
       return false;
     }
 
-    NdkModuleModel.NdkVariant variant = model.getSelectedVariant();
+    NdkVariant variant = model.getSelectedVariant();
     Multimap<String, NativeArtifact> nativeLibraries = HashMultimap.create();
     for (NativeArtifact artifact : variant.getArtifacts()) {
       String artifactOutputFileName = artifact.getOutputFile().getName();
