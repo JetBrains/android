@@ -115,7 +115,7 @@ public class RunOnEmulatorTest {
    *   Project builds successfully and runs on the emulator
    *   </pre>
    */
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void runOnEmulator() throws Exception {
     InstantRunSettings.setShowStatusNotifications(false);
