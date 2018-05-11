@@ -39,7 +39,7 @@ abstract class ModelCollectionPropertyBase<in ContextT, in ModelT, out ResolvedT
           is DslText.InterpolatedString -> parsedProperty.setDslText(dsl)
           is DslText.OtherUnparsedDslText -> parsedProperty.setDslText(dsl)
           // Literal modes are not supported. getEditableValues() should be used.
-          DslText.Literal -> UnsupportedOperationException()
+          DslText.Literal -> throw UnsupportedOperationException()
         }
       }
       is ParsedValue.Set.Invalid -> throw IllegalArgumentException()
