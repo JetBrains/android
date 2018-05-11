@@ -34,31 +34,6 @@ import java.util.*
 class GradleModuleSystem(val module: Module, @TestOnly private val mavenRepository: GoogleMavenRepository = IdeGoogleMavenRepository)
   : AndroidModuleSystem {
 
-  override fun addDependencyWithoutSync(artifactId: GoogleMavenArtifactId, version: GoogleMavenArtifactVersion?, includePreview: Boolean) {
-    val gradleVersion = if (version == null) {
-      // Here we add a ":+" to the end of the artifact string because GradleCoordinate.parseCoordinateString uses a regex matcher
-      // that won't match a coordinate within just it's group and artifact id.  Adding a ":+" to the end in the case passes the
-      // regex matcher and does not impact version lookup.
-      val artifactCoordinate = "$artifactId:+"
-      val coordinate = GradleCoordinate.parseCoordinateString(artifactCoordinate)
-          ?: throw DependencyManagementException("Could not parse known artifact string $artifactCoordinate into gradle coordinate!",
-          DependencyManagementException.ErrorCodes.MALFORMED_PROJECT)
-      mavenRepository.findVersion(coordinate, null, includePreview)
-          ?: throw DependencyManagementException("Could not find an $coordinate artifact for addition!",
-          DependencyManagementException.ErrorCodes.INVALID_ARTIFACT)
-    }
-    else {
-      version.mavenVersion ?: throw DependencyManagementException("Adding dependencies without specified gradle version is not supported" +
-          " gradle projects.", DependencyManagementException.ErrorCodes.INVALID_ARTIFACT)
-    }
-
-    val gradleDependencyManager = GradleDependencyManager.getInstance(module.project)
-    val coordinateToAdd = GradleCoordinate.parseCoordinateString("$artifactId:$gradleVersion")
-    val singleCoordinateList = Collections.singletonList(coordinateToAdd)
-
-    gradleDependencyManager.addDependenciesWithoutSync(module, singleCoordinateList)
-  }
-
   override fun getDependencies(): Sequence<GoogleMavenArtifactId> {
     val androidModuleModel = AndroidModuleModel.get(module) ?:
         throw DependencyManagementException("Could not find android module model for module $module",

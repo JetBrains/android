@@ -18,9 +18,12 @@ package com.android.tools.idea.rendering;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.projectsystem.*;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
+import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.SdkUtils;
 import com.android.utils.SparseArray;
@@ -63,6 +66,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
@@ -202,7 +206,7 @@ public class HtmlLinkManager {
     }
     else if (url.startsWith(URL_ADD_DEPENDENCY) && module != null) {
       assert module.getModuleFile() != null;
-      handleAddDependency(url, ProjectSystemUtil.getModuleSystem(module));
+      handleAddDependency(url, module);
       ProjectSystemUtil.getSyncManager(module.getProject())
         .syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true);
     }
@@ -935,7 +939,7 @@ public class HtmlLinkManager {
   }
 
   @VisibleForTesting
-  static void handleAddDependency(@NotNull String url, @NotNull final AndroidModuleSystem moduleSystem) {
+  static void handleAddDependency(@NotNull String url, @NotNull final Module module) {
     assert url.startsWith(URL_ADD_DEPENDENCY) : url;
     String coordinateStr = url.substring(URL_ADD_DEPENDENCY.length());
     GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(coordinateStr + ":+");
@@ -943,18 +947,10 @@ public class HtmlLinkManager {
       Logger.getInstance(HtmlLinkManager.class).warn("Invalid coordinate " + coordinateStr);
       return;
     }
-
-    GoogleMavenArtifactId artifactId = GoogleMavenArtifactId.forCoordinate(coordinate);
-    if (artifactId == null) {
-      Logger.getInstance(HtmlLinkManager.class).warn("Invalid coordinate " + coordinate);
+    if (DependencyManagementUtil.addDependencies(module, Collections.singletonList(coordinate), false, false, false)
+                                .isEmpty()) {
       return;
     }
-
-    try {
-      moduleSystem.addDependencyWithoutSync(artifactId, null, false);
-    }
-    catch (DependencyManagementException e) {
-      Logger.getInstance(HtmlLinkManager.class).warn(e.getMessage());
-    }
+    Logger.getInstance(HtmlLinkManager.class).warn("Could not add dependency " + coordinate);
   }
 }

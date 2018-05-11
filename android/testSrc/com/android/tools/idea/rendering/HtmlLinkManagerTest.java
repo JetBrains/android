@@ -16,27 +16,24 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.idea.projectsystem.*;
-import com.intellij.openapi.vfs.VirtualFile;
-import junit.framework.TestCase;
-import kotlin.sequences.Sequence;
-import kotlin.sequences.SequencesKt;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.TestProjectSystem;
+import com.intellij.openapi.extensions.Extensions;
+import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestUtil;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.google.common.truth.Truth.assertThat;
 
-public class HtmlLinkManagerTest extends TestCase {
+public class HtmlLinkManagerTest extends IdeaTestCase {
   public void testRunnable() {
     HtmlLinkManager manager = new HtmlLinkManager();
     final AtomicBoolean result1 = new AtomicBoolean(false);
-    final AtomicBoolean result2= new AtomicBoolean(false);
+    final AtomicBoolean result2 = new AtomicBoolean(false);
     Runnable runnable1 = new Runnable() {
       @Override
       public void run() {
@@ -62,69 +59,32 @@ public class HtmlLinkManagerTest extends TestCase {
   }
 
   public void testHandleAddDependency() {
-    List<GoogleMavenArtifactId> addedArtifacts = new ArrayList<>();
-
-    AndroidModuleSystem moduleSystem = new AndroidModuleSystem() {
-      @Override
-      public void registerDependency(@NotNull GradleCoordinate coordinate) {}
-
-      @NotNull
-      @Override
-      public Sequence<GoogleMavenArtifactId> getDependencies() {
-        return SequencesKt.emptySequence();
-      }
-
-      @NotNull
-      @Override
-      public CapabilityStatus getInstantRunSupport() {
-        return new CapabilityNotSupported();
-      }
-
-      @NotNull
-      @Override
-      public CapabilityStatus canGeneratePngFromVectorGraphics() {
-        return new CapabilityNotSupported();
-      }
-
-      @Override
-      public void addDependencyWithoutSync(@NotNull GoogleMavenArtifactId artifactId, @Nullable GoogleMavenArtifactVersion version,
-                                           boolean includePreview)
-        throws DependencyManagementException {
-        assertNull(version);
-        addedArtifacts.add(artifactId);
-      }
-
-      @Nullable
-      @Override
-      public GradleCoordinate getRegisteredDependency(@NotNull GradleCoordinate coordinate) throws DependencyManagementException {
-        return null;
-      }
-
-      @Nullable
-      @Override
-      public GradleCoordinate getResolvedDependency(@NotNull GradleCoordinate coordinate) throws DependencyManagementException {
-        return null;
-      }
-
-      @NotNull
-      @Override
-      public List<NamedModuleTemplate> getModuleTemplates(@Nullable VirtualFile targetDirectory) {
-        return Collections.emptyList();
-      }
-    };
+    List<GradleCoordinate> expectedAvailableDependencies =
+      Stream
+        .of("com.android.support:palette-v7:+", "com.google.android.gms:play-services:+",
+            "com.android.support.constraint:constraint-layout:+")
+        .map(coordinateString -> GradleCoordinate.parseCoordinateString(coordinateString))
+        .collect(Collectors.toList());
+    TestProjectSystem testProjectSystem = new TestProjectSystem(getProject(), expectedAvailableDependencies);
+    PlatformTestUtil
+      .registerExtension(Extensions.getArea(getProject()), ProjectSystemUtil.getEP_NAME(), testProjectSystem,
+                         getTestRootDisposable());
 
     // try multiple invalid links
-    HtmlLinkManager.handleAddDependency("addDependency:", moduleSystem);
-    HtmlLinkManager.handleAddDependency("addDependency:com.android.support", moduleSystem);
-    HtmlLinkManager.handleAddDependency("addDependency:com.android.support:", moduleSystem);
-    HtmlLinkManager.handleAddDependency("addDependency:com.google.android.gms:palette-v7", moduleSystem);
-    HtmlLinkManager.handleAddDependency("addDependency:com.android.support:palette-v7-broken", moduleSystem);
-    assertEquals(0, addedArtifacts.size());
+    HtmlLinkManager.handleAddDependency("addDependency:", myModule);
+    HtmlLinkManager.handleAddDependency("addDependency:com.android.support", myModule);
+    HtmlLinkManager.handleAddDependency("addDependency:com.android.support:", myModule);
+    HtmlLinkManager.handleAddDependency("addDependency:com.google.android.gms:palette-v7", myModule);
+    HtmlLinkManager.handleAddDependency("addDependency:com.android.support:palette-v7-broken", myModule);
+    assertThat(testProjectSystem.getAddedDependencies(myModule)).isEmpty();
 
-    HtmlLinkManager.handleAddDependency("addDependency:com.android.support:palette-v7", moduleSystem);
-    HtmlLinkManager.handleAddDependency("addDependency:com.google.android.gms:play-services", moduleSystem);
-    HtmlLinkManager.handleAddDependency("addDependency:com.android.support.constraint:constraint-layout", moduleSystem);
-    assertThat(addedArtifacts.stream().map(Object::toString).collect(Collectors.toList()))
+    HtmlLinkManager.handleAddDependency("addDependency:com.android.support:palette-v7", myModule);
+    HtmlLinkManager.handleAddDependency("addDependency:com.google.android.gms:play-services", myModule);
+    HtmlLinkManager.handleAddDependency("addDependency:com.android.support.constraint:constraint-layout", myModule);
+    assertThat(
+      testProjectSystem.getAddedDependencies(myModule).stream()
+                       .map(artifact -> artifact.getGroupId() + ":" + artifact.getArtifactId())
+                       .collect(Collectors.toList()))
       .containsExactly("com.android.support:palette-v7",
                        "com.google.android.gms:play-services",
                        "com.android.support.constraint:constraint-layout");
