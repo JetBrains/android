@@ -35,7 +35,9 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
   private final Range mySelectionRange;
 
   /**
-   * The previous selection range, useful for determining which event to fire (created or cleared).
+   * The previous selection range, which we need to check against in order to fire selection events
+   * indirectly (when someone modifies our underlying range externally instead of through this
+   * class's API).
    */
   @NotNull
   private final Range myPreviousSelectionRange;
@@ -49,10 +51,13 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
   private boolean mySelectionEnabled;
 
   /**
-   * If updating, don't fire selection events.
+   * If updating, postpone firing selection events until {@link #endUpdate()}.
    */
   private boolean myIsUpdating;
   private boolean myPostponeSelectionEvent;
+
+  @Nullable
+  private Consumer<SelectionListener> myEventToFire;
 
   public SelectionModel(@NotNull Range selection) {
     mySelectionRange = selection;
@@ -92,26 +97,27 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
       return;
     }
 
-    Consumer<SelectionListener> event = null;
-    if (myPreviousSelectionRange.isEmpty() && !mySelectionRange.isEmpty()) {
-      event = SelectionListener::selectionCreated;
+    if (myEventToFire != null) {
+      myListeners.forEach(myEventToFire);
+      myEventToFire = null;
     }
-    else if (!myPreviousSelectionRange.isEmpty() && mySelectionRange.isEmpty()) {
-      event = SelectionListener::selectionCleared;
-    }
-    else if (myPreviousSelectionRange.isEmpty() && mySelectionRange.isEmpty()) {
-      event = SelectionListener::selectionCreationFailure;
-    }
+  }
 
-    myPreviousSelectionRange.set(mySelectionRange);
-    if (event != null) {
-      myListeners.forEach(event);
-    }
+  private void notifyEvent(@NotNull Consumer<SelectionListener> event) {
+    myEventToFire = event;
+    fireListeners();
   }
 
   private void selectionChanged() {
     changed(Aspect.SELECTION);
-    fireListeners();
+
+    if (mySelectionRange.isEmpty()) {
+      notifyEvent(SelectionListener::selectionCleared);
+    }
+    else if (myPreviousSelectionRange.isEmpty() && !mySelectionRange.isEmpty()) {
+      notifyEvent(SelectionListener::selectionCreated);
+    }
+    myPreviousSelectionRange.set(mySelectionRange);
   }
 
   /**
@@ -124,7 +130,10 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
 
   /**
    * Mark the end of a previously called {@link #beginUpdate()}. When an update is finished,
-   * any events will be triggered if they would have been fired during the update.
+   * the most recent event will be triggered if it would have been fired during the update,
+   * while any previous events would be swallowed. This is useful, for example, to distinguish
+   * the user simply clearing the selection vs. creating a new one (which would be
+   * beginUpdate -> clear -> set -> endUpdate)
    */
   public void endUpdate() {
     if (myIsUpdating) {
@@ -185,21 +194,18 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
         break;
       }
     }
+
     if (resultRange == null) {
       mySelectionRange.clear();
-      if (myPreviousSelectionRange.isEmpty()) {
-        selectionChanged();
-      }
+      notifyEvent(SelectionListener::selectionCreationFailure);
     }
-    else if (!mySelectionRange.equals(resultRange)) {
-      // In this case, we're completely replacing the existing selection with a brand new selection.
-      // If we didn't clear the previous range, it would look like we were just modifying the old selection.
-      myPreviousSelectionRange.clear();
-      if (resultDurationData.canSelectPartialRange()) {
-        mySelectionRange.set(resultRange.getIntersection(proposedRange));
-      }
-      else {
-        mySelectionRange.set(resultRange);
+    else {
+      Range finalRange = resultDurationData.canSelectPartialRange() ? resultRange.getIntersection(proposedRange) : resultRange;
+      if (!mySelectionRange.isSameAs(finalRange)) {
+        // Clear the previous range, which will allow logic in `selectionChanged` to realize this
+        // is a new selection, not a modification of an existing selection
+        myPreviousSelectionRange.clear();
+        mySelectionRange.set(finalRange);
       }
     }
   }

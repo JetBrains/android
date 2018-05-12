@@ -187,95 +187,155 @@ public class SelectionModelTest {
   }
 
   @Test
+  public void testAspectFiresWhenSelectionChanges() {
+    SelectionModel model = new SelectionModel(mySelection);
+    AspectObserver observer = new AspectObserver();
+
+    int[] aspectFiredCount = new int[]{0};
+
+    model.addDependency(observer).onChange(SelectionModel.Aspect.SELECTION, () -> aspectFiredCount[0]++);
+
+    assertThat(aspectFiredCount[0]).isEqualTo(0);
+
+    model.set(1, 2);
+    assertThat(aspectFiredCount[0]).isEqualTo(1);
+
+    model.set(1, 2);
+    assertThat(aspectFiredCount[0]).isEqualTo(1);
+
+    model.set(3, 4);
+    assertThat(aspectFiredCount[0]).isEqualTo(2);
+
+    model.clear();
+    assertThat(aspectFiredCount[0]).isEqualTo(3);
+
+    // Aspect still fired even between begin/endUpdate calls
+    model.beginUpdate();
+
+    model.set(1, 2);
+    assertThat(aspectFiredCount[0]).isEqualTo(4);
+
+    model.set(3, 4);
+    assertThat(aspectFiredCount[0]).isEqualTo(5);
+
+    model.endUpdate();
+    assertThat(aspectFiredCount[0]).isEqualTo(5);
+  }
+
+  @Test
   public void testListenersFiredAsExpected() {
     SelectionModel model = new SelectionModel(mySelection);
 
     final int SELECTION_CREATED = 0;
     final int SELECTION_CLEARED = 1;
     final int SELECTION_FAILED = 2;
-    final boolean[] event = {false, false, false};
+    final int[] event = {0, 0, 0};
     model.addListener(new SelectionListener() {
       @Override
       public void selectionCreated() {
-        event[SELECTION_CREATED] = true;
+        event[SELECTION_CREATED]++;
       }
 
       @Override
       public void selectionCleared() {
-        event[SELECTION_CLEARED] = true;
+        event[SELECTION_CLEARED]++;
       }
 
       @Override
       public void selectionCreationFailure() {
-        event[SELECTION_FAILED] = true;
+        event[SELECTION_FAILED]++;
       }
     });
 
     // Basic selection modification
-    Arrays.fill(event, false);
+    Arrays.fill(event, 0);
     model.set(1, 2);
-    assertThat(event[SELECTION_CREATED]).isTrue();
-    event[SELECTION_CREATED] = false;
+    assertThat(event[SELECTION_CREATED]).isEqualTo(1);
+    event[SELECTION_CREATED] = 0;
     model.set(1, 3);
-    assertThat(event[SELECTION_CREATED]).isFalse();
-    assertThat(event[SELECTION_CLEARED]).isFalse();
-    assertThat(event[SELECTION_FAILED]).isFalse();
+    assertThat(event[SELECTION_CREATED]).isEqualTo(0);
+    assertThat(event[SELECTION_CLEARED]).isEqualTo(0);
+    assertThat(event[SELECTION_FAILED]).isEqualTo(0);
     model.clear();
-    assertThat(event[SELECTION_CLEARED]).isTrue();
-    assertThat(event[SELECTION_FAILED]).isFalse();
+    assertThat(event[SELECTION_CLEARED]).isEqualTo(1);
+    assertThat(event[SELECTION_FAILED]).isEqualTo(0);
 
     // Selection creation not fired if not changed
     model.set(1, 2);
-    event[SELECTION_CREATED] = false;
+    event[SELECTION_CREATED] = 0;
     model.set(1, 2);
-    assertThat(event[SELECTION_CREATED]).isFalse();
-    assertThat(event[SELECTION_FAILED]).isFalse();
+    assertThat(event[SELECTION_CREATED]).isEqualTo(0);
+    assertThat(event[SELECTION_FAILED]).isEqualTo(0);
 
     // Selection clear not fired if not changed
     model.clear();
-    event[SELECTION_CLEARED] = false;
+    event[SELECTION_CLEARED] = 0;
     model.clear();
-    assertThat(event[SELECTION_CLEARED]).isFalse();
-    assertThat(event[SELECTION_FAILED]).isFalse();
+    assertThat(event[SELECTION_CLEARED]).isEqualTo(0);
+    assertThat(event[SELECTION_FAILED]).isEqualTo(0);
 
     // Selection creation only fired after updating is finished
     model.clear();
-    Arrays.fill(event, false);
+    Arrays.fill(event, 0);
     model.beginUpdate();
     model.set(3, 4);
     model.set(3, 5);
-    assertThat(event[SELECTION_CREATED]).isFalse();
-    assertThat(event[SELECTION_FAILED]).isFalse();
+    assertThat(event[SELECTION_CREATED]).isEqualTo(0);
+    assertThat(event[SELECTION_FAILED]).isEqualTo(0);
     model.endUpdate();
-    assertThat(event[SELECTION_CREATED]).isTrue();
-    assertThat(event[SELECTION_FAILED]).isFalse();
+    assertThat(event[SELECTION_CREATED]).isEqualTo(1);
+    assertThat(event[SELECTION_FAILED]).isEqualTo(0);
 
     // Selection clear only fired after updating is finished
     model.set(1, 2);
-    event[SELECTION_CLEARED] = false;
+    event[SELECTION_CLEARED] = 0;
     model.beginUpdate();
     model.clear();
-    assertThat(event[SELECTION_CLEARED]).isFalse();
-    assertThat(event[SELECTION_FAILED]).isFalse();
+    assertThat(event[SELECTION_CLEARED]).isEqualTo(0);
+    assertThat(event[SELECTION_FAILED]).isEqualTo(0);
     model.endUpdate();
-    assertThat(event[SELECTION_CLEARED]).isTrue();
-    assertThat(event[SELECTION_FAILED]).isFalse();
+    assertThat(event[SELECTION_CLEARED]).isEqualTo(1);
+    assertThat(event[SELECTION_FAILED]).isEqualTo(0);
 
     // Selection failed is fired when attempting to select constrained ranges
     model.clear();
-    Arrays.fill(event, false);
+    Arrays.fill(event, 0);
     model.addConstraint(createConstraint(false, true, 0, 1));
     model.addConstraint(createConstraint(false, false, 2, 3));
     model.addConstraint(createConstraint(true, true, 5, Long.MAX_VALUE));
     model.set(0.25, 0.75);
-    assertThat(event[SELECTION_FAILED]).isFalse();
+    assertThat(event[SELECTION_FAILED]).isEqualTo(0);
     model.set(1.25, 1.75);
-    assertThat(event[SELECTION_FAILED]).isTrue();
-    event[SELECTION_FAILED] = false;
+    assertThat(event[SELECTION_FAILED]).isEqualTo(1);
+    event[SELECTION_FAILED] = 0;
     model.set(2.25, 2.75);
-    assertThat(event[SELECTION_FAILED]).isFalse();
+    assertThat(event[SELECTION_FAILED]).isEqualTo(0);
     model.set(7.5, 10);
-    assertThat(event[SELECTION_FAILED]).isFalse();
+    assertThat(event[SELECTION_FAILED]).isEqualTo(0);
+
+    // Only most recent event fired after updating is finished
+    Arrays.fill(event, 0);
+    model.beginUpdate();
+    model.clear(); // Normally fires selectionCleared but is swallowed within begin/endUpdate
+    model.set(0.25, 0.75); // Normally fires selectionCreated but is swallowed within begin/endUpdate
+    assertThat(event[SELECTION_CLEARED]).isEqualTo(0);
+    assertThat(event[SELECTION_CREATED]).isEqualTo(0);
+    model.endUpdate(); // Only fire most recent event (selectionCreated)
+    assertThat(event[SELECTION_CLEARED]).isEqualTo(0);
+    assertThat(event[SELECTION_CREATED]).isEqualTo(1);
+
+    Arrays.fill(event, 0);
+    model.beginUpdate();
+    model.clear(); // Normally fires selectionCleared but is swallowed within begin/endUpdate
+    model.set(0.25, 0.75); // Normally fire selectionCreated but is swallowed within begin/endUpdate
+    model.set(1.25, 1.75); // Normally fires selectionCleared + selectionCreationFailed but is swallowed within begin/endUpdate
+    assertThat(event[SELECTION_CLEARED]).isEqualTo(0);
+    assertThat(event[SELECTION_CREATED]).isEqualTo(0);
+    assertThat(event[SELECTION_FAILED]).isEqualTo(0);
+    model.endUpdate(); // Only fire most recent event (selectionCreationFailed)
+    assertThat(event[SELECTION_CLEARED]).isEqualTo(0);
+    assertThat(event[SELECTION_CREATED]).isEqualTo(0);
+    assertThat(event[SELECTION_FAILED]).isEqualTo(1);
   }
 
   @Test
@@ -327,6 +387,45 @@ public class SelectionModelTest {
     assertThat(counts[CLEARED]).isEqualTo(0);
     assertThat(counts[CREATED]).isEqualTo(0);
     Arrays.fill(counts, 0);
+  }
+
+  @Test
+  public void testListenersFireEvenWhenModifyingUnderlyingRangeDirectly() {
+    SelectionModel model = new SelectionModel(mySelection);
+
+    final int SELECTION_CREATED = 0;
+    final int SELECTION_CLEARED = 1;
+    final boolean[] event = {false, false};
+    model.addListener(new SelectionListener() {
+      @Override
+      public void selectionCreated() {
+        event[SELECTION_CREATED] = true;
+      }
+
+      @Override
+      public void selectionCleared() {
+        event[SELECTION_CLEARED] = true;
+      }
+    });
+
+    // Basic selection modification
+    Arrays.fill(event, false);
+    mySelection.set(1, 2);
+    assertThat(event[SELECTION_CREATED]).isTrue();
+    event[SELECTION_CREATED] = false;
+    mySelection.set(1, 3);
+    assertThat(event[SELECTION_CREATED]).isFalse();
+    mySelection.clear();
+    assertThat(event[SELECTION_CLEARED]).isTrue();
+
+    // Only fire one even after begin/endUpdate
+    Arrays.fill(event, false);
+    model.beginUpdate();
+    mySelection.set(1, 2);
+    mySelection.clear();
+    model.endUpdate();
+    assertThat(event[SELECTION_CREATED]).isFalse();
+    assertThat(event[SELECTION_CLEARED]).isTrue();
   }
 
   @Test
