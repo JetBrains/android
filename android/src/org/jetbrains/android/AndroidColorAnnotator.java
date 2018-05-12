@@ -274,16 +274,15 @@ public class AndroidColorAnnotator implements Annotator {
         case "vector": {
           // Take a look and see if we have a bitmap we can fall back to
           LocalResourceRepository resourceRepository = ResourceRepositoryManager.getAppResources(facet);
-          List<ResourceItem> items = resourceRepository.getResourceItem(resourceValue.getResourceType(), resourceValue.getName());
-          if (items != null) {
-            for (ResourceItem item : items) {
-              FolderConfiguration configuration = item.getConfiguration();
-              DensityQualifier densityQualifier = configuration.getDensityQualifier();
-              if (densityQualifier != null) {
-                Density density = densityQualifier.getValue();
-                if (density != null && density.isValidValueForDevice()) {
-                  return ResourceHelper.getSourceAsVirtualFile(item);
-                }
+          List<ResourceItem> items =
+              resourceRepository.getResourceItems(resourceValue.getNamespace(), resourceValue.getResourceType(), resourceValue.getName());
+          for (ResourceItem item : items) {
+            FolderConfiguration configuration = item.getConfiguration();
+            DensityQualifier densityQualifier = configuration.getDensityQualifier();
+            if (densityQualifier != null) {
+              Density density = densityQualifier.getValue();
+              if (density != null && density.isValidValueForDevice()) {
+                return ResourceHelper.getSourceAsVirtualFile(item);
               }
             }
           }
