@@ -16,11 +16,10 @@
 package com.android.tools.idea.projectsystem
 
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.templates.IdeGoogleMavenRepository
 import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
-
 
 /**
  * Integration tests for [GradleProjectSystem]; contains tests that require a working gradle project.
@@ -34,13 +33,13 @@ class GradleProjectSystemIntegrationTest : AndroidGradleTestCase() {
     val availableAppCompatVersion = IdeGoogleMavenRepository.findVersion("com.android.support", "appcompat-v7")
     val availableAppCompat = GradleCoordinate("com.android.support", "appcompat-v7", availableAppCompatVersion.toString())
 
-    Truth.assertThat(isSameArtifact(
+    assertThat(isSameArtifact(
       projectSystem.getAvailableDependency(GradleCoordinate("com.android.support", "appcompat-v7", "+")),
       availableAppCompat
     )).isTrue()
 
-    Truth.assertThat(isSameArtifact(
-      projectSystem.getAvailableDependency(GradleCoordinate("com.android.support", "appcompat-v7", "27.0.2")),
+    assertThat(isSameArtifact(
+      projectSystem.getAvailableDependency(GradleCoordinate("com.android.support", "appcompat-v7", availableAppCompatVersion.toString())),
       availableAppCompat
     )).isTrue()
   }
