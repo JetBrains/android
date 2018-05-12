@@ -30,6 +30,7 @@ import com.intellij.util.containers.ContainerUtil;
 import gnu.trove.*;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,6 +58,7 @@ import java.util.Set;
  * <p>If {@code CAPTURE_HEAP_DUMPS} field is set to true, the test will create heap dumps from before and after the run for
  * further leak analysis.
  */
+@Ignore("b/79617340")
 @RunWith(GuiTestRemoteRunner.class)
 @RunIn(TestGroup.UNRELIABLE)
 public class LayoutEditorMemoryUseTest {
