@@ -161,16 +161,10 @@ public class StudioProgressIndicatorAdapter implements ProgressIndicator {
 
   @Override
   public void startNonCancelableSection() {
-    if (myExistingIndicator != null) {
-      myExistingIndicator.startNonCancelableSection();
-    }
   }
 
   @Override
   public void finishNonCancelableSection() {
-    if (myExistingIndicator != null) {
-      myExistingIndicator.finishNonCancelableSection();
-    }
   }
 
   @Override
@@ -218,7 +212,10 @@ public class StudioProgressIndicatorAdapter implements ProgressIndicator {
 
   @Override
   public void checkCanceled() throws ProcessCanceledException {
-    if ((myExistingIndicator != null && myExistingIndicator.isCanceled()) || myWrapped.isCanceled()) {
+    if (myExistingIndicator != null) {
+      myExistingIndicator.checkCanceled();
+    }
+    if (myWrapped.isCanceled() && myWrapped.isCancellable()) {
       throw new ProcessCanceledException();
     }
   }
