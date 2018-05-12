@@ -287,8 +287,8 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
     };
 
     DefaultActionGroup toolbarGroup = new DefaultActionGroup();
-    toolbarGroup.add(new BackAction(component));
-    toolbarGroup.add(new ForwardAction(component));
+    toolbarGroup.add(new BackAction(component, myDisposable));
+    toolbarGroup.add(new ForwardAction(component, myDisposable));
 
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("AndroidProjectStructure", toolbarGroup, true);
     toolbar.setTargetComponent(component);
