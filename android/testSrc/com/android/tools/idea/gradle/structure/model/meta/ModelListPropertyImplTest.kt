@@ -47,16 +47,6 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
     ).bind(Model)
   }
 
-  private fun <T : Any> ModelPropertyCore<T>.testValue() = (getParsedValue() as? ParsedValue.Set.Parsed<T>)?.value
-  private fun <T : Any> ModelPropertyCore<T>.testSetValue(value: T?) =
-    setParsedValue(if (value != null) ParsedValue.Set.Parsed(value, DslText.Literal) else ParsedValue.NotSet)
-
-  private fun <T : Any> ModelPropertyCore<T>.testSetReference(value: String) =
-    setParsedValue(ParsedValue.Set.Parsed(dslText = DslText.Reference(value), value = null))
-
-  private fun <T : Any> ModelPropertyCore<T>.testSetInterpolatedString(value: String) =
-    setParsedValue(ParsedValue.Set.Parsed(dslText = DslText.InterpolatedString(value), value = null))
-
   @Test
   fun testPropertyValues() {
     val text = """
