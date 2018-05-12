@@ -317,6 +317,7 @@ public class AndroidColorAnnotator implements Annotator {
                 }
               }
             }
+            parser.nextTag();
           }
           break;
         }
