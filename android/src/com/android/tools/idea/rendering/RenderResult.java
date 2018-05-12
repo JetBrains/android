@@ -41,6 +41,7 @@ public class RenderResult {
   @NotNull private final Result myRenderResult;
   @NotNull private final ImmutableMap<Object, PropertiesMap> myDefaultProperties;
   @NotNull private final Module myModule;
+  private boolean isDisposed;
 
   protected RenderResult(@NotNull PsiFile file,
                          @NotNull Module module,
@@ -63,9 +64,8 @@ public class RenderResult {
   }
 
   public void dispose() {
-    if (myImage != null) {
-      myImage.dispose();
-    }
+    isDisposed = true;
+    myImage.dispose();
   }
 
   /**
@@ -148,11 +148,11 @@ public class RenderResult {
 
   @NotNull
   public ImagePool.Image getRenderedImage() {
-    return myImage;
+    return !isDisposed ? myImage : ImagePool.NULL_POOLED_IMAGE;
   }
 
   public boolean hasImage() {
-    return myImage != ImagePool.NULL_POOLED_IMAGE;
+    return !isDisposed && myImage != ImagePool.NULL_POOLED_IMAGE;
   }
 
   @NotNull
