@@ -102,6 +102,7 @@ public class NewInstantAppTest {
       .clickPath(featureModuleName == null ? "feature" : featureModuleName);
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/66249968 or similar issue, apparently
   @Test
   public void testNoWarningsInDefaultNewInstantAppProjects() throws IOException {
     String projectName = "Warning";
