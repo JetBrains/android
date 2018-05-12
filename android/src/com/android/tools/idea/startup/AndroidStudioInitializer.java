@@ -21,7 +21,6 @@ import com.android.tools.idea.actions.MakeIdeaModuleAction;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationProducer;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.execution.actions.RunConfigurationProducer;
@@ -59,14 +58,11 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.Arrays;
 
-import static com.android.SdkConstants.EXT_JAR;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.startup.Actions.hideAction;
 import static com.android.tools.idea.startup.Actions.replaceAction;
 import static com.intellij.openapi.actionSystem.IdeActions.*;
 import static com.intellij.openapi.util.io.FileUtil.join;
-import static com.intellij.openapi.util.io.FileUtil.notNullize;
-import static com.intellij.openapi.util.io.FileUtilRt.getExtension;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 /**
@@ -142,17 +138,9 @@ public class AndroidStudioInitializer implements Runnable {
 
     // Look for signs that the installation is corrupt due to improper updates (typically unzipping on top of previous install)
     // which doesn't delete files that have been removed or renamed
-    String cause = null;
-    File[] children = notNullize(androidPluginLibFolderPath.listFiles());
-    if (hasMoreThanOneBuilderModelFile(children)) {
-      cause = "(Found multiple versions of builder-model-*.jar in plugins/android/lib.)";
-    }
-    else if (new File(studioHomePath, join("plugins", "android-designer")).exists()) {
-      cause = "(Found plugins/android-designer which should not be present.)";
-    }
-    if (cause != null) {
+    if (new File(studioHomePath, join("plugins", "android-designer")).exists()) {
       String msg = "Your Android Studio installation is corrupt and will not work properly.\n" +
-                   cause + "\n" +
+                   "(Found plugins/android-designer which should not be present.)\n" +
                    "This usually happens if Android Studio is extracted into an existing older version.\n\n" +
                    "Please reinstall (and make sure the new installation directory is empty first.)";
       String title = "Corrupt Installation";
@@ -161,22 +149,6 @@ public class AndroidStudioInitializer implements Runnable {
         ApplicationManagerEx.getApplicationEx().exit();
       }
     }
-  }
-
-  @VisibleForTesting
-  static boolean hasMoreThanOneBuilderModelFile(@NotNull File[] libraryFiles) {
-    int builderModelFileCount = 0;
-
-    for (File file : libraryFiles) {
-      String fileName = file.getName();
-      if (fileName.startsWith("builder-model-") && EXT_JAR.equals(getExtension(fileName))) {
-        if (++builderModelFileCount > 1) {
-          return true;
-        }
-      }
-    }
-
-    return false;
   }
 
   // Remove popup actions that we don't use
