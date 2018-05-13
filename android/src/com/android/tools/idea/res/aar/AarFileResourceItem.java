@@ -101,6 +101,7 @@ class AarFileResourceItem extends ResourceValue implements AarResourceItem {
     return myConfiguration.getRepository().getPathString(super.getValue());
   }
 
+  @Override
   @NotNull
   public ResourceVisibility getVisibility() {
     return myVisibility;

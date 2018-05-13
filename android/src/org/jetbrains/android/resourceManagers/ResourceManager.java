@@ -375,7 +375,7 @@ public abstract class ResourceManager {
       if (distinguishDelimitersInName) {
         items = repository.getResourceItems(namespace, resourceType, resourceName);
       } else {
-        items = repository.getResourceItems(namespace, resourceType, name -> AndroidUtils.equal(resourceName, name, false));
+        items = repository.getResourceItems(namespace, resourceType, item -> AndroidUtils.equal(resourceName, item.getName(), false));
       }
       for (ResourceItem item : items) {
         VirtualFile file = ResourceHelper.getSourceAsVirtualFile(item);

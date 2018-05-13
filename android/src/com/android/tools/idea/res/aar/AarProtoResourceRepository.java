@@ -297,7 +297,7 @@ public class AarProtoResourceRepository extends FileResourceRepository {
         resourceValue = createStyleValue(compoundValueMsg.getStyle(), resourceType, resourceName);
         break;
       case STYLEABLE:
-        resourceValue = createDeclaresStyleableValue(compoundValueMsg.getStyleable(), resourceName);
+        resourceValue = createStyleableValue(compoundValueMsg.getStyleable(), resourceName);
         break;
       case ARRAY:
         resourceValue = createArrayValue(compoundValueMsg.getArray(), resourceType, resourceName);
@@ -355,8 +355,8 @@ public class AarProtoResourceRepository extends FileResourceRepository {
   }
 
   @NotNull
-  private ResourceValue createDeclaresStyleableValue(@NotNull Resources.Styleable styleableMsg, @NotNull String resourceName) {
-    DeclareStyleableResourceValue declareStyleableValue =
+  private ResourceValue createStyleableValue(@NotNull Resources.Styleable styleableMsg, @NotNull String resourceName) {
+    DeclareStyleableResourceValue styleableValue =
         new DeclareStyleableResourceValueImpl(getNamespace(), ResourceType.DECLARE_STYLEABLE, resourceName, null, getLibraryName());
     for (Resources.Styleable.Entry entryMsg : styleableMsg.getEntryList()) {
       String url = entryMsg.getAttr().getName();
@@ -364,9 +364,9 @@ public class AarProtoResourceRepository extends FileResourceRepository {
       String packageName = myUrlParser.getPackageName();
       ResourceNamespace namespace = packageName == null ? getNamespace() : ResourceNamespace.fromPackageName(packageName);
       AttrResourceValue attrValue = new AttrResourceValueImpl(namespace, ResourceType.ATTR, myUrlParser.getName(), getLibraryName());
-      declareStyleableValue.addValue(attrValue);
+      styleableValue.addValue(attrValue);
     }
-    return declareStyleableValue;
+    return styleableValue;
   }
 
   @NotNull
@@ -414,13 +414,15 @@ public class AarProtoResourceRepository extends FileResourceRepository {
   @NotNull
   private static ResourceVisibility computeVisibility(@NotNull Resources.Visibility visibilityMsg) {
     switch (visibilityMsg.getLevel()) {
-      case PUBLIC:
-        return ResourceVisibility.PUBLIC;
+      case UNKNOWN:
+        return ResourceVisibility.PRIVATE_XML_ONLY;
       case PRIVATE:
         return ResourceVisibility.PRIVATE;
-      case UNKNOWN:
+      case PUBLIC:
+        return ResourceVisibility.PUBLIC;
+      case UNRECOGNIZED:
       default:
-        return ResourceVisibility.PRIVATE_XML_ONLY;
+        return ResourceVisibility.UNDEFINED;
     }
   }
 
