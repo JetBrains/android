@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.theme.attributes.editors;
 
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.editors.theme.ColorUtils;
@@ -50,7 +51,7 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
     ResourceResolver resourceResolver = context.getResourceResolver();
     assert resourceResolver != null;
 
-    final List<Color> colors = ResourceHelper.resolveMultipleColors(resourceResolver, item.getSelectedValue(), context.getProject());
+    final List<Color> colors = ResourceHelper.resolveMultipleColors(resourceResolver, (ResourceValue)item.getSelectedValue(), context.getProject());
     ResourceSwatchComponent.SwatchIcon icon;
     if (colors.isEmpty()) {
       icon = ResourceSwatchComponent.WARNING_ICON;

@@ -28,7 +28,10 @@ import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
-import com.android.tools.idea.res.*;
+import com.android.tools.idea.res.AssetRepositoryImpl;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceIdManager;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -439,11 +442,11 @@ public class GraphicsLayoutRenderer {
   public Set<String> getUsedAttrs() {
     HashSet<String> usedAttrs = new HashSet<String>();
     for(ResourceValue value : myResourceLookupChain) {
-      if (!(value instanceof ItemResourceValue) || ((ItemResourceValue)value).getAttrName() == null) {
+      if (!(value instanceof StyleItemResourceValue) || ((StyleItemResourceValue)value).getAttrName() == null) {
         // Only selects resources that are also attributes
         continue;
       }
-      usedAttrs.add(ResolutionUtils.getQualifiedItemAttrName((ItemResourceValue)value));
+      usedAttrs.add(ResolutionUtils.getQualifiedItemAttrName((StyleItemResourceValue)value));
     }
 
     return Collections.unmodifiableSet(usedAttrs);

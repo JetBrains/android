@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.theme.attributes;
 
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ColorPalette;
@@ -90,7 +91,7 @@ public class AttributesModelColorPaletteModel implements ColorPalette.ColorPalet
       }
 
       EditedStyleItem item = (EditedStyleItem)myModel.getValueAt(i, 0);
-      for (Color color : ResourceHelper.resolveMultipleColors(myResourceResolver, item.getSelectedValue(), myProject)) {
+      for (Color color : ResourceHelper.resolveMultipleColors(myResourceResolver, (ResourceValue)item.getSelectedValue(), myProject)) {
         myColorReferences.put(color, item);
         colorSet.add(color);
       }

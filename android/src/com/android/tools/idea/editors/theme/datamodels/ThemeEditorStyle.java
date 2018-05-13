@@ -16,8 +16,8 @@
 package com.android.tools.idea.editors.theme.datamodels;
 
 import com.android.SdkConstants;
-import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
@@ -29,7 +29,6 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorVirtualFile;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableCollection;
@@ -177,7 +176,7 @@ public class ThemeEditorStyle {
    * @return all values defined in this style with a FolderConfiguration configuration
    */
   @NotNull
-  public Collection<ItemResourceValue> getValues(@NotNull FolderConfiguration configuration) {
+  public Collection<StyleItemResourceValue> getValues(@NotNull FolderConfiguration configuration) {
     if (isFramework()) {
       IAndroidTarget target = myManager.getHighestApiTarget();
       assert target != null;

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.editors.theme.attributes.editors;
 
-import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
-import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.intellij.ui.JBColor;
 
 import javax.swing.*;
@@ -26,7 +26,7 @@ import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 
 /**
- * Cell renderer used to add tooltips to table cells containing {@link ItemResourceValue}
+ * Cell renderer used to add tooltips to table cells containing {@link StyleItemResourceValue}
  *
  * Uses delegate to draw "simple" extracted value (which is usually a String or a Boolean)
  */

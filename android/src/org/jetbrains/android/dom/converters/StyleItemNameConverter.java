@@ -17,8 +17,8 @@
 package org.jetbrains.android.dom.converters;
 
 import com.android.SdkConstants;
-import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
@@ -40,7 +40,10 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 
 import static com.android.ide.common.resources.AbstractResourceRepository.MAX_RESOURCE_INDIRECTION;
 
@@ -105,7 +108,7 @@ public class StyleItemNameConverter extends ResolvingConverter<String> {
           }
 
           // TODO: namespaces
-          for (ItemResourceValue value : parentValue.getDefinedItems()) {
+          for (StyleItemResourceValue value : parentValue.getDefinedItems()) {
             if (!value.isFramework()) {
               attributeNames.add(value.getAttrName());
             }

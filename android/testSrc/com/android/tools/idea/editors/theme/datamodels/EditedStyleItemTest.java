@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.editors.theme.datamodels;
 
-import com.android.ide.common.rendering.api.ItemResourceValue;
-import com.android.ide.common.rendering.api.StyleItemResourceValueImpl;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.StyleItemResourceValue;
+import com.android.ide.common.rendering.api.StyleItemResourceValueImpl;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -40,7 +40,7 @@ public class EditedStyleItemTest extends AndroidTestCase {
     assertNotNull(fakeTheme);
 
     //noinspection ConstantConditions
-    List<ConfiguredElement<ItemResourceValue>> items = ImmutableList.of(
+    List<ConfiguredElement<StyleItemResourceValue>> items = ImmutableList.of(
       ConfiguredElement.create(FolderConfiguration.getConfigForFolder("values-v21"),
                                new StyleItemResourceValueImpl(ResourceNamespace.RES_AUTO, "attribute", "otherValue", null)));
 
@@ -53,7 +53,7 @@ public class EditedStyleItemTest extends AndroidTestCase {
     assertEquals("selectedValue", editedStyleItem.getValue());
     assertEquals("selectedValue", editedStyleItem.getSelectedValue().getValue());
     assertEquals(1, editedStyleItem.getNonSelectedItemResourceValues().size());
-    ConfiguredElement<ItemResourceValue> notSelectedItem = editedStyleItem.getNonSelectedItemResourceValues().iterator().next();
+    ConfiguredElement<StyleItemResourceValue> notSelectedItem = editedStyleItem.getNonSelectedItemResourceValues().iterator().next();
     assertEquals("otherValue", notSelectedItem.myValue.getValue());
   }
 }

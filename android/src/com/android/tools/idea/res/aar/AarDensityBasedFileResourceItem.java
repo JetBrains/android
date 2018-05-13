@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.res.aar;
 
-import com.android.ide.common.rendering.api.DensityBasedResourceValue;
+import com.android.ide.common.rendering.api.DensityBasedResourceValueImpl;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
@@ -31,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
  * Resource item representing a density-specific file resource inside an AAR, e.g. a drawable or a layout.
  */
 // TODO: Rework inheritance structure once DensityBasedResourceValue becomes an interface.
-class AarDensityBasedFileResourceItem extends DensityBasedResourceValue implements AarResourceItem {
+class AarDensityBasedFileResourceItem extends DensityBasedResourceValueImpl implements AarResourceItem {
   @NotNull private final AarConfiguration myConfiguration;
   @NotNull private final ResourceVisibility myVisibility;
 

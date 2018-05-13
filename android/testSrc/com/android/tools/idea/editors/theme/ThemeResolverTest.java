@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
@@ -68,7 +68,7 @@ public class ThemeResolverTest extends AndroidTestCase {
     assertEquals("Theme", theme.getParent().getName());
 
     assertEquals(1, theme.getConfiguredValues().size());
-    ConfiguredElement<ItemResourceValue> value = Iterables.get(theme.getConfiguredValues(), 0);
+    ConfiguredElement<StyleItemResourceValue> value = Iterables.get(theme.getConfiguredValues(), 0);
     assertEquals("windowBackground", value.getElement().getAttr().getName());
     assertEquals("@drawable/pic", value.getElement().getValue());
 

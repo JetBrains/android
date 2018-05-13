@@ -19,8 +19,8 @@ import com.android.SdkConstants;
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
-import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
@@ -122,7 +122,7 @@ public class ThemeEditorUtils {
   }
 
   @NotNull
-  public static String generateToolTipText(@NotNull final ItemResourceValue resValue,
+  public static String generateToolTipText(@NotNull final StyleItemResourceValue resValue,
                                            @NotNull final Module module,
                                            @NotNull final Configuration configuration) {
     final LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(module);
@@ -174,16 +174,16 @@ public class ThemeEditorUtils {
   }
 
   /**
-   * Finds an ItemResourceValue for a given name in a theme inheritance tree
+   * Finds an StyleItemResourceValue for a given name in a theme inheritance tree
    */
   @Nullable/*if there is not an item with that name*/
-  public static ItemResourceValue resolveItemFromParents(@NotNull final ConfiguredThemeEditorStyle theme,
-                                                         @NotNull String name,
-                                                         boolean isFrameworkAttr) {
+  public static StyleItemResourceValue resolveItemFromParents(@NotNull ConfiguredThemeEditorStyle theme,
+                                                              @NotNull String name,
+                                                              boolean isFrameworkAttr) {
     ConfiguredThemeEditorStyle currentTheme = theme;
 
     for (int i = 0; (i < MAX_RESOURCE_INDIRECTION) && currentTheme != null; i++) {
-      ItemResourceValue item = currentTheme.getItem(name, isFrameworkAttr);
+      StyleItemResourceValue item = currentTheme.getItem(name, isFrameworkAttr);
       if (item != null) {
         return item;
       }
@@ -552,8 +552,8 @@ public class ThemeEditorUtils {
    */
   public static JBColor getGoodContrastPreviewBackground(@NotNull ConfiguredThemeEditorStyle theme,
                                                          @NotNull ResourceResolver resourceResolver) {
-    ItemResourceValue themeColorBackgroundItem = resolveItemFromParents(theme, "colorBackground", true);
-    ResourceValue backgroundResourceValue = resourceResolver.resolveResValue(themeColorBackgroundItem);
+    StyleItemResourceValue themeColorBackgroundItem = resolveItemFromParents(theme, "colorBackground", true);
+    ResourceValue backgroundResourceValue = resourceResolver.resolveResValue((ResourceValue)themeColorBackgroundItem);
     if (backgroundResourceValue != null) {
       String colorBackgroundValue = backgroundResourceValue.getValue();
       Color colorBackground = ResourceHelper.parseColor(colorBackgroundValue);
@@ -671,7 +671,7 @@ public class ThemeEditorUtils {
                                                        @NotNull ThemeEditorContext context,
                                                        EnumSet<ResourceType> allowedTypes) {
     Module module = context.getModuleForResources();
-    ItemResourceValue itemSelectedValue = item.getSelectedValue();
+    StyleItemResourceValue itemSelectedValue = item.getSelectedValue();
 
     String value = itemSelectedValue.getValue();
     boolean isFrameworkValue = itemSelectedValue.isFramework();
