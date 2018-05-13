@@ -28,6 +28,7 @@ import com.android.ide.common.resources.AbstractResourceRepository.MAX_RESOURCE_
 import com.android.ide.common.resources.ResourceFile
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceItem.*
+import com.android.ide.common.resources.ResourceItemWithVisibility
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.ide.common.util.PathString
 import com.android.ide.common.util.toPathString
@@ -36,10 +37,12 @@ import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.apk.viewer.ApkFileSystem
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.res.aar.AarProtoResourceRepository
 import com.android.tools.lint.detector.api.computeResourceName
 import com.android.tools.lint.detector.api.computeResourcePrefix
 import com.android.tools.lint.detector.api.getBaseName
 import com.android.tools.lint.detector.api.stripIdPrefix
+import com.google.common.base.Preconditions
 import com.google.common.collect.Lists
 import com.google.common.collect.Sets
 import com.intellij.openapi.application.ApplicationManager
@@ -1036,7 +1039,7 @@ fun buildResourceId(packageId: Byte, typeId: Byte, entryId: Short) =
   (packageId.toInt() shl 24) or (typeId.toInt() shl 16) or (entryId.toInt() and 0xffff)
 
 /**
- * Gets the names of [ResourceItem]s with the given namespace, type and accessibility in the repository.
+ * Returns the names of [ResourceItem]s with the given namespace, type and visibility in the repository.
  *
  * Intended for code completion.
  */
@@ -1044,32 +1047,43 @@ fun AbstractResourceRepository.getResourceItems(
   namespace: ResourceNamespace,
   type: ResourceType,
   visibilityLookup: ResourceVisibilityLookup,
-  maxAccessibility: ResourceVisibility
+  minVisibility: ResourceVisibility
 ): Collection<String> {
+  Preconditions.checkArgument(minVisibility != ResourceVisibility.UNDEFINED)
   // TODO(b/74325205): remove the need for this.
-  val patchedType = if (type == ResourceType.STYLEABLE) ResourceType.DECLARE_STYLEABLE else type
+  val adjustedType = if (type == ResourceType.STYLEABLE) ResourceType.DECLARE_STYLEABLE else type
 
-  // TODO(namespaces): for now FrameworkResourceRepository is the only one that understands accessibility. We need to make all support it.
-  return if (this is FrameworkResourceRepository) {
-    when {
+  // TODO(namespaces): Only AarProtoResourceRepository properly supports resource visibility. We need to make all repositories support it.
+  return when {
+    this is FrameworkResourceRepository -> when {
       namespace != ResourceNamespace.ANDROID -> emptySet()
-      maxAccessibility != ResourceVisibility.PUBLIC -> getItemsOfType(ResourceNamespace.ANDROID, patchedType)
+      minVisibility != ResourceVisibility.PUBLIC -> getItemsOfType(ResourceNamespace.ANDROID, adjustedType)
       else -> {
-        val public = getPublicResourcesOfType(patchedType)
+        val public = getPublicResourcesOfType(adjustedType)
         public.mapTo(HashSet(public.size), ResourceItem::getName)
       }
     }
-  } else {
-    val all = getItemsOfType(namespace, type)
-    when (maxAccessibility) {
-    // TODO(b/74324283): distinguish between PRIVATE/PRIVATE XML ONLY.
-      ResourceVisibility.PRIVATE_XML_ONLY, ResourceVisibility.PRIVATE, ResourceVisibility.UNDEFINED -> all
-    // TODO(namespaces)
-      ResourceVisibility.PUBLIC -> all.filter { name ->
-        // This is not the same as calling isPublic, see ResourceVisibilityLookup docs. If we don't know, we assume things are accessible,
-        // which is probably a better UX and the only way to make our tests pass (for now).
-        !visibilityLookup.isPrivate(patchedType, name)
+    this is AarProtoResourceRepository -> {
+      // Resources in AarProtoResourceRepository know their visibility.
+      val items = getResourceItems(namespace, adjustedType) { item ->
+        (item as ResourceItemWithVisibility).visibility >= minVisibility
       }
+      items.mapTo(HashSet(items.size), ResourceItem::getName)
+    }
+    else -> {
+      val items = getResourceItems(namespace, adjustedType) { item ->
+        when {
+          minVisibility == ResourceVisibility.values()[0] -> true
+          item is ResourceItemWithVisibility -> item.visibility >= minVisibility
+          else ->
+            // TODO(b/74324283): distinguish between PRIVATE and PRIVATE_XML_ONLY.
+            // TODO(namespaces)
+            // This is not the same as calling isPublic, see ResourceVisibilityLookup docs. If we don't know, we assume things are accessible,
+            // which is probably a better UX and the only way to make our tests pass (for now).
+            minVisibility != ResourceVisibility.PUBLIC || !visibilityLookup.isPrivate(adjustedType, item.name)
+        }
+      }
+      items.mapTo(HashSet(items.size), ResourceItem::getName)
     }
   }
 }

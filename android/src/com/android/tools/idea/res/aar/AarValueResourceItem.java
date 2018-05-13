@@ -95,6 +95,7 @@ class AarValueResourceItem implements AarResourceItem {
     return null;
   }
 
+  @Override
   @NotNull
   public ResourceVisibility getVisibility() {
     return myVisibility;

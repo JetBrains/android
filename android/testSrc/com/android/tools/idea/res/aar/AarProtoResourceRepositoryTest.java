@@ -18,12 +18,14 @@ package com.android.tools.idea.res.aar;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceItemWithVisibility;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.ScreenSizeQualifier;
 import com.android.ide.common.util.PathString;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
+import com.android.resources.ResourceVisibility;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.res.FileResourceRepository;
 import com.android.utils.XmlUtils;
@@ -532,6 +534,20 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
     return new File(sdkPath + "/platforms/" + platformDir + "/data/res");
   }
 
+  private static void checkVisibility(@NotNull AarProtoResourceRepository repository) {
+    List<ResourceItem> items = repository.getResourceItems(repository.getNamespace(), ResourceType.DECLARE_STYLEABLE);
+    assertFalse(items.isEmpty());
+    for (ResourceItem item : items) {
+      assertEquals(ResourceVisibility.PUBLIC, ((ResourceItemWithVisibility)item).getVisibility());
+    }
+
+    items = repository.getResourceItems(repository.getNamespace(), ResourceType.DRAWABLE);
+    assertFalse(items.isEmpty());
+    for (ResourceItem item : items) {
+      assertEquals(ResourceVisibility.PRIVATE_XML_ONLY, ((ResourceItemWithVisibility)item).getVisibility());
+    }
+  }
+
   public void testLoading() throws Exception {
     myEnumMap = loadEnumMap();
 
@@ -551,6 +567,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
       if (i == 0) {
         updateEnumMap(fromSources);
         compareContents(fromSources, fromResApk);
+        checkVisibility(fromResApk);
       }
     }
     if (PRINT_STATS) {

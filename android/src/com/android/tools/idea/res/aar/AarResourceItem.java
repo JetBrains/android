@@ -16,12 +16,13 @@
 package com.android.tools.idea.res.aar;
 
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceItemWithVisibility;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Interface to be implemented by all AAR resource items.
  */
-interface AarResourceItem extends ResourceItem {
+interface AarResourceItem extends ResourceItemWithVisibility {
   @Override
   @NotNull
   default String getKey() {
