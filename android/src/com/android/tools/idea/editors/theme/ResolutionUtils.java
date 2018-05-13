@@ -117,7 +117,7 @@ public class ResolutionUtils {
    * Returns the name of the attr for this item, including the appropriate namespace.
    */
   @NotNull
-  public static String getQualifiedItemAttrName(@NotNull ItemResourceValue item) {
+  public static String getQualifiedItemAttrName(@NotNull StyleItemResourceValue item) {
     ResourceReference attr = item.getAttr();
     return attr != null ? attr.getRelativeResourceUrl(ResourceNamespace.TODO).getQualifiedName() : item.getAttrName();
   }
@@ -129,7 +129,7 @@ public class ResolutionUtils {
    * will be returned as "@android:color/black"
    */
   @NotNull
-  public static String getQualifiedValue(@NotNull ItemResourceValue item) {
+  public static String getQualifiedValue(@NotNull StyleItemResourceValue item) {
     ResourceUrl url = ResourceUrl.parse(item.getRawXmlValue(), item.isFramework());
     return url == null ? item.getRawXmlValue() : url.toString();
   }
@@ -169,7 +169,7 @@ public class ResolutionUtils {
   }
 
   @Nullable
-  public static AttributeDefinition getAttributeDefinition(@NotNull Configuration configuration, @NotNull ItemResourceValue itemResValue) {
+  public static AttributeDefinition getAttributeDefinition(@NotNull Configuration configuration, @NotNull StyleItemResourceValue itemResValue) {
     return getAttributeDefinition(configuration.getModule(), configuration, getQualifiedItemAttrName(itemResValue));
   }
 
@@ -251,16 +251,16 @@ public class ResolutionUtils {
   }
 
   @NotNull
-  public static Collection<ItemResourceValue> getThemeAttributes(@NotNull ResourceResolver resolver, final @NotNull String themeUrl) {
-    Map<String, ItemResourceValue> allItems = new HashMap<>();
+  public static Collection<StyleItemResourceValue> getThemeAttributes(@NotNull ResourceResolver resolver, final @NotNull String themeUrl) {
+    Map<String, StyleItemResourceValue> allItems = new HashMap<>();
     String themeName = getQualifiedNameFromResourceUrl(themeUrl);
     do {
       StyleResourceValue theme = resolver.getStyle(getNameFromQualifiedName(themeName), themeName.startsWith(PREFIX_ANDROID));
       if (theme == null) {
         break;
       }
-      Collection<ItemResourceValue> themeItems = theme.getDefinedItems();
-      for (ItemResourceValue item : themeItems) {
+      Collection<StyleItemResourceValue> themeItems = theme.getDefinedItems();
+      for (StyleItemResourceValue item : themeItems) {
         String itemName = getQualifiedItemAttrName(item);
         if (!allItems.containsKey(itemName)) {
           allItems.put(itemName, item);
@@ -274,10 +274,10 @@ public class ResolutionUtils {
   }
 
   @Nullable/*if we can't work out the type, e.g a 'reference' with a '@null' value or enum*/
-  public static ResourceType getAttrType(@NotNull ItemResourceValue item, @NotNull Configuration configuration) {
+  public static ResourceType getAttrType(@NotNull StyleItemResourceValue item, @NotNull Configuration configuration) {
     ResourceResolver resolver = configuration.getResourceResolver();
     assert resolver != null;
-    ResourceValue resolvedValue = resolver.resolveResValue(item);
+    ResourceValue resolvedValue = resolver.resolveResValue((ResourceValue)item);
     ResourceType attrType = resolvedValue.getResourceType();
     if (attrType != null) {
       return attrType;

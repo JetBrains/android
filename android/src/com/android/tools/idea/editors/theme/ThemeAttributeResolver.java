@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.resources.configuration.Configurable;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -42,8 +42,8 @@ public class ThemeAttributeResolver {
   final private ConfiguredThemeEditorStyle myStyle;
 
   // TODO(namespaces): use a ResourceReference to the attr as key.
-  final private MultiMap<String, ConfiguredElement<ItemResourceValue>> myItemValueMap =
-    new MultiMap<String, ConfiguredElement<ItemResourceValue>>();
+  final private MultiMap<String, ConfiguredElement<StyleItemResourceValue>> myItemValueMap =
+    new MultiMap<String, ConfiguredElement<StyleItemResourceValue>>();
 
   private ThemeAttributeResolver(ConfiguredThemeEditorStyle style, ConfigurationManager manager) {
     myStyle = style;
@@ -81,7 +81,7 @@ public class ThemeAttributeResolver {
     }
 
     Set<String> newSeenAttributes = new HashSet<String>(seenAttributes);
-    for (ItemResourceValue item : themeEditorStyle.getValues(configuration)) {
+    for (StyleItemResourceValue item : themeEditorStyle.getValues(configuration)) {
       String itemName = ResolutionUtils.getQualifiedItemAttrName(item);
       if (!newSeenAttributes.contains(itemName)) {
         myItemValueMap.putValue(itemName, ConfiguredElement.create(styleRestricted.getAny(), item));
@@ -110,9 +110,9 @@ public class ThemeAttributeResolver {
     List<EditedStyleItem> result = Lists.newArrayList();
     FolderConfiguration configuration = myStyle.getConfiguration().getFullConfig();
     for (String key : myItemValueMap.keySet()) {
-      Collection<ConfiguredElement<ItemResourceValue>> itemValues = myItemValueMap.get(key);
-      final ConfiguredElement<ItemResourceValue> selectedValue =
-        (ConfiguredElement<ItemResourceValue>)configuration.findMatchingConfigurable(Lists.<Configurable>newArrayList(itemValues));
+      Collection<ConfiguredElement<StyleItemResourceValue>> itemValues = myItemValueMap.get(key);
+      final ConfiguredElement<StyleItemResourceValue> selectedValue =
+        (ConfiguredElement<StyleItemResourceValue>)configuration.findMatchingConfigurable(Lists.<Configurable>newArrayList(itemValues));
       if (selectedValue == null) {
         // TODO: there is NO value for this attribute in the current config,so instead we need to show "no value for current device"
         result.add(new EditedStyleItem(itemValues.iterator().next(), itemValues, myStyle));

@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.ui.resourcechooser;
 
-import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
@@ -31,7 +30,10 @@ import com.android.tools.adtui.treegrid.TreeGrid;
 import com.android.tools.adtui.treegrid.TreeGridSpeedSearch;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.editors.theme.*;
+import com.android.tools.idea.editors.theme.ColorUtils;
+import com.android.tools.idea.editors.theme.MaterialColorUtils;
+import com.android.tools.idea.editors.theme.ResolutionUtils;
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.attributes.editors.DrawableRendererEditor;
 import com.android.tools.idea.editors.theme.attributes.editors.GraphicalResourceRendererEditor;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
@@ -71,7 +73,6 @@ import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.xml.XmlFile;
@@ -479,8 +480,8 @@ public class ChooseResourceDialog extends DialogWrapper {
       // Selection not found in the current panel: switch tab to show it
 
       ResourceType type;
-      if (resValue instanceof ItemResourceValue) { // type is always null for ItemResourceValue
-        type = ResolutionUtils.getAttrType((ItemResourceValue)resValue, myConfiguration);
+      if (resValue instanceof StyleItemResourceValue) { // type is always null for StyleItemResourceValue
+        type = ResolutionUtils.getAttrType((StyleItemResourceValue)resValue, myConfiguration);
       }
       else {
         type = resValue.getResourceType();
@@ -506,7 +507,7 @@ public class ChooseResourceDialog extends DialogWrapper {
                                                                           @NotNull ResourceResolver resolver) {
     MultiMap<ResourceType, String> attrs = new MultiMap<>();
     String themeName = configuration.getTheme();
-    for (ItemResourceValue item : ResolutionUtils.getThemeAttributes(resolver, themeName)) {
+    for (StyleItemResourceValue item : ResolutionUtils.getThemeAttributes(resolver, themeName)) {
       ResourceType type = ResolutionUtils.getAttrType(item, configuration);
       if (type != null) {
         attrs.putValue(type, ResolutionUtils.getQualifiedItemAttrName(item));
@@ -2236,16 +2237,16 @@ public class ChooseResourceDialog extends DialogWrapper {
     }
 
     /**
-     * @param value can also be an instance of {@link ItemResourceValue} for ?attr/ values
+     * @param value can also be an instance of {@link StyleItemResourceValue} for ?attr/ values
      */
     private boolean select(@NotNull ResourceValue value) {
       mySelectedValue = value;
-      boolean isAttr = value instanceof ItemResourceValue;
+      boolean isAttr = value instanceof StyleItemResourceValue;
       for (ResourceChooserGroup group : myGroups) {
         for (ResourceChooserItem item : group.getItems()) {
           if (isAttr) {
             if (item.isAttr()) {
-              ResourceReference attr = ((ItemResourceValue)value).getAttr();
+              ResourceReference attr = ((StyleItemResourceValue)value).getAttr();
               if (attr != null &&
                   // TODO: namespaces
                   ((attr.getNamespace() == ResourceNamespace.ANDROID) == item.isFramework()) &&

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.editors.theme.attributes.editors;
 
-import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
@@ -165,7 +165,7 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
 
     // All the not selected elements are sorted alphabetically
     TreeSet<VariantsComboItem> notSelectedItems = Sets.newTreeSet(VARIANTS_COMBO_ITEM_COMPARATOR);
-    for (ConfiguredElement<ItemResourceValue> configuredItem : item.getNonSelectedItemResourceValues()) {
+    for (ConfiguredElement<StyleItemResourceValue> configuredItem : item.getNonSelectedItemResourceValues()) {
       restrictedConfig = RestrictedConfiguration.restrict(configuredItem, item.getAllConfiguredItems());
 
       if (restrictedConfig == null) {
@@ -248,11 +248,11 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
 
       assert styleResourceResolver != null;
 
-      ItemResourceValue primaryColorResourceValue =
-        ThemeEditorUtils.resolveItemFromParents(style, MaterialColors.PRIMARY_MATERIAL_ATTR, !ThemeEditorUtils.isAppCompatTheme(style));
+      StyleItemResourceValue primaryColorResourceValue =
+         ThemeEditorUtils.resolveItemFromParents(style, MaterialColors.PRIMARY_MATERIAL_ATTR, !ThemeEditorUtils.isAppCompatTheme(style));
 
       final Project project = myContext.getProject();
-      Color primaryColor = ResourceHelper.resolveColor(styleResourceResolver, primaryColorResourceValue, project);
+      Color primaryColor = ResourceHelper.resolveColor(styleResourceResolver, (ResourceValue)primaryColorResourceValue, project);
 
       ChooseResourceDialog dialog = ThemeEditorUtils.getResourceDialog(myItem, myContext, getAllowedResourceTypes());
 

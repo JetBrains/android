@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -96,7 +96,7 @@ public class ThemeAttributeResolverTest extends AndroidTestCase {
       if (item.getAttrName().equals("colorPrimary") && item.getAttrGroup().equals("Other non-theme attributes.")) {
         foundColorPrimary = true;
         assertEquals(answer.size(), item.getAllConfiguredItems().size());
-        for (ConfiguredElement<ItemResourceValue> value : item.getAllConfiguredItems()) {
+        for (ConfiguredElement<StyleItemResourceValue> value : item.getAllConfiguredItems()) {
           assertTrue(answer.contains(value.getConfiguration().getQualifierString() + ":" + value.getElement().getValue()));
         }
       }

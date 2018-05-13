@@ -778,8 +778,8 @@ public class AndroidJavaDocRenderer {
       while (styleValue != null) {
         // Make sure the contents for the style are always generated in the same order. Helps with testing and the
         // user will know where to find attributes.
-        ImmutableList<ItemResourceValue> values = Ordering.usingToString().immutableSortedCopy(styleValue.getDefinedItems());
-        for (ItemResourceValue itemResourceValue : values) {
+        ImmutableList<StyleItemResourceValue> values = Ordering.usingToString().immutableSortedCopy(styleValue.getDefinedItems());
+        for (StyleItemResourceValue itemResourceValue : values) {
           String name = itemResourceValue.getAttrName();
           if (masked.contains(name)) {
             continue;

@@ -4287,6 +4287,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   private static void checkDefinedItems(@NotNull StyleResourceValue style, @NotNull String... attributes) {
-    assertSameElements(Collections2.transform(style.getDefinedItems(), ItemResourceValue::getAttrName), attributes);
+    assertSameElements(Collections2.transform(style.getDefinedItems(), StyleItemResourceValue::getAttrName), attributes);
   }
 }

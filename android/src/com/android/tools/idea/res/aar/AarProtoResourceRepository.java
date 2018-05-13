@@ -319,7 +319,7 @@ public class AarProtoResourceRepository extends FileResourceRepository {
   @Nullable
   private ResourceValue createAttrValue(@NotNull Resources.Attribute attributeMsg, @NotNull ResourceType resourceType,
                                         @NotNull String resourceName) {
-    AttrResourceValue attrValue = new AttrResourceValueImpl(getNamespace(), resourceType, resourceName, getLibraryName());
+    AttrResourceValueImpl attrValue = new AttrResourceValueImpl(getNamespace(), resourceType, resourceName, getLibraryName());
     List<Resources.Attribute.Symbol> symbolList = attributeMsg.getSymbolList();
     if (symbolList.isEmpty() && attributeMsg.getFormatFlags() == Resources.Attribute.FormatFlags.ANY.getNumber()) {
       return null;
@@ -341,13 +341,13 @@ public class AarProtoResourceRepository extends FileResourceRepository {
   private ResourceValue createStyleValue(@NotNull Resources.Style styleMsg, @NotNull ResourceType resourceType,
                                          @NotNull String resourceName) {
     String parentStyle = styleMsg.getParent().getName();
-    StyleResourceValue styleValue = new StyleResourceValue(getNamespace(), resourceType, resourceName, parentStyle, getLibraryName());
+    StyleResourceValueImpl styleValue = new StyleResourceValueImpl(getNamespace(), resourceType, resourceName, parentStyle, getLibraryName());
     for (Resources.Style.Entry entryMsg : styleMsg.getEntryList()) {
       String url = entryMsg.getKey().getName();
       myUrlParser.parseResourceUrl(url);
       String name = myUrlParser.withoutType();
       String value = decode(entryMsg.getItem());
-      ItemResourceValue itemValue = new StyleItemResourceValueImpl(getNamespace(), name, value, getLibraryName());
+      StyleItemResourceValueImpl itemValue = new StyleItemResourceValueImpl(getNamespace(), name, value, getLibraryName());
       styleValue.addItem(itemValue);
     }
 
@@ -372,10 +372,12 @@ public class AarProtoResourceRepository extends FileResourceRepository {
   @NotNull
   private ResourceValue createArrayValue(@NotNull Resources.Array arrayMsg, @NotNull ResourceType resourceType,
                                          @NotNull String resourceName) {
-    ArrayResourceValue arrayValue = new ArrayResourceValueImpl(getNamespace(), resourceType, resourceName, getLibraryName());
+    ArrayResourceValueImpl arrayValue = new ArrayResourceValueImpl(getNamespace(), resourceType, resourceName, getLibraryName());
     for (Resources.Array.Element elementMsg : arrayMsg.getElementList()) {
       String text = decode(elementMsg.getItem());
-      arrayValue.addElement(text);
+      if (text != null) {
+        arrayValue.addElement(text);
+      }
     }
     return arrayValue;
   }
@@ -383,7 +385,8 @@ public class AarProtoResourceRepository extends FileResourceRepository {
   @NotNull
   private ResourceValue createPluralsValue(@NotNull Resources.Plural pluralMsg, @NotNull ResourceType resourceType,
                                            @NotNull String resourceName) {
-    PluralsResourceValue pluralsValue = new PluralsResourceValueImpl(getNamespace(), resourceType, resourceName, null, getLibraryName());
+    PluralsResourceValueImpl pluralsValue =
+        new PluralsResourceValueImpl(getNamespace(), resourceType, resourceName, null, getLibraryName());
     for (Resources.Plural.Entry entryMsg : pluralMsg.getEntryList()) {
       String value = decode(entryMsg.getItem());
       String quantity = getQuantity(entryMsg.getArity());

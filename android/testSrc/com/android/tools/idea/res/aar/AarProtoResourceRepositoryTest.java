@@ -260,17 +260,17 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
       if (!Objects.equals(style1.getParentStyle(), style2.getParentStyle())) {
         return false;
       }
-      Collection<ItemResourceValue> items1 = style1.getDefinedItems();
-      Collection<ItemResourceValue> items2 = style2.getDefinedItems();
+      Collection<StyleItemResourceValue> items1 = style1.getDefinedItems();
+      Collection<StyleItemResourceValue> items2 = style2.getDefinedItems();
       if (items1.size() != items2.size()) {
         return false;
       }
-      Iterator<ItemResourceValue> it1 = items1.iterator();
-      Iterator<ItemResourceValue> it2 = items2.iterator();
+      Iterator<StyleItemResourceValue> it1 = items1.iterator();
+      Iterator<StyleItemResourceValue> it2 = items2.iterator();
       while (it1.hasNext()) {
-        ItemResourceValue item1 = it1.next();
-        ItemResourceValue item2 = it2.next();
-        if (!areEquivalentResourceValues(item1, item2)) {
+        StyleItemResourceValue item1 = it1.next();
+        StyleItemResourceValue item2 = it2.next();
+        if (!areEquivalentResourceValues((ResourceValue)item1, (ResourceValue)item2)) {
           return false;
         }
       }
