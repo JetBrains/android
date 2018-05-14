@@ -75,9 +75,14 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
     myWindow = window;
     myProject = project;
 
+    ProfilerClient client = null;
+    IdeProfilerServices ideProfilerServices = new IntellijProfilerServices(myProject);
     ProfilerService service = ProfilerService.getInstance(myProject);
-    ProfilerClient client = service.getProfilerClient();
-    myProfilers = new StudioProfilers(client, new IntellijProfilerServices(myProject));
+    if (service != null) {
+      service.getDataStoreService().setNoPiiExceptionHanlder(ideProfilerServices::reportNoPiiException);
+      client = service.getProfilerClient();
+    }
+    myProfilers = new StudioProfilers(client, ideProfilerServices);
 
     // Sets the preferred process. Note the always-false predicate, which prevents the Profilers to immediately starts profiling an app that
     // is already running.
@@ -90,7 +95,6 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
     myIdeProfilerComponents = new IntellijProfilerComponents(myProject, myProfilers.getIdeServices().getFeatureTracker());
     myView = new StudioProfilersView(myProfilers, myIdeProfilerComponents);
     myLayeredPane = new ProfilerLayeredPane();
-    service.getDataStoreService().setNoPiiExceptionHanlder(myProfilers.getIdeServices()::reportNoPiiException);
     initializeUi();
     Disposer.register(this, myView);
 

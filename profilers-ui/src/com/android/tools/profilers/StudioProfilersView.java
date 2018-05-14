@@ -106,7 +106,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     mySplitter.setHonorComponentsMinimumSize(true);
     mySplitter.setLastComponent(myStageComponent);
     Disposer.register(this, mySplitter);
-    if (myProfiler.getIdeServices().getFeatureConfig().isSessionsEnabled()) {
+    if (myProfiler.getIdeServices().getFeatureConfig().isSessionsEnabled() && myProfiler.getClient() != null) {
       mySessionsView = new SessionsView(myProfiler, ideProfilerComponents);
       JComponent sessionsComponent = mySessionsView.getComponent();
       mySplitter.setFirstComponent(sessionsComponent);

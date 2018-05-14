@@ -74,7 +74,13 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       return "";
     }
 
-    ProfilerService profilerService = ProfilerService.getInstance(module.getProject());
+    Project project = module.getProject();
+    ProfilerService profilerService = ProfilerService.getInstance(project);
+    if (profilerService == null) {
+      // Profiler cannot be run.
+      return "";
+    }
+
     long deviceId;
     try {
       deviceId = waitForPerfd(device, profilerService);
@@ -319,13 +325,18 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
      * Attempt to get the current time of the device.
      */
     private long getCurrentDeviceTime(@NotNull IDevice device) {
+      long startTimeNs = Long.MIN_VALUE;
+
       // If it's not a profile launch avoid initializing the service as it is an expensive call.
       if (!isProfilerLaunch(myLaunchOptions) && !ProfilerService.isServiceInitialized(myModule.getProject())) {
-        return Long.MIN_VALUE;
+        return startTimeNs;
       }
 
-      long startTimeNs = Long.MIN_VALUE;
       ProfilerService profilerService = ProfilerService.getInstance(myModule.getProject());
+      if (profilerService == null) {
+        return startTimeNs;
+      }
+
       // If we are launching from the "Profile" action, wait for perfd to start properly to get the time.
       // Note: perfd should have started already from AndroidProfilerLaunchTaskContributor#getAmStartOptions already. This wait might be
       // redundant but harmless.
