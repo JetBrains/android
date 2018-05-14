@@ -59,7 +59,7 @@ import java.util.stream.Collectors;
  * {@link #getTestName(String, boolean)} and similar methods to spot that.
  */
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
-abstract class AndroidDomTestCase extends AndroidTestCase {
+public abstract class AndroidDomTestCase extends AndroidTestCase {
   protected final String myTestFolder;
 
   protected AndroidDomTestCase(String testFolder) {
