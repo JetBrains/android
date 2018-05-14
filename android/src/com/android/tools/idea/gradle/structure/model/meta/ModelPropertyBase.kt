@@ -19,14 +19,14 @@ import com.android.tools.idea.projectsystem.transform
 import com.google.common.util.concurrent.ListenableFuture
 
 abstract class ModelPropertyBase<in ContextT, in ModelT, ValueT : Any> {
-  abstract val parser: (ContextT, String) -> ParsedValue<ValueT>
+  abstract val parser: (ContextT, String) -> Annotated<ParsedValue<ValueT>>
   abstract val formatter: (ContextT, ValueT) -> String
   abstract val knownValuesGetter: (ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<ValueT>>>
   open val variableMatchingStrategy: VariableMatchingStrategy get() = VariableMatchingStrategy.BY_TYPE
 
   fun bindContext(context: ContextT, model: ModelT): ModelPropertyContext<ValueT> = object : ModelPropertyContext<ValueT> {
 
-    override fun parse(value: String): ParsedValue<ValueT> = parser(context, value)
+    override fun parse(value: String): Annotated<ParsedValue<ValueT>> = parser(context, value)
 
     override fun format(value: ValueT): String = formatter(context, value)
 
@@ -35,8 +35,8 @@ abstract class ModelPropertyBase<in ContextT, in ModelT, ValueT : Any> {
         object : KnownValues<ValueT> {
           private val knownValues = variableMatchingStrategy.prepare(it)
           override val literals: List<ValueDescriptor<ValueT>> = it
-          override fun isSuitableVariable(variable: ParsedValue.Set.Parsed<ValueT>): Boolean =
-            variableMatchingStrategy.matches(variable, knownValues)
+          override fun isSuitableVariable(variable: Annotated<ParsedValue.Set.Parsed<ValueT>>): Boolean =
+            variableMatchingStrategy.matches(variable.value, knownValues)
         }
       }
   }

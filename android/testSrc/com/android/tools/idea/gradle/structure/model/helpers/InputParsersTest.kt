@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.gradle.structure.model.helpers
 
+import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.ValueAnnotation
 import com.intellij.pom.java.LanguageLevel
-import junit.framework.Assert.assertEquals
-import junit.framework.Assert.assertTrue
+import junit.framework.Assert.*
 import org.junit.Test
 import java.io.File
 
@@ -27,96 +28,107 @@ class InputParsersTest {
   @Test
   fun string() {
     val parsed = parseString(null, "abc")
-    assertTrue(parsed is ParsedValue.Set.Parsed)
-    assertEquals("abc", (parsed as ParsedValue.Set.Parsed).value)
+    assertTrue(parsed.value is ParsedValue.Set.Parsed)
+    assertNull(parsed.annotation)
+    assertEquals("abc", (parsed.value as ParsedValue.Set.Parsed).value)
   }
 
   @Test
   fun string_empty() {
     val parsed = parseString(null, "")
-    assertTrue(parsed is ParsedValue.NotSet)
+    assertTrue(parsed.value === ParsedValue.NotSet)
+    assertNull(parsed.annotation)
   }
 
   @Test
   fun file() {
     val parsed = parseFile(null, "/tmp/abc")
-    assertTrue(parsed is ParsedValue.Set.Parsed)
-    assertEquals(File("/tmp/abc"), (parsed as ParsedValue.Set.Parsed).value)
+    assertTrue(parsed.value is ParsedValue.Set.Parsed)
+    assertNull(parsed.annotation)
+    assertEquals(File("/tmp/abc"), (parsed.value as ParsedValue.Set.Parsed).value)
   }
 
   @Test
   fun file_empty() {
     val parsed = parseFile(null, "")
-    assertTrue(parsed is ParsedValue.NotSet)
+    assertTrue(parsed.value === ParsedValue.NotSet)
+    assertNull(parsed.annotation)
   }
 
   @Test
   fun enum() {
     val parsed = parseEnum("1.7", LanguageLevel::parse)
-    assertTrue(parsed is ParsedValue.Set.Parsed)
-    assertEquals(LanguageLevel.JDK_1_7, (parsed as ParsedValue.Set.Parsed).value)
+    assertTrue(parsed.value is ParsedValue.Set.Parsed)
+    assertNull(parsed.annotation)
+    assertEquals(LanguageLevel.JDK_1_7, (parsed.value as ParsedValue.Set.Parsed).value)
   }
 
   @Test
   fun enum_empty() {
     val parsed = parseEnum("", LanguageLevel::parse)
-    assertTrue(parsed is ParsedValue.NotSet)
+    assertTrue(parsed.value === ParsedValue.NotSet)
+    assertNull(parsed.annotation)
   }
 
   @Test
   fun enum_invalid() {
     val parsed = parseEnum("1_7", LanguageLevel::parse)
-    assertTrue(parsed is ParsedValue.Set.Invalid)
-    assertEquals("1_7", (parsed as ParsedValue.Set.Invalid).dslText)
-    assertEquals("'1_7' is not a valid value of type LanguageLevel", parsed.errorMessage)
+    assertTrue(parsed.value is ParsedValue.Set.Parsed)
+    assertEquals(ValueAnnotation.Error("'1_7' is not a valid value of type LanguageLevel"), parsed.annotation)
+    assertEquals(DslText.OtherUnparsedDslText("1_7"), (parsed.value as ParsedValue.Set.Parsed).dslText)
   }
 
   @Test
   fun boolean_empty() {
     val parsed = parseBoolean(null, "")
-    assertTrue(parsed is ParsedValue.NotSet)
+    assertTrue(parsed.value === ParsedValue.NotSet)
+    assertNull(parsed.annotation)
   }
 
   @Test
   fun boolean_true() {
     val parsed = parseBoolean(null, "true")
-    assertTrue(parsed is ParsedValue.Set.Parsed)
-    assertEquals(true, (parsed as ParsedValue.Set.Parsed).value)
+    assertTrue(parsed.value is ParsedValue.Set.Parsed)
+    assertNull(parsed.annotation)
+    assertEquals(true, (parsed.value as ParsedValue.Set.Parsed).value)
   }
 
   @Test
   fun boolean_false() {
     val parsed = parseBoolean(null, "FALSE")
-    assertTrue(parsed is ParsedValue.Set.Parsed)
-    assertEquals(false, (parsed as ParsedValue.Set.Parsed).value)
+    assertTrue(parsed.value is ParsedValue.Set.Parsed)
+    assertNull(parsed.annotation)
+    assertEquals(false, (parsed.value as ParsedValue.Set.Parsed).value)
   }
 
   @Test
   fun boolean_invalid() {
     val parsed = parseBoolean(null, "yes")
-    assertTrue(parsed is ParsedValue.Set.Invalid)
-    assertEquals("yes", (parsed as ParsedValue.Set.Invalid).dslText)
-    assertEquals("Unknown boolean value: 'yes'. Expected 'true' or 'false'", parsed.errorMessage)
+    assertTrue(parsed.value is ParsedValue.Set.Parsed)
+    assertEquals(ValueAnnotation.Error("Unknown boolean value: 'yes'. Expected 'true' or 'false'"), parsed.annotation)
+    assertEquals(DslText.OtherUnparsedDslText("yes"), (parsed.value as ParsedValue.Set.Parsed).dslText)
   }
 
   @Test
   fun int_empty() {
     val parsed = parseInt(null, "")
-    assertTrue(parsed is ParsedValue.NotSet)
+    assertTrue(parsed.value === ParsedValue.NotSet)
+    assertNull(parsed.annotation)
   }
 
   @Test
   fun int() {
     val parsed = parseInt(null, "123")
-    assertTrue(parsed is ParsedValue.Set.Parsed)
-    assertEquals(123, (parsed as ParsedValue.Set.Parsed).value)
+    assertTrue(parsed.value is ParsedValue.Set.Parsed)
+    assertNull(parsed.annotation)
+    assertEquals(123, (parsed.value as ParsedValue.Set.Parsed).value)
   }
 
   @Test
   fun int_invalid() {
     val parsed = parseInt(null, "123.4")
-    assertTrue(parsed is ParsedValue.Set.Invalid)
-    assertEquals("123.4", (parsed as ParsedValue.Set.Invalid).dslText)
-    assertEquals("'123.4' is not a valid integer value", parsed.errorMessage)
+    assertTrue(parsed.value is ParsedValue.Set.Parsed)
+    assertEquals(ValueAnnotation.Error("'123.4' is not a valid integer value"), parsed.annotation)
+    assertEquals(DslText.OtherUnparsedDslText("123.4"), (parsed.value as ParsedValue.Set.Parsed).dslText)
   }
 }

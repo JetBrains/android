@@ -50,7 +50,7 @@ class SimplePropertyEditor<PropertyT : Any, out ModelPropertyT : ModelPropertyCo
   private var knownValuesFuture: ListenableFuture<Unit>? = null  // Accessed only from the EDT.
   private val formatter = propertyContext.valueFormatter()
 
-  private val renderedComboBox = object : RenderedComboBox<ParsedValue<PropertyT>>(DefaultComboBoxModel()) {
+  private val renderedComboBox = object : RenderedComboBox<Annotated<ParsedValue<PropertyT>>>(DefaultComboBoxModel()) {
 
     override fun getPreferredSize(): Dimension {
       val dimensions = super.getPreferredSize()
@@ -60,22 +60,25 @@ class SimplePropertyEditor<PropertyT : Any, out ModelPropertyT : ModelPropertyCo
       else dimensions
     }
 
-    override fun parseEditorText(text: String): ParsedValue<PropertyT>? = when {
-      text.startsWith("\$\$") -> ParsedValue.Set.Parsed(value = null, dslText = DslText.OtherUnparsedDslText(text.substring(2)))
-      text.startsWith("\$") -> ParsedValue.Set.Parsed<PropertyT>(value = null, dslText = DslText.Reference(text.substring(1)))
+    override fun parseEditorText(text: String): Annotated<ParsedValue<PropertyT>>? = when {
+      text.startsWith("\$\$") ->
+        ParsedValue.Set.Parsed(value = null, dslText = DslText.OtherUnparsedDslText(text.substring(2))).annotated()
+      text.startsWith("\$") ->
+        ParsedValue.Set.Parsed<PropertyT>(value = null, dslText = DslText.Reference(text.substring(1))).annotated()
       text.startsWith("\"") && text.endsWith("\"") ->
         ParsedValue.Set.Parsed<PropertyT>(value = null,
-                                          dslText = DslText.InterpolatedString(text.substring(1, text.length - 1)))
+                                                dslText = DslText.InterpolatedString(text.substring(1, text.length - 1))).annotated()
       else -> propertyContext.parse(text)
     }
 
-    override fun toEditorText(anObject: ParsedValue<PropertyT>?): String = when (anObject) {
+    override fun toEditorText(anObject: Annotated<ParsedValue<PropertyT>>?): String = when (anObject) {
       null -> ""
-      else -> anObject.getText(formatter)
+      // Annotations are not part of the value.
+      else -> anObject.value.getText(formatter)
     }
 
-    override fun TextRenderer.renderCell(value: ParsedValue<PropertyT>?) {
-      (value ?: ParsedValue.NotSet).renderTo(this, formatter, knownValueRenderers)
+    override fun TextRenderer.renderCell(value: Annotated<ParsedValue<PropertyT>>?) {
+      (value ?: ParsedValue.NotSet.annotated()).renderTo(this, formatter, knownValueRenderers)
     }
 
     override fun createEditorExtensions(): List<Extension> = extensions.map {
@@ -84,13 +87,16 @@ class SimplePropertyEditor<PropertyT : Any, out ModelPropertyT : ModelPropertyCo
 
     @VisibleForTesting
     fun loadKnownValues() {
-      val availableVariables: List<ParsedValue.Set.Parsed<PropertyT>>? = getAvailableVariables()
+      val availableVariables: List<Annotated<ParsedValue.Set.Parsed<PropertyT>>>? = getAvailableVariables()
 
       fun receiveKnownValuesOnEdt(knownValues: KnownValues<PropertyT>) {
         val possibleValues = buildKnownValueRenderers(knownValues, formatter, property.defaultValueGetter?.invoke())
         knownValueRenderers = possibleValues
         setKnownValues(
-          possibleValues.keys.toList() + availableVariables?.filter { knownValues.isSuitableVariable(it) }.orEmpty())
+          (possibleValues.keys.toList().map { it.annotated() } +
+           availableVariables?.filter { knownValues.isSuitableVariable(it) }.orEmpty()
+          )
+        )
       }
 
       knownValuesFuture?.cancel(false)
@@ -113,7 +119,7 @@ class SimplePropertyEditor<PropertyT : Any, out ModelPropertyT : ModelPropertyCo
     }
 
     private fun loadValue(value: PropertyValue<PropertyT>) {
-      setValue(value.parsedValue.normalizeForEditorAndLookup())
+      setValue(value.parsedValue)
       setStatusHtmlText(getStatusHtmlText(value))
     }
 
@@ -123,7 +129,7 @@ class SimplePropertyEditor<PropertyT : Any, out ModelPropertyT : ModelPropertyCo
 
     private fun getStatusHtmlText(value: PropertyValue<PropertyT>): String {
 
-      val parsedValue = value.parsedValue
+      val (parsedValue, _) = value.parsedValue
       val resolvedValue = value.resolved
       val effectiveEditorValue = when (parsedValue) {
         is ParsedValue.Set.Parsed -> parsedValue.value
@@ -153,14 +159,11 @@ class SimplePropertyEditor<PropertyT : Any, out ModelPropertyT : ModelPropertyCo
       loadValue(property.getValue())
     }
 
-    internal fun applyChanges(value: ParsedValue<PropertyT>) {
-      when (value) {
-        is ParsedValue.Set.Invalid -> Unit
-        else -> property.setParsedValue(value)
-      }
+    internal fun applyChanges(annotatedValue: Annotated<ParsedValue<PropertyT>>) {
+      property.setParsedValue(annotatedValue.value)
     }
 
-    private fun getAvailableVariables(): List<ParsedValue.Set.Parsed<PropertyT>>? =
+    private fun getAvailableVariables(): List<Annotated<ParsedValue.Set.Parsed<PropertyT>>>? =
       variablesProvider?.getAvailableVariablesFor(propertyContext)
 
     fun addFocusGainedListener(listener: () -> Unit) {
@@ -171,6 +174,11 @@ class SimplePropertyEditor<PropertyT : Any, out ModelPropertyT : ModelPropertyCo
       editor.editorComponent.addFocusListener(focusListener)
       addFocusListener(focusListener)
     }
+
+    /**
+     * Returns [true] if the value currently being edited in the combo-box editor differs the last manually set value.
+     */
+    fun isEditorChanged() = editor.item != lastValueSet?.value
 
     init {
       setEditable(true)
@@ -193,16 +201,16 @@ class SimplePropertyEditor<PropertyT : Any, out ModelPropertyT : ModelPropertyCo
     }
   }
 
-  override val component: RenderedComboBox<ParsedValue<PropertyT>> = renderedComboBox
+  override val component: RenderedComboBox<Annotated<ParsedValue<PropertyT>>> = renderedComboBox
   override val statusComponent: HtmlLabel = HtmlLabel().also {
     // Note: this is important to be the first step to prevent automatic scrolling of the container to the last added label.
     (it.caret as DefaultCaret).updatePolicy = DefaultCaret.NEVER_UPDATE
     HtmlLabel.setUpAsHtmlLabel(it, renderedComboBox.font)
   }
 
-  override fun getValue(): ParsedValue<PropertyT> =
+  override fun getValue(): Annotated<ParsedValue<PropertyT>> =
     @Suppress("UNCHECKED_CAST")
-    (renderedComboBox.editor.item as ParsedValue<PropertyT>)
+    (renderedComboBox.editor.item as Annotated<ParsedValue<PropertyT>>)
 
   override fun updateProperty() {
     if (disposed) throw IllegalStateException()
@@ -238,11 +246,10 @@ inline fun <reified PropertyT : Any, ModelPropertyT : ModelPropertyCore<Property
 ): SimplePropertyEditor<PropertyT, ModelPropertyT> =
   SimplePropertyEditor(property, propertyContext, variablesProvider, extensions)
 
-private fun <T : Any> ParsedValue<T>.normalizeForEditorAndLookup() = this
-
-private fun <T : Any> makeComboBoxExtension(action: EditorExtensionAction,
-                                            property: ModelPropertyCore<T>,
-                                            editor: ModelPropertyEditor<T>) =
+private fun <T : Any> makeComboBoxExtension(
+  action: EditorExtensionAction,
+  property: ModelPropertyCore<T>,
+  editor: ModelPropertyEditor<T>) =
   object : RenderedComboBox.Extension {
     override fun getIcon(hovered: Boolean): Icon = action.icon
     override fun getTooltip(): String = action.tooltip

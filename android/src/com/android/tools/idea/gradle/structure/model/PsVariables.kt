@@ -16,14 +16,12 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
-import com.android.tools.idea.gradle.structure.model.meta.DslText
-import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyContext
-import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.*
 
 class PsVariables(private val module: PsModule) : VariablesProvider {
   override fun <ValueT : Any> getAvailableVariablesFor(
     property: ModelPropertyContext<ValueT>
-  ): List<ParsedValue.Set.Parsed<ValueT>> =
+  ): List<Annotated<ParsedValue.Set.Parsed<ValueT>>> =
   // TODO(solodkyy): Merge with variables available at the project level.
     module.parsedModel?.inScopeProperties.orEmpty()
       .map { it.key to it.value.resolve() }
@@ -37,13 +35,13 @@ class PsVariables(private val module: PsModule) : VariablesProvider {
           else -> listOf(it)
         }
       }
-      .map {
-        it.first to it.second.getValue(GradlePropertyModel.OBJECT_TYPE)?.let { property.parse(it.toString()) }
+      .mapNotNull { (name, resolvedProperty) ->
+        resolvedProperty.getValue(GradlePropertyModel.OBJECT_TYPE)?.let { name to property.parse(it.toString()) }
       }
-      .mapNotNull {
-        val value = it.second
-        when(value) {
-          is ParsedValue.Set.Parsed<ValueT> -> ParsedValue.Set.Parsed(value.value, DslText.Reference(it.first))
+      .mapNotNull { (name, annotatedValue) ->
+        when {
+          (annotatedValue.value is ParsedValue.Set.Parsed && annotatedValue.annotation !is ValueAnnotation.Error) ->
+            ParsedValue.Set.Parsed(annotatedValue.value.value, DslText.Reference(name)).annotateWith(annotatedValue.annotation)
           else -> null
         }
       }

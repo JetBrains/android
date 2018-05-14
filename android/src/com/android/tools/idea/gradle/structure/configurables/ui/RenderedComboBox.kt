@@ -46,14 +46,10 @@ abstract class RenderedComboBox<T>(
 
   interface Extension : ExtendableTextField.Extension
 
-  private var lastValueSet: T? = null
+  protected var lastValueSet: T? = null
+    private set
   protected var beingLoaded = false
     private set
-
-  /**
-   * Returns [true] if the value currently being edited in the combo-box editor differs the last manually set value.
-   */
-  fun isEditorChanged() = parseEditorText(editor.item.toString()) != lastValueSet
 
   /**
    *  Parses [text] and converts it to the value of type [T] if possible, otherwise returns null.

@@ -28,7 +28,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT
   getter: ResolvedPropertyModel.() -> ValueT?,
   setter: ResolvedPropertyModel.(ValueT) -> Unit,
   parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel,
-  parser: (ContextT, String) -> ParsedValue<ValueT>,
+  parser: (ContextT, String) -> Annotated<ParsedValue<ValueT>>,
   formatter: (ContextT, ValueT) -> String = { _, value -> value.toString() },
   knownValuesGetter: ((ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<ValueT>>>)? = null
 ) =
@@ -39,7 +39,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT
     parsedPropertyGetter,
     getter,
     setter,
-    { context: ContextT, value -> if (value.isBlank()) ParsedValue.NotSet else parser(context, value.trim()) },
+    { context: ContextT, value -> if (value.isBlank()) ParsedValue.NotSet.annotated() else parser(context, value.trim()) },
     formatter,
     { context: ContextT, model -> if (knownValuesGetter != null) knownValuesGetter(context, model) else immediateFuture(listOf()) }
   )
@@ -51,12 +51,12 @@ class ModelListPropertyImpl<in ContextT, in ModelT, out ResolvedT, ParsedT, Valu
   override val parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel,
   override val getter: ResolvedPropertyModel.() -> ValueT?,
   override val setter: ResolvedPropertyModel.(ValueT) -> Unit,
-  override val parser: (ContextT, String) -> ParsedValue<ValueT>,
+  override val parser: (ContextT, String) -> Annotated<ParsedValue<ValueT>>,
   override val formatter: (ContextT, ValueT) -> String,
   override val knownValuesGetter: (ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<ValueT>>>
 ) : ModelCollectionPropertyBase<ContextT, ModelT, ResolvedT, ParsedT, List<ValueT>, ValueT>(), ModelListProperty<ContextT, ModelT, ValueT> {
 
-  override fun getValue(thisRef: ModelT, property: KProperty<*>): ParsedValue<List<ValueT>> = getParsedValue(thisRef)
+  override fun getValue(thisRef: ModelT, property: KProperty<*>): ParsedValue<List<ValueT>> = getParsedValue(thisRef).value
 
   override fun setValue(thisRef: ModelT, property: KProperty<*>, value: ParsedValue<List<ValueT>>) = setParsedValue(thisRef, value)
 
@@ -87,12 +87,12 @@ class ModelListPropertyImpl<in ContextT, in ModelT, out ResolvedT, ParsedT, Valu
       ?.deleteListItem(index)
       ?.also { model.setModified() } ?: throw IllegalStateException()
 
-  private fun getParsedValue(model: ModelT): ParsedValue<List<ValueT>> {
+  private fun getParsedValue(model: ModelT): Annotated<ParsedValue<List<ValueT>>> {
     val parsedModel = modelDescriptor.getParsed(model)
     val parsedGradleValue: List<ResolvedPropertyModel>? = parsedModel?.parsedPropertyGetter().asResolvedPropertiesList()
     val parsed = parsedGradleValue?.mapNotNull { it.getter() }
-    val dslText: DslText? = parsedModel?.parsedPropertyGetter()?.dslText()
-    return makeParsedValue(parsed, dslText)
+    val dslText: Annotated<DslText>? = parsedModel?.parsedPropertyGetter()?.dslText()
+    return makeAnnotatedParsedValue(parsed, dslText)
   }
 
   private fun getResolvedValue(model: ModelT): ResolvedValue<List<ValueT>> {
@@ -105,7 +105,7 @@ class ModelListPropertyImpl<in ContextT, in ModelT, out ResolvedT, ParsedT, Valu
   }
 
   override fun bind(model: ModelT): ModelListPropertyCore<ValueT> = object:ModelListPropertyCore<ValueT> {
-    override fun getParsedValue(): ParsedValue<List<ValueT>> = this@ModelListPropertyImpl.getParsedValue(model)
+    override fun getParsedValue(): Annotated<ParsedValue<List<ValueT>>> = this@ModelListPropertyImpl.getParsedValue(model)
     override fun setParsedValue(value: ParsedValue<List<ValueT>>) = this@ModelListPropertyImpl.setParsedValue(model, value)
     override fun getResolvedValue(): ResolvedValue<List<ValueT>> = this@ModelListPropertyImpl.getResolvedValue(model)
     override fun getEditableValues(): List<ModelPropertyCore<ValueT>> = this@ModelListPropertyImpl.getEditableValues(model)

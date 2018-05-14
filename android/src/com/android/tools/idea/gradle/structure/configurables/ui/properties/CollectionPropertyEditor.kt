@@ -86,18 +86,25 @@ CollectionPropertyEditor<out ModelPropertyT : ModelCollectionPropertyCore<*>, Va
   protected abstract fun removeItem()
   protected abstract fun getPropertyAt(row: Int): ModelPropertyCore<ValueT>
 
-  protected fun getValueAt(row: Int): ParsedValue<ValueT> = getPropertyAt(row).getParsedValue()
+  protected fun getValueAt(row: Int): Annotated<ParsedValue<ValueT>> = getPropertyAt(row).getParsedValue()
   protected fun setValueAt(row: Int, value: ParsedValue<ValueT>) = getPropertyAt(row).setParsedValue(value)
   private fun calculateMinRowHeight() = editor(SimplePropertyStub(), propertyContext, null, extensions).component.minimumSize.height
 
-  protected fun ParsedValue<ValueT>.toTableModelValue() = Value(this)
+  protected fun Annotated<ParsedValue<ValueT>>.toTableModelValue() = Value(this)
+  protected fun ParsedValue<ValueT>.toTableModelValue() = Value(this.annotated())
 
   /**
-   * A [ParsedValue] wrapper for the table model that defines a [toString] implementation compatible with the implementation
+   * An [Annotated] [ParsedValue] wrapper for the table model that defines a [toString] implementation compatible with the implementation
    * in [MyCellEditor].
    */
-  protected inner class Value(val value: ParsedValue<ValueT>) {
-    override fun toString(): String = value.getText(formatter)
+  protected inner class Value(val value: Annotated<ParsedValue<ValueT>>) {
+    override fun toString(): String = buildString {
+      append(value.value.getText(formatter))
+      if (value.annotation != null) {
+        append(" : ")
+        append(value.annotation.toString())
+      }
+    }
   }
 
   inner class MyCellRenderer: TableCellRenderer {
@@ -108,7 +115,7 @@ CollectionPropertyEditor<out ModelPropertyT : ModelCollectionPropertyCore<*>, Va
                                                row: Int,
                                                column: Int): Component {
       @Suppress("UNCHECKED_CAST")
-      val parsedValue = (value as CollectionPropertyEditor<*, ValueT>.Value?)?.value ?: ParsedValue.NotSet
+      val parsedValue = (value as CollectionPropertyEditor<*, ValueT>.Value?)?.value ?: ParsedValue.NotSet.annotated()
       return SimpleColoredComponent().also { parsedValue.renderTo(it.toRenderer(), formatter, knownValueRenderers) }
     }
 
@@ -118,7 +125,7 @@ CollectionPropertyEditor<out ModelPropertyT : ModelCollectionPropertyCore<*>, Va
     private var currentRow: Int = -1
     private var currentRowProperty : ModelPropertyCore<ValueT>? = null
     private var lastEditor: ModelPropertyEditor<ValueT>? = null
-    private var lastValue: ParsedValue<ValueT>? = null
+    private var lastValue: Annotated<ParsedValue<ValueT>>? = null
 
     override fun getTableCellEditorComponent(table: JTable?, value: Any?, isSelected: Boolean, row: Int, column: Int): Component? {
       currentRow = row
@@ -154,7 +161,7 @@ CollectionPropertyEditor<out ModelPropertyT : ModelCollectionPropertyCore<*>, Va
 }
 
 class SimplePropertyStub<ValueT : Any> : ModelPropertyCore<ValueT> {
-  override fun getParsedValue(): ParsedValue<ValueT> = ParsedValue.NotSet
+  override fun getParsedValue(): Annotated<ParsedValue<ValueT>> = ParsedValue.NotSet.annotated()
   override fun setParsedValue(value: ParsedValue<ValueT>) = Unit
   override fun getResolvedValue(): ResolvedValue<ValueT> = ResolvedValue.NotResolved()
   override val defaultValueGetter: (() -> ValueT?)? = null

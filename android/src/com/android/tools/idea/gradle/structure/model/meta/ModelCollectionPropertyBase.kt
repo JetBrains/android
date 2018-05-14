@@ -42,7 +42,6 @@ abstract class ModelCollectionPropertyBase<in ContextT, in ModelT, out ResolvedT
           DslText.Literal -> throw UnsupportedOperationException()
         }
       }
-      is ParsedValue.Set.Invalid -> throw IllegalArgumentException()
     }
     model.setModified()
   }

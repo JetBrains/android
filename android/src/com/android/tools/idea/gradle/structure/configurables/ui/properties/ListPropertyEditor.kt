@@ -62,7 +62,7 @@ class ListPropertyEditor<ValueT : Any, out ModelPropertyT : ModelListPropertyCor
     }
   }
 
-  override fun getValue(): ParsedValue<List<ValueT>> = throw UnsupportedOperationException()
+  override fun getValue(): Annotated<ParsedValue<List<ValueT>>> = throw UnsupportedOperationException()
 
   override fun addItem() {
     tableModel?.let { tableModel ->

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
+import com.android.tools.idea.gradle.structure.model.meta.Annotated
 import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyContext
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 
@@ -26,5 +27,5 @@ interface VariablesProvider {
    * Returns a list of variables available in the scope which are suitable for use with
    * [property].
    */
-  fun <ValueT : Any> getAvailableVariablesFor(property: ModelPropertyContext<ValueT>): List<ParsedValue.Set.Parsed<ValueT>>
+  fun <ValueT : Any> getAvailableVariablesFor(property: ModelPropertyContext<ValueT>): List<Annotated<ParsedValue.Set.Parsed<ValueT>>>
 }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
-import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyContext
+import com.android.tools.idea.gradle.structure.model.meta.Annotated
 import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyCore
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.intellij.openapi.Disposable
@@ -42,7 +42,7 @@ interface ModelPropertyEditor<out ValueT> : Disposable {
   /**
    * Returns the current value of the editor.
    */
-  fun getValue(): ParsedValue<ValueT>
+  fun getValue(): Annotated<ParsedValue<ValueT>>
 
   /**
    * Updates the bound property to the current value of the editor.

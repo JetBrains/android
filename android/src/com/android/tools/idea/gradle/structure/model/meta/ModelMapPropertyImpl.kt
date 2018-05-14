@@ -31,7 +31,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT
   getter: ResolvedPropertyModel.() -> ValueT?,
   setter: ResolvedPropertyModel.(ValueT) -> Unit,
   parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel,
-  parser: (ContextT, String) -> ParsedValue<ValueT>,
+  parser: (ContextT, String) -> Annotated<ParsedValue<ValueT>>,
   formatter: (ContextT, ValueT) -> String = { _, value -> value.toString() },
   knownValuesGetter: ((ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<ValueT>>>)? = null
 ) =
@@ -42,7 +42,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT
     parsedPropertyGetter,
     getter,
     setter,
-    { context: ContextT, value -> if (value.isBlank()) ParsedValue.NotSet else parser(context, value.trim()) },
+    { context: ContextT, value -> if (value.isBlank()) ParsedValue.NotSet.annotated() else parser(context, value.trim()) },
     formatter,
     { context: ContextT, model -> if (knownValuesGetter != null) knownValuesGetter(context, model) else immediateFuture(listOf()) }
   )
@@ -54,12 +54,12 @@ class ModelMapPropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, ValueT : 
   override val parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel,
   override val getter: ResolvedPropertyModel.() -> ValueT?,
   override val setter: ResolvedPropertyModel.(ValueT) -> Unit,
-  override val parser: (ContextT, String) -> ParsedValue<ValueT>,
+  override val parser: (ContextT, String) -> Annotated<ParsedValue<ValueT>>,
   override val formatter: (ContextT, ValueT) -> String,
   override val knownValuesGetter: (ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<ValueT>>>
 ) : ModelCollectionPropertyBase<ContextT, ModelT, ResolvedT, ParsedT, Map<String, ValueT>, ValueT>(), ModelMapProperty<ContextT, ModelT, ValueT> {
 
-  override fun getValue(thisRef: ModelT, property: KProperty<*>): ParsedValue<Map<String, ValueT>> = getParsedValue(thisRef)
+  override fun getValue(thisRef: ModelT, property: KProperty<*>): ParsedValue<Map<String, ValueT>> = getParsedValue(thisRef).value
 
   override fun setValue(thisRef: ModelT, property: KProperty<*>, value: ParsedValue<Map<String, ValueT>>) = setParsedValue(thisRef, value)
 
@@ -102,7 +102,7 @@ class ModelMapPropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, ValueT : 
       .also { model.setModified() }
     ?: throw IllegalStateException()
 
-  private fun getParsedValue(model: ModelT): ParsedValue<Map<String, ValueT>> {
+  private fun getParsedValue(model: ModelT): Annotated<ParsedValue<Map<String, ValueT>>> {
     val parsedModel = modelDescriptor.getParsed(model)
     val parsedGradleValue: Map<String, ResolvedPropertyModel>? = parsedModel?.parsedPropertyGetter().asResolvedPropertiesMap()
     val parsed: Map<String, ValueT>? =
@@ -111,8 +111,8 @@ class ModelMapPropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, ValueT : 
           it.value.getter()?.let { v -> it.key to v }
         }
         ?.toMap()
-    val dslText: DslText? = parsedModel?.parsedPropertyGetter()?.dslText()
-    return makeParsedValue(parsed, dslText)
+    val dslText: Annotated<DslText>? = parsedModel?.parsedPropertyGetter()?.dslText()
+    return makeAnnotatedParsedValue(parsed, dslText)
   }
 
   private fun getResolvedValue(model: ModelT): ResolvedValue<Map<String, ValueT>> {
@@ -125,7 +125,7 @@ class ModelMapPropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, ValueT : 
   }
 
   override fun bind(model: ModelT): ModelMapPropertyCore<ValueT> = object : ModelMapPropertyCore<ValueT> {
-    override fun getParsedValue(): ParsedValue<Map<String, ValueT>> = this@ModelMapPropertyImpl.getParsedValue(model)
+    override fun getParsedValue(): Annotated<ParsedValue<Map<String, ValueT>>> = this@ModelMapPropertyImpl.getParsedValue(model)
     override fun setParsedValue(value: ParsedValue<Map<String, ValueT>>) = this@ModelMapPropertyImpl.setParsedValue(model, value)
     override fun getResolvedValue(): ResolvedValue<Map<String, ValueT>> = this@ModelMapPropertyImpl.getResolvedValue(model)
     override fun getEditableValues(): Map<String, ModelPropertyCore<ValueT>> = this@ModelMapPropertyImpl.getEditableValues(model)
@@ -171,6 +171,7 @@ private fun <T : Any> ResolvedPropertyModel.changeMapEntryKey(
   // TODO(b/73057388): Simplify to plain oldProperty.getRawValue(OBJECT_TYPE).
   val oldValue = when (oldProperty.valueType) {
     GradlePropertyModel.ValueType.REFERENCE -> oldProperty.getRawValue(STRING_TYPE)?.let { ReferenceTo(it) }
+    GradlePropertyModel.ValueType.UNKNOWN -> oldProperty.getRawValue(STRING_TYPE)?.let { ReferenceTo(it) }
     else -> oldProperty.getRawValue(OBJECT_TYPE)
   }
 

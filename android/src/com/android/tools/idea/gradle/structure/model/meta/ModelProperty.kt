@@ -22,7 +22,7 @@ import kotlin.properties.ReadWriteProperty
  * Core methods of a UI property descriptor manipulating parsed values.
  */
 interface ModelPropertyParsedCore<PropertyT : Any> {
-  fun getParsedValue(): ParsedValue<PropertyT>
+  fun getParsedValue(): Annotated<ParsedValue<PropertyT>>
   fun setParsedValue(value: ParsedValue<PropertyT>)
 }
 
@@ -75,12 +75,12 @@ interface ModelProperty<in ContextT, in ModelT, PropertyT : Any, ValueT : Any, o
  */
 interface KnownValues<ValueT> {
   val literals: List<ValueDescriptor<ValueT>>
-  fun isSuitableVariable(variable: ParsedValue.Set.Parsed<ValueT>): Boolean
+  fun isSuitableVariable(variable: Annotated<ParsedValue.Set.Parsed<ValueT>>): Boolean
 }
 
 fun <T> emptyKnownValues() = object : KnownValues<T> {
   override val literals: List<ValueDescriptor<T>> = listOf()
-  override fun isSuitableVariable(variable: ParsedValue.Set.Parsed<T>): Boolean = false
+  override fun isSuitableVariable(variable: Annotated<ParsedValue.Set.Parsed<T>>): Boolean = false
 }
 
 @Suppress("AddVarianceModifier")  // PSQ erroneously reports AddVarianceModifier on ValueT here.
@@ -90,7 +90,7 @@ interface ModelPropertyContext<ValueT : Any> {
    *
    * This is up to the parser to decide whether [value] is valid, invalid or is a DSL expression.
    */
-  fun parse(value: String): ParsedValue<ValueT>
+  fun parse(value: String): Annotated<ParsedValue<ValueT>>
 
   /**
    * Formats the text representation of [value].
