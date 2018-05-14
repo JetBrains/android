@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model.meta
 
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.EditorExtensionAction
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditor
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditorFactory
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.VariablesProvider
@@ -81,7 +82,10 @@ class PropertyUiModelImpl<in ContextT, in ModelT, PropertyT : Any, ValueT : Any,
         override val title: String = "Bind to New Variable"
         override val tooltip: String = "Bind to New Variable"
         override val icon: Icon = AllIcons.Nodes.Variable
-        override fun <T: Any> invoke(property: ModelPropertyCore<T>, editor: ModelPropertyEditor<T>) {
+        override fun <T : Any, ModelPropertyCoreT : ModelPropertyCore<T>> invoke(
+          property: ModelPropertyCoreT,
+          editor: ModelPropertyEditor<T>,
+          editorFactory: ModelPropertyEditorFactory<T, ModelPropertyCoreT>) {
           TODO()
         }
       })

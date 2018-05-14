@@ -29,14 +29,14 @@ import javax.swing.table.TableColumnModel
 /**
  * A property editor [ModelPropertyEditor] for properties of simple map types.
  */
-class MapPropertyEditor<ValueT : Any, out ModelPropertyT : ModelMapPropertyCore<ValueT>>(
+class MapPropertyEditor<ValueT : Any, ModelPropertyT : ModelMapPropertyCore<ValueT>>(
   property: ModelPropertyT,
   propertyContext: ModelPropertyContext<ValueT>,
   editor: PropertyEditorFactory<ModelPropertyCore<ValueT>, ModelPropertyContext<ValueT>, ValueT>,
   variablesProvider: VariablesProvider?,
   extensions: List<EditorExtensionAction>
 ) : CollectionPropertyEditor<ModelPropertyT, ValueT>(property, propertyContext, editor, variablesProvider, extensions),
-    ModelPropertyEditor<Map<String, ValueT>> {
+    ModelPropertyEditor<Map<String, ValueT>>, ModelPropertyEditorFactory<Map<String, ValueT>, ModelPropertyT> {
 
   init {
     loadValue()
@@ -138,6 +138,9 @@ class MapPropertyEditor<ValueT : Any, out ModelPropertyT : ModelMapPropertyCore<
 
     override fun getCellEditorValue(): Any = lastEditor!!.text
   }
+
+  override fun createNew(property: ModelPropertyT): ModelPropertyEditor<Map<String, ValueT>> =
+    mapPropertyEditor(editor)(property, propertyContext, variablesProvider, extensions)
 }
 
 fun <ValueT : Any, ModelPropertyT : ModelMapPropertyCore<ValueT>> mapPropertyEditor(

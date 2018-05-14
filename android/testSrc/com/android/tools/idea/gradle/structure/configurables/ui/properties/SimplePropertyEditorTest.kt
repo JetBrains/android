@@ -370,8 +370,30 @@ class SimplePropertyEditorTest : UsefulTestCase() {
     editor.commitTestText("invalid")  // "invalid" is recognised as an invalid input by the test parser.
     assertThat<Annotated<ParsedValue<String>>>(parsedModel.value, equalTo(resultingParsedValue))
   }
-}
 
+  fun testCreateNew() {
+    val variablesProvider = mock(VariablesProvider::class.java)
+    val var1 = "var1" to "1"
+    val var2 = "var2" to "2"
+    val var3 = "var3" to "3"
+    val property = this.property
+    val propertyContext = property.bindContext(null, model)
+    `when`(variablesProvider.getAvailableVariablesFor(propertyContext)).thenReturn(
+      listOf(
+        var1.asAnnotatedParsed(),
+        var2.asAnnotatedParsed(),
+        var3.asAnnotatedParsed()
+      )
+    )
+    val editor: SimplePropertyEditor<String, ModelPropertyCore<String>> =
+      simplePropertyEditor(property.bind(model), propertyContext, variablesProvider)
+    val clone = editor.createNew(property.bind(model)) as SimplePropertyEditor<*, *>
+    assertThat(clone.selectedItem, equalTo("value".asAnnotatedParsed()))
+    assertThat(clone.testPlainTextStatus, equalTo(""))
+    assertThat<List<*>>(clone.getModel().getItems(),
+               hasItems("1".asAnnotatedParsed(), "2".asAnnotatedParsed(), var1.asAnnotatedParsed(), var2.asAnnotatedParsed()))
+  }
+}
 
 private val spacesMatcher = Regex("\\s+")
 private val HtmlLabel.normalizedPlainText: String get() = document.getText(0, document.length).replace(spacesMatcher, " ")

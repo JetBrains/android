@@ -40,9 +40,9 @@ abstract class
 CollectionPropertyEditor<out ModelPropertyT : ModelCollectionPropertyCore<*>, ValueT : Any>(
   val property: ModelPropertyT,
   val propertyContext: ModelPropertyContext<ValueT>,
-  private val editor: PropertyEditorFactory<ModelPropertyCore<ValueT>, ModelPropertyContext<ValueT>, ValueT>,
-  private val variablesProvider: VariablesProvider?,
-  private val extensions: List<EditorExtensionAction>
+  protected val editor: PropertyEditorFactory<ModelPropertyCore<ValueT>, ModelPropertyContext<ValueT>, ValueT>,
+  protected val variablesProvider: VariablesProvider?,
+  protected val extensions: List<EditorExtensionAction>
 ) : JPanel(BorderLayout()) {
 
   val component: JComponent get() = this

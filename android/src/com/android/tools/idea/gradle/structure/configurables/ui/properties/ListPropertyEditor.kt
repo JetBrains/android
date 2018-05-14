@@ -25,7 +25,7 @@ import javax.swing.table.TableColumnModel
 /**
  * A property editor [ModelPropertyEditor] for properties of simple list types.
  */
-class ListPropertyEditor<ValueT : Any, out ModelPropertyT : ModelListPropertyCore<ValueT>>(
+class ListPropertyEditor<ValueT : Any, ModelPropertyT : ModelListPropertyCore<ValueT>>(
   property: ModelPropertyT,
   propertyContext: ModelPropertyContext<ValueT>,
   editor: PropertyEditorFactory<ModelPropertyCore<ValueT>, ModelPropertyContext<ValueT>, ValueT>,
@@ -33,7 +33,7 @@ class ListPropertyEditor<ValueT : Any, out ModelPropertyT : ModelListPropertyCor
   extensions: List<EditorExtensionAction>
 ) :
   CollectionPropertyEditor<ModelPropertyT, ValueT>(property, propertyContext, editor, variablesProvider, extensions),
-  ModelPropertyEditor<List<ValueT>> {
+  ModelPropertyEditor<List<ValueT>>, ModelPropertyEditorFactory<List<ValueT>, ModelPropertyT> {
 
   override fun updateProperty() = throw UnsupportedOperationException()
 
@@ -88,6 +88,9 @@ class ListPropertyEditor<ValueT : Any, out ModelPropertyT : ModelListPropertyCor
   }
 
   override fun getPropertyAt(row: Int) = property.getEditableValues()[row]
+
+  override fun createNew(property: ModelPropertyT): ModelPropertyEditor<List<ValueT>> =
+    listPropertyEditor(editor)(property, propertyContext, variablesProvider, extensions)
 }
 
 fun <ValueT : Any, ModelPropertyT : ModelListPropertyCore<ValueT>> listPropertyEditor(

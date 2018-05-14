@@ -57,5 +57,14 @@ interface EditorExtensionAction {
   val title: String
   val tooltip: String
   val icon: Icon
-  fun <T: Any> invoke(property: ModelPropertyCore<T>, editor: ModelPropertyEditor<T>)
+  fun <T: Any, ModelPropertyCoreT: ModelPropertyCore<T>> invoke(property: ModelPropertyCoreT,
+                                                                editor: ModelPropertyEditor<T>,
+                                                                editorFactory: ModelPropertyEditorFactory<T, ModelPropertyCoreT>)
+}
+
+/**
+ * A factory to create property editors with the preconfigured property context.
+ */
+interface ModelPropertyEditorFactory<ValueT: Any, in ModelPropertyCoreT: ModelPropertyCore<ValueT>> {
+  fun createNew(property: ModelPropertyCoreT): ModelPropertyEditor<ValueT>
 }
