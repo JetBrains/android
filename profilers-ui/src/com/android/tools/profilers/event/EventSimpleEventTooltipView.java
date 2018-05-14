@@ -73,6 +73,7 @@ public class EventSimpleEventTooltipView extends ProfilerMonitorTooltipView<Even
   }
 
   private void clearTooltipInfo() {
+    myContentLabel.setText("");
     myStartTimeLabel.setText("");
     myDurationLabel.setText("");
   }

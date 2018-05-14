@@ -33,6 +33,10 @@ public final class FakeEventService extends EventServiceGrpc.EventServiceImplBas
     myEventData.put(data.getEventId(), data);
   }
 
+  public void clearSystemEvents() {
+    myEventData.clear();
+  }
+
   public void addActivityEvent(ActivityData data) {
     myActivityData.put(data.getHash(), data);
   }
