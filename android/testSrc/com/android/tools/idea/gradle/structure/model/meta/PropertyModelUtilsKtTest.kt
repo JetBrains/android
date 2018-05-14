@@ -177,13 +177,14 @@ class PropertyModelUtilsKtTest : GradleFileModelTestCase() {
     val propOtherExpression1 = extModel.findProperty("propOtherExpression1").wrap()
     val propOtherExpression2 = extModel.findProperty("propOtherExpression2").wrap()
 
-    assertThat(propValue.dslText(), equalTo<DslText?>(DslText.Literal))
-    assertThat(prop25.dslText(), equalTo<DslText?>(DslText.Literal))
-    assertThat(propTrue.dslText(), equalTo<DslText?>(DslText.Literal))
-    assertThat(propRef.dslText(), equalTo<DslText?>(DslText.Reference("propValue")))
-    assertThat(propInterpolated.dslText(), equalTo<DslText?>(DslText.InterpolatedString("${'$'}{prop25}")))
-    assertThat(propUnresolved.dslText(), equalTo<DslText?>(DslText.OtherUnparsedDslText("unresolvedReference")))
-    assertThat(propOtherExpression1.dslText(), equalTo<DslText?>(DslText.OtherUnparsedDslText("z(1)")))
-    assertThat(propOtherExpression2.dslText(), equalTo<DslText?>(DslText.OtherUnparsedDslText("1 + 2")))
+    assertThat(propValue.dslText(), equalTo<Annotated<DslText>?>(DslText.Literal.annotated()))
+    assertThat(prop25.dslText(), equalTo<Annotated<DslText>?>(DslText.Literal.annotated()))
+    assertThat(propTrue.dslText(), equalTo<Annotated<DslText>?>(DslText.Literal.annotated()))
+    assertThat(propRef.dslText(), equalTo<Annotated<DslText>?>(DslText.Reference("propValue").annotated()))
+    assertThat(propInterpolated.dslText(), equalTo<Annotated<DslText>?>(DslText.InterpolatedString("${'$'}{prop25}").annotated()))
+    assertThat(propUnresolved.dslText(), equalTo<Annotated<DslText>?>(
+      DslText.Reference("unresolvedReference").annotateWithError("Unresolved reference: unresolvedReference")))
+    assertThat(propOtherExpression1.dslText(), equalTo<Annotated<DslText>?>(DslText.OtherUnparsedDslText("z(1)").annotated()))
+    assertThat(propOtherExpression2.dslText(), equalTo<Annotated<DslText>?>(DslText.OtherUnparsedDslText("1 + 2").annotated()))
   }
 }

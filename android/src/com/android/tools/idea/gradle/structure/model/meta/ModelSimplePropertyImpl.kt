@@ -47,7 +47,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel,
   getter: ResolvedPropertyModel.() -> PropertyT?,
   setter: ResolvedPropertyModel.(PropertyT) -> Unit,
-  parser: (ContextT, String) -> ParsedValue<PropertyT>,
+  parser: (ContextT, String) -> Annotated<ParsedValue<PropertyT>>,
   formatter: (ContextT, PropertyT) -> String = { _, value -> value.toString() },
   knownValuesGetter: ((ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>) = { _, _ -> immediateFuture(listOf()) },
   variableMatchingStrategy: VariableMatchingStrategy = VariableMatchingStrategy.BY_TYPE
@@ -73,13 +73,13 @@ class ModelSimplePropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, Proper
   private val parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel,
   private val getter: ResolvedPropertyModel.() -> PropertyT?,
   private val setter: ResolvedPropertyModel.(PropertyT) -> Unit,
-  override val parser: (ContextT, String) -> ParsedValue<PropertyT>,
+  override val parser: (ContextT, String) -> Annotated<ParsedValue<PropertyT>>,
   override val formatter: (ContextT, PropertyT) -> String,
   override val knownValuesGetter: (ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>,
   override val variableMatchingStrategy: VariableMatchingStrategy
 ) : ModelPropertyBase<ContextT, ModelT, PropertyT>(), ModelSimpleProperty<ContextT, ModelT, PropertyT> {
   override fun getValue(thisRef: ModelT, property: KProperty<*>): ParsedValue<PropertyT> =
-    getParsedValue(modelDescriptor.getParsed(thisRef)?.parsedPropertyGetter(), getter)
+    getParsedValue(modelDescriptor.getParsed(thisRef)?.parsedPropertyGetter(), getter).value
 
   override fun setValue(thisRef: ModelT, property: KProperty<*>, value: ParsedValue<PropertyT>) {
     setParsedValue((modelDescriptor.getParsed(thisRef) ?: throw IllegalStateException()).parsedPropertyGetter(), setter, value)
@@ -113,7 +113,7 @@ abstract class ModelPropertyParsedCoreImpl<PropertyT : Any> : ModelPropertyParse
   abstract val setter: ResolvedPropertyModel.(PropertyT) -> Unit
   abstract fun setModified()
 
-  override fun getParsedValue(): ParsedValue<PropertyT> = getParsedValue(getParsedProperty(), getter)
+  override fun getParsedValue(): Annotated<ParsedValue<PropertyT>> = getParsedValue(getParsedProperty(), getter)
 
   override fun setParsedValue(value: ParsedValue<PropertyT>) {
     setParsedValue(getParsedProperty() ?: throw IllegalStateException(), setter, value)
@@ -121,8 +121,8 @@ abstract class ModelPropertyParsedCoreImpl<PropertyT : Any> : ModelPropertyParse
   }
 }
 
-private fun <T : Any> getParsedValue(property: ResolvedPropertyModel?, getter: ResolvedPropertyModel.() -> T?): ParsedValue<T> =
-  makeParsedValue(property?.getter(), property?.dslText())
+private fun <T : Any> getParsedValue(property: ResolvedPropertyModel?, getter: ResolvedPropertyModel.() -> T?): Annotated<ParsedValue<T>> =
+  makeAnnotatedParsedValue(property?.getter(), property?.dslText())
 
 private fun <T : Any> setParsedValue(parsedProperty: ResolvedPropertyModel,
                                      setter: ResolvedPropertyModel.(T) -> Unit,
@@ -147,6 +147,5 @@ private fun <T : Any> setParsedValue(parsedProperty: ResolvedPropertyModel,
         }
       }
     }
-    is ParsedValue.Set.Invalid -> throw IllegalArgumentException()
   }
 }

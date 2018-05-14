@@ -18,60 +18,65 @@
 package com.android.tools.idea.gradle.structure.model.helpers
 
 import com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil.parseFromGradleString
-import com.android.tools.idea.gradle.structure.model.meta.DslText
-import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.pom.java.LanguageLevel
 import java.io.File
 
-fun parseString(context: Any?, text: String): ParsedValue<String> =
-    if (text == "")
-      ParsedValue.NotSet
+fun parseString(context: Any?, text: String): Annotated<ParsedValue<String>> =
+  if (text == "")
+    ParsedValue.NotSet.annotated()
+  else
+    ParsedValue.Set.Parsed(text, DslText.Literal).annotated()
+
+fun parseFile(context: Any?, text: String): Annotated<ParsedValue<File>> =
+  if (text == "")
+    ParsedValue.NotSet.annotated()
+  else
+    ParsedValue.Set.Parsed(File(text), DslText.Literal).annotated()
+
+inline fun <reified T> parseEnum(text: String, parser: (String) -> T?): Annotated<ParsedValue<T>> =
+  if (text == "")
+    ParsedValue.NotSet.annotated()
+  else {
+    val parsed = parser(text)
+    if (parsed != null)
+      ParsedValue.Set.Parsed(parsed, DslText.Literal).annotated()
     else
-      ParsedValue.Set.Parsed(text, DslText.Literal)
+      ParsedValue.Set.Parsed(null, DslText.OtherUnparsedDslText(text))
+        .annotateWithError("'${text}' is not a valid value of type ${T::class.simpleName}")
+  }
 
-fun parseFile(context: Any?, text: String): ParsedValue<File> =
-    if (text == "")
-      ParsedValue.NotSet
-    else
-      ParsedValue.Set.Parsed(File(text), DslText.Literal)
+fun parseBoolean(context: Any?, text: String): Annotated<ParsedValue<Boolean>> =
+  when {
+    text == "" -> ParsedValue.NotSet.annotated()
+    text.equals("true", ignoreCase = true) -> ParsedValue.Set.Parsed(true, DslText.Literal).annotated()
+    text.equals("false", ignoreCase = true) -> ParsedValue.Set.Parsed(false, DslText.Literal).annotated()
+    else ->
+      ParsedValue.Set.Parsed(null, DslText.OtherUnparsedDslText(text))
+        .annotateWithError("Unknown boolean value: '$text'. Expected 'true' or 'false'")
+  }
 
-inline fun <reified T> parseEnum(text: String, parser: (String) -> T?): ParsedValue<T> =
-    if (text == "")
-      ParsedValue.NotSet
-    else {
-      val parsed = parser(text)
-      if (parsed != null)
-        ParsedValue.Set.Parsed(parsed, DslText.Literal)
-      else
-        ParsedValue.Set.Invalid(text, "'${text}' is not a valid value of type ${T::class.simpleName}")
+fun parseInt(context: Any?, text: String): Annotated<ParsedValue<Int>> =
+  if (text == "")
+    ParsedValue.NotSet.annotated()
+  else {
+    try {
+      ParsedValue.Set.Parsed(text.toInt(), DslText.Literal).annotated()
     }
-
-fun parseBoolean(context: Any?, text: String): ParsedValue<Boolean> =
-    when {
-      text == "" -> ParsedValue.NotSet
-      text.equals("true", ignoreCase = true) -> ParsedValue.Set.Parsed(true, DslText.Literal)
-      text.equals("false", ignoreCase = true) -> ParsedValue.Set.Parsed(false, DslText.Literal)
-      else -> ParsedValue.Set.Invalid(text, "Unknown boolean value: '$text'. Expected 'true' or 'false'")
+    catch (ex: NumberFormatException) {
+      ParsedValue.Set.Parsed<Int>(null, DslText.OtherUnparsedDslText(text))
+        .annotateWithError("'$text' is not a valid integer value")
     }
+  }
 
-fun parseInt(context: Any?, text: String): ParsedValue<Int> =
-    if (text == "")
-      ParsedValue.NotSet
-    else {
-      try {
-        ParsedValue.Set.Parsed(text.toInt(), DslText.Literal)
-      }
-      catch (ex: NumberFormatException) {
-        ParsedValue.Set.Invalid<Int>(dslText = text, errorMessage = "'$text' is not a valid integer value")
-      }
-    }
+fun parseLanguageLevel(context: Any?, text: String): Annotated<ParsedValue<LanguageLevel>> =
+  parseFromGradleString(text)?.let { ParsedValue.Set.Parsed(it, DslText.Literal).annotated() }
+  ?: ParsedValue.Set.Parsed(null, DslText.OtherUnparsedDslText(text))
+    .annotateWithError("'$text' is not a valid language level")
 
-fun parseLanguageLevel(context: Any?, text: String): ParsedValue<LanguageLevel> =
-  parseFromGradleString(text)?.let { ParsedValue.Set.Parsed(it, DslText.Literal) }
-  ?: ParsedValue.Set.Invalid(dslText = text, errorMessage = "'$text' is not a valid language level")
-
-fun parseReferenceOnly(context: Any?, text: String): ParsedValue<Unit> =
-  ParsedValue.Set.Invalid(text, "A signing config reference should be in a form of '\$configName'")
+fun parseReferenceOnly(context: Any?, text: String): Annotated<ParsedValue<Unit>> =
+  ParsedValue.Set.Parsed(null, DslText.OtherUnparsedDslText(text))
+    .annotateWithError("A signing config reference should be in a form of '\$configName'")
 
 fun formatLanguageLevel(context: Any?, value: LanguageLevel): String = value.toJavaVersion().toString()
 

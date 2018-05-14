@@ -35,7 +35,7 @@ class ModelSimplePropertyImplTest : GradleFileModelTestCase() {
   }
 
   private fun <T : Any> GradlePropertyModel.wrap(
-    parse: (Nothing?, String) -> ParsedValue<T>,
+    parse: (Nothing?, String) -> Annotated<ParsedValue<T>>,
     caster: ResolvedPropertyModel.() -> T?
   ): ModelSimpleProperty<Nothing?, Model, T> {
     val resolved = resolve()
@@ -136,5 +136,13 @@ class ModelSimplePropertyImplTest : GradleFileModelTestCase() {
     assertThat(propRef.testValue(), equalTo("26 items"))
     assertThat(propOtherExpression1.testValue(), nullValue())
     assertThat(propOtherExpression2.testValue(), nullValue())
+
+    prop25.testSetReference("25")
+    assertThat(prop25.testValue(), equalTo(25))
+
+    propTrue.testSetReference("2 + 2")
+    assertThat<Annotated<ParsedValue<Boolean>>>(
+      propTrue.bind(Model).getParsedValue(),
+      equalTo<Annotated<ParsedValue<Boolean>>>(ParsedValue.Set.Parsed<Boolean>(null, DslText.OtherUnparsedDslText("2 + 2")).annotated()))
   }
 }

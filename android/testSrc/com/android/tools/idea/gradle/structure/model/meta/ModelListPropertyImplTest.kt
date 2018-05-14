@@ -33,7 +33,7 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
   }
 
   private fun <T : Any> GradlePropertyModel.wrap(
-    parse: (Nothing?, String) -> ParsedValue<T>,
+    parse: (Nothing?, String) -> Annotated<ParsedValue<T>>,
     caster: ResolvedPropertyModel.() -> T?
   ): ModelListPropertyCore<T> {
     val resolved = resolve()

@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model.meta
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
+import com.android.tools.idea.gradle.dsl.api.ext.RawText
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil
@@ -62,25 +63,29 @@ fun ResolvedPropertyModel.setLanguageLevel(value: LanguageLevel) =
   setValue(LanguageLevelUtil.convertToGradleString(value, getValue(GradlePropertyModel.STRING_TYPE)))
 
 fun ResolvedPropertyModel.clear() = unresolvedModel.delete()
-fun ResolvedPropertyModel.dslText(): DslText? {
+fun ResolvedPropertyModel.dslText(): Annotated<DslText>? {
   val text = getRawValue(GradlePropertyModel.OBJECT_TYPE)?.toString()
   return when {
     text == null && unresolvedModel.valueType == GradlePropertyModel.ValueType.NONE -> null
     text == null ->
       throw IllegalStateException(
         "The raw value of property '${unresolvedModel.fullyQualifiedName}' is null while its type is: ${unresolvedModel.valueType}")
-    unresolvedModel.valueType == ValueType.REFERENCE && dependencies.isEmpty() -> DslText.OtherUnparsedDslText(text)
-    unresolvedModel.valueType == ValueType.UNKNOWN -> DslText.OtherUnparsedDslText(text)
-    unresolvedModel.valueType == ValueType.REFERENCE -> DslText.Reference(text)
-    dependencies.isEmpty() -> DslText.Literal
-    unresolvedModel.valueType == ValueType.STRING -> DslText.InterpolatedString(text)
-    else -> throw IllegalStateException("Property value of type ${unresolvedModel.valueType} with dependencies is not supported.")
+    unresolvedModel.valueType == ValueType.REFERENCE && dependencies.isEmpty() -> DslText.Reference(text).annotateWithError(
+      "Unresolved reference: $text")
+    unresolvedModel.valueType == ValueType.UNKNOWN -> DslText.OtherUnparsedDslText(text).annotated()
+    unresolvedModel.valueType == ValueType.REFERENCE -> DslText.Reference(text).annotated()
+    dependencies.isEmpty() -> DslText.Literal.annotated()
+    unresolvedModel.valueType == ValueType.STRING -> DslText.InterpolatedString(text).annotated()
+    else -> throw IllegalStateException(
+      "Property value of type ${unresolvedModel.valueType} with dependencies is not supported.")
   }
 }
 
-fun ResolvedPropertyModel.setDslText(value: DslText) = when (value) {
-  is DslText.Reference -> unresolvedModel.setValue(ReferenceTo(value.text))  // null text is invalid here.
-  is DslText.InterpolatedString -> unresolvedModel.setValue(GradlePropertyModel.iStr(value.text))  // null text is invalid here.
-  is DslText.OtherUnparsedDslText -> TODO("Setting unparsed dsl text is not yet supported.")
-  DslText.Literal -> throw IllegalArgumentException("Literal values should not be set via DslText.")
-}
+fun ResolvedPropertyModel.setDslText(value: DslText) =
+  unresolvedModel.setValue(
+    when (value) {
+      is DslText.Reference -> ReferenceTo(value.text)  // null text is invalid here.
+      is DslText.InterpolatedString -> GradlePropertyModel.iStr(value.text)  // null text is invalid here.
+      is DslText.OtherUnparsedDslText -> RawText(value.text)  // null text is invalid here.
+      DslText.Literal -> throw IllegalArgumentException("Literal values should not be set via DslText.")
+    })

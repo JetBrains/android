@@ -100,7 +100,7 @@ class MapPropertyEditor<ValueT : Any, out ModelPropertyT : ModelMapPropertyCore<
     }
   }
 
-  override fun getValue(): ParsedValue<Map<String, ValueT>> = throw UnsupportedOperationException()
+  override fun getValue(): Annotated<ParsedValue<Map<String, ValueT>>> = throw UnsupportedOperationException()
 
   private fun keyAt(row: Int) = (table.model.getValueAt(row, 0) as? String).orEmpty()
 

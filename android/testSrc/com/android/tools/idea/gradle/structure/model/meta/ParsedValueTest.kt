@@ -32,7 +32,11 @@ class ParsedValueTest {
       ParsedValue.Set.Parsed("Z QQ Z", DslText.InterpolatedString(text = "Z \$var Z")).getText(Any::testToString),
       equalTo("\"Z \$var Z\"")
     )
-    assertThat(ParsedValue.Set.Invalid<String>("fun1()", "cannot be parsed").getText(Any::testToString), equalTo("\$\$fun1()"))
+    assertThat(
+      ParsedValue.Set.Parsed(
+        null,
+        DslText.OtherUnparsedDslText("fun1()")).getText(Any::testToString),
+      equalTo("\$fun1()"))
   }
 
   @Test
@@ -41,18 +45,18 @@ class ParsedValueTest {
       ParsedValue.Set.Parsed(
         value = null,
         dslText = DslText.OtherUnparsedDslText(text = "doSomething()")).getText(Any::testToString),
-      equalTo("\$\$doSomething()")
+      equalTo("\$doSomething()")
     )
   }
 
   @Test
   fun makeParsedValue_notSet() {
-    assertThat(makeParsedValue(null, null), equalTo<ParsedValue<*>>(ParsedValue.NotSet))
+    assertThat(makeParsedValue(null, null as DslText?), equalTo<ParsedValue<*>>(ParsedValue.NotSet))
   }
 
   @Test
   fun makeParsedValue_parsed() {
-    assertThat(makeParsedValue(1, null), equalTo<ParsedValue<*>>(ParsedValue.Set.Parsed(1, DslText.Literal)))
+    assertThat(makeParsedValue(1, null as DslText?), equalTo<ParsedValue<*>>(ParsedValue.Set.Parsed(1, DslText.Literal)))
   }
 
   @Test
@@ -75,18 +79,16 @@ class ParsedValueTest {
 
   @Test
   fun makeParsedValue_invalidLiteral() {
-    // TODO(b/77627789): Currently we do not distinguish different unparsed cases. Implement or simplify.
-    assertThat(makeParsedValue(null, DslText.Literal),
-               equalTo<ParsedValue<*>>(ParsedValue.Set.Invalid<Int>("", "Invalid value")))
+    assertThat(makeAnnotatedParsedValue(-1, DslText.Literal, ValueAnnotation.Error("bad")),
+               equalTo<Annotated<ParsedValue<*>>>(ParsedValue.Set.Parsed(-1, DslText.Literal).annotateWithError("bad")))
   }
 
   @Test
   fun makeParsedValue_invalidReference() {
-    // TODO(b/77627789): Store full DslText() in ParsedValue and change the error message ('Unresolved' might be too strong.).
-    assertThat(makeParsedValue(null, DslText.Reference("var1")),
-               equalTo<ParsedValue<*>>(ParsedValue.Set.Invalid<Int>("var1", "Unresolved reference: 'var1'")))
+    assertThat(makeAnnotatedParsedValue(null, DslText.Reference("var1"), ValueAnnotation.Error("Disregarded")),
+               equalTo<Annotated<ParsedValue<*>>>(
+                 ParsedValue.Set.Parsed(null, DslText.Reference("var1")).annotateWithError("Unresolved: 'var1'")))
   }
-
 }
 
 // Use custom toString() in tests to ensure it is called when it is appropriate.

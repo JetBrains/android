@@ -34,7 +34,7 @@ private val regularAttributes = merge(SimpleTextAttributes.REGULAR_ATTRIBUTES, S
 private val commentAttributes = SimpleTextAttributes.GRAYED_ATTRIBUTES
 private val defaultAttributes = SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES
 private val errorAttributes = SimpleTextAttributes.ERROR_ATTRIBUTES
-private val codeAttributes = SimpleTextAttributes.REGULAR_ATTRIBUTES.derive(STYLE_WAVED, null, null, null)
+private val codeAttributes = merge(SimpleTextAttributes.REGULAR_ATTRIBUTES, SimpleTextAttributes(0, JBColor.black))
 
 /**
  * Renders the receiver to the [textRenderer] with any known values handled by renderers from [knownValues]. Returns [true] in the case of
@@ -75,13 +75,8 @@ fun <PropertyT : Any> ParsedValue<PropertyT>.renderTo(
         true
       }
       value is ParsedValue.Set.Parsed && value.dslText is DslText.OtherUnparsedDslText -> {
-        textRenderer.append("\$\$", variableNameAttributes)
+        textRenderer.append("\$", variableNameAttributes)
         textRenderer.append(value.dslText.text, codeAttributes)
-        true
-      }
-      value is ParsedValue.Set.Invalid -> {
-        textRenderer.append("${value.dslText} ", regularAttributes)
-        textRenderer.append("(${value.errorMessage.takeUnless { it == "" } ?: "invalid value"})", errorAttributes)
         true
       }
       else -> {
@@ -91,6 +86,24 @@ fun <PropertyT : Any> ParsedValue<PropertyT>.renderTo(
       }
     }
   }
+
+fun <PropertyT : Any> Annotated<ParsedValue<PropertyT>>.renderTo(
+  textRenderer: TextRenderer,
+  formatValue: PropertyT.() -> String,
+  knownValues: Map<ParsedValue<PropertyT>, ValueRenderer>
+): Boolean =
+  when (annotation) {
+    is ValueAnnotation.ErrorOrWarning -> {
+      val result = value.renderTo(makeUnparsedRenderer(textRenderer), formatValue, knownValues)
+      if (result) {
+        textRenderer.append(" ", errorAttributes)
+      }
+      textRenderer.append("(${annotation.message})", errorAttributes)
+      result
+    }
+    else -> value.renderTo(textRenderer, formatValue, knownValues)
+  }
+
 
 /**
  * Builds renderers for known values described by [ValueDescriptor]s.
@@ -120,7 +133,7 @@ fun <PropertyT : Any> buildKnownValueRenderers(
     it.value to object : ValueRenderer {
       override fun renderTo(textRenderer: TextRenderer): Boolean {
         val notEmptyValue = if (it.value !== ParsedValue.NotSet) {
-          val notEmptyValue = it.value.renderTo(textRenderer, formatValue, mapOf())
+          val notEmptyValue = it.value.annotated().renderTo(textRenderer, formatValue, mapOf())
           if (notEmptyValue && it.description != null) {
             textRenderer.append(" ", regularAttributes)
           }
@@ -145,5 +158,14 @@ fun makeCommentRenderer(textRenderer: TextRenderer) = object : TextRenderer {
     textRenderer.append(
       text,
       if (attributes.fgColor == regularAttributes.fgColor) attributes.derive(0, commentAttributes.fgColor, null, null) else attributes
+    )
+}
+
+fun makeUnparsedRenderer(textRenderer: TextRenderer) = object : TextRenderer {
+  // Add 'waved' text attribute.
+  override fun append(text: String, attributes: SimpleTextAttributes) =
+    textRenderer.append(
+      text,
+      attributes.derive(attributes.style or STYLE_WAVED, null, null, null)
     )
 }
