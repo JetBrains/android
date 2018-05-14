@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profilers;
 
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
@@ -28,21 +29,43 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ProfilerService implements Disposable {
+  /**
+   * Currently Profiler needs to be run as a singleton. Keeps track of the Project the ProfilerService is initialized in to prevent users
+   * from creating multiple.
+   * TODO b\79772836: make ProfilerService an application-level service in order to remove these constraints.
+   */
+  @GuardedBy("ourServiceLock")
+  private static Project ourInitializedProject = null;
+  private static final Object ourServiceLock = new Object();
 
-  private static final Key<Boolean> DATA_KEY = Key.create("PROJECT_PROFILER_SERVICE");
-
+  /**
+   * @return The ProfilerService if one is available. Note that at most one project's ProfilerService can be alive at a time. If another
+   * project attempts to initialize its ProfilerService, this method returns null.
+   */
+  @Nullable
   public static ProfilerService getInstance(@NotNull Project project) {
-    ProfilerService service = ServiceManager.getService(project, ProfilerService.class);
-    return service;
+    synchronized (ourServiceLock) {
+      if (ourInitializedProject == null || ourInitializedProject == project) {
+        return ServiceManager.getService(project, ProfilerService.class);
+      } else {
+        return null;
+      }
+    }
   }
 
   public static boolean isServiceInitialized(@NotNull Project project) {
-    return project.getUserData(DATA_KEY) != null;
+    synchronized (ourServiceLock) {
+      return ourInitializedProject == project;
+    }
   }
 
   private static final String DATASTORE_NAME_PREFIX = "DataStoreService";
@@ -73,7 +96,12 @@ public class ProfilerService implements Disposable {
 
     myClient = new ProfilerClient(datastoreName);
 
-    project.putUserData(DATA_KEY, true);
+    ourInitializedProject = project;
+    Disposer.register(this, () -> {
+      synchronized (ourServiceLock) {
+        ourInitializedProject = null;
+      }
+    });
   }
 
   @Override
