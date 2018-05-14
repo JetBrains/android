@@ -190,7 +190,9 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     myDisposable = Disposer.newDisposable();
 
     // Prevent IDEA from refreshing project. We will do it ourselves in AndroidGradleProjectStartupActivity.
-    myProject.putUserData(NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      myProject.putUserData(NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
+    }
 
     List<Class<? extends RunConfigurationProducer<?>>> runConfigurationProducerTypes = new ArrayList<>();
     runConfigurationProducerTypes.add(AllInPackageGradleConfigurationProducer.class);
