@@ -74,7 +74,7 @@ public class InstallPackageTest {
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/79522588
   @Test
   public void installPackage() throws Exception {
     guiTest.importSimpleLocalApplication();
