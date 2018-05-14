@@ -24,6 +24,7 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.Component
 import java.awt.FlowLayout
+import java.awt.Font
 import javax.swing.*
 import javax.swing.plaf.basic.BasicTreeUI
 import javax.swing.tree.TreeCellRenderer
@@ -38,7 +39,7 @@ import javax.swing.tree.TreePath
  * Labels are then trimmed with an ellipsis if they don't fit the inside the tree.
  * We also ensure that we leave enough space to paint the error badges on the right.
  */
-internal class NlTreeCellRenderer(
+class NlTreeCellRenderer(
   private val myBadgeHandler: NlTreeBadgeHandler
 ) : JPanel(FlowLayout(FlowLayout.LEFT, 0, JBUI.scale(2))),
     TreeCellRenderer {
@@ -49,6 +50,8 @@ internal class NlTreeCellRenderer(
 
   private val primaryLabelMetrics = primaryLabel.getFontMetrics(primaryLabel.font)
   private val secondaryLabelMetrics = secondaryLabel.getFontMetrics(secondaryLabel.font)
+  private val nlComponentFont = primaryLabel.font
+  private val otherFont = primaryLabel.font.deriveFont(Font.ITALIC)
 
   init {
     alignmentY = JPanel.CENTER_ALIGNMENT
@@ -70,7 +73,14 @@ internal class NlTreeCellRenderer(
     secondaryLabel.text = null
     primaryLabel.foreground = UIUtil.getListForeground(hasFocus)
 
+    if(value is String) {
+      primaryLabel.text = value
+      primaryLabel.font = otherFont
+      return this
+    }
+
     if (value !is NlComponent) return this
+    primaryLabel.font = nlComponentFont
     val path = tree.getPathForRow(row) ?: return this
     val leftOffset = getLeftOffset(tree, path)
 
