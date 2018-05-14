@@ -544,10 +544,13 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       // If its a GradleDslBlockElement use the name, otherwise use the psi text. This prevents is dumping the whole
       // elements block as a string value.
       if (!(element instanceof GradleDslBlockElement)) {
-        if (element.getPsiElement() == null) {
+        PsiElement psiElement = element instanceof GradleDslSettableExpression
+                                ? ((GradleDslSettableExpression)element).getCurrentElement()
+                                : element.getPsiElement();
+        if (psiElement == null) {
           return null;
         }
-        value = GradleDslElementImpl.getPsiText(element.getPsiElement());
+        value = GradleDslElementImpl.getPsiText(psiElement);
       }
       else {
         value = element.getFullName();

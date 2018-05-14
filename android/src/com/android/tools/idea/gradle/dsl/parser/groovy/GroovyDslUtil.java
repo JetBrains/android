@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.groovy;
 
-import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
+import com.android.tools.idea.gradle.dsl.api.ext.RawText;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.google.common.base.Splitter;
@@ -338,8 +338,8 @@ public final class GroovyDslUtil {
     else if (unsavedValue instanceof Integer || unsavedValue instanceof Boolean) {
       unsavedValueText = unsavedValue.toString();
     }
-    else if (unsavedValue instanceof ReferenceTo) {
-      unsavedValueText = ((ReferenceTo)unsavedValue).getText();
+    else if (unsavedValue instanceof RawText) {
+      unsavedValueText = ((RawText)unsavedValue).getText();
     }
 
     if (unsavedValueText == null) {

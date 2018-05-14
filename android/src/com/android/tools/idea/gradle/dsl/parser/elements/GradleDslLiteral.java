@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
@@ -98,14 +97,12 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
   @Override
   public void setValue(@NotNull Object value) {
     checkForValidValue(value);
-    if (value instanceof ReferenceTo) {
-      myIsReference = true;
-    }
-    else {
-      myIsReference = false;
-    }
     PsiElement element =
-      ApplicationManager.getApplication().runReadAction((Computable<PsiElement>)() -> getDslFile().getParser().convertToPsiElement(value));
+      ApplicationManager.getApplication().runReadAction((Computable<PsiElement>)() -> {
+        PsiElement psiElement = getDslFile().getParser().convertToPsiElement(value);
+        getDslFile().getParser().setUpForNewValue(this, psiElement);
+        return psiElement;
+      });
     setUnsavedValue(element);
     valueChanged();
   }
@@ -186,5 +183,15 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
 
   public boolean isReference() {
     return myIsReference;
+  }
+
+  public void setReference(boolean isReference) {
+    myIsReference = isReference;
+  }
+
+  @Override
+  public void reset() {
+    super.reset();
+    ApplicationManager.getApplication().runReadAction(() -> getDslFile().getParser().setUpForNewValue(this, getCurrentElement()));
   }
 }

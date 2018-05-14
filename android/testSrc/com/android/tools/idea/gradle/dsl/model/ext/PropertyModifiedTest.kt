@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr
 import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
-import junit.framework.TestCase
 import org.junit.Test
 
 class PropertyModifiedTest : GradleFileModelTestCase() {
