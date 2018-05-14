@@ -77,6 +77,13 @@ class EventSimpleEventTooltipViewTest {
     assertThat(mySimpleEventTooltipView!!.contentText).matches(title)
     assertThat(mySimpleEventTooltipView!!.durationText).matches(String.format("Duration: %ds", durationSeconds))
     assertThat(mySimpleEventTooltipView!!.startText).matches("Start: 1s")
+
+    myEventService.clearSystemEvents()
+    myTimer.tick(TimeUnit.SECONDS.toNanos(1))
+    assertThat(mySimpleEventTooltipView!!.headingText).matches("00:01.001")
+    assertThat(mySimpleEventTooltipView!!.contentText).isEmpty()
+    assertThat(mySimpleEventTooltipView!!.durationText).isEmpty()
+    assertThat(mySimpleEventTooltipView!!.startText).isEmpty()
   }
 
 
