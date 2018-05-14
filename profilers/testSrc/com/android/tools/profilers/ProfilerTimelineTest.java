@@ -121,6 +121,26 @@ public class ProfilerTimelineTest {
   }
 
   @Test
+  public void previousZoomingShouldNotAffectTheCurrentViewRange() {
+    myTimeline.reset(0, secToNanos(100));
+    myTimeline.setStreaming(false);
+    myTimeline.setIsPaused(true);
+
+    myViewRange.set(secToUs(0), secToUs(10));
+    myTimeline.zoomIn();
+
+    myTimer.setCurrentTimeNs(secToNanos(200));
+
+    myTimeline.reset(secToNanos(200), secToNanos(300));
+    myTimeline.setStreaming(false);
+    // {@link ProfilerTimeline#update(long elapsedNs)} changes elapsed time to |currentTime - lastResetTime|,
+    // so to make the elapsed time not zero (i.e 2 Seconds exactly) we need to set the current time.
+    myTimer.setCurrentTimeNs(secToNanos(202));
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(myViewRange.getMax()).isWithin(DELTA).of(secToUs(300));
+  }
+
+  @Test
   public void testZoomingAdjustStreamingMode() {
     myTimeline.reset(0, TimeUnit.MICROSECONDS.toNanos(100));
     myViewRange.set(50, 100);
