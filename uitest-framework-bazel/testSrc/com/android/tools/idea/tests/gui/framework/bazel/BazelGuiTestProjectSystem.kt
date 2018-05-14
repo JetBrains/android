@@ -170,7 +170,8 @@ the location of the project data directory that is assigned during importProject
     }
   }
 
-  private fun getGccPath() = File(TestUtils.getWorkspaceRoot(), "prebuilts/gcc").path
+  private fun getGccPath() =
+    File(TestUtils.getWorkspaceRoot(), "prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.15-4.8/bin/x86_64-linux-gcc").path
 
   private fun getJdkPath(): String {
     val subdir = when {
