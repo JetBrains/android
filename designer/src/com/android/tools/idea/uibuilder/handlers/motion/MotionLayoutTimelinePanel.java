@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlComponentDelegate;
 import com.android.tools.idea.common.model.NlModel;
@@ -57,7 +58,7 @@ import static com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutTimel
 /**
  * The Timeline Accessory Panel for MotionLayout editing
  */
-class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventListener {
+class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventListener, ModelListener {
 
   private final ViewGroupHandler.AccessoryPanelVisibility myVisibilityCallback;
   private final DesignSurface mySurface;
@@ -73,6 +74,7 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
   MotionLayoutAttributePanel myMotionLayoutAttributePanel;
   private boolean myInStateChange;
   private NlComponentDelegate myNlComponentDelegate = new MotionLayoutComponentDelegate(this);
+  private NlModel myModel;
 
   public State getCurrentState() {
     return myCurrentState;
@@ -96,6 +98,7 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
 
     myMotionLayoutComponentHelper = new MotionLayoutComponentHelper(parent);
     parent.putClientProperty(TIMELINE, this);
+    updateModel(parent.getModel());
   }
 
   @Override
@@ -134,6 +137,23 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     return myPanel.getOnSwipeTag();
   }
 
+  /**
+   * Update our current model
+   * @param model
+   */
+  private void updateModel(@Nullable NlModel model) {
+    if (myModel == model) {
+      return;
+    }
+    if (myModel != null) {
+      myModel.removeListener(this);
+    }
+    myModel = model;
+    if (myModel != null) {
+      myModel.addListener(this);
+    }
+  }
+
   @Override
   public void updateAccessoryPanelWithSelection(@NotNull AccessoryPanel.Type type,
                                                 @NotNull List<NlComponent> selection) {
@@ -161,6 +181,7 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     // component is a motion layout
     if (myMotionLayout != component) {
       myMotionLayout = component;
+      updateModel(myMotionLayout != null ? myMotionLayout.getModel() : null);
       loadMotionScene();
     }
     updateState();
@@ -264,6 +285,13 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
   public void deactivate() {
     myVisibilityCallback.show(AccessoryPanel.Type.EAST_PANEL, false);
     stopPlaying();
+    updateModel(null);
+    myMotionLayout = null;
+  }
+
+  @Override
+  public void modelDerivedDataChanged(@NotNull NlModel model) {
+    updateAfterModelDerivedDataChanged();
   }
 
   @Override
