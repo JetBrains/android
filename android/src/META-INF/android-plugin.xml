@@ -466,6 +466,7 @@
     <dom.fileDescription implementation="org.jetbrains.android.dom.lint.LintSettingsFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.font.FontFamilyDomFileDescription"/>
     <dom.fileDescription implementation="com.android.tools.idea.dom.xml.PathsDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.motion.MotionDomFileDescription"/>
     <dom.extender domClass="org.jetbrains.android.dom.AndroidDomElement"
                   extenderClass="org.jetbrains.android.dom.AndroidDomExtender"/>
 
