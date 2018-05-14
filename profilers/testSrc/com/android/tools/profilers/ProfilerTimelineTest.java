@@ -18,6 +18,7 @@ package com.android.tools.profilers;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.updater.Updater;
+import com.google.common.truth.Truth;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -102,6 +103,21 @@ public class ProfilerTimelineTest {
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));
     assertThat(myViewRange.getMin()).isWithin(DELTA).of(26);
     assertThat(myViewRange.getMax()).isWithin(DELTA).of(66);
+  }
+
+  @Test
+  public void previousAdjustRangeCloseToMiddleViewShouldNotAffectTheCurrentViewRange() {
+    myTimeline.reset(0, secToNanos(100));
+    myTimeline.setStreaming(false);
+    myTimeline.setIsPaused(true);
+
+    myViewRange.set(secToUs(0), secToUs(10));
+    myTimeline.adjustRangeCloseToMiddleView(new Range(secToUs(50), secToUs(60)));
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    myTimeline.reset(secToNanos(200), secToNanos(300));
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(myViewRange.getMax()).isWithin(DELTA).of(secToUs(300));
   }
 
   @Test
@@ -481,5 +497,13 @@ public class ProfilerTimelineTest {
     // target range is larger than view range (in fact contains the view range) so view range zooms out and grows to fit the target
     assertThat(myViewRange.getMin()).isWithin(DELTA).of(0);
     assertThat(myViewRange.getMax()).isWithin(DELTA).of(150);
+  }
+
+  private static long secToUs(long sec) {
+    return TimeUnit.SECONDS.toMicros(sec);
+  }
+
+  private static long secToNanos(long sec) {
+    return TimeUnit.SECONDS.toNanos(sec);
   }
 }
