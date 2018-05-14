@@ -438,9 +438,9 @@ public class ProfilerTimelineTest {
     assertThat(myViewRange.getMin()).isWithin(DELTA).of(80);
     assertThat(myViewRange.getMax()).isWithin(DELTA).of(130);
 
-    // View range initially: #####
-    //         target range:      ##########
-    //     View range after:      ##########
+    // View range initially: ##########
+    //         target range:           ##########
+    //     View range after:           ##########
     // Uses a dynamic range max as streaming will change the data range.
     double targetRangeMax = myDataRange.getMax();
     myViewRange.set(targetRangeMax - 200, targetRangeMax - 100);
@@ -449,7 +449,7 @@ public class ProfilerTimelineTest {
     myTimeline.adjustRangeCloseToMiddleView(targetRange);
     myTimer.tick(TimeUnit.SECONDS.toNanos(10)); // Give plenty of time to animate.
     assertThat(myTimeline.isStreaming()).isFalse();
-    // target range is larger than view range, so view range zooms out and grows to fit the target
+    // target range is completely on the right of the view range and both have the same length, so view range gets shifted to the right
     assertThat(myViewRange.getMin()).isWithin(DELTA).of(targetRangeMax - 100);
     assertThat(myViewRange.getMax()).isWithin(DELTA).of(targetRangeMax);
 
@@ -505,5 +505,23 @@ public class ProfilerTimelineTest {
 
   private static long secToNanos(long sec) {
     return TimeUnit.SECONDS.toNanos(sec);
+  }
+
+  @Test
+  public void jumpToLargerTarget() {
+    // Give time to make data range non-empty, streaming will update the data range.
+    myTimer.tick(TimeUnit.MICROSECONDS.toNanos(300));
+    // View range initially: #####
+    //         target range:      ##########
+    //     View range after:      ##########
+    myViewRange.set(50, 100);
+    Range targetRange = new Range(100, 200);
+
+    myTimeline.adjustRangeCloseToMiddleView(targetRange);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(10)); // Give plenty of time to animate.
+    assertThat(myTimeline.isStreaming()).isFalse();
+    // target range is larger than view range, so view range zooms out and grows to fit the target, which becomes the new view range.
+    assertThat(myViewRange.getMin()).isWithin(DELTA).of(100);
+    assertThat(myViewRange.getMax()).isWithin(DELTA).of(200);
   }
 }
