@@ -108,42 +108,48 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
   }
 
   override fun getStateDisplay(project: Project, actionData: ActionData, message: String?): StatefulButtonMessage? {
-
-    val state = getState(project, actionData)
-    return StatefulButtonMessage(generateMessage(), state)
+    val (title, body) = generateMessage()
+    return StatefulButtonMessage(title, getState(project, actionData), body)
   }
 
   override fun getId(): String = ListUsbDevicesAction.ACTION_ID
 
-  private fun generateMessage(): String {
-    if (!myDevicesFuture.isDone) return "Loading..."
-    val htmlBuilder = HtmlBuilder()
+  private fun generateMessage(): ButtonMessage {
+    if (!myDevicesFuture.isDone) return ButtonMessage("Loading...")
     val devices = myDevicesFuture.get().sortedBy { it.name }
 
-    if (usbDeviceCollector.getPlatform() == Platform.Windows) {
-      htmlBuilder.addHtml(
-        "<p><b>Install device drivers.</b> If you want to connect a device for testing, " +
-        "then you need to install the appropriate USB drivers. For more information, read the " +
-        "<a href=\"https://developer.android.com/studio/run/oem-usb.html\">online documentation</a>.</p>"
-      ).newline()
-    }
+    val titleHtmlBuilder = HtmlBuilder().openHtmlBody()
+      if (devices.isNotEmpty()) {
+        titleHtmlBuilder
+          .addHtml("<span style=\"color: ${UIUtils.getCssColor(
+            UIUtils.getSuccessColor())};\">Android Studio detected the following ${devices.size} USB device(s):</span>")
+      } else {
+        titleHtmlBuilder
+          .addHtml("<span style=\"color: ${UIUtils.getCssColor(
+            UIUtils.getFailureColor())};\">${AndroidBundle.message("connection.assistant.usb.no_devices.title")}</span>")
+      }
 
-    if (devices.isEmpty()) {
-      htmlBuilder.addHtml("<p>" + AndroidBundle.message("connection.assistant.usb.no_devices") + "</p>")
-    }
-    else {
-      htmlBuilder
-        .addHtml("<span style=\"color: ${UIUtils.getCssColor(
-          UIUtils.getSuccessColor())};\">Android Studio detected the following ${devices.size} USB device(s):</span>")
-        .newline()
+    val bodyHtmlBuilder = HtmlBuilder().openHtmlBody()
+    if (devices.isNotEmpty()) {
       devices.forEach { (name, _, productId) ->
-        htmlBuilder.addHtml("<p>")
+        bodyHtmlBuilder.addHtml("<p>")
           .addHtml("<b>$name</b> ($productId)")
           .newlineIfNecessary().addHtml("</p>")
       }
+    } else {
+      bodyHtmlBuilder.addHtml("<p>${AndroidBundle.message("connection.assistant.usb.no_devices.body")}</p>")
+        .newlineIfNecessary()
     }
 
-    return htmlBuilder.closeHtmlBody().html
+    if (usbDeviceCollector.getPlatform() == Platform.Windows) {
+      bodyHtmlBuilder.addHtml(
+        "<p><b>Install device drivers.</b> If you want to connect a device for testing, " +
+        "then you need to install the appropriate USB drivers. For more information, read the " +
+        "<a href=\"https://developer.android.com/studio/run/oem-usb.html\">online documentation</a>.</p>"
+      )
+    }
+
+    return ButtonMessage(titleHtmlBuilder.closeHtmlBody().html, bodyHtmlBuilder.closeHtmlBody().html)
   }
 
 }

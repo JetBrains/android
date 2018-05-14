@@ -29,19 +29,23 @@ import javax.swing.JPanel
  * Displays a message in lieu of a button when an action may not be completed. Note, this is not an extension of JBLabel as it will display
  * other elements such as an edit link and potentially support progress indication.
  */
-class StatefulButtonMessage(message: String, state: AssistActionState) : JPanel(GridBagLayout()) {
+class StatefulButtonMessage @JvmOverloads constructor(title: String, state: AssistActionState, body: String? = null) : JPanel(
+  GridBagLayout()) {
+
   private var myMessageDisplay: JBLabel? = null
+
+  @TestOnly
+  fun getMessageDisplay() = myMessageDisplay
 
   init {
     border = BorderFactory.createEmptyBorder()
     isOpaque = false
-
     val c = GridBagConstraints()
     c.gridx = 0
     c.gridy = 0
+    c.weighty = 0.2
     c.weightx = 0.01
     c.anchor = GridBagConstraints.NORTHWEST
-
     if (state.icon != null) {
       myMessageDisplay = JBLabel().apply {
         this.isOpaque = false
@@ -51,17 +55,28 @@ class StatefulButtonMessage(message: String, state: AssistActionState) : JPanel(
       add(myMessageDisplay, c)
       c.gridx++
     }
-
-    val section = JEditorPane()
-    section.isOpaque = false
-    section.border = BorderFactory.createEmptyBorder()
-    section.dragEnabled = false
-    UIUtils.setHtml(section, message, "body {color: " + UIUtils.getCssColor(state.foreground) + "}")
+    val titlePane = JEditorPane()
+    titlePane.isOpaque = false
+    titlePane.border = BorderFactory.createEmptyBorder()
+    titlePane.dragEnabled = false
+    UIUtils.setHtml(titlePane, title, "body {color: " + UIUtils.getCssColor(state.foreground) + "}")
     c.fill = GridBagConstraints.HORIZONTAL
     c.weightx = 0.99
-    add(section, c)
+    add(titlePane, c)
+    body?.let {
+      val bodyPane = JEditorPane()
+      bodyPane.isOpaque = false
+      bodyPane.border = BorderFactory.createEmptyBorder()
+      bodyPane.dragEnabled = false
+      UIUtils.setHtml(bodyPane, it, "body {color: " + UIUtils.getCssColor(state.foreground) + "}")
+      c.anchor = GridBagConstraints.WEST
+      c.fill = GridBagConstraints.HORIZONTAL
+      c.weightx = 1.0
+      c.weighty = 0.8
+      c.gridwidth = 2
+      c.gridx = 0
+      c.gridy++
+      add(bodyPane, c)
+    }
   }
-
-  @TestOnly
-  fun getMessageDisplay() = myMessageDisplay
 }
