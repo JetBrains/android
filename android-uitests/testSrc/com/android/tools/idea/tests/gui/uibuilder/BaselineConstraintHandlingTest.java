@@ -52,7 +52,7 @@ public class BaselineConstraintHandlingTest {
    *      for "layout_constraintBaseline_toBaselineOf"
    *   </pre>
    */
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void baselineConstraintHandling() throws Exception {
     EditorFixture editor = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutLocalTest")
