@@ -301,6 +301,13 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
    */
   public void adjustRangeCloseToMiddleView(@NotNull Range target) {
     ensureRangeFitsViewRange(target);
+    boolean isTargetLargerThanViewRange = target.getLength() > myViewRangeUs.getLength();
+    if (isTargetLargerThanViewRange) {
+      // If the target is larger than the current view range, myTargetRangeMaxUs should have been set to target's max. We shouldn't try to
+      // change it at this point, because we'll be zooming out in the next animate cycles. Therefore, we return early.
+      return;
+    }
+
     double targetMiddle = (target.getMax() + target.getMin()) / 2;
     double targetMax = targetMiddle + myViewRangeUs.getLength() / 2;
     // When the view range is from timestamp zero, i.e the data range's min, get the view range max value. The view range is the larger one
