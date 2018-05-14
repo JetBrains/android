@@ -39,12 +39,12 @@ import javax.swing.text.DefaultCaret
  * This is a [ComboBox] based editor allowing manual text entry as well as entry by selecting an item from the list of values provided by
  * [ModelSimpleProperty.getKnownValues]. Text free text input is parsed by [ModelSimpleProperty.parse].
  */
-class SimplePropertyEditor<PropertyT : Any, out ModelPropertyT : ModelPropertyCore<PropertyT>>(
+class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<PropertyT>>(
   val property: ModelPropertyT,
   private val propertyContext: ModelPropertyContext<PropertyT>,
   private val variablesProvider: VariablesProvider?,
   private val extensions: List<EditorExtensionAction>
-) : ModelPropertyEditor<PropertyT> {
+) : ModelPropertyEditor<PropertyT>, ModelPropertyEditorFactory<PropertyT, ModelPropertyT> {
   private var knownValueRenderers: Map<ParsedValue<PropertyT>, ValueRenderer> = mapOf()
   private var disposed = false
   private var knownValuesFuture: ListenableFuture<Unit>? = null  // Accessed only from the EDT.
@@ -81,8 +81,12 @@ class SimplePropertyEditor<PropertyT : Any, out ModelPropertyT : ModelPropertyCo
       (value ?: ParsedValue.NotSet.annotated()).renderTo(this, formatter, knownValueRenderers)
     }
 
-    override fun createEditorExtensions(): List<Extension> = extensions.map {
-      makeComboBoxExtension(it, property, this@SimplePropertyEditor)
+    override fun createEditorExtensions(): List<Extension> = extensions.map {action ->
+      object : Extension {
+        override fun getIcon(hovered: Boolean): Icon = action.icon
+        override fun getTooltip(): String = action.tooltip
+        override fun getActionOnClick(): Runnable = Runnable { action.invoke(property, this@SimplePropertyEditor, this@SimplePropertyEditor) }
+      }
     }
 
     @VisibleForTesting
@@ -233,26 +237,18 @@ class SimplePropertyEditor<PropertyT : Any, out ModelPropertyT : ModelPropertyCo
     renderedComboBox.reloadValue()
   }
 
+  override fun createNew(property: ModelPropertyT): ModelPropertyEditor<PropertyT> =
+    simplePropertyEditor(property, propertyContext, variablesProvider, extensions)
+
   init {
     renderedComboBox.reloadValue()
   }
 }
 
-inline fun <reified PropertyT : Any, ModelPropertyT : ModelPropertyCore<PropertyT>> simplePropertyEditor(
+fun <PropertyT : Any, ModelPropertyT : ModelPropertyCore<PropertyT>> simplePropertyEditor(
   property: ModelPropertyT,
   propertyContext: ModelPropertyContext<PropertyT>,
   variablesProvider: VariablesProvider? = null,
   extensions: List<EditorExtensionAction> = listOf()
 ): SimplePropertyEditor<PropertyT, ModelPropertyT> =
   SimplePropertyEditor(property, propertyContext, variablesProvider, extensions)
-
-private fun <T : Any> makeComboBoxExtension(
-  action: EditorExtensionAction,
-  property: ModelPropertyCore<T>,
-  editor: ModelPropertyEditor<T>) =
-  object : RenderedComboBox.Extension {
-    override fun getIcon(hovered: Boolean): Icon = action.icon
-    override fun getTooltip(): String = action.tooltip
-    override fun getActionOnClick(): Runnable = Runnable { action.invoke(property, editor) }
-  }
-
