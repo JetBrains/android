@@ -432,6 +432,7 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
     myViewRangeUs.set(endTimeUs - DEFAULT_VIEW_LENGTH_US, endTimeUs);
     myTargetRangeMaxUs = -1;
     myJumpFactor = 0;
+    myZoomLeft.set(0, 0);
     setStreaming(true);
     myResetTimeNs = myUpdater.getTimer().getCurrentTimeNs();
     myIsReset = true;
