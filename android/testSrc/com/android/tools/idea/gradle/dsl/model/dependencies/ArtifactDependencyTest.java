@@ -38,7 +38,6 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.Valu
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*;
 import static com.google.common.truth.Truth.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 
 /**
  * Tests for {@link DependenciesModelImpl} and {@link ArtifactDependencyModelImpl}.

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.groovy;
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
@@ -169,6 +170,16 @@ public class GroovyDslParser implements GradleDslParser {
   }
 
   @Override
+  public void setUpForNewValue(@NotNull GradleDslLiteral context, @Nullable PsiElement newValue) {
+    if (newValue == null) {
+      return;
+    }
+
+    boolean isReference = newValue instanceof GrReferenceExpression || newValue instanceof GrIndexProperty;
+    context.setReference(isReference);
+  }
+
+  @Override
   @Nullable
   public Object extractValue(@NotNull GradleDslSimpleExpression context, @NotNull PsiElement literal, boolean resolve) {
     ApplicationManager.getApplication().assertReadAccessAllowed();
@@ -185,7 +196,7 @@ public class GroovyDslParser implements GradleDslParser {
     }
 
     if (!(literal instanceof GrLiteral)) {
-      return null;
+      return new ReferenceTo(literal.getText());
     }
 
     // If this literal has a value then return is, this will be the case for none-string values.

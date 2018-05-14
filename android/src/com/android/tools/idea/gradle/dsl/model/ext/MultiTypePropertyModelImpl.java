@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.dsl.model.ext;
 
 import com.android.tools.idea.gradle.dsl.api.ext.MultiTypePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
-import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
@@ -27,7 +26,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.LIST;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.MAP;
 
 /**
  * Base implementation of a MultiTypePropertyModel.
@@ -128,13 +128,7 @@ public abstract class MultiTypePropertyModelImpl<T extends Enum<T>> extends Grad
       // Get the value from the current element.
       ValueType oldValueType = getValueType();
 
-      if (oldValueType == REFERENCE) {
-        String temp = getRawValue(STRING_TYPE);
-        // Since oldValueType == REFERENCE we should always have a value here.
-        assert temp != null;
-        newValue = new ReferenceTo(temp);
-      }
-      else if (oldValueType == MAP || oldValueType == LIST) {
+      if (oldValueType == MAP || oldValueType == LIST) {
         throw new UnsupportedOperationException("Can't convert " + oldValueType + " property to new type " + type);
       }
       else {
@@ -149,7 +143,7 @@ public abstract class MultiTypePropertyModelImpl<T extends Enum<T>> extends Grad
     myType = type;
 
     if (newValue != null) {
-      setValue(newValue);
+      super.setValue(newValue);
     }
   }
 }

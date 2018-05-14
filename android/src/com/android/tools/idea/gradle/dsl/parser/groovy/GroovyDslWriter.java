@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.dsl.parser.groovy;
 
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter;
-import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.project.Project;

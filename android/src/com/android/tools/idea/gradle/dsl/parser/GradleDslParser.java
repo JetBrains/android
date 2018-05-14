@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
@@ -57,6 +58,11 @@ public interface GradleDslParser {
    */
   @Nullable
   PsiElement convertToPsiElement(@NotNull Object literal);
+
+  /**
+   * Sets up various properties of the GradleDslLiteral based on the new PsiElement to be set.
+   */
+  void setUpForNewValue(@NotNull GradleDslLiteral context, @Nullable PsiElement newValue);
 
   /**
    * Extracts a value {@link Object} from a given {@link PsiElement}. The {@code resolve} parameter determines
@@ -119,6 +125,9 @@ public interface GradleDslParser {
     public PsiElement convertToPsiElement(@NotNull Object literal) {
       return null;
     }
+
+    @Override
+    public void setUpForNewValue(@NotNull GradleDslLiteral context, @Nullable PsiElement newValue) { }
 
     @Override
     @Nullable
