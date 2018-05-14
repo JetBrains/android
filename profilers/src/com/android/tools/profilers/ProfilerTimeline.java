@@ -423,6 +423,8 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
     double endTimeUs = TimeUnit.NANOSECONDS.toMicros(endTimeNs);
     myDataRangeUs.set(startTimeUs, endTimeUs);
     myViewRangeUs.set(endTimeUs - DEFAULT_VIEW_LENGTH_US, endTimeUs);
+    myTargetRangeMaxUs = -1;
+    myJumpFactor = 0;
     setStreaming(true);
     myResetTimeNs = myUpdater.getTimer().getCurrentTimeNs();
     myIsReset = true;
