@@ -75,7 +75,8 @@ public final class StudioFeatureTracker implements FeatureTracker {
   private final ImmutableMap<Common.SessionMetaData.SessionType, ProfilerSessionCreationMetaData.SessionType> SESSION_TYPE_MAP =
     ImmutableMap.of(
       Common.SessionMetaData.SessionType.FULL, ProfilerSessionCreationMetaData.SessionType.FULL_SESSION,
-      Common.SessionMetaData.SessionType.MEMORY_CAPTURE, ProfilerSessionCreationMetaData.SessionType.MEMORY_CAPTURE
+      Common.SessionMetaData.SessionType.MEMORY_CAPTURE, ProfilerSessionCreationMetaData.SessionType.MEMORY_CAPTURE,
+      Common.SessionMetaData.SessionType.CPU_CAPTURE, ProfilerSessionCreationMetaData.SessionType.CPU_CAPTURE
     );
 
   private final ImmutableMap<SessionsManager.SessionCreationSource, ProfilerSessionCreationMetaData.CreationSource>
