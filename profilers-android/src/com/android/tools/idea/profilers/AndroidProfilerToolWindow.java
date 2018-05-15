@@ -285,11 +285,11 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
       else if (hasAliveSession && !myIsProfilingActiveBalloonShown) {
         // Only shown the balloon if we detect the window is hidden for the first time.
         myIsProfilingActiveBalloonShown = true;
-        ToolWindowManager.getInstance(myProject).notifyByBalloon(
-          AndroidProfilerToolWindowFactory.ID,
-          MessageType.INFO,
-          "Profiler session is running in the background. Hide the toolbar button to stop profiling completely."
-        );
+        String messageHtml = "A profiler session is running in the background.<br>" +
+                             (myProfilers.getIdeServices().getFeatureConfig().isSessionsEnabled() ?
+                              "To end the session, open the profiler and click the stop button in the Sessions pane." :
+                              "To end the session, open the profiler and click the \"End Session\" button");
+        ToolWindowManager.getInstance(myProject).notifyByBalloon(AndroidProfilerToolWindowFactory.ID, MessageType.INFO, messageHtml);
       }
     }
   }
