@@ -80,7 +80,7 @@ public class ResourceFolderManager extends AndroidFacetScopedService implements 
   /** Notifies the resource folder manager that the resource folder set may have changed */
   public void invalidate() {
     List<VirtualFile> old = myResDirCache;
-    if (old == null) {
+    if (old == null || isDisposed()) {
       return;
     }
     myResDirCache = null;

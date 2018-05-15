@@ -510,9 +510,7 @@ public class BuildVariantView {
 
   @VisibleForTesting
   void buildVariantSelected(@NotNull String moduleName, @NotNull String variantName) {
-    if (myUpdater.updateSelectedVariant(myProject, moduleName, variantName)) {
-      invokeListeners();
-    }
+    myUpdater.updateSelectedVariant(myProject, moduleName, variantName, () -> invokeListeners());
   }
 
   private void invokeListeners() {

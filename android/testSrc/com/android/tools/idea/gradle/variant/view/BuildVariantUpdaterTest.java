@@ -18,13 +18,14 @@ package com.android.tools.idea.gradle.variant.view;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.IdeModifiableModelsProviderFactory;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -34,6 +35,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
+import static com.intellij.util.ThreeState.YES;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -71,6 +73,7 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     when(myDebugVariant.getName()).thenReturn("debug");
 
     when(myAndroidModel.getSelectedMainCompileLevel2Dependencies()).thenReturn(myIdeDependencies);
+    when(myIdeDependencies.getModuleDependencies()).thenReturn(Collections.emptyList());
 
     new IdeComponents(project).replaceProjectService(PostSyncProjectSetup.class, myPostSyncProjectSetup);
 
@@ -79,15 +82,15 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
   }
 
   public void testUpdateSelectedVariant() {
+    String variantToSelect = "release";
     when(myAndroidModel.getSelectedVariant()).thenReturn(myDebugVariant);
-    when(myIdeDependencies.getModuleDependencies()).thenReturn(Collections.emptyList());
+    when(myAndroidModel.variantExists(variantToSelect)).thenReturn(true);
+    when(myModuleSetupContextFactory.create(myModule, myModifiableModelsProvider)).thenReturn(myModuleSetupContext);
 
-    Module module = getModule();
-    when(myModuleSetupContextFactory.create(module, myModifiableModelsProvider)).thenReturn(myModuleSetupContext);
-    boolean updated = myVariantUpdater.updateSelectedVariant(getProject(), module.getName(), "release");
+    myVariantUpdater.updateSelectedVariant(getProject(), myModule.getName(), variantToSelect, () -> {
+    });
 
-    assertTrue(updated);
-
+    verify(myAndroidModel).setSelectedVariantName(variantToSelect);
     verify(mySetupStepToInvoke).setUpModule(myModuleSetupContext, myAndroidModel);
     verify(mySetupStepToIgnore, never()).setUpModule(myModuleSetupContext, myAndroidModel);
 
@@ -97,5 +100,32 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     setupRequest.generateSourcesAfterSync = false;
     setupRequest.cleanProjectAfterSync = false;
     verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
+  }
+
+  public void testUpdateSelectedVariantWithChangedBuildFiles() {
+    // Simulate build files have changed since last sync.
+    GradleSyncState syncState = mock(GradleSyncState.class);
+    new IdeComponents(myProject).replaceProjectService(GradleSyncState.class, syncState);
+    when(syncState.isSyncNeeded()).thenReturn(YES);
+    IdeComponents ideComponents = new IdeComponents(myProject);
+    GradleSyncInvoker syncInvoker = ideComponents.mockApplicationService(GradleSyncInvoker.class);
+
+    String variantToSelect = "release";
+    when(myAndroidModel.getSelectedVariant()).thenReturn(myDebugVariant);
+    when(myAndroidModel.variantExists(variantToSelect)).thenReturn(true);
+
+    myVariantUpdater.updateSelectedVariant(getProject(), myModule.getName(), variantToSelect, () -> {
+    });
+
+    verify(myAndroidModel).setSelectedVariantName(variantToSelect);
+    verify(syncInvoker).requestProjectSyncAndSourceGeneration(eq(myProject), any(), any());
+
+    // Verify that module setup steps are not being called.
+    verify(mySetupStepToInvoke, never()).setUpModule(myModuleSetupContext, myAndroidModel);
+    verify(mySetupStepToIgnore, never()).setUpModule(myModuleSetupContext, myAndroidModel);
+    PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
+    setupRequest.generateSourcesAfterSync = false;
+    setupRequest.cleanProjectAfterSync = false;
+    verify(myPostSyncProjectSetup, never()).setUpProject(eq(setupRequest), any(), any());
   }
 }
