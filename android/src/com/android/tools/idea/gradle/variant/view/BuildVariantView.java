@@ -159,31 +159,18 @@ public class BuildVariantView {
 
       assert androidFacet != null || ndkFacet != null; // getGradleModules() returns only relevant modules.
 
-      String variantName = null;
+      String variantName;
 
       if (androidFacet != null) {
         JpsAndroidModuleProperties facetProperties = androidFacet.getProperties();
         variantName = facetProperties.SELECTED_BUILD_VARIANT;
       }
+      else {
+        variantName = ndkFacet.getConfiguration().SELECTED_BUILD_VARIANT;
+      }
 
       BuildVariantItem[] variantNames = getVariantItems(module);
       if (variantNames != null) {
-        if (androidFacet != null) {
-          AndroidModuleModel androidModel = AndroidModuleModel.get(module);
-          // AndroidModel may be null when applying a quick fix (e.g. "Fix Gradle version")
-          if (androidModel != null) {
-            variantName = androidModel.getSelectedVariant().getName();
-          }
-        }
-        else {
-          // As only the modules backed by either AndroidGradleModel or NativeAndroidGradleModel are shown in the Build Variants View,
-          // when a module is not backed by AndroidGradleModel, it surely contains a valid NativeAndroidGradleModel.
-          NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
-          if (ndkModuleModel != null) {
-            variantName = ndkModuleModel.getSelectedVariant().getName();
-          }
-        }
-
         variantNamesPerRow.add(variantNames);
       }
 
@@ -304,7 +291,6 @@ public class BuildVariantView {
      * </ul>
      * <p/>
      * This listener will not be invoked if the project structure update fails.
-     *
      */
     void selectionChanged();
   }

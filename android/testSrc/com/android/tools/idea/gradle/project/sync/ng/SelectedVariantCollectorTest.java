@@ -63,12 +63,14 @@ public class SelectedVariantCollectorTest extends IdeaTestCase {
 
     AndroidFacet androidFacet = createAndAddAndroidFacet(module);
     androidFacet.getConfiguration().setModel(androidModel);
+    androidFacet.getProperties().SELECTED_BUILD_VARIANT = "debug";
 
     SelectedVariant selectedVariant = myCollector.findSelectedVariant(module);
     assertNotNull(selectedVariant);
 
     assertEquals(createUniqueModuleId(rootPath, ":app"), selectedVariant.moduleId);
-    assertEquals("release", selectedVariant.variantName);
+    // Verify that the selected variant is the same with the value in AndroidFacet, not AndroidModuleModel.
+    assertEquals("debug", selectedVariant.variantName);
   }
 
   public void testAddSelectedVariantWithNonGradleModule() {

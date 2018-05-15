@@ -16,12 +16,12 @@
 package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,9 +55,9 @@ class SelectedVariantCollector {
     if (gradleFacet != null) {
       GradleModuleModel gradleModel = gradleFacet.getGradleModuleModel();
       if (gradleModel != null) {
-        AndroidModuleModel androidModel = AndroidModuleModel.get(module);
-        if (androidModel != null) {
-          return new SelectedVariant(androidModel, gradleModel.getRootFolderPath(), gradleFacet.getConfiguration().GRADLE_PROJECT_PATH);
+        AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+        if (androidFacet != null) {
+          return new SelectedVariant(androidFacet, gradleModel.getRootFolderPath(), gradleFacet.getConfiguration().GRADLE_PROJECT_PATH);
         }
       }
     }
@@ -69,9 +69,9 @@ class SelectedVariantCollector {
     @NotNull final String moduleId;
     @NotNull final String variantName;
 
-    SelectedVariant(@NotNull AndroidModuleModel androidModel, @NotNull File rootFolderPath, @NotNull String gradlePath) {
+    SelectedVariant(@NotNull AndroidFacet androidFacet, @NotNull File rootFolderPath, @NotNull String gradlePath) {
       this.moduleId = createUniqueModuleId(rootFolderPath, gradlePath);
-      this.variantName = androidModel.getSelectedVariant().getName();
+      this.variantName = androidFacet.getProperties().SELECTED_BUILD_VARIANT;
     }
   }
 }
