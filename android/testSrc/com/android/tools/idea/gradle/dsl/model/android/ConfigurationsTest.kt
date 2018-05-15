@@ -136,6 +136,7 @@ class ConfigurationsTest : GradleFileModelTestCase() {
                      defaultPublishConfig = "debug"
                      generatePureSplits = true
                    }
+
                    configurations {
                      newConfig {
                      }

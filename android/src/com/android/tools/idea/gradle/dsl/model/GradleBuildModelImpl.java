@@ -335,7 +335,10 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     ExtDslElement extDslElement = myGradleDslFile.getPropertyElement(EXT_BLOCK_NAME, ExtDslElement.class);
     if (extDslElement == null) {
       extDslElement = new ExtDslElement(myGradleDslFile);
-      myGradleDslFile.setNewElement(extDslElement);
+      // Place the Ext element just after the applied plugins, this present.
+      List<GradleDslElement> elements = myGradleDslFile.getAllElements();
+      int index = (!elements.isEmpty() && elements.get(0) instanceof ApplyDslElement) ? 1 : 0;
+      myGradleDslFile.addNewElementAt(index, extDslElement);
     }
     return new ExtModelImpl(extDslElement);
   }

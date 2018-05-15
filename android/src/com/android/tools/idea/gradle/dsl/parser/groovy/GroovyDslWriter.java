@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiWhiteSpace;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
@@ -39,6 +40,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrM
 
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.*;
 import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mASSIGN;
+import static org.jetbrains.plugins.groovy.lang.psi.impl.PsiImplUtil.isWhiteSpaceOrNls;
 
 public class GroovyDslWriter implements GradleDslWriter {
   @Override
@@ -161,6 +163,9 @@ public class GroovyDslWriter implements GradleDslWriter {
 
     if (parentPsiElement instanceof GroovyFile) {
       addedElement = parentPsiElement.addAfter(statement, anchor);
+      if (element.isBlockElement() && !isWhiteSpaceOrNls(addedElement.getPrevSibling())) {
+        parentPsiElement.addBefore(lineTerminator, addedElement);
+      }
       parentPsiElement.addBefore(lineTerminator, addedElement);
     }
     else if (parentPsiElement instanceof GrClosableBlock) {

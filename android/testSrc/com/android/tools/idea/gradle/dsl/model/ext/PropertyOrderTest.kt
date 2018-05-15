@@ -1079,4 +1079,146 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
     verifyPropertyModel(buildModel.ext().findProperty("prop1").resolve(), STRING_TYPE, "boo", STRING, REGULAR, 1, "prop1")
   }
+
+  @Test
+  fun testAddExtBlockAfterApply() {
+    val text = """
+               apply plugin: 'com.android.application'
+               android {
+                 defaultConfig {
+                   applicationId "google.simpleapplication"
+                   minSdkVersion 27
+                   versionCode 1
+                   versionName "1.0"
+                 }
+               }
+
+               dependencies {
+                 implementation 'com.android.support:appcompat-v7:27.0.2'
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    buildModel.ext().findProperty("newProp").setValue(true)
+
+    applyChangesAndReparse(buildModel)
+
+    val expected = """
+                   apply plugin: 'com.android.application'
+
+                   ext {
+                     newProp = true
+                   }
+                   android {
+                     defaultConfig {
+                       applicationId "google.simpleapplication"
+                       minSdkVersion 27
+                       versionCode 1
+                       versionName "1.0"
+                     }
+                   }
+
+                   dependencies {
+                     implementation 'com.android.support:appcompat-v7:27.0.2'
+                   }""".trimIndent()
+    verifyFileContents(myBuildFile, expected)
+  }
+
+  @Test
+  fun testAddExtBlockAfterMultipleApplies() {
+    val text = """
+               apply plugin: 'com.android.application'
+               apply {
+                 plugin 'cool.plug.in'
+                 plugin 'rad.plug.in'
+                 plugin 'awesome.plug.in'
+               }
+               android {
+                 defaultConfig {
+                   applicationId "google.simpleapplication"
+                   minSdkVersion 27
+                   versionCode 1
+                   versionName "1.0"
+                 }
+               }
+
+               dependencies {
+                 implementation 'com.android.support:appcompat-v7:27.0.2'
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    buildModel.ext().findProperty("newProp").setValue(true)
+
+    applyChangesAndReparse(buildModel)
+
+    val expected = """
+                   apply plugin: 'com.android.application'
+                   apply {
+                     plugin 'cool.plug.in'
+                     plugin 'rad.plug.in'
+                     plugin 'awesome.plug.in'
+                   }
+
+                   ext {
+                     newProp = true
+                   }
+                   android {
+                     defaultConfig {
+                       applicationId "google.simpleapplication"
+                       minSdkVersion 27
+                       versionCode 1
+                       versionName "1.0"
+                     }
+                   }
+
+                   dependencies {
+                     implementation 'com.android.support:appcompat-v7:27.0.2'
+                   }""".trimIndent()
+    verifyFileContents(myBuildFile, expected)
+  }
+
+  @Test
+  fun testAddExtBlockToTop() {
+    val text = """
+               android {
+                 defaultConfig {
+                   applicationId "google.simpleapplication"
+                   minSdkVersion 27
+                   versionCode 1
+                   versionName "1.0"
+                 }
+               }
+
+               dependencies {
+                 implementation 'com.android.support:appcompat-v7:27.0.2'
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    buildModel.ext().findProperty("newProp").setValue(true)
+
+    applyChangesAndReparse(buildModel)
+
+    val expected = """
+                   ext {
+                     newProp = true
+                   }
+                   android {
+                     defaultConfig {
+                       applicationId "google.simpleapplication"
+                       minSdkVersion 27
+                       versionCode 1
+                       versionName "1.0"
+                     }
+                   }
+
+                   dependencies {
+                     implementation 'com.android.support:appcompat-v7:27.0.2'
+                   }""".trimIndent()
+    verifyFileContents(myBuildFile, expected)
+  }
 }
