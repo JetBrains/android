@@ -39,6 +39,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -149,9 +150,8 @@ public class NewImageAssetTest {
         newFiles.add(toString(root, action.getSourceEntry().getPath()));
       }
       if (action instanceof CreateDirectoryAction) {
-        try {
-          Files.walk(action.getSourceEntry().getPath())
-            .filter(Files::isRegularFile)
+        try (Stream<Path> stream = Files.walk(action.getSourceEntry().getPath())) {
+          stream.filter(Files::isRegularFile)
             .forEach(path -> newFiles.add(toString(root, path)));
         }
         catch (IOException ex) {

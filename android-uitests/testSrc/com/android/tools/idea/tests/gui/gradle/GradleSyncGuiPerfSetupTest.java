@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.android.SdkConstants.*;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
@@ -275,9 +276,14 @@ class GradleSyncGuiPerfSetupTestRule extends GuiTestRule {
   }
 
   private static void updateAndroidAptConfiguration(@NotNull File projectRoot) throws IOException {
-    List<Path> allBuildFiles =
-      find(projectRoot.toPath(), Integer.MAX_VALUE, (path, attrs) -> path.getFileName().toString().equals("build.gradle"))
-        .filter(p -> !PathUtils.toSystemIndependentPath(p).endsWith("gradle/SourceTemplate/app/build.gradle")).collect(Collectors.toList());
+    List<Path> allBuildFiles;
+    try (Stream<Path> stream = find(projectRoot.toPath(), Integer.MAX_VALUE,
+                                    (path, attrs) -> path.getFileName().toString().equals("build.gradle"))) {
+      allBuildFiles = stream
+        .filter(p -> !PathUtils.toSystemIndependentPath(p).endsWith("gradle/SourceTemplate/app/build.gradle"))
+        .collect(Collectors.toList());
+    }
+
     modifyBuildFiles(allBuildFiles);
   }
 

@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.getFailedTestScreenshotDirPath;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.getProjectCreationDirPath;
@@ -37,10 +38,13 @@ class SavePerformanceOnFailure extends TestWatcher {
   protected void failed(Throwable throwable, Description description) {
     try {
       File projectDir = getProjectCreationDirPath(null);
-      List<File> files = Files.walk(projectDir.toPath())
-                              .map(Path::toFile)
-                              .filter(file -> file.getName().endsWith(PERFORMANCE_FILE_NAME))
-                              .collect(toList());
+
+      List<File> files;
+      try (Stream<Path> stream = Files.walk(projectDir.toPath())) {
+        files = stream.map(Path::toFile)
+            .filter(file -> file.getName().endsWith(PERFORMANCE_FILE_NAME))
+            .collect(toList());
+      }
 
       File screenshotDir = getFailedTestScreenshotDirPath();
       String baseName = projectDir.getPath() + '/';
