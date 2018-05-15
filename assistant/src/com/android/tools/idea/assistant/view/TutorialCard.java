@@ -277,6 +277,7 @@ public class TutorialCard extends CardViewPanel {
 
     private void closeAssistant() {
       ToolWindowManager.getInstance(myProject).getToolWindow("Assistant").hide(() -> {});
+      myStepIndex = 0; // reset index back to first page on close.
     }
 
     private void updateVisibility() {
