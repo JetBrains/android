@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.instantapp;
 
 import com.android.tools.idea.instantapp.InstantAppUrlFinder;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
@@ -62,7 +61,7 @@ public class NewInstantAppTest {
 
   //Not putting this in before() as I plan to add some tests that work on non-default projects.
   private void createAndOpenDefaultAIAProject(@NotNull String projectName, @Nullable String featureModuleName,
-                                              @Nullable String activityName) {
+                                              @Nullable String activityName, boolean includeUrl) {
     //TODO: There is some commonality between this code, the code in NewProjectTest and further tests I am planning, but there are also
     //      differences. Once AIA tests are completed this should be factored out into the NewProjectWizardFixture
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
@@ -90,6 +89,9 @@ public class NewInstantAppTest {
       .clickNext() // Complete configuration of Instant App Module
       .chooseActivity(activityName == null ? "Empty Activity" : activityName)
       .clickNext() // Complete "Add Activity" step
+      .getConfigureActivityStep()
+      .selectIncludeUrl(includeUrl)
+      .wizard()
       .clickFinish();
 
     guiTest.ideFrame()
@@ -100,6 +102,11 @@ public class NewInstantAppTest {
       .getProjectView()
       .selectAndroidPane()
       .clickPath(featureModuleName == null ? "feature" : featureModuleName);
+  }
+
+  private void createAndOpenDefaultAIAProject(@NotNull String projectName, @Nullable String featureModuleName,
+                                              @Nullable String activityName) {
+    createAndOpenDefaultAIAProject(projectName, featureModuleName, activityName, false);
   }
 
   @RunIn(TestGroup.UNRELIABLE)  // b/66249968 or similar issue, apparently
@@ -116,6 +123,13 @@ public class NewInstantAppTest {
     verifyOnlyExpectedWarnings(inspectionResults,
                                "    Android\n" +
                                "        Lint\n" +
+                               "            Correctness\n" +
+                               "                Obsolete Gradle Dependency\n" +
+                               "                    build.gradle\n" +
+                               "                        A newer version of com.android.support.test.espresso:espresso-core than 3.0.1 is available: 3.0.2\n" +
+                               "                        A newer version of com.android.support.test:runner than 1.0.1 is available: 1.0.2\n" +
+                               "                        A newer version of com.android.support.constraint:constraint-layout than 1.0.2 is available: 1.1.0\n" +
+                               "                        A newer version of com.android.support:appcompat-v7 than 27.0.2 is available: 27.1.1\n" +
                                "            Security\n" +
                                "                AllowBackup/FullBackupContent Problems\n" +
                                "                    AndroidManifest.xml\n" +
@@ -167,8 +181,22 @@ public class NewInstantAppTest {
   }
 
   @Test
+  public void testCanBuildNewInstantAppProjectsWithEmptyActivityWithoutUrls() throws IOException {
+    createAndOpenDefaultAIAProject("BuildApp", null, null, false);
+    String manifestContent = guiTest.ideFrame().getEditor()
+      .open("feature/src/main/res/layout/activity_main.xml")
+      .open("feature/src/main/AndroidManifest.xml")
+      .getCurrentFileContents();
+
+    assertThat(manifestContent).contains("android.intent.action.MAIN");
+    assertThat(manifestContent).contains("android.intent.category.LAUNCHER");
+    assertThat(manifestContent).doesNotContain("android:host=");
+    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
+  }
+
+  @Test
   public void testCanBuildNewInstantAppProjectsWithLoginActivity() throws IOException {
-    createAndOpenDefaultAIAProject("BuildApp", null, "Login Activity");
+    createAndOpenDefaultAIAProject("BuildApp", null, "Login Activity", true);
     guiTest.ideFrame().getEditor()
       .open("feature/src/main/res/layout/activity_login.xml")
       .open("feature/src/main/AndroidManifest.xml")
@@ -176,6 +204,7 @@ public class NewInstantAppTest {
       .moveBetween("android:host=", "")
       .moveBetween("android:pathPattern=", "")
       .moveBetween("android:scheme=\"https", "")
+      .moveBetween("android.intent.action.", "MAIN")
       .moveBetween("android.intent.category.", "LAUNCHER");
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
@@ -244,7 +273,7 @@ public class NewInstantAppTest {
 
   @Test
   public void testValidPathInDefaultNewInstantAppProjects() throws IOException {
-    createAndOpenDefaultAIAProject("RouteApp", "routefeature", null);
+    createAndOpenDefaultAIAProject("RouteApp", "routefeature", null, true);
 
     Module module = guiTest.ideFrame().getModule("routefeature");
     assertThat(new InstantAppUrlFinder(module).getAllUrls()).isNotEmpty();

@@ -117,4 +117,10 @@ public class ConfigureBasicActivityStepFixture<W extends AbstractWizardFixture> 
       .selectItem(sourceLanguage);
     return this;
   }
+
+  @NotNull
+  public ConfigureBasicActivityStepFixture<W> selectIncludeUrl(boolean select) {
+    selectCheckBoxWithText("Associate a URL with this Activity", select);
+    return this;
+  }
 }

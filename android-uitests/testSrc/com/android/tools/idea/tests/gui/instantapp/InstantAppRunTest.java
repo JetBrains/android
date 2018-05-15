@@ -233,12 +233,11 @@ public class InstantAppRunTest {
     cmdLine.add("shell");
     cmdLine.add("am");
     cmdLine.add("start");
-    cmdLine.add("-a");
-    cmdLine.add("android.intent.action.VIEW");
-    cmdLine.add("-c");
-    cmdLine.add("android.intent.category.BROWSABLE");
-    cmdLine.add("-d");
-    cmdLine.add("http://topeka.samples.androidinstantapps.com/");
+    // Intent.FLAG_ACTIVITY_MATCH_EXTERNAL is required to launch in P+; ignored in pre-O.
+    cmdLine.add("-f");
+    cmdLine.add("0x00000800");
+    cmdLine.add("-n");
+    cmdLine.add("com.google.samples.apps.topeka/.activity.SignInActivity");
     return new ProcessBuilder(cmdLine);
   }
 
