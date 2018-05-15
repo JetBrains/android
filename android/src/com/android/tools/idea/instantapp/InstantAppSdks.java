@@ -27,7 +27,6 @@ import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.android.instantapps.sdk.api.Sdk;
 import com.google.android.instantapps.sdk.api.TelemetryManager;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -37,7 +36,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ServiceLoader;
@@ -51,7 +49,7 @@ import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogFor
  */
 public class InstantAppSdks {
   @NotNull private static final String INSTANT_APP_SDK_PATH = FD_EXTRAS + ";google;instantapps";
-  private static final String SDK_LIB_JAR_PATH = "tools/lib.jar";
+  private static final String SDK_LIB_JAR_PATH = "tools/ia.jar";
 
   private Sdk cachedSdkLib = null;
 

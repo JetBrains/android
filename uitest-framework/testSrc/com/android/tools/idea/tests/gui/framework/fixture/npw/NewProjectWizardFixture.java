@@ -81,4 +81,10 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
     GuiTests.waitForProjectIndexingToFinish(ProjectManager.getInstance().getOpenProjects()[0]);
     return myself();
   }
+
+  @NotNull
+  public ConfigureBasicActivityStepFixture<NewProjectWizardFixture> getConfigureActivityStep() {
+    JRootPane rootPane = findStepWithTitle("Configure Activity");
+    return new ConfigureBasicActivityStepFixture<>(this, rootPane);
+  }
 }
