@@ -68,7 +68,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
   private ApkViewPanel myApkViewPanel;
   private Archive myArchive;
 
-  private JBSplitter mySplitter;
+  private final JBSplitter mySplitter;
   private ApkFileEditorComponent myCurrentEditor;
 
   public ApkEditor(@NotNull Project project, @NotNull VirtualFile baseFile, @NotNull VirtualFile root) {
