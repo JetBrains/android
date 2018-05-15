@@ -192,6 +192,10 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
   private void disconnectProxy(@NonNull IDevice device) {
     mySerialToDeviceContextMap.compute(device.getSerialNumber(), (serial, context) -> {
       assert context != null;
+      if (context.myLastKnowPerfdThreadfuture != null) {
+        context.myLastKnowPerfdThreadfuture.cancel(true);
+        context.myLastKnowPerfdThreadfuture = null;
+      }
       context.myExecutor.execute(getDisconnectRunnable(serial));
       return context;
     });
@@ -200,6 +204,10 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
   private void disconnectProxies() {
     mySerialToDeviceContextMap.forEach((serial, context) -> {
       assert context != null;
+      if (context.myLastKnowPerfdThreadfuture != null) {
+        context.myLastKnowPerfdThreadfuture.cancel(true);
+        context.myLastKnowPerfdThreadfuture = null;
+      }
       context.myExecutor.execute(getDisconnectRunnable(serial));
     });
   }
@@ -207,7 +215,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
   private void spawnPerfd(@NonNull IDevice device) {
     mySerialToDeviceContextMap.compute(device.getSerialNumber(), (serial, context) -> {
       assert context != null && (context.myLastKnownPerfdProxy == null || context.myLastKnownPerfdProxy.getDevice() != device);
-      context.myExecutor.execute(new PerfdThread(device, myDataStoreService));
+      context.myLastKnowPerfdThreadfuture = context.myExecutor.submit(new PerfdThread(device, myDataStoreService));
       return context;
     });
   }
@@ -290,6 +298,10 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
 
           @Override
           public boolean isCancelled() {
+            if (Thread.interrupted()) {
+              Thread.currentThread().interrupt();
+              return true;
+            }
             return false;
           }
         }, 0, null);
@@ -589,5 +601,6 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
   private static class DeviceContext {
     @NotNull private final ExecutorService myExecutor = new ThreadPoolExecutor(0, 1, 1L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
     @Nullable private PerfdProxy myLastKnownPerfdProxy;
+    @Nullable private Future<?> myLastKnowPerfdThreadfuture;
   }
 }
