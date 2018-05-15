@@ -50,7 +50,7 @@ class ViewList extends JPanel implements Gantt.ChartElement {
   JTree myTree = new Tree(myRootNode);
   Chart myChart;
   boolean myInternal;
-
+  private static boolean USER_STUDY = true;
   private static final Icon mySpacerIcon = JBUI.scale(EmptyIcon.create(0, 0));
 
   JPanel myAddPanel = new JPanel(null) {
@@ -126,6 +126,9 @@ class ViewList extends JPanel implements Gantt.ChartElement {
 
   private void keyFramePopup(ActionEvent e) {
     String[] list = {"Path Cartesian", "Path Relative", "Attributes", "Cycles"};
+    if (USER_STUDY) {
+      list = new String[]{"Path Cartesian", "Attributes", "Cycles"};
+    }
     final JList<String> displayedList = new JBList<String>(list);
     JBPopupListener listener = new JBPopupListener.Adapter() {
       @Override
@@ -151,9 +154,18 @@ class ViewList extends JPanel implements Gantt.ChartElement {
     String name = v.myName;
     MotionSceneModel model = v.mKeyFrames.myModel;
     int fpos = (int)(myChart.getTimeCursorMs() * 100 / myChart.myAnimationTotalTimeMs);
+    if (fpos == 0) {
+       fpos = 1;
+    } else if (fpos == 100) {
+      fpos = 99;
+    }
     String type = (new String[]{"KeyPositionCartesian", "KeyPositionPath", "KeyAttributes", "KeyCycle"})[frameType];
-
+    if (USER_STUDY) {
+      type = (new String[]{"KeyPositionCartesian", "KeyAttributes", "KeyCycle"})[frameType];
+    }
     v.mKeyFrames.myModel.createKeyFrame(type, fpos, name);
+    myChart.delayedSelectKeyFrame(type,name,fpos);
+
   }
 
   void treeSelection(TreeSelectionEvent e) {

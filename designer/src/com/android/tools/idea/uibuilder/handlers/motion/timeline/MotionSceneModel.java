@@ -721,7 +721,7 @@ public class MotionSceneModel {
       {},
       {"curve=(0.5,0,0.5,1)"},
       {"spline", "linear"},
-      {"true", "false"},
+      {"0.5"},
       {"0.5"},
       {"90"},
       {"0.5"},
