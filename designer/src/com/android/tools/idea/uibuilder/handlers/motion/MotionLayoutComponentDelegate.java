@@ -34,6 +34,7 @@ import com.android.utils.Pair;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
@@ -47,7 +48,17 @@ public class MotionLayoutComponentDelegate implements NlComponentDelegate {
 
   private final MotionLayoutTimelinePanel myPanel;
 
+  private static List<String> ourDefaultAttributes = Arrays.asList(
+    SdkConstants.ATTR_LAYOUT_WIDTH,
+    SdkConstants.ATTR_LAYOUT_HEIGHT,
+    SdkConstants.ATTR_ID,
+    SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X,
+    SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y
+  );
+
   private static List<String> ourInterceptedAttributes = Arrays.asList(
+    SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X,
+    SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y,
     SdkConstants.ATTR_LAYOUT_WIDTH,
     SdkConstants.ATTR_LAYOUT_HEIGHT,
     SdkConstants.ATTR_LAYOUT_MARGIN,
@@ -82,6 +93,8 @@ public class MotionLayoutComponentDelegate implements NlComponentDelegate {
     SdkConstants.ATTR_LAYOUT_HORIZONTAL_WEIGHT,
     SdkConstants.ATTR_LAYOUT_VERTICAL_WEIGHT
   );
+
+  private MotionLayoutTimelinePanel.State myLastReadState;
 
   public MotionLayoutComponentDelegate(@NotNull MotionLayoutTimelinePanel panel) {
     myPanel = panel;
@@ -170,6 +183,9 @@ public class MotionLayoutComponentDelegate implements NlComponentDelegate {
     HashMap<Pair<String, String>, String> cachedComponent = null;
     String cachedAttribute = null;
     Pair<String, String> key = null;
+    if (namespace.equalsIgnoreCase(SdkConstants.TOOLS_URI)) {
+      namespace = SdkConstants.AUTO_URI;
+    }
     if (USE_CACHE) {
       cachedComponent = cache.get(component);
       if (cachedComponent == null) {
@@ -256,15 +272,29 @@ public class MotionLayoutComponentDelegate implements NlComponentDelegate {
   public List<AttributeSnapshot> getAttributes(NlComponent component) {
     List<AttributeSnapshot> attributes = null;
     if (USE_CACHE) {
-      attributes = mCachedAttributes.get(component);
+      if (myPanel.getCurrentState() == myLastReadState) {
+        attributes = mCachedAttributes.get(component);
+      } else {
+        mCachedAttributes.clear();
+      }
     }
     if (attributes == null) {
       XmlTag constrainedView = getConstrainedView(component);
       if (constrainedView != null) {
         attributes = AttributeSnapshot.createAttributesForTag(constrainedView);
       }
+      if (attributes == null) {
+        attributes = new ArrayList<>();
+        List<AttributeSnapshot> originalAttributes = component.getAttributesImpl();
+        for (AttributeSnapshot attributeSnapshot : originalAttributes) {
+          if (ourDefaultAttributes.contains(attributeSnapshot.name)) {
+            attributes.add(attributeSnapshot);
+          }
+        }
+      }
       if (USE_CACHE && attributes != null) {
         mCachedAttributes.put(component, attributes);
+        myLastReadState = myPanel.getCurrentState();
       }
     }
     return attributes;
