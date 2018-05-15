@@ -38,6 +38,8 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.*
+import com.intellij.psi.impl.migration.PsiMigrationManager
+import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
@@ -54,9 +56,11 @@ import com.intellij.util.xml.GenericDomValue
 import com.intellij.util.xml.WrappingConverter
 import org.jetbrains.android.dom.converters.AndroidResourceReference
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils
 import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.IdeaSourceProvider
+import org.jetbrains.android.util.AndroidResourceUtil
 import org.jetbrains.android.util.AndroidUtils
 
 private val DataContext.module: Module? get() = LangDataKeys.MODULE.getData(this)
@@ -102,7 +106,10 @@ class MigrateToResourceNamespacesHandler : RefactoringActionHandler {
   }
 }
 
-private abstract class ResourceUsageInfo(ref: PsiReference) : UsageInfo(ref) {
+private sealed class ResourceUsageInfo : UsageInfo {
+  constructor(ref: PsiReference) : super(ref)
+  constructor(element: PsiElement, startOffset: Int, endOffset: Int) : super(element, startOffset, endOffset)
+
   abstract val resourceType: ResourceType
   abstract val name: String
 }
@@ -113,6 +120,15 @@ private class DomUsageInfo(ref: PsiReference, val domValue: GenericDomValue<Reso
   override val name: String
     get() = domValue.value!!.resourceName!!
 }
+
+private class CodeUsageInfo(
+  /** The whole field reference, used in "find usages" view. */
+  fieldReferenceExpression: PsiElement,
+  /** The "R" reference itself, will be rebound to the right class. */
+  val classReference: PsiReference,
+  override val resourceType: ResourceType,
+  override val name: String
+) : ResourceUsageInfo(fieldReferenceExpression, 0, fieldReferenceExpression.textLength)
 
 /**
  * Implements the "migrate to resource namespaces" refactoring by finding all references to resources and rewriting them.
@@ -146,17 +162,17 @@ class MigrateToResourceNamespacesProcessor(
 
     val leafRepos = mutableListOf<AbstractResourceRepository>()
     ResourceRepositoryManager.getAppResources(invokingFacet).getLeafResourceRepositories(leafRepos)
-    leafRepos.retainAll { it is LeafResourceRepository } // TODO: enforce this in MultiResourceRepository.
+    leafRepos.retainAll { it is LeafResourceRepository } // TODO(b/78765120): enforce this in MultiResourceRepository.
 
     val total = result.size.toDouble()
-    // TODO: try doing this in parallel using a thread pool.
+    // TODO(b/78765120): try doing this in parallel using a thread pool.
     result.forEachIndexed { index, resourceUsageInfo ->
       ProgressManager.checkCanceled()
 
       inferredNamespaces.row(resourceUsageInfo.resourceType).computeIfAbsent(resourceUsageInfo.name) {
         for (repo in leafRepos) {
           if (repo.hasResourceItem(ResourceNamespace.RES_AUTO, resourceUsageInfo.resourceType, resourceUsageInfo.name)) {
-            // TODO: check other repos and build a list of unresolved or conflicting references, to display in a UI later.
+            // TODO(b/78765120): check other repos and build a list of unresolved or conflicting references, to display in a UI later.
             return@computeIfAbsent (repo as LeafResourceRepository).packageName
           }
         }
@@ -179,6 +195,7 @@ class MigrateToResourceNamespacesProcessor(
       if (repositoryManager.namespacing != AaptOptions.Namespacing.DISABLED) continue
 
       for (resourceDir in repositoryManager.getModuleResources(true)!!.resourceDirs) {
+        // TODO(b/78765120): process the files in parallel?
         VfsUtil.processFilesRecursively(resourceDir) { vf ->
           if (vf.fileType == StdFileTypes.XML) {
             val psiFile = psiManager.findFile(vf)
@@ -263,7 +280,7 @@ class MigrateToResourceNamespacesProcessor(
               }
             }
           }
-        // TODO: handle other relevant converters.
+        // TODO(b/78765120): handle other relevant converters.
         }
       }
     })
@@ -273,19 +290,56 @@ class MigrateToResourceNamespacesProcessor(
   }
 
   private fun findCodeUsages(): Collection<ResourceUsageInfo> {
-    return emptySet()
+    val psiFacade = JavaPsiFacade.getInstance(invokingFacet.module.project)
+    val result = mutableSetOf<ResourceUsageInfo>()
+
+    for (facet in allFacets) {
+      val moduleRepo = ResourceRepositoryManager.getModuleResources(facet)
+      val packageName = AndroidManifestUtils.getPackageName(facet) ?: continue
+      val rClass = psiFacade.findClass(AndroidResourceUtil.packageToRClass(packageName), facet.module.moduleContentScope) ?: continue
+
+      // TODO(b/78765120): should we rewrite dependent modules as well?
+      val scope = facet.module.moduleScope
+      // TODO(b/78765120): process references in parallel?
+      for (psiReference in ReferencesSearch.search(rClass, scope)) {
+        val classRef = psiReference.element as? PsiReferenceExpression ?: continue
+        val typeRef = classRef.parent as? PsiReferenceExpression ?: continue
+        val nameRef = typeRef.parent as? PsiReferenceExpression ?: continue
+
+        // Make sure the PSI structure is as expected for something like "R.string.app_name":
+        if (nameRef.qualifierExpression != typeRef || typeRef.qualifierExpression != classRef) continue
+
+        val name = nameRef.referenceName ?: continue
+        val resourceType = ResourceType.getEnum(typeRef.referenceName ?: continue) ?: continue
+        if (!moduleRepo.hasResourceItem(ResourceNamespace.RES_AUTO, resourceType, name)) {
+          result.add(
+            CodeUsageInfo(
+              fieldReferenceExpression = nameRef,
+              classReference = psiReference,
+              resourceType = resourceType,
+              name = name
+            )
+          )
+        }
+      }
+    }
+
+    return result
   }
 
   override fun performRefactoring(usages: Array<UsageInfo>) {
-    // TODO: update build.gradle files
+    // TODO(b/78765120): update build.gradle files
+    val project = invokingFacet.module.project
+    val psiMigration = PsiMigrationManager.getInstance(project).startMigration()
 
     val total = usages.size.toDouble()
     usages.forEachIndexed { index, usageInfo ->
+      if (usageInfo !is ResourceUsageInfo) error("Don't know how to handle ${usageInfo.javaClass.name}.")
+
+      val inferredNamespace = inferredNamespaces[usageInfo.resourceType, usageInfo.name] ?: return@forEachIndexed
       when (usageInfo) {
         is DomUsageInfo -> {
           val oldResourceValue = usageInfo.domValue.value ?: return@forEachIndexed
-          val inferredNamespace = inferredNamespaces[oldResourceValue.type, oldResourceValue.resourceName] ?: return@forEachIndexed
-
           val newResourceValue = ResourceValue.referenceTo(
             oldResourceValue.prefix,
             inferredNamespace,
@@ -295,14 +349,25 @@ class MigrateToResourceNamespacesProcessor(
 
           usageInfo.domValue.value = newResourceValue
         }
-        else -> error("Don't know how to handle ${usageInfo.javaClass.name}.")
+        is CodeUsageInfo -> {
+          usageInfo.classReference.bindToElement(
+            AndroidRefactoringUtil.findOrCreateClass(
+              project,
+              psiMigration,
+              AndroidResourceUtil.packageToRClass(inferredNamespace)
+            )
+          )
+        }
       }
+
       ProgressManager.getInstance().progressIndicator.fraction = (index + 1) / total
     }
+
+    psiMigration.finish()
   }
 
   override fun preprocessUsages(refUsages: Ref<Array<UsageInfo>>): Boolean {
-    // TODO: Report conflicts and any other issues. This method runs on the UI thread, so we need to do the actual work in [findUsages].
+    // TODO(b/78765120): Report conflicts and any other issues. This method runs on the UI thread, so we need to do the actual work in [findUsages].
     return if (refUsages.get().isNotEmpty()) {
       true
     }
