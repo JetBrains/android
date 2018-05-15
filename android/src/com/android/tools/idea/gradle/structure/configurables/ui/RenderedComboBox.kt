@@ -129,6 +129,8 @@ abstract class RenderedComboBox<T>(
     override fun createEditorComponent(): JTextField {
       val field =
         object : ExtendableTextField() {
+          var ignoreBorderChange: Boolean = false
+
           init {
             setExtensions(createEditorExtensions())
           }
@@ -137,7 +139,19 @@ abstract class RenderedComboBox<T>(
             // ComboBox sets empty borders and we need to reserve space for icons. If [ExtendableTextField] is used as a standalone
             // component it creates DarculaTextBorder which which similarly reserves the required space.
             // We do not check whether [border] is [DarculaTextBorder] here to avoid not necessary dependencies.
-            super.setBorder(border?.adjustBorder(this))
+            ignoreBorderChange = true
+            try {
+              super.setBorder(border?.adjustBorder(this))
+            }
+            finally {
+              ignoreBorderChange = false
+            }
+          }
+
+          override fun firePropertyChange(propertyName: String?, oldValue: Any?, newValue: Any?) {
+            // Prevent a StackOverflow caused by both this class and MacIntelliJComboBoxUI hooking setBorder in the same way.
+            if (ignoreBorderChange && propertyName == "border") return
+            super.firePropertyChange(propertyName, oldValue, newValue)
           }
         }
       field.addFocusListener(object : FocusListener {
