@@ -694,6 +694,9 @@ public final class StudioFeatureTracker implements FeatureTracker {
         }
 
         captureMetadata.setProfilingConfig(toStatsCpuProfilingConfig(myCpuCaptureMetadata.getProfilingConfiguration()));
+        if (myCpuCaptureMetadata.getProfilingConfiguration().getProfilerType() == CpuProfiler.CpuProfilerType.ART) {
+          captureMetadata.setArtStopTimeoutSec(CpuProfilerStage.CPU_ART_STOP_TIMEOUT_SEC);
+        }
         profilerEvent.setCpuCaptureMetadata(captureMetadata);
       }
     }
