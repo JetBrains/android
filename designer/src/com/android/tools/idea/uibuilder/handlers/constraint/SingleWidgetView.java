@@ -341,6 +341,7 @@ public class SingleWidgetView extends JPanel {
   private void connectConstraint(Scout.Arrange bottom) {
     NlComponent component = mWidgetConstraintPanel.mComponent;
     if (component != null) {
+      component.clearTransaction();
       Scout.arrangeWidgets(bottom, Collections.singletonList(component), false);
       ComponentModification modification = new ComponentModification(component, "Connect Constraint");
       component.startAttributeTransaction().applyToModification(modification);

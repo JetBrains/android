@@ -490,11 +490,18 @@ public class NlComponent implements NlAttributesHolder {
   @NotNull
   public List<AttributeSnapshot> getAttributes() {
     if (myDelegate != null && myDelegate.handlesAttributes(this)) {
-      List<AttributeSnapshot>  attributes = myDelegate.getAttributes(this);
+      List<AttributeSnapshot> attributes = myDelegate.getAttributes(this);
       if (attributes != null) {
         return attributes;
+      } else {
+        return Collections.emptyList();
       }
     }
+    return getAttributesImpl();
+  }
+
+  @NotNull
+  public List<AttributeSnapshot> getAttributesImpl() {
     if (mySnapshot != null) {
       return mySnapshot.attributes;
     }
