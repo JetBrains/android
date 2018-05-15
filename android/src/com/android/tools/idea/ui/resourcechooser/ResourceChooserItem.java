@@ -24,6 +24,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.SampleDataResourceItem;
+import com.android.tools.idea.res.SampleDataResourceRepository;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -308,7 +309,9 @@ public abstract class ResourceChooserItem {
     @NotNull
     @Override
     public String getResourceUrl() {
-      return TOOLS_SAMPLE_PREFIX + myName + ((myIndex >= 0) ? "[" + myIndex + "]" : "");
+      boolean isPredefinedData = SampleDataResourceRepository.PREDEFINED_SAMPLES_NS.equals(myItem.getResourceValue().getNamespace());
+      String prefix = isPredefinedData ? TOOLS_SAMPLE_PREFIX : SAMPLE_PREFIX;
+      return prefix + myName + ((myIndex >= 0) ? "[" + myIndex + "]" : "");
     }
 
     @Override
