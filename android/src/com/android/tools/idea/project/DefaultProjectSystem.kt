@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.project
 
+import com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT
+import com.android.SdkConstants.SUPPORT_LIB_ARTIFACT
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.log.LogWrapper
+import com.android.tools.idea.model.MergedManifest
 import com.android.tools.idea.projectsystem.*
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
@@ -26,8 +29,13 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.LibraryOrderEntry
+import com.intellij.openapi.roots.ModuleOrderEntry
+import com.intellij.openapi.roots.ModuleRootManager
+import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.AppUIUtil
+import org.jetbrains.android.facet.AndroidFacet
 import java.nio.file.Path
 
 /**
@@ -86,7 +94,42 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
 
       override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? = null
 
-      override fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate? = null
+      override fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate? {
+        // TODO(b/79883422): Replace the following code with the correct logic for detecting .aar dependencies.
+        // The following if / else if chain maintains previous support for supportlib and appcompat until
+        // we can determine it's safe to take away.
+        if (SUPPORT_LIB_ARTIFACT == "${coordinate.groupId}:${coordinate.artifactId}") {
+          val entries = ModuleRootManager.getInstance(module).orderEntries
+          for (orderEntry in entries) {
+            if (orderEntry is LibraryOrderEntry) {
+              val classes = orderEntry.getRootFiles(OrderRootType.CLASSES)
+              for (file in classes) {
+                if (file.name == "android-support-v4.jar") {
+                  return GoogleMavenArtifactId.SUPPORT_V4.getCoordinate("+")
+                }
+              }
+            }
+          }
+        }
+        else if (APPCOMPAT_LIB_ARTIFACT == "${coordinate.groupId}:${coordinate.artifactId}") {
+          val entries = ModuleRootManager.getInstance(module).orderEntries
+          for (orderEntry in entries) {
+            if (orderEntry is ModuleOrderEntry) {
+              val moduleForEntry = orderEntry.module
+              if (moduleForEntry == null || moduleForEntry == module) {
+                continue
+              }
+              AndroidFacet.getInstance(moduleForEntry) ?: continue
+              val manifestInfo = MergedManifest.get(moduleForEntry)
+              if ("android.support.v7.appcompat" == manifestInfo.`package`) {
+                return GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")
+              }
+            }
+          }
+        }
+
+        return null
+      }
 
       override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
         return emptyList()
