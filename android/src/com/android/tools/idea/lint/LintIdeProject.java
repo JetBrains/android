@@ -17,6 +17,7 @@ package com.android.tools.idea.lint;
 
 import com.android.annotations.NonNull;
 import com.android.builder.model.*;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
@@ -24,7 +25,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.detector.api.Project;
 import com.google.common.collect.Lists;
@@ -642,59 +643,15 @@ public class LintIdeProject extends Project {
     @Nullable
     @Override
     public Boolean dependsOn(@NonNull String artifact) {
-      if (SUPPORT_LIB_ARTIFACT.equals(artifact)) {
-        if (supportLib == null) {
-          final OrderEntry[] entries = ModuleRootManager.getInstance(myFacet.getModule()).getOrderEntries();
-          libraries:
-          for (int i = entries.length - 1; i >= 0; i--) {
-            final OrderEntry orderEntry = entries[i];
-            if (orderEntry instanceof LibraryOrderEntry) {
-              LibraryOrderEntry libraryOrderEntry = (LibraryOrderEntry)orderEntry;
-              VirtualFile[] classes = libraryOrderEntry.getRootFiles(OrderRootType.CLASSES);
-              if (classes != null) {
-                for (VirtualFile file : classes) {
-                  if (file.getName().equals("android-support-v4.jar")) {
-                    supportLib = true;
-                    break libraries;
-
-                  }
-                }
-              }
-            }
-          }
-          if (supportLib == null) {
-            supportLib = depsDependsOn(this, artifact);
-          }
+      GradleCoordinate queryCoordinate = GradleCoordinate.parseCoordinateString(artifact + ":+");
+      if (queryCoordinate != null) {
+        GradleCoordinate foundDependency = ProjectSystemUtil.getModuleSystem(myFacet.getModule()).getResolvedDependency(queryCoordinate);
+        if (foundDependency != null) {
+          return Boolean.TRUE;
         }
-        return supportLib;
-      } else if (APPCOMPAT_LIB_ARTIFACT.equals(artifact)) {
-        if (appCompat == null) {
-          appCompat = false;
-          final OrderEntry[] entries = ModuleRootManager.getInstance(myFacet.getModule()).getOrderEntries();
-          for (int i = entries.length - 1; i >= 0; i--) {
-            final OrderEntry orderEntry = entries[i];
-            if (orderEntry instanceof ModuleOrderEntry) {
-              ModuleOrderEntry moduleOrderEntry = (ModuleOrderEntry)orderEntry;
-              Module module = moduleOrderEntry.getModule();
-              if (module == null || module == myFacet.getModule()) {
-                continue;
-              }
-              AndroidFacet facet = AndroidFacet.getInstance(module);
-              if (facet == null) {
-                continue;
-              }
-              MergedManifest manifestInfo = MergedManifest.get(module);
-              if ("android.support.v7.appcompat".equals(manifestInfo.getPackage())) {
-                appCompat = true;
-                break;
-              }
-            }
-          }
-        }
-        return appCompat;
-      } else {
-        return super.dependsOn(artifact);
       }
+
+      return super.dependsOn(artifact);
     }
   }
 
