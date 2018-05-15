@@ -51,7 +51,6 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
   private static final File ANDROID_HOME = new File("/android-home");
 
-  private AndroidSdkHandler mAndroidSdkHandler;
   private AvdManager mAvdManager;
   private AvdManagerConnection mAvdManagerConnection;
   private File mAvdFolder;
@@ -67,22 +66,22 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     recordGoogleApisSysImg23(mFileOp);
     recordEmulatorVersion_23_4_5(mFileOp);
 
-    mAndroidSdkHandler =
+    AndroidSdkHandler androidSdkHandler =
       new AndroidSdkHandler(new File("/sdk"), ANDROID_HOME, mFileOp);
 
     mAvdManager =
       AvdManager.getInstance(
-        mAndroidSdkHandler,
+        androidSdkHandler,
         new File(ANDROID_HOME, AndroidLocation.FOLDER_AVD),
         new NullLogger());
 
     mAvdFolder =
       AvdInfo.getDefaultAvdFolder(mAvdManager, getName(), mFileOp, false);
 
-    mSystemImage = mAndroidSdkHandler.getSystemImageManager(
+    mSystemImage = androidSdkHandler.getSystemImageManager(
       new FakeProgressIndicator()).getImages().iterator().next();
 
-    mAvdManagerConnection = new AvdManagerConnection(mAndroidSdkHandler);
+    mAvdManagerConnection = new AvdManagerConnection(androidSdkHandler);
   }
 
   public void testWipeAvd() throws Exception {
@@ -131,7 +130,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
                mFileOp.exists(userData));
   }
 
-  public void testEmulatorVersionIsAtLeast() throws Exception {
+  public void testEmulatorVersionIsAtLeast() {
     // The emulator was created with version 23.4.5
     assertTrue(mAvdManagerConnection.emulatorVersionIsAtLeast(new Revision(22, 9, 9)));
     assertTrue(mAvdManagerConnection.emulatorVersionIsAtLeast(new Revision(23, 1, 9)));
@@ -329,11 +328,81 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     SystemImageDescription q2_64ImageDescr = new SystemImageDescription(q2_64Image);
 
     assertFalse("Should not support QEMU2",
-                mAvdManagerConnection.doesSystemImageSupportQemu2(q1ImageDescr, mFileOp));
+                AvdManagerConnection.doesSystemImageSupportQemu2(q1ImageDescr, mFileOp));
     assertTrue("Should support QEMU2",
-               mAvdManagerConnection.doesSystemImageSupportQemu2(q2ImageDescr, mFileOp));
+               AvdManagerConnection.doesSystemImageSupportQemu2(q2ImageDescr, mFileOp));
     assertTrue("Should support QEMU2",
-               mAvdManagerConnection.doesSystemImageSupportQemu2(q2_64ImageDescr, mFileOp));
+               AvdManagerConnection.doesSystemImageSupportQemu2(q2_64ImageDescr, mFileOp));
+  }
+
+  public void testStartAvdSkinned() throws Exception {
+    // Note: This only tests a small part of startAvd(). We are not set up
+    //       here to actually launch an Emulator instance.
+
+    MockLog log = new MockLog();
+
+    // Create an AVD with a skin
+    String skinnyAvdName = "skinnyAvd";
+    final File skinnyAvdFolder = AvdInfo.getDefaultAvdFolder(mAvdManager, skinnyAvdName, mFileOp, false);
+    File skinFolder = new File(ANDROID_HOME, "skinFolder");
+    mFileOp.mkdirs(skinFolder);
+
+    AvdInfo skinnyAvd = mAvdManager.createAvd(
+      skinnyAvdFolder,
+      skinnyAvdName,
+      mSystemImage,
+      skinFolder,
+      "skinName",
+      null,
+      null,
+      null,
+      false,
+      false,
+      true,
+      false,
+      log);
+
+    try {
+      mAvdManagerConnection.startAvd(null, skinnyAvd);
+      fail("Expected RuntimeException but no exception was thrown");
+    }
+    catch (RuntimeException runtimeEx) {
+      assertTrue("Expected 'No emulator installed' exception", runtimeEx.getMessage().contains("No emulator installed"));
+    }
+  }
+
+  public void testStartAvdSkinless() throws Exception {
+    // Note: This only tests a small part of startAvd(). We are not set up
+    //       here to actually launch an Emulator instance.
+
+    MockLog log = new MockLog();
+
+    // Create an AVD without a skin
+    String skinlessAvdName = "skinlessAvd";
+    final File skinlessAvdFolder = AvdInfo.getDefaultAvdFolder(mAvdManager, skinlessAvdName, mFileOp, false);
+
+    AvdInfo skinlessAvd = mAvdManager.createAvd(
+      skinlessAvdFolder,
+      skinlessAvdName,
+      mSystemImage,
+      null,
+      null,
+      null,
+      null,
+      null,
+      false,
+      false,
+      true,
+      false,
+      log);
+
+    try {
+      mAvdManagerConnection.startAvd(null, skinlessAvd);
+      fail("Expected RuntimeException but no exception was thrown");
+    }
+    catch (RuntimeException runtimeEx) {
+      assertTrue("Expected 'No emulator installed' exception", runtimeEx.getMessage().contains("No emulator installed"));
+    }
   }
 
 
