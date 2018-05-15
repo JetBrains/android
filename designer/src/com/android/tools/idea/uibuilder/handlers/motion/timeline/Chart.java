@@ -65,6 +65,9 @@ public class Chart {
   static int ourGraphHeight = JBUI.scale(60);
 
   GraphElements myGraphElements;
+  private String myDelayedKeyFrameId;
+  private int myDelayedKeyFramePos;
+  private String myDelayedKeyType;
 
   public float getTimeCursorMs() {
     return myTimeCursorMs;
@@ -91,6 +94,53 @@ public class Chart {
       setAnimationTotalTimeMs(duration);
       myGantt.setDurationMs(duration);
     }
+    if (myDelayedKeyFrameId == null && mySelectedKeyFrame != null) {
+      myDelayedKeyFrameId = mySelectedKeyFrame.target;
+      myDelayedKeyType = mySelectedKeyFrame.mType;
+      myDelayedKeyFramePos = mySelectedKeyFrame.framePosition;
+    }
+    if (myDelayedKeyFrameId != null) {
+      MotionSceneModel.MotionSceneView m = myModel.getMotionSceneView(myDelayedKeyFrameId);
+      switch (myDelayedKeyType) {
+        case "KeyPositionCartesian":
+
+        case "KeyPositionPath":
+          for (MotionSceneModel.KeyPosition position : m.myKeyPositions) {
+            if (position.framePosition == myDelayedKeyFramePos) {
+              mySelectedKeyFrame = position;
+            }
+          }
+          break;
+        case "KeyAttributes":
+          for (MotionSceneModel.KeyAttributes attr : m.myKeyAttributes) {
+            if (attr.framePosition == myDelayedKeyFramePos) {
+              mySelectedKeyFrame = attr;
+            }
+          }
+          break;
+        case "KeyCycle":
+          for (MotionSceneModel.KeyCycle cycle : m.myKeyCycles) {
+            if (cycle.framePosition == myDelayedKeyFramePos) {
+              mySelectedKeyFrame = cycle;
+            }
+          }
+          break;
+      }
+      update(Gantt.ChartElement.Reason.SELECTION_CHANGED);
+      myDelayedKeyFrameId = null;
+    }
+  }
+
+  /**
+   * Select this key frame when scene gets updated
+   *
+   * @param name
+   * @param fpos
+   */
+  public void delayedSelectKeyFrame(String type, String name, int fpos) {
+    myDelayedKeyFrameId = name;
+    myDelayedKeyFramePos = fpos;
+    myDelayedKeyType = type;
   }
 
   // ===================================GraphElements=================================== //
