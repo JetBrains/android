@@ -57,7 +57,7 @@ public class AarProtoResourceRepository extends FileResourceRepository {
   private static final String RESOURCE_TABLE_ENTRY = "resources.pb";
 
   // The following constants represent the complex dimension encoding defined in
-  // https://android.googlesource.com/platform/frameworks/base/+/include/androidfw/ResourceTypes.h
+  // https://android.googlesource.com/platform/frameworks/base/+/master/libs/androidfw/include/androidfw/ResourceTypes.h
   private static final int COMPLEX_UNIT_MASK = 0xF;
   private static final String[] DIMEN_SUFFIXES = {"px", "dp", "sp", "pt", "in", "mm"};
   private static final String[] FRACTION_SUFFIXES = {"%", "%p"};
@@ -487,14 +487,12 @@ public class AarProtoResourceRepository extends FileResourceRepository {
         return XmlUtils.trimInsignificantZeros(Float.toString(primitiveMsg.getFloatValue()));
 
       case DIMENSION_VALUE: {
-        // Work around http://b/78182701.
-        int bits = Float.floatToRawIntBits(primitiveMsg.getDimensionValue());
+        int bits = primitiveMsg.getDimensionValue();
         return decodeComplexDimensionValue(bits, 1., DIMEN_SUFFIXES);
       }
 
       case FRACTION_VALUE: {
-        // Work around http://b/78182701.
-        int bits = Float.floatToRawIntBits(primitiveMsg.getFractionValue());
+        int bits = primitiveMsg.getFractionValue();
         return decodeComplexDimensionValue(bits, 100., FRACTION_SUFFIXES);
       }
 
@@ -502,8 +500,8 @@ public class AarProtoResourceRepository extends FileResourceRepository {
         return Integer.toString(primitiveMsg.getIntDecimalValue());
       }
 
-      case INT_HEXIDECIMAL_VALUE: {
-        return String.format("0x%X", primitiveMsg.getIntHexidecimalValue());
+      case INT_HEXADECIMAL_VALUE: {
+        return String.format("0x%X", primitiveMsg.getIntHexadecimalValue());
       }
 
       case BOOLEAN_VALUE:
@@ -538,7 +536,8 @@ public class AarProtoResourceRepository extends FileResourceRepository {
    * @param scaleFactor the scale factor to apply to the result
    * @param unitSuffixes the unit suffixes, either {@link #DIMEN_SUFFIXES} or {@link #FRACTION_SUFFIXES}
    * @return the decoded value as a string, e.g. "-6.5dp", or "60%"
-   * @see <a href="https://cs.corp.google.com/android/frameworks/base/libs/androidfw/include/androidfw/ResourceTypes.h">ResourceTypes.h</a>
+   * @see <a href="https://android.googlesource.com/platform/frameworks/base/+/master/libs/androidfw/include/androidfw/ResourceTypes.h">
+   *     ResourceTypes.h</a>
    */
   private static String decodeComplexDimensionValue(int bits, double scaleFactor, @NotNull String[] unitSuffixes) {
     int unitCode = bits & COMPLEX_UNIT_MASK;

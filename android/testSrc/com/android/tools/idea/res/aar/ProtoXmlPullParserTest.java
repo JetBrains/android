@@ -213,7 +213,7 @@ public class ProtoXmlPullParserTest {
       "        resource_id: 0x010100b3\n" +
       "        compiled_item: {\n" +
       "          prim: {\n" +
-      "            int_hexidecimal_value: 0x00800003\n" +
+      "            int_hexadecimal_value: 0x00800003\n" +
       "          }\n" +
       "        }\n" +
       "      }\n" +
