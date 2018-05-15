@@ -32,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class EnergyMonitorView extends ProfilerMonitorView<EnergyMonitor> {
+  private static final String ENERGY_PROFILER_URL = "https://developer.android.com/studio/profile/energy-profiler";
 
   /**
    * Energy data buckets' interval time, data unit is same as x axis which is micro seconds.
@@ -50,11 +51,11 @@ public class EnergyMonitorView extends ProfilerMonitorView<EnergyMonitor> {
     disabledMessage.setHorizontalAlignment(SwingConstants.CENTER);
     disabledMessage.setBorder(new JBEmptyBorder(0, 0, 6, 0));
     container.add(disabledMessage, new TabularLayout.Constraint(1, 0, 3));
-    HyperlinkLabel linkToConfigMessage = new HyperlinkLabel();
-    linkToConfigMessage.setFont(ProfilerFonts.STANDARD_FONT);
-    // TODO (73396137): Add real target URL.
-    linkToConfigMessage.setHyperlinkText("Supported only on devices running Android 8.0 (API level 26) and higher. ", "", "");
-    container.add(linkToConfigMessage, new TabularLayout.Constraint(2, 1));
+    HyperlinkLabel detailedMessage = new HyperlinkLabel();
+    detailedMessage.setFont(ProfilerFonts.STANDARD_FONT);
+    detailedMessage.setHyperlinkTarget(ENERGY_PROFILER_URL);
+    detailedMessage.setHyperlinkText("Supported only on devices running Android 8.0 (API level 26) and higher. ", "Learn More", "");
+    container.add(detailedMessage, new TabularLayout.Constraint(2, 1));
   }
 
   @Override
