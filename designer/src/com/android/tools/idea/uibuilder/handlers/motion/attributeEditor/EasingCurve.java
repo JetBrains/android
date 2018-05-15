@@ -159,7 +159,7 @@ public class EasingCurve extends GraphBase {
 
   public String getControlPoints() {
     DecimalFormat df = new DecimalFormat("##.##");
-    return "curve=(" + df.format(param[0]) + "," + df.format(param[1]) + "," + df.format(param[2]) + "," + df.format(param[3]) + ")";
+    return "cubic(" + df.format(param[0]) + "," + df.format(param[1]) + "," + df.format(param[2]) + "," + df.format(param[3]) + ")";
   }
 
   static class CubicInterpolator {
