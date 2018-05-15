@@ -50,5 +50,8 @@ public class NewCppProjectTest {
     // These two strings are categories that are very common when there will be some problem compiling.
     assertThat(inspectionResults).doesNotContain("Declaration order");
     assertThat(inspectionResults).doesNotContain("Unused code");
+
+    // This string happens when the JniMissingFunctionInspection unexpectedly fires.
+    assertThat(inspectionResults).doesNotContain("Cannot resolve corresponding JNI");
   }
 }
