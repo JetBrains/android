@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.motion.attributeEditor;
 
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutAttributePanel;
+import com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.TimeLineIcons;
 import com.intellij.openapi.ui.JBPopupMenu;
@@ -314,7 +315,22 @@ public class AttributeTagPanel extends TagPanel {
           myAttributesNames.add(holder);
           myAttributes.put(holder, tmp.get(s));
         }
-        myTitle.setText(keyframe.getName());
+        String name = keyframe.getName();
+        switch (name) {
+          case MotionSceneString.KeyTypeCycle:
+            name = "Cycle";
+            break;
+          case MotionSceneString.KeyTypeAttributes:
+            name = "Attributes";
+            break;
+          case MotionSceneString.KeyTypePositionCartesian:
+            name = "Position (cartesian)";
+            break;
+          case MotionSceneString.KeyTypePositionPath:
+            name = "Position (path)";
+            break;
+        }
+        myTitle.setText(name);
       }
       fireTableDataChanged();
     }

@@ -49,7 +49,7 @@ public class OnSwipePanel extends TagPanel {
 
   public OnSwipePanel(MotionLayoutAttributePanel panel) {
     super(panel);
-    myTitle.setText("OnSwipe");
+    myTitle.setText("Touch Handling (onSwipe)");
     myTable = new JBTable(myTableModel);
     myRemoveTagButton = EditorUtils.makeButton(TimeLineIcons.REMOVE_TAG);
     setup();

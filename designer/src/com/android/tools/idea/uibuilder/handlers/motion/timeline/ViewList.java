@@ -127,7 +127,7 @@ class ViewList extends JPanel implements Gantt.ChartElement {
   private void keyFramePopup(ActionEvent e) {
     String[] list = {"Path Cartesian", "Path Relative", "Attributes", "Cycles"};
     if (USER_STUDY) {
-      list = new String[]{"Path Cartesian", "Attributes", "Cycles"};
+      list = new String[]{"Path Cartesian", "Attributes"};
     }
     final JList<String> displayedList = new JBList<String>(list);
     JBPopupListener listener = new JBPopupListener.Adapter() {
@@ -161,7 +161,7 @@ class ViewList extends JPanel implements Gantt.ChartElement {
     }
     String type = (new String[]{"KeyPositionCartesian", "KeyPositionPath", "KeyAttributes", "KeyCycle"})[frameType];
     if (USER_STUDY) {
-      type = (new String[]{"KeyPositionCartesian", "KeyAttributes", "KeyCycle"})[frameType];
+      type = (new String[]{"KeyPositionCartesian", "KeyAttributes"})[frameType];
     }
     v.mKeyFrames.myModel.createKeyFrame(type, fpos, name);
     myChart.delayedSelectKeyFrame(type,name,fpos);
