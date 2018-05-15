@@ -15,48 +15,85 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
-import org.jetbrains.android.AndroidTestCase;
+import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.ide.common.gradle.model.level2.IdeDependencies;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
+import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
+import com.android.tools.idea.testing.IdeComponents;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
+import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.IdeaTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.mockito.Mock;
 
-import static org.easymock.EasyMock.*;
+import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
+import static java.util.Collections.emptyList;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link BuildVariantView}.
  */
-public class BuildVariantViewTest extends AndroidTestCase {
+public class BuildVariantViewTest extends IdeaTestCase {
   private Listener myListener;
-  private BuildVariantUpdater myUpdater;
   private BuildVariantView myView;
   private String myBuildVariantName;
+
+  @Mock private IdeModifiableModelsProvider myModifiableModelsProvider;
+  @Mock private BuildVariantUpdater.IdeModifiableModelsProviderFactory myModifiableModelsProviderFactory;
+  @Mock private AndroidModuleModel myAndroidModel;
+  @Mock private IdeDependencies myIdeDependencies;
+  @Mock private IdeVariant myDebugVariant;
+  @Mock private PostSyncProjectSetup myPostSyncProjectSetup;
+  @Mock private ModuleSetupContext.Factory myModuleSetupContextFactory;
+  @Mock private ModuleSetupContext myModuleSetupContext;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myUpdater = createMock(BuildVariantUpdater.class);
+    initMocks(this);
+
     myView = BuildVariantView.getInstance(getProject());
-    myView.setUpdater(myUpdater);
     myListener = new Listener();
     myView.addListener(myListener);
     myBuildVariantName = "debug";
+
+    AndroidFacet androidFacet = createAndAddAndroidFacet(myModule);
+    androidFacet.getConfiguration().setModel(myAndroidModel);
+
+    Project project = getProject();
+    when(myModifiableModelsProviderFactory.create(project)).thenReturn(myModifiableModelsProvider);
+
+    when(myAndroidModel.getSelectedVariant()).thenReturn(myDebugVariant);
+    when(myDebugVariant.getName()).thenReturn(myBuildVariantName);
+
+    when(myAndroidModel.getSelectedMainCompileLevel2Dependencies()).thenReturn(myIdeDependencies);
+    when(myIdeDependencies.getModuleDependencies()).thenReturn(emptyList());
+
+    new IdeComponents(project).replaceProjectService(PostSyncProjectSetup.class, myPostSyncProjectSetup);
+    when(myModuleSetupContextFactory.create(myModule, myModifiableModelsProvider)).thenReturn(myModuleSetupContext);
+
+    BuildVariantUpdater variantUpdater =
+      new BuildVariantUpdater(myModuleSetupContextFactory, myModifiableModelsProviderFactory, emptyList());
+    myView.setUpdater(variantUpdater);
   }
 
   public void testSelectVariantWithSuccessfulUpdate() {
-    expect(myUpdater.updateSelectedVariant(getProject(), myModule.getName(), myBuildVariantName)).andStubReturn(true);
-    replay(myUpdater);
-
-    myView.buildVariantSelected(myModule.getName(), myBuildVariantName);
+    String variantToSelect = "release";
+    when(myAndroidModel.variantExists(variantToSelect)).thenReturn(true);
+    // Changing selected variant from "debug" to "release".
+    myView.buildVariantSelected(myModule.getName(), variantToSelect);
+    // Verify listener is invoked.
     assertTrue(myListener.myWasCalled);
-
-    verify(myUpdater);
   }
 
-  public void testSelectVariantWithFailedUpdate() {
-    expect(myUpdater.updateSelectedVariant(getProject(), myModule.getName(), myBuildVariantName)).andStubReturn(false);
-    replay(myUpdater);
-
+  public void testSelectVariantWithUnchangedVariantName() {
+    when(myAndroidModel.variantExists(myBuildVariantName)).thenReturn(true);
+    // Choose "debug" when "debug" is already selected.
     myView.buildVariantSelected(myModule.getName(), myBuildVariantName);
+    // Verify listener not invoked when the selected value didn't change.
     assertFalse(myListener.myWasCalled);
-
-    verify(myUpdater);
   }
 
   private static class Listener implements BuildVariantView.BuildVariantSelectionChangeListener {

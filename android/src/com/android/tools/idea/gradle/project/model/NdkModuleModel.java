@@ -169,6 +169,13 @@ public class NdkModuleModel implements ModuleModel {
     return selected;
   }
 
+  /**
+   * @return true if the variant model with given name has been requested before.
+   */
+  public boolean variantExists(@NotNull String variantName) {
+    return myVariantsByName.containsKey(variantName);
+  }
+
   public void setSelectedVariantName(@NotNull String name) {
     Collection<String> variantNames = getVariantNames();
     if (variantNames.contains(name)) {

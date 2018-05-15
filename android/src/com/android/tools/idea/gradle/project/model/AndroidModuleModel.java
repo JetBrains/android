@@ -333,6 +333,18 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     return contains(artifactName, TEST_ARTIFACT_NAMES);
   }
 
+  /**
+   * @return true if the variant model with given name has been requested before.
+   */
+  public boolean variantExists(@NotNull String variantName) {
+    for (Variant variant : myAndroidProject.getVariants()) {
+      if (variantName.equals(variant.getName())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @Override
   @NotNull
   public List<SourceProvider> getAllSourceProviders() {
@@ -714,7 +726,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   /**
    * Returns the {@link IdeAndroidArtifact} that should be used for instrumented testing.
-   * <p>
+   *
    * <p>For test-only modules this is the main artifact.
    */
   @Nullable
