@@ -108,7 +108,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
       }
 
       // Here we need to either find or create the class so that imports/class names can be resolved.
-      PsiClass aClass = MigrateToAppCompatUtil.findOrCreateClass(getProject(), psiMigration, mapEntry.myNewName);
+      PsiClass aClass = AndroidRefactoringUtil.findOrCreateClass(getProject(), psiMigration, mapEntry.myNewName);
 
       PsiElement element = getElement();
       if (element == null || !element.isValid()) {
@@ -169,7 +169,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
         return null;
       }
 
-      PsiPackage aPackage = MigrateToAppCompatUtil.findOrCreatePackage(getProject(), migration, mapEntry.myNewName);
+      PsiPackage aPackage = AndroidRefactoringUtil.findOrCreatePackage(getProject(), migration, mapEntry.myNewName);
       PsiElement element = getElement();
       if (element == null || !element.isValid()) {
         return element;
@@ -280,7 +280,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
 
     @Override
     public PsiElement applyChange(@NotNull PsiMigration migration) {
-      PsiClass psiClass = MigrateToAppCompatUtil.findOrCreateClass(getProject(), migration, mySuggestedSuperClass);
+      PsiClass psiClass = AndroidRefactoringUtil.findOrCreateClass(getProject(), migration, mySuggestedSuperClass);
 
       PsiElement element = getElement();
       assert element != null;
@@ -311,7 +311,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
       }
       PsiReference reference = (PsiReference)element;
 
-      PsiClass psiClass = MigrateToAppCompatUtil.findOrCreateClass(getProject(), psiMigration, myEntry.myNewClassName);
+      PsiClass psiClass = AndroidRefactoringUtil.findOrCreateClass(getProject(), psiMigration, myEntry.myNewClassName);
       String methodFragment = myEntry.myNewMethodName;
 
       if (!(element instanceof PsiReferenceExpression)

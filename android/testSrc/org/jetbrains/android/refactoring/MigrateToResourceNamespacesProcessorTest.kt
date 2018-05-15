@@ -54,6 +54,16 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
         </resources>
       """.trimIndent()
     )
+
+    // This is necessary to get the augmenting mechanism started.
+    myFixture.addFileToProject(
+      "gen/com/example/app/R.java",
+      """
+        package com.example.app;
+
+        public class R {}
+      """.trimIndent()
+      )
   }
 
   fun testResourceValues() {
@@ -125,6 +135,69 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
                 android:label="@com.example.lib:string/libString">
             </application>
         </manifest>
+      """.trimIndent(),
+      true
+    )
+  }
+
+  fun testCode() {
+    myFixture.addFileToProject(
+      "/res/values/app.xml",
+      // language=xml
+      """
+        <resources>
+          <string name="appString">Hello from app</string>
+        </resources>
+      """.trimIndent()
+    )
+
+    myFixture.addFileToProject(
+      "/src/com/example/app/MainActivity.java",
+      // language=java
+      """
+        package com.example.app;
+
+        import android.app.Activity;
+        import android.os.Bundle;
+
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                getResources().getString(R.string.appString);
+                getResources().getString(com.example.app.R.string.appString);
+
+                getResources().getString(R.string.libString);
+                getResources().getString(com.example.app.R.string.libString);
+                getResources().getString(com.example.lib.R.string.libString);
+            }
+        }
+      """.trimIndent()
+    )
+
+    MigrateToResourceNamespacesProcessor(myFacet).run()
+
+    myFixture.checkResult(
+      "/src/com/example/app/MainActivity.java",
+      // language=java
+      """
+        package com.example.app;
+
+        import android.app.Activity;
+        import android.os.Bundle;
+
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                getResources().getString(R.string.appString);
+                getResources().getString(com.example.app.R.string.appString);
+
+                getResources().getString(com.example.lib.R.string.libString);
+                getResources().getString(com.example.lib.R.string.libString);
+                getResources().getString(com.example.lib.R.string.libString);
+            }
+        }
       """.trimIndent(),
       true
     )

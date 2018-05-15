@@ -1,5 +1,12 @@
 package org.jetbrains.android.refactoring;
 
+import com.intellij.openapi.application.WriteAction;
+import com.intellij.openapi.project.Project;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiMigration;
+import com.intellij.psi.PsiPackage;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.refactoring.RefactoringBundle;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.android.dom.resources.ResourceValue;
@@ -77,5 +84,26 @@ public class AndroidRefactoringUtil {
       attributeValues.put(new AndroidAttributeInfo(localName, nsPrefix), attributeValue);
     }
     return attributeValues;
+  }
+
+  // Code copied from MigrationUtil since it's not marked public
+  @NotNull
+  static PsiClass findOrCreateClass(@NotNull Project project, @NotNull PsiMigration migration, @NotNull String qName) {
+    PsiClass aClass = JavaPsiFacade.getInstance(project).findClass(qName, GlobalSearchScope.allScope(project));
+    if (aClass == null) {
+      aClass = WriteAction.compute(() -> migration.createClass(qName));
+    }
+    return aClass;
+  }
+
+  @NotNull
+  static PsiPackage findOrCreatePackage(@NotNull Project project, @NotNull PsiMigration migration, @NotNull String qName) {
+    PsiPackage aPackage = JavaPsiFacade.getInstance(project).findPackage(qName);
+    if (aPackage != null) {
+      return aPackage;
+    }
+    else {
+      return WriteAction.compute(() -> migration.createPackage(qName));
+    }
   }
 }

@@ -22,7 +22,6 @@ import com.android.tools.idea.lint.LintIdeClient;
 import com.android.tools.idea.lint.LintIdeIssueRegistry;
 import com.android.tools.idea.lint.LintIdeRequest;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.lint.checks.AppCompatCustomViewDetector;
 import com.android.tools.lint.client.api.LintDriver;
@@ -36,7 +35,6 @@ import com.google.common.collect.Maps;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
-import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -77,7 +75,7 @@ class MigrateToAppCompatUtil {
   }
 
   public static List<UsageInfo> findPackageUsages(Project project, PsiMigration migration, String qName) {
-    PsiPackage aPackage = findOrCreatePackage(project, migration, qName);
+    PsiPackage aPackage = AndroidRefactoringUtil.findOrCreatePackage(project, migration, qName);
     return findRefs(project, aPackage);
   }
 
@@ -111,25 +109,6 @@ class MigrateToAppCompatUtil {
       return refs;
     }
     return Collections.emptyList();
-  }
-
-  // Code copied from MigrationUtil since it's not marked public
-  static PsiClass findOrCreateClass(Project project, final PsiMigration migration, final String qName) {
-    PsiClass aClass = JavaPsiFacade.getInstance(project).findClass(qName, GlobalSearchScope.allScope(project));
-    if (aClass == null) {
-      aClass = WriteAction.compute(() -> migration.createClass(qName));
-    }
-    return aClass;
-  }
-
-  static PsiPackage findOrCreatePackage(Project project, final PsiMigration migration, final String qName) {
-    PsiPackage aPackage = JavaPsiFacade.getInstance(project).findPackage(qName);
-    if (aPackage != null) {
-      return aPackage;
-    }
-    else {
-      return WriteAction.compute(() -> migration.createPackage(qName));
-    }
   }
 
   @NonNull
