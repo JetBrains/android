@@ -59,7 +59,7 @@ public final class AarResourceRepositoryCache {
     try {
       FileResourceRepository aarRepository = myCache.get(aarDirectory, () -> {
         boolean protoAarEnabled = StudioFlags.AAR_V2_ENABLED.get();
-        FileResourceRepository repository = protoAarEnabled ? null : AarProtoResourceRepository.createIfProtoAar(aarDirectory, libraryName);
+        FileResourceRepository repository = protoAarEnabled ? AarProtoResourceRepository.createIfProtoAar(aarDirectory, libraryName) : null;
         if (repository == null) {
           repository = FileResourceRepository.create(aarDirectory, libraryName);
         }
