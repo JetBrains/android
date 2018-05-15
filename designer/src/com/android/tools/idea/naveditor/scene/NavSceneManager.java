@@ -548,6 +548,7 @@ public class NavSceneManager extends SceneManager {
       updateHierarchy(model, model);
       getDesignSurface().refreshRoot();
       requestRender();
+      model.notifyListenersModelUpdateComplete();
     }
 
     @Override

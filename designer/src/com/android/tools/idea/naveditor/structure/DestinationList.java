@@ -187,7 +187,7 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
     myList.addListSelectionListener(myListSelectionListener);
     myModelListener = new ModelListener() {
       @Override
-      public void modelChanged(@NotNull NlModel model) {
+      public void modelDerivedDataChanged(@NotNull NlModel model) {
         updateComponentList();
       }
 
