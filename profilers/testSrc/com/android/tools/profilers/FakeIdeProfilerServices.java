@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private final FeatureTracker myFakeFeatureTracker = new FakeFeatureTracker();
@@ -152,6 +153,15 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
    * Linked text of the error balloon displayed when {@link #showErrorBalloon(String, String, String, String)} is called.
    */
   private String myErrorBalloonUrlText;
+  /**
+   * When {@link #openListBoxChooserDialog} is called this index is used to return a specific element in the set of options.
+   * If this index is out of bounds, null is returned.
+   */
+  private int myListBoxOptionsIndex;
+  /**
+   * Fake application id to be used by test.
+   */
+  private String myApplicationId = "";
 
   public FakeIdeProfilerServices() {
     myPersistentPreferences = new FakeProfilerPreferences();
@@ -199,6 +209,16 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   @Override
   public void enableAdvancedProfiling() {
     // No-op.
+  }
+
+  @NotNull
+  @Override
+  public String getApplicationId() {
+    return myApplicationId;
+  }
+
+  public void setApplicationId(@NotNull String name) {
+    myApplicationId = name;
   }
 
   @NotNull
@@ -315,6 +335,24 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     else {
       noCallback.run();
     }
+  }
+
+  @Override
+  public <T> T openListBoxChooserDialog(@NotNull String title,
+                                        @Nullable String message,
+                                        @NotNull T[] options,
+                                        @NotNull Function<T, String> listBoxPresentationAdapter) {
+    if (myListBoxOptionsIndex >= 0 && myListBoxOptionsIndex < options.length) {
+      return options[myListBoxOptionsIndex];
+    }
+    return null;
+  }
+
+  /**
+   * Sets the listbox options return element index. If this is set to an index out of bounds null is returned.
+   */
+  public void setListBoxOptionsIndex(int optionIndex) {
+    myListBoxOptionsIndex = optionIndex;
   }
 
   public void setShouldParseLongTraces(boolean shouldParseLongTraces) {

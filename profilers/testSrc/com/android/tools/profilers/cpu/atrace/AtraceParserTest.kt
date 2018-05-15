@@ -143,6 +143,63 @@ class AtraceParserTest {
     assertThat(expectedExceptionCaught).isTrue()
   }
 
+  @Test
+  fun getProcessListReturnsProcessList() {
+    val headOfListExpected = arrayOf(CpuThreadInfo(1510, "system_server"),
+                                     CpuThreadInfo(2652, "splayingbitmaps"),
+                                     CpuThreadInfo(1371, "surfaceflinger"))
+    val tailOfListExpected = arrayOf(CpuThreadInfo(1404, "<1404>"),
+                                     CpuThreadInfo(2732, "<2732>"),
+                                     CpuThreadInfo(2713, "<2713>"))
+    val parser = AtraceParser(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"))
+    val processes = parser.getProcessList("")
+    // Validate the head of our list is organized as expected
+    for (i in headOfListExpected.indices) {
+      val threadInfo = headOfListExpected[i]
+      assertThat(processes[i].id).isEqualTo(threadInfo.id)
+      assertThat(processes[i].name).isEqualTo(threadInfo.name)
+    }
+    // Validate the tail of the list has all the <> values.
+    for (i in tailOfListExpected.indices) {
+      val threadInfo = tailOfListExpected[i]
+      val endIndex = processes.size - (i + 1)
+      assertThat(processes[endIndex].id).isEqualTo(threadInfo.id)
+      assertThat(processes[endIndex].name).isEqualTo(threadInfo.name)
+    }
+  }
+
+  @Test
+  fun hintedProcessNameIsTop() {
+    val parser = AtraceParser(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"))
+    // No hint is alphabetical
+    var processes = parser.getProcessList("")
+    assertThat(processes[0].processName).isEqualTo("system_server")
+    // No matching hint is still alphabetical.
+    processes = parser.getProcessList("something.crazy.nothing.matches")
+    assertThat(processes[0].processName).isEqualTo("system_server")
+    // Substring matches
+    processes = parser.getProcessList("com.google.package.atrace")
+    assertThat(processes[0].processName).isEqualTo("atrace")
+    // Exact string
+    processes = parser.getProcessList("atrace")
+    assertThat(processes[0].processName).isEqualTo("atrace")
+  }
+
+  @Test
+  fun settingSelectedProcessReturnsParseWithThatProesssId() {
+    val parser = AtraceParser(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"))
+    parser.setSelectProcess(parser.getProcessList("")[0])
+    val parsedFile = parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
+    assertThat(parsedFile.mainThreadId).isEqualTo(parser.getProcessList("")[0].id)
+  }
+
+  @Test
+  fun processNameThatWouldBePidUsesThreadNameInstead() {
+    val parser = AtraceParser(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"))
+    val info = parser.getProcessList(".gms.persistent")[0]
+    assertThat(info.processName).isEqualTo(".gms.persistent")
+  }
+
   companion object {
     private val DELTA = .00000001
 

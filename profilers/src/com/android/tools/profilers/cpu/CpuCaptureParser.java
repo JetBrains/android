@@ -56,12 +56,6 @@ public class CpuCaptureParser {
   static final int IMPORTED_TRACE_ID = 42;
 
   /**
-   * Message of the exception to be thrown if trying to parse an imported atrace file.
-   * TODO (b/74526422): remove this when adding full support for importing atrace captures
-   */
-  static final String ATRACE_IMPORT_FAILURE_MESSAGE = "Importing atrace files is not supported yet.";
-
-  /**
    * Maps a trace id to a corresponding {@link CompletableFuture<CpuCapture>}.
    */
   private final Map<Integer, CompletableFuture<CpuCapture>> myCaptures;
@@ -153,7 +147,7 @@ public class CpuCaptureParser {
   /**
    * Parses a {@link File} into a {@link CompletableFuture<CpuCapture>} that executes in {@link IdeProfilerServices#getPoolExecutor()}.
    * Return null if the file doesn't exist or point to a directory.
-   *
+   * <p>
    * When a trace file is considered large (see {@link #MAX_SUPPORTED_TRACE_SIZE}), a dialog should be displayed so they user can decide if
    * they want to abort the trace parsing or continue with it.
    */
@@ -219,11 +213,30 @@ public class CpuCaptureParser {
       }
     }
 
+    // If atrace flag is enabled, check the file header to see if it's an atrace file.
     if (myServices.getFeatureConfig().isAtraceEnabled()) {
-      // If atrace flag is enabled, check the file header to see if it's an atrace file and throw an exception with a known message,
-      // so it can be properly handled by whoever invokes the parsing. TODO (b/74526422): support parsing atrace imported captures
-      if (AtraceDecompressor.verifyFileHasAtraceHeader(traceFile)) {
-        throw new IllegalStateException(ATRACE_IMPORT_FAILURE_MESSAGE);
+      try {
+        if (AtraceDecompressor.verifyFileHasAtraceHeader(traceFile)) {
+          // Atrace files contain multiple processes. For imported Atrace files we don't have a
+          // session that can tell us which process the user is interested in. So for all imported
+          // trace files we ask the user to select a process. The list of processes the user can
+          // choose from is parsed from the Atrace file.
+          AtraceParser parser = new AtraceParser(traceFile);
+          // Any process matching the application id of the current project will be sorted to
+          // the top of our process list.
+          CpuThreadInfo[] processList = parser.getProcessList(myServices.getApplicationId());
+          CpuThreadInfo selected = myServices.openListBoxChooserDialog("Select a process",
+                                              "Select the process you want to analyze.",
+                                              processList,
+                                              (t) -> t.getProcessName());
+          if (selected != null) {
+            parser.setSelectProcess(selected);
+            return parser.parse(traceFile, IMPORTED_TRACE_ID);
+          }
+        }
+      }
+      catch (Exception ex) {
+        // We failed to find a proper process, or the file was not atrace.
       }
     }
 

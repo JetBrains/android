@@ -73,17 +73,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   @VisibleForTesting
   static final String PARSING_FILE_FAILURE_BALLOON_TEXT = "The profiler was unable to parse the trace file. Please make sure the file " +
                                                           "selected is a valid trace. Alternatively, try importing another file, or ";
-
-  @VisibleForTesting
-  static final String PARSING_ATRACE_FAILURE_BALLOON_TEXT = "Importing trace files you create using atrace is not yet supported. ";
-
-  @VisibleForTesting
-  static final String PARSING_ATRACE_NOT_SUPPORTED_TEXT = "Learn More";
-
-  @VisibleForTesting
-  static final String PARSING_ATRACE_NOT_SUPPORTED_URL = "https://d.android.com/r/studio-ui/import-atrace-support.html";
-
-
   @VisibleForTesting
   static final String PARSING_ABORTED_BALLOON_TITLE = "Parsing trace file aborted";
   @VisibleForTesting
@@ -745,25 +734,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
     // Parsing is in progress. Handle it asynchronously and set the capture afterwards using the main executor.
     capture.handleAsync((parsedCapture, exception) -> {
-      // We need to handle the special case of failing to parse atrace files because we don't fully support importing them.
-      // TODO (b/74526422): remove this when adding full support for importing atrace captures
-      boolean exceptionThrownByAtraceImport = exception != null && exception.getCause() != null
-                                              && exception.getCause().getMessage().equals(CpuCaptureParser.ATRACE_IMPORT_FAILURE_MESSAGE);
-      if (exceptionThrownByAtraceImport) {
-        // Parsing failed because we tried to parse an atrace capture before fully supporting it. Inform that to users.
-        setCaptureState(CaptureState.PARSING_FAILURE);
-        getStudioProfilers().getIdeServices().showErrorBalloon(PARSING_FILE_FAILURE_BALLOON_TITLE, PARSING_ATRACE_FAILURE_BALLOON_TEXT,
-                                                               PARSING_ATRACE_NOT_SUPPORTED_URL, PARSING_ATRACE_NOT_SUPPORTED_TEXT);
-        // PARSING_FAILURE is a transient state. After notifying the listeners that the parser has failed, we set the status to IDLE.
-        setCaptureState(CaptureState.IDLE);
-      }
-      else {
-        // The callback is responsible for handling the general case.
-        parsingCallback.accept(parsedCapture);
-      }
+      parsingCallback.accept(parsedCapture);
       return parsedCapture;
     }, getStudioProfilers().getIdeServices().getMainExecutor());
-
   }
 
   /**

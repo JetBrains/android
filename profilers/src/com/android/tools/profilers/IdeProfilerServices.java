@@ -26,6 +26,7 @@ import java.io.FileOutputStream;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public interface IdeProfilerServices {
   /**
@@ -80,6 +81,12 @@ public interface IdeProfilerServices {
    */
   void enableAdvancedProfiling();
 
+  /**
+   * Returns the currently loaded application ID. If one is not available an empty string should be returned.
+   */
+  @NotNull
+  String getApplicationId();
+
   @NotNull
   FeatureConfig getFeatureConfig();
 
@@ -104,6 +111,19 @@ public interface IdeProfilerServices {
    * @param noCallback  callback to be run if user clicks "No"
    */
   void openParseLargeTracesDialog(Runnable yesCallback, Runnable noCallback);
+
+  /**
+   * Opens a dialog giving the user to select items from the listbox.
+   * @param title                      tile to be provided to the dialog box.
+   * @param message                    optional message to be provided to the user about contents of listbox.
+   * @param options                    options used to populate the listbox. The list should not be empty.
+   * @param listBoxPresentationAdapter adapter that takes in an option and returns a string to be presented to the user.
+   * @return The option the user selected. If the user cancels the return value will be null.
+   */
+  <T> T openListBoxChooserDialog(@NotNull String title,
+                                 @Nullable String message,
+                                 @NotNull T[] options,
+                                 @NotNull Function<T, String> listBoxPresentationAdapter);
 
   /**
    * Returns the profiling configurations saved by the user for a project.

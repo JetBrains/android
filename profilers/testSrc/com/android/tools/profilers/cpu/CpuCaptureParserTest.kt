@@ -16,12 +16,10 @@
 package com.android.tools.profilers.cpu
 
 import com.android.testutils.TestUtils
-import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profiler.protobuf3jarjar.ByteString
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilersTestData
-import com.android.tools.profilers.cpu.CpuCaptureParser.ATRACE_IMPORT_FAILURE_MESSAGE
 import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.fail
 import org.junit.Test
@@ -183,7 +181,7 @@ class CpuCaptureParserTest {
   }
 
   @Test
-  fun parsingAtraceFilesShouldCompleteExceptionallyIfFlagEnabled() {
+  fun parsingAtraceFilesShouldCompleteIfFlagEnabled() {
     val services = FakeIdeProfilerServices()
     val parser = CpuCaptureParser(services)
     val traceFile = CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace")
@@ -191,18 +189,43 @@ class CpuCaptureParserTest {
     // First, try to parse the capture with the flag disabled.
     services.enableAtrace(false)
     var futureCapture = parser.parse(traceFile)!!
-    val capture = futureCapture.get()
+    var capture = futureCapture.get()
     assertThat(futureCapture.isCompletedExceptionally).isFalse()
     assertThat(capture).isNull()
 
-    // Now enable the flag and try to parse it again.
+    // Now enable the flag and try to parse it again, assume the user canceled the dialog.
+    services.setListBoxOptionsIndex(-1)
     services.enableAtrace(true)
     futureCapture = parser.parse(traceFile)!!
-    assertThat(futureCapture.isCompletedExceptionally).isTrue()
-    futureCapture.exceptionally({ ex ->
-                                  assertThat(ex.message).isEqualTo(ATRACE_IMPORT_FAILURE_MESSAGE)
-                                  null
-                                })
+    assertThat(futureCapture.isCompletedExceptionally).isFalse()
+    capture = futureCapture.get()
+    assertThat(capture).isNull()
+
+    // Now set a process select callback to return a process
+    services.setListBoxOptionsIndex(0)
+    services.enableAtrace(true)
+    futureCapture = parser.parse(traceFile)!!
+    assertThat(futureCapture.isCompletedExceptionally).isFalse()
+    capture = futureCapture.get()
+    assertThat(capture).isNotNull()
+    assertThat(capture.threads).hasSize(1)
+  }
+
+  @Test
+  fun parsingWithAPackageNameWillBringThatProcessToTop() {
+    val services = FakeIdeProfilerServices()
+    val parser = CpuCaptureParser(services)
+    val traceFile = CpuProfilerTestUtils.getTraceFile("atrace.ctrace")
+
+    services.applicationId = "displayingbitmaps"
+    services.setListBoxOptionsIndex(0)
+    services.enableAtrace(true)
+    val futureCapture = parser.parse(traceFile)!!
+    assertThat(futureCapture.isCompletedExceptionally).isFalse()
+    val capture = futureCapture.get()
+    capture.threads
+    val mainNode = capture.getCaptureNode(capture.mainThreadId)!!
+    assertThat(mainNode.data.name).isEqualTo("splayingbitmaps")
   }
 
   @Test

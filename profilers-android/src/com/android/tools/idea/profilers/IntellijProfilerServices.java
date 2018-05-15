@@ -17,6 +17,7 @@ package com.android.tools.idea.profilers;
 
 import com.android.tools.idea.diagnostics.crash.exception.NoPiiException;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
@@ -39,21 +40,29 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class IntellijProfilerServices implements IdeProfilerServices {
@@ -119,6 +128,19 @@ public class IntellijProfilerServices implements IdeProfilerServices {
     if (virtualFile != null) {
       virtualFile.refresh(true, false, postRunnable);
     }
+  }
+
+  @NotNull
+  @Override
+  public String getApplicationId() {
+    List<String> applicationIds = new ArrayList<>();
+    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(module);
+      if (androidModuleModel != null) {
+        applicationIds.add(androidModuleModel.getApplicationId());
+      }
+    }
+    return applicationIds.isEmpty() ? "" : applicationIds.get(0);
   }
 
   @NotNull
@@ -280,6 +302,42 @@ public class IntellijProfilerServices implements IdeProfilerServices {
     else {
       noCallback.run();
     }
+  }
+
+  @Override
+  public <T> T openListBoxChooserDialog(@NotNull String title,
+                                        @Nullable String message,
+                                        @NotNull T[] options,
+                                        @NotNull Function<T, String> listBoxPresentationAdapter) {
+
+    Object[] selectedValue = new Object[1];
+    Supplier<T> dialog = () -> {
+      ListBoxChooserDialog<T> listBoxDialog = new ListBoxChooserDialog<>(title, message, options, listBoxPresentationAdapter);
+      listBoxDialog.show();
+      return listBoxDialog.getExitCode() != DialogWrapper.OK_EXIT_CODE ? null : listBoxDialog.getSelectedValue();
+    };
+    // Check if we are on a thread that is able to dispatch ui events. If we are show the dialog, otherwise invoke the dialog later.
+    if (SwingUtilities.isEventDispatchThread()) {
+      selectedValue[0] = dialog.get();
+    }
+    else {
+      // Object to control communication between the render thread and the capture thread.
+      CountDownLatch latch = new CountDownLatch(1);
+      try {
+        // Tell UI thread that we want to show a dialog then block capture thread
+        // until user has made a selection.
+        SwingUtilities.invokeLater(() -> {
+          selectedValue[0] = dialog.get();
+          latch.countDown();
+        });
+        //noinspection WaitNotInLoop
+        latch.await();
+      }
+      catch (InterruptedException ex) {
+        // If our wait was interrupted continue.
+      }
+    }
+    return (T)selectedValue[0];
   }
 
   @Override

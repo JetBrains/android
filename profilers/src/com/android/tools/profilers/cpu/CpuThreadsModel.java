@@ -26,7 +26,10 @@ import com.android.tools.profilers.DragAndDropModelListElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -160,11 +163,6 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
    * Build a list of {@link RangedCpuThread} based from the threads contained in a given {@link CpuCapture}.
    */
   void buildImportedTraceThreads(@NotNull CpuCapture capture) {
-    if (capture.getType() == CpuProfiler.CpuProfilerType.ATRACE) {
-      // Atrace captures can display thread states normally. Return early.
-      // TODO(b/74526422): makes sure we properly set the data series when we support importing atrace files
-      return;
-    }
     // Create the RangedCpuThread objects from the capture's threads
     List<RangedCpuThread> threads = capture.getThreads().stream()
       .map(thread -> new RangedCpuThread(myRange, thread.getId(), thread.getName(), capture)).collect(Collectors.toList());
@@ -221,9 +219,15 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
         myIsMainThread = myThreadId == mySession.getPid();
       }
       else {
-        // If thread is created from an imported trace (excluding atrace), we should use an ImportedTraceThreadDataSeries
-        myAtraceDataSeries = null; // No use for the AtraceDataSeries
-        mySeries = new ImportedTraceThreadDataSeries(capture, myThreadId);
+        if (capture.getType() == CpuProfiler.CpuProfilerType.ATRACE) {
+          mySeries =
+          myAtraceDataSeries = new AtraceDataSeries<>(myStage, (atraceCapture) -> atraceCapture.getThreadStatesForThread(myThreadId));
+        }
+        else {
+          // If thread is created from an imported trace (excluding atrace), we should use an ImportedTraceThreadDataSeries
+          myAtraceDataSeries = null; // No use for the AtraceDataSeries
+          mySeries = new ImportedTraceThreadDataSeries(capture, myThreadId);
+        }
         // For imported traces, the main thread ID can be obtained from the capture
         myIsMainThread = myThreadId == capture.getMainThreadId();
       }
