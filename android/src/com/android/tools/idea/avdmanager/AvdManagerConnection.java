@@ -355,6 +355,16 @@ public class AvdManagerConnection {
     if (!initIfNecessary()) {
       return Futures.immediateFailedFuture(new RuntimeException("No Android SDK Found"));
     }
+
+    final String avdName = info.getName();
+    final String skinPath = info.getProperties().get(AVD_INI_SKIN_PATH);
+    if (skinPath != null) {
+      File skinFile = new File(skinPath);
+      File baseSkinFile = new File(skinFile.getName());
+      // Ensure the skin files are up-to-date
+      AvdWizardUtils.pathToUpdatedSkins(baseSkinFile, null, myFileOp);
+    }
+
     AccelerationErrorCode error = checkAcceleration();
     ListenableFuture<IDevice> errorResult = handleAccelerationError(project, info, error);
     if (errorResult != null) {
@@ -366,13 +376,6 @@ public class AvdManagerConnection {
       IJ_LOG.error("No emulator binary found!");
       return Futures.immediateFailedFuture(new RuntimeException("No emulator binary found"));
     }
-
-    final String avdName = info.getName();
-
-    File skinFile = new File(info.getProperties().get(AVD_INI_SKIN_PATH));
-    File baseSkinFile = new File(skinFile.getName());
-    // Ensure the skin files are up-to-date
-    AvdWizardUtils.pathToUpdatedSkins(baseSkinFile, null, myFileOp);
 
     // TODO: The emulator stores pid of the running process inside the .lock file (userdata-qemu.img.lock in Linux and
     // userdata-qemu.img.lock/pid on Windows). We should detect whether those lock files are stale and if so, delete them without showing
