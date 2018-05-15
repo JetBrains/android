@@ -113,6 +113,9 @@ public class CpuProfiler extends StudioProfiler {
       ProfilerTimeline timeline = myProfilers.getTimeline();
       timeline.reset(myProfilers.getSession().getStartTimestamp(), myProfilers.getSession().getEndTimestamp());
       timeline.setIsPaused(true);
+
+      myProfilers.getIdeServices().getFeatureTracker().trackCreateSession(Common.SessionMetaData.SessionType.CPU_CAPTURE,
+                                                                          SessionsManager.SessionCreationSource.MANUAL);
     });
   }
 
