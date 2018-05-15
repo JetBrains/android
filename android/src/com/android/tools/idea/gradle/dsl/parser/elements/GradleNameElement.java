@@ -49,15 +49,20 @@ public class GradleNameElement {
   @NotNull
   public static final Pattern INDEX_PATTERN = Pattern.compile("\\[(.+?)\\]|(.+?)(?=\\[)");
 
+  @NotNull
+  private final Pattern SPACES = Pattern.compile("\\s+");
+
   @Nullable
   private PsiElement myNameElement;
   @Nullable
   private String mySavedName;
   @Nullable
   private String myUnsavedName;
-
   @Nullable
   private String myFakeName; // Used for names that do not require a file element.
+  @Nullable
+  private String myName = null; // Cached version of the final name (to be reset on any change of the above fields).
+
 
   /**
    * Requires read access.
@@ -180,6 +185,7 @@ public class GradleNameElement {
     else {
       myFakeName = newName;
     }
+    myName = null;
   }
 
   public boolean isEmpty() {
@@ -224,6 +230,7 @@ public class GradleNameElement {
 
   @Nullable
   private String findName() {
+    if (myName != null) return myName;
     String name = null;
     if (myUnsavedName != null) {
       name = myUnsavedName;
@@ -238,9 +245,9 @@ public class GradleNameElement {
 
     if (name != null) {
       // Remove whitespace
-      name = name.replaceAll("\\s+", "");
+      name = SPACES.matcher(name).replaceAll("");
     }
-
+    myName = name;
     return name;
   }
 
@@ -260,5 +267,6 @@ public class GradleNameElement {
     else if (myNameElement != null) {
       mySavedName = myNameElement.getText();
     }
+    myName = null;
   }
 }
