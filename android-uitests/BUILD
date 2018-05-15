@@ -246,6 +246,7 @@ java_test(
         "//prebuilts/studio/layoutlib:data/res",
     ] + glob([
         "testData/SimpleLocalApplication/**",
+        "testData/LocalJarsAsModules/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.NewModuleTest"],
     tags = COMMON_TAGS + ["no_psq"],  #sanity test passing, some other test method failed for UI
