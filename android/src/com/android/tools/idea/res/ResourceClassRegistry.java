@@ -18,23 +18,19 @@ package com.android.tools.idea.res;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.AbstractResourceRepository;
-import com.google.common.collect.Maps;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
 
 /**
  * A project-wide registry for class lookup of resource classes (R classes).
  */
 public class ResourceClassRegistry implements ProjectComponent {
-
-  private final Map<AbstractResourceRepository, ResourceClassGenerator> myGeneratorMap = Maps.newHashMap();
+  private final Map<AbstractResourceRepository, ResourceClassGenerator> myGeneratorMap = new HashMap<>();
   private Collection<String> myPackages;
 
   /**
@@ -80,7 +76,7 @@ public class ResourceClassRegistry implements ProjectComponent {
   }
 
   /**
-   * Ideally, this method will not exist. But there are potential bugs in the caching mechanism. So, the method should be called when
+   * Ideally, this method would not exist. But there are potential bugs in the caching mechanism. So, the method should be called when
    * rendering fails due to hard to explain causes: like NoSuchFieldError.
    *
    * @see ResourceIdManager#resetDynamicIds()
@@ -90,26 +86,29 @@ public class ResourceClassRegistry implements ProjectComponent {
   }
 
   /**
-   * Lazily instantiate a registry with the target project.
+   * Lazily instantiates a registry with the target project.
    */
+  @NotNull
   public static ResourceClassRegistry get(@NotNull Project project) {
     return project.getComponent(ResourceClassRegistry.class);
   }
 
   // ProjectComponent methods.
 
-  @NotNull
   @Override
+  @NotNull
   public String getComponentName() {
     return ResourceClassRegistry.class.getName();
   }
 
   @VisibleForTesting
+  @NotNull
   Collection<String> getPackages() {
-    return myPackages;
+    return myPackages == null ? Collections.emptySet() : myPackages;
   }
 
   @VisibleForTesting
+  @NotNull
   Map<AbstractResourceRepository, ResourceClassGenerator> getGeneratorMap() {
     return myGeneratorMap;
   }
