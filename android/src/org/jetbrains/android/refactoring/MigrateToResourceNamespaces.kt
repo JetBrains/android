@@ -56,6 +56,7 @@ import org.jetbrains.android.dom.converters.AndroidResourceReference
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter
 import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.IdeaSourceProvider
 import org.jetbrains.android.util.AndroidUtils
 
 private val DataContext.module: Module? get() = LangDataKeys.MODULE.getData(this)
@@ -194,7 +195,20 @@ class MigrateToResourceNamespacesProcessor(
   }
 
   private fun findManifestUsages(): Collection<ResourceUsageInfo> {
-    return emptySet()
+    val psiManager = PsiManager.getInstance(myProject)
+    val result = mutableListOf<ResourceUsageInfo>()
+
+    for (facet in allFacets) {
+      result.addAll(
+        IdeaSourceProvider.getCurrentSourceProviders(facet)
+          .asSequence()
+          .mapNotNull { it.manifestFile }
+          .mapNotNull { psiManager.findFile(it) as? XmlFile }
+          .flatMap { findXmlUsages(it, facet).asSequence() }
+      )
+    }
+
+    return result
   }
 
   private fun findXmlUsages(xmlFile: XmlFile, currentFacet: AndroidFacet): Collection<ResourceUsageInfo> {

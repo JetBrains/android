@@ -44,9 +44,7 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
       myFacet.manifest!!.`package`.value = "com.example.app"
       AndroidFacet.getInstance(getAdditionalModuleByName("lib")!!)!!.manifest!!.`package`.value = "com.example.lib"
     }
-  }
 
-  fun testResourceValues() {
     myFixture.addFileToProject(
       "${getAdditionalModulePath("lib") + "/res"}/values/lib.xml",
       // language=xml
@@ -56,7 +54,9 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
         </resources>
       """.trimIndent()
     )
+  }
 
+  fun testResourceValues() {
     myFixture.addFileToProject(
       "/res/values/app.xml",
       // language=xml
@@ -103,6 +103,28 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
           <TextView android:text="@string/appString" />
           <TextView android:text="@com.example.lib:string/libString" />
         </LinearLayout>
+      """.trimIndent(),
+      true
+    )
+  }
+
+  fun testManifest() {
+    runUndoTransparentWriteAction {
+      myFacet.manifest!!.application.label.stringValue = "@string/libString"
+    }
+
+    MigrateToResourceNamespacesProcessor(myFacet).run()
+
+    myFixture.checkResult(
+      "AndroidManifest.xml",
+      """
+        <?xml version="1.0" encoding="utf-8"?>
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+                  package="com.example.app">
+            <application android:icon="@drawable/icon"
+                android:label="@com.example.lib:string/libString">
+            </application>
+        </manifest>
       """.trimIndent(),
       true
     )
