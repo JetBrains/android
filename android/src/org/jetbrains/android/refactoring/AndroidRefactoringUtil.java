@@ -1,7 +1,9 @@
 package org.jetbrains.android.refactoring;
 
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMigration;
@@ -9,6 +11,7 @@ import com.intellij.psi.PsiPackage;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.refactoring.RefactoringBundle;
 import com.intellij.util.containers.HashMap;
+import icons.AndroidIcons;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.dom.resources.Style;
 import org.jetbrains.android.dom.resources.StyleItem;
@@ -104,6 +107,19 @@ public class AndroidRefactoringUtil {
     }
     else {
       return WriteAction.compute(() -> migration.createPackage(qName));
+    }
+  }
+
+  static void offerToSync(@NotNull Project project, @NotNull String title) {
+    int dialogResult = Messages.showYesNoCancelDialog(project,
+                                                      "A project sync is necessary after the refactoring. Sync the project now?",
+                                                      title,
+                                                      AndroidIcons.GradleSync);
+    if (dialogResult == Messages.YES) {
+      GradleSyncInvoker.Request syncRequest = GradleSyncInvoker.Request.userRequest();
+      syncRequest.generateSourcesOnSuccess = true;
+      syncRequest.runInBackground = false;
+      GradleSyncInvoker.getInstance().requestProjectSync(project, syncRequest);
     }
   }
 }
