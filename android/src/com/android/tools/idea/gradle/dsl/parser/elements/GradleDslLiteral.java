@@ -50,7 +50,7 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
 
   @Override
   @Nullable
-  public Object getValue() {
+  public Object produceValue() {
     PsiElement element = getCurrentElement();
     if (element == null) {
       return null;
@@ -61,37 +61,13 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
 
   @Override
   @Nullable
-  public Object getUnresolvedValue() {
+  public Object produceUnresolvedValue() {
     PsiElement element = getCurrentElement();
     if (element == null) {
       return null;
     }
     return ApplicationManager.getApplication()
                              .runReadAction((Computable<Object>)() -> getDslFile().getParser().extractValue(this, element, false));
-  }
-
-  /**
-   * Returns the value of type {@code clazz} when the literal contains the value of that type,
-   * or {@code null} otherwise.
-   */
-  @Override
-  @Nullable
-  public <T> T getValue(@NotNull Class<T> clazz) {
-    Object value = getValue();
-    if (value != null && clazz.isAssignableFrom(value.getClass())) {
-      return clazz.cast(value);
-    }
-    return null;
-  }
-
-  @Override
-  @Nullable
-  public <T> T getUnresolvedValue(@NotNull Class<T> clazz) {
-    Object value = getUnresolvedValue();
-    if (value != null && clazz.isAssignableFrom(value.getClass())) {
-      return clazz.cast(value);
-    }
-    return null;
   }
 
   @Override
@@ -109,7 +85,7 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
 
   @Nullable
   @Override
-  public Object getRawValue() {
+  public Object produceRawValue() {
     PsiElement currentElement = getCurrentElement();
     if (currentElement == null) {
       return null;

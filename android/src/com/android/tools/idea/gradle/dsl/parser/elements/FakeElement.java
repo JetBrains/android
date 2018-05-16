@@ -59,7 +59,7 @@ public abstract class FakeElement extends GradleDslSettableExpression {
 
   @Nullable
   private PsiElement createPsiElement() {
-    Object s = produceValue();
+    Object s = extractValue();
     PsiElement element = s == null
                          ? null
                          : ApplicationManager.getApplication()
@@ -100,14 +100,21 @@ public abstract class FakeElement extends GradleDslSettableExpression {
     // Do nothing, this is a fake element
   }
 
+  // FakeElements should use there real elements modification counts
   @Override
-  public final void reset() {
-    // Do nothing, this is a fake element and has no state
+  public long getModificationCount() {
+    return myRealExpression.getModificationCount();
+  }
+
+  // FakeElements should use there real elements modification counts
+  @Override
+  public long getLastCommittedModificationCount() {
+    return myRealExpression.getLastCommittedModificationCount();
   }
 
   @Nullable
   @Override
-  public final Object getValue() {
+  public Object produceValue() {
     PsiElement element = createPsiElement();
     if (element == null) {
       return null;
@@ -119,7 +126,7 @@ public abstract class FakeElement extends GradleDslSettableExpression {
 
   @Nullable
   @Override
-  public final Object getUnresolvedValue() {
+  public final Object produceUnresolvedValue() {
     PsiElement element = createPsiElement();
     if (element == null) {
       return null;
@@ -127,16 +134,6 @@ public abstract class FakeElement extends GradleDslSettableExpression {
 
     return ApplicationManager.getApplication()
                              .runReadAction((Computable<Object>)() -> getDslFile().getParser().extractValue(this, element, false));
-  }
-
-  @Nullable
-  @Override
-  public final <T> T getValue(@NotNull Class<T> clazz) {
-    Object value = getValue();
-    if (value != null && clazz.isAssignableFrom(value.getClass())) {
-      return clazz.cast(value);
-    }
-    return null;
   }
 
   @Override
@@ -157,12 +154,6 @@ public abstract class FakeElement extends GradleDslSettableExpression {
     return myFakeName;
   }
 
-  @Nullable
-  @Override
-  public final <T> T getUnresolvedValue(@NotNull Class<T> clazz) {
-    return getValue(clazz);
-  }
-
   @Override
   public final void setValue(@NotNull Object value) {
     consumeValue(value);
@@ -172,7 +163,7 @@ public abstract class FakeElement extends GradleDslSettableExpression {
    * @return returns the value that has been derived from the real element.
    */
   @Nullable
-  protected abstract Object produceValue();
+  protected abstract Object extractValue();
 
   /**
    * Set the derived element to a given value.

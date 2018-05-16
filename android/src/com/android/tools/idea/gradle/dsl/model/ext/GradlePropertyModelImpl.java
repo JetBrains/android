@@ -597,7 +597,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     element.setElementType(myPropertyType);
     element.setUseAssignment(!myIsMethodCall);
     // We need to ensure the parent will be modified so this change takes effect.
-    element.setModified(true);
+    element.setModified();
     myElement = element;
   }
 

@@ -40,26 +40,14 @@ public class GradleDslGlobalValue extends GradleDslSimpleExpression {
 
   @Override
   @NotNull
-  public Object getValue() {
+  public Object produceValue() {
     return myFakeValue;
   }
 
   @Override
   @NotNull
-  public Object getUnresolvedValue() {
-    return getValue();
-  }
-
-  @Override
-  @Nullable
-  public <T> T getValue(@NotNull Class<T> clazz) {
-    return clazz.isAssignableFrom(myFakeValue.getClass()) ? clazz.cast(myFakeValue) : null;
-  }
-
-  @Override
-  @Nullable
-  public <T> T getUnresolvedValue(@NotNull Class<T> clazz) {
-    return getValue(clazz);
+  public Object produceUnresolvedValue() {
+    return produceValue();
   }
 
   @Override
@@ -70,7 +58,7 @@ public class GradleDslGlobalValue extends GradleDslSimpleExpression {
 
   @Nullable
   @Override
-  public Object getRawValue() {
+  public Object produceRawValue() {
     return getUnresolvedValue();
   }
 
@@ -78,7 +66,7 @@ public class GradleDslGlobalValue extends GradleDslSimpleExpression {
   @Override
   public GradleDslGlobalValue copy() {
     assert myParent != null;
-    return new GradleDslGlobalValue(myParent, getUnresolvedValue());
+    return new GradleDslGlobalValue(myParent, produceValue());
   }
 
   @Override
@@ -89,11 +77,6 @@ public class GradleDslGlobalValue extends GradleDslSimpleExpression {
 
   @Override
   protected void apply() {
-    // Do nothing
-  }
-
-  @Override
-  protected void reset() {
     // Do nothing
   }
 }

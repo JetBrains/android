@@ -39,7 +39,7 @@ public class FakeFileElement extends FakeElement {
 
   @Nullable
   @Override
-  protected Object produceValue() {
+  protected Object extractValue() {
     return PropertyUtil.getFileValue(myMethodCall);
   }
 
@@ -50,8 +50,8 @@ public class FakeFileElement extends FakeElement {
 
   @Nullable
   @Override
-  public Object getRawValue() {
-    return produceValue();
+  public Object produceRawValue() {
+    return extractValue();
   }
 
   @NotNull

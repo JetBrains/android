@@ -19,6 +19,7 @@ import com.android.tools.idea.Projects;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
+import com.android.tools.idea.gradle.dsl.model.CachedValue;
 import com.android.tools.idea.gradle.dsl.model.GradleSettingsModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
@@ -57,11 +58,18 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
   // Whether or not this value is part of a cycle. If UNSURE, needs to be computed.
   @Nullable protected ThreeState myHasCycle;
 
+  @NotNull private final CachedValue<GradleDslSimpleExpression> myResolvedCachedValue;
+  @NotNull private final CachedValue<GradleDslSimpleExpression> myUnresolvedCachedValue;
+  @NotNull private final CachedValue<GradleDslSimpleExpression> myRawCachedValue;
+
   protected GradleDslSimpleExpression(@Nullable GradleDslElement parent,
                                       @Nullable PsiElement psiElement,
                                       @NotNull GradleNameElement name,
                                       @Nullable PsiElement expression) {
     super(parent, psiElement, name);
+    myResolvedCachedValue = new CachedValue<>(this, GradleDslSimpleExpression::produceValue);
+    myUnresolvedCachedValue = new CachedValue<>(this, GradleDslSimpleExpression::produceUnresolvedValue);
+    myRawCachedValue = new CachedValue<>(this, GradleDslSimpleExpression::produceRawValue);
     myExpression = expression;
     myHasCycle = ThreeState.UNSURE;
     resolve();
@@ -83,7 +91,7 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
     // TODO: Use com.android.tools.idea.gradle.dsl.parser.dependencies.DependencyConfigurationDslElement to add a dependency configuration.
 
     myUnsavedConfigBlock = block;
-    setModified(true);
+    setModified();
   }
 
 
@@ -98,18 +106,45 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
   }
 
   @Nullable
-  public abstract Object getValue();
+  public final Object getValue() {
+    return myResolvedCachedValue.getValue();
+  }
 
   @Nullable
-  public abstract Object getUnresolvedValue();
+  protected abstract Object produceValue();
 
   @Nullable
-  public abstract <T> T getValue(@NotNull Class<T> clazz);
+  public final Object getUnresolvedValue() {
+    return myUnresolvedCachedValue.getValue();
+  }
 
   @Nullable
-  public abstract <T> T getUnresolvedValue(@NotNull Class<T> clazz);
+  protected abstract Object produceUnresolvedValue();
+
+  @Nullable
+  public <T> T getValue(@NotNull Class<T> clazz) {
+    Object value = getValue();
+    if (value != null && clazz.isAssignableFrom(value.getClass())) {
+      return clazz.cast(value);
+    }
+    return null;
+  }
+
+  @Nullable
+  public <T> T getUnresolvedValue(@NotNull Class<T> clazz) {
+    Object value = getUnresolvedValue();
+    if (value != null && clazz.isAssignableFrom(value.getClass())) {
+      return clazz.cast(value);
+    }
+    return null;
+  }
 
   public abstract void setValue(@NotNull Object value);
+
+  @Nullable
+  public final Object getRawValue() {
+    return  myRawCachedValue.getValue();
+  }
 
   /**
    * @return an object representing the raw value, this can be passed into {@link GradlePropertyModel#setValue(Object)} to set the value
@@ -117,7 +152,7 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
    * It will also correctly wrap any string that should be interpolated with double quotes.
    */
   @Nullable
-  public abstract Object getRawValue();
+  protected abstract Object produceRawValue();
 
   /**
    * @return a new object that is based on this one but has no backing PsiElement or parent.
@@ -135,6 +170,13 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
   @NotNull
   public List<GradleReferenceInjection> getResolvedVariables() {
     return myDependencies.stream().filter(e -> e.isResolved()).collect(Collectors.toList());
+  }
+
+  @Override
+  protected void reset() {
+    myRawCachedValue.clear();
+    myUnresolvedCachedValue.clear();
+    myResolvedCachedValue.clear();
   }
 
   @Nullable
@@ -210,34 +252,6 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
     }
 
     return resolvedElement;
-  }
-
-  /**
-   * Returns the resolved value of the given {@code referenceText} of type {@code clazz} when the {@code referenceText} is referring to
-   * an element with the value of that type, or {@code null} otherwise.
-   */
-  @Nullable
-  public <T> T resolveReference(@NotNull String referenceText, @NotNull Class<T> clazz) {
-    GradleDslElement resolvedElement = resolveReference(referenceText, true);
-
-    if (resolvedElement != null) {
-      T result = null;
-      if (clazz.isInstance(resolvedElement)) {
-        result = clazz.cast(resolvedElement);
-      }
-      else if (resolvedElement instanceof GradleDslSimpleExpression) {
-        result = ((GradleDslSimpleExpression)resolvedElement).getValue(clazz);
-      }
-      if (result != null) {
-        return result;
-      }
-    }
-
-    if (clazz.isAssignableFrom(String.class)) {
-      return clazz.cast(referenceText);
-    }
-
-    return null;
   }
 
   @Nullable
@@ -398,7 +412,7 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
         element = injection.getToBeInjected();
       }
 
-      // All elements we find must be GradlePropertiesDslElement or references them on all but the last iteration.
+      // All elements we find must be GradlePropertiesDslElement on all but the last iteration.
       if (!isPropertiesElementOrMap(element)) {
         return null;
       }
@@ -537,7 +551,7 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
    */
   protected void valueChanged() {
     myHasCycle = ThreeState.UNSURE;
-    setModified(true);
+    setModified();
   }
 
   /**

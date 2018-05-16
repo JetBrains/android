@@ -73,6 +73,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
 
     if (state == TO_BE_ADDED) {
       updateDependenciesOnAddElement(element);
+      element.setModified();
     }
   }
 
@@ -80,6 +81,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     myProperties.addElementAtIndex(element, state, index, state == EXISTING);
     if (state == TO_BE_ADDED) {
       updateDependenciesOnAddElement(element);
+      element.setModified();
     }
   }
 
@@ -90,20 +92,28 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
 
   private void removePropertyInternal(@NotNull String property) {
     List<GradleDslElement> elements = myProperties.removeAll(e -> e.myElement.getName().equals(property));
-    elements.forEach(e -> updateDependenciesOnRemoveElement(e));
+    elements.forEach(e -> {
+      e.setModified();
+      updateDependenciesOnRemoveElement(e);
+    });
+    // Since we only setModified after the child is removed we need to set us to be modified after.
+    setModified();
   }
 
   /**
    * Removes the property by the given element. Returns the OLD ElementState.
    */
   private ElementState removePropertyInternal(@NotNull GradleDslElement element) {
+    element.setModified();
     ElementState state = myProperties.remove(element);
     updateDependenciesOnRemoveElement(element);
     return state;
   }
 
   private ElementState replacePropertyInternal(@NotNull GradleDslElement element, @NotNull GradleDslElement newElement) {
+    element.setModified();
     updateDependenciesOnReplaceElement(element, newElement);
+    newElement.setModified();
 
     ElementState oldState = myProperties.replaceElement(element, newElement);
     reorderAndMaybeGetNewIndex(newElement);
@@ -385,14 +395,14 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   public GradleDslElement setNewElement(@NotNull GradleDslElement newElement) {
     newElement.setParent(this);
     addPropertyInternal(newElement, TO_BE_ADDED);
-    setModified(true);
+    setModified();
     return newElement;
   }
 
   public void addNewElementAt(int index, @NotNull GradleDslElement newElement) {
     newElement.setParent(this);
     addPropertyInternal(index, newElement, TO_BE_ADDED);
-    setModified(true);
+    setModified();
   }
 
   public <T> void addNewElementBeforeAllOfClass(@NotNull GradleDslElement newElement, @NotNull Class<T> clazz) {
@@ -503,16 +513,12 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
    *
    * <p>The property will be un-marked for removal when {@link #reset()} method is invoked.
    */
-  public GradlePropertiesDslElement removeProperty(@NotNull String property) {
+  public void removeProperty(@NotNull String property) {
     removePropertyInternal(property);
-    setModified(true);
-    return this;
   }
 
-  public GradlePropertiesDslElement removeProperty(@NotNull GradleDslElement element) {
+  public void removeProperty(@NotNull GradleDslElement element) {
     removePropertyInternal(element);
-    setModified(true);
-    return this;
   }
 
   @Override
@@ -877,7 +883,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
         item.myElementState = MOVED;
       }
       // Mark it as modified.
-      item.myElement.setModified(true);
+      item.myElement.setModified();
     }
   }
 }

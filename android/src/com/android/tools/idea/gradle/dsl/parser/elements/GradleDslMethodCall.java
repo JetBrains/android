@@ -123,13 +123,13 @@ public final class GradleDslMethodCall extends GradleDslSimpleExpression {
 
   @Override
   @Nullable
-  public Object getValue() {
+  public Object produceValue() {
     return getValueFromArgList(getArguments());
   }
 
   @Override
   @Nullable
-  public Object getUnresolvedValue() {
+  public Object produceUnresolvedValue() {
     return getValue();
   }
 
@@ -182,7 +182,7 @@ public final class GradleDslMethodCall extends GradleDslSimpleExpression {
 
   @Nullable
   @Override
-  public Object getRawValue() {
+  public Object produceRawValue() {
     return getUnresolvedValue();
   }
 
@@ -242,6 +242,7 @@ public final class GradleDslMethodCall extends GradleDslSimpleExpression {
 
   @Override
   protected void reset() {
+    super.reset();
     myArguments.reset();
   }
 

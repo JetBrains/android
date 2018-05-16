@@ -134,7 +134,10 @@ public interface GradleDslElement extends AnchorProvider {
    */
   void delete();
 
-  void setModified(boolean modified);
+  /**
+   * Marks this element as having been modified.
+   */
+  void setModified();
 
   boolean isModified();
 
