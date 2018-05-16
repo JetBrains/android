@@ -282,9 +282,28 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
                                          "</layout>");
   }
 
+  public void testCreateNavigationFileResource() throws Exception {
+    XmlFile file =
+      AndroidResourceUtil.createFileResource("nav", getLayoutFolder(), TAG_NAVIGATION, ResourceType.NAVIGATION.getName(), false);
+    assertThat(file.getName()).isEqualTo("nav.xml");
+    assertThat(file.getText()).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                                         "<navigation xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                         "    xmlns:app=\"http://schemas.android.com/apk/res-auto\" android:id=\"@+id/nav\"\">\n" +
+                                         "\n" +
+                                         "    </navigation>");
+  }
+
   @NotNull
   private PsiDirectory getLayoutFolder() {
     PsiFile file = myFixture.configureByText("res/layout/main.xml", "<LinearLayout/>");
+    PsiDirectory folder = file.getParent();
+    assertThat(folder).isNotNull();
+    return folder;
+  }
+
+  @NotNull
+  private PsiDirectory getNavigationFolder() {
+    PsiFile file = myFixture.configureByText("res/navigation/main.xml", "<navigation/>");
     PsiDirectory folder = file.getParent();
     assertThat(folder).isNotNull();
     return folder;

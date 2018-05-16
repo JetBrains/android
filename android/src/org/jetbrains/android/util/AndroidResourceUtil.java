@@ -1291,10 +1291,13 @@ public class AndroidResourceUtil {
     if (valuesResourceFile) {
       return AndroidFileTemplateProvider.VALUE_RESOURCE_FILE_TEMPLATE;
     }
-    if (ResourceType.LAYOUT.getName().equals(resourceType) && !TAG_LAYOUT.equals(rootTagName)) {
+    if (LAYOUT.getName().equals(resourceType) && !TAG_LAYOUT.equals(rootTagName)) {
       return AndroidUtils.TAG_LINEAR_LAYOUT.equals(rootTagName)
              ? AndroidFileTemplateProvider.LAYOUT_RESOURCE_VERTICAL_FILE_TEMPLATE
              : AndroidFileTemplateProvider.LAYOUT_RESOURCE_FILE_TEMPLATE;
+    }
+    if (NAVIGATION.getName().equals(resourceType)) {
+      return AndroidFileTemplateProvider.NAVIGATION_RESOURCE_FILE_TEMPLATE;
     }
     return AndroidFileTemplateProvider.RESOURCE_FILE_TEMPLATE;
   }
