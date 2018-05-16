@@ -553,18 +553,21 @@ public class ViewHandlerManager implements ProjectComponent {
   /**
    * Get the popup menu view actions for the given handler.
    * <p>
-   * This method will call {@link ViewHandler#addPopupMenuActions(List)} (String, List)}
+   * This method will call {@link ViewHandler#addPopupMenuActions(NlComponent, List)} (String, List)}
    * but will cache results across invocations.
    *
+   *
+   * @param component the component clicked on
    * @param handler the handler to look up actions for
    * @return the associated view actions.
    */
-  public List<ViewAction> getPopupMenuActions(@NotNull ViewHandler handler) {
+  public List<ViewAction> getPopupMenuActions(@NotNull NlComponent component, @NotNull ViewHandler handler) {
     List<ViewAction> actions = myMenuActions.get(handler);
     if (actions == null) {
       actions = Lists.newArrayList();
-      handler.addPopupMenuActions(actions);
-      myMenuActions.put(handler, actions);
+      if (handler.addPopupMenuActions(component, actions)) {
+        myMenuActions.put(handler, actions);
+      }
     }
     return actions;
   }

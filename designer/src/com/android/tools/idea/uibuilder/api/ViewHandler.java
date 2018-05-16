@@ -23,15 +23,12 @@ import com.android.tools.idea.uibuilder.api.actions.*;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -118,11 +115,13 @@ public class ViewHandler extends StructurePaneComponentHandler implements Target
    * current circumstances; instead, actions which do not apply should be made
    * disabled or invisible by calling the right methods from
    * {@link ViewAction#updatePresentation(ViewActionPresentation, ViewEditor, ViewHandler, NlComponent, List, int)}
-   *
+   * @param component the component clicked on
    * @param actions a list of view actions, such as a
    *                {@link DirectViewAction}, {@link ToggleViewAction}, {@link ToggleViewActionGroup}, etc.
+   * @return true if the actions should be cached, false otherwise
    */
-  public void addPopupMenuActions(@NotNull List<ViewAction> actions) {
+  public boolean addPopupMenuActions(@NotNull NlComponent component, @NotNull List<ViewAction> actions) {
+    return true;
   }
 
   /**

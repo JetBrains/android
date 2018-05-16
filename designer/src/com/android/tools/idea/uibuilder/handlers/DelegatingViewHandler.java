@@ -64,8 +64,8 @@ public class DelegatingViewHandler extends ViewHandler {
   }
 
   @Override
-  public void addPopupMenuActions(@NotNull List<ViewAction> actions) {
-    myHandler.addPopupMenuActions(actions);
+  public boolean addPopupMenuActions(@NotNull NlComponent component, @NotNull List<ViewAction> actions) {
+    return myHandler.addPopupMenuActions(component, actions);
   }
 
   // Properties
