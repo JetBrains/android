@@ -215,13 +215,16 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
   }
 
   private void loadMotionScene() {
-    if (myMotionLayout != null) {
-      String referencedFile =
-        myMotionLayout.getAttribute(SdkConstants.AUTO_URI, "transition"); // TODO SdkConstants.ATTR_MOTION_SCENE_REFERENCE);
-      if (referencedFile != null) {
-        parseMotionScene(myMotionLayout, referencedFile);
-      }
+    if (myMotionLayout == null) {
+      return;
     }
+
+    String referencedFile =
+      myMotionLayout.getAttribute(SdkConstants.AUTO_URI, "transition"); // TODO SdkConstants.ATTR_MOTION_SCENE_REFERENCE);
+    if (referencedFile != null) {
+      parseMotionScene(myMotionLayout, referencedFile);
+    }
+
     myMotionLayoutComponentHelper = new MotionLayoutComponentHelper(myMotionLayout);
     switch (myPanel.getMode()) {
       case START:
