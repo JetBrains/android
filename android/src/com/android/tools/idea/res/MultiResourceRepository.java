@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.AbstractResourceRepository;
@@ -59,10 +58,10 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   private final ResourceTable myCachedMaps = new ResourceTable();
 
   @GuardedBy("ITEM_MAP_LOCK")
-  private final Map<ResourceType, Boolean> myCachedHasResourcesOfType = Maps.newEnumMap(ResourceType.class);
+  private final Map<ResourceType, Boolean> myCachedHasResourcesOfType = new EnumMap<>(ResourceType.class);
 
   @GuardedBy("ITEM_MAP_LOCK")
-  private Map<String, DataBindingInfo> myDataBindingResourceFiles = Maps.newHashMap();
+  private Map<String, DataBindingInfo> myDataBindingResourceFiles = new HashMap<>();
 
   @GuardedBy("ITEM_MAP_LOCK")
   private long myDataBindingResourceFilesModificationCount = Long.MIN_VALUE;
@@ -148,8 +147,8 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
     }
   }
 
-  @NotNull
   @Override
+  @NotNull
   public Map<String, DataBindingInfo> getDataBindingResourceFiles() {
     synchronized (ITEM_MAP_LOCK) {
       long modificationCount = getModificationCount();
@@ -169,8 +168,8 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
     }
   }
 
-  @NotNull
   @Override
+  @NotNull
   public synchronized Set<ResourceNamespace> getNamespaces() {
     synchronized (ITEM_MAP_LOCK) {
       if (myCachedNamespaces == null) {
@@ -188,7 +187,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
     }
   }
 
-  @NonNull
+  @NotNull
   @Override
   protected ResourceTable getFullTable() {
     synchronized (ITEM_MAP_LOCK) {
@@ -213,10 +212,10 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
     }
   }
 
-  @Nullable
   @Override
+  @Nullable
   protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace,
-                                                      @NonNull ResourceType type,
+                                                      @NotNull ResourceType type,
                                                       boolean create) {
     synchronized (ITEM_MAP_LOCK) {
       // Should I assert !create here? If we try to manipulate the cache it won't work right...
@@ -234,9 +233,9 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
       }
 
       map = ArrayListMultimap.create();
-      Set<LocalResourceRepository> visited = Sets.newHashSet();
+      Set<LocalResourceRepository> visited = new HashSet<>();
       SetMultimap<String, String> seenQualifiers = HashMultimap.create();
-      // Merge all items of the given type
+      // Merge all items of the given type.
       merge(visited, namespace, type, seenQualifiers, map);
 
       myCachedMaps.put(namespace, type, map);
@@ -270,7 +269,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
         return cachedResult;
       }
 
-      Set<LocalResourceRepository> visited = Sets.newHashSet();
+      Set<LocalResourceRepository> visited = new HashSet<>();
       boolean result = computeHasResourcesOfType(type, visited);
       myCachedHasResourcesOfType.put(type, result);
       return result;
@@ -346,7 +345,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
 
   @Override
   @VisibleForTesting
-  public boolean isScanPending(@NonNull PsiFile psiFile) {
+  public boolean isScanPending(@NotNull PsiFile psiFile) {
     synchronized (ITEM_MAP_LOCK) {
       assert ApplicationManager.getApplication().isUnitTestMode();
       for (int i = myChildren.size(); --i >= 0;) {
@@ -369,8 +368,8 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
     }
   }
 
-  @NotNull
   @Override
+  @NotNull
   protected Set<VirtualFile> computeResourceDirs() {
     synchronized (ITEM_MAP_LOCK) {
       Set<VirtualFile> result = new HashSet<>();
