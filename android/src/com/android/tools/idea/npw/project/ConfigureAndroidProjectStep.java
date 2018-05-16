@@ -146,7 +146,8 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo = getModel().androidSdkInfo();
     myFormFactorSdkControls.init(androidSdkInfo, this);
 
-    myBindings.bindTwoWay(new SelectedProperty(myInstantAppCheck), getModel().instantApp());
+    myBindings.bindTwoWay(getModel().instantApp(), new SelectedProperty(myInstantAppCheck));
+    myBindings.bindTwoWay(getModel().includeNavController(), new SelectedProperty(myNavigationControllerCheck));
 
     myValidatorPanel.registerValidator(myProjectModel.applicationName(), value -> {
       if (value.isEmpty()) {
