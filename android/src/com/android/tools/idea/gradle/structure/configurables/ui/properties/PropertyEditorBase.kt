@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.structure.model.VariablesProvider
 import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyContext
 import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyCore
 import com.intellij.ui.components.JBLabel
+import java.awt.Font
 import javax.swing.JComponent
 
 abstract class PropertyEditorBase<out ModelPropertyT : ModelPropertyCore<*>, ValueT : Any>(
@@ -32,5 +33,11 @@ abstract class PropertyEditorBase<out ModelPropertyT : ModelPropertyCore<*>, Val
 
   val labelComponent: JBLabel = JBLabel(property.description).also {
     it.labelFor = component
+  }
+
+  protected fun updateModified() {
+    labelComponent.font = labelComponent.font.let {
+      if (property.isModified == true) it.deriveFont(it.style or Font.BOLD) else it.deriveFont(it.style and Font.BOLD.inv())
+    }
   }
 }

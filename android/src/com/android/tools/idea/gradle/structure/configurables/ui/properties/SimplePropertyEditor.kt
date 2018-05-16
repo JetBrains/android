@@ -126,11 +126,6 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
         })
     }
 
-    private fun loadValue(value: PropertyValue<PropertyT>) {
-      setValue(value.parsedValue)
-      setStatusHtmlText(getStatusHtmlText(value))
-    }
-
     private fun setStatusHtmlText(statusHtmlText: String) {
       statusComponent.text = statusHtmlText
     }
@@ -145,7 +140,6 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
           val defaultValueGetter = property.defaultValueGetter ?: return ""
           defaultValueGetter()
         }
-        else -> null
       }
       val resolvedValueText = when (resolvedValue) {
         is ResolvedValue.Set -> when {
@@ -164,7 +158,10 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
 
     @VisibleForTesting
     fun reloadValue() {
-      loadValue(property.getValue())
+      val value = property.getValue()
+      setValue(value.parsedValue)
+      setStatusHtmlText(getStatusHtmlText(value))
+      updateModified()
     }
 
     internal fun applyChanges(annotatedValue: Annotated<ParsedValue<PropertyT>>) {
