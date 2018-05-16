@@ -307,10 +307,10 @@ class CpuProfilerStageViewTest {
    */
   private fun checkCommonProfilersMenuItems(items: List<ContextMenuItem>, startIndex: Int) {
     var index = startIndex
-    assertThat(items[index++].text).isEqualTo("Attach to Live")
-    assertThat(items[index++].text).isEqualTo("Detach from Live")
+    assertThat(items[index++].text).isEqualTo(StudioProfilersView.ATTACH_LIVE)
+    assertThat(items[index++].text).isEqualTo(StudioProfilersView.DETACH_LIVE)
     assertThat(items[index++]).isEqualTo(ContextMenuItem.SEPARATOR)
-    assertThat(items[index++].text).isEqualTo("Zoom in")
-    assertThat(items[index].text).isEqualTo("Zoom out")
+    assertThat(items[index++].text).isEqualTo(StudioProfilersView.ZOOM_IN)
+    assertThat(items[index].text).isEqualTo(StudioProfilersView.ZOOM_OUT)
   }
 }
