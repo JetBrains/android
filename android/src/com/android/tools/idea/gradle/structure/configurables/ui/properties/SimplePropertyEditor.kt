@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
-import com.android.tools.adtui.HtmlLabel
 import com.android.tools.idea.gradle.structure.configurables.ui.RenderedComboBox
 import com.android.tools.idea.gradle.structure.configurables.ui.TextRenderer
+import com.android.tools.idea.gradle.structure.configurables.ui.toRenderer
 import com.android.tools.idea.gradle.structure.model.VariablesProvider
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.google.common.annotations.VisibleForTesting
@@ -26,12 +26,13 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.ui.SimpleColoredComponent
+import com.intellij.ui.SimpleTextAttributes
 import java.awt.Dimension
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import javax.swing.DefaultComboBoxModel
 import javax.swing.Icon
-import javax.swing.text.DefaultCaret
 
 /**
  * A property editor [ModelPropertyEditor] for properties of simple (not complex) types.
@@ -126,41 +127,32 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
         })
     }
 
-    private fun setStatusHtmlText(statusHtmlText: String) {
-      statusComponent.text = statusHtmlText
+    private fun setStatusHtmlText(status: ValueRenderer) {
+      statusComponent.clear()
+      status.renderTo(statusComponentRenderer)
     }
 
-    private fun getStatusHtmlText(value: PropertyValue<PropertyT>): String {
-
-      val (parsedValue, _) = value.parsedValue
-      val resolvedValue = value.resolved
-      val effectiveEditorValue = when (parsedValue) {
-        is ParsedValue.Set.Parsed -> parsedValue.value
-        is ParsedValue.NotSet -> {
-          val defaultValueGetter = property.defaultValueGetter ?: return ""
-          defaultValueGetter()
+    private fun getStatusRenderer(annotatedPropertyValue: Annotated<PropertyValue<PropertyT>>): ValueRenderer =
+      (annotatedPropertyValue.annotation as? ValueAnnotation.Error).let {
+        if (it != null) {
+          object: ValueRenderer {
+            override fun renderTo(textRenderer: TextRenderer): Boolean {
+              textRenderer.append(it.message, SimpleTextAttributes.ERROR_ATTRIBUTES)
+              return true
+            }
+          }
+        } else {
+          object: ValueRenderer {
+            override fun renderTo(textRenderer: TextRenderer): Boolean = false
+          }
         }
       }
-      val resolvedValueText = when (resolvedValue) {
-        is ResolvedValue.Set -> when {
-          effectiveEditorValue != resolvedValue.resolved -> resolvedValue.resolved?.formatter()
-          else -> null
-        }
-        is ResolvedValue.NotResolved -> null
-      }
-      return buildString {
-        if (resolvedValueText != null) {
-          append(" -> ")
-          append(resolvedValueText)
-        }
-      }
-    }
 
     @VisibleForTesting
     fun reloadValue() {
       val annotatedPropertyValue = property.getValue()
       setValue(annotatedPropertyValue.value.parsedValue)
-      setStatusHtmlText(getStatusHtmlText(annotatedPropertyValue.value))
+      setStatusHtmlText(getStatusRenderer(annotatedPropertyValue))
       updateModified()
     }
 
@@ -207,11 +199,8 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
   }
 
   override val component: RenderedComboBox<Annotated<ParsedValue<PropertyT>>> = renderedComboBox
-  override val statusComponent: HtmlLabel = HtmlLabel().also {
-    // Note: this is important to be the first step to prevent automatic scrolling of the container to the last added label.
-    (it.caret as DefaultCaret).updatePolicy = DefaultCaret.NEVER_UPDATE
-    HtmlLabel.setUpAsHtmlLabel(it, renderedComboBox.font)
-  }
+  override val statusComponent: SimpleColoredComponent = SimpleColoredComponent()
+  private val statusComponentRenderer = statusComponent.toRenderer()
 
   override fun getValue(): Annotated<ParsedValue<PropertyT>> =
     @Suppress("UNCHECKED_CAST")

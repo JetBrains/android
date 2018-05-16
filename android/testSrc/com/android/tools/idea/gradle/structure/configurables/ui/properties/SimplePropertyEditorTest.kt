@@ -75,7 +75,8 @@ class SimplePropertyEditorTest : UsefulTestCase() {
           }
         }
       override val formatter: (Nothing?, String) -> String get() = { _, it -> it }
-      override val knownValuesGetter: (Nothing?, Model) -> ListenableFuture<List<ValueDescriptor<String>>> get() = { _, _ -> wellKnownValuesFuture }
+      override val knownValuesGetter: (Nothing?, Model) -> ListenableFuture<List<ValueDescriptor<String>>> get() =
+        { _, _ -> wellKnownValuesFuture }
       override val description: String = "Description"
 
       override fun bind(model: Model): ModelPropertyCore<String> = object : ModelPropertyCore<String> {
@@ -97,7 +98,8 @@ class SimplePropertyEditorTest : UsefulTestCase() {
         else ResolvedValue.NotResolved()
 
         override val defaultValueGetter: (() -> String?)? get() = defaultValue?.let { { it } }
-        override fun annotateParsedResolvedMismatch(): ValueAnnotation? = null
+        override fun annotateParsedResolvedMismatch(): ValueAnnotation? =
+          annotateParsedResolvedMismatchBy { parsed, resolved -> parsed == resolved }
 
         override val isModified: Boolean? get() = false
       }
@@ -128,7 +130,7 @@ class SimplePropertyEditorTest : UsefulTestCase() {
     defaultValue = null  // It should not matter whether it is set ot not. Make sure that if it is not set we still report the difference.
     val editor = simplePropertyEditor(property.bind(model), property.bindContext(null, model))
     assertThat(editor.selectedItem, equalTo("value".asAnnotatedParsed()))
-    assertThat(editor.testPlainTextStatus, equalTo(" -> other"))
+    assertThat(editor.testPlainTextStatus, equalTo("Resolved: other"))
   }
 
   fun testLoadsWellKnownValue() {
@@ -176,7 +178,7 @@ class SimplePropertyEditorTest : UsefulTestCase() {
     resolvedModel.value = "resolved"
     val editor = simplePropertyEditor(property.bind(model), property.bindContext(null, model))
     assertThat<Any?>(editor.selectedItem, equalTo(ParsedValue.NotSet.annotated()))
-    assertThat(editor.testPlainTextStatus, equalTo(" -> resolved"))
+    assertThat(editor.testPlainTextStatus, equalTo("Resolved: resolved"))
   }
 
   fun testLoadsNotSetValue_noDefault_resolved() {
@@ -200,7 +202,7 @@ class SimplePropertyEditorTest : UsefulTestCase() {
     parsedModel.value = ParsedValue.Set.Parsed("value", DslText.Reference("some_reference")).annotated()
     val editor = simplePropertyEditor(property.bind(model), property.bindContext(null, model))
     assertThat<Any?>(editor.selectedItem, equalTo(("some_reference" to "value").asAnnotatedParsed()))
-    assertThat(editor.testPlainTextStatus, equalTo(" -> other"))
+    assertThat(editor.testPlainTextStatus, equalTo("Resolved: other"))
   }
 
   fun testLoadsReferenceResolvedIntoKnownValue() {
@@ -225,7 +227,7 @@ class SimplePropertyEditorTest : UsefulTestCase() {
     val editor = simplePropertyEditor(property.bind(model), property.bindContext(null, model))
     assertThat<Any?>(editor.selectedItem,
                      equalTo(ParsedValue.Set.Parsed(value = null, dslText = DslText.OtherUnparsedDslText("1 + z(x)")).annotated()))
-    assertThat(editor.testPlainTextStatus, equalTo(" -> value"))
+    assertThat(editor.testPlainTextStatus, equalTo("Resolved: value"))
   }
 
   fun testLoadsDropDownList() {
@@ -289,7 +291,7 @@ class SimplePropertyEditorTest : UsefulTestCase() {
     editor.commitTestText("abc")
     assertThat(parsedModel.value, equalTo("abc".asAnnotatedParsed()))
     // TODO(b/73811870): Assert the status message was updated correctly.
-    assertThat(editor.testPlainTextStatus, equalTo(" -> value"))
+    assertThat(editor.testPlainTextStatus, equalTo("Resolved: value"))
     assertThat(editor.selectedItem, equalTo("abc".asAnnotatedParsed()))
   }
 
@@ -298,7 +300,7 @@ class SimplePropertyEditorTest : UsefulTestCase() {
     editor.commitTestText("")
     assertThat<Annotated<ParsedValue<String>>>(parsedModel.value, equalTo(ParsedValue.NotSet.annotated()))
     // TODO(b/73811870): Assert the status message was updated correctly.
-    assertThat(editor.testPlainTextStatus, equalTo(" -> value"))
+    assertThat(editor.testPlainTextStatus, equalTo("Resolved: value"))
     assertThat<Any?>(editor.selectedItem, equalTo(ParsedValue.NotSet.annotated()))
   }
 
@@ -328,7 +330,7 @@ class SimplePropertyEditorTest : UsefulTestCase() {
                                                  ParsedValue.Set.Parsed(interpolatedValue,
                                                                         dslText).annotated()))
     // TODO(b/73811870): Assert the status message was updated correctly.
-    assertThat(editor.testPlainTextStatus, equalTo(" -> value"))
+    assertThat(editor.testPlainTextStatus, equalTo("Resolved: value"))
     assertThat<Any?>(editor.selectedItem,
                      equalTo(
                        ParsedValue.Set.Parsed(value = interpolatedValue, dslText = dslText).annotated()))
@@ -404,9 +406,8 @@ class SimplePropertyEditorTest : UsefulTestCase() {
 }
 
 private val spacesMatcher = Regex("\\s+")
-private val HtmlLabel.normalizedPlainText: String get() = document.getText(0, document.length).replace(spacesMatcher, " ")
 private val SimplePropertyEditor<*, *>.testPlainTextStatus: String
-  get() = (this.statusComponent as? HtmlLabel)?.normalizedPlainText.orEmpty()
+  get() = this.statusComponent.getCharSequence(true).toString()
 
 private fun <T> ListModel<T>.getItems(): List<T> {
   val result = mutableListOf<T>()
