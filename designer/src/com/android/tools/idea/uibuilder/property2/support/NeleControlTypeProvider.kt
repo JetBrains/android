@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.property2.support
 
 import com.android.tools.idea.common.property2.api.ControlType
 import com.android.tools.idea.common.property2.api.ControlTypeProvider
-import com.android.tools.idea.common.property2.api.EnumSupport
+import com.android.tools.idea.common.property2.api.EnumSupportProvider
 import com.android.tools.idea.uibuilder.property2.NeleFlagsPropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
@@ -25,14 +25,14 @@ import com.android.tools.idea.uibuilder.property2.NelePropertyType
 /**
  * Computation of the [ControlType] of a [NelePropertyItem].
  */
-class NeleControlTypeProvider : ControlTypeProvider<NelePropertyItem> {
+class NeleControlTypeProvider(private val enumSupportProvider: EnumSupportProvider<NelePropertyItem>) : ControlTypeProvider<NelePropertyItem> {
 
-  override fun invoke(property: NelePropertyItem, enumSupport: EnumSupport?) =
+  override fun invoke(property: NelePropertyItem) =
     when {
       property is NeleFlagsPropertyItem ->
         ControlType.FLAG_EDITOR
 
-      enumSupport != null ->
+      enumSupportProvider(property) != null ->
         ControlType.COMBO_BOX
 
       property.type == NelePropertyType.BOOLEAN ->

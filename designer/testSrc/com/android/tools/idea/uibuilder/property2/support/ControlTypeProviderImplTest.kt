@@ -18,49 +18,73 @@ package com.android.tools.idea.uibuilder.property2.support
 import com.android.SdkConstants.*
 import com.android.tools.idea.common.property2.api.ControlType
 import com.android.tools.idea.common.property2.api.EnumSupport
+import com.android.tools.idea.common.property2.api.EnumSupportProvider
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
 import com.google.common.truth.Truth.assertThat
-import org.jetbrains.android.AndroidTestCase
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import org.jetbrains.android.dom.attrs.AttributeFormat
+import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 
-class ControlTypeProviderImplTest: AndroidTestCase() {
+@RunsInEdt
+class ControlTypeProviderImplTest {
+  @JvmField @Rule
+  val projectRule = AndroidProjectRule.inMemory()
+
+  @JvmField @Rule
+  val edtRule = EdtRule()
 
   @Test
   fun testFlagEditorForFlagProperties() {
-    val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW)
-    val provide = NeleControlTypeProvider()
-    val definition = AttributeDefinition(name, null, null, listOf(AttributeFormat.Flags))
+    val util = SupportTestUtil(projectRule, TEXT_VIEW)
+    val definition = AttributeDefinition("definition", null, null, listOf(AttributeFormat.Flags))
     val property = util.makeFlagsProperty(ANDROID_URI, definition)
+    val enumSupportProvider = createEnumSupportProvider()
     val enumSupport = mock(EnumSupport::class.java)
-    assertThat(provide(property, enumSupport)).isEqualTo(ControlType.FLAG_EDITOR)
+    `when`(enumSupportProvider.invoke(property)).thenReturn(enumSupport)
+    val controlTypeProvider = NeleControlTypeProvider(enumSupportProvider)
+    assertThat(controlTypeProvider(property)).isEqualTo(ControlType.FLAG_EDITOR)
   }
 
   @Test
   fun testComboBoxForEnumSupport() {
-    val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW)
-    val provide = NeleControlTypeProvider()
+    val util = SupportTestUtil(projectRule, TEXT_VIEW)
     val property = util.makeProperty(ANDROID_URI, ATTR_LAYOUT_HEIGHT, NelePropertyType.BOOLEAN)
+    val enumSupportProvider = createEnumSupportProvider()
     val enumSupport = mock(EnumSupport::class.java)
-    assertThat(provide(property, enumSupport)).isEqualTo(ControlType.COMBO_BOX)
+    `when`(enumSupportProvider.invoke(property)).thenReturn(enumSupport)
+    val controlTypeProvider = NeleControlTypeProvider(enumSupportProvider)
+    assertThat(controlTypeProvider(property)).isEqualTo(ControlType.COMBO_BOX)
   }
 
   @Test
   fun testBooleanForBooleanTypes() {
-    val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW)
-    val provide = NeleControlTypeProvider()
+    val util = SupportTestUtil(projectRule, TEXT_VIEW)
     val property = util.makeProperty(ANDROID_URI, ATTR_CLICKABLE, NelePropertyType.BOOLEAN)
-    assertThat(provide(property, null)).isEqualTo(ControlType.THREE_STATE_BOOLEAN)
+    val enumSupportProvider = createEnumSupportProvider()
+    val controlTypeProvider = NeleControlTypeProvider(enumSupportProvider)
+    assertThat(controlTypeProvider(property)).isEqualTo(ControlType.THREE_STATE_BOOLEAN)
   }
 
   @Test
   fun testTextEditorForEverythingElse() {
-    val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW)
-    val provide = NeleControlTypeProvider()
+    val util = SupportTestUtil(projectRule, TEXT_VIEW)
     val property = util.makeProperty(ANDROID_URI, ATTR_PADDING_BOTTOM, NelePropertyType.DIMENSION)
-    assertThat(provide(property, null)).isEqualTo(ControlType.TEXT_EDITOR)
+    val enumSupportProvider = createEnumSupportProvider()
+    val controlTypeProvider = NeleControlTypeProvider(enumSupportProvider)
+    assertThat(controlTypeProvider(property)).isEqualTo(ControlType.TEXT_EDITOR)
+  }
+
+  // Method here to isolate the unchecked cast to a single place
+  private fun createEnumSupportProvider(): EnumSupportProvider<NelePropertyItem> {
+    @Suppress("UNCHECKED_CAST")
+    return mock(EnumSupportProvider::class.java) as EnumSupportProvider<NelePropertyItem>
   }
 }

@@ -35,15 +35,14 @@ class EditorProviderImpl<in P : PropertyItem>(
 ) : EditorProvider<P> {
 
   override fun invoke(property: P): Pair<PropertyEditorModel, JComponent> {
-    val enumSupport = enumSupportProvider(property)
-    val controlType = controlTypeProvider(property, enumSupport)
+    val controlType = controlTypeProvider(property)
 
     when (controlType) {
       ControlType.COMBO_BOX ->
-        return createComboBoxEditor(property, true, enumSupport!!)
+        return createComboBoxEditor(property, true, enumSupportProvider(property)!!)
 
       ControlType.DROPDOWN ->
-        return createComboBoxEditor(property, false, enumSupport!!)
+        return createComboBoxEditor(property, false, enumSupportProvider(property)!!)
 
       ControlType.TEXT_EDITOR -> {
         val model = TextFieldPropertyEditorModel(property, true)

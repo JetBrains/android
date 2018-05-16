@@ -32,12 +32,11 @@ import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import org.jetbrains.android.dom.attrs.AttributeFormat
-import org.jetbrains.android.facet.AndroidFacet
 import javax.swing.JComponent
 import javax.swing.JPanel
 
 class InspectorTestUtil(projectRule: AndroidProjectRule, tag: String, parentTag: String = "")
-  : SupportTestUtil(AndroidFacet.getInstance(projectRule.module)!!, projectRule.fixture, tag, parentTag) {
+  : SupportTestUtil(projectRule, tag, parentTag) {
   private val _properties: Table<String, String, NelePropertyItem> = HashBasedTable.create()
 
   var properties: PropertiesTable<NelePropertyItem> = PropertiesTableImpl(_properties)
@@ -149,11 +148,11 @@ class FakeInspectorPanel : InspectorPanel {
 
 class FakeEditorProviderImpl: EditorProvider<NelePropertyItem> {
   private val enumSupportProvider = NeleEnumSupportProvider()
-  private val controlTypeProvider = NeleControlTypeProvider()
+  private val controlTypeProvider = NeleControlTypeProvider(enumSupportProvider)
 
   override fun invoke(property: NelePropertyItem): Pair<PropertyEditorModel, JComponent> {
     val enumSupport = enumSupportProvider(property)
-    val controlType = controlTypeProvider(property, enumSupport)
+    val controlType = controlTypeProvider(property)
 
     when (controlType) {
       ControlType.COMBO_BOX ->

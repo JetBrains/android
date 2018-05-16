@@ -63,4 +63,4 @@ interface EnumSupportProvider<in P : PropertyItem> : (P) -> EnumSupport?
  *
  * @param P a client defined property class that must implement the interface: [PropertyItem]
  */
-interface ControlTypeProvider<in P : PropertyItem> : (P, EnumSupport?) -> ControlType
+interface ControlTypeProvider<in P : PropertyItem> : (P) -> ControlType
