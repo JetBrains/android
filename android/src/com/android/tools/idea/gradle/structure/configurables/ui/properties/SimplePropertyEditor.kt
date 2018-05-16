@@ -26,7 +26,6 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.ui.ComboBox
-import com.intellij.ui.components.JBLabel
 import java.awt.Dimension
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
@@ -41,11 +40,15 @@ import javax.swing.text.DefaultCaret
  * [ModelSimpleProperty.getKnownValues]. Text free text input is parsed by [ModelSimpleProperty.parse].
  */
 class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<PropertyT>>(
-  val property: ModelPropertyT,
-  private val propertyContext: ModelPropertyContext<PropertyT>,
-  private val variablesProvider: VariablesProvider?,
-  private val extensions: List<EditorExtensionAction>
-) : ModelPropertyEditor<PropertyT>, ModelPropertyEditorFactory<PropertyT, ModelPropertyT> {
+  property: ModelPropertyT,
+  propertyContext: ModelPropertyContext<PropertyT>,
+  variablesProvider: VariablesProvider?,
+  extensions: List<EditorExtensionAction>
+) :
+  PropertyEditorBase<ModelPropertyT, PropertyT>(property, propertyContext, variablesProvider, extensions),
+  ModelPropertyEditor<PropertyT>,
+  ModelPropertyEditorFactory<PropertyT, ModelPropertyT> {
+
   private var knownValueRenderers: Map<ParsedValue<PropertyT>, ValueRenderer> = mapOf()
   private var disposed = false
   private var knownValuesFuture: ListenableFuture<Unit>? = null  // Accessed only from the EDT.
@@ -207,9 +210,6 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
   }
 
   override val component: RenderedComboBox<Annotated<ParsedValue<PropertyT>>> = renderedComboBox
-  override val labelComponent: JBLabel = JBLabel(property.description).also {
-    it.labelFor = component
-  }
   override val statusComponent: HtmlLabel = HtmlLabel().also {
     // Note: this is important to be the first step to prevent automatic scrolling of the container to the last added label.
     (it.caret as DefaultCaret).updatePolicy = DefaultCaret.NEVER_UPDATE

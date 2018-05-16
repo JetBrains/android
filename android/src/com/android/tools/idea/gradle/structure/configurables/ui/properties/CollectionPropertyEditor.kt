@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.openapi.actionSystem.ActionToolbarPosition
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.ToolbarDecorator
-import com.intellij.ui.components.JBLabel
 import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.AbstractTableCellEditor
 import java.awt.BorderLayout
@@ -37,19 +36,15 @@ import javax.swing.table.TableColumnModel
 /**
  * A base for editors of properties which are collections of values of type [ValueT].
  */
-abstract class
-CollectionPropertyEditor<out ModelPropertyT : ModelCollectionPropertyCore<*>, ValueT : Any>(
-  val property: ModelPropertyT,
-  val propertyContext: ModelPropertyContext<ValueT>,
+abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionPropertyCore<*>, ValueT : Any>(
+  property: ModelPropertyT,
+  propertyContext: ModelPropertyContext<ValueT>,
   protected val editor: PropertyEditorFactory<ModelPropertyCore<ValueT>, ModelPropertyContext<ValueT>, ValueT>,
-  protected val variablesProvider: VariablesProvider?,
-  protected val extensions: List<EditorExtensionAction>
-)  {
+  variablesProvider: VariablesProvider?,
+  extensions: List<EditorExtensionAction>
+) : PropertyEditorBase<ModelPropertyT, ValueT>(property, propertyContext, variablesProvider, extensions) {
 
-  val component: JPanel = JPanel(BorderLayout())
-  val labelComponent: JBLabel = JBLabel(property.description).also {
-    it.labelFor = component
-  }
+  override val component: JPanel = JPanel(BorderLayout())
   val statusComponent: JComponent? = null
 
   private var beingLoaded = false
