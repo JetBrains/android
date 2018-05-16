@@ -34,8 +34,8 @@ import static com.android.tools.profilers.ProfilerColors.*;
 
 public final class EnergyEventStateChart {
   /**
-   * Class responsible for rendering one or more sequential network requests, with each request appearing as a horizontal
-   * bar where each stage of its lifetime (sending, receiving, etc.) is highlighted with unique colors.
+   * Class responsible for rendering one or more sequential energy events, with each event appearing as a horizontal
+   * bar in its unique color.
    */
   static final EnumColors<EnergyDuration.Kind> DURATION_STATE_ENUM_COLORS = new EnumColors.Builder<EnergyDuration.Kind>(1)
     .add(EnergyDuration.Kind.ALARM, ENERGY_BACKGROUND)
