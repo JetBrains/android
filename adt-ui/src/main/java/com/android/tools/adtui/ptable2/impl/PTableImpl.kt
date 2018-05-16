@@ -18,15 +18,12 @@ package com.android.tools.adtui.ptable2.impl
 import com.android.tools.adtui.ptable2.*
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.wm.IdeFocusManager
-import com.intellij.openapi.wm.ex.IdeFocusTraversalPolicy
 import com.intellij.ui.SpeedSearchComparator
 import com.intellij.ui.TableUtil
 import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import java.awt.Component
-import java.awt.Container
-import java.awt.Dimension
+import java.awt.*
 import java.awt.event.*
 import javax.swing.*
 import javax.swing.table.TableCellEditor
@@ -36,13 +33,27 @@ import javax.swing.table.TableRowSorter
 import javax.swing.text.JTextComponent
 import kotlin.properties.Delegates
 
+/**
+ * Implementation of a [PTable].
+ *
+ * The intention is to hide implementation details in this class, and only
+ * expose a minimal API in [PTable].
+ */
 open class PTableImpl(tableModel: PTableModel,
-                      private val cellRendererProvider: PTableCellRendererProvider,
-                      private val editorProvider: PTableCellEditorProvider?)
+                      private val rendererProvider: PTableCellRendererProvider,
+                      private val editorProvider: PTableCellEditorProvider)
   : JBTable(PTableModelImpl(tableModel)), PTable {
 
   private val nameRowSorter = TableRowSorter<TableModel>()
   private val nameRowFilter = NameRowFilter()
+  private val tableCellRenderer = PTableCellRendererWrapper()
+  private val tableCellEditor = PTableCellEditorWrapper()
+  override val backgroundColor: Color
+    get() = super.getBackground()
+  override val foregroundColor: Color
+    get() = super.getForeground()
+  override val activeFont: Font
+    get() = super.getFont()
 
   init {
     // The row heights should be identical, save time by only looking at the first rows
@@ -109,11 +120,13 @@ open class PTableImpl(tableModel: PTableModel,
   }
 
   override fun getCellRenderer(row: Int, column: Int): TableCellRenderer {
-    return cellRendererProvider(item(row), PTableColumn.fromColumn(column))
+    tableCellRenderer.renderer = rendererProvider(this, item(row), PTableColumn.fromColumn(column))
+    return tableCellRenderer
   }
 
-  override fun getCellEditor(row: Int, column: Int): PTableCellEditor? {
-    return editorProvider?.invoke(item(row), PTableColumn.fromColumn(column))
+  override fun getCellEditor(row: Int, column: Int): PTableCellEditorWrapper {
+    tableCellEditor.editor = editorProvider(this, item(row), PTableColumn.fromColumn(column))
+    return tableCellEditor
   }
 
   private fun filterChanged(oldValue: String, newValue: String) {
@@ -187,7 +200,7 @@ open class PTableImpl(tableModel: PTableModel,
   }
 
   private fun quickEdit(row: Int) {
-    val editor = getCellEditor(row, 0) ?: return
+    val editor = getCellEditor(row, 0)
 
     // only perform edit if we know the editor is capable of a quick toggle action.
     // We know that boolean editors switch their state and finish editing right away
@@ -197,28 +210,22 @@ open class PTableImpl(tableModel: PTableModel,
   }
 
   private fun startEditing(row: Int, afterActivation: Runnable?) {
-    val editor = getCellEditor(row, 0) ?: return
+    val editor = getCellEditor(row, 0)
     if (!editCellAt(row, 1)) {
       return
     }
 
-    val preferredComponent = getComponentToFocus(editor) ?: return
-
     IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown {
-      preferredComponent.requestFocusInWindow()
+      editor.requestFocus()
       editor.activate()
       afterActivation?.run()
     }
   }
 
-  private fun getComponentToFocus(editor: PTableCellEditor): JComponent? {
-    var preferredComponent = editor.preferredFocusComponent
-    if (preferredComponent == null) {
-      preferredComponent = IdeFocusTraversalPolicy.getPreferredFocusedComponent(editorComp as JComponent)
-    }
-    return preferredComponent
+  override fun removeEditor() {
+    super.removeEditor()
+    tableCellEditor.editor.close()
   }
-
 
   // ========== Keyboard Actions ===============================================
 
@@ -474,4 +481,3 @@ private class NameRowFilter : RowFilter<TableModel, Int>() {
     return comparator.matchingFragments(pattern, text) != null
   }
 }
-

@@ -15,15 +15,71 @@
  */
 package com.android.tools.adtui.ptable2
 
-import com.intellij.util.ui.AbstractTableCellEditor
 import javax.swing.JComponent
 
-abstract class PTableCellEditor : AbstractTableCellEditor() {
-  val preferredFocusComponent: JComponent?
+/**
+ * Provider for a cell editor for a [PTable].
+ */
+interface PTableCellEditor {
+
+  /**
+   * Returns an editor component the editor.
+   *
+   * A return value of null means the cell is not editable.
+   */
+  val editorComponent: JComponent?
+
+  /**
+   * Return the value currently in the editor.
+   *
+   * This method is called when editing
+   */
+  val value: String?
+
+  /**
+   * Return true to enable the [activate] method below.
+   */
+  val isBooleanEditor: Boolean
+
+  /**
+   * Toggle a state and immediately stop editing.
+   *
+   * This method is only called if [isBooleanEditor] returns true.
+   */
+  fun activate()
+
+  /**
+   * Called to request focus in the editor.
+   */
+  fun requestFocus()
+
+  /**
+   * Close is called when the editor is no longer used.
+   */
+  fun close()
+}
+
+class DefaultPTableCellEditor : PTableCellEditor {
+
+  override val editorComponent: JComponent? = null
+
+  override val value: String?
     get() = null
 
-  val isBooleanEditor: Boolean
+  override val isBooleanEditor: Boolean
     get() = false
 
-  fun activate() {}
+  override fun activate() {}
+
+  override fun requestFocus() {}
+
+  override fun close() {}
+}
+
+class DefaultPTableCellEditorProvider : PTableCellEditorProvider {
+  val editor = DefaultPTableCellEditor()
+
+  override fun invoke(table: PTable, property: PTableItem, column: PTableColumn): PTableCellEditor {
+    return editor
+  }
 }

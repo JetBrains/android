@@ -17,21 +17,28 @@ package com.android.tools.idea.common.property2.impl.table
 
 import com.android.tools.adtui.ptable2.PTable
 import com.android.tools.adtui.ptable2.PTableCellRenderer
+import com.android.tools.adtui.ptable2.PTableColumn
 import com.android.tools.adtui.ptable2.PTableItem
 import com.intellij.ui.JBColor
+import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
+import javax.swing.JComponent
 
 /**
  * A simple text cell renderer for displaying the value of a [PTableItem].
  */
-class TextValueTableCellRenderer : PTableCellRenderer() {
+class TextValueTableCellRenderer : PTableCellRenderer {
+  val label = JBLabel()
 
-  override fun customizeCellRenderer(table: PTable, item: PTableItem, selected: Boolean, hasFocus: Boolean) {
-    append(item.value.orEmpty())
+  override fun getEditorComponent(table: PTable, item: PTableItem, column: PTableColumn,
+                                  isSelected: Boolean, hasFocus: Boolean): JComponent {
+    label.text = item.value.orEmpty()
+    label.font = table.activeFont
 
     // Display a left border for a middle grid line.
     // The vertical grid lines are not used because those grid lines will
     // always include a line to the right of the value column.
-    border = JBUI.Borders.customLine(JBColor.border(), 0, 1, 0, 0)
+    label.border = JBUI.Borders.customLine(JBColor.border(), 0, 1, 0, 0)
+    return label
   }
 }

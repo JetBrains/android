@@ -21,6 +21,9 @@ import com.android.tools.adtui.ptable2.PTableItem
 import com.android.tools.adtui.ptable2.PTableModel
 import javax.swing.table.AbstractTableModel
 
+/**
+ * A table model implementation for a JTable.
+ */
 class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
   val items = mutableListOf<PTableItem>()
 
