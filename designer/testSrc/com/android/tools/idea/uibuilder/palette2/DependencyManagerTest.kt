@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.palette2
 
+import com.android.SdkConstants
 import com.android.tools.idea.common.model.NlLayoutType
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.uibuilder.palette.NlPaletteModel
@@ -32,9 +33,16 @@ import com.android.tools.idea.projectsystem.EP_NAME
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.extensions.Extensions
+import com.intellij.openapi.util.Computable
+import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.PsiManager
 import com.intellij.testFramework.PlatformTestUtil
 import org.mockito.Mockito.*
+import java.io.File
 
 class DependencyManagerTest : AndroidTestCase() {
   private var myPanel: JComponent? = null
@@ -111,6 +119,31 @@ class DependencyManagerTest : AndroidTestCase() {
     myManager!!.ensureLibraryIsIncluded(findItem(FLOATING_ACTION_BUTTON.defaultName()))
     simulateProjectSync()
     verify(myPanel, never())!!.repaint()
+  }
+
+  fun testAndroidxDependencies() {
+    // The project has no dependencies and NELE_USE_ANDROIDX_DEFAULT is set to true
+    assertTrue(myManager!!.useAndroidxDependencies())
+
+    val gradlePropertiesFile = ApplicationManager.getApplication().runWriteAction(Computable<VirtualFile> {
+      val projectDir = VfsUtil.findFileByIoFile(File(project.basePath), true)!!
+      projectDir.createChildData(null, FN_GRADLE_PROPERTIES)
+    })
+
+    val propertiesPsi = PsiManager.getInstance(project).findFile(gradlePropertiesFile)!!
+    val propertiesDoc = PsiDocumentManager.getInstance(project).getDocument(propertiesPsi)!!
+
+    // Check explicitly setting the variable
+    ApplicationManager.getApplication().runWriteAction {
+      propertiesDoc.setText("android.useAndroidX=false")
+      PsiDocumentManager.getInstance(project).commitAllDocuments()
+    }
+    assertFalse(myManager!!.useAndroidxDependencies())
+    ApplicationManager.getApplication().runWriteAction {
+      propertiesDoc.setText("android.useAndroidX=true")
+      PsiDocumentManager.getInstance(project).commitAllDocuments()
+    }
+    assertTrue(myManager!!.useAndroidxDependencies())
   }
 
   private fun simulateProjectSync() {
