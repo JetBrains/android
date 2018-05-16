@@ -35,6 +35,8 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
+import com.intellij.testGuiFramework.impl.GuiTestThread;
+import com.intellij.testGuiFramework.remote.transport.RestartIdeMessage;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.WaitTimedOutError;
 import org.jdom.Document;
@@ -135,9 +137,7 @@ public class GuiTestRule implements TestRule {
         @Override
         public void evaluate() throws Throwable {
           if (!TestUtils.runningFromBazel()) {
-            // when state can be bad from previous tests, check and skip in that case
-            assume().that(GuiTests.fatalErrorsFromIde()).named("IDE errors").isEmpty();
-            assumeOnlyWelcomeFrameShowing();
+            restartIdeIfWelcomeFrameNotShowing();
           }
           setUp(description.getMethodName());
           List<Throwable> errors = new ArrayList<>();
@@ -164,13 +164,16 @@ public class GuiTestRule implements TestRule {
     }
   }
 
-  private void assumeOnlyWelcomeFrameShowing() {
+  private void restartIdeIfWelcomeFrameNotShowing() {
+    boolean welcomeFrameNotShowing = false;
     try {
       WelcomeFrameFixture.find(robot());
     } catch (WaitTimedOutError e) {
-      throw new AssumptionViolatedException("didn't find welcome frame", e);
+      welcomeFrameNotShowing = true;
     }
-    assume().that(GuiTests.windowsShowing()).named("windows showing").hasSize(1);
+    if (welcomeFrameNotShowing || GuiTests.windowsShowing().size() != 1) {
+      GuiTestThread.Companion.getClient().send(new RestartIdeMessage());
+    }
   }
 
   private void setUp(@Nullable String methodName) {
