@@ -20,6 +20,7 @@ import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceTable;
+import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.sampledata.datasource.*;
 import com.google.common.collect.ArrayListMultimap;
@@ -66,8 +67,7 @@ import static com.android.tools.idea.res.SampleDataResourceItem.ContentType.TEXT
  *   <li><b>Directories</b>: Folders that contain a list of images
  * </ul>
  */
-public class SampleDataResourceRepository extends LocalResourceRepository {
-
+public class SampleDataResourceRepository extends LocalResourceRepository implements SingleNamespaceResourceRepository {
   public static final ResourceNamespace PREDEFINED_SAMPLES_NS = ResourceNamespace.TOOLS;
 
   /**
@@ -407,6 +407,18 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
   @Override
   public Set<ResourceNamespace> getNamespaces() {
     return myFullTable.rowKeySet();
+  }
+
+  @Override
+  @NotNull
+  public ResourceNamespace getNamespace() {
+    return PREDEFINED_SAMPLES_NS;
+  }
+
+  @Override
+  @Nullable
+  public String getPackageName() {
+    return PREDEFINED_SAMPLES_NS.getPackageName();
   }
 
   @NotNull

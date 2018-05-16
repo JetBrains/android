@@ -20,6 +20,7 @@ import com.android.builder.model.BuildTypeContainer;
 import com.android.builder.model.ClassField;
 import com.android.builder.model.Variant;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceTable;
 import com.android.resources.ResourceType;
@@ -58,7 +59,7 @@ import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT
  * repositories.
  */
 public class DynamicResourceValueRepository extends LocalResourceRepository
-  implements BuildVariantView.BuildVariantSelectionChangeListener, LeafResourceRepository {
+    implements BuildVariantView.BuildVariantSelectionChangeListener, SingleNamespaceResourceRepository {
   private final AndroidFacet myFacet;
   private final ResourceTable myFullTable = new ResourceTable();
   @NotNull private final ResourceNamespace myNamespace;
