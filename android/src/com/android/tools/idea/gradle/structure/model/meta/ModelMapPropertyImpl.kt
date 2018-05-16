@@ -64,54 +64,45 @@ class ModelMapPropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, ValueT : 
   override fun setValue(thisRef: ModelT, property: KProperty<*>, value: ParsedValue<Map<String, ValueT>>) = setParsedValue(thisRef, value)
 
   private fun getEditableValues(model: ModelT): Map<String, ModelPropertyCore<ValueT>> {
-    fun getResolvedValue(key: String): ValueT? = modelDescriptor.getResolved(model)?.getResolvedValue()?.get(key)
-    return modelDescriptor
-             .getParsed(model)
-             ?.parsedPropertyGetter()
-             ?.asParsedMapValue(getter, setter)
-             ?.mapValues { it.value.makePropertyCore { getResolvedValue(it.key) } }
-             ?.mapValues { it.value.makeSetModifiedAware(model) }
+    val resolvedValue = modelDescriptor.getResolved(model)?.getResolvedValue()
+    return model
+      .getParsedProperty()
+             ?.asParsedMapValue(getter, setter, { model.setModified() }, resolvedValue)
            ?: mapOf()
   }
 
   private fun addEntry(model: ModelT, key: String): ModelPropertyCore<ValueT> =
   // No need to mark the model modified here since adding an empty property does not really affect its state. However, TODO(b/73059531).
-    modelDescriptor
-      .getParsed(model)
-      ?.parsedPropertyGetter()
-      ?.addMapEntry(key, getter, setter)
-      ?.makePropertyCore { null }
-      ?.makeSetModifiedAware(model)
+    model
+      .getParsedProperty()
+      ?.addMapEntry(key, getter, setter, { model.setModified() })
     ?: throw IllegalStateException()
 
   private fun deleteEntry(model: ModelT, key: String) =
-    modelDescriptor
-      .getParsed(model)
-      ?.parsedPropertyGetter()
+    model
+      .getParsedProperty()
       ?.deleteMapEntry(key)
-      .also { model.setModified() } ?: throw IllegalStateException()
+      .also { model.setModified() }
+    ?: throw IllegalStateException()
 
   private fun changeEntryKey(model: ModelT, old: String, new: String): ModelPropertyCore<ValueT> =
   // Both make the property modify-aware and make the model modified since both operations involve changing the model.
-    modelDescriptor
-      .getParsed(model)
-      ?.parsedPropertyGetter()
-      ?.changeMapEntryKey(old, new, getter, setter)
-      ?.makePropertyCore { null }
-      ?.makeSetModifiedAware(model)
+    model
+      .getParsedProperty()
+      ?.changeMapEntryKey(old, new, getter, setter, { model.setModified() })
       .also { model.setModified() }
     ?: throw IllegalStateException()
 
   private fun getParsedValue(model: ModelT): Annotated<ParsedValue<Map<String, ValueT>>> {
-    val parsedModel = modelDescriptor.getParsed(model)
-    val parsedGradleValue: Map<String, ResolvedPropertyModel>? = parsedModel?.parsedPropertyGetter().asResolvedPropertiesMap()
+    val parsedProperty = model.getParsedProperty()
+    val parsedGradleValue: Map<String, ResolvedPropertyModel>? = parsedProperty.asResolvedPropertiesMap()
     val parsed: Map<String, ValueT>? =
       parsedGradleValue
         ?.mapNotNull {
           it.value.getter()?.let { v -> it.key to v }
         }
         ?.toMap()
-    val dslText: Annotated<DslText>? = parsedModel?.parsedPropertyGetter()?.dslText()
+    val dslText: Annotated<DslText>? = parsedProperty?.dslText()
     return makeAnnotatedParsedValue(parsed, dslText)
   }
 
@@ -131,8 +122,8 @@ class ModelMapPropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, ValueT : 
     override fun getEditableValues(): Map<String, ModelPropertyCore<ValueT>> = this@ModelMapPropertyImpl.getEditableValues(model)
     override fun addEntry(key: String): ModelPropertyCore<ValueT> = this@ModelMapPropertyImpl.addEntry(model, key)
     override fun deleteEntry(key: String) = this@ModelMapPropertyImpl.deleteEntry(model, key)
-    override fun changeEntryKey(old: String, new: String): ModelPropertyCore<ValueT> = this@ModelMapPropertyImpl.changeEntryKey(model, old,
-                                                                                                                                new)
+    override fun changeEntryKey(old: String, new: String): ModelPropertyCore<ValueT> =
+      this@ModelMapPropertyImpl.changeEntryKey(model, old, new)
 
     override val defaultValueGetter: (() -> Map<String, ValueT>?)? = null
   }
@@ -146,18 +137,28 @@ private fun ResolvedPropertyModel?.asResolvedPropertiesMap(): Map<String, Resolv
 
 private fun <T : Any> ResolvedPropertyModel?.asParsedMapValue(
   getter: ResolvedPropertyModel.() -> T?,
-  setter: ResolvedPropertyModel.(T) -> Unit
-): Map<String, ModelPropertyParsedCore<T>>? =
+  setter: ResolvedPropertyModel.(T) -> Unit,
+  modifiedSetter: () -> Unit,
+  resolvedValues: Map<String, T>?
+): Map<String, ModelPropertyCore<T>>? =
   this
     .asResolvedPropertiesMap()
-    ?.mapValues { makeItemProperty(it.value, getter, setter) }
+    ?.mapValues {
+      makeItemPropertyCore(
+        it.value,
+        getter,
+        setter,
+        { resolvedValues?.get(it.key)?.let { ResolvedValue.Set(it) } ?: ResolvedValue.NotResolved() },
+        modifiedSetter)
+    }
 
 private fun <T : Any> ResolvedPropertyModel.addMapEntry(
   key: String,
   getter: ResolvedPropertyModel.() -> T?,
-  setter: ResolvedPropertyModel.(T) -> Unit
-): ModelPropertyParsedCore<T> =
-  makeItemProperty(getMapValue(key).resolve(), getter, setter)
+  setter: ResolvedPropertyModel.(T) -> Unit,
+  modifiedSetter: () -> Unit
+): ModelPropertyCore<T> =
+  makeItemPropertyCore(getMapValue(key).resolve(), getter, setter, { ResolvedValue.NotResolved() }, modifiedSetter)
 
 private fun ResolvedPropertyModel.deleteMapEntry(key: String) = getMapValue(key).delete()
 
@@ -165,8 +166,9 @@ private fun <T : Any> ResolvedPropertyModel.changeMapEntryKey(
   old: String,
   new: String,
   getter: ResolvedPropertyModel.() -> T?,
-  setter: ResolvedPropertyModel.(T) -> Unit
-): ModelPropertyParsedCore<T> {
+  setter: ResolvedPropertyModel.(T) -> Unit,
+  modifiedSetter: () -> Unit
+): ModelPropertyCore<T> {
   val oldProperty = getMapValue(old)
   // TODO(b/73057388): Simplify to plain oldProperty.getRawValue(OBJECT_TYPE).
   val oldValue = when (oldProperty.valueType) {
@@ -178,5 +180,6 @@ private fun <T : Any> ResolvedPropertyModel.changeMapEntryKey(
   oldProperty.delete()
   val newProperty = getMapValue(new)
   if (oldValue != null) newProperty.setValue(oldValue)
-  return makeItemProperty(newProperty.resolve(), getter, setter)
+  // TODO(b/72814329): Match resolved value.
+  return makeItemPropertyCore(newProperty.resolve(), getter, setter, { ResolvedValue.NotResolved() }, modifiedSetter)
 }
