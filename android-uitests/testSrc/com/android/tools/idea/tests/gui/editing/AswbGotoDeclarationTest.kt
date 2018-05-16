@@ -65,6 +65,7 @@ class AswbGotoDeclarationTest {
     return this
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/79783794
   @Test
   @TargetBuildSystem(TargetBuildSystem.BuildSystem.BAZEL)
   fun gotoDeclaration_withExternalResources() {
