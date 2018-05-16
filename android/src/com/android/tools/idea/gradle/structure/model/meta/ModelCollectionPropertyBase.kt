@@ -57,8 +57,9 @@ fun <T : Any> makeItemPropertyCore(
   getter: ResolvedPropertyModel.() -> T?,
   setter: ResolvedPropertyModel.(T) -> Unit,
   resolvedValueGetter: () -> ResolvedValue<T>,
+  matcher: (parsedValue: T?, resolvedValue: T)-> Boolean,
   modifiedSetter: () -> Unit
-): ModelPropertyCore<T> = object: ModelPropertyParsedCoreImpl<T>(), ModelPropertyCore<T> {
+): ModelPropertyCore<T> = object: ModelPropertyCoreImpl<T>(), ModelPropertyCore<T> {
   override val description: String get() = ""
   override fun getParsedProperty(): ResolvedPropertyModel? = resolvedProperty
   override val getter: ResolvedPropertyModel.() -> T? = getter
@@ -67,4 +68,5 @@ fun <T : Any> makeItemPropertyCore(
   override fun getResolvedValue(): ResolvedValue<T> = resolvedValueGetter()
   override val defaultValueGetter: (() -> T?)? = null
   override val isModified: Boolean? get() = resolvedProperty.isModified
+  override fun parsedAndResolvedValuesAreEqual(parsedValue: T?, resolvedValue: T): Boolean = matcher(parsedValue, resolvedValue)
 }

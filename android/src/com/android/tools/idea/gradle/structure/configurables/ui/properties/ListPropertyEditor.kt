@@ -68,7 +68,7 @@ class ListPropertyEditor<ValueT : Any, ModelPropertyT : ModelListPropertyCore<Va
     tableModel?.let { tableModel ->
       val index = tableModel.rowCount
       val modelPropertyCore = property.addItem(index)
-      tableModel.addRow(arrayOf(modelPropertyCore.getValue().parsedValue.toTableModelValue()))
+      tableModel.addRow(arrayOf(modelPropertyCore.getValue().value.parsedValue.toTableModelValue()))
       table.selectionModel.setSelectionInterval(index, index)
     table.editCellAt(index, 0)
     }

@@ -95,6 +95,8 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
     validateValues(propMapRef)
   }
 
+  // TODO(b/72814329): Test parsed and resolved value matching annotation.
+
   @Test
   fun testWritePropertyValues() {
     // TODO(b/72940492): Replace propC1 and propRef1 with propC and propRef respectively.

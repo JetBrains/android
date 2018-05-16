@@ -53,10 +53,18 @@ interface ModelPropertyCore<PropertyT : Any> :
    * determined.
    */
   val defaultValueGetter: (() -> PropertyT?)?
+
+  /**
+   * If the parsed value does not match the resolved value returns an annotation describing the mismatch.
+   *
+   * Note: Returns [ValueAnnotation.Warning] if the resolved model is unavailable.
+   *
+   */
+  fun annotateParsedResolvedMismatch(): ValueAnnotation?
 }
 
-fun <PropertyT : Any> ModelPropertyCore<PropertyT>.getValue(): PropertyValue<PropertyT> =
-  PropertyValue(parsedValue = getParsedValue(), resolved = getResolvedValue())
+fun <PropertyT : Any> ModelPropertyCore<PropertyT>.getValue(): Annotated<PropertyValue<PropertyT>> =
+  PropertyValue(parsedValue = getParsedValue(), resolved = getResolvedValue()).annotateWith(annotateParsedResolvedMismatch())
 
 /**
  * A UI descriptor of a property of a model of type [ModelT].
@@ -141,7 +149,8 @@ interface ModelListPropertyCore<ValueT : Any> :
 /**
  * A UI descriptor of a list property.
  */
-interface ModelListProperty<in ContextT, in ModelT, PropertyT : Any> : ModelProperty<ContextT, ModelT, List<PropertyT>, PropertyT, ModelListPropertyCore<PropertyT>>
+interface ModelListProperty<in ContextT, in ModelT, PropertyT : Any> :
+  ModelProperty<ContextT, ModelT, List<PropertyT>, PropertyT, ModelListPropertyCore<PropertyT>>
 typealias ListProperty<ModelT, PropertyT> = ModelListProperty<Nothing?, ModelT, PropertyT>
 
 /**
@@ -157,7 +166,8 @@ interface ModelMapPropertyCore<ValueT : Any> : ModelCollectionPropertyCore<Map<S
 /**
  * A UI descriptor of a map property.
  */
-interface ModelMapProperty<in ContextT, in ModelT, PropertyT : Any> : ModelProperty<ContextT, ModelT, Map<String, PropertyT>, PropertyT, ModelMapPropertyCore<PropertyT>>
+interface ModelMapProperty<in ContextT, in ModelT, PropertyT : Any> :
+  ModelProperty<ContextT, ModelT, Map<String, PropertyT>, PropertyT, ModelMapPropertyCore<PropertyT>>
 typealias MapProperty<ModelT, PropertyT> = ModelMapProperty<Nothing?, ModelT, PropertyT>
 
 /**
@@ -166,3 +176,27 @@ typealias MapProperty<ModelT, PropertyT> = ModelMapProperty<Nothing?, ModelT, Pr
 fun <ValueT : Any> ModelPropertyContext<ValueT>.valueFormatter(): ValueT.() -> String =
   { this@valueFormatter.format(this) }
 
+/**
+ * The standard implementation of [ModelPropertyCore.annotateParsedResolvedMismatch] that requires a matcher function [matcher].
+ */
+inline fun <T : Any> ModelPropertyCore<T>.annotateParsedResolvedMismatchBy(
+  matcher: (parsedValue: T?, resolvedValue: T) -> Boolean
+): ValueAnnotation? {
+  if (isModified == false) {
+    val resolvedValue = (getResolvedValue() as? ResolvedValue.Set<T>)?.resolved
+    if (resolvedValue != null) {
+      val parsedValue = getParsedValue().value
+      val parsedValueToCompare = when (parsedValue) {
+        is ParsedValue.NotSet -> (defaultValueGetter ?: return null)()
+        is ParsedValue.Set.Parsed -> parsedValue.value
+      }
+      return if (!matcher(parsedValueToCompare, resolvedValue)) {
+        ValueAnnotation.Error("Resolved: $resolvedValue")
+      }
+      else {
+        null  // In the case of a match return no annotations.
+      }
+    }
+  }
+  return ValueAnnotation.Warning("Resolved value is unavailable.")
+}

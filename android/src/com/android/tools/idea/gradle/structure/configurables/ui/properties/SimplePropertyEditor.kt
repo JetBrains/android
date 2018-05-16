@@ -158,9 +158,9 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
 
     @VisibleForTesting
     fun reloadValue() {
-      val value = property.getValue()
-      setValue(value.parsedValue)
-      setStatusHtmlText(getStatusHtmlText(value))
+      val annotatedPropertyValue = property.getValue()
+      setValue(annotatedPropertyValue.value.parsedValue)
+      setStatusHtmlText(getStatusHtmlText(annotatedPropertyValue.value))
       updateModified()
     }
 

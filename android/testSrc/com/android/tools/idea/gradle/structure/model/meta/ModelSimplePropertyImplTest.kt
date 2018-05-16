@@ -29,19 +29,20 @@ import org.junit.Test
 class ModelSimplePropertyImplTest : GradleFileModelTestCase() {
 
   object Model : ModelDescriptor<Model, Model, Model> {
-    override fun getResolved(model: Model): Model? = null
+    override fun getResolved(model: Model): Model? = this
     override fun getParsed(model: Model): Model? = this
     override fun setModified(model: Model) = Unit
   }
 
   private fun <T : Any> GradlePropertyModel.wrap(
     parse: (Nothing?, String) -> Annotated<ParsedValue<T>>,
-    caster: ResolvedPropertyModel.() -> T?
+    caster: ResolvedPropertyModel.() -> T?,
+    resolvedValue: T? = null
   ): ModelSimpleProperty<Nothing?, Model, T> {
     val resolved = resolve()
     return Model.property(
       "description",
-      resolvedValueGetter = { null },
+      resolvedValueGetter = { resolvedValue },
       parsedPropertyGetter = { resolved },
       getter = { caster() },
       setter = { setValue(it) },
@@ -73,10 +74,10 @@ class ModelSimplePropertyImplTest : GradleFileModelTestCase() {
 
     val extModel = gradleBuildModel.ext()
 
-    val propValue = extModel.findProperty("propValue").wrap(::parseString, ResolvedPropertyModel::asString)
-    val prop25 = extModel.findProperty("prop25").wrap(::parseInt, ResolvedPropertyModel::asInt)
+    val propValue = extModel.findProperty("propValue").wrap(::parseString, ResolvedPropertyModel::asString, resolvedValue = "value")
+    val prop25 = extModel.findProperty("prop25").wrap(::parseInt, ResolvedPropertyModel::asInt, resolvedValue = 26)
     val propTrue = extModel.findProperty("propTrue").wrap(::parseBoolean, ResolvedPropertyModel::asBoolean)
-    val propRef = extModel.findProperty("propRef").wrap(::parseString, ResolvedPropertyModel::asString)
+    val propRef = extModel.findProperty("propRef").wrap(::parseString, ResolvedPropertyModel::asString, resolvedValue = "value")
     val propInterpolated = extModel.findProperty("propInterpolated").wrap(::parseString, ResolvedPropertyModel::asString)
     val propUnresolved = extModel.findProperty("propUnresolved").wrap(::parseString, ResolvedPropertyModel::asString)
     val propOtherExpression1 = extModel.findProperty("propOtherExpression1").wrap(::parseString, ResolvedPropertyModel::asString)
@@ -98,6 +99,31 @@ class ModelSimplePropertyImplTest : GradleFileModelTestCase() {
     assertThat(propOtherExpression1.testIsModified(), equalTo(false))
     assertThat(propOtherExpression2.testValue(), nullValue())
     assertThat(propOtherExpression2.testIsModified(), equalTo(false))
+  }
+
+  @Test
+  fun testResolvedValueMatching() {
+    val text = """
+               ext {
+                 propValue = 'value'
+                 prop25 = 25
+                 propTrue = true
+                 propRef = propValue
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val extModel = gradleBuildModel.ext()
+
+    val propValue = extModel.findProperty("propValue").wrap(::parseString, ResolvedPropertyModel::asString, resolvedValue = "value")
+    val prop25 = extModel.findProperty("prop25").wrap(::parseInt, ResolvedPropertyModel::asInt, resolvedValue = 26)
+    val propTrue = extModel.findProperty("propTrue").wrap(::parseBoolean, ResolvedPropertyModel::asBoolean)
+    val propRef = extModel.findProperty("propRef").wrap(::parseString, ResolvedPropertyModel::asString, resolvedValue = "value")
+
+    assertThat(propValue.bind(Model).getValue().annotation, nullValue())
+    assertThat(prop25.bind(Model).getValue().annotation, equalTo<ValueAnnotation?>(ValueAnnotation.Error("Resolved: 26")))
+    assertThat(propTrue.bind(Model).getValue().annotation,
+               equalTo<ValueAnnotation?>(ValueAnnotation.Warning("Resolved value is unavailable.")))
+    assertThat(propRef.bind(Model).getValue().annotation, nullValue())
   }
 
   @Test
