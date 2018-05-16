@@ -32,7 +32,10 @@ import com.intellij.openapi.wm.impl.AnchoredButton;
 import com.intellij.openapi.wm.impl.InternalDecorator;
 import com.intellij.openapi.wm.impl.StripeButtonUI;
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
-import com.intellij.ui.*;
+import com.intellij.ui.DocumentAdapter;
+import com.intellij.ui.SearchTextField;
+import com.intellij.ui.SideBorder;
+import com.intellij.ui.UIBundle;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBImageIcon;
 import com.intellij.util.ui.JBUI;
@@ -365,7 +368,7 @@ class AttachedToolWindow<T> implements Disposable {
   @NotNull
   private JComponent createActionPanel(boolean includeSearchButton, @NotNull List<AnAction> additionalActions) {
     Dimension buttonSize = myDefinition.getButtonSize();
-    int border = buttonSize.equals(NAVBAR_MINIMUM_BUTTON_SIZE) ? 4 : 2;
+    int border = buttonSize.equals(NAVBAR_MINIMUM_BUTTON_SIZE) ? 4 : 3;
     JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
     actionPanel.setOpaque(false);
     actionPanel.setBorder(JBUI.Borders.empty(border, 0));

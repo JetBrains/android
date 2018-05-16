@@ -33,7 +33,6 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,6 +56,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   private JComponent myToolbarComponent;
   private ActionToolbar myNorthToolbar;
   private ActionToolbar myNorthEastToolbar;
+  private ActionToolbar myEastToolbar;
   private final DefaultActionGroup myDynamicGroup = new DefaultActionGroup();
   private Configuration myConfiguration;
 
@@ -117,12 +117,11 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     centerToolbarComponent.setName("NlLayoutToolbar");
     // Wrap the component inside a fixed height component so it doesn't disappear
     JPanel centerToolbarComponentWrapper = new AdtPrimaryPanel(new BorderLayout());
-    centerToolbarComponentWrapper.setPreferredSize(JBUI.size(-1, 29));
     centerToolbarComponentWrapper.add(centerToolbarComponent);
 
-    ActionToolbar eastToolbar = createActionToolbar("NlRhsToolbar", groups.getEastGroup());
+    myEastToolbar = createActionToolbar("NlRhsToolbar", groups.getEastGroup());
 
-    JComponent eastToolbarComponent = eastToolbar.getComponent();
+    JComponent eastToolbarComponent = myEastToolbar.getComponent();
     eastToolbarComponent.setName("NlRhsToolbar");
 
     JComponent panel = new AdtPrimaryPanel(new BorderLayout());
@@ -164,6 +163,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
         else {
           // Model not yet rendered: when it's done, update. Listener is removed as soon as palette fires from listener callback.
           view.getModel().addListener(this);
+          updateBottomActionBarBorder();
           return;
         }
       }
@@ -202,6 +202,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     if (parent != null) {
       mySurface.getActionManager().addActions(myDynamicGroup, null, parent, newSelection, true);
     }
+    updateBottomActionBarBorder();
   }
 
   // ---- Implements DesignSurfaceListener ----
@@ -231,6 +232,14 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
       }
     }
     updateActions();
+  }
+
+  // Hide the bottom border on the main toolbar when the toolbar is empty.
+  // This eliminates the double border from the toolbar when the north toolbar is visible.
+  private void updateBottomActionBarBorder() {
+    boolean hasBottomActionBar = myEastToolbar.getComponent().isVisible() || myDynamicGroup.getChildrenCount() > 0;
+    int bottom = hasBottomActionBar ? 1 : 0;
+    myToolbarComponent.setBorder(BorderFactory.createMatteBorder(0, 0, bottom, 0, StudioColorsKt.getBorder()));
   }
 
   @Override
