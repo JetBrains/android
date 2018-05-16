@@ -280,7 +280,7 @@ public class EasingCurve extends GraphBase {
   protected void notifyListeners() {
     DecimalFormat df = new DecimalFormat("#.##");
     String cubic =
-      "cubic=(" + df.format(param[0]) + "," + df.format(param[1]) + "," + df.format(param[2]) + "," + df.format(param[3]) + ")";
+      "cubic(" + df.format(param[0]) + "," + df.format(param[1]) + "," + df.format(param[2]) + "," + df.format(param[3]) + ")";
     ActionEvent actionEvent = new ActionEvent(this, 0, cubic);
     for (ActionListener listener : listeners) {
       listener.actionPerformed(actionEvent);
@@ -318,13 +318,10 @@ public class EasingCurve extends GraphBase {
 
     CubicInterpolator interpolator = new CubicInterpolator(param[0], param[1], param[2], param[3]);
     double[][] fit2 = new double[100][2];
-    long time = System.nanoTime();
     for (int i = 0; i < fit2.length; i++) {
       fit2[i][0] = (i / (double)(fit2.length - 1));
       fit2[i][1] = interpolator.get(fit2[i][0]);
     }
-    time = System.nanoTime() - time;
-        System.out.println(" time = " + (time / fit2.length));
     addGraph(0, fit2, EditorUtils.ourEasingGraphColor, 0);
   }
 

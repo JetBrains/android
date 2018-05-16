@@ -25,6 +25,7 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import static com.android.tools.idea.uibuilder.handlers.motion.timeline.TimeLineIcons.FORWARD;
 import static com.intellij.openapi.ui.VerticalFlowLayout.TOP;
 
 /**
@@ -39,6 +40,7 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
   ArrayList<ViewRow> myViewRows = new ArrayList<>();
   public static int ourDiamondSize = JBUI.scale(10);
   private boolean myInStateChange;
+  private boolean myDisplayInstructions = true;
 
   // a super light spacer to fill the bottom of the table
   JComponent mySpacer = new JComponent() {
@@ -98,7 +100,6 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
         repaint();
       }
       else {
-
         // remove old rows
         for (ViewRow row : myViewRows) {
           remove(row);
@@ -114,7 +115,13 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
           vr.setPreferredSize(new Dimension(chartWidth, v.myHeight));
           add(vr);
         }
-
+        myDisplayInstructions = false;
+        if (myChart != null
+            && myChart.myModel != null
+            && (myChart.myModel.getStartConstraintSet().myConstraintViews.isEmpty() ||
+                myChart.myModel.getEndConstraintSet().myConstraintViews.isEmpty())) {
+          myDisplayInstructions = true;
+        }
         revalidate();
         repaint();
       }
@@ -128,6 +135,12 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
       int x = myChart.getCursorPosition();
       g.setColor(myChart.myTimeCursorColor);
       g.fillRect(x, 0, 1, getHeight());
+    }
+    if (myDisplayInstructions) {
+      g.setColor(Chart.myGridColor);
+      g.drawString("Add Constraint at the start and End", JBUI.scale(10), JBUI.scale(10));
+      FORWARD.paintIcon(this, g, JBUI.scale(10), JBUI.scale(20));
+      FORWARD.paintIcon(this, g, JBUI.scale(30), JBUI.scale(20));
     }
   }
 
@@ -193,6 +206,7 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
     final Gantt.ViewElement myViewElement;
     LocationTable myLocationTable = new LocationTable();
     int myRow;
+    boolean myRowHasMarks = false;
 
     public ViewRow(Gantt.ViewElement v, int row) {
       myViewElement = v;
@@ -218,16 +232,17 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
           float position = keyFrame.getFramePosition() / 100f;
           myChart.setCursorPosition(position);
         }
-      } else {
+      }
+      else {
         int width = getWidth() - myChart.myChartLeftInset - myChart.myChartRightInset;
-        int  fp =  ((x - myChart.myChartLeftInset)*100)/width;
+        int fp = ((x - myChart.myChartLeftInset) * 100) / width;
         if (fp < 0) {
           fp = 0;
-        } else if (fp > 100){
+        }
+        else if (fp > 100) {
           fp = 100;
         }
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> "+fp);
-        myChart.setCursorPosition(fp/100f);
+        myChart.setCursorPosition(fp / 100f);
       }
     }
 
@@ -316,6 +331,7 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
       // Draw bounding rectangles
       g.setColor(Color.GRAY);
       int y = 0;
+      myRowHasMarks = false;
       if (DRAW_RECTS) {
         g.drawRect(0, y, panelWidth, myViewElement.myHeightView);
       }
@@ -342,62 +358,96 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
       Stroke stroke = g2d.getStroke();
       g2d.setStroke(new BasicStroke(2));
       int pos = 2;
-      int width = getWidth() - myChart.myChartLeftInset - myChart.myChartRightInset;
-      g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
-      g.setColor(Chart.myUnSelectedLineColor);
-      int xpos = myChart.myChartLeftInset + (int)((0 * width) / 100);
-      drawCircle(g,false, xpos, pos + ourDiamondSize);
-      xpos = myChart.myChartLeftInset + (int)((100 * width) / 100);
-      drawSquare(g, false, xpos, pos + ourDiamondSize);
-      for (MotionSceneModel.KeyAttributes key : myViewElement.mKeyFrames.myKeyAttributes) {
-        int x = myChart.myChartLeftInset + (int)((key.framePosition * width) / 100);
+      if (myChart != null) {
+        int width = getWidth() - myChart.myChartLeftInset - myChart.myChartRightInset;
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(Chart.myUnSelectedLineColor);
+        if (myChart.myModel != null
+            && myChart.myModel.getStartConstraintSet() != null
+            && myChart.myModel.getStartConstraintSet().myConstraintViews != null
+            && myChart.myModel.getStartConstraintSet().myConstraintViews.get(myViewElement.myName) != null) {
+          int xpos = myChart.myChartLeftInset + (int)((0 * width) / 100);
+          drawCircle(g, false, xpos, pos + ourDiamondSize);
+          myRowHasMarks = true;
+        }
+        if (myChart.myModel != null
+            && myChart.myModel.getEndConstraintSet() != null &&
+            myChart.myModel.getEndConstraintSet().myConstraintViews != null &&
+            myChart.myModel.getEndConstraintSet().myConstraintViews.get(myViewElement.myName) != null) {
+          int xpos = myChart.myChartLeftInset + (int)((100 * width) / 100);
+          drawSquare(g, false, xpos, pos + ourDiamondSize);
+          myRowHasMarks = true;
+        }
+        myRowHasMarks |= !myViewElement.mKeyFrames.myKeyAttributes.isEmpty();
+        myRowHasMarks |= !myViewElement.mKeyFrames.myKeyCycles.isEmpty();
+        myRowHasMarks |= !myViewElement.mKeyFrames.myKeyPositions.isEmpty();
 
-        if (key == myChart.mySelectedKeyFrame) {
-          g.setColor(Chart.ourMySelectedLineColor);
-          drawDiamond(g, true, x, pos);
-          g.setColor(Chart.myUnSelectedLineColor);
+        if (myViewElement.myHeightPosition > 0) {
+          pos = myViewElement.myHeightView + (myViewElement.myHeightPosition - ourDiamondSize) / 2;
+        }
+        // put diamonds for positions
+        for (MotionSceneModel.KeyPosition key : myViewElement.mKeyFrames.myKeyPositions) {
+          int x = myChart.myChartLeftInset + (int)((key.framePosition * width) / 100);
+          if (key == myChart.mySelectedKeyFrame) {
+            g.setColor(Chart.ourMySelectedLineColor);
+            drawDiamond(g, true, x, pos);
+            g.setColor(Chart.myUnSelectedLineColor);
+          }
+          else {
+            drawDiamond(g, false, x, pos);
+          }
+
+          myLocationTable.add(x, pos, key);
+        }
+        int delta_y = (getHeight() - ourDiamondSize) / 4;
+
+        if (myViewElement.myHeightAttribute > 0) {
+          pos = myViewElement.myHeightView + myViewElement.myHeightPosition;
+          pos += (myViewElement.myHeightAttribute - ourDiamondSize) / 2;
         }
         else {
-          drawDiamond(g, false, x, pos);
+          pos += delta_y;
         }
-        myLocationTable.add(x, pos, key);
-      }
+        // put diamonds for attributes
+        for (MotionSceneModel.KeyAttributes key : myViewElement.mKeyFrames.myKeyAttributes) {
+          int x = myChart.myChartLeftInset + (int)((key.framePosition * width) / 100);
 
-
-      int delta_y = (getHeight() - ourDiamondSize) / 4;
-      pos += delta_y;
-
-      for (MotionSceneModel.KeyPosition key : myViewElement.mKeyFrames.myKeyPositions) {
-        int x = myChart.myChartLeftInset + (int)((key.framePosition * width) / 100);
-        if (key == myChart.mySelectedKeyFrame) {
-          g.setColor(Chart.ourMySelectedLineColor);
-          drawDiamond(g, true, x, pos);
-          g.setColor(Chart.myUnSelectedLineColor);
+          if (key == myChart.mySelectedKeyFrame) {
+            g.setColor(Chart.ourMySelectedLineColor);
+            drawDiamond(g, true, x, pos);
+            g.setColor(Chart.myUnSelectedLineColor);
+          }
+          else {
+            drawDiamond(g, false, x, pos);
+          }
+          myLocationTable.add(x, pos, key);
         }
-        else {
-          drawDiamond(g, false, x, pos);
-        }
-
-        myLocationTable.add(x, pos, key);
-      }
-      pos += delta_y;
-      for (MotionSceneModel.KeyCycle key : myViewElement.mKeyFrames.myKeyCycles) {
-        int x = myChart.myChartLeftInset + (int)((key.framePosition * width) / 100);
-        if (key == myChart.mySelectedKeyFrame) {
-          g.setColor(Chart.ourMySelectedLineColor);
-          drawDiamond(g, true, x, pos);
-          g.setColor(Chart.myUnSelectedLineColor);
+        if (myViewElement.myHeightCycle > 0) {
+          pos = myViewElement.myHeightView + myViewElement.myHeightPosition + myViewElement.myHeightAttribute;
+          pos += (myViewElement.myHeightCycle - ourDiamondSize) / 2;
         }
         else {
-          drawDiamond(g, false, x, pos);
+          pos += delta_y;
         }
-        myLocationTable.add(x, pos, key);
-      }
+        // put diamonds for cycles
+        for (MotionSceneModel.KeyCycle key : myViewElement.mKeyFrames.myKeyCycles) {
+          int x = myChart.myChartLeftInset + (int)((key.framePosition * width) / 100);
+          if (key == myChart.mySelectedKeyFrame) {
+            g.setColor(Chart.ourMySelectedLineColor);
+            drawDiamond(g, true, x, pos);
+            g.setColor(Chart.myUnSelectedLineColor);
+          }
+          else {
+            drawDiamond(g, false, x, pos);
+          }
+          myLocationTable.add(x, pos, key);
+        }
 
-      int x = myChart.getCursorPosition();
-      g2d.setStroke(stroke);
-      g.setColor(Chart.myTimeCursorColor);
-      g.fillRect(x, 0, 1, panelHeight);
+        int x = myChart.getCursorPosition();
+        g2d.setStroke(stroke);
+        g.setColor(Chart.myTimeCursorColor);
+        g.fillRect(x, 0, 1, panelHeight);
+      }
     }
   }
 }

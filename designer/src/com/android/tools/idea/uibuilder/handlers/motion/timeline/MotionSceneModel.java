@@ -69,6 +69,16 @@ public class MotionSceneModel {
     return (XmlFile)AndroidPsiUtils.getPsiFileSafely(myProject, myVirtualFile);
   }
 
+  public ConstraintSet getStartConstraintSet() {
+    TransitionTag tag = myTransition.get(0);
+    return tag.getConstraintSetStart();
+  }
+
+  public ConstraintSet getEndConstraintSet() {
+    TransitionTag tag = myTransition.get(0);
+    return tag.getConstraintSetEnd();
+  }
+
   // Represents a single view in the motion scene
   public static class MotionSceneView {
     String mid;
@@ -134,7 +144,7 @@ public class MotionSceneModel {
           keyFrame = xmlFile.getRootTag().addSubTag(keyFrame, false);
         }
 
-        XmlTag createdTag = keyFrame.createChildTag(type, null, "", false);
+        XmlTag createdTag = keyFrame.createChildTag(type, null, null, false);
         createdTag = keyFrame.addSubTag(createdTag, false);
         createdTag.setAttribute(KeyAttributes_framePosition, AUTO_URI, Integer.toString(framePosition));
         createdTag.setAttribute(KeyAttributes_target, AUTO_URI, "@id/" + name);
@@ -819,7 +829,7 @@ public class MotionSceneModel {
         attr.deleteTag();
       }
       Computable<CustomAttributes> operation = () -> {
-        XmlTag createdTag = keyFrame.createChildTag(KeyAttributes_customAttribute, null, "", false);
+        XmlTag createdTag = keyFrame.createChildTag(KeyAttributes_customAttribute, null, null, false);
         createdTag = keyFrame.addSubTag(createdTag, false);
         createdTag.setAttribute(CustomAttributes_attributeName, AUTO_URI, key);
         createdTag.setAttribute(type.getTagName(), AUTO_URI, StringUtil.isNotEmpty(value) ? value : type.getDefaultValue());
@@ -1119,7 +1129,7 @@ public class MotionSceneModel {
       mId = id.substring(id.indexOf('/') + 1);
     }
 
-    ArrayList<ConstraintView> myConstraintViews = new ArrayList<>();
+    HashMap<String, ConstraintView> myConstraintViews = new HashMap<>();
 
     @Override
     public void parse(String name, String value) {
@@ -1325,6 +1335,15 @@ public class MotionSceneModel {
     a.parse(name, value);
   }
 
+  /**
+   * Entry point to build the model
+   *
+   * @param model
+   * @param project
+   * @param virtualFile
+   * @param file
+   * @return
+   */
   public static MotionSceneModel parse(NlModel model,
                                        Project project,
                                        VirtualFile virtualFile,
@@ -1352,7 +1371,7 @@ public class MotionSceneModel {
           view.setId(subtag.getAttributeValue("android:id"));
           motionSceneModel.addKeyFrame(view.mId);
           parse(view, subtag.getAttributes());
-          set.myConstraintViews.add(view);
+          set.myConstraintViews.put(view.mId, view);
         }
       }
     }

@@ -421,7 +421,7 @@ public class MotionLayoutComponentDelegate implements NlComponentDelegate {
         }
         XmlTag constrainedView = myPanel.getConstrainView(constraintSet, component.getId());
         if (constrainedView == null) {
-          constrainedView = constraintSet.createChildTag("ConstrainView", null, "", false);
+          constrainedView = constraintSet.createChildTag("ConstrainView", null, null, false);
           constrainedView = constraintSet.addSubTag(constrainedView, false);
           String componentId = "@+id/" + component.getId();
           constrainedView.setAttribute("id", SdkConstants.ANDROID_URI, componentId);
