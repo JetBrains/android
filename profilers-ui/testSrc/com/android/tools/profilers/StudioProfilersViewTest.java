@@ -32,6 +32,7 @@ import com.android.tools.profilers.sessions.SessionsView;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.truth.Truth;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
@@ -371,10 +372,10 @@ public class StudioProfilersViewTest {
     ContextMenuItem attachItem = null;
     ContextMenuItem detachItem = null;
     for (ContextMenuItem item : contextMenuItems) {
-      if (item.getText().equals("Attach to Live")) {
+      if (item.getText().equals(StudioProfilersView.ATTACH_LIVE)) {
         attachItem = item;
       }
-      else if (item.getText().equals("Detach from Live")) {
+      else if (item.getText().equals(StudioProfilersView.DETACH_LIVE)) {
         detachItem = item;
       }
     }
@@ -394,6 +395,8 @@ public class StudioProfilersViewTest {
     assertThat(liveButton.isSelected()).isFalse();
     assertThat(attachItem.isEnabled()).isTrue();
     assertThat(detachItem.isEnabled()).isFalse();
+    assertThat(liveButton.getIcon()).isEqualTo(StudioIcons.Profiler.Toolbar.GOTO_LIVE);
+    assertThat(liveButton.getToolTipText()).startsWith(StudioProfilersView.ATTACH_LIVE);
 
     // Attaching to live should select the button again.
     attachItem.run();
@@ -402,6 +405,8 @@ public class StudioProfilersViewTest {
     assertThat(liveButton.isSelected()).isTrue();
     assertThat(attachItem.isEnabled()).isFalse();
     assertThat(detachItem.isEnabled()).isTrue();
+    assertThat(liveButton.getIcon()).isEqualTo(StudioIcons.Profiler.Toolbar.PAUSE_LIVE);
+    assertThat(liveButton.getToolTipText()).startsWith(StudioProfilersView.DETACH_LIVE);
 
     // Stopping the session should disable and unselect the button
     myProfilers.getSessionsManager().endCurrentSession();
@@ -428,6 +433,21 @@ public class StudioProfilersViewTest {
     assertThat(liveButton.isSelected()).isFalse();
     assertThat(attachItem.isEnabled()).isFalse();
     assertThat(detachItem.isEnabled()).isFalse();
+  }
+
+  @Test
+  public void testGoLiveButtonWhenToggleStreaming() {
+    JToggleButton liveButton = myView.getGoLiveButton();
+    assertThat(liveButton.isEnabled()).isTrue();
+    myProfilers.getTimeline().setStreaming(false);
+    assertThat(liveButton.isSelected()).isFalse();
+    assertThat(liveButton.getIcon()).isEqualTo(StudioIcons.Profiler.Toolbar.GOTO_LIVE);
+    assertThat(liveButton.getToolTipText()).startsWith(StudioProfilersView.ATTACH_LIVE);
+
+    myProfilers.getTimeline().setStreaming(true);
+    assertThat(liveButton.isSelected()).isTrue();
+    assertThat(liveButton.getIcon()).isEqualTo(StudioIcons.Profiler.Toolbar.PAUSE_LIVE);
+    assertThat(liveButton.getToolTipText()).startsWith(StudioProfilersView.DETACH_LIVE);
   }
 
   public void transitionStage(Stage stage) throws Exception {

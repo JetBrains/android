@@ -70,6 +70,10 @@ import static java.awt.event.InputEvent.META_DOWN_MASK;
 
 public class StudioProfilersView extends AspectObserver implements Disposable {
   private static final int SHORTCUT_MODIFIER_MASK_NUMBER = SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK;
+  @NotNull public static final String ATTACH_LIVE = "Attach to live";
+  @NotNull public static final String DETACH_LIVE = "Detach live";
+  @NotNull public static final String ZOOM_IN = "Zoom in";
+  @NotNull public static final String ZOOM_OUT = "Zoom out";
 
   private final StudioProfilers myProfiler;
   private final ViewBinder<StudioProfilersView, Stage, StageView> myBinder;
@@ -276,7 +280,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       myProfiler.getIdeServices().getFeatureTracker().trackZoomOut();
     });
     ProfilerAction zoomOutAction =
-      new ProfilerAction.Builder("Zoom out").setContainerComponent(myStageComponent).setActionRunnable(() -> zoomOut.doClick(0))
+      new ProfilerAction.Builder(ZOOM_OUT).setContainerComponent(myStageComponent).setActionRunnable(() -> zoomOut.doClick(0))
                                             .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, SHORTCUT_MODIFIER_MASK_NUMBER),
                                                            KeyStroke.getKeyStroke(KeyEvent.VK_SUBTRACT, SHORTCUT_MODIFIER_MASK_NUMBER))
                                             .build();
@@ -291,7 +295,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       myProfiler.getIdeServices().getFeatureTracker().trackZoomIn();
     });
     ProfilerAction zoomInAction =
-      new ProfilerAction.Builder("Zoom in").setContainerComponent(myStageComponent)
+      new ProfilerAction.Builder(ZOOM_IN).setContainerComponent(myStageComponent)
                                            .setActionRunnable(() -> zoomIn.doClick())
                                            .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, SHORTCUT_MODIFIER_MASK_NUMBER),
                                                           KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, SHORTCUT_MODIFIER_MASK_NUMBER),
@@ -331,16 +335,15 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myGoLiveToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
     myGoLiveToolbar.add(new FlatSeparator());
 
-    myGoLive = new CommonToggleButton("Live", StudioIcons.Profiler.Toolbar.GOTO_LIVE);
+    myGoLive = new CommonToggleButton("", StudioIcons.Profiler.Toolbar.GOTO_LIVE);
     myGoLive.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.GOTO_LIVE));
     myGoLive.setFont(H4_FONT);
     myGoLive.setHorizontalTextPosition(SwingConstants.LEFT);
     myGoLive.setHorizontalAlignment(SwingConstants.LEFT);
-    myGoLive.setBorder(new JBEmptyBorder(3, 8, 3, 7));
-    myGoLive.setIconTextGap(JBUI.scale(8));
+    myGoLive.setBorder(new JBEmptyBorder(3, 7, 3, 7));
     // Configure shortcuts for GoLive.
     ProfilerAction attachAction =
-      new ProfilerAction.Builder("Attach to Live").setContainerComponent(myStageComponent)
+      new ProfilerAction.Builder(ATTACH_LIVE).setContainerComponent(myStageComponent)
                                                   .setActionRunnable(() -> myGoLive.doClick(0))
                                                   .setEnableBooleanSupplier(
                                                     () -> myGoLive.isEnabled() &&
@@ -349,7 +352,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
                                                   .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, SHORTCUT_MODIFIER_MASK_NUMBER))
                                                   .build();
     ProfilerAction detachAction =
-      new ProfilerAction.Builder("Detach from Live").setContainerComponent(myStageComponent)
+      new ProfilerAction.Builder(DETACH_LIVE).setContainerComponent(myStageComponent)
                                                     .setActionRunnable(() -> myGoLive.doClick(0))
                                                     .setEnableBooleanSupplier(
                                                       () -> myGoLive.isEnabled() &&
@@ -359,9 +362,13 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
 
     myGoLive.setToolTipText(detachAction.getDefaultToolTipText());
     myGoLive.addActionListener(event -> {
-      myGoLive.setToolTipText(myGoLive.isSelected() ? detachAction.getDefaultToolTipText() : attachAction.getDefaultToolTipText());
       timeline.toggleStreaming();
       myProfiler.getIdeServices().getFeatureTracker().trackToggleStreaming();
+    });
+    myGoLive.addChangeListener(e -> {
+      boolean isSelected = myGoLive.isSelected();
+      myGoLive.setIcon(isSelected ? StudioIcons.Profiler.Toolbar.PAUSE_LIVE : StudioIcons.Profiler.Toolbar.GOTO_LIVE);
+      myGoLive.setToolTipText(isSelected ? detachAction.getDefaultToolTipText() : attachAction.getDefaultToolTipText());
     });
     timeline.addDependency(this).onChange(ProfilerTimeline.Aspect.STREAMING, this::updateStreaming);
     myGoLiveToolbar.add(myGoLive);

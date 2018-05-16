@@ -291,11 +291,11 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     assertThat(items[5]).isEqualTo(ContextMenuItem.SEPARATOR);
     assertThat(items[6].getText()).isEqualTo("Dump Java heap");
     assertThat(items[7]).isEqualTo(ContextMenuItem.SEPARATOR);
-    assertThat(items[8].getText()).isEqualTo("Attach to Live");
-    assertThat(items[9].getText()).isEqualTo("Detach from Live");
+    assertThat(items[8].getText()).isEqualTo(StudioProfilersView.ATTACH_LIVE);
+    assertThat(items[9].getText()).isEqualTo(StudioProfilersView.DETACH_LIVE);
     assertThat(items[10]).isEqualTo(ContextMenuItem.SEPARATOR);
-    assertThat(items[11].getText()).isEqualTo("Zoom in");
-    assertThat(items[12].getText()).isEqualTo("Zoom out");
+    assertThat(items[11].getText()).isEqualTo(StudioProfilersView.ZOOM_IN);
+    assertThat(items[12].getText()).isEqualTo(StudioProfilersView.ZOOM_OUT);
 
     // Adding allocation info to make getStage().useLiveAllocationTracking() return true;
     myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(AllocationsInfo.newBuilder()
@@ -312,11 +312,11 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     assertThat(items[3]).isEqualTo(ContextMenuItem.SEPARATOR);
     assertThat(items[4].getText()).isEqualTo("Dump Java heap");
     assertThat(items[5]).isEqualTo(ContextMenuItem.SEPARATOR);
-    assertThat(items[6].getText()).isEqualTo("Attach to Live");
-    assertThat(items[7].getText()).isEqualTo("Detach from Live");
+    assertThat(items[6].getText()).isEqualTo(StudioProfilersView.ATTACH_LIVE);
+    assertThat(items[7].getText()).isEqualTo(StudioProfilersView.DETACH_LIVE);
     assertThat(items[8]).isEqualTo(ContextMenuItem.SEPARATOR);
-    assertThat(items[9].getText()).isEqualTo("Zoom in");
-    assertThat(items[10].getText()).isEqualTo("Zoom out");
+    assertThat(items[9].getText()).isEqualTo(StudioProfilersView.ZOOM_IN);
+    assertThat(items[10].getText()).isEqualTo(StudioProfilersView.ZOOM_OUT);
   }
 
   private void assertSelection(@Nullable CaptureObject expectedCaptureObject,
