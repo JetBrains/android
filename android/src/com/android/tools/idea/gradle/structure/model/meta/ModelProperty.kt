@@ -24,6 +24,10 @@ import kotlin.properties.ReadWriteProperty
 interface ModelPropertyParsedCore<PropertyT : Any> {
   fun getParsedValue(): Annotated<ParsedValue<PropertyT>>
   fun setParsedValue(value: ParsedValue<PropertyT>)
+  /**
+   * Indicates whether the property is modified or is null if it cannot be determined.
+   */
+  val isModified: Boolean?
 }
 
 /**

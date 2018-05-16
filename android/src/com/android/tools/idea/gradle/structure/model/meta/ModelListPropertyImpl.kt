@@ -104,6 +104,7 @@ class ModelListPropertyImpl<in ContextT, in ModelT, out ResolvedT, ParsedT, Valu
     override fun addItem(index: Int): ModelPropertyCore<ValueT> = this@ModelListPropertyImpl.addItem(model, index)
     override fun deleteItem(index: Int) = this@ModelListPropertyImpl.deleteItem(model, index)
     override val defaultValueGetter: (() -> List<ValueT>?)? = null
+    override val isModified: Boolean? get() = model.getParsedProperty()?.isModified
   }
 }
 

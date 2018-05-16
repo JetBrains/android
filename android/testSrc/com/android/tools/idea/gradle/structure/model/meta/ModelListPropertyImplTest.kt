@@ -63,7 +63,9 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
     val extModel = gradleBuildModel.ext()
 
     val propList = extModel.findProperty("propList").wrap(::parseString, ResolvedPropertyModel::asString)
+    assertThat(propList.isModified, equalTo(false))
     val propListRef = extModel.findProperty("propListRef").wrap(::parseString, ResolvedPropertyModel::asString)
+    assertThat(propListRef.isModified, equalTo(false))
 
     fun validateValues(list: ModelListPropertyCore<String>) {
       val editableValues = list.getEditableValues()
@@ -74,10 +76,15 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
       val propInterpolated = editableValues[4]
 
       assertThat(propA.testValue(), equalTo("1"))
+      assertThat(propA.isModified, equalTo(false))
       assertThat(propB.testValue(), equalTo("2"))
+      assertThat(propB.isModified, equalTo(false))
       assertThat(propC.testValue(), equalTo("3"))
+      assertThat(propB.isModified, equalTo(false))
       assertThat(propRef.testValue(), equalTo("2"))
+      assertThat(propRef.isModified, equalTo(false))
       assertThat(propInterpolated.testValue(), equalTo("2nd"))
+      assertThat(propInterpolated.isModified, equalTo(false))
     }
 
     validateValues(propList)
@@ -108,7 +115,9 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
     editableValues[3].testSetValue("D")
     editableValues[4].testSetValue("E")
 
-    fun verify(ext: ExtModel) {
+    assertThat(list.isModified, equalTo(true))
+
+    fun verify(ext: ExtModel, expectModified: Boolean) {
       editableValues =
           ext.findProperty("propList").wrap(::parseString, ResolvedPropertyModel::asString).getEditableValues()
       val propA = editableValues[0]
@@ -118,15 +127,20 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
       val propE = editableValues[4]
 
       assertThat(propA.testValue(), equalTo("A"))
+      assertThat(propA.isModified, equalTo(expectModified))
       assertThat(prop3.testValue(), equalTo("3"))
+      assertThat(prop3.isModified, equalTo(expectModified))
       assertThat(prop3rd.testValue(), equalTo("3rd"))
+      assertThat(prop3rd.isModified, equalTo(expectModified))
       assertThat(propD.testValue(), equalTo("D"))
+      assertThat(propD.isModified, equalTo(expectModified))
       assertThat(propE.testValue(), equalTo("E"))
+      assertThat(propE.isModified, equalTo(expectModified))
     }
 
-    verify(extModel)
+    verify(extModel, expectModified = true)
     applyChangesAndReparse(buildModel)
-    verify(buildModel.ext())
+    verify(buildModel.ext(), expectModified = false)
   }
 
   @Test
@@ -147,13 +161,19 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
     val list = extModel.findProperty("propList").wrap(::parseString, ResolvedPropertyModel::asString)
 
     list.deleteItem(0)
+    assertThat(list.isModified, equalTo(true))
     var editableValues = list.getEditableValues()
+    assertThat(editableValues[0].isModified, equalTo(false))  // Deleting an item from the list does not make
+    assertThat(editableValues[3].isModified, equalTo(false))  // other items modified.
     editableValues[0].testSetReference("propC")
     editableValues[1].testSetInterpolatedString("${'$'}{propC}rd")
     editableValues[2].testSetValue("D")
     editableValues[3].testSetValue("E")
 
-    list.addItem(4).testSetValue("ZZ")
+    list.addItem(4).also {
+      assertThat(it.isModified, equalTo(true))  // A newly inserted item is modified.
+      it.testSetValue("ZZ")
+    }
 
     fun verify(ext: ExtModel) {
       editableValues =
@@ -195,24 +215,26 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
 
     list.deleteItem(2)
     var editableValues = list.getEditableValues()
-    editableValues[0].testSetReference("propC")
+    assertThat(editableValues[0].isModified, equalTo(false))  // Deleting an item from the list does not make
+    assertThat(editableValues[3].isModified, equalTo(false))  // other items modified.
     editableValues[1].testSetInterpolatedString("${'$'}{propC}rd")
     editableValues[2].testSetValue("D")
     editableValues[3].testSetValue("E")
 
     list.addItem(0).testSetValue("ZZ")
+    assertThat(editableValues[0].isModified, equalTo(false))  // Adding an item does not make other items modified.
 
     fun verify(ext: ExtModel) {
       editableValues =
           ext.findProperty("propList").wrap(::parseString, ResolvedPropertyModel::asString).getEditableValues()
       val propZZ = editableValues[0]
-      val prop3 = editableValues[1]
+      val prop1 = editableValues[1]
       val prop3rd = editableValues[2]
       val propD = editableValues[3]
       val propE = editableValues[4]
 
       assertThat(propZZ.testValue(), equalTo("ZZ"))
-      assertThat(prop3.testValue(), equalTo("3"))
+      assertThat(prop1.testValue(), equalTo("1"))
       assertThat(prop3rd.testValue(), equalTo("3rd"))
       assertThat(propD.testValue(), equalTo("D"))
       assertThat(propE.testValue(), equalTo("E"))

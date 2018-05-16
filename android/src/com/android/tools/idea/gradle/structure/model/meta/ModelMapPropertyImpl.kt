@@ -126,6 +126,7 @@ class ModelMapPropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, ValueT : 
       this@ModelMapPropertyImpl.changeEntryKey(model, old, new)
 
     override val defaultValueGetter: (() -> Map<String, ValueT>?)? = null
+    override val isModified: Boolean? get() = model.getParsedProperty()?.isModified
   }
 }
 

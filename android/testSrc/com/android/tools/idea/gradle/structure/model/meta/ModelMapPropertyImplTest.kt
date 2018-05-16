@@ -67,7 +67,9 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
     val extModel = gradleBuildModel.ext()
 
     val propMap = extModel.findProperty("propMap").wrap(::parseString, ResolvedPropertyModel::asString)
+    assertThat(propMap.isModified, equalTo(false))
     val propMapRef = extModel.findProperty("propMapRef").wrap(::parseString, ResolvedPropertyModel::asString)
+    assertThat(propMapRef.isModified, equalTo(false))
 
     fun validateValues(map: ModelMapPropertyCore<String>) {
       val editableValues = map.getEditableValues()
@@ -78,10 +80,15 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
       val propInterpolated = editableValues["interpolated"]
 
       assertThat(propOne?.testValue(), equalTo("1"))
+      assertThat(propOne?.isModified, equalTo(false))
       assertThat(propB?.testValue(), equalTo("2"))
+      assertThat(propB?.isModified, equalTo(false))
       assertThat(propC?.testValue(), equalTo("3"))
+      assertThat(propC?.isModified, equalTo(false))
       assertThat(propRef?.testValue(), equalTo("2"))
+      assertThat(propRef?.isModified, equalTo(false))
       assertThat(propInterpolated?.testValue(), equalTo("2nd"))
+      assertThat(propInterpolated?.isModified, equalTo(false))
     }
 
     validateValues(propMap)
@@ -107,6 +114,9 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
     var editableValues = map.getEditableValues()
 
     editableValues["one"]?.testSetValue("A")
+    assertThat(map.isModified, equalTo(true))
+    assertThat(editableValues["one"]?.isModified, equalTo(true))
+    assertThat(editableValues["B"]?.isModified, equalTo(false))  // Other entries remain unmodified.
     editableValues["B"]?.testSetReference("propC1")
     editableValues["propC"]?.testSetInterpolatedString("${'$'}{propC1}rd")
     editableValues["propRef"]?.testSetValue("D")
@@ -144,7 +154,13 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
 
     val map = extModel.findProperty("propMap").wrap(::parseString, ResolvedPropertyModel::asString)
     map.deleteEntry("B")
+    assertThat(map.isModified, equalTo(true))
+    // Deleting an entry does not make other entries modified.
+    assertThat(map.getEditableValues()["interpolated"]?.isModified, equalTo(false))
     val newInterpolated = map.changeEntryKey("interpolated", "newInterpolated")
+    assertThat(map.getEditableValues()["newInterpolated"]?.isModified, equalTo(true))
+    // Changing the key of an entry does not make other entries modified.
+    assertThat(map.getEditableValues()["propC"]?.isModified, equalTo(false))
     val newPropC = map.changeEntryKey("propC", "newPropC")
     val newPropRef = map.changeEntryKey("propRef", "newPropRef")
     val newOne = map.changeEntryKey("one", "newOne")
