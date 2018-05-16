@@ -16,11 +16,7 @@
 package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.ConstraintLayoutViewInspectorFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
@@ -30,7 +26,6 @@ import org.junit.runner.RunWith;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunIn(TestGroup.UNRELIABLE)  // b/79248863
 @RunWith(GuiTestRemoteRunner.class)
 public class SingleWidgetViewTest {
 
