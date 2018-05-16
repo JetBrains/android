@@ -23,11 +23,9 @@ interface TableCellRendererProvider : PTableCellRendererProvider {
   companion object {
     /**
      * Create a default [TableCellRendererProvider].
-     *
-     * @param controlTypeProvider must be specified for determining the [ControlType] for the given [PropertyItem].
      */
-    fun create(controlTypeProvider: ControlTypeProvider<PropertyItem>?): TableCellRendererProvider {
-      return TableCellRendererProviderImpl(controlTypeProvider)
+    fun create(): TableCellRendererProvider {
+      return TableCellRendererProviderImpl()
     }
   }
 }

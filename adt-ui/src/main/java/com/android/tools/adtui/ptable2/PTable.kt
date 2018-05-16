@@ -16,24 +16,30 @@
 package com.android.tools.adtui.ptable2
 
 import com.android.tools.adtui.ptable2.impl.PTableImpl
+import java.awt.Color
+import java.awt.Font
 import javax.swing.JComponent
 
 interface PTable {
 
   val component: JComponent
   val itemCount: Int
+  val activeFont: Font
+  val backgroundColor: Color?
+  val foregroundColor: Color
   var filter: String
 
   fun item(row: Int): PTableItem
 
   companion object {
-    fun create(tableModel: PTableModel, rendererProvider: PTableCellRendererProvider, editorProvider: PTableCellEditorProvider?): PTable {
+    fun create(tableModel: PTableModel,
+               rendererProvider: PTableCellRendererProvider = DefaultPTableCellRendererProvider(),
+               editorProvider: PTableCellEditorProvider = DefaultPTableCellEditorProvider()): PTable {
       return PTableImpl(tableModel, rendererProvider, editorProvider)
     }
   }
 }
 
-interface PTableCellRendererProvider : (PTableItem, PTableColumn) -> PTableCellRenderer
+interface PTableCellRendererProvider : (PTable, PTableItem, PTableColumn) -> PTableCellRenderer
 
-// TODO: Make this non nullable
-interface PTableCellEditorProvider : (PTableItem, PTableColumn) -> PTableCellEditor?
+interface PTableCellEditorProvider : (PTable, PTableItem, PTableColumn) -> PTableCellEditor

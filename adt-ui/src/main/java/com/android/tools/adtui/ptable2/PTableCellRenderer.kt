@@ -15,39 +15,53 @@
  */
 package com.android.tools.adtui.ptable2
 
-import com.intellij.ui.SimpleColoredRenderer
+import com.intellij.ui.JBColor
+import com.intellij.ui.SimpleColoredComponent
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import java.awt.Component
-import javax.swing.JTable
-import javax.swing.table.TableCellRenderer
+import javax.swing.JComponent
 
-abstract class PTableCellRenderer : SimpleColoredRenderer(), TableCellRenderer {
+interface PTableCellRenderer {
 
-  override fun getTableCellRendererComponent(table: JTable, value: Any,
-                                             isSelected: Boolean, hasCellFocus: Boolean, row: Int, col: Int): Component {
-    if (!(table is PTable && value is PTableItem)) {
-      return this
-    }
+  /**
+   * Returns component for rendering the [column] of the specified [item].
+   *
+   * A return value of null means the cell is empty.
+   */
+  fun getEditorComponent(table: PTable, item: PTableItem, column: PTableColumn, isSelected: Boolean, hasFocus: Boolean): JComponent?
+}
 
-    // PTable shows focus for the entire row. Not per cell.
-    val rowIsLead = table.selectionModel.leadSelectionIndex == row
-    val hasFocus = table.hasFocus() && rowIsLead
+class DefaultPTableCellRenderer : SimpleColoredComponent(), PTableCellRenderer {
 
+  override fun getEditorComponent(table: PTable, item: PTableItem, column: PTableColumn, isSelected: Boolean, hasFocus: Boolean): JComponent? {
     clear()
-    border = null
     setPaintFocusBorder(hasFocus)
-    font = table.font
+    font = table.activeFont
     if (isSelected) {
       foreground = UIUtil.getTreeForeground(true, hasFocus)
       background = UIUtil.getTreeSelectionBackground(hasFocus)
     }
     else {
-      foreground = table.foreground
-      background = table.background
+      foreground = table.foregroundColor
+      background = table.backgroundColor
     }
-    customizeCellRenderer(table, value, isSelected, hasFocus)
+    @Suppress("LiftReturnOrAssignment")
+    if (column == PTableColumn.NAME) {
+      append(item.name)
+      border = null
+    }
+    else {
+      append(item.value.orEmpty())
+      border = JBUI.Borders.customLine(JBColor.border(), 0, 1, 0, 0)
+    }
     return this
   }
+}
 
-  protected abstract fun customizeCellRenderer(table: PTable, item: PTableItem, selected: Boolean, hasFocus: Boolean)
+class DefaultPTableCellRendererProvider : PTableCellRendererProvider {
+  val renderer = DefaultPTableCellRenderer()
+
+  override fun invoke(table: PTable, property: PTableItem, column: PTableColumn): PTableCellRenderer {
+    return renderer
+  }
 }

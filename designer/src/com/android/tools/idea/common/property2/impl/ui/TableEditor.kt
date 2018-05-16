@@ -17,7 +17,6 @@ package com.android.tools.idea.common.property2.impl.ui
 
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.ptable2.PTable
-import com.android.tools.adtui.ptable2.PTableCellEditorProvider
 import com.android.tools.adtui.ptable2.PTableCellRendererProvider
 import com.android.tools.idea.common.property2.impl.model.TableLineModel
 
@@ -25,10 +24,9 @@ import com.android.tools.idea.common.property2.impl.model.TableLineModel
  * A standard table control for editing multiple properties in a tabular form.
  */
 class TableEditor(private val lineModel: TableLineModel,
-                  rendererProvider: PTableCellRendererProvider,
-                  editorProvider: PTableCellEditorProvider?) {
+                  rendererProvider: PTableCellRendererProvider) {
 
-  private val table = PTable.create(lineModel.tableModel, rendererProvider, editorProvider)
+  private val table = PTable.create(lineModel.tableModel, rendererProvider)
 
   val component = table.component
 
