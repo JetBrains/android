@@ -31,9 +31,9 @@ import static com.google.common.base.Strings.nullToEmpty;
 
 class MessageDialogFixture extends IdeaDialogFixture<DialogWrapper> implements MessagesFixture.Delegate {
   @NotNull
-  static MessageDialogFixture findByTitle(@NotNull Robot robot, @NotNull final String title) {
+  static MessageDialogFixture findByTitle(@NotNull Robot robot, @NotNull final String title, long secondsToWait) {
     final Ref<DialogWrapper> wrapperRef = new Ref<>();
-    JDialog dialog = GuiTests.waitUntilShowing(robot, Matchers.byTitle(JDialog.class, title).and(
+    JDialog dialog = GuiTests.waitUntilShowing(robot, null, Matchers.byTitle(JDialog.class, title).and(
       new GenericTypeMatcher<JDialog>(JDialog.class) {
         @Override
         protected boolean isMatching(@NotNull JDialog dialog) {
@@ -47,7 +47,7 @@ class MessageDialogFixture extends IdeaDialogFixture<DialogWrapper> implements M
           }
           return false;
         }
-      }));
+      }), secondsToWait);
     return new MessageDialogFixture(robot, dialog, wrapperRef.get());
   }
 
