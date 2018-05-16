@@ -36,7 +36,7 @@ fun signingConfigPropertiesModel() =
             uiProperty(PsSigningConfig.SigningConfigDescriptors.storeFile, ::simplePropertyEditor),
             uiProperty(PsSigningConfig.SigningConfigDescriptors.storePassword, ::simplePropertyEditor),
 // TODO(b/70501607): uiProperty(PsSigningConfig.SigningConfigDescriptors.storeType, ::simplePropertyEditor),
-            uiProperty(PsSigningConfig.SigningConfigDescriptors.keyAlias, ::simplePropertyEditor)
-// TODO(b/70501607): uiProperty(PsSigningConfig.SigningConfigDescriptors.keyPassword, ::simplePropertyEditor)
+            uiProperty(PsSigningConfig.SigningConfigDescriptors.keyAlias, ::simplePropertyEditor),
+            uiProperty(PsSigningConfig.SigningConfigDescriptors.keyPassword, ::simplePropertyEditor)
         ))
 
