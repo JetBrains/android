@@ -85,7 +85,12 @@ public class NlComponentTreeTest extends LayoutTestCase {
 
       }
     };
-    mySurface = new NlDesignSurface(getProject(), false, myDisposable);
+    mySurface = new NlDesignSurface(getProject(), false, myDisposable) {
+      @Override
+      public void requestRender() {
+        // We do not need layoutlib renders for these tests
+      }
+    };
     mySurface.setModel(myModel);
     myTree = new NlComponentTree(getProject(), mySurface);
     registerApplicationComponent(BrowserLauncher.class, myBrowserLauncher);

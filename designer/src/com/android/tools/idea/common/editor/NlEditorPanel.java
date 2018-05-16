@@ -69,7 +69,6 @@ public class NlEditorPanel extends JPanel implements Disposable {
   private final DesignSurface mySurface;
   private final JPanel myContentPanel;
   private final WorkBench<DesignSurface> myWorkBench;
-  private boolean myIsActive;
   private JBSplitter mySplitter;
   private JPanel myAccessoryPanel;
 
@@ -197,9 +196,6 @@ public class NlEditorPanel extends JPanel implements Disposable {
     }
 
     myWorkBench.init(myContentPanel, mySurface, tools);
-    if (myIsActive) {
-      model.activate(myWorkBench);
-    }
   }
 
   @Nullable
@@ -209,12 +205,10 @@ public class NlEditorPanel extends JPanel implements Disposable {
 
   public void activate() {
     mySurface.activate();
-    myIsActive = true;
   }
 
   public void deactivate() {
     mySurface.deactivate();
-    myIsActive = false;
   }
 
   @NotNull
