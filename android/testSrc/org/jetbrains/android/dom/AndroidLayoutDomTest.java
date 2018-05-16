@@ -1301,7 +1301,8 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   }
 
   public void testAarDependency() throws Throwable {
-    PsiTestUtil.addLibrary(myModule, "maven_aar_dependency", getTestDataPath() + "/" + myTestFolder + "/myaar", "classes.jar", "res");
+    // See org.jetbrains.android.facet.ResourceFolderManager#isAarDependency
+    PsiTestUtil.addLibrary(myModule, "myapklib.aar", getTestDataPath() + "/" + myTestFolder + "/myaar", "classes.jar", "res");
     doTestCompletion();
   }
 

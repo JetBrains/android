@@ -202,7 +202,7 @@ public class AndroidGotoDeclarationHandlerTest extends AndroidTestCase {
   public void testGotoAarResourceFromCode() throws Exception {
     myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
 
-    File aarDir = ResourcesTestsUtil.addAarDependency(myModule);
+    File aarDir = ResourcesTestsUtil.addAarDependency(myModule, "aarLib");
     File stylesXml = FileUtils.join(aarDir, "values", "styles.xml");
     FileUtils.createFile(stylesXml,
                          "<resources>\n" +
@@ -216,10 +216,8 @@ public class AndroidGotoDeclarationHandlerTest extends AndroidTestCase {
 
     // Sanity check.
     LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(myFacet);
-    assertSize(1, appResources.getResourceItems(
-      ResourceNamespace.RES_AUTO, ResourceType.STYLE, "LibStyle"));
-    assertSize(1, appResources.getResourceItems(
-      ResourceNamespace.RES_AUTO, ResourceType.ATTR, "libAttr"));
+    assertSize(1, appResources.getResourceItems(ResourceNamespace.RES_AUTO, ResourceType.STYLE, "LibStyle"));
+    assertSize(1, appResources.getResourceItems(ResourceNamespace.RES_AUTO, ResourceType.ATTR, "libAttr"));
 
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "GotoAarStyle.java", "src/p1/p2/GotoAarStyle.java");
     assertEquals("values/styles.xml:2:\n" +
