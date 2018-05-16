@@ -16,8 +16,6 @@
 package com.android.tools.idea.common.property2.impl.model
 
 import com.android.tools.adtui.ptable2.*
-import com.android.tools.idea.common.property2.api.TableCellRendererProvider
-import com.android.tools.idea.common.property2.impl.table.TableCellRendererProviderImpl
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
@@ -76,7 +74,7 @@ class TableLineModelTest {
     val group1: PTableGroupItem = GroupItem("border", mapOf("left" to "4", "right" to "4", "top" to "8", "bottom" to "8"))
     val group2: PTableGroupItem = GroupItem("group2", mapOf("size" to "4dp", "tone" to "C"))
     val model = makeTableModel(expanded, mapOf("color" to "blue", "topText" to "Hello", "container" to "id2"), listOf(group1, group2))
-    val table = PTable.create(model, TableCellRendererProvider.create())
+    val table = PTable.create(model)
 
     fun applyTableLineModel(tableLineModel: TableLineModel) {
       table.filter = tableLineModel.filter

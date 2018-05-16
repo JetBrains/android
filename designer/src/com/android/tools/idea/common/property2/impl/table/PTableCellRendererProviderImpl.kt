@@ -16,8 +16,9 @@
 package com.android.tools.idea.common.property2.impl.table
 
 import com.android.tools.adtui.ptable2.*
+import com.android.tools.idea.common.property2.api.ControlTypeProvider
+import com.android.tools.idea.common.property2.api.EditorProvider
 import com.android.tools.idea.common.property2.api.PropertyItem
-import com.android.tools.idea.common.property2.api.TableCellRendererProvider
 
 /**
  * Standard table cell renderer provider.
@@ -26,9 +27,11 @@ import com.android.tools.idea.common.property2.api.TableCellRendererProvider
  * Eventually the renderer will be sensitive to the control type of
  * the [PropertyItem].
  */
-class TableCellRendererProviderImpl : TableCellRendererProvider {
+class PTableCellRendererProviderImpl<P : PropertyItem>(itemType: Class<P>,
+                                                       controlTypeProvider: ControlTypeProvider<P>,
+                                                       editorProvider: EditorProvider<P>) : PTableCellRendererProvider {
   private val nameRenderer = NameTableCellRenderer()
-  private val textRenderer = TextValueTableCellRenderer()
+  private val textRenderer = ValueTableCellRenderer(itemType, controlTypeProvider, editorProvider)
 
   override fun invoke(table: PTable, item: PTableItem, column: PTableColumn): PTableCellRenderer {
     return when (column) {

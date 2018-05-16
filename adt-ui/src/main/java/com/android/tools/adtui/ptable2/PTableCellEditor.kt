@@ -56,7 +56,7 @@ interface PTableCellEditor {
   /**
    * Close is called when the editor is no longer used.
    */
-  fun close()
+  fun close(oldTable: PTable)
 }
 
 class DefaultPTableCellEditor : PTableCellEditor {
@@ -73,7 +73,7 @@ class DefaultPTableCellEditor : PTableCellEditor {
 
   override fun requestFocus() {}
 
-  override fun close() {}
+  override fun close(oldTable: PTable) {}
 }
 
 class DefaultPTableCellEditorProvider : PTableCellEditorProvider {

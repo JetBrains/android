@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.common.property2.impl.model.ThreeStateBooleanPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.support.EditorFocusListener
 import com.intellij.util.ui.ThreeStateCheckBox
+import icons.StudioIcons
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import javax.swing.KeyStroke
@@ -30,6 +31,8 @@ class PropertyThreeStateCheckBox(private val propertyModel: ThreeStateBooleanPro
   private var stateChangeFromModel = false
 
   init {
+    icon = StudioIcons.LayoutEditor.Properties.TEXT_ALIGN_CENTER
+    state = toThreeStateValue(propertyModel.value)
     registerKeyAction({ propertyModel.enterKeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
     registerKeyAction({ propertyModel.f1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "help")
     registerKeyAction({ propertyModel.shiftF1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")

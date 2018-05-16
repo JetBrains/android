@@ -64,11 +64,11 @@ interface InspectorPanel {
   /**
    * Add a table of properties to the inspector.
    *
-   * Embed a table with the items in [tableModel].
-   * Specify if the table should be [searchable] i.e. the user can search for items
-   * in the table using the the general search for the properties panel.
+   * Add a table with the items specified in [tableModel].
+   * Specify if the table should be [searchable] i.e. the user can search for the items in the table.
+   * Cell renderer and cell editors must be specified in [tableUI].
    */
-  fun addTable(tableModel: PTableModel, searchable: Boolean): InspectorLineModel
+  fun addTable(tableModel: PTableModel, searchable: Boolean, tableUI: TableUIProvider): InspectorLineModel
 
   /**
    * Adds a custom panel that spans the entire width.

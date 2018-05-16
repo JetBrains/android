@@ -47,8 +47,8 @@ class ActionButtonBinding(val model: PropertyEditorModel, editor: JComponent): J
 
     model.addListener(ValueChangedListener { updateFromModel() })
 
-    addMouseListener(object: MouseAdapter() {
-      override fun mouseClicked(event: MouseEvent) {
+    boundImage.addMouseListener(object: MouseAdapter() {
+      override fun mousePressed(event: MouseEvent) {
         buttonPressed(event)
       }
     })
@@ -78,6 +78,7 @@ class ActionButtonBinding(val model: PropertyEditorModel, editor: JComponent): J
     else {
       val event = AnActionEvent.createFromAnAction(action, mouseEvent, ActionPlaces.UNKNOWN, DataManager.getInstance().getDataContext(this))
       action.actionPerformed(event)
+      model.refresh()
     }
   }
 }

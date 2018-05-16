@@ -19,6 +19,7 @@ import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.idea.common.property2.api.EnumValue
 import com.android.tools.idea.common.property2.impl.model.ComboBoxPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.support.EditorFocusListener
+import com.intellij.util.ui.JBUI
 import java.awt.EventQueue
 import java.awt.event.ActionEvent
 import java.awt.event.InputEvent
@@ -34,11 +35,15 @@ import javax.swing.plaf.basic.ComboPopup
  *
  * This control will act as a ComboBox or a DropDown depending on the model.
  */
-class PropertyComboBox(model: ComboBoxPropertyEditorModel): CommonComboBox<EnumValue, ComboBoxPropertyEditorModel>(model) {
+class PropertyComboBox(model: ComboBoxPropertyEditorModel,
+                       asTableCellEditor: Boolean): CommonComboBox<EnumValue, ComboBoxPropertyEditorModel>(model) {
 
   init {
     registerKeyAction({ model.enterKeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
     registerKeyAction({ model.escapeKeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "escape")
+    if (asTableCellEditor) {
+      border = JBUI.Borders.empty()
+    }
 
     val editor = editor.editorComponent as JTextField
     editor.registerKeyAction({ model.enterKeyPressed(currentValue) }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")

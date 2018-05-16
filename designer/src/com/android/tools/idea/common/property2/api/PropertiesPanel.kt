@@ -255,9 +255,9 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
     return model
   }
 
-  override fun addTable(tableModel: PTableModel, searchable: Boolean): InspectorLineModel {
+  override fun addTable(tableModel: PTableModel, searchable: Boolean, tableUI: TableUIProvider): InspectorLineModel {
     val model = TableLineModel(tableModel, searchable)
-    val editor = TableEditor(model, TableCellRendererProvider.create())
+    val editor = TableEditor(model, tableUI.tableCellRendererProvider, tableUI.tableCellEditorProvider)
     inspectorModel.add(model)
     inspector.addLineElement(editor.component)
     model.gotoNextLine = gotoNextLine

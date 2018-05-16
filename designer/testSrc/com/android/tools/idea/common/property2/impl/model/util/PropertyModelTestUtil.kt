@@ -35,6 +35,7 @@ object PropertyModelTestUtil {
 
   interface TestPropertyEditorModel : PropertyEditorModel {
     val focusWasRequested: Boolean
+    val toggleCount: Int
   }
 
   fun makeProperty(namespace: String, name: String, initialValue: String?): TestPropertyItem {
@@ -50,6 +51,10 @@ object PropertyModelTestUtil {
         get() = name
 
       override var value: String? = initialValue
+        set(value) {
+          field = value
+          resolvedValue = value
+        }
 
       override var resolvedValue: String? = initialValue
 
@@ -122,11 +127,10 @@ object PropertyModelTestUtil {
     }
   }
 
-  fun makePropertyEditorModel(property: PropertyItem): TestPropertyEditorModel {
+  fun makePropertyEditorModel(propertyItem: PropertyItem): TestPropertyEditorModel {
     return object: TestPropertyEditorModel {
 
-      override val property: PropertyItem
-        get() = property
+      override var property = propertyItem
 
       override var value: String = property.value ?: ""
 
@@ -135,8 +139,15 @@ object PropertyModelTestUtil {
       override var focusWasRequested = false
         private set
 
+      override var toggleCount = 0
+        private set
+
       override fun requestFocus() {
         focusWasRequested = true
+      }
+
+      override fun toggleValue() {
+        toggleCount++
       }
 
       override val hasFocus = false

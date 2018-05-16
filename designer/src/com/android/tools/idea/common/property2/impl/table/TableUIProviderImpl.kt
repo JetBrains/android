@@ -13,19 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.common.property2.api
+package com.android.tools.idea.common.property2.impl.table
 
-import com.android.tools.adtui.ptable2.PTableCellRendererProvider
-import com.android.tools.idea.common.property2.impl.table.TableCellRendererProviderImpl
+import com.android.tools.idea.common.property2.api.*
 
-interface TableCellRendererProvider : PTableCellRendererProvider {
+class TableUIProviderImpl<P : PropertyItem>(itemType: Class<P>,
+                                            controlTypeProvider: ControlTypeProvider<P>,
+                                            editorProvider: EditorProvider<P>) : TableUIProvider {
 
-  companion object {
-    /**
-     * Create a default [TableCellRendererProvider].
-     */
-    fun create(): TableCellRendererProvider {
-      return TableCellRendererProviderImpl()
-    }
-  }
+  override val tableCellRendererProvider = PTableCellRendererProviderImpl(itemType, controlTypeProvider, editorProvider)
+  override val tableCellEditorProvider = PTableCellEditorProviderImpl(itemType, controlTypeProvider, editorProvider)
 }

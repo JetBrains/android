@@ -34,12 +34,12 @@ class ThreeStateBooleanPropertyEditorModelTest {
   fun testStateChangedShouldUpdatePropertyValue() {
     val model = createModel()
     val editor = PropertyThreeStateCheckBox(model)
-    editor.state = SELECTED
-    assertThat(model.property.value).isEqualTo("true")
-    editor.state = NOT_SELECTED
-    assertThat(model.property.value).isEqualTo("false")
     editor.state = DONT_CARE
     assertThat(model.property.value).isNull()
+    editor.state = NOT_SELECTED
+    assertThat(model.property.value).isEqualTo("false")
+    editor.state = SELECTED
+    assertThat(model.property.value).isEqualTo("true")
   }
 
   @Test
