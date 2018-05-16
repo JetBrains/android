@@ -31,13 +31,13 @@ import java.util.regex.Pattern;
  * @param <A> an arbitrary attribute type. The local parts of the attribute names are retrieved with the Function argument passed to the
  *            constructor.
  */
-final class AttributeComparator<A> implements Comparator<A> {
+public final class AttributeComparator<A> implements Comparator<A> {
   private final Function<A, String> myGetLocalPart;
 
   /**
    * @param getLocalPart returns the local part of a qualified attribute name
    */
-  AttributeComparator(@NotNull Function<A, String> getLocalPart) {
+  public AttributeComparator(@NotNull Function<A, String> getLocalPart) {
     myGetLocalPart = getLocalPart;
   }
 

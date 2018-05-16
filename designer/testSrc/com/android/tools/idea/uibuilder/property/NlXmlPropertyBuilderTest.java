@@ -42,6 +42,17 @@ public class NlXmlPropertyBuilderTest extends PropertyTestCase {
     myTable = new NlPTable(myModel);
   }
 
+  @Override
+  public void tearDown() throws Exception {
+    try {
+      super.tearDown();
+    }
+    finally {
+      myModel = null;
+      myTable = null;
+    }
+  }
+
   public void testTextView() {
     setProperties(myTextView);
     NlXmlPropertyBuilder builder = createBuilder(myTextView);
@@ -49,13 +60,13 @@ public class NlXmlPropertyBuilderTest extends PropertyTestCase {
     int rows = myModel.getRowCount();
     int index = 0;
     checkHeader(index++, "layout/merge.xml");
-    checkProperty(index++, ANDROID_URI, ATTR_ID);
     checkProperty(index++, ANDROID_URI, ATTR_LAYOUT_WIDTH);
     checkProperty(index++, ANDROID_URI, ATTR_LAYOUT_HEIGHT);
-    checkProperty(index++, ANDROID_URI, ATTR_TEXT_COLOR);
     checkProperty(index++, ANDROID_URI, ATTR_ELEVATION);
-    checkProperty(index++, ANDROID_URI, ATTR_TEXT);
+    checkProperty(index++, ANDROID_URI, ATTR_ID);
     checkProperty(index++, ANDROID_URI, ATTR_PADDING_BOTTOM);
+    checkProperty(index++, ANDROID_URI, ATTR_TEXT);
+    checkProperty(index++, ANDROID_URI, ATTR_TEXT_COLOR);
     checkAddProperty(index++);
     checkHeader(index++, "values/dimens.xml");
     checkResourceItem(index++, "bottom", "35dp");
