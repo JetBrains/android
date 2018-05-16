@@ -18,11 +18,14 @@ package com.android.tools.idea.ui.wizard;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.awt.*;
 import java.net.URL;
 
@@ -222,8 +225,12 @@ public final class StudioWizardDialogBuilder {
       dialog = new ModelWizardDialog(myWizard, myTitle, customLayout, myProject, myHelpUrl, myModalityType, myCancellationPolicy);
     }
 
-    dialog.getContentPanel().setMinimumSize(getClampedSize(myMinimumSize));
-    dialog.getContentPanel().setPreferredSize(getClampedSize(myPreferredSize));
+    JComponent contentPanel = dialog.getContentPanel();
+    if (contentPanel != null) {
+      contentPanel.setMinimumSize(getClampedSize(myMinimumSize));
+      contentPanel.setPreferredSize(getClampedSize(myPreferredSize));
+    }
+
     return dialog;
   }
 
