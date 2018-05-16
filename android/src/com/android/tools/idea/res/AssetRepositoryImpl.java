@@ -21,6 +21,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
+import com.android.tools.idea.sampledata.datasource.ResourceContent;
 import com.google.common.io.Files;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
@@ -197,7 +198,14 @@ public class AssetRepositoryImpl extends AssetRepository implements Disposable {
       .filter(Objects::nonNull)
       .map(path -> manager.findFileByUrl("file://" + path))
       .filter(Objects::nonNull);
-    return Stream.concat(Stream.concat(dirsFromSources, dirsFromAars), frameworkDirs);
+
+    Stream<VirtualFile> sampleDataDirs = Stream.of(ResourceContent.getSampleDataBaseDir())
+       .filter(Objects::nonNull)
+       .map(dir -> manager.findFileByUrl("file://" + dir.getAbsolutePath()))
+       .filter(Objects::nonNull);
+
+    return Stream.of(dirsFromSources, dirsFromAars, frameworkDirs, sampleDataDirs)
+      .flatMap(stream -> stream);
   }
 
   @Nullable
