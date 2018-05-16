@@ -54,7 +54,7 @@ public class ScreenView extends ScreenViewBase {
     SceneLayer sceneLayer = new SceneLayer(getSurface(), this, false);
     sceneLayer.setAlwaysShowSelection(true);
     builder.add(sceneLayer);
-    if (getSurface().getLayoutType().isSupportedByDesigner()) {
+    if (getSceneManager().getModel().getType().isSupportedByDesigner()) {
       builder.add(new CanvasResizeLayer(getSurface(), this));
     }
     return builder.build();
