@@ -39,7 +39,7 @@ class PsSigningConfigTest : AndroidGradleTestCase() {
     assertThat(appModule, notNullValue()); signingConfig!!
 
     val keyAlias = PsSigningConfig.SigningConfigDescriptors.keyAlias.bind(signingConfig).getValue()
-    // TODO(b/70501607): Decide on val keyPassword = PsSigningConfig.SigningConfigDescriptors.keyPassword.getValue(signingConfig)
+    val keyPassword = PsSigningConfig.SigningConfigDescriptors.keyPassword.bind(signingConfig).getValue()
     val storeFile = PsSigningConfig.SigningConfigDescriptors.storeFile.bind(signingConfig).getValue()
     val storePassword = PsSigningConfig.SigningConfigDescriptors.storePassword.bind(signingConfig).getValue()
     // TODO(b/70501607): Decide on val storeType = PsSigningConfig.SigningConfigDescriptors.storeType.getValue(signingConfig)
@@ -47,10 +47,63 @@ class PsSigningConfigTest : AndroidGradleTestCase() {
     assertThat(keyAlias.resolved.asTestValue(), equalTo("androiddebugkey"))
     assertThat(keyAlias.parsedValue.asTestValue(), equalTo("androiddebugkey"))
 
+    // TODO(b/70501607): assertThat(keyPassword.resolved.asTestValue(), equalTo("android"))
+    assertThat(keyPassword.parsedValue.asTestValue(), equalTo("android"))
+
     assertThat(storeFile.resolved.asTestValue(), equalTo(File(File(project.resolvedModel.basePath, "app"), "debug.keystore")))
     assertThat(storeFile.parsedValue.asTestValue(), equalTo(File("debug.keystore")))
 
     assertThat(storePassword.resolved.asTestValue(), equalTo("android"))
     assertThat(storePassword.parsedValue.asTestValue(), equalTo("android"))
+  }
+
+  fun testSetProperties() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    var project = PsProject(resolvedProject)
+
+    var appModule = project.findModuleByName("app") as PsAndroidModule
+    assertThat(appModule, notNullValue())
+
+    val signingConfig = appModule.findSigningConfig("myConfig")
+    assertThat(appModule, notNullValue()); signingConfig!!
+
+    signingConfig.keyAlias = "ka".asParsed()
+    signingConfig.keyPassword = "kp".asParsed()
+    signingConfig.storeFile = File("sf").asParsed()
+    signingConfig.storePassword = "sp".asParsed()
+
+    fun verifyValues(signingConfig: PsSigningConfig, afterSync: Boolean = false) {
+
+      val keyAlias = PsSigningConfig.SigningConfigDescriptors.keyAlias.bind(signingConfig).getValue()
+      val keyPassword = PsSigningConfig.SigningConfigDescriptors.keyPassword.bind(signingConfig).getValue()
+      val storeFile = PsSigningConfig.SigningConfigDescriptors.storeFile.bind(signingConfig).getValue()
+      val storePassword = PsSigningConfig.SigningConfigDescriptors.storePassword.bind(signingConfig).getValue()
+      // TODO(b/70501607): Decide on val storeType = PsSigningConfig.SigningConfigDescriptors.storeType.getValue(signingConfig)
+
+      assertThat(keyAlias.parsedValue.asTestValue(), equalTo("ka"))
+      // TODO(b/70501607): assertThat(keyPassword.resolved.asTestValue(), equalTo("android"))
+      assertThat(keyPassword.parsedValue.asTestValue(), equalTo("kp"))
+      assertThat(storeFile.parsedValue.asTestValue(), equalTo(File("sf")))
+      assertThat(storePassword.parsedValue.asTestValue(), equalTo("sp"))
+
+      if (afterSync) {
+        assertThat(keyAlias.parsedValue.asTestValue(), equalTo(keyAlias.resolved.asTestValue()))
+        // TODO(b/70501607): assertThat(keyPassword.parsedValue.asTestValue(), equalTo(keyPassword.resolved.asTestValue()))
+        // TODO(b/73716779): assertThat(storeFile.parsedValue.asTestValue(), equalTo(storeFile.resolved.asTestValue()))
+        assertThat(storePassword.parsedValue.asTestValue(), equalTo(storePassword.resolved.asTestValue()))
+      }
+    }
+
+    verifyValues(signingConfig)
+
+    appModule.applyChanges()
+    requestSyncAndWait()
+    project = PsProject(resolvedProject)
+    appModule = project.findModuleByName("app") as PsAndroidModule
+    // Verify nothing bad happened to the values after the re-parsing.
+    verifyValues(appModule.findSigningConfig("myConfig")!!, afterSync = true)
+
   }
 }

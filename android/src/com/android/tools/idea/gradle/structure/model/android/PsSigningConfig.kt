@@ -38,7 +38,6 @@ class PsSigningConfig(
 
   var storeFile by SigningConfigDescriptors.storeFile
   var storePassword by SigningConfigDescriptors.storePassword
-  var storeType by SigningConfigDescriptors.storeType
   var keyAlias by SigningConfigDescriptors.keyAlias
   var keyPassword by SigningConfigDescriptors.keyPassword
 
@@ -60,7 +59,7 @@ class PsSigningConfig(
       parsedPropertyGetter = { storeFile() },
       getter = { asFile() },
       // TODO: Store project relative path if possible.
-      setter = { setValue(it.absolutePath) },
+      setter = { setValue(it.toString()) },
       parser = ::parseFile
     )
 
@@ -95,7 +94,8 @@ class PsSigningConfig(
 
     val keyPassword: SimpleProperty<PsSigningConfig, String> = property(
       "Key Password",
-      resolvedValueGetter = { keyPassword },
+      // TODO(b/70501607): uiProperty(PsSigningConfig.SigningConfigDescriptors.storeType, ::simplePropertyEditor),
+      resolvedValueGetter = { null },
       parsedPropertyGetter = { keyPassword().resolve() },
       // TODO: Properly handle other password types.
       getter = { asString() },
