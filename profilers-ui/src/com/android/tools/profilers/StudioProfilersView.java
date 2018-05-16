@@ -321,8 +321,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     ProfilerAction frameSelectionAction =
       new ProfilerAction.Builder("Zoom to Selection").setContainerComponent(myStageComponent)
                                                      .setActionRunnable(() -> frameSelection.doClick(0))
-                                                     .setEnableBooleanSupplier(() -> !timeline.getSelectionRange().isEmpty() &&
-                                                                                     !timeline.getSelectionRange().isPoint())
+                                                     .setEnableBooleanSupplier(() -> !timeline.getSelectionRange().isEmpty())
                                                      .build();
     frameSelection.setToolTipText(frameSelectionAction.getDefaultToolTipText());
     rightToolbar.add(frameSelection);

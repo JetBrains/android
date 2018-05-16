@@ -302,6 +302,10 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
    * ends at the data range max.
    */
   public void adjustRangeCloseToMiddleView(@NotNull Range target) {
+    if (target.isEmpty()) {
+      return;
+    }
+
     ensureRangeFitsViewRange(target);
     boolean isTargetLargerThanViewRange = target.getLength() > myViewRangeUs.getLength();
     if (isTargetLargerThanViewRange) {
@@ -395,11 +399,18 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
   }
 
   /**
-   * Zoom and pans the view range to the specified target range.
+   * Zoom and pans the view range to the specified target range if the range is not point, otherwise center the view range only.
+   *
    * @param targetRangeUs target range to lerp view to.
    * @param leftRightPaddingPercent how much space to leave on both sides of the range to leave as padding.
    */
   public void frameViewToRange(Range targetRangeUs, double leftRightPaddingPercent) {
+    // Zoom to view when the selection range is not point, otherwise adjust the view range only.
+    if (targetRangeUs.isEmpty() || targetRangeUs.isPoint()) {
+      adjustRangeCloseToMiddleView(targetRangeUs);
+      return;
+    }
+
     setStreaming(false);
     Range finalRange = new Range(targetRangeUs.getMin() - targetRangeUs.getLength() * leftRightPaddingPercent,
                                  targetRangeUs.getMax() + targetRangeUs.getLength() * leftRightPaddingPercent);
