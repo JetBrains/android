@@ -50,7 +50,9 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   parser: (ContextT, String) -> Annotated<ParsedValue<PropertyT>>,
   formatter: (ContextT, PropertyT) -> String = { _, value -> value.toString() },
   knownValuesGetter: ((ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>) = { _, _ -> immediateFuture(listOf()) },
-  variableMatchingStrategy: VariableMatchingStrategy = VariableMatchingStrategy.BY_TYPE
+  variableMatchingStrategy: VariableMatchingStrategy = VariableMatchingStrategy.BY_TYPE,
+  matcher: (model: ModelT, parsedValue: PropertyT?, resolvedValue: PropertyT) -> Boolean =
+    { _, parsedValue, resolvedValue -> parsedValue == resolvedValue }
 ): ModelSimpleProperty<ContextT, ModelT, PropertyT> = ModelSimplePropertyImpl(
   this,
   description,
@@ -62,7 +64,8 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   parser,
   formatter,
   knownValuesGetter,
-  variableMatchingStrategy
+  variableMatchingStrategy,
+  matcher
 )
 
 class ModelSimplePropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
@@ -76,7 +79,8 @@ class ModelSimplePropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, Proper
   override val parser: (ContextT, String) -> Annotated<ParsedValue<PropertyT>>,
   override val formatter: (ContextT, PropertyT) -> String,
   override val knownValuesGetter: (ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>,
-  override val variableMatchingStrategy: VariableMatchingStrategy
+  override val variableMatchingStrategy: VariableMatchingStrategy,
+  private val matcher: (model: ModelT, parsed: PropertyT?, resolved: PropertyT) -> Boolean
 ) : ModelPropertyBase<ContextT, ModelT, PropertyT>(), ModelSimpleProperty<ContextT, ModelT, PropertyT> {
   override fun getValue(thisRef: ModelT, property: KProperty<*>): ParsedValue<PropertyT> =
     getParsedValue(modelDescriptor.getParsed(thisRef)?.parsedPropertyGetter(), getter).value
@@ -87,7 +91,7 @@ class ModelSimplePropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, Proper
   }
 
   override fun bind(model: ModelT): ModelPropertyCore<PropertyT> =
-    object : ModelPropertyParsedCoreImpl<PropertyT>(), ModelPropertyCore<PropertyT> {
+    object : ModelPropertyCoreImpl<PropertyT>(), ModelPropertyCore<PropertyT> {
       override val description: String = this@ModelSimplePropertyImpl.description
       override fun getParsedProperty(): ResolvedPropertyModel? = modelDescriptor.getParsed(model)?.parsedPropertyGetter()
       override val getter: ResolvedPropertyModel.() -> PropertyT? = this@ModelSimplePropertyImpl.getter
@@ -103,12 +107,14 @@ class ModelSimplePropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, Proper
       }
 
       override val defaultValueGetter: (() -> PropertyT?)? = this@ModelSimplePropertyImpl.defaultValueGetter?.let { { it(model) } }
+      override fun parsedAndResolvedValuesAreEqual(parsedValue: PropertyT?, resolvedValue: PropertyT): Boolean =
+        matcher(model, parsedValue, resolvedValue)
     }
 
   private fun ModelT.setModified() = modelDescriptor.setModified(this)
 }
 
-abstract class ModelPropertyParsedCoreImpl<PropertyT : Any> : ModelPropertyParsedCore<PropertyT> {
+abstract class ModelPropertyCoreImpl<PropertyT : Any> : ModelPropertyCore<PropertyT> {
   abstract fun getParsedProperty(): ResolvedPropertyModel?
   abstract val getter: ResolvedPropertyModel.() -> PropertyT?
   abstract val setter: ResolvedPropertyModel.(PropertyT) -> Unit
@@ -122,6 +128,11 @@ abstract class ModelPropertyParsedCoreImpl<PropertyT : Any> : ModelPropertyParse
   }
 
   override val isModified: Boolean? get() = getParsedProperty()?.isModified
+
+  override fun annotateParsedResolvedMismatch(): ValueAnnotation? = annotateParsedResolvedMismatchBy {
+    parsedValueToCompare, resolvedValue -> parsedAndResolvedValuesAreEqual(parsedValueToCompare, resolvedValue) }
+
+  abstract fun parsedAndResolvedValuesAreEqual(parsedValue: PropertyT?, resolvedValue: PropertyT): Boolean
 }
 
 private fun <T : Any> getParsedValue(property: ResolvedPropertyModel?, getter: ResolvedPropertyModel.() -> T?): Annotated<ParsedValue<T>> =

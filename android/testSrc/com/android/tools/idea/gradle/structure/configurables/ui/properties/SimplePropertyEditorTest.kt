@@ -97,6 +97,7 @@ class SimplePropertyEditorTest : UsefulTestCase() {
         else ResolvedValue.NotResolved()
 
         override val defaultValueGetter: (() -> String?)? get() = defaultValue?.let { { it } }
+        override fun annotateParsedResolvedMismatch(): ValueAnnotation? = null
 
         override val isModified: Boolean? get() = false
       }

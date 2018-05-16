@@ -91,6 +91,8 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
     validateValues(propListRef)
   }
 
+  // TODO(b/72814329): Test parsed and resolved value matching annotation.
+
   @Test
   fun testWritePropertyValues() {
     val text = """

@@ -167,4 +167,5 @@ class SimplePropertyStub<ValueT : Any> : ModelPropertyCore<ValueT> {
   override fun getResolvedValue(): ResolvedValue<ValueT> = ResolvedValue.NotResolved()
   override val defaultValueGetter: (() -> ValueT?)? = null
   override val isModified: Boolean? = null
+  override fun annotateParsedResolvedMismatch(): ValueAnnotation? = null
 }
