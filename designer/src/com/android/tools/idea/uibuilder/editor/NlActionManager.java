@@ -242,7 +242,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       viewActions.addAll(ViewHandlerManager.get(mySurface.getProject()).getToolbarActions(handler));
     }
     else {
-      viewActions.addAll(ViewHandlerManager.get(mySurface.getProject()).getPopupMenuActions(handler));
+      viewActions.addAll(ViewHandlerManager.get(mySurface.getProject()).getPopupMenuActions(component, handler));
     }
     Collections.sort(viewActions);
 

@@ -28,6 +28,7 @@ import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
+import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.handlers.assistant.MotionLayoutAssistantPanel;
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
@@ -90,6 +91,17 @@ public class MotionLayoutHandler extends ConstraintLayoutHandler implements NlCo
       );
     }
   }
+
+  @Override
+  public boolean addPopupMenuActions(@NotNull NlComponent component, @NotNull List<ViewAction> actions) {
+    MotionLayoutTimelinePanel panel = getTimeline(component);
+    if (panel == null || panel.getCurrentState() == MotionLayoutTimelinePanel.State.TL_START
+      || panel.getCurrentState() == MotionLayoutTimelinePanel.State.TL_END) {
+      super.addPopupMenuActions(component, actions);
+    }
+    return false;
+  }
+
 
   @Override
   public boolean needsAccessoryPanel(@NotNull AccessoryPanel.Type type) {
