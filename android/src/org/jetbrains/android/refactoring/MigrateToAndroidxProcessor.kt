@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.refactoring
 
-import com.android.SdkConstants.FN_GRADLE_PROPERTIES
 import com.android.builder.model.TestOptions.Execution
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.repository.io.FileOpUtils
@@ -28,7 +27,6 @@ import com.android.tools.idea.templates.RepositoryUrlManager
 import com.google.common.collect.Range
 import com.google.common.collect.RangeMap
 import com.google.common.collect.TreeRangeMap
-import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.command.CommandProcessor
@@ -38,8 +36,6 @@ import com.intellij.openapi.roots.GeneratedSourcesFilter
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.util.Ref
-import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.vfs.VfsUtil.findFileByIoFile
 import com.intellij.psi.*
 import com.intellij.psi.codeStyle.JavaCodeStyleManager
 import com.intellij.psi.impl.migration.PsiMigrationManager
@@ -56,21 +52,10 @@ import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.ClassMigrat
 import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.PackageMigrationUsageInfo
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral
-import java.io.File
 
 private const val CLASS_MIGRATION_BASE_PRIORITY = 1_000_000
 private const val PACKAGE_MIGRATION_BASE_PRIORITY = 1_000
 private const val DEFAULT_MIGRATION_BASE_PRIORITY = 0
-
-/**
- * Returns a [PropertiesFile] instance for the `gradle.properties` file in the given project or null if it does not exist.
- */
-private fun getProjectProperties(project: Project): PropertiesFile? {
-  val gradlePropertiesFile = findFileByIoFile(File(FileUtil.toCanonicalPath(project.basePath), FN_GRADLE_PROPERTIES), true)
-  val psiPropertiesFile = PsiManager.getInstance(project).findFile(gradlePropertiesFile ?: return null)
-
-  return if (psiPropertiesFile is PropertiesFile) psiPropertiesFile else null
-}
 
 private fun isImportElement(element: PsiElement?): Boolean =
   element != null && (element.node?.elementType.toString() == "IMPORT_LIST" || isImportElement(element.parent))
@@ -93,9 +78,6 @@ private fun getLibraryRevision(newGroupName: String, newArtifactName: String, de
 
   return defaultVersion
 }
-
-private const val USE_ANDROIDX_PROPERTY = "android.useAndroidX"
-private const val ENABLE_JETIFIER_PROPERTY = "android.enableJetifier"
 
 open class MigrateToAndroidxProcessor(val project: Project,
                                  private val migrationMap: List<AppCompatMigrationEntry>,
@@ -187,10 +169,7 @@ open class MigrateToAndroidxProcessor(val project: Project,
       CommandProcessor.getInstance().markCurrentCommandAsGlobal(project)
 
       // Add gradle properties to enable the androidx handling
-      getProjectProperties(project)?.let {
-        it.findPropertyByKey(USE_ANDROIDX_PROPERTY) ?: it.addProperty(USE_ANDROIDX_PROPERTY, "true")
-        it.findPropertyByKey(ENABLE_JETIFIER_PROPERTY) ?: it.addProperty(ENABLE_JETIFIER_PROPERTY, "true")
-      }
+      project.setAndroidxProperties()
 
       val smartPointerManager = SmartPointerManager.getInstance(myProject)
 

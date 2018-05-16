@@ -24,6 +24,7 @@ import com.android.tools.idea.util.DependencyManagementUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -112,6 +113,16 @@ public class DependencyManager {
   }
 
   public boolean useAndroidxDependencies() {
+    if (MigrateToAndroidxUtil.hasAndroidxProperty(myModule.getProject())) {
+      return MigrateToAndroidxUtil.isAndroidx(myModule.getProject());
+    }
+
+    if (DependencyManagementUtil.dependsOnAndroidx(myModule)) {
+      // It already depends on androidx
+      return true;
+    }
+
+    // It does not depend on androidx. Check default to using androidx unless the module already depends on android.support
     return !DependencyManagementUtil.dependsOnOldSupportLib(myModule) && StudioFlags.NELE_USE_ANDROIDX_DEFAULT.get();
   }
 }
