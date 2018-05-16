@@ -157,7 +157,6 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
   @Override
   public void updateAccessoryPanelWithSelection(@NotNull AccessoryPanel.Type type,
                                                 @NotNull List<NlComponent> selection) {
-    myVisibilityCallback.show(AccessoryPanel.Type.EAST_PANEL, false);
     myCurrentState = TL_UNKNOWN;
 
     if (selection.isEmpty()) {
