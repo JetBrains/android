@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.sdkmanager;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -103,7 +102,7 @@ public class InstallPackageTest {
     });
 
     ideSettingsDialogFixture.clickOK();
-    MessagesFixture.findByTitle(guiTest.robot(), "Confirm Change").clickOk();
+    MessagesFixture.findByTitle(guiTest.robot(), "Confirm Change", 30).clickOk();
     DialogFixture downloadDialog =
       findDialog(withTitle("SDK Quickfix Installation")).withTimeout(SECONDS.toMillis(30)).using(guiTest.robot());
     JButtonFixture finish = downloadDialog.button(withText("Finish"));
