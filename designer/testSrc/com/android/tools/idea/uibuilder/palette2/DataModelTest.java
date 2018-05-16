@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.palette2;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.common.model.NlLayoutType;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.intellij.ide.util.PropertiesComponent;
@@ -145,13 +146,14 @@ public class DataModelTest extends AndroidTestCase {
     assertThat(myCategoryListModel.getElementAt(5).getName()).isEqualTo("Containers");
     assertThat(myCategoryListModel.hasMatchCounts()).isFalse();
 
-    System.clearProperty(NavigationSchema.ENABLE_NAV_PROPERTY);
+    StudioFlags.ENABLE_NAV_EDITOR.override(true);
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(5));
     assertThat(getElementsAsStrings(myItemListModel)).contains("NavHostFragment");
 
-    System.setProperty(NavigationSchema.ENABLE_NAV_PROPERTY, "false");
+    StudioFlags.ENABLE_NAV_EDITOR.override(false);
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(5));
     assertThat(getElementsAsStrings(myItemListModel)).doesNotContain("NavHostFragment");
+    StudioFlags.ENABLE_NAV_EDITOR.clearOverride();
   }
 
   public void testSearch() {
