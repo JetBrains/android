@@ -85,6 +85,11 @@ public final class SelectionComponent extends AnimatedComponent {
   @NotNull
   private final Range myViewRange;
 
+  /**
+   * Flag to tell the component to render the grab bar if the mouse is over the selection component.
+   */
+  private boolean myIsMouseOverComponent;
+
   public SelectionComponent(@NotNull SelectionModel model, @NotNull Range viewRange) {
     myModel = model;
     myViewRange = viewRange;
@@ -133,6 +138,12 @@ public final class SelectionComponent extends AnimatedComponent {
       @Override
       public void mouseExited(MouseEvent e) {
         setCursor(Cursor.getDefaultCursor());
+        myIsMouseOverComponent = false;
+      }
+
+      @Override
+      public void mouseEntered(MouseEvent e) {
+        myIsMouseOverComponent = true;
       }
     });
     this.addMouseMotionListener(new MouseMotionAdapter() {
@@ -324,7 +335,7 @@ public final class SelectionComponent extends AnimatedComponent {
     Rectangle2D.Float rect = new Rectangle2D.Float(startXPos, 0, endXPos - startXPos, dim.height);
     g.fill(rect);
 
-    if (myMouseMovedX > startXPos && myMouseMovedX < endXPos) {
+    if (myMouseMovedX > startXPos && myMouseMovedX < endXPos && myIsMouseOverComponent) {
       g.setColor(DRAG_BAR_COLOR);
       g.fill(new Rectangle2D.Float(startXPos, 0, endXPos - startXPos, DRAG_BAR_HEIGHT));
     }
