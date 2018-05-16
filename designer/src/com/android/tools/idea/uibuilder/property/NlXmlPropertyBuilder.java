@@ -24,7 +24,6 @@ import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.PropertiesManager;
-import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.property.editors.NlXmlEditors;
@@ -35,6 +34,7 @@ import com.google.common.collect.TreeMultimap;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.PathUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.formatter.AttributeComparator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,16 +68,16 @@ public class NlXmlPropertyBuilder {
     if (myComponents.isEmpty()) {
       return false;
     }
-    NlComponent component = myComponents.get(0);
     List<PTableItem> items = new ArrayList<>();
-    items.add(new NlResourceHeader(generateFileHeader(component.getModel().getVirtualFile().getPath())));
-    for (AttributeSnapshot attribute : component.getAttributes()) {
-      NlPropertyItem item = myProperties.get(attribute.namespace, attribute.name);
-      if (item != null) {
+    for (NlPropertyItem item : myProperties.values()) {
+      if (item.getValue() != null) {
         resolveValue(item);
         items.add(item);
       }
     }
+    items.sort(new AttributeComparator<>(property -> property.getName()));
+    NlComponent component = myComponents.get(0);
+    items.add(0, new NlResourceHeader(generateFileHeader(component.getModel().getVirtualFile().getPath())));
     items.add(new AddPropertyItem(myProperties));
     for (String header : mySliceMap.keySet()) {
       items.add(new NlResourceHeader(header));
