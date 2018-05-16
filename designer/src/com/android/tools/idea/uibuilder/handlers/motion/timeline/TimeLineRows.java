@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.timeline;
 
-import com.android.tools.adtui.util.SwingUtil;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.util.ui.JBUI;
 
@@ -219,6 +218,16 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
           float position = keyFrame.getFramePosition() / 100f;
           myChart.setCursorPosition(position);
         }
+      } else {
+        int width = getWidth() - myChart.myChartLeftInset - myChart.myChartRightInset;
+        int  fp =  ((x - myChart.myChartLeftInset)*100)/width;
+        if (fp < 0) {
+          fp = 0;
+        } else if (fp > 100){
+          fp = 100;
+        }
+        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> "+fp);
+        myChart.setCursorPosition(fp/100f);
       }
     }
 
@@ -237,6 +246,42 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
       }
       else {
         g.fillPolygon(myXPoints, myYPoints, 4);
+      }
+    }
+
+    public void drawCircle(Graphics g, boolean selected, int x, int pos) {
+      int half = ourDiamondSize / 2;
+      myXPoints[0] = x;
+      myYPoints[0] = pos;
+      myXPoints[1] = x + half;
+      myYPoints[1] = pos + half;
+      myXPoints[2] = x;
+      myYPoints[2] = pos + ourDiamondSize;
+      myXPoints[3] = x - half;
+      myYPoints[3] = pos + half;
+      if (selected) {
+        g.drawRoundRect(x - half, pos - half, ourDiamondSize, ourDiamondSize, ourDiamondSize, ourDiamondSize);
+      }
+      else {
+        g.fillRoundRect(x - half, pos - half, ourDiamondSize, ourDiamondSize, ourDiamondSize, ourDiamondSize);
+      }
+    }
+
+    public void drawSquare(Graphics g, boolean selected, int x, int pos) {
+      int half = ourDiamondSize / 2;
+      myXPoints[0] = x;
+      myYPoints[0] = pos;
+      myXPoints[1] = x + half;
+      myYPoints[1] = pos + half;
+      myXPoints[2] = x;
+      myYPoints[2] = pos + ourDiamondSize;
+      myXPoints[3] = x - half;
+      myYPoints[3] = pos + half;
+      if (selected) {
+        g.drawRoundRect(x - half, pos - half, ourDiamondSize, ourDiamondSize, 2, 2);
+      }
+      else {
+        g.fillRoundRect(x - half, pos - half, ourDiamondSize, ourDiamondSize, 2, 2);
       }
     }
 
@@ -298,8 +343,12 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
       g2d.setStroke(new BasicStroke(2));
       int pos = 2;
       int width = getWidth() - myChart.myChartLeftInset - myChart.myChartRightInset;
-
+      g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
       g.setColor(Chart.myUnSelectedLineColor);
+      int xpos = myChart.myChartLeftInset + (int)((0 * width) / 100);
+      drawCircle(g,false, xpos, pos + ourDiamondSize);
+      xpos = myChart.myChartLeftInset + (int)((100 * width) / 100);
+      drawSquare(g, false, xpos, pos + ourDiamondSize);
       for (MotionSceneModel.KeyAttributes key : myViewElement.mKeyFrames.myKeyAttributes) {
         int x = myChart.myChartLeftInset + (int)((key.framePosition * width) / 100);
 
@@ -313,6 +362,8 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
         }
         myLocationTable.add(x, pos, key);
       }
+
+
       int delta_y = (getHeight() - ourDiamondSize) / 4;
       pos += delta_y;
 
