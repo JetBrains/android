@@ -31,6 +31,7 @@ public class AaptOptionsModelImpl extends GradleDslBlockModel implements AaptOpt
   @NonNls private static final String IGNORE_ASSETS = "ignoreAssets";
   @NonNls private static final String IGNORE_ASSETS_PATTERN = "ignoreAssetsPattern";
   @NonNls private static final String NO_COMPRESS = "noCompress";
+  @NonNls private static final String NAMESPACED = "namespaced";
 
   public AaptOptionsModelImpl(@NotNull AaptOptionsDslElement dslElement) {
     super(dslElement);
@@ -75,5 +76,11 @@ public class AaptOptionsModelImpl extends GradleDslBlockModel implements AaptOpt
   @NotNull
   public ResolvedPropertyModel noCompress() {
     return GradlePropertyModelBuilder.create(myDslElement, NO_COMPRESS).asMethod(true).buildResolved();
+  }
+
+  @NotNull
+  @Override
+  public ResolvedPropertyModel namespaced() {
+    return GradlePropertyModelBuilder.create(myDslElement, NAMESPACED).asMethod(true).buildResolved();
   }
 }

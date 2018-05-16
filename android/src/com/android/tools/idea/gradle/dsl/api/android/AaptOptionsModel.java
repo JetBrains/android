@@ -37,4 +37,7 @@ public interface AaptOptionsModel extends GradleDslModel {
 
   @NotNull
   ResolvedPropertyModel noCompress();
+
+  @NotNull
+  ResolvedPropertyModel namespaced();
 }

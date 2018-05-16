@@ -46,7 +46,7 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
     }
 
     myFixture.addFileToProject(
-      "${getAdditionalModulePath("lib") + "/res"}/values/lib.xml",
+      "${getAdditionalModulePath("lib")}/res/values/lib.xml",
       // language=xml
       """
         <resources>
@@ -196,6 +196,67 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
                 getResources().getString(com.example.lib.R.string.libString);
                 getResources().getString(com.example.lib.R.string.libString);
                 getResources().getString(com.example.lib.R.string.libString);
+            }
+        }
+      """.trimIndent(),
+      true
+    )
+  }
+
+  fun testGradleFiles() {
+    // Make sure there's at least on reference to rewrite.
+    runUndoTransparentWriteAction {
+      myFacet.manifest!!.application.label.stringValue = "@string/libString"
+    }
+
+    myFixture.addFileToProject(
+      "build.gradle",
+      """
+        android {
+            compileSdkVersion 27
+
+            defaultConfig {
+                applicationId "com.example.app"
+            }
+        }
+      """.trimIndent()
+    )
+
+    myFixture.addFileToProject(
+      "${getAdditionalModulePath("lib")}/build.gradle",
+      """
+        android {
+            compileSdkVersion 27
+        }
+      """.trimIndent()
+    )
+
+    MigrateToResourceNamespacesProcessor(myFacet).run()
+
+    myFixture.checkResult(
+      "build.gradle",
+      """
+        android {
+            compileSdkVersion 27
+
+            defaultConfig {
+                applicationId "com.example.app"
+            }
+            aaptOptions {
+                namespaced true
+            }
+        }
+      """.trimIndent(),
+      true
+    )
+
+    myFixture.checkResult(
+      "${getAdditionalModulePath("lib")}/build.gradle",
+      """
+        android {
+            compileSdkVersion 27
+            aaptOptions {
+                namespaced true
             }
         }
       """.trimIndent(),
