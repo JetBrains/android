@@ -17,14 +17,12 @@ package com.android.tools.idea.uibuilder.handlers.motion.property2;
 
 import com.android.tools.idea.common.property2.api.ControlType;
 import com.android.tools.idea.common.property2.api.ControlTypeProvider;
-import com.android.tools.idea.common.property2.api.EnumSupport;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class MotionControlTypeProvider implements ControlTypeProvider<MotionPropertyItem> {
 
   @Override
-  public ControlType invoke(@NotNull MotionPropertyItem item, @Nullable EnumSupport support) {
+  public ControlType invoke(@NotNull MotionPropertyItem item) {
     return ControlType.TEXT_EDITOR;
   }
 }
