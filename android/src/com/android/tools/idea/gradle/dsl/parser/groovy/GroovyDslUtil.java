@@ -410,7 +410,7 @@ public final class GroovyDslUtil {
 
     PsiElement added = createPsiElementInsideList(parent, expression, parentPsi, newExpressionPsi);
     expression.setPsiElement(added);
-    expression.setModified(false);
+    expression.commit();
     return expression.getPsiElement();
   }
 
@@ -448,7 +448,7 @@ public final class GroovyDslUtil {
       GrExpression grExpression = getChildOfType(addedNameArgument, GrExpression.class);
       if (grExpression != null) {
         expression.setExpression(grExpression);
-        expression.setModified(false);
+        expression.commit();
         expression.reset();
         return expression.getPsiElement();
       }
@@ -491,7 +491,7 @@ public final class GroovyDslUtil {
     }
 
     expression.reset();
-    expression.setModified(false);
+    expression.commit();
   }
 
   @Nullable

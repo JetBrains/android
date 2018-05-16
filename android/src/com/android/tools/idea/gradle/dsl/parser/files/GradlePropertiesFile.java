@@ -100,13 +100,13 @@ public final class GradlePropertiesFile extends GradleDslFile {
 
     @Override
     @Nullable
-    public Object getValue() {
+    public Object produceValue() {
       return myValue;
     }
 
     @Override
     @Nullable
-    public Object getUnresolvedValue() {
+    public Object produceUnresolvedValue() {
       return getValue();
     }
 
@@ -134,7 +134,7 @@ public final class GradlePropertiesFile extends GradleDslFile {
 
     @Nullable
     @Override
-    public Object getRawValue() {
+    public Object produceRawValue() {
       return getUnresolvedValue();
     }
 
@@ -155,11 +155,6 @@ public final class GradlePropertiesFile extends GradleDslFile {
     @Override
     protected void apply() {
       // There is nothing to apply here as this is just a dummy dsl element to represent a property.
-    }
-
-    @Override
-    protected void reset() {
-      // There is nothing to reset here as this is just a dummy dsl element to represent a property.
     }
   }
 }

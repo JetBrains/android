@@ -49,6 +49,7 @@ public abstract class GradleDslSettableExpression extends GradleDslSimpleExpress
     }
     myUnsavedValue = null;
     // Resetting setModified is done by GradleDslElement#resetState.
+    super.reset();
   }
 
   @Nullable
@@ -64,7 +65,7 @@ public abstract class GradleDslSettableExpression extends GradleDslSimpleExpress
   protected void setUnsavedValue(@Nullable PsiElement element) {
     myUnsavedValue = element;
     resolve();
-    setModified(true);
+    setModified();
     reorder();
   }
 

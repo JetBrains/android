@@ -39,14 +39,9 @@ public class GradleDslUnknownElement extends GradleDslSimpleExpression {
     // This element can't be changed.
   }
 
-  @Override
-  protected void reset() {
-    // This element can't be changed.
-  }
-
   @Nullable
   @Override
-  public Object getValue() {
+  public Object produceValue() {
     PsiElement element = getExpression();
     if (element == null) {
       return null;
@@ -56,24 +51,8 @@ public class GradleDslUnknownElement extends GradleDslSimpleExpression {
 
   @Nullable
   @Override
-  public Object getUnresolvedValue() {
+  public Object produceUnresolvedValue() {
     return getValue();
-  }
-
-  @Nullable
-  @Override
-  public <T> T getValue(@NotNull Class<T> clazz) {
-    Object value = getValue();
-    if (value != null && clazz.isAssignableFrom(value.getClass())) {
-      return clazz.cast(value);
-    }
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public <T> T getUnresolvedValue(@NotNull Class<T> clazz) {
-    return getValue(clazz);
   }
 
   @Override
@@ -83,7 +62,7 @@ public class GradleDslUnknownElement extends GradleDslSimpleExpression {
 
   @Nullable
   @Override
-  public Object getRawValue() {
+  public Object produceRawValue() {
     return getUnresolvedValue();
   }
 

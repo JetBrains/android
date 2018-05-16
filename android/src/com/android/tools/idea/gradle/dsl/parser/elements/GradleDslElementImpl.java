@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
+import com.android.tools.idea.gradle.dsl.parser.ModificationAware;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.google.common.collect.ImmutableList;
@@ -34,7 +35,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isNonExpressionPropertiesElement;
 import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT_BLOCK_NAME;
 
-public abstract class GradleDslElementImpl implements GradleDslElement {
+public abstract class GradleDslElementImpl implements GradleDslElement, ModificationAware {
   @NotNull protected GradleNameElement myName;
 
   @Nullable protected GradleDslElement myParent;
@@ -48,7 +49,8 @@ public abstract class GradleDslElementImpl implements GradleDslElement {
   @Nullable private GradleDslClosure myClosureElement;
   @Nullable private GradleDslClosure myUnsavedClosure;
 
-  private volatile boolean myModified;
+  private long myLastCommittedModificationCount;
+  private long myModificationCount;
 
   // Whether or not that DslElement should be represented with the assignment syntax i.e "name = 'value'" or
   // the method call syntax i.e "name 'value'". This is needed since on some element types as we do not carry
@@ -96,7 +98,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement {
   @Override
   public void setNewClosureElement(@Nullable GradleDslClosure closureElement) {
     myUnsavedClosure = closureElement;
-    setModified(true);
+    setModified();
   }
 
   @Override
@@ -144,7 +146,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement {
   @Override
   public void rename(@NotNull String newName) {
     myName.rename(newName);
-    setModified(true);
+    setModified();
 
     // If we are a GradleDslSimpleExpression we need to ensure our dependencies are correct.
     if (!(this instanceof GradleDslSimpleExpression)) {
@@ -267,16 +269,16 @@ public abstract class GradleDslElementImpl implements GradleDslElement {
   }
 
   @Override
-  public void setModified(boolean modified) {
-    myModified = modified;
-    if (myParent != null && modified) {
-      myParent.setModified(true);
+  public void setModified() {
+    modify();
+    if (myParent != null) {
+      myParent.setModified();
     }
   }
 
   @Override
   public boolean isModified() {
-    return myModified;
+    return getLastCommittedModificationCount() != getModificationCount();
   }
 
   @Override
@@ -297,7 +299,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement {
   public final void applyChanges() {
     ApplicationManager.getApplication().assertWriteAccessAllowed();
     apply();
-    setModified(false);
+    commit();
   }
 
   protected abstract void apply();
@@ -305,7 +307,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement {
   @Override
   public final void resetState() {
     reset();
-    setModified(false);
+    commit();
   }
 
   protected abstract void reset();
@@ -448,6 +450,25 @@ public abstract class GradleDslElementImpl implements GradleDslElement {
     if (myParent instanceof ExtDslElement) {
       ((ExtDslElement)myParent).reorderAndMaybeGetNewIndex(this);
     }
+  }
+
+  @Override
+  public long getModificationCount() {
+    return myModificationCount;
+  }
+
+  public long getLastCommittedModificationCount() {
+    return myLastCommittedModificationCount;
+  }
+
+  @Override
+  public void modify() {
+    myModificationCount++;
+    myDependents.forEach(e -> e.getOriginElement().modify());
+  }
+
+  public void commit() {
+    myLastCommittedModificationCount = myModificationCount;
   }
 
   @Nullable

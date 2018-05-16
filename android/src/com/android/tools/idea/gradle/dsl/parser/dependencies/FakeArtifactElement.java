@@ -53,7 +53,7 @@ public class FakeArtifactElement extends FakeElement {
 
   @Override
   @Nullable
-  public Object produceValue() {
+  public Object extractValue() {
     GradleDslSimpleExpression resolved = PropertyUtil.resolveElement(myRealExpression);
     ArtifactDependencySpec spec = getSpec(resolved);
 
@@ -107,7 +107,7 @@ public class FakeArtifactElement extends FakeElement {
 
   @Nullable
   @Override
-  public Object getRawValue() {
+  public Object produceRawValue() {
     return getUnresolvedValue();
   }
 
