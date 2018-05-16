@@ -97,6 +97,7 @@ class ModelListPropertyImpl<in ContextT, in ModelT, out ResolvedT, ParsedT, Valu
   }
 
   override fun bind(model: ModelT): ModelListPropertyCore<ValueT> = object:ModelListPropertyCore<ValueT> {
+    override val description: String get() = this@ModelListPropertyImpl.description
     override fun getParsedValue(): Annotated<ParsedValue<List<ValueT>>> = this@ModelListPropertyImpl.getParsedValue(model)
     override fun setParsedValue(value: ParsedValue<List<ValueT>>) = this@ModelListPropertyImpl.setParsedValue(model, value)
     override fun getResolvedValue(): ResolvedValue<List<ValueT>> = this@ModelListPropertyImpl.getResolvedValue(model)

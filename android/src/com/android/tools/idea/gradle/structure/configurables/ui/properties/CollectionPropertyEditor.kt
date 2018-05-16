@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.openapi.actionSystem.ActionToolbarPosition
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.ToolbarDecorator
+import com.intellij.ui.components.JBLabel
 import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.AbstractTableCellEditor
 import java.awt.BorderLayout
@@ -43,10 +44,14 @@ CollectionPropertyEditor<out ModelPropertyT : ModelCollectionPropertyCore<*>, Va
   protected val editor: PropertyEditorFactory<ModelPropertyCore<ValueT>, ModelPropertyContext<ValueT>, ValueT>,
   protected val variablesProvider: VariablesProvider?,
   protected val extensions: List<EditorExtensionAction>
-) : JPanel(BorderLayout()) {
+)  {
 
-  val component: JComponent get() = this
+  val component: JPanel = JPanel(BorderLayout())
+  val labelComponent: JBLabel = JBLabel(property.description).also {
+    it.labelFor = component
+  }
   val statusComponent: JComponent? = null
+
   private var beingLoaded = false
   protected var tableModel: DefaultTableModel? = null ; private set
   private val formatter = propertyContext.valueFormatter()
@@ -58,7 +63,7 @@ CollectionPropertyEditor<out ModelPropertyT : ModelCollectionPropertyCore<*>, Va
       rowHeight = calculateMinRowHeight()
     }
     .also {
-      add(
+      component.add(
         ToolbarDecorator.createDecorator(it)
           .setAddAction { addItem() }
           .setRemoveAction { removeItem() }
@@ -161,6 +166,7 @@ CollectionPropertyEditor<out ModelPropertyT : ModelCollectionPropertyCore<*>, Va
 }
 
 class SimplePropertyStub<ValueT : Any> : ModelPropertyCore<ValueT> {
+  override val description: String = ""
   override fun getParsedValue(): Annotated<ParsedValue<ValueT>> = ParsedValue.NotSet.annotated()
   override fun setParsedValue(value: ParsedValue<ValueT>) = Unit
   override fun getResolvedValue(): ResolvedValue<ValueT> = ResolvedValue.NotResolved()

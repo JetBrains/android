@@ -59,6 +59,7 @@ fun <T : Any> makeItemPropertyCore(
   resolvedValueGetter: () -> ResolvedValue<T>,
   modifiedSetter: () -> Unit
 ): ModelPropertyCore<T> = object: ModelPropertyParsedCoreImpl<T>(), ModelPropertyCore<T> {
+  override val description: String get() = ""
   override fun getParsedProperty(): ResolvedPropertyModel? = resolvedProperty
   override val getter: ResolvedPropertyModel.() -> T? = getter
   override val setter: ResolvedPropertyModel.(T) -> Unit = setter

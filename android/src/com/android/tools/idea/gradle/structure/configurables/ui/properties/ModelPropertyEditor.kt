@@ -35,6 +35,11 @@ interface ModelPropertyEditor<out ValueT> : Disposable {
   val component: JComponent
 
   /**
+   * The component to be added to the model editor to represent the label of the property editor.
+   */
+  val labelComponent: JComponent
+
+  /**
    * The component to be added to the model editor to represent the current status of the property editor.
    */
   val statusComponent: JComponent?

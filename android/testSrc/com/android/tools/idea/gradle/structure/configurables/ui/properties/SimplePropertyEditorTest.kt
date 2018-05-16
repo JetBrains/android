@@ -79,6 +79,7 @@ class SimplePropertyEditorTest : UsefulTestCase() {
       override val description: String = "Description"
 
       override fun bind(model: Model): ModelPropertyCore<String> = object : ModelPropertyCore<String> {
+        override val description: String = "Description"
         override fun getParsedValue(): Annotated<ParsedValue<String>> = parsedModel.value
 
         override fun setParsedValue(value: ParsedValue<String>) {
@@ -108,6 +109,11 @@ class SimplePropertyEditorTest : UsefulTestCase() {
   override fun setUp() {
     super.setUp()
     IdeaTestApplication.getInstance()
+  }
+
+  fun testLabel() {
+    val editor = simplePropertyEditor(property.bind(model), property.bindContext(null, model))
+    assertThat(editor.labelComponent.text, equalTo("Description"))
   }
 
   fun testLoadsValue() {

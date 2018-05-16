@@ -88,6 +88,7 @@ class ModelSimplePropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, Proper
 
   override fun bind(model: ModelT): ModelPropertyCore<PropertyT> =
     object : ModelPropertyParsedCoreImpl<PropertyT>(), ModelPropertyCore<PropertyT> {
+      override val description: String = this@ModelSimplePropertyImpl.description
       override fun getParsedProperty(): ResolvedPropertyModel? = modelDescriptor.getParsed(model)?.parsedPropertyGetter()
       override val getter: ResolvedPropertyModel.() -> PropertyT? = this@ModelSimplePropertyImpl.getter
       override val setter: ResolvedPropertyModel.(PropertyT) -> Unit = this@ModelSimplePropertyImpl.setter
