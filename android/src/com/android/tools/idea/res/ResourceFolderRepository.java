@@ -94,7 +94,7 @@ import static org.jetbrains.android.util.AndroidResourceUtil.XML_FILE_RESOURCE_T
  * <li>Register the psi project listener as a project service instead</li>
  * </ul>
  */
-public final class ResourceFolderRepository extends LocalResourceRepository implements LeafResourceRepository {
+public final class ResourceFolderRepository extends LocalResourceRepository implements SingleNamespaceResourceRepository {
   private static final Logger LOG = Logger.getInstance(ResourceFolderRepository.class);
 
   private static final ImmutableSet<ResourceFolderType> XML_RESOURCE_FOLDERS = ImmutableSet.copyOf(XML_FILE_RESOURCE_TYPES.values());

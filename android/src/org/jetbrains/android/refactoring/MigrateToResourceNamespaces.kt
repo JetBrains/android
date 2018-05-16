@@ -18,10 +18,10 @@ package org.jetbrains.android.refactoring
 import com.android.builder.model.AaptOptions
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.AbstractResourceRepository
+import com.android.ide.common.resources.SingleNamespaceResourceRepository
 import com.android.resources.ResourceType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.res.LeafResourceRepository
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.common.collect.Maps
 import com.google.common.collect.Table
@@ -164,7 +164,6 @@ class MigrateToResourceNamespacesProcessor(
 
     val leafRepos = mutableListOf<AbstractResourceRepository>()
     ResourceRepositoryManager.getAppResources(invokingFacet).getLeafResourceRepositories(leafRepos)
-    leafRepos.retainAll { it is LeafResourceRepository } // TODO(b/78765120): enforce this in MultiResourceRepository.
 
     val total = result.size.toDouble()
     // TODO(b/78765120): try doing this in parallel using a thread pool.
@@ -175,7 +174,7 @@ class MigrateToResourceNamespacesProcessor(
         for (repo in leafRepos) {
           if (repo.hasResourceItem(ResourceNamespace.RES_AUTO, resourceUsageInfo.resourceType, resourceUsageInfo.name)) {
             // TODO(b/78765120): check other repos and build a list of unresolved or conflicting references, to display in a UI later.
-            return@computeIfAbsent (repo as LeafResourceRepository).packageName
+            return@computeIfAbsent (repo as SingleNamespaceResourceRepository).packageName
           }
         }
 
