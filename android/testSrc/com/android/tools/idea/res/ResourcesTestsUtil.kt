@@ -67,8 +67,8 @@ fun createTestModuleRepository(
  * [ResourceRepositoryManager] will find the newly added library and create a separate repository for it when
  * [ResourceRepositoryManager.getAppResources] is called.
  */
-fun addAarDependency(module: Module): File {
-  val aarDir = FileUtil.createTempDirectory("exploded-aar", null)
+fun addAarDependency(module: Module, libraryName: String): File {
+  val aarDir = FileUtil.createTempDirectory(libraryName, "_exploded")
 
   // Create a manifest file in the right place, so that files inside aarDir are considered resource files.
   // See AndroidResourceUtil#isResourceDirectory which is called from ResourcesDomFileDescription#isResourcesFile.
@@ -77,10 +77,17 @@ fun addAarDependency(module: Module): File {
   val resDir = File(aarDir, SdkConstants.FD_RES)
   resDir.mkdir()
 
+  val classesDir = File(aarDir, "classes")
+  classesDir.mkdir()
+
+  // See AndroidMavenUtil.isMavenAarDependency for what this library must look like to be considered an AAR.
   ModuleRootModificationUtil.addModuleLibrary(
     module,
-    "maven_aar_dependency", // See AndroidMavenUtil.isMavenAarDependency
-    listOf(VfsUtil.findFileByIoFile(resDir, true)!!.url),
+    "$libraryName.aar",
+    listOf(
+      VfsUtil.getUrlForLibraryRoot(resDir),
+      VfsUtil.getUrlForLibraryRoot(classesDir)
+    ),
     emptyList<String>(),
     DependencyScope.COMPILE
   )
