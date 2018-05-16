@@ -31,7 +31,7 @@ import java.util.Comparator;
 public class EditorUtils {
   static JBColor ourNameColor = new JBColor(0x0000ff, 0xafafaf);
   static JBColor ourEasingGraphColor = new JBColor(0x0000ff, 0xafafaf);
-  static JBColor ourEasingControlsColor  = new JBColor(0x008000, 0x537f4e);
+  static JBColor ourEasingControlsColor  = new JBColor(0xE2739A, 0xE27BA4);
   static JBColor ourTagColor = new JBColor(0x000080, 0xe5b764);
   static JBColor ourValueColor = new JBColor(0x008000, 0x537f4e);
   static JBColor ourSecondaryPanelBackground = new JBColor(0xfcfcfc, 0x313435);
