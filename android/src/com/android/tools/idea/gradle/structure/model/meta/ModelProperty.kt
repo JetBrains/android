@@ -44,6 +44,11 @@ interface ModelPropertyCore<PropertyT : Any> :
   ModelPropertyParsedCore<PropertyT>,
   ModelPropertyResolvedCore<PropertyT> {
   /**
+   * A property description as it should appear in the UI.
+   */
+  val description: String
+
+  /**
    * The function to get the default value of the property for a given model, or null if the default value of the property cannot be
    * determined.
    */

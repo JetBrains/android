@@ -48,10 +48,8 @@ public class ConfigPanelUi {
       0, 0));
   }
 
-  protected final void addPropertyComponents(@NotNull String label, @NotNull JComponent editor, @Nullable JComponent statusComponent) {
+  protected final void addPropertyComponents(@NotNull JComponent labelComponent, @NotNull JComponent editor, @Nullable JComponent statusComponent) {
     myLastRow++;
-    JBLabel labelComponent = new JBLabel(label);
-    labelComponent.setLabelFor(editor);
     myPanel.add(labelComponent, new GridBagConstraints(
       0,
       myLastRow * 3,

@@ -116,6 +116,7 @@ class ModelMapPropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, ValueT : 
   }
 
   override fun bind(model: ModelT): ModelMapPropertyCore<ValueT> = object : ModelMapPropertyCore<ValueT> {
+    override val description: String = this@ModelMapPropertyImpl.description
     override fun getParsedValue(): Annotated<ParsedValue<Map<String, ValueT>>> = this@ModelMapPropertyImpl.getParsedValue(model)
     override fun setParsedValue(value: ParsedValue<Map<String, ValueT>>) = this@ModelMapPropertyImpl.setParsedValue(model, value)
     override fun getResolvedValue(): ResolvedValue<Map<String, ValueT>> = this@ModelMapPropertyImpl.getResolvedValue(model)
