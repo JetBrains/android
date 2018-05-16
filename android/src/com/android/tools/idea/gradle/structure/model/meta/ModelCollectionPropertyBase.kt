@@ -65,4 +65,5 @@ fun <T : Any> makeItemPropertyCore(
   override fun setModified() = modifiedSetter()
   override fun getResolvedValue(): ResolvedValue<T> = resolvedValueGetter()
   override val defaultValueGetter: (() -> T?)? = null
+  override val isModified: Boolean? get() = resolvedProperty.isModified
 }

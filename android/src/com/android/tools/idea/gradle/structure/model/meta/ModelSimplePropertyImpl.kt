@@ -119,6 +119,8 @@ abstract class ModelPropertyParsedCoreImpl<PropertyT : Any> : ModelPropertyParse
     setParsedValue(getParsedProperty() ?: throw IllegalStateException(), setter, value)
     setModified()
   }
+
+  override val isModified: Boolean? get() = getParsedProperty()?.isModified
 }
 
 private fun <T : Any> getParsedValue(property: ResolvedPropertyModel?, getter: ResolvedPropertyModel.() -> T?): Annotated<ParsedValue<T>> =

@@ -97,6 +97,7 @@ class SimplePropertyEditorTest : UsefulTestCase() {
 
         override val defaultValueGetter: (() -> String?)? get() = defaultValue?.let { { it } }
 
+        override val isModified: Boolean? get() = false
       }
 
       override fun getValue(thisRef: Model, property: KProperty<*>): ParsedValue<String> = throw UnsupportedOperationException()
