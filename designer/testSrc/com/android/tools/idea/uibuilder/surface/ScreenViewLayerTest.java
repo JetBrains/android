@@ -68,7 +68,7 @@ public class ScreenViewLayerTest {
   }
 
   @Test
-  public void lowHighQualityPainting() throws Exception {
+  public void scalingPaintTest() throws Exception {
 
     VirtualTimeScheduler timeScheduler = new VirtualTimeScheduler();
     Rectangle rectangle = new Rectangle(SCREEN_VIEW_WIDTH, SCREEN_VIEW_HEIGHT);
@@ -80,38 +80,37 @@ public class ScreenViewLayerTest {
     when(myScreenView.getScale()).thenReturn(SCALE, SCALE, 1.0, SCALE);//, 0.5, 3.0);
     when(myScreenView.getSize(any())).thenReturn(rectangle.getSize());
 
-    // Create a high quality image bigger than the screenView that will be scaled
+    // Create a high quality image bigger than the screenView that will be scaled.
     ImagePool.Image imageHQ = getTestImage(IMAGE_WIDTH, IMAGE_HEIGHT);
 
     when(myScreenView.getResult()).thenReturn(myRenderResult);
     when(myRenderResult.getRenderedImage()).thenReturn(imageHQ);
     when(myRenderResult.hasImage()).thenReturn(true);
 
-    // First, we expect the layer to draw a low quality image at the first call to paint
-    // We expect an aliased image
+    Graphics2D g;
+
+    // First, we expect an unscaled image on first call.
     //noinspection UndesirableClassUsage
-    BufferedImage lowQoutput = new BufferedImage(SCREEN_VIEW_WIDTH, SCREEN_VIEW_HEIGHT, BufferedImage.TYPE_INT_ARGB);
-    Graphics2D g = (Graphics2D)lowQoutput.getGraphics();
-    g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
-    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+    BufferedImage unscaled = new BufferedImage(SCREEN_VIEW_WIDTH, SCREEN_VIEW_HEIGHT, BufferedImage.TYPE_INT_ARGB);
+    g = (Graphics2D)unscaled.getGraphics();
+    g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
     imageHQ.drawImageTo(g, 0, 0, SCREEN_VIEW_WIDTH, SCREEN_VIEW_HEIGHT);
     g.dispose();
 
     //noinspection UndesirableClassUsage
     BufferedImage output = new BufferedImage(SCREEN_VIEW_WIDTH, SCREEN_VIEW_HEIGHT, BufferedImage.TYPE_INT_ARGB);
     g = (Graphics2D)output.getGraphics();
-
     g.setClip(rectangle);
     layer.paint(g);
     g.dispose();
-    ImageDiffUtil.assertImageSimilar("screenviewlayer_result.png", lowQoutput, output, 0.0);
+    ImageDiffUtil.assertImageSimilar("screenviewlayer_result.png", unscaled, output, 0.0);
 
 
     BufferedImage imageHQScaled = imageHQ.getCopy();
     imageHQScaled = ImageUtils.scale(imageHQScaled, SCALE);
     g.dispose();
 
-    // We wait more than the debounce delay to ensure that the next call to pain will draw a high quality image
+    // We wait more than the debounce delay to ensure that the next call to paint will draw an scaled image.
     timeScheduler.advanceBy(600, TimeUnit.MILLISECONDS);
     //noinspection UndesirableClassUsage
     g = (Graphics2D)output.getGraphics();
@@ -124,16 +123,16 @@ public class ScreenViewLayerTest {
     ImageDiffUtil.assertImageSimilar("screenviewlayer_result.png", imageHQScaled, output, 0.0);
 
 
-    layer.paint(g); // Call one more time to change the value of getScale() (see mock creation)
+    layer.paint(g); // Call one more time to change the value of getScale() (see mock creation).
 
-    // The scale value changed so the image should be in low quality
+    // Scale value back to 1.0, so no scaling.
     g = (Graphics2D)output.getGraphics();
     g.setColor(Color.WHITE);
     g.fill(rectangle);
     g.setClip(rectangle);
     layer.paint(g);
     g.dispose();
-    ImageDiffUtil.assertImageSimilar("screenviewlayer_result.png", lowQoutput, output, 0.0);
+    ImageDiffUtil.assertImageSimilar("screenviewlayer_result.png", unscaled, output, 0.0);
   }
 
   @NotNull
@@ -146,6 +145,7 @@ public class ScreenViewLayerTest {
       g.fillRect(0, 0, imageWidth, imageHeight);
       g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
       g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+      g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
       g.setColor(Color.BLACK);
       g.drawLine(0, 0, imageWidth, imageHeight);
       g.drawLine(imageWidth, 0, 0, imageHeight);

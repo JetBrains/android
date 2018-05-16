@@ -40,15 +40,10 @@ import java.util.concurrent.*;
  */
 public class ScreenViewLayer extends Layer {
 
-  public final static Map<RenderingHints.Key, Object> HQ_RENDERING_HITS = ImmutableMap.of(
+  public final static Map<RenderingHints.Key, Object> HQ_RENDERING_HINTS = ImmutableMap.of(
     RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON,
     RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY,
     RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR
-  );
-
-  public final static Map<RenderingHints.Key, Object> LQ_RENDERING_HITS = ImmutableMap.of(
-    RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF,
-    RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED
   );
 
   public static final int REQUEST_SCALE_DEBOUNCE_TIME_IN_MS = 300;
@@ -72,7 +67,6 @@ public class ScreenViewLayer extends Layer {
   @Nullable private ScheduledFuture<?> myScheduledFuture;
   private Rectangle mySizeRectangle = new Rectangle();
   private Dimension myScreenViewSize = new Dimension();
-  private boolean myIsRescaling;
 
   /**
    * Create a new ScreenView
@@ -142,7 +136,7 @@ public class ScreenViewLayer extends Layer {
       drawScaledDownImage(g, myScreenView.getX(), myScreenView.getY(), myScaledDownImage);
     }
     else {
-      drawImage(g, myScreenView.getX(), myScreenView.getY(), myIsRescaling, myCachedScale, myLastRenderResult);
+      drawImage(g, myScreenView.getX(), myScreenView.getY(), myCachedScale, myLastRenderResult);
     }
     g.setRenderingHints(hints);
 
@@ -157,18 +151,17 @@ public class ScreenViewLayer extends Layer {
   private static void drawScaledDownImage(@NotNull Graphics2D g,
                                           int x, int y,
                                           @NotNull BufferedImage scaledDownImage) {
-    g.setRenderingHints(HQ_RENDERING_HITS);
+    g.setRenderingHints(HQ_RENDERING_HINTS);
     UIUtil.drawImage(g, scaledDownImage, x, y, null);
   }
 
   private static void drawImage(@NotNull Graphics2D g,
                                 int x, int y,
-                                boolean isRescaling,
                                 double scale,
                                 @NotNull RenderResult renderResult) {
     // If the image is being scaled down or the image needs to be only scaled up, we can directly draw
     // the image
-    g.setRenderingHints(isRescaling ? LQ_RENDERING_HITS : HQ_RENDERING_HITS);
+    g.setRenderingHints(HQ_RENDERING_HINTS);
     ImagePool.Image image = renderResult.getRenderedImage();
     image.drawImageTo(g, x, y,
                         (int)Math.round(image.getWidth() * scale),
@@ -200,7 +193,6 @@ public class ScreenViewLayer extends Layer {
    * </pre>
    */
   private void requestHighQualityScaledImage() {
-    myIsRescaling = true;
     if (myScheduledFuture != null && !myScheduledFuture.isDone()) {
       myScheduledFuture.cancel(false);
     }
@@ -261,7 +253,6 @@ public class ScreenViewLayer extends Layer {
         BufferedImage imageCopy = myGc != null ? image.getCopy(myGc) : image.getCopy();
         myScaledDownImage = ImageUtils.scale(imageCopy, myCachedScale);
       }
-      myIsRescaling = false;
       UIUtil.invokeLaterIfNeeded(
         () -> myScreenView.getSurface().repaint());
     }
