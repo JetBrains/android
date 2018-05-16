@@ -17,6 +17,7 @@ package org.jetbrains.android.dom.navigation;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.psi.TagToClassMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.*;
@@ -113,11 +114,8 @@ public class NavigationSchema implements Disposable {
     OTHER
   }
 
-  @VisibleForTesting
-  public static final String ENABLE_NAV_PROPERTY = "enable.nav.editor";
-
   public static boolean enableNavigationEditor() {
-    return !"false".equals(System.getProperty(ENABLE_NAV_PROPERTY));
+    return StudioFlags.ENABLE_NAV_EDITOR.get();
   }
 
   /**

@@ -18,6 +18,7 @@ package com.android.tools.idea.naveditor
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.fixtures.ModelBuilder
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.naveditor.scene.TestableThumbnailManager
 import com.android.tools.idea.naveditor.scene.ThumbnailManager
 import com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR_BASIC
@@ -69,7 +70,7 @@ abstract class NavTestCase : AndroidTestCase() {
     }
 
     TestableThumbnailManager.register(myFacet)
-    System.setProperty(NavigationSchema.ENABLE_NAV_PROPERTY, "true")
+    StudioFlags.ENABLE_NAV_EDITOR.override(true)
   }
 
   override fun tearDown() {
@@ -78,6 +79,7 @@ abstract class NavTestCase : AndroidTestCase() {
       val thumbnailManager = ThumbnailManager.getInstance(myFacet)
       (thumbnailManager as? TestableThumbnailManager)?.deregister()
       deleteManifest()
+      StudioFlags.ENABLE_NAV_EDITOR.clearOverride()
     }
     finally {
       super.tearDown()
