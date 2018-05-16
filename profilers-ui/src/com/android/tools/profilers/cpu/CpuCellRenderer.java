@@ -90,6 +90,18 @@ public abstract class CpuCellRenderer<T, K> implements ListCellRenderer<T> {
         }
       }
     });
+
+    // Dispatch mouse event when we mouse off our current list.
+    list.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseExited(MouseEvent e) {
+        if (list.getModel().getSize() > myHoveredIndex && myHoveredIndex >= 0) {
+          StateChart<K> chart = getChartForModel(list.getModel().getElementAt(myHoveredIndex));
+          chart.dispatchEvent(SwingUtil.convertMouseEventID(e, MouseEvent.MOUSE_EXITED));
+        }
+        myHoveredIndex = -1;
+      }
+    });
   }
 
   /**
