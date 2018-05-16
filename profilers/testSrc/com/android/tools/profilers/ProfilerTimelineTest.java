@@ -396,6 +396,58 @@ public class ProfilerTimelineTest {
   }
 
   @Test
+  public void frameToViewPointRange() {
+    myTimeline.reset(0, TimeUnit.MICROSECONDS.toNanos(100));
+    myTimeline.setStreaming(true);
+    myViewRange.set(0, 20);
+
+    Range pointRange = new Range(50, 50);
+    myTimeline.frameViewToRange(pointRange, 0);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(5));
+    assertThat(myViewRange.getMin()).isWithin(DELTA).of(40);
+    assertThat(myViewRange.getMax()).isWithin(DELTA).of(60);
+  }
+
+  @Test
+  public void frameToViewEmptyRange() {
+    myTimeline.reset(0, TimeUnit.MICROSECONDS.toNanos(100));
+    myTimeline.setStreaming(true);
+    myViewRange.set(0, 20);
+
+    Range emptyRange = new Range();
+    myTimeline.frameViewToRange(emptyRange, 0);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(5));
+    assertThat(myViewRange.getMin()).isWithin(DELTA).of(0);
+    assertThat(myViewRange.getMax()).isWithin(DELTA).of(20);
+  }
+
+  @Test
+  public void adjustViewForPointRange() {
+    myTimeline.reset(0, TimeUnit.MICROSECONDS.toNanos(100));
+    myTimeline.setStreaming(true);
+    myViewRange.set(0, 20);
+
+    Range pointRange = new Range(50, 50);
+    myTimeline.adjustRangeCloseToMiddleView(pointRange);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(5));
+    assertThat(myViewRange.getMin()).isWithin(DELTA).of(40);
+    assertThat(myViewRange.getMax()).isWithin(DELTA).of(60);
+  }
+
+  @Test
+  public void adjustViewForEmptyRange() {
+    myTimeline.reset(0, TimeUnit.MICROSECONDS.toNanos(100));
+    myTimeline.setStreaming(true);
+    myViewRange.set(0, 20);
+
+    Range emptyRange = new Range();
+    myTimeline.adjustRangeCloseToMiddleView(emptyRange);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(5));
+    assertThat(myViewRange.getMin()).isWithin(DELTA).of(0);
+    assertThat(myViewRange.getMax()).isWithin(DELTA).of(20);
+  }
+
+  @Test
   public void jumpToTargetOnTheLeft() {
     // Give time to make data range non-empty, streaming will update the data range.
     myTimer.tick(TimeUnit.MICROSECONDS.toNanos(300));
