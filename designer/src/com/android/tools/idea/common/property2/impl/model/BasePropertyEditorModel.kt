@@ -17,6 +17,7 @@ package com.android.tools.idea.common.property2.impl.model
 
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.common.property2.api.*
+import kotlin.properties.Delegates
 
 /**
  * A base implementation of a [PropertyEditorModel].
@@ -27,8 +28,10 @@ import com.android.tools.idea.common.property2.api.*
  * @property visible Controls the visibility of the editor
  * @property hasFocus Shows if an editor has focus. Setting this to true will cause focus to be requested to the editor.
  */
-abstract class BasePropertyEditorModel(override val property: PropertyItem) : PropertyEditorModel {
+abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : PropertyEditorModel {
   private val valueChangeListeners = mutableListOf<ValueChangedListener>()
+
+  override var property: PropertyItem by Delegates.observable(initialProperty, { _, _, _ -> fireValueChanged()})
 
   override var value: String
     get() = property.value.orEmpty()
@@ -63,6 +66,14 @@ abstract class BasePropertyEditorModel(override val property: PropertyItem) : Pr
       fireValueChanged()
       focusRequest = false
     }
+  }
+
+  /**
+   * Toggle to a known value.
+   *
+   * A noop for most editors. Boolean editors should override this method.
+   */
+  override fun toggleValue() {
   }
 
   val tooltip: String

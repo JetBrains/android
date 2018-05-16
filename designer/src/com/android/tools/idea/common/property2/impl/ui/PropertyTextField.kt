@@ -15,17 +15,21 @@
  */
 package com.android.tools.idea.common.property2.impl.ui
 
+import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.stdui.CommonTextField
+import com.android.tools.adtui.stdui.StandardDimensions.HORIZONTAL_PADDING
 import com.android.tools.idea.common.property2.impl.model.TextFieldPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.support.EditorFocusListener
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
+import javax.swing.BorderFactory
 import javax.swing.KeyStroke
 
 /**
  * A standard control for editing a text property.
  */
-class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextField<TextFieldPropertyEditorModel>(editorModel) {
+class PropertyTextField(editorModel: TextFieldPropertyEditorModel,
+                        asTableCellEditor: Boolean) : CommonTextField<TextFieldPropertyEditorModel>(editorModel) {
 
   init {
     registerKeyAction({ editorModel.enter(text) }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
@@ -33,6 +37,10 @@ class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextF
     registerKeyAction({ editorModel.f1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "help")
     registerKeyAction({ editorModel.shiftF1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")
     addFocusListener(EditorFocusListener(editorModel, { text }))
+    if (asTableCellEditor) {
+      // HORIZONTAL_PADDING has already been scaled: do not use JBUI.Borders
+      border = BorderFactory.createMatteBorder(0, HORIZONTAL_PADDING, 0, HORIZONTAL_PADDING, secondaryPanelBackground)
+    }
   }
 
   override fun updateFromModel() {

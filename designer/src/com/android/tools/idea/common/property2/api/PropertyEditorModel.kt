@@ -30,8 +30,12 @@ import javax.swing.Icon
 interface PropertyEditorModel {
   /**
    * The property this editor is for.
+   *
+   * This [property] is usually readonly except for models used during
+   * table cell rendering where we want to cache editors for displaying
+   * properties of the same type.
    */
-  val property: PropertyItem
+  var property: PropertyItem
 
   /**
    * The value shown in the editor.
@@ -82,6 +86,14 @@ interface PropertyEditorModel {
    * Request focus to be placed on this editor.
    */
   fun requestFocus()
+
+  /**
+   * Toggle the value of this editor.
+   *
+   * This is a noop for most editors.
+   * Boolean editors should implement this method.
+   */
+  fun toggleValue()
 
   /**
    * Update the value shown in the editor.

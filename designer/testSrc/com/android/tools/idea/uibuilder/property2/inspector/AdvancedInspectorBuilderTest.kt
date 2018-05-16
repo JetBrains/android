@@ -16,6 +16,9 @@
 package com.android.tools.idea.uibuilder.property2.inspector
 
 import com.android.SdkConstants.*
+import com.android.tools.adtui.ptable2.DefaultPTableCellEditorProvider
+import com.android.tools.adtui.ptable2.DefaultPTableCellRendererProvider
+import com.android.tools.idea.common.property2.api.TableUIProvider
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
@@ -34,7 +37,7 @@ class AdvancedInspectorBuilderTest {
     runInEdtAndWait {
       val util = InspectorTestUtil(projectRule, TEXT_VIEW, LINEAR_LAYOUT)
       addProperties(util)
-      val builder = AdvancedInspectorBuilder()
+      val builder = AdvancedInspectorBuilder(TestTableUIProvider())
       builder.attachToInspector(util.inspector, util.properties)
       assertThat(util.inspector.lines).hasSize(4)
       assertThat(util.inspector.lines[0].type).isEqualTo(LineType.TITLE)
@@ -56,6 +59,11 @@ class AdvancedInspectorBuilderTest {
         .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_CONTENT_DESCRIPTION,
                          ATTR_TEXT, ATTR_TEXT_COLOR, ATTR_TEXT_SIZE).inOrder()
     }
+  }
+
+  private class TestTableUIProvider: TableUIProvider {
+    override val tableCellRendererProvider = DefaultPTableCellRendererProvider()
+    override val tableCellEditorProvider = DefaultPTableCellEditorProvider()
   }
 
   private fun addProperties(util: InspectorTestUtil) {

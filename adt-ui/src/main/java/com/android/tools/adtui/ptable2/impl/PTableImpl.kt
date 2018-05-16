@@ -21,6 +21,7 @@ import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.SpeedSearchComparator
 import com.intellij.ui.TableUtil
 import com.intellij.ui.table.JBTable
+import com.intellij.util.IJSwingUtilities
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.*
@@ -78,6 +79,10 @@ open class PTableImpl(tableModel: PTableModel,
     super.resetDefaultFocusTraversalKeys()
     super.setFocusTraversalPolicyProvider(true)
     super.setFocusTraversalPolicy(PTableFocusTraversalPolicy())
+
+    // We want expansion for the property names but not of the editors. This disables expansion for both columns.
+    // TODO: Provide expansion of the left column only.
+    super.setExpandableItemsEnabled(false)
   }
 
   override val component: JComponent
@@ -222,8 +227,17 @@ open class PTableImpl(tableModel: PTableModel,
   }
 
   override fun removeEditor() {
+    // b/37132037 Move focus back to table before hiding the editor
+    val editor = editorComponent
+    if (editor != null && IJSwingUtilities.hasFocus(editor)) {
+      requestFocus()
+    }
+
+    // Now remove the editor
     super.removeEditor()
-    tableCellEditor.editor.close()
+
+    // Give the cell editor a change to reset it's state
+    tableCellEditor.editor.close(this)
   }
 
   // ========== Keyboard Actions ===============================================

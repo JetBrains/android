@@ -39,14 +39,14 @@ class EditorProviderImpl<in P : PropertyItem>(
 
     when (controlType) {
       ControlType.COMBO_BOX ->
-        return createComboBoxEditor(property, true, enumSupportProvider(property)!!)
+        return createComboBoxEditor(property, true, enumSupportProvider(property)!!, asTableCellEditor)
 
       ControlType.DROPDOWN ->
-        return createComboBoxEditor(property, false, enumSupportProvider(property)!!)
+        return createComboBoxEditor(property, false, enumSupportProvider(property)!!, asTableCellEditor)
 
       ControlType.TEXT_EDITOR -> {
         val model = TextFieldPropertyEditorModel(property, true)
-        val editor = PropertyTextField(model)
+        val editor = PropertyTextField(model, asTableCellEditor)
         return Pair(model, addActionButtonBinding(model, editor))
       }
 
@@ -64,9 +64,12 @@ class EditorProviderImpl<in P : PropertyItem>(
     }
   }
 
-  private fun createComboBoxEditor(property: P, editable: Boolean, enumSupport: EnumSupport): Pair<PropertyEditorModel, JComponent> {
+  private fun createComboBoxEditor(property: P,
+                                   editable: Boolean,
+                                   enumSupport: EnumSupport,
+                                   asTableCellEditor: Boolean): Pair<PropertyEditorModel, JComponent> {
     val model = ComboBoxPropertyEditorModel(property, enumSupport, editable)
-    val comboBox = PropertyComboBox(model)
+    val comboBox = PropertyComboBox(model, asTableCellEditor)
     comboBox.renderer = enumSupport.renderer
     return Pair(model, addActionButtonBinding(model, comboBox))
   }
