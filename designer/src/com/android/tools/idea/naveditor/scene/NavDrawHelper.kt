@@ -51,6 +51,19 @@ private val HQ_RENDERING_HITS = ImmutableMap.of(
 @SwingCoordinate private val ACTION_STROKE_WIDTH = JBUI.scale(3f)
 @SwingCoordinate private val DASHED_STROKE_CYCLE = JBUI.scale(5f)
 
+@JvmField
+@NavCoordinate
+val INNER_RADIUS_SMALL = JBUI.scale(5)
+@JvmField
+@NavCoordinate
+val INNER_RADIUS_LARGE = JBUI.scale(8)
+@JvmField
+@NavCoordinate
+val OUTER_RADIUS_SMALL = JBUI.scale(7)
+@JvmField
+@NavCoordinate
+val OUTER_RADIUS_LARGE = JBUI.scale(11)
+
 @SwingCoordinate val REGULAR_FRAME_THICKNESS = JBUI.scale(1)
 @SwingCoordinate val HIGHLIGHTED_FRAME_THICKNESS = JBUI.scale(2)
 
@@ -66,6 +79,8 @@ val DASHED_ACTION_STROKE = BasicStroke(ACTION_STROKE_WIDTH, CAP_BUTT, JOIN_ROUND
 
 @JvmField
 @NavCoordinate val FRAGMENT_BORDER_SPACING = JBUI.scale(2)
+@JvmField
+@NavCoordinate val ACTION_HANDLE_OFFSET = FRAGMENT_BORDER_SPACING + JBUI.scale(2)
 
 fun frameColor(context: SceneContext, component: SceneComponent): Color {
   val colorSet = context.colorSet

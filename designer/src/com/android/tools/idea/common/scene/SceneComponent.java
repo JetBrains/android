@@ -58,6 +58,7 @@ public class SceneComponent {
   public SceneDecorator myDecorator;
   private TargetProvider myTargetProvider;
   private ComponentProvider myComponentProvider;
+  private HitProvider myHitProvider;
 
   public enum DrawState {SUBDUED, NORMAL, HOVER, SELECTED, DRAG}
 
@@ -108,12 +109,13 @@ public class SceneComponent {
   //region Constructor & toString
   /////////////////////////////////////////////////////////////////////////////
 
-  public SceneComponent(@NotNull Scene scene, @NotNull NlComponent component) {
+  public SceneComponent(@NotNull Scene scene, @NotNull NlComponent component, @NotNull HitProvider hitProvider) {
     myScene = scene;
     myNlComponent = component;
     myScene.addComponent(this);
     SceneManager manager = scene.getSceneManager();
     myDecorator = manager.getSceneDecoratorFactory().get(component);
+    myHitProvider = hitProvider;
     setSelected(myScene.getDesignSurface().getSelectionModel().isSelected(component));
   }
 
@@ -772,10 +774,9 @@ public class SceneComponent {
     if (myIsToolLocked) {
       return; // skip this if hidden
     }
-    picker.addRect(this, 0, sceneTransform.getSwingXDip(myCurrentLeft),
-                   sceneTransform.getSwingYDip(myCurrentTop),
-                   sceneTransform.getSwingXDip(myCurrentRight),
-                   sceneTransform.getSwingYDip(myCurrentBottom));
+
+    myHitProvider.addHit(this, sceneTransform, picker);
+
     ImmutableList<Target> targets = getTargets();
     int num = targets.size();
     for (int i = 0; i < num; i++) {

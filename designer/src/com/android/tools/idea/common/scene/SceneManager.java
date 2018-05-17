@@ -47,6 +47,7 @@ abstract public class SceneManager implements Disposable {
   // This will be initialized when constructor calls updateSceneView().
   @SuppressWarnings("NullableProblems")
   @NotNull private SceneView mySceneView;
+  @NotNull private final HitProvider myHitProvider = new DefaultHitProvider();
 
   public SceneManager(@NotNull NlModel model, @NotNull DesignSurface surface) {
     myModel = model;
@@ -161,7 +162,7 @@ abstract public class SceneManager implements Disposable {
   protected SceneComponent createHierarchy(@NotNull NlComponent component) {
     SceneComponent sceneComponent = getScene().getSceneComponent(component);
     if (sceneComponent == null) {
-      sceneComponent = new SceneComponent(getScene(), component);
+      sceneComponent = new SceneComponent(getScene(), component, getHitProvider(component));
     }
     sceneComponent.setToolLocked(isComponentLocked(component));
     Set<SceneComponent> oldChildren = new HashSet<>(sceneComponent.getChildren());
@@ -243,4 +244,9 @@ abstract public class SceneManager implements Disposable {
   public abstract SceneDecoratorFactory getSceneDecoratorFactory();
 
   public abstract Map<Object, PropertiesMap> getDefaultProperties();
+
+  @NotNull
+  protected HitProvider getHitProvider(@NotNull NlComponent component) {
+    return myHitProvider;
+  }
 }

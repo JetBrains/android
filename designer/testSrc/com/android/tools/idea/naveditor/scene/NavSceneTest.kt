@@ -689,6 +689,39 @@ class NavSceneTest : NavTestCase() {
     )
   }
 
+  fun testHoveredHandle() {
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("fragment1")
+      }
+    }
+
+    val scene = model.surface.scene!!
+
+    val list = DisplayList()
+    val view = model.surface.currentSceneView!!
+    `when`(view.scale).thenReturn(1.0)
+    val transform = SceneContext.get(view)
+    scene.layout(0, SceneContext.get(model.surface.currentSceneView))
+
+    // If rectangle extends from (20, 20) to (173, 276), then the handle should be at (173, 148)
+    // Hover over a point to the right of that so that we're over the handle but not the rectangle
+    scene.mouseHover(transform, 177, 148)
+    scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
+
+    assertEquals(
+      "Clip,0,0,876,928\n" +
+      "DrawRectangle,1,400x400x76x128,ffa7a7a7,1,0\n" +
+      "DrawPreviewUnavailable,401x401x74x126\n" +
+      "DrawRectangle,1,398x398x80x132,ffa7a7a7,2,2\n" +
+      "DrawTruncatedText,3,fragment1,400x390x76x5,ff656565,Default:0:9,false\n" +
+      "DrawFilledCircle,6,478x464,fff5f5f5,0:5:90\n" +
+      "DrawCircle,7,478x464,ffa7a7a7,2,0:4:90\n" +
+      "\n" +
+      "UNClip\n", list.generateSortedDisplayList(transform)
+    )
+  }
+
   fun testHoverDuringDrag() {
     val model = model("nav.xml") {
       navigation("root") {
