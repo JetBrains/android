@@ -20,11 +20,11 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
     androidTestCompile('com.android.support.test.espresso:espresso-core:+', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile 'com.android.support:appcompat-v7:+'
-    testCompile 'junit:junit:4.+'
-    compile 'com.android.support.constraint:constraint-layout:+'
+    implementation 'com.android.support:appcompat-v7:+'
+    testImplementation 'junit:junit:4.+'
+    implementation 'com.android.support.constraint:constraint-layout:+'
 }
