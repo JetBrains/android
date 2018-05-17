@@ -122,21 +122,9 @@ public class NavNlEditorTest {
       .setType("navigation")
       .clickOk();
     GuiTests.findAndClickOkButton(frame.waitForDialog("Add Project Dependency"));
-
-    /*
-    TODO:
-    Unfortunately in gui tests we use the fallback list of packages, which doesn't yet contain the nav editor, and so adding it won't work
-    yet. It's at least useful to see the the "add" dialog shows up at this point, though.
-    */
-    GuiTests.findAndClickOkButton(frame.waitForDialog("Failed to Add Dependency"));
-
-    /*
-    This is what should be here eventually:
-
     EditorFixture editor = guiTest.ideFrame().getEditor();
     NlEditorFixture layout = editor.getLayoutEditor(false);
     layout.waitForRenderToFinish();
-    */
   }
 
   @Test
