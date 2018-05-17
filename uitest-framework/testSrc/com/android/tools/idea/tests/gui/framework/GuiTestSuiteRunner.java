@@ -39,7 +39,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 
 /**
- * <p>{@link Runner} that finds and runs classes {@link RunWith} {@link GuiTestRunner}.</p>
+ * <p>{@link Runner} that finds and runs classes {@link RunWith} {@link GuiTestRemoteRunner}.</p>
  *
  * <p>This runner will specify a {@link TestGroupFilter} when the {@code ui.test.group}
  * property is set to a {@link TestGroup} name. This runner will also specify a
@@ -111,9 +111,8 @@ public class GuiTestSuiteRunner extends Suite {
 
     String runWithClassName = runWith.value().getSimpleName();
 
-    // True if running with GuiTestRunner or GuiTestRemoteRunner
-    if (runWithClassName.equals(GuiTestRunner.class.getSimpleName()) ||
-      runWithClassName.equals(GuiTestRemoteRunner.class.getSimpleName())) {
+    // True if running with GuiTestRemoteRunner
+    if (runWithClassName.equals(GuiTestRemoteRunner.class.getSimpleName())) {
       return true;
     }
 

@@ -37,9 +37,7 @@ public class IdeControl extends TestWatcher {
   public static RestartIdeMessage restartMessage = null;
 
   /**
-   * This test rule ensures that the IDE has initialized fully before proceeding with a test. This is needed when running tests with
-   * GuiTestRemoteRunner, as IdeTestApplication (which usually provides this functionality) is not used in that case. It is harmless when
-   * running with GuiTestRunner.
+   * This test rule ensures that the IDE has initialized fully before proceeding with a test.
    */
   @Override
   public void starting(Description description) {
