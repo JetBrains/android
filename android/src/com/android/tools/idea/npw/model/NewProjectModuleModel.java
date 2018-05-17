@@ -35,9 +35,11 @@ import java.util.Locale;
 import java.util.Map;
 
 import static com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt;
+import static com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDummyTemplate;
 import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
 import static com.android.tools.idea.templates.TemplateManager.CATEGORY_ACTIVITY;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
+import static org.jetbrains.android.util.AndroidBundle.message;
 
 public final class NewProjectModuleModel extends WizardModel {
   public static final String EMPTY_ACTIVITY = "Empty Activity";
@@ -45,6 +47,7 @@ public final class NewProjectModuleModel extends WizardModel {
 
   @NotNull private final NewProjectModel myProjectModel;
   @NotNull private final NewModuleModel myNewModuleModel;
+  @NotNull private final RenderTemplateModel myExtraRenderTemplateModel;
   @NotNull private final OptionalProperty<AndroidVersionsInfo.VersionItem> myAndroidSdkInfo = new OptionalValueProperty<>();
   @NotNull private final ObjectProperty<FormFactor> myFormFactor = new ObjectValueProperty<>(FormFactor.MOBILE);
   @NotNull private final OptionalProperty<TemplateHandle> myRenderTemplateHandle = new OptionalValueProperty<>();
@@ -54,6 +57,8 @@ public final class NewProjectModuleModel extends WizardModel {
   public NewProjectModuleModel(@NotNull NewProjectModel projectModel) {
     myProjectModel = projectModel;
     myNewModuleModel = new NewModuleModel(myProjectModel, new File(""));
+    myExtraRenderTemplateModel =
+      new RenderTemplateModel(myNewModuleModel, null, createDummyTemplate(), message("android.wizard.config.activity.title"));
   }
 
   @NotNull
@@ -91,6 +96,11 @@ public final class NewProjectModuleModel extends WizardModel {
     return myFormFactor;
   }
 
+  @NotNull
+  public RenderTemplateModel getExtraRenderTemplateModel() {
+    return myExtraRenderTemplateModel;
+  }
+
   @Override
   protected void handleFinished() {
     myProjectModel.getNewModuleModels().clear();
@@ -126,20 +136,21 @@ public final class NewProjectModuleModel extends WizardModel {
     if (noActivitySelected) {
       myNewModuleModel.setDefaultRenderTemplateValues(newRenderTemplateModel, project);
     }
-    else {
+    else if (newRenderTemplateModel != myExtraRenderTemplateModel) { // Extra render is driven by the Wizard itself
       addRenderDefaultTemplateValues(newRenderTemplateModel);
-      myNewModuleModel.getRenderTemplateValues().setValue(newRenderTemplateModel.getTemplateValues());
     }
 
     new TemplateValueInjector(myNewModuleModel.getTemplateValues())
       .setProjectDefaults(project, myNewModuleModel.applicationName().get(), myNewModuleModel.instantApp().get());
 
     myNewModuleModel.handleFinished();
-    if (noActivitySelected) {
-      newRenderTemplateModel.handleSkipped();
-    }
-    else {
-      newRenderTemplateModel.handleFinished();
+    if (newRenderTemplateModel != myExtraRenderTemplateModel) { // Extra render is driven by the Wizard itself
+      if (noActivitySelected) {
+        newRenderTemplateModel.handleSkipped();
+      }
+      else {
+        newRenderTemplateModel.handleFinished();
+      }
     }
   }
 
@@ -161,14 +172,18 @@ public final class NewProjectModuleModel extends WizardModel {
 
   @NotNull
   private RenderTemplateModel createMainRenderModel(String projectLocation) {
+    File moduleRoot = new File(projectLocation, myNewModuleModel.moduleName().get());
     RenderTemplateModel newRenderTemplateModel;
     if (myProjectModel.enableCppSupport().get()) {
       newRenderTemplateModel = createCompanionRenderModel(projectLocation, myNewModuleModel);
     }
-    else {
-      File moduleRoot = new File(projectLocation, myNewModuleModel.moduleName().get());
+    else if (myExtraRenderTemplateModel.getTemplateHandle() == null) {
       newRenderTemplateModel = new RenderTemplateModel(myNewModuleModel, null, createDefaultTemplateAt(moduleRoot), "");
       newRenderTemplateModel.setTemplateHandle(renderTemplateHandle().getValueOrNull());
+    }
+    else { // Extra Render is visible. Use it.
+      newRenderTemplateModel = myExtraRenderTemplateModel;
+      myExtraRenderTemplateModel.getTemplate().set(createDefaultTemplateAt(moduleRoot));
     }
     newRenderTemplateModel.androidSdkInfo().setValue(androidSdkInfo().getValue());
     return newRenderTemplateModel;
