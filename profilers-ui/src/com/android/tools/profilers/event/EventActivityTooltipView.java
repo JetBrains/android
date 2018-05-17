@@ -18,7 +18,7 @@ package com.android.tools.profilers.event;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.event.ActivityAction;
-import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitorTooltipView;
 import com.android.tools.profilers.ProfilerTimeline;
@@ -84,10 +84,8 @@ public class EventActivityTooltipView extends ProfilerMonitorTooltipView<EventMo
 
   private void setTimelineText(Range dataRange, double startTime, double endTime) {
     // Set the label to [Activity StartTime] - [Activity EndTime]
-    String startTimeString = TimeAxisFormatter.DEFAULT
-      .getFormattedString(dataRange.getLength(), startTime - dataRange.getMin(), true);
-    String endTimeString = TimeAxisFormatter.DEFAULT
-      .getFormattedString(dataRange.getLength(), endTime - dataRange.getMin(), true);
+    String startTimeString = TimeFormatter.getSemiSimplifiedClockString((long)(startTime - dataRange.getMin()));
+    String endTimeString = TimeFormatter.getSemiSimplifiedClockString((long)(endTime - dataRange.getMin()));
     myDurationLabel.setText(String.format("%s - %s", startTimeString, endTimeString));
   }
 

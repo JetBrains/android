@@ -18,7 +18,7 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute;
@@ -139,9 +139,7 @@ final class MemoryClassSetView extends AspectObserver {
           if (node instanceof InstanceObject) {
             InstanceObject instanceObject = (InstanceObject)node;
             if (instanceObject.getAllocTime() > Long.MIN_VALUE) {
-              return TimeAxisFormatter.DEFAULT.getFixedPointFormattedString(
-                TimeUnit.MILLISECONDS.toMicros(1),
-                myTimeline.convertToRelativeTimeUs(instanceObject.getAllocTime()));
+              return TimeFormatter.getSemiSimplifiedClockString(myTimeline.convertToRelativeTimeUs(instanceObject.getAllocTime()));
             }
           }
           return "";
@@ -171,9 +169,7 @@ final class MemoryClassSetView extends AspectObserver {
           if (node instanceof InstanceObject) {
             InstanceObject instanceObject = (InstanceObject)node;
             if (instanceObject.getDeallocTime() < Long.MAX_VALUE) {
-              return TimeAxisFormatter.DEFAULT.getFixedPointFormattedString(
-                TimeUnit.MILLISECONDS.toMicros(1),
-                myTimeline.convertToRelativeTimeUs(instanceObject.getDeallocTime()));
+              return TimeFormatter.getSemiSimplifiedClockString(myTimeline.convertToRelativeTimeUs(instanceObject.getDeallocTime()));
             }
           }
           return "";
@@ -443,7 +439,7 @@ final class MemoryClassSetView extends AspectObserver {
         myStage.selectHeapSet(heapSet);
 
         ClassifierSet classifierSet = heapSet.findContainingClassifierSet(selectedObject);
-        assert classifierSet != null && classifierSet instanceof ClassSet;
+        assert classifierSet instanceof ClassSet;
         myStage.selectClassSet((ClassSet)classifierSet);
         myStage.selectInstanceObject(selectedObject);
         myStage.selectFieldObjectPath(Collections.emptyList());

@@ -59,7 +59,7 @@ class EventActivityTooltipViewTest {
     myTimer.tick(TimeUnit.SECONDS.toNanos(2))
     assertThat(myActivityTooltipView.headingText).matches("00:01.001")
     assertThat(myActivityTooltipView.contentText).matches(ACTIVITY_NAME)
-    assertThat(myActivityTooltipView.durationText).matches("1s - 3s")
+    assertThat(myActivityTooltipView.durationText).matches("00:01.000 - 00:03.000")
   }
 
   @Test
@@ -77,7 +77,7 @@ class EventActivityTooltipViewTest {
     myTimer.tick(TimeUnit.SECONDS.toNanos(2))
     assertThat(myActivityTooltipView.headingText).matches("00:01.001")
     assertThat(myActivityTooltipView.contentText).matches(String.format("%s - destroyed", ACTIVITY_NAME))
-    assertThat(myActivityTooltipView.durationText).matches("1s - 2s")
+    assertThat(myActivityTooltipView.durationText).matches("00:01.000 - 00:02.000")
   }
 
   @Test

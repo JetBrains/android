@@ -74,7 +74,7 @@ class CpuKernelTooltipViewTest {
     myRange.set(1.0, 1.0)
     myCpuKernelTooltip.setCpuSeries(1, series)
     val labels = TreeWalker(myCpuKernelTooltipView.tooltipPanel).descendants().filterIsInstance<JLabel>()
-    assertThat(labels.stream().anyMatch({ label -> label.text.equals("+ 1 μs") })).isTrue()
+    assertThat(labels.stream().anyMatch({ label -> label.text.equals("00:00.000") })).isTrue()
     assertThat(labels.stream().anyMatch({ label -> label.text.equals("CPU: 1") })).isTrue()
     assertThat(labels.stream().anyMatch({ label -> label.text.equals("Thread: SomeThread") })).isTrue()
     assertThat(labels.stream().anyMatch({ label -> label.text.equals("Process: MyProcess") })).isTrue()

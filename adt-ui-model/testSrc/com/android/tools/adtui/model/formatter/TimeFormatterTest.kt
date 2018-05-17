@@ -49,10 +49,6 @@ class TimeFormatterTest {
     assertThat(TimeFormatter.getSemiSimplifiedClockString(timestamp3)).isEqualTo("00:11.025")
     val timestamp4 = timestamp3 - TimeUnit.SECONDS.toMicros(11)
     assertThat(TimeFormatter.getSemiSimplifiedClockString(timestamp4)).isEqualTo("00:00.025")
-    val timestamp5 = 35L
-    assertThat(TimeFormatter.getSemiSimplifiedClockString(timestamp5)).isEqualTo("+ 35 μs")
-    val timestamp6 = 0L
-    assertThat(TimeFormatter.getSemiSimplifiedClockString(timestamp6)).isEqualTo("+ 0 μs")
   }
 
   @Test
@@ -66,8 +62,6 @@ class TimeFormatterTest {
     assertThat(TimeFormatter.getSimplifiedClockString(timestamp3)).isEqualTo("11.025")
     val timestamp4 = timestamp3 - TimeUnit.SECONDS.toMicros(11)
     assertThat(TimeFormatter.getSimplifiedClockString(timestamp4)).isEqualTo("00.025")
-    val timestamp6 = 0L
-    assertThat(TimeFormatter.getSemiSimplifiedClockString(timestamp6)).isEqualTo("+ 0 μs")
   }
 
   @Test
@@ -83,10 +77,6 @@ class TimeFormatterTest {
       .isEqualTo("1.1 s")
     assertThat(TimeFormatter.getSingleUnitDurationString((TimeUnit.MILLISECONDS.toMicros(1) * 200)))
       .isEqualTo("200 ms")
-    assertThat(TimeFormatter.getSingleUnitDurationString(150))
-      .isEqualTo("150 μs")
-    assertThat(TimeFormatter.getSingleUnitDurationString(0))
-      .isEqualTo("0 μs")
   }
 
   @Test

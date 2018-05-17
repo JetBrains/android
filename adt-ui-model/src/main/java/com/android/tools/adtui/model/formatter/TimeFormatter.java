@@ -30,6 +30,7 @@ public class TimeFormatter {
    * 00:00:11.125
    */
   public static String getFullClockString(long micro) {
+    micro = Math.max(0, micro);
     long milli = TimeUnit.MICROSECONDS.toMillis(micro) % TimeUnit.SECONDS.toMillis(1);
     long sec = TimeUnit.MICROSECONDS.toSeconds(micro) % TimeUnit.MINUTES.toSeconds(1);
     long min = TimeUnit.MICROSECONDS.toMinutes(micro) % TimeUnit.HOURS.toMinutes(1);
@@ -39,7 +40,7 @@ public class TimeFormatter {
   }
 
   /**
-   * Return a formatted time String in the form of "hh:mm:ss.sss" or  "+ μμμ μs".
+   * Return a formatted time String in the form of "hh:mm:ss.sss"".
    * Hide hours value if both hours and minutes value are zero.
    * Default format for Tooltips.
    *
@@ -50,16 +51,13 @@ public class TimeFormatter {
    * + 123 μs
    */
   public static String getSemiSimplifiedClockString(long micro) {
-    if (micro < TimeUnit.MILLISECONDS.toMicros(1)) {
-      return "+ " + micro + " μs";
-    }
-
+    micro = Math.max(0, micro);
     String result = getFullClockString(micro);
     return result.startsWith("00:00:") ? result.substring(3) : result;
   }
 
   /**
-   * Return a formatted time String in the form of "hh:mm:ss.sss" or  "+ μμμ μs".
+   * Return a formatted time String in the form of "hh:mm:ss.sss".
    * Hide zero hours and minutes value.
    * Default format for timeline.
    *
@@ -68,7 +66,6 @@ public class TimeFormatter {
    * 01:00:11.000
    * 02:11.125
    * 11.125
-   * + 123 μs
    */
   public static String getSimplifiedClockString(long micro) {
     String result = getFullClockString(micro);
@@ -87,6 +84,7 @@ public class TimeFormatter {
    * 21.654 μs
    */
   public static String getSingleUnitDurationString(long micro) {
+    micro = Math.max(0, micro);
     String[] units = new String[]{"μs", "ms", "s", "m", "h"};
 
     float[] multipliers = new float[]{
@@ -119,6 +117,7 @@ public class TimeFormatter {
    * 2 hrs 42 min
    */
   public static String getMultiUnitDurationString(long micro) {
+    micro = Math.max(0, micro);
     long sec = TimeUnit.MICROSECONDS.toSeconds(micro) % TimeUnit.MINUTES.toSeconds(1);
     long min = TimeUnit.MICROSECONDS.toMinutes(micro) % TimeUnit.HOURS.toMinutes(1);
     long hour = TimeUnit.MICROSECONDS.toHours(micro);
