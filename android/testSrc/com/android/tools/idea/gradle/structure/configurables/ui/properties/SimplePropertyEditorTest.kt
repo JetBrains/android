@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
-import com.android.tools.adtui.HtmlLabel
 import com.android.tools.idea.gradle.structure.model.VariablesProvider
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.google.common.util.concurrent.Futures.immediateFuture
@@ -33,7 +32,6 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.awt.event.ActionEvent
 import javax.swing.ListModel
-import javax.swing.plaf.basic.BasicComboBoxEditor
 import javax.swing.text.JTextComponent
 import kotlin.reflect.KProperty
 
@@ -438,4 +436,4 @@ private fun SimplePropertyEditor<*, *>.commitTestText(text: String) {
 }
 
 private fun SimplePropertyEditor<*, *>.testWatermark(): String? =
-  ((component.editor as? BasicComboBoxEditor)?.editorComponent as? JBTextField)?.emptyText?.text
+  (component.editor?.editorComponent as? JBTextField)?.emptyText?.text
