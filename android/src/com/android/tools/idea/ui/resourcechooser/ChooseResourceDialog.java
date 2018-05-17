@@ -778,6 +778,7 @@ public class ChooseResourceDialog extends DialogWrapper {
   private void updateFilter() {
     final String text = mySearchField.getText();
     ResourcePanel panel = getSelectedPanel();
+    panel.setShowFiltered(!text.isEmpty());
 
     if (text.isEmpty() && !myFilterColorStateLists) {
       // Optimization to just remove the filter when we do not needed at all
@@ -1312,6 +1313,11 @@ public class ChooseResourceDialog extends DialogWrapper {
 
     private ResourceValue mySelectedValue;
 
+    /**
+     * @param type                 The type of resource to show
+     * @param includeFileResources See {@link ResourceItem#isFileBased()}
+     * @param showSampleDataPicker True if sample data should be displayed in the panel
+     */
     public ResourcePanel(@NotNull ResourceType type, boolean includeFileResources,
                          @NotNull Collection<String> attrs, boolean showSampleDataPicker) {
       myType = type;
@@ -2315,6 +2321,15 @@ public class ChooseResourceDialog extends DialogWrapper {
       }
       ResourceChooserItem item = getSelectedItem();
       return item != null ? item.getResourceUrl() : null;
+    }
+
+    public void setShowFiltered(boolean showFiltered) {
+      if (myList != null) {
+        myList.setExpandFiltered(showFiltered);
+        if (!showFiltered) {
+          myList.expandOnly(0);
+        }
+      }
     }
   }
 
