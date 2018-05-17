@@ -3,6 +3,7 @@ package org.jetbrains.android.uipreview;
 import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.AbstractResourceRepository;
+import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.editors.theme.ThemeEditorProvider;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
@@ -12,10 +13,7 @@ import com.android.tools.idea.model.ClassJarProvider;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.rendering.RenderClassLoader;
 import com.android.tools.idea.rendering.RenderSecurityManager;
-import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceClassRegistry;
-import com.android.tools.idea.res.ResourceIdManager;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.*;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.utils.SdkUtils;
 import com.google.common.collect.Maps;
@@ -27,7 +25,6 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -96,15 +93,15 @@ public final class ModuleClassLoader extends RenderClassLoader {
       LOG.debug(String.format("findClass(%s)", name));
     }
 
-    final Module module = myModuleReference.get();
+    Module module = myModuleReference.get();
     try {
       if (!myInsideJarClassLoader) {
         if (module != null) {
           if (isResourceClassName(name)) {
             AndroidFacet facet = AndroidFacet.getInstance(module);
             if (facet != null) {
-              LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(facet);
-              byte[] data = ResourceClassRegistry.get(module.getProject()).findClassDefinition(name, appResources);
+              ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(facet);
+              byte[] data = ResourceClassRegistry.get(module.getProject()).findClassDefinition(name, repositoryManager);
               if (data != null) {
                 data = convertClass(data);
                 if (LOG.isDebugEnabled()) {
@@ -405,7 +402,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
     }
 
     if (resourcesDirectory == null) {
-      // Build cache? We need to compute the package name in a slightly different way
+      // Build cache? We need to compute the package name in a slightly different way.
       File parentFile = aarDir.getParentFile();
       if (parentFile != null) {
         File manifest = new File(parentFile, ANDROID_MANIFEST_XML);
@@ -413,44 +410,40 @@ public final class ModuleClassLoader extends RenderClassLoader {
           resourcesDirectory = parentFile;
         }
       }
-    }
-
-    if (resourcesDirectory == null) {
-      return;
-    }
-
-    AbstractResourceRepository aarResources = repositoryManager.findRepositoryFor(resourcesDirectory);
-    if (aarResources == null) {
-      return;
-    }
-
-    ResourceClassRegistry registry = ResourceClassRegistry.get(module.getProject());
-    if (registry == null) {
-      return;
-    }
-
-    // TODO: Simplify the following code by obtaining the resource namespace from aarResources.
-    String packageName;
-    try {
-      packageName = AndroidManifestUtils.getAarPackageName(resourcesDirectory);
-      if (packageName == null) {
+      if (resourcesDirectory == null) {
         return;
       }
     }
-    catch (IOException e) {
-      return;
-    }
+
+    ResourceClassRegistry registry = ResourceClassRegistry.get(module.getProject());
 
     // Choose which resources should be in the generated R class. This is described in the JavaDoc of ResourceClassGenerator.
     AbstractResourceRepository rClassContents;
     ResourceNamespace resourcesNamespace;
+    String packageName;
     if (repositoryManager.getNamespacing() == AaptOptions.Namespacing.DISABLED) {
+      try {
+        packageName = AndroidManifestUtils.getAarPackageName(resourcesDirectory);
+        if (packageName == null) {
+          return;
+        }
+      }
+      catch (IOException e) {
+        return;
+      }
       rClassContents = appResources;
       resourcesNamespace = ResourceNamespace.RES_AUTO;
     }
     else {
+      AbstractResourceRepository aarResources = repositoryManager.findRepositoryFor(resourcesDirectory);
+      if (!(aarResources instanceof SingleNamespaceResourceRepository)) {
+        return;
+      }
+
       rClassContents = aarResources;
-      resourcesNamespace = ResourceNamespace.fromPackageName(packageName);
+      SingleNamespaceResourceRepository resources = (SingleNamespaceResourceRepository)aarResources;
+      resourcesNamespace = resources.getNamespace();
+      packageName = resources.getPackageName();
     }
 
     registry.addLibrary(rClassContents, ResourceIdManager.get(module), packageName, resourcesNamespace);
@@ -602,9 +595,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
 
   /** Remove the cached class loader for the module. */
   public static void clearCache(Module module) {
-    if (ourCache.containsKey(module)) {
-      ourCache.remove(module);
-    }
+    ourCache.remove(module);
   }
 
   public boolean isClassLoaded(String className) {

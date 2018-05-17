@@ -223,14 +223,6 @@ public class AndroidRenameTest extends AndroidTestCase {
     FileDocumentManager.getInstance().saveAllDocuments();
   }
 
-  /**
-   * Enables namespacing and sets the app namespace to "p1.p2".
-   */
-  private void enableNamespacing() {
-    myFacet.getConfiguration().setModel(TestAndroidModel.namespaced(myFacet));
-    runWriteCommandAction(getProject(), () -> myFacet.getManifest().getPackage().setValue("p1.p2"));
-  }
-
   public void testXmlReferenceToValueResource() throws Throwable {
     createManifest();
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout2.xml");
@@ -505,7 +497,7 @@ public class AndroidRenameTest extends AndroidTestCase {
     // Like testRenameDeclareStyleableFromJava, but the rename request originates from
     // the XML declare-styleable reference rather than a Java field reference.
     createManifest();
-    enableNamespacing();
+    enableNamespacing("p1.p2");
     myFixture.copyFileToProject("R.java", R_JAVA_PATH);
     myFixture.copyFileToProject(BASE_PATH + "MyView4.java", "src/p1/p2/MyView.java");
     final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "attrs13.xml", "res/values/attrs13.xml");

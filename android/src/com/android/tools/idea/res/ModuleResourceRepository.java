@@ -77,9 +77,10 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
 
   private ModuleResourceRepository(@NotNull AndroidFacet facet, @NotNull ResourceNamespace namespace,
                                    @NotNull List<? extends LocalResourceRepository> delegates) {
-    super(facet.getModule().getName(), delegates);
+    super(facet.getModule().getName());
     myFacet = facet;
     myNamespace = namespace;
+    setChildren(delegates);
 
     // Subscribe to update the roots when the resource folders change
     myResourceFolderManager = ResourceFolderManager.getInstance(myFacet);

@@ -132,9 +132,10 @@ class AppResourceRepository extends MultiResourceRepository {
   protected AppResourceRepository(@NotNull AndroidFacet facet,
                                   @NotNull List<? extends LocalResourceRepository> delegates,
                                   @NotNull List<FileResourceRepository> libraries) {
-    super(facet.getModule().getName() + " with modules and libraries", delegates);
+    super(facet.getModule().getName() + " with modules and libraries");
     myFacet = facet;
     myLibraries = libraries;
+    setChildren(delegates);
   }
 
   @Override

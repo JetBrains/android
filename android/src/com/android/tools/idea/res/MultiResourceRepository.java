@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceTable;
+import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
 import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;
@@ -44,6 +45,8 @@ import java.util.*;
 public abstract class MultiResourceRepository extends LocalResourceRepository {
   @GuardedBy("ITEM_MAP_LOCK")
   private List<? extends LocalResourceRepository> myChildren;
+  @GuardedBy("ITEM_MAP_LOCK")
+  private final Multimap<ResourceNamespace, LocalResourceRepository> myRepositoriesByNamespace = HashMultimap.create();
 
   @GuardedBy("ITEM_MAP_LOCK")
   private long[] myModificationCounts;
@@ -66,9 +69,8 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   @GuardedBy("ITEM_MAP_LOCK")
   private long myDataBindingResourceFilesModificationCount = Long.MIN_VALUE;
 
-  MultiResourceRepository(@NotNull String displayName, @NotNull List<? extends LocalResourceRepository> children) {
+  MultiResourceRepository(@NotNull String displayName) {
     super(displayName);
-    setChildren(children);
   }
 
   protected void setChildren(@NotNull List<? extends LocalResourceRepository> children) {
@@ -96,14 +98,48 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
       myFullTable = null;
       myCachedMaps.clear();
       myCachedHasResourcesOfType.clear();
+
+      myRepositoriesByNamespace.clear();
+      populateNamespaceMap(this, myRepositoriesByNamespace);
     }
 
     invalidateParentCaches();
   }
 
+  @GuardedBy("ITEM_MAP_LOCK")
+  private static void populateNamespaceMap(@NotNull LocalResourceRepository repository,
+                                           @NotNull Multimap<ResourceNamespace, LocalResourceRepository> result) {
+    if (repository instanceof SingleNamespaceResourceRepository) {
+      ResourceNamespace namespace = ((SingleNamespaceResourceRepository)repository).getNamespace();
+      result.put(namespace, repository);
+    }
+    else if (repository instanceof MultiResourceRepository) {
+      for (LocalResourceRepository child : ((MultiResourceRepository)repository).myChildren) {
+        populateNamespaceMap(child, result);
+      }
+    }
+  }
+
+  @NotNull
   public List<LocalResourceRepository> getChildren() {
     synchronized (ITEM_MAP_LOCK) {
-      return ImmutableList.copyOf(myChildren);
+      return myChildren == null ? Collections.emptyList() : ImmutableList.copyOf(myChildren);
+    }
+  }
+
+  /**
+   * Returns resource repositories for the given namespace. Each of the returned repositories is guaranteed to implement
+   * the {@link SingleNamespaceResourceRepository} interface. In case of nested single-namespace repositories only the outermost
+   * repositories are returned. Collectively the returned repositories are guaranteed to contain all resources with the given namespace
+   * contained in this repository.
+   *
+   * @param namespace the namespace to return resource repositories for
+   * @return a list of namespaces for the given namespace
+   */
+  @NotNull
+  public final List<LocalResourceRepository> getRepositoriesForNamespace(@NotNull ResourceNamespace namespace) {
+    synchronized (ITEM_MAP_LOCK) {
+      return ImmutableList.copyOf(myRepositoriesByNamespace.get(namespace));
     }
   }
 
@@ -114,7 +150,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
         return myChildren.get(0).getModificationCount();
       }
 
-      // See if any of the delegates have changed
+      // See if any of the delegates have changed.
       boolean changed = false;
       for (int i = myChildren.size(); --i >= 0;) {
         LocalResourceRepository resources = myChildren.get(i);
