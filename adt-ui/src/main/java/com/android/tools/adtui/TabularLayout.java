@@ -69,7 +69,7 @@ public final class TabularLayout implements LayoutManager2 {
       /**
        * Shrink this column as small as possible to perfectly fit all its contents.
        * <p/>
-       * For fit columns, {@link #getValue()} has no meaning.
+       * For fit columns, {@link #getValue()} corresponds to its {@link FitSizing}.
        */
       FIT,
 
@@ -77,7 +77,6 @@ public final class TabularLayout implements LayoutManager2 {
        * Set this column to a fixed width in pixels.
        * <p/>
        * For fixed columns, {@link #getValue()} is a width in pixels.
-       * For fixed columns, {@link #getFitType()} has no meaning.
        */
       FIXED,
 
@@ -92,16 +91,11 @@ public final class TabularLayout implements LayoutManager2 {
        * with all other proportional columns to determine how much space it gets. For example, if
        * column A is set to 1 and column B is set to 3, column A gets 25% of all remaining space
        * and column B gets 75%.
-       * For proportional columns, {@link #getFitType()} has no meaning.
        */
       PROPORTIONAL,
     }
 
     public enum FitSizing {
-      /**
-       * Default value returned for {@link Type.FIXED} and {@link Type.PROPORTIONAL} types.
-       */
-      UNINITIALIZED,
       /**
        * Use the elements minimum size for determining spacing.
        * <p/>
@@ -120,20 +114,10 @@ public final class TabularLayout implements LayoutManager2 {
 
     private final Type myType;
     private final int myValue; // Value's meaning depends on this constraint's type
-    private final FitSizing myFitSizing; // Value only meaningful for fit type.
-
-    public SizingRule(Type type, FitSizing fitSizing) {
-      this(type, 0, fitSizing);
-    }
 
     public SizingRule(Type type, int value) {
-      this(type, value, FitSizing.UNINITIALIZED);
-    }
-
-    public SizingRule(Type type, int value, FitSizing fitSizing) {
       myType = type;
       myValue = value;
-      myFitSizing = fitSizing;
     }
 
     public Type getType() {
@@ -144,15 +128,11 @@ public final class TabularLayout implements LayoutManager2 {
       return myValue;
     }
 
-    public FitSizing getFitSizing() {
-      return myFitSizing;
-    }
-
     /**
      * Create a {@link SizingRule} from a string value, where each value represents either a Fit,
      * Fixed, or Proportional column.
      * <p/>
-     * A Fit cell is represented by the string "Fit"
+     * A Fit cell is represented by the string "Fit" (or "Fit-" for using min fit sizing)
      * A Fixed cell is represented by an integer + "px" (e.g. "100px")
      * A Proportional cell is represented by an (optional) integer + "*" (e.g. "3*", "*")
      */
@@ -160,7 +140,8 @@ public final class TabularLayout implements LayoutManager2 {
     public static SizingRule fromString(@NotNull String s) throws IllegalArgumentException {
       try {
         if (s.startsWith("Fit")) {
-          return new SizingRule(Type.FIT, s.endsWith("-") ? FitSizing.MINIMUM : FitSizing.PREFERRED);
+          return new SizingRule(Type.FIT,
+                                (s.endsWith("-") ? FitSizing.MINIMUM : FitSizing.PREFERRED).ordinal());
         }
         else if (s.endsWith("px")) {
           int value = Integer.parseInt(s.substring(0, s.length() - 2)); // e.g. "30px" -> "30"
@@ -458,7 +439,7 @@ public final class TabularLayout implements LayoutManager2 {
         SizingRule rule = sparseRules.get(i);
         if (rule == null) {
           //TODO (b/77491599) Update unassigned rows to use preferred in place of minimum
-          rule = new SizingRule(SizingRule.Type.FIT, SizingRule.FitSizing.MINIMUM);
+          rule = new SizingRule(SizingRule.Type.FIT, SizingRule.FitSizing.MINIMUM.ordinal());
         }
         rules.add(rule);
       }
@@ -520,7 +501,7 @@ public final class TabularLayout implements LayoutManager2 {
      */
     public Dimension getComponentDimension(int i, Component c) {
       SizingRule sizingRule = myRules.get(i);
-      if (sizingRule.getFitSizing() == SizingRule.FitSizing.PREFERRED) {
+      if (sizingRule.getValue() == SizingRule.FitSizing.PREFERRED.ordinal()) {
         return c.getPreferredSize();
       }
       return c.getMinimumSize();
