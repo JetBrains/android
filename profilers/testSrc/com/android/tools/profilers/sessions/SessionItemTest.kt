@@ -105,11 +105,11 @@ class SessionItemTest {
     val finishedSessionItem = SessionItem(profilers, finishedSession, Common.SessionMetaData.getDefaultInstance())
     finishedSessionItem.addDependency(observer1)
       .onChange(SessionItem.Aspect.MODEL, { aspectChangeCount1++ })
-    Truth.assertThat(finishedSessionItem.subtitle).isEqualTo("5s")
+    Truth.assertThat(finishedSessionItem.subtitle).isEqualTo("5 sec")
     Truth.assertThat(aspectChangeCount1).isEqualTo(0)
     // Updating should not affect finished sessions.
     finishedSessionItem.update(TimeUnit.SECONDS.toNanos(1))
-    Truth.assertThat(finishedSessionItem.subtitle).isEqualTo("5s")
+    Truth.assertThat(finishedSessionItem.subtitle).isEqualTo("5 sec")
     Truth.assertThat(aspectChangeCount1).isEqualTo(0)
 
     var aspectChangeCount2 = 0
@@ -120,10 +120,10 @@ class SessionItemTest {
     val ongoingSessionItem = SessionItem(profilers, ongoingSession, Common.SessionMetaData.getDefaultInstance())
     ongoingSessionItem.addDependency(observer2)
       .onChange(SessionItem.Aspect.MODEL, { aspectChangeCount2++ })
-    Truth.assertThat(ongoingSessionItem.subtitle).isEqualTo("0s")
+    Truth.assertThat(ongoingSessionItem.subtitle).isEqualTo("0 sec")
     Truth.assertThat(aspectChangeCount2).isEqualTo(0)
     ongoingSessionItem.update(TimeUnit.SECONDS.toNanos(2))
-    Truth.assertThat(ongoingSessionItem.subtitle).isEqualTo("2s")
+    Truth.assertThat(ongoingSessionItem.subtitle).isEqualTo("2 sec")
     Truth.assertThat(aspectChangeCount2).isEqualTo(1)
   }
 }

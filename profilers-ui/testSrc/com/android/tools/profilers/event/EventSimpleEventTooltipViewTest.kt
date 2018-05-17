@@ -58,7 +58,7 @@ class EventSimpleEventTooltipViewTest {
 
   @Test
   fun testRotationEventNoDuration() {
-    validateSimpleEvents(0, "Rotation Event", EventProfiler.SystemData.SystemEventType.ROTATION)
+    validateSimpleEvents(2, "Rotation Event", EventProfiler.SystemData.SystemEventType.ROTATION)
   }
 
   @Test
@@ -75,8 +75,8 @@ class EventSimpleEventTooltipViewTest {
     myTimer.tick(TimeUnit.SECONDS.toNanos(1))
     assertThat(mySimpleEventTooltipView!!.headingText).matches("00:01.001")
     assertThat(mySimpleEventTooltipView!!.contentText).matches(title)
-    assertThat(mySimpleEventTooltipView!!.durationText).matches(String.format("Duration: %ds", durationSeconds))
-    assertThat(mySimpleEventTooltipView!!.startText).matches("Start: 1s")
+    assertThat(mySimpleEventTooltipView!!.durationText).matches(String.format("Duration: %d s", durationSeconds))
+    assertThat(mySimpleEventTooltipView!!.startText).matches("Start: 00:01.000")
 
     myEventService.clearSystemEvents()
     myTimer.tick(TimeUnit.SECONDS.toNanos(1))

@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.SimpleEventType;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitorTooltipView;
 import com.android.tools.profilers.ProfilerTimeline;
@@ -101,10 +102,8 @@ public class EventSimpleEventTooltipView extends ProfilerMonitorTooltipView<Even
 
   private void setTimelineText(Range dataRange, double startTime, double endTime) {
     // Set the label to Start [StartTime] \n Duration: [Duration]
-    String startTimeString = TimeAxisFormatter.DEFAULT
-      .getFormattedString(dataRange.getLength(), startTime - dataRange.getMin(), true);
-    String durationString = TimeAxisFormatter.DEFAULT
-      .getFormattedString(dataRange.getLength(), (endTime - startTime), true);
+    String startTimeString = TimeFormatter.getSemiSimplifiedClockString((long)(startTime - dataRange.getMin()));
+    String durationString = TimeFormatter.getSingleUnitDurationString((long)(endTime - startTime));
     myStartTimeLabel.setText(String.format("Start: %s", startTimeString));
     myDurationLabel.setText(String.format("Duration: %s", durationString));
   }

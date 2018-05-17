@@ -15,12 +15,10 @@
  */
 package com.android.tools.profilers.sessions;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.AspectModel;
-import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
-import com.android.tools.profiler.protobuf3jarjar.GeneratedMessageV3;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.StudioMonitorStage;
 import com.android.tools.profilers.StudioProfilers;
@@ -110,7 +108,7 @@ public class SessionItem extends AspectModel<SessionItem.Aspect> implements Sess
     }
     else {
       long durationUs = TimeUnit.NANOSECONDS.toMicros(myDurationNs);
-      return TimeAxisFormatter.DEFAULT.getFixedPointFormattedString(TimeUnit.SECONDS.toMicros(1), durationUs);
+      return TimeFormatter.getMultiUnitDurationString(durationUs);
     }
   }
 
