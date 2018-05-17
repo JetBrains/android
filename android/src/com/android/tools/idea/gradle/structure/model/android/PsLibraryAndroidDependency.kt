@@ -38,11 +38,14 @@ open class PsDeclaredLibraryAndroidDependency(
   final override val parsedModel: ArtifactDependencyModel
 ) : PsLibraryAndroidDependency(parent, containers),
     PsDeclaredDependency, PsDeclaredLibraryDependency {
+  private val nameResolvedProperty = parsedModel.name()
+  private val groupResolvedProperty = parsedModel.group()
+  private val versionResolvedProperty = parsedModel.version()
   override val spec: PsArtifactDependencySpec
     get() = PsArtifactDependencySpec(
-      parsedModel.name().forceString(),
-      parsedModel.group().toString(),
-      parsedModel.version().toString()
+      nameResolvedProperty.forceString(),
+      groupResolvedProperty.toString(),
+      versionResolvedProperty.toString()
     )
   override val resolvedModel: Any? = null
   override val isDeclared: Boolean = true
