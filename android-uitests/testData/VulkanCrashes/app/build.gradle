@@ -12,7 +12,7 @@ android {
         versionName "0.0.1"
 
         // Shader compilation directives, put glsl shaders to app/src/main/shaders
-        // android studio will pick them up and compile them into APK/assets/shaders
+        // android studio will pick them up and implementation them into APK/assets/shaders
         // KNOWN ISSUE:  if shaders having errors, it takes long time for gradle to timeout
         //               but it will eventually time out and complain about shader compiling
         shaders {
@@ -41,5 +41,5 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
 }

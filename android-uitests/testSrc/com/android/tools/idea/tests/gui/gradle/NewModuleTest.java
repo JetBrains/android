@@ -52,7 +52,7 @@ public class NewModuleTest {
       // delete lines using DSL features added after Android Gradle 1.0.0
       .moveBetween("use", "Library")
       .invokeAction(EditorFixture.EditorAction.DELETE_LINE)
-      .moveBetween("test", "Compile")
+      .moveBetween("test", "Implementation")
       .invokeAction(EditorFixture.EditorAction.DELETE_LINE)
       .getIdeFrame()
       .requestProjectSync()
@@ -67,6 +67,7 @@ public class NewModuleTest {
       .open("somelibrary/build.gradle")
       .getCurrentFileContents();
     assertThat(gradleFileContents).doesNotContain("testCompile");
+    assertThat(gradleFileContents).doesNotContain("testImplementation");
     assertAbout(file()).that(guiTest.getProjectPath("somelibrary/src/main")).isDirectory();
     assertAbout(file()).that(guiTest.getProjectPath("somelibrary/src/test")).doesNotExist();
   }

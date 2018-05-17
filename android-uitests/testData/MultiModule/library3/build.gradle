@@ -3,5 +3,5 @@ apply plugin: 'java'
 sourceCompatibility = 1.5
 
 dependencies {
-  compile fileTree(dir: 'libs', include: ['*.jar'])
+  implementation fileTree(dir: 'libs', include: ['*.jar'])
 }

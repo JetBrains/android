@@ -30,9 +30,9 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:+'
-    testCompile 'junit:junit:4.12'
-    testCompile project(':lib')
-    androidTestCompile 'com.google.guava:guava:18.0'
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.android.support:appcompat-v7:+'
+    testImplementation 'junit:junit:4.12'
+    testImplementation project(':lib')
+    androidTestImplementation 'com.google.guava:guava:18.0'
 }

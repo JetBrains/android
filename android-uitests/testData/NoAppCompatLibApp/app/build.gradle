@@ -24,8 +24,8 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.google.guava:guava:18.0'
-    compile 'com.android.support.constraint:constraint-layout:+'
-    testCompile 'junit:junit:4.+'
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.google.guava:guava:18.0'
+    implementation 'com.android.support.constraint:constraint-layout:+'
+    testImplementation 'junit:junit:4.+'
 }

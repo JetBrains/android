@@ -35,9 +35,9 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile project(path: ':androidlib1', configuration: 'flavor1Release')
-    compile project(path: ':androidlib2', configuration: 'flavor1Release')
-    compile project(':javalib1')
-    compile project(path: ':javalib2')
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation project(path: ':androidlib1', configuration: 'flavor1Release')
+    implementation project(path: ':androidlib2', configuration: 'flavor1Release')
+    implementation project(':javalib1')
+    implementation project(path: ':javalib2')
 }
