@@ -85,7 +85,9 @@ class MigrateToAppCompatUtil {
       return Collections.emptyList();
     }
     List<UsageInfo> results = new SmartList<>();
-    for (PsiReference usage : ReferencesSearch.search(element, GlobalSearchScope.projectScope(project), false)) {
+    // ignoreScope should work with false in this case but, for some reason, it does not return any results for
+    // certain classes even when it should. For now setting it to true to workaround b/79696324
+    for (PsiReference usage : ReferencesSearch.search(element, GlobalSearchScope.projectScope(project), true)) {
       if (usage.getElement().isWritable()) {
         results.add(new UsageInfo(usage));
       }
