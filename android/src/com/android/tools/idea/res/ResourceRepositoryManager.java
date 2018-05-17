@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.res.aar.AarResourceRepositoryCache;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -300,7 +301,8 @@ public class ResourceRepositoryManager implements Disposable {
   /**
    * Returns the repository with all non-framework resources available to a given module (in the current variant). This includes not just
    * the resources defined in this module, but in any other modules that this module depends on, as well as any libraries those modules may
-   * depend on (such as appcompat).
+   * depend on (such as appcompat). This repository also contains sample data resources associated with the {@link ResourceNamespace#TOOLS}
+   * namespace.
    *
    * <p>When a layout is rendered in the layout, it is fetching resources from the app resource repository: it should see all the resources
    * just like the app does.
@@ -382,6 +384,24 @@ public class ResourceRepositoryManager implements Disposable {
     }
 
     return androidPlatform.getSdkData().getTargetData(androidPlatform.getTarget()).getFrameworkResources(needLocales);
+  }
+
+  /**
+   * If namespacing is disabled, the namespace parameter is ignored and the method returns a list containing the single resource repository
+   * returned by {@link #getAppResources(boolean)}. Otherwise the method returns a list of module, library, or sample data resource
+   * repositories for the given namespace. In a well formed Android project the returned list will contain at most one resource repository.
+   * Multiple repositories may be returned only when there is a package name collision between modules or libraries.
+   *
+   * @param namespace the namespace to return resource repositories for
+   * @return the repositories for the given namespace
+   */
+  @NotNull
+  public List<LocalResourceRepository> getAppResourcesForNamespace(@NotNull ResourceNamespace namespace) {
+    AppResourceRepository appRepository = (AppResourceRepository)getAppResources(true);
+    if (getNamespacing() == AaptOptions.Namespacing.DISABLED) {
+      return ImmutableList.of(appRepository);
+    }
+    return appRepository.getRepositoriesForNamespace(namespace);
   }
 
   public void resetResources() {

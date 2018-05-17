@@ -16,11 +16,11 @@
 package com.android.tools.idea.res;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -31,20 +31,22 @@ final class ProjectResourceRepository extends MultiResourceRepository {
   private AndroidFacet myFacet;
 
   private ProjectResourceRepository(@NotNull AndroidFacet facet, @NotNull List<? extends LocalResourceRepository> delegates) {
-    super(facet.getModule().getName() + " with modules", delegates);
+    super(facet.getModule().getName() + " with modules");
     myFacet = facet;
+    setChildren(delegates);
   }
 
   @NotNull
   public static ProjectResourceRepository create(@NotNull AndroidFacet facet) {
     List<LocalResourceRepository> resources = computeRepositories(facet);
-    final ProjectResourceRepository repository = new ProjectResourceRepository(facet, resources);
+    ProjectResourceRepository repository = new ProjectResourceRepository(facet, resources);
 
     ProjectResourceRepositoryRootListener.ensureSubscribed(facet.getModule().getProject());
     return repository;
   }
 
-  private static List<LocalResourceRepository> computeRepositories(@NotNull final AndroidFacet facet) {
+  @NotNull
+  private static List<LocalResourceRepository> computeRepositories(@NotNull AndroidFacet facet) {
     LocalResourceRepository main = ResourceRepositoryManager.getModuleResources(facet);
 
     // List of module facets the given module depends on
@@ -53,7 +55,7 @@ final class ProjectResourceRepository extends MultiResourceRepository {
       return Collections.singletonList(main);
     }
 
-    List<LocalResourceRepository> resources = Lists.newArrayListWithCapacity(dependentFacets.size() + 1);
+    List<LocalResourceRepository> resources = new ArrayList<>(dependentFacets.size() + 1);
     // Add the dependent facets in reverse order to the overrides are handled correctly. Resources in n + 1 will override elements in n
     for (int i = dependentFacets.size() - 1; i >= 0; i--) {
       resources.add(ResourceRepositoryManager.getModuleResources(dependentFacets.get(i)));
@@ -69,7 +71,7 @@ final class ProjectResourceRepository extends MultiResourceRepository {
     updateRoots(repositories);
   }
 
-  private void updateRoots(List<LocalResourceRepository> resourceDirectories) {
+  private void updateRoots(@NotNull List<LocalResourceRepository> resourceDirectories) {
     invalidateResourceDirs();
     // If nothing changed (including order), then nothing remaining to do.
     if (!resourceDirectories.equals(getChildren())) {
@@ -85,7 +87,7 @@ final class ProjectResourceRepository extends MultiResourceRepository {
 
   @VisibleForTesting
   @NotNull
-  static ProjectResourceRepository createForTest(AndroidFacet facet, List<LocalResourceRepository> modules) {
+  static ProjectResourceRepository createForTest(@NotNull AndroidFacet facet, @NotNull List<LocalResourceRepository> modules) {
     return new ProjectResourceRepository(facet, modules);
   }
 }

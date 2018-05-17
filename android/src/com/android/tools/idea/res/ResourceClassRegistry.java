@@ -31,16 +31,16 @@ import java.util.*;
  */
 public class ResourceClassRegistry implements ProjectComponent {
   private final Map<AbstractResourceRepository, ResourceClassGenerator> myGeneratorMap = new HashMap<>();
-  private Collection<String> myPackages;
+  private Set<String> myPackages;
 
   /**
    * Adds definition of a new R class to the registry. The R class will contain resources from the given repo in the given namespace and
-   * will be generated if the same repository is passed to {@link #findClassDefinition(String, AbstractResourceRepository)} together with
-   * a class name that matches the {@code aarPackageName}.
+   * will be generated when the {@link #findClassDefinition} is called with a class name that matches the {@code aarPackageName} and
+   * the {@code repo} resource repository can be found in the {@link ResourceRepositoryManager} passed to {@link #findClassDefinition}.
    *
    * <p>Note that the {@link ResourceClassRegistry} is a project-level component, so the same R class may be generated in different ways
    * depending on the repository used. In non-namespaced project, the repository is the full {@link AppResourceRepository} of the module
-   * in question. In namespaced projects the repository is the {@link FileResourceRepository} of just the AAR contents.
+   * in question. In namespaced projects the repository is a {@link FileResourceRepository} of just the AAR contents.
    */
   public void addLibrary(@NotNull AbstractResourceRepository repo,
                          @NotNull ResourceIdManager idManager,
@@ -60,19 +60,39 @@ public class ResourceClassRegistry implements ProjectComponent {
 
   /** Looks up a class definition for the given name, if possible */
   @Nullable
-  public byte[] findClassDefinition(@NotNull String name, @NotNull AbstractResourceRepository repo) {
-    int index = name.lastIndexOf('.');
-    if (index != -1 && name.charAt(index + 1) == 'R' && (index == name.length() - 2 || name.charAt(index + 2) == '$') && index > 1) {
+  public byte[] findClassDefinition(@NotNull String className, @NotNull ResourceRepositoryManager repositoryManager) {
+    int index = className.lastIndexOf('.');
+    if (index > 1 && className.charAt(index + 1) == 'R' && (index == className.length() - 2 || className.charAt(index + 2) == '$')) {
       // If this is an R class or one of its inner classes.
-      String pkg = name.substring(0, index);
+      String pkg = className.substring(0, index);
       if (myPackages != null && myPackages.contains(pkg)) {
-        ResourceClassGenerator generator = myGeneratorMap.get(repo);
+        ResourceNamespace namespace = ResourceNamespace.fromPackageName(pkg);
+        List<LocalResourceRepository> repositories = repositoryManager.getAppResourcesForNamespace(namespace);
+        ResourceClassGenerator generator = findClassGenerator(repositories, className);
         if (generator != null) {
-          return generator.generate(name);
+          return generator.generate(className);
         }
       }
     }
     return null;
+  }
+
+  @Nullable
+  private ResourceClassGenerator findClassGenerator(@NotNull List<LocalResourceRepository> repositories, @NotNull String className) {
+    ResourceClassGenerator foundGenerator = null;
+    for (int i = 0; i < repositories.size(); i++) {
+      ResourceClassGenerator generator = myGeneratorMap.get(repositories.get(i));
+      if (generator != null) {
+        if (foundGenerator == null) {
+          foundGenerator = generator;
+        }
+        else {
+          // There is a package name collision between libraries. Throw NoClassDefFoundError exception.
+          throw new NoClassDefFoundError(className + " class could not be loaded because of package name collision between libraries");
+        }
+      }
+    }
+    return foundGenerator;
   }
 
   /**
@@ -93,8 +113,7 @@ public class ResourceClassRegistry implements ProjectComponent {
     return project.getComponent(ResourceClassRegistry.class);
   }
 
-  // ProjectComponent methods.
-
+  // ProjectComponent method.
   @Override
   @NotNull
   public String getComponentName() {
