@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.npw.model;
 
+import com.android.tools.idea.project.IndexingSuspender;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.messages.MessageBusConnection;
+import com.intellij.util.messages.Topic;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,6 +34,21 @@ import static com.android.tools.idea.projectsystem.ProjectSystemSyncManager.Sync
  * any of them fail a validation pass. This class acts as a central way to coordinate such render request.
  */
 public final class MultiTemplateRenderer {
+  public interface TemplateRendererListener {
+    /**
+     * Called just before rendering multiple templates. Since rendering typically involves adding quite a lot of files
+     * to the project, this callback is useful to prevent other file-intensive operations such as indexing.
+     */
+    void multiRenderingStarted();
+
+    /**
+     * Called when the last template in the series has been rendered.
+     */
+    void multiRenderingFinished();
+  }
+
+  private static final Topic<TemplateRendererListener> TEMPLATE_RENDERER_TOPIC = new Topic<>("Template rendering",
+                                                                                             TemplateRendererListener.class);
 
   public interface TemplateRenderer {
     /**
@@ -49,12 +68,28 @@ public final class MultiTemplateRenderer {
     void render();
   }
 
-  private final Project myProject;
+  @Nullable private Project myProject;
   private final List<TemplateRenderer> myTemplateRenderers = new ArrayList<>();
   private int myRequestCount = 1;
 
   public MultiTemplateRenderer(@Nullable Project project) {
-    this.myProject = project;
+    myProject = project;
+  }
+
+  @NotNull
+  public static MessageBusConnection subscribe(@NotNull Project project, @NotNull TemplateRendererListener listener) {
+    MessageBusConnection connection = project.getMessageBus().connect(project);
+    connection.subscribe(TEMPLATE_RENDERER_TOPIC, listener);
+    return connection;
+  }
+
+  /**
+   * When creating a new Project, the new Project instance is only available after the {@link MultiTemplateRenderer} is created.
+   * Use this method to set Project instance later.
+   * @param project
+   */
+  public void setProject(@NotNull Project project) {
+    myProject = project;
   }
 
   /**
@@ -96,25 +131,32 @@ public final class MultiTemplateRenderer {
     }
     myRequestCount--;
 
-    if (myRequestCount == 0) {
-      // Some models need to access other models data, during doDryRun/render phase. By calling init() in all of them first, we make sure
-      // they are properly initialized when doDryRun/render is called bellow.
-      for (TemplateRenderer renderer : myTemplateRenderers) {
-        renderer.init();
-      }
+    if (myRequestCount == 0 && !myTemplateRenderers.isEmpty()) {
+      assert myProject != null : "Project instance is always expected to be not null at this point.";
+      IndexingSuspender.ensureInitialised(myProject);
+      myProject.getMessageBus().syncPublisher(TEMPLATE_RENDERER_TOPIC).multiRenderingStarted();
 
-      for (TemplateRenderer renderer : myTemplateRenderers) {
-        if (!renderer.doDryRun()) {
-          return;
+      try {
+        // Some models need to access other models data, during doDryRun/render phase. By calling init() in all of them first, we make sure
+        // they are properly initialized when doDryRun/render is called bellow.
+        for (TemplateRenderer renderer : myTemplateRenderers) {
+          renderer.init();
         }
-      }
 
-      for (TemplateRenderer renderer : myTemplateRenderers) {
-        renderer.render();
-      }
+        for (TemplateRenderer renderer : myTemplateRenderers) {
+          if (!renderer.doDryRun()) {
+            return;
+          }
+        }
 
-      if (myProject != null) {
+        for (TemplateRenderer renderer : myTemplateRenderers) {
+          renderer.render();
+        }
+
         ProjectSystemUtil.getProjectSystem(myProject).getSyncManager().syncProject(PROJECT_MODIFIED, true);
+      }
+      finally {
+        myProject.getMessageBus().syncPublisher(TEMPLATE_RENDERER_TOPIC).multiRenderingFinished();
       }
     }
   }

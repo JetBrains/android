@@ -238,6 +238,45 @@ public class NewProjectModel extends WizardModel {
 
   @Override
   protected void handleFinished() {
+    final String projectLocation = projectLocation().get();
+    final String projectName = applicationName().get();
+
+    boolean couldEnsureLocationExists = WriteCommandAction.runWriteCommandAction(null, (Computable<Boolean>)() -> {
+      // We generally assume that the path has passed a fair amount of pre-validation checks
+      // at the project configuration step before. Write permissions check can be tricky though in some cases,
+      // e.g., consider an unmounted device in the middle of wizard execution or changed permissions.
+      // Anyway, it seems better to check that we were really able to create the target location and are able to
+      // write to it right here when the wizard is about to close, than running into some internal IDE errors
+      // caused by these problems downstream
+      // Note: this change was originally caused by http://b.android.com/219851, but then
+      // during further discussions that a more important bug was in path validation in the old wizards,
+      // where File.canWrite() always returned true as opposed to the correct Files.isWritable(), which is
+      // already used in new wizard's PathValidator.
+      // So the change below is therefore a more narrow case than initially supposed (however it still needs to be handled)
+      try {
+        if (VfsUtil.createDirectoryIfMissing(projectLocation) != null && FileOpUtils.create().canWrite(new File(projectLocation))) {
+          return true;
+        }
+      }
+      catch (Exception e) {
+        getLogger().error(String.format("Exception thrown when creating target project location: %1$s", projectLocation), e);
+      }
+      return false;
+    });
+    if (couldEnsureLocationExists) {
+      Project project = UIUtil.invokeAndWaitIfNeeded(() -> ProjectManager.getInstance().createProject(projectName, projectLocation));
+      project().setValue(project);
+      myMultiTemplateRenderer.setProject(project);
+    }
+    else {
+      String msg =
+        "Could not ensure the target project location exists and is accessible:\n\n%1$s\n\nPlease try to specify another path.";
+      Messages.showErrorDialog(String.format(msg, projectLocation), "Error Creating Project");
+      // TODO: Is this available on the New Wizard?
+      //navigateToNamedStep(com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectStep.STEP_NAME, true);
+      //myHost.shakeWindow();
+    }
+
     myMultiTemplateRenderer.requestRender(new ProjectTemplateRenderer());
   }
 
@@ -245,43 +284,9 @@ public class NewProjectModel extends WizardModel {
 
     @Override
     public boolean doDryRun() {
-      final String projectLocation = projectLocation().get();
-      final String projectName = applicationName().get();
-
-      boolean couldEnsureLocationExists = WriteCommandAction.runWriteCommandAction(null, (Computable<Boolean>)() -> {
-        // We generally assume that the path has passed a fair amount of prevalidation checks
-        // at the project configuration step before. Write permissions check can be tricky though in some cases,
-        // e.g., consider an unmounted device in the middle of wizard execution or changed permissions.
-        // Anyway, it seems better to check that we were really able to create the target location and are able to
-        // write to it right here when the wizard is about to close, than running into some internal IDE errors
-        // caused by these problems downstream
-        // Note: this change was originally caused by http://b.android.com/219851, but then
-        // during further discussions that a more important bug was in path validation in the old wizards,
-        // where File.canWrite() always returned true as opposed to the correct Files.isWritable(), which is
-        // already used in new wizard's PathValidator.
-        // So the change below is therefore a more narrow case than initially supposed (however it still needs to be handled)
-        try {
-          if (VfsUtil.createDirectoryIfMissing(projectLocation) != null && FileOpUtils.create().canWrite(new File(projectLocation))) {
-            return true;
-          }
-        }
-        catch (Exception e) {
-          getLogger().error(String.format("Exception thrown when creating target project location: %1$s", projectLocation), e);
-        }
-        return false;
-      });
-      if (!couldEnsureLocationExists) {
-        String msg =
-          "Could not ensure the target project location exists and is accessible:\n\n%1$s\n\nPlease try to specify another path.";
-        Messages.showErrorDialog(String.format(msg, projectLocation), "Error Creating Project");
-        // TODO: Is this available on the New Wizard?
-        //navigateToNamedStep(com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectStep.STEP_NAME, true);
-        //myHost.shakeWindow();
+      if (project().getValueOrNull() == null) {
         return false;
       }
-
-      Project project = UIUtil.invokeAndWaitIfNeeded(() -> ProjectManager.getInstance().createProject(projectName, projectLocation));
-      project().setValue(project);
 
       performCreateProject(true);
       return true;
