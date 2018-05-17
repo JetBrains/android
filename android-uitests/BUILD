@@ -536,7 +536,10 @@ java_test(
         "testData/NoAppCompatLibApp/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AddAppCompatLibTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/79898369
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_fast",
+    ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
