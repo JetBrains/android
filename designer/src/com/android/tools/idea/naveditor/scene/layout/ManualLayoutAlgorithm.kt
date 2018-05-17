@@ -19,12 +19,16 @@ import com.android.SdkConstants.*
 import com.android.annotations.VisibleForTesting
 import com.android.tools.idea.common.editor.NlEditor
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.naveditor.model.isDestination
 import com.android.tools.idea.naveditor.model.isInclude
 import com.android.tools.idea.uibuilder.model.parentSequence
 import com.google.common.collect.BiMap
 import com.google.common.collect.HashBiMap
+import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.command.undo.BasicUndoableAction
+import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -88,7 +92,7 @@ class ManualLayoutAlgorithm(private val module: Module) : NavSceneLayoutAlgorith
   constructor(schema: NavigationSchema, state: LayoutPositions, module: Module) : this(module) {
     _schema = schema
     _storage = Storage()
-    storage._state = state
+    storage.rootPositions = state
   }
 
   override fun layout(component: SceneComponent): Boolean {
@@ -145,9 +149,35 @@ class ManualLayoutAlgorithm(private val module: Module) : NavSceneLayoutAlgorith
     if (!component.nlComponent.isDestination) {
       return
     }
-    getPositions(component)?.myPosition = Point(component.drawX, component.drawY)
+    val newPoint = Point(component.drawX, component.drawY)
+    val oldPoint = getPositions(component)?.myPosition
+    if (oldPoint != newPoint) {
+      val model = component.nlComponent.model
+      if (oldPoint != null) {
+        WriteCommandAction.writeCommandAction(model.file).withName("Move Destination").run<Exception> {
+          val action = object : BasicUndoableAction(model.virtualFile) {
+            override fun undo() {
+              component.setPosition(oldPoint.x, oldPoint.y)
+              getPositions(component)?.myPosition = oldPoint
+              rectifyIds(model.components.flatMap { it.children }, storage.state[getFileName(component)]!!)
+            }
 
-    rectifyIds(component.nlComponent.model.components.flatMap { it.children }, storage.state[getFileName(component)]!!)
+            override fun redo() {
+              component.setPosition(newPoint.x, newPoint.y)
+              savePosition(component, newPoint, model)
+            }
+          }
+          UndoManager.getInstance(component.nlComponent.model.project).undoableActionPerformed(action)
+        }
+      }
+      getPositions(component)?.myPosition = newPoint
+      rectifyIds(model.components.flatMap { it.children }, storage.state[getFileName(component)]!!)
+    }
+  }
+
+  private fun savePosition(component: SceneComponent, newPoint: Point, model: NlModel) {
+    getPositions(component)?.myPosition = newPoint
+    rectifyIds(model.components.flatMap { it.children }, storage.state[getFileName(component)]!!)
   }
 
   private fun getPositions(component: SceneComponent): LayoutPositions? {
@@ -270,19 +300,19 @@ class ManualLayoutAlgorithm(private val module: Module) : NavSceneLayoutAlgorith
   @State(name = "navEditor-manualLayoutAlgorithm2", storages = [com.intellij.openapi.components.Storage(file = "navEditor.xml")])
   private class Storage : PersistentStateComponent<ManualLayoutAlgorithm.LayoutPositions> {
     @VisibleForTesting
-    internal var _state: LayoutPositions? = null
+    internal var rootPositions: LayoutPositions? = null
 
     override fun getState(): LayoutPositions {
-      var result = _state
+      var result = rootPositions
       if (result == null) {
         result = LayoutPositions()
-        _state = result
+        rootPositions = result
       }
       return result
     }
 
     override fun loadState(state: LayoutPositions) {
-      _state = state
+      rootPositions = state
     }
   }
 
