@@ -21,7 +21,6 @@ import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.instructions.IconInstruction;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.NewRowInstruction;
 import com.android.tools.adtui.instructions.TextInstruction;
@@ -40,18 +39,15 @@ import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.IconUtil;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -829,16 +825,12 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   private void installProfilingInstructions(@NotNull JPanel parent) {
     assert parent.getLayout().getClass() == TabularLayout.class;
-    Icon recordIcon = UIUtil.isUnderDarcula()
-                      ? IconUtil.darker(StudioIcons.Profiler.Toolbar.RECORD, 3)
-                      : IconUtil.brighter(StudioIcons.Profiler.Toolbar.RECORD, 3);
     FontMetrics metrics = SwingUtilities2.getFontMetrics(parent, ProfilerFonts.H2_FONT);
-    InstructionsPanel panel = new InstructionsPanel.Builder(new TextInstruction(metrics, "Click "),
-                                                            new IconInstruction(recordIcon, PROFILING_INSTRUCTIONS_ICON_PADDING, null),
-                                                            new TextInstruction(metrics, " to start method profiling"))
-      .setEaseOut(getStage().getInstructionsEaseOutModel(), instructionsPanel -> parent.remove(instructionsPanel))
-      .setBackgroundCornerRadius(PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER, PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER)
-      .build();
+    InstructionsPanel panel =
+      new InstructionsPanel.Builder(new TextInstruction(metrics, "Click the record button to start method profiling"))
+        .setEaseOut(getStage().getInstructionsEaseOutModel(), instructionsPanel -> parent.remove(instructionsPanel))
+        .setBackgroundCornerRadius(PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER, PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER)
+        .build();
     parent.add(panel, new TabularLayout.Constraint(0, 0));
   }
 

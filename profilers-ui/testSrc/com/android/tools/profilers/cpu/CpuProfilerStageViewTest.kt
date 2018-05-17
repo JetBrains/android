@@ -289,7 +289,7 @@ class CpuProfilerStageViewTest {
     // This panel is the panel that appears in the L3 view telling users how to do their recording.
     // "Click [record icon] to start method profiling"
     assertThat(panelList).hasSize(1)
-    assertThat(panelList[0].getRenderInstructionsForComponent(0)).hasSize(3)
+    assertThat(panelList[0].getRenderInstructionsForComponent(0)).hasSize(1)
     myStage = CpuProfilerStage(myStage.studioProfilers, File("FakePathToTraceFile.trace"))
     myStage.enter()
     // Create a CpuProfilerStageView. We don't need its value, so we don't store it in a variable.
