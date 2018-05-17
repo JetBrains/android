@@ -38,7 +38,6 @@ import org.junit.Test;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -63,7 +62,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   }
 
   @Test
-  public void testToggleAllocationTrackingFailedStatuses() throws Exception {
+  public void testToggleAllocationTrackingFailedStatuses() {
     myStage.trackAllocations(false);
     assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
@@ -83,7 +82,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   }
 
   @Test
-  public void testToggleAllocationTracking() throws Exception {
+  public void testToggleAllocationTracking() {
     // Enable the auto capture selection mechanism.
     myStage.enableSelectLatestCapture(true, MoreExecutors.directExecutor());
 
@@ -143,7 +142,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   }
 
   @Test
-  public void testAllocationTrackingSetStreaming() throws Exception {
+  public void testAllocationTrackingSetStreaming() {
     myProfilers.getTimeline().setStreaming(false);
     assertThat(myProfilers.getTimeline().isStreaming()).isFalse();
 
@@ -160,7 +159,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   }
 
   @Test
-  public void testAllocationTrackingStateOnTransition() throws Exception {
+  public void testAllocationTrackingStateOnTransition() {
     myStage.enter();
     assertThat(myStage.isTrackingAllocations()).isFalse();
 
@@ -192,7 +191,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   }
 
   @Test
-  public void testRequestHeapDump() throws Exception {
+  public void testRequestHeapDump() {
     // Bypass the load mechanism in HeapDumpCaptureObject.
     myMockLoader.setReturnImmediateFuture(true);
     // Test the no-action cases
@@ -217,7 +216,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   }
 
   @Test
-  public void testHeapDumpSetStreaming() throws Exception {
+  public void testHeapDumpSetStreaming() {
     myProfilers.getTimeline().setStreaming(false);
     assertThat(myProfilers.getTimeline().isStreaming()).isFalse();
     myMockLoader.setReturnImmediateFuture(true);
@@ -226,7 +225,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   }
 
   @Test
-  public void defaultHeapSetTest() throws ExecutionException, InterruptedException {
+  public void defaultHeapSetTest() {
     myMockLoader.setReturnImmediateFuture(true);
 
     FakeCaptureObject capture0 = new FakeCaptureObject.Builder().setHeapIdToNameMap(ImmutableMap.of(0, "default", 1, "app")).build();
@@ -262,7 +261,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   }
 
   @Test
-  public void testSelectionRangeUpdateOnCaptureSelection() throws Exception {
+  public void testSelectionRangeUpdateOnCaptureSelection() {
     long startTimeUs = 5;
     long endTimeUs = 10;
     FakeCaptureObject captureObject = new FakeCaptureObject.Builder().setStartTime(TimeUnit.MICROSECONDS.toNanos(startTimeUs))
@@ -279,7 +278,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   }
 
   @Test
-  public void testMemoryObjectSelection() throws ExecutionException, InterruptedException {
+  public void testMemoryObjectSelection() {
     final String dummyClassName = "DUMMY_CLASS1";
     FakeCaptureObject captureObject = new FakeCaptureObject.Builder().setStartTime(5).setEndTime(10).build();
     InstanceObject mockInstance =
@@ -314,7 +313,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertThat(myStage.getSelectedInstanceObject()).isNull();
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0, 0);
 
-    HeapSet heapSet = captureObject.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID);
+    HeapSet heapSet = captureObject.getHeapSet(CaptureObject.DEFAULT_HEAP_ID);
     assertThat(heapSet).isNotNull();
     myStage.selectHeapSet(heapSet);
     assertThat(myStage.getSelectedCapture()).isEqualTo(captureObject);
@@ -410,12 +409,12 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   }
 
   @Test
-  public void testSelectNewCaptureWhileLoading() throws ExecutionException, InterruptedException {
+  public void testSelectNewCaptureWhileLoading() {
     CaptureObject mockCapture1 = new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE1").setStartTime(5).setEndTime(10).build();
     CaptureObject mockCapture2 = new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE2").setStartTime(10).setEndTime(15).build();
 
     myStage
-      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> mockCapture1)),
+      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<>(new Object(), () -> mockCapture1)),
                              null);
     assertThat(myStage.getSelectedCapture()).isEqualTo(mockCapture1);
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
@@ -423,7 +422,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     // Make sure selecting a new capture while the first one is loading will select the new one
     myStage
-      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> mockCapture2)),
+      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<>(new Object(), () -> mockCapture2)),
                              null);
     assertThat(myStage.getSelectedCapture()).isEqualTo(mockCapture2);
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
@@ -436,7 +435,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   }
 
   @Test
-  public void testCaptureLoadingFailure() throws ExecutionException, InterruptedException {
+  public void testCaptureLoadingFailure() {
     long startTimeUs = 5;
     long endTimeUs = 10;
     CaptureObject mockCapture1 = new FakeCaptureObject.Builder()
@@ -448,7 +447,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     Range selectionRange = myStage.getStudioProfilers().getTimeline().getSelectionRange();
 
     myStage
-      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> mockCapture1)),
+      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<>(new Object(), () -> mockCapture1)),
                              null);
     assertThat(myStage.getSelectedCapture()).isEqualTo(mockCapture1);
 
@@ -569,7 +568,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   }
 
   @Test
-  public void testSelectLatestCaptureDisabled() throws Exception {
+  public void testSelectLatestCaptureDisabled() {
     myStage.enableSelectLatestCapture(false, null);
     myMockLoader.setReturnImmediateFuture(true);
     assertThat(myStage.getSelectedCapture()).isNull();
@@ -601,7 +600,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   }
 
   @Test
-  public void testSelectLatestCaptureEnabled() throws Exception {
+  public void testSelectLatestCaptureEnabled() {
     myStage.enableSelectLatestCapture(true, MoreExecutors.directExecutor());
     myMockLoader.setReturnImmediateFuture(true);
     assertThat(myStage.getSelectedCapture()).isNull();
