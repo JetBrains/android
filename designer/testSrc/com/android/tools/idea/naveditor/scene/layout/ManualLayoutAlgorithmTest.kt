@@ -17,10 +17,14 @@ package com.android.tools.idea.naveditor.scene.layout
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ID
+import com.android.tools.idea.common.editor.NlEditor
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.command.undo.UndoManager
+import com.intellij.openapi.fileEditor.DocumentsEditor
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.testFramework.PlatformTestUtil
@@ -206,5 +210,35 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     assertEquals(456, scene.getSceneComponent("renamed")!!.drawY)
     assertEquals(456, scene.getSceneComponent("fragment2")!!.drawX)
     assertEquals(789, scene.getSceneComponent("fragment2")!!.drawY)
+  }
+
+  fun testUndo() {
+    val model = model("nav.xml") {
+      navigation("nav") {
+        fragment("fragment1")
+        fragment("fragment2")
+      }
+    }
+    val editor = object: NlEditor(model.virtualFile, project), DocumentsEditor {
+      override fun getDocuments() = arrayOf(FileDocumentManager.getInstance().getDocument(model.virtualFile))
+    }
+    val surface = NavDesignSurface(project, myRootDisposable)
+    surface.model = model
+    val component = surface.scene!!.getSceneComponent("fragment1")!!
+    component.setPosition(100, 200)
+    val algorithm = ManualLayoutAlgorithm(model.module)
+    algorithm.save(component)
+    PlatformTestUtil.saveProject(project)
+    component.setPosition(300, 400)
+    algorithm.save(component)
+    PlatformTestUtil.saveProject(project)
+
+    assertEquals(300, component.drawX)
+    assertEquals(400, component.drawY)
+
+    UndoManager.getInstance(model.project).undo(editor)
+
+    assertEquals(100, component.drawX)
+    assertEquals(200, component.drawY)
   }
 }
