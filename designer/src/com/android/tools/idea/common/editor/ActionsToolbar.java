@@ -17,10 +17,7 @@ package com.android.tools.idea.common.editor;
 
 import com.android.tools.adtui.common.AdtPrimaryPanel;
 import com.android.tools.adtui.common.StudioColorsKt;
-import com.android.tools.idea.common.model.ModelListener;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.PanZoomListener;
@@ -55,19 +52,30 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
                                                         ConfigurationListener.CFG_DEVICE;
 
   private final DesignSurface mySurface;
-  private JComponent myToolbarComponent;
+  private final JComponent myToolbarComponent;
   private ActionToolbar myNorthToolbar;
   private ActionToolbar myNorthEastToolbar;
   private ActionToolbarImpl myCenterToolbar;
   private ActionToolbar myEastToolbar;
   private final DefaultActionGroup myDynamicGroup = new DefaultActionGroup();
   private Configuration myConfiguration;
+  private NlLayoutType myLayoutType;
+  private ToolbarActionGroups myToolbarActionGroups;
 
-  public ActionsToolbar(@Nullable Disposable parent, DesignSurface surface) {
-    if (parent != null) {
-      Disposer.register(parent, this);
-    }
+  public ActionsToolbar(@NotNull Disposable parent, @NotNull DesignSurface surface) {
+    Disposer.register(parent, this);
     mySurface = surface;
+    mySurface.addListener(this);
+    mySurface.addPanZoomListener(this);
+    if (myConfiguration == null) {
+      myConfiguration = mySurface.getConfiguration();
+      if (myConfiguration != null) {
+        myConfiguration.addListener(this);
+      }
+    }
+    myToolbarComponent = createToolbarComponent();
+    updateActionGroups(surface.getLayoutType());
+    updateActions();
   }
 
   @Override
@@ -84,21 +92,6 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
 
   @NotNull
   public JComponent getToolbarComponent() {
-    if (myToolbarComponent == null) {
-      myToolbarComponent = createToolbarComponent();
-
-      mySurface.addListener(this);
-      mySurface.addPanZoomListener(this);
-      if (myConfiguration == null) {
-        myConfiguration = mySurface.getConfiguration();
-        if (myConfiguration != null) {
-          myConfiguration.addListener(this);
-        }
-      }
-
-      updateActions();
-    }
-
     return myToolbarComponent;
   }
 
@@ -108,16 +101,26 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   }
 
   @NotNull
-  private JComponent createToolbarComponent() {
-    ToolbarActionGroups groups = mySurface.getLayoutType().getToolbarActionGroups(mySurface);
+  private static JComponent createToolbarComponent() {
+    JComponent panel = new AdtPrimaryPanel(new BorderLayout());
+    panel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, StudioColorsKt.getBorder()));
+    return panel;
+  }
 
-    myNorthToolbar = createActionToolbar("NlConfigToolbar", groups.getNorthGroup());
+  private void updateActionGroups(@NotNull NlLayoutType layoutType) {
+    if (myToolbarActionGroups != null) {
+      Disposer.dispose(myToolbarActionGroups);
+    }
+    myToolbarActionGroups = layoutType.getToolbarActionGroups(mySurface);
+    Disposer.register(this, myToolbarActionGroups);
+
+    myNorthToolbar = createActionToolbar("NlConfigToolbar", myToolbarActionGroups.getNorthGroup());
     myNorthToolbar.setLayoutPolicy(ActionToolbar.AUTO_LAYOUT_POLICY);
 
     JComponent northToolbarComponent = myNorthToolbar.getComponent();
     northToolbarComponent.setName("NlConfigToolbar");
 
-    myNorthEastToolbar = createActionToolbar("NlRhsConfigToolbar", groups.getNorthEastGroup());
+    myNorthEastToolbar = createActionToolbar("NlRhsConfigToolbar", myToolbarActionGroups.getNorthEastGroup());
 
     JComponent northEastToolbarComponent = myNorthEastToolbar.getComponent();
     northEastToolbarComponent.setName("NlRhsConfigToolbar");
@@ -130,25 +133,21 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     JPanel centerToolbarComponentWrapper = new AdtPrimaryPanel(new BorderLayout());
     centerToolbarComponentWrapper.add(centerToolbarComponent);
 
-    myEastToolbar = createActionToolbar("NlRhsToolbar", groups.getEastGroup());
+    myEastToolbar = createActionToolbar("NlRhsToolbar", myToolbarActionGroups.getEastGroup());
 
     JComponent eastToolbarComponent = myEastToolbar.getComponent();
     eastToolbarComponent.setName("NlRhsToolbar");
 
-    JComponent panel = new AdtPrimaryPanel(new BorderLayout());
-    panel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, StudioColorsKt.getBorder()));
     if (northToolbarComponent.isVisible()) {
       JComponent northPanel = new AdtPrimaryPanel(new BorderLayout());
       northPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, StudioColorsKt.getBorder()));
       northPanel.add(northToolbarComponent, BorderLayout.CENTER);
       northPanel.add(northEastToolbarComponent, BorderLayout.EAST);
-      panel.add(northPanel, BorderLayout.NORTH);
+      myToolbarComponent.add(northPanel, BorderLayout.NORTH);
     }
 
-    panel.add(centerToolbarComponentWrapper, BorderLayout.CENTER);
-    panel.add(eastToolbarComponent, BorderLayout.EAST);
-
-    return panel;
+    myToolbarComponent.add(centerToolbarComponentWrapper, BorderLayout.CENTER);
+    myToolbarComponent.add(eastToolbarComponent, BorderLayout.EAST);
   }
 
   @NotNull
@@ -243,6 +242,11 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
       if (myConfiguration != null) {
         myConfiguration.addListener(this);
       }
+    }
+    NlLayoutType surfaceLayoutType = surface.getLayoutType();
+    if (surfaceLayoutType != myLayoutType) {
+      myLayoutType = surfaceLayoutType;
+      updateActionGroups(myLayoutType);
     }
     updateActions();
   }

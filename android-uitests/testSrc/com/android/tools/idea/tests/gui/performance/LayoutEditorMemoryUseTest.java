@@ -64,15 +64,7 @@ public class LayoutEditorMemoryUseTest {
   private static final Set<String> ourIgnoredClasses = ImmutableSet.of(
     // Known leak: b/73826291. Each time RenderTask is created, its myAssetRepository object is leaked.
     // The lifetime of the leak is equal to the lifetime of the Module (project close should dispose it).
-    "com.android.tools.idea.res.AssetRepositoryImpl",
-
-    // Known leak: b/73827630. DefaultNlToolbarActionGroups registers these actions, but never removes them.
-    "com.android.tools.idea.common.actions.IssueNotificationAction",
-    "com.android.tools.idea.uibuilder.actions.SwitchDesignModeAction",
-    "com.android.tools.idea.common.actions.ToggleDeviceOrientationAction",
-    "com.android.tools.idea.common.actions.SetZoomAction",
-    "com.android.tools.idea.common.actions.SwitchDeviceAction",
-    "com.android.tools.idea.rendering.RefreshRenderAction"
+    "com.android.tools.idea.res.AssetRepositoryImpl"
   );
 
   private static final Logger LOG = Logger.getInstance(LayoutEditorMemoryUseTest.class);

@@ -81,16 +81,9 @@ public class NlEditorPanel extends JPanel implements Disposable {
     myProject = project;
     myFile = file;
     myContentPanel = new AdtPrimaryPanel(new BorderLayout());
-
-    if (NlLayoutType.typeOf(getFile()) == NlLayoutType.NAV) {
-      mySurface = new NavDesignSurface(project, editor);
-    }
-    else {
-      mySurface = new NlDesignSurface(project, false, editor);
-      ((NlDesignSurface)mySurface).setCentered(true);
-      myAccessoryPanel = ((NlDesignSurface) mySurface).getAccessoryPanel();
-    }
+    mySurface = createDesignSurface(editor, project);
     Disposer.register(this, mySurface);
+    myContentPanel.add(createSurfaceToolbar(mySurface), BorderLayout.NORTH);
 
     myWorkBench.setLoadingText("Waiting for build to finish...");
     ClearResourceCacheAfterFirstBuild.getInstance(project).runWhenResourceCacheClean(this::initNeleModel, this::buildError);
@@ -98,6 +91,25 @@ public class NlEditorPanel extends JPanel implements Disposable {
     mySplitter = new IssuePanelSplitter(mySurface, myWorkBench);
     add(mySplitter);
     Disposer.register(editor, myWorkBench);
+  }
+
+  @NotNull
+  private DesignSurface createDesignSurface(@NotNull NlEditor editor, @NotNull Project project) {
+    if (NlLayoutType.typeOf(getFile()) == NlLayoutType.NAV) {
+      return new NavDesignSurface(project, editor);
+    }
+    else {
+      NlDesignSurface nlDesignSurface;
+      nlDesignSurface = new NlDesignSurface(project, false, editor);
+      nlDesignSurface.setCentered(true);
+      myAccessoryPanel = nlDesignSurface.getAccessoryPanel();
+      return nlDesignSurface;
+    }
+  }
+
+  @NotNull
+  private static JComponent createSurfaceToolbar(@NotNull DesignSurface surface) {
+    return surface.getActionManager().createToolbar();
   }
 
   // Build was either cancelled or there was an error
@@ -131,7 +143,7 @@ public class NlEditorPanel extends JPanel implements Disposable {
   }
 
   private void initNeleModelWhenSmart() {
-    if (Disposer.isDisposed(myEditor) || myContentPanel.getComponentCount() > 0) {
+    if (Disposer.isDisposed(myEditor)) {
       return;
     }
 
@@ -159,9 +171,6 @@ public class NlEditorPanel extends JPanel implements Disposable {
       return;
     }
     mySurface.setModel(model);
-
-    JComponent toolbarComponent = mySurface.getActionManager().createToolbar();
-    myContentPanel.add(toolbarComponent, BorderLayout.NORTH);
 
     if (myAccessoryPanel != null) {
       boolean verticalSplitter = StudioFlags.NELE_MOTION_HORIZONTAL.get();
