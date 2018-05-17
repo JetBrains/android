@@ -21,10 +21,17 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Objects;
 
 public class CpuProfilerConfig {
+  /**
+   * We increase the default size of atrace buffer because atrace uses a ring buffer internally and we want to minimize
+   * the risk of the ring buffer writing back on itself. The size chosen should accommodate most applications for up to 30 seconds.
+   */
+  public static final int DEFAULT_ATRACE_BUFFER_SIZE_MB = 32;
+  public static final int DEFAULT_BUFFER_SIZE_MB = 8;
+
   @NotNull private String myName;
   @NotNull private Technology myTechnology;
   private int mySamplingIntervalUs = 1000;
-  private int myBufferSizeMb = 8;
+  private int myBufferSizeMb = DEFAULT_BUFFER_SIZE_MB;
 
   /**
    * Default constructor to be used by {@link CpuProfilerConfigsState}.
@@ -102,7 +109,7 @@ public class CpuProfilerConfig {
   public int hashCode() {
     return HashCodes.mix(myName.hashCode(), myTechnology.hashCode(), mySamplingIntervalUs, myBufferSizeMb);
   }
-  
+
   public enum Technology {
     SAMPLED_JAVA {
       @NotNull

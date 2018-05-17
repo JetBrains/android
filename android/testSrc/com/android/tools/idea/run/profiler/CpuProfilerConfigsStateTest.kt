@@ -55,6 +55,14 @@ class CpuProfilerConfigsStateTest {
   }
 
   @Test
+  fun atraceConfigHas32MbBuffer() {
+    assertThat(myConfigsState.getConfigByName("System Trace")?.technology)
+      .isEqualTo(CpuProfilerConfig.Technology.ATRACE)
+    assertThat(myConfigsState.getConfigByName("System Trace")?.bufferSizeMb)
+      .isEqualTo(CpuProfilerConfig.DEFAULT_ATRACE_BUFFER_SIZE_MB)
+  }
+
+  @Test
   fun addUserConfig() {
     val added = myConfigsState.addUserConfig(CpuProfilerConfig("MyConfig", CpuProfilerConfig.Technology.SAMPLED_JAVA))
     assertThat(added).isTrue()
