@@ -170,7 +170,6 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
   public static VirtualFile getSampleDataDir(@NotNull AndroidFacet androidFacet, boolean create) throws IOException {
     VirtualFile contentRoot = AndroidRootUtil.getMainContentRoot(androidFacet);
     if (contentRoot == null) {
-      LOG.warn("Unable to find content root");
       return null;
     }
 
