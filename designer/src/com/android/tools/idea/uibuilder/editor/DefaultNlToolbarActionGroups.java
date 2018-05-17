@@ -33,10 +33,15 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.*;
 
+/**
+ * Permanent toolbar for the {@link NlDesignSurface}. This toolbar and its contained object
+ * life cycles should match the {@link com.android.tools.idea.common.surface.DesignSurface} one.
+ */
 public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
 
   public DefaultNlToolbarActionGroups(@NotNull NlDesignSurface surface) {
     super(surface);
+
   }
 
   @NotNull
@@ -44,15 +49,15 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
   protected ActionGroup getNorthGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
 
-    group.add(DESIGN_MODE.registerForAction(createDesignModeAction(),
-                                            new SwitchDesignModeAction((NlDesignSurface)mySurface), mySurface));
+    group.add(DESIGN_MODE.registerForHiddenAction(createDesignModeAction(),
+                                                  new SwitchDesignModeAction((NlDesignSurface)mySurface), mySurface, this));
     group.addSeparator();
 
-    group.add(SWITCH_ORIENTATION.registerForAction(new OrientationMenuAction(mySurface::getConfiguration, mySurface),
-                                                   new ToggleDeviceOrientationAction(mySurface), mySurface));
+    group.add(SWITCH_ORIENTATION.registerForHiddenAction(new OrientationMenuAction(mySurface::getConfiguration, mySurface),
+                                                         new ToggleDeviceOrientationAction(mySurface), mySurface, this));
     group.addSeparator();
-    group.add(NEXT_DEVICE.registerForAction(new DeviceMenuAction(mySurface::getConfiguration),
-                                            new SwitchDeviceAction(mySurface), mySurface));
+    group.add(NEXT_DEVICE.registerForHiddenAction(new DeviceMenuAction(mySurface::getConfiguration),
+                                                  new SwitchDeviceAction(mySurface), mySurface, this));
     group.add(new TargetMenuAction(mySurface::getConfiguration));
     group.add(new ThemeMenuAction(mySurface::getConfiguration));
 
@@ -71,7 +76,7 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     designSurfaceMenu.addAction(new BlueprintModeAction((NlDesignSurface)mySurface));
     designSurfaceMenu.addAction(new BlueprintAndDesignModeAction((NlDesignSurface)mySurface));
     designSurfaceMenu.addSeparator();
-    designSurfaceMenu.addAction(REFRESH_LAYOUT.registerForAction(new RefreshRenderAction(mySurface), mySurface));
+    designSurfaceMenu.addAction(REFRESH_LAYOUT.registerForAction(new RefreshRenderAction(mySurface), mySurface, this));
     return designSurfaceMenu;
   }
 
@@ -80,12 +85,12 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
   protected ActionGroup getNorthEastGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
 
-    group.add(ZOOM_OUT.registerForAction(new SetZoomAction(mySurface, ZoomType.OUT), mySurface));
+    group.add(ZOOM_OUT.registerForAction(new SetZoomAction(mySurface, ZoomType.OUT), mySurface, this));
     group.add(new ZoomLabelAction(mySurface));
-    group.add(ZOOM_IN.registerForAction(new SetZoomAction(mySurface, ZoomType.IN), mySurface));
-    group.add(ZOOM_FIT.registerForAction(new SetZoomAction(mySurface, ZoomType.FIT), mySurface));
+    group.add(ZOOM_IN.registerForAction(new SetZoomAction(mySurface, ZoomType.IN), mySurface, this));
+    group.add(ZOOM_FIT.registerForAction(new SetZoomAction(mySurface, ZoomType.FIT), mySurface, this));
     group.addSeparator();
-    group.add(TOGGLE_ISSUE_PANEL.registerForAction(new IssueNotificationAction(mySurface), mySurface));
+    group.add(TOGGLE_ISSUE_PANEL.registerForAction(new IssueNotificationAction(mySurface), mySurface, this));
 
     return group;
   }

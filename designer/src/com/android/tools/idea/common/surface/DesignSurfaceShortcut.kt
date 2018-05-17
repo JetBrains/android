@@ -14,6 +14,7 @@
 package com.android.tools.idea.common.surface
 
 import com.android.tools.idea.ui.designer.EditorDesignSurface
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.keymap.KeymapUtil
 import java.awt.event.KeyEvent
@@ -60,22 +61,30 @@ enum class DesignSurfaceShortcut(val keyCode: Int, private val keyChar: Char? = 
   /**
    * Register the shortcut on the provided action within the provided [component] and return the action.
    */
-  fun registerForAction(shortcutAction: AnAction, component: JComponent): AnAction {
-    shortcutAction.registerCustomShortcutSet(shortcutSet, component)
+  fun registerForAction(shortcutAction: AnAction,
+                        component: JComponent,
+                        parentDisposable: Disposable
+  ): AnAction {
+    shortcutAction.registerCustomShortcutSet(shortcutSet, component, parentDisposable)
     return shortcutAction
   }
 
   /**
    * Register this shortcut on [shortcutAction] within the provided [component]
-   * and display the shortcut hint in the description of [visibleAction]
+   * and display the shortcut hint in the description of [visibleAction].
+   * This is useful if the action for which the shortcut is registered is in a submenu.
    *
    * @return visibleAction.
    */
-  fun registerForAction(visibleAction: AnAction, shortcutAction: AnAction, component: JComponent): AnAction {
-    shortcutAction.registerCustomShortcutSet(shortcutSet, component)
+  fun registerForHiddenAction(visibleAction: AnAction,
+                              shortcutAction: AnAction,
+                              component: JComponent,
+                              parentDisposable: Disposable)
+    : AnAction {
+    shortcutAction.registerCustomShortcutSet(shortcutSet, component, parentDisposable)
     val presentation = visibleAction.templatePresentation
     presentation.description = presentation.description +
-        " (" + KeymapUtil.getShortcutsText(shortcutSet.shortcuts) + ")"
+      " (" + KeymapUtil.getShortcutsText(shortcutSet.shortcuts) + ")"
     return visibleAction
   }
 }

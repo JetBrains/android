@@ -37,12 +37,12 @@ public class NavToolbarActionGroups extends ToolbarActionGroups {
   @Override
   protected ActionGroup getEastGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
-    group.add(DesignSurfaceShortcut.ZOOM_OUT.registerForAction(new ZoomOutAction(mySurface), mySurface));
+    group.add(DesignSurfaceShortcut.ZOOM_OUT.registerForAction(new ZoomOutAction(mySurface), mySurface, this));
     group.add(new ZoomLabelAction(mySurface));
-    group.add(DesignSurfaceShortcut.ZOOM_IN.registerForAction(new ZoomInAction(mySurface), mySurface));
-    group.add(DesignSurfaceShortcut.ZOOM_FIT.registerForAction(new ZoomToFitAction(mySurface), mySurface));
+    group.add(DesignSurfaceShortcut.ZOOM_IN.registerForAction(new ZoomInAction(mySurface), mySurface, this));
+    group.add(DesignSurfaceShortcut.ZOOM_FIT.registerForAction(new ZoomToFitAction(mySurface), mySurface, this));
     group.addSeparator();
-    group.add(TOGGLE_ISSUE_PANEL.registerForAction(new IssueNotificationAction(mySurface), mySurface));
+    group.add(TOGGLE_ISSUE_PANEL.registerForAction(new IssueNotificationAction(mySurface), mySurface, this));
     return group;
   }
 }

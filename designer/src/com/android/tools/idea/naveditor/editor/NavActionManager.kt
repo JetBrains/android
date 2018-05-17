@@ -40,9 +40,9 @@ import javax.swing.JComponent
 // Open for testing only
 open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesignSurface>(surface) {
   private val gotoComponentAction: AnAction = GotoComponentAction(surface)
-  private val zoomInAction: AnAction = DesignSurfaceShortcut.ZOOM_IN.registerForAction(ZoomInAction(surface), surface)
-  private val zoomOutAction: AnAction = DesignSurfaceShortcut.ZOOM_OUT.registerForAction(ZoomOutAction(surface), surface)
-  private val zoomToFitAction: AnAction = DesignSurfaceShortcut.ZOOM_FIT.registerForAction(ZoomToFitAction(surface), surface)
+  private val zoomInAction: AnAction = DesignSurfaceShortcut.ZOOM_IN.registerForAction(ZoomInAction(surface), surface, surface)
+  private val zoomOutAction: AnAction = DesignSurfaceShortcut.ZOOM_OUT.registerForAction(ZoomOutAction(surface), surface, surface)
+  private val zoomToFitAction: AnAction = DesignSurfaceShortcut.ZOOM_FIT.registerForAction(ZoomToFitAction(surface), surface, surface)
   private val selectNextAction: AnAction = SelectNextAction(surface)
   private val selectPreviousAction: AnAction = SelectPreviousAction(surface)
   private val selectAllAction: AnAction = SelectAllAction(surface)
