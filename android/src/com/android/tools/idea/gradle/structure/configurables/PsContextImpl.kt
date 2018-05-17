@@ -61,11 +61,11 @@ class PsContextImpl constructor (override val project: PsProject, parentDisposab
 
     libraryUpdateCheckerDaemon = PsLibraryUpdateCheckerDaemon(this)
     libraryUpdateCheckerDaemon.reset()
-    libraryUpdateCheckerDaemon.queueAutomaticUpdateCheck()
+    // TODO(b/79562555): libraryUpdateCheckerDaemon.queueAutomaticUpdateCheck()
 
     analyzerDaemon = PsAnalyzerDaemon(this, libraryUpdateCheckerDaemon)
     analyzerDaemon.reset()
-    this.project.forEachModule { analyzerDaemon.queueCheck(it) }
+    // TODO(b/79562555): this.project.forEachModule { analyzerDaemon.queueCheck(it) }
 
     Disposer.register(parentDisposable, this)
   }
