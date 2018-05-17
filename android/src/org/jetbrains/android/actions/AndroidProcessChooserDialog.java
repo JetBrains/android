@@ -717,7 +717,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       myDeviceNamePropertiesFetcher = deviceNamePropertiesFetcher;
     }
 
-    private void setShowSerial(@NotNull List<@NotNull IDevice> devices) {
+    private void setShowSerial(@NotNull List<IDevice> devices) {
       myShowSerial = DeviceRenderer.shouldShowSerialNumbers(devices, myDeviceNamePropertiesFetcher);
     }
 

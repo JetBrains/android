@@ -34,7 +34,7 @@ public final class ProjectMlModelFileTracker extends SimpleModificationTracker {
   public ProjectMlModelFileTracker(@NotNull Project project) {
     project.getMessageBus().connect(project).subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
       @Override
-      public void after(@NotNull List<? extends @NotNull VFileEvent> events) {
+      public void after(@NotNull List<? extends VFileEvent> events) {
         boolean hasModelFile = false;
         for (VFileEvent event : events) {
           VirtualFile file = event.getFile();

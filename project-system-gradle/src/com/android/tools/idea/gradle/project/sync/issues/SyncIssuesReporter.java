@@ -101,13 +101,13 @@ public class SyncIssuesReporter {
       Collections.reverseOrder(Map.Entry.comparingByValue(Comparator.comparing(issues -> issues.get(0).getSeverity())))).collect(
       Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldVal, newVal) -> oldVal, LinkedHashMap::new));
     SyncIssueUsageReporter syncIssueUsageReporter = SyncIssueUsageReporter.Companion.getInstance(project);
-    final var syncMessages = new ArrayList<@NotNull SyncMessage>();
+    final var syncMessages = new ArrayList<SyncMessage>();
     for (Map.Entry<Integer, List<IdeSyncIssue>> entry : sortedSyncIssues.entrySet()) {
       BaseSyncIssuesReporter strategy = myStrategies.get(entry.getKey());
       if (strategy == null) {
         strategy = myDefaultMessageFactory;
       }
-      List<? extends @NotNull SyncMessage> messages = strategy.reportAll(entry.getValue(), moduleMap, buildFileMap);
+      List<? extends SyncMessage> messages = strategy.reportAll(entry.getValue(), moduleMap, buildFileMap);
 
       SyncIssueUsageReporterUtils.collect(syncIssueUsageReporter, entry.getKey(), messages);
 

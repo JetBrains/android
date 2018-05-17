@@ -42,8 +42,8 @@ import org.jetbrains.annotations.NotNull;
 final class PhysicalDeviceChangeListener implements Disposable, IDeviceChangeListener {
   private final @NotNull DeviceManagerAndroidDebugBridge myBridge;
   private final @NotNull ListeningExecutorService myEdtExecutorService;
-  private final @NotNull Supplier<@NotNull BuilderService> myBuilderServiceGetInstance;
-  private final @NotNull FutureCallback<@NotNull PhysicalDevice> myCallback;
+  private final @NotNull Supplier<BuilderService> myBuilderServiceGetInstance;
+  private final @NotNull FutureCallback<PhysicalDevice> myCallback;
 
   @UiThread
   PhysicalDeviceChangeListener(@NotNull PhysicalDeviceTableModel model) {
@@ -53,8 +53,8 @@ final class PhysicalDeviceChangeListener implements Disposable, IDeviceChangeLis
   @UiThread
   @VisibleForTesting
   PhysicalDeviceChangeListener(@NotNull DeviceManagerAndroidDebugBridge bridge,
-                               @NotNull Supplier<@NotNull BuilderService> builderServiceGetInstance,
-                               @NotNull FutureCallback<@NotNull PhysicalDevice> callback) {
+                               @NotNull Supplier<BuilderService> builderServiceGetInstance,
+                               @NotNull FutureCallback<PhysicalDevice> callback) {
     myBridge = bridge;
     myEdtExecutorService = MoreExecutors.listeningDecorator(EdtExecutorService.getInstance());
     myBuilderServiceGetInstance = builderServiceGetInstance;
@@ -65,7 +65,7 @@ final class PhysicalDeviceChangeListener implements Disposable, IDeviceChangeLis
 
   @UiThread
   @VisibleForTesting
-  static @NotNull FutureCallback<@NotNull PhysicalDevice> newAddOrSet(@NotNull PhysicalDeviceTableModel model) {
+  static @NotNull FutureCallback<PhysicalDevice> newAddOrSet(@NotNull PhysicalDeviceTableModel model) {
     return new DeviceManagerFutureCallback<>(PhysicalDeviceChangeListener.class, model::addOrSet);
   }
 

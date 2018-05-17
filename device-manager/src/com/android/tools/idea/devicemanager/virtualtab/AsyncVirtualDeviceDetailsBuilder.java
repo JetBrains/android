@@ -52,7 +52,7 @@ final class AsyncVirtualDeviceDetailsBuilder {
     myAdbShellCommandExecutor = adbShellCommandExecutor;
   }
 
-  @NotNull ListenableFuture<@NotNull Device> buildAsync() {
+  @NotNull ListenableFuture<Device> buildAsync() {
     // noinspection UnstableApiUsage
     return Futures.transform(myBridge.findDevice(myProject, myDevice.getKey()), this::build, AppExecutorUtil.getAppExecutorService());
   }

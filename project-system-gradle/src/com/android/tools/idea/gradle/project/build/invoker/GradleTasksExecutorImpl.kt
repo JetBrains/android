@@ -91,7 +91,6 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.LongRunningOperation
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
-import org.jetbrains.annotations.NonNls
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver
 import java.io.IOException
@@ -565,7 +564,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
       private const val ONE_MINUTE_MS = 60L /*sec*/ * 1000L /*millisec*/
       val LOGGING_NOTIFICATION = NotificationGroupManager.getInstance().getNotificationGroup("Gradle Build (Logging)")!!
       val BALLOON_NOTIFICATION = NotificationGroupManager.getInstance().getNotificationGroup("Gradle Build (Balloon)")!!
-      private val APP_ICON_ID: @NonNls String? = "compiler"
+      private val APP_ICON_ID: String? = "compiler"
       private const val GRADLE_RUNNING_MSG_TITLE = "Gradle Running"
       private const val PASSWORD_KEY_SUFFIX = ".password="
       private fun wasBuildCanceled(buildError: Throwable): Boolean {

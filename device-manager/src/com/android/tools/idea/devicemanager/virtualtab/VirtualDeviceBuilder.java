@@ -33,8 +33,8 @@ import org.jetbrains.annotations.VisibleForTesting;
 
 final class VirtualDeviceBuilder {
   private final @NotNull AvdInfo myDevice;
-  private final @NotNull Supplier<@NotNull Boolean> myIsAvdRunning;
-  private final @NotNull Supplier<@NotNull Long> myRecursiveSize;
+  private final @NotNull Supplier<Boolean> myIsAvdRunning;
+  private final @NotNull Supplier<Long> myRecursiveSize;
 
   /**
    * Called by an application pool thread
@@ -46,8 +46,8 @@ final class VirtualDeviceBuilder {
 
   @VisibleForTesting
   VirtualDeviceBuilder(@NotNull AvdInfo device,
-                       @NotNull Supplier<@NotNull Boolean> isAvdRunning,
-                       @NotNull Supplier<@NotNull Long> recursiveSize) {
+                       @NotNull Supplier<Boolean> isAvdRunning,
+                       @NotNull Supplier<Long> recursiveSize) {
     myDevice = device;
     myIsAvdRunning = isAvdRunning;
     myRecursiveSize = recursiveSize;

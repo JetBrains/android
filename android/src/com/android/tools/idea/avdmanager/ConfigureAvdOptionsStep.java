@@ -322,7 +322,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
     FutureCallback<List<File>> callback = new LoadSkinsFutureCallback(skinComboBox, skin) {
       @Override
-      public void onSuccess(@NotNull List<@NotNull File> skins) {
+      public void onSuccess(@NotNull List<File> skins) {
         super.onSuccess(skins);
 
         if (skin != null) {

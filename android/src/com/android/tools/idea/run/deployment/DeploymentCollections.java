@@ -25,7 +25,7 @@ final class DeploymentCollections {
   private DeploymentCollections() {
   }
 
-  static <E> @NotNull Collection<@NotNull E> toList(@Nullable E element) {
+  static <E> @NotNull Collection<E> toList(@Nullable E element) {
     if (element == null) {
       return Collections.emptyList();
     }
@@ -33,7 +33,7 @@ final class DeploymentCollections {
     return Collections.singletonList(element);
   }
 
-  static <E> @NotNull Optional<@NotNull E> toOptional(@NotNull Collection<@NotNull E> collection) {
+  static <E> @NotNull Optional<E> toOptional(@NotNull Collection<E> collection) {
     int size = collection.size();
 
     switch (size) {

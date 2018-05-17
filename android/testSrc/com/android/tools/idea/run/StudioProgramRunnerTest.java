@@ -135,7 +135,7 @@ public class StudioProgramRunnerTest {
     }
 
     @Override
-    public @NotNull Collection<@NotNull IDevice> getRunningDevices() {
+    public @NotNull Collection<IDevice> getRunningDevices() {
       return Collections.emptyList();
     }
 

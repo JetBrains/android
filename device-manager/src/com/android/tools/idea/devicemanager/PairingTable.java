@@ -66,7 +66,7 @@ final class PairingTable extends DeviceTable<Device> {
     return convertColumnIndexToView(PairingTableModel.STATUS_MODEL_COLUMN_INDEX);
   }
 
-  @NotNull Optional<@NotNull Pairing> getSelectedPairing() {
+  @NotNull Optional<Pairing> getSelectedPairing() {
     int viewRowIndex = getSelectedRow();
 
     if (viewRowIndex == -1) {

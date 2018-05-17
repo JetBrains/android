@@ -43,8 +43,8 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
   static final int REMOVE_MODEL_COLUMN_INDEX = 5;
   static final int POP_UP_MENU_MODEL_COLUMN_INDEX = 6;
 
-  private @NotNull List<@NotNull PhysicalDevice> myDevices;
-  private @NotNull List<@NotNull PhysicalDevice> myCombinedDevices;
+  private @NotNull List<PhysicalDevice> myDevices;
+  private @NotNull List<PhysicalDevice> myCombinedDevices;
 
   static final class RemoveValue {
     @SuppressWarnings("InstantiationOfUtilityClass")
@@ -59,18 +59,18 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
   }
 
   @VisibleForTesting
-  PhysicalDeviceTableModel(@NotNull Collection<@NotNull PhysicalDevice> devices) {
+  PhysicalDeviceTableModel(@NotNull Collection<PhysicalDevice> devices) {
     myDevices = new ArrayList<>(devices);
     myCombinedDevices = List.of();
 
     combineDevices();
   }
 
-  @NotNull Collection<@NotNull PhysicalDevice> getDevices() {
+  @NotNull Collection<PhysicalDevice> getDevices() {
     return myDevices;
   }
 
-  void setDevices(@NotNull List<@NotNull PhysicalDevice> devices) {
+  void setDevices(@NotNull List<PhysicalDevice> devices) {
     myDevices = devices;
 
     combineDevices();
@@ -133,7 +133,7 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
     myCombinedDevices = combinedDevices;
   }
 
-  private @NotNull Collection<@NotNull PhysicalDevice> filterDevicesBy(@NotNull Class<? extends Key> keyClass) {
+  private @NotNull Collection<PhysicalDevice> filterDevicesBy(@NotNull Class<? extends Key> keyClass) {
     return myDevices.stream()
       .filter(device -> keyClass.isInstance(device.getKey()))
       .collect(Collectors.toCollection(() -> new ArrayList<>(myDevices.size())));
@@ -152,7 +152,7 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
       .build();
   }
 
-  @NotNull List<@NotNull PhysicalDevice> getCombinedDevices() {
+  @NotNull List<PhysicalDevice> getCombinedDevices() {
     return myCombinedDevices;
   }
 

@@ -50,7 +50,7 @@ public final class DeviceManagerAndroidDebugBridge {
     myGetDebugBridge = getDebugBridge;
   }
 
-  private static @NotNull ListenableFuture<@NotNull AndroidDebugBridge> getDebugBridge(@Nullable Project project) {
+  private static @NotNull ListenableFuture<AndroidDebugBridge> getDebugBridge(@Nullable Project project) {
     ListenableFuture<File> future = DeviceManagerFutures.appExecutorServiceSubmit(() -> AndroidSdkUtils.findAdb(project).adbPath);
 
     // noinspection UnstableApiUsage
@@ -59,15 +59,15 @@ public final class DeviceManagerAndroidDebugBridge {
 
   @VisibleForTesting
   interface GetDebugBridge {
-    @NotNull ListenableFuture<@NotNull AndroidDebugBridge> apply(@Nullable Project project);
+    @NotNull ListenableFuture<AndroidDebugBridge> apply(@Nullable Project project);
   }
 
-  public @NotNull ListenableFuture<@Nullable IDevice> findDevice(@Nullable Project project, @NotNull Key key) {
+  public @NotNull ListenableFuture<IDevice> findDevice(@Nullable Project project, @NotNull Key key) {
     // noinspection UnstableApiUsage
     return Futures.transformAsync(getDevices(project), devices -> findDevice(devices, key), AppExecutorUtil.getAppExecutorService());
   }
 
-  private static @NotNull ListenableFuture<@Nullable IDevice> findDevice(@NotNull List<@NotNull IDevice> devices, @NotNull Key key) {
+  private static @NotNull ListenableFuture<IDevice> findDevice(@NotNull List<IDevice> devices, @NotNull Key key) {
     Iterable<ListenableFuture<AvdData>> futures = devices.stream()
       .map(IDevice::getAvdData)
       .collect(Collectors.toList());
@@ -79,8 +79,8 @@ public final class DeviceManagerAndroidDebugBridge {
   }
 
   private static @Nullable IDevice findDevice(@NotNull Key key,
-                                              @NotNull List<@Nullable AvdData> avds,
-                                              @NotNull List<@NotNull IDevice> devices) {
+                                              @NotNull List<AvdData> avds,
+                                              @NotNull List<IDevice> devices) {
     Object string = key.toString();
 
     for (int i = 0, size = avds.size(); i < size; i++) {
@@ -99,7 +99,7 @@ public final class DeviceManagerAndroidDebugBridge {
   }
 
   @UiThread
-  public @NotNull ListenableFuture<@NotNull List<@NotNull IDevice>> getDevices(@Nullable Project project) {
+  public @NotNull ListenableFuture<List<IDevice>> getDevices(@Nullable Project project) {
     Executor executor = AppExecutorUtil.getAppExecutorService();
 
     // noinspection UnstableApiUsage
@@ -110,7 +110,7 @@ public final class DeviceManagerAndroidDebugBridge {
    * Called by an application pool thread
    */
   @WorkerThread
-  private static @NotNull List<@NotNull IDevice> getDevices(@NotNull AndroidDebugBridge bridge) {
+  private static @NotNull List<IDevice> getDevices(@NotNull AndroidDebugBridge bridge) {
     if (!bridge.isConnected()) {
       throw new IllegalArgumentException();
     }

@@ -56,7 +56,7 @@ public final class TablesTest {
     assertEquals(expectedBorder, actualBorder);
   }
 
-  private static @NotNull Function<@NotNull Object, @NotNull Border> mockGetBorder(@NotNull Object key, @NotNull Border border) {
+  private static @NotNull Function<Object, Border> mockGetBorder(@NotNull Object key, @NotNull Border border) {
     @SuppressWarnings("unchecked")
     Function<Object, Border> getBorder = Mockito.mock(Function.class);
 

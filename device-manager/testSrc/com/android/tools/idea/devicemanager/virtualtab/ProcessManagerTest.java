@@ -60,7 +60,7 @@ public final class ProcessManagerTest {
     myManager.addProcessManagerListener(myListener);
   }
 
-  private @NotNull FutureCallback<@NotNull Map<@NotNull Key, @NotNull State>> newSetKeyToStateMapFutureCallback(@NotNull ProcessManager manager) {
+  private @NotNull FutureCallback<Map<Key, State>> newSetKeyToStateMapFutureCallback(@NotNull ProcessManager manager) {
     return new CountDownLatchFutureCallback<>(ProcessManager.newSetKeyToStateMapFutureCallback(manager), myLatch);
   }
 

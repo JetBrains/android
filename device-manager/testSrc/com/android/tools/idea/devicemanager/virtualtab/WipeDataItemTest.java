@@ -111,7 +111,7 @@ public final class WipeDataItemTest {
     Mockito.verify(myTable).setSelectedDevice(TestVirtualDevices.PIXEL_5_API_31_KEY);
   }
 
-  private static @NotNull FutureCallback<@NotNull Key> newSetSelectedDeviceFutureCallback(@NotNull VirtualDeviceTable table,
+  private static @NotNull FutureCallback<Key> newSetSelectedDeviceFutureCallback(@NotNull VirtualDeviceTable table,
                                                                                           @NotNull CountDownLatch latch) {
     return new CountDownLatchFutureCallback<>(WipeDataItem.newSetSelectedDeviceFutureCallback(table), latch);
   }

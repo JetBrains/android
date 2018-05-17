@@ -34,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
 final class PhysicalDeviceAsyncSupplier {
   private final @Nullable Project myProject;
   private final @NotNull DeviceManagerAndroidDebugBridge myBridge;
-  private final @NotNull Supplier<@NotNull BuilderService> myBuilderServiceGetInstance;
+  private final @NotNull Supplier<BuilderService> myBuilderServiceGetInstance;
 
   @UiThread
   PhysicalDeviceAsyncSupplier(@Nullable Project project) {
@@ -44,20 +44,20 @@ final class PhysicalDeviceAsyncSupplier {
   @VisibleForTesting
   PhysicalDeviceAsyncSupplier(@Nullable Project project,
                               @NotNull DeviceManagerAndroidDebugBridge bridge,
-                              @NotNull Supplier<@NotNull BuilderService> builderServiceGetInstance) {
+                              @NotNull Supplier<BuilderService> builderServiceGetInstance) {
     myProject = project;
     myBridge = bridge;
     myBuilderServiceGetInstance = builderServiceGetInstance;
   }
 
   @UiThread
-  @NotNull ListenableFuture<@NotNull List<@NotNull PhysicalDevice>> get() {
+  @NotNull ListenableFuture<List<PhysicalDevice>> get() {
     // noinspection UnstableApiUsage
     return Futures.transformAsync(myBridge.getDevices(myProject), this::collectToPhysicalDevices, EdtExecutorService.getInstance());
   }
 
   @UiThread
-  private @NotNull ListenableFuture<@NotNull List<@NotNull PhysicalDevice>> collectToPhysicalDevices(@NotNull Collection<@NotNull IDevice> devices) {
+  private @NotNull ListenableFuture<List<PhysicalDevice>> collectToPhysicalDevices(@NotNull Collection<IDevice> devices) {
     BuilderService service = myBuilderServiceGetInstance.get();
 
     Iterable<ListenableFuture<PhysicalDevice>> futures = devices.stream()

@@ -32,7 +32,7 @@ import org.mockito.Mockito;
 @RunWith(JUnit4.class)
 public final class VirtualDeviceTableCellRendererTest {
   private final @NotNull AvdInfo myAvd = Mockito.mock(AvdInfo.class);
-  private final @NotNull DeviceTableCellRenderer<@NotNull VirtualDevice> myRenderer = new VirtualDeviceTableCellRenderer();
+  private final @NotNull DeviceTableCellRenderer<VirtualDevice> myRenderer = new VirtualDeviceTableCellRenderer();
   private final @NotNull JTable myTable = new JBTable();
   private final @NotNull Object myDevice = TestVirtualDevices.onlinePixel5Api31(myAvd);
 

@@ -214,7 +214,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
                           @NotNull Path backingFile,
                           @Nullable ScreenshotSupplier screenshotSupplier,
                           @Nullable ScreenshotPostprocessor screenshotPostprocessor,
-                          @NotNull List<? extends @NotNull FramingOption> framingOptions,
+                          @NotNull List<? extends FramingOption> framingOptions,
                           int defaultFramingOption,
                           @NotNull Set<Option> screenshotViewerOptions) {
     super(project, true);
@@ -584,7 +584,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     }
   }
 
-  private static byte @NotNull [] deflate(byte @NotNull [] data) {
+  private static byte[] deflate(byte[] data) {
     ByteArrayOutputStream out = new ByteArrayOutputStream(data.length);
 
     Deflater deflater = new Deflater();
@@ -636,7 +636,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     }
 
     @Override
-    public @NotNull DataFlavor @NotNull [] getTransferDataFlavors() {
+    public @NotNull DataFlavor[] getTransferDataFlavors() {
       return new DataFlavor[]{DataFlavor.imageFlavor};
     }
 

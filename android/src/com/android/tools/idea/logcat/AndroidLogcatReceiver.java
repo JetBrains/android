@@ -84,7 +84,7 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
 
   // Save the last header and lines of the batch in case a log entry was split into 2 batches.
   @Nullable private LogCatHeader myPreviousHeader;
-  @NotNull private List<@NotNull String> myPreviousLines = new ArrayList<>();
+  @NotNull private List<String> myPreviousLines = new ArrayList<>();
 
   // Hold on to the last message in a batch to send if no new batch arrives in a reasonable time.
   @Nullable private LogCatMessage myPendingMessage;
@@ -125,7 +125,7 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
    * which runs on a sequentialized thread pool using {@code AppExecutorUtil.createBoundedScheduledExecutorService("...", 1)}
    */
   @Override
-  protected void processNewLines(@NotNull List<@NotNull String> newLines) {
+  protected void processNewLines(@NotNull List<String> newLines) {
     // Since we are eventually bound by the UI thread, we need to block in order to throttle the caller.
     executeAndWait(mySequentialExecutor, () -> {
       // New batch arrived so effectively cancel the pending request by resetting myPendingMessage
@@ -220,7 +220,7 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
   }
 
   @NotNull
-  private static String joinLines(@NotNull List<@NotNull String> activeLines) {
+  private static String joinLines(@NotNull List<String> activeLines) {
     return StringUtil.trim(String.join("\n", activeLines), ch -> ch != '\n');
   }
 

@@ -172,10 +172,10 @@ public class AvdManagerConnection {
   };
 
   private static final Map<Path, AvdManagerConnection> ourAvdCache = new WeakHashMap<>();
-  private static final @NotNull Map<@NotNull Path, @NotNull AvdManagerConnection> ourGradleAvdCache = new WeakHashMap<>();
+  private static final @NotNull Map<Path, AvdManagerConnection> ourGradleAvdCache = new WeakHashMap<>();
   private static long ourMemorySize = -1;
 
-  private static @NotNull BiFunction<@Nullable AndroidSdkHandler, @Nullable Path, @NotNull AvdManagerConnection> ourConnectionFactory =
+  private static @NotNull BiFunction<AndroidSdkHandler, Path, AvdManagerConnection> ourConnectionFactory =
     AvdManagerConnection::new;
 
   // A map from hardware config name to its belonging hardware property.
@@ -257,7 +257,7 @@ public class AvdManagerConnection {
    */
   @VisibleForTesting
   protected synchronized static void setConnectionFactory(
-    @NotNull BiFunction<@Nullable AndroidSdkHandler, @Nullable Path, @NotNull AvdManagerConnection> factory) {
+    @NotNull BiFunction<AndroidSdkHandler, Path, AvdManagerConnection> factory) {
     ourAvdCache.clear();
     ourGradleAvdCache.clear();
     ourConnectionFactory = factory;
@@ -486,13 +486,13 @@ public class AvdManagerConnection {
     });
   }
 
-  public @NotNull ListenableFuture<@NotNull Boolean> isAvdRunningAsync(@NotNull AvdInfo info) {
+  public @NotNull ListenableFuture<Boolean> isAvdRunningAsync(@NotNull AvdInfo info) {
     ListeningExecutorService service = MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService());
 
     return service.submit(() -> isAvdRunning(info));
   }
 
-  public final @NotNull ListenableFuture<@Nullable Void> stopAvdAsync(@NotNull AvdInfo avd) {
+  public final @NotNull ListenableFuture<Void> stopAvdAsync(@NotNull AvdInfo avd) {
     // noinspection UnstableApiUsage
     return Futures.submit(() -> stopAvd(avd), AppExecutorUtil.getAppExecutorService());
   }
@@ -503,29 +503,29 @@ public class AvdManagerConnection {
     myAvdManager.stopAvd(info);
   }
 
-  public @NotNull ListenableFuture<@NotNull IDevice> coldBoot(@NotNull Project project, @NotNull AvdInfo avd) {
+  public @NotNull ListenableFuture<IDevice> coldBoot(@NotNull Project project, @NotNull AvdInfo avd) {
     return startAvd(project, avd, ColdBootEmulatorCommandBuilder::new);
   }
 
-  public @NotNull ListenableFuture<@NotNull IDevice> quickBoot(@NotNull Project project, @NotNull AvdInfo avd) {
+  public @NotNull ListenableFuture<IDevice> quickBoot(@NotNull Project project, @NotNull AvdInfo avd) {
     return startAvd(project, avd, EmulatorCommandBuilder::new);
   }
 
-  public @NotNull ListenableFuture<@NotNull IDevice> bootWithSnapshot(@NotNull Project project,
+  public @NotNull ListenableFuture<IDevice> bootWithSnapshot(@NotNull Project project,
                                                                       @NotNull AvdInfo avd,
                                                                       @NotNull String snapshot) {
     return startAvd(project, avd, (emulator, a) -> new BootWithSnapshotEmulatorCommandBuilder(emulator, a, snapshot));
   }
 
-  public @NotNull ListenableFuture<@NotNull IDevice> startAvd(@Nullable Project project, @NotNull AvdInfo info) {
+  public @NotNull ListenableFuture<IDevice> startAvd(@Nullable Project project, @NotNull AvdInfo info) {
     return startAvd(project, info, new DefaultEmulatorCommandBuilderFactory());
   }
 
-  public @NotNull ListenableFuture<@NotNull IDevice> startAvdWithColdBoot(@Nullable Project project, @NotNull AvdInfo info) {
+  public @NotNull ListenableFuture<IDevice> startAvdWithColdBoot(@Nullable Project project, @NotNull AvdInfo info) {
     return startAvd(project, info, ColdBootNowEmulatorCommandBuilder::new);
   }
 
-  public @NotNull ListenableFuture<@NotNull IDevice> startAvd(@Nullable Project project,
+  public @NotNull ListenableFuture<IDevice> startAvd(@Nullable Project project,
                                                               @NotNull AvdInfo info,
                                                               @NotNull EmulatorCommandBuilderFactory factory) {
     if (!initIfNecessary()) {
@@ -696,7 +696,7 @@ public class AvdManagerConnection {
   /**
    * Write HTTP Proxy information to a temporary file.
    */
-  private @NotNull Optional<@NotNull Path> writeParameterFile() {
+  private @NotNull Optional<Path> writeParameterFile() {
     if (!emulatorVersionIsAtLeast(EMULATOR_REVISION_SUPPORTS_STUDIO_PARAMS)) {
       // Older versions of the emulator don't accept this information.
       return Optional.empty();
@@ -1126,7 +1126,7 @@ public class AvdManagerConnection {
     }
   }
 
-  public final @NotNull ListenableFuture<@NotNull Boolean> wipeUserDataAsync(@NotNull AvdInfo avd) {
+  public final @NotNull ListenableFuture<Boolean> wipeUserDataAsync(@NotNull AvdInfo avd) {
     return Futures.submit(() -> wipeUserData(avd), AppExecutorUtil.getAppExecutorService());
   }
 

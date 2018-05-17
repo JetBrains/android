@@ -102,7 +102,7 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
   }
 
   @Override
-  public String @NotNull [] getToolWindowIds() {
+  public String[] getToolWindowIds() {
     return ArrayUtilRt.EMPTY_STRING_ARRAY;
   }
 
@@ -413,7 +413,7 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
     }
 
     @Override
-    public void setTabActions(@NotNull AnAction @NotNull... actions) {
+    public void setTabActions(@NotNull AnAction... actions) {
     }
 
     @Override
@@ -538,7 +538,7 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
     }
 
     @Override
-    public Content @NotNull [] getContents() {
+    public Content[] getContents() {
       return myContents.toArray(new Content[0]);
     }
 
@@ -553,7 +553,7 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
     }
 
     @Override
-    public Content @NotNull [] getSelectedContents() {
+    public Content[] getSelectedContents() {
       return mySelected != null ? new Content[]{mySelected} : new Content[0];
     }
 

@@ -31,7 +31,7 @@ public interface Deployable {
   @NotNull
   Future<AndroidVersion> getVersion();
 
-  @NotNull ListenableFuture<@NotNull List<@NotNull Client>> searchClientsForPackageAsync();
+  @NotNull ListenableFuture<List<Client>> searchClientsForPackageAsync();
 
   /**
    * @deprecated This is called by the EDT and must execute quickly. The current implementation calls {@link Future#get()} which can block
@@ -41,7 +41,7 @@ public interface Deployable {
   @NotNull
   List<Client> searchClientsForPackage();
 
-  @NotNull ListenableFuture<@NotNull Boolean> isOnlineAsync();
+  @NotNull ListenableFuture<Boolean> isOnlineAsync();
 
   /**
    * @deprecated This is called by the EDT and must execute quickly. The current implementation calls {@link Future#get()} which can block
@@ -50,7 +50,7 @@ public interface Deployable {
   @Deprecated
   boolean isOnline();
 
-  @NotNull ListenableFuture<@NotNull Boolean> isUnauthorizedAsync();
+  @NotNull ListenableFuture<Boolean> isUnauthorizedAsync();
 
   /**
    * @deprecated This is called by the EDT and must execute quickly. The current implementation calls {@link Future#get()} which can block

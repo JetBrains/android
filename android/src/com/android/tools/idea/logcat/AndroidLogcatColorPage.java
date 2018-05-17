@@ -72,12 +72,12 @@ public final class AndroidLogcatColorPage implements ColorSettingsPage {
   }
 
   @Override
-  @NotNull public AttributesDescriptor @NotNull [] getAttributeDescriptors() {
+  @NotNull public AttributesDescriptor[] getAttributeDescriptors() {
     return ATTRIBUTES_DESCRIPTORS;
   }
 
   @Override
-  @NotNull public ColorDescriptor @NotNull [] getColorDescriptors() {
+  @NotNull public ColorDescriptor[] getColorDescriptors() {
     return ColorDescriptor.EMPTY_ARRAY;
   }
 

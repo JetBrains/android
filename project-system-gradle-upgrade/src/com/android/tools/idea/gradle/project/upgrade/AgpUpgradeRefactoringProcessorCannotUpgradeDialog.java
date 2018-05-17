@@ -82,7 +82,7 @@ public class AgpUpgradeRefactoringProcessorCannotUpgradeDialog extends DialogWra
   }
 
   @Override
-  protected Action @NotNull [] createActions() {
+  protected Action[] createActions() {
     return new Action[] { getOKAction() };
   }
 }

@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 final class VirtualDeviceAsyncSupplier {
-  private final @NotNull Supplier<@NotNull List<@NotNull AvdInfo>> myGetAvds;
+  private final @NotNull Supplier<List<AvdInfo>> myGetAvds;
 
   @UiThread
   VirtualDeviceAsyncSupplier() {
@@ -39,12 +39,12 @@ final class VirtualDeviceAsyncSupplier {
   }
 
   @VisibleForTesting
-  VirtualDeviceAsyncSupplier(@NotNull Supplier<@NotNull List<@NotNull AvdInfo>> getAvds) {
+  VirtualDeviceAsyncSupplier(@NotNull Supplier<List<AvdInfo>> getAvds) {
     myGetAvds = getAvds;
   }
 
   @UiThread
-  @NotNull ListenableFuture<@NotNull List<@NotNull VirtualDevice>> getAll() {
+  @NotNull ListenableFuture<List<VirtualDevice>> getAll() {
     return DeviceManagerFutures.appExecutorServiceSubmit(this::buildAll);
   }
 
@@ -52,7 +52,7 @@ final class VirtualDeviceAsyncSupplier {
    * Called by an application pool thread
    */
   @WorkerThread
-  private @NotNull List<@NotNull VirtualDevice> buildAll() {
+  private @NotNull List<VirtualDevice> buildAll() {
     return myGetAvds.get().stream()
       .map(VirtualDeviceBuilder::new)
       .map(VirtualDeviceBuilder::build)
@@ -60,7 +60,7 @@ final class VirtualDeviceAsyncSupplier {
   }
 
   @UiThread
-  @NotNull ListenableFuture<@NotNull VirtualDevice> get(@NotNull Key key) {
+  @NotNull ListenableFuture<VirtualDevice> get(@NotNull Key key) {
     return DeviceManagerFutures.appExecutorServiceSubmit(() -> build(key));
   }
 

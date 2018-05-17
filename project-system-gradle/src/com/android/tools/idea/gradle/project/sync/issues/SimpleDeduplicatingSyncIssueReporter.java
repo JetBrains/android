@@ -65,7 +65,7 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
    * A convenience method to report a single sync issue in tests.
    */
   @TestOnly
-  final @NotNull List<@NotNull SyncMessage> report(@NotNull IdeSyncIssue syncIssue,
+  final @NotNull List<SyncMessage> report(@NotNull IdeSyncIssue syncIssue,
                                                    @NotNull Module module,
                                                    @Nullable VirtualFile buildFile) {
     return reportAll(ImmutableList.of(syncIssue), ImmutableMap.of(syncIssue, module),
@@ -73,10 +73,10 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
   }
 
   @Override
-  final @NotNull List<@NotNull SyncMessage> reportAll(@NotNull List<IdeSyncIssue> syncIssues,
+  final @NotNull List<SyncMessage> reportAll(@NotNull List<IdeSyncIssue> syncIssues,
                                                       @NotNull Map<IdeSyncIssue, Module> moduleMap,
                                                       @NotNull Map<Module, VirtualFile> buildFileMap) {
-    final var result = new ArrayList<@NotNull SyncMessage>();
+    final var result = new ArrayList<SyncMessage>();
     // Group by the deduplication key.
     Map<Object, List<IdeSyncIssue>> groupedIssues = new LinkedHashMap<>();
     for (IdeSyncIssue issue : syncIssues) {
@@ -144,7 +144,7 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
           }
 
           @Override
-          public @NotNull Collection<@NotNull String> getUrls() {
+          public @NotNull Collection<String> getUrls() {
             return ContainerUtil.flatMap(links, it -> new ArrayList<>(it.getUrls()));
           }
 

@@ -42,8 +42,8 @@ import org.jetbrains.annotations.Nullable;
 
 final class VirtualDeviceDetailsPanel extends DetailsPanel {
   private final @NotNull VirtualDevice myDevice;
-  private final @NotNull ListenableFuture<@NotNull Device> myFuture;
-  private final @NotNull Function<@NotNull SummarySection, @NotNull FutureCallback<@NotNull Device>> myNewSummarySectionCallback;
+  private final @NotNull ListenableFuture<Device> myFuture;
+  private final @NotNull Function<SummarySection, FutureCallback<Device>> myNewSummarySectionCallback;
 
   private @Nullable InfoSection myPropertiesSection;
 
@@ -75,7 +75,7 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
   @VisibleForTesting
   VirtualDeviceDetailsPanel(@NotNull VirtualDevice device,
                             @NotNull AsyncVirtualDeviceDetailsBuilder builder,
-                            @NotNull Function<@NotNull SummarySection, @NotNull FutureCallback<@NotNull Device>> newSummarySectionCallback) {
+                            @NotNull Function<SummarySection, FutureCallback<Device>> newSummarySectionCallback) {
     super(device.getName());
 
     myDevice = device;
@@ -99,7 +99,7 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
   }
 
   @VisibleForTesting
-  static @NotNull FutureCallback<@NotNull Device> newSummarySectionCallback(@NotNull SummarySection section) {
+  static @NotNull FutureCallback<Device> newSummarySectionCallback(@NotNull SummarySection section) {
     return new DeviceManagerFutureCallback<>(VirtualDeviceDetailsPanel.class, device -> {
       InfoSection.setText(section.myResolutionLabel, device.getResolution());
       InfoSection.setText(section.myDpLabel, device.getDp());

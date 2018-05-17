@@ -28,7 +28,7 @@ import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
 public final class AdbShellCommandExecutor {
-  public @NotNull Optional<@NotNull List<@NotNull String>> execute(@NotNull IDevice device, @NotNull String command) {
+  public @NotNull Optional<List<String>> execute(@NotNull IDevice device, @NotNull String command) {
     try {
       return getOutput(AdbShellCommandsUtil.create(device).executeCommandBlocking(command));
     }
@@ -38,7 +38,7 @@ public final class AdbShellCommandExecutor {
     }
   }
 
-  private static @NotNull Optional<@NotNull List<@NotNull String>> getOutput(@NotNull AdbShellCommandResult result) {
+  private static @NotNull Optional<List<String>> getOutput(@NotNull AdbShellCommandResult result) {
     List<String> output = result.getOutput();
 
     if (result.isError()) {

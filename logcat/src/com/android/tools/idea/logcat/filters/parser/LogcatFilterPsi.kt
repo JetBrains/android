@@ -29,7 +29,6 @@ import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.IFileElementType
 import com.intellij.psi.tree.TokenSet
 import icons.StudioIcons
-import org.jetbrains.annotations.NonNls
 import javax.swing.Icon
 
 /**
@@ -52,11 +51,11 @@ internal object LogcatFilterFileType : LanguageFileType(LogcatFilterLanguage) {
   override fun getIcon(): Icon = StudioIcons.Shell.ToolWindows.LOGCAT
 }
 
-internal class LogcatFilterTokenType(debugName: @NonNls String) : IElementType(debugName, LogcatFilterLanguage) {
+internal class LogcatFilterTokenType(debugName: String) : IElementType(debugName, LogcatFilterLanguage) {
   override fun toString(): String = "LogcatFilterTokenType." + super.toString()
 }
 
-internal class LogcatFilterElementType(debugName: @NonNls String) : IElementType(debugName, LogcatFilterLanguage)
+internal class LogcatFilterElementType(debugName: String) : IElementType(debugName, LogcatFilterLanguage)
 
 internal class LogcatFilterLexerAdapter : FlexAdapter(LogcatFilterLexerWrapper())
 

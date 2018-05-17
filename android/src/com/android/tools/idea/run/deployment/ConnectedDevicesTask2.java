@@ -36,14 +36,14 @@ final class ConnectedDevicesTask2 implements AsyncSupplier<Collection<ConnectedD
   }
 
   @Override
-  public @NotNull ListenableFuture<@NotNull Collection<@NotNull ConnectedDevice>> get() {
+  public @NotNull ListenableFuture<Collection<ConnectedDevice>> get() {
     var future = myAndroidDebugBridge.getConnectedDevices();
 
     // noinspection UnstableApiUsage
     return Futures.transformAsync(future, ConnectedDevicesTask2::toList, EdtExecutorService.getInstance());
   }
 
-  private static @NotNull ListenableFuture<@NotNull Collection<@NotNull ConnectedDevice>> toList(@NotNull Collection<@NotNull IDevice> devices) {
+  private static @NotNull ListenableFuture<Collection<ConnectedDevice>> toList(@NotNull Collection<IDevice> devices) {
     var futures = devices.stream()
       .filter(IDevice::isOnline)
       .map(ConnectedDevicesTask2::buildAsync)
@@ -53,7 +53,7 @@ final class ConnectedDevicesTask2 implements AsyncSupplier<Collection<ConnectedD
     return Futures.transform(Futures.successfulAsList(futures), ConnectedDevicesTask2::filterNonNull, EdtExecutorService.getInstance());
   }
 
-  private static @NotNull ListenableFuture<@NotNull ConnectedDevice> buildAsync(@NotNull IDevice device) {
+  private static @NotNull ListenableFuture<ConnectedDevice> buildAsync(@NotNull IDevice device) {
     var nameFuture = getNameAsync(device);
     var keyFuture = getKeyAsync(device);
 
@@ -62,7 +62,7 @@ final class ConnectedDevicesTask2 implements AsyncSupplier<Collection<ConnectedD
       .call(() -> build(Futures.getDone(nameFuture), Futures.getDone(keyFuture), device), EdtExecutorService.getInstance());
   }
 
-  private static @NotNull ListenableFuture<@NotNull String> getNameAsync(@NotNull IDevice device) {
+  private static @NotNull ListenableFuture<String> getNameAsync(@NotNull IDevice device) {
     var executor = EdtExecutorService.getInstance();
 
     if (device.isEmulator()) {
@@ -90,7 +90,7 @@ final class ConnectedDevicesTask2 implements AsyncSupplier<Collection<ConnectedD
     return name;
   }
 
-  private static @NotNull ListenableFuture<@NotNull Key> getKeyAsync(@NotNull IDevice device) {
+  private static @NotNull ListenableFuture<Key> getKeyAsync(@NotNull IDevice device) {
     var serialNumber = device.getSerialNumber();
 
     if (!device.isEmulator()) {
@@ -130,7 +130,7 @@ final class ConnectedDevicesTask2 implements AsyncSupplier<Collection<ConnectedD
       .build();
   }
 
-  private static @NotNull Collection<@NotNull ConnectedDevice> filterNonNull(@NotNull Collection<@Nullable ConnectedDevice> devices) {
+  private static @NotNull Collection<ConnectedDevice> filterNonNull(@NotNull Collection<ConnectedDevice> devices) {
     // noinspection NullableProblems
     return devices.stream()
       .filter(Objects::nonNull)

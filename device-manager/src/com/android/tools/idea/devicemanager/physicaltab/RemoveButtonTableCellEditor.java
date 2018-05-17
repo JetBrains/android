@@ -37,7 +37,7 @@ final class RemoveButtonTableCellEditor extends IconButtonTableCellEditor {
   }
 
   @VisibleForTesting
-  RemoveButtonTableCellEditor(@NotNull PhysicalDevicePanel panel, @NotNull BiPredicate<@NotNull Object, @NotNull Project> askToRemove) {
+  RemoveButtonTableCellEditor(@NotNull PhysicalDevicePanel panel, @NotNull BiPredicate<Object, Project> askToRemove) {
     super(RemoveValue.INSTANCE, AllIcons.Actions.GC, "Remove this offline device from the list.");
 
     myButton.addActionListener(actionEvent -> {

@@ -64,7 +64,7 @@ public abstract class PopUpMenuButtonTableCellEditor extends IconButtonTableCell
   }
 
   @VisibleForTesting
-  public abstract @NotNull List<@NotNull JComponent> newItems();
+  public abstract @NotNull List<JComponent> newItems();
 
   protected final @NotNull JComponent newPairWearableItem(@NotNull EventKind kind) {
     AbstractButton item = new JBMenuItem("Pair Wearable");
@@ -81,7 +81,7 @@ public abstract class PopUpMenuButtonTableCellEditor extends IconButtonTableCell
     return item;
   }
 
-  protected final @NotNull Optional<@NotNull JComponent> newViewPairedDevicesItem(@NotNull EventKind kind) {
+  protected final @NotNull Optional<JComponent> newViewPairedDevicesItem(@NotNull EventKind kind) {
     String key = myDevice.getKey().toString();
     List<PhoneWearPair> pairs = myManager.getPairsForDevice(key);
 

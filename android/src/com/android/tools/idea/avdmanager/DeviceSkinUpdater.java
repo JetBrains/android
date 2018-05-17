@@ -119,7 +119,7 @@ final class DeviceSkinUpdater {
 
   @VisibleForTesting
   static @NotNull Path updateSkins(@NotNull Path device,
-                                   @NotNull Collection<@NotNull Path> imageSkins,
+                                   @NotNull Collection<Path> imageSkins,
                                    @Nullable Path studioSkins,
                                    @Nullable Path sdkSkins,
                                    boolean emulatorSupportsWebP) {
@@ -270,8 +270,8 @@ final class DeviceSkinUpdater {
   }
 
   private static void replaceAll(@NotNull Path source,
-                                 @NotNull List<@NotNull String> stringsToReplace,
-                                 @NotNull List<@NotNull String> stringsToReplaceThemWith,
+                                 @NotNull List<String> stringsToReplace,
+                                 @NotNull List<String> stringsToReplaceThemWith,
                                  @NotNull Path target) throws IOException {
     String sourceString = new String(Files.readAllBytes(source), StandardCharsets.UTF_8);
     String targetString = StringUtil.replace(sourceString, stringsToReplace, stringsToReplaceThemWith);
@@ -280,7 +280,7 @@ final class DeviceSkinUpdater {
   }
 
   @VisibleForTesting
-  static @NotNull Collection<@NotNull Path> list(@NotNull Path directory) throws IOException {
+  static @NotNull Collection<Path> list(@NotNull Path directory) throws IOException {
     try (Stream<Path> stream = Files.list(directory)) {
       return stream
         .sorted()

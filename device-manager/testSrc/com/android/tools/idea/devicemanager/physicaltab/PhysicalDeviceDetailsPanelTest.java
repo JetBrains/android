@@ -74,7 +74,7 @@ public final class PhysicalDeviceDetailsPanelTest {
     assertEquals("arm64-v8a, armeabi-v7a, armeabi", section.myAbiListLabel.getText());
   }
 
-  private static @NotNull FutureCallback<@NotNull PhysicalDevice> newSummarySectionCallback(@NotNull SummarySection section,
+  private static @NotNull FutureCallback<PhysicalDevice> newSummarySectionCallback(@NotNull SummarySection section,
                                                                                             @NotNull CountDownLatch latch) {
     return new CountDownLatchFutureCallback<>(PhysicalDeviceDetailsPanel.newSummarySectionCallback(section), latch);
   }

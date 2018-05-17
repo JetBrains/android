@@ -42,7 +42,7 @@ public final class StorageDevice {
     myAvailableSpace = availableSpace;
   }
 
-  public static @NotNull Optional<@NotNull StorageDevice> newStorageDevice(@NotNull List<@NotNull String> output) {
+  public static @NotNull Optional<StorageDevice> newStorageDevice(@NotNull List<String> output) {
     // In 1,024 byte blocks
     return Patterns.parseInt(PATTERN, output.get(1)).stream()
       .map(availableSpace -> availableSpace / 1_024)

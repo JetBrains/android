@@ -103,7 +103,7 @@ final class DevicesSelectedService {
     return project.getService(DevicesSelectedService.class);
   }
 
-  @NotNull Optional<@NotNull Target> getTargetSelectedWithComboBox(@NotNull List<@NotNull Device> devices) {
+  @NotNull Optional<Target> getTargetSelectedWithComboBox(@NotNull List<Device> devices) {
     if (devices.isEmpty()) {
       return Optional.empty();
     }
@@ -186,7 +186,7 @@ final class DevicesSelectedService {
     myPersistentStateComponent.getState().multipleDevicesSelectedInDropDown = multipleDevicesSelectedInComboBox;
   }
 
-  @NotNull Set<@NotNull Target> getTargetsSelectedWithDialog(@NotNull List<@NotNull Device> devices) {
+  @NotNull Set<Target> getTargetsSelectedWithDialog(@NotNull List<Device> devices) {
     State state = myPersistentStateComponent.getState();
 
     Collection<RunningDeviceTarget> runningDeviceTargets = state.getRunningDeviceTargetsSelectedWithDialog();
@@ -198,7 +198,7 @@ final class DevicesSelectedService {
     return supplier.getDialogTargets();
   }
 
-  void setTargetsSelectedWithDialog(@NotNull Set<@NotNull Target> targetsSelectedWithDialog) {
+  void setTargetsSelectedWithDialog(@NotNull Set<Target> targetsSelectedWithDialog) {
     State state = myPersistentStateComponent.getState();
     TargetsForWritingSupplier supplier = new TargetsForWritingSupplier(state.getTargetsSelectedWithDialog(), targetsSelectedWithDialog);
 
@@ -237,10 +237,10 @@ final class DevicesSelectedService {
     public boolean multipleDevicesSelectedInDropDown;
 
     @XCollection(style = Style.v2)
-    public @NotNull Collection<@NotNull TargetState> runningDeviceTargetsSelectedWithDialog = Collections.emptyList();
+    public @NotNull Collection<TargetState> runningDeviceTargetsSelectedWithDialog = Collections.emptyList();
 
     @XCollection(style = Style.v2)
-    public @NotNull Collection<@NotNull TargetState> targetsSelectedWithDialog = Collections.emptyList();
+    public @NotNull Collection<TargetState> targetsSelectedWithDialog = Collections.emptyList();
 
     private @Nullable RunningDeviceTarget getRunningDeviceTargetSelectedWithDropDown() {
       return (RunningDeviceTarget)getTargetSelectedWithDropDown(runningDeviceTargetSelectedWithDropDown);
@@ -282,24 +282,24 @@ final class DevicesSelectedService {
       }
     }
 
-    private @NotNull Collection<@NotNull RunningDeviceTarget> getRunningDeviceTargetsSelectedWithDialog() {
+    private @NotNull Collection<RunningDeviceTarget> getRunningDeviceTargetsSelectedWithDialog() {
       return getTargetsSelectedWithDialog(runningDeviceTargetsSelectedWithDialog, RunningDeviceTarget.class);
     }
 
-    private void setRunningDeviceTargetsSelectedWithDialog(@NotNull Collection<@NotNull RunningDeviceTarget> runningDeviceTargetsSelectedWithDialog) {
+    private void setRunningDeviceTargetsSelectedWithDialog(@NotNull Collection<RunningDeviceTarget> runningDeviceTargetsSelectedWithDialog) {
       this.runningDeviceTargetsSelectedWithDialog = asTargetStates(runningDeviceTargetsSelectedWithDialog);
     }
 
-    private @NotNull Collection<@NotNull Target> getTargetsSelectedWithDialog() {
+    private @NotNull Collection<Target> getTargetsSelectedWithDialog() {
       return getTargetsSelectedWithDialog(targetsSelectedWithDialog, Target.class);
     }
 
-    private void setTargetsSelectedWithDialog(@NotNull Collection<@NotNull Target> targetsSelectedWithDialog) {
+    private void setTargetsSelectedWithDialog(@NotNull Collection<Target> targetsSelectedWithDialog) {
       this.targetsSelectedWithDialog = asTargetStates(targetsSelectedWithDialog);
     }
 
-    private static <T> @NotNull Collection<@NotNull T> getTargetsSelectedWithDialog(@NotNull Collection<@NotNull TargetState> targetStates,
-                                                                                    @NotNull Class<@NotNull T> c) {
+    private static <T> @NotNull Collection<T> getTargetsSelectedWithDialog(@NotNull Collection<TargetState> targetStates,
+                                                                                    @NotNull Class<T> c) {
       try {
         Collection<T> targets = new ArrayList<>(targetStates.size());
 
@@ -315,7 +315,7 @@ final class DevicesSelectedService {
       }
     }
 
-    private static <T extends Target> @NotNull Collection<@NotNull TargetState> asTargetStates(@NotNull Collection<@NotNull T> targets) {
+    private static <T extends Target> @NotNull Collection<TargetState> asTargetStates(@NotNull Collection<T> targets) {
       return targets.stream()
         .map(TargetState::new)
         .collect(Collectors.toList());

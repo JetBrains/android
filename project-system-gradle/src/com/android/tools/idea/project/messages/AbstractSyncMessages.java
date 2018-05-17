@@ -192,7 +192,7 @@ public abstract class AbstractSyncMessages implements Disposable {
   }
 
   @TestOnly
-  public @NotNull List<@NotNull SyncMessage> getReportedMessages() {
+  public @NotNull List<SyncMessage> getReportedMessages() {
     synchronized (myLock) {
       return new ArrayList<>(myCurrentMessages);
     }

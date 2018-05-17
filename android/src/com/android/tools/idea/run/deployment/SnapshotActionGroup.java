@@ -38,7 +38,7 @@ final class SnapshotActionGroup extends ActionGroup {
   }
 
   @Override
-  public @NotNull AnAction @NotNull [] getChildren(@Nullable AnActionEvent event) {
+  public @NotNull AnAction[] getChildren(@Nullable AnActionEvent event) {
     return myDevice.getTargets().stream()
       .map(target -> new SelectTargetAction(target, myDevice, myComboBoxAction))
       .toArray(AnAction[]::new);

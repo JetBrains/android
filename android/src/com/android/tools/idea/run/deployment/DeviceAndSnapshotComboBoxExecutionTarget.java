@@ -32,17 +32,16 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * The combo box generates these {@link ExecutionTarget ExecutionTargets.} ExecutionTargets determine the state of the run, debug, and stop
  * (but <em>not</em> the apply changes) toolbar buttons.
  */
 final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTarget {
-  private final @NotNull Collection<@NotNull Key> myKeys;
+  private final @NotNull Collection<Key> myKeys;
   private final @NotNull AsyncDevicesGetter myDevicesGetter;
 
-  DeviceAndSnapshotComboBoxExecutionTarget(@NotNull Collection<@NotNull Target> targets, @NotNull AsyncDevicesGetter devicesGetter) {
+  DeviceAndSnapshotComboBoxExecutionTarget(@NotNull Collection<Target> targets, @NotNull AsyncDevicesGetter devicesGetter) {
     myKeys = targets.stream()
       .map(Target::getDeviceKey)
       .collect(Collectors.toSet());
@@ -51,7 +50,7 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
   }
 
   @Override
-  public @NotNull ListenableFuture<@NotNull Boolean> isApplicationRunningAsync(@NotNull String appPackage) {
+  public @NotNull ListenableFuture<Boolean> isApplicationRunningAsync(@NotNull String appPackage) {
     var futures = deviceStream()
       .map(device -> device.isRunningAsync(appPackage))
       .collect(Collectors.toList());
@@ -79,7 +78,7 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
   }
 
   @Override
-  public @NotNull ListenableFuture<@NotNull Collection<@NotNull IDevice>> getRunningDevicesAsync() {
+  public @NotNull ListenableFuture<Collection<IDevice>> getRunningDevicesAsync() {
     var futures = deviceStream()
       .filter(Device::isConnected)
       .map(Device::getDdmlibDeviceAsync)
@@ -95,7 +94,7 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
     return Futures.transform(future, DeviceAndSnapshotComboBoxExecutionTarget::filterNonNull, MoreExecutors.directExecutor());
   }
 
-  private static @NotNull Collection<@NotNull IDevice> filterNonNull(@NotNull Collection<@Nullable IDevice> devices) {
+  private static @NotNull Collection<IDevice> filterNonNull(@NotNull Collection<IDevice> devices) {
     return devices.stream()
       .filter(Objects::nonNull)
       .collect(Collectors.toList());
@@ -117,11 +116,11 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
       .collect(Collectors.toList());
   }
 
-  private @NotNull Stream<@NotNull Device> deviceStream() {
+  private @NotNull Stream<Device> deviceStream() {
     return myDevicesGetter.get().map(this::filteredStream).orElseGet(Stream::empty);
   }
 
-  private @NotNull Stream<@NotNull Device> filteredStream(@NotNull Collection<@NotNull Device> devices) {
+  private @NotNull Stream<Device> filteredStream(@NotNull Collection<Device> devices) {
     return devices.stream().filter(device -> myKeys.contains(device.getKey()));
   }
 

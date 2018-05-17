@@ -33,12 +33,12 @@ import org.jetbrains.annotations.Nullable;
 
 public final class PhysicalDevice extends Device {
   private final @NotNull String myNameOverride;
-  private final @NotNull ImmutableCollection<@NotNull ConnectionType> myConnectionTypes;
+  private final @NotNull ImmutableCollection<ConnectionType> myConnectionTypes;
   private final @Nullable Battery myPower;
 
   public static final class Builder extends Device.Builder {
     private @NotNull String myNameOverride = "";
-    private final @NotNull Collection<@NotNull ConnectionType> myConnectionTypes = EnumSet.noneOf(ConnectionType.class);
+    private final @NotNull Collection<ConnectionType> myConnectionTypes = EnumSet.noneOf(ConnectionType.class);
     private @Nullable Battery myPower;
 
     public @NotNull Builder setKey(@NotNull Key key) {
@@ -76,7 +76,7 @@ public final class PhysicalDevice extends Device {
       return this;
     }
 
-    @NotNull Builder addAllConnectionTypes(@NotNull Collection<@NotNull ConnectionType> connectionTypes) {
+    @NotNull Builder addAllConnectionTypes(@NotNull Collection<ConnectionType> connectionTypes) {
       myConnectionTypes.addAll(connectionTypes);
       return this;
     }
@@ -96,7 +96,7 @@ public final class PhysicalDevice extends Device {
       return this;
     }
 
-    @NotNull Builder addAllAbis(@NotNull Collection<@NotNull String> abis) {
+    @NotNull Builder addAllAbis(@NotNull Collection<String> abis) {
       myAbis.addAll(abis);
       return this;
     }
@@ -134,7 +134,7 @@ public final class PhysicalDevice extends Device {
     return !myConnectionTypes.isEmpty();
   }
 
-  @NotNull Collection<@NotNull ConnectionType> getConnectionTypes() {
+  @NotNull Collection<ConnectionType> getConnectionTypes() {
     return myConnectionTypes;
   }
 

@@ -32,7 +32,7 @@ abstract class Target {
     myDeviceKey = deviceKey;
   }
 
-  static @NotNull List<@NotNull Device> filterDevices(@NotNull Set<@NotNull Target> targets, @NotNull List<@NotNull Device> devices) {
+  static @NotNull List<Device> filterDevices(@NotNull Set<Target> targets, @NotNull List<Device> devices) {
     Set<Key> keys = targets.stream()
       .map(Target::getDeviceKey)
       .collect(Collectors.toSet());

@@ -66,17 +66,17 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
   static final int POP_UP_MENU_MODEL_COLUMN_INDEX = 7;
 
   private final @Nullable Project myProject;
-  private @NotNull List<@NotNull VirtualDevice> myDevices;
+  private @NotNull List<VirtualDevice> myDevices;
   private final @NotNull NewSetOnline myNewSetOnline;
-  private final @NotNull Callable<@NotNull AvdManagerConnection> myGetDefaultAvdManagerConnection;
-  private final @NotNull Function<@NotNull VirtualDeviceTableModel, @NotNull FutureCallback<@Nullable Object>> myNewSetAllOnline;
+  private final @NotNull Callable<AvdManagerConnection> myGetDefaultAvdManagerConnection;
+  private final @NotNull Function<VirtualDeviceTableModel, FutureCallback<Object>> myNewSetAllOnline;
   private final @NotNull DeviceManagerAndroidDebugBridge myBridge;
-  private final @NotNull Function<@NotNull IDevice, @NotNull EmulatorConsole> myGetConsole;
-  private final @NotNull BiConsumer<@NotNull Throwable, @Nullable Project> myShowErrorDialog;
+  private final @NotNull Function<IDevice, EmulatorConsole> myGetConsole;
+  private final @NotNull BiConsumer<Throwable, Project> myShowErrorDialog;
 
   @VisibleForTesting
   interface NewSetOnline {
-    @NotNull FutureCallback<@NotNull Boolean> apply(@NotNull VirtualDeviceTableModel model, @NotNull Key key);
+    @NotNull FutureCallback<Boolean> apply(@NotNull VirtualDeviceTableModel model, @NotNull Key key);
   }
 
   static final class EditValue {
@@ -96,7 +96,7 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
   }
 
   @VisibleForTesting
-  VirtualDeviceTableModel(@Nullable Project project, @NotNull Collection<@NotNull VirtualDevice> devices) {
+  VirtualDeviceTableModel(@Nullable Project project, @NotNull Collection<VirtualDevice> devices) {
     this(project,
          devices,
          VirtualDeviceTableModel::newSetOnline,
@@ -109,13 +109,13 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
 
   @VisibleForTesting
   VirtualDeviceTableModel(@Nullable Project project,
-                          @NotNull Collection<@NotNull VirtualDevice> devices,
+                          @NotNull Collection<VirtualDevice> devices,
                           @NotNull NewSetOnline newSetOnline,
-                          @NotNull Callable<@NotNull AvdManagerConnection> getDefaultAvdManagerConnection,
-                          @NotNull Function<@NotNull VirtualDeviceTableModel, @NotNull FutureCallback<@Nullable Object>> newSetAllOnline,
+                          @NotNull Callable<AvdManagerConnection> getDefaultAvdManagerConnection,
+                          @NotNull Function<VirtualDeviceTableModel, FutureCallback<Object>> newSetAllOnline,
                           @NotNull DeviceManagerAndroidDebugBridge bridge,
-                          @NotNull Function<@NotNull IDevice, @NotNull EmulatorConsole> getConsole,
-                          @NotNull BiConsumer<@NotNull Throwable, @Nullable Project> showErrorDialog) {
+                          @NotNull Function<IDevice, EmulatorConsole> getConsole,
+                          @NotNull BiConsumer<Throwable, Project> showErrorDialog) {
     myProject = project;
     myDevices = new ArrayList<>(devices);
     myNewSetOnline = newSetOnline;
@@ -127,7 +127,7 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
   }
 
   @VisibleForTesting
-  static @NotNull FutureCallback<@NotNull Boolean> newSetOnline(@NotNull VirtualDeviceTableModel model, @NotNull Key key) {
+  static @NotNull FutureCallback<Boolean> newSetOnline(@NotNull VirtualDeviceTableModel model, @NotNull Key key) {
     return new DeviceManagerFutureCallback<>(VirtualDeviceTableModel.class, online -> {
       int modelRowIndex = Devices.indexOf(model.myDevices, key);
 
@@ -140,11 +140,11 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
     });
   }
 
-  @NotNull List<@NotNull VirtualDevice> getDevices() {
+  @NotNull List<VirtualDevice> getDevices() {
     return myDevices;
   }
 
-  void setDevices(@NotNull List<@NotNull VirtualDevice> devices) {
+  void setDevices(@NotNull List<VirtualDevice> devices) {
     myDevices = devices;
     fireTableDataChanged();
   }
@@ -213,7 +213,7 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
     Futures.addCallback(future, myNewSetOnline.apply(this, device.getKey()), EdtExecutorService.getInstance());
   }
 
-  private @NotNull ListenableFuture<@NotNull AvdManagerConnection> getDefaultAvdManagerConnection() {
+  private @NotNull ListenableFuture<AvdManagerConnection> getDefaultAvdManagerConnection() {
     return DeviceManagerFutures.appExecutorServiceSubmit(myGetDefaultAvdManagerConnection);
   }
 

@@ -86,7 +86,7 @@ final class AsyncDevicesGetter implements Disposable {
   @VisibleForTesting
   AsyncDevicesGetter(@NotNull Project project,
                      @NotNull KeyToConnectionTimeMap map,
-                     @NotNull Function<@NotNull ConnectedDevice, @NotNull String> getName) {
+                     @NotNull Function<ConnectedDevice, String> getName) {
     myProject = project;
     myVirtualDevicesWorker = new Worker<>();
     myConnectedDevicesWorker = new Worker<>();
@@ -166,7 +166,7 @@ final class AsyncDevicesGetter implements Disposable {
       .map(device -> VirtualDevice.newConnectedDevice(device, myMap, findFirst(virtualDevices, device.getKey()).orElse(null)));
   }
 
-  private static @NotNull Optional<@NotNull VirtualDevice> findFirst(@NotNull Collection<@NotNull VirtualDevice> devices,
+  private static @NotNull Optional<VirtualDevice> findFirst(@NotNull Collection<VirtualDevice> devices,
                                                                      @NotNull Key key) {
     return devices.stream()
       .filter(device -> device.getKey().equals(key) || device.getNameKey().orElseThrow(AssertionError::new).equals(key))
@@ -191,7 +191,7 @@ final class AsyncDevicesGetter implements Disposable {
     return virtualDevices.stream().filter(device -> !containsPathOrName(connectedVirtualDeviceKeys, device));
   }
 
-  private static boolean containsPathOrName(@NotNull Collection<@NotNull Key> keys, @NotNull VirtualDevice device) {
+  private static boolean containsPathOrName(@NotNull Collection<Key> keys, @NotNull VirtualDevice device) {
     return keys.contains(device.getKey()) || keys.contains(device.getNameKey().orElseThrow(AssertionError::new));
   }
 

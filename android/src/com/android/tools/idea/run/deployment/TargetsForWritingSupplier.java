@@ -30,8 +30,8 @@ import org.jetbrains.annotations.Nullable;
  * is stopped.
  */
 final class TargetsForWritingSupplier {
-  private final @NotNull Collection<@NotNull RunningDeviceTarget> myRunningDeviceTargets;
-  private final @NotNull Collection<@NotNull Target> myTargets;
+  private final @NotNull Collection<RunningDeviceTarget> myRunningDeviceTargets;
+  private final @NotNull Collection<Target> myTargets;
 
   TargetsForWritingSupplier(@Nullable Target oldTarget, @Nullable Target newTarget) {
     this(DeploymentCollections.toList(oldTarget), DeploymentCollections.toList(newTarget));
@@ -42,7 +42,7 @@ final class TargetsForWritingSupplier {
    *                   these will be RunningDeviceTargets.
    * @param newTargets the new selection from the drop down or dialog. May contain RunningDeviceTargets.
    */
-  TargetsForWritingSupplier(@NotNull Collection<@NotNull Target> oldTargets, @NotNull Collection<@NotNull Target> newTargets) {
+  TargetsForWritingSupplier(@NotNull Collection<Target> oldTargets, @NotNull Collection<Target> newTargets) {
     Map<Key, Target> keyToTargetMap = oldTargets.stream().collect(Collectors.toMap(Target::getDeviceKey, target -> target));
 
     int size = newTargets.size();
@@ -65,19 +65,19 @@ final class TargetsForWritingSupplier {
     });
   }
 
-  @NotNull Optional<@NotNull RunningDeviceTarget> getDropDownRunningDeviceTarget() {
+  @NotNull Optional<RunningDeviceTarget> getDropDownRunningDeviceTarget() {
     return DeploymentCollections.toOptional(myRunningDeviceTargets);
   }
 
-  @NotNull Optional<@NotNull Target> getDropDownTarget() {
+  @NotNull Optional<Target> getDropDownTarget() {
     return DeploymentCollections.toOptional(myTargets);
   }
 
-  @NotNull Collection<@NotNull RunningDeviceTarget> getDialogRunningDeviceTargets() {
+  @NotNull Collection<RunningDeviceTarget> getDialogRunningDeviceTargets() {
     return myRunningDeviceTargets;
   }
 
-  @NotNull Collection<@NotNull Target> getDialogTargets() {
+  @NotNull Collection<Target> getDialogTargets() {
     return myTargets;
   }
 }

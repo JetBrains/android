@@ -43,11 +43,11 @@ final class SelectMultipleDevicesDialogTable extends JBTable {
     setRowSelectionAllowed(false);
   }
 
-  @NotNull Set<@NotNull Target> getSelectedTargets() {
+  @NotNull Set<Target> getSelectedTargets() {
     return ((SelectMultipleDevicesDialogTableModel)dataModel).getSelectedTargets();
   }
 
-  void setSelectedTargets(@NotNull Set<@NotNull Target> selectedTargets) {
+  void setSelectedTargets(@NotNull Set<Target> selectedTargets) {
     ((SelectMultipleDevicesDialogTableModel)dataModel).setSelectedTargets(selectedTargets);
   }
 

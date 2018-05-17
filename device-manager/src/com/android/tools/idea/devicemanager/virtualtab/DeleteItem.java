@@ -38,8 +38,8 @@ final class DeleteItem extends JBMenuItem {
 
   @VisibleForTesting
   DeleteItem(@NotNull VirtualDevicePopUpMenuButtonTableCellEditor editor,
-             @NotNull Consumer<@NotNull Component> showCannotDeleteRunningAvdDialog,
-             @NotNull BiPredicate<@NotNull Object, @NotNull Component> showConfirmDeleteDialog) {
+             @NotNull Consumer<Component> showCannotDeleteRunningAvdDialog,
+             @NotNull BiPredicate<Object, Component> showConfirmDeleteDialog) {
     super("Delete");
     setToolTipText("Delete this AVD");
 

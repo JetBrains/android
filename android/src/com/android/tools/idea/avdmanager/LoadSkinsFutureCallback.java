@@ -34,7 +34,7 @@ class LoadSkinsFutureCallback implements FutureCallback<List<File>> {
   }
 
   @Override
-  public void onSuccess(@NotNull List<@NotNull File> skins) {
+  public void onSuccess(@NotNull List<File> skins) {
     JComboBox<File> comboBox = myChooser.getComboBox();
     comboBox.setModel(new CollectionComboBoxModel<>(skins));
 

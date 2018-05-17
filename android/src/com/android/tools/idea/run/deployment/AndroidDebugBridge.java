@@ -21,5 +21,5 @@ import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
 interface AndroidDebugBridge {
-  @NotNull ListenableFuture<@NotNull Collection<@NotNull IDevice>> getConnectedDevices();
+  @NotNull ListenableFuture<Collection<IDevice>> getConnectedDevices();
 }

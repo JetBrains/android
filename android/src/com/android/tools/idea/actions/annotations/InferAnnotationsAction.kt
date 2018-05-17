@@ -267,7 +267,7 @@ class InferAnnotationsAction : BaseAnalysisAction("Infer Support Annotations", I
 
     /** Number of times we pass through the project files */
     const val MAX_PASSES = 3
-    private const val INFER_SUPPORT_ANNOTATIONS: @NonNls String = "Infer Support Annotations"
+    private const val INFER_SUPPORT_ANNOTATIONS: String = "Infer Support Annotations"
     private const val MAX_ANNOTATIONS_WITHOUT_PREVIEW = 0
 
     private fun showReport(

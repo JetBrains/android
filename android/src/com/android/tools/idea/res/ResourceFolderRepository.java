@@ -2307,7 +2307,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       }
     }
 
-    protected byte @NotNull [] getCacheFileHeader(@NotNull ResourceFolderRepositoryCachingData cachingData) {
+    protected byte[] getCacheFileHeader(@NotNull ResourceFolderRepositoryCachingData cachingData) {
       return ResourceSerializationUtil.getCacheFileHeader(stream -> {
         stream.write(CACHE_FILE_HEADER);
         stream.writeString(CACHE_FILE_FORMAT_VERSION);

@@ -25,7 +25,7 @@ public final class TestDeviceManagerFutures {
   private TestDeviceManagerFutures() {
   }
 
-  public static <V> V get(@NotNull Future<@NotNull V> future) throws InterruptedException, ExecutionException, TimeoutException {
+  public static <V> V get(@NotNull Future<V> future) throws InterruptedException, ExecutionException, TimeoutException {
     return future.get(60, TimeUnit.SECONDS);
   }
 }

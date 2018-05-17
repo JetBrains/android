@@ -68,28 +68,28 @@ public final class DeviceSkinUpdaterService {
 
   @AnyThread
   @SuppressWarnings("unused")
-  @NotNull ListenableFuture<@NotNull Path> updateSkins(@NotNull Path device) {
+  @NotNull ListenableFuture<Path> updateSkins(@NotNull Path device) {
     return updateSkins(device, null);
   }
 
   @AnyThread
-  public @NotNull ListenableFuture<@NotNull Path> updateSkins(@NotNull Path device,
+  public @NotNull ListenableFuture<Path> updateSkins(@NotNull Path device,
                                                               @Nullable @SuppressWarnings("SameParameterValue") SystemImageDescription image) {
     return myExecutorService.submit(() -> DeviceSkinUpdater.updateSkins(device, image));
   }
 
   @AnyThread
-  @NotNull ListenableFuture<@NotNull Collection<@NotNull Path>> updateSkinsIncludingSdkHandlerOnes() {
+  @NotNull ListenableFuture<Collection<Path>> updateSkinsIncludingSdkHandlerOnes() {
     return myExecutorService.submit(() -> updateSkins(DeviceSkinUpdater::updateSkins));
   }
 
   @AnyThread
-  @NotNull ListenableFuture<@NotNull Collection<@NotNull Path>> updateSkinsExcludingSdkHandlerOnes() {
+  @NotNull ListenableFuture<Collection<Path>> updateSkinsExcludingSdkHandlerOnes() {
     return myExecutorService.submit(() -> updateSkins(Path::getFileName));
   }
 
   @WorkerThread
-  private static @NotNull Collection<@NotNull Path> updateSkins(@NotNull Function<@NotNull Path, @NotNull Path> updateSkins) {
+  private static @NotNull Collection<Path> updateSkins(@NotNull Function<Path, Path> updateSkins) {
     AndroidSdkHandler handler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     ProgressIndicator indicator = new StudioLoggerProgressIndicator(DeviceSkinUpdaterService.class);
 
@@ -101,7 +101,7 @@ public final class DeviceSkinUpdaterService {
   }
 
   @WorkerThread
-  private static @NotNull Stream<@NotNull Path> deviceSkinStream() {
+  private static @NotNull Stream<Path> deviceSkinStream() {
     return DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevices().stream()
       .map(Device::getDefaultHardware)
       .map(Hardware::getSkinFile)
@@ -111,9 +111,9 @@ public final class DeviceSkinUpdaterService {
   }
 
   @WorkerThread
-  private static @NotNull Stream<@NotNull Path> targetSkinStream(@NotNull AndroidSdkHandler handler,
+  private static @NotNull Stream<Path> targetSkinStream(@NotNull AndroidSdkHandler handler,
                                                                  @NotNull ProgressIndicator indicator,
-                                                                 @NotNull Function<@NotNull Path, @NotNull Path> updateSkins) {
+                                                                 @NotNull Function<Path, Path> updateSkins) {
     return handler.getAndroidTargetManager(indicator).getTargets(indicator).stream()
       .map(IAndroidTarget::getSkins)
       .flatMap(Arrays::stream)
@@ -122,9 +122,9 @@ public final class DeviceSkinUpdaterService {
   }
 
   @WorkerThread
-  private static @NotNull Stream<@NotNull Path> imageSkinStream(@NotNull AndroidSdkHandler handler,
+  private static @NotNull Stream<Path> imageSkinStream(@NotNull AndroidSdkHandler handler,
                                                                 @NotNull ProgressIndicator indicator,
-                                                                @NotNull Function<@NotNull Path, @NotNull Path> updateSkins) {
+                                                                @NotNull Function<Path, Path> updateSkins) {
     return handler.getSystemImageManager(indicator).getImages().stream()
       .map(SystemImage::getSkins)
       .flatMap(Arrays::stream)

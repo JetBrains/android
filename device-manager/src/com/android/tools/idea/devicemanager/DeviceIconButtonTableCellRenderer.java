@@ -21,13 +21,13 @@ import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
 
 public final class DeviceIconButtonTableCellRenderer<D extends Device> extends IconButtonTableCellRenderer {
-  private final @NotNull DeviceTable<@NotNull D> myTable;
+  private final @NotNull DeviceTable<D> myTable;
 
-  public DeviceIconButtonTableCellRenderer(@NotNull DeviceTable<@NotNull D> table) {
+  public DeviceIconButtonTableCellRenderer(@NotNull DeviceTable<D> table) {
     myTable = table;
   }
 
-  public static int getPreferredWidth(@NotNull JTable table, @NotNull Class<? extends @NotNull Object> c) {
+  public static int getPreferredWidth(@NotNull JTable table, @NotNull Class<? extends Object> c) {
     return getPreferredWidth(table, c, JBUIScale.scale(7));
   }
 

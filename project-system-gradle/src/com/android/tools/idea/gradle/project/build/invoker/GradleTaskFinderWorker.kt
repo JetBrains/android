@@ -32,7 +32,6 @@ import com.android.tools.idea.projectsystem.gradle.rootBuildPath
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import org.gradle.api.plugins.JavaPlugin
-import org.jetbrains.annotations.NonNls
 import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
 import org.jetbrains.plugins.gradle.service.project.data.GradleExtensionsDataService
 import java.nio.file.Path
@@ -291,7 +290,7 @@ private fun Module.isGradleJavaModule(): Boolean {
   return extensions.extensions.any { it.name == "java" }
 }
 
-private fun getGradleJavaTaskNames(buildMode: BuildMode, testCompileMode: TestCompileType): Set<@NonNls String> {
+private fun getGradleJavaTaskNames(buildMode: BuildMode, testCompileMode: TestCompileType): Set<String> {
   return setOfNotNull(
     when (buildMode) {
       BuildMode.ASSEMBLE -> GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME

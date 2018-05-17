@@ -33,7 +33,7 @@ import org.mockito.Mockito;
 @RunWith(JUnit4.class)
 public final class ConnectedDevicesTask2Test {
   private final @NotNull IDevice myDevice;
-  private final @NotNull AsyncSupplier<@NotNull Collection<@NotNull ConnectedDevice>> myTask;
+  private final @NotNull AsyncSupplier<Collection<ConnectedDevice>> myTask;
 
   public ConnectedDevicesTask2Test() {
     myDevice = Mockito.mock(IDevice.class);

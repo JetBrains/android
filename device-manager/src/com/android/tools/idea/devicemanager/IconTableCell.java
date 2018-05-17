@@ -37,7 +37,7 @@ public interface IconTableCell {
     return (Component)this;
   }
 
-  @NotNull Optional<@NotNull Icon> getDefaultIcon();
+  @NotNull Optional<Icon> getDefaultIcon();
 
   void setBackground(@Nullable Color background);
 

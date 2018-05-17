@@ -88,7 +88,7 @@ final class ConnectedDevice extends Device {
   }
 
   @Override
-  @NotNull Collection<@NotNull Snapshot> getSnapshots() {
+  @NotNull Collection<Snapshot> getSnapshots() {
     return Collections.emptyList();
   }
 
@@ -98,7 +98,7 @@ final class ConnectedDevice extends Device {
   }
 
   @Override
-  @NotNull Collection<@NotNull Target> getTargets() {
+  @NotNull Collection<Target> getTargets() {
     throw new UnsupportedOperationException();
   }
 

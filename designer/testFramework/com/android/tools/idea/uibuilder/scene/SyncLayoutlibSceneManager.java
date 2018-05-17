@@ -106,7 +106,7 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
   }
 
   @Override
-  protected @NotNull CompletableFuture<Void> requestRenderAsync(LayoutEditorRenderResult.@Nullable Trigger trigger) {
+  protected @NotNull CompletableFuture<Void> requestRenderAsync(LayoutEditorRenderResult.Trigger trigger) {
     if (myIgnoreRenderRequests) {
       return CompletableFuture.completedFuture(null);
     }

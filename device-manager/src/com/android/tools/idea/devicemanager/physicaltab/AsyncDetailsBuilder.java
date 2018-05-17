@@ -52,7 +52,7 @@ final class AsyncDetailsBuilder {
     myExecutor = executor;
   }
 
-  @NotNull ListenableFuture<@NotNull PhysicalDevice> buildAsync() {
+  @NotNull ListenableFuture<PhysicalDevice> buildAsync() {
     Executor executor = AppExecutorUtil.getAppExecutorService();
 
     // noinspection UnstableApiUsage
@@ -61,7 +61,7 @@ final class AsyncDetailsBuilder {
       .transform(this::build, executor);
   }
 
-  private @NotNull IDevice findDevice(@NotNull Collection<@NotNull IDevice> devices) {
+  private @NotNull IDevice findDevice(@NotNull Collection<IDevice> devices) {
     Object key = myDevice.getKey().toString();
 
     Optional<IDevice> optionalDevice = devices.stream()

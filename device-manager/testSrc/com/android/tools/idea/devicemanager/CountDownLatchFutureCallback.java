@@ -21,10 +21,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class CountDownLatchFutureCallback<V> implements FutureCallback<V> {
-  private final @NotNull FutureCallback<@Nullable V> myDelegate;
+  private final @NotNull FutureCallback<V> myDelegate;
   private final @NotNull CountDownLatch myLatch;
 
-  public CountDownLatchFutureCallback(@NotNull FutureCallback<@Nullable V> delegate, @NotNull CountDownLatch latch) {
+  public CountDownLatchFutureCallback(@NotNull FutureCallback<V> delegate, @NotNull CountDownLatch latch) {
     myDelegate = delegate;
     myLatch = latch;
   }

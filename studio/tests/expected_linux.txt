@@ -405,7 +405,6 @@ android-studio/jbr/lib/server/libjvm.so
 android-studio/jbr/lib/tzdb.dat
 android-studio/jbr/release
 android-studio/lib/3rd-party-rt.jar
-android-studio/lib/annotations-java5.jar
 android-studio/lib/annotations.jar
 android-studio/lib/ant/CONTRIBUTORS
 android-studio/lib/ant/INSTALL

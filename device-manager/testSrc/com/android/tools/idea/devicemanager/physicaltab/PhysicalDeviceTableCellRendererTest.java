@@ -29,7 +29,7 @@ import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public final class PhysicalDeviceTableCellRendererTest {
-  private final @NotNull DeviceTableCellRenderer<@NotNull PhysicalDevice> myRenderer = new PhysicalDeviceTableCellRenderer();
+  private final @NotNull DeviceTableCellRenderer<PhysicalDevice> myRenderer = new PhysicalDeviceTableCellRenderer();
   private final @NotNull JTable myTable = new JBTable();
 
   @Test

@@ -114,7 +114,7 @@ public final class VirtualDeviceWatcher implements ApplicationActivationListener
    * Called by an application pool thread
    */
   @WorkerThread
-  private @NotNull Iterable<@NotNull AvdInfo> getCurrentAvds() {
+  private @NotNull Iterable<AvdInfo> getCurrentAvds() {
     try {
       myAvdManager.reloadAvds();
       return new ArrayList<>(Arrays.asList(myAvdManager.getAllAvds()));
@@ -125,7 +125,7 @@ public final class VirtualDeviceWatcher implements ApplicationActivationListener
   }
 
   @UiThread
-  private void fireVirtualDevicesChanged(@NotNull Iterable<@NotNull AvdInfo> avds) {
+  private void fireVirtualDevicesChanged(@NotNull Iterable<AvdInfo> avds) {
     EventListenerLists.fire(myListeners,
                             VirtualDeviceWatcherListener::virtualDevicesChanged,
                             VirtualDeviceWatcherListener.class,

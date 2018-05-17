@@ -1387,7 +1387,7 @@ public final class StudioFlags {
   // region Deployment
   private static final FlagGroup DEPLOYMENT = new FlagGroup(FLAGS, "deployment", "Deployment");
 
-  public static final @NotNull Flag<@NotNull Boolean> LOGGERS_ERRORS_ENABLED =
+  public static final @NotNull Flag<Boolean> LOGGERS_ERRORS_ENABLED =
     Flag.create(DEPLOYMENT,
                 "loggers.errors.enabled",
                 "Enable the logging of errors from Loggers::errorOrWarn",

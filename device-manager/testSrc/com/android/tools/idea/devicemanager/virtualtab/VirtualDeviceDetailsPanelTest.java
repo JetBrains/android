@@ -80,7 +80,7 @@ public final class VirtualDeviceDetailsPanelTest {
     assertEquals("5,333 MB", section.myAvailableStorageLabel.getText());
   }
 
-  private static @NotNull FutureCallback<@NotNull Device> newSummarySectionCallback(@NotNull SummarySection section,
+  private static @NotNull FutureCallback<Device> newSummarySectionCallback(@NotNull SummarySection section,
                                                                                     @NotNull CountDownLatch latch) {
     return new CountDownLatchFutureCallback<>(VirtualDeviceDetailsPanel.newSummarySectionCallback(section), latch);
   }

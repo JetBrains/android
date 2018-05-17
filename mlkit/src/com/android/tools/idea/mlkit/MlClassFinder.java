@@ -49,7 +49,7 @@ public class MlClassFinder extends PsiElementFinder {
 
   @NotNull
   @Override
-  public PsiClass @NotNull [] findClasses(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
+  public PsiClass[] findClasses(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
     if (!StudioFlags.ML_MODEL_BINDING.get() || !qualifiedName.contains(MlNames.PACKAGE_SUFFIX)) {
       return PsiClass.EMPTY_ARRAY;
     }

@@ -40,8 +40,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class InfoSection extends JBPanel<InfoSection> {
   private final @NotNull JLabel myHeadingLabel;
-  private final @NotNull List<@NotNull JLabel> myNameLabels;
-  private final @NotNull List<@NotNull JLabel> myValueLabels;
+  private final @NotNull List<JLabel> myNameLabels;
+  private final @NotNull List<JLabel> myValueLabels;
 
   public InfoSection(@NotNull String heading) {
     super(null);
@@ -90,7 +90,7 @@ public class InfoSection extends JBPanel<InfoSection> {
     setLayout(layout);
   }
 
-  public static @NotNull Optional<@NotNull InfoSection> newPairedDeviceSection(@NotNull Device device,
+  public static @NotNull Optional<InfoSection> newPairedDeviceSection(@NotNull Device device,
                                                                                @NotNull WearPairingManager manager) {
     if (StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get()) {
       return Optional.empty();
@@ -136,7 +136,7 @@ public class InfoSection extends JBPanel<InfoSection> {
     label.setText(value.toString());
   }
 
-  public static void setText(@NotNull JLabel label, @NotNull Iterable<@NotNull String> values) {
+  public static void setText(@NotNull JLabel label, @NotNull Iterable<String> values) {
     label.setText(String.join(", ", values));
   }
 
@@ -151,7 +151,7 @@ public class InfoSection extends JBPanel<InfoSection> {
   }
 
   @VisibleForTesting
-  private static @NotNull Object getText(@NotNull Collection<@NotNull JLabel> labels) {
+  private static @NotNull Object getText(@NotNull Collection<JLabel> labels) {
     return labels.stream()
       .map(JLabel::getText)
       .collect(Collectors.toList());

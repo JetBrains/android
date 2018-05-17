@@ -42,7 +42,6 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import javax.swing.AbstractButton;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -165,7 +164,7 @@ public final class PhysicalDevicePanelTest {
     assertEquals(data, TestTables.getData(myPanel.getTable()));
   }
 
-  private @NotNull FutureCallback<@Nullable List<@NotNull PhysicalDevice>> newSetDevices(@NotNull PhysicalDevicePanel panel) {
+  private @NotNull FutureCallback<List<PhysicalDevice>> newSetDevices(@NotNull PhysicalDevicePanel panel) {
     return new CountDownLatchFutureCallback<>(PhysicalDevicePanel.newSetDevices(panel), myLatch);
   }
 

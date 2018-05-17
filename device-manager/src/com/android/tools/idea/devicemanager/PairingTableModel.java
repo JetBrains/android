@@ -25,13 +25,13 @@ final class PairingTableModel extends AbstractTableModel {
   static final int DEVICE_MODEL_COLUMN_INDEX = 1;
   static final int STATUS_MODEL_COLUMN_INDEX = 2;
 
-  private @NotNull List<@NotNull Pairing> myPairings = Collections.emptyList();
+  private @NotNull List<Pairing> myPairings = Collections.emptyList();
 
-  @NotNull List<@NotNull Pairing> getPairings() {
+  @NotNull List<Pairing> getPairings() {
     return myPairings;
   }
 
-  void setPairings(@NotNull List<@NotNull Pairing> pairings) {
+  void setPairings(@NotNull List<Pairing> pairings) {
     myPairings = pairings;
     fireTableDataChanged();
   }

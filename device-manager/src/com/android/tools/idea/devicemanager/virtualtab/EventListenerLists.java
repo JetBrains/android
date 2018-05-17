@@ -25,9 +25,9 @@ final class EventListenerLists {
   }
 
   static <L, E> void fire(@NotNull EventListenerList listeners,
-                          @NotNull BiConsumer<@NotNull L, @NotNull E> listenerMethod,
-                          @NotNull Class<@NotNull L> listenerClass,
-                          @NotNull Supplier<@NotNull E> newEvent) {
+                          @NotNull BiConsumer<L, E> listenerMethod,
+                          @NotNull Class<L> listenerClass,
+                          @NotNull Supplier<E> newEvent) {
     Object[] array = listeners.getListenerList();
     E event = null;
 

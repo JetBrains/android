@@ -108,7 +108,7 @@ public final class FakeUiWindowManager extends WindowManagerEx {
   public void resetWindow(Window window) {}
 
   @Override
-  public ProjectFrameHelper @NotNull [] getAllProjectFrames() {
+  public ProjectFrameHelper[] getAllProjectFrames() {
     return new ProjectFrameHelper[0];
   }
 

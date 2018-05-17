@@ -39,8 +39,8 @@ import org.jetbrains.annotations.Nullable;
 
 final class PhysicalDeviceDetailsPanel extends DetailsPanel {
   private final boolean myOnline;
-  private ListenableFuture<@NotNull PhysicalDevice> myFuture;
-  private NewInfoSectionCallback<@NotNull SummarySection> myNewSummarySectionCallback;
+  private ListenableFuture<PhysicalDevice> myFuture;
+  private NewInfoSectionCallback<SummarySection> myNewSummarySectionCallback;
 
   @VisibleForTesting
   static final class SummarySection extends InfoSection {
@@ -67,7 +67,7 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
 
   @VisibleForTesting
   interface NewInfoSectionCallback<S> {
-    @NotNull FutureCallback<@NotNull PhysicalDevice> apply(@NotNull S section);
+    @NotNull FutureCallback<PhysicalDevice> apply(@NotNull S section);
   }
 
   PhysicalDeviceDetailsPanel(@NotNull PhysicalDevice device, @Nullable Project project) {
@@ -82,7 +82,7 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
   @VisibleForTesting
   PhysicalDeviceDetailsPanel(@NotNull PhysicalDevice device,
                              @NotNull AsyncDetailsBuilder builder,
-                             @NotNull NewInfoSectionCallback<@NotNull SummarySection> newSummarySectionCallback,
+                             @NotNull NewInfoSectionCallback<SummarySection> newSummarySectionCallback,
                              @NotNull WearPairingManager manager) {
     super(device.getName());
     myOnline = device.isOnline();
@@ -115,7 +115,7 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
   }
 
   @VisibleForTesting
-  static @NotNull FutureCallback<@NotNull PhysicalDevice> newSummarySectionCallback(@NotNull SummarySection section) {
+  static @NotNull FutureCallback<PhysicalDevice> newSummarySectionCallback(@NotNull SummarySection section) {
     return new DeviceManagerFutureCallback<>(PhysicalDeviceDetailsPanel.class, device -> {
       InfoSection.setText(section.myApiLevelLabel, device.getAndroidVersion().getApiString());
       InfoSection.setText(section.myPowerLabel, device.getPower());
@@ -126,7 +126,7 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
     });
   }
 
-  private @NotNull FutureCallback<@NotNull PhysicalDevice> newScreenDiagramCallback() {
+  private @NotNull FutureCallback<PhysicalDevice> newScreenDiagramCallback() {
     return new DeviceManagerFutureCallback<>(PhysicalDeviceDetailsPanel.class, device -> {
       if (device.getDp() != null) {
         myScreenDiagram = new ScreenDiagram(device);

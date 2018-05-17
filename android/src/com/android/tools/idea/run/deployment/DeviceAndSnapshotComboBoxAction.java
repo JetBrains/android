@@ -212,16 +212,16 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     return getSelectedDevices(project).size();
   }
 
-  @NotNull List<@NotNull Device> getSelectedDevices(@NotNull Project project) {
+  @NotNull List<Device> getSelectedDevices(@NotNull Project project) {
     List<Device> devices = getDevices(project).orElse(Collections.emptyList());
     return Target.filterDevices(getSelectedTargets(project, devices), devices);
   }
 
-  @NotNull Set<@NotNull Target> getSelectedTargets(@NotNull Project project) {
+  @NotNull Set<Target> getSelectedTargets(@NotNull Project project) {
     return getSelectedTargets(project, getDevices(project).orElse(Collections.emptyList()));
   }
 
-  @NotNull Set<@NotNull Target> getSelectedTargets(@NotNull Project project, @NotNull List<@NotNull Device> devices) {
+  @NotNull Set<Target> getSelectedTargets(@NotNull Project project, @NotNull List<Device> devices) {
     DevicesSelectedService service = myDevicesSelectedServiceGetInstance.apply(project);
 
     if (service.isMultipleDevicesSelectedInComboBox()) {
@@ -354,7 +354,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     }
   }
 
-  private void setActiveExecutionTarget(@NotNull Project project, @NotNull Set<@NotNull Target> targets) {
+  private void setActiveExecutionTarget(@NotNull Project project, @NotNull Set<Target> targets) {
     AsyncDevicesGetter getter = myDevicesGetterGetter.apply(project);
     myExecutionTargetServiceGetInstance.apply(project).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(targets, getter));
   }

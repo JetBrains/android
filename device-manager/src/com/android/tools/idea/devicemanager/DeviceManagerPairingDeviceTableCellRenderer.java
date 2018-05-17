@@ -25,7 +25,7 @@ final class DeviceManagerPairingDeviceTableCellRenderer extends DeviceTableCellR
   }
 
   @Override
-  @NotNull Optional<@NotNull Icon> getPairedLabelIcon(@NotNull Device device) {
+  @NotNull Optional<Icon> getPairedLabelIcon(@NotNull Device device) {
     return Optional.empty();
   }
 }

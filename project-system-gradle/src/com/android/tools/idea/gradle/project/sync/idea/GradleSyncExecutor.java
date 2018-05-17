@@ -270,7 +270,7 @@ public class GradleSyncExecutor {
   }
 
   @WorkerThread
-  public void fetchAndMergeNativeVariants(@NotNull Set<@NotNull String> requestedAbis) {
+  public void fetchAndMergeNativeVariants(@NotNull Set<String> requestedAbis) {
     SelectedVariantCollector variantCollector = new SelectedVariantCollector(myProject);
     SelectedVariants selectedVariants = variantCollector.collectSelectedVariants();
     GradleExecutionSettings settings = getGradleExecutionSettings(myProject);

@@ -165,5 +165,5 @@ public interface ProjectBuildModel {
    * @return a list of all build models that can be created from Gradle build files.
    */
   @NotNull
-  List<GradleBuildModel> getAllIncludedBuildModels(@NotNull BiConsumer<@NotNull Integer, @Nullable Integer> func);
+  List<GradleBuildModel> getAllIncludedBuildModels(@NotNull BiConsumer<Integer, Integer> func);
 }

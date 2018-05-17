@@ -100,7 +100,7 @@ public final class VirtualDevice extends Device {
       return this;
     }
 
-    @NotNull Builder addAllAbis(@NotNull Collection<@NotNull String> abis) {
+    @NotNull Builder addAllAbis(@NotNull Collection<String> abis) {
       myAbis.addAll(abis);
       return this;
     }

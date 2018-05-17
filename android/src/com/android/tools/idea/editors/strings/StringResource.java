@@ -127,7 +127,7 @@ public final class StringResource {
 
   @UiThread
   @NotNull
-  public ListenableFuture<@NotNull Boolean> setDefaultValue(@NotNull String defaultValue) {
+  public ListenableFuture<Boolean> setDefaultValue(@NotNull String defaultValue) {
     if (myDefaultValue == null) {
       if (defaultValue.equals(myTentativeDefaultValue)) {
         return Futures.immediateFuture(false);
@@ -167,7 +167,7 @@ public final class StringResource {
     return Futures.immediateFuture(true);
   }
 
-  private @NotNull ListenableFuture<@Nullable ResourceItem> createDefaultValue(@NotNull String value) {
+  private @NotNull ListenableFuture<ResourceItem> createDefaultValue(@NotNull String value) {
     if (value.isEmpty()) {
       return Futures.immediateFuture(null);
     }
@@ -215,7 +215,7 @@ public final class StringResource {
     return resourceItemEntry == null ? "" : resourceItemEntry.myString;
   }
 
-  public @NotNull ListenableFuture<@NotNull Boolean> putTranslation(@NotNull final Locale locale, @NotNull String translation) {
+  public @NotNull ListenableFuture<Boolean> putTranslation(@NotNull final Locale locale, @NotNull String translation) {
     if (getTranslationAsResourceItem(locale) == null) {
       List<StringResourceKey> keys = myData.getKeys();
       int index = keys.indexOf(myKey);
@@ -274,7 +274,7 @@ public final class StringResource {
     return Futures.immediateFuture(true);
   }
 
-  private @NotNull ListenableFuture<@Nullable ResourceItem> createTranslationBefore(@NotNull Locale locale, @NotNull String value,
+  private @NotNull ListenableFuture<ResourceItem> createTranslationBefore(@NotNull Locale locale, @NotNull String value,
                                                                                     @Nullable StringResourceKey anchor) {
     if (value.isEmpty()) {
       return Futures.immediateFuture(null);

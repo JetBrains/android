@@ -325,7 +325,7 @@ final class HeapSnapshotStatistics {
     @NotNull
     private final ComponentsSet.Component component;
 
-    private ComponentClusterObjectsStatistics(final ComponentsSet.@NotNull Component component) {
+    private ComponentClusterObjectsStatistics(final ComponentsSet.Component component) {
       this.component = component;
     }
 

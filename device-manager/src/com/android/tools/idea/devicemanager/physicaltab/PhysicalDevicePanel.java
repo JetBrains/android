@@ -53,11 +53,11 @@ import org.jetbrains.annotations.Nullable;
 
 public final class PhysicalDevicePanel extends DevicePanel {
   private final @NotNull Disposable myParent;
-  private final @NotNull Function<@NotNull Project, @NotNull PairDevicesUsingWiFiService> myPairDevicesUsingWiFiServiceGetInstance;
-  private final @NotNull Function<@NotNull PhysicalDevicePanel, @NotNull PhysicalDeviceTable> myNewPhysicalDeviceTable;
-  private final @NotNull Supplier<@NotNull PhysicalTabPersistentStateComponent> myPhysicalTabPersistentStateComponentGetInstance;
-  private final @NotNull Function<@NotNull PhysicalDeviceTableModel, @NotNull Disposable> myNewPhysicalDeviceChangeListener;
-  private final @NotNull BiFunction<@NotNull PhysicalDevice, @Nullable Project, @NotNull DetailsPanel> myNewPhysicalDeviceDetailsPanel;
+  private final @NotNull Function<Project, PairDevicesUsingWiFiService> myPairDevicesUsingWiFiServiceGetInstance;
+  private final @NotNull Function<PhysicalDevicePanel, PhysicalDeviceTable> myNewPhysicalDeviceTable;
+  private final @NotNull Supplier<PhysicalTabPersistentStateComponent> myPhysicalTabPersistentStateComponentGetInstance;
+  private final @NotNull Function<PhysicalDeviceTableModel, Disposable> myNewPhysicalDeviceChangeListener;
+  private final @NotNull BiFunction<PhysicalDevice, Project, DetailsPanel> myNewPhysicalDeviceDetailsPanel;
 
   private @Nullable AbstractButton myPairUsingWiFiButton;
   private @Nullable Component mySeparator;
@@ -78,13 +78,13 @@ public final class PhysicalDevicePanel extends DevicePanel {
   @VisibleForTesting
   PhysicalDevicePanel(@Nullable Project project,
                       @NotNull Disposable parent,
-                      @NotNull Function<@NotNull Project, @NotNull PairDevicesUsingWiFiService> pairDevicesUsingWiFiServiceGetInstance,
-                      @NotNull Function<@NotNull PhysicalDevicePanel, @NotNull PhysicalDeviceTable> newPhysicalDeviceTable,
-                      @NotNull Supplier<@NotNull PhysicalTabPersistentStateComponent> physicalTabPersistentStateComponentGetInstance,
-                      @NotNull Function<@NotNull PhysicalDeviceTableModel, @NotNull Disposable> newPhysicalDeviceChangeListener,
+                      @NotNull Function<Project, PairDevicesUsingWiFiService> pairDevicesUsingWiFiServiceGetInstance,
+                      @NotNull Function<PhysicalDevicePanel, PhysicalDeviceTable> newPhysicalDeviceTable,
+                      @NotNull Supplier<PhysicalTabPersistentStateComponent> physicalTabPersistentStateComponentGetInstance,
+                      @NotNull Function<PhysicalDeviceTableModel, Disposable> newPhysicalDeviceChangeListener,
                       @NotNull PhysicalDeviceAsyncSupplier supplier,
-                      @NotNull Function<@NotNull PhysicalDevicePanel, @NotNull FutureCallback<@Nullable List<@NotNull PhysicalDevice>>> newSetDevices,
-                      @NotNull BiFunction<@NotNull PhysicalDevice, @Nullable Project, @NotNull DetailsPanel> newPhysicalDeviceDetailsPanel) {
+                      @NotNull Function<PhysicalDevicePanel, FutureCallback<List<PhysicalDevice>>> newSetDevices,
+                      @NotNull BiFunction<PhysicalDevice, Project, DetailsPanel> newPhysicalDeviceDetailsPanel) {
     super(project);
 
     myParent = parent;
@@ -107,7 +107,7 @@ public final class PhysicalDevicePanel extends DevicePanel {
   }
 
   @VisibleForTesting
-  static @NotNull FutureCallback<@Nullable List<@NotNull PhysicalDevice>> newSetDevices(@NotNull PhysicalDevicePanel panel) {
+  static @NotNull FutureCallback<List<PhysicalDevice>> newSetDevices(@NotNull PhysicalDevicePanel panel) {
     return new DeviceManagerFutureCallback<>(PhysicalDevicePanel.class, devices -> {
       assert devices != null;
       panel.setDevices(panel.addOfflineDevices(devices));
@@ -151,7 +151,7 @@ public final class PhysicalDevicePanel extends DevicePanel {
     return myNewPhysicalDeviceTable.apply(this);
   }
 
-  private @NotNull List<@NotNull PhysicalDevice> addOfflineDevices(@NotNull List<@NotNull PhysicalDevice> onlineDevices) {
+  private @NotNull List<PhysicalDevice> addOfflineDevices(@NotNull List<PhysicalDevice> onlineDevices) {
     Collection<PhysicalDevice> persistedDevices = myPhysicalTabPersistentStateComponentGetInstance.get().get();
 
     List<PhysicalDevice> devices = new ArrayList<>(onlineDevices.size() + persistedDevices.size());
@@ -164,7 +164,7 @@ public final class PhysicalDevicePanel extends DevicePanel {
     return devices;
   }
 
-  private void setDevices(@NotNull List<@NotNull PhysicalDevice> devices) {
+  private void setDevices(@NotNull List<PhysicalDevice> devices) {
     PhysicalDeviceTableModel model = getTable().getModel();
 
     model.addTableModelListener(event -> myPhysicalTabPersistentStateComponentGetInstance.get().set(model.getDevices()));

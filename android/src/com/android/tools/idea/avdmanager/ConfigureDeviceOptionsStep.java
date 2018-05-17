@@ -111,7 +111,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
 
     FutureCallback<List<File>> callback = new LoadSkinsFutureCallback(myCustomSkinPath, skin) {
       @Override
-      public void onSuccess(@NotNull List<@NotNull File> skins) {
+      public void onSuccess(@NotNull List<File> skins) {
         super.onSuccess(skins);
 
         if (skin != null) {

@@ -40,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
 
 @State(name = "deviceManagerPhysicalTab", storages = @Storage("deviceManagerPhysicalTab.xml"))
 @Service
-final class PhysicalTabPersistentStateComponent implements PersistentStateComponent<@NotNull PhysicalTabState> {
+final class PhysicalTabPersistentStateComponent implements PersistentStateComponent<PhysicalTabState> {
   private @NotNull PhysicalTabState myState;
 
   @VisibleForTesting
@@ -52,14 +52,14 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
     return ApplicationManager.getApplication().getService(PhysicalTabPersistentStateComponent.class);
   }
 
-  @NotNull Collection<@NotNull PhysicalDevice> get() {
+  @NotNull Collection<PhysicalDevice> get() {
     return myState.physicalDevices.stream()
       .map(PhysicalDeviceState::asPhysicalDevice)
       .filter(Objects::nonNull)
       .collect(Collectors.toList());
   }
 
-  void set(@NotNull Collection<@NotNull PhysicalDevice> devices) {
+  void set(@NotNull Collection<PhysicalDevice> devices) {
     myState.physicalDevices = devices.stream()
       .filter(device -> device.getKey().isPersistent())
       .map(PhysicalDeviceState::new)
@@ -78,7 +78,7 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
 
   static final class PhysicalTabState {
     @XCollection(style = Style.v2)
-    private @NotNull Collection<@NotNull PhysicalDeviceState> physicalDevices = Collections.emptyList();
+    private @NotNull Collection<PhysicalDeviceState> physicalDevices = Collections.emptyList();
 
     @Override
     public int hashCode() {

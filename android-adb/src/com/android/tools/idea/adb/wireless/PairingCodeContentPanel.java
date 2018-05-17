@@ -55,7 +55,7 @@ public class PairingCodeContentPanel {
     return myRootComponent;
   }
 
-  public void showDevices(@NotNull List<@NotNull MdnsService> services, @NotNull Consumer<MdnsService> pairingCodePairInvoked) {
+  public void showDevices(@NotNull List<MdnsService> services, @NotNull Consumer<MdnsService> pairingCodePairInvoked) {
     if (services.isEmpty()) {
       myEmptyPanel.setVisible(true);
       myDevicesPanel.setVisible(false);

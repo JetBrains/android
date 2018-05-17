@@ -34,10 +34,10 @@ public final class ActivateDeviceFileExplorerWindowButtonTableCellEditor<D exten
   private Device myDevice;
 
   private final @Nullable Project myProject;
-  private final @NotNull DeviceTable<@NotNull D> myTable;
+  private final @NotNull DeviceTable<D> myTable;
 
   public ActivateDeviceFileExplorerWindowButtonTableCellEditor(@Nullable Project project,
-                                                               @NotNull DeviceTable<@NotNull D> table,
+                                                               @NotNull DeviceTable<D> table,
                                                                @NotNull EventKind kind) {
     super(ActivateDeviceFileExplorerWindowValue.INSTANCE,
           AllIcons.Actions.MenuOpen,

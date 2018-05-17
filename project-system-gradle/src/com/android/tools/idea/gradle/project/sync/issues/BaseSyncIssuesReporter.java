@@ -42,7 +42,7 @@ abstract class BaseSyncIssuesReporter {
    * @param buildFileMap  map of build files per module, this map provides information to each of the reporters to support quick links to
    *                      the build.gradle files, entries in this map are optional.
    */
-  abstract @NotNull List<? extends @NotNull SyncMessage> reportAll(@NotNull List<IdeSyncIssue> syncIssues,
+  abstract @NotNull List<? extends SyncMessage> reportAll(@NotNull List<IdeSyncIssue> syncIssues,
                                                                    @NotNull Map<IdeSyncIssue, Module> moduleMap,
                                                                    @NotNull Map<Module, VirtualFile> buildFileMap);
 

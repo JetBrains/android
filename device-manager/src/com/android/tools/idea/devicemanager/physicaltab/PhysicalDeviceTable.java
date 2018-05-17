@@ -91,7 +91,7 @@ public final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
     getEmptyText().setText("No physical devices added. Connect a device via USB cable.");
   }
 
-  private static @NotNull RowSorter<@NotNull TableModel> newRowSorter(@NotNull TableModel model) {
+  private static @NotNull RowSorter<TableModel> newRowSorter(@NotNull TableModel model) {
     DefaultRowSorter<TableModel, Integer> sorter = new TableRowSorter<>(model);
 
     sorter.setComparator(PhysicalDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX,
@@ -106,7 +106,7 @@ public final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
     return sorter;
   }
 
-  @NotNull Optional<@NotNull PhysicalDevice> getSelectedDevice() {
+  @NotNull Optional<PhysicalDevice> getSelectedDevice() {
     int viewRowIndex = getSelectedRow();
 
     if (viewRowIndex == -1) {

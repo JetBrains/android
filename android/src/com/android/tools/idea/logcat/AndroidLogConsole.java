@@ -119,7 +119,7 @@ public final class AndroidLogConsole extends LogConsoleBase {
   public void dispose() {
     super.dispose();
     ActionManager actionManager = ActionManager.getInstance();
-    List<@NonNls String> actions = actionManager.getActionIdList(ACTION_ID_PREFIX);
+    List<String> actions = actionManager.getActionIdList(ACTION_ID_PREFIX);
     for (String action : actions) {
       actionManager.unregisterAction(action);
     }

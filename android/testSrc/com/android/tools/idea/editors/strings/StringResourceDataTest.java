@@ -285,7 +285,7 @@ public class StringResourceDataTest extends AndroidTestCase {
 
   private boolean putTranslation(@NotNull StringResource resource, @NotNull Locale locale, @NotNull String value)
       throws TimeoutException, InterruptedException, ExecutionException {
-    ListenableFuture<@NotNull Boolean> futureResult = resource.putTranslation(locale, value);
+    ListenableFuture<Boolean> futureResult = resource.putTranslation(locale, value);
     waitForCondition(2, TimeUnit.SECONDS, futureResult::isDone);
     return futureResult.get();
   }

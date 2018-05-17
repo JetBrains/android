@@ -40,7 +40,7 @@ import org.jetbrains.annotations.NotNull;
 public final class LogcatConsoleActionsPostProcessor extends ConsoleActionsPostProcessor {
   @Override
   @NotNull
-  public AnAction @NotNull [] postProcess(@NotNull ConsoleView console, AnAction @NotNull [] actions) {
+  public AnAction[] postProcess(@NotNull ConsoleView console, AnAction[] actions) {
     if (!(console instanceof ConsoleViewImpl)) {
       return actions;
     }
@@ -55,7 +55,7 @@ public final class LogcatConsoleActionsPostProcessor extends ConsoleActionsPostP
 
   @Override
   @NotNull
-  public AnAction @NotNull [] postProcessPopupActions(@NotNull ConsoleView console, AnAction @NotNull [] actions) {
+  public AnAction[] postProcessPopupActions(@NotNull ConsoleView console, AnAction[] actions) {
     if (!(console instanceof ConsoleViewImpl)) {
       return actions;
     }
@@ -74,7 +74,7 @@ public final class LogcatConsoleActionsPostProcessor extends ConsoleActionsPostP
    * @see <a href="http://b.android.com/66626">Bug 66626</a>.
    */
   @NotNull
-  private static AnAction[] processActions(@NotNull AndroidLogConsole console, @NotNull AnAction[] actions) {
+  private static AnAction[] processActions(@NotNull AndroidLogConsole console, AnAction[] actions) {
     List<AnAction> actionList = new ArrayList<>(actions.length);
 
     AnAction scrollToEndAction = null;
@@ -113,7 +113,7 @@ public final class LogcatConsoleActionsPostProcessor extends ConsoleActionsPostP
    * Replaces standard "Clear All" action to "Clear Logcat" action
    */
   @NotNull
-  private static AnAction[] processPopupActions(@NotNull AndroidLogConsole console, @NotNull AnAction[] actions) {
+  private static AnAction[] processPopupActions(@NotNull AndroidLogConsole console, AnAction[] actions) {
     List<AnAction> resultActions = new ArrayList<>();
     for (AnAction action : actions) {
       if (action instanceof ClearConsoleAction) {

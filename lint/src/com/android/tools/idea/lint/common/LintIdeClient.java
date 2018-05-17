@@ -632,13 +632,13 @@ public class LintIdeClient extends LintClient implements Disposable {
   }
 
   @Override
-  public byte @NotNull [] readBytes(@NotNull File file) throws IOException {
+  public byte[] readBytes(@NotNull File file) throws IOException {
     ProgressManager.checkCanceled();
     return super.readBytes(file);
   }
 
   @Override
-  public byte @NotNull [] readBytes(@NotNull PathString resourcePath) throws IOException {
+  public byte[] readBytes(@NotNull PathString resourcePath) throws IOException {
     ProgressManager.checkCanceled();
     return super.readBytes(resourcePath);
   }

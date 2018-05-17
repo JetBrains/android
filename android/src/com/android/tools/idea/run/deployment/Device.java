@@ -100,7 +100,7 @@ public abstract class Device {
     return myName;
   }
 
-  abstract @NotNull Collection<@NotNull Snapshot> getSnapshots();
+  abstract @NotNull Collection<Snapshot> getSnapshots();
 
   /**
    * A physical device will always return a serial number. A virtual device will usually return a virtual device path. But if Studio doesn't
@@ -121,7 +121,7 @@ public abstract class Device {
 
   abstract @NotNull Target getDefaultTarget();
 
-  abstract @NotNull Collection<@NotNull Target> getTargets();
+  abstract @NotNull Collection<Target> getTargets();
 
   @NotNull
   final AndroidDevice getAndroidDevice() {
@@ -131,7 +131,7 @@ public abstract class Device {
   @NotNull
   abstract Future<AndroidVersion> getAndroidVersion();
 
-  final @NotNull ListenableFuture<@NotNull Boolean> isRunningAsync(@NotNull String appPackage) {
+  final @NotNull ListenableFuture<Boolean> isRunningAsync(@NotNull String appPackage) {
     if (!isConnected()) {
       return Futures.immediateFuture(false);
     }
@@ -151,7 +151,7 @@ public abstract class Device {
     return !Deployable.searchClientsForPackage(device, appPackage).isEmpty();
   }
 
-  final @NotNull ListenableFuture<@NotNull IDevice> getDdmlibDeviceAsync() {
+  final @NotNull ListenableFuture<IDevice> getDdmlibDeviceAsync() {
     AndroidDevice device = getAndroidDevice();
 
     if (!device.isRunning()) {

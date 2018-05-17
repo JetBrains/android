@@ -20,9 +20,9 @@ import javax.swing.table.TableModel;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class DeviceTable<D extends Device> extends JBTable {
-  private final @NotNull Class<@NotNull D> myDeviceClass;
+  private final @NotNull Class<D> myDeviceClass;
 
-  protected DeviceTable(@NotNull TableModel model, @NotNull Class<@NotNull D> deviceClass) {
+  protected DeviceTable(@NotNull TableModel model, @NotNull Class<D> deviceClass) {
     super(model);
     myDeviceClass = deviceClass;
   }

@@ -37,10 +37,10 @@ final class AsyncPhysicalDeviceBuilder {
   private final @NotNull IDevice myDevice;
   private final @NotNull Key myKey;
 
-  private final @NotNull ListenableFuture<@NotNull AndroidVersion> myVersionFuture;
-  private final @NotNull ListenableFuture<@NotNull DeviceType> myTypeFuture;
-  private final @NotNull ListenableFuture<@NotNull String> myModelFuture;
-  private final @NotNull ListenableFuture<@NotNull String> myManufacturerFuture;
+  private final @NotNull ListenableFuture<AndroidVersion> myVersionFuture;
+  private final @NotNull ListenableFuture<DeviceType> myTypeFuture;
+  private final @NotNull ListenableFuture<String> myModelFuture;
+  private final @NotNull ListenableFuture<String> myManufacturerFuture;
 
   @UiThread
   AsyncPhysicalDeviceBuilder(@NotNull IDevice device, @NotNull Key key) {
@@ -82,7 +82,7 @@ final class AsyncPhysicalDeviceBuilder {
   }
 
   @UiThread
-  @NotNull ListenableFuture<@NotNull PhysicalDevice> buildAsync() {
+  @NotNull ListenableFuture<PhysicalDevice> buildAsync() {
     // noinspection UnstableApiUsage
     return Futures.whenAllComplete(myVersionFuture, myTypeFuture, myModelFuture, myManufacturerFuture)
       .call(this::build, EdtExecutorService.getInstance());

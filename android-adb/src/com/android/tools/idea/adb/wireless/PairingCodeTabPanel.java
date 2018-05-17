@@ -51,7 +51,7 @@ public class PairingCodeTabPanel {
     showAvailableServices(new ArrayList<>());
   }
 
-  public void showAvailableServices(@NotNull List<@NotNull MdnsService> devices) {
+  public void showAvailableServices(@NotNull List<MdnsService> devices) {
     myContentPanel.showDevices(devices, myPairingCodePairInvoked);
   }
 

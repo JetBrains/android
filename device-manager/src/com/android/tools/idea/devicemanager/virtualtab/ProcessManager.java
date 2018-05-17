@@ -37,11 +37,11 @@ import javax.swing.event.EventListenerList;
 import org.jetbrains.annotations.NotNull;
 
 final class ProcessManager implements IDeviceChangeListener {
-  private Map<@NotNull Key, @NotNull State> myKeyToStateMap;
+  private Map<Key, State> myKeyToStateMap;
   private final @NotNull EventListenerList myListeners;
 
   private final @NotNull NewSetKeyToStateMapFutureCallback myNewSetKeyToStateMapFutureCallback;
-  private final @NotNull Callable<@NotNull AvdManagerConnection> myGetDefaultAvdManagerConnection;
+  private final @NotNull Callable<AvdManagerConnection> myGetDefaultAvdManagerConnection;
 
   @UiThread
   ProcessManager() {
@@ -51,7 +51,7 @@ final class ProcessManager implements IDeviceChangeListener {
   @UiThread
   @VisibleForTesting
   ProcessManager(@NotNull NewSetKeyToStateMapFutureCallback newSetKeyToStateMapFutureCallback,
-                 @NotNull Callable<@NotNull AvdManagerConnection> getDefaultAvdManagerConnection) {
+                 @NotNull Callable<AvdManagerConnection> getDefaultAvdManagerConnection) {
     myListeners = new EventListenerList();
 
     myNewSetKeyToStateMapFutureCallback = newSetKeyToStateMapFutureCallback;
@@ -78,19 +78,19 @@ final class ProcessManager implements IDeviceChangeListener {
    * Called by an application pool thread
    */
   @WorkerThread
-  private static @NotNull Map<@NotNull Key, @NotNull State> collectKeyToStateMap(@NotNull AvdManagerConnection connection) {
+  private static @NotNull Map<Key, State> collectKeyToStateMap(@NotNull AvdManagerConnection connection) {
     return connection.getAvds(true).stream()
       .collect(Collectors.toMap(avd -> new VirtualDevicePath(avd.getId()), avd -> State.valueOf(connection.isAvdRunning(avd))));
   }
 
   @UiThread
   @VisibleForTesting
-  static @NotNull FutureCallback<@NotNull Map<@NotNull Key, @NotNull State>> newSetKeyToStateMapFutureCallback(@NotNull ProcessManager manager) {
+  static @NotNull FutureCallback<Map<Key, State>> newSetKeyToStateMapFutureCallback(@NotNull ProcessManager manager) {
     return new DeviceManagerFutureCallback<>(ProcessManager.class, manager::setKeyToStateMap);
   }
 
   @UiThread
-  private void setKeyToStateMap(@NotNull Map<@NotNull Key, @NotNull State> keyToStateMap) {
+  private void setKeyToStateMap(@NotNull Map<Key, State> keyToStateMap) {
     myKeyToStateMap = keyToStateMap;
 
     EventListenerLists.fire(myListeners,
@@ -101,7 +101,7 @@ final class ProcessManager implements IDeviceChangeListener {
 
   @VisibleForTesting
   interface NewSetKeyToStateMapFutureCallback {
-    @NotNull FutureCallback<@NotNull Map<@NotNull Key, @NotNull State>> apply(@NotNull ProcessManager manager);
+    @NotNull FutureCallback<Map<Key, State>> apply(@NotNull ProcessManager manager);
   }
 
   enum State {

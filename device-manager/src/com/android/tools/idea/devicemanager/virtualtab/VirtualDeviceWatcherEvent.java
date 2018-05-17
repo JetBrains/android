@@ -21,14 +21,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class VirtualDeviceWatcherEvent extends EventObject {
-  private final @NotNull Iterable<@NotNull AvdInfo> myAvds;
+  private final @NotNull Iterable<AvdInfo> myAvds;
 
-  VirtualDeviceWatcherEvent(@NotNull VirtualDeviceWatcher source, @NotNull Iterable<@NotNull AvdInfo> avds) {
+  VirtualDeviceWatcherEvent(@NotNull VirtualDeviceWatcher source, @NotNull Iterable<AvdInfo> avds) {
     super(source);
     myAvds = avds;
   }
 
-  @NotNull Iterable<@NotNull AvdInfo> getAvds() {
+  @NotNull Iterable<AvdInfo> getAvds() {
     return myAvds;
   }
 

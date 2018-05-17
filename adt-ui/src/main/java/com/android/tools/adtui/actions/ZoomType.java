@@ -89,7 +89,7 @@ public enum ZoomType {
     return zoomIn(percentage, ZOOM_POINTS);
   }
 
-  public static int zoomIn(int percentage, int @NotNull [] zoomPoints) {
+  public static int zoomIn(int percentage, int[] zoomPoints) {
     int i = Arrays.binarySearch(zoomPoints, percentage);
     if (i < 0) {
       // inexact match: jump to nearest
@@ -122,7 +122,7 @@ public enum ZoomType {
     return zoomOut(percentage, ZOOM_POINTS);
   }
 
-  public static int zoomOut(int percentage, int @NotNull [] zoomPoints) {
+  public static int zoomOut(int percentage, int[] zoomPoints) {
     int i = Arrays.binarySearch(zoomPoints, percentage);
     if (i < 0) {
       // inexact match: jump to nearest

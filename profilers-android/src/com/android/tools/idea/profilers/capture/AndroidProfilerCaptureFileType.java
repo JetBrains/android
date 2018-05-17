@@ -48,7 +48,7 @@ public abstract class AndroidProfilerCaptureFileType implements INativeFileType 
 
   @Nullable
   @Override
-  public String getCharset(@NotNull VirtualFile file, byte @NotNull [] content) {
+  public String getCharset(@NotNull VirtualFile file, byte[] content) {
     return null;
   }
 

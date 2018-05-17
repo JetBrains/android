@@ -25,9 +25,9 @@ import org.jetbrains.annotations.Nullable;
 
 public final class ActivateDeviceFileExplorerWindowButtonTableCellRenderer<D extends Device> extends IconButtonTableCellRenderer {
   private final @Nullable Object myProject;
-  private final @NotNull DeviceTable<@NotNull D> myTable;
+  private final @NotNull DeviceTable<D> myTable;
 
-  public ActivateDeviceFileExplorerWindowButtonTableCellRenderer(@Nullable Project project, @NotNull DeviceTable<@NotNull D> table) {
+  public ActivateDeviceFileExplorerWindowButtonTableCellRenderer(@Nullable Project project, @NotNull DeviceTable<D> table) {
     super(AllIcons.Actions.MenuOpen,
           StudioFlags.MERGED_DEVICE_FILE_EXPLORER_AND_DEVICE_MONITOR_TOOL_WINDOW_ENABLED.get()
             ? "Open this device in the Device Explorer."

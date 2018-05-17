@@ -149,7 +149,7 @@ final class PhysicalDevice extends Device {
   }
 
   @Override
-  @NotNull Collection<@NotNull Snapshot> getSnapshots() {
+  @NotNull Collection<Snapshot> getSnapshots() {
     return Collections.emptyList();
   }
 
@@ -159,7 +159,7 @@ final class PhysicalDevice extends Device {
   }
 
   @Override
-  @NotNull Collection<@NotNull Target> getTargets() {
+  @NotNull Collection<Target> getTargets() {
     return Collections.singletonList(new RunningDeviceTarget(getKey()));
   }
 

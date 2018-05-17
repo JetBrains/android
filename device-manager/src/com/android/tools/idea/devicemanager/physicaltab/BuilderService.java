@@ -37,7 +37,7 @@ final class BuilderService {
     return ApplicationManager.getApplication().getService(BuilderService.class);
   }
 
-  @NotNull ListenableFuture<@NotNull PhysicalDevice> build(@NotNull IDevice device) {
+  @NotNull ListenableFuture<PhysicalDevice> build(@NotNull IDevice device) {
     return new AsyncPhysicalDeviceBuilder(device, parse(device.getSerialNumber())).buildAsync();
   }
 

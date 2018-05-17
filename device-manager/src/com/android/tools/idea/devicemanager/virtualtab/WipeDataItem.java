@@ -37,10 +37,10 @@ import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 
 final class WipeDataItem extends JBMenuItem {
-  private final @NotNull Consumer<@NotNull Component> myShowCannotWipeARunningAvdDialog;
-  private final @NotNull BiPredicate<@NotNull Object, @NotNull Component> myShowConfirmDataWipeDialog;
-  private final @NotNull Supplier<@NotNull AvdManagerConnection> myGetDefaultAvdManagerConnection;
-  private final @NotNull Function<@NotNull VirtualDeviceTable, @NotNull FutureCallback<@NotNull Key>> myNewSetSelectedDeviceFutureCallback;
+  private final @NotNull Consumer<Component> myShowCannotWipeARunningAvdDialog;
+  private final @NotNull BiPredicate<Object, Component> myShowConfirmDataWipeDialog;
+  private final @NotNull Supplier<AvdManagerConnection> myGetDefaultAvdManagerConnection;
+  private final @NotNull Function<VirtualDeviceTable, FutureCallback<Key>> myNewSetSelectedDeviceFutureCallback;
 
   WipeDataItem(@NotNull VirtualDevicePopUpMenuButtonTableCellEditor editor) {
     this(editor,
@@ -52,10 +52,10 @@ final class WipeDataItem extends JBMenuItem {
 
   @VisibleForTesting
   WipeDataItem(@NotNull VirtualDevicePopUpMenuButtonTableCellEditor editor,
-               @NotNull Consumer<@NotNull Component> showCannotWipeARunningAvdDialog,
-               @NotNull BiPredicate<@NotNull Object, @NotNull Component> showConfirmDataWipeDialog,
-               @NotNull Supplier<@NotNull AvdManagerConnection> getDefaultAvdManagerConnection,
-               @NotNull Function<@NotNull VirtualDeviceTable, @NotNull FutureCallback<@NotNull Key>> newSetSelectedDeviceFutureCallback) {
+               @NotNull Consumer<Component> showCannotWipeARunningAvdDialog,
+               @NotNull BiPredicate<Object, Component> showConfirmDataWipeDialog,
+               @NotNull Supplier<AvdManagerConnection> getDefaultAvdManagerConnection,
+               @NotNull Function<VirtualDeviceTable, FutureCallback<Key>> newSetSelectedDeviceFutureCallback) {
     super("Wipe Data");
 
     myShowCannotWipeARunningAvdDialog = showCannotWipeARunningAvdDialog;
@@ -105,7 +105,7 @@ final class WipeDataItem extends JBMenuItem {
   }
 
   @VisibleForTesting
-  static @NotNull FutureCallback<@NotNull Key> newSetSelectedDeviceFutureCallback(@NotNull VirtualDeviceTable table) {
+  static @NotNull FutureCallback<Key> newSetSelectedDeviceFutureCallback(@NotNull VirtualDeviceTable table) {
     return new DeviceManagerFutureCallback<>(WipeDataItem.class, table::setSelectedDevice);
   }
 }

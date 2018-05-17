@@ -40,7 +40,7 @@ final class PopupActionGroup extends DefaultActionGroup {
   }
 
   @VisibleForTesting
-  PopupActionGroup(@NotNull Collection<@NotNull Device> devices,
+  PopupActionGroup(@NotNull Collection<Device> devices,
                    @NotNull DeviceAndSnapshotComboBoxAction comboBoxAction,
                    @NotNull ActionManager manager) {
     myDevices = devices;
@@ -71,7 +71,7 @@ final class PopupActionGroup extends DefaultActionGroup {
     add(action);
   }
 
-  private @NotNull Collection<@NotNull AnAction> newSelectDeviceActionsOrSnapshotActionGroups() {
+  private @NotNull Collection<AnAction> newSelectDeviceActionsOrSnapshotActionGroups() {
     int size = myDevices.size();
     Collection<Device> runningDevices = new ArrayList<>(size);
     Collection<Device> availableDevices = new ArrayList<>(size);

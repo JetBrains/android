@@ -137,7 +137,7 @@ public class ComponentSelectionTest {
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     //Switching to split view
-    FileEditor @NotNull [] editors = FileEditorManager.getInstance(myIdeFrameFixture.getProject()).getSelectedEditors();
+    FileEditor[] editors = FileEditorManager.getInstance(myIdeFrameFixture.getProject()).getSelectedEditors();
     Preconditions.checkState(editors.length != 0, "no selected editors");
     FileEditor selected = editors[0];
     Preconditions.checkState(selected.toString().contains("SplitEditor"), "invalid editor selected");

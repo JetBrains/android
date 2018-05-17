@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 
 final class CustomSkinValidator implements Validator<Optional<File>> {
   @Override
-  public @NotNull Result validate(@NotNull Optional<@NotNull File> optionalCustomSkin) {
+  public @NotNull Result validate(@NotNull Optional<File> optionalCustomSkin) {
     if (optionalCustomSkin.isEmpty()) {
       return Result.OK;
     }

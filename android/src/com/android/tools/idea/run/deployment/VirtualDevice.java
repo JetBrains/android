@@ -58,7 +58,7 @@ final class VirtualDevice extends Device {
    */
   private final @Nullable VirtualDeviceName myNameKey;
 
-  private final @NotNull Collection<@NotNull Snapshot> mySnapshots;
+  private final @NotNull Collection<Snapshot> mySnapshots;
   private final boolean mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
 
   @NotNull
@@ -93,7 +93,7 @@ final class VirtualDevice extends Device {
 
   static final class Builder extends Device.Builder {
     private @Nullable VirtualDeviceName myNameKey;
-    private final @NotNull Collection<@NotNull Snapshot> mySnapshots = new ArrayList<>();
+    private final @NotNull Collection<Snapshot> mySnapshots = new ArrayList<>();
     private boolean mySelectDeviceSnapshotComboBoxSnapshotsEnabled = StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED.get();
 
     @NotNull
@@ -137,7 +137,7 @@ final class VirtualDevice extends Device {
       return this;
     }
 
-    @NotNull Builder addAllSnapshots(@NotNull Collection<@NotNull Snapshot> snapshots) {
+    @NotNull Builder addAllSnapshots(@NotNull Collection<Snapshot> snapshots) {
       mySnapshots.addAll(snapshots);
       return this;
     }
@@ -167,7 +167,7 @@ final class VirtualDevice extends Device {
     mySelectDeviceSnapshotComboBoxSnapshotsEnabled = builder.mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
   }
 
-  @NotNull Optional<@NotNull VirtualDeviceName> getNameKey() {
+  @NotNull Optional<VirtualDeviceName> getNameKey() {
     return Optional.ofNullable(myNameKey);
   }
 
@@ -223,7 +223,7 @@ final class VirtualDevice extends Device {
   }
 
   @Override
-  @NotNull Collection<@NotNull Snapshot> getSnapshots() {
+  @NotNull Collection<Snapshot> getSnapshots() {
     return mySnapshots;
   }
 
@@ -241,7 +241,7 @@ final class VirtualDevice extends Device {
   }
 
   @Override
-  @NotNull Collection<@NotNull Target> getTargets() {
+  @NotNull Collection<Target> getTargets() {
     if (!mySelectDeviceSnapshotComboBoxSnapshotsEnabled) {
       return Collections.singletonList(new QuickBootTarget(getKey()));
     }

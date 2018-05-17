@@ -27,7 +27,6 @@ import com.intellij.psi.XmlRecursiveElementVisitor
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.annotations.NonNls
 import java.util.LinkedList
 import java.util.Locale
 
@@ -109,7 +108,7 @@ object ProcessNameReader {
       xmlFile.accept(object : XmlRecursiveElementVisitor() {
         override fun visitXmlAttribute(attribute: XmlAttribute) {
           if ("process" == attribute.localName) {
-            val value: @NonNls String? = attribute.value
+            val value: String? = attribute.value
 
             // Ignore local processes that start with ":" character.
             if (value != null && !value.startsWith(LOCAL_PROCESS_NAME_SEPARATOR)) {

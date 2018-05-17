@@ -56,7 +56,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
 
   static final File FAILED_TO_LOAD_SKINS = new File("_failed_to_load_skins");
 
-  private final @NotNull Supplier<@NotNull ListenableFuture<@NotNull Collection<@NotNull Path>>> myUpdateSkins;
+  private final @NotNull Supplier<ListenableFuture<Collection<Path>>> myUpdateSkins;
   private final @NotNull Executor myDeviceSkinUpdaterServiceExecutor;
   private final @NotNull Executor myEdtExecutor;
   private List<ItemListener> myListeners = new ArrayList<>();
@@ -68,7 +68,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
          EdtExecutorService.getInstance());
   }
 
-  private static @NotNull Supplier<@NotNull ListenableFuture<@NotNull Collection<@NotNull Path>>> updateSkins(boolean includeSdkHandlerSkins) {
+  private static @NotNull Supplier<ListenableFuture<Collection<Path>>> updateSkins(boolean includeSdkHandlerSkins) {
     if (includeSdkHandlerSkins) {
       return DeviceSkinUpdaterService.getInstance()::updateSkinsIncludingSdkHandlerOnes;
     }
@@ -78,7 +78,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
 
   @VisibleForTesting
   SkinChooser(@Nullable Project project,
-              @NotNull Supplier<@NotNull ListenableFuture<@NotNull Collection<@NotNull Path>>> updateSkins,
+              @NotNull Supplier<ListenableFuture<Collection<Path>>> updateSkins,
               @NotNull Executor deviceSkinUpdaterServiceExecutor,
               @NotNull Executor edtExecutor) {
     myUpdateSkins = updateSkins;
@@ -87,7 +87,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
 
     getComboBox().setRenderer(new ColoredListCellRenderer<File>() {
       @Override
-      protected void customizeCellRenderer(@NotNull JList<@NotNull ? extends File> list,
+      protected void customizeCellRenderer(@NotNull JList<? extends File> list,
                                            @Nullable File skin,
                                            int index,
                                            boolean selected,
@@ -135,7 +135,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
 
           FutureCallback<List<File>> callback = new LoadSkinsFutureCallback(SkinChooser.this, skin) {
             @Override
-            public void onSuccess(@NotNull List<@NotNull File> skins) {
+            public void onSuccess(@NotNull List<File> skins) {
               if (!skins.contains(skin)) {
                 skins.add(skin);
               }
@@ -152,7 +152,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
     setTextFieldPreferredWidth(20);
   }
 
-  @NotNull ListenableFuture<@NotNull List<@NotNull File>> loadSkins() {
+  @NotNull ListenableFuture<List<File>> loadSkins() {
     setEnabled(false);
     setItems(Collections.singletonList(LOADING_SKINS));
 
@@ -160,7 +160,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
     return Futures.transform(myUpdateSkins.get(), SkinChooser::transform, myDeviceSkinUpdaterServiceExecutor);
   }
 
-  private static @NotNull List<@NotNull File> transform(@NotNull Collection<@NotNull Path> paths) {
+  private static @NotNull List<File> transform(@NotNull Collection<Path> paths) {
     List<File> transformed = new ArrayList<>(1 + paths.size());
     transformed.add(Paths.get(SkinUtils.NO_SKIN).toFile());
 

@@ -43,7 +43,7 @@ final class IconLabel extends JBLabel implements IconTableCell {
   }
 
   @Override
-  public @NotNull Optional<@NotNull Icon> getDefaultIcon() {
+  public @NotNull Optional<Icon> getDefaultIcon() {
     return Optional.ofNullable(myDefaultIcon);
   }
 

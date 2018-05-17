@@ -62,20 +62,20 @@ public class DetailsPanel extends JBPanel<DetailsPanel> implements Disposable {
   protected @Nullable Component mySummarySection;
   protected @Nullable Component myScreenDiagram;
   private @Nullable AbstractButton myCopyPropertiesToClipboardButton;
-  protected final @NotNull List<@NotNull Component> myInfoSections;
+  protected final @NotNull List<Component> myInfoSections;
   protected final @NotNull Container myInfoSectionPanel;
   private final @NotNull Component myScrollPane;
   protected @Nullable PairedDevicesPanel myPairedDevicesPanel;
   private @Nullable JBTabbedPane myTabbedPane;
 
-  private final @NotNull Supplier<@NotNull Toolkit> myGetDefaultToolkit;
+  private final @NotNull Supplier<Toolkit> myGetDefaultToolkit;
 
   protected DetailsPanel(@NotNull String heading) {
     this(heading, Toolkit::getDefaultToolkit);
   }
 
   @VisibleForTesting
-  DetailsPanel(@NotNull String heading, @NotNull Supplier<@NotNull Toolkit> getDefaultToolkit) {
+  DetailsPanel(@NotNull String heading, @NotNull Supplier<Toolkit> getDefaultToolkit) {
     super(null);
 
     myHeadingLabel = newHeadingLabel(heading);
@@ -247,11 +247,11 @@ public class DetailsPanel extends JBPanel<DetailsPanel> implements Disposable {
     return myInfoSectionPanel;
   }
 
-  final @NotNull Optional<@NotNull PairedDevicesPanel> getPairedDevicesPanel() {
+  final @NotNull Optional<PairedDevicesPanel> getPairedDevicesPanel() {
     return Optional.ofNullable(myPairedDevicesPanel);
   }
 
-  final @NotNull Optional<@NotNull JTabbedPane> getTabbedPane() {
+  final @NotNull Optional<JTabbedPane> getTabbedPane() {
     return Optional.ofNullable(myTabbedPane);
   }
 }

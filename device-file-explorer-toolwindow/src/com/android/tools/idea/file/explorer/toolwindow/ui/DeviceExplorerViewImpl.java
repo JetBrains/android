@@ -529,7 +529,7 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     }
 
     @NotNull
-    public abstract String getText(@NotNull List<@NotNull DeviceFileEntryNode> nodes);
+    public abstract String getText(@NotNull List<DeviceFileEntryNode> nodes);
 
     @Nullable
     @Override
@@ -629,7 +629,7 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
   private class CopyPathMenuItem extends TreeMenuItem {
     @NotNull
     @Override
-    public String getText(@NotNull List<@NotNull DeviceFileEntryNode> nodes) {
+    public String getText(@NotNull List<DeviceFileEntryNode> nodes) {
       if (nodes.size() > 1) {
         return "Copy Paths";
       }
@@ -661,7 +661,7 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
   private class OpenMenuItem extends TreeMenuItem {
     @NotNull
     @Override
-    public String getText(@NotNull List<@NotNull DeviceFileEntryNode> nodes) {
+    public String getText(@NotNull List<DeviceFileEntryNode> nodes) {
       return "Open";
     }
 
@@ -692,7 +692,7 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
   private class SaveAsMenuItem extends TreeMenuItem {
     @NotNull
     @Override
-    public String getText(@NotNull List<@NotNull DeviceFileEntryNode> nodes) {
+    public String getText(@NotNull List<DeviceFileEntryNode> nodes) {
       if (nodes.size() > 1) {
         return "Save To...";
       }
@@ -728,7 +728,7 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
   private class NewFileMenuItem extends SingleSelectionTreeMenuItem {
     @NotNull
     @Override
-    public String getText(@NotNull List<@NotNull DeviceFileEntryNode> nodes) {
+    public String getText(@NotNull List<DeviceFileEntryNode> nodes) {
       return "File";
     }
 
@@ -752,7 +752,7 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
   private class NewDirectoryMenuItem extends SingleSelectionTreeMenuItem {
     @NotNull
     @Override
-    public String getText(@NotNull List<@NotNull DeviceFileEntryNode> nodes) {
+    public String getText(@NotNull List<DeviceFileEntryNode> nodes) {
       return "Directory";
     }
 
@@ -776,7 +776,7 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
   private class DeleteNodesMenuItem extends TreeMenuItem {
     @NotNull
     @Override
-    public String getText(@NotNull List<@NotNull DeviceFileEntryNode> nodes) {
+    public String getText(@NotNull List<DeviceFileEntryNode> nodes) {
       return "Delete...";
     }
 
@@ -807,7 +807,7 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
   private class SynchronizeNodesMenuItem extends TreeMenuItem {
     @NotNull
     @Override
-    public String getText(@NotNull List<@NotNull DeviceFileEntryNode> nodes) {
+    public String getText(@NotNull List<DeviceFileEntryNode> nodes) {
       return "Synchronize";
     }
 
@@ -838,7 +838,7 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
   private class UploadFilesMenuItem extends SingleSelectionTreeMenuItem {
     @NotNull
     @Override
-    public String getText(@NotNull List<@NotNull DeviceFileEntryNode> nodes) {
+    public String getText(@NotNull List<DeviceFileEntryNode> nodes) {
       return "Upload...";
     }
 

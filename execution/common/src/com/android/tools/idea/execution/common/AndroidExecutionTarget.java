@@ -23,7 +23,7 @@ import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AndroidExecutionTarget extends ExecutionTarget {
-  public @NotNull ListenableFuture<@NotNull Boolean> isApplicationRunningAsync(@NotNull String appPackage) {
+  public @NotNull ListenableFuture<Boolean> isApplicationRunningAsync(@NotNull String appPackage) {
     throw new UnsupportedOperationException();
   }
 
@@ -42,7 +42,7 @@ public abstract class AndroidExecutionTarget extends ExecutionTarget {
   /**
    * @return the collection of running devices to run a configuration on, apply changes to, etc
    */
-  public @NotNull ListenableFuture<@NotNull Collection<@NotNull IDevice>> getRunningDevicesAsync() {
+  public @NotNull ListenableFuture<Collection<IDevice>> getRunningDevicesAsync() {
     throw new UnsupportedOperationException();
   }
 

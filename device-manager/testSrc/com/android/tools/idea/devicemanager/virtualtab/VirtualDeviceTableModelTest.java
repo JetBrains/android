@@ -42,7 +42,6 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -55,7 +54,7 @@ import org.mockito.Mockito;
 public final class VirtualDeviceTableModelTest {
   private final @NotNull AvdManagerConnection myConnection = Mockito.mock(AvdManagerConnection.class);
   private final @NotNull AvdInfo myAvd = Mockito.mock(AvdInfo.class);
-  private final @NotNull Collection<@NotNull VirtualDevice> myDevices = List.of(TestVirtualDevices.pixel5Api31(myAvd));
+  private final @NotNull Collection<VirtualDevice> myDevices = List.of(TestVirtualDevices.pixel5Api31(myAvd));
   private final @NotNull TableModelListener myListener = Mockito.mock(TableModelListener.class);
 
   @Test
@@ -85,7 +84,7 @@ public final class VirtualDeviceTableModelTest {
     Mockito.verify(myListener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model, 0))));
   }
 
-  private static @NotNull FutureCallback<@NotNull Boolean> newSetOnline(@NotNull VirtualDeviceTableModel model,
+  private static @NotNull FutureCallback<Boolean> newSetOnline(@NotNull VirtualDeviceTableModel model,
                                                                         @NotNull Key key,
                                                                         @NotNull CountDownLatch latch) {
     return new CountDownLatchFutureCallback<>(VirtualDeviceTableModel.newSetOnline(model, key), latch);
@@ -332,7 +331,7 @@ public final class VirtualDeviceTableModelTest {
     inOrder.verify(console).close();
   }
 
-  private static @NotNull FutureCallback<@Nullable Object> newSetAllOnline(@NotNull VirtualDeviceTableModel model,
+  private static @NotNull FutureCallback<Object> newSetAllOnline(@NotNull VirtualDeviceTableModel model,
                                                                            @NotNull CountDownLatch latch) {
     return new CountDownLatchFutureCallback<>(new SetAllOnline(model), latch);
   }

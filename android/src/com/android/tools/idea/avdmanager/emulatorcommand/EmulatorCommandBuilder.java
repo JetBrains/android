@@ -43,7 +43,7 @@ public class EmulatorCommandBuilder {
   private @Nullable Path myStudioParams;
   private boolean myLaunchInToolWindow;
 
-  private final @NotNull List<@NotNull String> myStudioEmuParams;
+  private final @NotNull List<String> myStudioEmuParams;
 
   public EmulatorCommandBuilder(@NotNull Path emulator, @NotNull AvdInfo avd) {
     myEmulator = emulator;
@@ -72,7 +72,7 @@ public class EmulatorCommandBuilder {
     return this;
   }
 
-  public final @NotNull EmulatorCommandBuilder addAllStudioEmuParams(@NotNull Collection<@NotNull String> studioEmuParams) {
+  public final @NotNull EmulatorCommandBuilder addAllStudioEmuParams(@NotNull Collection<String> studioEmuParams) {
     myStudioEmuParams.addAll(studioEmuParams);
     return this;
   }

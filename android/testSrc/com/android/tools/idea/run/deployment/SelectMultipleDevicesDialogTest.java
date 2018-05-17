@@ -51,9 +51,9 @@ public final class SelectMultipleDevicesDialogTest {
 
   private SelectMultipleDevicesDialog myDialog;
 
-  private void initDialog(@NotNull List<@NotNull Device> devices,
+  private void initDialog(@NotNull List<Device> devices,
                           @NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabledGet,
-                          @NotNull Function<@NotNull Project, @NotNull DevicesSelectedService> devicesSelectedServiceGetInstance) {
+                          @NotNull Function<Project, DevicesSelectedService> devicesSelectedServiceGetInstance) {
     Application application = ApplicationManager.getApplication();
 
     application.invokeAndWait(() -> myDialog = new SelectMultipleDevicesDialog(myRule.getProject(),

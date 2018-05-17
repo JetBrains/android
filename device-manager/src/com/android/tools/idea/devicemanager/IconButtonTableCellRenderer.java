@@ -44,7 +44,7 @@ public class IconButtonTableCellRenderer implements TableCellRenderer {
   }
 
   // TODO It looks like the padding accommodates the sorting direction icon. Find a way to programmatically get its width.
-  static int getPreferredWidth(@NotNull JTable table, @NotNull Class<? extends @NotNull Object> c, int padding) {
+  static int getPreferredWidth(@NotNull JTable table, @NotNull Class<? extends Object> c, int padding) {
     IconButtonTableCellRenderer renderer = (IconButtonTableCellRenderer)table.getDefaultRenderer(c);
     return renderer.myButton.getTableCellComponent(table, false, false).getPreferredSize().width + padding;
   }

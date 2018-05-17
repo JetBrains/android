@@ -23,7 +23,7 @@ final class Loggers {
   private Loggers() {
   }
 
-  static <T> void errorConditionally(@NotNull Class<@NotNull T> c, @NotNull String message) {
+  static <T> void errorConditionally(@NotNull Class<T> c, @NotNull String message) {
     if (StudioFlags.LOGGERS_ERRORS_ENABLED.get()) {
       Logger.getInstance(c).error(message);
     }

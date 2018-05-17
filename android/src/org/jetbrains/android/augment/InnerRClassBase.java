@@ -48,7 +48,7 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
 
   protected static final PsiType INT_ARRAY = PsiType.INT.createArrayType();
 
-  protected static final Predicate<@NotNull ResourceItem> ACCESSIBLE_RESOURCE_FILTER = resource -> {
+  protected static final Predicate<ResourceItem> ACCESSIBLE_RESOURCE_FILTER = resource -> {
     if (!resource.getNamespace().equals(ResourceNamespace.ANDROID) && resource.getLibraryName() == null) {
       return true; // Project resource.
     }

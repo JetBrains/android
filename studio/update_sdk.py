@@ -18,7 +18,6 @@ HIDDEN = [
     "/plugins/Kotlin/lib/kotlin-stdlib.jar",
     "/plugins/Kotlin/lib/kotlin-stdlib-jdk7.jar",
     "/plugins/Kotlin/lib/kotlin-stdlib-common.jar",
-    "/lib/annotations-java5.jar",
 ]
 
 ALL = "all"

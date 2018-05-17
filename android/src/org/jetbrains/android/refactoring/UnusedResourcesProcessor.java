@@ -100,13 +100,13 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
 
   @Override
   @NotNull
-  protected UsageViewDescriptor createUsageViewDescriptor(@NotNull UsageInfo @NotNull [] usages) {
+  protected UsageViewDescriptor createUsageViewDescriptor(@NotNull UsageInfo[] usages) {
     return new UnusedResourcesUsageViewDescriptor(myElements);
   }
 
   @Override
   @NotNull
-  protected UsageInfo @NotNull [] findUsages() {
+  protected UsageInfo[] findUsages() {
     Map<Issue, Map<File, List<LintProblemData>>> map = computeUnusedMap();
     List<PsiElement> elements = computeUnusedDeclarationElements(map);
     myElements = elements.toArray(PsiElement.EMPTY_ARRAY);
@@ -403,7 +403,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
   }
 
   @Override
-  protected void refreshElements(@NotNull PsiElement @NotNull [] elements) {
+  protected void refreshElements(@NotNull PsiElement[] elements) {
     System.arraycopy(elements, 0, myElements, 0, elements.length);
   }
 
@@ -422,7 +422,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
   }
 
   @Override
-  protected void performRefactoring(@NotNull UsageInfo @NotNull [] usages) {
+  protected void performRefactoring(@NotNull UsageInfo[] usages) {
     try {
       for (UsageInfo usage : usages) {
         PsiElement element = usage.getElement();

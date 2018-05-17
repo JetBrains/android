@@ -33,12 +33,11 @@ import java.awt.Component;
 import java.util.function.BiFunction;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
 public final class DeviceManagerToolWindowFactory implements ToolWindowFactory, DumbAware {
   public static final String ID = "Device Manager";
-  private final @NotNull BiFunction<@Nullable Project, @NotNull Disposable, @NotNull Component> myNewVirtualDevicePanel;
+  private final @NotNull BiFunction<Project, Disposable, Component> myNewVirtualDevicePanel;
 
   @SuppressWarnings("unused")
   private DeviceManagerToolWindowFactory() {
@@ -47,7 +46,7 @@ public final class DeviceManagerToolWindowFactory implements ToolWindowFactory, 
 
   @NonInjectable
   @VisibleForTesting
-  DeviceManagerToolWindowFactory(@NotNull BiFunction<@Nullable Project, @NotNull Disposable, @NotNull Component> newVirtualDevicePanel) {
+  DeviceManagerToolWindowFactory(@NotNull BiFunction<Project, Disposable, Component> newVirtualDevicePanel) {
     myNewVirtualDevicePanel = newVirtualDevicePanel;
   }
 

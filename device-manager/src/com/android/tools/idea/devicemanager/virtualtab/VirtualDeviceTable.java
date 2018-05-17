@@ -74,7 +74,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
 
   @VisibleForTesting
   interface NewSetDevices {
-    @NotNull FutureCallback<@NotNull List<@NotNull VirtualDevice>> apply(@NotNull VirtualDeviceTable table);
+    @NotNull FutureCallback<List<VirtualDevice>> apply(@NotNull VirtualDeviceTable table);
   }
 
   VirtualDeviceTable(@NotNull VirtualDevicePanel panel) {
@@ -128,7 +128,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
   }
 
   @VisibleForTesting
-  static @NotNull FutureCallback<@NotNull List<@NotNull VirtualDevice>> newSetDevices(@NotNull VirtualDeviceTable table) {
+  static @NotNull FutureCallback<List<VirtualDevice>> newSetDevices(@NotNull VirtualDeviceTable table) {
     return new DeviceManagerFutureCallback<>(VirtualDeviceTable.class, devices -> {
       table.getModel().setDevices(devices);
       // noinspection DialogTitleCapitalization
@@ -152,7 +152,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     AndroidDebugBridge.addDeviceChangeListener(myListener);
   }
 
-  private static @NotNull RowSorter<@NotNull TableModel> newRowSorter(@NotNull TableModel model) {
+  private static @NotNull RowSorter<TableModel> newRowSorter(@NotNull TableModel model) {
     DefaultRowSorter<TableModel, Integer> sorter = new TableRowSorter<>(model);
 
     sorter.setComparator(VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX,
@@ -182,7 +182,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     AndroidDebugBridge.removeDeviceChangeListener(myListener);
   }
 
-  @NotNull ListenableFuture<@NotNull Key> addDevice(@NotNull Key key) {
+  @NotNull ListenableFuture<Key> addDevice(@NotNull Key key) {
     // noinspection UnstableApiUsage
     return Futures.transform(myAsyncSupplier.get(key), this::add, EdtExecutorService.getInstance());
   }
@@ -192,7 +192,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     return device.getKey();
   }
 
-  @NotNull ListenableFuture<@NotNull Key> reloadDevice(@NotNull Key key) {
+  @NotNull ListenableFuture<Key> reloadDevice(@NotNull Key key) {
     // noinspection UnstableApiUsage
     return Futures.transform(myAsyncSupplier.get(key), this::set, EdtExecutorService.getInstance());
   }
@@ -207,7 +207,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     return (VirtualDeviceTableModel)dataModel;
   }
 
-  @NotNull Optional<@NotNull VirtualDevice> getSelectedDevice() {
+  @NotNull Optional<VirtualDevice> getSelectedDevice() {
     int viewRowIndex = getSelectedRow();
 
     if (viewRowIndex == -1) {

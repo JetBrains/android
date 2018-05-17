@@ -46,7 +46,7 @@ public final class VirtualDeviceTableTest {
   public void emptyTable() throws InterruptedException {
     VirtualDeviceTable.NewSetDevices callback = table -> new FutureCallback<>() {
       @Override
-      public void onSuccess(@NotNull List<@NotNull VirtualDevice> result) {
+      public void onSuccess(@NotNull List<VirtualDevice> result) {
         myLatch.countDown();
       }
 
@@ -83,14 +83,14 @@ public final class VirtualDeviceTableTest {
     assertEquals(Optional.of(device), table.getSelectedDevice());
   }
 
-  private static @NotNull VirtualDeviceAsyncSupplier mockSupplier(@NotNull List<@NotNull VirtualDevice> devices) {
+  private static @NotNull VirtualDeviceAsyncSupplier mockSupplier(@NotNull List<VirtualDevice> devices) {
     VirtualDeviceAsyncSupplier supplier = Mockito.mock(VirtualDeviceAsyncSupplier.class);
     Mockito.when(supplier.getAll()).thenReturn(Futures.immediateFuture(devices));
 
     return supplier;
   }
 
-  private @NotNull FutureCallback<@NotNull List<@NotNull VirtualDevice>> newSetDevices(@NotNull VirtualDeviceTable table) {
+  private @NotNull FutureCallback<List<VirtualDevice>> newSetDevices(@NotNull VirtualDeviceTable table) {
     return new CountDownLatchFutureCallback<>(VirtualDeviceTable.newSetDevices(table), myLatch);
   }
 }

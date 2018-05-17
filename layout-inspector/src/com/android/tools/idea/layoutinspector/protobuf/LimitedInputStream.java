@@ -18,7 +18,6 @@ package com.android.tools.idea.layoutinspector.protobuf;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import org.jetbrains.annotations.NotNull;
 
 // Copy from com.android.tools.idea.protobuf.AbstractMessageLite.LimitedInputStream
 
@@ -47,7 +46,7 @@ final class LimitedInputStream extends FilterInputStream {
     }
   }
 
-  public int read(byte @NotNull [] b, int off, int len) throws IOException {
+  public int read(byte[] b, int off, int len) throws IOException {
     if (this.limit <= 0) {
       return -1;
     } else {

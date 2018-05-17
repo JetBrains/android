@@ -57,7 +57,7 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
   }
 
   @Override
-  public @NotNull List<@NotNull JComponent> newItems() {
+  public @NotNull List<JComponent> newItems() {
     List<JComponent> items = new ArrayList<>();
 
     items.add(newColdBootNowItem());
@@ -93,7 +93,7 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
     return item;
   }
 
-  private void addPairDeviceItems(@NotNull Collection<@NotNull JComponent> items) {
+  private void addPairDeviceItems(@NotNull Collection<JComponent> items) {
     if (!StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED.get()) {
       return;
     }

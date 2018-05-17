@@ -41,8 +41,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployableProvider {
-  private final @NotNull Supplier<@NotNull DeviceAndSnapshotComboBoxAction> myDeviceAndSnapshotComboBoxActionGetInstance;
-  private final @NotNull Supplier<@NotNull Logger> myLoggerGetInstance;
+  private final @NotNull Supplier<DeviceAndSnapshotComboBoxAction> myDeviceAndSnapshotComboBoxActionGetInstance;
+  private final @NotNull Supplier<Logger> myLoggerGetInstance;
 
   private boolean myStackTraceLoggedOnce;
 
@@ -53,8 +53,8 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
 
   @VisibleForTesting
   @NonInjectable
-  DeviceAndSnapshotComboBoxDeployableProvider(@NotNull Supplier<@NotNull DeviceAndSnapshotComboBoxAction> deviceAndSnapshotComboBoxActionGetInstance,
-                                              @NotNull Supplier<@NotNull Logger> loggerGetInstance) {
+  DeviceAndSnapshotComboBoxDeployableProvider(@NotNull Supplier<DeviceAndSnapshotComboBoxAction> deviceAndSnapshotComboBoxActionGetInstance,
+                                              @NotNull Supplier<Logger> loggerGetInstance) {
     myDeviceAndSnapshotComboBoxActionGetInstance = deviceAndSnapshotComboBoxActionGetInstance;
     myLoggerGetInstance = loggerGetInstance;
   }
@@ -81,7 +81,7 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
       .orElse(null);
   }
 
-  private @NotNull Optional<@NotNull String> getPackageName(@NotNull ApplicationIdProvider provider) {
+  private @NotNull Optional<String> getPackageName(@NotNull ApplicationIdProvider provider) {
     try {
       String name = provider.getPackageName();
       myStackTraceLoggedOnce = false;
@@ -119,7 +119,7 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
     }
 
     @Override
-    public @NotNull ListenableFuture<@NotNull List<@NotNull Client>> searchClientsForPackageAsync() {
+    public @NotNull ListenableFuture<List<Client>> searchClientsForPackageAsync() {
       var future = myDevice.getDdmlibDeviceAsync();
 
       // I intend for device -> Deployable.searchClientsForPackage(device, myPackageName) to execute on the EDT. If I use EdtExecutorService
@@ -145,7 +145,7 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
     }
 
     @Override
-    public @NotNull ListenableFuture<@NotNull Boolean> isOnlineAsync() {
+    public @NotNull ListenableFuture<Boolean> isOnlineAsync() {
       if (!myDevice.getAndroidDevice().isRunning()) {
         return Futures.immediateFuture(false);
       }
@@ -167,7 +167,7 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
     }
 
     @Override
-    public @NotNull ListenableFuture<@NotNull Boolean> isUnauthorizedAsync() {
+    public @NotNull ListenableFuture<Boolean> isUnauthorizedAsync() {
       if (!myDevice.getAndroidDevice().isRunning()) {
         return Futures.immediateFuture(false);
       }

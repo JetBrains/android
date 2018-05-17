@@ -39,7 +39,7 @@ public class MlShortNamesCache extends PsiShortNamesCache {
 
   @NotNull
   @Override
-  public PsiClass @NotNull [] getClassesByName(@NotNull String name, @NotNull GlobalSearchScope scope) {
+  public PsiClass[] getClassesByName(@NotNull String name, @NotNull GlobalSearchScope scope) {
     if (!StudioFlags.ML_MODEL_BINDING.get()) {
       return PsiClass.EMPTY_ARRAY;
     }
@@ -51,7 +51,7 @@ public class MlShortNamesCache extends PsiShortNamesCache {
 
   @NotNull
   @Override
-  public String @NotNull [] getAllClassNames() {
+  public String[] getAllClassNames() {
     if (!StudioFlags.ML_MODEL_BINDING.get()) {
       return ArrayUtil.EMPTY_STRING_ARRAY;
     }
@@ -61,19 +61,19 @@ public class MlShortNamesCache extends PsiShortNamesCache {
 
   @NotNull
   @Override
-  public PsiMethod @NotNull [] getMethodsByName(@NotNull String name, @NotNull GlobalSearchScope scope) {
+  public PsiMethod[] getMethodsByName(@NotNull String name, @NotNull GlobalSearchScope scope) {
     return PsiMethod.EMPTY_ARRAY;
   }
 
   @NotNull
   @Override
-  public PsiMethod @NotNull [] getMethodsByNameIfNotMoreThan(@NotNull String name, @NotNull GlobalSearchScope scope, int maxCount) {
+  public PsiMethod[] getMethodsByNameIfNotMoreThan(@NotNull String name, @NotNull GlobalSearchScope scope, int maxCount) {
     return PsiMethod.EMPTY_ARRAY;
   }
 
   @NotNull
   @Override
-  public PsiField @NotNull [] getFieldsByNameIfNotMoreThan(@NotNull String name, @NotNull GlobalSearchScope scope, int maxCount) {
+  public PsiField[] getFieldsByNameIfNotMoreThan(@NotNull String name, @NotNull GlobalSearchScope scope, int maxCount) {
     return PsiField.EMPTY_ARRAY;
   }
 
@@ -86,19 +86,19 @@ public class MlShortNamesCache extends PsiShortNamesCache {
 
   @NotNull
   @Override
-  public String @NotNull [] getAllMethodNames() {
+  public String[] getAllMethodNames() {
     return ArrayUtil.EMPTY_STRING_ARRAY;
   }
 
   @NotNull
   @Override
-  public PsiField @NotNull [] getFieldsByName(@NotNull String name, @NotNull GlobalSearchScope scope) {
+  public PsiField[] getFieldsByName(@NotNull String name, @NotNull GlobalSearchScope scope) {
     return PsiField.EMPTY_ARRAY;
   }
 
   @NotNull
   @Override
-  public String @NotNull [] getAllFieldNames() {
+  public String[] getAllFieldNames() {
     return ArrayUtil.EMPTY_STRING_ARRAY;
   }
 }

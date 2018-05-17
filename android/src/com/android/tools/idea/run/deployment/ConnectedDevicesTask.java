@@ -68,7 +68,7 @@ final class ConnectedDevicesTask implements AsyncSupplier<List<ConnectedDevice>>
     return Futures.transform(myAndroidDebugBridge.getConnectedDevices(), this::newConnectedDevices, myExecutor);
   }
 
-  private @NotNull List<@NotNull ConnectedDevice> newConnectedDevices(@NotNull Collection<@NotNull IDevice> devices) {
+  private @NotNull List<ConnectedDevice> newConnectedDevices(@NotNull Collection<IDevice> devices) {
     return devices.stream()
       .filter(IDevice::isOnline)
       .map(this::newConnectedDevice)

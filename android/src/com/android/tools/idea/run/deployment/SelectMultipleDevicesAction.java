@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 
 final class SelectMultipleDevicesAction extends AnAction {
   static final String ID = "SelectMultipleDevices";
-  private final @NotNull Function<@NotNull Project, @NotNull AsyncDevicesGetter> myAsyncDevicesGetterGetInstance;
+  private final @NotNull Function<Project, AsyncDevicesGetter> myAsyncDevicesGetterGetInstance;
 
   @SuppressWarnings("unused")
   private SelectMultipleDevicesAction() {
@@ -37,7 +37,7 @@ final class SelectMultipleDevicesAction extends AnAction {
 
   @VisibleForTesting
   @NonInjectable
-  SelectMultipleDevicesAction(@NotNull Function<@NotNull Project, @NotNull AsyncDevicesGetter> asyncDevicesGetterGetInstance) {
+  SelectMultipleDevicesAction(@NotNull Function<Project, AsyncDevicesGetter> asyncDevicesGetterGetInstance) {
     myAsyncDevicesGetterGetInstance = asyncDevicesGetterGetInstance;
   }
 

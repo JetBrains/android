@@ -34,7 +34,7 @@ public abstract class Device {
   protected final @NotNull AndroidVersion myAndroidVersion;
   protected final @Nullable Resolution myResolution;
   protected final int myDensity;
-  protected final @NotNull ImmutableCollection<@NotNull String> myAbis;
+  protected final @NotNull ImmutableCollection<String> myAbis;
   protected final @Nullable StorageDevice myStorageDevice;
 
   protected static abstract class Builder {
@@ -45,7 +45,7 @@ public abstract class Device {
     protected @NotNull AndroidVersion myAndroidVersion = AndroidVersion.DEFAULT;
     protected @Nullable Resolution myResolution;
     protected int myDensity = -1;
-    protected final @NotNull Collection<@NotNull String> myAbis = new ArrayList<>();
+    protected final @NotNull Collection<String> myAbis = new ArrayList<>();
     protected @Nullable StorageDevice myStorageDevice;
 
     protected abstract @NotNull Device build();
@@ -113,7 +113,7 @@ public abstract class Device {
     return new Resolution(width, height);
   }
 
-  public final @NotNull Iterable<@NotNull String> getAbis() {
+  public final @NotNull Iterable<String> getAbis() {
     return myAbis;
   }
 

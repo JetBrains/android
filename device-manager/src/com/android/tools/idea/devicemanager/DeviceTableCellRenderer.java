@@ -46,7 +46,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DeviceTableCellRenderer<D extends Device> implements TableCellRenderer {
-  private final @NotNull Class<@NotNull D> myValueClass;
+  private final @NotNull Class<D> myValueClass;
   private final @NotNull WearPairingManager myManager;
 
   private final @NotNull JLabel myNameLabel;
@@ -55,13 +55,13 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
   private final @NotNull JLabel myPairedLabel;
   private final @NotNull JComponent myPanel;
 
-  protected DeviceTableCellRenderer(@NotNull Class<@NotNull D> valueClass) {
+  protected DeviceTableCellRenderer(@NotNull Class<D> valueClass) {
     this(valueClass, WearPairingManager.getInstance());
   }
 
 
   @VisibleForTesting
-  DeviceTableCellRenderer(@NotNull Class<@NotNull D> valueClass, @NotNull WearPairingManager manager) {
+  DeviceTableCellRenderer(@NotNull Class<D> valueClass, @NotNull WearPairingManager manager) {
     myValueClass = valueClass;
     myManager = manager;
 
@@ -178,7 +178,7 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     return new JBColor(new Color(red, green, blue), color.darker());
   }
 
-  @NotNull Optional<@NotNull Icon> getPairedLabelIcon(@NotNull Device device) {
+  @NotNull Optional<Icon> getPairedLabelIcon(@NotNull Device device) {
     List<PhoneWearPair> pairList = myManager.getPairsForDevice(device.getKey().toString());
 
     if (pairList.isEmpty()) {

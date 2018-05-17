@@ -35,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
 
 final class DeviceAndSnapshotComboBoxTarget implements DeployTarget {
   private final @NotNull SelectedTargetSupplier myGetSelectedTargets;
-  private final @NotNull Supplier<@NotNull DeviceAndSnapshotComboBoxAction> myDeviceAndSnapshotComboBoxActionGetInstance;
+  private final @NotNull Supplier<DeviceAndSnapshotComboBoxAction> myDeviceAndSnapshotComboBoxActionGetInstance;
 
   DeviceAndSnapshotComboBoxTarget(@NotNull SelectedTargetSupplier getSelectedTargets) {
     this(getSelectedTargets, DeviceAndSnapshotComboBoxAction::getInstance);
@@ -43,7 +43,7 @@ final class DeviceAndSnapshotComboBoxTarget implements DeployTarget {
 
   @VisibleForTesting
   DeviceAndSnapshotComboBoxTarget(@NotNull SelectedTargetSupplier getSelectedTargets,
-                                  @NotNull Supplier<@NotNull DeviceAndSnapshotComboBoxAction> deviceAndSnapshotComboBoxActionGetInstance) {
+                                  @NotNull Supplier<DeviceAndSnapshotComboBoxAction> deviceAndSnapshotComboBoxActionGetInstance) {
     myGetSelectedTargets = getSelectedTargets;
     myDeviceAndSnapshotComboBoxActionGetInstance = deviceAndSnapshotComboBoxActionGetInstance;
   }
@@ -72,8 +72,8 @@ final class DeviceAndSnapshotComboBoxTarget implements DeployTarget {
     return newDeviceFutures(selectedDevices);
   }
 
-  private static void bootAvailableDevices(@NotNull Collection<@NotNull Target> selectedTargets,
-                                           @NotNull Collection<@NotNull Device> selectedDevices,
+  private static void bootAvailableDevices(@NotNull Collection<Target> selectedTargets,
+                                           @NotNull Collection<Device> selectedDevices,
                                            @NotNull Project project) {
     Map<Key, Target> map = selectedTargets.stream().collect(Collectors.toMap(Target::getDeviceKey, target -> target));
 
@@ -83,7 +83,7 @@ final class DeviceAndSnapshotComboBoxTarget implements DeployTarget {
       .forEach(virtualDevice -> map.get(virtualDevice.getKey()).boot(virtualDevice, project));
   }
 
-  private static @NotNull DeviceFutures newDeviceFutures(@NotNull Collection<@NotNull Device> selectedDevices) {
+  private static @NotNull DeviceFutures newDeviceFutures(@NotNull Collection<Device> selectedDevices) {
     List<AndroidDevice> devices = selectedDevices.stream()
       .map(Device::getAndroidDevice)
       .collect(Collectors.toList());

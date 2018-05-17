@@ -52,7 +52,7 @@ public class ImageConverter {
    * @param imageBytes the pixel values to convert
    * @param pixels the converted pixel values
    */
-  public static void unpackRgb888(@NotNull ByteString imageBytes, int @NotNull [] pixels) {
+  public static void unpackRgb888(@NotNull ByteString imageBytes, int[] pixels) {
     int length = imageBytes.size();
     if (length == 0) {
       return;
@@ -80,7 +80,7 @@ public class ImageConverter {
    * @param imageBytes the pixel values to convert
    * @param pixels the converted pixel values
    */
-  public static void unpackRgb888Slow(@NotNull ByteString imageBytes, int @NotNull [] pixels) {
+  public static void unpackRgb888Slow(@NotNull ByteString imageBytes, int[] pixels) {
     int length = imageBytes.size();
     if (length % 3 != 0) {
       throw new IllegalArgumentException("Number of bytes (" + length + ") is not a multiple of 3");
@@ -171,7 +171,7 @@ public class ImageConverter {
    * @param length the number of image bytes; has to be a multiple of 3
    * @param pixels the converted pixel values
    */
-  private static native void unpackRgb888(byte @NotNull [] imageBytes, int offset, int length, int @NotNull [] pixels);
+  private static native void unpackRgb888(byte[] imageBytes, int offset, int length, int[] pixels);
 
   // Do not instantiate. All methods are static.
   private ImageConverter() {}

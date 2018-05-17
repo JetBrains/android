@@ -81,11 +81,11 @@ final class DetailsPanelPanel extends JBPanel<DetailsPanelPanel> implements Disp
   }
 
   @VisibleForTesting
-  @NotNull Optional<@NotNull Object> getDetailsPanel() {
+  @NotNull Optional<Object> getDetailsPanel() {
     return Optional.ofNullable(myDetailsPanel);
   }
 
-  @NotNull Optional<@NotNull Splitter> getSplitter() {
+  @NotNull Optional<Splitter> getSplitter() {
     return Optional.ofNullable(mySplitter);
   }
 }

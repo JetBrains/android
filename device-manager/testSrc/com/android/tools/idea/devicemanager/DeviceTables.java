@@ -41,7 +41,7 @@ public final class DeviceTables {
     return table;
   }
 
-  private static <D extends Device> void stubCalls(@NotNull DeviceTable<@NotNull D> table, @NotNull D device) {
+  private static <D extends Device> void stubCalls(@NotNull DeviceTable<D> table, @NotNull D device) {
     Mockito.when(table.getBackground()).thenReturn(new ColorUIResource(60, 63, 65));
     Mockito.when(table.getDeviceAt(0)).thenReturn(device);
     Mockito.when(table.getSelectionBackground()).thenReturn(new ColorUIResource(47, 101, 202));
