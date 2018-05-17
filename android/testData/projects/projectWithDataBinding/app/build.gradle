@@ -24,7 +24,4 @@ android {
 
 dependencies {
     api fileTree(dir: 'libs', include: ['*.jar'])
-
-    // Force the version to be what's in the test_deps repo. This is a dependency of data binding.
-    compile 'android.arch.lifecycle:runtime:+'
 }
