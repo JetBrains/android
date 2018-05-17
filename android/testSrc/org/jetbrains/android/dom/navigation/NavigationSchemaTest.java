@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.dom.navigation;
 
-import com.android.tools.idea.naveditor.NavTestUtil;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
@@ -46,12 +45,18 @@ public class NavigationSchemaTest extends AndroidTestCase {
   private static final String[] EMPTIES = new String[] {"include" };
   private static final String[] GROUPS = new String[] {"navigation", "navigation_sub"};
 
+  private static final String[] PREBUILT_AAR_PATHS = {
+    "../../prebuilts/tools/common/m2/repository/androidx/navigation/navigation-runtime/1.0.0-alpha01/navigation-runtime-1.0.0-alpha01.aar",
+    "../../prebuilts/tools/common/m2/repository/androidx/navigation/navigation-fragment/1.0.0-alpha01/navigation-fragment-1.0.0-alpha01.aar",
+    "../../prebuilts/tools/common/m2/repository/androidx/navigation/navigation-common/1.0.0-alpha01/navigation-common-1.0.0-alpha01.aar"
+  };
+
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myFixture.copyDirectoryToProject("navschematest", "src");
 
-    for (String prebuiltPath : NavTestUtil.getNavEditorAarPaths()) {
+    for (String prebuiltPath : PREBUILT_AAR_PATHS) {
       File aar = new File(PathManager.getHomePath(), prebuiltPath);
       File tempDir = FileUtil.createTempDirectory("NavigationSchemaTest", null);
       ZipUtil.extract(aar, tempDir, null);
