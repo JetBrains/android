@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.model.helpers
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.ValueAnnotation
+import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.intellij.pom.java.LanguageLevel
 import junit.framework.Assert.*
 import org.junit.Test
@@ -130,5 +131,27 @@ class InputParsersTest {
     assertTrue(parsed.value is ParsedValue.Set.Parsed)
     assertEquals(ValueAnnotation.Error("'123.4' is not a valid integer value"), parsed.annotation)
     assertEquals(DslText.OtherUnparsedDslText("123.4"), (parsed.value as ParsedValue.Set.Parsed).dslText)
+  }
+
+  @Test
+  fun languageLevel_empty() {
+    val parsed = parseLanguageLevel(null, "")
+    assertTrue(parsed.value === ParsedValue.NotSet)
+    assertNull(parsed.annotation)
+  }
+
+  @Test
+  fun languageLevel() {
+    assertEquals(parseLanguageLevel(null, "1.8"), ParsedValue.Set.Parsed(LanguageLevel.JDK_1_8, DslText.Literal).annotated())
+    assertEquals(parseLanguageLevel(null, "VERSION_1_7"), ParsedValue.Set.Parsed(LanguageLevel.JDK_1_7, DslText.Literal).annotated())
+    assertEquals(parseLanguageLevel(null, "JavaVersion.VERSION_1_6"),
+                 ParsedValue.Set.Parsed(LanguageLevel.JDK_1_6, DslText.Literal).annotated())
+  }
+
+  @Test
+  fun referenceOnly_empty() {
+    val parsed = parseReferenceOnly(null, "")
+    assertTrue(parsed.value === ParsedValue.NotSet)
+    assertNull(parsed.annotation)
   }
 }

@@ -70,13 +70,19 @@ fun parseInt(context: Any?, text: String): Annotated<ParsedValue<Int>> =
   }
 
 fun parseLanguageLevel(context: Any?, text: String): Annotated<ParsedValue<LanguageLevel>> =
-  parseFromGradleString(text)?.let { ParsedValue.Set.Parsed(it, DslText.Literal).annotated() }
-  ?: ParsedValue.Set.Parsed(null, DslText.OtherUnparsedDslText(text))
-    .annotateWithError("'$text' is not a valid language level")
+  if (text == "")
+    ParsedValue.NotSet.annotated()
+  else
+    parseFromGradleString(text)?.let { ParsedValue.Set.Parsed(it, DslText.Literal).annotated() }
+    ?: ParsedValue.Set.Parsed(null, DslText.OtherUnparsedDslText(text))
+      .annotateWithError("'$text' is not a valid language level")
 
 fun parseReferenceOnly(context: Any?, text: String): Annotated<ParsedValue<Unit>> =
-  ParsedValue.Set.Parsed(null, DslText.OtherUnparsedDslText(text))
-    .annotateWithError("A signing config reference should be in a form of '\$configName'")
+  if (text == "")
+    ParsedValue.NotSet.annotated()
+  else
+    ParsedValue.Set.Parsed(null, DslText.OtherUnparsedDslText(text))
+      .annotateWithError("A signing config reference should be in a form of '\$configName'")
 
 fun formatLanguageLevel(context: Any?, value: LanguageLevel): String = value.toJavaVersion().toString()
 
