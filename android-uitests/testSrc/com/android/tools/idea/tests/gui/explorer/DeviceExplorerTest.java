@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.explorer;
 
 import com.android.tools.idea.explorer.DeviceExplorer;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.wm.impl.StripeButton;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
