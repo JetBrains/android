@@ -91,7 +91,7 @@ public class FileResourceRepository extends LocalResourceRepository implements S
 
   /**
    * Creates and loads a resource repository. Consider calling
-   * {@link com.android.tools.idea.res.aar.AarResourceRepositoryCache#get(File, String)} instead of this method.
+   * {@link com.android.tools.idea.res.aar.AarResourceRepositoryCache#get} instead of this method.
    *
    * @param resourceDirectory the directory containing resources
    * @param libraryName the name of the library
