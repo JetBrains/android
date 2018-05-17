@@ -488,24 +488,19 @@ public final class GuiTests {
   }
 
   public static void findAndClickOkButton(@NotNull ContainerFixture<? extends Container> container) {
-    findAndClickButtonWhenEnabled(container, "OK");
+    findAndClickButton(container, "OK");
   }
 
   public static void findAndClickCancelButton(@NotNull ContainerFixture<? extends Container> container) {
-    findAndClickButtonWhenEnabled(container, "Cancel");
+    findAndClickButton(container, "Cancel");
   }
 
   public static void findAndClickButton(@NotNull ContainerFixture<? extends Container> container, @NotNull String text) {
     Robot robot = container.robot();
-    new JButtonFixture(robot, GuiTests.waitUntilShowing(robot, container.target(), Matchers.byText(JButton.class, text))).click();
-  }
-
-  public static void findAndClickButtonWhenEnabled(@NotNull ContainerFixture<? extends Container> container, @NotNull String text) {
-    Robot robot = container.robot();
     new JButtonFixture(robot, GuiTests.waitUntilShowingAndEnabled(robot, container.target(), Matchers.byText(JButton.class, text))).click();
   }
 
-  public static void findAndClickLabelWhenEnabled(@NotNull ContainerFixture<? extends Container> container, @NotNull String text) {
+  public static void findAndClickLabel(@NotNull ContainerFixture<? extends Container> container, @NotNull String text) {
     Robot robot = container.robot();
     new JLabelFixture(robot, GuiTests.waitUntilShowingAndEnabled(robot, container.target(), Matchers.byText(JLabel.class, text))).click();
   }

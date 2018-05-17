@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.debugger;
 
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -45,7 +44,7 @@ import javax.swing.tree.TreeNode;
 import java.util.Collections;
 import java.util.Enumeration;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickLabelWhenEnabled;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickLabel;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.fest.reflect.core.Reflection.field;
 import static org.fest.reflect.core.Reflection.method;
@@ -272,7 +271,7 @@ public class UpgradeBuildToolsTest extends DebuggerTestBase {
   @NotNull
   private IdeSettingsDialogFixture openSDKManagerSDKToolsTab(@NotNull IdeFrameFixture ideFrameFixture) {
     IdeSettingsDialogFixture ideSettingsDialogFixture = ideFrameFixture.invokeSdkManager();
-    findAndClickLabelWhenEnabled(ideSettingsDialogFixture, INSTALL_SDK_TOOLS_TAB);
+    findAndClickLabel(ideSettingsDialogFixture, INSTALL_SDK_TOOLS_TAB);
 
     GuiTests.waitUntilFound(guiTest.robot(), ideSettingsDialogFixture.target(),
                             Matchers.byText(JBLabel.class, LOOK_FOR_UPDATES).andIsShowing(),

@@ -75,7 +75,7 @@ public class GradleUpdateTest {
     ideFrameFixture.requestProjectSync();
 
     // Project sync can take a very long time
-    GuiTests.findAndClickButtonWhenEnabled(
+    GuiTests.findAndClickButton(
       ideFrameFixture.waitForDialog("Android Gradle Plugin Update Recommended", 120),
       "Update");
     guiTest.waitForBackgroundTasks();

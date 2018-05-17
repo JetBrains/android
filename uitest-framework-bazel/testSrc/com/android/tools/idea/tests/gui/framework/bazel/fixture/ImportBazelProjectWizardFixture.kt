@@ -153,7 +153,7 @@ class ImportBazelProjectWizardFixture(robot: Robot, target: JDialog) :
 
   fun clickFinish(): ImportBazelProjectWizardFixture {
     logger.info("Finish import bazel project wizard")
-    findAndClickButtonWhenEnabled(this, "Finish")
+    findAndClickButton(this, "Finish")
     return this
   }
 }

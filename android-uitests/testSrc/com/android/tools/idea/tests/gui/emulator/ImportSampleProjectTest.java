@@ -76,7 +76,7 @@ public class ImportSampleProjectTest {
 
     ideFrameFixture.requestProjectSync();
 
-    GuiTests.findAndClickButtonWhenEnabled(
+    GuiTests.findAndClickButton(
       ideFrameFixture.waitForDialog("Android Gradle Plugin Update Recommended", 120),
       "Update");
 
