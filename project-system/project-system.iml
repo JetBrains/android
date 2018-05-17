@@ -11,7 +11,6 @@
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="module" module-name="intellij.platform.ide.impl" />
     <orderEntry type="module" module-name="android.sdktools.common" />
-    <orderEntry type="module" module-name="intellij.platform.annotations.common" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
     <orderEntry type="module" module-name="intellij.java.psi" />
   </component>
