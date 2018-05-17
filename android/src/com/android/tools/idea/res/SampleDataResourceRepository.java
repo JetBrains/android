@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceTable;
@@ -30,10 +31,12 @@ import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.*;
 import com.intellij.psi.*;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidFacetScopedService;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -182,7 +185,13 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
     return sampleDataDir;
   }
 
-  protected SampleDataResourceRepository(@NotNull AndroidFacet androidFacet) {
+  @NotNull
+  public static SampleDataResourceRepository getInstance(@NotNull AndroidFacet facet) {
+    return Manager.getInstance(facet).getRepository();
+  }
+
+  @VisibleForTesting
+  SampleDataResourceRepository(@NotNull AndroidFacet androidFacet) {
     super("SampleData");
 
     Disposer.register(androidFacet, this);
@@ -431,5 +440,45 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
     unregisterPsiListener();
     myAndroidFacet = null;
     super.dispose();
+  }
+
+  /**
+   * Service which caches instances of {@link SampleDataResourceRepository} by their associated {@link AndroidFacet}.
+   */
+  private static class Manager extends AndroidFacetScopedService {
+    private static final Key<Manager> KEY = Key.create(Manager.class.getName());
+    private SampleDataResourceRepository repository;
+
+    @NotNull
+    public static Manager getInstance(@NotNull AndroidFacet facet) {
+      Manager manager = facet.getUserData(KEY);
+
+      if (manager == null) {
+        manager = new Manager(facet);
+        facet.putUserData(KEY, manager);
+      }
+
+      return manager;
+    }
+
+    public Manager(@NotNull AndroidFacet facet) {
+      super(facet);
+    }
+
+    @NotNull
+    public SampleDataResourceRepository getRepository() {
+      if (isDisposed()) {
+        throw new IllegalStateException(getClass().getName() + " is disposed");
+      }
+      if (repository == null) {
+        repository = new SampleDataResourceRepository(getFacet());
+      }
+      return repository;
+    }
+
+    @Override
+    public void onServiceDisposal(@NotNull AndroidFacet facet) {
+      repository = null;
+    }
   }
 }

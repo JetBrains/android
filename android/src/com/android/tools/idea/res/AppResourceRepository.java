@@ -87,7 +87,7 @@ class AppResourceRepository extends MultiResourceRepository {
     LocalResourceRepository resources = ResourceRepositoryManager.getProjectResources(facet);
     repositories.addAll(libraries);
     repositories.add(resources);
-    repositories.add(new SampleDataResourceRepository(facet));
+    repositories.add(SampleDataResourceRepository.getInstance(facet));
     return repositories;
   }
 
