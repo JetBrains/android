@@ -276,8 +276,14 @@ public class ResourceRepositoryManager implements Disposable {
       for (Library library : libraries) {
         // We should only add .aar dependencies if they aren't already provided as modules.
         // For now, the way we associate them with each other is via the library name;
-        // in the future the model will provide this for us
+        // in the future the model will provide this for us.
         String libraryName = library.getArtifactAddress();
+        // Strip the build system prefix and the "@aar" suffix, if present (b/79942260).
+        // Both, "Gradle: com.android.support:appcompat-v7-27.1.0" and "com.android.support:appcompat-v7:27.1.0@aar"
+        // are converted to "com.android.support:appcompat-v7:27.1.0".
+        int prefixEnd = libraryName.lastIndexOf(' ') + 1;
+        int suffixStart = libraryName.endsWith("@aar") ? libraryName.length() - "@aar".length() : libraryName.length();
+        libraryName = libraryName.substring(prefixEnd, suffixStart);
         if (!moduleNames.contains(libraryName)) {
           File resFolder = new File(library.getResFolder());
           if (resFolder.exists()) {
@@ -289,8 +295,7 @@ public class ResourceRepositoryManager implements Disposable {
       }
     }
     catch (UnsupportedOperationException e) {
-      // This happens when there is an incompatibility between the builder-model interfaces embedded in Android Studio and the
-      // cached model.
+      // This happens when there is an incompatibility between the builder-model interfaces embedded in Android Studio and the cached model.
       // If we got here, it is because this code got invoked before project sync happened (e.g. when reopening a project with open editors).
       // Project sync now is smart enough to handle this case and will trigger a full sync.
       LOG.warn("Incompatibility found between the IDE's builder-model and the cached Gradle model", e);
