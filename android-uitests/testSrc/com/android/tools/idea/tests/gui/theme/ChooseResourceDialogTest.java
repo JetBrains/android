@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.theme;
 
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture;
@@ -33,6 +32,7 @@ import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.*;
 import org.fest.swing.timing.Wait;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,8 +43,6 @@ import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.listToString;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.tableToString;
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.data.TableCell.row;
 import static org.junit.Assert.*;
@@ -475,5 +473,66 @@ public class ChooseResourceDialogTest {
     dialog.clickOK();
 
     Wait.seconds(2).expecting("property to have the new value").until(() -> property.getValue().equals("@array/my_array"));
+  }
+
+  /**
+   * Pretty-prints the given table fixture
+   */
+  @NotNull
+  private static String tableToString(@NotNull JTableFixture table) {
+    return tableToString(table, 0, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, 40);
+  }
+
+  /**
+   * Pretty-prints the given table fixture
+   */
+  @NotNull
+  private static String tableToString(@NotNull JTableFixture table, int startRow, int endRow, int startColumn, int endColumn,
+                                     int cellWidth) {
+    String[][] contents = table.contents();
+
+    StringBuilder sb = new StringBuilder();
+    String formatString = "%-" + Integer.toString(cellWidth) + "s";
+    for (int row = Math.max(0, startRow); row < Math.min(endRow, contents.length); row++) {
+      for (int column = Math.max(0, startColumn); column < Math.min(contents[0].length, endColumn); column++) {
+        String cell = contents[row][column];
+        if (cell.length() > cellWidth) {
+          cell = cell.substring(0, cellWidth - 3) + "...";
+        }
+        sb.append(String.format(formatString, cell));
+      }
+      sb.append('\n');
+    }
+
+    return sb.toString();
+  }
+
+  /**
+   * Pretty-prints the given list fixture
+   */
+  @NotNull
+  private static String listToString(@NotNull JListFixture list) {
+    return listToString(list, 0, Integer.MAX_VALUE, 40);
+  }
+
+  /**
+   * Pretty-prints the given list fixture
+   */
+  @NotNull
+  private static String listToString(@NotNull JListFixture list, int startRow, int endRow, int cellWidth) {
+    String[] contents = list.contents();
+
+    StringBuilder sb = new StringBuilder();
+    String formatString = "%-" + Integer.toString(cellWidth) + "s";
+    for (int row = Math.max(0, startRow); row < Math.min(endRow, contents.length); row++) {
+      String cell = contents[row];
+      if (cell.length() > cellWidth) {
+        cell = cell.substring(0, cellWidth - 3) + "...";
+      }
+      sb.append(String.format(formatString, cell));
+      sb.append('\n');
+    }
+
+    return sb.toString();
   }
 }

@@ -705,66 +705,6 @@ public final class GuiTests {
       .until(isProjectIndexed::get);
   }
 
-  /**
-   * Pretty-prints the given table fixture
-   */
-  @NotNull
-  public static String tableToString(@NotNull JTableFixture table) {
-    return tableToString(table, 0, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, 40);
-  }
-
-  /**
-   * Pretty-prints the given table fixture
-   */
-  @NotNull
-  public static String tableToString(@NotNull JTableFixture table, int startRow, int endRow, int startColumn, int endColumn,
-                                     int cellWidth) {
-    String[][] contents = table.contents();
-
-    StringBuilder sb = new StringBuilder();
-    String formatString = "%-" + Integer.toString(cellWidth) + "s";
-    for (int row = Math.max(0, startRow); row < Math.min(endRow, contents.length); row++) {
-      for (int column = Math.max(0, startColumn); column < Math.min(contents[0].length, endColumn); column++) {
-        String cell = contents[row][column];
-        if (cell.length() > cellWidth) {
-          cell = cell.substring(0, cellWidth - 3) + "...";
-        }
-        sb.append(String.format(formatString, cell));
-      }
-      sb.append('\n');
-    }
-
-    return sb.toString();
-  }
-
-  /**
-   * Pretty-prints the given list fixture
-   */
-  @NotNull
-  public static String listToString(@NotNull JListFixture list) {
-    return listToString(list, 0, Integer.MAX_VALUE, 40);
-  }
-
-  /**
-   * Pretty-prints the given list fixture
-   */
-  @NotNull
-  public static String listToString(@NotNull JListFixture list, int startRow, int endRow, int cellWidth) {
-    String[] contents = list.contents();
-
-    StringBuilder sb = new StringBuilder();
-    String formatString = "%-" + Integer.toString(cellWidth) + "s";
-    for (int row = Math.max(0, startRow); row < Math.min(endRow, contents.length); row++) {
-      String cell = contents[row];
-      if (cell.length() > cellWidth) {
-        cell = cell.substring(0, cellWidth - 3) + "...";
-      }
-      sb.append(String.format(formatString, cell));
-      sb.append('\n');
-    }
-
-    return sb.toString();
-  }
 
   private static class MyProjectManagerListener extends ProjectManagerAdapter {
     boolean myActive;
