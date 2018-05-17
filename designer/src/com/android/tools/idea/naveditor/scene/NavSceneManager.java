@@ -24,6 +24,7 @@ import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.scene.HitProvider;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.scene.TemporarySceneComponent;
@@ -87,6 +88,7 @@ public class NavSceneManager extends SceneManager {
 
   private final NavScreenTargetProvider myScreenTargetProvider;
   private final NavigationTargetProvider myNavigationTargetProvider;
+  private final HitProvider myNavDestinationHitProvider = new NavDestinationHitProvider();
 
   private final List<NavSceneLayoutAlgorithm> myLayoutAlgorithms;
   private final NavSceneLayoutAlgorithm mySavingLayoutAlgorithm;
@@ -622,5 +624,15 @@ public class NavSceneManager extends SceneManager {
       mySchema = NavigationSchema.get(getModel().getFacet());
     }
     return mySchema;
+  }
+
+  @NotNull
+  @Override
+  public HitProvider getHitProvider(@NotNull NlComponent component) {
+    if (NavComponentHelperKt.getSupportsActions(component)) {
+      return myNavDestinationHitProvider;
+    }
+
+    return super.getHitProvider(component);
   }
 }

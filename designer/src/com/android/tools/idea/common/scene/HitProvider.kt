@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.common.scene;
+package com.android.tools.idea.common.scene
 
-import com.android.tools.idea.common.model.NlComponent;
-import org.jetbrains.annotations.NotNull;
-
-/**
- * Component used during Drag and Drop
- */
-public class TemporarySceneComponent extends SceneComponent {
-
-  public TemporarySceneComponent(@NotNull Scene scene, @NotNull NlComponent component) {
-    super(scene, component, new DefaultHitProvider());
-  }
-
-  @Override
-  public void setDragging(boolean dragging) {
-    myDragging = dragging;
-  }
+interface HitProvider {
+  fun addHit(component: SceneComponent, sceneTransform: SceneContext, picker: ScenePicker)
 }

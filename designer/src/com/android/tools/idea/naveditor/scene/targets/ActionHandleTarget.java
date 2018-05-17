@@ -27,12 +27,12 @@ import com.android.tools.idea.common.scene.draw.DrawFilledCircle;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
+import com.android.tools.idea.naveditor.scene.NavDrawHelperKt;
 import com.android.tools.idea.naveditor.scene.draw.DrawActionHandleDrag;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.Computable;
-import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,17 +42,13 @@ import java.util.List;
 
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_ACTION_HANDLE_BACKGROUND_LEVEL;
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_ACTION_HANDLE_LEVEL;
-import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.FRAGMENT_BORDER_SPACING;
+import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.ACTION_HANDLE_OFFSET;
 
 /**
  * {@linkplain ActionHandleTarget} is a target for handling drag-creation of actions.
  * It appears as a circular grab handle on the right side of the navigation screen.
  */
 public class ActionHandleTarget extends NavBaseTarget {
-  @NavCoordinate private static final int INNER_RADIUS_SMALL = JBUI.scale(5);
-  @NavCoordinate private static final int INNER_RADIUS_LARGE = JBUI.scale(8);
-  @NavCoordinate private static final int OUTER_RADIUS_SMALL = JBUI.scale(7);
-  @NavCoordinate private static final int OUTER_RADIUS_LARGE = JBUI.scale(11);
   private static final int DURATION = 200;
   @SwingCoordinate private static final int STROKE_WIDTH = 2;
   private static String DRAG_CREATE_IN_PROGRESS = "DRAG_CREATE_IN_PROGRESS";
@@ -61,8 +57,8 @@ public class ActionHandleTarget extends NavBaseTarget {
 
   private enum HandleState {
     INVISIBLE(0, 0),
-    SMALL(INNER_RADIUS_SMALL, OUTER_RADIUS_SMALL),
-    LARGE(INNER_RADIUS_LARGE, OUTER_RADIUS_LARGE);
+    SMALL(NavDrawHelperKt.INNER_RADIUS_SMALL, NavDrawHelperKt.OUTER_RADIUS_SMALL),
+    LARGE(NavDrawHelperKt.INNER_RADIUS_LARGE, NavDrawHelperKt.OUTER_RADIUS_LARGE);
 
     HandleState(@NavCoordinate int innerRadius, @NavCoordinate int outerRadius) {
       myInnerRadius = innerRadius;
@@ -94,7 +90,7 @@ public class ActionHandleTarget extends NavBaseTarget {
                         @NavCoordinate int b) {
     @NavCoordinate int x = r;
     if (NavComponentHelperKt.isFragment(getComponent().getNlComponent())) {
-      x += FRAGMENT_BORDER_SPACING + 2;
+      x += ACTION_HANDLE_OFFSET;
     }
     layoutCircle(x, t + (b - t) / 2, myHandleState.myOuterRadius);
     return false;
@@ -155,7 +151,7 @@ public class ActionHandleTarget extends NavBaseTarget {
     @SwingCoordinate Point center = new Point(getSwingCenterX(sceneContext), getSwingCenterY(sceneContext));
     @SwingCoordinate int initialRadius = sceneContext.getSwingDimension(myHandleState.myOuterRadius);
     @SwingCoordinate int finalRadius = sceneContext.getSwingDimension(newState.myOuterRadius);
-    int duration = Math.abs(DURATION * (finalRadius - initialRadius) / OUTER_RADIUS_LARGE);
+    int duration = Math.abs(DURATION * (finalRadius - initialRadius) / NavDrawHelperKt.OUTER_RADIUS_LARGE);
 
     ColorSet colorSet = sceneContext.getColorSet();
     list.add(new DrawFilledCircle(DRAW_ACTION_HANDLE_BACKGROUND_LEVEL, center, colorSet.getBackground(),
@@ -179,7 +175,7 @@ public class ActionHandleTarget extends NavBaseTarget {
   @Override
   public void addHit(@NotNull SceneContext transform, @NotNull ScenePicker picker) {
     picker.addCircle(this, 0, getSwingCenterX(transform), getSwingCenterY(transform),
-                     transform.getSwingDimension(OUTER_RADIUS_LARGE));
+                     transform.getSwingDimension(NavDrawHelperKt.OUTER_RADIUS_LARGE));
   }
 
   @Override
