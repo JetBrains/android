@@ -16,6 +16,7 @@
 package com.android.tools.idea.res;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.projectsystem.FilenameConstants;
@@ -116,6 +117,7 @@ class AppResourceRepository extends MultiResourceRepository {
       }
     }
 
+    AaptOptions.Namespacing namespacing = ResourceRepositoryManager.getOrCreateInstance(facet).getNamespacing();
     List<FileResourceRepository> resources = new ArrayList<>(aarDirs.size());
     // TODO: Load AAR repositories on multiple threads.
     for (Map.Entry<File, String> entry : aarDirs.entrySet()) {
@@ -124,7 +126,7 @@ class AppResourceRepository extends MultiResourceRepository {
       if (LOG.isDebugEnabled()) {
         LOG.debug("  Dependency: " + anonymizeClassName(libraryName));
       }
-      resources.add(AarResourceRepositoryCache.getInstance().get(directory, libraryName));
+      resources.add(AarResourceRepositoryCache.getInstance().get(directory, namespacing, libraryName));
     }
     return resources;
   }

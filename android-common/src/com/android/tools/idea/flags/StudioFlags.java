@@ -302,10 +302,6 @@ public final class StudioFlags {
     RESOURCES_MANAGEMENT, "enabled", "Enable the new resources management tools",
     "If enabled, the new resource management tools are enabled. Subflags will also need to be enabled to enable all available new tools",
     false);
-  public static final Flag<Boolean> AAR_V2_ENABLED = Flag.create(
-    RESOURCES_MANAGEMENT, "aar.v2", "Enable support for libraries in proto format",
-    "Allows project to depend on libraries in AARv2 format.",
-    false);
 
   private static final FlagGroup LAYOUT_INSPECTOR = new FlagGroup(FLAGS, "layout.inspector", "Layout Inspector");
   public static final Flag<Boolean> LAYOUT_INSPECTOR_LOAD_OVERLAY_ENABLED = Flag.create(
