@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButtonWhenEnabled;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 
 public class WebpPreviewDialogFixture extends IdeaDialogFixture<WebpPreviewDialog> {
@@ -51,25 +51,25 @@ public class WebpPreviewDialogFixture extends IdeaDialogFixture<WebpPreviewDialo
 
   @NotNull
   public WebpPreviewDialogFixture clickNext() {
-    findAndClickButtonWhenEnabled(this, "Next");
+    findAndClickButton(this, "Next");
     return this;
   }
 
   @NotNull
   public WebpPreviewDialogFixture clickPrevious() {
-    findAndClickButtonWhenEnabled(this, "Previous");
+    findAndClickButton(this, "Previous");
     return this;
   }
 
   @NotNull
   public WebpPreviewDialogFixture clickAcceptAll() {
-    findAndClickButtonWhenEnabled(this, "Accept All");
+    findAndClickButton(this, "Accept All");
     return this;
   }
 
   @NotNull
   public WebpPreviewDialogFixture clickFinish() {
-    findAndClickButtonWhenEnabled(this, "Finish");
+    findAndClickButton(this, "Finish");
     return this;
   }
 }

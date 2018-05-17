@@ -57,12 +57,12 @@ public abstract class AbstractWizardFixture<S> extends ComponentFixture<S, JRoot
 
   @NotNull
   public S clickNext() {
-    findAndClickButtonWhenEnabled(this, "Next");
+    findAndClickButton(this, "Next");
     return myself();
   }
 
   protected void clickFinish(@NotNull Wait waitForDialogDisappear) {
-    findAndClickButtonWhenEnabled(this, "Finish");
+    findAndClickButton(this, "Finish");
     waitForDialogDisappear.expecting("dialog to disappear").until(
       () -> GuiQuery.getNonNull(() -> !target().isShowing())
     );
@@ -79,7 +79,7 @@ public abstract class AbstractWizardFixture<S> extends ComponentFixture<S, JRoot
 
   @NotNull
   public S clickPrevious() {
-    findAndClickButtonWhenEnabled(this, "Previous");
+    findAndClickButton(this, "Previous");
     return myself();
   }
 

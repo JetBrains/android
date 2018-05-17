@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableGroup;
 import com.intellij.openapi.options.newEditor.SettingsDialog;
-import com.intellij.openapi.util.Ref;
 import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.filtered.FilteringTreeStructure;
 import org.fest.swing.cell.JTreeCellReader;
@@ -45,7 +44,7 @@ import java.awt.*;
 import java.util.Collection;
 import java.util.List;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButtonWhenEnabled;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.reflect.core.Reflection.field;
 
@@ -108,7 +107,7 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> 
   }
 
   public void clickOK() {
-    findAndClickButtonWhenEnabled(this, "OK");
+    findAndClickOkButton(this);
   }
 
   public void selectShowPackageDetails() {

@@ -37,7 +37,7 @@ import org.junit.runner.RunWith;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.Collections;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickLabelWhenEnabled;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickLabel;
 import static com.google.common.truth.Truth.assertThat;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.fest.reflect.core.Reflection.method;
@@ -80,7 +80,7 @@ public class InstallPackageTest {
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
     IdeSettingsDialogFixture ideSettingsDialogFixture = ideFrameFixture.openIdeSettings().selectSdkPage();
-    findAndClickLabelWhenEnabled(ideSettingsDialogFixture, INSTALL_PACKAGE_TAB);
+    findAndClickLabel(ideSettingsDialogFixture, INSTALL_PACKAGE_TAB);
 
     GuiTests.waitUntilFound(guiTest.robot(), ideSettingsDialogFixture.target(), new GenericTypeMatcher<TreeTableView>(TreeTableView.class) {
       @Override
