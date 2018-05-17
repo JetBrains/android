@@ -42,7 +42,6 @@ import com.intellij.openapi.project.ProjectManagerAdapter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.testGuiFramework.launcher.GuiTestOptions;
@@ -409,22 +408,6 @@ public final class GuiTests {
   private GuiTests() {
   }
 
-  public static void deleteFile(@Nullable VirtualFile file) {
-    // File deletion must happen on UI thread under write lock
-    if (file != null) {
-      GuiTask.execute(() -> ApplicationManager.getApplication().runWriteAction(
-        () -> {
-          try {
-            file.delete(GuiTests.class);
-          }
-          catch (IOException e) {
-            // ignored
-          }
-        }
-      ));
-    }
-  }
-
   /**
    * Waits until an IDE popup is shown and returns it.
    */
@@ -520,11 +503,6 @@ public final class GuiTests {
   public static void findAndClickButtonWhenEnabled(@NotNull ContainerFixture<? extends Container> container, @NotNull String text) {
     Robot robot = container.robot();
     new JButtonFixture(robot, GuiTests.waitUntilShowingAndEnabled(robot, container.target(), Matchers.byText(JButton.class, text))).click();
-  }
-
-  public static void findAndClickLabel(@NotNull ContainerFixture<? extends Container> container, @NotNull String text) {
-    Robot robot = container.robot();
-    new JLabelFixture(robot, GuiTests.waitUntilShowing(robot, container.target(), Matchers.byText(JLabel.class, text))).click();
   }
 
   public static void findAndClickLabelWhenEnabled(@NotNull ContainerFixture<? extends Container> container, @NotNull String text) {
