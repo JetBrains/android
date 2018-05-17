@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui
 
+import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
@@ -42,7 +43,7 @@ interface TextRenderer {
  */
 abstract class RenderedComboBox<T>(
   private val itemsModel: DefaultComboBoxModel<T>
-) : JComboBox<T>() {
+) : ComboBox<T>() {
 
   interface Extension : ExtendableTextField.Extension
 
@@ -68,8 +69,6 @@ abstract class RenderedComboBox<T>(
 
   // Make the methods callable from the constructor.
   final override fun setRenderer(renderer: ListCellRenderer<in T>?) = super.setRenderer(renderer)
-
-  final override fun setEditor(anEditor: ComboBoxEditor?) = super.setEditor(anEditor)
 
   /**
    * Sets the current value of the editor and makes the inactive editor renderer the presentation of [value].
@@ -217,7 +216,7 @@ class AdjustedBorder(val border: Border, val component: Component, val icons: In
 
   override fun getBorderInsets(c: Component?): Insets =
     border.getBorderInsets(c).let {
-      Insets(it.top, it.left, it.bottom, it.right + if (component.isFocusOwner) icons else 0)
+      Insets(it.top, it.left, it.bottom, it.right + icons)
     }
 }
 

@@ -94,37 +94,24 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
       }
     }
 
-    @VisibleForTesting
     fun loadKnownValues() {
       val availableVariables: List<Annotated<ParsedValue.Set.Parsed<PropertyT>>>? = getAvailableVariables()
 
-      fun receiveKnownValuesOnEdt(knownValues: KnownValues<PropertyT>) {
-        val possibleValues = buildKnownValueRenderers(knownValues, formatter, property.defaultValueGetter?.invoke())
-        knownValueRenderers = possibleValues
-        setKnownValues(
-          (possibleValues.keys.toList().map { it.annotated() } +
-           availableVariables?.filter { knownValues.isSuitableVariable(it) }.orEmpty()
-          )
-        )
-      }
-
       knownValuesFuture?.cancel(false)
 
-      knownValuesFuture = Futures.transform(
-        propertyContext.getKnownValues(),
-        {
-          receiveKnownValuesOnEdt(it!!)
+      knownValuesFuture =
+        propertyContext.getKnownValues().continueOnEdt { knownValues ->
+          val possibleValues = buildKnownValueRenderers(knownValues!!, formatter, property.defaultValueGetter?.invoke())
+          knownValueRenderers = possibleValues
+          knownValues to possibleValues
+        }.invokeLater { (knownValues, possibleValues) ->
+          setKnownValues(
+            (possibleValues.keys.toList().map { it.annotated() } +
+             availableVariables?.filter { knownValues.isSuitableVariable(it) }.orEmpty()
+            )
+          )
           knownValuesFuture = null
-        },
-        {
-          val application = ApplicationManager.getApplication()
-          if (application.isDispatchThread) {
-            it.run()
-          }
-          else {
-            application.invokeLater(it, ModalityState.any())
-          }
-        })
+        }
     }
 
     private fun setStatusHtmlText(status: ValueRenderer) {
@@ -180,8 +167,6 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
     init {
       setEditable(true)
 
-      loadKnownValues()
-
       addActionListener {
         if (!disposed && !beingLoaded) {
           updateProperty()
@@ -191,8 +176,7 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
 
       addFocusGainedListener {
         if (!disposed) {
-          loadKnownValues()
-          reloadValue()
+          reload()
         }
       }
     }
@@ -231,7 +215,7 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
     simplePropertyEditor(property, propertyContext, variablesProvider, extensions)
 
   init {
-    renderedComboBox.reloadValue()
+    reload()
   }
 }
 
@@ -242,3 +226,30 @@ fun <PropertyT : Any, ModelPropertyT : ModelPropertyCore<PropertyT>> simplePrope
   extensions: List<EditorExtensionAction> = listOf()
 ): SimplePropertyEditor<PropertyT, ModelPropertyT> =
   SimplePropertyEditor(property, propertyContext, variablesProvider, extensions)
+
+
+private fun <I, O> ListenableFuture<I>.continueOnEdt(continuation: (I) -> O) =
+  Futures.transform(
+    this, { continuation(it!!) },
+    {
+      val application = ApplicationManager.getApplication()
+      if (application.isDispatchThread) {
+        it.run()
+      }
+      else {
+        application.invokeLater(it, ModalityState.any())
+      }
+    })
+
+private fun <I, O> ListenableFuture<I>.invokeLater(continuation: (I) -> O) =
+  Futures.transform(
+    this, { continuation(it!!) },
+    {
+      val application = ApplicationManager.getApplication()
+      if (application.isUnitTestMode) {
+        it.run()
+      }
+      else {
+        application.invokeLater(it, ModalityState.any())
+      }
+    })
