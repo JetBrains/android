@@ -50,14 +50,14 @@ public final class StudioProfilersTest {
   }
 
   @Test
-  public void testVersion() throws Exception {
+  public void testVersion() {
     VersionResponse response =
       myGrpcServer.getClient().getProfilerClient().getVersion(VersionRequest.getDefaultInstance());
     assertThat(response.getVersion()).isEqualTo(FakeProfilerService.VERSION);
   }
 
   @Test
-  public void testClearedOnMonitorStage() throws Exception {
+  public void testClearedOnMonitorStage() {
     StudioProfilers profilers = getProfilersWithDeviceAndProcess();
     assertThat(profilers.getTimeline().getSelectionRange().isEmpty()).isTrue();
 
@@ -128,7 +128,7 @@ public final class StudioProfilersTest {
   }
 
   @Test
-  public void testProfilerStageChange() throws Exception {
+  public void testProfilerStageChange() {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
 
@@ -160,7 +160,7 @@ public final class StudioProfilersTest {
   }
 
   @Test
-  public void testLateConnectionOfPreferredProcess() throws Exception {
+  public void testLateConnectionOfPreferredProcess() {
     final String PREFERRED_PROCESS = "Preferred";
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
@@ -191,7 +191,7 @@ public final class StudioProfilersTest {
   }
 
   @Test
-  public void testSetPreferredProcessDoesNotProfileEarlierProcess() throws Exception {
+  public void testSetPreferredProcessDoesNotProfileEarlierProcess() {
     final String PREFERRED_PROCESS = "Preferred";
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
@@ -381,7 +381,7 @@ public final class StudioProfilersTest {
   }
 
   @Test
-  public void shouldSelectAlivePreferredProcessWhenRestarted() throws Exception {
+  public void shouldSelectAlivePreferredProcessWhenRestarted() {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
     int nowInSeconds = 42;
@@ -425,7 +425,7 @@ public final class StudioProfilersTest {
   }
 
   @Test
-  public void shouldNotSelectPreferredAfterUserSelectsOtherProcess() throws Exception {
+  public void shouldNotSelectPreferredAfterUserSelectsOtherProcess() {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
     int nowInSeconds = 42;
@@ -950,16 +950,14 @@ public final class StudioProfilersTest {
   }
 
   @Test
-  public void testStoppingTwice() throws Exception {
+  public void testStoppingTwice() {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
 
     // Should be modified when STAGE aspect is fired.
     boolean[] stageAspectTriggered = {false};
     profilers.addDependency(new AspectObserver())
-             .onChange(ProfilerAspect.STAGE, () -> {
-               stageAspectTriggered[0] = true;
-             });
+             .onChange(ProfilerAspect.STAGE, () -> stageAspectTriggered[0] = true);
 
     // Check profiler is not stopped.
     assertThat(profilers.isStopped()).isFalse();
@@ -1043,7 +1041,7 @@ public final class StudioProfilersTest {
   }
 
   @Test
-  public void testNewSessionResetsStage() throws Exception {
+  public void testNewSessionResetsStage() {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
     assertThat(profilers.getSession()).isEqualTo(Common.Session.getDefaultInstance());
@@ -1359,7 +1357,7 @@ public final class StudioProfilersTest {
     return profilers;
   }
 
-  private Common.Device createDevice(int featureLevel, @NotNull String serial, @NotNull Common.Device.State state) {
+  private static Common.Device createDevice(int featureLevel, @NotNull String serial, @NotNull Common.Device.State state) {
     return Common.Device.newBuilder()
                         .setDeviceId(serial.hashCode())
                         .setFeatureLevel(featureLevel)
