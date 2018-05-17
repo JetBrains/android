@@ -15,10 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.projectstructure;
 
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.fakeadbserver.CommandHandler;
+import com.android.fakeadbserver.DeviceState;
+import com.android.fakeadbserver.FakeAdbServer;
+import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
+import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler;
+import com.android.fakeadbserver.shellcommandhandlers.ShellCommandHandler;
 import com.android.tools.idea.fd.InstantRunSettings;
-import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
@@ -31,13 +36,21 @@ import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.Proje
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.util.PatternTextMatcher;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -47,7 +60,6 @@ public class FlavorsExecutionTest {
   private final static Logger LOG = Logger.getInstance(FlavorsExecutionTest.class);
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
-  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
   private static final String PROCESS_NAME = "google.simpleapplication";
   private static final String ACTIVITY_OUTPUT_PATTERN =
@@ -57,10 +69,38 @@ public class FlavorsExecutionTest {
   private static final String FLAVOR1 = "flavor1";
   private static final String FLAVOR2 = "flavor2";
 
+  private FakeAdbServer fakeAdbServer;
+
   @Before
-  public void setUp() throws Exception {
-    guiTest.importSimpleLocalApplication();
-    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+  public void setupFakeAdbServer() throws IOException, InterruptedException, ExecutionException {
+    ActivityManagerCommandHandler.ProcessStarter startCmdHandler = new ActivityManagerCommandHandler.ProcessStarter() {
+      @NotNull
+      @Override
+      public String startProcess(@NotNull DeviceState deviceState) {
+        deviceState.startClient(1234, 1235, PROCESS_NAME, false);
+        return "";
+      }
+    };
+
+    FakeAdbServer.Builder adbBuilder = new FakeAdbServer.Builder();
+    adbBuilder.installDefaultCommandHandlers()
+              .setShellCommandHandler(ActivityManagerCommandHandler.COMMAND, () -> new ActivityManagerCommandHandler(startCmdHandler))
+              .setShellCommandHandler(LogcatCommandHandler.COMMAND, LogcatCommandHandler::new)
+              .setDeviceCommandHandler(JdwpCommandHandler.COMMAND, JdwpCommandHandler::new);
+
+    fakeAdbServer = adbBuilder.build();
+    DeviceState fakeDevice = fakeAdbServer.connectDevice(
+      "test_device",
+      "Google",
+      "Nexus 5X",
+      "8.1",
+      "27",
+      DeviceState.HostConnectionType.LOCAL
+    ).get();
+    fakeDevice.setDeviceStatus(DeviceState.DeviceStatus.ONLINE);
+
+    fakeAdbServer.start();
+    AndroidDebugBridge.enableFakeAdbServerMode(fakeAdbServer.getPort());
   }
 
   /***
@@ -88,6 +128,8 @@ public class FlavorsExecutionTest {
   @RunIn(TestGroup.SANITY)
   @Test
   public void runBuildFlavors() throws Exception {
+    guiTest.importSimpleLocalApplication();
+
     InstantRunSettings.setShowStatusNotifications(false);
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
@@ -166,7 +208,7 @@ public class FlavorsExecutionTest {
       .selectVariantForModule("app", "flavor1Debug");
     ideFrameFixture
       .runApp("app")
-      .selectDevice(emulator.getDefaultAvdName())
+      .selectDevice("Google Nexus 5X")
       .clickOk();
     ideFrameFixture.getRunToolWindow().findContent("app")
       .waitForOutput(new PatternTextMatcher(Pattern.compile(
@@ -188,7 +230,7 @@ public class FlavorsExecutionTest {
       .selectVariantForModule("app", "flavor2Debug");
     ideFrameFixture
       .runApp("app")
-      .selectDevice(emulator.getDefaultAvdName())
+      .selectDevice("Google Nexus 5X")
       .clickOk();
 
     ExecutionToolWindowFixture.ContentFixture contentWindow = ideFrameFixture.getRunToolWindow().findContent("app");
@@ -202,5 +244,48 @@ public class FlavorsExecutionTest {
       .getAndroidToolWindow()
       .selectDevicesTab()
       .selectProcess(PROCESS_NAME);
+  }
+
+  @After
+  public void shutdownFakeAdb() throws Exception {
+    AndroidDebugBridge.terminate();
+    AndroidDebugBridge.disableFakeAdbServerMode();
+    fakeAdbServer.close();
+  }
+
+  private class LogcatCommandHandler extends ShellCommandHandler {
+    @NotNull public static final String COMMAND = "logcat";
+
+    @Override
+    public boolean invoke(@NotNull FakeAdbServer fakeAdbServer,
+                          @NotNull Socket responseSocket,
+                          @NotNull DeviceState device,
+                          @Nullable String args) {
+      try {
+        OutputStream output = responseSocket.getOutputStream();
+
+        if (args == null) {
+          CommandHandler.writeFail(output);
+          return false;
+        }
+
+        CommandHandler.writeOkay(output);
+
+        String response;
+        if (args.startsWith("--help")) {
+          response = "epoch";
+        } else {
+          response = "";
+        }
+
+        CommandHandler.writeString(output, response);
+      }
+      catch (IOException ignored) {
+        // Unable to write to socket. Can't communicate anything with client. Just swallow
+        // the exception and move on
+      }
+
+      return false;
+    }
   }
 }
