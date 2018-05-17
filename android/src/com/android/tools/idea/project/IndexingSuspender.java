@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.npw.model.MultiTemplateRenderer;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -131,6 +132,14 @@ public class IndexingSuspender {
           activate(ActivationEvent.BUILD_STARTED, DeactivationEvent.BUILD_FINISHED);
         }
         break;
+      case TEMPLATE_RENDERING_STARTED:
+        if (!myActivated) {
+          activate(ActivationEvent.TEMPLATE_RENDERING_STARTED, DeactivationEvent.TEMPLATE_RENDERING_FINISHED);
+          // The sentinel dumb mode will be ended either when build starts or when suspender gets deactivated with a
+          // DeactivationEvent
+          startSentinelDumbMode("Template Rendering");
+        }
+        break;
     }
   }
 
@@ -203,6 +212,18 @@ public class IndexingSuspender {
         consumeDeactivationEvent(DeactivationEvent.BUILD_FINISHED);
       }
     });
+
+    MultiTemplateRenderer.subscribe(myProject, new MultiTemplateRenderer.TemplateRendererListener() {
+      @Override
+      public void multiRenderingStarted() {
+        consumeActivationEvent(ActivationEvent.TEMPLATE_RENDERING_STARTED);
+      }
+
+      @Override
+      public void multiRenderingFinished() {
+        consumeDeactivationEvent(DeactivationEvent.TEMPLATE_RENDERING_FINISHED);
+      }
+    });
   }
 
   private void activate(@NotNull ActivationEvent activationEvent, @NotNull DeactivationEvent deactivationEvent) {
@@ -216,7 +237,11 @@ public class IndexingSuspender {
       return;
     }
 
-    if (!myProject.isInitialized()) {
+    // Allow indexing suspension in case of template rendering regardless of project initialisation state:
+    // - if it's triggered during New Project workflow, then suspension will have a wider scope than just gradle sync,
+    // so it will not interfere.
+    // - if it's triggered during other NPW workflows, then project is already initialised anyway and there is no concern.
+    if (activationEvent != ActivationEvent.TEMPLATE_RENDERING_STARTED && !myProject.isInitialized()) {
       reportStateError("Attempt to suspend indexing when project is not yet initialised. Ignoring.");
       return;
     }
@@ -372,10 +397,12 @@ public class IndexingSuspender {
     SETUP_STARTED,
     BUILD_EXECUTOR_CREATED,
     BUILD_STARTED,
+    TEMPLATE_RENDERING_STARTED,
   }
 
   private enum DeactivationEvent {
     SYNC_FINISHED,
     BUILD_FINISHED,
+    TEMPLATE_RENDERING_FINISHED,
   }
 }
