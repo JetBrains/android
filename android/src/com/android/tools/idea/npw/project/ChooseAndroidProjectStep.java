@@ -22,6 +22,8 @@ import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.cpp.ConfigureCppSupportStep;
 import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.model.NewProjectModuleModel;
+import com.android.tools.idea.npw.model.RenderTemplateModel;
+import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.ui.ActivityGallery;
 import com.android.tools.idea.npw.ui.WizardGallery;
@@ -76,10 +78,12 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
   @Override
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
     myNewProjectModuleModel = new NewProjectModuleModel(getModel());
+    RenderTemplateModel renderModel = myNewProjectModuleModel.getExtraRenderTemplateModel();
 
     return newArrayList(
       new ConfigureAndroidProjectStep(myNewProjectModuleModel, getModel()),
-      new ConfigureCppSupportStep(getModel())
+      new ConfigureCppSupportStep(getModel()),
+      new ConfigureTemplateParametersStep(renderModel, message("android.wizard.config.activity.title"), newArrayList())
     );
   }
 
@@ -123,6 +127,9 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
     myNewProjectModuleModel.formFactor().set(formFactorInfo.formFactor);
     myNewProjectModuleModel.moduleTemplateFile().setNullableValue(formFactorInfo.templateFile);
     myNewProjectModuleModel.renderTemplateHandle().setNullableValue(selectedTemplate.getTemplate());
+
+    TemplateHandle extraStepTemplateHandle = formFactorInfo.formFactor == FormFactor.THINGS ? selectedTemplate.getTemplate() : null;
+    myNewProjectModuleModel.getExtraRenderTemplateModel().setTemplateHandle(extraStepTemplateHandle);
   }
 
   @NotNull
