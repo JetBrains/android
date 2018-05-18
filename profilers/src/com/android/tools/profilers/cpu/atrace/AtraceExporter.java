@@ -18,10 +18,9 @@ package com.android.tools.profilers.cpu.atrace;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.zip.DataFormatException;
 import java.util.zip.DeflaterOutputStream;
 
@@ -36,7 +35,7 @@ public final class AtraceExporter {
    * @param output The file stream to write systrace compatible data to.
    * @throws IOException if the trace file failed to decompress or fails to write.
    */
-  public static void export(@NotNull FileInputStream input, @NotNull FileOutputStream output) throws IOException {
+  public static void export(@NotNull FileInputStream input, @NotNull OutputStream output) throws IOException {
     AtraceDecompressor data = new AtraceDecompressor(input);
     try (DeflaterOutputStream deflaterOutputStream = new DeflaterOutputStream(output)) {
       // The first line is added by the AtraceDecompressor, for the atrace-parser. Systrace will throw an error

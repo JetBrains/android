@@ -30,7 +30,6 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.*
 import java.util.concurrent.TimeUnit
 
 class HprofSessionArtifactTest {
@@ -65,14 +64,14 @@ class HprofSessionArtifactTest {
                                                Common.Session.getDefaultInstance(),
                                                Common.SessionMetaData.getDefaultInstance(),
                                                ongoingInfo)
-    assertThat(ongoingArtifact.isOngoingCapture).isTrue()
+    assertThat(ongoingArtifact.isOngoing).isTrue()
 
     val finishedInfo = MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(1).setEndTime(2).build()
     val finishedArtifact = HprofSessionArtifact(myProfilers,
                                                 Common.Session.getDefaultInstance(),
                                                 Common.SessionMetaData.getDefaultInstance(),
                                                 finishedInfo)
-    assertThat(finishedArtifact.isOngoingCapture).isFalse()
+    assertThat(finishedArtifact.isOngoing).isFalse()
   }
 
   @Test

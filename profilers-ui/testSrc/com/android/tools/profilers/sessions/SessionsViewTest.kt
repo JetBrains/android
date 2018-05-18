@@ -403,7 +403,7 @@ class SessionsViewTest {
     val cpuCaptureItem = sessionsPanel.getComponent(1) as CpuCaptureArtifactView
     assertThat(sessionItem.artifact.session).isEqualTo(session)
     assertThat(cpuCaptureItem.artifact.session).isEqualTo(session)
-    assertThat(cpuCaptureItem.artifact.isOngoingCapture).isFalse()
+    assertThat(cpuCaptureItem.artifact.isOngoing).isFalse()
     assertThat(cpuCaptureItem.artifact.name).isEqualTo(ProfilingConfiguration.SIMPLEPERF_ARTIFACT)
     assertThat(cpuCaptureItem.artifact.subtitle).isEqualTo("00:01:00.000")
 
@@ -423,6 +423,17 @@ class SessionsViewTest {
     assertThat(selectedCapture).isNotNull()
     assertThat(selectedCapture!!.traceId).isEqualTo(traceInfoId)
     assertThat(myProfilers.timeline.isStreaming).isFalse()
+
+    // Make sure clicking the export label does not select the session.
+    mySessionsManager.setSession(Common.Session.getDefaultInstance())
+    assertThat(mySessionsManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
+    val exportLabel = cpuCaptureItem.exportLabel!!
+    assertThat(exportLabel.isVisible).isFalse()
+    ui.mouse.moveTo(cpuCaptureItem.bounds.x + 1, cpuCaptureItem.bounds.y + 1)
+    ui.layout()
+    assertThat(exportLabel.isVisible).isTrue()
+    ui.mouse.click(cpuCaptureItem.bounds.x + exportLabel.bounds.x + 1, cpuCaptureItem.bounds.y + exportLabel.bounds.y + 1)
+    assertThat(mySessionsManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
   }
 
   @Test
@@ -448,9 +459,10 @@ class SessionsViewTest {
     val cpuCaptureItem = sessionsPanel.getComponent(1) as CpuCaptureArtifactView
     assertThat(sessionItem.artifact.session).isEqualTo(session)
     assertThat(cpuCaptureItem.artifact.session).isEqualTo(session)
-    assertThat(cpuCaptureItem.artifact.isOngoingCapture).isTrue()
+    assertThat(cpuCaptureItem.artifact.isOngoing).isTrue()
     assertThat(cpuCaptureItem.artifact.name).isEqualTo(ProfilingConfiguration.ATRACE)
     assertThat(cpuCaptureItem.artifact.subtitle).isEqualTo(SessionArtifact.CAPTURING_SUBTITLE)
+    assertThat(cpuCaptureItem.exportLabel).isNull()
 
     assertThat(myProfilers.stage).isInstanceOf(StudioMonitorStage::class.java) // Makes sure we're in monitor stage
     // Selecting on the CpuCaptureSessionArtifact should open CPU profiler and select the capture
@@ -499,6 +511,17 @@ class SessionsViewTest {
     assertThat(myProfilers.stage).isInstanceOf(MemoryProfilerStage::class.java)
     // Makes sure a HeapDumpCaptureObject is loaded.
     assertThat((myProfilers.stage as MemoryProfilerStage).selectedCapture).isInstanceOf(HeapDumpCaptureObject::class.java)
+
+    // Make sure clicking the export label does not select the session.
+    mySessionsManager.setSession(Common.Session.getDefaultInstance())
+    assertThat(mySessionsManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
+    val exportLabel = hprofItem.exportLabel!!
+    assertThat(exportLabel.isVisible).isFalse()
+    ui.mouse.moveTo(hprofItem.bounds.x + 1, hprofItem.bounds.y + 1)
+    ui.layout()
+    assertThat(exportLabel.isVisible).isTrue()
+    ui.mouse.click(hprofItem.bounds.x + exportLabel.bounds.x + 1, hprofItem.bounds.y + exportLabel.bounds.y + 1)
+    assertThat(mySessionsManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
   }
 
   @Test
@@ -521,6 +544,7 @@ class SessionsViewTest {
     var hprofItem = sessionsPanel.getComponent(1) as HprofArtifactView
     assertThat(sessionItem.artifact.session).isEqualTo(session)
     assertThat(hprofItem.artifact.session).isEqualTo(session)
+    assertThat(hprofItem.exportLabel).isNull()
 
     assertThat(myProfilers.stage).isInstanceOf(StudioMonitorStage::class.java) // Makes sure we're in monitor stage
     // Selecting on the HprofSessionArtifact should open Memory profiler.
@@ -566,6 +590,17 @@ class SessionsViewTest {
     assertThat(myProfilers.stage).isInstanceOf(MemoryProfilerStage::class.java)
     // Makes sure a HeapDumpCaptureObject is loaded.
     assertThat((myProfilers.stage as MemoryProfilerStage).selectedCapture).isInstanceOf(LegacyAllocationCaptureObject::class.java)
+
+    // Make sure clicking the export label does not select the session.
+    mySessionsManager.setSession(Common.Session.getDefaultInstance())
+    assertThat(mySessionsManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
+    val exportLabel = allocationItem.exportLabel!!
+    assertThat(exportLabel.isVisible).isFalse()
+    ui.mouse.moveTo(allocationItem.bounds.x + 1, allocationItem.bounds.y + 1)
+    ui.layout()
+    assertThat(exportLabel.isVisible).isTrue()
+    ui.mouse.click(allocationItem.bounds.x + exportLabel.bounds.x + 1, allocationItem.bounds.y + exportLabel.bounds.y + 1)
+    assertThat(mySessionsManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
   }
 
   @Test
@@ -590,6 +625,7 @@ class SessionsViewTest {
     var allocationItem = sessionsPanel.getComponent(1) as LegacyAllocationsArtifactView
     assertThat(sessionItem.artifact.session).isEqualTo(session)
     assertThat(allocationItem.artifact.session).isEqualTo(session)
+    assertThat(allocationItem.exportLabel).isNull()
 
     assertThat(myProfilers.stage).isInstanceOf(StudioMonitorStage::class.java) // Makes sure we're in monitor stage
     // Selecting on the HprofSessionArtifact should open Memory profiler.

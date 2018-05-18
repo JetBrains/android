@@ -20,11 +20,16 @@ import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.stdui.StandardColors;
 import com.android.tools.profilers.ContextMenuInstaller;
+import com.android.tools.profilers.ProfilerAction;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
+import com.google.common.annotations.VisibleForTesting;
+import com.intellij.util.IconUtil;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.JBUI;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -34,7 +39,6 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.profilers.ProfilerColors.HOVERED_SESSION_COLOR;
@@ -45,7 +49,8 @@ import static com.android.tools.profilers.ProfilerColors.SELECTED_SESSION_COLOR;
  */
 public abstract class SessionArtifactView<T extends SessionArtifact> extends JPanel {
 
-  protected static final Border ARTIFACT_ICON_BORDER = JBUI.Borders.empty(2, 0);
+  private static final Border ARTIFACT_ICON_BORDER = JBUI.Borders.empty(2, 0);
+  private static final Border EXPORT_ICON_BORDER = JBUI.Borders.empty(4);
   protected static final Border SELECTED_BORDER = JBUI.Borders.customLine(SELECTED_SESSION_COLOR, 0, 3, 0, 0);
   protected static final Border UNSELECTED_BORDER = JBUI.Borders.emptyLeft(3);
 
@@ -55,11 +60,15 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
   protected static final Font TITLE_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(3);
   protected static final Font STATUS_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(1);
 
+  private static final Icon EXPORT_ICON = StudioIcons.Profiler.Sessions.SAVE;
+  private static final Icon EXPORT_ICON_HOVERED = IconUtil.darker(StudioIcons.Profiler.Sessions.SAVE, 3);
+
   @NotNull private final T myArtifact;
   @NotNull private final ArtifactDrawInfo myArtifactDrawInfo;
   @NotNull protected final AspectObserver myObserver;
 
   @NotNull private final JComponent myArtifactView;
+  @Nullable private JComponent myExportLabel;
 
   @NotNull private final List<JComponent> myMouseListeningComponents;
 
@@ -69,7 +78,21 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
     myObserver = new AspectObserver();
     myMouseListeningComponents = new ArrayList<>();
 
-    myArtifactView = buildComponent();
+    JComponent artifactView = buildComponent();
+    if (artifact.canExport()) {
+      JPanel panel = new JPanel(new BorderLayout());
+      panel.setBorder(BorderFactory.createEmptyBorder());
+      artifactView.setOpaque(false);
+      panel.add(artifactView, BorderLayout.CENTER);
+      myExportLabel = buildExportButton();
+      myExportLabel.setVisible(false);
+      addMouseListeningComponents(myExportLabel);
+      panel.add(myExportLabel, BorderLayout.EAST);
+      myArtifactView = panel;
+    }
+    else {
+      myArtifactView = artifactView;
+    }
     myArtifactView.setBackground(HOVERED_SESSION_COLOR);
     myArtifactView.setOpaque(false);
     setLayout(new BorderLayout());
@@ -111,7 +134,7 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
       comp.addMouseListener(new MouseAdapter() {
         @Override
         public void mouseReleased(MouseEvent e) {
-          if (SwingUtilities.isLeftMouseButton(e)) {
+          if (SwingUtilities.isLeftMouseButton(e) && !e.isConsumed()) {
             myArtifact.onSelect();
           }
         }
@@ -134,6 +157,12 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
     return myArtifactDrawInfo.mySessionsView;
   }
 
+  @Nullable
+  @VisibleForTesting
+  public JComponent getExportLabel() {
+    return myExportLabel;
+  }
+
   @NotNull
   public T getArtifact() {
     return myArtifact;
@@ -154,13 +183,25 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
 
   @NotNull
   protected List<ContextMenuItem> getContextMenus() {
-    return Collections.emptyList();
+    List<ContextMenuItem> menus = new ArrayList<>();
+    ProfilerAction action = new ProfilerAction.Builder("Export...")
+      .setEnableBooleanSupplier(() -> !getArtifact().isOngoing())
+      .setActionRunnable(() -> exportArtifact())
+      .build();
+    menus.add(action);
+    return menus;
   }
 
   @NotNull
   protected abstract JComponent buildComponent();
 
-  protected void showHoverState(boolean hover) {
+  protected void exportArtifact() {
+  }
+
+  private void showHoverState(boolean hover) {
+    if (myExportLabel != null) {
+      myExportLabel.setVisible(hover);
+    }
     myArtifactView.setOpaque(hover);
     myArtifactView.repaint();
   }
@@ -208,6 +249,34 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
     panel.setBorder(isSessionSelected() ? selectedBorder : unSelectedBorder);
 
     return panel;
+  }
+
+  @NotNull
+  private JComponent buildExportButton() {
+    JLabel export = new JLabel(EXPORT_ICON);
+    export.setBorder(EXPORT_ICON_BORDER);
+    export.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseReleased(MouseEvent e) {
+        if (SwingUtilities.isLeftMouseButton(e)) {
+          exportArtifact();
+          e.consume();
+        }
+      }
+
+      @Override
+      public void mouseEntered(MouseEvent e) {
+        export.setIcon(EXPORT_ICON_HOVERED);
+      }
+
+      @Override
+      public void mouseExited(MouseEvent e) {
+        export.setIcon(EXPORT_ICON);
+      }
+    });
+    export.setToolTipText("Export " + getArtifact().getName());
+    export.setVerticalAlignment(SwingConstants.CENTER);
+    return export;
   }
 
   /**

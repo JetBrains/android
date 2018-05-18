@@ -23,6 +23,8 @@ import com.android.tools.profilers.StudioProfilers;
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.OutputStream;
+
 /**
  * A SessionArtifact is any session-related entity that should show up in the sessions panel as its own row. (e.g. A session, a memory
  * heap dump, a CPU capture, etc).
@@ -68,9 +70,27 @@ public interface SessionArtifact<T extends GeneratedMessageV3> extends Updatable
   long getTimestampNs();
 
   /**
+   * @return whether the artifact is still in progress.
+   */
+  boolean isOngoing();
+
+  /**
+   * @return whether the artifact can be exported to disk for later use.
+   */
+  default boolean canExport() {
+    return false;
+  }
+
+  /**
    * The {@link SessionArtifact} has been selected. Perform the corresponding navigation and selection change in the model.
    */
   void onSelect();
+
+  /**
+   * Export operation to the given outputStream.
+   */
+  default void export(@NotNull OutputStream outputStream) {
+  }
 
   @Override
   default void update(long elapseNs) {
