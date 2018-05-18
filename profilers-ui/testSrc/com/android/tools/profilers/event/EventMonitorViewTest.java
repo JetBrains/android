@@ -18,7 +18,6 @@ package com.android.tools.profilers.event;
 import com.android.tools.adtui.SimpleEventComponent;
 import com.android.tools.adtui.StackedEventComponent;
 import com.android.tools.adtui.model.FakeTimer;
-import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.*;
 import com.intellij.ui.HyperlinkLabel;
 import org.junit.Before;
@@ -29,6 +28,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.concurrent.TimeUnit;
 
+import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE;
+import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_DETACHED_RESPONSE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -47,7 +48,7 @@ public class EventMonitorViewTest {
   public void setUp() {
     myTimer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), myTimer);
-    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
+    myProfilerService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));
     profilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null);
     // StudioProfilersView initialization needs to happen after the tick, as during setDevice/setProcess the StudioMonitorStage is
@@ -65,7 +66,7 @@ public class EventMonitorViewTest {
     assertTrue(children[0] instanceof SimpleEventComponent);
     assertTrue(children[1] instanceof StackedEventComponent);
 
-    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.DETACHED);
+    myProfilerService.setAgentStatus(DEFAULT_AGENT_DETACHED_RESPONSE);
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));
 
     children = myMonitorView.getComponent().getComponents();

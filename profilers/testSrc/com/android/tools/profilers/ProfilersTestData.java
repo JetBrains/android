@@ -16,6 +16,7 @@
 package com.android.tools.profilers;
 
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Profiler;
 
 public class ProfilersTestData {
   public static final Common.Session SESSION_DATA = Common.Session.newBuilder()
@@ -23,4 +24,10 @@ public class ProfilersTestData {
     .setDeviceId(1234)
     .setPid(5678)
     .build();
+
+  public static final Profiler.AgentStatusResponse DEFAULT_AGENT_ATTACHED_RESPONSE =
+    Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.ATTACHED).build();
+
+  public static final Profiler.AgentStatusResponse DEFAULT_AGENT_DETACHED_RESPONSE =
+    Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.DETACHED).build();
 }

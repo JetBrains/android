@@ -311,14 +311,15 @@ public final class StudioProfilersTest {
     profilers.addDependency(observer).onChange(ProfilerAspect.AGENT, observer::AgentStatusChanged);
 
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertThat(profilers.isAgentAttached()).isFalse();
+    assertThat(profilers.getAgentStatus()).isEqualTo(AgentStatusResponse.getDefaultInstance());
     assertThat(observer.getAgentStatusChangedCount()).isEqualTo(0);
 
     // Test that status changes if no process is selected does nothing
-    myProfilerService.setAgentStatus(AgentStatusResponse.Status.ATTACHED);
+    AgentStatusResponse attachedResponse = AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.ATTACHED).build();
+    myProfilerService.setAgentStatus(attachedResponse);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getProcess()).isNull();
-    assertThat(profilers.isAgentAttached()).isFalse();
+    assertThat(profilers.getAgentStatus()).isEqualTo(AgentStatusResponse.getDefaultInstance());
     assertThat(observer.getAgentStatusChangedCount()).isEqualTo(0);
 
     // Test that agent status change fires after a process is selected.
@@ -333,18 +334,19 @@ public final class StudioProfilersTest {
     profilers.setProcess(process1);
 
     assertThat(profilers.getProcess()).isEqualTo(process1);
-    assertThat(profilers.isAgentAttached()).isTrue();
+    assertThat(profilers.getAgentStatus()).isEqualTo(attachedResponse);
     assertThat(observer.getAgentStatusChangedCount()).isEqualTo(1);
 
     // Test that manually setting a process fires an agent status change
     profilers.setProcess(process2);
     assertThat(profilers.getProcess()).isSameAs(process2);
-    assertThat(profilers.isAgentAttached()).isTrue();
+    assertThat(profilers.getAgentStatus()).isEqualTo(attachedResponse);
     assertThat(observer.getAgentStatusChangedCount()).isEqualTo(2);
 
-    myProfilerService.setAgentStatus(AgentStatusResponse.Status.DETACHED);
+    AgentStatusResponse detachResponse = AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.DETACHED).build();
+    myProfilerService.setAgentStatus(detachResponse);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertThat(profilers.isAgentAttached()).isFalse();
+    assertThat(profilers.getAgentStatus()).isEqualTo(detachResponse);
     assertThat(observer.getAgentStatusChangedCount()).isEqualTo(3);
   }
 
@@ -837,7 +839,8 @@ public final class StudioProfilersTest {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), fakeIdeService, timer);
 
-    myProfilerService.setAgentStatus(AgentStatusResponse.Status.ATTACHED);
+    AgentStatusResponse attachedResponse = AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.ATTACHED).build();
+    myProfilerService.setAgentStatus(attachedResponse);
     fakeIdeService.enableJvmtiAgent(true);
     Common.Device device = createDevice(AndroidVersion.VersionCodes.O, "FakeDevice", Common.Device.State.ONLINE);
     Common.Process process1 = createProcess(device.getDeviceId(), 1, "FakeProcess1", Common.Process.State.ALIVE);

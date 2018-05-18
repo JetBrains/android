@@ -17,7 +17,6 @@ package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
-import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.cpu.FakeCpuService;
@@ -43,6 +42,8 @@ import java.util.zip.GZIPOutputStream;
 
 import static com.android.tools.profiler.proto.NetworkProfiler.ConnectivityData;
 import static com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData;
+import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE;
+import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_DETACHED_RESPONSE;
 import static com.google.common.truth.Truth.assertThat;
 
 public class NetworkProfilerStageTest {
@@ -481,17 +482,18 @@ public class NetworkProfilerStageTest {
   public void selectionDisabledWithoutAgent() {
     Range selection = myStage.getStudioProfilers().getTimeline().getSelectionRange();
 
-    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
+    myProfilerService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));
     // Need to re-enter the stage again given the device/process can be set and return to the default StudioMonitorStage.
     myStage.getStudioProfilers().setStage(myStage);
 
     assertThat(myStage.getStudioProfilers().isAgentAttached()).isTrue();
+
     myStage.getSelectionModel().set(0, 100);
     assertThat(selection.getMin()).isWithin(EPSILON).of(0);
     assertThat(selection.getMax()).isWithin(EPSILON).of(100);
 
-    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.DETACHED);
+    myProfilerService.setAgentStatus(DEFAULT_AGENT_DETACHED_RESPONSE);
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));
     assertThat(myStage.getStudioProfilers().isAgentAttached()).isFalse();
 

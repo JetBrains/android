@@ -22,7 +22,6 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
-import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
@@ -36,6 +35,8 @@ import java.io.ByteArrayOutputStream;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.profilers.FakeProfilerService.FAKE_DEVICE_ID;
+import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE;
+import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_DETACHED_RESPONSE;
 import static org.junit.Assert.assertArrayEquals;
 
 public class MemoryProfilerTest {
@@ -86,7 +87,7 @@ public class MemoryProfilerTest {
     Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(0);
 
     // Advance the timer to select the device + process
-    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
+    myProfilerService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
     Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(2);
@@ -98,13 +99,13 @@ public class MemoryProfilerTest {
     myIdeProfilerServices.enableLiveAllocationTracking(true);
     setupODeviceAndProcess();
 
-    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
+    myProfilerService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
     Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(2);
 
     myMemoryService.resetTrackAllocationCount();
-    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.DETACHED);
+    myProfilerService.setAgentStatus(DEFAULT_AGENT_DETACHED_RESPONSE);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myStudioProfiler.changed(ProfilerAspect.AGENT);
     Truth.assertThat(myStudioProfiler.isAgentAttached()).isFalse();
@@ -115,11 +116,9 @@ public class MemoryProfilerTest {
   public void testStopTrackingOnProfilerStop() {
     myIdeProfilerServices.enableJvmtiAgent(true);
     myIdeProfilerServices.enableLiveAllocationTracking(true);
-    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
+    myProfilerService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
     setupODeviceAndProcess();
 
-    // Advance the timer to select the device + process
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
     Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(2);
 

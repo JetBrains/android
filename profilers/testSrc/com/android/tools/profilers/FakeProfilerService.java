@@ -41,7 +41,7 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   private long myTimestampNs;
   private boolean myThrowErrorOnGetDevices;
   private boolean myAttachAgentCalled;
-  private AgentStatusResponse.Status myAgentStatus;
+  private AgentStatusResponse myAgentStatus;
 
   private Common.SessionMetaData.SessionType myLastImportedSessionType;
 
@@ -269,15 +269,11 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
 
   @Override
   public void getAgentStatus(AgentStatusRequest request, StreamObserver<AgentStatusResponse> responseObserver) {
-    AgentStatusResponse.Builder builder = AgentStatusResponse.newBuilder();
-    if (myAgentStatus != null) {
-      builder.setStatus(myAgentStatus);
-    }
-    responseObserver.onNext(builder.build());
+    responseObserver.onNext(myAgentStatus != null ? myAgentStatus : AgentStatusResponse.getDefaultInstance());
     responseObserver.onCompleted();
   }
 
-  public void setAgentStatus(@NotNull AgentStatusResponse.Status status) {
+  public void setAgentStatus(@NotNull AgentStatusResponse status) {
     myAgentStatus = status;
   }
 

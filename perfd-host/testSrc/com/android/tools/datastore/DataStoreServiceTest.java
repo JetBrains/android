@@ -220,9 +220,8 @@ public class DataStoreServiceTest extends DataStorePollerTest {
 
     @NotNull
     @Override
-    DataStoreDatabase createDatabase(@NotNull String dbPath,
-                                     @NotNull DataStoreDatabase.Characteristic characteristic,
-                                     @NotNull Consumer<Throwable> noPiiExceptionHandler) {
+    public DataStoreDatabase createDatabase(@NotNull String dbPath,
+                                            @NotNull DataStoreDatabase.Characteristic characteristic, @NotNull Consumer<Throwable> noPiiExceptionHandler) {
       if (myCreatedDbPaths == null) {
         // This method is being called from the parent class's constructor, so we need to lazily create it.
         // Also, calling an overridden method in the parent constructor is super bad form. But we're lucky we can get away with it here.

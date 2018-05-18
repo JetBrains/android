@@ -161,9 +161,9 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
 
   @VisibleForTesting
   @NotNull
-  DataStoreDatabase createDatabase(@NotNull String dbPath,
-                                   @NotNull DataStoreDatabase.Characteristic characteristic,
-                                   Consumer<Throwable> noPiiExceptionHandler) {
+  public DataStoreDatabase createDatabase(@NotNull String dbPath,
+                                          @NotNull DataStoreDatabase.Characteristic characteristic,
+                                          Consumer<Throwable> noPiiExceptionHandler) {
     return new DataStoreDatabase(dbPath, characteristic, myLogService, noPiiExceptionHandler);
   }
 
