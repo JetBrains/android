@@ -60,7 +60,7 @@ class ImportBazelProjectWizardFixture(robot: Robot, target: JDialog) :
 
   fun setBazelBinaryPath(path: String): ImportBazelProjectWizardFixture {
     logger.info("Setting bazel binary path = $path")
-    waitUntilShowingAndEnabled(robot(), target(), Matchers.byName(JPanel::class.java, "bazel-binary-path-field"), 300)
+    waitUntilShowingAndEnabled(robot(), target(), Matchers.byName(JPanel::class.java, "bazel-binary-path-field"))
     val bazelBinaryComboBox = JPanelFixture(robot(), "bazel-binary-path-field").comboBox().replaceText(path)
 
     verifyContentMatches("bazel-binary-path-field", path, bazelBinaryComboBox.target().editor.item)
@@ -69,7 +69,7 @@ class ImportBazelProjectWizardFixture(robot: Robot, target: JDialog) :
 
   fun setWorkspacePath(path: String): ImportBazelProjectWizardFixture {
     logger.info("Setting workspace directory = $path")
-    waitUntilShowingAndEnabled(robot(), target(), Matchers.byName(JComboBox::class.java, "workspace-directory-field"), 300)
+    waitUntilShowingAndEnabled(robot(), target(), Matchers.byName(JComboBox::class.java, "workspace-directory-field"))
     val workspaceComboBox = JComboBoxFixture(robot(), "workspace-directory-field").replaceText(path)
 
     verifyContentMatches("workspace-directory-field", path, workspaceComboBox.target().editor.item)
@@ -84,11 +84,11 @@ class ImportBazelProjectWizardFixture(robot: Robot, target: JDialog) :
     }
 
     logger.info("Find 'Generate from BUILD file' radio button")
-    waitUntilShowingAndEnabled(robot(), target(), generateFromBuildButtonMatcher, 300)
+    waitUntilShowingAndEnabled(robot(), target(), generateFromBuildButtonMatcher)
     JRadioButtonFixture(robot(), robot().finder().find(generateFromBuildButtonMatcher)).click()
 
     logger.info("Setting build file path = $path")
-    waitUntilShowingAndEnabled(robot(), target(), Matchers.byName(JComboBox::class.java, "build-file-path-field"), 300)
+    waitUntilShowingAndEnabled(robot(), target(), Matchers.byName(JComboBox::class.java, "build-file-path-field"))
     val buildFileComboBox = JComboBoxFixture(robot(), "build-file-path-field").replaceText(path)
 
     verifyContentMatches("build-file-path-field", path, buildFileComboBox.target().editor.item)
@@ -97,7 +97,7 @@ class ImportBazelProjectWizardFixture(robot: Robot, target: JDialog) :
 
   fun uncommentApi27(buildFile: File): ImportBazelProjectWizardFixture {
     logger.info("Modifying BUILD file content")
-    waitUntilShowingAndEnabled(robot(), target(), Matchers.byType(EditorComponentImpl::class.java), 300)
+    waitUntilShowingAndEnabled(robot(), target(), Matchers.byType(EditorComponentImpl::class.java))
     val editor = robot().finder().findByType(EditorComponentImpl::class.java)
 
     // Maybe let test configs select which platform to use?
