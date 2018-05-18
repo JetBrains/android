@@ -22,14 +22,17 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
+import com.android.tools.idea.res.ResolvableResourceItem;
 import com.google.common.base.MoreObjects;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.ResolveResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Resource item representing a value resource, e.g. a string or a color.
  */
-class AarValueResourceItem implements AarResourceItem {
+class AarValueResourceItem implements AarResourceItem, ResolvableResourceItem {
   @NotNull private final ResourceValue myValue;
   @NotNull private final AarConfiguration myConfiguration;
   @NotNull private final ResourceVisibility myVisibility;
@@ -91,7 +94,7 @@ class AarValueResourceItem implements AarResourceItem {
   @Override
   @Nullable
   public PathString getSource() {
-    // TODO: Implement
+    // TODO(sprigogin): Implement using a source attachment.
     return null;
   }
 
@@ -99,6 +102,24 @@ class AarValueResourceItem implements AarResourceItem {
   @NotNull
   public ResourceVisibility getVisibility() {
     return myVisibility;
+  }
+
+  @NotNull
+  @Override
+  public ResolveResult createResolveResult() {
+    return new ResolveResult() {
+      @Nullable
+      @Override
+      public PsiElement getElement() {
+        // TODO(sprigogin): Parse the attached source and return the corresponding element.
+        return null;
+      }
+
+      @Override
+      public boolean isValidResult() {
+        return false;
+      }
+    };
   }
 
   @Override

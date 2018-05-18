@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -39,6 +37,7 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.util.*;
@@ -53,7 +52,7 @@ import static com.android.SdkConstants.EXT_JSON;
  * This class defines a sample data source. It also handles the caching and invalidation according
  * to the given functions passed in the creation.
  */
-public class SampleDataResourceItem implements ResourceItem {
+public class SampleDataResourceItem implements ResourceItem, ResolvableResourceItem {
   private static final Logger LOG = Logger.getInstance(SampleDataResourceItem.class);
 
   private static final Cache<String, SampleDataHolder> sSampleDataCache =
@@ -85,12 +84,12 @@ public class SampleDataResourceItem implements ResourceItem {
    * @param sourceElement               optional {@link SmartPsiElementPointer} where the content was obtained from. This will be used to display
    *                                    references to the content.
    */
-  private SampleDataResourceItem(@NonNull String name,
-                                 @NonNull ResourceNamespace namespace,
-                                 @NonNull Function<OutputStream, Exception> dataSource,
-                                 @NonNull Supplier<Long> dataSourceModificationStamp,
+  private SampleDataResourceItem(@NotNull String name,
+                                 @NotNull ResourceNamespace namespace,
+                                 @NotNull Function<OutputStream, Exception> dataSource,
+                                 @NotNull Supplier<Long> dataSourceModificationStamp,
                                  @Nullable SmartPsiElementPointer<PsiElement> sourceElement,
-                                 @NonNull ContentType contentType) {
+                                 @NotNull ContentType contentType) {
     myName = name;
     myNamespace = namespace;
     myDataSource = dataSource;
@@ -112,10 +111,10 @@ public class SampleDataResourceItem implements ResourceItem {
    * Returns a {@link SampleDataResourceItem} from the given static content generator. Static content generators can be cached indefinitely
    * since the never change.
    */
-  @NonNull
-  static SampleDataResourceItem getFromStaticDataSource(@NonNull String name,
-                                                        @NonNull Function<OutputStream, Exception> source,
-                                                        @NonNull ContentType contentType) {
+  @NotNull
+  static SampleDataResourceItem getFromStaticDataSource(@NotNull String name,
+                                                        @NotNull Function<OutputStream, Exception> source,
+                                                        @NotNull ContentType contentType) {
     return new SampleDataResourceItem(name, SampleDataResourceRepository.PREDEFINED_SAMPLES_NS, source, () -> 1L, null, contentType);
   }
 
@@ -123,8 +122,8 @@ public class SampleDataResourceItem implements ResourceItem {
    * Returns a {@link SampleDataResourceItem} from the given {@link SmartPsiElementPointer<PsiElement>}. The file is tracked to invalidate
    * the contents of the {@link SampleDataResourceItem} if the sourceElement changes.
    */
-  @NonNull
-  private static SampleDataResourceItem getFromPlainFile(@NonNull SmartPsiElementPointer<PsiElement> filePointer) {
+  @NotNull
+  private static SampleDataResourceItem getFromPlainFile(@NotNull SmartPsiElementPointer<PsiElement> filePointer) {
     VirtualFile vFile = filePointer.getVirtualFile();
     String fileName = vFile.getName();
 
@@ -150,8 +149,8 @@ public class SampleDataResourceItem implements ResourceItem {
    * Returns a {@link SampleDataResourceItem} from the given {@link SmartPsiElementPointer<PsiElement>}. The directory is tracked to
    * invalidate the contents of the {@link SampleDataResourceItem} if the directory contents change.
    */
-  @NonNull
-  private static SampleDataResourceItem getFromDirectory(@NonNull SmartPsiElementPointer<PsiElement> directoryPointer) {
+  @NotNull
+  private static SampleDataResourceItem getFromDirectory(@NotNull SmartPsiElementPointer<PsiElement> directoryPointer) {
     VirtualFile directory = directoryPointer.getVirtualFile();
     // For directories, at this point, we always consider them images since it's the only type we handle for them
     return new SampleDataResourceItem(directory.getName(), ResourceNamespace.TODO, output -> {
@@ -170,9 +169,9 @@ public class SampleDataResourceItem implements ResourceItem {
    * The {@link SampleDataResourceItem} will be the selection of elements from the sourceElement that are found with the
    * given path.
    */
-  @NonNull
-  private static SampleDataResourceItem getFromJsonFile(@NonNull SmartPsiElementPointer<PsiElement> jsonPointer,
-                                                        @NonNull String contentPath) {
+  @NotNull
+  private static SampleDataResourceItem getFromJsonFile(@NotNull SmartPsiElementPointer<PsiElement> jsonPointer,
+                                                        @NotNull String contentPath) {
     VirtualFile vFile = jsonPointer.getVirtualFile();
     String fileName = vFile.getName();
     return new SampleDataResourceItem(fileName + contentPath, ResourceNamespace.TODO, output -> {
@@ -205,8 +204,8 @@ public class SampleDataResourceItem implements ResourceItem {
    * Returns a {@link SampleDataResourceItem}s from the given {@link PsiFileSystemItem}. The method will detect the type
    * of file or directory and return a number of items.
    */
-  @NonNull
-  public static List<SampleDataResourceItem> getFromPsiFileSystemItem(@NonNull PsiFileSystemItem sampleDataSource) throws IOException {
+  @NotNull
+  public static List<SampleDataResourceItem> getFromPsiFileSystemItem(@NotNull PsiFileSystemItem sampleDataSource) throws IOException {
     String extension = sampleDataSource.getVirtualFile().getExtension();
     if (extension == null) {
       extension = "";
@@ -294,13 +293,13 @@ public class SampleDataResourceItem implements ResourceItem {
   }
 
   @Override
-  @NonNull
+  @NotNull
   public String getName() {
     return myName;
   }
 
   @Override
-  @NonNull
+  @NotNull
   public ResourceType getType() {
     return ResourceType.SAMPLE_DATA;
   }
@@ -312,25 +311,25 @@ public class SampleDataResourceItem implements ResourceItem {
   }
 
   @Override
-  @NonNull
+  @NotNull
   public ResourceNamespace getNamespace() {
     return myNamespace;
   }
 
   @Override
-  @NonNull
+  @NotNull
   public ResourceReference getReferenceToSelf() {
     return new ResourceReference(getNamespace(), getType(), getName());
   }
 
   @Override
-  @NonNull
+  @NotNull
   public FolderConfiguration getConfiguration() {
     return new FolderConfiguration();
   }
 
   @Override
-  @NonNull
+  @NotNull
   public String getKey() {
     return getType() + "/" + getName();
   }
@@ -356,12 +355,24 @@ public class SampleDataResourceItem implements ResourceItem {
     return false;
   }
 
-  @Nullable
-  public PsiElement getPsiElement() {
-    return mySourceElement != null ? mySourceElement.getElement() : null;
+  @Override
+  @NotNull
+  public ResolveResult createResolveResult() {
+    return new ResolveResult() {
+      @Override
+      @Nullable
+      public PsiElement getElement() {
+        return mySourceElement != null ? mySourceElement.getElement() : null;
+      }
+
+      @Override
+      public boolean isValidResult() {
+        return true;
+      }
+    };
   }
 
-  @NonNull
+  @NotNull
   public ContentType getContentType() {
     return myContentType;
   }
