@@ -87,6 +87,10 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     return myNlComponentDelegate;
   }
 
+  public void setTimelineProgress(float progress) {
+    myPanel.setProgress(progress);
+  }
+
   enum State {TL_UNKNOWN, TL_START, TL_PLAY, TL_PAUSE, TL_TRANSITION, TL_END}
 
   private State myCurrentState = TL_UNKNOWN;

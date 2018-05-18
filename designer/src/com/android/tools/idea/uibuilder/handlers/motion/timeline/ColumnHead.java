@@ -45,6 +45,7 @@ class ColumnHead extends TimeLine implements Gantt.ChartElement {
   //Fletching: The plastic vanes or feathers on an arrow. ...
   private void drawFletching(Graphics g, int framePosition, int x, int y) {
     String string = Integer.toString(framePosition);
+
     if (myFontMetrics == null) {
       myFontMetrics = g.getFontMetrics();
       myRect = myFontMetrics.getMaxCharBounds(g);
@@ -63,7 +64,9 @@ class ColumnHead extends TimeLine implements Gantt.ChartElement {
     mYPoints[3] = y;
     mXPoints[4] = (int)(x + w);
     mYPoints[4] = (int)(y + h / 2);
-    g.setColor(Chart.myTimeCursorColor);
+
+      g.setColor(Chart.getColorForPosition(framePosition));
+
     g.fillPolygon(mXPoints, mYPoints, 5);
     g.setColor(getBackground());
     g.drawString(string, x - myFontMetrics.stringWidth(string) / 2, y + myFontMetrics.getAscent());
@@ -86,7 +89,7 @@ class ColumnHead extends TimeLine implements Gantt.ChartElement {
       int h = getHeight();
       float time = mChart.getTimeCursorMs();
       int x = mChart.getCursorPosition();
-      g.setColor(mChart.myTimeCursorColor);
+      g.setColor(mChart.getColorForPosition(mChart.getFramePosition()));
       g.fillRect(x, h - 15, 1, h);
       drawFletching(g, mChart.getFramePosition(), x, 0);
     }

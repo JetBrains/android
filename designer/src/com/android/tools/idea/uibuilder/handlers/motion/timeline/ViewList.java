@@ -125,16 +125,42 @@ class ViewList extends JPanel implements Gantt.ChartElement {
   }
 
   private void keyFramePopup(ActionEvent e) {
-    String[] list = {"Path Cartesian", "Path Relative", "Attributes", "Cycles"};
+    String[] list = {"Position", "Attributes", "Cycles"};
     if (USER_STUDY) {
-      list = new String[]{"Path Cartesian", "Attributes"};
+      list = new String[]{"Position", "Attributes"};
+    }
+    if (myChart != null
+        && myChart.myModel != null) {
+      boolean noStartConstraints = myChart.myModel.getStartConstraintSet().myConstraintViews.isEmpty();
+      boolean noEndConstraints = myChart.myModel.getEndConstraintSet().myConstraintViews.isEmpty();
+      if (noStartConstraints && noEndConstraints) {
+        list = new String[] {"set Start Constraint", "set End Constraint"};
+      } else if (noStartConstraints) {
+        list = new String[] {"set Start Constraint"};
+      } else if (noEndConstraints) {
+        list = new String[] {"set End Constraint"};
+      }
     }
     final JList<String> displayedList = new JBList<String>(list);
     JBPopupListener listener = new JBPopupListener.Adapter() {
       @Override
       public void onClosed(LightweightWindowEvent event) {
         JBPopup popup = event.asPopup();
-        createKeyFrame(displayedList.getSelectedIndex());
+        boolean noStartConstraints = myChart.myModel.getStartConstraintSet().myConstraintViews.isEmpty();
+        boolean noEndConstraints = myChart.myModel.getEndConstraintSet().myConstraintViews.isEmpty();
+        if (noStartConstraints && noEndConstraints) {
+          if (displayedList.getSelectedIndex() == 0) {
+            myChart.setCursorPosition(0);
+          } else {
+            myChart.setCursorPosition(1);
+          }
+        } else if (noStartConstraints) {
+          myChart.setCursorPosition(0);
+        } else if (noEndConstraints) {
+          myChart.setCursorPosition(1);
+        } else {
+          createKeyFrame(displayedList.getSelectedIndex());
+        }
       }
     };
     JBPopup popup =
@@ -159,9 +185,9 @@ class ViewList extends JPanel implements Gantt.ChartElement {
     } else if (fpos == 100) {
       fpos = 99;
     }
-    String type = (new String[]{"KeyPositionCartesian", "KeyPositionPath", "KeyAttributes", "KeyCycle"})[frameType];
+    String type = (new String[]{"KeyPosition", "KeyAttributes", "KeyCycle"})[frameType];
     if (USER_STUDY) {
-      type = (new String[]{"KeyPositionCartesian", "KeyAttributes"})[frameType];
+      type = (new String[]{"KeyPosition", "KeyAttributes"})[frameType];
     }
     v.mKeyFrames.myModel.createKeyFrame(type, fpos, name);
     myChart.delayedSelectKeyFrame(type,name,fpos);

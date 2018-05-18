@@ -36,7 +36,7 @@ import java.util.HashMap;
 import java.util.Set;
 
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.CustomLabel;
-import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.KeyPositionCartesian_transitionEasing;
+import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.KeyPosition_transitionEasing;
 import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
 
 /**
@@ -169,7 +169,7 @@ public class AttributeTagPanel extends TagPanel {
 
   private void setEasing(String points) {
     for (int i = 0; i < myAttributesNames.size(); i++) {
-      if (KeyPositionCartesian_transitionEasing.equals(myAttributesNames.get(i).toString())) {
+      if (KeyPosition_transitionEasing.equals(myAttributesNames.get(i).toString())) {
         myAttributes.put(myAttributesNames.get(i), points);
         myKeyAttrTableModel.fireTableCellUpdated(i,1);
       }
@@ -177,7 +177,7 @@ public class AttributeTagPanel extends TagPanel {
   }
 
   private void saveEasing(String value) {
-    myBasePanel.myCurrentKeyframe.setValue(KeyPositionCartesian_transitionEasing, value);
+    myBasePanel.myCurrentKeyframe.setValue(KeyPosition_transitionEasing, value);
   }
 
   public void setKeyFrame(MotionSceneModel.KeyFrame keyframe) {
@@ -323,11 +323,8 @@ public class AttributeTagPanel extends TagPanel {
           case MotionSceneString.KeyTypeAttributes:
             name = "Attributes";
             break;
-          case MotionSceneString.KeyTypePositionCartesian:
-            name = "Position (cartesian)";
-            break;
-          case MotionSceneString.KeyTypePositionPath:
-            name = "Position (path)";
+          case MotionSceneString.KeyTypePosition:
+            name = "Position";
             break;
         }
         myTitle.setText(name);

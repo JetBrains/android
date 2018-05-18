@@ -27,8 +27,10 @@ public class MotionSceneString {
 
       public static final  String KeyTypeCycle="KeyCycle";
       public static final  String KeyTypeAttributes="KeyAttributes";
-      public static final  String KeyTypePositionCartesian="KeyPositionCartesian";
-      public static final  String KeyTypePositionPath="KeyPositionPath";
+      public static final  String KeyTypePosition="KeyPosition";
+
+      public static final  String KeyPosition_type="type";
+      public static final  String KeyPosition_type_cartesian ="cartesian";
 
       public static final  String Key_framePosition="framePosition";
       public static final  String Key_frameTarget="target";
@@ -47,6 +49,7 @@ public class MotionSceneString {
       public static final  String KeyAttributes_android_elevation="elevation";
       public static final  String KeyAttributes_curveFit="curveFit";
       public static final  String KeyAttributes_framePosition="framePosition";
+
       public static final  String KeyAttributes_progress="progress";
       public static final  String KeyAttributes_sizePercent="sizePercent";
       public static final  String KeyAttributes_target="target";
@@ -83,32 +86,11 @@ public class MotionSceneString {
       public static final  String KeyCycle_waveShape="waveShape";
       public static final  String KeyCycle_waveVariesBy="waveVariesBy";
 
-      public static final  String KeyPositionAbsolute_circleRadius="circleRadius";
-      public static final  String KeyPositionAbsolute_curveFit="curveFit";
-      public static final  String KeyPositionAbsolute_deltaEndX="deltaEndX";
-      public static final  String KeyPositionAbsolute_deltaEndY="deltaEndY";
-      public static final  String KeyPositionAbsolute_deltaStartX="deltaStartX";
-      public static final  String KeyPositionAbsolute_deltaStartY="deltaStartY";
-      public static final  String KeyPositionAbsolute_drawPath="drawPath";
-      public static final  String KeyPositionAbsolute_framePosition="framePosition";
-      public static final  String KeyPositionAbsolute_parentX="parentX";
-      public static final  String KeyPositionAbsolute_parentY="parentY";
-      public static final  String KeyPositionAbsolute_target="target";
-      public static final  String KeyPositionAbsolute_transitionEasing="transitionEasing";
 
-      public static final  String KeyPositionCartesian_circleRadius="circleRadius";
-      public static final  String KeyPositionCartesian_curveFit="curveFit";
-      public static final  String KeyPositionCartesian_drawPath="drawPath";
-      public static final  String KeyPositionCartesian_framePosition="framePosition";
-      public static final  String KeyPositionCartesian_horizontalPercent="horizontalPercent";
-      public static final  String KeyPositionCartesian_horizontalPosition_inDeltaX="horizontalPosition_inDeltaX";
-      public static final  String KeyPositionCartesian_horizontalPosition_inDeltaY="horizontalPosition_inDeltaY";
-      public static final  String KeyPositionCartesian_sizePercent="sizePercent";
-      public static final  String KeyPositionCartesian_target="target";
-      public static final  String KeyPositionCartesian_transitionEasing="transitionEasing";
-      public static final  String KeyPositionCartesian_verticalPercent="verticalPercent";
-      public static final  String KeyPositionCartesian_verticalPosition_inDeltaX="verticalPosition_inDeltaX";
-      public static final  String KeyPositionCartesian_verticalPosition_inDeltaY="verticalPosition_inDeltaY";
+      public static final  String KeyPosition_framePosition ="framePosition";
+
+      public static final  String KeyPosition_transitionEasing ="transitionEasing";
+
 
       public static final  String KeyPositionPath_circleRadius="circleRadius";
       public static final  String KeyPositionPath_curveFit="curveFit";
@@ -116,6 +98,8 @@ public class MotionSceneString {
       public static final  String KeyPositionPath_framePosition="framePosition";
       public static final  String KeyPositionPath_path_percent="path_percent";
       public static final  String KeyPositionPath_perpendicularPath_percent="perpendicularPath_percent";
+      public static final  String KeyPosition_percentX="percentX";
+      public static final  String KeyPosition_percentY="percentY";
       public static final  String KeyPositionPath_sizePercent="sizePercent";
       public static final  String KeyPositionPath_target="target";
       public static final  String KeyPositionPath_transitionEasing="transitionEasing";
