@@ -148,7 +148,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
    */
   @Override
   public void projectOpened() {
-    mySupportedModuleChecker.checkForSupportedModules(myProject);
+    boolean checkSupported = true;
     GradleSyncState syncState = GradleSyncState.getInstance(myProject);
     if (syncState.isSyncInProgress()) {
       // when opening a new project, the UI was not updated when sync started. Updating UI ("Build Variants" tool window, "Sync" toolbar
@@ -158,16 +158,28 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
 
     if (myIdeInfo.isAndroidStudio() && myAndroidProjectInfo.isLegacyIdeaAndroidProject() && !myAndroidProjectInfo.isApkProject()) {
       myLegacyAndroidProjects.trackProject();
-      // Suggest that Android Studio users use Gradle instead of IDEA project builder.
-      myLegacyAndroidProjects.showMigrateToGradleWarning();
-      return;
+      if (!myGradleProjectInfo.isBuildWithGradle()) {
+        // Suggest that Android Studio users use Gradle instead of IDEA project builder.
+        myLegacyAndroidProjects.showMigrateToGradleWarning();
+        return;
+      }
     }
 
     if (myGradleProjectInfo.isBuildWithGradle()) {
       configureGradleProject();
+      if (myAndroidProjectInfo.isLegacyIdeaAndroidProject()) {
+        // Request sync since it was not done when importing
+        myGradleSyncInvoker.requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_LOADED);
+        checkSupported = false;
+      }
     }
     else if (myIdeInfo.isAndroidStudio() && myProject.getBaseDir() != null && canImportAsGradleProject(myProject.getBaseDir())) {
       myGradleSyncInvoker.requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_LOADED);
+      checkSupported = false;
+    }
+    // Do not check for supported modules if sync was requested, this will be done once sync is successful
+    if (checkSupported) {
+      mySupportedModuleChecker.checkForSupportedModules(myProject);
     }
   }
 
