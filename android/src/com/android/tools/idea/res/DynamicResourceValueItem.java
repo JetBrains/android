@@ -34,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
  * the normal resource value parser to create resource values from XML, and (2) we need to implement getQualifiers since there is no source
  * file.
  */
-public class DynamicResourceValueItem implements ResourceItem {
+public class DynamicResourceValueItem implements ResourceItem, ResolvableResourceItem {
   @NotNull private final ResourceValue myResourceValue;
 
   public DynamicResourceValueItem(@NotNull ResourceNamespace namespace,
@@ -44,7 +44,7 @@ public class DynamicResourceValueItem implements ResourceItem {
     myResourceValue = new ResourceValueImpl(namespace, type, field.getName(), field.getValue());
   }
 
-
+  @Override
   @NotNull
   public ResolveResult createResolveResult() {
     return new ResolveResult() {

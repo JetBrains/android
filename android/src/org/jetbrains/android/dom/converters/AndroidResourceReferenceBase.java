@@ -81,7 +81,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
         results.add(element);
       }
     }
-    return results.toArray(new PsiElement[results.size()]);
+    return results.toArray(PsiElement.EMPTY_ARRAY);
   }
 
   @NotNull
@@ -129,11 +129,14 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
         List<ResourceItem> items = resources.getResourceItems(resolvedNamespace, resourceType, resourceName);
         if (FolderTypeRelationship.getRelatedFolders(resourceType).contains(ResourceFolderType.VALUES)) {
           for (ResourceItem item : items) {
-            XmlTag tag = LocalResourceRepository.getItemTag(myFacet.getModule().getProject(), item);
-            if (tag != null) {
-              elements.add(tag);
-            } else if (item instanceof DynamicResourceValueItem) {
-              result.add(((DynamicResourceValueItem)item).createResolveResult());
+            if (item instanceof ResolvableResourceItem) {
+              result.add(((ResolvableResourceItem)item).createResolveResult());
+            }
+            else {
+              XmlTag tag = LocalResourceRepository.getItemTag(myFacet.getModule().getProject(), item);
+              if (tag != null) {
+                elements.add(tag);
+              }
             }
           }
         }
@@ -144,18 +147,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
             items.stream()
               .filter(SampleDataResourceItem.class::isInstance)
               .map(SampleDataResourceItem.class::cast)
-              .forEach(sampleDataItem -> result.add(new ResolveResult() {
-                @Nullable
-                @Override
-                public PsiElement getElement() {
-                  return sampleDataItem.getPsiElement();
-                }
-
-                @Override
-                public boolean isValidResult() {
-                  return true;
-                }
-              }));
+              .forEach(sampleDataItem -> sampleDataItem.createResolveResult());
           }
         }
       }
