@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.annotations.NonNull;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.builder.model.AaptOptions;
 import com.android.builder.model.AndroidProject;
@@ -118,7 +117,7 @@ public class ResourceRepositoryManager implements Disposable {
    * @return the resource repository or null if the module is not an Android module
    */
   @Nullable
-  public static LocalResourceRepository getAppResources(@NonNull Module module) {
+  public static LocalResourceRepository getAppResources(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     return facet != null ? getAppResources(facet) : null;
   }
@@ -129,7 +128,7 @@ public class ResourceRepositoryManager implements Disposable {
    * @see #getAppResources(boolean)
    */
   @NotNull
-  public static LocalResourceRepository getAppResources(@NonNull AndroidFacet facet) {
+  public static LocalResourceRepository getAppResources(@NotNull AndroidFacet facet) {
     return getOrCreateInstance(facet).getAppResources(true);
   }
 
@@ -233,7 +232,7 @@ public class ResourceRepositoryManager implements Disposable {
       }
       GradleVersion modelVersion = androidModuleModel.getModelVersion();
       assert modelVersion != null;
-      return findAarLibrariesFromGradle(modelVersion, dependentFacets, libraries);
+      return findAarLibrariesFromGradle(dependentFacets, libraries);
     }
     Project project = facet.getModule().getProject();
     if (GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
@@ -262,10 +261,9 @@ public class ResourceRepositoryManager implements Disposable {
    * resource directories.
    */
   @NotNull
-  private static Map<File, String> findAarLibrariesFromGradle(@NotNull GradleVersion modelVersion,
-                                                              @NotNull List<AndroidFacet> dependentFacets,
+  private static Map<File, String> findAarLibrariesFromGradle(@NotNull List<AndroidFacet> dependentFacets,
                                                               @NotNull List<Library> libraries) {
-    // Pull out the unique directories, in case multiple modules point to the same .aar folder
+    // Pull out the unique directories, in case multiple modules point to the same .aar folder.
     Map<File, String> files = new HashMap<>(libraries.size());
 
     Set<String> moduleNames = new HashSet<>();
@@ -275,12 +273,12 @@ public class ResourceRepositoryManager implements Disposable {
     try {
       for (Library library : libraries) {
         // We should only add .aar dependencies if they aren't already provided as modules.
-        // For now, the way we associate them with each other is via the library name;
-        // in the future the model will provide this for us.
+        // For now, the way we associate them with each other is via the library name.
+        // In the future the model will provide this for us.
         String libraryName = library.getArtifactAddress();
         // Strip the build system prefix and the "@aar" suffix, if present (b/79942260).
-        // Both, "Gradle: com.android.support:appcompat-v7-27.1.0" and "com.android.support:appcompat-v7:27.1.0@aar"
-        // are converted to "com.android.support:appcompat-v7:27.1.0".
+        // For example, both, "Gradle: com.android.support:appcompat-v7-27.1.0" and
+        // "com.android.support:appcompat-v7:27.1.0@aar", become "com.android.support:appcompat-v7:27.1.0".
         int prefixEnd = libraryName.lastIndexOf(' ') + 1;
         int suffixStart = libraryName.endsWith("@aar") ? libraryName.length() - "@aar".length() : libraryName.length();
         libraryName = libraryName.substring(prefixEnd, suffixStart);
@@ -333,12 +331,12 @@ public class ResourceRepositoryManager implements Disposable {
    *
    * <p>It doesn't contain resources from AAR dependencies.
    *
-   * <p>An example of where this is useful is the layout editor; in its “Language” menu it lists all the relevant languages in the project and
-   * lets you choose between them. Here we don’t want to include resources from libraries; If you depend on Google Play Services, and it
-   * provides 40 translations for its UI, we don’t want to show all 40 languages in the language menu, only the languages actually locally in
-   * the user’s source code.
+   * <p>An example of where this is useful is the layout editor; in its “Language” menu it lists all the relevant languages in the project
+   * and lets you choose between them. Here we don’t want to include resources from libraries; If you depend on Google Play Services, and it
+   * provides 40 translations for its UI, we don’t want to show all 40 languages in the language menu, only the languages actually locally
+   * in the user’s source code.
    *
-   * @return the computed repository or null of {@code createIfNecessary} is false and no other action caused the creation of the repository.
+   * @return the computed repository or null of {@code createIfNecessary} is false and no other action caused the creation of the repository
    */
   @Contract("true -> !null")
   @Nullable
@@ -355,10 +353,10 @@ public class ResourceRepositoryManager implements Disposable {
   }
 
   /**
-   * Returns the resource repository for a single module (which can possibly have multiple resource folders). Does not include
-   * resources from any dependencies.
+   * Returns the resource repository for a single module (which can possibly have multiple resource folders). Does not include resources
+   * from any dependencies.
    *
-   * @return the computed repository or null of {@code createIfNecessary} is false and no other action caused the creation of the repository.
+   * @return the computed repository or null of {@code createIfNecessary} is false and no other action caused the creation of the repository
    */
   @Contract("true -> !null")
   @Nullable
