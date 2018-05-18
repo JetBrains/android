@@ -53,6 +53,7 @@ import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.data.TableCell.row;
@@ -65,7 +66,7 @@ public class ConstraintLayoutTest {
   private static final Path ACTIVITY_MAIN_XML_RELATIVE_PATH =
     FileSystems.getDefault().getPath("app", "src", "main", "res", "layout", "activity_main.xml");
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
   /**
    * To verify that items from the tool kit can be added to a layout.

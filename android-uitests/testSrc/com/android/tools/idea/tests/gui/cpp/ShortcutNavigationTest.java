@@ -27,12 +27,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.concurrent.TimeUnit;
+
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class ShortcutNavigationTest extends DebuggerTestBase {
 
-  @Rule public GuiTestRule guiTest = new GuiTestRule();
+  @Rule public GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
   /**
    * Verifies that JNI functions can be navigated to from the java definition.

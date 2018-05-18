@@ -27,12 +27,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.concurrent.TimeUnit;
+
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class LintTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
   /**
    * Verifies that obsolete SDK_INT checks in conditional statements

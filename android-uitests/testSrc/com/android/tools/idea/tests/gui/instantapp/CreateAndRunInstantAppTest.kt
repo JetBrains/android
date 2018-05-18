@@ -33,10 +33,11 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.concurrent.TimeUnit
 
 @RunWith(GuiTestRemoteRunner::class)
 class CreateAndRunInstantAppTest {
-  @Rule @JvmField val guiTest = GuiTestRule()
+  @Rule @JvmField val guiTest = GuiTestRule().withTimeout(5, TimeUnit.MINUTES)
   @Rule @JvmField val emulator = EmulatorTestRule()
 
   private val projectApplicationId = "com.android.devtools.simple"

@@ -37,13 +37,14 @@ import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class LayoutInspectorTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
   private final EmulatorTestRule emulator = new EmulatorTestRule(false);
   @Rule public final RuleChain emulatorRules = RuleChain

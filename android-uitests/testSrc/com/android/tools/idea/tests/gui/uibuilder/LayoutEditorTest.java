@@ -35,6 +35,7 @@ import java.awt.*;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -45,7 +46,7 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 @RunWith(GuiTestRemoteRunner.class)
 public class LayoutEditorTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
   /**
    * Verifies that Asset Studio features work
