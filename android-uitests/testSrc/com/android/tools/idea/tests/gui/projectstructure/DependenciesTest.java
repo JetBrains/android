@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.projectstructure;
 
 import com.android.repository.io.FileOpUtils;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.parser.Dependency;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.structure.editors.ModuleDependenciesTableItem;
@@ -169,19 +170,36 @@ public class DependenciesTest {
   }
 
   @NotNull
-  private IdeFrameFixture createNewProject(@NotNull String appName, @NotNull String minSdk) throws Exception {
-    NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame().createNewProject();
+  private IdeFrameFixture createNewProject(@NotNull String appName, @NotNull String minSdk) {
+    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
+      guiTest
+        .welcomeFrame()
+        .createNewProject()
+        .getChooseAndroidProjectStep()
+        .chooseActivity("Empty Activity")
+        .wizard()
+        .clickNext()
+        .getConfigureNewAndroidProjectStep()
+        .enterName(appName)
+        .enterPackageName("android.com.app")
+        .selectMinimumSdkApi(minSdk)
+        .wizard()
+        .clickFinish();
+    }
+    else {
+      NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame().createNewProject();
 
-    newProjectWizard.getConfigureAndroidProjectStep()
-      .enterApplicationName(appName)
-      .enterCompanyDomain("com.android");
+      newProjectWizard.getConfigureAndroidProjectStep()
+                      .enterApplicationName(appName)
+                      .enterCompanyDomain("com.android");
 
-    newProjectWizard.clickNext();
-    newProjectWizard.getConfigureFormFactorStep().selectMinimumSdkApi(MOBILE, minSdk);
-    newProjectWizard.clickNext();
-    newProjectWizard.chooseActivity("Empty Activity");
-    newProjectWizard.clickNext();
-    newProjectWizard.clickFinish();
+      newProjectWizard.clickNext();
+      newProjectWizard.getConfigureFormFactorStep().selectMinimumSdkApi(MOBILE, minSdk);
+      newProjectWizard.clickNext();
+      newProjectWizard.chooseActivity("Empty Activity");
+      newProjectWizard.clickNext();
+      newProjectWizard.clickFinish();
+    }
 
     return guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(30));
   }

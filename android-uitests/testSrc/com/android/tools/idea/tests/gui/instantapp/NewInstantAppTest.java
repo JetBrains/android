@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.tests.gui.instantapp;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.instantapp.InstantAppUrlFinder;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import com.intellij.openapi.module.Module;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +33,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -62,37 +62,54 @@ public class NewInstantAppTest {
   //Not putting this in before() as I plan to add some tests that work on non-default projects.
   private void createAndOpenDefaultAIAProject(@NotNull String projectName, @Nullable String featureModuleName,
                                               @Nullable String activityName, boolean includeUrl) {
-    //TODO: There is some commonality between this code, the code in NewProjectTest and further tests I am planning, but there are also
-    //      differences. Once AIA tests are completed this should be factored out into the NewProjectWizardFixture
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
       .createNewProject();
 
-    newProjectWizard
-      .getConfigureAndroidProjectStep()
-      .enterCompanyDomain("test.android.com")
-      .enterApplicationName(projectName)
-      .wizard()
-      .clickNext() // Complete project configuration
-      .getConfigureFormFactorStep()
-      .selectMinimumSdkApi(MOBILE, "23")
-      .selectInstantAppSupport(MOBILE)
-      .wizard()
-      .clickNext(); // Complete form factor configuration
+    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
+      // No longer possible to customize Instant Apps (eg "feature module name" and "include URL")
+      assert featureModuleName == null;
+      assert !includeUrl;
 
-    if (featureModuleName != null) {
       newProjectWizard
-        .getConfigureInstantModuleStep()
-        .enterFeatureModuleName(featureModuleName);
+        .getChooseAndroidProjectStep()
+        .chooseActivity(activityName == null ? "Empty Activity" : activityName)
+        .wizard()
+        .clickNext()
+        .getConfigureNewAndroidProjectStep()
+        .enterName(projectName)
+        .selectMinimumSdkApi("23")
+        .setIncludeInstantApp(true)
+        .wizard()
+        .clickFinish();
     }
+    else {
+      newProjectWizard
+        .getConfigureAndroidProjectStep()
+        .enterCompanyDomain("test.android.com")
+        .enterApplicationName(projectName)
+        .wizard()
+        .clickNext() // Complete project configuration
+        .getConfigureFormFactorStep()
+        .selectMinimumSdkApi(MOBILE, "23")
+        .selectInstantAppSupport(MOBILE)
+        .wizard()
+        .clickNext(); // Complete form factor configuration
 
-    newProjectWizard
-      .clickNext() // Complete configuration of Instant App Module
-      .chooseActivity(activityName == null ? "Empty Activity" : activityName)
-      .clickNext() // Complete "Add Activity" step
-      .getConfigureActivityStep()
-      .selectIncludeUrl(includeUrl)
-      .wizard()
-      .clickFinish();
+      if (featureModuleName != null) {
+        newProjectWizard
+          .getConfigureInstantModuleStep()
+          .enterFeatureModuleName(featureModuleName);
+      }
+
+      newProjectWizard
+        .clickNext() // Complete configuration of Instant App Module
+        .chooseActivity(activityName == null ? "Empty Activity" : activityName)
+        .clickNext() // Complete "Add Activity" step
+        .getConfigureActivityStep()
+        .selectIncludeUrl(includeUrl)
+        .wizard()
+        .clickFinish();
+    }
 
     guiTest.ideFrame()
       .waitForGradleProjectSyncToFinish()
@@ -110,7 +127,7 @@ public class NewInstantAppTest {
   }
 
   @Test
-  public void testNoWarningsInDefaultNewInstantAppProjects() throws IOException {
+  public void testNoWarningsInDefaultNewInstantAppProjects() {
     String projectName = "Warning";
     createAndOpenDefaultAIAProject(projectName, null, null);
 
@@ -160,7 +177,7 @@ public class NewInstantAppTest {
   }
 
   @Test
-  public void testCanBuildDefaultNewInstantAppProjects() throws IOException {
+  public void testCanBuildDefaultNewInstantAppProjects() {
     createAndOpenDefaultAIAProject("BuildApp", null, null);
 
     guiTest.ideFrame().getEditor()
@@ -180,7 +197,7 @@ public class NewInstantAppTest {
   }
 
   @Test
-  public void testCanBuildNewInstantAppProjectsWithEmptyActivityWithoutUrls() throws IOException {
+  public void testCanBuildNewInstantAppProjectsWithEmptyActivityWithoutUrls() {
     createAndOpenDefaultAIAProject("BuildApp", null, null, false);
     String manifestContent = guiTest.ideFrame().getEditor()
       .open("feature/src/main/res/layout/activity_main.xml")
@@ -194,22 +211,40 @@ public class NewInstantAppTest {
   }
 
   @Test
-  public void testCanBuildNewInstantAppProjectsWithLoginActivity() throws IOException {
-    createAndOpenDefaultAIAProject("BuildApp", null, "Login Activity", true);
-    guiTest.ideFrame().getEditor()
-      .open("feature/src/main/res/layout/activity_login.xml")
-      .open("feature/src/main/AndroidManifest.xml")
-      .moveBetween("android:order=", "")
-      .moveBetween("android:host=", "")
-      .moveBetween("android:pathPattern=", "")
-      .moveBetween("android:scheme=\"https", "")
-      .moveBetween("android.intent.action.", "MAIN")
-      .moveBetween("android.intent.category.", "LAUNCHER");
+  public void testCanBuildNewInstantAppProjectsWithLoginActivity() {
+    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
+      createAndOpenDefaultAIAProject("BuildApp", null, null);
+      guiTest.ideFrame()
+             .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Login Activity")
+             .clickFinish();
+
+      String baseStrings = guiTest.ideFrame()
+                                  .waitForGradleProjectSyncToFinish()
+                                  .getEditor()
+                                  .open("base/src/main/res/values/strings.xml")
+                                  .getCurrentFileContents();
+
+      assertThat(baseStrings).contains("title_activity_login");
+      assertAbout(file()).that(guiTest.getProjectPath("feature/src/main/res/layout/activity_login.xml")).isFile();
+    }
+    else {
+      createAndOpenDefaultAIAProject("BuildApp", null, "Login Activity", true);
+      guiTest.ideFrame().getEditor()
+             .open("feature/src/main/res/layout/activity_login.xml")
+             .open("feature/src/main/AndroidManifest.xml")
+             .moveBetween("android:order=", "")
+             .moveBetween("android:host=", "")
+             .moveBetween("android:pathPattern=", "")
+             .moveBetween("android:scheme=\"https", "")
+             .moveBetween("android.intent.action.", "MAIN")
+             .moveBetween("android.intent.category.", "LAUNCHER");
+    }
+
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 
   @Test
-  public void newInstantAppProjectWithFullScreenActivity() throws Exception {
+  public void newInstantAppProjectWithFullScreenActivity() {
     createAndOpenDefaultAIAProject("BuildApp", null, "Fullscreen Activity");
     guiTest.ideFrame().getEditor()
       .open("feature/src/main/res/layout/activity_fullscreen.xml")
@@ -224,8 +259,8 @@ public class NewInstantAppTest {
   }
 
   @Test // b/68122671
-  public void addMapActivityToExistingIappModule() throws Exception {
-    createAndOpenDefaultAIAProject("BuildApp", "feature", null);
+  public void addMapActivityToExistingIappModule() {
+    createAndOpenDefaultAIAProject("BuildApp", null, null);
     guiTest.ideFrame()
       .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Google", "Google Maps Activity")
       .clickFinish();
@@ -238,8 +273,8 @@ public class NewInstantAppTest {
   }
 
   @Test // b/68478730
-  public void addMasterDetailActivityToExistingIappModule() throws Exception {
-    createAndOpenDefaultAIAProject("BuildApp", "feature", null);
+  public void addMasterDetailActivityToExistingIappModule() {
+    createAndOpenDefaultAIAProject("BuildApp", null, null);
     guiTest.ideFrame()
       .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Master/Detail Flow")
       .clickFinish();
@@ -255,8 +290,8 @@ public class NewInstantAppTest {
   }
 
   @Test // b/68684401
-  public void addFullscreenActivityToExistingIappModule() throws Exception {
-    createAndOpenDefaultAIAProject("BuildApp", "feature", null);
+  public void addFullscreenActivityToExistingIappModule() {
+    createAndOpenDefaultAIAProject("BuildApp", null, null);
     guiTest.ideFrame()
       .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Fullscreen Activity")
       .clickFinish();
@@ -271,7 +306,11 @@ public class NewInstantAppTest {
   }
 
   @Test
-  public void testValidPathInDefaultNewInstantAppProjects() throws IOException {
+  public void testValidPathInDefaultNewInstantAppProjects() {
+    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
+      return; // On the new NPW design, Instant Apps are created with default options. This test no longer applies
+    }
+
     createAndOpenDefaultAIAProject("RouteApp", "routefeature", null, true);
 
     Module module = guiTest.ideFrame().getModule("routefeature");
@@ -279,7 +318,11 @@ public class NewInstantAppTest {
   }
 
   @Test
-  public void testCanCustomizeFeatureModuleInNewInstantAppProjects() throws IOException {
+  public void testCanCustomizeFeatureModuleInNewInstantAppProjects() {
+    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
+      return; // On the new NPW design, Instant Apps are created with default options. This test no longer applies
+    }
+
     createAndOpenDefaultAIAProject("SetFeatureNameApp", "testfeaturename", null);
 
     guiTest.ideFrame().getModule("testfeaturename");

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.instantapp;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -57,6 +58,10 @@ public class InstantAppActivityDefaultsTest {
 
   @Test
   public void testDefaultUrlParamsPopulated() {
+    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
+      return; // On the new NPW design, Instant Apps are created with default options. This test no longer applies.
+    }
+
     ChooseOptionsForNewFileStepFixture<NewProjectWizardFixture> templateSettingsFixture = guiTest.welcomeFrame()
       .createNewProject()
       .getConfigureAndroidProjectStep()

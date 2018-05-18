@@ -23,6 +23,10 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 
+/**
+ * @deprecated  use {@link ConfigureNewAndroidProjectStepFixture}
+ */
+@Deprecated
 public class ConfigureAndroidProjectStepFixture<W extends AbstractWizardFixture>
   extends AbstractWizardStepFixture<ConfigureAndroidProjectStepFixture, W> {
 

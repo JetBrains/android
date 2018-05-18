@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
@@ -95,25 +96,39 @@ class NewProjectDescriptor {
    */
   @NotNull
   protected IdeFrameFixture create(@NotNull GuiTestRule guiTest) {
-    NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
-                                                      .createNewProject();
+    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
+      guiTest
+        .welcomeFrame()
+        .createNewProject()
+        .clickNext()
+        .getConfigureNewAndroidProjectStep()
+        .enterName(myName)
+        .enterPackageName(myPkg)
+        .selectMinimumSdkApi(myMinSdk)
+        .wizard()
+        .clickFinish();
+    }
+    else {
+      NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
+                                                        .createNewProject();
 
-    newProjectWizard.getConfigureAndroidProjectStep()
-                    .setCppSupport(false)  // The setting is saved and restored by NewProjectModel, so can't be presumed disabled.
-                    .enterApplicationName(myName)
-                    .enterCompanyDomain(myDomain)
-                    .enterPackageName(myPkg);
-    newProjectWizard.clickNext();
+      newProjectWizard.getConfigureAndroidProjectStep()
+                      .setCppSupport(false)  // The setting is saved and restored by NewProjectModel, so can't be presumed disabled.
+                      .enterApplicationName(myName)
+                      .enterCompanyDomain(myDomain)
+                      .enterPackageName(myPkg);
+      newProjectWizard.clickNext();
 
-    newProjectWizard.getConfigureFormFactorStep().selectMinimumSdkApi(MOBILE, myMinSdk);
-    newProjectWizard.clickNext();
+      newProjectWizard.getConfigureFormFactorStep().selectMinimumSdkApi(MOBILE, myMinSdk);
+      newProjectWizard.clickNext();
 
-    // Skip "Add Activity" step
-    newProjectWizard.clickNext();
+      // Skip "Add Activity" step
+      newProjectWizard.clickNext();
 
-    newProjectWizard.getChooseOptionsForNewFileStep().enterActivityName(myActivity);
+      newProjectWizard.getChooseOptionsForNewFileStep().enterActivityName(myActivity);
 
-    newProjectWizard.clickFinish();
+      newProjectWizard.clickFinish();
+    }
 
     if (myWaitForSync) {
       guiTest.ideFrame().waitForGradleProjectSyncToFinish();

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.npw;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -38,11 +39,18 @@ public class NewProjectMultiModuleTest {
 
   @Test
   public void createAllModule() {
+    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
+      return; // On the new NPW design, there is no way to create multi-modules. This test no longer applies
+    }
+
     create(false, MOBILE, WEAR, TV, CAR, THINGS);
   }
 
   @Test
   public void createAllModuleWithIApp() {
+    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
+      return; // On the new NPW design, there is no way to create multi-modules. This test no longer applies
+    }
     try {
       SdkReplacer.replaceSdkLocationAndActivate(null, true);
       create(true, MOBILE, WEAR, TV, CAR, THINGS);

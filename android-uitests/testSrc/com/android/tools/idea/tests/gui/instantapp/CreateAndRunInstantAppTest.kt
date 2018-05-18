@@ -20,6 +20,7 @@ import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler
 import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
@@ -103,18 +104,30 @@ class CreateAndRunInstantAppTest {
     val runConfigName = "instantapp"
     val newProj = guiTest.welcomeFrame().createNewProject()
 
-    newProj.configureAndroidProjectStep
-      .enterPackageName(projectApplicationId)
-    newProj.clickNext()
-    newProj.configureFormFactorStep
-      .selectMinimumSdkApi(FormFactor.MOBILE, "23")
-      .findInstantAppCheckbox(FormFactor.MOBILE)
-      .select()
+    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
+      newProj
+        .clickNext()
+        .configureNewAndroidProjectStep
+        .enterPackageName(projectApplicationId)
+        .selectMinimumSdkApi("23")
+        .setIncludeInstantApp(true)
+        .wizard()
+        .clickFinish()
+    }
+    else {
+      newProj.configureAndroidProjectStep
+        .enterPackageName(projectApplicationId)
+      newProj.clickNext()
+      newProj.configureFormFactorStep
+        .selectMinimumSdkApi(FormFactor.MOBILE, "23")
+        .findInstantAppCheckbox(FormFactor.MOBILE)
+        .select()
 
-    newProj.clickNext()
-      .clickNext()
-      .clickNext()
-      .clickFinish()
+      newProj.clickNext()
+        .clickNext()
+        .clickNext()
+        .clickFinish()
+    }
 
     val ideFrame = guiTest.ideFrame()
     // TODO remove the following workaround wait for http://b/72666461

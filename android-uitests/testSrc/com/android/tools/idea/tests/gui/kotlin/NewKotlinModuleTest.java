@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.kotlin;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
@@ -53,19 +53,33 @@ public class NewKotlinModuleTest {
   }
 
   private void createNewBasicProject(boolean hasKotlinSupport) {
-    NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
-      .createNewProject();
-
-    newProjectWizard.getConfigureAndroidProjectStep()
-      .enterPackageName("android.com")
-      .enterApplicationName(APP_NAME)
-      .setCppSupport(false)
-      .setKotlinSupport(hasKotlinSupport); // Default "App name", "company domain" and "package name"
-
-    newProjectWizard.clickNext()
-      .clickNext() // Skip "Select minimum SDK Api" step
-      .clickNext() // Skip "Add Activity" step
-      .clickFinish();
+    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
+      guiTest
+        .welcomeFrame()
+        .createNewProject()
+        .clickNext()
+        .getConfigureNewAndroidProjectStep()
+        .enterName(APP_NAME)
+        .enterPackageName("android.com")
+        .setSourceLanguage(hasKotlinSupport ? "Kotlin" : "Java")
+        .wizard()
+        .clickFinish();
+    }
+    else {
+      guiTest
+        .welcomeFrame()
+        .createNewProject()
+        .getConfigureAndroidProjectStep()
+        .enterPackageName("android.com")
+        .enterApplicationName(APP_NAME)
+        .setCppSupport(false)
+        .setKotlinSupport(hasKotlinSupport) // Default "App name", "company domain" and "package name"
+        .wizard()
+        .clickNext()
+        .clickNext() // Skip "Select minimum SDK Api" step
+        .clickNext() // Skip "Add Activity" step
+        .clickFinish();
+    }
 
     guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(30)); // Kotlin projects take longer to sync
 
