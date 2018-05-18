@@ -171,7 +171,9 @@ public class AndroidTargetData {
         }
       }
 
-      LOG.warn("Rendering will not use a CompatibilityRenderTarget");
+      if (!(myTarget instanceof StudioEmbeddedRenderTarget)) {
+        LOG.warn("Rendering will not use the StudioEmbeddedRenderTarget");
+      }
       AttributeDefinitionsImpl attrDefs = getAllAttrDefs(project);
       if (attrDefs == null) {
         return null;
