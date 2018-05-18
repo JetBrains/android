@@ -333,9 +333,9 @@ public class RenderTaskTest extends AndroidTestCase {
     BufferedImage result = task.render().get().getRenderedImage().getCopy();
 
     BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/layouts/cjk-golden.png"));
-    // Fonts on OpenJDK look slightly different than on the IntelliJ version. Increate the diff tolerance to
-    // 0.5 to account for that. We mostly care about characters not being displayed at all.
-    ImageDiffUtil.assertImageSimilar("gradient_drawable", goldenImage, result, 0.5);
+    // Fonts on OpenJDK look slightly different than on the IntelliJ version. Increase the diff tolerance to
+    // 1.0 to account for that. We mostly care about characters not being displayed at all.
+    ImageDiffUtil.assertImageSimilar("gradient_drawable", goldenImage, result, 1.0d);
     task.dispose().get(5, TimeUnit.SECONDS);
   }
 }

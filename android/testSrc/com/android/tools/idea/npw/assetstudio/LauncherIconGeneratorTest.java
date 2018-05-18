@@ -40,13 +40,12 @@ import java.util.*;
 import java.util.List;
 
 import static com.android.tools.adtui.imagediff.ImageDiffUtil.assertImageSimilar;
+import static com.android.tools.adtui.imagediff.ImageDiffUtil.DEFAULT_IMAGE_DIFF_PERCENT_THRESHOLD;
 
 /**
  * Tests for {@link LauncherIconGenerator}.
  */
 public class LauncherIconGeneratorTest extends AndroidTestCase {
-  private static final double MAX_PERCENT_DIFFERENT = 0.005;
-
   private List<String> myWarnings = new ArrayList<>();
   private LauncherIconGenerator myIconGenerator;
 
@@ -148,7 +147,8 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
                      Files.toString(goldenFile, StandardCharsets.UTF_8), ((GeneratedXmlResource)icon).getXmlText());
       } else {
         BufferedImage goldenImage = ImageIO.read(goldenFile);
-        assertImageSimilar(filename, goldenImage, ((GeneratedImageIcon)icon).getImage(), MAX_PERCENT_DIFFERENT);
+        assertImageSimilar(filename, goldenImage, ((GeneratedImageIcon)icon).getImage(),
+			   (double) DEFAULT_IMAGE_DIFF_PERCENT_THRESHOLD);
       }
       unexpectedFiles.remove(file);
     }

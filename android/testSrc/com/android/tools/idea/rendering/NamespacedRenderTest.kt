@@ -69,7 +69,7 @@ class NamespacedRenderTest : AndroidGradleTestCase() {
     ImageDiffUtil.assertImageSimilar(
       File(getTestDataPath() + goldenImage),
       result,
-      0.5
+      1.0
     )
   }
 }

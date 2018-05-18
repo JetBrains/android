@@ -91,7 +91,7 @@ public class GraphicsLayoutRendererTest extends AndroidTestCase {
       assertTrue(renderer.render((Graphics2D)image.getGraphics()));
 
       BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/themeEditor/previewPanel/components-golden.png"));
-      ImageDiffUtil.assertImageSimilar("components_golden", goldenImage, image, 0.1);
+      ImageDiffUtil.assertImageSimilar("components_golden", goldenImage, image, 1.0d);
     } finally {
       renderer.dispose();
     }
