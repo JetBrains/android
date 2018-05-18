@@ -61,7 +61,8 @@ import java.util.*;
 import static com.android.SdkConstants.*;
 
 // TODO: Should we eventually plug into MoveClassHandler.EP_NAME extensions? Offer a QuickFix at any point?
-public class AndroidModularizeProcessor extends BaseRefactoringProcessor {
+public class
+AndroidModularizeProcessor extends BaseRefactoringProcessor {
 
   private static final Logger LOGGER = Logger.getInstance(AndroidModularizeProcessor.class);
 
@@ -211,7 +212,7 @@ public class AndroidModularizeProcessor extends BaseRefactoringProcessor {
       // TODO: What about references from build.gradle files?
     }
 
-    return UsageViewUtil.removeDuplicatedUsages(result.toArray(new UsageInfo[result.size()]));
+    return UsageViewUtil.removeDuplicatedUsages(result.toArray(UsageInfo.EMPTY_ARRAY));
   }
 
   @Override
@@ -234,7 +235,7 @@ public class AndroidModularizeProcessor extends BaseRefactoringProcessor {
     VirtualFile javaTargetDir = javaSourceFolders.get(0);
 
     VirtualFile resDir = ResourceFolderManager.getInstance(facet).getFolders().get(0);
-    ResourceFolderRepository repo = ResourceFolderRegistry.get(facet, resDir);
+    ResourceFolderRepository repo = ResourceFolderRegistry.getInstance(myProject).get(facet, resDir);
 
     Set<XmlFile> touchedXmlFiles = new HashSet<>();
 

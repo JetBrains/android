@@ -54,16 +54,6 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
   private static final String VALUES_WITH_NAMESPACE = "resourceRepository/values_with_namespace_reference.xml";
   private static final String VALUES_OVERLAY2_NO = "resourceRepository/valuesOverlay2No.xml";
 
-  @Override
-  public void tearDown() throws Exception {
-    try {
-      ResourceFolderRegistry.reset();
-    }
-    finally {
-      super.tearDown();
-    }
-  }
-
   public void testStable() {
     assertSame(ResourceRepositoryManager.getAppResources(myFacet), ResourceRepositoryManager.getAppResources(myFacet));
     assertSame(ResourceRepositoryManager.getAppResources(myFacet), ResourceRepositoryManager.getAppResources(myModule));

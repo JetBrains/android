@@ -108,15 +108,19 @@ class MigrateToResourceNamespacesHandler : RefactoringActionHandler {
   }
 }
 
-private sealed class ResourceUsageInfo : UsageInfo {
-  constructor(ref: PsiReference) : super(ref)
-  constructor(element: PsiElement, startOffset: Int, endOffset: Int) : super(element, startOffset, endOffset)
-
+private sealed class ResourceUsageInfo(element: PsiElement, startOffset: Int, endOffset: Int) : UsageInfo(element, startOffset, endOffset) {
   abstract val resourceType: ResourceType
   abstract val name: String
 }
 
-private class DomUsageInfo(ref: PsiReference, val domValue: GenericDomValue<ResourceValue>) : ResourceUsageInfo(ref) {
+private class DomUsageInfo(
+  ref: PsiReference,
+  val domValue: GenericDomValue<ResourceValue>
+) : ResourceUsageInfo( // We don't use the UsageInfo(PsiReference) constructor to avoid resolving the reference.
+  ref.element,
+  ref.rangeInElement.startOffset,
+  ref.rangeInElement.endOffset
+) {
   override val resourceType: ResourceType
     get() = domValue.value!!.type!!
   override val name: String

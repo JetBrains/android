@@ -64,6 +64,7 @@ public class ResourceRepositoryManager implements Disposable {
   private static final Object MODULE_RESOURCES_LOCK = new Object();
 
   @NotNull private final AndroidFacet myFacet;
+  @NotNull private final AaptOptions.Namespacing myNamespacing;
   @Nullable private ResourceVisibilityLookup.Provider myResourceVisibilityProvider;
 
   /**
@@ -82,10 +83,20 @@ public class ResourceRepositoryManager implements Disposable {
 
   @NotNull
   public static ResourceRepositoryManager getOrCreateInstance(@NotNull AndroidFacet facet) {
+    AaptOptions.Namespacing namespacing = getNamespacing(facet);
     ResourceRepositoryManager instance = facet.getUserData(KEY);
-    if (instance == null) {
-      instance = facet.putUserDataIfAbsent(KEY, new ResourceRepositoryManager(facet));
+
+    if (instance != null && instance.myNamespacing != namespacing) {
+      if (facet.replace(KEY, instance, null)) {
+        Disposer.dispose(instance);
+      }
+      instance = null;
     }
+
+    if (instance == null) {
+      instance = facet.putUserDataIfAbsent(KEY, new ResourceRepositoryManager(facet, namespacing));
+    }
+
     return instance;
   }
 
@@ -176,8 +187,9 @@ public class ResourceRepositoryManager implements Disposable {
     return getOrCreateInstance(facet).getModuleResources(true);
   }
 
-  private ResourceRepositoryManager(@NotNull AndroidFacet facet) {
+  private ResourceRepositoryManager(@NotNull AndroidFacet facet, @NotNull AaptOptions.Namespacing namespacing) {
     myFacet = facet;
+    myNamespacing = namespacing;
     Disposer.register(facet, this);
   }
 
@@ -441,7 +453,7 @@ public class ResourceRepositoryManager implements Disposable {
   public void resetAllCaches() {
     resetResources();
     ConfigurationManager.getOrCreateInstance(myFacet.getModule()).getResolverCache().reset();
-    ResourceFolderRegistry.reset();
+    ResourceFolderRegistry.getInstance(myFacet.getModule().getProject()).reset();
     AarResourceRepositoryCache.getInstance().clear();
   }
 
@@ -451,7 +463,12 @@ public class ResourceRepositoryManager implements Disposable {
 
   @NotNull
   public AaptOptions.Namespacing getNamespacing() {
-    AndroidModel model = myFacet.getConfiguration().getModel();
+    return myNamespacing;
+  }
+
+  @NotNull
+  private static AaptOptions.Namespacing getNamespacing(@NotNull AndroidFacet facet) {
+    AndroidModel model = facet.getConfiguration().getModel();
     if (model != null) {
       return model.getNamespacing();
     } else {

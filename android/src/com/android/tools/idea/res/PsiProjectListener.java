@@ -18,7 +18,6 @@ package com.android.tools.idea.res;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.fileTypes.FontFileType;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
-import com.google.common.collect.Maps;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.StdFileTypes;
@@ -26,28 +25,22 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.ui.EditorNotifications;
+import com.intellij.util.Consumer;
 import org.intellij.images.fileTypes.ImageFileTypeManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
-
 import static com.android.SdkConstants.FD_RES_RAW;
 
+/**
+ * A {@link PsiTreeChangeListener} that forwards events to {{@link ResourceFolderRepository#getPsiListener()}} of the {@link
+ * ResourceFolderRepository} corresponding to the file being changed.
+ *
+ * TODO(bendowski): Move this to be an inner class of {@link ResourceFolderRegistry}.
+ */
 public class PsiProjectListener extends AbstractProjectComponent implements PsiTreeChangeListener {
-  @NotNull private final Map<VirtualFile, ResourceFolderRepository> myListeners = Maps.newHashMap();
 
-  public static void addRoot(@NotNull Project project, @NotNull VirtualFile root, @NotNull ResourceFolderRepository repository) {
-    synchronized (PsiProjectListener.class) {
-      getInstance(project).addRoot(root, repository);
-    }
-  }
-
-  public static void removeRoot(@NotNull Project project, @NotNull VirtualFile root, @NotNull ResourceFolderRepository repository) {
-    synchronized (PsiProjectListener.class) {
-      getInstance(project).removeRoot(root, repository);
-    }
-  }
+  private final ResourceFolderRegistry myRegistry;
 
   @NotNull
   public static PsiProjectListener getInstance(@NotNull Project project) {
@@ -57,18 +50,7 @@ public class PsiProjectListener extends AbstractProjectComponent implements PsiT
   public PsiProjectListener(@NotNull Project project) {
     super(project);
     PsiManager.getInstance(project).addPsiTreeChangeListener(this);
-  }
-
-  private void addRoot(@NotNull VirtualFile root, @NotNull ResourceFolderRepository repository) {
-    assert myListeners.get(root) == null; // Repositories should be unique.
-    // TODO: Walk up in the chain and make sure they aren't nested either!
-
-    myListeners.put(root, repository);
-  }
-
-  private void removeRoot(@NotNull VirtualFile root, @NotNull ResourceFolderRepository repository) {
-    assert myListeners.get(root) == repository : repository;
-    myListeners.remove(root);
+    myRegistry = ResourceFolderRegistry.getInstance(project);
   }
 
   static boolean isRelevantFileType(@NotNull FileType fileType) {
@@ -131,21 +113,24 @@ public class PsiProjectListener extends AbstractProjectComponent implements PsiT
   }
 
 
-  @Nullable
-  private ResourceFolderRepository findRepository(@Nullable VirtualFile file) {
+  private void dispatch(@Nullable VirtualFile file, @NotNull Consumer<PsiTreeChangeListener> invokeCallback) {
     if (file == null) {
-      return null;
+      return;
     }
     while (file != null) {
-      ResourceFolderRepository repository = myListeners.get(file);
-      if (repository != null) {
-        return repository;
+      ResourceFolderRegistry.CachedRepositories cached = myRegistry.getCached(file);
+      if (cached != null) {
+        if (cached.namespaced != null) {
+          invokeCallback.consume(cached.namespaced.getPsiListener());
+        }
+        if (cached.nonNamespaced != null) {
+          invokeCallback.consume(cached.nonNamespaced.getPsiListener());
+        }
+        return;
       }
 
       file = file.getParent();
     }
-
-    return null;
   }
 
   @Override
@@ -174,15 +159,11 @@ public class PsiProjectListener extends AbstractProjectComponent implements PsiT
   }
 
   private void dispatchChildAdded(@NotNull PsiTreeChangeEvent event, @Nullable VirtualFile virtualFile) {
-    ResourceFolderRepository repository = findRepository(virtualFile);
-    if (repository != null) {
-      repository.getPsiListener().childAdded(event);
-    }
+    dispatch(virtualFile, listener -> listener.childAdded(event));
   }
 
   @Override
-  public void beforeChildRemoval(@NotNull PsiTreeChangeEvent event) {
-  }
+  public void beforeChildRemoval(@NotNull PsiTreeChangeEvent event) {}
 
   @Override
   public void childRemoved(@NotNull PsiTreeChangeEvent event) {
@@ -210,10 +191,7 @@ public class PsiProjectListener extends AbstractProjectComponent implements PsiT
   }
 
   private void dispatchChildRemoved(@NotNull PsiTreeChangeEvent event, @Nullable VirtualFile virtualFile) {
-    ResourceFolderRepository repository = findRepository(virtualFile);
-    if (repository != null) {
-      repository.getPsiListener().childRemoved(event);
-    }
+    dispatch(virtualFile, listener -> listener.childRemoved(event));
   }
 
   @Override
@@ -239,10 +217,7 @@ public class PsiProjectListener extends AbstractProjectComponent implements PsiT
   }
 
   private void dispatchChildReplaced(@NotNull PsiTreeChangeEvent event, @Nullable VirtualFile virtualFile) {
-    ResourceFolderRepository repository = findRepository(virtualFile);
-    if (repository != null) {
-      repository.getPsiListener().childReplaced(event);
-    }
+    dispatch(virtualFile, listener -> listener.childReplaced(event));
   }
 
   private boolean isGradleFileEdit(@NotNull PsiFile psiFile) {
@@ -263,10 +238,7 @@ public class PsiProjectListener extends AbstractProjectComponent implements PsiT
   }
 
   private void dispatchBeforeChildrenChange(@NotNull PsiTreeChangeEvent event, @Nullable VirtualFile virtualFile) {
-    ResourceFolderRepository repository = findRepository(virtualFile);
-    if (repository != null) {
-      repository.getPsiListener().beforeChildrenChange(event);
-    }
+    dispatch(virtualFile, listener -> listener.beforeChildrenChange(event));
   }
 
   @Override
@@ -279,21 +251,11 @@ public class PsiProjectListener extends AbstractProjectComponent implements PsiT
   }
 
   private void dispatchChildrenChanged(@NotNull PsiTreeChangeEvent event, @Nullable VirtualFile virtualFile) {
-    ResourceFolderRepository repository = findRepository(virtualFile);
-    if (repository != null) {
-      repository.getPsiListener().childrenChanged(event);
-    }
+    dispatch(virtualFile, listener -> listener.childrenChanged(event));
   }
 
   @Override
   public void beforeChildMovement(@NotNull PsiTreeChangeEvent event) {
-  }
-
-  private void dispatchBeforeChildMovement(@NotNull PsiTreeChangeEvent event, @Nullable VirtualFile virtualFile) {
-    ResourceFolderRepository repository = findRepository(virtualFile);
-    if (repository != null) {
-      repository.getPsiListener().beforeChildrenChange(event);
-    }
   }
 
   @Override
@@ -325,20 +287,14 @@ public class PsiProjectListener extends AbstractProjectComponent implements PsiT
   }
 
   private void dispatchChildMoved(@NotNull PsiTreeChangeEvent event, @Nullable VirtualFile virtualFile) {
-    ResourceFolderRepository repository = findRepository(virtualFile);
-    if (repository != null) {
-      repository.getPsiListener().childMoved(event);
-    }
+    dispatch(virtualFile, listener -> listener.childMoved(event));
 
     // If you moved the file between resource directories, potentially notify that previous repository as well
     if (event.getFile() == null) {
       PsiElement oldParent = event.getOldParent();
       if (oldParent instanceof PsiDirectory) {
         PsiDirectory sourceDir = (PsiDirectory)oldParent;
-        ResourceFolderRepository targetRepository = findRepository(sourceDir.getVirtualFile());
-        if (targetRepository != null && targetRepository != repository) {
-          targetRepository.getPsiListener().childMoved(event);
-        }
+        dispatch(sourceDir.getVirtualFile(), listener -> listener.childMoved(event));
       }
     }
   }
@@ -358,10 +314,7 @@ public class PsiProjectListener extends AbstractProjectComponent implements PsiT
   }
 
   private void dispatchBeforePropertyChange(@NotNull PsiTreeChangeEvent event, @Nullable VirtualFile virtualFile) {
-    ResourceFolderRepository repository = findRepository(virtualFile);
-    if (repository != null) {
-      repository.getPsiListener().beforePropertyChange(event);
-    }
+    dispatch(virtualFile, listener -> listener.beforePropertyChange(event));
   }
 
   @Override
@@ -372,7 +325,7 @@ public class PsiProjectListener extends AbstractProjectComponent implements PsiT
         PsiFile psiFile = (PsiFile)child;
         if (isRelevantFile(psiFile)) {
           VirtualFile file = psiFile.getVirtualFile();
-          dispatchPropertyChange(event, file);
+          dispatchPropertyChanged(event, file);
         }
       }
     }
@@ -381,11 +334,8 @@ public class PsiProjectListener extends AbstractProjectComponent implements PsiT
     // and what about PROP_FILE_TYPES -- can users change the type of an XML File to something else?
   }
 
-  private void dispatchPropertyChange(@NotNull PsiTreeChangeEvent event, @Nullable VirtualFile virtualFile) {
-    ResourceFolderRepository repository = findRepository(virtualFile);
-    if (repository != null) {
-      repository.getPsiListener().propertyChanged(event);
-    }
+  private void dispatchPropertyChanged(@NotNull PsiTreeChangeEvent event, @Nullable VirtualFile virtualFile) {
+    dispatch(virtualFile, listener -> listener.propertyChanged(event));
   }
 }
 

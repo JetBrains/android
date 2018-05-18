@@ -194,7 +194,7 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
     public void apply(@NotNull PsiElement startElement,
                       @NotNull PsiElement endElement,
                       @NotNull AndroidQuickfixContexts.Context context) {
-      ResourceFolderRepository repository = ResourceFolderRegistry.get(facet, dir.getParent());
+      ResourceFolderRepository repository = ResourceFolderRegistry.getInstance(facet.getModule().getProject()).get(facet, dir.getParent());
       Project project = facet.getModule().getProject();
 
       List<VirtualFile> folders = findSourceFolders();

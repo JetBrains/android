@@ -140,11 +140,6 @@ class AppResourceRepository extends MultiResourceRepository {
     setChildren(delegates);
   }
 
-  @Override
-  public void dispose() {
-    super.dispose();
-  }
-
   /**
    * Returns the libraries among the app resources, if any.
    */

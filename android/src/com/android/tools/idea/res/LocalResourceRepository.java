@@ -175,8 +175,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
   }
 
   @Override
-  public void dispose() {
-  }
+  public void dispose() {}
 
   public void addParent(@NonNull MultiResourceRepository parent) {
     synchronized (ITEM_MAP_LOCK) {

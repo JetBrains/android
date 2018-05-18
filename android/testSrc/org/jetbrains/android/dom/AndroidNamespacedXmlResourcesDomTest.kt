@@ -16,7 +16,6 @@
 package org.jetbrains.android.dom
 
 import com.android.builder.model.AndroidProject
-import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.goToElementAtCaret
 import com.android.tools.idea.testing.highlightedAs
@@ -24,7 +23,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.daemon.impl.analysis.XmlUnusedNamespaceInspection
 import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
-import com.intellij.openapi.application.runUndoTransparentWriteAction
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import org.jetbrains.android.AndroidTestCase
@@ -65,17 +63,8 @@ class AndroidNamespacedXmlResourcesDomTest : AndroidTestCase() {
       XmlUnusedNamespaceInspection::class.java
     )
 
-    runUndoTransparentWriteAction {
-      myFacet.run {
-        configuration.model = TestAndroidModel.namespaced(this)
-        manifest!!.`package`.value = "com.example.app"
-      }
-
-      AndroidFacet.getInstance(getAdditionalModuleByName("lib")!!)!!.run {
-        configuration.model = TestAndroidModel.namespaced(this)
-        manifest!!.`package`.value = "com.example.lib"
-      }
-    }
+    enableNamespacing(myFacet, "com.example.app")
+    enableNamespacing(AndroidFacet.getInstance(getAdditionalModuleByName("lib")!!)!!, "com.example.lib")
 
     myFixture.addFileToProject(
       "$libRes/values/strings.xml",
