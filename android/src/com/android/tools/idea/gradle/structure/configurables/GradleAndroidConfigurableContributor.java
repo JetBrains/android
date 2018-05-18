@@ -34,7 +34,7 @@ public class GradleAndroidConfigurableContributor extends AndroidConfigurableCon
   @Override
   @NotNull
   public List<Configurable> getMainConfigurables(@NotNull Project project, @NotNull Disposable parentDisposable) {
-    myContext = new PsContext(new PsProject(project), parentDisposable);
+    myContext = new PsContextImpl(new PsProject(project), parentDisposable);
 
     List<Configurable> configurables = Lists.newArrayList();
     configurables.add(new VariablesConfigurable(project, myContext));
