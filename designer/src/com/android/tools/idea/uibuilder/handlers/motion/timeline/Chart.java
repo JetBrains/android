@@ -53,7 +53,9 @@ public class Chart {
   ArrayList<Gantt.ChartElement> myChartElements = new ArrayList<>();
   ArrayList<Gantt.ViewElement> myViewElements = new ArrayList<>();
 
-  static Color myTimeCursorColor = new Color(0xff3d81e1);
+  static private Color myTimeCursorColor = new JBColor(0xff3d81e1,0xff3d81e1);
+  static private Color myTimeCursorStartColor = new JBColor(0xff3da1f1,0xff3dd1f1);
+  static private Color myTimeCursorEndColor = new JBColor(0xff3da1f1,0xff3dd1f1);
   static Color myGridColor = new Color(0xff838383);
   static Color myUnSelectedLineColor = new Color(0xe0759a);
   static Color ourMySelectedLineColor = new Color(0x3879d9);
@@ -102,10 +104,9 @@ public class Chart {
     if (myDelayedKeyFrameId != null) {
       MotionSceneModel.MotionSceneView m = myModel.getMotionSceneView(myDelayedKeyFrameId);
       switch (myDelayedKeyType) {
-        case "KeyPositionCartesian":
 
-        case "KeyPositionPath":
-          for (MotionSceneModel.KeyPosition position : m.myKeyPositions) {
+        case "KeyPosition":
+          for (MotionSceneModel.KeyPos position : m.myKeyPositions) {
             if (position.framePosition == myDelayedKeyFramePos) {
               mySelectedKeyFrame = position;
             }
@@ -141,6 +142,16 @@ public class Chart {
     myDelayedKeyFrameId = name;
     myDelayedKeyFramePos = fpos;
     myDelayedKeyType = type;
+  }
+
+  public static Color getColorForPosition(int position) {
+    if (position == 0) {
+      return Chart.myTimeCursorStartColor ;
+    }
+    else if (position == 100) {
+      return Chart.myTimeCursorEndColor;
+    }
+    return Chart.myTimeCursorColor;
   }
 
   // ===================================GraphElements=================================== //

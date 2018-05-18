@@ -105,7 +105,7 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
               resolved = manager.getOrGenerateId(reference);
             }
           }
-          myKeyframe = myMotionHelper.getKeyframe(3, resolved,  keyFrame.getFramePosition());
+          myKeyframe = myMotionHelper.getKeyframe(2, resolved,  keyFrame.getFramePosition());
         } else {
           Object view = NlComponentHelperKt.getViewInfo(selected).getViewObject();
           float fx = Coordinates.getAndroidX(mySceneView, x);
@@ -113,7 +113,8 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
           myKeyframe = myMotionHelper.getKeyframeAtLocation(view, fx, fy);
         }
         if (myKeyframe != null) {
-          panel.setProgress(keyFrame.getFramePosition() / 100f);
+          float progress = keyFrame.getFramePosition() / 100f;
+          panel.setTimelineProgress(progress);
         }
       }
       startX = x;
@@ -129,8 +130,8 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
       if (selected != null) {
         if (myKeyframe != null) {
           String[] positionAttributes = new String[2];
-          positionAttributes[0] = "horizontalPosition_inDeltaX";
-          positionAttributes[1] = "verticalPosition_inDeltaY";
+          positionAttributes[0] = "percentX";
+          positionAttributes[1] = "percentY";
           float[] positionsValues = new float[2];
           ViewInfo info = NlComponentHelperKt.getViewInfo(selected);
           if (info != null) {
@@ -162,8 +163,8 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
           float fy = Coordinates.getAndroidY(mySceneView, y);
           Object view = info.getViewObject();
           String[] positionAttributes = new String[2];
-          positionAttributes[0] = "horizontalPosition_inDeltaX";
-          positionAttributes[1] = "verticalPosition_inDeltaY";
+          positionAttributes[0] = "percentX";
+          positionAttributes[1] = "percentY";
           float[] positionsValues = new float[2];
           if (myMotionHelper.getPositionKeyframe(myKeyframe, view, fx, fy, positionAttributes, positionsValues)) {
             HashMap<String, String> values = new HashMap<>();
