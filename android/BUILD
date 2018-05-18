@@ -123,6 +123,7 @@ iml_module(
         "//tools/adt/idea/android/lib:pepk",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/adt/idea/android/src/com/android/tools/idea/gradle/project/sync/ng/nosyncbuilder/proto:nosyncbuilder-jarjar-lib",
     ],
 )
 
@@ -262,6 +263,7 @@ iml_module(
         "//tools/adt/idea/android/lib:pepk[test]",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/adt/idea/android/src/com/android/tools/idea/gradle/project/sync/ng/nosyncbuilder/proto:nosyncbuilder-jarjar-lib[test]",
     ],
 )
 
@@ -303,6 +305,14 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+filegroup(
+    name = "nosyncbuilder-artifacts",
+    srcs = [
+        "//tools/adt/idea/android/src/com/android/tools/idea/gradle/project/sync/ng/nosyncbuilder/proto:nosyncbuilder-jarjar.jar",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 # Various artifacts that the ANT and within-idea studio build depend on.
 filegroup(
     name = "artifacts",
@@ -310,6 +320,7 @@ filegroup(
         ":aapt-proto-artifacts",
         ":aia-artifacts",
         ":analytics-artifacts",
+        ":nosyncbuilder-artifacts",
         ":profiler-artifacts",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
     ],
