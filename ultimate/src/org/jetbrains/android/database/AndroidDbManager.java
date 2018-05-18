@@ -94,11 +94,11 @@ public class AndroidDbManager extends BasicDbPsiManager<AndroidDataSource> {
 
   public void processAddOrRemove(final AndroidDataSource dataSource, final boolean add) {
     final UndoableAction action = new GlobalUndoableAction() {
-      public void undo() throws UnexpectedUndoException {
+      public void undo() {
         doIt(!add);
       }
 
-      public void redo() throws UnexpectedUndoException {
+      public void redo() {
         doIt(add);
       }
 

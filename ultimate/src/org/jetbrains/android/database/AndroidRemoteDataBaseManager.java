@@ -177,6 +177,6 @@ public class AndroidRemoteDataBaseManager implements PersistentStateComponent<An
   @Tag("db-info")
   public static class MyDatabaseInfo {
     public long modificationTime = 0;
-    public Set<String> referringProjects = new HashSet<>();
+    public final Set<String> referringProjects = new HashSet<>();
   }
 }

@@ -8,6 +8,7 @@ import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.io.URLUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -444,9 +445,7 @@ class AndroidDbUtil {
 
   @NotNull
   public static String getDatabaseRemoteFilePath(@NotNull String packageName, @NotNull String dbName, boolean external) {
-    if (dbName.startsWith("/")) {
-      dbName = dbName.substring(1);
-    }
+    dbName = StringUtil.trimStart(dbName, "/");
     if (!external) {
       return getInternalDatabasesRemoteDirPath(packageName) + "/" + dbName;
     }
