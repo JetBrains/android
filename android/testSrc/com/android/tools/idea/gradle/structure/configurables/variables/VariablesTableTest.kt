@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.variables
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.structure.configurables.PsContext
+import com.android.tools.idea.gradle.structure.configurables.PsContextImpl
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
@@ -32,7 +33,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testModuleNodeDisplay() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContext(PsProject(project), testRootDisposable)
+    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -59,7 +60,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testStringVariableNodeDisplay() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContext(PsProject(project), testRootDisposable)
+    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -83,7 +84,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testBooleanVariableNodeDisplay() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContext(PsProject(project), testRootDisposable)
+    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -100,7 +101,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testListNodeDisplay() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContext(PsProject(project), testRootDisposable)
+    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -148,7 +149,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testMapNodeDisplay() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContext(PsProject(project), testRootDisposable)
+    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -196,7 +197,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testModuleNodeRename() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContext(PsProject(project), testRootDisposable)
+    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -206,7 +207,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testVariableNodeRename() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContext(PsProject(project), testRootDisposable)
+    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -230,7 +231,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testListNodeRename() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContext(PsProject(project), testRootDisposable)
+    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -248,7 +249,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testMapNodeRename() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContext(PsProject(project), testRootDisposable)
+    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -279,7 +280,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testModuleNodeSetValue() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContext(PsProject(project), testRootDisposable)
+    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -289,7 +290,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testVariableNodeSetValue() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContext(PsProject(project), testRootDisposable)
+    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -316,7 +317,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testListNodeSetValue() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContext(PsProject(project), testRootDisposable)
+    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -350,7 +351,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testMapNodeSetValue() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContext(PsProject(project), testRootDisposable)
+    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -384,7 +385,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testAddSimpleVariable() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContext(PsProject(project), testRootDisposable)
+    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -412,7 +413,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testAddList() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContext(PsProject(project), testRootDisposable)
+    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -451,7 +452,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testAddMap() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContext(PsProject(project), testRootDisposable)
+    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -491,7 +492,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testVariableNodeDelete() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContext(PsProject(project), testRootDisposable)
+    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -516,7 +517,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testListNodeDelete() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContext(PsProject(project), testRootDisposable)
+    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -555,7 +556,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testMapNodeDelete() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContext(PsProject(project), testRootDisposable)
+    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
