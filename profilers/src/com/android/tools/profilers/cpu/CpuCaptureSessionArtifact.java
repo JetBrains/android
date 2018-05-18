@@ -23,6 +23,7 @@ import com.android.tools.profilers.sessions.SessionArtifact;
 import com.android.tools.profilers.sessions.SessionsManager;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -138,8 +139,20 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<TraceInfo> {
                .trackSessionArtifactSelected(this, myProfilers.getSessionsManager().isSessionAlive());
   }
 
-  public boolean isOngoingCapture() {
+  @Override
+  public boolean isOngoing() {
     return myIsOngoingCapture;
+  }
+
+  @Override
+  public boolean canExport() {
+    return !isOngoing();
+  }
+
+  @Override
+  public void export(@NotNull OutputStream outputStream) {
+    assert canExport();
+    CpuProfiler.saveCaptureToFile(getArtifactProto(), outputStream);
   }
 
   private boolean isImportedSession() {

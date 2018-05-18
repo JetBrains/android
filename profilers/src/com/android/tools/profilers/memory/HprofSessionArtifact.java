@@ -88,7 +88,7 @@ public final class HprofSessionArtifact implements SessionArtifact<HeapDumpInfo>
       return TimeFormatter.getLocalizedDateTime(TimeUnit.NANOSECONDS.toMillis(mySession.getStartTimestamp()));
     }
     else {
-      return isOngoingCapture()
+      return isOngoing()
              ? CAPTURING_SUBTITLE
              : TimeFormatter.getFullClockString(TimeUnit.NANOSECONDS.toMicros(getTimestampNs()));
     }
@@ -99,8 +99,14 @@ public final class HprofSessionArtifact implements SessionArtifact<HeapDumpInfo>
     return myInfo.getStartTime() - mySession.getStartTimestamp();
   }
 
-  public boolean isOngoingCapture() {
+  @Override
+  public boolean isOngoing() {
     return myInfo.getEndTime() == Long.MAX_VALUE;
+  }
+
+  @Override
+  public boolean canExport() {
+    return !isOngoing();
   }
 
   @Override
@@ -119,7 +125,7 @@ public final class HprofSessionArtifact implements SessionArtifact<HeapDumpInfo>
 
     long startTimestamp = TimeUnit.NANOSECONDS.toMicros(myInfo.getStartTime());
     long endTimestamp = TimeUnit.NANOSECONDS.toMicros(myInfo.getEndTime());
-    if (isOngoingCapture()) {
+    if (isOngoing()) {
       SessionArtifact.navigateTimelineToOngoingCapture(myProfilers.getTimeline(), startTimestamp);
     }
     else {
@@ -136,7 +142,9 @@ public final class HprofSessionArtifact implements SessionArtifact<HeapDumpInfo>
     myProfilers.getIdeServices().getFeatureTracker().trackSessionArtifactSelected(this, myProfilers.getSessionsManager().isSessionAlive());
   }
 
-  void saveToFile(@NotNull OutputStream outputStream) {
+  @Override
+  public void export(@NotNull OutputStream outputStream) {
+    assert canExport();
     saveHeapDumpToFile(myProfilers.getClient().getMemoryClient(), mySession, myInfo, outputStream,
                        myProfilers.getIdeServices().getFeatureTracker());
   }

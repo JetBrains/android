@@ -82,7 +82,7 @@ public class LegacyAllocationsSessionArtifact implements SessionArtifact<MemoryP
 
   @NotNull
   public String getSubtitle() {
-    return isOngoingCapture()
+    return isOngoing()
            ? CAPTURING_SUBTITLE
            : TimeFormatter.getFullClockString(TimeUnit.NANOSECONDS.toMicros(getTimestampNs()));
   }
@@ -92,8 +92,14 @@ public class LegacyAllocationsSessionArtifact implements SessionArtifact<MemoryP
     return myInfo.getStartTime() - mySession.getStartTimestamp();
   }
 
-  public boolean isOngoingCapture() {
+  @Override
+  public boolean isOngoing() {
     return myInfo.getEndTime() == Long.MAX_VALUE;
+  }
+
+  @Override
+  public boolean canExport() {
+    return !isOngoing();
   }
 
   @Override
@@ -112,7 +118,7 @@ public class LegacyAllocationsSessionArtifact implements SessionArtifact<MemoryP
 
     long startTimestamp = TimeUnit.NANOSECONDS.toMicros(myInfo.getStartTime());
     long endTimestamp = TimeUnit.NANOSECONDS.toMicros(myInfo.getEndTime());
-    if (isOngoingCapture()) {
+    if (isOngoing()) {
       SessionArtifact.navigateTimelineToOngoingCapture(myProfilers.getTimeline(), startTimestamp);
     }
     else {
@@ -129,7 +135,9 @@ public class LegacyAllocationsSessionArtifact implements SessionArtifact<MemoryP
     myProfilers.getIdeServices().getFeatureTracker().trackSessionArtifactSelected(this, myProfilers.getSessionsManager().isSessionAlive());
   }
 
-  void saveToFile(@NotNull OutputStream outputStream) {
+  @Override
+  public void export(@NotNull OutputStream outputStream) {
+    assert canExport();
     saveLegacyAllocationToFile(myProfilers.getClient().getMemoryClient(), mySession, myInfo, outputStream,
                                myProfilers.getIdeServices().getFeatureTracker());
   }

@@ -34,8 +34,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -162,7 +162,7 @@ public class CpuProfiler extends StudioProfiler {
   /**
    * Copies the content of the trace file corresponding to a {@link TraceInfo} to a given {@link FileOutputStream}.
    */
-  static void saveCaptureToFile(@NotNull TraceInfo info, @NotNull FileOutputStream outputStream) {
+  static void saveCaptureToFile(@NotNull TraceInfo info, @NotNull OutputStream outputStream) {
     // Copy temp trace file to the output stream.
     try (FileInputStream input = new FileInputStream(info.getTraceFilePath())) {
       // Atrace Format = [HEADER|ZlibData][HEADER|ZlibData]

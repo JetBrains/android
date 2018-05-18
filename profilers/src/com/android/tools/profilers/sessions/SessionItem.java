@@ -56,7 +56,7 @@ public class SessionItem extends AspectModel<SessionItem.Aspect> implements Sess
     mySession = session;
     mySessionMetaData = metaData;
 
-    if (mySession.getEndTimestamp() != Long.MAX_VALUE) {
+    if (!SessionsManager.isSessionAlive(mySession)) {
       myDurationNs = mySession.getEndTimestamp() - mySession.getStartTimestamp();
     }
 
@@ -139,6 +139,11 @@ public class SessionItem extends AspectModel<SessionItem.Aspect> implements Sess
   @Override
   public long getTimestampNs() {
     return 0;
+  }
+
+  @Override
+  public boolean isOngoing() {
+    return SessionsManager.isSessionAlive(mySession);
   }
 
   /**
