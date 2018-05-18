@@ -26,6 +26,7 @@ import com.android.tools.adtui.instructions.*;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.android.tools.profilers.*;
@@ -44,6 +45,7 @@ import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.IconUtil;
 import com.intellij.util.PlatformIcons;
+import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -66,6 +68,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   private static Logger getLogger() {
     return Logger.getInstance(MemoryProfilerStageView.class);
   }
+  private static final String RECORD_TEXT = "Record";
+  private static final String STOP_TEXT = "Stop";
 
   @NotNull private final MemoryCaptureView myCaptureView = new MemoryCaptureView(getStage(), getIdeComponents());
   @NotNull private final MemoryHeapView myHeapView = new MemoryHeapView(getStage());
@@ -154,8 +158,12 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     myCaptureElapsedTime.setBorder(JBUI.Borders.emptyLeft(5));
     myCaptureElapsedTime.setForeground(ProfilerColors.CPU_CAPTURE_STATUS);
 
-    myAllocationButton = new CommonButton();
-    myAllocationButton.setText("");
+    // Set to the longest text this button will show as to initialize the persistent size properly.
+    // Call setPreferredSize to avoid the initialized size being overwritten.
+    // TODO: b/80546414 Use common button instead.
+    myAllocationButton = new JButton(RECORD_TEXT);
+    myAllocationButton.setPreferredSize(myAllocationButton.getPreferredSize());
+
     myAllocationButton
       .addActionListener(e -> {
         if (getStage().isTrackingAllocations()) {
@@ -286,14 +294,14 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
   private void allocationTrackingChanged() {
     if (getStage().isTrackingAllocations()) {
-      myAllocationButton.setIcon(StudioIcons.Profiler.Toolbar.STOP_RECORDING);
+      myAllocationButton.setText(STOP_TEXT);
       myAllocationButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.STOP_RECORDING));
       myAllocationButton.setToolTipText("Stop recording");
-      myCaptureElapsedTime.setText("Recording - " + TimeAxisFormatter.DEFAULT.getFormattedString(0, 0, true));
+      myCaptureElapsedTime.setText(TimeFormatter.getSemiSimplifiedClockString(0));
     }
     else {
       myCaptureElapsedTime.setText("");
-      myAllocationButton.setIcon(StudioIcons.Profiler.Toolbar.RECORD);
+      myAllocationButton.setText(RECORD_TEXT);
       myAllocationButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.RECORD));
       myAllocationButton.setToolTipText("Record memory allocations");
     }
@@ -302,7 +310,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   private void updateCaptureElapsedTime() {
     if (getStage().isTrackingAllocations() && !getStage().useLiveAllocationTracking()) {
       long elapsedTimeUs = TimeUnit.NANOSECONDS.toMicros(getStage().getAllocationTrackingElapsedTimeNs());
-      myCaptureElapsedTime.setText("Recording - " + TimeAxisFormatter.DEFAULT.getFormattedString(elapsedTimeUs, elapsedTimeUs, true));
+      myCaptureElapsedTime.setText(TimeFormatter.getSemiSimplifiedClockString(elapsedTimeUs));
     }
   }
 
@@ -557,9 +565,6 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
   private void installProfilingInstructions(@NotNull JPanel parent) {
     assert parent.getLayout().getClass() == TabularLayout.class;
-    Icon recordIcon = UIUtil.isUnderDarcula()
-                      ? IconUtil.darker(StudioIcons.Profiler.Toolbar.RECORD, 3)
-                      : IconUtil.brighter(StudioIcons.Profiler.Toolbar.RECORD, 3);
     // The heap dump icon's contrast does not stand out as well as the record icon so we use a higher tones value.
     Icon heapDumpIcon = UIUtil.isUnderDarcula()
                         ? IconUtil.darker(StudioIcons.Profiler.Toolbar.HEAP_DUMP, 6)
@@ -578,9 +583,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     }
     else {
       RenderInstruction[] legacyInstructions = {
-        new TextInstruction(metrics, "Click "),
-        new IconInstruction(recordIcon, PROFILING_INSTRUCTIONS_ICON_PADDING, null),
-        new TextInstruction(metrics, " to record allocations"),
+        new TextInstruction(metrics, "Click the record button to inspect allocations"),
         new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
         new TextInstruction(metrics, "or "),
         new IconInstruction(heapDumpIcon, PROFILING_INSTRUCTIONS_ICON_PADDING, null),

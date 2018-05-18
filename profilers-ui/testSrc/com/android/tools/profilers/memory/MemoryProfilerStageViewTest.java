@@ -17,7 +17,7 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TreeWalker;
-import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
@@ -182,12 +182,12 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
     myStage.trackAllocations(true);
     assertThat(stageView.getCaptureElapsedTimeLabel().getText())
-      .isEqualTo("Recording - " + TimeAxisFormatter.DEFAULT.getFormattedString(0, 0, true));
+      .isEqualTo(TimeFormatter.getSemiSimplifiedClockString(0));
 
     myProfilerService.setTimestampNs(TimeUnit.SECONDS.toNanos(endTime));
     myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_CAPTURE_ELAPSED_TIME);
     assertThat(stageView.getCaptureElapsedTimeLabel().getText())
-      .isEqualTo("Recording - " + TimeAxisFormatter.DEFAULT.getFormattedString(deltaUs, deltaUs, true));
+      .isEqualTo(TimeFormatter.getSemiSimplifiedClockString(deltaUs));
 
     // Triggering a heap dump should not affect the allocation recording duration
     myService.setExplicitHeapDumpStatus(TriggerHeapDumpResponse.Status.SUCCESS);
@@ -195,7 +195,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     myStage.requestHeapDump();
     myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_CAPTURE_ELAPSED_TIME);
     assertThat(stageView.getCaptureElapsedTimeLabel().getText())
-      .isEqualTo("Recording - " + TimeAxisFormatter.DEFAULT.getFormattedString(deltaUs, deltaUs, true));
+      .isEqualTo(TimeFormatter.getSemiSimplifiedClockString(deltaUs));
 
     myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
     myService.setExplicitAllocationsInfo(AllocationsInfo.Status.IN_PROGRESS, TimeUnit.SECONDS.toNanos(startTime),
