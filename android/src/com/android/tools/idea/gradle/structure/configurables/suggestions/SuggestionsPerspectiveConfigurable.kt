@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.structure.configurables.AbstractCounterDisp
 import com.android.tools.idea.gradle.structure.configurables.BaseNamedConfigurable
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAllModulesFakeModule
-import com.android.tools.idea.gradle.structure.daemon.PsAnalyzerDaemon
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.intellij.openapi.ui.NamedConfigurable
@@ -56,7 +55,7 @@ class SuggestionsPerspectiveConfigurable(context: PsContext) : AbstractCounterDi
 
   override fun createComponent(): JComponent {
     val component = super.createComponent().apply { name = "SuggestionsView" }
-    context.analyzerDaemon.add(PsAnalyzerDaemon.IssuesUpdatedListener {
+    context.analyzerDaemon.add({
       fireCountChangeListener()
       invokeLaterIfNeeded { messageCount = getIssues(context, null).size }
     }, this)

@@ -65,7 +65,7 @@ internal class DeclaredDependenciesPanel(
 
   init {
     context.analyzerDaemon.add(
-      PsAnalyzerDaemon.IssuesUpdatedListener { model ->
+      { model ->
         if (model === module) {
           invokeLaterIfNeeded { this.updateDetailsAndIssues() }
         }

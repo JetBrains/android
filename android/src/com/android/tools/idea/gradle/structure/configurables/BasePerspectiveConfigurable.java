@@ -32,6 +32,7 @@ import com.intellij.ui.JBSplitter;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.navigation.Place;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -105,6 +106,7 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
         // If issues are updated and the tree is showing, trigger a repaint so the proper highlight and tooltip is applied.
         invokeLaterIfNeeded(() -> revalidateAndRepaint(myTree));
       }
+      return Unit.INSTANCE;
     }, this);
 
     myTreeMinimized = myContext.getUiSettings().MODULES_LIST_MINIMIZE;
