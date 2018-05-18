@@ -453,7 +453,7 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
-# Sanity test
+# sanity test
 java_test(
     name = "RunOnEmulatorTest",
     data = COMMON_DATA + glob([
@@ -510,7 +510,7 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
-# Sanity test
+# sanity test
 java_test(
     name = "SideConstraintHandlingTest",
     data = COMMON_DATA + [
@@ -530,7 +530,7 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
-# Sanity test
+# sanity test
 java_test(
     name = "BaselineConstraintHandlingTest",
     data = COMMON_DATA + [
@@ -564,7 +564,7 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
-# Sanity test
+# sanity test
 java_test(
     name = "BasicLayoutEditTest",
     data = COMMON_DATA + [
@@ -577,6 +577,26 @@ java_test(
         "testData/SimpleLocalApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.BasicLayoutEditTest"],
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_sanity",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# sanity test
+java_test(
+    name = "FlavorsExecutionTest",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:buildprop",
+        "//prebuilts/studio/layoutlib:data/fonts",
+        "//prebuilts/studio/layoutlib:data/res",
+        "//tools/adt/idea/android/lib:androidWidgets",
+    ] + glob([
+        "testData/SimpleLocalApplication/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.FlavorsExecutionTest"],
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_sanity",
