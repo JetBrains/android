@@ -74,6 +74,9 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     if (myConfiguration != null) {
       myConfiguration.removeListener(this);
     }
+    if (mySurface.getModel() != null) {
+      mySurface.getModel().removeListener(this);
+    }
   }
 
   @NotNull
