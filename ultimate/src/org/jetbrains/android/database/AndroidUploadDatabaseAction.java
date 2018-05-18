@@ -73,7 +73,7 @@ public class AndroidUploadDatabaseAction extends AnAction {
     if (dataSourceElements.isEmpty()) {
       return Collections.emptyList();
     }
-    final List<AndroidDataSource> androidDataSources = new ArrayList<AndroidDataSource>();
+    final List<AndroidDataSource> androidDataSources = new ArrayList<>();
 
     for (DbDataSource element : dataSourceElements) {
       final Object delegate = element.getDelegate();
