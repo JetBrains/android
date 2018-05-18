@@ -1,6 +1,8 @@
 package org.jetbrains.android.inspections.lint;
 
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.tools.idea.lint.ProvideLintFeedbackFix;
+import com.android.tools.idea.lint.ProvideLintFeedbackPanel;
 import com.android.tools.idea.lint.ReplaceStringQuickFix;
 import com.android.tools.idea.lint.SuppressLintIntentionAction;
 import com.android.tools.lint.detector.api.*;
@@ -149,15 +151,24 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
                                              @Nullable LintFix fixData,
                                              @NotNull AndroidLintQuickFixProvider[] fixProviders,
                                              @NotNull Issue issue) {
+    boolean includeFeedbackFix = ProvideLintFeedbackPanel.canRequestFeedback();
     AndroidLintQuickFix[] fixes = getAllFixes(startElement, endElement, message, fixData, fixProviders, issue);
     if (fixes.length == 0) {
-      return LocalQuickFix.EMPTY_ARRAY;
+      if (includeFeedbackFix) {
+        return new LocalQuickFix[] { new ProvideLintFeedbackFix(issue.getId()) };
+      } else {
+        return LocalQuickFix.EMPTY_ARRAY;
+      }
     }
     List<LocalQuickFix> result = new ArrayList<>(fixes.length);
     for (AndroidLintQuickFix fix : fixes) {
       if (fix.isApplicable(startElement, endElement, AndroidQuickfixContexts.BatchContext.TYPE)) {
         result.add(new MyLocalQuickFix(fix));
       }
+    }
+
+    if (includeFeedbackFix) {
+      result.add(new ProvideLintFeedbackFix(issue.getId()));
     }
 
     return result.toArray(LocalQuickFix.EMPTY_ARRAY);

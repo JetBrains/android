@@ -16,6 +16,11 @@
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
+import com.android.testutils.VirtualTimeScheduler;
+import com.android.tools.analytics.AnalyticsSettings;
+import com.android.tools.analytics.LoggedUsage;
+import com.android.tools.analytics.TestUsageTracker;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.lint.*;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.lint.checks.CommentDetector;
@@ -24,6 +29,10 @@ import com.android.tools.lint.checks.TextViewDetector;
 import com.android.utils.CharSequences;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.LintIssueId;
+import com.google.wireless.android.sdk.stats.LintPerformance;
+import com.google.wireless.android.sdk.stats.LintSession;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.daemon.impl.ShowIntentionsPass;
@@ -64,7 +73,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
@@ -158,9 +166,39 @@ public class AndroidLintTest extends AndroidTestCase {
   }
 
   public void testContentDescription() throws Exception {
-    doTestWithFix(new AndroidLintContentDescriptionInspection(),
-                  "Set contentDescription",
-                  "/res/layout/layout.xml", "xml");
+    // Also tests analytics for single file (batch) analysis
+
+    VirtualTimeScheduler scheduler = new VirtualTimeScheduler();
+    AnalyticsSettings analyticsSettings = new AnalyticsSettings();
+    analyticsSettings.setHasOptedIn(true);
+    TestUsageTracker usageTracker = new TestUsageTracker(analyticsSettings, scheduler);
+    UsageTracker.setInstanceForTest(usageTracker);
+    try {
+
+      doTestWithFix(new AndroidLintContentDescriptionInspection(),
+                    "Set contentDescription",
+                    "/res/layout/layout.xml", "xml");
+
+      List<LoggedUsage> usages = usageTracker.getUsages();
+      assertThat(usages).hasSize(2);
+      AndroidStudioEvent event = usages.get(0).getStudioEvent();
+      assertThat(event.getKind()).isEqualTo(AndroidStudioEvent.EventKind.LINT_SESSION);
+      LintSession session = event.getLintSession();
+      assertThat(session.getAnalysisType()).isEqualTo(LintSession.AnalysisType.IDE_FILE);
+
+      List<LintIssueId> list = session.getIssueIdsList();
+      assertThat(list).hasSize(1);
+      LintIssueId issue1 = list.get(0);
+      assertThat(issue1.getIssueId()).isEqualTo("ContentDescription");
+      assertThat(issue1.getCount()).isEqualTo(1);
+      assertThat(issue1.getSeverity()).isEqualTo(LintIssueId.LintSeverity.DEFAULT_SEVERITY);
+
+      LintPerformance performance = session.getLintPerformance();
+        assertThat(performance.getFileCount()).isEqualTo(1);
+    } finally {
+      usageTracker.close();
+      UsageTracker.cleanAfterTesting();
+    }
   }
 
   public void testContentDescription1() throws Exception {

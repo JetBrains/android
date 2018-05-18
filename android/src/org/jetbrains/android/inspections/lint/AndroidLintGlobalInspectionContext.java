@@ -12,6 +12,7 @@ import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.tools.lint.detector.api.Scope;
 import com.google.common.collect.Lists;
+import com.google.wireless.android.sdk.stats.LintSession.AnalysisType;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInspection.GlobalInspectionContext;
 import com.intellij.codeInspection.ex.InspectionToolWrapper;
@@ -82,6 +83,8 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
     if (issues.isEmpty()) {
       return;
     }
+
+    long startTime = System.currentTimeMillis();
 
     // If running a single check by name, turn it on if it's off by default.
     if (localTools.isEmpty() && globalTools.size() == 1) {
@@ -239,6 +242,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
 
     // Baseline analysis?
     myBaseline = null;
+    Module severityModule = null;
     for (Module module : modules) {
       AndroidModuleModel model = AndroidModuleModel.get(module);
       if (model != null) {
@@ -246,6 +250,10 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
         if (version != null && version.isAtLeast(2, 3, 0, "beta", 2, true)) {
           LintOptions options = model.getAndroidProject().getLintOptions();
           try {
+            if (options.getSeverityOverrides() != null) {
+              severityModule = module;
+            }
+
             File baselineFile = options.getBaselineFile();
             if (baselineFile != null && !AndroidLintLintBaselineInspection.ourSkipBaselineNextRun) {
               if (!baselineFile.isAbsolute()) {
@@ -295,6 +303,10 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
     }
 
     AndroidLintLintBaselineInspection.clearNextRunState();
+
+    lint.setAnalysisStartTime(startTime);
+    LintIdeAnalytics analytics = new LintIdeAnalytics(project);
+    analytics.logSession(AnalysisType.IDE_FILE, lint, severityModule, null, problemMap);
 
     myResults = problemMap;
   }
