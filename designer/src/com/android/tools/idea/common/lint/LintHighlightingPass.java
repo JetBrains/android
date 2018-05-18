@@ -74,7 +74,7 @@ public class LintHighlightingPass implements HighlightingPass {
 
     AndroidLintExternalAnnotator annotator = new AndroidLintExternalAnnotator();
     State state = annotator.collectInformation(xmlFile);
-
+// TODO: Separate analytics mode here?
     if (state != null) {
       state = annotator.doAnnotate(state);
     }

@@ -13,6 +13,7 @@ import com.android.tools.lint.detector.api.LintFix;
 import com.android.tools.lint.detector.api.Scope;
 import com.android.utils.SdkUtils;
 import com.google.common.collect.Sets;
+import com.google.wireless.android.sdk.stats.LintSession.AnalysisType;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeInsight.daemon.DaemonBundle;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
@@ -26,7 +27,6 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.actionSystem.IdeActions;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypes;
@@ -141,6 +141,8 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
 
   @Override
   public State doAnnotate(final State state) {
+    long startTime = System.currentTimeMillis();
+
     final LintIdeClient client = LintIdeClient.forEditor(state);
     try {
       EnumSet<Scope> scope;
@@ -185,6 +187,10 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
 
       LintDriver lint = new LintDriver(new LintIdeIssueRegistry(), client, request);
       lint.analyze();
+
+      lint.setAnalysisStartTime(startTime);
+      LintIdeAnalytics analytics = new LintIdeAnalytics(project);
+      analytics.logSession(AnalysisType.IDE_FILE, lint, state.getModule(), state.getProblems(), null);
     }
     finally {
       Disposer.dispose(client);
@@ -279,6 +285,10 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
 
             for (IntentionAction intention : inspection.getIntentions(startElement, endElement)) {
               annotation.registerFix(intention);
+            }
+
+            if (ProvideLintFeedbackPanel.canRequestFeedback()) {
+              annotation.registerFix(new ProvideLintFeedbackIntentionAction(issue.getId()));
             }
 
             String id = key.getID();
