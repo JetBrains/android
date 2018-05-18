@@ -566,11 +566,11 @@ class CpuCaptureView {
       RangeTimeScrollBar horizontalScrollBar = new RangeTimeScrollBar(captureRange, selectionRange, TimeUnit.MICROSECONDS);
       horizontalScrollBar.setPreferredSize(new Dimension(horizontalScrollBar.getPreferredSize().width, 10));
 
-      JPanel contentPanel = new JPanel(new BorderLayout());
+      JPanel contentPanel = new JPanel(new TabularLayout("*,Fit", "*,Fit"));
 
-      contentPanel.add(myChart, BorderLayout.CENTER);
-      contentPanel.add(new HTreeChartVerticalScrollBar<>(myChart), BorderLayout.EAST);
-      contentPanel.add(horizontalScrollBar, BorderLayout.SOUTH);
+      contentPanel.add(myChart, new TabularLayout.Constraint(0, 0));
+      contentPanel.add(new HTreeChartVerticalScrollBar<>(myChart), new TabularLayout.Constraint(0, 1));
+      contentPanel.add(horizontalScrollBar, new TabularLayout.Constraint(1, 0, 1, 2));
 
       myPanel = new JPanel(new CardLayout());
       myPanel.add(contentPanel, CARD_CONTENT);
@@ -625,10 +625,10 @@ class CpuCaptureView {
       RangeTimeScrollBar horizontalScrollBar = new RangeTimeScrollBar(flameChart.getRange(), myMasterRange, TimeUnit.MICROSECONDS);
       horizontalScrollBar.setPreferredSize(new Dimension(horizontalScrollBar.getPreferredSize().width, 10));
 
-      JPanel contentPanel = new JPanel(new BorderLayout());
-      contentPanel.add(myChart, BorderLayout.CENTER);
-      contentPanel.add(new HTreeChartVerticalScrollBar<>(myChart), BorderLayout.EAST);
-      contentPanel.add(horizontalScrollBar, BorderLayout.SOUTH);
+      JPanel contentPanel = new JPanel(new TabularLayout("*,Fit", "*,Fit"));
+      contentPanel.add(myChart, new TabularLayout.Constraint(0, 0));
+      contentPanel.add(new HTreeChartVerticalScrollBar<>(myChart), new TabularLayout.Constraint(0, 1));
+      contentPanel.add(horizontalScrollBar, new TabularLayout.Constraint(1, 0, 1, 2));
 
       myPanel = new JPanel(new CardLayout());
       myPanel.add(contentPanel, CARD_CONTENT);
