@@ -343,11 +343,18 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   }
 
   /**
-   * Enables namespacing and sets the app namespace according to the given package name.
+   * Enables namespacing in the main module and sets the app namespace according to the given package name.
    */
   protected void enableNamespacing(@NotNull String appPackageName) {
-    myFacet.getConfiguration().setModel(TestAndroidModel.namespaced(myFacet));
-    runWriteCommandAction(getProject(), () -> myFacet.getManifest().getPackage().setValue(appPackageName));
+    enableNamespacing(myFacet, appPackageName);
+  }
+
+  /**
+   * Enables namespacing in the given module and sets the app namespace according to the given package name.
+   */
+  protected void enableNamespacing(@NotNull AndroidFacet facet, @NotNull String appPackageName) {
+    facet.getConfiguration().setModel(TestAndroidModel.namespaced(facet));
+    runWriteCommandAction(getProject(), () -> facet.getManifest().getPackage().setValue(appPackageName));
   }
 
   protected final void createProjectProperties() throws IOException {

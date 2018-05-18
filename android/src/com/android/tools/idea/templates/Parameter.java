@@ -534,7 +534,8 @@ public final class Parameter {
       if (facet != null) {
         VirtualFile virtualResDir = VfsUtil.findFileByIoFile(resDir, false);
         if (virtualResDir != null) {
-          ResourceFolderRepository folderRepository = ResourceFolderRegistry.get(facet, virtualResDir);
+          ResourceFolderRepository folderRepository = ResourceFolderRegistry.getInstance(facet.getModule().getProject())
+                                                                            .get(facet, virtualResDir);
           List<ResourceItem> resourceItemList = folderRepository.getResourceItem(resourceType, name);
           if (resourceItemList != null && !resourceItemList.isEmpty()) {
             return true;

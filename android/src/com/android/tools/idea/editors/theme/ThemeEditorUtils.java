@@ -539,7 +539,7 @@ public class ThemeEditorUtils {
     for (File dir : resDirectories) {
       VirtualFile virtualFile = fileSystem.findFileByIoFile(dir);
       if (virtualFile != null) {
-        folders.add(ResourceFolderRegistry.get(facet, virtualFile));
+        folders.add(ResourceFolderRegistry.getInstance(facet.getModule().getProject()).get(facet, virtualFile));
       }
     }
 

@@ -67,6 +67,7 @@ import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Resources;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
@@ -180,7 +181,7 @@ public class AndroidResourceUtil {
     for (PsiClass rClass : findRJavaClasses(facet, onlyInOwnPackages)) {
       findResourceFieldsFromClass(rClass, resClassName, resourceNames, result);
     }
-    return result.toArray(new PsiField[result.size()]);
+    return result.toArray(PsiField.EMPTY_ARRAY);
   }
 
   private static void findResourceFieldsFromClass(@NotNull PsiClass rClass,
@@ -459,7 +460,7 @@ public class AndroidResourceUtil {
 
   public static boolean isConstraintReferencedIds(@NotNull XmlAttributeValue value) {
     PsiElement parent = value.getParent();
-    if (parent != null && parent instanceof XmlAttribute) {
+    if (parent instanceof XmlAttribute) {
       XmlAttribute xmlAttribute = (XmlAttribute) parent;
 
       String nsURI = xmlAttribute.getNamespace();
@@ -880,7 +881,7 @@ public class AndroidResourceUtil {
         psiFiles.add(psiFile);
       }
     }
-    PsiFile[] files = psiFiles.toArray(new PsiFile[psiFiles.size()]);
+    PsiFile[] files = psiFiles.toArray(PsiFile.EMPTY_ARRAY);
     WriteCommandAction<Void> action = new WriteCommandAction<Void>(project, "Add Resource", files) {
       @Override
       protected void run(@NotNull Result<Void> result) {
@@ -950,7 +951,7 @@ public class AndroidResourceUtil {
         psiFiles.add(psiFile);
       }
     }
-    PsiFile[] files = psiFiles.toArray(new PsiFile[psiFiles.size()]);
+    PsiFile[] files = psiFiles.toArray(PsiFile.EMPTY_ARRAY);
     WriteCommandAction<Boolean> action = new WriteCommandAction<Boolean>(project, "Change " + resourceType.getName() + " Resource", files) {
       @Override
       protected void run(@NotNull Result<Boolean> result) throws Throwable {
@@ -1215,6 +1216,25 @@ public class AndroidResourceUtil {
     return typeString == null ? null : ResourceType.getEnum(typeString);
   }
 
+  /**
+   * Grabs resource directories from the given facets and pairs the directory with an arbitrary
+   * AndroidFacet which happens to depend on the directory.
+   *
+   * @param facets set of facets which may have resource directories
+   */
+  @NotNull
+  public static Map<VirtualFile, AndroidFacet> getResourceDirectoriesForFacets(@NotNull List<AndroidFacet> facets) {
+    Map<VirtualFile, AndroidFacet> resDirectories = new HashMap<>();
+    for (AndroidFacet facet : facets) {
+      for (VirtualFile resourceDir : ResourceFolderManager.getInstance(facet).getFolders()) {
+        if (!resDirectories.containsKey(resourceDir)) {
+          resDirectories.put(resourceDir, facet);
+        }
+      }
+    }
+    return resDirectories;
+  }
+
   public static class MyReferredResourceFieldInfo {
     private final String myClassName;
     private final String myFieldName;
@@ -1415,7 +1435,7 @@ public class AndroidResourceUtil {
       selectors.add(selector);
     }
 
-    new WriteCommandAction.Simple(project, "Change State List", psiFiles.toArray(new PsiFile[psiFiles.size()])) {
+    new WriteCommandAction.Simple(project, "Change State List", psiFiles.toArray(PsiFile.EMPTY_ARRAY)) {
       @Override
       protected void run() {
         for (AndroidDomElement selector : selectors) {

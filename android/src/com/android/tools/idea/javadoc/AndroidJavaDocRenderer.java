@@ -399,7 +399,7 @@ public class AndroidJavaDocRenderer {
       for (File dir : resDirectories) {
         VirtualFile virtualFile = fileSystem.findFileByIoFile(dir);
         if (virtualFile != null) {
-          ResourceFolderRepository resources = ResourceFolderRegistry.get(facet, virtualFile);
+          ResourceFolderRepository resources = ResourceFolderRegistry.getInstance(facet.getModule().getProject()).get(facet, virtualFile);
           addItemsFromRepository(flavor, mask, rank, resources, false, type, name, results);
         }
       }
