@@ -35,12 +35,13 @@ import org.junit.runner.RunWith;
 
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class EspressoRecorderTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
   private final EmulatorTestRule emulator = new EmulatorTestRule(false);
   @Rule public final RuleChain emulatorRules = RuleChain

@@ -30,6 +30,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.idea.tests.gui.gradle.UserGradlePropertiesUtil.backupGlobalGradlePropertiesFile;
 import static com.android.tools.idea.tests.gui.gradle.UserGradlePropertiesUtil.restoreGlobalGradlePropertiesFile;
@@ -38,7 +39,7 @@ import static com.android.tools.idea.tests.gui.gradle.UserGradlePropertiesUtil.r
 public class ModifyMinSdkAndSyncTest {
   @Nullable private File myBackupProperties;
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
   @Before
   public void skipSourceGenerationOnSync() {

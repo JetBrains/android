@@ -48,6 +48,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
 import java.nio.file.Paths;
+import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
 import static com.google.common.truth.Truth.assertThat;
@@ -57,7 +58,7 @@ import static org.junit.Assert.assertTrue;
 @RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRemoteRunner.class)
 public class DependenciesTest {
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
   private static final String APP_NAME = "App";
   private static final String MIN_SDK = "18";

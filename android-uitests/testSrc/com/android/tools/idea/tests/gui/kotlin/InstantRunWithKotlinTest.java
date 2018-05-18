@@ -33,6 +33,7 @@ import org.junit.runner.RunWith;
 
 import javax.swing.*;
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -40,7 +41,7 @@ import static com.google.common.truth.Truth.assertThat;
 @RunWith(GuiTestRemoteRunner.class)
 public class InstantRunWithKotlinTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
   private static final String APP_NAME = "app";

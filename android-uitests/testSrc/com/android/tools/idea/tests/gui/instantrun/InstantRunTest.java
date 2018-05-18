@@ -38,6 +38,7 @@ import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
 
 import javax.swing.*;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowingAndEnabled;
@@ -52,7 +53,7 @@ import static org.fest.swing.finder.WindowFinder.findDialog;
 @RunIn(TestGroup.QA)
 public class InstantRunTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
   private final EmulatorTestRule emulator = new EmulatorTestRule(false);
   @Rule public final RuleChain emulatorRules = RuleChain

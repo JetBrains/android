@@ -36,6 +36,7 @@ import org.junit.runner.RunWith;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickLabel;
 import static com.google.common.truth.Truth.assertThat;
@@ -48,7 +49,7 @@ import static org.fest.swing.finder.WindowFinder.findDialog;
 @RunWith(GuiTestRemoteRunner.class)
 public class InstallPackageTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
   private static final String INSTALL_PACKAGE_TAB = "SDK Platforms";
   private static final String SDK_PLATFORM_VERSION = "API 18";

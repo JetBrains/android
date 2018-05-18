@@ -27,6 +27,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.concurrent.TimeUnit;
+
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
@@ -35,7 +37,7 @@ import static org.fest.swing.finder.WindowFinder.findDialog;
 @RunWith(GuiTestRemoteRunner.class)
 public class CodeConversionFromJavaToKotlinTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
   private final static String START_LINE = "// --- START COPY HERE ---";
   private final static String END_LINE = "// --- END COPY HERE ---";

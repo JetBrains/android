@@ -25,13 +25,15 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.concurrent.TimeUnit;
+
 import static com.google.common.truth.Truth.assertThat;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRemoteRunner.class)
 public class BuildTypesTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
   /**
    * Verifies that an existing build type can be updated.
