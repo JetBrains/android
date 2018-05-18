@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.instantrun;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.debugger.DebuggerTestBase;
 import com.android.tools.idea.tests.gui.emulator.AvdSpec;
 import com.android.tools.idea.tests.gui.emulator.DeleteAvdsRule;
@@ -23,7 +24,6 @@ import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.fixture.DialogFixture;
@@ -334,17 +334,31 @@ public class InstantRunTest {
    */
   @RunIn(TestGroup.QA)
   @Test
-  public void changeOrderOfResources() throws Exception {
-    NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame().createNewProject();
-    newProjectWizard
-      .getConfigureAndroidProjectStep()
-      .enterApplicationName("Test Application")
-      .enterPackageName("com.test.project");
-    newProjectWizard
-      .clickNext()
-      .clickNext()
-      .clickNext()
-      .clickFinish();
+  public void changeOrderOfResources() {
+    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
+      guiTest
+        .welcomeFrame()
+        .createNewProject()
+        .clickNext()
+        .getConfigureNewAndroidProjectStep()
+        .enterName("Test Application")
+        .enterPackageName("com.test.project")
+        .wizard()
+        .clickFinish();
+    }
+    else {
+      guiTest
+        .welcomeFrame()
+        .createNewProject()
+        .getConfigureAndroidProjectStep()
+        .enterApplicationName("Test Application")
+        .enterPackageName("com.test.project")
+        .wizard()
+        .clickNext()
+        .clickNext()
+        .clickNext()
+        .clickFinish();
+    }
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame().waitForGradleProjectSyncToFinish();
     String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());

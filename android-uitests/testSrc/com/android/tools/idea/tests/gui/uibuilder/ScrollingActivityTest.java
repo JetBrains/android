@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -41,6 +42,10 @@ public final class ScrollingActivityTest {
 
   @Test
   public void contentScrollingXmlOpensInLayoutEditor() {
+    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
+      return; // On the new NPW design, the bug tested by this test no longer applies, as "Scrolling Activity" is not available.
+    }
+
     WizardUtils.createNewProject(myGuiTest, "Scrolling Activity");
 
     Path path = FileSystems.getDefault().getPath("app", "src", "main", "res", "layout", "content_scrolling.xml");

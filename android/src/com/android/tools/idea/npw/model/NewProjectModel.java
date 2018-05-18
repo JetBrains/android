@@ -72,6 +72,7 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 
 public class NewProjectModel extends WizardModel {
   private static final String PROPERTIES_DOMAIN_KEY = "SAVED_COMPANY_DOMAIN";
+  private static final String PROPERTIES_ANDROID_PACKAGE_KEY = "SAVED_ANDROID_PACKAGE";
   private static final String PROPERTIES_CPP_SUPPORT_KEY = "SAVED_PROJECT_CPP_SUPPORT";
   private static final String PROPERTIES_KOTLIN_SUPPORT_KEY = "SAVED_PROJECT_KOTLIN_SUPPORT";
   private static final String EXAMPLE_DOMAIN = "example.com";
@@ -99,6 +100,18 @@ public class NewProjectModel extends WizardModel {
       String domain = myCompanyDomain.get();
       if (AndroidUtils.isValidAndroidPackageName(domain)) {
         PropertiesComponent.getInstance().setValue(PROPERTIES_DOMAIN_KEY, domain);
+      }
+    });
+
+    // Save entered android package
+    myPackageName.addListener(sender -> {
+      String androidPackage = myPackageName.get();
+      int lastDotIdx = androidPackage.lastIndexOf('.');
+      if (lastDotIdx >= 0) {
+        androidPackage = androidPackage.substring(0, lastDotIdx);
+      }
+      if (AndroidUtils.isValidAndroidPackageName(androidPackage)) {
+        PropertiesComponent.getInstance().setValue(PROPERTIES_ANDROID_PACKAGE_KEY, androidPackage);
       }
     });
 
@@ -167,6 +180,11 @@ public class NewProjectModel extends WizardModel {
    */
   @NotNull
   public static String getInitialDomain(boolean includeUserName) {
+    String androidPackage = PropertiesComponent.getInstance().getValue(PROPERTIES_ANDROID_PACKAGE_KEY);
+    if (androidPackage != null) {
+      return new DomainToPackageExpression(new StringValueProperty(androidPackage), new StringValueProperty("")).get();
+    }
+
     String domain = PropertiesComponent.getInstance().getValue(PROPERTIES_DOMAIN_KEY);
     if (domain != null) {
       return domain;

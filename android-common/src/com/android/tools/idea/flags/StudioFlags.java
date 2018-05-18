@@ -61,7 +61,7 @@ public final class StudioFlags {
     "Show new version of the Welcome Wizard when Studio starts",
     false);
 
-  public static final Flag<Boolean> NPW_DYNAMIC_APPS = Flag.create(
+  public static final Flag<Boolean> NPW_DYNAMIC_APPS = Flag.create( // TODO: Remove in b/109788793
     NPW, "dynamic.apps", "New Dynamic App Project flow",
     "Use new Dynamic App flow when creating a New Mobile Project",
     false);
