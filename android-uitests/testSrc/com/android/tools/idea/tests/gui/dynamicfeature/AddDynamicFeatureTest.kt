@@ -31,8 +31,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-@Ignore("b/79945618")
-@RunIn(TestGroup.PROJECT_WIZARD)
+@RunIn(TestGroup.UNRELIABLE) // b/79945618  @RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith(GuiTestRemoteRunner::class)
 class AddDynamicFeatureTest {
   @Rule
