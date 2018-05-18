@@ -90,7 +90,7 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
 
     mySelectionModel = new SelectionModel(timeline.getSelectionRange());
     profilers.addDependency(myAspectObserver)
-      .onChange(ProfilerAspect.AGENT, () -> mySelectionModel.setSelectionEnabled(profilers.isAgentAttached()));
+       .onChange(ProfilerAspect.AGENT, () -> mySelectionModel.setSelectionEnabled(profilers.isAgentAttached()));
     mySelectionModel.setSelectionEnabled(profilers.isAgentAttached());
     mySelectionModel.addListener(new SelectionListener() {
       @Override

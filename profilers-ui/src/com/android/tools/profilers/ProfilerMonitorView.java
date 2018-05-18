@@ -18,6 +18,7 @@ package com.android.tools.profilers;
 import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.profiler.proto.Common;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBPanel;
@@ -113,7 +114,14 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
   }
 
   protected void populateDisabledView(JPanel container) {
-    myContainer.setLayout(new TabularLayout("*,Fit-,*", "6*,4*"));
+    TabularLayout layout = new TabularLayout("*,Fit-,*", "*");
+    myContainer.setLayout(layout);
+    boolean canConfigureAdvancedProfiling = myMonitor.getProfilers().getDevice() != null &&
+                                            myMonitor.getProfilers().getDevice().getFeatureLevel() < Common.Device.AndroidVersion.O_VALUE;
+    if (canConfigureAdvancedProfiling) {
+      layout.setRowSizing(0, "6*");
+      layout.setRowSizing(1, "4*");
+    }
 
     JLabel disabledMessage = new JLabel(getDisabledMessage());
     disabledMessage.setHorizontalAlignment(SwingConstants.CENTER);
@@ -121,16 +129,18 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
     disabledMessage.setFont(H2_FONT);
     myContainer.add(disabledMessage, new TabularLayout.Constraint(0, 0, 3));
 
-    HyperlinkLabel linkToConfigMessage = new HyperlinkLabel();
-    linkToConfigMessage.setHyperlinkText("Configure this setting in the ", "Run Configuration", "");
-    linkToConfigMessage.addHyperlinkListener(new HyperlinkAdapter() {
-      @Override
-      protected void hyperlinkActivated(HyperlinkEvent e) {
-        myMonitor.getProfilers().getIdeServices().enableAdvancedProfiling();
-      }
-    });
-    myContainer.add(linkToConfigMessage, new TabularLayout.Constraint(1, 1));
-    linkToConfigMessage.setFont(STANDARD_FONT);
+    if (canConfigureAdvancedProfiling) {
+      HyperlinkLabel linkToConfigMessage = new HyperlinkLabel();
+      linkToConfigMessage.setHyperlinkText("Configure this setting in the ", "Run Configuration", "");
+      linkToConfigMessage.addHyperlinkListener(new HyperlinkAdapter() {
+        @Override
+        protected void hyperlinkActivated(HyperlinkEvent e) {
+          myMonitor.getProfilers().getIdeServices().enableAdvancedProfiling();
+        }
+      });
+      myContainer.add(linkToConfigMessage, new TabularLayout.Constraint(1, 1));
+      linkToConfigMessage.setFont(STANDARD_FONT);
+    }
   }
 
   /**

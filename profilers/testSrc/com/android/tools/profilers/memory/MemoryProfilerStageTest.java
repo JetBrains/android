@@ -498,7 +498,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertThat(objectSeries.getDataSeries().getDataForXRange(new Range(TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(1))))
       .isEmpty();
 
-    myProfilerService.setAgentStatus(AgentStatusResponse.Status.ATTACHED);
+    myProfilerService.setAgentStatus(AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.ATTACHED).build());
     memoryData = MemoryData.newBuilder()
       .setEndTimestamp(2 * FakeTimer.ONE_SECOND_IN_NS)
       .addAllocStatsSamples(

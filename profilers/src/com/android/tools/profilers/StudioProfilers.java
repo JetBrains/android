@@ -58,6 +58,7 @@ import static com.android.tools.profiler.proto.CpuProfiler.ProfilingStateRespons
  * global across all the profilers, device management, process management, current state of the tool etc.
  */
 public class StudioProfilers extends AspectModel<ProfilerAspect> implements Updatable {
+
   /**
    * The number of updates per second our simulated object models receive.
    */
@@ -82,7 +83,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   @Nullable
   private Common.Process myProcess;
 
-  private AgentStatusResponse.Status myAgentStatus;
+  @NotNull
+  private AgentStatusResponse myAgentStatus;
 
   @Nullable
   private String myPreferredDeviceName;
@@ -155,6 +157,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     // TODO: StudioProfilers initalizes with a default session, which a lot of tests now relies on to avoid a NPE.
     // We should clean all the tests up to either have StudioProfilers create a proper session first or handle the null cases better.
     mySelectedSession = myProfilingSession = Common.Session.getDefaultInstance();
+    myAgentStatus = AgentStatusResponse.getDefaultInstance();
 
     if (myClient != null) {
       myTimeline.getSelectionRange().addDependency(this).onChange(Range.Aspect.RANGE, () -> {
@@ -184,10 +187,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
           myTimeline.setStreaming(false);
           myTimeline.getViewRange().set(mySessionsManager.getSessionPreferredViewRange(mySelectedSession));
         }
-
-        // Profilers can query data depending on whether the agent is set. Even though we set the status above, delay until after the
-        // session is properly assigned before firing this aspect change.
-        changed(ProfilerAspect.AGENT);
       });
 
       mySessionsManager.addDependency(this)
@@ -314,13 +313,14 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       // A heartbeat event may not have been sent by perfa when we first profile an app, here we keep pinging the status and
       // fire the corresponding change and tracking events.
       if (SessionsManager.isSessionAlive(mySelectedSession)) {
-        AgentStatusResponse.Status agentStatus = getAgentStatus(mySelectedSession);
+        AgentStatusResponse agentStatus = getAgentStatus(mySelectedSession);
         if (myAgentStatus != agentStatus) {
-          myAgentStatus = agentStatus;
-          changed(ProfilerAspect.AGENT);
-          if (myAgentStatus == AgentStatusResponse.Status.ATTACHED) {
+          if (myAgentStatus.getStatus() != AgentStatusResponse.Status.ATTACHED &&
+              agentStatus.getStatus() == AgentStatusResponse.Status.ATTACHED) {
             getIdeServices().getFeatureTracker().trackAdvancedProfilingStarted();
           }
+          myAgentStatus = agentStatus;
+          changed(ProfilerAspect.AGENT);
         }
       }
     }
@@ -465,6 +465,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     Common.SessionMetaData.SessionType sessionType = mySessionsManager.getSelectedSessionMetaData().getType();
     assert mySessionChangeListener.containsKey(sessionType);
     mySessionChangeListener.get(sessionType).run();
+
+    // Profilers can query data depending on whether the agent is set. Even though we set the status above, delay until after the
+    // session is properly assigned before firing this aspect change.
+    changed(ProfilerAspect.AGENT);
   }
 
   private void profilingSessionChanged() {
@@ -481,7 +485,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       assert SessionsManager.isSessionAlive(myProfilingSession);
       myProfilers.forEach(profiler -> profiler.startProfiling(myProfilingSession));
       myIdeServices.getFeatureTracker().trackProfilingStarted();
-      if (getAgentStatus(myProfilingSession) == AgentStatusResponse.Status.ATTACHED) {
+      if (getAgentStatus(myProfilingSession).getStatus() == AgentStatusResponse.Status.ATTACHED) {
         getIdeServices().getFeatureTracker().trackAdvancedProfilingStarted();
       }
     }
@@ -535,14 +539,13 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   @NotNull
-  private AgentStatusResponse.Status getAgentStatus(@NotNull Common.Session session) {
+  private AgentStatusResponse getAgentStatus(@NotNull Common.Session session) {
     if (Common.Session.getDefaultInstance().equals(session)) {
-      return AgentStatusResponse.getDefaultInstance().getStatus();
+      return AgentStatusResponse.getDefaultInstance();
     }
 
-    AgentStatusRequest statusRequest =
-      AgentStatusRequest.newBuilder().setPid(session.getPid()).setDeviceId(session.getDeviceId()).build();
-    return myClient.getProfilerClient().getAgentStatus(statusRequest).getStatus();
+    AgentStatusRequest statusRequest = AgentStatusRequest.newBuilder().setPid(session.getPid()).setDeviceId(session.getDeviceId()).build();
+    return myClient.getProfilerClient().getAgentStatus(statusRequest);
   }
 
   /**
@@ -628,7 +631,12 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   public boolean isAgentAttached() {
-    return myAgentStatus == AgentStatusResponse.Status.ATTACHED;
+    return myAgentStatus.getStatus() == AgentStatusResponse.Status.ATTACHED;
+  }
+
+  @NotNull
+  public AgentStatusResponse getAgentStatus() {
+    return myAgentStatus;
   }
 
   public List<StudioProfiler> getProfilers() {

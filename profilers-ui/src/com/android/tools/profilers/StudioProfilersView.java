@@ -22,6 +22,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
@@ -33,6 +34,7 @@ import com.android.tools.profilers.network.NetworkProfilerStageView;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.sessions.SessionsView;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
+import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;
@@ -67,6 +69,8 @@ import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
 import static java.awt.event.InputEvent.META_DOWN_MASK;
 
 public class StudioProfilersView extends AspectObserver implements Disposable {
+  private final static String LOADING_VIEW_CARD = "LoadingViewCard";
+  private final static String STAGE_VIEW_CARD = "StageViewCard";
   private static final int SHORTCUT_MODIFIER_MASK_NUMBER = SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK;
   @NotNull public static final String ATTACH_LIVE = "Attach to live";
   @NotNull public static final String DETACH_LIVE = "Detach live";
@@ -76,7 +80,6 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   private final StudioProfilers myProfiler;
   private final ViewBinder<StudioProfilersView, Stage, StageView> myBinder;
   private StageView myStageView;
-  private final BorderLayout myLayout;
 
   @NotNull
   private final ProfilerLayeredPane myLayeredPane;
@@ -85,7 +88,10 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
    * divider while still handling mouse resize properly.
    */
   @NotNull private final ThreeComponentsSplitter mySplitter;
+  @NotNull private final LoadingPanel myStageLoadingPanel;
   private final JPanel myStageComponent;
+  private final JPanel myStageCenterComponent;
+  private final CardLayout myStageCenterCardLayout;
   private SessionsView mySessionsView;
   private JPanel myToolbar;
   private JPanel myStageToolbar;
@@ -93,6 +99,11 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   private JPanel myCommonToolbar;
   private JPanel myGoLiveToolbar;
   private JToggleButton myGoLive;
+  private CommonButton myZoomOut;
+  private CommonButton myZoomIn;
+  private CommonButton myResetZoom;
+  private CommonButton myFrameSelection;
+  private ProfilerAction myFrameSelectionAction;
 
   @NotNull
   private final IdeProfilerComponents myIdeProfilerComponents;
@@ -101,8 +112,13 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myProfiler = profiler;
     myIdeProfilerComponents = ideProfilerComponents;
     myStageView = null;
-    myLayout = new BorderLayout();
-    myStageComponent = new JPanel(myLayout);
+    myStageComponent = new JPanel(new BorderLayout());
+    myStageCenterCardLayout = new CardLayout();
+    myStageCenterComponent = new JPanel(myStageCenterCardLayout);
+
+    myStageLoadingPanel = myIdeProfilerComponents.createLoadingPanel(0);
+    myStageLoadingPanel.setLoadingText("");
+    myStageLoadingPanel.getComponent().setBackground(ProfilerColors.DEFAULT_BACKGROUND);
 
     mySplitter = new ThreeComponentsSplitter();
     mySplitter.setDividerWidth(0);
@@ -169,7 +185,9 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myBinder.bind(NullMonitorStage.class, NullMonitorStageView::new);
     myBinder.bind(EnergyProfilerStage.class, EnergyProfilerStageView::new);
 
-    myProfiler.addDependency(this).onChange(ProfilerAspect.STAGE, this::updateStageView);
+    myProfiler.addDependency(this)
+              .onChange(ProfilerAspect.STAGE, this::updateStageView)
+              .onChange(ProfilerAspect.AGENT, this::agentStatusChanged);
     updateStageView();
   }
 
@@ -181,6 +199,30 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   public <S extends Stage, T extends StageView> void bind(@NotNull Class<S> clazz,
                                                           @NotNull BiFunction<StudioProfilersView, S, T> constructor) {
     myBinder.bind(clazz, constructor);
+  }
+
+  @VisibleForTesting
+  @NotNull
+  CommonButton getZoomInButton() {
+    return myZoomIn;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  CommonButton getZoomOutButton() {
+    return myZoomOut;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  CommonButton getResetZoomButton() {
+    return myResetZoom;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  CommonButton getFrameSelectionButton() {
+    return myFrameSelection;
   }
 
   @VisibleForTesting
@@ -276,64 +318,64 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     }
 
     ProfilerTimeline timeline = myProfiler.getTimeline();
-    CommonButton zoomOut = new CommonButton(StudioIcons.Common.ZOOM_OUT);
-    zoomOut.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Common.ZOOM_OUT));
-    zoomOut.addActionListener(event -> {
+    myZoomOut = new CommonButton(StudioIcons.Common.ZOOM_OUT);
+    myZoomOut.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Common.ZOOM_OUT));
+    myZoomOut.addActionListener(event -> {
       timeline.zoomOut();
       myProfiler.getIdeServices().getFeatureTracker().trackZoomOut();
     });
     ProfilerAction zoomOutAction =
-      new ProfilerAction.Builder(ZOOM_OUT).setContainerComponent(myStageComponent).setActionRunnable(() -> zoomOut.doClick(0))
+      new ProfilerAction.Builder(ZOOM_OUT).setContainerComponent(myStageComponent).setActionRunnable(() -> myZoomOut.doClick(0))
                                             .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, SHORTCUT_MODIFIER_MASK_NUMBER),
                                                            KeyStroke.getKeyStroke(KeyEvent.VK_SUBTRACT, SHORTCUT_MODIFIER_MASK_NUMBER))
                                             .build();
 
-    zoomOut.setToolTipText(zoomOutAction.getDefaultToolTipText());
-    rightToolbar.add(zoomOut);
+    myZoomOut.setToolTipText(zoomOutAction.getDefaultToolTipText());
+    rightToolbar.add(myZoomOut);
 
-    CommonButton zoomIn = new CommonButton(StudioIcons.Common.ZOOM_IN);
-    zoomIn.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Common.ZOOM_IN));
-    zoomIn.addActionListener(event -> {
+    myZoomIn = new CommonButton(StudioIcons.Common.ZOOM_IN);
+    myZoomIn.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Common.ZOOM_IN));
+    myZoomIn.addActionListener(event -> {
       timeline.zoomIn();
       myProfiler.getIdeServices().getFeatureTracker().trackZoomIn();
     });
     ProfilerAction zoomInAction =
       new ProfilerAction.Builder(ZOOM_IN).setContainerComponent(myStageComponent)
-                                           .setActionRunnable(() -> zoomIn.doClick())
+                                           .setActionRunnable(() -> myZoomIn.doClick())
                                            .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, SHORTCUT_MODIFIER_MASK_NUMBER),
                                                           KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, SHORTCUT_MODIFIER_MASK_NUMBER),
                                                           KeyStroke.getKeyStroke(KeyEvent.VK_ADD, SHORTCUT_MODIFIER_MASK_NUMBER)).build();
-    zoomIn.setToolTipText(zoomInAction.getDefaultToolTipText());
-    rightToolbar.add(zoomIn);
+    myZoomIn.setToolTipText(zoomInAction.getDefaultToolTipText());
+    rightToolbar.add(myZoomIn);
 
-    CommonButton resetZoom = new CommonButton(StudioIcons.Common.RESET_ZOOM);
-    resetZoom.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Common.RESET_ZOOM));
-    resetZoom.addActionListener(event -> {
+    myResetZoom = new CommonButton(StudioIcons.Common.RESET_ZOOM);
+    myResetZoom.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Common.RESET_ZOOM));
+    myResetZoom.addActionListener(event -> {
       timeline.resetZoom();
       myProfiler.getIdeServices().getFeatureTracker().trackResetZoom();
     });
     ProfilerAction resetZoomAction =
       new ProfilerAction.Builder("Reset zoom").setContainerComponent(myStageComponent)
-                                              .setActionRunnable(() -> resetZoom.doClick(0))
+                                              .setActionRunnable(() -> myResetZoom.doClick(0))
                                               .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, 0),
                                                              KeyStroke.getKeyStroke(KeyEvent.VK_0, 0)).build();
-    resetZoom.setToolTipText(resetZoomAction.getDefaultToolTipText());
-    rightToolbar.add(resetZoom);
+    myResetZoom.setToolTipText(resetZoomAction.getDefaultToolTipText());
+    rightToolbar.add(myResetZoom);
 
-    CommonButton frameSelection = new CommonButton(StudioIcons.Common.ZOOM_SELECT);
-    frameSelection.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Common.ZOOM_SELECT));
-    frameSelection.addActionListener(event -> {
+    myFrameSelection = new CommonButton(StudioIcons.Common.ZOOM_SELECT);
+    myFrameSelection.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Common.ZOOM_SELECT));
+    myFrameSelection.addActionListener(event -> {
       timeline.frameViewToRange(timeline.getSelectionRange());
     });
-    ProfilerAction frameSelectionAction =
-      new ProfilerAction.Builder("Zoom to Selection").setContainerComponent(myStageComponent)
-                                                     .setActionRunnable(() -> frameSelection.doClick(0))
-                                                     .setEnableBooleanSupplier(() -> !timeline.getSelectionRange().isEmpty())
-                                                     .build();
-    frameSelection.setToolTipText(frameSelectionAction.getDefaultToolTipText());
-    rightToolbar.add(frameSelection);
+    myFrameSelectionAction = new ProfilerAction.Builder("Zoom to Selection")
+      .setContainerComponent(myStageComponent)
+      .setActionRunnable(() -> myFrameSelection.doClick(0))
+      .setEnableBooleanSupplier(() -> !timeline.getSelectionRange().isEmpty())
+      .build();
+    myFrameSelection.setToolTipText(myFrameSelectionAction.getDefaultToolTipText());
+    rightToolbar.add(myFrameSelection);
     timeline.getSelectionRange().addDependency(this)
-            .onChange(Range.Aspect.RANGE, () -> frameSelection.setEnabled(frameSelectionAction.isEnabled()));
+            .onChange(Range.Aspect.RANGE, () -> myFrameSelection.setEnabled(myFrameSelectionAction.isEnabled()));
 
     myGoLiveToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
     myGoLiveToolbar.add(new FlatSeparator());
@@ -379,26 +421,50 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
 
     ProfilerContextMenu.createIfAbsent(myStageComponent)
                        .add(attachAction, detachAction, ContextMenuItem.SEPARATOR, zoomInAction, zoomOutAction);
-
-    Runnable toggleToolButtons = () -> {
-      boolean isValidSession = !Common.Session.getDefaultInstance().equals(myProfiler.getSessionsManager().getSelectedSession());
-      boolean isAlive = isValidSession && myProfiler.getSessionsManager().isSessionAlive();
-      zoomOut.setEnabled(isValidSession);
-      zoomIn.setEnabled(isValidSession);
-      resetZoom.setEnabled(isValidSession);
-      frameSelection.setEnabled(isValidSession && frameSelectionAction.isEnabled());
-      myGoLive.setEnabled(isAlive);
-      myGoLive.setSelected(isAlive);
-    };
-    myProfiler.getSessionsManager().addDependency(this).onChange(SessionAspect.SELECTED_SESSION, toggleToolButtons);
-    toggleToolButtons.run();
+    myProfiler.getSessionsManager().addDependency(this).onChange(SessionAspect.SELECTED_SESSION, this::toggleTimelineButtons);
+    toggleTimelineButtons();
 
     myStageToolbar = new JPanel(new BorderLayout());
     myToolbar.add(myStageToolbar, BorderLayout.CENTER);
 
     myStageComponent.add(myToolbar, BorderLayout.NORTH);
+    myStageComponent.add(myStageCenterComponent, BorderLayout.CENTER);
 
     updateStreaming();
+  }
+
+  private void toggleTimelineButtons() {
+    boolean isAlive = myProfiler.getSessionsManager().isSessionAlive();
+    if (isAlive) {
+      Profiler.AgentStatusResponse agentStatus = myProfiler.getAgentStatus();
+      boolean waitForAgent = agentStatus.getStatus() != Profiler.AgentStatusResponse.Status.ATTACHED && agentStatus.getIsAgentAttachable();
+      if (waitForAgent) {
+        // Disable all controls if the agent is still initialization/attaching.
+        myZoomOut.setEnabled(false);
+        myZoomIn.setEnabled(false);
+        myResetZoom.setEnabled(false);
+        myFrameSelection.setEnabled(false);
+        myGoLive.setEnabled(false);
+        myGoLive.setSelected(false);
+      }
+      else {
+        myZoomOut.setEnabled(true);
+        myZoomIn.setEnabled(true);
+        myResetZoom.setEnabled(true);
+        myFrameSelection.setEnabled(myFrameSelectionAction.isEnabled());
+        myGoLive.setEnabled(true);
+        myGoLive.setSelected(true);
+      }
+    }
+    else {
+      boolean isValidSession = !Common.Session.getDefaultInstance().equals(myProfiler.getSessionsManager().getSelectedSession());
+      myZoomOut.setEnabled(isValidSession);
+      myZoomIn.setEnabled(isValidSession);
+      myResetZoom.setEnabled(isValidSession);
+      myFrameSelection.setEnabled(isValidSession && myFrameSelectionAction.isEnabled());
+      myGoLive.setEnabled(false);
+      myGoLive.setSelected(false);
+    }
   }
 
   private void toggleSessionsPanel(boolean isCollapsed) {
@@ -430,12 +496,10 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     }
 
     myStageView = myBinder.build(this, stage);
-    Component prev = myLayout.getLayoutComponent(BorderLayout.CENTER);
-    if (prev != null) {
-      myStageComponent.remove(prev);
-    }
-    myStageComponent.add(myStageView.getComponent(), BorderLayout.CENTER);
-    myStageComponent.revalidate();
+    myStageCenterComponent.removeAll();
+    myStageCenterComponent.add(myStageView.getComponent(), STAGE_VIEW_CARD);
+    myStageCenterComponent.add(myStageLoadingPanel.getComponent(), LOADING_VIEW_CARD);
+    myStageCenterComponent.revalidate();
 
     myStageToolbar.removeAll();
     myStageToolbar.add(myStageView.getToolbar(), BorderLayout.CENTER);
@@ -446,6 +510,20 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     boolean topLevel = myStageView == null || myStageView.needsProcessSelection();
     myMonitoringToolbar.setVisible(topLevel);
     myCommonToolbar.setVisible(!topLevel && myStageView.navigationControllersEnabled());
+  }
+
+  private void agentStatusChanged() {
+    Profiler.AgentStatusResponse agentStatus = myProfiler.getAgentStatus();
+    boolean waitForAgent = agentStatus.getStatus() != Profiler.AgentStatusResponse.Status.ATTACHED && agentStatus.getIsAgentAttachable();
+    if (waitForAgent) {
+      myStageLoadingPanel.startLoading();
+      myStageCenterCardLayout.show(myStageCenterComponent, LOADING_VIEW_CARD);
+    }
+    else {
+      myStageLoadingPanel.stopLoading();
+      myStageCenterCardLayout.show(myStageCenterComponent, STAGE_VIEW_CARD);
+    }
+    toggleTimelineButtons();
   }
 
   @NotNull

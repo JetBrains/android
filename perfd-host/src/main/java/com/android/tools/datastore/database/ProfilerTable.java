@@ -62,10 +62,10 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
     try {
       createTable("Profiler_Bytes", "Id STRING NOT NULL", "Session INTEGER", "Data BLOB");
       createTable("Profiler_Devices", "DeviceId INTEGER", "LastKnownTime INTEGER", "Data BLOB");
-      createTable("Profiler_Processes", "DeviceId INTEGER", "ProcessId INTEGER", "HasAgent INTEGER",
-                  "LastKnownAttachedTime INTEGER", "Data BLOB");
+      createTable("Profiler_Processes", "DeviceId INTEGER", "ProcessId INTEGER", "AgentStatus INTEGER",
+                  "IsAgentAttachable INTEGER", "Data BLOB");
       createTable("Profiler_Sessions", "SessionId INTEGER", "DeviceId INTEGER", "ProcessId INTEGER", "StartTime INTEGER",
-                  "EndTime INTEGER", "StartTimeEpochMs INTEGER", "NAME TEXT", "JvmtiEnabled BIT", "LiveAllocationEnabled BIT",
+                  "EndTime INTEGER", "StartTimeEpochMs INTEGER", "NAME TEXT", "JvmtiEnabled INTEGER", "LiveAllocationEnabled INTEGER",
                   "TypeId INTEGER");
       createUniqueIndex("Profiler_Processes", "DeviceId", "ProcessId");
       createUniqueIndex("Profiler_Devices", "DeviceId");
@@ -118,9 +118,9 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
       createStatement(ProfilerStatements.DELETE_SESSION_BY_ID,
                       "DELETE from Profiler_Sessions WHERE SessionId = ?");
       createStatement(ProfilerStatements.FIND_AGENT_STATUS,
-                      "SELECT HasAgent, LastKnownAttachedTime from Profiler_Processes WHERE DeviceId = ? AND ProcessId = ?");
+                      "SELECT AgentStatus, IsAgentAttachable from Profiler_Processes WHERE DeviceId = ? AND ProcessId = ?");
       createStatement(ProfilerStatements.UPDATE_AGENT_STATUS,
-                      "UPDATE Profiler_Processes SET HasAgent = ?, LastKnownAttachedTime = ? WHERE DeviceId = ? AND ProcessId = ?");
+                      "UPDATE Profiler_Processes SET AgentStatus = ?, IsAgentAttachable = ? WHERE DeviceId = ? AND ProcessId = ?");
       createStatement(ProfilerStatements.INSERT_BYTES, "INSERT OR REPLACE INTO Profiler_Bytes (Id, Session, Data) VALUES (?, ?, ?)");
       createStatement(ProfilerStatements.GET_BYTES, "SELECT Data FROM Profiler_Bytes WHERE Id = ? AND Session = ?");
     }
@@ -348,7 +348,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
               break;
           }
 
-          execute(ProfilerStatements.UPDATE_AGENT_STATUS, status.ordinal(), agentStatus.getLastTimestamp(),
+          execute(ProfilerStatements.UPDATE_AGENT_STATUS, status.ordinal(), agentStatus.getIsAgentAttachable(),
                   devicdId.get(), process.getPid());
         }
       }
@@ -366,7 +366,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
         ResultSet results = executeQuery(ProfilerStatements.FIND_AGENT_STATUS, request.getDeviceId(), request.getPid());
         if (results.next()) {
           responseBuilder.setStatusValue(results.getInt(1));
-          responseBuilder.setLastTimestamp(results.getLong(2));
+          responseBuilder.setIsAgentAttachable(results.getBoolean(2));
         }
       }
       catch (SQLException ex) {

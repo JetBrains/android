@@ -24,7 +24,6 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.swing.FakeKeyboard;
 import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.profiler.proto.NetworkProfiler;
-import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
@@ -41,6 +40,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData;
 import static com.android.tools.profiler.proto.NetworkProfiler.SpeedData;
+import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertFalse;
 
@@ -83,7 +83,7 @@ public class NetworkProfilerStageViewTest {
     // the LineChart.
     ideProfilerServices.enableSessionsView(false);
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), ideProfilerServices, myTimer);
-    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
+    myProfilerService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));
     profilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null);
     // StudioProfilersView initialization needs to happen after the tick, as during setDevice/setProcess the StudioMonitorStage is

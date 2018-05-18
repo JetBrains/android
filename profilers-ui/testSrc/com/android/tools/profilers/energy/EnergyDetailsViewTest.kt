@@ -20,9 +20,9 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.EnergyProfiler
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent
 import com.android.tools.profiler.proto.EnergyProfiler.JobScheduled
-import com.android.tools.profiler.proto.Profiler
 import com.android.tools.profiler.protobuf3jarjar.ByteString
 import com.android.tools.profilers.*
+import com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -113,7 +113,7 @@ class EnergyDetailsViewTest {
     val timer = FakeTimer()
     val services = FakeIdeProfilerServices().apply { enableEnergyProfiler(true) }
     val profilers = StudioProfilers(grpcChannel.client, services, timer)
-    profilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED)
+    profilerService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE)
     timer.tick(TimeUnit.SECONDS.toNanos(1))
 
     // StudioProfilersView initialization needs to happen after the tick, as during setDevice/setProcess the StudioMonitorStage is

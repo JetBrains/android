@@ -19,7 +19,6 @@ import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
-import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
@@ -33,6 +32,7 @@ import org.junit.Test;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE;
 import static org.junit.Assert.assertEquals;
 
 public class AllocStatsDataSeriesTest {
@@ -49,7 +49,7 @@ public class AllocStatsDataSeriesTest {
   @Test
   public void testGetDataForXRange() {
     FakeTimer timer = new FakeTimer();
-    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
+    myProfilerService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
     StudioProfilers studioProfilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), timer);
     studioProfilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null);
     timer.tick(TimeUnit.SECONDS.toNanos(1));

@@ -15,11 +15,13 @@
  */
 package com.android.tools.profilers.sessions;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.protobuf3jarjar.GeneratedMessageV3;
+import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.StudioMonitorStage;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
@@ -35,10 +37,13 @@ public class SessionItem extends AspectModel<SessionItem.Aspect> implements Sess
     MODEL,
   }
 
+  private static final String SESSION_INITIALIZING = "Starting...";
+
   @NotNull private final StudioProfilers myProfilers;
   @NotNull private Common.Session mySession;
   @NotNull private final Common.SessionMetaData mySessionMetaData;
   private long myDurationNs;
+  private boolean myWaitingForAgent;
 
   public SessionItem(@NotNull StudioProfilers profilers, @NotNull Common.Session session, @NotNull Common.SessionMetaData metaData) {
     myProfilers = profilers;
@@ -48,6 +53,9 @@ public class SessionItem extends AspectModel<SessionItem.Aspect> implements Sess
     if (mySession.getEndTimestamp() != Long.MAX_VALUE) {
       myDurationNs = mySession.getEndTimestamp() - mySession.getStartTimestamp();
     }
+
+    profilers.addDependency(this).onChange(ProfilerAspect.AGENT, this::agentStatusChanged);
+    agentStatusChanged();
   }
 
   @NotNull
@@ -97,8 +105,13 @@ public class SessionItem extends AspectModel<SessionItem.Aspect> implements Sess
 
   @NotNull
   public String getSubtitle() {
-    long durationUs = TimeUnit.NANOSECONDS.toMicros(myDurationNs);
-    return TimeAxisFormatter.DEFAULT.getFixedPointFormattedString(TimeUnit.SECONDS.toMicros(1), durationUs);
+    if (myWaitingForAgent) {
+      return SESSION_INITIALIZING;
+    }
+    else {
+      long durationUs = TimeUnit.NANOSECONDS.toMicros(myDurationNs);
+      return TimeAxisFormatter.DEFAULT.getFixedPointFormattedString(TimeUnit.SECONDS.toMicros(1), durationUs);
+    }
   }
 
   @Override
@@ -129,6 +142,22 @@ public class SessionItem extends AspectModel<SessionItem.Aspect> implements Sess
   public void update(long elapsedNs) {
     if (SessionsManager.isSessionAlive(mySession)) {
       myDurationNs += elapsedNs;
+      changed(Aspect.MODEL);
+    }
+  }
+
+  private void agentStatusChanged() {
+    boolean oldValue = myWaitingForAgent;
+    if (SessionsManager.isSessionAlive(mySession) && mySession.equals(myProfilers.getSessionsManager().getSelectedSession())) {
+      Profiler.AgentStatusResponse agentStatusResponse = myProfilers.getAgentStatus();
+      myWaitingForAgent = agentStatusResponse.getIsAgentAttachable() &&
+                          agentStatusResponse.getStatus() == Profiler.AgentStatusResponse.Status.DETACHED;
+    }
+    else {
+      myWaitingForAgent = false;
+    }
+
+    if (oldValue != myWaitingForAgent) {
       changed(Aspect.MODEL);
     }
   }
