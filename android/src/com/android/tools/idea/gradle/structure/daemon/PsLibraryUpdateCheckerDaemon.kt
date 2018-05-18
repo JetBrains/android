@@ -30,6 +30,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.text.StringUtil.isNotEmpty
 import com.intellij.util.EventDispatcher
+import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.MergingUpdateQueue.ANY_COMPONENT
 import com.intellij.util.ui.update.Update
@@ -131,32 +132,32 @@ class PsLibraryUpdateCheckerDaemon(context: PsContext) : PsDaemon(context) {
   }
 
   private inner class SearchForAvailableUpdates : Update(context.project) {
-
     override fun run() {
-      val repositories = Sets.newHashSet<ArtifactRepository>()
-      val ids = Sets.newHashSet<LibraryUpdateId>()
-
-      context.project.forEachModule { module ->
-        repositories.addAll(module.artifactRepositories)
-
-        if (module is PsAndroidModule) {
-          module.dependencies.forEach { dependency ->
-            if (dependency is PsLibraryDependency) {
-              val libraryDependency = dependency as PsLibraryDependency
-              val spec = libraryDependency.spec
-              if (isNotEmpty(spec.version)) {
-                val version = GradleVersion.tryParse(spec.version!!)
-                if (version != null) {
-                  ids.add(LibraryUpdateId(spec.name, spec.group))
+      val repositories = mutableSetOf<ArtifactRepository>()
+      val ids = mutableSetOf<LibraryUpdateId>()
+      UIUtil.invokeAndWaitIfNeeded(Runnable {
+        context.project.forEachModule { module ->
+          repositories.addAll(module.artifactRepositories)
+          if (module is PsAndroidModule) {
+            module.dependencies.forEach { dependency ->
+              if (dependency is PsLibraryDependency) {
+                val libraryDependency = dependency as PsLibraryDependency
+                val spec = libraryDependency.spec
+                if (isNotEmpty(spec.version)) {
+                  val version = GradleVersion.tryParse(spec.version!!)
+                  if (version != null) {
+                    ids.add(LibraryUpdateId(spec.name, spec.group))
+                  }
                 }
               }
             }
           }
         }
-      }
-
+      })
       if (!repositories.isEmpty() && !ids.isEmpty()) {
         search(repositories, ids)
+      } else {
+        resultsUpdaterQueue.queue(UpdatesAvailable())
       }
     }
   }
