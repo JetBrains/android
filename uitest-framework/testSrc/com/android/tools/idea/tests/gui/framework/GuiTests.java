@@ -161,13 +161,6 @@ public final class GuiTests {
     // TODO: setUpDefaultGeneralSettings();
   }
 
-  // Called by IdeTestApplication via reflection.
-  @SuppressWarnings("unused")
-  public static void setUpDefaultGeneralSettings() {
-    GuiTestingService.getInstance().setGuiTestingMode(true);
-    GeneralSettings.getInstance().setShowTipsOnStartup(false);
-  }
-
   public static void setUpSdks() {
     File androidSdkPath = TestUtils.getSdk();
 
@@ -269,62 +262,6 @@ public final class GuiTests {
     refreshFiles();
     String lastProjectLocation = getProjectCreationDirPath(testDirectory).getPath();
     RecentProjectsManager.getInstance().setLastProjectCreationLocation(lastProjectLocation);
-  }
-
-  // Called by IdeTestApplication via reflection.
-  @SuppressWarnings("UnusedDeclaration")
-  public static void waitForIdeToStart() {
-    GuiActionRunner.executeInEDT(false);
-    Robot robot = null;
-    try {
-      robot = BasicRobot.robotWithCurrentAwtHierarchy();
-      MyProjectManagerListener listener = new MyProjectManagerListener();
-      findFrame(new GenericTypeMatcher<Frame>(Frame.class) {
-        @Override
-        protected boolean isMatching(@NotNull Frame frame) {
-          if (frame instanceof IdeFrame) {
-            if (frame instanceof IdeFrameImpl) {
-              listener.myActive = true;
-              ProjectManager.getInstance().addProjectManagerListener(listener);
-            }
-            return true;
-          }
-          return false;
-        }
-      }).withTimeout(TimeUnit.MINUTES.toMillis(2)).using(robot);
-
-      // We know the IDE event queue was pushed in front of the AWT queue. Some JDKs will leave a dummy event in the AWT queue, which
-      // we attempt to clear here. All other events, including those posted by the Robot, will go through the IDE event queue.
-      try {
-        if (SYSTEM_EVENT_QUEUE.peekEvent() != null) {
-          SYSTEM_EVENT_QUEUE.getNextEvent();
-        }
-      }
-      catch (InterruptedException ex) {
-        // Ignored.
-      }
-
-      if (listener.myActive) {
-        Wait.seconds(1).expecting("project to be opened")
-          .until(() -> {
-            boolean notified = listener.myNotified;
-            if (notified) {
-              boolean isIdle = noProgressIndicator();
-              if (isIdle) {
-                ProjectManager.getInstance().removeProjectManagerListener(listener);
-              }
-              return isIdle;
-            }
-            return false;
-          });
-      }
-    }
-    finally {
-      GuiActionRunner.executeInEDT(true);
-      if (robot != null) {
-        robot.cleanUpWithoutDisposingWindows();
-      }
-    }
   }
 
   static ImmutableList<Window> windowsShowing() {
