@@ -30,6 +30,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
 import com.intellij.util.ui.JBUI;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,6 +58,7 @@ class MainPanel extends AbstractDependenciesPanel {
       if (model == module) {
         invokeLaterIfNeeded(this::updateDetailsAndIssues);
       }
+      return Unit.INSTANCE;
     }, this);
 
     myPlaceName = createPlaceName(module.getName());
