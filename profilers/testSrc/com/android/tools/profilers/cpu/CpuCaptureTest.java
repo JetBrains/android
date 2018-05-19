@@ -96,6 +96,23 @@ public class CpuCaptureTest {
   }
 
   @Test
+  public void multipleThreadsSameNameGetsCorrectMainThread() {
+    CpuThreadInfo main = new CpuThreadInfo(10, "MainThread", 10, "MainThread");
+    CpuThreadInfo other = new CpuThreadInfo(11, "Other", main.getProcessId(), main.getProcessName());
+    CpuThreadInfo notMain = new CpuThreadInfo(12, "MainThread", main.getProcessId(), main.getProcessName());
+    Range range = new Range(0, 30);
+    Map<CpuThreadInfo, CaptureNode> captureTrees =
+      new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>().put(notMain, new CaptureNode(new SingleNameModel("MainThread")))
+                                                            .put(other, new CaptureNode(new SingleNameModel("Other")))
+                                                            .put(main, new CaptureNode(new SingleNameModel("MainThread"))).build();
+    CpuCapture capture =
+      new CpuCapture(new FakeTraceParser(range, captureTrees, true), 20, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER, main.getProcessName());
+    // Test if we don't have a main thread, and we pass in an invalid name we still get a main thread id.
+    assertThat(capture.getMainThreadId()).isEqualTo(main.getProcessId());
+    assertThat(capture.getCaptureNode(main.getProcessId()).getData().getName()).isEqualTo(main.getProcessName());
+  }
+
+  @Test
   public void corruptedTraceFileThrowsException() throws IOException, InterruptedException {
     CpuCapture capture = null;
     try {

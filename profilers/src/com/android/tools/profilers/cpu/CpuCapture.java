@@ -63,7 +63,16 @@ public class CpuCapture implements ConfigurableDurationData {
     boolean foundMainThread = false;
 
     for (Map.Entry<CpuThreadInfo, CaptureNode> entry : myParser.getCaptureTrees().entrySet()) {
-      if (entry.getKey().getName().equals(mainThreadName)) {
+      // Systrace populates the process Id, as well as the thread Id. If the thread id, matches
+      // our process Id then this entry is our main thread entry. The reason this is needed is
+      // systrace can sometimes product two entries with the same thread name, and different thread ids.
+      if (entry.getKey().getId() == entry.getKey().getProcessId()) {
+        main = entry;
+        break;
+      }
+      else if (entry.getKey().getName().equals(mainThreadName)) {
+        // We don't break here because we may find a thread that matches its thread id to the process id. This match
+        // may happen after we match a thread by thread name.
         main = entry;
         foundMainThread = true;
       }
