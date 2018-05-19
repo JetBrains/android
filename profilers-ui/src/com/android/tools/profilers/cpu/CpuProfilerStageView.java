@@ -71,12 +71,12 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     /**
      * Sizing string for the CPU graph.
      */
-    MONITOR("4*"),
+    MONITOR("140px"),
 
     /**
      * Sizing string for the threads / kernel view.
      */
-    DETAILS("6*"),
+    DETAILS("*"),
 
     /**
      * Sizing string for the kernel portion of the details view.

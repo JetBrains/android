@@ -244,10 +244,10 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
         double scaledXDuration = rect.width * dim.getWidth();
         double newX = Math.max(scaledXStart, originalClip.getBounds().getX());
         clipRect.setRect(newX,
-                         0,
+                         originalClip.getBounds().getY(),
                          Math.min(scaledXDuration + scaledXStart - newX,
                                   originalClip.getBounds().getX() + originalClip.getBounds().getWidth() - newX),
-                         dim.getHeight());
+                         Math.min(originalClip.getBounds().getHeight(), dim.getHeight()));
 
         // Paint the background
         g2d.setColor(myDurationBgColor == null ? lineChart.getBackground() : myDurationBgColor);
