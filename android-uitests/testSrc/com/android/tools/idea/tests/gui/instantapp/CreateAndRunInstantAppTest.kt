@@ -98,7 +98,7 @@ class CreateAndRunInstantAppTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/79937083
   fun createAndRun() {
     val runConfigName = "instantapp"
     val newProj = guiTest.welcomeFrame().createNewProject()
