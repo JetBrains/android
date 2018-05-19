@@ -78,6 +78,7 @@ import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_PRE30;
+import static com.android.utils.TraceUtils.getCurrentStack;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
@@ -88,7 +89,6 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static com.intellij.testFramework.PlatformTestCase.synchronizeTempDirVfs;
 import static java.util.concurrent.TimeUnit.MINUTES;
-import static org.jetbrains.android.util.AndroidCommonUtils.getStackTrace;
 
 /**
  * Base class for unit tests that operate on Gradle projects
@@ -603,7 +603,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     @Override
     public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
-      failureMessage = !errorMessage.isEmpty() ? errorMessage : "No errorMessage at:\n" + getStackTrace(new Throwable());
+      failureMessage = !errorMessage.isEmpty() ? errorMessage : "No errorMessage at:\n" + getCurrentStack();
       myLatch.countDown();
     }
 

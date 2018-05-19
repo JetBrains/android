@@ -82,7 +82,7 @@ public class StyleEnumSupportTest {
     when(myComponent.getTag()).thenReturn(myTag);
     when(myTag.knownNamespaces()).thenReturn(new String[]{ANDROID_URI, TOOLS_URI});
     when(myResolver.getStyle(any())).thenAnswer(invocation -> resolveStyle(invocation.getArgument(0)));
-    when(myResourceRepositoryManager.getNamespace()).thenReturn(ResourceNamespace.TODO);
+    when(myResourceRepositoryManager.getNamespace()).thenReturn(ResourceNamespace.TODO());
     mySupport = new StyleEnumSupport(myProperty, myStyleFilter, myResourceRepositoryManager);
   }
 

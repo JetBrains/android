@@ -243,7 +243,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
   private void addVariantsForIdDeclaration(@NotNull ConvertContext context, @NotNull AndroidFacet facet, char prefix, @NotNull String value,
                                            @NotNull Set<ResourceValue> result) {
-    ResourceNamespace namespace = ResourceNamespace.TODO;
+    ResourceNamespace namespace = ResourceNamespace.TODO();
 
     // Find matching ID resource references in the current file.
     XmlFile file = context.getFile();

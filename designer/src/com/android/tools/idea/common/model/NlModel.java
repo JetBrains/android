@@ -195,7 +195,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     if (myRootComponent != null) {
       namespaceResolver = ResourceHelper.getNamespaceResolver(myRootComponent.getTag());
     }
-    ResourceReference reference = style.resolve(ResourceNamespace.TODO, namespaceResolver);
+    ResourceReference reference = style.resolve(ResourceNamespace.TODO(), namespaceResolver);
     if (reference == null) {
       return null;
     }

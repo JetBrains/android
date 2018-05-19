@@ -432,7 +432,7 @@ class NlComponentMixin(component: NlComponent)
     val resources = component.model.configuration.resourceResolver ?: return null
 
     // Pretend the style was referenced from a proper resource by constructing a temporary ResourceValue. TODO: aapt namespace?
-    val tmpResourceValue = ResourceValueImpl(ResourceNamespace.TODO, ResourceType.STYLE, component.tagName, styleAttributeValue)
+    val tmpResourceValue = ResourceValueImpl(ResourceNamespace.TODO(), ResourceType.STYLE, component.tagName, styleAttributeValue)
 
     val styleResourceValue = resources.resolveResValue(tmpResourceValue) as? StyleResourceValue ?: return null
 

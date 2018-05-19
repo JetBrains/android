@@ -176,7 +176,7 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
   @VisibleForTesting
   @NotNull
   public static ModuleResourceRepository createForTest(@NotNull AndroidFacet facet, @NotNull Collection<VirtualFile> resourceDirectories) {
-    return createForTest(facet, resourceDirectories, ResourceNamespace.TODO, null);
+    return createForTest(facet, resourceDirectories, ResourceNamespace.TODO(), null);
   }
 
   @VisibleForTesting

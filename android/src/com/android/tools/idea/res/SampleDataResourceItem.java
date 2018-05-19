@@ -127,7 +127,7 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
     VirtualFile vFile = filePointer.getVirtualFile();
     String fileName = vFile.getName();
 
-    return new SampleDataResourceItem(fileName, ResourceNamespace.TODO, output -> {
+    return new SampleDataResourceItem(fileName, ResourceNamespace.TODO(), output -> {
       PsiElement sourceElement = filePointer.getElement();
       if (sourceElement == null) {
         LOG.warn("File pointer was invalidated and the repository was not refreshed");
@@ -153,7 +153,7 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
   private static SampleDataResourceItem getFromDirectory(@NotNull SmartPsiElementPointer<PsiElement> directoryPointer) {
     VirtualFile directory = directoryPointer.getVirtualFile();
     // For directories, at this point, we always consider them images since it's the only type we handle for them
-    return new SampleDataResourceItem(directory.getName(), ResourceNamespace.TODO, output -> {
+    return new SampleDataResourceItem(directory.getName(), ResourceNamespace.TODO(), output -> {
       try (PrintStream printStream = new PrintStream(output)) {
         Arrays.stream(directory.getChildren())
               .filter(child -> !child.isDirectory())
@@ -174,7 +174,7 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
                                                         @NotNull String contentPath) {
     VirtualFile vFile = jsonPointer.getVirtualFile();
     String fileName = vFile.getName();
-    return new SampleDataResourceItem(fileName + contentPath, ResourceNamespace.TODO, output -> {
+    return new SampleDataResourceItem(fileName + contentPath, ResourceNamespace.TODO(), output -> {
       if (contentPath.isEmpty()) {
         return null;
       }
@@ -242,7 +242,7 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
         Set<String> possiblePaths = parser.getPossiblePaths();
         ImmutableList.Builder<SampleDataResourceItem> items = ImmutableList.builder();
         for (String path : possiblePaths) {
-          items.add(new SampleDataResourceItem(sampleDataSource.getName() + path, ResourceNamespace.TODO,
+          items.add(new SampleDataResourceItem(sampleDataSource.getName() + path, ResourceNamespace.TODO(),
                                                new HardcodedContent(Joiner.on('\n').join(parser.getPossiblePaths())),
                                                () -> vFile.getModificationStamp() + 1, psiPointer, ContentType.UNKNOWN));
         }

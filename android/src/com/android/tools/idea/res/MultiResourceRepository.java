@@ -359,7 +359,8 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
    * Notifies this delegating repository that the given dependent repository has invalidated
    * resources of the given types in the given namespace.
    */
-  public void invalidateCache(@NotNull LocalResourceRepository repository, @NotNull ResourceNamespace namespace, @NotNull ResourceType... types) {
+  public void invalidateCache(@NotNull LocalResourceRepository repository, @NotNull ResourceNamespace namespace,
+                              @NotNull ResourceType... types) {
     synchronized (ITEM_MAP_LOCK) {
       assert myChildren.contains(repository) : repository;
 
@@ -367,7 +368,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
         myCachedNamespaces = null;
         myCachedMaps.remove(namespace, type);
 
-        if (ResourceNamespace.TODO.equals(namespace)) {
+        if (ResourceNamespace.TODO().equals(namespace)) {
           myCachedHasResourcesOfType.remove(type);
         }
       }

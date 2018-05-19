@@ -113,7 +113,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
   @Override
   protected UsageInfo[] findUsages() {
     final List<UsageInfo> usages = findAllStyleApplications();
-    return usages.toArray(new UsageInfo[usages.size()]);
+    return usages.toArray(UsageInfo.EMPTY_ARRAY);
   }
 
   @Override
@@ -279,7 +279,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
     }
     ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(facet);
     LocalResourceRepository repository = repositoryManager.getAppResources(true);
-    List<ResourceItem> styles = repository.getResourceItems(ResourceNamespace.TODO, ResourceType.STYLE, styleName);
+    List<ResourceItem> styles = repository.getResourceItems(ResourceNamespace.TODO(), ResourceType.STYLE, styleName);
     if (styles.size() == 1) {
       Multimap<String, VirtualFile> resourceDirs = repositoryManager.getAllResourceDirs();
       resDirs.addAll(new HashSet<>(resourceDirs.values()));
@@ -383,8 +383,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
       }
       final PsiElement styleNameAttrValueForTag = getStyleNameAttrValueForTag(candidateView);
 
-      if (styleNameAttrValueForTag == null ||
-          !myParentStyleNameAttrValue.equals(styleNameAttrValueForTag)) {
+      if (!myParentStyleNameAttrValue.equals(styleNameAttrValueForTag)) {
         return false;
       }
     }

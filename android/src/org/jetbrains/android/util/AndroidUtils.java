@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.TargetSelectionMode;
+import com.android.utils.TraceUtils;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.codeInsight.navigation.NavigationUtil;
@@ -560,7 +561,7 @@ public class AndroidUtils {
       if (messageBuilder.length() > 0) {
         messageBuilder.append("\n\n");
       }
-      messageBuilder.append(AndroidCommonUtils.getStackTrace(t));
+      messageBuilder.append(TraceUtils.getStackTrace(t));
     }
 
     final DialogWrapper wrapper = new DialogWrapper(project, false) {

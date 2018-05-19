@@ -389,7 +389,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     if (!myAaptDeclaredResources.isEmpty() && value.startsWith(AAPT_ATTR_PREFIX)) {
       TagSnapshot aaptResource = myAaptDeclaredResources.get(StringUtil.trimStart(value, AAPT_ATTR_PREFIX));
       // TODO(namespaces, b/74003372): figure out where to get the namespace from.
-      parser = LayoutPsiPullParser.create(aaptResource, ResourceNamespace.TODO, myLogger);
+      parser = LayoutPsiPullParser.create(aaptResource, ResourceNamespace.TODO(), myLogger);
     }
     else {
       parser = getParser(layoutResource.getName(), layoutResource.getNamespace(), new File(value));

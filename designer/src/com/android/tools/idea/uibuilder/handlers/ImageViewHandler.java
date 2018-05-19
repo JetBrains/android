@@ -167,7 +167,7 @@ public class ImageViewHandler extends ViewHandler {
     if (SampleDataResourceRepository.PREDEFINED_SAMPLES_NS.equals(namespace)) {
       prefix = TOOLS_SAMPLE_PREFIX;
     }
-    else if (ResourceNamespace.TODO.equals(namespace)) {
+    else if (ResourceNamespace.TODO().equals(namespace)) {
       prefix = SAMPLE_PREFIX;
     }
     else {

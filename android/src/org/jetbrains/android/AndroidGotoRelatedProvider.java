@@ -267,7 +267,7 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
         }
         final String resFieldName = info.getFieldName();
         LocalResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
-        final List<PsiElement> resources = resourceManager.findResourcesByFieldName(ResourceNamespace.TODO, resClassName, resFieldName);
+        final List<PsiElement> resources = resourceManager.findResourcesByFieldName(ResourceNamespace.TODO(), resClassName, resFieldName);
 
         for (PsiElement resource : resources) {
           if (resource instanceof PsiFile) {
