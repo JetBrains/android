@@ -36,65 +36,90 @@ import static java.util.Objects.requireNonNull;
  * <p>
  * It works as follows:
  * <ol>
- *   <li>For Android app modules, the "debug" variant is selected. If the module doesn't have a variant named "debug", it sorts all the
- *   variant names alphabetically and picks the first one.</li>
- *   <li>For Android library modules, it chooses the variant needed by dependent modules. For example, if variant "debug" in module "app"
- *   depends on module "lib" - variant "freeDebug", the selected variant in "lib" will be "freeDebug". If a library module is a leaf
- *   (i.e. no other modules depend on it) a variant will be picked as if the module was an app module.</li>
+ * <li>For Android app modules, the "debug" variant is selected. If the module doesn't have a variant named "debug", it sorts all the
+ * variant names alphabetically and picks the first one.</li>
+ * <li>For Android library modules, it chooses the variant needed by dependent modules. For example, if variant "debug" in module "app"
+ * depends on module "lib" - variant "freeDebug", the selected variant in "lib" will be "freeDebug". If a library module is a leaf
+ * (i.e. no other modules depend on it) a variant will be picked as if the module was an app module.</li>
  * </ol>
  * </p>
  */
 class SelectedVariantChooser implements Serializable {
-  void chooseSelectedVariants(@NotNull List<SyncModuleModels> projectModels, @NotNull BuildController controller) {
-    List<AndroidModule> appModules = new ArrayList<>();
-    Map<String, AndroidModule> leafModulesById = new HashMap<>();
+  void chooseSelectedVariants(@NotNull List<SyncModuleModels> projectModels,
+                              @NotNull BuildController controller,
+                              @NotNull SelectedVariants selectedVariants) {
+    Map<String, AndroidModule> modulesById = new HashMap<>();
+    LinkedList<String> allModules = new LinkedList<>();
+    Set<String> visitedModules = new HashSet<>();
 
     for (SyncModuleModels moduleModels : projectModels) {
       AndroidProject androidProject = moduleModels.findModel(AndroidProject.class);
       GradleProject gradleProject = moduleModels.findModel(GradleProject.class);
 
-      if (androidProject != null && gradleProject != null) {
+      if (gradleProject != null && androidProject != null && androidProject.getVariants().isEmpty()) {
         AndroidModule module = new AndroidModule(androidProject, moduleModels);
-
+        String id = createUniqueModuleId(gradleProject);
+        modulesById.put(id, module);
         if (androidProject.getProjectType() == PROJECT_TYPE_APP) {
-          // App Module
-          Variant variant = selectVariantForAppOrLeaf(androidProject, moduleModels, controller);
-          module.setSelectedVariant(variant);
-          appModules.add(module);
+          // Ensure the app modules are in the front, and will be evaluated before library modules.
+          allModules.addFirst(id);
         }
         else {
-          // Library Module
-          String id = createUniqueModuleId(gradleProject);
-          leafModulesById.put(id, module);
+          allModules.addLast(id);
         }
       }
     }
 
-    for (AndroidModule appModule : appModules) {
-      for (ModuleDependency dependency : appModule.getModuleDependencies()) {
-        if (dependency.variant != null) {
-          AndroidModule module = leafModulesById.get(dependency.id);
-          if (module != null && module.getSelectedVariant() == null) {
-            Variant variant = syncAndAddVariant(dependency.variant, module.getModuleModels(), controller);
-            module.setSelectedVariant(variant);
-            leafModulesById.remove(dependency.id);
+    for (String moduleId : allModules) {
+      if (!visitedModules.contains(moduleId)) {
+        visitedModules.add(moduleId);
+        AndroidModule module = modulesById.get(moduleId);
+        requireNonNull(module);
+        Variant variant = selectVariantForAppOrLeaf(module, controller, selectedVariants);
+        if (variant != null) {
+          module.addSelectedVariant(variant);
+          selectVariantForDependencyModules(module, controller, modulesById, visitedModules);
+        }
+      }
+    }
+  }
+
+  private static void selectVariantForDependencyModules(@NotNull AndroidModule androidModule,
+                                                        @NotNull BuildController controller,
+                                                        @NotNull Map<String, AndroidModule> libModulesById,
+                                                        @NotNull Set<String> visitedModules) {
+    for (ModuleDependency dependency : androidModule.getModuleDependencies()) {
+      String dependencyModuleId = dependency.id;
+      visitedModules.add(dependencyModuleId);
+      String variantName = dependency.variant;
+      if (variantName != null) {
+        AndroidModule dependencyModule = libModulesById.get(dependencyModuleId);
+        if (dependencyModule != null && !dependencyModule.containsVariant(variantName)) {
+          Variant dependencyVariant = syncAndAddVariant(variantName, dependencyModule.getModuleModels(), controller);
+          if (dependencyVariant != null) {
+            dependencyModule.addSelectedVariant(dependencyVariant);
+            selectVariantForDependencyModules(dependencyModule, controller, libModulesById, visitedModules);
           }
         }
       }
     }
-
-    for (AndroidModule module : leafModulesById.values()) {
-      Variant variant = selectVariantForAppOrLeaf(module.getAndroidProject(), module.getModuleModels(), controller);
-      module.setSelectedVariant(variant);
-    }
   }
 
   @Nullable
-  private static Variant selectVariantForAppOrLeaf(@NotNull AndroidProject androidProject,
-                                                   @NotNull SyncModuleModels moduleModels,
-                                                   @NotNull BuildController controller) {
-    String variant = getDebugOrFirstVariant(androidProject);
-    return (variant != null) ? syncAndAddVariant(variant, moduleModels, controller) : null;
+  private static Variant selectVariantForAppOrLeaf(@NotNull AndroidModule androidModule,
+                                                   @NotNull BuildController controller,
+                                                   @NotNull SelectedVariants selectedVariants) {
+    SyncModuleModels moduleModels = androidModule.getModuleModels();
+    GradleProject gradleProject = moduleModels.findModel(GradleProject.class);
+    requireNonNull(gradleProject);
+    String moduleId = createUniqueModuleId(gradleProject);
+    String variant = selectedVariants.getSelectedVariant(moduleId);
+
+    // Selected variant is null means that this is the very first sync, choose debug or the first one.
+    if (variant == null) {
+      variant = getDebugOrFirstVariant(androidModule.getAndroidProject());
+    }
+    return (variant != null) ? syncAndAddVariant(variant, androidModule.getModuleModels(), controller) : null;
   }
 
   @Nullable
@@ -126,7 +151,7 @@ class SelectedVariantChooser implements Serializable {
     Variant variant = controller.getModel(gradleProject, Variant.class, ModelBuilderParameter.class,
                                           parameter -> parameter.setVariantName(variantName));
     if (variant != null) {
-      moduleModels.addVariant(variant);
+      moduleModels.addModel(Variant.class, variant);
     }
     return variant;
   }

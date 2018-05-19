@@ -78,20 +78,15 @@ public class SyncProjectModels implements Serializable {
       populateModelsForModule(gradleProject, controller, gradleBuild.getBuildIdentifier());
     }
 
-    // Ensure unique module names.
-    deduplicateModuleNames();
-    // Request for GlobalLibraryMap model.
-    populateGlobalLibraryMap(controller);
-
     if (myOptions.isSingleVariantSyncEnabled()) {
       SelectedVariants variants = myOptions.getSelectedVariants();
       requireNonNull(variants);
-
-      if (variants.size() == 0) {
-        // First time syncing project, we need to automatically choose the "selected" variant.
-        myVariantChooser.chooseSelectedVariants(myModuleModels, controller);
-      }
+      myVariantChooser.chooseSelectedVariants(myModuleModels, controller, variants);
     }
+    // Ensure unique module names.
+    deduplicateModuleNames();
+    // Request for GlobalLibraryMap model at last, when all of other models have been built.
+    populateGlobalLibraryMap(controller);
   }
 
   private void populateModelsForModule(@Nullable GradleProject project,

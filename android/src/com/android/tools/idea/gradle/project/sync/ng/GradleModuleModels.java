@@ -19,10 +19,21 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
+import java.util.List;
 
 public interface GradleModuleModels extends Serializable {
+  /**
+   * Obtain the single model with given modelType.
+   * Use {@link #findModels(Class)} if there're multiple models with given type.
+   */
   @Nullable
   <T> T findModel(@NotNull Class<T> modelType);
+
+  /**
+   * Obtain list of models with the given modelType.
+   */
+  @Nullable
+  <T> List<T> findModels(@NotNull Class<T> modelType);
 
   @NotNull
   String getModuleName();

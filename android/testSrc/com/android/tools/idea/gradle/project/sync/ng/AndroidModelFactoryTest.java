@@ -30,9 +30,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
+import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
@@ -71,7 +72,7 @@ public class AndroidModelFactoryTest extends IdeaTestCase {
     androidProject.setVariantNames("debug", "release");
     androidProject.clearVariants();
 
-    when(myModuleModels.findModel(Variant.class)).thenReturn(variant);
+    when(myModuleModels.findModels(Variant.class)).thenReturn(singletonList(variant));
 
     AndroidModuleModel androidModel = myAndroidModelFactory.createAndroidModel(getModule(), androidProject, myModuleModels);
     assertNotNull(androidModel);
@@ -105,5 +106,30 @@ public class AndroidModelFactoryTest extends IdeaTestCase {
     Variant variantCopy = variants.get(0);
     assertEquals("debug",variantCopy.getName());
     assertSame(variantCopy, androidModel.getSelectedVariant());
+  }
+
+  public void testCreateAndroidModelInSingleVariantSyncWithMultipleVariants() {
+    StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
+
+    AndroidProjectStub androidProject = new AndroidProjectStub("test");
+    VariantStub debugVariant = androidProject.addVariant("debug");
+    VariantStub releaseVariant = androidProject.addVariant("release");
+
+    androidProject.setVariantNames("debug", "release");
+    androidProject.clearVariants();
+
+    when(myModuleModels.findModels(Variant.class)).thenReturn(asList(debugVariant, releaseVariant));
+
+    AndroidModuleModel androidModel = myAndroidModelFactory.createAndroidModel(getModule(), androidProject, myModuleModels);
+    assertNotNull(androidModel);
+
+    IdeAndroidProject androidProjectCopy = androidModel.getAndroidProject();
+    List<Variant> variants = new ArrayList<>(androidProjectCopy.getVariants());
+    assertThat(variants).hasSize(2);
+
+    assertThat(variants.stream().map(Variant::getName).collect(toList())).containsExactly("debug", "release");
+    assertThat(androidProjectCopy.getVariantNames()).containsExactly("debug", "release");
+    assertSame(variants.get(1), androidModel.getSelectedVariant());
+    verify(myVariantSelector, never()).findVariantToSelect(androidProject);
   }
 }

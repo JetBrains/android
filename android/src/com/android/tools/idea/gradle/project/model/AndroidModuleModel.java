@@ -126,19 +126,11 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   public AndroidModuleModel(@NotNull String moduleName,
                             @NotNull File rootDirPath,
                             @NotNull AndroidProject androidProject,
-                            @NotNull Variant variant,
-                            @NotNull IdeDependenciesFactory dependenciesFactory) {
-    this(moduleName, rootDirPath, androidProject, variant.getName(), dependenciesFactory, variant);
-  }
-
-  private AndroidModuleModel(@NotNull String moduleName,
-                             @NotNull File rootDirPath,
-                             @NotNull AndroidProject androidProject,
-                             @NotNull String variantName,
-                             @NotNull IdeDependenciesFactory dependenciesFactory,
-                             @Nullable Variant variant) {
-    myAndroidProject = new IdeAndroidProjectImpl(androidProject, dependenciesFactory, variant);
-    myUsingSingleVariantSync = variant != null;
+                            @NotNull String variantName,
+                            @NotNull IdeDependenciesFactory dependenciesFactory,
+                            @Nullable Collection<Variant> variantsToAdd) {
+    myAndroidProject = new IdeAndroidProjectImpl(androidProject, dependenciesFactory, variantsToAdd);
+    myUsingSingleVariantSync = variantsToAdd != null;
 
     myProjectSystemId = GRADLE_SYSTEM_ID;
     myModuleName = moduleName;

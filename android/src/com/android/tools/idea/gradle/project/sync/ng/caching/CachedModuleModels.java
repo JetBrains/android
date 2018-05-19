@@ -21,33 +21,48 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class CachedModuleModels implements GradleModuleModels {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 2L;
+  private static final long serialVersionUID = 3L;
 
   @NotNull private final String myModuleName;
-  @NotNull private final Map<Class<?>, Serializable> myGradleModelsByType = new HashMap<>();
+  @NotNull private final Map<Class<?>, List<Serializable>> myGradleModelsByType = new HashMap<>();
 
   CachedModuleModels(@NotNull Module module) {
     myModuleName = module.getName();
   }
 
   public void addModel(@NotNull Serializable model) {
-    myGradleModelsByType.put(model.getClass(), model);
+    List<Serializable> models = myGradleModelsByType.computeIfAbsent(model.getClass(), k -> new ArrayList<>());
+    models.add(model);
   }
 
   @Override
   @Nullable
   public <T> T findModel(@NotNull Class<T> modelType) {
-    Serializable model = myGradleModelsByType.get(modelType);
+    List<Serializable> models = myGradleModelsByType.get(modelType);
+    if (models == null || models.isEmpty()) {
+      return null;
+    }
+    assert models.size() == 1 : "More than one models available, please use findModels() instead.";
+    Serializable model = models.get(0);
     if (modelType.isInstance(model)) {
       return modelType.cast(model);
     }
     return null;
+  }
+
+  @Nullable
+  @Override
+  public <T> List<T> findModels(@NotNull Class<T> modelType) {
+    List<Serializable> models = myGradleModelsByType.get(modelType);
+    if (models == null || models.isEmpty()) {
+      return null;
+    }
+    return models.stream().filter(modelType::isInstance).map(modelType::cast).collect(Collectors.toList());
   }
 
   @Override

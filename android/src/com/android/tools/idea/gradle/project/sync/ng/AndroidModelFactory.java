@@ -26,8 +26,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.List;
 
 import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
+import static java.util.Collections.singletonList;
 
 class AndroidModelFactory {
   @NotNull private final VariantSelector myVariantSelector;
@@ -44,9 +46,10 @@ class AndroidModelFactory {
                                         @NotNull GradleModuleModels moduleModels) {
     if (StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.get()) {
       if (androidProject.getVariants().isEmpty()) {
-        Variant variant = moduleModels.findModel(Variant.class);
-        if (variant != null) {
-          AndroidModuleModel androidModel = createAndroidModel(module, androidProject, variant, true /* Add variant to Android project */);
+        List<Variant> variants = moduleModels.findModels(Variant.class);
+        if (variants != null) {
+          AndroidModuleModel androidModel = createAndroidModel(module, androidProject, variants,
+                                                               true /* Add variant to AndroidProject. */);
           if (androidModel != null) {
             return androidModel;
           }
@@ -55,8 +58,8 @@ class AndroidModelFactory {
     }
     Variant variantToSelect = myVariantSelector.findVariantToSelect(androidProject);
     if (variantToSelect != null) {
-      AndroidModuleModel androidModel = createAndroidModel(module, androidProject, variantToSelect,
-                                                           false /* do not add Variant to AndroidProject. */);
+      AndroidModuleModel androidModel = createAndroidModel(module, androidProject, singletonList(variantToSelect),
+                                                           false /* Do not add Variant to AndroidProject. */);
       if (androidModel != null) {
         return androidModel;
       }
@@ -72,16 +75,15 @@ class AndroidModelFactory {
   @Nullable
   private AndroidModuleModel createAndroidModel(@NotNull Module module,
                                                 @NotNull AndroidProject androidProject,
-                                                @NotNull Variant variant,
+                                                @NotNull List<Variant> variants,
                                                 boolean addVariantToAndroidProject) {
     File moduleRootFolderPath = findModuleRootFolderPath(module);
     if (moduleRootFolderPath != null) {
-      if (addVariantToAndroidProject) {
-        // Single-variant sync. The variant is not part of AndroidProject. We need to manually add it.
-        return new AndroidModuleModel(module.getName(), moduleRootFolderPath, androidProject, variant, myDependenciesFactory);
-      }
-      String selectedVariant = variant.getName();
-      return new AndroidModuleModel(module.getName(), moduleRootFolderPath, androidProject, selectedVariant, myDependenciesFactory);
+      String selectedVariant = variants.get(variants.size() - 1).getName();
+      // With single-variant sync, the variants are not part of AndroidProject. We need to manually add it.
+      List<Variant> variantsToAdd = addVariantToAndroidProject ? variants : null;
+      return new AndroidModuleModel(module.getName(), moduleRootFolderPath, androidProject, selectedVariant, myDependenciesFactory,
+                                    variantsToAdd);
     }
     return null;
   }
