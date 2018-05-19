@@ -238,7 +238,8 @@ public class AtraceParser implements TraceParser {
   private void buildCaptureTreeNodes() {
     Range range = getRange();
     for (ThreadModel thread : myProcessModel.getThreads()) {
-      CpuThreadInfo threadInfo = new CpuThreadInfo(thread.getId(), thread.getName());
+      CpuThreadInfo threadInfo =
+        new CpuThreadInfo(thread.getId(), thread.getName(), thread.getProcess().getId(), thread.getProcess().getName());
       CaptureNode root = new CaptureNode(new AtraceNodeModel(thread.getName()));
       root.setStartGlobal((long)range.getMin());
       root.setEndGlobal((long)range.getMax());

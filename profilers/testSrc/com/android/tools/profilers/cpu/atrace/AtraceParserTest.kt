@@ -60,6 +60,10 @@ class AtraceParserTest {
     assertThat(cpuThreadInfo.id).isEqualTo(TEST_PID)
     // Atrace only contains the last X characters, in the log file.
     assertThat(cpuThreadInfo.name).isEqualTo("splayingbitmaps")
+    assertThat(cpuThreadInfo.id).isEqualTo(TEST_PID)
+    // Validate capture trees sets the process name and id for threads.
+    assertThat(cpuThreadInfo.processName).isEqualTo("splayingbitmaps")
+    assertThat(cpuThreadInfo.processId).isEqualTo(TEST_PID)
     assertThat(myParser.mainThreadName).isEqualTo(cpuThreadInfo.name)
 
     // Base node is a root node that is equivlant to the length of capture.
