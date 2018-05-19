@@ -80,7 +80,7 @@ public class LineChartReducerVisualTest extends VisualTest {
     myOptimizedLineChart = new LineChart(myOptimizedLineChartModel);
 
     myXAxisModel =
-      new AxisComponentModel(myViewXRange, new SingleUnitAxisFormatter(1, 5, 1, ""));
+      new AxisComponentModel(myViewXRange, new SingleUnitAxisFormatter(1, 5, 1, ""), false);
     myXAxis = new AxisComponent(myXAxisModel, AxisComponent.AxisOrientation.BOTTOM);
     SelectionModel selection = new SelectionModel(mySelectionXRange);
     mySelection = new SelectionComponent(selection, myViewXRange);

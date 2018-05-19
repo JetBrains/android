@@ -30,19 +30,19 @@ public class AxisComponentTest {
 
   @Test
   public void testRangeMinAndMax() {
-    AxisComponentModel model = new AxisComponentModel(new Range(10, 50), new MockAxisFormatter(1, 1, 1));
+    AxisComponentModel model = new AxisComponentModel(new Range(10, 50), new MockAxisFormatter(1, 1, 1), false);
     model.setGlobalRange(new Range(0, 100));
     AxisComponent component = new AxisComponent(model, AxisComponent.AxisOrientation.RIGHT);
     component.setShowMin(true);
     component.setShowMax(true);
-    component.caluculateMarkers(new Dimension(100, 100));
+    component.calculateMarkers(new Dimension(100, 100));
     assertEquals("1cm", component.getMinLabel());
     assertEquals("5cm", component.getMaxLabel());
   }
 
   @Test
   public void testSizeForHorizontalOrientation() {
-    AxisComponentModel model = new AxisComponentModel(new Range(0, 100), new MockAxisFormatter(1, 1, 1));
+    AxisComponentModel model = new AxisComponentModel(new Range(0, 100), new MockAxisFormatter(1, 1, 1), false);
     AxisComponent component = new AxisComponent(model, AxisComponent.AxisOrientation.RIGHT);
     component.setMarkerLengths(5, 5);
     Dimension dimension = component.getPreferredSize();
@@ -51,7 +51,7 @@ public class AxisComponentTest {
 
   @Test
   public void testSizeForVerticalOrientation() {
-    AxisComponentModel model = new AxisComponentModel(new Range(0, 100), new MockAxisFormatter(1, 1, 1));
+    AxisComponentModel model = new AxisComponentModel(new Range(0, 100), new MockAxisFormatter(1, 1, 1), false);
     AxisComponent component = new AxisComponent(model, AxisComponent.AxisOrientation.TOP);
     component.setMarkerLengths(5, 5);
     Dimension dimension = component.getPreferredSize();
@@ -61,13 +61,13 @@ public class AxisComponentTest {
   @Test
   public void testSmallTimelines() {
     final int MAJOR_TICKS = 5;
-    AxisComponentModel model = new AxisComponentModel(new Range(10, 50), new MockAxisFormatter(1, MAJOR_TICKS - 1, 1));
+    AxisComponentModel model = new AxisComponentModel(new Range(10, 50), new MockAxisFormatter(1, MAJOR_TICKS - 1, 1), false);
     model.setGlobalRange(new Range(0, 100));
     AxisComponent component = new AxisComponent(model, AxisComponent.AxisOrientation.RIGHT);
     FontMetrics fontMetrics = component.getFontMetrics(AdtUiUtils.DEFAULT_FONT);
-    component.caluculateMarkers(new Dimension(100, (MAJOR_TICKS * (fontMetrics.getMaxAscent() + fontMetrics.getMaxDescent()) * 3 + 1) / 2));
+    component.calculateMarkers(new Dimension(100, (MAJOR_TICKS * (fontMetrics.getMaxAscent() + fontMetrics.getMaxDescent()) * 3 + 1) / 2));
     assertTrue(component.getMarkerLabelDensity() >= REMOVE_MAJOR_TICK_DENSITY);
-    component.caluculateMarkers(new Dimension(100, MAJOR_TICKS * (fontMetrics.getMaxAscent() + fontMetrics.getMaxDescent())));
+    component.calculateMarkers(new Dimension(100, MAJOR_TICKS * (fontMetrics.getMaxAscent() + fontMetrics.getMaxDescent())));
     assertTrue(component.getMarkerLabelDensity() < REMOVE_MAJOR_TICK_DENSITY);
   }
 }

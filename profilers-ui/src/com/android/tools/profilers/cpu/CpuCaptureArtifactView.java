@@ -35,12 +35,14 @@ public class CpuCaptureArtifactView extends SessionArtifactView<CpuCaptureSessio
   }
 
   @Override
+  @NotNull
   protected JComponent buildComponent() {
     return buildCaptureArtifactView(getArtifact().getName(), getArtifact().getSubtitle(), StudioIcons.Profiler.Sessions.CPU,
                                     getArtifact().isOngoingCapture());
   }
 
   @Override
+  @NotNull
   protected List<ContextMenuItem> getContextMenus() {
     ProfilerAction action = new ProfilerAction.Builder("Export...")
       .setEnableBooleanSupplier(() -> !getArtifact().isOngoingCapture())

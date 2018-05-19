@@ -70,7 +70,8 @@ class EnergyAxisFormatterTest {
 
   @Test
   fun testGlobalRangeTooLargeToDisplayMedium() {
-    assertThat(EnergyAxisFormatter.DEFAULT.getMajorInterval(900.0)).isEqualTo(900L)
-    assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(900.0, 900.0, false)).isEqualTo("Heavy")
+    assertThat(EnergyAxisFormatter.DEFAULT.getMajorInterval(1300.0)).isEqualTo(600L)
+    assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(1300.0, 600.0, false)).isEqualTo("Heavy")
+    assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(1300.0, 1200.0, false)).isEqualTo("")
   }
 }

@@ -265,8 +265,7 @@ final class ThreadsView {
     @NotNull
     private AxisComponent createAxis() {
       ProfilerTimeline timeline = myStage.getStudioProfilers().getTimeline();
-      AxisComponentModel model = new AxisComponentModel(timeline.getSelectionRange(), new TimeAxisFormatter(1, 5, 1));
-      model.setClampToMajorTicks(false);
+      AxisComponentModel model = new AxisComponentModel(timeline.getSelectionRange(), new TimeAxisFormatter(1, 5, 1), false);
       model.setGlobalRange(timeline.getDataRange());
 
       AxisComponent axis = new AxisComponent(model, AxisComponent.AxisOrientation.BOTTOM);

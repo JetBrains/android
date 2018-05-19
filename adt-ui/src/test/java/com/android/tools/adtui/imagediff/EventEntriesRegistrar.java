@@ -216,7 +216,6 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
       myStackedEventComponent = new StackedEventComponent(myStackedEventModel);
       myStackedEventComponent.setFont(ImageDiffUtil.getDefaultFont());
       myContentPane.add(myStackedEventComponent, BorderLayout.CENTER);
-      myComponents.add(myStackedEventModel);
     }
 
     protected void setUpActivityComponent(int contentPaneHeight) {
@@ -279,7 +278,6 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
       myEventModel = new EventModel(new RangedSeries<>(myXRange, myData));
       mySimpleEventComponent = new SimpleEventComponent(myEventModel, MOCK_RENDERERS);
       myContentPane.add(mySimpleEventComponent, BorderLayout.CENTER);
-      myComponents.add(myEventModel);
     }
 
     protected void performEvent(long startTime, long endTime, EventTypeDiffEntry entry) {

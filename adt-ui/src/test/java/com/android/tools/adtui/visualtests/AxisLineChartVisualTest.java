@@ -97,14 +97,14 @@ public class AxisLineChartVisualTest extends VisualTest {
     mScrollbar = new RangeTimeScrollBar(mTimeGlobalRangeUs, mTimeViewRangeUs, TimeUnit.MICROSECONDS);
 
     // add horizontal time axis
-    mTimeAxisModel = new AxisComponentModel(mTimeViewRangeUs, TimeAxisFormatter.DEFAULT);
+    mTimeAxisModel = new AxisComponentModel(mTimeViewRangeUs, TimeAxisFormatter.DEFAULT, false);
     mTimeAxisModel.setGlobalRange(mTimeGlobalRangeUs);
 
     mTimeAxis = new AxisComponent(mTimeAxisModel, AxisComponent.AxisOrientation.BOTTOM);
     mTimeAxis.setMargins(AXIS_SIZE, AXIS_SIZE);
 
     // add axis guide to time axis
-    mTimeAxisGuideModel = new AxisComponentModel(mTimeViewRangeUs, TimeAxisFormatter.DEFAULT_WITHOUT_MINOR_TICKS);
+    mTimeAxisGuideModel = new AxisComponentModel(mTimeViewRangeUs, TimeAxisFormatter.DEFAULT_WITHOUT_MINOR_TICKS, false);
     mTimeAxisGuideModel.setGlobalRange(mTimeGlobalRangeUs);
 
     mTimeAxisGuide = new AxisComponent(mTimeAxisGuideModel, AxisComponent.AxisOrientation.BOTTOM);
@@ -121,7 +121,7 @@ public class AxisLineChartVisualTest extends VisualTest {
 
     // left memory data + axis
     Range yRange1Animatable = new Range(0, 100);
-    mMemoryAxisModel1 = new AxisComponentModel(yRange1Animatable, MemoryAxisFormatter.DEFAULT);
+    mMemoryAxisModel1 = new AxisComponentModel(yRange1Animatable, MemoryAxisFormatter.DEFAULT, false);
     mMemoryAxisModel1.setLabel(SERIES1_LABEL);
     mMemoryAxis1 = new AxisComponent(mMemoryAxisModel1, AxisComponent.AxisOrientation.LEFT);
     mMemoryAxis1.setShowMax(true);
@@ -135,7 +135,7 @@ public class AxisLineChartVisualTest extends VisualTest {
 
     // right memory data + axis
     Range yRange2Animatable = new Range(0, 100);
-    mMemoryAxisModel2 = new AxisComponentModel(yRange2Animatable, MemoryAxisFormatter.DEFAULT);
+    mMemoryAxisModel2 = new AxisComponentModel(yRange2Animatable, MemoryAxisFormatter.DEFAULT, true);
     mMemoryAxisModel2.setLabel(SERIES2_LABEL);
     mMemoryAxis2 = new AxisComponent(mMemoryAxisModel2, AxisComponent.AxisOrientation.RIGHT);
     mMemoryAxis2.setShowMax(true);
@@ -249,9 +249,6 @@ public class AxisLineChartVisualTest extends VisualTest {
         return (int)TimeUnit.MICROSECONDS.toSeconds((long)mTimeViewRangeUs.getLength());
       }
     }));
-
-    controls.add(VisualTest.createCheckbox("Clamp To Major Ticks",
-                  itemEvent -> mMemoryAxisModel1.setClampToMajorTicks(itemEvent.getStateChange() == ItemEvent.SELECTED)));
 
     controls.add(VisualTest.createCheckbox("Show Axis Guide",
                                            itemEvent -> mTimeAxisGuide.setVisible(itemEvent.getStateChange() == ItemEvent.SELECTED), true));

@@ -194,7 +194,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
                        .onChange(SessionAspect.SELECTED_SESSION, this::selectedSessionChanged)
                        .onChange(SessionAspect.PROFILING_SESSION, this::profilingSessionChanged);
 
-      myViewAxis = new AxisComponentModel(myTimeline.getViewRange(), TimeAxisFormatter.DEFAULT);
+      myViewAxis = new AxisComponentModel(myTimeline.getViewRange(), TimeAxisFormatter.DEFAULT, false);
       myViewAxis.setGlobalRange(myTimeline.getDataRange());
 
       myUpdater.register(myViewAxis);
@@ -607,6 +607,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     myStage.exit();
     getTimeline().getSelectionRange().clear();
     myStage = stage;
+    myStage.getStudioProfilers().getUpdater().reset();
     myStage.enter();
     this.changed(ProfilerAspect.STAGE);
   }

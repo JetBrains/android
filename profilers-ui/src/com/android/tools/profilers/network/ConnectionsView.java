@@ -364,8 +364,7 @@ final class ConnectionsView {
 
     @NotNull
     private AxisComponent createAxis() {
-      AxisComponentModel model = new AxisComponentModel(myRange, new TimeAxisFormatter(1, 4, 1));
-      model.setClampToMajorTicks(false);
+      AxisComponentModel model = new AxisComponentModel(myRange, new TimeAxisFormatter(1, 4, 1), false);
       model.setGlobalRange(myStage.getStudioProfilers().getTimeline().getDataRange());
       AxisComponent axis = new AxisComponent(model, AxisComponent.AxisOrientation.BOTTOM);
       axis.setShowAxisLine(false);

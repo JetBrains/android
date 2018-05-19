@@ -17,7 +17,6 @@
 package com.android.tools.adtui.model.updater;
 
 import com.android.tools.adtui.model.StopwatchTimer;
-import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedList;

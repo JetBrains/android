@@ -43,9 +43,7 @@ public class NetworkMonitor extends ProfilerMonitor {
 
     myNetworkUsage = new NetworkUsage(profilers);
 
-    myTrafficAxis = new AxisComponentModel(myNetworkUsage.getTrafficRange(), BANDWIDTH_AXIS_FORMATTER_L1);
-    myTrafficAxis.setClampToMajorTicks(true);
-
+    myTrafficAxis = new AxisComponentModel(myNetworkUsage.getTrafficRange(), BANDWIDTH_AXIS_FORMATTER_L1, true);
     myLegends = new NetworkLegends(myNetworkUsage, getTimeline().getDataRange(), false);
     myTooltipLegends = new NetworkLegends(myNetworkUsage, getTimeline().getTooltipRange(), true);
   }

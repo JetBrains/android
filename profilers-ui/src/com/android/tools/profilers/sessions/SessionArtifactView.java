@@ -35,6 +35,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import static com.android.tools.profilers.ProfilerColors.HOVERED_SESSION_COLOR;
 import static com.android.tools.profilers.ProfilerColors.SELECTED_SESSION_COLOR;
@@ -46,7 +47,7 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
 
   protected static final Border ARTIFACT_ICON_BORDER = JBUI.Borders.empty(2, 0);
   protected static final Border SELECTED_BORDER = JBUI.Borders.customLine(SELECTED_SESSION_COLOR, 0, 3, 0, 0);
-  protected static final Border UNSELECTED_BORDER = JBUI.Borders.empty(0, 3, 0, 0);
+  protected static final Border UNSELECTED_BORDER = JBUI.Borders.emptyLeft(3);
 
   protected static final Border ARTIFACT_PADDING = JBUI.Borders.empty(3, 9, 3, 4);
   protected static final Border LABEL_PADDING = JBUI.Borders.empty(1, 8, 1, 0);
@@ -60,7 +61,7 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
 
   @NotNull private final JComponent myArtifactView;
 
-  @NotNull private final java.util.List<JComponent> myMouseListeningComponents;
+  @NotNull private final List<JComponent> myMouseListeningComponents;
 
   public SessionArtifactView(@NotNull ArtifactDrawInfo artifactDrawInfo, @NotNull T artifact) {
     myArtifactDrawInfo = artifactDrawInfo;
@@ -151,10 +152,12 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
     return myArtifactDrawInfo.myIndex;
   }
 
-  protected java.util.List<ContextMenuItem> getContextMenus() {
+  @NotNull
+  protected List<ContextMenuItem> getContextMenus() {
     return Collections.emptyList();
   }
 
+  @NotNull
   protected abstract JComponent buildComponent();
 
   protected void showHoverState(boolean hover) {
@@ -165,6 +168,7 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
   /**
    * Helper method to generate a standard view to display a session's capture artifact.
    */
+  @NotNull
   protected JComponent buildCaptureArtifactView(@NotNull String name,
                                                 @NotNull String subtitle,
                                                 @NotNull Icon icon,

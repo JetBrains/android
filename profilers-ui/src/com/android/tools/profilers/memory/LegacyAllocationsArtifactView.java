@@ -35,12 +35,14 @@ public final class LegacyAllocationsArtifactView extends SessionArtifactView<Leg
   }
 
   @Override
+  @NotNull
   protected JComponent buildComponent() {
     return buildCaptureArtifactView(getArtifact().getName(), getArtifact().getSubtitle(), StudioIcons.Profiler.Sessions.ALLOCATIONS,
                                     getArtifact().isOngoingCapture());
   }
 
   @Override
+  @NotNull
   protected List<ContextMenuItem> getContextMenus() {
     ProfilerAction action = new ProfilerAction.Builder("Export...")
       .setEnableBooleanSupplier(() -> !getArtifact().isOngoingCapture())
