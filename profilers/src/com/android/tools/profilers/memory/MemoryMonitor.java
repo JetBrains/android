@@ -46,8 +46,7 @@ public class MemoryMonitor extends ProfilerMonitor {
     super(profilers);
     myMemoryUsage = new MemoryUsage(profilers);
 
-    myMemoryAxis = new AxisComponentModel(myMemoryUsage.getMemoryRange(), MEMORY_AXIS_FORMATTER);
-    myMemoryAxis.setClampToMajorTicks(true);
+    myMemoryAxis = new AxisComponentModel(myMemoryUsage.getMemoryRange(), MEMORY_AXIS_FORMATTER, true);
 
     myMemoryLegend = new MemoryLegend(myMemoryUsage, getTimeline().getDataRange(), LEGEND_UPDATE_FREQUENCY_MS);
     myTooltipLegend = new MemoryLegend(myMemoryUsage, getTimeline().getTooltipRange(), 0);

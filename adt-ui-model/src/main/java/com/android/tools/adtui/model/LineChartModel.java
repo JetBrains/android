@@ -19,10 +19,7 @@ import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class LineChartModel extends AspectModel<LineChartModel.Aspect> implements Updatable {
 
@@ -41,23 +38,27 @@ public class LineChartModel extends AspectModel<LineChartModel.Aspect> implement
   @Override
   public void update(long elapsedNs) {
     Map<Range, Double> max = new HashMap<>();
+
     // TODO Handle stacked configs
     for (RangedContinuousSeries ranged : mySeries) {
       Range range = ranged.getYRange();
       double yMax = Double.MIN_VALUE;
 
       List<SeriesData<Long>> seriesList = ranged.getSeries();
-      for (int i = 0; i < seriesList.size(); i++) {
-        double value = seriesList.get(i).value;
+      for (SeriesData<Long> series : seriesList) {
+        double value = series.value;
         if (yMax < value) {
           yMax = value;
         }
       }
 
       Double m = max.get(range);
-      max.put(range, m == null ? yMax : Math.max(yMax, m));
+      if (m == null || yMax > m) {
+        max.put(range, yMax);
+      }
     }
 
+    boolean changed = false;
     for (Map.Entry<Range, Double> entry : max.entrySet()) {
       Range range = entry.getKey();
       // Prevent the LineChart to update the range below its current max.
@@ -65,24 +66,29 @@ public class LineChartModel extends AspectModel<LineChartModel.Aspect> implement
         float fraction = myFirstUpdate ? 1f : Updater.DEFAULT_LERP_FRACTION;
         range.setMax(Updater.lerp(range.getMax(), entry.getValue(), fraction, elapsedNs,
                                   (float)(entry.getValue() * Updater.DEFAULT_LERP_THRESHOLD_PERCENTAGE)));
+        changed = true;
       }
     }
 
     myFirstUpdate = false;
 
     // TODO: Depend on the other things
-    changed(Aspect.LINE_CHART);
+    if (changed) {
+      changed(Aspect.LINE_CHART);
+    }
   }
 
-  public void addAll(List<RangedContinuousSeries> series) {
+  public void addAll(@NotNull List<RangedContinuousSeries> series) {
     series.forEach(this::add);
   }
 
-  public void add(RangedContinuousSeries series) {
+  public void add(@NotNull RangedContinuousSeries series) {
     mySeries.add(series);
+    series.getXRange().addDependency(this).onChange(Range.Aspect.RANGE, () -> changed(Aspect.LINE_CHART));
   }
 
-  public void remove(RangedContinuousSeries series) {
+  public void remove(@NotNull RangedContinuousSeries series) {
+    series.getXRange().removeDependencies(this);
     mySeries.remove(series);
   }
 

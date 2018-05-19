@@ -72,8 +72,8 @@ public class EnergyMonitorView extends ProfilerMonitorView<EnergyMonitor> {
     axisPanel.setOpaque(false);
     final AxisComponent leftAxis = new AxisComponent(getMonitor().getAxis(), AxisComponent.AxisOrientation.RIGHT);
     leftAxis.setShowAxisLine(false);
-    leftAxis.setShowMax(true);
-    leftAxis.setShowUnitAtMax(true);
+    leftAxis.setShowMax(false);
+    leftAxis.setShowUnitAtMax(false);
     leftAxis.setHideTickAtMin(true);
     leftAxis.setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH);
     leftAxis.setMargins(0, Y_AXIS_TOP_MARGIN);

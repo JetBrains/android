@@ -26,7 +26,7 @@ import java.util.List;
 public class StudioMonitorStage extends Stage {
 
   @NotNull
-  private List<ProfilerMonitor> myMonitors;
+  private final List<ProfilerMonitor> myMonitors;
 
   @NotNull
   private final Updatable myUpdatable;
@@ -42,7 +42,6 @@ public class StudioMonitorStage extends Stage {
     // Clear the selection
     getStudioProfilers().getTimeline().getSelectionRange().clear();
 
-    myMonitors.clear();
     Common.Session session = getStudioProfilers().getSession();
     if (session != Common.Session.getDefaultInstance()) {
       for (StudioProfiler profiler : getStudioProfilers().getProfilers()) {
@@ -59,6 +58,7 @@ public class StudioMonitorStage extends Stage {
   public void exit() {
     getStudioProfilers().getUpdater().unregister(myUpdatable);
     myMonitors.forEach(ProfilerMonitor::exit);
+    myMonitors.clear();
   }
 
   @NotNull

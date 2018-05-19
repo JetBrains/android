@@ -205,8 +205,8 @@ public class LegendComponent extends AnimatedComponent {
 
     if (!getPreferredSize().equals(prevSize)) {
       revalidate();
-      repaint();
     }
+    repaint();
   }
 
   public enum Orientation {

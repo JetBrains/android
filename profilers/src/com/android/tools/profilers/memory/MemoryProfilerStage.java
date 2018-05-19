@@ -140,11 +140,8 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
     myGcStatsModel.setAttachedSeries(myDetailedMemoryUsage.getObjectsSeries(), Interpolatable.SegmentInterpolator);
 
-    myMemoryAxis = new AxisComponentModel(myDetailedMemoryUsage.getMemoryRange(), MEMORY_AXIS_FORMATTER);
-    myMemoryAxis.setClampToMajorTicks(true);
-
-    myObjectsAxis = new AxisComponentModel(myDetailedMemoryUsage.getObjectsRange(), OBJECT_COUNT_AXIS_FORMATTER);
-    myObjectsAxis.setClampToMajorTicks(true);
+    myMemoryAxis = new AxisComponentModel(myDetailedMemoryUsage.getMemoryRange(), MEMORY_AXIS_FORMATTER, true);
+    myObjectsAxis = new AxisComponentModel(myDetailedMemoryUsage.getObjectsRange(), OBJECT_COUNT_AXIS_FORMATTER, true);
 
     myLegends = new MemoryStageLegends(myDetailedMemoryUsage, profilers.getTimeline().getDataRange(), false);
     myTooltipLegends = new MemoryStageLegends(myDetailedMemoryUsage, profilers.getTimeline().getTooltipRange(), true);

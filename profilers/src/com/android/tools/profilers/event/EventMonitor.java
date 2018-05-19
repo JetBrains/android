@@ -41,18 +41,16 @@ public class EventMonitor extends ProfilerMonitor {
 
   public EventMonitor(@NotNull StudioProfilers profilers) {
     super(profilers);
-    SimpleEventDataSeries events = new SimpleEventDataSeries(myProfilers.getClient(),
-                                                             myProfilers.getSession());
+
+    assert myProfilers.getClient() != null;
+
+    SimpleEventDataSeries events = new SimpleEventDataSeries(myProfilers.getClient(), myProfilers.getSession());
     mySimpleEvents = new EventModel<>(new RangedSeries<>(getTimeline().getViewRange(), events));
 
-    ActivityEventDataSeries activities = new ActivityEventDataSeries(myProfilers.getClient(),
-                                                                     myProfilers.getSession(),
-                                                                     false);
+    ActivityEventDataSeries activities = new ActivityEventDataSeries(myProfilers.getClient(), myProfilers.getSession(), false);
     myActivityEvents = new EventModel<>(new RangedSeries<>(getTimeline().getViewRange(), activities));
 
-    ActivityEventDataSeries fragments = new ActivityEventDataSeries(myProfilers.getClient(),
-                                                                     myProfilers.getSession(),
-                                                                    true);
+    ActivityEventDataSeries fragments = new ActivityEventDataSeries(myProfilers.getClient(), myProfilers.getSession(), true);
     myFragmentEvents = new EventModel<>(new RangedSeries<>(getTimeline().getViewRange(), fragments));
 
     myProfilers.addDependency(this).onChange(ProfilerAspect.AGENT, this::onAgentStatusChanged);
@@ -61,16 +59,10 @@ public class EventMonitor extends ProfilerMonitor {
 
   @Override
   public void enter() {
-    myProfilers.getUpdater().register(mySimpleEvents);
-    myProfilers.getUpdater().register(myActivityEvents);
-    myProfilers.getUpdater().register(myFragmentEvents);
   }
 
   @Override
   public void exit() {
-    myProfilers.getUpdater().unregister(mySimpleEvents);
-    myProfilers.getUpdater().unregister(myActivityEvents);
-    myProfilers.getUpdater().unregister(myFragmentEvents);
   }
 
   @NotNull

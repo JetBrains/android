@@ -41,16 +41,21 @@ public class AxisComponentModel extends AspectModel<AxisComponentModel.Aspect> i
   private boolean myFirstUpdate = true;
 
   /**
-   * @param range     a Range object this AxisComponent listens to for the min/max values.
-   * @param formatter formatter used for determining the tick marker and labels that need to be rendered.
+   * @param range             a Range object this AxisComponent listens to for the min/max values.
+   * @param formatter         formatter used for determining the tick marker and labels that need to be rendered.
+   * @param clampToMajorTicks if true, the AxisComponent will extend itself to the next major tick based on the current max value.
    */
-  public AxisComponentModel(@NotNull Range range, @NotNull BaseAxisFormatter formatter) {
+  public AxisComponentModel(@NotNull Range range, @NotNull BaseAxisFormatter formatter, boolean clampToMajorTicks) {
     myRange = range;
     myFormatter = formatter;
+    myClampToMajorTicks = clampToMajorTicks;
+    update(0);
   }
 
   @Override
   public void update(long elapsedNs) {
+    boolean needsUpdate = false;
+
     // During the animate/updateData phase, the axis updates the range's max to a new target based on whether myClampToMajorTicks is enabled
     //    - This would increase the max to an integral multiplier of the major interval.
     if (myClampToMajorTicks) {
@@ -65,14 +70,31 @@ public class AxisComponentModel extends AspectModel<AxisComponentModel.Aspect> i
       clampedMaxTarget = majorNumTicksTarget * majorInterval;
 
       clampedMaxTarget += getZero();
-      float fraction = myFirstUpdate ? 1f : Updater.DEFAULT_LERP_FRACTION;
-      myRange.setMax(Updater.lerp(myRange.getMax(), clampedMaxTarget, fraction, elapsedNs,
-                                  (float)(clampedMaxTarget * Updater.DEFAULT_LERP_THRESHOLD_PERCENTAGE)));
+      double max = myFirstUpdate
+                   ? clampedMaxTarget
+                   : Updater.lerp(myRange.getMax(), clampedMaxTarget, Updater.DEFAULT_LERP_FRACTION, elapsedNs,
+                                  (float)(clampedMaxTarget * Updater.DEFAULT_LERP_THRESHOLD_PERCENTAGE));
+      if (Double.compare(max, myRange.getMax()) != 0) {  // Precise comparison, since the lerp snaps to the target value.
+        myRange.setMax(max);
+        needsUpdate = true;
+      }
+    }
+    else {
+      // TODO(b/80085190): Move {@link AxisComponent#calculateMarkers} implementation here.
+      needsUpdate = true;
     }
     myFirstUpdate = false;
 
-    //TODO also change when data changes
-    changed(Aspect.AXIS);
+    if (needsUpdate) {
+      //TODO also change when data changes
+      changed(Aspect.AXIS);
+    }
+  }
+
+  @Override
+  public void reset() {
+    myFirstUpdate = true;
+    update(0);
   }
 
   /**
@@ -80,6 +102,7 @@ public class AxisComponentModel extends AspectModel<AxisComponentModel.Aspect> i
    */
   public void setGlobalRange(@NotNull Range globalRange) {
     myGlobalRange = globalRange;
+    changed(Aspect.AXIS);
   }
 
   /**
@@ -87,13 +110,7 @@ public class AxisComponentModel extends AspectModel<AxisComponentModel.Aspect> i
    */
   public void setLabel(@NotNull String label) {
     myLabel = label;
-  }
-
-  /**
-   * @param clampToMajorTicks if true, the AxisComponent will extend itself to the next major tick based on the current max value.
-   */
-  public void setClampToMajorTicks(boolean clampToMajorTicks) {
-    myClampToMajorTicks = clampToMajorTicks;
+    changed(Aspect.AXIS);
   }
 
   @NotNull

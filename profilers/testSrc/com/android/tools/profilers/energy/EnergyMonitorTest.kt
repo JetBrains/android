@@ -121,7 +121,7 @@ class EnergyMonitorTest {
   @Test
   fun testLegends() {
     val legends = monitor.legends
-    assertThat(legends.usageLegend.value).isEqualTo(EnergyAxisFormatter.LABELS[0])
+    assertThat(legends.usageLegend.value).isEqualTo("Light")
   }
 
   @Test
@@ -142,10 +142,14 @@ class EnergyMonitorTest {
 
     monitor.enter()
     timer.tick(1)
-    assertThat(usageUpdated).isTrue()
+    assertThat(usageUpdated).isFalse() // This shouldn't change because the Range hasn't changed.
     assertThat(legendUpdated).isTrue()
     assertThat(tooltipLegendUpated).isTrue()
-    assertThat(axisUpdated).isTrue()
+    assertThat(axisUpdated).isFalse() // This shouldn't change because the axis is clamped, and it's not lerping.
+
+    profilers.timeline.viewRange.set(1.0, 2.0)
+    assertThat(usageUpdated).isTrue()
+    assertThat(axisUpdated).isFalse()
   }
 
   @Test

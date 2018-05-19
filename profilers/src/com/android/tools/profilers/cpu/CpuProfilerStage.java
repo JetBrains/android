@@ -266,13 +266,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
     myCpuUsage = new DetailedCpuUsage(profilers);
 
-    myCpuUsageAxis = new AxisComponentModel(myCpuUsage.getCpuRange(), CPU_USAGE_FORMATTER);
-    myCpuUsageAxis.setClampToMajorTicks(true);
-
-    myThreadCountAxis = new AxisComponentModel(myCpuUsage.getThreadRange(), NUM_THREADS_AXIS);
-    myThreadCountAxis.setClampToMajorTicks(true);
-
-    myTimeAxisGuide = new AxisComponentModel(viewRange, TimeAxisFormatter.DEFAULT_WITHOUT_MINOR_TICKS);
+    myCpuUsageAxis = new AxisComponentModel(myCpuUsage.getCpuRange(), CPU_USAGE_FORMATTER, true);
+    myThreadCountAxis = new AxisComponentModel(myCpuUsage.getThreadRange(), NUM_THREADS_AXIS, true);
+    myTimeAxisGuide = new AxisComponentModel(viewRange, TimeAxisFormatter.DEFAULT_WITHOUT_MINOR_TICKS, false);
     myTimeAxisGuide.setGlobalRange(dataRange);
 
     myLegends = new CpuStageLegends(myCpuUsage, dataRange);

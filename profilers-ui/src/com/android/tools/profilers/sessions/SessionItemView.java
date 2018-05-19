@@ -36,9 +36,7 @@ import java.awt.event.MouseMotionAdapter;
 import java.awt.font.TextAttribute;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
+import java.util.*;
 import java.util.List;
 
 import static com.android.tools.profilers.ProfilerColors.ACTIVE_SESSION_COLOR;
@@ -60,6 +58,7 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
   }
 
   @Override
+  @NotNull
   protected JComponent buildComponent() {
     // 1st column reserved for the Session's title (time), 2nd column for the live session icon.
     // 1st row for showing session start time, 2nd row for name, 3rd row for duration
@@ -104,7 +103,7 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
     }
 
     // TODO (b/78520629) - TabularLayout currently does not account for size of components that span multiple row/column, hence we are
-    // inserting a filler in occupy the blank space in 1st row, 3rd col to make sure the dimensions of the session name + duration labels
+    // inserting a filler to occupy the blank space in 1st row, 3rd col to make sure the dimensions of the session name + duration labels
     // are accounted for instead.
     int fillerWidth = Math.max(sessionName.getMinimumSize().width, durationLabel.getMinimumSize().width) -
                       startTime.getMinimumSize().width - (isSessionAlive ? liveDotWrapper.getMinimumSize().width : 0);
@@ -113,11 +112,16 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
     panel.add(filler, new TabularLayout.Constraint(0, 2));
 
     getArtifact().addDependency(myObserver).onChange(SessionItem.Aspect.MODEL, () -> {
-      durationLabel.setText(getArtifact().getSubtitle());
+      if (!Objects.equals(getArtifact().getSubtitle(), durationLabel.getText())) {
+        durationLabel.setText(getArtifact().getSubtitle());
+      }
+
       int updatedFillerWidth = Math.max(sessionName.getMinimumSize().width, durationLabel.getMinimumSize().width) -
                                startTime.getMinimumSize().width - (isSessionAlive ? liveDotWrapper.getMinimumSize().width : 0);
       Dimension updatedFillerDimension = new Dimension(updatedFillerWidth, 1);
-      filler.changeShape(updatedFillerDimension, updatedFillerDimension, updatedFillerDimension);
+      if (!updatedFillerDimension.equals(filler.getMinimumSize())) {
+        filler.changeShape(updatedFillerDimension, updatedFillerDimension, updatedFillerDimension);
+      }
     });
 
     // Listen to selected session changed so we can update the selection visuals accordingly.
@@ -136,6 +140,7 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
   }
 
   @Override
+  @NotNull
   protected List<ContextMenuItem> getContextMenus() {
     boolean canEndSession = SessionsManager.isSessionAlive(getArtifact().getSession());
     Icon endIcon =

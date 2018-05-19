@@ -19,8 +19,9 @@ import gnu.trove.TIntArrayList;
 import org.jetbrains.annotations.NotNull;
 
 public class EnergyAxisFormatter extends BaseAxisFormatter {
-  static final int DEFAULT_MAJOR_INTERVAL = 200;
   public static final String[] LABELS = {"Light", "Medium", "Heavy"};
+
+  private static final int DEFAULT_MAJOR_INTERVAL = 200;
 
   // Default formatter for the Energy Axis value. As the Axis may display a label at the max value, this formatter would not show duplicate
   // labels at the max value and second max value.
@@ -74,18 +75,18 @@ public class EnergyAxisFormatter extends BaseAxisFormatter {
       return DEFAULT_MAJOR_INTERVAL;
     }
     // Reduces the number of ticks until it is 2, otherwise there is only one marker which is the range.
-    int largestMarkerValue = LABELS.length * DEFAULT_MAJOR_INTERVAL;
+    final int largestMarkerValue = LABELS.length * DEFAULT_MAJOR_INTERVAL;
     for (numTicks = LABELS.length - 1; numTicks > 1; numTicks--) {
       long interval = largestMarkerValue / numTicks;
-      // When the different is equal to interval, the number of ticks is no longer the value of numTicks because there will be
-      // another marker drawn. Needs to continue to next iteration. For example, the range is 900 and numTicks is 2, although
-      // {@code range == largestMarkerValue + largestMarketValue / 2}; if the interval is 300, there will be markers drawn at
-      // 300, 600 and 900, but there is no formatted string for the 900 marker; so the interval should be 600.
+      // Find the smallest interval that will cover the range (that's beyond max), as to keep as many labels as possible.
+      // We will keep trying until we reduce down to 2 labels, after which we give up and use the max label.
       if (range < largestMarkerValue + interval) {
         return interval;
       }
     }
-    return (long) range;
+    // Since we have a value that exceeds the expected range, we need to round up as to avoid feedback issues with returning
+    // a major interval that is smaller than the range.
+    return largestMarkerValue;
   }
 
   @Override

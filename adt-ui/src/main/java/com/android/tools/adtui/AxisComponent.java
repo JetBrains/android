@@ -178,7 +178,7 @@ public final class AxisComponent extends AnimatedComponent {
     return myMarkerLabelDensity;
   }
 
-  void caluculateMarkers(@NotNull Dimension dimension) {
+  void calculateMarkers(@NotNull Dimension dimension) {
     myMarkerLabels.clear();
     myMajorMarkerPositions.reset();
     myMinorMarkerPositions.reset();
@@ -244,7 +244,7 @@ public final class AxisComponent extends AnimatedComponent {
   @Override
   protected void draw(Graphics2D g, Dimension dim) {
     if (myCalculateMarkers) {
-      caluculateMarkers(dim);
+      calculateMarkers(dim);
       myCalculateMarkers = false;
     }
     // Calculate drawing parameters.
@@ -350,8 +350,8 @@ public final class AxisComponent extends AnimatedComponent {
       float scaledPosition = myMajorMarkerPositions.get(i) * myAxisLength;
       drawMarkerLine(g2d, line, scaledPosition, origin, myMajorMarkerLength);
       if (myShowLabels) {
-        boolean ignoreMinMaxBufferZone = !(myShowMin || myShowMax || (myHideTickAtMin && scaledPosition == 0));
-        drawMarkerLabel(g2d, scaledPosition, origin, myMarkerLabels.get(i), ignoreMinMaxBufferZone);
+        boolean reserveMinMaxBufferZone = myShowMin || myShowMax || (myHideTickAtMin && scaledPosition == 0);
+        drawMarkerLabel(g2d, scaledPosition, origin, myMarkerLabels.get(i), !reserveMinMaxBufferZone);
       }
     }
   }
