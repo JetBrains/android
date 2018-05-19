@@ -182,7 +182,7 @@ class AppResourceRepository extends MultiResourceRepository {
         }
       }
       // Also add all ids from resource types, just in case it contains things that are not in the libraries.
-      myIds.addAll(super.getItemsOfType(ResourceNamespace.TODO, ResourceType.ID));
+      myIds.addAll(super.getItemsOfType(ResourceNamespace.TODO(), ResourceType.ID));
     }
     return myIds;
   }

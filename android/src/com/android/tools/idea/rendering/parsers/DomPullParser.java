@@ -127,7 +127,7 @@ public class DomPullParser extends LayoutPullParser {
   @Override
   public ResourceNamespace getLayoutNamespace() {
     // TODO(namespaces, b/74003372): figure out where to get the namespace from.
-    return ResourceNamespace.TODO;
+    return ResourceNamespace.TODO();
   }
 
   // ------------- XmlPullParser --------

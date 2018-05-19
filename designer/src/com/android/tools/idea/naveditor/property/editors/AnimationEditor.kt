@@ -56,11 +56,11 @@ fun getAnimatorsPopupContent(repoManager: ResourceRepositoryManager, includeAnim
   val appResources = repoManager.getAppResources(true)!!
   val visibilityLookup = repoManager.resourceVisibility
   val result = appResources
-    .getResourceItems(ResourceNamespace.TODO, ResourceType.ANIM, visibilityLookup, ResourceVisibility.PUBLIC)
+    .getResourceItems(ResourceNamespace.TODO(), ResourceType.ANIM, visibilityLookup, ResourceVisibility.PUBLIC)
     .map { ValueWithDisplayString(it, "@${ResourceType.ANIM.getName()}/$it") }.toMutableList()
   if (includeAnimators) {
     appResources
-      .getResourceItems(ResourceNamespace.TODO, ResourceType.ANIMATOR, visibilityLookup, ResourceVisibility.PUBLIC)
+      .getResourceItems(ResourceNamespace.TODO(), ResourceType.ANIMATOR, visibilityLookup, ResourceVisibility.PUBLIC)
       .mapTo(result) { ValueWithDisplayString(it, "@${ResourceType.ANIMATOR.getName()}/$it") }
   }
   return result

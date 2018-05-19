@@ -149,7 +149,7 @@ public class StyleEnumSupport extends EnumSupport {
       previousStyle = style;
       values.add(createFromResolvedValue(
         style.getName(),
-        style.asReference().getRelativeResourceUrl(ResourceNamespace.TODO, getResolver()).toString(), null));
+        style.asReference().getRelativeResourceUrl(ResourceNamespace.TODO(), getResolver()).toString(), null));
     }
     return values;
   }

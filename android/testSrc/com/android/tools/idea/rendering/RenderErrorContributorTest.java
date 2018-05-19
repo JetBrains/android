@@ -22,6 +22,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.utils.StringHelper;
+import com.android.utils.TraceUtils;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.io.FileUtil;
@@ -31,7 +32,6 @@ import com.intellij.psi.PsiManager;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -170,7 +170,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
 
     // Dump stack back to string to make sure we have the same exception
     desc = StringHelper.toSystemLineSeparator(desc);
-    assertEquals(desc, AndroidCommonUtils.getStackTrace(throwable));
+    assertEquals(desc, TraceUtils.getStackTrace(throwable));
 
     return throwable;
   }

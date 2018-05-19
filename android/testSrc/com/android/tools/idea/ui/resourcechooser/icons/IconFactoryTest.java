@@ -78,7 +78,7 @@ public class IconFactoryTest extends AndroidTestCase {
     Supplier<RenderTask> taskSupplier = () -> task;
 
     IconFactory factory = new IconFactory(taskSupplier);
-    ResourceValue value = new ResourceValueImpl(new ResourceReference(ResourceNamespace.TODO,
+    ResourceValue value = new ResourceValueImpl(new ResourceReference(ResourceNamespace.TODO(),
                                                                       ResourceType.DRAWABLE,
                                                                       "src"), "@drawable/test");
     CountDownLatch latch = new CountDownLatch(1);

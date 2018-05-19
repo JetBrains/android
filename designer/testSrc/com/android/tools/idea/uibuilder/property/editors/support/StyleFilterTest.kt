@@ -33,7 +33,7 @@ class StyleFilterTest : AndroidTestCase() {
   private val android = ResourceNamespace.ANDROID
   private val auto = ResourceNamespace.RES_AUTO
   private var filter: StyleFilter? = null
-  private val theme = ResourceUrl.parseStyleParentReference("AppTheme")!!.resolve(ResourceNamespace.TODO, EMPTY_RESOLVER)
+  private val theme = ResourceUrl.parseStyleParentReference("AppTheme")!!.resolve(ResourceNamespace.TODO(), EMPTY_RESOLVER)
   private val resolver: ResourceResolver = ResourceResolver.create(
       mapOf(
           auto to mapOf(mkResourceValueMapPair(

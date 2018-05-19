@@ -119,7 +119,7 @@ public class ResolutionUtils {
   @NotNull
   public static String getQualifiedItemAttrName(@NotNull StyleItemResourceValue item) {
     ResourceReference attr = item.getAttr();
-    return attr != null ? attr.getRelativeResourceUrl(ResourceNamespace.TODO).getQualifiedName() : item.getAttrName();
+    return attr != null ? attr.getRelativeResourceUrl(ResourceNamespace.TODO()).getQualifiedName() : item.getAttrName();
   }
 
   /**
@@ -247,7 +247,7 @@ public class ResolutionUtils {
       return null;
     }
 
-    return parent.getRelativeResourceUrl(ResourceNamespace.TODO).getQualifiedName();
+    return parent.getRelativeResourceUrl(ResourceNamespace.TODO()).getQualifiedName();
   }
 
   @NotNull

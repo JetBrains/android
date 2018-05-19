@@ -54,7 +54,7 @@ class TextAppearanceEnumSupport(property: NelePropertyItem): StyleEnumSupport(pr
 
   companion object {
     // TODO: Replace with namespace for the appcompat styles
-    private val appcompatNamespace = ResourceNamespace.TODO
+    private val appcompatNamespace = ResourceNamespace.TODO()
     private val accepted = setOf(SMALL, MEDIUM, LARGE, BODY1, BODY2, DISPLAY1, DISPLAY2, DISPLAY3, DISPLAY4)
   }
 
@@ -72,7 +72,7 @@ class TextAppearanceEnumSupport(property: NelePropertyItem): StyleEnumSupport(pr
   private fun styleFilter(style: StyleResourceValue, includeMaterialStyles: Boolean): Boolean {
     if (style.isUserDefined) return true
     if (includeMaterialStyles && style.namespace != ResourceNamespace.ANDROID) return false
-    if (!includeMaterialStyles && style.namespace != ResourceNamespace.TODO) return false
+    if (!includeMaterialStyles && style.namespace != ResourceNamespace.TODO()) return false
 
     val base = if (includeMaterialStyles) MATERIAL_DOT else APPCOMPAT_DOT
     if (!style.name.startsWith(base)) return false

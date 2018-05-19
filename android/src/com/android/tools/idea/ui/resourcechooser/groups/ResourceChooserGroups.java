@@ -42,7 +42,7 @@ public class ResourceChooserGroups {
   private static final boolean FILTER_OUT_PRIVATE_ITEMS = true;
 
   // List of namespaces to search sample data into
-  private static ImmutableList<ResourceNamespace> SAMPLE_DATA_NS = ImmutableList.of(ResourceNamespace.TOOLS, ResourceNamespace.TODO);
+  private static ImmutableList<ResourceNamespace> SAMPLE_DATA_NS = ImmutableList.of(ResourceNamespace.TOOLS, ResourceNamespace.TODO());
 
   /**
    * Default comparator used for ResourceChooserGroups. Framework attributes are displayed at the bottom.

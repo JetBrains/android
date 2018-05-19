@@ -28,9 +28,9 @@ import com.android.resources.ScreenOrientation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.analytics.crash.CrashReporter;
-import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderParamsFlags;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -514,7 +514,7 @@ public class RenderTask {
 
         if (topParser == null) {
           // TODO(namespaces, b/74003372): figure out where to get the namespace from.
-          topParser = LayoutFilePullParser.create(myIncludedWithin.getFromPath(), ResourceNamespace.TODO);
+          topParser = LayoutFilePullParser.create(myIncludedWithin.getFromPath(), ResourceNamespace.TODO());
         }
 
         return topParser;
@@ -590,7 +590,7 @@ public class RenderTask {
         return new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
       }));
     }
-    catch (final Exception e) {
+    catch (Exception e) {
       String message = e.getMessage();
       if (message == null) {
         message = e.toString();
@@ -612,14 +612,14 @@ public class RenderTask {
     assert getXmlFile() != null;
     try {
       // runAsyncRenderAction might not run immediately so we need to capture the current myRenderSession and myPsiFile values
-      final RenderSession renderSession = myRenderSession;
-      final PsiFile psiFile = getXmlFile();
+      RenderSession renderSession = myRenderSession;
+      PsiFile psiFile = getXmlFile();
       return runAsyncRenderAction(() -> {
         myRenderSession.measure();
         return RenderResult.create(this, renderSession, psiFile, myLogger, ImagePool.NULL_POOLED_IMAGE);
       });
     }
-    catch (final Exception e) {
+    catch (Exception e) {
       // nothing
     }
     return Futures.immediateFuture(null);
@@ -670,7 +670,7 @@ public class RenderTask {
         return result;
       });
     }
-    catch (final Exception e) {
+    catch (Exception e) {
       reportException(e);
       String message = e.getMessage();
       if (message == null) {
@@ -815,7 +815,7 @@ public class RenderTask {
         }
       }
     }
-    catch (final Exception e) {
+    catch (Exception e) {
       // ignore
     }
 

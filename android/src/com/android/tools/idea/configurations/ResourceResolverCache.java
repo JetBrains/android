@@ -144,7 +144,7 @@ public class ResourceResolverCache {
       assert themeStyle.startsWith(PREFIX_RESOURCE_REF) : themeStyle;
 
       // TODO(namespaces): the ResourceReference needs to be created by the caller, by resolving prefixes in the Manifest.
-      ResourceNamespace contextNamespace = ResourceNamespace.TODO;
+      ResourceNamespace contextNamespace = ResourceNamespace.TODO();
       AndroidFacet facet = AndroidFacet.getInstance(myManager.getModule());
       if (facet != null) {
         contextNamespace = ReadAction.compute(() -> ResourceRepositoryManager.getOrCreateInstance(facet).getNamespace());

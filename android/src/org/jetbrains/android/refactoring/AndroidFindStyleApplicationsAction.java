@@ -129,7 +129,7 @@ public class AndroidFindStyleApplicationsAction extends AndroidBaseXmlRefactorin
     }
 
     List<ValueResourceInfoImpl> infos =
-        resourceManager.findValueResourceInfos(ResourceNamespace.TODO, ResourceType.STYLE, styleRef.getStyleName(), true, false);
+        resourceManager.findValueResourceInfos(ResourceNamespace.TODO(), ResourceType.STYLE, styleRef.getStyleName(), true, false);
     return infos.size() == 1 ? infos.get(0).computeXmlElement() : null;
   }
 

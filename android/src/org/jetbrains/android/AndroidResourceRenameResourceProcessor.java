@@ -183,7 +183,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     String oldName = cls.getName();
     if (appResources.hasResourceItem(DECLARE_STYLEABLE, oldName)) {
       LocalResourceManager manager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
-      for (PsiElement element : manager.findResourcesByFieldName(ResourceNamespace.TODO, STYLEABLE.getName(), oldName)) {
+      for (PsiElement element : manager.findResourcesByFieldName(ResourceNamespace.TODO(), STYLEABLE.getName(), oldName)) {
         if (element instanceof XmlAttributeValue) {
           if (element.getParent() instanceof XmlAttribute) {
             XmlTag tag = ((XmlAttribute)element.getParent()).getParent();
@@ -363,7 +363,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     String name = ((ResourceElement)domElement).getName().getValue();
     assert name != null;
 
-    List<ResourceElement> resources = localResourceManager.findValueResources(ResourceNamespace.TODO, type, name);
+    List<ResourceElement> resources = localResourceManager.findValueResources(ResourceNamespace.TODO(), type, name);
     for (ResourceElement resource : resources) {
       XmlElement xmlElement = resource.getName().getXmlAttributeValue();
       if (!element.getManager().areElementsEquivalent(element, xmlElement)) {
@@ -389,7 +389,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
         renameCandidates = Collections.emptyList();
       }
       else {
-        Collection<String> allStyles = repoManager.getAppResources(true).getItemsOfType(ResourceNamespace.TODO, resourceType);
+        Collection<String> allStyles = repoManager.getAppResources(true).getItemsOfType(ResourceNamespace.TODO(), resourceType);
         renameCandidates = Collections2.filter(allStyles,
                                                styleName -> styleName.startsWith(stylePrefix));
       }
@@ -403,7 +403,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
           continue;
         }
 
-        for (ResourceElement resource : localResourceManager.findValueResources(ResourceNamespace.TODO, type, resourceName)) {
+        for (ResourceElement resource : localResourceManager.findValueResources(ResourceNamespace.TODO(), type, resourceName)) {
           if (!(resource instanceof Style) || ((Style)resource).getParentStyle().getXmlAttributeValue() != null) {
             // This element is not a style or does have an explicit parent so we do not rename it.
             continue;

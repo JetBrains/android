@@ -174,7 +174,7 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
     do {
       resourceName = resourceNameRoot + (index < 1 ? "" : "_" + index);
       index++;
-    } while (!LocalResourceRepository.getResourceItems(ResourceNamespace.TODO, ResourceType.LAYOUT, resourceName).isEmpty());
+    } while (!LocalResourceRepository.getResourceItems(ResourceNamespace.TODO(), ResourceType.LAYOUT, resourceName).isEmpty());
     return resourceName;
   }
 

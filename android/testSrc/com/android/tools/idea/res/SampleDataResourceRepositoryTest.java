@@ -154,7 +154,7 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
 
     // Check that we wrap around
     assertEquals("string1", resolver.findResValue("@sample/strings", false).getValue());
-    ResourceReference reference = new ResourceReference(ResourceNamespace.TODO, ResourceType.SAMPLE_DATA, "strings");
+    ResourceReference reference = new ResourceReference(ResourceNamespace.TODO(), ResourceType.SAMPLE_DATA, "strings");
     assertEquals("string2", resolver.getResolvedResource(reference).getValue());
     assertEquals("1", resolver.findResValue("@sample/ints", false).getValue());
     assertTrue(imagePaths.contains(resolver.findResValue("@sample/images", false).getValue()));
@@ -288,7 +288,7 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
     myFixture.addFileToProject("sampledata/images/image3.png", "\n");
 
     LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(myFacet);
-    List<ResourceItem> items = repository.getResourceItems(ResourceNamespace.TODO, ResourceType.SAMPLE_DATA);
+    List<ResourceItem> items = repository.getResourceItems(ResourceNamespace.TODO(), ResourceType.SAMPLE_DATA);
     assertSize(1, items);
     assertEquals("images", items.get(0).getName());
     SampleDataResourceItem item = (SampleDataResourceItem)items.get(0);

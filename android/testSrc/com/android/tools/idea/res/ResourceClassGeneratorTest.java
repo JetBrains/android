@@ -64,7 +64,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
   }
 
   public void testResourceClassGenerator() throws Exception {
-    final MergerResourceRepository repository = resourceFixture.createTestResources(ResourceNamespace.TODO, new Object[] {
+    final MergerResourceRepository repository = resourceFixture.createTestResources(ResourceNamespace.TODO(), new Object[] {
       "layout/layout1.xml", "<!--contents doesn't matter-->",
 
       "layout-land/layout1.xml", "<!--contents doesn't matter-->",
@@ -202,7 +202,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
   }
 
   public void testStyleableMerge() throws Exception {
-    final MergerResourceRepository repositoryA = resourceFixture.createTestResources(ResourceNamespace.TODO, new Object[] {
+    final MergerResourceRepository repositoryA = resourceFixture.createTestResources(ResourceNamespace.TODO(), new Object[] {
       "values/styles.xml", "" +
                            "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                            "<resources>\n" +
@@ -287,7 +287,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
       attributes.append("    <attr name=\"overflow_").append(i).append("\" />\n");
     }
 
-    final MergerResourceRepository repository = resourceFixture.createTestResources(ResourceNamespace.TODO, new Object[] {
+    final MergerResourceRepository repository = resourceFixture.createTestResources(ResourceNamespace.TODO(), new Object[] {
       "values/styles.xml", "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                            "<resources>\n" +
                            "    <declare-styleable name=\"AppStyleable\">\n" +

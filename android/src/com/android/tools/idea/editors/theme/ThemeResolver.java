@@ -138,7 +138,7 @@ public class ThemeResolver {
       return Collections.emptyList();
     }
 
-    return getThemes(repository.getConfiguredResources(ResourceNamespace.TODO,
+    return getThemes(repository.getConfiguredResources(ResourceNamespace.TODO(),
                                                        ResourceType.STYLE,
                                                        myConfiguration.getFullConfig()),
                      false /*isFramework*/);
@@ -170,7 +170,7 @@ public class ThemeResolver {
       return;
     }
 
-    ResourceValueMap configuredResources = repository.getConfiguredResources(ResourceNamespace.TODO,
+    ResourceValueMap configuredResources = repository.getConfiguredResources(ResourceNamespace.TODO(),
                                                                              ResourceType.STYLE,
                                                                              myConfiguration.getFullConfig());
     for (StyleResourceValue value : getThemes(configuredResources, false)) {

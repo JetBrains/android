@@ -177,7 +177,7 @@ class GenerateBackupDescriptorFix implements AndroidLintQuickFix {
                 }
 
                 List<PsiElement> resources = ModuleResourceManagers.getInstance(facet).getLocalResourceManager()
-                    .findResourcesByFieldName(ResourceNamespace.TODO, ResourceType.STRING.getName(), resource.name);
+                    .findResourcesByFieldName(ResourceNamespace.TODO(), ResourceType.STRING.getName(), resource.name);
 
                 for (PsiElement resElement : resources) {
                   if (resElement instanceof XmlAttributeValue) {
