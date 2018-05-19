@@ -544,7 +544,7 @@ public class AndroidCommonUtils {
         result.add(child);
       }
     }
-    return result.toArray(new File[result.size()]);
+    return result.toArray(ArrayUtil.EMPTY_FILE_ARRAY);
   }
 
   @NotNull
