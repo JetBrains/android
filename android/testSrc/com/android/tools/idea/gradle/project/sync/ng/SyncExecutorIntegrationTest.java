@@ -21,6 +21,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandlerManager;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.BuildEnvironment;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.mock.MockProgressIndicator;
@@ -34,14 +35,19 @@ import java.io.File;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
 import static com.android.tools.idea.testing.AndroidGradleTests.replaceRegexGroup;
-import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH1_DOT5;
-import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
-import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
+import static com.android.tools.idea.testing.TestProjectPaths.*;
+import static com.android.utils.FileUtils.join;
+import static com.android.utils.FileUtils.writeToFile;
 import static com.google.common.io.Files.write;
 import static com.google.common.truth.Truth.assertThat;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Tests for {@link SyncExecutorIntegration}.
@@ -79,11 +85,12 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
     Project project = getProject();
 
     // Simulate that "release" variant is selected in "app" module.
-    SelectedVariantCollector selectedVariantCollector = simulateSelectedVariant("app", "release");
+    SelectedVariantCollectorMock variantCollector = new SelectedVariantCollectorMock(project);
+    variantCollector.setSelectedVariants("app", "release");
 
     SyncExecutor syncExecutor = new SyncExecutor(project, ExtraGradleSyncModelsManager.getInstance(),
                                                  new CommandLineArgs(true /* apply Java library plugin */),
-                                                 new SyncErrorHandlerManager(project), selectedVariantCollector);
+                                                 new SyncErrorHandlerManager(project), variantCollector);
 
     SyncListener syncListener = new SyncListener();
     syncExecutor.syncProject(new MockProgressIndicator(), syncListener);
@@ -95,7 +102,7 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
     Map<String, SyncModuleModels> modelsByModule = indexByModuleName(models.getModuleModels());
     assertThat(modelsByModule).hasSize(2);
 
-    verifySelectedSingleVariant(modelsByModule.get("app"), "release");
+    verifyRequestedVariants(modelsByModule.get("app"), singletonList("release"));
   }
 
   public void testSyncProjectWithSingleVariantSyncOnFirstTime() throws Throwable {
@@ -116,20 +123,101 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
     SyncProjectModels models = syncListener.getModels();
     Map<String, SyncModuleModels> modelsByModule = indexByModuleName(models.getModuleModels());
 
-    verifySelectedSingleVariant(modelsByModule.get("app"), "debug");
-    verifySelectedSingleVariant(modelsByModule.get("library1"), "debug");
-    verifySelectedSingleVariant(modelsByModule.get("library2"), "debug");
+    verifyRequestedVariants(modelsByModule.get("app"), singletonList("debug"));
+    verifyRequestedVariants(modelsByModule.get("library1"), singletonList("debug"));
+    verifyRequestedVariants(modelsByModule.get("library2"), singletonList("debug"));
   }
 
-  private static void verifySelectedSingleVariant(@NotNull SyncModuleModels moduleModels, @NotNull String selectedVariant) {
+  public void testSyncProjectWithSingleVariantSyncWithRecursiveSelection() throws Throwable {
+    StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
+
+    prepareProjectForImport(TRANSITIVE_DEPENDENCIES);
+
+    Project project = getProject();
+    // Simulate that "debug" variant is selected in "app" module.
+    // "release" is selected in library1 and library2.
+    SelectedVariantCollectorMock variantCollector = new SelectedVariantCollectorMock(project);
+    variantCollector.setSelectedVariants("app", "debug");
+    variantCollector.setSelectedVariants("library1", "release");
+    variantCollector.setSelectedVariants("library2", "release");
+
+    SyncExecutor syncExecutor = new SyncExecutor(project, ExtraGradleSyncModelsManager.getInstance(),
+                                                 new CommandLineArgs(true /* apply Java library plugin */),
+                                                 new SyncErrorHandlerManager(project), variantCollector);
+    SyncListener syncListener = new SyncListener();
+    syncExecutor.syncProject(new MockProgressIndicator(), syncListener);
+    syncListener.await();
+
+    syncListener.propagateFailureIfAny();
+
+    SyncProjectModels models = syncListener.getModels();
+    Map<String, SyncModuleModels> modelsByModule = indexByModuleName(models.getModuleModels());
+
+    // app -> library2 -> library1
+    // Verify that the variant of library1 and library2 are selected based on app.
+    verifyRequestedVariants(modelsByModule.get("app"), singletonList("debug"));
+    verifyRequestedVariants(modelsByModule.get("library1"), singletonList("debug"));
+    verifyRequestedVariants(modelsByModule.get("library2"), singletonList("debug"));
+  }
+
+  public void testSyncProjectWithSingleVariantSyncWithSelectionConflict() throws Throwable {
+    StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
+    prepareProjectForImport(TRANSITIVE_DEPENDENCIES);
+    Project project = getProject();
+
+    // Create a new module library3, so that library3 -> library2 -> library1.
+    File projectFolderPath = getProjectFolderPath();
+    File buildFile = new File(projectFolderPath, join("library3", FN_BUILD_GRADLE));
+    String text = "apply plugin: 'com.android.library'\n" +
+                  "android {\n" +
+                  "    compileSdkVersion " + BuildEnvironment.getInstance().getCompileSdkVersion() + "\n" +
+                  "}\n" +
+                  "dependencies {\n" +
+                  "    api project(':library2')\n" +
+                  "}";
+    writeToFile(buildFile, text);
+    File settingsFile = new File(projectFolderPath, FN_SETTINGS_GRADLE);
+    String contents = Files.toString(settingsFile, Charsets.UTF_8).trim();
+    contents += ", ':library3'";
+    writeToFile(settingsFile, contents);
+
+
+    // Simulate that "debug" variant is selected in "app" module.
+    // "release" is selected in "library3" module.
+    // This will cause variant conflict because app -> library2, and library3 -> library2.
+    SelectedVariantCollectorMock variantCollector = new SelectedVariantCollectorMock(project);
+    variantCollector.setSelectedVariants("app", "debug");
+    variantCollector.setSelectedVariants("library3", "release");
+
+    SyncExecutor syncExecutor = new SyncExecutor(project, ExtraGradleSyncModelsManager.getInstance(),
+                                                 new CommandLineArgs(true /* apply Java library plugin */),
+                                                 new SyncErrorHandlerManager(project), variantCollector);
+    SyncListener syncListener = new SyncListener();
+    syncExecutor.syncProject(new MockProgressIndicator(), syncListener);
+    syncListener.await();
+
+    syncListener.propagateFailureIfAny();
+
+    SyncProjectModels models = syncListener.getModels();
+    Map<String, SyncModuleModels> modelsByModule = indexByModuleName(models.getModuleModels());
+
+    // app -> library2 -> library1
+    // library3 -> library2 -> library1
+    // Verify that library1 and library2 have both of debug and release variants requested.
+    verifyRequestedVariants(modelsByModule.get("app"), singletonList("debug"));
+    verifyRequestedVariants(modelsByModule.get("library3"), singletonList("release"));
+    verifyRequestedVariants(modelsByModule.get("library1"), asList("debug", "release"));
+    verifyRequestedVariants(modelsByModule.get("library2"), asList("debug", "release"));
+  }
+
+  private static void verifyRequestedVariants(@NotNull SyncModuleModels moduleModels, @NotNull List<String> requestedVariants) {
     AndroidProject androidProject = moduleModels.findModel(AndroidProject.class);
     assertNotNull(androidProject);
-    Collection<Variant> variants = androidProject.getVariants();
-    assertThat(variants).isEmpty();
+    assertThat(androidProject.getVariants()).isEmpty();
 
-    Variant variant = moduleModels.findModel(Variant.class);
-    assertNotNull(variant);
-    assertEquals(selectedVariant, variant.getName());
+    List<Variant> variants = moduleModels.findModels(Variant.class);
+    assertNotNull(variants);
+    assertThat(variants.stream().map(Variant::getName).collect(toList())).containsExactlyElementsIn(requestedVariants);
   }
 
   public void testSingleVariantSyncWithOldGradleVersion() throws Throwable {
@@ -151,11 +239,12 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
     Project project = getProject();
 
     // Simulate that "release" variant is selected in "app" module.
-    SelectedVariantCollector selectedVariantCollector = simulateSelectedVariant("app", "release");
+    SelectedVariantCollectorMock variantCollector = new SelectedVariantCollectorMock(project);
+    variantCollector.setSelectedVariants("app", "release");
 
     SyncExecutor syncExecutor = new SyncExecutor(project, ExtraGradleSyncModelsManager.getInstance(),
                                                  new CommandLineArgs(true /* apply Java library plugin */),
-                                                 new SyncErrorHandlerManager(project), selectedVariantCollector);
+                                                 new SyncErrorHandlerManager(project), variantCollector);
 
     SyncListener syncListener = new SyncListener();
     syncExecutor.syncProject(new MockProgressIndicator(), syncListener);
@@ -175,26 +264,33 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
   }
 
   @NotNull
-  private SelectedVariantCollector simulateSelectedVariant(@NotNull String moduleName, @NotNull String selectedVariant) {
-    return new SelectedVariantCollector(getProject()) {
-      @Override
-      @NotNull
-      SelectedVariants collectSelectedVariants() {
-        SelectedVariants selectedVariants = new SelectedVariants();
-        String moduleId = createUniqueModuleId(getProjectFolderPath(), ":" + moduleName);
-        selectedVariants.addSelectedVariant(moduleId, selectedVariant);
-        return selectedVariants;
-      }
-    };
-  }
-
-  @NotNull
   private static Map<String, SyncModuleModels> indexByModuleName(@NotNull List<SyncModuleModels> allModuleModels) {
     Map<String, SyncModuleModels> modelsByModuleName = new HashMap<>();
     for (SyncModuleModels moduleModels : allModuleModels) {
       modelsByModuleName.put(moduleModels.getModuleName(), moduleModels);
     }
     return modelsByModuleName;
+  }
+
+  private static class SelectedVariantCollectorMock extends SelectedVariantCollector {
+    @NotNull private final SelectedVariants mySelectedVariants = new SelectedVariants();
+    @NotNull private final File myProjectFolderPath;
+
+    SelectedVariantCollectorMock(@NotNull Project project) {
+      super(project);
+      myProjectFolderPath = new File(project.getBasePath());
+    }
+
+    @Override
+    @NotNull
+    SelectedVariants collectSelectedVariants() {
+      return mySelectedVariants;
+    }
+
+    void setSelectedVariants(@NotNull String moduleName, @NotNull String selectedVariant) {
+      String moduleId = createUniqueModuleId(myProjectFolderPath, ":" + moduleName);
+      mySelectedVariants.addSelectedVariant(moduleId, selectedVariant);
+    }
   }
 
   private static class SyncListener extends SyncExecutionCallback {
