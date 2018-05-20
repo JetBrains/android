@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.ide.common.gradle.model.IdeAndroidProject
-import com.android.sdklib.AndroidTargetHash
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel
 import com.android.tools.idea.gradle.structure.model.helpers.*
 import com.android.tools.idea.gradle.structure.model.meta.*
@@ -33,11 +32,12 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidPro
 
   val compileSdkVersion: SimpleProperty<PsAndroidModule, String> = property(
     "Compile Sdk Version",
-    resolvedValueGetter = { AndroidTargetHash.getPlatformVersion(compileTarget)?.featureLevel?.toString() ?: compileTarget },
+    resolvedValueGetter = { compileTarget },
     parsedPropertyGetter = { compileSdkVersion() },
     getter = { asString() },
     setter = { setValue(it) },
-    parser = ::parseString,
+    parser = ::parseHashString,
+    matcher = ::matchHashStrings,
     knownValuesGetter = ::installedCompiledApis
   )
 

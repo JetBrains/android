@@ -17,6 +17,7 @@
 
 package com.android.tools.idea.gradle.structure.model.helpers
 
+import com.android.sdklib.AndroidTargetHash
 import com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil.parseFromGradleString
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.pom.java.LanguageLevel
@@ -77,6 +78,11 @@ fun parseLanguageLevel(context: Any?, text: String): Annotated<ParsedValue<Langu
     ?: ParsedValue.Set.Parsed(null, DslText.OtherUnparsedDslText(text))
       .annotateWithError("'$text' is not a valid language level")
 
+fun parseHashString(context: Any?, text: String) =
+  if (text.isEmpty()) ParsedValue.NotSet.annotated()
+  else AndroidTargetHash.getPlatformVersion(text)?.let { ParsedValue.Set.Parsed(text, DslText.Literal).annotated() }
+       ?: ParsedValue.Set.Parsed(text, DslText.Literal).annotateWithError("Invalid hash string")
+
 fun parseReferenceOnly(context: Any?, text: String): Annotated<ParsedValue<Unit>> =
   if (text == "")
     ParsedValue.NotSet.annotated()
@@ -87,3 +93,6 @@ fun parseReferenceOnly(context: Any?, text: String): Annotated<ParsedValue<Unit>
 fun formatLanguageLevel(context: Any?, value: LanguageLevel): String = value.toJavaVersion().toString()
 
 fun formatUnit(context: Any?, value: Unit): String = ""
+
+fun matchHashStrings(context: Any?, parsed: String?, resolved: String) =
+  AndroidTargetHash.getPlatformVersion(parsed.orEmpty())?.featureLevel == AndroidTargetHash.getPlatformVersion(resolved)?.featureLevel

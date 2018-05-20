@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.gradle.structure.model.PsProject
+import com.android.tools.idea.gradle.structure.model.helpers.matchHashStrings
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE
@@ -43,7 +44,8 @@ class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
     assertThat(buildToolsVersion.resolved.asTestValue(), equalTo("27.0.3"))
     assertThat(buildToolsVersion.parsedValue.asTestValue(), equalTo("27.0.3"))
 
-    assertThat(compileSdkVersion.resolved.asTestValue(), equalTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()))
+    assertThat(matchHashStrings(null, compileSdkVersion.resolved.asTestValue(), SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()),
+               equalTo(true))
     assertThat(compileSdkVersion.parsedValue.asTestValue(), equalTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()))
 
     assertThat(sourceCompatibility.resolved.asTestValue(), equalTo(LanguageLevel.JDK_1_7))
