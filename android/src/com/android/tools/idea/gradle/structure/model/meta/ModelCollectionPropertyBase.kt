@@ -64,6 +64,7 @@ fun <T : Any> makeItemPropertyCore(
   override fun getParsedProperty(): ResolvedPropertyModel? = resolvedProperty
   override val getter: ResolvedPropertyModel.() -> T? = getter
   override val setter: ResolvedPropertyModel.(T) -> Unit = setter
+  override val nullifier: ResolvedPropertyModel.() -> Unit = { setValue("") }
   override fun setModified() = modifiedSetter()
   override fun getResolvedValue(): ResolvedValue<T> = resolvedValueGetter()
   override val defaultValueGetter: (() -> T?)? = null

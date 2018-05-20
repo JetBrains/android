@@ -86,7 +86,10 @@ class ModelSimplePropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, Proper
     getParsedValue(modelDescriptor.getParsed(thisRef)?.parsedPropertyGetter(), getter).value
 
   override fun setValue(thisRef: ModelT, property: KProperty<*>, value: ParsedValue<PropertyT>) {
-    setParsedValue((modelDescriptor.getParsed(thisRef) ?: throw IllegalStateException()).parsedPropertyGetter(), setter, value)
+    setParsedValue((modelDescriptor.getParsed(thisRef) ?: throw IllegalStateException()).parsedPropertyGetter(),
+                   setter,
+                   { delete() },
+                   value)
     thisRef.setModified()
   }
 
@@ -96,6 +99,7 @@ class ModelSimplePropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, Proper
       override fun getParsedProperty(): ResolvedPropertyModel? = modelDescriptor.getParsed(model)?.parsedPropertyGetter()
       override val getter: ResolvedPropertyModel.() -> PropertyT? = this@ModelSimplePropertyImpl.getter
       override val setter: ResolvedPropertyModel.(PropertyT) -> Unit = this@ModelSimplePropertyImpl.setter
+      override val nullifier: ResolvedPropertyModel.() -> Unit = { delete() }
       override fun setModified() = modelDescriptor.setModified(model)
       override fun getResolvedValue(): ResolvedValue<PropertyT> {
         val resolvedModel = modelDescriptor.getResolved(model)
@@ -118,12 +122,13 @@ abstract class ModelPropertyCoreImpl<PropertyT : Any> : ModelPropertyCore<Proper
   abstract fun getParsedProperty(): ResolvedPropertyModel?
   abstract val getter: ResolvedPropertyModel.() -> PropertyT?
   abstract val setter: ResolvedPropertyModel.(PropertyT) -> Unit
+  abstract val nullifier: ResolvedPropertyModel.() -> Unit
   abstract fun setModified()
 
   override fun getParsedValue(): Annotated<ParsedValue<PropertyT>> = getParsedValue(getParsedProperty(), getter)
 
   override fun setParsedValue(value: ParsedValue<PropertyT>) {
-    setParsedValue(getParsedProperty() ?: throw IllegalStateException(), setter, value)
+    setParsedValue(getParsedProperty() ?: throw IllegalStateException(), setter, nullifier, value)
     setModified()
   }
 
@@ -140,10 +145,11 @@ private fun <T : Any> getParsedValue(property: ResolvedPropertyModel?, getter: R
 
 private fun <T : Any> setParsedValue(parsedProperty: ResolvedPropertyModel,
                                      setter: ResolvedPropertyModel.(T) -> Unit,
+                                     nullifier: ResolvedPropertyModel.() -> Unit,
                                      value: ParsedValue<T>) {
   when (value) {
     is ParsedValue.NotSet -> {
-      parsedProperty.delete()
+      parsedProperty.nullifier()
     }
     is ParsedValue.Set.Parsed -> {
       val dsl = value.dslText
@@ -157,7 +163,7 @@ private fun <T : Any> setParsedValue(parsedProperty: ResolvedPropertyModel,
           parsedProperty.setter(value.value)
         }
         else {
-          parsedProperty.delete()
+          parsedProperty.nullifier()
         }
       }
     }

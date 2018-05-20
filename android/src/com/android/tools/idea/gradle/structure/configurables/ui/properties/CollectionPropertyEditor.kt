@@ -62,7 +62,7 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
         ToolbarDecorator.createDecorator(it)
           .setAddAction { addItem() }
           .setRemoveAction { removeItem() }
-          .setPreferredSize(Dimension(450, 100))
+          .setPreferredSize(Dimension(450, it.rowHeight * 3))
           .setToolbarPosition(ActionToolbarPosition.RIGHT)
           .createPanel()
       )
@@ -138,25 +138,33 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
     }
 
     override fun stopCellEditing(): Boolean {
-      lastEditor?.updateProperty()
-      lastValue = currentRowProperty?.getParsedValue()
-      currentRow = -1
-      currentRowProperty = null
-      lastEditor?.dispose()
-      lastEditor = null
-      fireEditingStopped()
-      return true
+
+      return when (lastEditor?.updateProperty()) {
+        null,
+        UpdatePropertyOutcome.UPDATED,
+        UpdatePropertyOutcome.NOT_CHANGED -> {
+          lastValue = currentRowProperty?.getParsedValue()
+          currentRow = -1
+          currentRowProperty = null
+          lastEditor?.dispose()
+          lastEditor = null
+          fireEditingStopped()
+          true
+        }
+        UpdatePropertyOutcome.INVALID -> false
+      }
     }
 
     override fun cancelCellEditing() {
-      lastValue = lastEditor?.getValue()
+      lastValue = null
       currentRow = -1
+      currentRowProperty = null
       lastEditor?.dispose()
       lastEditor = null
       super.cancelCellEditing()
     }
 
-    override fun getCellEditorValue(): Any = (lastValue ?: lastEditor!!.getValue()).toTableModelValue()
+    override fun getCellEditorValue(): Any? = (lastValue ?: lastEditor?.getValue())?.toTableModelValue()
   }
 }
 

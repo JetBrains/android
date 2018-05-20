@@ -114,13 +114,13 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
         }
     }
 
-    private fun setStatusHtmlText(status: ValueRenderer) {
+    private fun setStatus(status: ValueRenderer) {
       statusComponent.clear()
       status.renderTo(statusComponentRenderer)
     }
 
-    private fun getStatusRenderer(annotatedPropertyValue: Annotated<PropertyValue<PropertyT>>): ValueRenderer =
-      (annotatedPropertyValue.annotation as? ValueAnnotation.Error).let {
+    private fun getStatusRenderer(valueAnnotation: ValueAnnotation?): ValueRenderer =
+      (valueAnnotation as? ValueAnnotation.Error).let {
         if (it != null) {
           object: ValueRenderer {
             override fun renderTo(textRenderer: TextRenderer): Boolean {
@@ -135,17 +135,22 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
         }
       }
 
-    @VisibleForTesting
-    fun reloadValue() {
-      val annotatedPropertyValue = property.getValue()
+    internal fun reloadValue(annotatedPropertyValue: Annotated<PropertyValue<PropertyT>>) {
       setValue(annotatedPropertyValue.value.parsedValue)
-      setStatusHtmlText(getStatusRenderer(annotatedPropertyValue))
+      setStatus(getStatusRenderer(annotatedPropertyValue.annotation))
       updateModified()
     }
 
     internal fun applyChanges(annotatedValue: Annotated<ParsedValue<PropertyT>>) {
       property.setParsedValue(annotatedValue.value)
     }
+
+    private fun onEditorChanged() =
+      when (updateProperty()) {
+        UpdatePropertyOutcome.UPDATED -> reloadValue(property.getValue())
+        UpdatePropertyOutcome.NOT_CHANGED -> Unit
+        UpdatePropertyOutcome.INVALID -> Unit
+      }
 
     private fun getAvailableVariables(): List<Annotated<ParsedValue.Set.Parsed<PropertyT>>>? =
       variablesProvider?.getAvailableVariablesFor(propertyContext)
@@ -161,16 +166,17 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
 
     /**
      * Returns [true] if the value currently being edited in the combo-box editor differs the last manually set value.
+     *
+     * (Returns [false] if the editor has not yet been initialized).
      */
-    fun isEditorChanged() = editor.item != lastValueSet?.value
+    fun isEditorChanged() = lastValueSet != null && getValue().value != lastValueSet?.value
 
     init {
       setEditable(true)
 
       addActionListener {
         if (!disposed && !beingLoaded) {
-          updateProperty()
-          reloadValue()
+          onEditorChanged()
         }
       }
 
@@ -190,14 +196,18 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
     @Suppress("UNCHECKED_CAST")
     (renderedComboBox.editor.item as Annotated<ParsedValue<PropertyT>>)
 
-  override fun updateProperty() {
+  override fun updateProperty(): UpdatePropertyOutcome {
     if (disposed) throw IllegalStateException()
     // It is important to avoid applying the unchanged values since the application
     // process while not intended may change the "psi"-representation of the value.
     // it is especially important in the case of invalid/unparsed values.
     if (renderedComboBox.isEditorChanged()) {
-      renderedComboBox.applyChanges(getValue())
+      val annotatedValue = getValue()
+      if (annotatedValue.annotation is ValueAnnotation.Error) return UpdatePropertyOutcome.INVALID
+      renderedComboBox.applyChanges(annotatedValue)
+      return UpdatePropertyOutcome.UPDATED
     }
+    return UpdatePropertyOutcome.NOT_CHANGED
   }
 
   override fun dispose() {
@@ -208,7 +218,9 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
   @VisibleForTesting
   fun reload() {
     renderedComboBox.loadKnownValues()
-    renderedComboBox.reloadValue()
+    if (!renderedComboBox.isEditorChanged()) {  // Do not override a not applied invalid value.
+      renderedComboBox.reloadValue(property.getValue())
+    }
   }
 
   override fun createNew(property: ModelPropertyT): ModelPropertyEditor<PropertyT> =
