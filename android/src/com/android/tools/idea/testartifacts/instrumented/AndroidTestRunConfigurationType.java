@@ -23,6 +23,7 @@ import com.intellij.execution.configurations.ConfigurationTypeUtil;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.NotNullLazyValue;
 import com.intellij.ui.LayeredIcon;
 import icons.AndroidIcons;
 import org.jetbrains.android.util.AndroidBundle;
@@ -32,16 +33,16 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 public class AndroidTestRunConfigurationType implements ConfigurationType {
-  private static class Lazy {
-    private static final Icon ANDROID_TEST_ICON;
-
-    static {
+  private static final NotNullLazyValue<Icon> ANDROID_TEST_ICON = new NotNullLazyValue<Icon>() {
+    @NotNull
+    @Override
+    protected Icon compute() {
       LayeredIcon icon = new LayeredIcon(2);
       icon.setIcon(AndroidIcons.AndroidModule, 0);
       icon.setIcon(AllIcons.Nodes.JunitTestMark, 1);
-      ANDROID_TEST_ICON = icon;
+      return icon;
     }
-  }
+  };
 
   private final ConfigurationFactory myFactory = new AndroidRunConfigurationType.AndroidRunConfigurationFactory(this) {
     @NotNull
@@ -67,7 +68,7 @@ public class AndroidTestRunConfigurationType implements ConfigurationType {
 
   @Override
   public Icon getIcon() {
-    return Lazy.ANDROID_TEST_ICON;
+    return ANDROID_TEST_ICON.getValue();
   }
 
   @Override
