@@ -50,9 +50,27 @@ interface ModelPropertyEditor<out ValueT> : Disposable {
   fun getValue(): Annotated<ParsedValue<ValueT>>
 
   /**
-   * Updates the bound property to the current value of the editor.
+   * Attempts to update the bound property to the current value of the editor and returns the outcome of the action.
    */
-  fun updateProperty()
+  fun updateProperty(): UpdatePropertyOutcome
+}
+
+/**
+ * The outcome of [ModelPropertyEditor.updateProperty].
+ */
+enum class UpdatePropertyOutcome {
+  /**
+   * The value of the editor hasn't changed.
+   */
+  NOT_CHANGED,
+  /**
+   * The property has been updated with the current value of the editor.
+   */
+  UPDATED,
+  /**
+   * The operation cannot be performed. The current value of the editor is invalid.
+   */
+  INVALID
 }
 
 /**

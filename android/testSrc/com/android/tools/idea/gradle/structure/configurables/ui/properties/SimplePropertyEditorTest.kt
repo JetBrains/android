@@ -60,15 +60,16 @@ class SimplePropertyEditorTest : UsefulTestCase() {
   private var wellKnownValuesFuture: ListenableFuture<List<ValueDescriptor<String>>> =
     immediateFuture(listOf(ValueDescriptor("1", "one"), ValueDescriptor("2", "two")))
 
+  private val invalidValueParsed = ParsedValue.Set.Parsed("invalid", DslText.Literal)
+                .annotateWithError("invalid text message")
+
   private val property
     get() = object : ModelPropertyBase<Nothing?, Model, String>(), ModelSimpleProperty<Nothing?, Model, String> {
       override val parser: (Nothing?, String) -> Annotated<ParsedValue<String>>
         get() = { _, value ->
           when {
             value.isEmpty() -> ParsedValue.NotSet.annotated()
-            value == "invalid" ->
-              ParsedValue.Set.Parsed(null, DslText.OtherUnparsedDslText("invalid"))
-                .annotateWithError("invalid text message")
+            value == "invalid" -> invalidValueParsed
             else -> ParsedValue.Set.Parsed(value, DslText.Literal).annotated()
           }
         }
@@ -372,11 +373,9 @@ class SimplePropertyEditorTest : UsefulTestCase() {
 
   fun testHandlesInvalidInput() {
     val editor = simplePropertyEditor(property.bind(model), property.bindContext(null, model))
-    val dslText = DslText.Reference("invalid")
-    val resultingParsedValue = ParsedValue.Set.Parsed(null, dslText).annotateWithError("Unresolved reference: invalid")
-    translateDsl[dslText] = resultingParsedValue
     editor.commitTestText("invalid")  // "invalid" is recognised as an invalid input by the test parser.
-    assertThat<Annotated<ParsedValue<String>>>(parsedModel.value, equalTo(resultingParsedValue))
+    assertThat<Annotated<ParsedValue<String>>>(editor.getValue(), equalTo(invalidValueParsed))
+    assertThat<Annotated<ParsedValue<String>>>(parsedModel.value, equalTo("value".asAnnotatedParsed()))
   }
 
   fun testCreateNew() {
