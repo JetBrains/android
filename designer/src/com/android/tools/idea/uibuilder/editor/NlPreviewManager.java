@@ -411,6 +411,10 @@ public class NlPreviewManager implements ProjectComponent {
 
     @Override
     public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
+      if (myToolWindowForm != null) {
+        // Remove stale references from the preview form. See b/80084773
+        myToolWindowForm.fileClosed(source, file);
+      }
       // When using "Close All" action, the selectionChanged event is not triggered.
       // Thus we have to handle this case here.
       // In other cases, do not respond to fileClosed events since this has led to problems
