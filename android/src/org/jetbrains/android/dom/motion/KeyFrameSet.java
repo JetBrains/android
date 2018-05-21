@@ -25,9 +25,7 @@ import java.util.List;
 @NameStrategy(PascalNameStrategy.class)
 @Styleable(value = "KeyFrameSet", packageName = "android.support.constraint")
 public interface KeyFrameSet extends MotionElement {
-  List<KeyAttributeSet> getKeyAttributeSets();
+  List<KeyAttribute> getKeyAttributes();
   List<KeyCycle> getKeyCycles();
-  List<KeyPositionPath> getKeyPositionPaths();
-  List<KeyPositionCartesian> getKeyPositionCartesians();
-  List<KeyPositionAbsolute> getKeyPositionAbsolutes();
+  List<KeyPosition> getKeyPositions();
 }

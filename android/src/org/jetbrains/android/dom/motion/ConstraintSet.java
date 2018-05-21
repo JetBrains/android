@@ -25,5 +25,5 @@ import java.util.List;
 @NameStrategy(PascalNameStrategy.class)
 @Styleable(value = "ConstraintSet", packageName = "android.support.constraint")
 public interface ConstraintSet extends MotionElement {
-  List<ConstraintView> getConstraintViews();
+  List<Constraint> getConstraints();
 }
