@@ -320,7 +320,7 @@ public class AttributeTagPanel extends TagPanel {
           case MotionSceneString.KeyTypeCycle:
             name = "Cycle";
             break;
-          case MotionSceneString.KeyTypeAttributes:
+          case MotionSceneString.KeyTypeAttribute:
             name = "Attributes";
             break;
           case MotionSceneString.KeyTypePosition:

@@ -133,7 +133,7 @@ public class MotionSceneModel {
           }
         }
         break;
-      case KeyTypeAttributes:
+      case KeyTypeAttribute:
         for (KeyAttributes keys : mySceneViews.get(id).myKeyAttributes) {
           if (keys.framePosition == framePosition) {
             return;
@@ -155,14 +155,14 @@ public class MotionSceneModel {
         for (int i = 0; i < tags.length; i++) {
           XmlTag tag = tags[i];
           String keyNodeName = tag.getName();
-          if (keyNodeName.equals(MotionSceneKeyFrames)) {
+          if (keyNodeName.equals(MotionSceneKeyFrameSet)) {
             keyFrame = tag;
             break;
           }
         }
         if (keyFrame == null) { // no keyframes need to create
           keyFrame =
-            xmlFile.getRootTag().createChildTag(MotionSceneKeyFrames, null, null, false);
+            xmlFile.getRootTag().createChildTag(MotionSceneKeyFrameSet, null, null, false);
           keyFrame = xmlFile.getRootTag().addSubTag(keyFrame, false);
         }
 
@@ -437,7 +437,7 @@ public class MotionSceneModel {
       if (root == null) {
         return null;
       }
-      XmlTag[] keyFrames = root.findSubTags(MotionSceneKeyFrames);
+      XmlTag[] keyFrames = root.findSubTags(MotionSceneKeyFrameSet);
       if (keyFrames.length == 0) {
         return null;
       }
@@ -710,7 +710,6 @@ public class MotionSceneModel {
       "rotation",
       "rotationX",
       "rotationY",
-      "transitionPathRotate",
       "scaleX",
       "scaleY",
       "translationX",
@@ -745,7 +744,7 @@ public class MotionSceneModel {
 
     public KeyAttributes(MotionSceneModel motionSceneModel) {
       super(motionSceneModel, KeyAttributesTitle);
-      mType = KeyTypeAttributes;
+      mType = KeyTypeAttribute;
       myPossibleAttr = ourPossibleAttr;
     }
 
@@ -846,7 +845,6 @@ public class MotionSceneModel {
       {},
       {"curve=(0.5,0,0.5,1)"},
       {"spline", "linear"},
-      {"0.5"},
       {"0.5"},
       {"sin", "square", "triangle", "sawtooth", "reverseSawtooth", "cos", "bounce"},
       {"1"},
@@ -1395,7 +1393,7 @@ public class MotionSceneModel {
       XmlTag[] subTags = frame.getSubTags();
       for (int j = 0; j < subTags.length; j++) {
         XmlTag subtag = subTags[j];
-        if (ConstraintSetConstrainView.equals(subtag.getName())) {
+        if (ConstraintSetConstraint.equals(subtag.getName())) {
           ConstraintView view = new ConstraintView();
           view.setId(subtag.getAttributeValue("android:id"));
           motionSceneModel.addKeyFrame(view.mId);
@@ -1431,7 +1429,7 @@ public class MotionSceneModel {
     }
 
     // process all the key frames
-    tagKeyFrames = file.getRootTag().findSubTags(MotionSceneKeyFrames);
+    tagKeyFrames = file.getRootTag().findSubTags(MotionSceneKeyFrameSet);
 
     for (int i = 0; i < tagKeyFrames.length; i++) {
       XmlTag tagKeyFrame = tagKeyFrames[i];
@@ -1446,7 +1444,7 @@ public class MotionSceneModel {
         KeyFrame frame = null;
         if (KeyTypePosition.equals(keyNodeName)) {
           frame = new KeyPosition(motionSceneModel);
-        }  else if (KeyTypeAttributes.equals(keyNodeName)) {
+        }  else if (KeyTypeAttribute.equals(keyNodeName)) {
           frame = new KeyAttributes(motionSceneModel);
           for (int k = 0; k < customTags.length; k++) {
             XmlTag tag = customTags[k];

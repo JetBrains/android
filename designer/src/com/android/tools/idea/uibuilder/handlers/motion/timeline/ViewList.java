@@ -43,6 +43,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 
+import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.KeyTypeAttribute;
+import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.KeyTypeCycle;
+import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.KeyTypePosition;
 import static com.android.tools.idea.uibuilder.handlers.motion.timeline.TimeLineIcons.ADD_KEYFRAME;
 
 class ViewList extends JPanel implements Gantt.ChartElement {
@@ -126,9 +129,7 @@ class ViewList extends JPanel implements Gantt.ChartElement {
 
   private void keyFramePopup(ActionEvent e) {
     String[] list = {"Position", "Attributes", "Cycles"};
-    if (USER_STUDY) {
-      list = new String[]{"Position", "Attributes"};
-    }
+
     if (myChart != null
         && myChart.myModel != null) {
       boolean noStartConstraints = myChart.myModel.getStartConstraintSet().myConstraintViews.isEmpty();
@@ -185,10 +186,8 @@ class ViewList extends JPanel implements Gantt.ChartElement {
     } else if (fpos == 100) {
       fpos = 99;
     }
-    String type = (new String[]{"KeyPosition", "KeyAttributes", "KeyCycle"})[frameType];
-    if (USER_STUDY) {
-      type = (new String[]{"KeyPosition", "KeyAttributes"})[frameType];
-    }
+    String type = (new String[]{KeyTypePosition, KeyTypeAttribute, KeyTypeCycle})[frameType];
+
     v.mKeyFrames.myModel.createKeyFrame(type, fpos, name);
     myChart.delayedSelectKeyFrame(type,name,fpos);
 
