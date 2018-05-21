@@ -22,6 +22,7 @@ import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.EventModel;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
 import com.android.tools.profilers.ProfilerColors;
+import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -113,5 +114,11 @@ public class EnergyEventComponent extends AnimatedComponent {
     }
     g.setColor(currentColor);
     g.setStroke(currentStroke);
+  }
+
+  @VisibleForTesting
+  @NotNull
+  List<EventAction<EnergyEvent>> getActionToDrawList() {
+    return myActionToDrawList;
   }
 }
