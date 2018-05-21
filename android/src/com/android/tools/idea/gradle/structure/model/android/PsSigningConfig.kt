@@ -19,6 +19,7 @@ import com.android.builder.model.SigningConfig
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.structure.model.PsChildModel
+import com.android.tools.idea.gradle.structure.model.helpers.matchFiles
 import com.android.tools.idea.gradle.structure.model.helpers.parseFile
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
 import com.android.tools.idea.gradle.structure.model.meta.*
@@ -60,7 +61,8 @@ class PsSigningConfig(
       getter = { asFile() },
       // TODO: Store project relative path if possible.
       setter = { setValue(it.toString()) },
-      parser = ::parseFile
+      parser = ::parseFile,
+      matcher = { model, parsedValue, resolvedValue -> matchFiles(model.parent.gradleModel.rootDirPath, parsedValue, resolvedValue) }
     )
 
     val storePassword: SimpleProperty<PsSigningConfig, String> = property(

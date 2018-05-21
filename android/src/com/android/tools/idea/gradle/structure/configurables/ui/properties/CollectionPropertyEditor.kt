@@ -137,9 +137,8 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
       return editor.component
     }
 
-    override fun stopCellEditing(): Boolean {
-
-      return when (lastEditor?.updateProperty()) {
+    override fun stopCellEditing(): Boolean =
+      when (lastEditor?.updateProperty()) {
         null,
         UpdatePropertyOutcome.UPDATED,
         UpdatePropertyOutcome.NOT_CHANGED -> {
@@ -153,7 +152,6 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
         }
         UpdatePropertyOutcome.INVALID -> false
       }
-    }
 
     override fun cancelCellEditing() {
       lastValue = null

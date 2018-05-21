@@ -173,4 +173,12 @@ class InputParsersTest {
     assertTrue(matchHashStrings(null, "android-P", "28"))
     assertTrue(matchHashStrings(null, "android-26", "26"))
   }
+
+  @Test
+  fun matcher_files() {
+    assertTrue(matchFiles(File("/tmp"), File("a"), File("/tmp/a")))
+    assertTrue(matchFiles(File("/tmp"), File("/tmp/a"), File("/tmp/a")))
+    assertFalse(matchFiles(File("/tmp"), null, File("/tmp/a")))
+    assertFalse(matchFiles(File("/tmp"), File("b"), File("/tmp/a")))
+  }
 }

@@ -19,6 +19,7 @@ package com.android.tools.idea.gradle.structure.model.helpers
 
 import com.android.sdklib.AndroidTargetHash
 import com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil.parseFromGradleString
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.pom.java.LanguageLevel
 import java.io.File
@@ -96,3 +97,6 @@ fun formatUnit(context: Any?, value: Unit): String = ""
 
 fun matchHashStrings(context: Any?, parsed: String?, resolved: String) =
   AndroidTargetHash.getPlatformVersion(parsed.orEmpty())?.featureLevel == AndroidTargetHash.getPlatformVersion(resolved)?.featureLevel
+
+fun matchFiles(rootDir: File, parsed: File?, resolved: File): Boolean =
+  parsed?.let { rootDir.resolve(parsed) } == resolved
