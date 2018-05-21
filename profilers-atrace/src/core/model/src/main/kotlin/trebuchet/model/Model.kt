@@ -19,12 +19,37 @@ package trebuchet.model
 import trebuchet.model.fragments.ModelFragment
 
 class Model constructor(fragments: Iterable<ModelFragment>) {
+    /**
+     * For each process found in the atrace file we keep a map of process id to process model.
+     */
     val processes: Map<Int, ProcessModel>
+    /**
+     * For each core we create a new cpu model. Each cpu model contains all the slices scheduled on that core.
+     */
     val cpus: List<CpuModel>
+    /**
+     * The timestamp of the first event found. This timestamp by default is device boot time in seconds.
+     */
     val beginTimestamp: Double
+    /**
+     * The last timestamp found in our list of entries. This timestamp by default is the device boot time in seconds.
+     */
     val endTimestamp: Double
+    /**
+     * The last parent timestamp found in our trace file. This timestamp is clock monotonic time in seconds.
+     */
     val parentTimestamp: Double
+    /**
+     * The boot time in seconds associated with the {@link #parentTimestamp} attribute.
+     */
+    val parentTimestampBootTime: Double
+    /**
+     * If the "realtime" marker is found in the trace file this field is set to that time in seconds.
+     */
     val realtimeTimestamp: Long
+    /**
+     * The duration of this trace in seconds.
+     */
     val duration get() = endTimestamp - beginTimestamp
 
     init {
@@ -33,17 +58,19 @@ class Model constructor(fragments: Iterable<ModelFragment>) {
         var beginTimestamp = Double.MAX_VALUE
         var endTimestamp = 0.0
         var parentTimestamp = 0.0
+        var parentTimestampBootTime = 0.0
         var realtimeTimestamp = 0L
         fragments.forEach {
             it.autoCloseOpenSlices()
             beginTimestamp = minOf(beginTimestamp, it.globalStartTime)
             endTimestamp = maxOf(endTimestamp, it.globalEndTime)
             parentTimestamp = maxOf(parentTimestamp, it.parentTimestamp)
+            parentTimestampBootTime = maxOf(parentTimestampBootTime, it.parentTimestampBootTime)
             realtimeTimestamp = maxOf(realtimeTimestamp, it.realtimeTimestamp)
             it.processes.forEach {
                 if (it.id != InvalidId) {
                     // TODO: Merge
-                    processBuilder.put(it.id, ProcessModel(this, it))
+                    processBuilder[it.id] = ProcessModel(this, it)
                 }
             }
             it.cpus.forEach {
@@ -56,6 +83,7 @@ class Model constructor(fragments: Iterable<ModelFragment>) {
         this.beginTimestamp = minOf(beginTimestamp, endTimestamp)
         this.endTimestamp = endTimestamp
         this.parentTimestamp = parentTimestamp
+        this.parentTimestampBootTime = parentTimestampBootTime
         this.realtimeTimestamp = realtimeTimestamp
     }
 

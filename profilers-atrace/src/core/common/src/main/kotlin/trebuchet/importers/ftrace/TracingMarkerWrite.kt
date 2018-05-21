@@ -52,6 +52,7 @@ object TracingMarkerWrite : FunctionHandlerRegistry() {
         tryMatch(parentTsMatcher) {
             val timestamp = double(1)
             data.importer.modelFragment.parentTimestamp = timestamp
+            data.importer.modelFragment.parentTimestampBootTime = data.line.timestamp
         }
 
         // Test if the line we are testing has the realtime timestamp.
