@@ -21,6 +21,6 @@ import org.jetbrains.android.dom.Styleable;
 
 @DefinesXml
 @NameStrategy(PascalNameStrategy.class)
-@Styleable(value = "KeyPositionCartesian", packageName = "android.support.constraint")
-public interface KeyPositionCartesian extends MotionElement {
+@Styleable(value = "KeyPosition", packageName = "android.support.constraint")
+public interface KeyPosition extends MotionElement {
 }

@@ -19,8 +19,11 @@ import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.NameStrategy;
 import org.jetbrains.android.dom.Styleable;
 
+import java.util.List;
+
 @DefinesXml
 @NameStrategy(PascalNameStrategy.class)
-@Styleable(value = "KeyPositionAbsolute", packageName = "android.support.constraint")
-public interface KeyPositionAbsolute extends MotionElement {
+@Styleable(value = "Constraint", packageName = "android.support.constraint")
+public interface Constraint extends MotionElement {
+  List<CustomAttribute> getCustomAttributes();
 }
