@@ -121,7 +121,7 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> PROFILER_OPEN_CAPTURES = Flag.create(
     PROFILER, "profiler.open.captures", "Enable opening .trace and .hprof files",
-    "Allow opening .hprof and .trace files in Android Studio (e.g. File -> Open) which imports them into Android Profiler.",
+    "Allow opening .hprof and .trace files (e.g. File -> Open; via Drag & Drop) which imports them into Android Profiler.",
     false);
 
   public static final Flag<Boolean> PROFILER_STARTUP_CPU_PROFILING = Flag.create(

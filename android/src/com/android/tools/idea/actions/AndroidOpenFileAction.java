@@ -143,13 +143,6 @@ public class AndroidOpenFileAction extends DumbAwareAction {
         return;
       }
 
-      // Android profiler captures (i.e. .hprof and .trace files) shouldn't be open in a FileEditor, but in AndroidProfiler instead.
-      boolean shouldOpenProfilerCapture = StudioFlags.PROFILER_OPEN_CAPTURES.get() && type instanceof AndroidProfilerCaptureFileType;
-      if (shouldOpenProfilerCapture) {
-        ActionManager.getInstance().getAction(AndroidProfilerCaptureFileType.OPEN_CAPTURE_ACTION_ID).actionPerformed(e);
-        return;
-      }
-
       if (project != null) {
         openFile(file, project);
       }
