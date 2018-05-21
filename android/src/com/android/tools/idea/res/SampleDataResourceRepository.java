@@ -17,7 +17,6 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceTable;
@@ -40,14 +39,10 @@ import org.jetbrains.android.facet.AndroidFacetScopedService;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.concurrent.GuardedBy;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static com.android.SdkConstants.FD_SAMPLE_DATA;
@@ -134,36 +129,6 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
 
   private final ResourceTable myFullTable;
   private AndroidFacet myAndroidFacet;
-  /** The PSI listener to update the repository contents when there are user changes. This is also used as the lock for add/removing the listener */
-  private final PsiTreeChangeAdapter myPsiTreeChangeListener = new PsiTreeChangeAdapter() {
-    @Override
-    public void childAdded(@NotNull PsiTreeChangeEvent event) {
-      contentsUpdated(event);
-    }
-
-    @Override
-    public void childRemoved(@NotNull PsiTreeChangeEvent event) {
-      contentsUpdated(event);
-    }
-
-    @Override
-    public void childReplaced(@NotNull PsiTreeChangeEvent event) {
-      contentsUpdated(event);
-    }
-
-    @Override
-    public void childMoved(@NotNull PsiTreeChangeEvent event) {
-      contentsUpdated(event);
-    }
-
-    @Override
-    public void childrenChanged(@NotNull PsiTreeChangeEvent event) {
-      contentsUpdated(event);
-    }
-  };
-
-  @GuardedBy("myPsiTreeChangeListener")
-  private boolean isPsiListenerRegistered;
 
   /**
    * Returns the "sampledata" directory from the project (if it exists) or null otherwise.
@@ -187,11 +152,10 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
 
   @NotNull
   public static SampleDataResourceRepository getInstance(@NotNull AndroidFacet facet) {
-    return Manager.getInstance(facet).getRepository();
+    return SampleDataRepositoryManager.getInstance(facet).getRepository();
   }
 
-  @VisibleForTesting
-  SampleDataResourceRepository(@NotNull AndroidFacet androidFacet) {
+  private SampleDataResourceRepository(@NotNull AndroidFacet androidFacet) {
     super("SampleData");
 
     Disposer.register(androidFacet, this);
@@ -199,22 +163,7 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
     myFullTable = new ResourceTable();
     myAndroidFacet = androidFacet;
 
-    VirtualFileManager.getInstance().addVirtualFileListener(new VirtualFileListener() {
-      @Override
-      public void fileCreated(@NotNull VirtualFileEvent event) {
-        rootsUpdated(event);
-      }
-
-      @Override
-      public void fileDeleted(@NotNull VirtualFileEvent event) {
-        rootsUpdated(event);
-      }
-
-      @Override
-      public void fileMoved(@NotNull VirtualFileMoveEvent event) {
-        rootsUpdated(event);
-      }
-    }, this);
+    SampleDataListener.ensureSubscribed(androidFacet.getModule().getProject());
 
     invalidate();
   }
@@ -241,7 +190,7 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
   /**
    * Invalidates the current sample data of this repository. Call this method after the sample data has been updated to reload the contents.
    */
-  private void invalidate() {
+  void invalidate() {
     AndroidFacet facet = myAndroidFacet;
     if (facet == null || facet.isDisposed()) {
       return;
@@ -263,57 +212,11 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
         .map(vf -> vf.isDirectory() ? psiManager.findDirectory(vf) : psiManager.findFile(vf))
         .filter(Objects::nonNull)
         .forEach(f -> addItems(f)));
-
-      registerPsiListener();
-    }
-    else {
-      // There is no sample data directory, no reason to listen for PSI changes
-      unregisterPsiListener();
     }
 
     addPredefinedItems();
     setModificationCount(ourModificationCounter.incrementAndGet());
     invalidateParentCaches(PREDEFINED_SAMPLES_NS, ResourceType.SAMPLE_DATA);
-  }
-
-  /**
-   * Registers a PSI listener that will update the sample data from the sample data repository. If the listener is not
-   * registered, this call has no effect.
-   */
-  private void registerPsiListener() {
-    AndroidFacet facet = myAndroidFacet;
-    if (facet == null || facet.isDisposed()) {
-      return;
-    }
-
-    synchronized (myPsiTreeChangeListener) {
-      if (isPsiListenerRegistered) {
-        return;
-      }
-
-      isPsiListenerRegistered = true;
-      PsiManager.getInstance(facet.getModule().getProject()).addPsiTreeChangeListener(myPsiTreeChangeListener, this);
-    }
-  }
-
-  /**
-   * Unregisters a PSI listener that will update the sample data from the sample data repository. If the listener is already
-   * registered, this call has no effect.
-   */
-  private void unregisterPsiListener() {
-    AndroidFacet facet = myAndroidFacet;
-    if (facet == null || facet.isDisposed()) {
-      return;
-    }
-
-    synchronized (myPsiTreeChangeListener) {
-      if (!isPsiListenerRegistered) {
-        return;
-      }
-
-      isPsiListenerRegistered = false;
-      PsiManager.getInstance(facet.getModule().getProject()).removePsiTreeChangeListener(myPsiTreeChangeListener);
-    }
   }
 
   @Override
@@ -324,24 +227,6 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
     }
 
     super.addParent(parent);
-
-    try {
-      if (getSampleDataDir(facet, false) != null) {
-        registerPsiListener();
-      }
-    }
-    catch (IOException ignore) {
-    }
-  }
-
-  @Override
-  public void removeParent(@NonNull MultiResourceRepository parent) {
-    super.removeParent(parent);
-
-    if (!hasParents()) {
-      // If we are not attached to any repository, we do not need to listen for changes
-      unregisterPsiListener();
-    }
   }
 
   /**
@@ -359,39 +244,6 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
     boolean relevant = sampleDataDir != null && VfsUtilCore.isAncestor(sampleDataDir, file, false);
     // Also account for the case where the directory itself is being added or removed
     return relevant || FD_SAMPLE_DATA.equals(file.getName());
-  }
-
-  /**
-   * Files have been added or removed to the sample data directory
-   */
-  private void rootsUpdated(@NotNull VirtualFileEvent event) {
-    AndroidFacet facet = myAndroidFacet;
-    if (facet == null || facet.isDisposed()) {
-      return;
-    }
-
-    if (isSampleDataFile(facet, event.getFile())) {
-      LOG.debug("sampledata roots updated " + event.getFile());
-      invalidate();
-    }
-  }
-
-  /**
-   * Files have been added or removed to the sample data directory
-   * @param event
-   */
-  private void contentsUpdated(@NotNull PsiTreeChangeEvent event) {
-    AndroidFacet facet = myAndroidFacet;
-    if (facet == null || facet.isDisposed()) {
-      return;
-    }
-
-    PsiFile psiFile = event.getFile();
-    VirtualFile eventFile = psiFile != null ? psiFile.getVirtualFile() : null;
-    if (eventFile != null && isSampleDataFile(facet, eventFile)) {
-      LOG.debug("sampledata file updated " + eventFile);
-      invalidate();
-    }
   }
 
   @NonNull
@@ -437,7 +289,6 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
 
   @Override
   public void dispose() {
-    unregisterPsiListener();
     myAndroidFacet = null;
     super.dispose();
   }
@@ -445,23 +296,23 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
   /**
    * Service which caches instances of {@link SampleDataResourceRepository} by their associated {@link AndroidFacet}.
    */
-  private static class Manager extends AndroidFacetScopedService {
-    private static final Key<Manager> KEY = Key.create(Manager.class.getName());
+  static class SampleDataRepositoryManager extends AndroidFacetScopedService {
+    private static final Key<SampleDataRepositoryManager> KEY = Key.create(SampleDataRepositoryManager.class.getName());
     private SampleDataResourceRepository repository;
 
     @NotNull
-    public static Manager getInstance(@NotNull AndroidFacet facet) {
-      Manager manager = facet.getUserData(KEY);
+    public static SampleDataRepositoryManager getInstance(@NotNull AndroidFacet facet) {
+      SampleDataRepositoryManager manager = facet.getUserData(KEY);
 
       if (manager == null) {
-        manager = new Manager(facet);
+        manager = new SampleDataRepositoryManager(facet);
         facet.putUserData(KEY, manager);
       }
 
       return manager;
     }
 
-    public Manager(@NotNull AndroidFacet facet) {
+    private SampleDataRepositoryManager(@NotNull AndroidFacet facet) {
       super(facet);
     }
 
@@ -474,6 +325,16 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
         repository = new SampleDataResourceRepository(getFacet());
       }
       return repository;
+    }
+
+    public static boolean hasRepository(@NotNull AndroidFacet facet) {
+      SampleDataRepositoryManager manager = facet.getUserData(KEY);
+
+      if (manager == null) {
+        return false;
+      }
+
+      return manager.repository != null;
     }
 
     @Override

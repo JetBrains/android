@@ -26,6 +26,7 @@ import com.intellij.facet.FacetTypeId;
 import com.intellij.facet.FacetTypeRegistry;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -55,6 +56,17 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @Nullable
   public static AndroidFacet getInstance(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
     return modelsProvider.getModifiableFacetModel(module).getFacetByType(ID);
+  }
+
+  @Nullable
+  public static AndroidFacet getInstance(@NotNull VirtualFile file, @NotNull Project project) {
+    Module module = ModuleUtilCore.findModuleForFile(file, project);
+
+    if (module == null) {
+      return null;
+    }
+
+    return getInstance(module);
   }
 
   @Nullable
