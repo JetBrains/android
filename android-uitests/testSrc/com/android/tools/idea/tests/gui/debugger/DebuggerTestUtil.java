@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.debugger;
 
 import com.android.tools.idea.tests.gui.emulator.AvdSpec;
 import com.android.tools.idea.tests.gui.emulator.EmulatorGenerator;
+import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
@@ -78,7 +79,7 @@ public class DebuggerTestUtil {
     // Wait for "Debugger attached to process.*" to be printed on the app-native debug console.
     ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(configName);
     Pattern DEBUGGER_ATTACHED_PATTERN = Pattern.compile(".*Debugger attached to process.*", Pattern.DOTALL);
-    contentFixture.waitForOutput(new PatternTextMatcher(DEBUGGER_ATTACHED_PATTERN), 120);
+    contentFixture.waitForOutput(new PatternTextMatcher(DEBUGGER_ATTACHED_PATTERN), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
 
     return debugToolWindowFixture;
   }

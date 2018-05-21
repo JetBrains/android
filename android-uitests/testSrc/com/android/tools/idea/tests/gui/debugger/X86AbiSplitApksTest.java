@@ -58,7 +58,7 @@ public class X86AbiSplitApksTest extends DebuggerTestBase {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/77635374
+  @RunIn(TestGroup.SANITY)
   public void x86AbiSplitApks() throws Exception {
     DebuggerTestUtil.abiSplitApks(guiTest, DebuggerTestUtil.ABI_TYPE_X86);
   }
