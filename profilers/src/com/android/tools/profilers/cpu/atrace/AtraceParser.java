@@ -69,6 +69,10 @@ public class AtraceParser implements TraceParser {
   private final List<SeriesData<Long>> myCpuUtilizationSeries;
 
   private int myProcessId;
+  /**
+   * The device boot time captured at the beginning of the trace.
+   */
+  private double myMonoTimeAtBeginningSeconds = 0;
   private ProcessModel myProcessModel;
   // Trebuchet.Model is what Trebuchet uses to represent all captured data.
   private Model myModel;
@@ -122,6 +126,13 @@ public class AtraceParser implements TraceParser {
       AtraceDecompressor reader = new AtraceDecompressor(file);
       ImportTask task = new ImportTask(new PrintlnImportFeedback());
       myModel = task.importBuffer(reader);
+      // We check if we have a parent timestamp. If not this could be from an imported trace.
+      // In the case it is 0, we use the first timestamp of our capture as a reference point.
+      if (Double.compare(myModel.getParentTimestamp(),0.0) == 0) {
+        myMonoTimeAtBeginningSeconds = myModel.getBeginTimestamp();
+      } else {
+        myMonoTimeAtBeginningSeconds = myModel.getParentTimestamp() - (myModel.getParentTimestampBootTime() - myModel.getBeginTimestamp());
+      }
     }
   }
 
@@ -434,8 +445,8 @@ public class AtraceParser implements TraceParser {
     return myRange;
   }
 
-  private long convertToUserTimeUs(double offsetTime) {
-    return (long)secondsToUs((offsetTime - myModel.getBeginTimestamp()) + myModel.getParentTimestamp());
+  private long convertToUserTimeUs(double timestampInSeconds) {
+    return (long)secondsToUs((timestampInSeconds - myModel.getBeginTimestamp()) + myMonoTimeAtBeginningSeconds);
   }
 
   /**

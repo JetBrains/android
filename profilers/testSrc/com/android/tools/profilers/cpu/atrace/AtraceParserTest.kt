@@ -208,11 +208,11 @@ class AtraceParserTest {
     private val DELTA = .00000001
 
     // Setting const for atrace file in one location so if we update file we can update const in one location.
-    private val EXPECTED_MIN_RANGE = 8.7688546875E10
-    private val EXPECTED_MAX_RANGE = 8.7701855499E10
-    private val SINGLE_CHILD_EXPECTED_START = 87691109747
-    private val SINGLE_CHILD_EXPECTED_END = 87691109965
-    private val EXPECTED_THREAD_END_TIME = 87691120751
+    private val EXPECTED_MIN_RANGE = 8.7688546852E10
+    private val EXPECTED_MAX_RANGE = 8.7701855476E10
+    private val SINGLE_CHILD_EXPECTED_START = 87691109724
+    private val SINGLE_CHILD_EXPECTED_END = 87691109942
+    private val EXPECTED_THREAD_END_TIME = 87691120728
     private val EXPECTED_CHILD_COUNT = 213
     private val EXPECTED_METHOD_NAME = "setupGridItem"
     private val TEST_PID = 2652
