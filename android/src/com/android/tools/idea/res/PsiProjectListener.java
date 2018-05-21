@@ -33,14 +33,18 @@ import org.jetbrains.annotations.Nullable;
 import static com.android.SdkConstants.FD_RES_RAW;
 
 /**
- * A {@link PsiTreeChangeListener} that forwards events to {{@link ResourceFolderRepository#getPsiListener()}} of the {@link
- * ResourceFolderRepository} corresponding to the file being changed.
+ * A project-wide {@link PsiTreeChangeListener} that tracks events that are potentially relevant to
+ * the {@link ResourceFolderRepository} and/or {@link SampleDataResourceRepository} corresponding to the
+ * file being changed.
  *
- * TODO(bendowski): Move this to be an inner class of {@link ResourceFolderRegistry}.
+ * For {@link ResourceFolderRepository}, this is accomplished by passing the event to {{@link ResourceFolderRepository#getPsiListener()}}.
+ * In the case of sample data, the event is forwarded to the project's {@link SampleDataListener}.
+ *
+ * PsiProjectListener also notifies {@link EditorNotifications} when it detects that a Gradle file has been modified.
  */
 public class PsiProjectListener extends AbstractProjectComponent implements PsiTreeChangeListener {
-
   private final ResourceFolderRegistry myRegistry;
+  private SampleDataListener mySampleDataListener;
 
   @NotNull
   public static PsiProjectListener getInstance(@NotNull Project project) {
@@ -51,6 +55,22 @@ public class PsiProjectListener extends AbstractProjectComponent implements PsiT
     super(project);
     PsiManager.getInstance(project).addPsiTreeChangeListener(this);
     myRegistry = ResourceFolderRegistry.getInstance(project);
+  }
+
+  /**
+   * Registers a {@link SampleDataListener} to be notified of possibly relevant PSI events.
+   * Because there should only be a single instance of {@link SampleDataListener} per project
+   * (it's a project service), this method can only be called once.
+   *
+   * We register the listener with this method instead of doing it right away in the constructor
+   * because {@link SampleDataListener} only needs to know about PSI updates if the user is working
+   * with resource or activity files.
+   *
+   * @param sampleDataListener the project's {@link SampleDataListener}
+   */
+   void setSampleDataListener(SampleDataListener sampleDataListener) {
+    assert mySampleDataListener == null: "SampleDataListener already set!";
+    mySampleDataListener = sampleDataListener;
   }
 
   static boolean isRelevantFileType(@NotNull FileType fileType) {
@@ -156,6 +176,10 @@ public class PsiProjectListener extends AbstractProjectComponent implements PsiT
     } else if (isGradleFileEdit(psiFile)) {
       notifyGradleEdit(psiFile);
     }
+
+    if (mySampleDataListener != null) {
+      mySampleDataListener.childAdded(event);
+    }
   }
 
   private void dispatchChildAdded(@NotNull PsiTreeChangeEvent event, @Nullable VirtualFile virtualFile) {
@@ -188,6 +212,10 @@ public class PsiProjectListener extends AbstractProjectComponent implements PsiT
     } else if (isGradleFileEdit(psiFile)) {
       notifyGradleEdit(psiFile);
     }
+
+    if (mySampleDataListener != null) {
+      mySampleDataListener.childRemoved(event);
+    }
   }
 
   private void dispatchChildRemoved(@NotNull PsiTreeChangeEvent event, @Nullable VirtualFile virtualFile) {
@@ -206,6 +234,10 @@ public class PsiProjectListener extends AbstractProjectComponent implements PsiT
         dispatchChildReplaced(event, psiFile.getVirtualFile());
       } else if (isGradleFileEdit(psiFile)) {
         notifyGradleEdit(psiFile);
+      }
+
+      if (mySampleDataListener != null) {
+        mySampleDataListener.childReplaced(event);
       }
     } else {
       PsiElement parent = event.getParent();
@@ -244,9 +276,15 @@ public class PsiProjectListener extends AbstractProjectComponent implements PsiT
   @Override
   public void childrenChanged(@NotNull PsiTreeChangeEvent event) {
     PsiFile psiFile = event.getFile();
-    if (psiFile != null && isRelevantFile(psiFile)) {
-      VirtualFile file = psiFile.getVirtualFile();
-      dispatchChildrenChanged(event, file);
+    if (psiFile != null) {
+      if (isRelevantFile(psiFile)) {
+        VirtualFile file = psiFile.getVirtualFile();
+        dispatchChildrenChanged(event, file);
+      }
+
+      if (mySampleDataListener != null) {
+        mySampleDataListener.childrenChanged(event);
+      }
     }
   }
 
@@ -280,8 +318,14 @@ public class PsiProjectListener extends AbstractProjectComponent implements PsiT
     } else {
       // Change inside a file
       VirtualFile file = psiFile.getVirtualFile();
-      if (file != null && isRelevantFile(file)) {
-        dispatchChildMoved(event, file);
+      if (file != null) {
+        if (isRelevantFile(file)) {
+          dispatchChildMoved(event, file);
+        }
+
+        if (mySampleDataListener != null) {
+          mySampleDataListener.childMoved(event);
+        }
       }
     }
   }
