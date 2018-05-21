@@ -83,30 +83,7 @@ public class StatefulButton extends JPanel {
     // etc.
     mySuccessMessage = action.getSuccessMessage();
 
-    myButton = new ActionButton(action, listener, this) {
-      @Override
-      public void setUI(ButtonUI ui) {
-        // Custom ButtonUI needed to avoid white-on-white that appears with Mac rendering.
-        // Overriding setUI ensures a platform theme change doesn't undo the ButtonUI override.
-
-        // Hack: Hardcoding a custom ButtonUI since the platform specific customization for Mac, MacIntelliJButtonUI, doesn't always draw
-        // with get*Color* colors. Using a custom implementation that always draws using those colors.
-        super.setUI(StatefulButtonUI.createUI(myButton));
-        // TODO: Ask IntelliJ whether MacIntelliJButtonUI.paint should use get*Color*() to draw buttons when MacIntelliJButtonBorder present
-
-        // Super hack: Below is an unfortunate side effect of the hardcoding above. The Mac and Darcula button border implementation classes
-        // use dramatically different inset sizes, but the custom ButtonUI implementation is a fork of DarculaButtonUI which assumes a
-        // larger inset. The code below injects a padded border with the Darcula insets when the Mac border is present.
-        JButton defaultButton = new JButton();
-        Border defaultButtonBorder = defaultButton.getBorder();
-        if (defaultButtonBorder instanceof MacIntelliJButtonBorder) {
-          defaultButtonBorder = new DarculaButtonPainter();
-        }
-        Insets insets = defaultButtonBorder.getBorderInsets(defaultButton);
-        setBorder(BorderFactory.createEmptyBorder(insets.top, insets.left, insets.bottom, insets.right));
-      }
-    };
-
+    myButton = new ActionButton(action, listener, this);
     GridBagConstraints c = new GridBagConstraints();
     c.gridx = 0;
     c.gridy = 0;
