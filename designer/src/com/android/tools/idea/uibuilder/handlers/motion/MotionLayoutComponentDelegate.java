@@ -42,6 +42,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.ConstraintSetConstraint;
+
 public class MotionLayoutComponentDelegate implements NlComponentDelegate {
 
   private static final boolean USE_CACHE = true;
@@ -421,7 +423,7 @@ public class MotionLayoutComponentDelegate implements NlComponentDelegate {
         }
         XmlTag constrainedView = myPanel.getConstrainView(constraintSet, component.getId());
         if (constrainedView == null) {
-          constrainedView = constraintSet.createChildTag("ConstrainView", null, null, false);
+          constrainedView = constraintSet.createChildTag(ConstraintSetConstraint, null, null, false);
           constrainedView = constraintSet.addSubTag(constrainedView, false);
           String componentId = "@+id/" + component.getId();
           constrainedView.setAttribute("id", SdkConstants.ANDROID_URI, componentId);
