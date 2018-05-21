@@ -48,6 +48,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.event.CaretEvent;
 import com.intellij.openapi.editor.event.CaretListener;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -56,6 +57,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.Alarm;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
@@ -230,10 +232,15 @@ public class NlPreviewForm implements Disposable, CaretListener {
   public void dispose() {
     deactivate();
     disposeActionsToolbar();
+    disposeModel();
+  }
 
+  private void disposeModel() {
     if (myModel != null) {
+      myModel.deactivate(this);
       Disposer.dispose(myModel);
       myModel = null;
+      mySurface.setModel(null);
     }
   }
 
@@ -453,23 +460,32 @@ public class NlPreviewForm implements Disposable, CaretListener {
     }
   }
 
+  // A file editor was closed. If our editor no longer exists, cleanup our state.
+  public void fileClosed(@NotNull FileEditorManager editorManager, @NotNull VirtualFile file) {
+    if (myEditor != null) {
+      if (ArrayUtil.find(editorManager.getAllEditors(file), myEditor) < 0) {
+        setActiveModel(null);
+      }
+    }
+    if (myPendingEditor != null) {
+      if (ArrayUtil.find(editorManager.getAllEditors(file), myPendingEditor) < 0) {
+        myPendingEditor = null;
+      }
+    }
+  }
+
   @SuppressWarnings("WeakerAccess") // This method needs to be public as it's used by the Anko DSL preview
   public void setActiveModel(@Nullable NlModel model) {
     myPendingFile = null;
-    SceneView currentScreenView = mySurface.getCurrentSceneView();
-    if (currentScreenView != null) {
-      NlModel oldModel = currentScreenView.getModel();
-      if (model != oldModel) {
-        oldModel.deactivate(this);
-        Disposer.dispose(oldModel);
-      }
+    if (myModel != model) {
+      disposeModel();
     }
-
     if (model == null) {
       setEditor(null);
       disposeActionsToolbar();
 
       myWorkBench.setToolContext(null);
+      myWorkBench.setFileEditor(null);
     }
     else {
       myFile = model.getVirtualFile();
