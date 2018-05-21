@@ -16,15 +16,11 @@
 package com.android.tools.idea.gradle.structure.configurables.android.modules
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
+import com.android.tools.idea.gradle.structure.configurables.ui.*
 import com.android.tools.idea.gradle.structure.configurables.ui.modules.ModulePanel
-import com.android.tools.idea.gradle.structure.configurables.ui.properties.listPropertyEditor
-import com.android.tools.idea.gradle.structure.configurables.ui.properties.mapPropertyEditor
-import com.android.tools.idea.gradle.structure.configurables.ui.properties.simplePropertyEditor
 import com.android.tools.idea.gradle.structure.model.android.AndroidModuleDescriptors
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModuleDefaultConfigDescriptors
-import com.android.tools.idea.gradle.structure.model.meta.PropertiesUiModel
-import com.android.tools.idea.gradle.structure.model.meta.uiProperty
 
 class AndroidModuleRootConfigurable(context: PsContext, module: PsAndroidModule) : AbstractModuleConfigurable<ModulePanel>(context, module) {
 
@@ -36,29 +32,29 @@ class AndroidModuleRootConfigurable(context: PsContext, module: PsAndroidModule)
 }
 
 fun androidModulePropertiesModel() =
-    PropertiesUiModel(
-        listOf(
-            uiProperty(AndroidModuleDescriptors.compileSdkVersion, ::simplePropertyEditor),
-            uiProperty(AndroidModuleDescriptors.buildToolsVersion, ::simplePropertyEditor),
-            uiProperty(AndroidModuleDescriptors.sourceCompatibility, ::simplePropertyEditor),
-            uiProperty(AndroidModuleDescriptors.targetCompatibility, ::simplePropertyEditor)))
+  PropertiesUiModel(
+    listOf(
+      uiProperty(AndroidModuleDescriptors.compileSdkVersion, ::simplePropertyEditor),
+      uiProperty(AndroidModuleDescriptors.buildToolsVersion, ::simplePropertyEditor),
+      uiProperty(AndroidModuleDescriptors.sourceCompatibility, ::simplePropertyEditor),
+      uiProperty(AndroidModuleDescriptors.targetCompatibility, ::simplePropertyEditor)))
 
 fun defaultConfigPropertiesModel() =
-    PropertiesUiModel(
-        listOf(
-            uiProperty(PsAndroidModuleDefaultConfigDescriptors.applicationId, ::simplePropertyEditor),
-            uiProperty(PsAndroidModuleDefaultConfigDescriptors.targetSdkVersion, ::simplePropertyEditor),
-            uiProperty(PsAndroidModuleDefaultConfigDescriptors.minSdkVersion, ::simplePropertyEditor),
-            uiProperty(PsAndroidModuleDefaultConfigDescriptors.maxSdkVersion, ::simplePropertyEditor),
-            uiProperty(PsAndroidModuleDefaultConfigDescriptors.signingConfig, ::simplePropertyEditor),
-            uiProperty(PsAndroidModuleDefaultConfigDescriptors.proGuardFiles, listPropertyEditor(::simplePropertyEditor)),
-            uiProperty(PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders, mapPropertyEditor(::simplePropertyEditor)),
-            uiProperty(PsAndroidModuleDefaultConfigDescriptors.multiDexEnabled, ::simplePropertyEditor),
+  PropertiesUiModel(
+    listOf(
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.applicationId, ::simplePropertyEditor),
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.targetSdkVersion, ::simplePropertyEditor),
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.minSdkVersion, ::simplePropertyEditor),
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.maxSdkVersion, ::simplePropertyEditor),
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.signingConfig, ::simplePropertyEditor),
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.proGuardFiles, ::listPropertyEditor),
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders, ::mapPropertyEditor),
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.multiDexEnabled, ::simplePropertyEditor),
 // TODO(b/70501607): Decide on PsProductFlavor.ProductFlavorDescriptors.testFunctionalTest,
 // TODO(b/70501607): Decide on PsProductFlavor.ProductFlavorDescriptors.testHandleProfiling,
-            uiProperty(PsAndroidModuleDefaultConfigDescriptors.testInstrumentationRunner, ::simplePropertyEditor),
-            uiProperty(PsAndroidModuleDefaultConfigDescriptors.testInstrumentationRunnerArguments, mapPropertyEditor(::simplePropertyEditor)),
-            uiProperty(PsAndroidModuleDefaultConfigDescriptors.testApplicationId, ::simplePropertyEditor),
-            uiProperty(PsAndroidModuleDefaultConfigDescriptors.versionCode, ::simplePropertyEditor),
-            uiProperty(PsAndroidModuleDefaultConfigDescriptors.versionName, ::simplePropertyEditor)))
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.testInstrumentationRunner, ::simplePropertyEditor),
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.testInstrumentationRunnerArguments, ::mapPropertyEditor),
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.testApplicationId, ::simplePropertyEditor),
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.versionCode, ::simplePropertyEditor),
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.versionName, ::simplePropertyEditor)))
 

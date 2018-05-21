@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
 import com.android.tools.idea.gradle.structure.configurables.ui.ComponentProvider
 import com.android.tools.idea.gradle.structure.model.PsModule
-import com.android.tools.idea.gradle.structure.model.meta.PropertiesUiModel
+import com.android.tools.idea.gradle.structure.configurables.ui.PropertiesUiModel
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 

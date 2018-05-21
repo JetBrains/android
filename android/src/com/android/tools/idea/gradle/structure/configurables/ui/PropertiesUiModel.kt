@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.model.meta
+package com.android.tools.idea.gradle.structure.configurables.ui
 
-import com.android.tools.idea.gradle.structure.configurables.ui.properties.EditorExtensionAction
-import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditor
-import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditorFactory
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.*
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.VariablesProvider
+import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.icons.AllIcons
 import javax.swing.Icon
 
@@ -90,3 +89,27 @@ class PropertyUiModelImpl<in ContextT, in ModelT, PropertyT : Any, ValueT : Any,
         }
       })
 }
+
+fun <PropertyT : Any, ModelPropertyT : ModelPropertyCore<PropertyT>> simplePropertyEditor(
+  property: ModelPropertyT,
+  propertyContext: ModelPropertyContext<PropertyT>,
+  variablesProvider: VariablesProvider? = null,
+  extensions: List<EditorExtensionAction> = listOf()
+): SimplePropertyEditor<PropertyT, ModelPropertyT> =
+  SimplePropertyEditor(property, propertyContext, variablesProvider, extensions)
+
+fun <ValueT : Any, ModelPropertyT : ModelListPropertyCore<ValueT>> listPropertyEditor(
+  property: ModelPropertyT,
+  propertyContext: ModelPropertyContext<ValueT>,
+  variablesProvider: VariablesProvider? = null,
+  extensions: List<EditorExtensionAction> = listOf()
+): ListPropertyEditor<ValueT, ModelPropertyT> =
+  ListPropertyEditor(property, propertyContext, ::simplePropertyEditor, variablesProvider, extensions)
+
+fun <ValueT : Any, ModelPropertyT : ModelMapPropertyCore<ValueT>> mapPropertyEditor(
+  property: ModelPropertyT,
+  propertyContext: ModelPropertyContext<ValueT>,
+  variablesProvider: VariablesProvider? = null,
+  extensions: List<EditorExtensionAction> = listOf()
+): MapPropertyEditor<ValueT, ModelPropertyT> =
+  MapPropertyEditor(property, propertyContext, ::simplePropertyEditor, variablesProvider, extensions)

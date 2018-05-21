@@ -14,13 +14,9 @@
 package com.android.tools.idea.gradle.structure.configurables.android.buildvariants.buildtypes
 
 import com.android.tools.idea.gradle.structure.configurables.android.ChildModelConfigurable
+import com.android.tools.idea.gradle.structure.configurables.ui.*
 import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.buildtypes.BuildTypeConfigPanel
-import com.android.tools.idea.gradle.structure.configurables.ui.properties.listPropertyEditor
-import com.android.tools.idea.gradle.structure.configurables.ui.properties.mapPropertyEditor
-import com.android.tools.idea.gradle.structure.configurables.ui.properties.simplePropertyEditor
 import com.android.tools.idea.gradle.structure.model.android.PsBuildType
-import com.android.tools.idea.gradle.structure.model.meta.PropertiesUiModel
-import com.android.tools.idea.gradle.structure.model.meta.uiProperty
 
 class BuildTypeConfigurable(private val buildType: PsBuildType) : ChildModelConfigurable<PsBuildType, BuildTypeConfigPanel>(buildType) {
   override fun getBannerSlogan() = "Build Type '${buildType.name}'"
@@ -29,22 +25,22 @@ class BuildTypeConfigurable(private val buildType: PsBuildType) : ChildModelConf
 }
 
 fun buildTypePropertiesModel() =
-    PropertiesUiModel(
-        listOf(
-            uiProperty(PsBuildType.BuildTypeDescriptors.debuggable, ::simplePropertyEditor),
+  PropertiesUiModel(
+    listOf(
+      uiProperty(PsBuildType.BuildTypeDescriptors.debuggable, ::simplePropertyEditor),
 // TODO(b/70501607): Decide on PsBuildType.BuildTypeDescriptors.embedMicroApp,
-            uiProperty(PsBuildType.BuildTypeDescriptors.jniDebuggable, ::simplePropertyEditor),
-            uiProperty(PsBuildType.BuildTypeDescriptors.renderscriptDebuggable, ::simplePropertyEditor),
-            uiProperty(PsBuildType.BuildTypeDescriptors.renderscriptOptimLevel, ::simplePropertyEditor),
-            uiProperty(PsBuildType.BuildTypeDescriptors.signingConfig, ::simplePropertyEditor),
-            uiProperty(PsBuildType.BuildTypeDescriptors.proGuardFiles, listPropertyEditor(::simplePropertyEditor)),
-            uiProperty(PsBuildType.BuildTypeDescriptors.manifestPlaceholders, mapPropertyEditor(::simplePropertyEditor)),
-            uiProperty(PsBuildType.BuildTypeDescriptors.minifyEnabled, ::simplePropertyEditor),
-            uiProperty(PsBuildType.BuildTypeDescriptors.multiDexEnabled, ::simplePropertyEditor),
+      uiProperty(PsBuildType.BuildTypeDescriptors.jniDebuggable, ::simplePropertyEditor),
+      uiProperty(PsBuildType.BuildTypeDescriptors.renderscriptDebuggable, ::simplePropertyEditor),
+      uiProperty(PsBuildType.BuildTypeDescriptors.renderscriptOptimLevel, ::simplePropertyEditor),
+      uiProperty(PsBuildType.BuildTypeDescriptors.signingConfig, ::simplePropertyEditor),
+      uiProperty(PsBuildType.BuildTypeDescriptors.proGuardFiles, ::listPropertyEditor),
+      uiProperty(PsBuildType.BuildTypeDescriptors.manifestPlaceholders, ::mapPropertyEditor),
+      uiProperty(PsBuildType.BuildTypeDescriptors.minifyEnabled, ::simplePropertyEditor),
+      uiProperty(PsBuildType.BuildTypeDescriptors.multiDexEnabled, ::simplePropertyEditor),
 // TODO(b/70501607): Decide on PsBuildType.BuildTypeDescriptors.pseudoLocalesEnabled,
 // TODO(b/70501607): Decide on PsBuildType.BuildTypeDescriptors.testCoverageEnabled,
-            uiProperty(PsBuildType.BuildTypeDescriptors.applicationIdSuffix, ::simplePropertyEditor),
-            uiProperty(PsBuildType.BuildTypeDescriptors.versionNameSuffix, ::simplePropertyEditor),
-            uiProperty(PsBuildType.BuildTypeDescriptors.zipAlignEnabled, ::simplePropertyEditor)
-        ))
+      uiProperty(PsBuildType.BuildTypeDescriptors.applicationIdSuffix, ::simplePropertyEditor),
+      uiProperty(PsBuildType.BuildTypeDescriptors.versionNameSuffix, ::simplePropertyEditor),
+      uiProperty(PsBuildType.BuildTypeDescriptors.zipAlignEnabled, ::simplePropertyEditor)
+    ))
 
