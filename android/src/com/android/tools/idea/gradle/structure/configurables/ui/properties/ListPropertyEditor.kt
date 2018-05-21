@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
+import com.android.tools.idea.gradle.structure.configurables.ui.PropertyEditorFactory
 import com.android.tools.idea.gradle.structure.model.VariablesProvider
 import com.android.tools.idea.gradle.structure.model.meta.*
 import javax.swing.table.DefaultTableColumnModel
@@ -90,13 +91,6 @@ class ListPropertyEditor<ValueT : Any, ModelPropertyT : ModelListPropertyCore<Va
   override fun getPropertyAt(row: Int) = property.getEditableValues()[row]
 
   override fun createNew(property: ModelPropertyT): ModelPropertyEditor<List<ValueT>> =
-    listPropertyEditor(editor)(property, propertyContext, variablesProvider, extensions)
+    ListPropertyEditor(property, propertyContext, editor, variablesProvider, extensions)
 }
 
-fun <ValueT : Any, ModelPropertyT : ModelListPropertyCore<ValueT>> listPropertyEditor(
-  editor: PropertyEditorFactory<ModelPropertyCore<ValueT>, ModelPropertyContext<ValueT>, ValueT>
-):
-  PropertyEditorFactory<ModelPropertyT, ModelPropertyContext<ValueT>, List<ValueT>> =
-  { property, propertyContext, variablesProvider, extensions ->
-    ListPropertyEditor(property, propertyContext, editor, variablesProvider, extensions)
-  }

@@ -224,20 +224,12 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
   }
 
   override fun createNew(property: ModelPropertyT): ModelPropertyEditor<PropertyT> =
-    simplePropertyEditor(property, propertyContext, variablesProvider, extensions)
+    SimplePropertyEditor(property, propertyContext, variablesProvider, extensions)
 
   init {
     reload()
   }
 }
-
-fun <PropertyT : Any, ModelPropertyT : ModelPropertyCore<PropertyT>> simplePropertyEditor(
-  property: ModelPropertyT,
-  propertyContext: ModelPropertyContext<PropertyT>,
-  variablesProvider: VariablesProvider? = null,
-  extensions: List<EditorExtensionAction> = listOf()
-): SimplePropertyEditor<PropertyT, ModelPropertyT> =
-  SimplePropertyEditor(property, propertyContext, variablesProvider, extensions)
 
 
 private fun <I, O> ListenableFuture<I>.continueOnEdt(continuation: (I) -> O) =
