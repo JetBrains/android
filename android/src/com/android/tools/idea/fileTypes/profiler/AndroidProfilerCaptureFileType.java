@@ -28,8 +28,6 @@ import javax.swing.*;
  */
 public abstract class AndroidProfilerCaptureFileType implements FileType {
 
-  public static final String OPEN_CAPTURE_ACTION_ID = "capture-opener";
-
   @Override
   public boolean isBinary() {
     return true;

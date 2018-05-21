@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.vmtrace;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profiling.capture.FileCaptureType;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.ProfilerCaptureType;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -39,5 +40,11 @@ public class VmTraceCaptureType extends FileCaptureType {
   @Override
   public ProfilerCaptureType getCaptureType() {
     return ProfilerCaptureType.VM_TRACE;
+  }
+
+  @Override
+  public boolean accept(@NotNull VirtualFile file) {
+    // If flag is enabled, .trace files will be accepted by AndroidProfilerCaptureEditorProvider instead of CaptureEditorProvider.
+    return !StudioFlags.PROFILER_OPEN_CAPTURES.get();
   }
 }

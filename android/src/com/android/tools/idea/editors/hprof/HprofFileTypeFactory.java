@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.hprof;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.fileTypes.FileTypeConsumer;
 import com.intellij.openapi.fileTypes.FileTypeFactory;
 import org.jetbrains.annotations.NotNull;
@@ -22,6 +23,10 @@ import org.jetbrains.annotations.NotNull;
 public class HprofFileTypeFactory extends FileTypeFactory {
   @Override
   public void createFileTypes(@NotNull FileTypeConsumer consumer) {
-    consumer.consume(HprofFileType.INSTANCE, HprofFileType.INSTANCE.getDefaultExtension());
+    // Only consume .hprof files as this legacy FileType if PROFILER_OPEN_CAPTURES flag is disabled.
+    // If the flag is enabled, these files are going to be consumed by Android Profiler instead.
+    if (!StudioFlags.PROFILER_OPEN_CAPTURES.get()) {
+      consumer.consume(HprofFileType.INSTANCE, HprofFileType.INSTANCE.getDefaultExtension());
+    }
   }
 }

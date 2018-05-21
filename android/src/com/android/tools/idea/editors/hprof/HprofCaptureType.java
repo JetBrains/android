@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.hprof;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profiling.capture.FileCaptureType;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.ProfilerCaptureType;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -38,5 +39,11 @@ public class HprofCaptureType extends FileCaptureType {
   @Override
   public ProfilerCaptureType getCaptureType() {
     return ProfilerCaptureType.HEAP;
+  }
+
+  @Override
+  public boolean accept(@NotNull VirtualFile file) {
+    // If flag is enabled, .hprof files will be accepted by AndroidProfilerCaptureEditorProvider instead of CaptureEditorProvider.
+    return !StudioFlags.PROFILER_OPEN_CAPTURES.get();
   }
 }
