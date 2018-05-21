@@ -66,35 +66,35 @@ public class ProfilerColors {
   public static final Color CPU_KERNEL_OTHER_HOVER = new JBColor(0x80B7CA, 0x587495);
 
   /**
-   * Represents pair of colors of non-selected and selected states of a thread.
-   * The first color is for a non-selected thread, the second one is for a selected thread.
+   * Represents pair of colors of non-selected and hovered states of a thread.
+   * The first color is for a non-selected thread, the second one is for a hovered thread.
    */
   public static final EnumColors.Builder<CpuProfilerStage.ThreadState> THREAD_STATES =
     new EnumColors.Builder<CpuProfilerStage.ThreadState>(2)
       .add(CpuProfilerStage.ThreadState.RUNNING,
            CPU_USAGE,
-           new JBColor(0x57D9B2, 0x387358))
+           new JBColor(0x159482, 0x73D7BA))
       .add(CpuProfilerStage.ThreadState.RUNNING_CAPTURED,
            CPU_USAGE_CAPTURED,
-           new JBColor(0x224E4D, 0xDAFFF4))
+           new JBColor(0x159482, 0x73D7BA))
       .add(CpuProfilerStage.ThreadState.RUNNABLE_CAPTURED,
            new JBColor(0x2D7E77, 0x33807E),
-           new JBColor(0x2D7E77, 0x33807E))
+           new JBColor(0x266B65, 0x44ACA9))
       .add(CpuProfilerStage.ThreadState.WAITING,
            new JBColor(0xeccc8e, 0xa5956a),
-           new JBColor(0xeccc8e, 0xa5956a))
+           new JBColor(0xE3AD48, 0xF8E8C3))
       .add(CpuProfilerStage.ThreadState.WAITING_CAPTURED,
            new JBColor(0xEAC174, 0xF1D48C),
-           new JBColor(0xEAC174, 0xF1D48C))
+           new JBColor(0xE3AD48, 0xF8E8C3))
       .add(CpuProfilerStage.ThreadState.WAITING_IO_CAPTURED,
            new JBColor(0xFFB74D, 0xFFCA28),
-           new JBColor(0xFFB74D, 0xFFCA28))
+           new JBColor(0xE3AD48, 0xF8E8C3))
       .add(CpuProfilerStage.ThreadState.SLEEPING,
-           new JBColor(0xEDEFF1, 0x3B3E42),
-           new JBColor(0x7BA6E9, 0x7BA6E9))
+           new JBColor(0xF2F6F8, 0x353739),
+           new JBColor(0xD5DADD, 0x595C61))
       .add(CpuProfilerStage.ThreadState.SLEEPING_CAPTURED,
-           new JBColor(0xD4D7DA, 0x4B4E52),
-           new JBColor(0x8FB3EA, 0x8FB3EA))
+           new JBColor(0xE7ECED, 0x3C3E40),
+           new JBColor(0xD5DADD, 0x595C61))
       .add(CpuProfilerStage.ThreadState.DEAD,
            Gray.TRANSPARENT,
            Gray.TRANSPARENT)
@@ -103,7 +103,7 @@ public class ProfilerColors {
            Gray.TRANSPARENT)
       .add(CpuProfilerStage.ThreadState.HAS_ACTIVITY,
            CPU_USAGE,
-           new JBColor(0x57D9B2, 0x387358))
+           new JBColor(0x159482, 0x73D7BA))
       .add(CpuProfilerStage.ThreadState.NO_ACTIVITY,
            Gray.TRANSPARENT,
            Gray.TRANSPARENT)

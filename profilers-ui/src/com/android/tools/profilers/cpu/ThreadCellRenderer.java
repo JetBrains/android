@@ -92,10 +92,6 @@ public class ThreadCellRenderer extends CpuCellRenderer<CpuThreadsModel.RangedCp
       stateChart.setBorder(JBUI.Borders.customLine(ProfilerColors.CPU_THREAD_SELECTED_BACKGROUND, 2));
     }
     if (myHoveredIndex == index) {
-      // Cell is hovered. Draw the hover overlay over it.
-      JPanel overlay = new JPanel();
-      overlay.setBackground(ProfilerColors.DEFAULT_HOVER_COLOR);
-      panel.add(overlay, new TabularLayout.Constraint(0, 0, 2));
       // Draw drag icon next to label
       myLabel.setBorder(JBUI.Borders.empty());
       myLabel.setIcon(isSelected ? ColoredIconGenerator.INSTANCE.generateWhiteIcon(reorderIcon) : reorderIcon);
@@ -123,6 +119,7 @@ public class ThreadCellRenderer extends CpuCellRenderer<CpuThreadsModel.RangedCp
                          @Override
                          public Color getColor(boolean isMouseOver,
                                                @NotNull CpuProfilerStage.ThreadState value) {
+                           enumColors.setColorIndex(isMouseOver ? 1 : 0);
                            return enumColors.getColor(value);
                          }
                        });
