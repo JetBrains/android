@@ -25,8 +25,7 @@ import javax.swing.JComponent
 abstract class PropertyEditorBase<out ModelPropertyT : ModelPropertyCore<*>, ValueT : Any>(
   val property: ModelPropertyT,
   val propertyContext: ModelPropertyContext<ValueT>,
-  protected val variablesProvider: VariablesProvider?,
-  protected val extensions: List<EditorExtensionAction>
+  protected val variablesProvider: VariablesProvider?
 ) {
 
   abstract val component: JComponent

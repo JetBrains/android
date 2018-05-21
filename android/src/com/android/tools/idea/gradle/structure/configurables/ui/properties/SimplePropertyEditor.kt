@@ -44,9 +44,9 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
   property: ModelPropertyT,
   propertyContext: ModelPropertyContext<PropertyT>,
   variablesProvider: VariablesProvider?,
-  extensions: List<EditorExtensionAction>
+  private val extensions: List<EditorExtensionAction<PropertyT, ModelPropertyT>>
 ) :
-  PropertyEditorBase<ModelPropertyT, PropertyT>(property, propertyContext, variablesProvider, extensions),
+  PropertyEditorBase<ModelPropertyT, PropertyT>(property, propertyContext, variablesProvider),
   ModelPropertyEditor<PropertyT>,
   ModelPropertyEditorFactory<PropertyT, ModelPropertyT> {
 
@@ -230,7 +230,6 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
     reload()
   }
 }
-
 
 private fun <I, O> ListenableFuture<I>.continueOnEdt(continuation: (I) -> O) =
   Futures.transform(
