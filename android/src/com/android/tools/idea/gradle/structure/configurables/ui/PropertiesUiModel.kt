@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("UNUSED_PARAMETER")
+
 package com.android.tools.idea.gradle.structure.configurables.ui
 
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.*
@@ -20,8 +22,6 @@ import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.VariablesProvider
 import com.android.tools.idea.gradle.structure.model.meta.*
-import com.intellij.icons.AllIcons
-import javax.swing.Icon
 
 /**
  * A model of the UI for editing the properties of a model of type [ModelT].
@@ -46,8 +46,13 @@ interface PropertyUiModel<in ModelT, out PropertyT> {
 }
 
 typealias
-  PropertyEditorFactory<ModelPropertyCoreT, ModelPropertyContextT, PropertyT> =
-  (ModelPropertyCoreT, ModelPropertyContextT, VariablesProvider?, List<EditorExtensionAction>) -> ModelPropertyEditor<PropertyT>
+  PropertyEditorFactory<ModelT, ContextT, ModelPropertyT, PropertyT> =
+  (project: PsProject, module: PsModule, context: ContextT, model: ModelT, ModelPropertyT, VariablesProvider?) ->
+  ModelPropertyEditor<PropertyT>
+
+typealias
+  PropertyEditorCoreFactory<ModelPropertyCoreT, ModelPropertyContextT, PropertyT> =
+  (ModelPropertyCoreT, ModelPropertyContextT, VariablesProvider?) -> ModelPropertyEditor<PropertyT>
 
 /**
  * Creates a UI property model describing how to represent [property] for editing.
@@ -57,59 +62,75 @@ typealias
 fun <ModelT, PropertyT : Any, ValueT : Any, ModelPropertyCoreT : ModelPropertyCore<PropertyT>,
   ModelPropertyT : ModelProperty<Nothing?, ModelT, PropertyT, ValueT, ModelPropertyCoreT>> uiProperty(
   property: ModelPropertyT,
-  editorFactory: PropertyEditorFactory<ModelPropertyCoreT, ModelPropertyContext<ValueT>, PropertyT>
+  editorFactory: PropertyEditorFactory<ModelT, Nothing?, ModelPropertyT, PropertyT>
 ): PropertyUiModel<ModelT, *> =
   PropertyUiModelImpl(property, editorFactory, null)
 
-class PropertyUiModelImpl<in ContextT, in ModelT, PropertyT : Any, ValueT : Any,
-  out ModelPropertyCoreT : ModelPropertyCore<PropertyT>, out ModelPropertyT : ModelProperty<ContextT, ModelT, PropertyT, ValueT, ModelPropertyCoreT>>(
+class PropertyUiModelImpl<
+  in ContextT,
+  in ModelT, PropertyT : Any,
+  ValueT : Any,
+  out ModelPropertyCoreT : ModelPropertyCore<PropertyT>,
+  out ModelPropertyT : ModelProperty<ContextT, ModelT, PropertyT, ValueT, ModelPropertyCoreT>>
+(
   private val property: ModelPropertyT,
-  private val editorFactory: PropertyEditorFactory<ModelPropertyCoreT, ModelPropertyContext<ValueT>, PropertyT>,
+  private val editorFactory: PropertyEditorFactory<ModelT, ContextT, ModelPropertyT, PropertyT>,
   private val context: ContextT
 ) : PropertyUiModel<ModelT, PropertyT> {
   override val propertyDescription: String = property.description
   override fun createEditor(project: PsProject, module: PsModule, model: ModelT)
     : ModelPropertyEditor<PropertyT> {
-    val boundProperty = property.bind(model)
-    val boundContext = property.bindContext(context, model)
-    return editorFactory(boundProperty, boundContext, module.variables, createEditorExtensions())
+    return editorFactory(project, module, context, model, property, module.variables)
   }
-
-  private fun createEditorExtensions(): List<EditorExtensionAction> =
-    listOf(
-      object : EditorExtensionAction {
-        override val title: String = "Bind to New Variable"
-        override val tooltip: String = "Bind to New Variable"
-        override val icon: Icon = AllIcons.Nodes.Variable
-        override fun <T : Any, ModelPropertyCoreT : ModelPropertyCore<T>> invoke(
-          property: ModelPropertyCoreT,
-          editor: ModelPropertyEditor<T>,
-          editorFactory: ModelPropertyEditorFactory<T, ModelPropertyCoreT>) {
-          TODO()
-        }
-      })
 }
 
-fun <PropertyT : Any, ModelPropertyT : ModelPropertyCore<PropertyT>> simplePropertyEditor(
-  property: ModelPropertyT,
-  propertyContext: ModelPropertyContext<PropertyT>,
-  variablesProvider: VariablesProvider? = null,
-  extensions: List<EditorExtensionAction> = listOf()
-): SimplePropertyEditor<PropertyT, ModelPropertyT> =
-  SimplePropertyEditor(property, propertyContext, variablesProvider, extensions)
+fun <T : Any, PropertyCoreT : ModelPropertyCore<T>> createDefaultEditorExtensions(
+  property: ModelProperty<*, *, T, *, PropertyCoreT>,
+  project: PsProject,
+  module: PsModule): List<EditorExtensionAction<T, PropertyCoreT>> = listOf()
 
-fun <ValueT : Any, ModelPropertyT : ModelListPropertyCore<ValueT>> listPropertyEditor(
+fun <ContextT, ModelT, ValueT : Any, ModelPropertyT : ModelProperty<ContextT, ModelT, ValueT, ValueT, ModelPropertyCore<ValueT>>>
+  simplePropertyEditor(
+  project: PsProject,
+  module: PsModule,
+  context: ContextT,
+  model: ModelT,
   property: ModelPropertyT,
-  propertyContext: ModelPropertyContext<ValueT>,
-  variablesProvider: VariablesProvider? = null,
-  extensions: List<EditorExtensionAction> = listOf()
-): ListPropertyEditor<ValueT, ModelPropertyT> =
-  ListPropertyEditor(property, propertyContext, ::simplePropertyEditor, variablesProvider, extensions)
+  variablesProvider: VariablesProvider? = null
+): SimplePropertyEditor<ValueT, ModelPropertyCore<ValueT>> {
+  val boundProperty = property.bind(model)
+  val boundContext = property.bindContext(context, model)
+  return SimplePropertyEditor(boundProperty, boundContext, variablesProvider, createDefaultEditorExtensions(property, project, module))
+}
 
-fun <ValueT : Any, ModelPropertyT : ModelMapPropertyCore<ValueT>> mapPropertyEditor(
+fun <ContextT, ModelT, ValueT : Any, ModelPropertyT : ModelListProperty<ContextT, ModelT, ValueT>> listPropertyEditor(
+  project: PsProject,
+  module: PsModule,
+  context: ContextT,
+  model: ModelT,
   property: ModelPropertyT,
-  propertyContext: ModelPropertyContext<ValueT>,
-  variablesProvider: VariablesProvider? = null,
-  extensions: List<EditorExtensionAction> = listOf()
-): MapPropertyEditor<ValueT, ModelPropertyT> =
-  MapPropertyEditor(property, propertyContext, ::simplePropertyEditor, variablesProvider, extensions)
+  variablesProvider: VariablesProvider? = null
+): ListPropertyEditor<ValueT, ModelListPropertyCore<ValueT>> {
+  val boundProperty = property.bind(model)
+  val boundContext = property.bindContext(context, model)
+  return ListPropertyEditor(
+    boundProperty, boundContext,
+    { propertyCore, _, variables -> SimplePropertyEditor(propertyCore, boundContext, variables, listOf()) },
+    variablesProvider)
+}
+
+fun <ContextT, ModelT, ValueT : Any, ModelPropertyT : ModelMapProperty<ContextT, ModelT, ValueT>> mapPropertyEditor(
+  project: PsProject,
+  module: PsModule,
+  context: ContextT,
+  model: ModelT,
+  property: ModelPropertyT,
+  variablesProvider: VariablesProvider? = null
+): MapPropertyEditor<ValueT, ModelMapPropertyCore<ValueT>> {
+  val boundProperty = property.bind(model)
+  val boundContext = property.bindContext(context, model)
+  return MapPropertyEditor(
+    boundProperty, boundContext,
+    { propertyCore, _, variables -> SimplePropertyEditor(propertyCore, boundContext, variables, listOf()) },
+    variablesProvider)
+}

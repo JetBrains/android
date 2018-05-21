@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
-import com.android.tools.idea.gradle.structure.configurables.ui.PropertyEditorFactory
+import com.android.tools.idea.gradle.structure.configurables.ui.PropertyEditorCoreFactory
 import com.android.tools.idea.gradle.structure.model.VariablesProvider
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.util.ui.AbstractTableCellEditor
@@ -33,10 +33,9 @@ import javax.swing.table.TableColumnModel
 class MapPropertyEditor<ValueT : Any, ModelPropertyT : ModelMapPropertyCore<ValueT>>(
   property: ModelPropertyT,
   propertyContext: ModelPropertyContext<ValueT>,
-  editor: PropertyEditorFactory<ModelPropertyCore<ValueT>, ModelPropertyContext<ValueT>, ValueT>,
-  variablesProvider: VariablesProvider?,
-  extensions: List<EditorExtensionAction>
-) : CollectionPropertyEditor<ModelPropertyT, ValueT>(property, propertyContext, editor, variablesProvider, extensions),
+  editor: PropertyEditorCoreFactory<ModelPropertyCore<ValueT>, ModelPropertyContext<ValueT>, ValueT>,
+  variablesProvider: VariablesProvider?
+) : CollectionPropertyEditor<ModelPropertyT, ValueT>(property, propertyContext, editor, variablesProvider),
     ModelPropertyEditor<Map<String, ValueT>>, ModelPropertyEditorFactory<Map<String, ValueT>, ModelPropertyT> {
 
   init {
@@ -141,6 +140,6 @@ class MapPropertyEditor<ValueT : Any, ModelPropertyT : ModelMapPropertyCore<Valu
   }
 
   override fun createNew(property: ModelPropertyT): ModelPropertyEditor<Map<String, ValueT>> =
-    MapPropertyEditor(property, propertyContext, editor, variablesProvider, extensions)
+    MapPropertyEditor(property, propertyContext, editor, variablesProvider)
 }
 

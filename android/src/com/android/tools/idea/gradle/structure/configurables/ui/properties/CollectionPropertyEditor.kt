@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
+import com.android.tools.idea.gradle.structure.configurables.ui.PropertyEditorCoreFactory
 import com.android.tools.idea.gradle.structure.configurables.ui.PropertyEditorFactory
 import com.android.tools.idea.gradle.structure.configurables.ui.toRenderer
 import com.android.tools.idea.gradle.structure.model.VariablesProvider
@@ -40,10 +41,9 @@ import javax.swing.table.TableColumnModel
 abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionPropertyCore<*>, ValueT : Any>(
   property: ModelPropertyT,
   propertyContext: ModelPropertyContext<ValueT>,
-  protected val editor: PropertyEditorFactory<ModelPropertyCore<ValueT>, ModelPropertyContext<ValueT>, ValueT>,
-  variablesProvider: VariablesProvider?,
-  extensions: List<EditorExtensionAction>
-) : PropertyEditorBase<ModelPropertyT, ValueT>(property, propertyContext, variablesProvider, extensions) {
+  protected val editor: PropertyEditorCoreFactory<ModelPropertyCore<ValueT>, ModelPropertyContext<ValueT>, ValueT>,
+  variablesProvider: VariablesProvider?
+) : PropertyEditorBase<ModelPropertyT, ValueT>(property, propertyContext, variablesProvider) {
 
   override val component: JPanel = JPanel(BorderLayout())
   val statusComponent: JComponent? = null
@@ -89,7 +89,7 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
 
   protected fun getValueAt(row: Int): Annotated<ParsedValue<ValueT>> = getPropertyAt(row).getParsedValue()
   protected fun setValueAt(row: Int, value: ParsedValue<ValueT>) = getPropertyAt(row).setParsedValue(value)
-  private fun calculateMinRowHeight() = editor(SimplePropertyStub(), propertyContext, null, extensions).component.minimumSize.height
+  private fun calculateMinRowHeight() = editor(SimplePropertyStub(), propertyContext, null).component.minimumSize.height
 
   protected fun Annotated<ParsedValue<ValueT>>.toTableModelValue() = Value(this)
   protected fun ParsedValue<ValueT>.toTableModelValue() = Value(this.annotated())
@@ -132,7 +132,7 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
       currentRow = row
       val rowProperty = getPropertyAt(row)
       currentRowProperty = rowProperty
-      val editor = this@CollectionPropertyEditor.editor(rowProperty, propertyContext, variablesProvider, extensions)
+      val editor = this@CollectionPropertyEditor.editor(rowProperty, propertyContext, variablesProvider)
       lastEditor = editor
       lastValue = null
       return editor.component
