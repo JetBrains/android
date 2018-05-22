@@ -24,8 +24,23 @@ import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
  */
 interface VariablesProvider {
   /**
+   * The name of the variables scope.
+   */
+  val name: String
+
+  /**
+   * The title of the variables scope as it should appear in the UI.
+   */
+  val title: String
+
+  /**
    * Returns a list of variables available in the scope which are suitable for use with
    * [property].
    */
   fun <ValueT : Any> getAvailableVariablesFor(property: ModelPropertyContext<ValueT>): List<Annotated<ParsedValue.Set.Parsed<ValueT>>>
+
+  /**
+   * Returns a list of the variables which are currently defined in the scope.
+   */
+  fun getModuleVariables(): List<PsVariable>
 }

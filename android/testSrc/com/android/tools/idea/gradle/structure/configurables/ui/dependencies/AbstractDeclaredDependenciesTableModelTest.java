@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.ui.dependencies;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
@@ -25,6 +26,7 @@ import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
+import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.ui.ColumnInfo;
 
@@ -47,8 +49,15 @@ public class AbstractDeclaredDependenciesTableModelTest extends IdeaTestCase {
     myLibraryDependency = mock(PsLibraryAndroidDependency.class);
     myUISettings = new PsUISettings();
 
+    PsProject project = mock(PsProject.class);
+    when(project.getName()).thenReturn("Project");
+    Module resolvedModel = mock(Module.class);
+    when(resolvedModel.getName()).thenReturn("resolvedModelName");
+    GradleBuildModel parsedModel = mock(GradleBuildModel.class);
+    when(parsedModel.ext()).thenReturn(mock(ExtModel.class));
+
     PsAndroidModule module =
-      new PsAndroidModule(new PsProject(myProject), myModule, "", mock(AndroidModuleModel.class), mock(GradleBuildModel.class));
+      new PsAndroidModule(project, myModule, "", mock(AndroidModuleModel.class), parsedModel);
     PsContext context = mock(PsContext.class);
     when(context.getUiSettings()).thenReturn(myUISettings);
     myTableModel = new AbstractDeclaredDependenciesTableModel<PsAndroidDependency>(module, context) {};

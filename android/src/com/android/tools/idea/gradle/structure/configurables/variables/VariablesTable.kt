@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.structure.configurables.variables
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*
 import com.android.tools.idea.gradle.structure.configurables.PsContext
-import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsVariable
+import com.android.tools.idea.gradle.structure.model.PsVariables
 import com.intellij.ide.util.treeView.NodeRenderer
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
@@ -84,12 +84,14 @@ class VariablesTable(private val project: Project, private val context: PsContex
   private fun fillTable() {
     val moduleNodes = mutableListOf<ModuleNode>()
     context.project.forEachModule { module ->
-      val moduleVariables = module.variables.getModuleVariables()
-      val moduleRoot = ModuleNode(module)
-      moduleNodes.add(moduleRoot)
-      moduleVariables.map({ VariableNode(it) }).sortedBy { it.variable.getName() }.forEach { moduleRoot.add(it) }
+      module.variables?.let { variables ->
+        val moduleVariables = variables.getModuleVariables()
+        val moduleRoot = ModuleNode(variables)
+        moduleNodes.add(moduleRoot)
+        moduleVariables.map({ VariableNode(it) }).sortedBy { it.variable.getName() }.forEach { moduleRoot.add(it) }
+      }
     }
-    moduleNodes.sortedBy { it.module.name }.forEach { (tableModel.root as DefaultMutableTreeNode).add(it) }
+    moduleNodes.sortedBy { it.variables.name }.forEach { (tableModel.root as DefaultMutableTreeNode).add(it) }
     tree.expandRow(0)
     tree.isRootVisible = false
   }
@@ -122,7 +124,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
       last = last.parent as DefaultMutableTreeNode
     }
 
-    val emptyNode = EmptyNode(last.module, type)
+    val emptyNode = EmptyNode(last.variables, type)
     last.add(emptyNode)
     (tableModel as DefaultTreeModel).nodesWereInserted(last, IntArray(1) { last.getIndex(emptyNode) })
     tree.expandPath(TreePath(last.path))
@@ -238,7 +240,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
       }
       val nodeBeingEdited = (table as VariablesTable).tree.getPathForRow(row).lastPathComponent
       if (nodeBeingEdited is BaseVariableNode) {
-        textBox.setVariants(nodeBeingEdited.variable.module.variables.getModuleVariables().map { it.getName() })
+        textBox.setVariants(nodeBeingEdited.variable.scopeVariables.getModuleVariables().map { it.getName() })
       }
       textBox.text = value
       return textBox
@@ -357,7 +359,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
     }
   }
 
-  class ModuleNode(val module: PsModule) : DefaultMutableTreeNode(NodeDescription(module.name, StudioIcons.Shell.Filetree.GRADLE_FILE))
+  class ModuleNode(val variables: PsVariables) : DefaultMutableTreeNode(NodeDescription(variables.name, StudioIcons.Shell.Filetree.GRADLE_FILE))
 
   abstract class BaseVariableNode(val variable: PsVariable) : DefaultMutableTreeNode() {
     abstract fun getUnresolvedValue(expanded: Boolean): String
@@ -366,15 +368,16 @@ class VariablesTable(private val project: Project, private val context: PsContex
     fun setValue(newValue: String) = variable.setValue(newValue)
   }
 
-  class EmptyNode(val module: PsModule, val type: ValueType) : DefaultMutableTreeNode() {
+  class EmptyNode(val variables: PsVariables, val type: ValueType) : DefaultMutableTreeNode() {
     fun createVariableNode(name: String): BaseVariableNode {
-      val property = module.parsedModel!!.ext().findProperty(name)
+      val property = variables.container.findProperty(name)
       if (type == ValueType.LIST) {
         property.convertToEmptyList()
-      } else if (type == ValueType.MAP) {
+      }
+      else if (type == ValueType.MAP) {
         property.convertToEmptyMap()
       }
-      val variable = PsVariable(property, module)
+      val variable = PsVariable(property, property.resolve(), variables.model, variables)
       return VariableNode(variable)
     }
   }
@@ -383,14 +386,18 @@ class VariablesTable(private val project: Project, private val context: PsContex
     init {
       when (variable.valueType) {
         GradlePropertyModel.ValueType.MAP -> {
-          variable.getUnresolvedValue(MAP_TYPE)?.forEach { add(MapItemNode(it.key, PsVariable(it.value, variable.module))) }
+          variable.getUnresolvedValue(MAP_TYPE)?.forEach {
+            add(MapItemNode(it.key, PsVariable(it.value, it.value.resolve(), variable.model, variable.scopeVariables)))
+          }
           add(EmptyMapItemNode(variable))
           userObject = NodeDescription(variable.getName(), EmptyIcon.ICON_0)
         }
         GradlePropertyModel.ValueType.LIST -> {
           val list = variable.getUnresolvedValue(LIST_TYPE)
           if (list != null) {
-            list.forEachIndexed { index, propertyModel -> add(ListItemNode(index, PsVariable(propertyModel, variable.module))) }
+            list.forEachIndexed { index, propertyModel ->
+              add(ListItemNode(index, PsVariable(propertyModel, propertyModel.resolve(), variable.model, variable.scopeVariables)))
+            }
             add(EmptyListItemNode(variable))
           }
           userObject = NodeDescription(variable.getName(), EmptyIcon.ICON_0)

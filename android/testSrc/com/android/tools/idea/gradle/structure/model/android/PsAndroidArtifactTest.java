@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.google.common.collect.Lists;
@@ -57,8 +58,14 @@ public class PsAndroidArtifactTest {
     myBuildType = mock(PsBuildType.class);
     when(myBuildType.getName()).thenReturn("debug");
 
-    myVariant = new PsVariant(new PsAndroidModule(mock(PsProject.class), mock(Module.class), "gradle:path", mock(AndroidModuleModel.class),
-                                                  mock(GradleBuildModel.class)), "", "", Collections.emptyList(), null) {
+    PsProject project = mock(PsProject.class);
+    when(project.getName()).thenReturn("Project");
+    Module resolvedModel = mock(Module.class);
+    when(resolvedModel.getName()).thenReturn("resolvedModelName");
+    GradleBuildModel parsedModel = mock(GradleBuildModel.class);
+    when(parsedModel.ext()).thenReturn(mock(ExtModel.class));
+    myVariant = new PsVariant(new PsAndroidModule(project, resolvedModel, "gradle:path", mock(AndroidModuleModel.class),
+                                                  parsedModel), "", "", Collections.emptyList(), null) {
       @Override
       public void forEachProductFlavor(@NotNull Consumer<PsProductFlavor> consumer) {
         myProductFlavors.forEach(consumer);
