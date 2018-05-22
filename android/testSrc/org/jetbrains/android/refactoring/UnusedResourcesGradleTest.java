@@ -52,7 +52,7 @@ public class UnusedResourcesGradleTest extends AndroidGradleTestCase {
                  "  }\n" +
                  "}\n" +
                  "\n" +
-                 "repositories {\n" + AndroidGradleTests.getLocalRepositories() +
+                 "repositories {\n" + AndroidGradleTests.getLocalRepositoriesForGroovy() +
                  "}\n",
                  getTextForFile("app/build.gradle"));
   }

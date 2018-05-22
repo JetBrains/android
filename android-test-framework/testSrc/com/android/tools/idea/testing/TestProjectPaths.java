@@ -22,6 +22,7 @@ public final class TestProjectPaths {
   public static final String INSTRUMENTATION_RUNNER = "projects/instrumentationRunner";
   public static final String INSTRUMENTATION_RUNNER_ANDROID_TEST_ORCHESTRATOR = "projects/instrumentationRunnerAndroidTestOrchestrator";
   public static final String JAVA_LIB = "projects/javaLib";
+  public static final String KOTLIN_GRADLE_DSL = "projects/kotlinGradleDsl";
   public static final String LOCAL_AARS_AS_MODULES = "projects/localAarsAsModules";
   public static final String LOCAL_JARS_AS_MODULES = "projects/localJarsAsModules";
   public static final String MANIFEST_CONFLICT_ATTRIBUTE = "projects/manifestConflict/attribute";

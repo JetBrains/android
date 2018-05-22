@@ -19,12 +19,12 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.FixGradleVersionInWr
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTests;
 
 import java.util.List;
 
 import static com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub.replaceSyncMessagesService;
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.testing.AndroidGradleTests.updateGradleVersions;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
@@ -44,7 +44,7 @@ public class Gradle4AndPlugin2Dot2ErrorHandlerTest extends AndroidGradleTestCase
 
     // Update plugin to 2.2 and expect sync to fail, and the new error handler to provide a better error description than the original
     // exception message.
-    updateGradleVersions(getBaseDirPath(getProject()), "2.2.0");
+    AndroidGradleTests.updateGradleVersions(getBaseDirPath(getProject()), "2.2.0");
 
     requestSyncAndGetExpectedFailure();
 
