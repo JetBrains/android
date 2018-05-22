@@ -20,14 +20,17 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsVariable
+import com.intellij.ide.util.treeView.NodeRenderer
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.JBColor
 import com.intellij.ui.treeStructure.treetable.TreeTable
 import com.intellij.ui.treeStructure.treetable.TreeTableModel
 import com.intellij.util.ui.AbstractTableCellEditor
+import com.intellij.util.ui.EmptyIcon
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import java.awt.BorderLayout
+import icons.StudioIcons
 import java.awt.Component
 import java.awt.event.ActionListener
 import java.awt.event.FocusAdapter
@@ -51,7 +54,29 @@ private const val RESOLVED_VALUE = 2
 class VariablesTable(private val project: Project, private val context: PsContext) :
   TreeTable(VariablesTableModel(DefaultMutableTreeNode())) {
 
+  private val iconGap = JBUI.scale(2)
+  private val editorInsets = JBUI.insets(1, 2)
+  private val iconSize = JBUI.scale(16)
+
   init {
+    setRowHeight(iconSize + editorInsets.top + editorInsets.bottom)
+    setTreeCellRenderer(object: NodeRenderer() {
+      override fun customizeCellRenderer(tree: JTree,
+                                         value: Any?,
+                                         selected: Boolean,
+                                         expanded: Boolean,
+                                         leaf: Boolean,
+                                         row: Int,
+                                         hasFocus: Boolean) {
+        super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus)
+        val userObject = (value as DefaultMutableTreeNode).userObject
+        if (userObject is NodeDescription) {
+          icon = userObject.icon
+          iconTextGap = iconGap
+          ipad = editorInsets
+        }
+      }
+    })
     fillTable()
     tableModel.setTree(tree)
   }
@@ -78,7 +103,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
       if (node is ListItemNode) {
         var sibling = node.nextSibling
         while (sibling is ListItemNode) {
-          sibling.updateIndex(sibling.index - 1)
+          sibling.updateIndex(sibling.getIndex() - 1)
           model.nodeChanged(sibling)
           sibling = sibling.nextSibling
         }
@@ -120,6 +145,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
               table.background
             }
           }
+      (component as JComponent).border = null
       component
     }
   }
@@ -170,16 +196,21 @@ class VariablesTable(private val project: Project, private val context: PsContex
         val iconLabel = JLabel(icon)
         val extraHeight = bounds.height - icon.iconHeight
         iconLabel.border = EmptyBorder(Math.ceil(extraHeight / 2.0).toInt(), 0, Math.floor(extraHeight / 2.0).toInt(), 0)
-        panel.add(iconLabel, BorderLayout.LINE_START)
         panel.add(Box.createHorizontalStrut(bounds.x - (tree.ui as BasicTreeUI).rightChildIndent + 1 - Math.ceil(icon.iconWidth / 2.0).toInt()))
         panel.add(iconLabel)
         panel.add(Box.createHorizontalStrut((tree.ui as BasicTreeUI).rightChildIndent - 1 - Math.floor(icon.iconWidth / 2.0).toInt()))
       } else {
         panel.add(Box.createHorizontalStrut(bounds.x))
       }
+      val userObject = nodeBeingEdited.userObject
+      if (userObject is NodeDescription) {
+        val nodeIconLabel = JLabel(userObject.icon)
+        nodeIconLabel.border = EmptyBorder(editorInsets.top, editorInsets.left, editorInsets.bottom, iconGap)
+        panel.add(nodeIconLabel)
+      }
       panel.add(textBox)
-      panel.background = table.background
-      textBox.setText(value as String)
+      panel.background = table.selectionBackground
+      textBox.text = value as String
       return panel
     }
 
@@ -197,6 +228,8 @@ class VariablesTable(private val project: Project, private val context: PsContex
           super.focusLost(e)
         }
       })
+      textBox.border = BorderFactory.createMatteBorder(editorInsets.top, editorInsets.left, editorInsets.bottom, editorInsets.right,
+                                                       this@VariablesTable.selectionBackground)
     }
 
     override fun getTableCellEditorComponent(table: JTable?, value: Any?, isSelected: Boolean, row: Int, column: Int): Component? {
@@ -207,7 +240,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
       if (nodeBeingEdited is BaseVariableNode) {
         textBox.setVariants(nodeBeingEdited.variable.module.variables.getModuleVariables().map { it.getName() })
       }
-      textBox.setText(value)
+      textBox.text = value
       return textBox
     }
 
@@ -324,9 +357,9 @@ class VariablesTable(private val project: Project, private val context: PsContex
     }
   }
 
-  class ModuleNode(val module: PsModule) : DefaultMutableTreeNode(module.name)
+  class ModuleNode(val module: PsModule) : DefaultMutableTreeNode(NodeDescription(module.name, StudioIcons.Shell.Filetree.GRADLE_FILE))
 
-  abstract class BaseVariableNode(name: String, val variable: PsVariable) : DefaultMutableTreeNode(name) {
+  abstract class BaseVariableNode(val variable: PsVariable) : DefaultMutableTreeNode() {
     abstract fun getUnresolvedValue(expanded: Boolean): String
     abstract fun getResolvedValue(expanded: Boolean): String
     abstract fun setName(newName: String)
@@ -346,12 +379,13 @@ class VariablesTable(private val project: Project, private val context: PsContex
     }
   }
 
-  class VariableNode(variable: PsVariable) : BaseVariableNode(variable.getName(), variable) {
+  class VariableNode(variable: PsVariable) : BaseVariableNode(variable) {
     init {
       when (variable.valueType) {
         GradlePropertyModel.ValueType.MAP -> {
           variable.getUnresolvedValue(MAP_TYPE)?.forEach { add(MapItemNode(it.key, PsVariable(it.value, variable.module))) }
           add(EmptyMapItemNode(variable))
+          userObject = NodeDescription(variable.getName(), EmptyIcon.ICON_0)
         }
         GradlePropertyModel.ValueType.LIST -> {
           val list = variable.getUnresolvedValue(LIST_TYPE)
@@ -359,8 +393,10 @@ class VariablesTable(private val project: Project, private val context: PsContex
             list.forEachIndexed { index, propertyModel -> add(ListItemNode(index, PsVariable(propertyModel, variable.module))) }
             add(EmptyListItemNode(variable))
           }
+          userObject = NodeDescription(variable.getName(), EmptyIcon.ICON_0)
         }
         else -> {
+          userObject = NodeDescription(variable.getName(), EmptyIcon.ICON_0)
         }
       }
     }
@@ -399,12 +435,16 @@ class VariablesTable(private val project: Project, private val context: PsContex
     }
 
     override fun setName(newName: String) {
-      setUserObject(newName)
+      (userObject as NodeDescription).name = newName
       variable.setName(newName)
     }
   }
 
-  class ListItemNode(var index: Int, variable: PsVariable) : BaseVariableNode(index.toString(), variable) {
+  class ListItemNode(index: Int, variable: PsVariable) : BaseVariableNode(variable) {
+    init {
+      userObject = index
+    }
+
     override fun getUnresolvedValue(expanded: Boolean): String {
       val value = variable.getUnresolvedValue(STRING_TYPE) ?: ""
       if (variable.valueType == ValueType.STRING) {
@@ -426,9 +466,10 @@ class VariablesTable(private val project: Project, private val context: PsContex
     }
 
     fun updateIndex(newIndex: Int) {
-      index = newIndex
-      setUserObject(newIndex)
+      userObject = newIndex
     }
+
+    fun getIndex() = userObject as Int
   }
 
   class EmptyListItemNode(private val containingList: PsVariable) : DefaultMutableTreeNode() {
@@ -438,7 +479,11 @@ class VariablesTable(private val project: Project, private val context: PsContex
     }
   }
 
-  class MapItemNode(val key: String, variable: PsVariable) : BaseVariableNode(key, variable) {
+  class MapItemNode(key: String, variable: PsVariable) : BaseVariableNode(variable) {
+    init {
+      userObject = key
+    }
+
     override fun getUnresolvedValue(expanded: Boolean): String {
       val value = variable.getUnresolvedValue(STRING_TYPE) ?: ""
       if (variable.valueType == ValueType.STRING) {
@@ -456,7 +501,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
     }
 
     override fun setName(newName: String) {
-      setUserObject(newName)
+      userObject = newName
       variable.setName(newName)
     }
   }
@@ -467,4 +512,8 @@ class VariablesTable(private val project: Project, private val context: PsContex
       return MapItemNode(key, newVariable)
     }
   }
+}
+
+class NodeDescription(var name: String, val icon: Icon) {
+  override fun toString() = name
 }
