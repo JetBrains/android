@@ -27,6 +27,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -58,6 +59,7 @@ public class GradleProjectInfoTest extends IdeaTestCase {
     File projectFolderPath = getBaseDirPath(getProject());
     File buildFilePath = new File(projectFolderPath, "build.gradle");
     assertTrue("Failed to create top-level build.gradle file", createIfNotExists(buildFilePath));
+    VfsUtil.findFileByIoFile(buildFilePath, true);
 
     assertTrue(myProjectInfo.hasTopLevelGradleBuildFile());
   }
