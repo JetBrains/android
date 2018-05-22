@@ -16,11 +16,14 @@
 package com.android.tools.idea.gradle.structure.model.meta
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
+import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.gradle.structure.model.helpers.parseBoolean
 import com.android.tools.idea.gradle.structure.model.helpers.parseInt
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
+import com.android.tools.lint.client.api.TYPE_OBJECT
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
@@ -180,5 +183,38 @@ class ModelSimplePropertyImplTest : GradleFileModelTestCase() {
     assertThat<Annotated<ParsedValue<Boolean>>>(
       propTrue.bind(Model).getParsedValue(),
       equalTo<Annotated<ParsedValue<Boolean>>>(ParsedValue.Set.Parsed<Boolean>(null, DslText.OtherUnparsedDslText("2 + 2")).annotated()))
+  }
+
+  @Test
+  fun testRebindResolvedProperty() {
+    val text = """
+               ext {
+                 prop25 = 25
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModelInstance = gradleBuildModel
+    val extModel = buildModelInstance.ext()
+
+    val prop25 = extModel.findProperty("prop25").wrap(::parseInt, ResolvedPropertyModel::asInt, resolvedValue = 26).bind(Model)
+    val newResolvedProperty = extModel.findProperty("newVar").resolve()
+    var localModified = false
+    @Suppress("UNCHECKED_CAST")
+    val reboundProp = (prop25 as GradleModelCoreProperty<Int, ModelPropertyCore<Int>>).rebind(newResolvedProperty, { localModified = true })
+    assertThat(reboundProp.getParsedValue(), equalTo<Annotated<ParsedValue<Int>>>(ParsedValue.NotSet.annotated()))
+    reboundProp.setParsedValue(1.asParsed())
+    assertThat(reboundProp.getParsedValue(), equalTo<Annotated<ParsedValue<Int>>>(1.asParsed().annotated()))
+    assertThat(localModified, equalTo(true))
+    assertThat(newResolvedProperty.isModified, equalTo(true))
+    assertThat(newResolvedProperty.getValue(INTEGER_TYPE), equalTo(1))
+
+    applyChangesAndReparse(buildModelInstance)
+
+    val expected = """
+               ext {
+                 prop25 = 25
+                 newVar = 1
+               }""".trimIndent()
+    verifyFileContents(myBuildFile, expected)
   }
 }

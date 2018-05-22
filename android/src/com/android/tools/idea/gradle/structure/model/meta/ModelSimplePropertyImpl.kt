@@ -81,7 +81,8 @@ class ModelSimplePropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, Proper
   override val knownValuesGetter: (ContextT, ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>,
   override val variableMatchingStrategy: VariableMatchingStrategy,
   private val matcher: (model: ModelT, parsed: PropertyT?, resolved: PropertyT) -> Boolean
-) : ModelPropertyBase<ContextT, ModelT, PropertyT>(), ModelSimpleProperty<ContextT, ModelT, PropertyT> {
+) : ModelPropertyBase<ContextT, ModelT, PropertyT>(),
+    ModelSimpleProperty<ContextT, ModelT, PropertyT> {
   override fun getValue(thisRef: ModelT, property: KProperty<*>): ParsedValue<PropertyT> =
     getParsedValue(modelDescriptor.getParsed(thisRef)?.parsedPropertyGetter(), getter).value
 
@@ -93,27 +94,52 @@ class ModelSimplePropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, Proper
     thisRef.setModified()
   }
 
-  override fun bind(model: ModelT): ModelPropertyCore<PropertyT> =
-    object : ModelPropertyCoreImpl<PropertyT>(), ModelPropertyCore<PropertyT> {
-      override val description: String = this@ModelSimplePropertyImpl.description
-      override fun getParsedProperty(): ResolvedPropertyModel? = modelDescriptor.getParsed(model)?.parsedPropertyGetter()
-      override val getter: ResolvedPropertyModel.() -> PropertyT? = this@ModelSimplePropertyImpl.getter
-      override val setter: ResolvedPropertyModel.(PropertyT) -> Unit = this@ModelSimplePropertyImpl.setter
-      override val nullifier: ResolvedPropertyModel.() -> Unit = { delete() }
-      override fun setModified() = modelDescriptor.setModified(model)
-      override fun getResolvedValue(): ResolvedValue<PropertyT> {
-        val resolvedModel = modelDescriptor.getResolved(model)
-        val resolved: PropertyT? = resolvedModel?.resolvedValueGetter()
-        return when (resolvedModel) {
-          null -> ResolvedValue.NotResolved()
-          else -> ResolvedValue.Set(resolved)
-        }
+  inner class SimplePropertyCore(private val model: ModelT)
+    : ModelPropertyCoreImpl<PropertyT>(),
+      ModelPropertyCore<PropertyT>,
+      GradleModelCoreProperty<PropertyT, ModelPropertyCore<PropertyT>> {
+    override val description: String = this@ModelSimplePropertyImpl.description
+    override fun getParsedProperty(): ResolvedPropertyModel? = modelDescriptor.getParsed(model)?.parsedPropertyGetter()
+    override val getter: ResolvedPropertyModel.() -> PropertyT? = this@ModelSimplePropertyImpl.getter
+    override val setter: ResolvedPropertyModel.(PropertyT) -> Unit = this@ModelSimplePropertyImpl.setter
+    override val nullifier: ResolvedPropertyModel.() -> Unit = { delete() }
+    override fun setModified() = modelDescriptor.setModified(model)
+    override fun getResolvedValue(): ResolvedValue<PropertyT> {
+      val resolvedModel = modelDescriptor.getResolved(model)
+      val resolved: PropertyT? = resolvedModel?.resolvedValueGetter()
+      return when (resolvedModel) {
+        null -> ResolvedValue.NotResolved()
+        else -> ResolvedValue.Set(resolved)
       }
-
-      override val defaultValueGetter: (() -> PropertyT?)? = this@ModelSimplePropertyImpl.defaultValueGetter?.let { { it(model) } }
-      override fun parsedAndResolvedValuesAreEqual(parsedValue: PropertyT?, resolvedValue: PropertyT): Boolean =
-        matcher(model, parsedValue, resolvedValue)
     }
+
+    override val defaultValueGetter: (() -> PropertyT?)? = this@ModelSimplePropertyImpl.defaultValueGetter?.let { { it(model) } }
+    override fun parsedAndResolvedValuesAreEqual(parsedValue: PropertyT?, resolvedValue: PropertyT): Boolean =
+      matcher(model, parsedValue, resolvedValue)
+
+    override fun rebind(resolvedProperty: ResolvedPropertyModel, modifiedSetter: () -> Unit): ModelPropertyCore<PropertyT> {
+      return object : ModelPropertyCoreImpl<PropertyT>(),
+                      ModelPropertyCore<PropertyT>,
+                      GradleModelCoreProperty<PropertyT, ModelPropertyCore<PropertyT>> {
+        override val description: String = this@ModelSimplePropertyImpl.description
+        override fun getParsedProperty(): ResolvedPropertyModel? = resolvedProperty
+        override val getter: ResolvedPropertyModel.() -> PropertyT? = this@ModelSimplePropertyImpl.getter
+        override val setter: ResolvedPropertyModel.(PropertyT) -> Unit = this@ModelSimplePropertyImpl.setter
+        override val nullifier: ResolvedPropertyModel.() -> Unit = { delete() }
+        override fun setModified() = modifiedSetter()
+        override fun getResolvedValue(): ResolvedValue<PropertyT> = ResolvedValue.NotResolved()
+
+        override val defaultValueGetter: (() -> PropertyT?)? = null
+        override fun parsedAndResolvedValuesAreEqual(parsedValue: PropertyT?, resolvedValue: PropertyT): Boolean =
+          throw UnsupportedOperationException()
+
+        override fun rebind(resolvedProperty: ResolvedPropertyModel, modifiedSetter: () -> Unit): ModelPropertyCore<PropertyT> =
+          this@SimplePropertyCore.rebind(resolvedProperty, modifiedSetter)
+      }
+    }
+  }
+
+  override fun bind(model: ModelT): ModelPropertyCore<PropertyT> = SimplePropertyCore(model)
 
   private fun ModelT.setModified() = modelDescriptor.setModified(this)
 }
@@ -134,8 +160,10 @@ abstract class ModelPropertyCoreImpl<PropertyT : Any> : ModelPropertyCore<Proper
 
   override val isModified: Boolean? get() = getParsedProperty()?.isModified
 
-  override fun annotateParsedResolvedMismatch(): ValueAnnotation? = annotateParsedResolvedMismatchBy {
-    parsedValueToCompare, resolvedValue -> parsedAndResolvedValuesAreEqual(parsedValueToCompare, resolvedValue) }
+  override fun annotateParsedResolvedMismatch(): ValueAnnotation? =
+    annotateParsedResolvedMismatchBy { parsedValueToCompare, resolvedValue ->
+      parsedAndResolvedValuesAreEqual(parsedValueToCompare, resolvedValue)
+    }
 
   abstract fun parsedAndResolvedValuesAreEqual(parsedValue: PropertyT?, resolvedValue: PropertyT): Boolean
 }
