@@ -35,7 +35,9 @@ class ListPropertyEditor<ValueT : Any, ModelPropertyT : ModelListPropertyCore<Va
   CollectionPropertyEditor<ModelPropertyT, ValueT>(property, propertyContext, editor, variablesProvider),
   ModelPropertyEditor<List<ValueT>>, ModelPropertyEditorFactory<List<ValueT>, ModelPropertyT> {
 
-  override fun updateProperty() = throw UnsupportedOperationException()
+  override fun updateProperty(): UpdatePropertyOutcome = throw UnsupportedOperationException()
+
+  override fun reload() = loadValue()
 
   override fun dispose() = Unit
 

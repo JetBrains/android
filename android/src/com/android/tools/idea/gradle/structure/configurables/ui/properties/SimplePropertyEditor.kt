@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.structure.configurables.ui.TextRenderer
 import com.android.tools.idea.gradle.structure.configurables.ui.toRenderer
 import com.android.tools.idea.gradle.structure.model.VariablesProvider
 import com.android.tools.idea.gradle.structure.model.meta.*
-import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.application.ApplicationManager
@@ -182,7 +181,7 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
 
       addFocusGainedListener {
         if (!disposed) {
-          reload()
+          reloadIfNotChanged()
         }
       }
     }
@@ -215,8 +214,12 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
     disposed = true
   }
 
-  @VisibleForTesting
-  fun reload() {
+  override fun reload() {
+    renderedComboBox.loadKnownValues()
+    renderedComboBox.reloadValue(property.getValue())
+  }
+
+  internal fun reloadIfNotChanged() {
     renderedComboBox.loadKnownValues()
     if (!renderedComboBox.isEditorChanged()) {  // Do not override a not applied invalid value.
       renderedComboBox.reloadValue(property.getValue())

@@ -44,6 +44,8 @@ class MapPropertyEditor<ValueT : Any, ModelPropertyT : ModelMapPropertyCore<Valu
 
   override fun updateProperty() = throw UnsupportedOperationException()
 
+  override fun reload() = loadValue()
+
   override fun dispose() = Unit
 
   override fun getPropertyAt(row: Int) = getPropertyFor(keyAt(row))
