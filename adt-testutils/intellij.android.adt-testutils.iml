@@ -16,14 +16,6 @@
     <orderEntry type="library" name="Gradle" level="project" />
     <orderEntry type="library" name="jna" level="project" />
     <orderEntry type="library" name="com.android.tools:testutils:26.1.2" level="project" />
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/repository/26.0.0/repository-26.0.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
+    <orderEntry type="module" module-name="android.sdktools.sdklib" />
   </component>
 </module>
