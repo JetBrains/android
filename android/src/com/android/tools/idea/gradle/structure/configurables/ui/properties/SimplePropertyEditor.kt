@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.ui.properties
 import com.android.tools.idea.gradle.structure.configurables.ui.RenderedComboBox
 import com.android.tools.idea.gradle.structure.configurables.ui.TextRenderer
 import com.android.tools.idea.gradle.structure.configurables.ui.toRenderer
-import com.android.tools.idea.gradle.structure.model.VariablesProvider
+import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -42,10 +42,10 @@ import javax.swing.Icon
 class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<PropertyT>>(
   property: ModelPropertyT,
   propertyContext: ModelPropertyContext<PropertyT>,
-  variablesProvider: VariablesProvider?,
+  variablesScope: PsVariablesScope?,
   private val extensions: List<EditorExtensionAction<PropertyT, ModelPropertyT>>
 ) :
-  PropertyEditorBase<ModelPropertyT, PropertyT>(property, propertyContext, variablesProvider),
+  PropertyEditorBase<ModelPropertyT, PropertyT>(property, propertyContext, variablesScope),
   ModelPropertyEditor<PropertyT>,
   ModelPropertyEditorFactory<PropertyT, ModelPropertyT> {
 
@@ -152,7 +152,7 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
       }
 
     private fun getAvailableVariables(): List<Annotated<ParsedValue.Set.Parsed<PropertyT>>>? =
-      variablesProvider?.getAvailableVariablesFor(propertyContext)
+      variablesScope?.getAvailableVariablesFor(propertyContext)
 
     fun addFocusGainedListener(listener: () -> Unit) {
       val focusListener = object : FocusListener {
@@ -227,7 +227,7 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
   }
 
   override fun createNew(property: ModelPropertyT): ModelPropertyEditor<PropertyT> =
-    SimplePropertyEditor(property, propertyContext, variablesProvider, extensions)
+    SimplePropertyEditor(property, propertyContext, variablesScope, extensions)
 
   init {
     reload()

@@ -43,7 +43,7 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
 
     run {
       val worker = ExtractVariableWorker(compileSdkVersion)
-      val (newName, newProperty) = worker.changeScope(appModule.variables!!, "")
+      val (newName, newProperty) = worker.changeScope(appModule.variables, "")
       assertThat(newName, equalTo("var"))
       assertThat(newProperty.getParsedValue(), equalTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString().asParsed().annotated()))
 
@@ -52,13 +52,13 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
                  equalTo<Annotated<ParsedValue<String>>>(ParsedValue.Set.Parsed(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
                                                                                 DslText.Reference("var"))
                                                            .annotated()))
-      assertThat(appModule.variables!!.getOrCreateVariable("var").getUnresolvedValue(STRING_TYPE),
+      assertThat(appModule.variables.getOrCreateVariable("var").getUnresolvedValue(STRING_TYPE),
                  equalTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()))
     }
 
     run {
       val worker = ExtractVariableWorker(compileSdkVersion)
-      val (newName, newProperty) = worker.changeScope(appModule.variables!!, "")
+      val (newName, newProperty) = worker.changeScope(appModule.variables, "")
       assertThat(newName, equalTo("var1"))   // The second suggested name is "var1".
       assertThat(newProperty.getParsedValue(),
                  equalTo<Annotated<ParsedValue<String>>>(ParsedValue.Set.Parsed(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
@@ -70,7 +70,7 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
                  equalTo<Annotated<ParsedValue<String>>>(ParsedValue.Set.Parsed(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
                                                                                 DslText.Reference("otherName"))
                                                            .annotated()))
-      assertThat(appModule.variables!!.getOrCreateVariable("otherName").getUnresolvedValue(STRING_TYPE),
+      assertThat(appModule.variables.getOrCreateVariable("otherName").getUnresolvedValue(STRING_TYPE),
                  equalTo("var"))
     }
   }
@@ -85,7 +85,7 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
 
     run {
       val worker = ExtractVariableWorker(compileSdkVersion)
-      val (newName, newProperty) = worker.changeScope(appModule.variables!!, "")
+      val (newName, newProperty) = worker.changeScope(appModule.variables, "")
       assertThat(newName, equalTo("var"))
       assertThat(newProperty.getParsedValue(), equalTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString().asParsed().annotated()))
 
@@ -99,7 +99,7 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
                  equalTo<Annotated<ParsedValue<String>>>(ParsedValue.Set.Parsed(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
                                                                                 DslText.Reference("renamedName"))
                                                            .annotated()))
-      assertThat(appModule.variables!!.getOrCreateVariable("renamedName").valueType,
+      assertThat(appModule.variables.getOrCreateVariable("renamedName").valueType,
                  equalTo(GradlePropertyModel.ValueType.NONE))
 
       assertThat(project.variables.getOrCreateVariable("renamedName").getUnresolvedValue(STRING_TYPE),

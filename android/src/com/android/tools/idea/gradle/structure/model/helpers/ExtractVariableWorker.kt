@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.model.helpers
 
 import com.android.tools.idea.gradle.structure.model.PsVariable
-import com.android.tools.idea.gradle.structure.model.VariablesProvider
+import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.meta.Annotated
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyCore
@@ -30,7 +30,7 @@ class ExtractVariableWorker<PropertyT : Any, out ModelPropertyCoreT : ModelPrope
   private var property: ModelPropertyCoreT? = null
   private var variable: PsVariable? = null
 
-  fun changeScope(newScope: VariablesProvider, currentName: String): Pair<String?, ModelPropertyCoreT> {
+  fun changeScope(newScope: PsVariablesScope, currentName: String): Pair<String?, ModelPropertyCoreT> {
     val currentValue: ParsedValue<PropertyT>? = value?.value
     val wasNotRenamed = (property == null) || currentName.isEmpty() || currentName == variable?.getName()
 

@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.ui.properties.mani
 
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditorFactory
 import com.android.tools.idea.gradle.structure.model.PsProject
-import com.android.tools.idea.gradle.structure.model.PsVariables
+import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.helpers.ExtractVariableWorker
 import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyCore
 import com.intellij.openapi.ui.DialogWrapper
@@ -25,7 +25,7 @@ import javax.swing.JComponent
 
 class ExtractVariableDialog<PropertyT : Any, ModelPropertyCoreT : ModelPropertyCore<PropertyT>>(
   project: PsProject,
-  scope: PsVariables,
+  scope: PsVariablesScope,
   refactoredProperty: ModelPropertyCoreT,
   private var editorFactory: ModelPropertyEditorFactory<PropertyT, ModelPropertyCoreT>
 ) : DialogWrapper(project.resolvedModel) {

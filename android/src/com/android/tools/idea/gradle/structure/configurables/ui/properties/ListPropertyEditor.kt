@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
 import com.android.tools.idea.gradle.structure.configurables.ui.PropertyEditorCoreFactory
-import com.android.tools.idea.gradle.structure.model.VariablesProvider
+import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.meta.*
 import javax.swing.table.DefaultTableColumnModel
 import javax.swing.table.DefaultTableModel
@@ -30,9 +30,9 @@ class ListPropertyEditor<ValueT : Any, ModelPropertyT : ModelListPropertyCore<Va
   property: ModelPropertyT,
   propertyContext: ModelPropertyContext<ValueT>,
   editor: PropertyEditorCoreFactory<ModelPropertyCore<ValueT>, ModelPropertyContext<ValueT>, ValueT>,
-  variablesProvider: VariablesProvider?
+  variablesScope: PsVariablesScope?
 ) :
-  CollectionPropertyEditor<ModelPropertyT, ValueT>(property, propertyContext, editor, variablesProvider),
+  CollectionPropertyEditor<ModelPropertyT, ValueT>(property, propertyContext, editor, variablesScope),
   ModelPropertyEditor<List<ValueT>>, ModelPropertyEditorFactory<List<ValueT>, ModelPropertyT> {
 
   override fun updateProperty(): UpdatePropertyOutcome = throw UnsupportedOperationException()
@@ -92,6 +92,6 @@ class ListPropertyEditor<ValueT : Any, ModelPropertyT : ModelListPropertyCore<Va
   override fun getPropertyAt(row: Int) = property.getEditableValues()[row]
 
   override fun createNew(property: ModelPropertyT): ModelPropertyEditor<List<ValueT>> =
-    ListPropertyEditor(property, propertyContext, editor, variablesProvider)
+    ListPropertyEditor(property, propertyContext, editor, variablesScope)
 }
 

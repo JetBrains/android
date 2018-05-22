@@ -29,7 +29,7 @@ class PsVariable(
   private val property: GradlePropertyModel,
   private val resolvedProperty: ResolvedPropertyModel,
   val model: PsModel,
-  val scopeVariables: VariablesProvider) {
+  val scopePsVariables: PsVariablesScope) {
   val valueType = property.valueType
 
   fun <T> getUnresolvedValue(type: TypeReference<T>): T? {
@@ -69,7 +69,7 @@ class PsVariable(
     val listValue = property.addListValue()
     listValue.setValue(value)
     model.isModified = true
-    return PsVariable(listValue, listValue.resolve(), model, scopeVariables)
+    return PsVariable(listValue, listValue.resolve(), model, scopePsVariables)
   }
 
   fun addMapValue(key: String): PsVariable? {
@@ -81,7 +81,7 @@ class PsVariable(
     if (mapValue.psiElement != null) {
       return null
     }
-    return PsVariable(mapValue, mapValue.resolve(), model, scopeVariables)
+    return PsVariable(mapValue, mapValue.resolve(), model, scopePsVariables)
   }
 
   /**

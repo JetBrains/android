@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
+import com.android.tools.idea.gradle.dsl.api.ext.ExtModel
 import com.android.tools.idea.gradle.structure.model.meta.Annotated
 import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyContext
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
@@ -22,7 +23,7 @@ import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 /**
  * An interface providing access to variables available in the specific scope.
  */
-interface VariablesProvider {
+interface PsVariablesScope {
   /**
    * The name of the variables scope.
    */
@@ -46,7 +47,7 @@ interface VariablesProvider {
   /**
    * Returns the specific variable scopes (including this one) from which this the list of variables available in this scope is composed.
    */
-  fun getVariableScopes(): List<VariablesProvider>
+  fun getVariableScopes(): List<PsVariablesScope>
 
   /**
    * Returns a new not conflicting name for a new variable in this scope based on the [preferredName].
@@ -54,4 +55,9 @@ interface VariablesProvider {
   fun getNewVariableName(preferredName: String) : String
 
   fun getOrCreateVariable(name: String): PsVariable
+
+  val model: PsModel
+
+  // TODO(solodkyy): Expose list/map manipulation methods instead.
+  val container: ExtModel
 }

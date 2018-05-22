@@ -16,9 +16,8 @@
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
 import com.android.tools.idea.gradle.structure.configurables.ui.PropertyEditorCoreFactory
-import com.android.tools.idea.gradle.structure.configurables.ui.PropertyEditorFactory
 import com.android.tools.idea.gradle.structure.configurables.ui.toRenderer
-import com.android.tools.idea.gradle.structure.model.VariablesProvider
+import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.openapi.actionSystem.ActionToolbarPosition
 import com.intellij.ui.SimpleColoredComponent
@@ -42,8 +41,8 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
   property: ModelPropertyT,
   propertyContext: ModelPropertyContext<ValueT>,
   protected val editor: PropertyEditorCoreFactory<ModelPropertyCore<ValueT>, ModelPropertyContext<ValueT>, ValueT>,
-  variablesProvider: VariablesProvider?
-) : PropertyEditorBase<ModelPropertyT, ValueT>(property, propertyContext, variablesProvider) {
+  variablesScope: PsVariablesScope?
+) : PropertyEditorBase<ModelPropertyT, ValueT>(property, propertyContext, variablesScope) {
 
   override val component: JPanel = JPanel(BorderLayout())
   val statusComponent: JComponent? = null
@@ -132,7 +131,7 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
       currentRow = row
       val rowProperty = getPropertyAt(row)
       currentRowProperty = rowProperty
-      val editor = this@CollectionPropertyEditor.editor(rowProperty, propertyContext, variablesProvider)
+      val editor = this@CollectionPropertyEditor.editor(rowProperty, propertyContext, variablesScope)
       lastEditor = editor
       lastValue = null
       return editor.component

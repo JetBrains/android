@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
-import com.android.tools.idea.gradle.structure.model.VariablesProvider
+import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyContext
 import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyCore
 import com.intellij.ui.components.JBLabel
@@ -25,7 +25,7 @@ import javax.swing.JComponent
 abstract class PropertyEditorBase<out ModelPropertyT : ModelPropertyCore<*>, ValueT : Any>(
   val property: ModelPropertyT,
   val propertyContext: ModelPropertyContext<ValueT>,
-  protected val variablesProvider: VariablesProvider?
+  protected val variablesScope: PsVariablesScope?
 ) {
 
   abstract val component: JComponent
