@@ -60,6 +60,8 @@ class LintIdeAnalytics(private val project: com.intellij.openapi.project.Project
     warnings1: List<ProblemData>?,
     warnings2: Map<Issue, Map<File, List<ProblemData>>>?
   ) {
+    if (project.isDisposed) return
+
     val session = LintSession.newBuilder().apply {
       analysisType = type
       projectId = computeProjectId(project)
