@@ -332,7 +332,7 @@ public class GradleSyncState {
   @VisibleForTesting
   @NotNull
   String getFormattedSyncDuration(long syncEndTimestamp) {
-    return formatDuration(getSyncDurationMS(syncEndTimestamp));
+    return formatDuration(getSyncDurationMS(syncEndTimestamp), "");
   }
 
   private void addInfoToEventLog(@NotNull String message) {
