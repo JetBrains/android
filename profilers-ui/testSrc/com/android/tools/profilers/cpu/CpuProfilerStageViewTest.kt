@@ -17,9 +17,12 @@ package com.android.tools.profilers.cpu
 
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.RangeTooltipComponent
+import com.android.tools.adtui.SelectionComponent
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.adtui.chart.linechart.OverlayComponent
 import com.android.tools.adtui.instructions.InstructionsPanel
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.CpuProfiler
@@ -39,6 +42,9 @@ import com.intellij.ui.JBSplitter
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
+import java.awt.Graphics2D
+import java.awt.event.MouseEvent
 import java.io.File
 import javax.swing.JLabel
 import javax.swing.JList
@@ -276,6 +282,38 @@ class CpuProfilerStageViewTest {
     val treeWalker = TreeWalker(cpuProfilerStageView.component)
     val tooltipComponent = treeWalker.descendants().filterIsInstance(RangeTooltipComponent::class.java)[0]
     assertThat(tooltipComponent.parent.components[0]).isEqualTo(tooltipComponent)
+  }
+
+  @Test
+  fun sparklineVisibilityChangesOnMouseStates() {
+    val cpuProfilerStageView = CpuProfilerStageView(myProfilersView, myStage)
+    cpuProfilerStageView.timeline.tooltipRange.set(0.0, 0.0)
+    val treeWalker = TreeWalker(cpuProfilerStageView.component)
+    // Grab the tooltip component and give it dimensions to be visible.
+    val tooltipComponent = treeWalker.descendants().filterIsInstance<RangeTooltipComponent>()[0]
+    tooltipComponent.setSize(10, 10)
+    // Grab the overlay component and move the mouse to update the last position in the tooltip component.
+    val overlayComponent = treeWalker.descendants().filterIsInstance<OverlayComponent>()[0]
+    val overlayMouseUi = FakeUi(overlayComponent)
+    overlayComponent.setBounds(1, 1, 10, 10)
+    overlayMouseUi.mouse.moveTo(0,0)
+    // Grab the selection component and move the mouse to set the mode to !MOVE.
+    val selectionComponent = treeWalker.descendants().filterIsInstance<SelectionComponent>()[0]
+    FakeUi(selectionComponent).mouse.moveTo(0,0)
+    val mockGraphics = Mockito.mock(Graphics2D::class.java)
+    Mockito.`when`(mockGraphics.create()).thenReturn(mockGraphics)
+    // Paint without letting the overlay component think we are over it.
+    tooltipComponent.paint(mockGraphics)
+    Mockito.verify(mockGraphics, Mockito.never()).draw(Mockito.any())
+    // Enter the overlay component and paint again, this time we expect to draw the spark line.
+    overlayMouseUi.mouse.moveTo(5,5)
+    tooltipComponent.paint(mockGraphics)
+    Mockito.verify(mockGraphics, Mockito.times(1)).draw(Mockito.any())
+    // Exit the overlay component and paint a third time. We don't expect our draw count to increase because the spark line
+    // should not be drawn.
+    overlayMouseUi.mouse.moveTo(0, 0)
+    tooltipComponent.paint(mockGraphics)
+    Mockito.verify(mockGraphics, Mockito.times(1)).draw(Mockito.any())
   }
 
   @Test

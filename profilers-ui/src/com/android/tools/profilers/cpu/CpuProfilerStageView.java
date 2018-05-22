@@ -177,16 +177,31 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     getTooltipPanel().setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
     mySelection = new SelectionComponent(getStage().getSelectionModel(), getTimeline().getViewRange());
     mySelection.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
+    boolean[] isMouseOverOverlay = new boolean[] {false};
     myTooltipComponent = new RangeTooltipComponent(timeline.getTooltipRange(),
                                                    timeline.getViewRange(),
                                                    timeline.getDataRange(),
                                                    getTooltipPanel(),
                                                    getProfilersView().getComponent(),
-                                                   () -> mySelection.getMode() != SelectionComponent.Mode.MOVE);
+                                                   () -> isMouseOverOverlay[0] && mySelection.getMode() != SelectionComponent.Mode.MOVE);
     myThreads = new DragAndDropList<>(myStage.getThreadStates());
     myCpus = new JBList<>(myStage.getCpuKernelModel());
 
     final OverlayComponent overlay = new OverlayComponent(mySelection);
+    // We only show the sparkline if we are over the cpu usage chart. The cpu usage
+    // chart is under the overlay component so using the events captured from the overlay
+    // component tell us if we are over the right area.
+    overlay.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseEntered(MouseEvent e) {
+        isMouseOverOverlay[0] = true;
+      }
+
+      @Override
+      public void mouseExited(MouseEvent e) {
+        isMouseOverOverlay[0] = false;
+      }
+    });
 
     // "Fit" for the event profiler, "*" for everything else.
     final JPanel details = new JPanel(new TabularLayout("*", "Fit-,*"));
