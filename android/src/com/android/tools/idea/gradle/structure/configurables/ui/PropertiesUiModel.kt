@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:Suppress("UNUSED_PARAMETER")
-
 package com.android.tools.idea.gradle.structure.configurables.ui
 
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.*
@@ -85,9 +83,9 @@ class PropertyUiModelImpl<
 }
 
 fun <T : Any, PropertyCoreT : ModelPropertyCore<T>> createDefaultEditorExtensions(
-  property: ModelProperty<*, *, T, *, PropertyCoreT>,
   project: PsProject,
-  module: PsModule): List<EditorExtensionAction<T, PropertyCoreT>> = listOf()
+  module: PsModule): List<EditorExtensionAction<T, PropertyCoreT>> =
+  listOfNotNull(ExtractNewVariableExtension(project, module))
 
 fun <ContextT, ModelT, ValueT : Any, ModelPropertyT : ModelProperty<ContextT, ModelT, ValueT, ValueT, ModelPropertyCore<ValueT>>>
   simplePropertyEditor(
@@ -100,9 +98,10 @@ fun <ContextT, ModelT, ValueT : Any, ModelPropertyT : ModelProperty<ContextT, Mo
 ): SimplePropertyEditor<ValueT, ModelPropertyCore<ValueT>> {
   val boundProperty = property.bind(model)
   val boundContext = property.bindContext(context, model)
-  return SimplePropertyEditor(boundProperty, boundContext, variablesProvider, createDefaultEditorExtensions(property, project, module))
+  return SimplePropertyEditor(boundProperty, boundContext, variablesProvider, createDefaultEditorExtensions(project, module))
 }
 
+@Suppress("UNUSED_PARAMETER")
 fun <ContextT, ModelT, ValueT : Any, ModelPropertyT : ModelListProperty<ContextT, ModelT, ValueT>> listPropertyEditor(
   project: PsProject,
   module: PsModule,
@@ -119,6 +118,7 @@ fun <ContextT, ModelT, ValueT : Any, ModelPropertyT : ModelListProperty<ContextT
     variablesProvider)
 }
 
+@Suppress("UNUSED_PARAMETER")
 fun <ContextT, ModelT, ValueT : Any, ModelPropertyT : ModelMapProperty<ContextT, ModelT, ValueT>> mapPropertyEditor(
   project: PsProject,
   module: PsModule,
