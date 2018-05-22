@@ -74,7 +74,7 @@ class CommonTabbedPaneUI extends BasicTabbedPaneUI {
   protected void installDefaults() {
     super.installDefaults();
     tabInsets = JBUI.insets(9, 12, 8, 12);
-    tabAreaInsets = JBUI.insets(-1, 0);
+    tabAreaInsets = JBUI.insets(0);
     contentBorderInsets = JBUI.insets(0, 0, 0, 0);
   }
 
@@ -124,7 +124,7 @@ class CommonTabbedPaneUI extends BasicTabbedPaneUI {
 
   @Override
   protected void paintTabArea(Graphics g, int tabPlacement, int selectedIndex) {
-    super.paintTabArea(g, tabPlacement, selectedIndex);
+    // Draws the border line first because the border line may be covered by the selected tab bar.
     int width = tabPane.getWidth();
     int height = tabPane.getHeight();
     Insets insets = tabPane.getInsets();
@@ -150,6 +150,7 @@ class CommonTabbedPaneUI extends BasicTabbedPaneUI {
       default:
         g.drawLine(x, y + th - 1, x + w, y + th - 1);
     }
+    super.paintTabArea(g, tabPlacement, selectedIndex);
   }
 
   @Override
@@ -187,7 +188,7 @@ class CommonTabbedPaneUI extends BasicTabbedPaneUI {
                                          textRect,
                                          textIconGap);
 
-      g.setColor(isSelected ? StandardColors.TAB_SELECTED_COLOR : tabPane.getForeground());
+      g.setColor(isSelected || tabIndex == myHoveredTabIndex ? StandardColors.TEXT_COLOR : StandardColors.INACTIVE_TEXT_COLOR);
       g.drawString(title, textRect.x, textRect.y + metrics.getAscent());
       paintIcon(g, tabPlacement, tabIndex, icon, iconRect, isSelected);
     }

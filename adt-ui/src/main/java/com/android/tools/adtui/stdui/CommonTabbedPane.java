@@ -15,7 +15,6 @@
  */
 package com.android.tools.adtui.stdui;
 
-import com.android.tools.adtui.common.AdtUiUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -55,7 +54,6 @@ public class CommonTabbedPane extends JTabbedPane {
   public CommonTabbedPane() {
     myUi = new CommonTabbedPaneUI();
     setUI(myUi);
-    setFont(AdtUiUtils.DEFAULT_FONT);
     getActionMap().put("navigatePrevious", new NavigateAction(ActionDirection.LEFT));
     getActionMap().put("navigateNext", new NavigateAction(ActionDirection.RIGHT));
     getActionMap().put("navigateLeft", new NavigateAction(ActionDirection.LEFT));
