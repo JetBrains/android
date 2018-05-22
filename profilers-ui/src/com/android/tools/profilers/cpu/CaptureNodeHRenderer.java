@@ -99,7 +99,11 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
   }
 
   @Override
-  public void render(@NotNull Graphics2D g, @NotNull CaptureNode node, @NotNull Rectangle2D drawingArea, boolean isFocused) {
+  public void render(@NotNull Graphics2D g,
+                     @NotNull CaptureNode node,
+                     @NotNull Rectangle2D fullDrawingArea,
+                     @NotNull Rectangle2D drawingArea,
+                     boolean isFocused) {
     // Draw rectangle background
     CaptureNode captureNode = node;
     CaptureNodeModel nodeModel = node.getData();
@@ -120,14 +124,17 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
     if (nodeModel instanceof AtraceNodeModel && threadLength > 0 && clockLength - threadLength > 0) {
       // Idle time width is 1 minus the  ratio of clock time, and thread time.
       double ratio = 1 - (threadLength / clockLength);
-      double cpuIdleTimeRatio = ratio *  drawingArea.getWidth();
+      double idleTimeWidth = ratio * fullDrawingArea.getWidth();
+      // The Idle time is drawn at the end of our total time, as such we start at our width minus our idle time.
+      double startPosition = fullDrawingArea.getX() + fullDrawingArea.getWidth() - idleTimeWidth;
+      // The minimum of our clamped areas ending position and our idle time ending position.
+      double clampedWidth =
+        Math.max(0, Math.min(drawingArea.getX() + drawingArea.getWidth(), startPosition + idleTimeWidth) - startPosition);
       g.setPaint(idleColor);
-      // The Idle time is drawn at the end of our total time, as such we start at our X + our idle time.
-      // The width is then defined as the total width minus our idle time ratio.
-      g.fill(new Rectangle2D.Double(drawingArea.getX() + drawingArea.getWidth() - cpuIdleTimeRatio,
-                                    drawingArea.getY(),
-                                    cpuIdleTimeRatio,
-                                    drawingArea.getHeight()));
+      g.fill(new Rectangle2D.Double(Math.min(drawingArea.getWidth() + drawingArea.getX(), Math.max(0, startPosition)),
+                                    fullDrawingArea.getY(),
+                                    clampedWidth,
+                                    fullDrawingArea.getHeight()));
     }
 
     // Draw text

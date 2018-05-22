@@ -234,7 +234,13 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
     assert myRenderer != null;
     for (int i = 0; i < myDrawnNodes.size(); ++i) {
       N node = myDrawnNodes.get(i);
-      myRenderer.render(g, node, myDrawnRectangles.get(i), node == myFocusedNode);
+      Rectangle2D.Float drawingArea = myDrawnRectangles.get(i);
+      Rectangle2D.Float clampedDrawingArea = new Rectangle2D.Float(Math.max(0, drawingArea.x),
+                                                                   drawingArea.y,
+                                                                   Math.min(drawingArea.x + drawingArea.width, dim.width - PADDING) -
+                                                                   Math.max(0, drawingArea.x),
+                                                                   drawingArea.height);
+      myRenderer.render(g, node, drawingArea, clampedDrawingArea, node == myFocusedNode);
     }
 
     g.dispose();
@@ -277,8 +283,8 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
 
   @NotNull
   private Rectangle2D.Float createRectangle(@NotNull N node) {
-    float left = (float)Math.max(0, (node.getStart() - myXRange.getMin()) / myXRange.getLength());
-    float right = (float)Math.min(1, (node.getEnd() - myXRange.getMin()) / myXRange.getLength());
+    float left = (float)((node.getStart() - myXRange.getMin()) / myXRange.getLength());
+    float right = (float)((node.getEnd() - myXRange.getMin()) / myXRange.getLength());
     Rectangle2D.Float rect = new Rectangle2D.Float();
     rect.x = left;
     rect.y = (float)((mDefaultFontMetrics.getHeight() + PADDING) * node.getDepth()
