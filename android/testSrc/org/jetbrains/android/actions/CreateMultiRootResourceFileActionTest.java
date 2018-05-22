@@ -27,6 +27,7 @@ import org.jetbrains.android.AndroidTestCase;
 import org.mockito.Mockito;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 public final class CreateMultiRootResourceFileActionTest extends AndroidTestCase {
   private CreateMultiRootResourceFileAction myAction;
@@ -36,7 +37,7 @@ public final class CreateMultiRootResourceFileActionTest extends AndroidTestCase
   protected void setUp() throws Exception {
     super.setUp();
     myAction = Mockito.spy(new CreateMultiRootResourceFileAction("Layout", ResourceFolderType.LAYOUT));
-    myTestProjectSystem = new TestProjectSystem(getProject());
+    myTestProjectSystem = new TestProjectSystem(getProject(), Collections.emptyList());
     PlatformTestUtil.registerExtension(Extensions.getArea(myModule.getProject()), ProjectSystemUtil.getEP_NAME(),
                                        myTestProjectSystem, getTestRootDisposable());
   }
