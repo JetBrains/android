@@ -62,6 +62,7 @@ public final class ImageDiffUtil {
     addAll(new LineChartEntriesRegistrar().getImageDiffEntries());
     addAll(new RangeEntriesRegistrar().getImageDiffEntries());
     addAll(new StateChartEntriesRegistrar().getImageDiffEntries());
+    addAll(new CommonTabbedPaneEntriesRegistrar().getImageDiffEntries());
   }});
 
   static {

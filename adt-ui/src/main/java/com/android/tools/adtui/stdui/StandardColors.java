@@ -30,6 +30,7 @@ public class StandardColors {
   public static final Color DISABLED_INNER_BORDER_COLOR = new JBColor(0xDFDFDF, 0x484848);
   public static final Color PLACEHOLDER_INNER_BORDER_COLOR = new JBColor(0xDFDFDF, 0x484848);
   public static final Color TEXT_COLOR = new JBColor(0x1D1D1D, 0xBFBFBF);
+  public static final Color INACTIVE_TEXT_COLOR = new JBColor(0x737373, 0x8A8C8D);
   public static final Color SELECTED_TEXT_COLOR = new JBColor(0x000000, 0xFFFFFF);
   public static final Color DISABLED_TEXT_COLOR = new JBColor(0x8E8E8E, 0x757575);
   public static final Color PLACEHOLDER_TEXT_COLOR = new JBColor(0x7F7F7F, 0x8A8C8C);
