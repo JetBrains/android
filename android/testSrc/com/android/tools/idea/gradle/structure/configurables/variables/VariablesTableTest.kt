@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.configurables.variables
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
-import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.PsContextImpl
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.testing.AndroidGradleTestCase

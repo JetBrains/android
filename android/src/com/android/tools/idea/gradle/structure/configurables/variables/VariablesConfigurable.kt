@@ -24,8 +24,10 @@ import com.intellij.openapi.ui.popup.PopupStep
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep
 import com.intellij.ui.AnActionButton
 import com.intellij.ui.ToolbarDecorator
+import com.intellij.util.ui.EmptyIcon
 import java.awt.BorderLayout
 import javax.swing.BorderFactory
+import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.event.TreeModelEvent
@@ -73,7 +75,8 @@ class VariablesConfigurable(private val project: Project, private val context: P
       AddAction("2. List", GradlePropertyModel.ValueType.LIST),
       AddAction("3. Map", GradlePropertyModel.ValueType.MAP)
     )
-    val popup = JBPopupFactory.getInstance().createListPopup(object : BaseListPopupStep<AddAction>(null, actions) {
+    val icons = listOf<Icon>(EmptyIcon.ICON_0, EmptyIcon.ICON_0, EmptyIcon.ICON_0)
+    val popup = JBPopupFactory.getInstance().createListPopup(object : BaseListPopupStep<AddAction>(null, actions, icons) {
       override fun onChosen(selectedValue: AddAction?, finalChoice: Boolean): PopupStep<*>? {
         return doFinalStep { selectedValue?.type?.let { table.addVariable(it) } }
       }
