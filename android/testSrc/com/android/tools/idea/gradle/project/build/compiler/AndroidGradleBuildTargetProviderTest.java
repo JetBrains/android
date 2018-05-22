@@ -42,7 +42,7 @@ public class AndroidGradleBuildTargetProviderTest extends AndroidGradleTestCase 
     CompileScope scope = new ProjectCompileScope(getProject());
 
     AndroidGradleBuildTargetScopeProvider provider = new AndroidGradleBuildTargetScopeProvider();
-    List<TargetTypeBuildScope> targetScopes = provider.getBuildTargetScopes(scope, (compiler) -> true, getProject(), true);
+    List<TargetTypeBuildScope> targetScopes = provider.getBuildTargetScopes(scope, getProject(), true);
     assertSize(1, targetScopes);
 
     TargetTypeBuildScope targetScope = targetScopes.get(0);
@@ -55,7 +55,7 @@ public class AndroidGradleBuildTargetProviderTest extends AndroidGradleTestCase 
     CompileScope scope = new ProjectCompileScope(getProject());
 
     AndroidGradleBuildTargetScopeProvider provider = new AndroidGradleBuildTargetScopeProvider();
-    List<TargetTypeBuildScope> targetScopes = provider.getBuildTargetScopes(scope, (compiler) -> true, getProject(), true);
+    List<TargetTypeBuildScope> targetScopes = provider.getBuildTargetScopes(scope, getProject(), true);
     assertSize(1, targetScopes);
 
     TargetTypeBuildScope targetScope = targetScopes.get(0);
@@ -78,7 +78,7 @@ public class AndroidGradleBuildTargetProviderTest extends AndroidGradleTestCase 
     scope.putUserData(Key.create("Test"), "RUN_CONFIGURATION");
 
     AndroidGradleBuildTargetScopeProvider provider = new AndroidGradleBuildTargetScopeProvider();
-    List<TargetTypeBuildScope> targetScopes = provider.getBuildTargetScopes(scope, (compiler) -> true, getProject(), true);
+    List<TargetTypeBuildScope> targetScopes = provider.getBuildTargetScopes(scope, getProject(), true);
     assertSize(1, targetScopes);
 
     TargetTypeBuildScope targetScope = targetScopes.get(0);
