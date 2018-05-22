@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 
-import static com.android.tools.profilers.ProfilerFonts.H3_FONT;
+import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_HEADER_FONT;
 
 public abstract class ProfilerTooltipView extends AspectObserver {
   @NotNull
@@ -51,7 +51,7 @@ public abstract class ProfilerTooltipView extends AspectObserver {
     myTimeline = timeline;
     myHeadingLabel = new JLabel();
     myHeadingLabel.setForeground(ProfilerColors.TOOLTIP_TEXT);
-    myFont = H3_FONT;
+    myFont = TOOLTIP_HEADER_FONT;
     myMaximumLabelHeight = myHeadingLabel.getFontMetrics(myFont).getHeight();
     myHeadingLabel.setFont(myFont);
     timeline.getTooltipRange().addDependency(this).onChange(Range.Aspect.RANGE, this::updateHeader);

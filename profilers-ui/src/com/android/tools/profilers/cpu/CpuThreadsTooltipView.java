@@ -16,7 +16,6 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.TabularLayout;
-import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTimeline;
@@ -26,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_FONT;
+import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_BODY_FONT;
 
 public class CpuThreadsTooltipView extends ProfilerTooltipView {
   @NotNull private final CpuThreadsTooltip myTooltip;
@@ -42,10 +41,10 @@ public class CpuThreadsTooltipView extends ProfilerTooltipView {
     myTooltip = tooltip;
     myContent = new JPanel();
     myLabel = new JLabel();
-    myLabel.setFont(TOOLTIP_FONT);
+    myLabel.setFont(TOOLTIP_BODY_FONT);
     myLabel.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
     myState = new JLabel();
-    myState.setFont(TOOLTIP_FONT);
+    myState.setFont(TOOLTIP_BODY_FONT);
     myState.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
     myUnavailableDetails = new JPanel(new TabularLayout("*", "Fit,Fit"));
     tooltip.addDependency(this).onChange(CpuThreadsTooltip.Aspect.THREAD_STATE, this::stateChanged);
@@ -84,7 +83,7 @@ public class CpuThreadsTooltipView extends ProfilerTooltipView {
     separator.setBorder(JBUI.Borders.empty(5, 0));
     myUnavailableDetails.add(separator, new TabularLayout.Constraint(0, 0));
     JLabel unavailableLabel = new JLabel("Details Unavailable");
-    unavailableLabel.setFont(AdtUiUtils.DEFAULT_FONT);
+    unavailableLabel.setFont(TOOLTIP_BODY_FONT);
     unavailableLabel.setForeground(ProfilerColors.TOOLTIP_TIME_COLOR);
     myUnavailableDetails.add(unavailableLabel, new TabularLayout.Constraint(1, 0));
     myContent.add(myUnavailableDetails, new TabularLayout.Constraint(0, 0));

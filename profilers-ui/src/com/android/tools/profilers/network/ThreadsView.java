@@ -382,7 +382,7 @@ final class ThreadsView {
       myContent = new JPanel(new TabularLayout("*", "*"));
       myContent.setBorder(TOOLTIP_BORDER);
       myContent.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
-      myContent.setFont(ProfilerFonts.TOOLTIP_FONT);
+      myContent.setFont(ProfilerFonts.TOOLTIP_BODY_FONT);
 
       myTooltipComponent = new TooltipComponent.Builder(myContent, table).setPreferredParentClass(ProfilerLayeredPane.class).build();
       myTooltipComponent.registerListenersOn(table);
@@ -442,7 +442,7 @@ final class ThreadsView {
     private static JLabel newTooltipLabel(String text) {
       JLabel label = new JLabel(text);
       label.setForeground(ProfilerColors.TOOLTIP_TEXT);
-      label.setFont(ProfilerFonts.TOOLTIP_FONT);
+      label.setFont(ProfilerFonts.TOOLTIP_BODY_FONT);
       return label;
     }
 

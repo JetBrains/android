@@ -30,7 +30,7 @@ import javax.swing.border.EmptyBorder;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_FONT;
+import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_BODY_FONT;
 
 class CpuChartTooltipView extends MouseAdapter {
   @NotNull
@@ -74,14 +74,14 @@ class CpuChartTooltipView extends MouseAdapter {
 
     myContent.removeAll();
     JLabel nameLabel = new JLabel(node.getData().getFullName());
-    nameLabel.setFont(TOOLTIP_FONT);
+    nameLabel.setFont(TOOLTIP_BODY_FONT);
     nameLabel.setForeground(ProfilerColors.TOOLTIP_TEXT);
     myContent.add(nameLabel, new TabularLayout.Constraint(0, 0));
 
     JLabel durationLabel = new JLabel(String.format("%s - %s (%s)", TimeFormatter.getFullClockString(start),
                                                     TimeFormatter.getFullClockString(end),
                                                     TimeFormatter.getSingleUnitDurationString(node.getDuration())));
-    durationLabel.setFont(TOOLTIP_FONT);
+    durationLabel.setFont(TOOLTIP_BODY_FONT);
     durationLabel.setForeground(ProfilerColors.TOOLTIP_TIME_COLOR);
     durationLabel.setBorder(new EmptyBorder(5, 0, 0, 0));
     myContent.add(durationLabel, new TabularLayout.Constraint(1, 0));
