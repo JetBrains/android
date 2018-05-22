@@ -343,6 +343,7 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
+# sanity test
 java_test(
     name = "CompileWithJava8Test",
     data = COMMON_DATA + glob([
