@@ -16,7 +16,6 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.TabularLayout;
-import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTimeline;
@@ -27,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_FONT;
+import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_BODY_FONT;
 
 /**
  * This class manages the elements shown in the tooltip when the tooltip is visible.
@@ -85,19 +84,19 @@ public class CpuKernelTooltipView extends ProfilerTooltipView {
   @Override
   protected JComponent createTooltip() {
     myContent.setLayout(new TabularLayout("*", "Fit,Fit"));
-    myContent.setFont(TOOLTIP_FONT);
+    myContent.setFont(TOOLTIP_BODY_FONT);
     myContent.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
     JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
     separator.setBorder(JBUI.Borders.empty(5, 0));
     myUnavailableDetails.add(separator, new TabularLayout.Constraint(0, 0));
     JLabel unavailableLabel = new JLabel("Other (not selectable)");
-    unavailableLabel.setFont(AdtUiUtils.DEFAULT_FONT);
+    unavailableLabel.setFont(TOOLTIP_BODY_FONT);
     unavailableLabel.setForeground(ProfilerColors.TOOLTIP_TIME_COLOR);
     myUnavailableDetails.add(unavailableLabel, new TabularLayout.Constraint(1, 0));
     // JLabel doesn't pull font characteristics from the panel.
-    myThread.setFont(TOOLTIP_FONT);
-    myProcess.setFont(TOOLTIP_FONT);
-    myCpu.setFont(TOOLTIP_FONT);
+    myThread.setFont(TOOLTIP_BODY_FONT);
+    myProcess.setFont(TOOLTIP_BODY_FONT);
+    myCpu.setFont(TOOLTIP_BODY_FONT);
     myThread.setBorder(JBUI.Borders.emptyBottom(2));
     myProcess.setBorder(JBUI.Borders.emptyBottom(2));
     myContent.add(myUnavailableDetails, new TabularLayout.Constraint(0, 0));

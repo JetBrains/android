@@ -24,10 +24,11 @@ import java.awt.*;
  */
 public class ProfilerFonts {
   public static final Font H1_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(11f); // 21 scaled
-  public static final Font H2_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(5f);  // 15 scaled
-  public static final Font H3_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(4f);  // 14 scaled
-  public static final Font H4_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(3f);  // 13 scaled
+  public static final Font H2_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(5f); // 15 scaled
+  public static final Font H3_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(4f); // 14 scaled
+  public static final Font H4_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(3f); // 13 scaled
   public static final Font STANDARD_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(2); // 12 scaled
-  public static final Font TOOLTIP_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(1);  // 11 scaled
-  public static final Font SMALL_FONT = AdtUiUtils.DEFAULT_FONT;  // 10 scaled
+  public static final Font TOOLTIP_BODY_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(2); // 12 scaled
+  public static final Font TOOLTIP_HEADER_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(3); // 13 scaled
+  public static final Font SMALL_FONT = AdtUiUtils.DEFAULT_FONT; // 10 scaled
 }
