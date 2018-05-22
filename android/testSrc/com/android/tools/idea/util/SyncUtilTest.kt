@@ -50,8 +50,8 @@ class SyncUtilTest {
     emulateSync(SyncResult.CANCELLED)
     Mockito.verify(listener).syncEnded(SyncResult.CANCELLED)
 
-    emulateSync(SyncResult.PARTIAL_SUCCESS)
-    Mockito.verify(listener).syncEnded(SyncResult.PARTIAL_SUCCESS)
+    emulateSync(SyncResult.FAILURE)
+    Mockito.verify(listener).syncEnded(SyncResult.FAILURE)
 
     emulateSync(SyncResult.SUCCESS)
     Mockito.verify(listener).syncEnded(SyncResult.SUCCESS)

@@ -85,7 +85,7 @@ interface ProjectSystemSyncManager {
     /** Sync failed */
     FAILURE(false),
     /** The user has compilation errors or errors in build system files */
-    PARTIAL_SUCCESS(false),
+    PARTIAL_SUCCESS(true),
     /** The sync failed due to problems with source generation */
     SOURCE_GENERATION_FAILURE(false),
     /**
