@@ -20,6 +20,7 @@ import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilersTestData;
+import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -33,7 +34,7 @@ import java.util.concurrent.ExecutionException;
  */
 public class CpuProfilerTestUtils {
 
-  private static final String CPU_TRACES_DIR = "tools/adt/idea/profilers/testData/cputraces/";
+  private static final String CPU_TRACES_DIR = "profilers/testData/cputraces/";
 
   private CpuProfilerTestUtils() {
   }
@@ -52,7 +53,7 @@ public class CpuProfilerTestUtils {
   }
 
   public static File getTraceFile(@NotNull String filename) {
-    return TestUtils.getWorkspaceFile(CPU_TRACES_DIR + filename);
+    return new File(AndroidTestBase.getAndroidModulePath(CPU_TRACES_DIR), filename);
   }
 
   public static CpuCapture getValidCapture() throws IOException, ExecutionException, InterruptedException {
