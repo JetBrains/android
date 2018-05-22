@@ -63,7 +63,11 @@ public abstract class DefaultHRenderer<T> implements HRenderer<DefaultHNode<T>> 
 
   // This method is not thread-safe. In order to limit object allocation, mRect is being re-used.
   @Override
-  public final void render(@NotNull Graphics2D g, @NotNull DefaultHNode<T> node, @NotNull Rectangle2D drawingArea, boolean isFocused) {
+  public final void render(@NotNull Graphics2D g,
+                           @NotNull DefaultHNode<T> node,
+                           @NotNull Rectangle2D fullDrawingArea,
+                           @NotNull Rectangle2D drawingArea,
+                           boolean isFocused) {
     mRect.x = (float)drawingArea.getX();
     mRect.y = (float)drawingArea.getY();
     mRect.width = (float)drawingArea.getWidth();

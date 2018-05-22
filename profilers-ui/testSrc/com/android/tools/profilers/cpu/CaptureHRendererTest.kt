@@ -39,12 +39,44 @@ class CaptureNodeHRendererTest {
     val renderer = CaptureNodeHRenderer(CaptureModel.Details.Type.CALL_CHART)
     val renderWindow = Rectangle2D.Float(0.0f, 0.0f, 10.0f,10.0f)
     val fakeGraphics = TestGraphics2D()
-    renderer.render(fakeGraphics, simpleNode, renderWindow, false)
+    renderer.render(fakeGraphics, simpleNode, renderWindow, renderWindow, false)
     assertThat(fakeGraphics.fillShapes).hasSize(2)
 
     // Validate we get two shapes drawn, the first one is the expected size of the window.
     // The second on is the size of the idle time. In this case half our global time.
     fakeGraphics.expectFillShapes(renderWindow, Rectangle2D.Double(5.0, 0.0, 5.0, 10.0))
+  }
+
+  @Test
+  fun renderUseClampedRenderWindowForSizing() {
+    val simpleNode = CaptureNode(AtraceNodeModel("SomeName")).apply {
+      startGlobal = 10
+      endGlobal = 20
+      startThread = 10
+      endThread = 15
+    }
+    val renderer = CaptureNodeHRenderer(CaptureModel.Details.Type.CALL_CHART)
+    // Test clamp width.
+    var renderWindow = Rectangle2D.Float(0.0f, 0.0f, 10.0f,10.0f)
+    var clampedRenderWindow = Rectangle2D.Float(0.0f, 0.0f, 6.0f, 6.0f)
+    val fakeGraphics = TestGraphics2D()
+    renderer.render(fakeGraphics, simpleNode, renderWindow, clampedRenderWindow, false)
+    assertThat(fakeGraphics.fillShapes).hasSize(2)
+
+    // Validate we get two shapes drawn, the first one is the expected size of the clamped window.
+    // The second on is the size of the idle time clamped to the window size.
+    fakeGraphics.expectFillShapes(clampedRenderWindow, Rectangle2D.Double(5.0, 0.0, 1.0, 10.0))
+    fakeGraphics.fillShapes.clear();
+
+    // Test clamp start and width
+    renderWindow = Rectangle2D.Float(0.0f, 0.0f, 10.0f,10.0f)
+    clampedRenderWindow = Rectangle2D.Float(3.0f, 0.0f, 1.0f, 6.0f)
+    renderer.render(fakeGraphics, simpleNode, renderWindow, clampedRenderWindow, false)
+    assertThat(fakeGraphics.fillShapes).hasSize(2)
+
+    // Validate we get two shapes drawn, the first one is the expected size of the clamped window.
+    // The second on is the size of the idle time clamped to the window size.
+    fakeGraphics.expectFillShapes(clampedRenderWindow, Rectangle2D.Double(4.0, 0.0, 0.0, 10.0))
   }
 
   @Test
@@ -57,7 +89,7 @@ class CaptureNodeHRendererTest {
     val renderer = CaptureNodeHRenderer(CaptureModel.Details.Type.CALL_CHART)
     val renderWindow = Rectangle2D.Float(0.0f, 0.0f, 10.0f,10.0f)
     val fakeGraphics = TestGraphics2D()
-    renderer.render(fakeGraphics, simpleNode, renderWindow, false)
+    renderer.render(fakeGraphics, simpleNode, renderWindow, renderWindow,false)
     assertThat(fakeGraphics.fillShapes).hasSize(1)
 
     // Validate we get the expected size of the window.
@@ -71,7 +103,7 @@ class CaptureNodeHRendererTest {
 
     val fakeGraphics = TestGraphics2D()
     try {
-      renderer.render(fakeGraphics, unsupportedNode, Rectangle2D.Float(), false)
+      renderer.render(fakeGraphics, unsupportedNode, Rectangle2D.Float(), Rectangle2D.Float(), false)
       fail()
     }
     catch (e: IllegalStateException) {
@@ -98,19 +130,19 @@ class CaptureNodeHRendererTest {
     val fakeGraphics = TestGraphics2D()
     fakeGraphics.paint = Color.RED
     simpleNode.filterType = CaptureNode.FilterType.MATCH
-    renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float(), false)
+    renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float(), Rectangle2D.Float(), false)
     assertThat(fakeGraphics.paint).isEqualTo(Color.BLACK)
     assertThat(fakeGraphics.font.isBold).isFalse()
 
     fakeGraphics.paint = Color.RED
     simpleNode.filterType = CaptureNode.FilterType.UNMATCH
-    renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float(), false)
+    renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float(), Rectangle2D.Float(), false)
     assertThat(fakeGraphics.paint).isEqualTo(CaptureNodeHRenderer.toUnmatchColor(Color.BLACK))
     assertThat(fakeGraphics.font.isBold).isFalse()
 
     fakeGraphics.paint = Color.RED
     simpleNode.filterType = CaptureNode.FilterType.EXACT_MATCH
-    renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float(), false)
+    renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float(), Rectangle2D.Float(), false)
     assertThat(fakeGraphics.paint).isEqualTo(Color.BLACK)
     // TODO: refactor CaptureNodeHRenderer#render to check font is Bold for EXACT_MATCHES
 
@@ -217,7 +249,7 @@ class CaptureNodeHRendererTest {
     var prevTextLength = expectedTexts[0].length + 1
     for (text in expectedTexts) {
       textFitPredicate.fittingLength = prevTextLength - 1
-      renderer.render(graphics, node, Rectangle2D.Float(), false)
+      renderer.render(graphics, node, Rectangle2D.Float(), Rectangle2D.Float(), false)
       assertThat(graphics.drawnString).isEqualTo(text)
       prevTextLength = text.length
     }
