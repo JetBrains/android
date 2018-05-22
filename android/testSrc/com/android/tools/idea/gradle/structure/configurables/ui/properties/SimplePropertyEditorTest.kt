@@ -125,6 +125,24 @@ class SimplePropertyEditorTest : UsefulTestCase() {
     assertThat(editor.testPlainTextStatus, equalTo(""))
   }
 
+  fun testReloadsValue() {
+    val editor = SimplePropertyEditor(property.bind(model), property.bindContext(null, model), null, listOf())
+    assertThat(editor.selectedItem, equalTo("value".asAnnotatedParsed()))
+    assertThat(editor.testPlainTextStatus, equalTo(""))
+    parsedModel.value = "value1".asAnnotatedParsed()
+    editor.reload()
+    assertThat(editor.selectedItem, equalTo("value1".asAnnotatedParsed()))
+    assertThat(editor.testPlainTextStatus, equalTo("Resolved: value"))
+    editor.setTestText("value")
+    parsedModel.value = "value".asAnnotatedParsed()
+    // Make sure the editor remains modified.
+    assertThat(editor.selectedItem, equalTo("value1".asAnnotatedParsed()))
+    // Ensure the editor reloads even when modified.
+    editor.reload()
+    assertThat(editor.selectedItem, equalTo("value".asAnnotatedParsed()))
+    assertThat(editor.testPlainTextStatus, equalTo(""))
+  }
+
   fun testLoadsValueNotMatchingResolved() {
     resolvedModel.value = "other"
     defaultValue = null  // It should not matter whether it is set ot not. Make sure that if it is not set we still report the difference.

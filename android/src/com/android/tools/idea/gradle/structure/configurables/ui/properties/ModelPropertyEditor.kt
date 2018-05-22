@@ -53,6 +53,11 @@ interface ModelPropertyEditor<out ValueT> : Disposable {
    * Attempts to update the bound property to the current value of the editor and returns the outcome of the action.
    */
   fun updateProperty(): UpdatePropertyOutcome
+
+  /**
+   * Reloads the editor from the bound property.
+   */
+  fun reload()
 }
 
 /**
