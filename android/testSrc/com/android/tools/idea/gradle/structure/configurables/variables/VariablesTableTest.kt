@@ -206,7 +206,8 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testVariableNodeRename() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
+    val psProject = PsProject(project)
+    val psContext = PsContextImpl(psProject, testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -220,7 +221,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     tableModel.setValueAt("renamed", variableNode, 0)
     assertThat(tableModel.getValueAt(variableNode, 0) as String, equalTo("renamed"))
 
-    appNode.module.applyChanges()
+    psProject.applyAllChanges()
     val newTableModel = VariablesTable(project, psContext).tableModel
     val newAppNode = (newTableModel.root as DefaultMutableTreeNode).firstChild as VariablesTable.ModuleNode
     val variableNames = newAppNode.children().asSequence().map { it.toString() }.toList()
@@ -230,7 +231,8 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testListNodeRename() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
+    val psProject = PsProject(project)
+    val psContext = PsContextImpl(psProject, testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -248,7 +250,8 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testMapNodeRename() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
+    val psProject = PsProject(project)
+    val psContext = PsContextImpl(psProject, testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -267,7 +270,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     tableModel.setValueAt("renamed", firstElementNode, 0)
     assertThat(tableModel.getValueAt(firstElementNode, 0) as String, equalTo("renamed"))
 
-    appNode.module.applyChanges()
+    psProject.applyAllChanges()
     val newTableModel = VariablesTable(project, psContext).tableModel
     val newAppNode = (newTableModel.root as DefaultMutableTreeNode).firstChild as VariablesTable.ModuleNode
     val newMapNode =
@@ -279,7 +282,8 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testModuleNodeSetValue() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
+    val psProject = PsProject(project)
+    val psContext = PsContextImpl(psProject, testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -289,7 +293,8 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testVariableNodeSetValue() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
+    val psProject = PsProject(project)
+    val psContext = PsContextImpl(psProject, testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -301,12 +306,12 @@ class VariablesTableTest : AndroidGradleTestCase() {
     assertThat(tableModel.isCellEditable(variableNode, 1), equalTo(true))
 
     tableModel.setValueAt("\"3.0.1\"", variableNode, 1)
-    assertThat(variableNode.variable.module.isModified, equalTo(false))
+    assertThat(variableNode.variable.model.isModified, equalTo(false))
 
     tableModel.setValueAt("new value", variableNode, 1)
     assertThat(tableModel.getValueAt(variableNode, 1) as String, equalTo("\"new value\""))
 
-    appNode.module.applyChanges()
+    psProject.applyAllChanges()
     val newTableModel = VariablesTable(project, psContext).tableModel
     val newAppNode = (newTableModel.root as DefaultMutableTreeNode).firstChild as VariablesTable.ModuleNode
     val newVariableNode =
@@ -316,7 +321,8 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testListNodeSetValue() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
+    val psProject = PsProject(project)
+    val psContext = PsContextImpl(psProject, testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -335,12 +341,12 @@ class VariablesTableTest : AndroidGradleTestCase() {
     assertThat(tableModel.isCellEditable(firstElementNode, 1), equalTo(true))
 
     tableModel.setValueAt("\"proguard-rules.txt\"", firstElementNode, 1)
-    assertThat(firstElementNode.variable.module.isModified, equalTo(false))
+    assertThat(firstElementNode.variable.model.isModified, equalTo(false))
 
     tableModel.setValueAt("new value", firstElementNode, 1)
     assertThat(tableModel.getValueAt(firstElementNode, 1) as String, equalTo("\"new value\""))
 
-    appNode.module.applyChanges()
+    psProject.applyAllChanges()
     val newTableModel = VariablesTable(project, psContext).tableModel
     val newAppNode = (newTableModel.root as DefaultMutableTreeNode).firstChild as VariablesTable.ModuleNode
     val newListNode =
@@ -350,7 +356,8 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testMapNodeSetValue() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
+    val psProject = PsProject(project)
+    val psContext = PsContextImpl(psProject, testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -369,12 +376,12 @@ class VariablesTableTest : AndroidGradleTestCase() {
     assertThat(tableModel.isCellEditable(firstElementNode, 1), equalTo(true))
 
     tableModel.setValueAt("\"\"double\" quotes\"", firstElementNode, 1)
-    assertThat(firstElementNode.variable.module.isModified, equalTo(false))
+    assertThat(firstElementNode.variable.model.isModified, equalTo(false))
 
     tableModel.setValueAt("new value", firstElementNode, 1)
     assertThat(tableModel.getValueAt(firstElementNode, 1) as String, equalTo("\"new value\""))
 
-    appNode.module.applyChanges()
+    psProject.applyAllChanges()
     val newTableModel = VariablesTable(project, psContext).tableModel
     val newAppNode = (newTableModel.root as DefaultMutableTreeNode).firstChild as VariablesTable.ModuleNode
     val newMapNode =
@@ -384,7 +391,8 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testAddSimpleVariable() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
+    val psProject = PsProject(project)
+    val psContext = PsContextImpl(psProject, testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -402,7 +410,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
       appNode.children().asSequence().find { "newVariable" == (it as VariablesTable.VariableNode).toString() } as VariablesTable.VariableNode
     variableNode.setValue("new value")
 
-    appNode.module.applyChanges()
+    psProject.applyAllChanges()
     val newTableModel = VariablesTable(project, psContext).tableModel
     val newAppNode = (newTableModel.root as DefaultMutableTreeNode).firstChild as VariablesTable.ModuleNode
     val newVariableNode =
@@ -412,7 +420,8 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testAddList() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
+    val psProject = PsProject(project)
+    val psContext = PsContextImpl(psProject, testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -434,7 +443,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     tableModel.setValueAt("list item", variableNode.getChildAt(0), 1)
     assertThat(variableNode.childCount, equalTo(2))
 
-    appNode.module.applyChanges()
+    psProject.applyAllChanges()
     val newTableModel = VariablesTable(project, psContext).tableModel
     val newAppNode = (newTableModel.root as DefaultMutableTreeNode).firstChild as VariablesTable.ModuleNode
     val newListNode =
@@ -451,7 +460,8 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testAddMap() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
+    val psProject = PsProject(project)
+    val psContext = PsContextImpl(psProject, testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -474,7 +484,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     tableModel.setValueAt("value", variableNode.getChildAt(0), 1)
     assertThat(variableNode.childCount, equalTo(2))
 
-    appNode.module.applyChanges()
+    psProject.applyAllChanges()
     val newTableModel = VariablesTable(project, psContext).tableModel
     val newAppNode = (newTableModel.root as DefaultMutableTreeNode).firstChild as VariablesTable.ModuleNode
     val newMapNode =
@@ -491,7 +501,8 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testVariableNodeDelete() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
+    val psProject = PsProject(project)
+    val psContext = PsContextImpl(psProject, testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -506,7 +517,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     assertThat(variableNames, not(hasItem("anotherVariable")))
     assertThat(appNode.childCount, equalTo(childCount - 1))
 
-    appNode.module.applyChanges()
+    psProject.applyAllChanges()
     val newTableModel = VariablesTable(project, psContext).tableModel
     val newAppNode = (newTableModel.root as DefaultMutableTreeNode).firstChild as VariablesTable.ModuleNode
     val newVariableNames = newAppNode.children().asSequence().map { it.toString() }.toList()
@@ -516,7 +527,8 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testListNodeDelete() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
+    val psProject = PsProject(project)
+    val psContext = PsContextImpl(psProject, testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -541,7 +553,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     assertThat(tableModel.getValueAt(listNodeFirstChild, 1) as String, equalTo("\"proguard-rules2.txt\""))
     assertThat(listNode.childCount, equalTo(childCount - 1))
 
-    appNode.module.applyChanges()
+    psProject.applyAllChanges()
     val newTableModel = VariablesTable(project, psContext).tableModel
     val newAppNode = (newTableModel.root as DefaultMutableTreeNode).firstChild as VariablesTable.ModuleNode
     val newListNode =
@@ -555,7 +567,8 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   fun testMapNodeDelete() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
-    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
+    val psProject = PsProject(project)
+    val psContext = PsContextImpl(psProject, testRootDisposable)
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
@@ -580,7 +593,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     assertThat(tableModel.getValueAt(mapNodeFirstChild, 1) as String, equalTo("\"'single' quotes\""))
     assertThat(mapNode.childCount, equalTo(childCount - 1))
 
-    appNode.module.applyChanges()
+    psProject.applyAllChanges()
     val newTableModel = VariablesTable(project, psContext).tableModel
     val newAppNode = (newTableModel.root as DefaultMutableTreeNode).firstChild as VariablesTable.ModuleNode
     val newMapNode =
@@ -589,5 +602,16 @@ class VariablesTableTest : AndroidGradleTestCase() {
     assertThat(tableModel.getValueAt(newFirstElementNode, 0) as String, equalTo("b"))
     assertThat(tableModel.getValueAt(newFirstElementNode, 1) as String, equalTo("\"'single' quotes\""))
     assertThat(newMapNode.childCount, equalTo(childCount - 1))
+  }
+}
+
+private fun PsProject.applyAllChanges() {
+  if (isModified) {
+    applyChanges()
+  }
+  forEachModule { module ->
+    if (module.isModified) {
+      module.applyChanges()
+    }
   }
 }

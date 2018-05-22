@@ -15,15 +15,23 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
+import com.android.tools.idea.gradle.dsl.api.ext.ExtModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.structure.model.meta.*
 
-class PsVariables(private val module: PsModule) : VariablesProvider {
+class PsVariables(
+  val model: PsModel,
+  override val title: String,
+  internal val container: ExtModel,
+  private val parentScope: PsVariables?
+) : VariablesProvider {
+  override val name: String = model.name
+
   override fun <ValueT : Any> getAvailableVariablesFor(
     property: ModelPropertyContext<ValueT>
   ): List<Annotated<ParsedValue.Set.Parsed<ValueT>>> =
   // TODO(solodkyy): Merge with variables available at the project level.
-    module.parsedModel?.inScopeProperties.orEmpty()
+    container.inScopeProperties
       .map { it.key to it.value.resolve() }
       .flatMap {
         when (it.second.valueType) {
@@ -46,5 +54,5 @@ class PsVariables(private val module: PsModule) : VariablesProvider {
         }
       }
 
-  fun getModuleVariables(): List<PsVariable> = module.parsedModel?.ext()?.properties?.map { PsVariable(it, module) }.orEmpty()
+  override fun getModuleVariables(): List<PsVariable> = container.properties.map { PsVariable(it, it.resolve(), model, this) }
 }

@@ -34,6 +34,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
@@ -43,6 +44,7 @@ public class PsProject extends PsModel {
   @NotNull private final ProjectBuildModel myParsedModel;
 
   @NotNull private final List<PsModule> myModules = Lists.newArrayList();
+  @NotNull private final PsVariables myVariables;
 
   private boolean myModified;
 
@@ -50,6 +52,9 @@ public class PsProject extends PsModel {
     super(null);
     myProject = project;
     myParsedModel = GradleModelProvider.get().getProjectModel(project);
+    // TODO(b/77695733): Ensure that getProjectBuildModel() is indeed not null.
+    myVariables = new PsVariables(
+      this, "Project: " + getName(), Objects.requireNonNull(this.myParsedModel.getProjectBuildModel()).ext(), null);
     for (Module resolvedModel : ModuleManager.getInstance(myProject).getModules()) {
       String gradlePath = getGradlePath(resolvedModel);
       GradleBuildModel parsedModel = myParsedModel.getModuleBuildModel(resolvedModel);
@@ -143,5 +148,10 @@ public class PsProject extends PsModel {
         }
       }.execute();
     }
+  }
+
+  @NotNull
+  public PsVariables getVariables() {
+    return myVariables;
   }
 }

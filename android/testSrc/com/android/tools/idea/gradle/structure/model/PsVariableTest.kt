@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
@@ -26,14 +27,16 @@ class PsVariableTest {
   @Test
   fun testSetValue() {
     val stringProperty = mock(GradlePropertyModel::class.java)
+    val stringPropertyResolved = mock(ResolvedPropertyModel::class.java)
     Mockito.`when`(stringProperty.valueType).thenReturn(GradlePropertyModel.ValueType.STRING)
-    val testStringVariable = PsVariable(stringProperty, mock(PsModule::class.java))
+    val testStringVariable = PsVariable(stringProperty, stringPropertyResolved, mock(PsModel::class.java), mock(VariablesProvider::class.java))
     testStringVariable.setValue("true")
     Mockito.verify(stringProperty).setValue("true")
 
     val booleanProperty = mock(GradlePropertyModel::class.java)
+    val booleanPropertyResolved = mock(ResolvedPropertyModel::class.java)
     Mockito.`when`(booleanProperty.valueType).thenReturn(GradlePropertyModel.ValueType.BOOLEAN)
-    val testBooleanVariable = PsVariable(booleanProperty, mock(PsModule::class.java))
+    val testBooleanVariable = PsVariable(booleanProperty, booleanPropertyResolved, mock(PsModel::class.java), mock(VariablesProvider::class.java))
     testBooleanVariable.setValue("true")
     Mockito.verify(booleanProperty).setValue(true)
   }

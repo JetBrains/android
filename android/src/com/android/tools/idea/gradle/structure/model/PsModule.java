@@ -38,6 +38,7 @@ import javax.swing.*;
 import java.io.File;
 import java.util.EventListener;
 import java.util.List;
+import java.util.Objects;
 
 import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
 
@@ -53,7 +54,7 @@ public abstract class PsModule extends PsChildModel {
 
   private final EventDispatcher<DependenciesChangeListener> myDependenciesChangeEventDispatcher =
     EventDispatcher.create(DependenciesChangeListener.class);
-  private final PsVariables myVariables = new PsVariables(this);
+  @Nullable private final PsVariables myVariables;
 
 
   protected PsModule(@NotNull PsProject parent,
@@ -65,12 +66,15 @@ public abstract class PsModule extends PsChildModel {
     myGradlePath = gradlePath;
     myModuleName = resolvedModel.getName();
     myParsedModel = parsedModel;
+    // TODO(b/77695733): Ensure that getProjectBuildModel() is indeed not null.
+    myVariables = new PsVariables(this, "Module: " + getName(), Objects.requireNonNull(this.myParsedModel).ext(), parent.getVariables());
   }
 
   protected PsModule(@NotNull PsProject parent, @NotNull String name) {
     super(parent);
     myResolvedModel = null;
     myModuleName = name;
+    myVariables = null;
   }
 
   @Override
@@ -232,7 +236,7 @@ public abstract class PsModule extends PsChildModel {
     return null;
   }
 
-  @NotNull
+  @Nullable
   public PsVariables getVariables() {
     return myVariables;
   }

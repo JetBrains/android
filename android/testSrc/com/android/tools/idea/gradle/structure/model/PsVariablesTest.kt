@@ -30,7 +30,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
     val psProject = PsProject(project)
     val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
-    val variables = psAppModule.variables.getModuleVariables()
+    val variables = psAppModule.variables!!.getModuleVariables()
     assertThat(variables.size, equalTo(9))
     assertThat(
       variables.map { it.getName() },
@@ -64,7 +64,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
     val psProject = PsProject(project)
     val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
     run {
-      val variables = psAppModule.variables.getAvailableVariablesFor(stringWithDotsProperty).toSet()
+      val variables = psAppModule.variables!!.getAvailableVariablesFor(stringWithDotsProperty).toSet()
       assertThat(
         variables,
         equalTo(
