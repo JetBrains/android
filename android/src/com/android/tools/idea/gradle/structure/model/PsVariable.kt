@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.structure.model
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference
+import com.android.tools.idea.gradle.structure.model.meta.GradleModelCoreProperty
+import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyCore
 import java.lang.IllegalStateException
 
 /**
@@ -25,7 +27,7 @@ import java.lang.IllegalStateException
  */
 class PsVariable(
   private val property: GradlePropertyModel,
-  @Suppress("unused") private val resolvedProperty: ResolvedPropertyModel,
+  private val resolvedProperty: ResolvedPropertyModel,
   val model: PsModel,
   val scopeVariables: VariablesProvider) {
   val valueType = property.valueType
@@ -81,4 +83,13 @@ class PsVariable(
     }
     return PsVariable(mapValue, mapValue.resolve(), model, scopeVariables)
   }
+
+  /**
+   * Binds a new property to the underlying Gradle property using the binding configuration from the [prototype].
+   */
+  @Suppress("UNCHECKED_CAST")
+  fun <T : Any, PropertyCoreT : ModelPropertyCore<T>> bindNewPropertyAs(prototype: PropertyCoreT): PropertyCoreT? =
+    // Note: the as? test is only to test whether the interface is implemented.
+    // If it is, the generic type arguments will match.
+    (prototype as? GradleModelCoreProperty<T, PropertyCoreT>)?.rebind(resolvedProperty, { model.isModified = true })
 }

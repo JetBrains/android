@@ -43,4 +43,15 @@ interface VariablesProvider {
    * Returns a list of the variables which are currently defined in the scope.
    */
   fun getModuleVariables(): List<PsVariable>
+  /**
+   * Returns the specific variable scopes (including this one) from which this the list of variables available in this scope is composed.
+   */
+  fun getVariableScopes(): List<VariablesProvider>
+
+  /**
+   * Returns a new not conflicting name for a new variable in this scope based on the [preferredName].
+   */
+  fun getNewVariableName(preferredName: String) : String
+
+  fun getOrCreateVariable(name: String): PsVariable
 }

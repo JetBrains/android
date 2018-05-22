@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
+import com.android.tools.idea.gradle.dsl.api.util.TypeReference
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -25,6 +28,19 @@ import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.MatcherAssert.assertThat
 
 class PsVariablesTest : AndroidGradleTestCase() {
+
+  fun testGetModuleVariables_project() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+    val psProject = PsProject(project)
+    val variables = psProject.variables.getModuleVariables()
+    assertThat(variables.size, equalTo(1))
+    assertThat(
+      variables.map { it.getName() },
+      hasItems(
+        "someVar"
+      )
+    )
+  }
 
   fun testGetModuleVariables() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
@@ -77,6 +93,36 @@ class PsVariablesTest : AndroidGradleTestCase() {
         )
       )
     }
+  }
+
+  fun testGetVariableScopes() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+    val psProject = PsProject(project)
+    val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
+    val scopes = psAppModule.variables!!.getVariableScopes()
+    assertThat(scopes.map { it.name }, equalTo(listOf("testGetVariableScopes", "app")))
+    assertThat(scopes.map { it.title }, equalTo(listOf("Project: testGetVariableScopes", "Module: app")))
+  }
+
+  fun testGetNewVariableName() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+    val psProject = PsProject(project)
+    assertThat(psProject.variables.getNewVariableName("someVar"), equalTo("someVar1"))
+    assertThat(psProject.variables.getNewVariableName("otherVar"), equalTo("otherVar"))
+  }
+
+  fun testGetOrCreateVariable() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+    val psProject = PsProject(project)
+    val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
+    val variables = psAppModule.variables!!
+    val tmp123 = variables.getOrCreateVariable("tmp123")
+    tmp123.setName("tmp321")
+    tmp123.setValue("123")
+    val secondTmp123 = variables.getOrCreateVariable("tmp123")
+    assertThat(secondTmp123.valueType, equalTo(GradlePropertyModel.ValueType.NONE))
+    val tmp321 = variables.getOrCreateVariable("tmp321")
+    assertThat(tmp321.getResolvedValue(STRING_TYPE), equalTo("123"))
   }
 }
 
