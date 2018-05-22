@@ -28,10 +28,7 @@ import javax.swing.*
 import javax.xml.ws.Holder
 
 import com.android.SdkConstants.*
-import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider
-import com.android.tools.idea.projectsystem.EP_NAME
-import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
-import com.android.tools.idea.projectsystem.TestProjectSystem
+import com.android.tools.idea.projectsystem.*
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.extensions.Extensions
@@ -54,8 +51,10 @@ class DependencyManagerTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
 
+    val allowedDependencies = listOf(GoogleMavenArtifactId.DESIGN.getCoordinate("+"),
+                                     GoogleMavenArtifactId.CARDVIEW_V7.getCoordinate("+"))
     PlatformTestUtil.registerExtension<AndroidProjectSystemProvider>(Extensions.getArea(project), EP_NAME,
-        TestProjectSystem(project), testRootDisposable)
+        TestProjectSystem(project, allowedDependencies), testRootDisposable)
 
     myPanel = mock(JComponent::class.java)
     myDisposable = mock(Disposable::class.java)

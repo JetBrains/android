@@ -30,7 +30,10 @@ import java.nio.file.Path
  * This implementation of AndroidProjectSystem is used during integration tests and includes methods
  * to stub project system functionalities.
  */
-class TestProjectSystem(val project: Project) : AndroidProjectSystem, AndroidProjectSystemProvider {
+class TestProjectSystem(val project: Project,
+                        private val allowedFutureDependencies: List<GradleCoordinate> = listOf())
+  : AndroidProjectSystem, AndroidProjectSystemProvider {
+
   data class TestDependencyVersion(override val mavenVersion: GradleVersion?) : GoogleMavenArtifactVersion {
     override fun equals(other: Any?) = other is GoogleMavenArtifactVersion && other.mavenVersion?.equals(mavenVersion) ?: false
     override fun hashCode() = mavenVersion?.hashCode() ?: 0
@@ -53,7 +56,8 @@ class TestProjectSystem(val project: Project) : AndroidProjectSystem, AndroidPro
     myDependenciesByModule.put(module, coordinate)
   }
 
-  override fun getAvailableDependency(coordinate: GradleCoordinate, includePreview: Boolean): GradleCoordinate? = coordinate
+  override fun getAvailableDependency(coordinate: GradleCoordinate, includePreview: Boolean): GradleCoordinate? =
+    allowedFutureDependencies.firstOrNull { coordinate.matches(it) }
 
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
     return object : AndroidModuleSystem {
