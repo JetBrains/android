@@ -60,7 +60,7 @@ internal class NpwControl : TestWatcher() {
     val gradleFile = File(project.basePath!!, SdkConstants.FN_BUILD_GRADLE)
     if (gradleFile.exists()) {
       val origContent = Files.toString(gradleFile, Charsets.UTF_8)
-      val newContent = AndroidGradleTests.updateLocalRepositories(origContent, AndroidGradleTests.getLocalRepositories())
+      val newContent = AndroidGradleTests.updateLocalRepositories(origContent, AndroidGradleTests.getLocalRepositoriesForGroovy())
       if (newContent != origContent) {
         Files.write(newContent, gradleFile, Charsets.UTF_8)
       }

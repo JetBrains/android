@@ -19,6 +19,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgradeStep;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTests;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.PlatformTestUtil;
@@ -27,7 +28,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.testing.AndroidGradleTests.updateGradleVersions;
 import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_PRE30;
 import static com.google.common.truth.Truth.assertThat;
@@ -76,7 +76,7 @@ public class AndroidRunConfigurationGradleTest extends AndroidGradleTestCase {
 
     // Update plugin to 2.2.0 so that the bundle tool tasks are not available.
     // Note that downgrading to 2.2.0 always fails gradle sync.
-    updateGradleVersions(getBaseDirPath(getProject()), "2.2.0");
+    AndroidGradleTests.updateGradleVersions(getBaseDirPath(getProject()), "2.2.0");
     requestSyncAndGetExpectedFailure();
 
     // Verifies there is a validation error (since bundle tasks are not available)

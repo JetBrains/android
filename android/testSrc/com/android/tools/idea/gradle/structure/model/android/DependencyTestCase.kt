@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTests
-import com.android.tools.idea.testing.AndroidGradleTests.getLocalRepositories
+import com.android.tools.idea.testing.AndroidGradleTests.getLocalRepositoriesForGroovy
 import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_REPO
 import com.intellij.util.PathUtil.toSystemDependentName
 import org.jetbrains.android.AndroidTestBase
@@ -25,7 +25,7 @@ import java.io.File
 
 abstract class DependencyTestCase : AndroidGradleTestCase() {
   override fun updateVersionAndDependencies(projectRoot: File) {
-    val localRepositories = getLocalRepositories()
+    val localRepositories = getLocalRepositoriesForGroovy()
     val testRepositoryPath = File(AndroidTestBase.getTestDataPath(), toSystemDependentName(PSD_SAMPLE_REPO)).absolutePath!!
     val repositories = """
       maven {
@@ -34,7 +34,7 @@ abstract class DependencyTestCase : AndroidGradleTestCase() {
       }
       $localRepositories
       """
-    AndroidGradleTests.updateGradleVersions(projectRoot, repositories, null)
+    AndroidGradleTests.updateGradleVersionsAndRepositories(projectRoot, repositories, null)
   }
 }
 
