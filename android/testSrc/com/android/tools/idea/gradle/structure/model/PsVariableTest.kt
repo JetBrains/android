@@ -29,14 +29,14 @@ class PsVariableTest {
     val stringProperty = mock(GradlePropertyModel::class.java)
     val stringPropertyResolved = mock(ResolvedPropertyModel::class.java)
     Mockito.`when`(stringProperty.valueType).thenReturn(GradlePropertyModel.ValueType.STRING)
-    val testStringVariable = PsVariable(stringProperty, stringPropertyResolved, mock(PsModel::class.java), mock(VariablesProvider::class.java))
+    val testStringVariable = PsVariable(stringProperty, stringPropertyResolved, mock(PsModel::class.java), mock(PsVariablesScope::class.java))
     testStringVariable.setValue("true")
     Mockito.verify(stringProperty).setValue("true")
 
     val booleanProperty = mock(GradlePropertyModel::class.java)
     val booleanPropertyResolved = mock(ResolvedPropertyModel::class.java)
     Mockito.`when`(booleanProperty.valueType).thenReturn(GradlePropertyModel.ValueType.BOOLEAN)
-    val testBooleanVariable = PsVariable(booleanProperty, booleanPropertyResolved, mock(PsModel::class.java), mock(VariablesProvider::class.java))
+    val testBooleanVariable = PsVariable(booleanProperty, booleanPropertyResolved, mock(PsModel::class.java), mock(PsVariablesScope::class.java))
     testBooleanVariable.setValue("true")
     Mockito.verify(booleanProperty).setValue(true)
   }

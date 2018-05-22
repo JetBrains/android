@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
-import com.android.tools.idea.gradle.structure.configurables.ui.simplePropertyEditor
-import com.android.tools.idea.gradle.structure.model.VariablesProvider
+import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.google.common.util.concurrent.ListenableFuture
@@ -249,7 +248,7 @@ class SimplePropertyEditorTest : UsefulTestCase() {
   }
 
   fun testLoadsDropDownList() {
-    val variablesProvider = mock(VariablesProvider::class.java)
+    val variablesProvider = mock(PsVariablesScope::class.java)
     val var1 = "var1" to "1"
     val var2 = "var2" to "2"
     val var3 = "var3" to "3"
@@ -268,7 +267,7 @@ class SimplePropertyEditorTest : UsefulTestCase() {
   }
 
   fun testReloadsDropDownList() {
-    val variablesProvider = mock(VariablesProvider::class.java)
+    val variablesProvider = mock(PsVariablesScope::class.java)
     val var1 = "var1" to "1"
     val var2 = "var2" to "2"
     val var3 = "var3" to "3"
@@ -398,7 +397,7 @@ class SimplePropertyEditorTest : UsefulTestCase() {
   }
 
   fun testCreateNew() {
-    val variablesProvider = mock(VariablesProvider::class.java)
+    val variablesProvider = mock(PsVariablesScope::class.java)
     val var1 = "var1" to "1"
     val var2 = "var2" to "2"
     val var3 = "var3" to "3"

@@ -20,11 +20,11 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.structure.model.meta.*
 
 class PsVariables(
-  val model: PsModel,
+  override val model: PsModel,
   override val title: String,
-  internal val container: ExtModel,
+  override val container: ExtModel,
   private val parentScope: PsVariables?
-) : VariablesProvider {
+) : PsVariablesScope {
   override val name: String = model.name
 
   override fun <ValueT : Any> getAvailableVariablesFor(
@@ -56,7 +56,7 @@ class PsVariables(
 
   override fun getModuleVariables(): List<PsVariable> = container.properties.map { PsVariable(it, it.resolve(), model, this) }
 
-  override fun getVariableScopes(): List<VariablesProvider> =
+  override fun getVariableScopes(): List<PsVariablesScope> =
     parentScope?.getVariableScopes().orEmpty() + this
 
   override fun getNewVariableName(preferredName: String) =
