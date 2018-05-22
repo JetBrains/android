@@ -20,7 +20,6 @@ public enum TestGroup {
   QA,
   QA_UNRELIABLE,
   SANITY_BAZEL,
-  SANITY_NO_UI,
   FAST_BAZEL,
   FAT_BAZEL,
   UNRELIABLE,
