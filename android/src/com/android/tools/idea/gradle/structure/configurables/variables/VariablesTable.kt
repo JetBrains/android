@@ -82,16 +82,19 @@ class VariablesTable(private val project: Project, private val context: PsContex
   }
 
   private fun fillTable() {
-    val moduleNodes = mutableListOf<ModuleNode>()
-    context.project.forEachModule { module ->
-      module.variables?.let { variables ->
-        val moduleVariables = variables.getModuleVariables()
-        val moduleRoot = ModuleNode(variables)
-        moduleNodes.add(moduleRoot)
-        moduleVariables.map({ VariableNode(it) }).sortedBy { it.variable.getName() }.forEach { moduleRoot.add(it) }
-      }
+    fun createRoot(variablesScope: PsVariables): ModuleNode {
+      val moduleVariables = variablesScope.getModuleVariables()
+      val moduleRoot = ModuleNode(variablesScope)
+      moduleVariables.map({ VariableNode(it) }).sortedBy { it.variable.getName() }.forEach { moduleRoot.add(it) }
+      return moduleRoot
     }
-    moduleNodes.sortedBy { it.variables.name }.forEach { (tableModel.root as DefaultMutableTreeNode).add(it) }
+
+    val moduleNodes = mutableListOf<ModuleNode>()
+    context.project.forEachModule { module -> module.variables?.let { variables -> moduleNodes.add(createRoot(variables)) } }
+    moduleNodes.sortBy { it.variables.name }
+    moduleNodes.add(0, createRoot(context.project.variables))
+
+    moduleNodes.forEach { (tableModel.root as DefaultMutableTreeNode).add(it) }
     tree.expandRow(0)
     tree.isRootVisible = false
   }
