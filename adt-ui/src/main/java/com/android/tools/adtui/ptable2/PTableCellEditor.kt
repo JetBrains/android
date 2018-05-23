@@ -37,7 +37,7 @@ interface PTableCellEditor {
   val value: String?
 
   /**
-   * Return true to enable the [activate] method below.
+   * Return true to enable the [toggleValue] method below.
    */
   val isBooleanEditor: Boolean
 
@@ -46,7 +46,7 @@ interface PTableCellEditor {
    *
    * This method is only called if [isBooleanEditor] returns true.
    */
-  fun activate()
+  fun toggleValue()
 
   /**
    * Called to request focus in the editor.
@@ -69,7 +69,7 @@ class DefaultPTableCellEditor : PTableCellEditor {
   override val isBooleanEditor: Boolean
     get() = false
 
-  override fun activate() {}
+  override fun toggleValue() {}
 
   override fun requestFocus() {}
 

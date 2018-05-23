@@ -205,11 +205,11 @@ open class PTableImpl(tableModel: PTableModel,
     // only perform edit if we know the editor is capable of a quick toggle action.
     // We know that boolean editors switch their state and finish editing right away
     if (editor.isBooleanEditor) {
-      startEditing(row, null)
+      startEditing(row, { editor.toggleValue() })
     }
   }
 
-  private fun startEditing(row: Int, afterActivation: Runnable?) {
+  private fun startEditing(row: Int, afterActivation: () -> Unit) {
     val editor = getCellEditor(row, 0)
     if (!editCellAt(row, 1)) {
       return
@@ -217,8 +217,7 @@ open class PTableImpl(tableModel: PTableModel,
 
     IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown {
       editor.requestFocus()
-      editor.activate()
-      afterActivation?.run()
+      afterActivation()
     }
   }
 
@@ -246,7 +245,7 @@ open class PTableImpl(tableModel: PTableModel,
       when {
         model.isGroupItem(item) -> toggleAndSelect(row)
         toggleOnly -> quickEdit(row)
-        else -> startEditing(row, null)
+        else -> startEditing(row, {})
       }
     }
   }
@@ -376,7 +375,7 @@ open class PTableImpl(tableModel: PTableModel,
       if (table.isEditing || row == -1 || event.keyChar == '\t') {
         return
       }
-      table.startEditing(row, Runnable {
+      table.startEditing(row, {
         ApplicationManager.getApplication().invokeLater {
           IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown {
             val textEditor = IdeFocusManager.findInstance().focusOwner
@@ -434,7 +433,7 @@ open class PTableImpl(tableModel: PTableModel,
         }
         if (table.isCellEditable(row, col)) {
           table.setRowSelectionInterval(row, row)
-          table.startEditing(row, null)
+          table.startEditing(row, {})
           return table.editorComponent
         }
       }
