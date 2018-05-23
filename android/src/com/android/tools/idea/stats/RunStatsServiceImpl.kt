@@ -134,9 +134,6 @@ class RunStatsServiceImpl : RunStatsService() {
                                                      .build(), currentRun.packageName))
   }
 
-  /**
-   *
-   */
   override fun notifyEmulatorStarted(isSuccessful: Boolean) {
     val currentRun = myRun?: return
     synchronized(lock) {
@@ -154,11 +151,15 @@ class RunStatsServiceImpl : RunStatsService() {
                                                      .build(), currentRun.packageName))
   }
 
+  /**
+   * Start tracking a deploy. Better to use one of the deploy task specific methods in [RunStatsService]
+   * instead for shorter list of parameters.
+   */
   override fun notifyDeployStarted(deployTask: StudioRunEvent.DeployTask,
                                    device: IDevice,
                                    artifactCount: Int,
                                    isPatchBuild: Boolean,
-                                   dontKill: Boolean) {
+                                   dontKill: Boolean, disabledDynamicFeaturesCount: Int) {
     val currentRun = myRun?: return
     synchronized(lock) {
       currentRun.deployStartTimestamp = System.currentTimeMillis()
@@ -170,6 +171,7 @@ class RunStatsServiceImpl : RunStatsService() {
                                                      .setEventType(StudioRunEvent.EventType.START)
                                                      .setArtifactCount(artifactCount)
                                                      .setDeployTask(deployTask)
+                                                     .setDisabledDynamicFeaturesCount(disabledDynamicFeaturesCount)
                                                      .build(), currentRun.packageName)
                                      .setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(device)))
   }

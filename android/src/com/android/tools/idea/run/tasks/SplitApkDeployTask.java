@@ -77,8 +77,8 @@ public class SplitApkDeployTask implements LaunchTask {
 
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
+    RunStatsService.get(myProject).notifyDeploySplitApkStarted(device, myContext, myDontKill);
     // TODO: should we pass in pm install options?
-    RunStatsService.get(myProject).notifyDeployStarted(StudioRunEvent.DeployTask.SPLIT_APK_DEPLOY, device, myContext.getArtifacts().size(), myContext.isPatchBuild(), myDontKill);
     List<String> installOptions = Lists.newArrayList();
     installOptions.add("-t");
 

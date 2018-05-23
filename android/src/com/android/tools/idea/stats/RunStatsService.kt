@@ -18,6 +18,8 @@ package com.android.tools.idea.stats
 import com.android.annotations.VisibleForTesting
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.gradle.util.BuildMode
+import com.android.tools.idea.run.tasks.DynamicAppDeployTaskContext
+import com.android.tools.idea.run.tasks.SplitApkDeployTaskContext
 import com.google.wireless.android.sdk.stats.StudioRunEvent
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
@@ -63,11 +65,38 @@ abstract class RunStatsService {
 
   abstract fun notifyEmulatorStarted(isSuccessful: Boolean)
 
+  fun notifyDeployApkStarted(device: IDevice,
+                                   artifactCount: Int) {
+    notifyDeployStarted(StudioRunEvent.DeployTask.DEPLOY_APK, device, artifactCount)
+  }
+
+  fun notifyDeployInstantAppStarted(device: IDevice,
+                             artifactCount: Int) {
+    notifyDeployStarted(StudioRunEvent.DeployTask.DEPLOY_INSTANT_APP, device, artifactCount)
+  }
+
+  fun notifyDeployHotSwapStarted(device: IDevice,
+                             artifactCount: Int) {
+    notifyDeployStarted(StudioRunEvent.DeployTask.HOTSWAP, device, artifactCount)
+  }
+
+  fun notifyDeploySplitApkStarted(device: IDevice,
+                                  context: SplitApkDeployTaskContext, dontKill: Boolean) {
+    val disabledFeaturesCount = if (context is DynamicAppDeployTaskContext) {
+      context.disabledFeatures.size
+    }
+    else {
+      0
+    }
+    notifyDeployStarted(StudioRunEvent.DeployTask.SPLIT_APK_DEPLOY, device, context.artifacts.size, context.isPatchBuild, dontKill,
+                        disabledFeaturesCount)
+  }
+
   abstract fun notifyDeployStarted(deployTask: StudioRunEvent.DeployTask,
-                          device: IDevice,
-                          artifactCount: Int,
-                          isPatchBuild: Boolean = false,
-                          dontKill: Boolean = false)
+                                   device: IDevice,
+                                   artifactCount: Int,
+                                   isPatchBuild: Boolean = false,
+                                   dontKill: Boolean = false, disabledDynamicFeaturesCount: Int = 0)
 
   abstract fun notifyDeployFinished(isSuccessful: Boolean)
 

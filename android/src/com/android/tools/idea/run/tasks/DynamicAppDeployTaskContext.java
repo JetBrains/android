@@ -60,6 +60,11 @@ public class DynamicAppDeployTaskContext implements SplitApkDeployTaskContext {
       .collect(Collectors.toList());
   }
 
+  @NotNull
+  public List<String> getDisabledFeatures() {
+    return myDisabledFeatures;
+  }
+
   private boolean isFeatureEnabled(@NotNull ApkFileUnit apkFileUnit) {
     return myDisabledFeatures.stream().noneMatch(m -> featureNameEquals(apkFileUnit, m));
   }

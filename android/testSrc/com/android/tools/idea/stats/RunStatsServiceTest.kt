@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.stats
 
+import com.android.ddmlib.IDevice
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.TestUsageTracker
@@ -25,6 +26,8 @@ import com.google.wireless.android.sdk.stats.StudioRunEvent
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import org.mockito.Mockito
+import org.mockito.stubbing.Answer
 import java.util.*
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -91,6 +94,25 @@ class RunStatsServiceTest {
     val usages = myUsageTracker.usages.filterNotNull()
     Truth.assertThat(usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_RUN_EVENT }).hasSize(0)
     assertNull(myRunStatsService.myRun)
+  }
+
+  @Test
+  fun testDeployStarted() {
+    myRunStatsService.myRun = Run(UUID.randomUUID(), packageName, StudioRunEvent.RunType.DEBUG, System.currentTimeMillis())
+    val mockDevice = Mockito.mock(IDevice::class.java, Answer {
+      if (String::class.java == it.method.returnType) {
+        "This is my default answer for all methods that returns string"
+      } else {
+        Mockito.RETURNS_DEFAULTS.answer(it)
+      }
+    })
+    myRunStatsService.notifyDeployStarted(StudioRunEvent.DeployTask.SPLIT_APK_DEPLOY,
+                                          mockDevice, 1, false, false, 0);
+    val usages = myUsageTracker.usages.filterNotNull()
+    Truth.assertThat(usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_RUN_EVENT }).hasSize(1)
+    Truth.assertThat(
+      usages.find { it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_RUN_EVENT }?.studioEvent?.studioRunEvent?.artifactCount).isEqualTo(
+      1);
   }
 
 }

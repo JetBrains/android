@@ -77,7 +77,7 @@ public class DeployInstantAppTask implements LaunchTask {
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
     if (myProject != null) {
-      RunStatsService.get(myProject).notifyDeployStarted(StudioRunEvent.DeployTask.DEPLOY_INSTANT_APP, device, myPackages.size(), false, false);
+      RunStatsService.get(myProject).notifyDeployInstantAppStarted(device, myPackages.size());
     }
     if (launchStatus.isLaunchTerminated()) {
       return false;

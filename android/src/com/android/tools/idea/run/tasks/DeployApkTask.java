@@ -41,7 +41,7 @@ public class DeployApkTask implements LaunchTask {
   private final Project myProject;
   private final Collection<ApkInfo> myApks;
   private final LaunchOptions myLaunchOptions;
-  private final InstantRunContext myInstantRunContext;
+  @Nullable private final InstantRunContext myInstantRunContext;
 
   public DeployApkTask(@NotNull Project project, @NotNull LaunchOptions launchOptions, @NotNull Collection<ApkInfo> apks) {
     this(project, launchOptions, apks, null);
@@ -70,7 +70,7 @@ public class DeployApkTask implements LaunchTask {
 
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
-    RunStatsService.get(myProject).notifyDeployStarted(StudioRunEvent.DeployTask.DEPLOY_APK, device, myApks.size(), false, false);
+    RunStatsService.get(myProject).notifyDeployApkStarted(device, myApks.size());
     printer = new SkipEmptyLinesConsolePrinter(printer);
     FullApkInstaller
       installer = new FullApkInstaller(myProject, myLaunchOptions, ServiceManager.getService(InstalledApkCache.class), printer);
