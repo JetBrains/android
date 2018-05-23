@@ -36,6 +36,19 @@ import java.util.function.Consumer;
  * visibility.
  */
 public class HideablePanel extends JPanel {
+  /**
+   * Enum that defines which component to register the toggle click listener on.
+   */
+  public enum ClickableComponent {
+    /**
+     * The panel title and arrow are the only parts that trigger the panel to toggle.
+     */
+    TITLE,
+    /**
+     * The full title bar including triggers the panel to toggle.
+     */
+    TITLE_BAR,
+  }
   private static final Border HIDEABLE_PANEL_BORDER = new JBEmptyBorder(0, 10, 0, 15);
   private static final Border HIDEABLE_CONTENT_BORDER = new JBEmptyBorder(0, 12, 0, 5);
   private static final int TITLE_RIGHT_PADDING = 3;
@@ -71,13 +84,24 @@ public class HideablePanel extends JPanel {
    */
   private JLabel setupTitleBar(@NotNull Builder builder) {
     JLabel label = new JLabel();
-    myTitlePanel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-    myTitlePanel.addMouseListener(new MouseAdapter() {
+    JComponent clickableComponent;
+    MouseAdapter toggleAdapter = new MouseAdapter() {
       @Override
       public void mouseReleased(@NotNull MouseEvent e) {
         setExpanded(!isExpanded());
       }
-    });
+    };
+    switch (builder.myClickableComponent) {
+      case TITLE:
+        clickableComponent = label;
+        break;
+      case TITLE_BAR:
+      default:
+        clickableComponent = myTitlePanel;
+        break;
+    }
+    clickableComponent.addMouseListener(toggleAdapter);
+    clickableComponent.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
     // Add Label as first element, should always be left aligned.
     myTitlePanel.add(label, new TabularLayout.Constraint(0, 0));
@@ -145,6 +169,7 @@ public class HideablePanel extends JPanel {
   public static final class Builder {
     @NotNull String myTitle;
     @NotNull JComponent myContent;
+    @NotNull ClickableComponent myClickableComponent = ClickableComponent.TITLE_BAR;
     @Nullable JComponent myNorthEastComponent;
     @Nullable Consumer<Boolean> myOnStateChangedConsumer;
     @Nullable Border myContentBorder;
@@ -209,6 +234,15 @@ public class HideablePanel extends JPanel {
     @NotNull
     public Builder setTitleRightPadding(int rightPadding) {
       myTitleRightPadding = rightPadding;
+      return this;
+    }
+
+    /**
+     * Sets which parts of the hideable panel toggle the component.
+     */
+    @NotNull
+    public Builder setClickableComponent(@NotNull ClickableComponent clickableComponent) {
+      myClickableComponent = clickableComponent;
       return this;
     }
 
