@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.profilers;
 
+import com.android.tools.idea.apk.ApkFacet;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.run.ExecutorIconProvider;
 import com.android.tools.idea.run.LaunchOptionsProvider;
 import com.android.tools.profiler.proto.Common;
@@ -116,6 +118,9 @@ public class ProfileRunExecutor extends DefaultRunExecutor implements ExecutorIc
 
   @Override
   public boolean isApplicable(@NotNull Project project) {
-    return !ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).isEmpty();
+    ProjectFacetManager facetManager = ProjectFacetManager.getInstance(project);
+    return facetManager.hasFacets(AndroidFacet.getFacetType().getId()) ||
+           facetManager.hasFacets(ApkFacet.getFacetTypeId()) ||
+           facetManager.hasFacets(GradleFacet.getFacetTypeId());
   }
 }
