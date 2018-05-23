@@ -31,13 +31,14 @@ class PsVariable(
   val model: PsModel,
   val scopePsVariables: PsVariablesScope) {
   val valueType = property.valueType
+  val resolvedValueType = resolvedProperty.valueType
 
   fun <T> getUnresolvedValue(type: TypeReference<T>): T? {
     return property.getRawValue(type)
   }
 
   fun <T> getResolvedValue(type: TypeReference<T>): T? {
-    return property.getValue(type)
+    return resolvedProperty.getValue(type)
   }
 
   fun setValue(aValue: Any) {

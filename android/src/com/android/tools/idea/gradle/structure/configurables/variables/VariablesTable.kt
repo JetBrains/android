@@ -371,7 +371,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
     fun setValue(newValue: String) = variable.setValue(newValue)
   }
 
-  class EmptyNode(val variablesScope: PsVariablesScope, val type: ValueType) : DefaultMutableTreeNode() {
+  class EmptyNode(private val variablesScope: PsVariablesScope, val type: ValueType) : DefaultMutableTreeNode() {
     fun createVariableNode(name: String): BaseVariableNode {
       val property = variablesScope.container.findProperty(name)
       if (type == ValueType.LIST) {
@@ -438,7 +438,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
         return ""
       }
       val resolvedValue = variable.getResolvedValue(STRING_TYPE) ?: return ""
-      if (variable.valueType == ValueType.STRING) {
+      if (variable.resolvedValueType == ValueType.STRING) {
         return StringUtil.wrapWithDoubleQuote(resolvedValue)
       }
       return resolvedValue
@@ -465,7 +465,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
 
     override fun getResolvedValue(expanded: Boolean): String {
       val resolvedValue = variable.getResolvedValue(STRING_TYPE) ?: ""
-      if (variable.valueType == ValueType.STRING) {
+      if (variable.resolvedValueType == ValueType.STRING) {
         return StringUtil.wrapWithDoubleQuote(resolvedValue)
       }
       return resolvedValue
@@ -504,7 +504,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
 
     override fun getResolvedValue(expanded: Boolean): String {
       val resolvedValue = variable.getResolvedValue(STRING_TYPE) ?: ""
-      if (variable.valueType == ValueType.STRING) {
+      if (variable.resolvedValueType == ValueType.STRING) {
         return StringUtil.wrapWithDoubleQuote(resolvedValue)
       }
       return resolvedValue
