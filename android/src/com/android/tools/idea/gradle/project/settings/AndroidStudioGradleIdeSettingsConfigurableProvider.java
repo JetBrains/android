@@ -25,8 +25,13 @@ public class AndroidStudioGradleIdeSettingsConfigurableProvider extends Configur
   }
 
   @Override
+  public boolean canCreateConfigurable() {
+    return IdeInfo.getInstance().isAndroidStudio();
+  }
+
+  @Override
   @Nullable
   public Configurable createConfigurable() {
-    return IdeInfo.getInstance().isAndroidStudio() ? new AndroidStudioGradleIdeSettingsConfigurable() : null;
+    return new AndroidStudioGradleIdeSettingsConfigurable();
   }
 }
