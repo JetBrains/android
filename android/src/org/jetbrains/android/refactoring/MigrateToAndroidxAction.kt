@@ -29,7 +29,7 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.openapi.ui.Messages
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.refactoring.RefactoringActionHandler
@@ -114,17 +114,17 @@ class MigrateToAndroidxHandler : RefactoringActionHandler {
     }
 
     val warningContent = if (!supportedCompileSdk) {
-      "You need to have at least have compileSdk 28 set in your module build.gradle to refactor to androidx\n"
+      "You need to have at least have compileSdk 28 set in your module build.gradle to refactor to AndroidX.\n"
     } else {
       ""
     } + if (!supportedGradleVersion) {
       "The gradle plugin version in your project build.gradle file needs to be set to at least com.android.tools.build:gradle:3.2.0 " +
-      "in order to refactor to androidx"
+      "in order to refactor to AndroidX."
     } else {
       ""
     }
 
-    JBPopupFactory.getInstance().createMessage(warningContent).showInFocusCenter()
+    Messages.showErrorDialog(warningContent, "Unable to migrate to AndroidX")
     return false
   }
 
