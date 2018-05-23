@@ -28,7 +28,8 @@ import org.jetbrains.annotations.TestOnly
  */
 abstract class RunStatsService {
   @VisibleForTesting
-  lateinit var myRun: Run
+  var myRun: Run? = null
+
   companion object {
     private var ourTestInstance: RunStatsService? = null
 

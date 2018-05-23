@@ -27,6 +27,7 @@ import org.junit.Before
 import org.junit.Test
 import java.util.*
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 class RunStatsServiceTest {
   private val packageName = "test"
@@ -62,7 +63,7 @@ class RunStatsServiceTest {
     Truth.assertThat(usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_RUN_EVENT }).hasSize(2)
 
     myRunStatsService.notifyStudioSectionFinished(true, false, false)
-    assertNotNull(myRunStatsService.myRun.studioProcessFinishedTimestamp)
+    assertNotNull(myRunStatsService.myRun?.studioProcessFinishedTimestamp)
     usages = myUsageTracker.usages.filterNotNull()
     Truth.assertThat(usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_RUN_EVENT }).hasSize(3)
     assertNotNull(
@@ -81,6 +82,15 @@ class RunStatsServiceTest {
     Truth.assertThat(
       usages.find { it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_RUN_EVENT }?.studioEvent?.studioRunEvent?.durationMs).isAtLeast(
       duration)
+  }
+
+  // Test RunStatsService handles the case of AVD being started outside of a deploy -> no logging
+  @Test
+  fun testStartingEmulatorOnly() {
+    myRunStatsService.notifyEmulatorStarting()
+    val usages = myUsageTracker.usages.filterNotNull()
+    Truth.assertThat(usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_RUN_EVENT }).hasSize(0)
+    assertNull(myRunStatsService.myRun)
   }
 
 }
