@@ -31,25 +31,21 @@ public class AxisComponentModel extends AspectModel<AxisComponentModel.Aspect> i
   @NotNull private final BaseAxisFormatter myFormatter;
   @Nullable private Range myGlobalRange;
 
-  private boolean myClampToMajorTicks = false;
+  private boolean myClampToMajorTicks;
 
-  @NotNull private String myLabel = "";
+  @NotNull private String myLabel;
 
   /**
    * During the first update, skip the y range interpolation and snap to the initial max value.
    */
   private boolean myFirstUpdate = true;
 
-  /**
-   * @param range             a Range object this AxisComponent listens to for the min/max values.
-   * @param formatter         formatter used for determining the tick marker and labels that need to be rendered.
-   * @param clampToMajorTicks if true, the AxisComponent will extend itself to the next major tick based on the current max value.
-   */
-  public AxisComponentModel(@NotNull Range range, @NotNull BaseAxisFormatter formatter, boolean clampToMajorTicks) {
-    myRange = range;
-    myFormatter = formatter;
-    myClampToMajorTicks = clampToMajorTicks;
-    update(0);
+  private AxisComponentModel(@NotNull Builder builder) {
+    myRange = builder.myRange;
+    myFormatter = builder.myFormatter;
+    myClampToMajorTicks = builder.myClampToMajorTicks;
+    myGlobalRange = builder.myGlobalRange;
+    myLabel = builder.myLabel;
   }
 
   @Override
@@ -97,22 +93,6 @@ public class AxisComponentModel extends AspectModel<AxisComponentModel.Aspect> i
     update(0);
   }
 
-  /**
-   * @param globalRange sets the global range on the AxisComponent. The global range also sets the relative zero point.
-   */
-  public void setGlobalRange(@NotNull Range globalRange) {
-    myGlobalRange = globalRange;
-    changed(Aspect.AXIS);
-  }
-
-  /**
-   * Sets the content of the axis' label.
-   */
-  public void setLabel(@NotNull String label) {
-    myLabel = label;
-    changed(Aspect.AXIS);
-  }
-
   @NotNull
   public String getLabel() {
     return myLabel;
@@ -135,5 +115,48 @@ public class AxisComponentModel extends AspectModel<AxisComponentModel.Aspect> i
 
   public double getZero() {
     return myGlobalRange != null ? myGlobalRange.getMin() : myRange.getMin();
+  }
+
+  public static class Builder {
+    @NotNull private final Range myRange;
+    @NotNull private final BaseAxisFormatter myFormatter;
+    private final boolean myClampToMajorTicks;
+
+    @Nullable private Range myGlobalRange;
+    @NotNull private String myLabel = "";
+
+    /**
+     * @param range             A Range object this AxisComponent listens to for the min/max values.
+     * @param formatter         Formatter used for determining the tick marker and labels that need to be rendered.
+     * @param clampToMajorTicks If true, the AxisComponent will extend itself to the next major tick based on the current max value.
+     */
+    public Builder(@NotNull Range range, @NotNull BaseAxisFormatter formatter, boolean clampToMajorTicks) {
+      myRange = range;
+      myFormatter = formatter;
+      myClampToMajorTicks = clampToMajorTicks;
+    }
+
+    /**
+     * @param globalRange sets the global range on the AxisComponent. The global range also sets the relative zero point.
+     */
+    @NotNull
+    public Builder setGlobalRange(@NotNull Range globalRange) {
+      myGlobalRange = globalRange;
+      return this;
+    }
+
+    /**
+     * Sets the content of the axis's label.
+     */
+    @NotNull
+    public Builder setLabel(@NotNull String label) {
+      myLabel = label;
+      return this;
+    }
+
+    @NotNull
+    public AxisComponentModel build() {
+      return new AxisComponentModel(this);
+    }
   }
 }

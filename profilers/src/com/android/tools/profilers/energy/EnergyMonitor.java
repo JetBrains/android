@@ -35,7 +35,7 @@ public class EnergyMonitor extends ProfilerMonitor {
   public EnergyMonitor(@NotNull StudioProfilers profilers) {
     super(profilers);
     myUsage = new EnergyUsage(profilers);
-    myAxis = new AxisComponentModel(myUsage.getUsageRange(), EnergyAxisFormatter.DEFAULT, true);
+    myAxis = new AxisComponentModel.Builder(myUsage.getUsageRange(), EnergyAxisFormatter.DEFAULT, true).build();
     myLegends = new Legends(myUsage, getTimeline().getDataRange(), false);
     myTooltipLegends = new Legends(myUsage, getTimeline().getTooltipRange(), true);
     changed(Aspect.ENABLE);

@@ -93,7 +93,7 @@ public class EventVisualTest extends VisualTest {
     myOpenActivities = new ArrayList<>();
 
     // add horizontal time axis
-    myTimeAxisModel = new AxisComponentModel(xTimelineRange, TimeAxisFormatter.DEFAULT, false);
+    myTimeAxisModel = new AxisComponentModel.Builder(xTimelineRange, TimeAxisFormatter.DEFAULT, false).build();
     myTimeAxis = new AxisComponent(myTimeAxisModel, AxisComponent.AxisOrientation.BOTTOM);
     List<Updatable> componentsList = new ArrayList<>();
     // Add the scene components to the list

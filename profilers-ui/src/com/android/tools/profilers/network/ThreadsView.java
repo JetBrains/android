@@ -50,7 +50,8 @@ import java.awt.geom.Rectangle2D;
 import java.util.*;
 import java.util.List;
 
-import static com.android.tools.profilers.ProfilerLayout.*;
+import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_HEADER_BORDER;
+import static com.android.tools.profilers.ProfilerLayout.TOOLTIP_BORDER;
 
 /**
  * Displays network connection information of all threads.
@@ -265,8 +266,8 @@ final class ThreadsView {
     @NotNull
     private AxisComponent createAxis() {
       ProfilerTimeline timeline = myStage.getStudioProfilers().getTimeline();
-      AxisComponentModel model = new AxisComponentModel(timeline.getSelectionRange(), new TimeAxisFormatter(1, 5, 1), false);
-      model.setGlobalRange(timeline.getDataRange());
+      AxisComponentModel model = new AxisComponentModel.Builder(timeline.getSelectionRange(), new TimeAxisFormatter(1, 5, 1), false)
+        .setGlobalRange(timeline.getDataRange()).build();
 
       AxisComponent axis = new AxisComponent(model, AxisComponent.AxisOrientation.BOTTOM);
       axis.setShowAxisLine(false);

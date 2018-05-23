@@ -39,7 +39,7 @@ public class CpuMonitor extends ProfilerMonitor {
 
     myThisProcessCpuUsage = new CpuUsage(profilers);
 
-    myCpuUsageAxis = new AxisComponentModel(myThisProcessCpuUsage.getCpuRange(), CPU_USAGE_FORMATTER, true);
+    myCpuUsageAxis = new AxisComponentModel.Builder(myThisProcessCpuUsage.getCpuRange(), CPU_USAGE_FORMATTER, true).build();
     myLegends = new Legends(myThisProcessCpuUsage, profilers.getTimeline().getDataRange(), LEGEND_UPDATE_FREQUENCY_MS);
     myTooltipLegends = new Legends(myThisProcessCpuUsage, profilers.getTimeline().getTooltipRange(), 0);
   }
