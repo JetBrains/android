@@ -1,8 +1,5 @@
 ## Material2 : Palette & Property Inspector
 
-PreRequisite, download the material library from here: https://drive.google.com/file/d/1AobS63UpCcPXQD0yW78uOXCFuqbUc1fj/view?usp=sharing
-Then,  unzip and copy the expanded "com" folder to ${YOUR-SDK}/extras/m2repository/com/...
-
 First, create a new empty project with "API 28" or "API P" as the min SDK level.
 Next, open "activity_main.xml" in design
 
