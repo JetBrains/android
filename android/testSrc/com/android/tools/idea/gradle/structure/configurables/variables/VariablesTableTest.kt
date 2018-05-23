@@ -103,6 +103,25 @@ class VariablesTableTest : AndroidGradleTestCase() {
     assertThat(tableModel.getValueAt(variableNode, 1) as String, equalTo("true"))
   }
 
+  fun testVariableVariableNodeDisplay() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+    val psContext = PsContextImpl(PsProject(project), testRootDisposable)
+    val variablesTable = VariablesTable(project, psContext)
+    val tableModel = variablesTable.tableModel
+
+    val appNode = (tableModel.root as DefaultMutableTreeNode).appModuleChild as DefaultMutableTreeNode
+    val variableNode =
+      appNode.children().asSequence().find { "varRefString" == (it as VariablesTable.VariableNode).toString() } as VariablesTable.VariableNode
+    variablesTable.tree.expandPath(TreePath(variableNode.path))
+
+    assertThat(variableNode.variable.valueType, equalTo(GradlePropertyModel.ValueType.REFERENCE))
+    assertThat(variableNode.variable.resolvedValueType, equalTo(GradlePropertyModel.ValueType.STRING))
+    assertThat(variableNode.childCount, equalTo(0))
+    assertThat(tableModel.getValueAt(variableNode, 0) as String, equalTo("varRefString"))
+    assertThat(tableModel.getValueAt(variableNode, 1) as String, equalTo("variable1"))
+    assertThat(tableModel.getValueAt(variableNode, 2) as String, equalTo("\"1.3\""))
+  }
+
   fun testListNodeDisplay() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
     val psContext = PsContextImpl(PsProject(project), testRootDisposable)
