@@ -36,6 +36,7 @@ import com.intellij.openapi.roots.GeneratedSourcesFilter
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.util.Ref
+import com.intellij.openapi.util.Segment
 import com.intellij.psi.*
 import com.intellij.psi.codeStyle.JavaCodeStyleManager
 import com.intellij.psi.impl.migration.PsiMigrationManager
@@ -273,14 +274,32 @@ open class MigrateToAndroidxProcessor(val project: Project,
     private val fileToRangeMap = mutableMapOf<PsiFile, RangeMap<Int, UsageInfo>>()
 
     /**
+     * Returns the effective range for the given [UsageInfo]. This is usually the [Segment] of
+     * the usage info but in cases like Kotlin package usages, it might a superset of it.
+     */
+    private fun getInfoUsageRange(info: UsageInfo): Segment? {
+      val element = info.element
+
+      if (info is PackageMigrationUsageInfo &&
+          element !is PsiPackage &&
+          element?.text != info.mapEntry.myOldName &&
+          element?.parent?.text == info.mapEntry.myOldName) {
+        // This looks like the case of a Kotlin package. In this case, we want to use
+        // the range of the full package import, not only the last segment.
+        return element.parent.textRange
+      }
+
+      return info.smartPointer.psiRange
+    }
+
+    /**
      * @param rangeMap A [TreeRangeMap] containing all the accumulated [UsageInfo] arranged
      * by their ranges.
-     * @param info to check for overlapping ranges within the [rangeMap]
-     * @return whether the given [info] overlaps and existing [UsageInfo]
+     * @param segment the segment to check for overlaps within the [rangeMap]
+     * @return whether the given [segment] overlaps and existing [UsageInfo]
      */
-    private fun hasOverlappingUsage(rangeMap: RangeMap<Int, UsageInfo>, info: UsageInfo): Boolean {
-      val segment = info.smartPointer.psiRange ?: return false
-      val startOffset: Int = segment.startOffset
+    private fun hasOverlappingUsage(rangeMap: RangeMap<Int, UsageInfo>, segment: Segment?): Boolean {
+      val startOffset: Int = segment?.startOffset ?: return false
       return rangeMap.get(startOffset) != null
     }
 
@@ -294,8 +313,8 @@ open class MigrateToAndroidxProcessor(val project: Project,
       for (info in infos) {
         val containingFile = info.smartPointer.containingFile ?: continue
         val rangeMap = fileToRangeMap.getOrDefault(containingFile, TreeRangeMap.create())
-        if (!(checkOverlappingUsages && hasOverlappingUsage(rangeMap, info))) {
-          val segment = info.smartPointer.psiRange
+        val segment = getInfoUsageRange(info)
+        if (!(checkOverlappingUsages && hasOverlappingUsage(rangeMap, segment))) {
           segment?.let {
             rangeMap.put(Range.closed(it.startOffset, it.endOffset), info)
           }
