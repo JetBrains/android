@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.v
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.PathConverter
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.proto.VariantProto
 import java.io.File
-import kotlin.math.min
 
 /**
  * An Android Artifact.
