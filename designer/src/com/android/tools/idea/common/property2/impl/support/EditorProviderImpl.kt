@@ -34,7 +34,7 @@ class EditorProviderImpl<in P : PropertyItem>(
   private val controlTypeProvider: ControlTypeProvider<P>
 ) : EditorProvider<P> {
 
-  override fun invoke(property: P): Pair<PropertyEditorModel, JComponent> {
+  override fun createEditor(property: P, asTableCellEditor: Boolean): Pair<PropertyEditorModel, JComponent> {
     val controlType = controlTypeProvider(property)
 
     when (controlType) {

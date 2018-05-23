@@ -63,7 +63,7 @@ class ViewInspectorBuilder(project: Project, private val editorProvider: EditorP
     for (propertyName in attributes) {
       val property = findProperty(propertyName, properties)
       if (property != null) {
-        val line = inspector.addEditor(editorProvider(property))
+        val line = inspector.addEditor(editorProvider.createEditor(property))
         titleModel.addChild(line)
       }
     }

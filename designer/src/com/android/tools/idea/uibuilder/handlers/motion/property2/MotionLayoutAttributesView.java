@@ -57,7 +57,7 @@ public class MotionLayoutAttributesView {
       if (target == null || position == null) {
         return;
       }
-      inspector.addEditor(myEditorProvider.invoke(position));
+      inspector.addEditor(myEditorProvider.createEditor(position, false));
 
       Set<String> excluded = ImmutableSet.of(Key_frameTarget, Key_framePosition);
       MotionSceneModel.BaseTag tag = position.getTag();
