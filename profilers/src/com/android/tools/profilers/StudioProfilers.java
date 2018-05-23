@@ -314,7 +314,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       // fire the corresponding change and tracking events.
       if (SessionsManager.isSessionAlive(mySelectedSession)) {
         AgentStatusResponse agentStatus = getAgentStatus(mySelectedSession);
-        if (myAgentStatus != agentStatus) {
+        if (!myAgentStatus.equals(agentStatus)) {
           if (myAgentStatus.getStatus() != AgentStatusResponse.Status.ATTACHED &&
               agentStatus.getStatus() == AgentStatusResponse.Status.ATTACHED) {
             getIdeServices().getFeatureTracker().trackAdvancedProfilingStarted();
