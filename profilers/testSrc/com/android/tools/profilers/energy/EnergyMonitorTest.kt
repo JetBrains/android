@@ -142,7 +142,7 @@ class EnergyMonitorTest {
 
     monitor.enter()
     timer.tick(1)
-    assertThat(usageUpdated).isFalse() // This shouldn't change because the Range hasn't changed.
+    assertThat(usageUpdated).isTrue() // LineChartModel always updates on first update.
     assertThat(legendUpdated).isTrue()
     assertThat(tooltipLegendUpated).isTrue()
     assertThat(axisUpdated).isFalse() // This shouldn't change because the axis is clamped, and it's not lerping.

@@ -19,7 +19,10 @@ import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class LineChartModel extends AspectModel<LineChartModel.Aspect> implements Updatable {
 
@@ -37,7 +40,7 @@ public class LineChartModel extends AspectModel<LineChartModel.Aspect> implement
 
   @Override
   public void update(long elapsedNs) {
-    Map<Range, Double> max = new HashMap<>();
+    Map<Range, Double> maxPerRangeObject = new HashMap<>();
 
     // TODO Handle stacked configs
     for (RangedContinuousSeries ranged : mySeries) {
@@ -52,26 +55,27 @@ public class LineChartModel extends AspectModel<LineChartModel.Aspect> implement
         }
       }
 
-      Double m = max.get(range);
-      if (m == null || yMax > m) {
-        max.put(range, yMax);
+      Double rangeMax = maxPerRangeObject.get(range);
+      if (rangeMax == null || yMax > rangeMax) {
+        maxPerRangeObject.put(range, yMax);
       }
     }
 
-    boolean changed = false;
-    for (Map.Entry<Range, Double> entry : max.entrySet()) {
+    boolean changed = myFirstUpdate; // Always fire aspect on first update.
+    for (Map.Entry<Range, Double> entry : maxPerRangeObject.entrySet()) {
       Range range = entry.getKey();
       // Prevent the LineChart to update the range below its current max.
       if (range.getMax() < entry.getValue()) {
-        float fraction = myFirstUpdate ? 1f : Updater.DEFAULT_LERP_FRACTION;
-        range.setMax(Updater.lerp(range.getMax(), entry.getValue(), fraction, elapsedNs,
-                                  (float)(entry.getValue() * Updater.DEFAULT_LERP_THRESHOLD_PERCENTAGE)));
+        double max = myFirstUpdate
+                     ? entry.getValue()
+                     : Updater.lerp(range.getMax(), entry.getValue(), Updater.DEFAULT_LERP_FRACTION, elapsedNs,
+                                    (float)(entry.getValue() * Updater.DEFAULT_LERP_THRESHOLD_PERCENTAGE));
+        range.setMax(max);
         changed = true;
       }
     }
 
     myFirstUpdate = false;
-
     // TODO: Depend on the other things
     if (changed) {
       changed(Aspect.LINE_CHART);
