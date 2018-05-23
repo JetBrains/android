@@ -301,6 +301,25 @@ class CpuProfilerStageViewTest {
     assertThat(panelList[0].getRenderInstructionsForComponent(0)).hasSize(1)
   }
 
+  @Test
+  fun importTraceModeShouldShowSelectedProcessName() {
+    // Enable import trace and sessions view, both of which are required for import-trace-mode.
+    myIdeServices.enableImportTrace(true)
+    myIdeServices.enableSessionsView(true)
+    myStage = CpuProfilerStage(myStage.studioProfilers, File("FakePathToTraceFile.trace"))
+    myStage.enter()
+    // Set a capture of type atrace.
+    myCpuService.profilerType = CpuProfiler.CpuProfilerType.ATRACE
+    myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)
+    myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE)))
+    val cpuStageView = CpuProfilerStageView(myProfilersView, myStage)
+    // Selecting the capture automatically selects the first process in the capture.
+    myStage.setAndSelectCapture(0)
+    val processLabel = TreeWalker(cpuStageView.toolbar).descendants().filterIsInstance<JLabel>()[0]
+    // Verify the label is set properly in the toolbar.
+    assertThat(processLabel.text).isEqualTo("Process: init")
+  }
+
   /**
    * Checks that the menu items common to all profilers are installed in the CPU profiler context menu.
    * They should be at the bottom of the context menu, starting at a given index.
