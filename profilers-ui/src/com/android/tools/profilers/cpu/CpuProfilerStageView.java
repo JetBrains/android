@@ -38,7 +38,6 @@ import com.android.tools.profilers.sessions.SessionsManager;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
@@ -381,6 +380,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       // to properly set the layout to be expanded. If we set initially expanded to true, then the StateChangedListener will never
       // get triggered and we will not update our layout.
       .setInitiallyExpanded(false)
+      .setClickableComponent(HideablePanel.ClickableComponent.TITLE)
       .build();
 
     // Handle when we get CPU data we want to show the cpu list.
@@ -498,6 +498,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     final HideablePanel threadsPanel = new HideablePanel.Builder("THREADS", threads)
       .setShowSeparator(false)
+      .setClickableComponent(HideablePanel.ClickableComponent.TITLE)
       .build();
     threadsPanel.addStateChangedListener((actionEvent) -> {
       getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackToggleCpuThreadsHideablePanel();

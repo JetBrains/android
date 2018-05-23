@@ -16,12 +16,14 @@
 package com.android.tools.adtui.ui
 
 import com.android.tools.adtui.TreeWalker
-import org.junit.Test
-
-import javax.swing.*
-import java.util.regex.Pattern
-
+import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
+import org.junit.Test
+import java.util.regex.Pattern
+import javax.swing.JButton
+import javax.swing.JLabel
+import javax.swing.JPanel
+import javax.swing.JSeparator
 
 class HideablePanelTest {
 
@@ -34,6 +36,47 @@ class HideablePanelTest {
     assertThat(childPanel.isVisible).isFalse()
     panel.isExpanded = true
     assertThat(childPanel.isVisible).isTrue()
+  }
+
+  @Test
+  fun settingClickableComponentWorksOnTitleOnly() {
+    val childPanel = JButton()
+    val panel = HideablePanel.Builder("Title", childPanel).setClickableComponent(HideablePanel.ClickableComponent.TITLE).build()
+    assertThat(childPanel.isVisible).isTrue()
+    // The 0th element is the HideablePanel itself. Not sure why this is returned as a descendant.
+    val titleBarPanel = TreeWalker(panel).descendants().filterIsInstance<JPanel>()[1]
+    titleBarPanel.setBounds(0, 0, 100, 10)
+    val titleBar = FakeUi(titleBarPanel)
+    // Clicking in title bar does nothing (click needs to be outside the bounds of the label)
+    titleBar.mouse.press(99, 5)
+    titleBar.mouse.release()
+    assertThat(childPanel.isVisible).isTrue()
+    val label = TreeWalker(panel).descendants().filterIsInstance<JLabel>()[0]
+    assertThat(label.text).contains("Title")
+    val title = FakeUi(label)
+    // Clicking on the label toggles visibility
+    title.mouse.press(10, 0)
+    title.mouse.release()
+    assertThat(childPanel.isVisible).isFalse()
+    // Clicking the title bar within range of the label toggles visibility
+    titleBar.mouse.press(10, 5)
+    titleBar.mouse.release()
+    assertThat(childPanel.isVisible).isTrue()
+
+  }
+
+  @Test
+  fun settingClickableComponentWorksOnTitleBar() {
+    val childPanel = JButton()
+    val panel = HideablePanel.Builder("Title", childPanel).setClickableComponent(HideablePanel.ClickableComponent.TITLE_BAR).build()
+    assertThat(childPanel.isVisible).isTrue()
+    // The 0th element is the HideablePanel itself. Not sure why this is returned as a descendant.
+    val titleBarPanel = TreeWalker(panel).descendants().filterIsInstance<JPanel>()[1]
+    titleBarPanel.setBounds(0, 0, 10, 10)
+    val titleBar = FakeUi(titleBarPanel)
+    titleBar.mouse.press(5, 5)
+    titleBar.mouse.release()
+    assertThat(childPanel.isVisible).isFalse()
   }
 
   @Test
