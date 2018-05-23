@@ -79,26 +79,31 @@ message Dependencies {
 }
 
 message ArtifactSourceProvider {
-    optional File manifest_file = 1; // required
-    repeated AndroidSourceSet source_sets = 2;
-    optional File classes_folder = 3; // required
-    repeated File additional_classes_folders = 4;
-    optional File java_resources_folder = 5; // required
-    repeated File generated_source_folders = 6;
-    repeated File generated_resource_folders = 7;
+    optional AndroidSourceSet variant_source_set = 1;
+    optional AndroidSourceSet build_type_source_set = 2; // required
+    optional AndroidSourceSet multi_flavor_source_set = 3;
+    repeated AndroidSourceSet single_flavor_source_sets = 4;
+    optional AndroidSourceSet default_source_set = 5; // required
+    optional File classes_folder = 6; // required
+    repeated File additional_classes_folders = 7;
+    optional File java_resources_folder = 8; // required
+    repeated File generated_source_folders = 9;
+    repeated File generated_resource_folders = 10;
 }
 
 message AndroidSourceSet {
-    repeated File java_directories = 1;
-    repeated File resources_directories = 2;
-    repeated File aidl_directories = 3;
-    repeated File renderscript_directories = 4;
-    repeated File c_directories = 5;
-    repeated File cpp_directories = 6;
-    repeated File res_directories = 7;
-    repeated File assets_directories = 8;
-    repeated File jniLibs_directories = 9;
-    repeated File shaders_directories = 10;
+    optional string name = 1; // required
+    optional File manifest_file = 2; // required
+    repeated File java_directories = 3;
+    repeated File java_resources_directories = 4;
+    repeated File aidl_directories = 5;
+    repeated File renderscript_directories = 6;
+    repeated File c_directories = 7;
+    repeated File cpp_directories = 8;
+    repeated File android_resources_directories = 9;
+    repeated File assets_directories = 10;
+    repeated File jniLibs_directories = 11;
+    repeated File shaders_directories = 12;
 }
 
 message VariantConfig {
