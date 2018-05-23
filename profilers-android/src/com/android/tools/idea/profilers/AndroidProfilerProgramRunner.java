@@ -58,6 +58,11 @@ public class AndroidProfilerProgramRunner extends AndroidBaseProgramRunner {
 
     ToolWindowManagerEx.getInstanceEx(env.getProject()).getToolWindow(AndroidProfilerToolWindowFactory.ID).show(null);
 
+    AndroidProfilerToolWindow profilerToolWindow = AndroidProfilerToolWindowFactory.getProfilerToolWindow(env.getProject());
+    if (profilerToolWindow != null) {
+      // Prevents from starting profiling a pid restored by emulator snapshot or a pid that was previously alive.
+      profilerToolWindow.disableAutoProfiling();
+    }
     StudioFeatureTracker featureTracker = new StudioFeatureTracker(env.getProject());
     featureTracker.trackRunWithProfiling();
 

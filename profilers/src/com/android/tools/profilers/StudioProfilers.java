@@ -556,7 +556,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   private static boolean isSameProcess(@Nullable Common.Process process1, @Nullable Common.Process process2) {
     return process1 != null &&
            process2 != null &&
-           process1.getPid() == process2.getPid() && process1.getName().equals(process2.getName());
+           process1.getPid() == process2.getPid() && process1.getName().equals(process2.getName()) &&
+           // pid and name are not enough, because emulator snapshot could try to restore previous pid of the app.
+           process1.getStartTimestampNs() == process2.getStartTimestampNs();
   }
 
   public List<Common.Process> getProcesses() {

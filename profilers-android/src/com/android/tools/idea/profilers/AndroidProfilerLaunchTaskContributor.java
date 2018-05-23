@@ -91,9 +91,9 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       return "";
     }
 
-    StringBuilder args = new StringBuilder(getAttachAgentArgs(applicationId, profilerService, device, deviceId));
-    args.append(" ").append(startStartupProfiling(applicationId, module, profilerService, device, deviceId));
-    return args.toString();
+    String agentArgs = getAttachAgentArgs(applicationId, profilerService, device, deviceId);
+    String startupProfilingResult = startStartupProfiling(applicationId, module, profilerService, device, deviceId);
+    return String.format("%s %s", agentArgs, startupProfilingResult);
   }
 
   @NotNull
@@ -207,6 +207,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       if (!Common.Device.getDefaultInstance().equals(profilerDevice)) {
         return profilerDevice.getDeviceId();
       }
+      //noinspection BusyWait
       Thread.sleep(TimeUnit.SECONDS.toMillis(1));
     }
     throw new TimeoutException("Timeout waiting for perfd");
@@ -222,7 +223,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       profilerService.getProfilerClient().getProfilerClient().getDevices(Profiler.GetDevicesRequest.getDefaultInstance());
 
     for (Common.Device profilerDevice : response.getDeviceList()) {
-      if (profilerDevice.getSerial().equals(device.getSerialNumber())) {
+      if (profilerDevice.getSerial().equals(device.getSerialNumber()) && profilerDevice.getState() == Common.Device.State.ONLINE) {
         return profilerDevice;
       }
     }

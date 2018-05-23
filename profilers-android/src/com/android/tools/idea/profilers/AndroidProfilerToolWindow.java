@@ -119,6 +119,14 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
   }
 
   /**
+   * Disables auto device+process selection.
+   * See: {@link StudioProfilers#setAutoProfilingEnabled(boolean)}
+   */
+  void disableAutoProfiling() {
+    myProfilers.setAutoProfilingEnabled(false);
+  }
+
+  /**
    * Tries to import a file into an imported session of the profilers and shows an error balloon if it fails to do so.
    */
   public void openFile(@NotNull VirtualFile file) {
