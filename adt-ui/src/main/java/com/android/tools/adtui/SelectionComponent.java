@@ -38,7 +38,7 @@ public final class SelectionComponent extends AnimatedComponent {
 
   private static final Color DEFAULT_SELECTION_BORDER = new JBColor(new Color(0x4C0478DA, true), new Color(0x4C0478DA, true));
 
-  private static final Color DRAG_BAR_COLOR = new JBColor(new Color(0x1a000000, true), new Color(0x33000000, true));
+  private static final Color DRAG_BAR_COLOR = new JBColor(new Color(0x260478DA, true), new Color(0x3374B7FF, true));
 
   private static final Color DEFAULT_HANDLE = new JBColor(0x696868, 0xD6D6D6);
 
