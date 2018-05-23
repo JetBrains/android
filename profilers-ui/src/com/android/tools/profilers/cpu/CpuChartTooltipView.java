@@ -82,7 +82,7 @@ class CpuChartTooltipView extends MouseAdapter {
                                                     TimeFormatter.getFullClockString(end),
                                                     TimeFormatter.getSingleUnitDurationString(node.getDuration())));
     durationLabel.setFont(TOOLTIP_BODY_FONT);
-    durationLabel.setForeground(ProfilerColors.TOOLTIP_TIME_COLOR);
+    durationLabel.setForeground(ProfilerColors.TOOLTIP_TEXT);
     durationLabel.setBorder(new EmptyBorder(5, 0, 0, 0));
     myContent.add(durationLabel, new TabularLayout.Constraint(1, 0));
   }

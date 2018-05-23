@@ -406,7 +406,7 @@ final class ThreadsView {
       myContent.removeAll();
       addToContent(newTooltipLabel(urlName));
       JLabel durationLabel = newTooltipLabel(TimeFormatter.getSingleUnitDurationString(duration));
-      durationLabel.setForeground(ProfilerColors.TOOLTIP_TIME_COLOR);
+      durationLabel.setForeground(ProfilerColors.TOOLTIP_TEXT);
       addToContent(durationLabel);
 
       if (data.getJavaThreads().size() > 1) {
