@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.npw.model;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.project.IndexingSuspender;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
@@ -83,6 +83,16 @@ public final class MultiTemplateRenderer {
     return connection;
   }
 
+  @VisibleForTesting
+  public static void multiRenderingStarted(@NotNull Project project) {
+    project.getMessageBus().syncPublisher(TEMPLATE_RENDERER_TOPIC).multiRenderingStarted();
+  }
+
+  @VisibleForTesting
+  public static void multiRenderingFinished(@NotNull Project project) {
+    project.getMessageBus().syncPublisher(TEMPLATE_RENDERER_TOPIC).multiRenderingFinished();
+  }
+
   /**
    * When creating a new Project, the new Project instance is only available after the {@link MultiTemplateRenderer} is created.
    * Use this method to set Project instance later.
@@ -134,7 +144,7 @@ public final class MultiTemplateRenderer {
     if (myRequestCount == 0 && !myTemplateRenderers.isEmpty()) {
       assert myProject != null : "Project instance is always expected to be not null at this point.";
       IndexingSuspender.ensureInitialised(myProject);
-      myProject.getMessageBus().syncPublisher(TEMPLATE_RENDERER_TOPIC).multiRenderingStarted();
+      multiRenderingStarted(myProject);
 
       try {
         // Some models need to access other models data, during doDryRun/render phase. By calling init() in all of them first, we make sure
@@ -156,7 +166,7 @@ public final class MultiTemplateRenderer {
         ProjectSystemUtil.getProjectSystem(myProject).getSyncManager().syncProject(PROJECT_MODIFIED, true);
       }
       finally {
-        myProject.getMessageBus().syncPublisher(TEMPLATE_RENDERER_TOPIC).multiRenderingFinished();
+        multiRenderingFinished(myProject);
       }
     }
   }

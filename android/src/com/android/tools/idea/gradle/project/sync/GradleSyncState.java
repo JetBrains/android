@@ -174,6 +174,16 @@ public class GradleSyncState {
   }
 
   /**
+   * Notification that a sync has been requested.
+   *
+   * @param request Sync request
+   * @return None
+   */
+  public void syncTaskCreated(@NotNull GradleSyncInvoker.Request request) {
+    syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncTaskCreated(myProject, request));
+  }
+
+  /**
    * Notification that a sync has started.
    *
    * @param notifyUser indicates whether the user should be notified.
