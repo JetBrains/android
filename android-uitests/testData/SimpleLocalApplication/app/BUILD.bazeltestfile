@@ -29,6 +29,5 @@ android_binary(
         "versionCode": "1",
         "versionName ": "1.0",
     },
-    resource_files = glob(["src/main/res/**"]),
     deps = [":activities"],
 )
