@@ -56,8 +56,7 @@ public class HotSwapTask implements LaunchTask {
 
   @Override
   public boolean perform(@NotNull final IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
-    RunStatsService.get(myProject).notifyDeployStarted(StudioRunEvent.DeployTask.HOTSWAP, device,
-                                                       myInstantRunContext.getInstantRunBuildInfo().getArtifacts().size(), false, false);
+    RunStatsService.get(myProject).notifyDeployHotSwapStarted(device, myInstantRunContext.getInstantRunBuildInfo().getArtifacts().size());
     InstantRunManager manager = InstantRunManager.get(myProject);
     UpdateMode updateMode;
     try {
