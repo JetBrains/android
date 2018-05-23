@@ -118,7 +118,7 @@ public class ArtifactRepositorySearchForm {
       }
     });
 
-    myVersionsPanel = new AvailableVersionsPanel();
+    myVersionsPanel = new AvailableVersionsPanel(this::notifyVersionSelectionChanged);
 
     JBSplitter splitter = new OnePixelSplitter(false, 0.7f);
     splitter.setFirstComponent(createScrollPane(myResultsTable));
@@ -130,13 +130,17 @@ public class ArtifactRepositorySearchForm {
   }
 
   @Nullable
-  private FoundArtifact getSelection() {
+  public FoundArtifact getSelection() {
     Collection<FoundArtifact> selection = myResultsTable.getSelection();
     FoundArtifact artifact = null;
     if (selection.size() == 1) {
       artifact = getFirstItem(selection);
     }
     return artifact;
+  }
+
+  private void notifyVersionSelectionChanged(@Nullable String version) {
+    notifySelectionChanged(getSelection(), version);
   }
 
   private void notifySelectionChanged(@Nullable FoundArtifact artifact, @Nullable String version) {
@@ -293,50 +297,6 @@ public class ArtifactRepositorySearchForm {
         }
       };
       setColumnInfos(new ColumnInfo[]{groupId, artifactName, repository});
-    }
-  }
-
-  private class AvailableVersionsPanel extends JPanel {
-    private final TableView<GradleVersion> myVersionsTable;
-
-    AvailableVersionsPanel() {
-      super(new BorderLayout());
-      myVersionsTable = new TableView<>();
-      myVersionsTable.setShowGrid(false);
-      myVersionsTable.setSelectionMode(SINGLE_SELECTION);
-      myVersionsTable.getListTableModel().setColumnInfos(new ColumnInfo[] {
-        new ColumnInfo<GradleVersion, String>("Versions") {
-          @Override
-          @Nullable
-          public String valueOf(GradleVersion version) {
-            return version.toString();
-          }
-        }
-      });
-
-      myVersionsTable.getSelectionModel().addListSelectionListener(e -> {
-        FoundArtifact artifact = getSelection();
-        GradleVersion version = myVersionsTable.getSelectedObject();
-        notifySelectionChanged(artifact, version != null ? version.toString() : null);
-      });
-      JScrollPane scrollPane = createScrollPane(myVersionsTable);
-      add(scrollPane, BorderLayout.CENTER);
-    }
-
-    void setVersions(@NotNull List<GradleVersion> versions) {
-      clear();
-      myVersionsTable.getListTableModel().setItems(versions);
-      if (!versions.isEmpty()) {
-        myVersionsTable.getSelectionModel().setSelectionInterval(0, 0);
-      }
-    }
-
-    void setEmptyText(@NotNull String text) {
-      myVersionsTable.getEmptyText().setText(text);
-    }
-
-    void clear() {
-      myVersionsTable.getListTableModel().setItems(Collections.emptyList());
     }
   }
 }
