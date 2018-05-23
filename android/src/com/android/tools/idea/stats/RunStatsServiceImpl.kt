@@ -50,91 +50,108 @@ class RunStatsServiceImpl : RunStatsService() {
     synchronized(lock) {
       myRun = Run(UUID.randomUUID(), packageName, determineRunType(runType), System.currentTimeMillis())
     }
+    val currentRun = myRun?: return
     UsageTracker.getInstance().log(getEventBuilder(StudioRunEvent.newBuilder()
-                                                     .setRunId(myRun.runId.toString())
-                                                     .setRunType(myRun.runType)
+                                                     .setRunId(currentRun.runId.toString())
+                                                     .setRunType(currentRun.runType)
                                                      .setSectionType(StudioRunEvent.SectionType.TOTAL)
                                                      .setEventType(StudioRunEvent.EventType.START)
-                                                     .build(), myRun.packageName))
+                                                     .build(), currentRun.packageName))
     UsageTracker.getInstance().log(getEventBuilder(StudioRunEvent.newBuilder()
-                                                     .setRunId(myRun.runId.toString())
-                                                     .setRunType(myRun.runType)
+                                                     .setRunId(currentRun.runId.toString())
+                                                     .setRunType(currentRun.runType)
                                                      .setSectionType(StudioRunEvent.SectionType.STUDIO)
                                                      .setEventType(StudioRunEvent.EventType.START)
-                                                     .build(), myRun.packageName))
+                                                     .build(), currentRun.packageName))
   }
 
   override fun notifyStudioSectionFinished(isSuccessful: Boolean,
                                            isDebugging: Boolean,
                                            isInstantRun: Boolean) {
+    val currentRun = myRun?: return
     synchronized(lock) {
-      myRun.studioProcessFinishedTimestamp = System.currentTimeMillis()
+      currentRun.studioProcessFinishedTimestamp = System.currentTimeMillis()
     }
+
     UsageTracker.getInstance().log(getEventBuilder(StudioRunEvent.newBuilder()
-                                                     .setRunId(myRun.runId.toString())
-                                                     .setRunType(myRun.runType)
+                                                     .setRunId(currentRun.runId.toString())
+                                                     .setRunType(currentRun.runType)
                                                      .setSectionType(StudioRunEvent.SectionType.STUDIO)
                                                      .setEventType(StudioRunEvent.EventType.FINISH)
                                                      .setDurationMs(
-                                                       calcDuration(myRun.studioProcessFinishedTimestamp, myRun.startTimestamp).toInt())
+                                                       calcDuration(currentRun.studioProcessFinishedTimestamp,
+                                                                    currentRun.startTimestamp).toInt())
                                                      .setIsSuccessful(isSuccessful)
-                                                     .build(), myRun.packageName))
+                                                     .build(), currentRun.packageName))
   }
 
   // TODO add gradle task, dynamic app info etc, target device
   override fun notifyGradleStarted(buildMode: BuildMode?) {
+    val currentRun = myRun?: return
     synchronized(lock) {
-      myRun.gradleInvokeTimestamp = System.currentTimeMillis()
+      currentRun.gradleInvokeTimestamp = System.currentTimeMillis()
     }
     UsageTracker.getInstance().log(getEventBuilder(StudioRunEvent.newBuilder()
-                                                     .setRunId(myRun.runId.toString())
-                                                     .setRunType(myRun.runType)
+                                                     .setRunId(currentRun.runId.toString())
+                                                     .setRunType(currentRun.runType)
                                                      .setSectionType(StudioRunEvent.SectionType.GRADLE)
                                                      .setEventType(StudioRunEvent.EventType.START)
                                                      .setBuildMode(determineBuildMode(buildMode))
-                                                     .build(), myRun.packageName))
+                                                     .build(), currentRun.packageName))
   }
 
   override fun notifyGradleFinished(isSuccessful: Boolean) {
+    val currentRun = myRun?: return
     synchronized(lock) {
-      myRun.gradleFinishedTimestamp = System.currentTimeMillis()
+      currentRun.gradleFinishedTimestamp = System.currentTimeMillis()
     }
     UsageTracker.getInstance().log(getEventBuilder(StudioRunEvent.newBuilder()
-                                                     .setRunId(myRun.runId.toString())
-                                                     .setRunType(myRun.runType)
+                                                     .setRunId(currentRun.runId.toString())
+                                                     .setRunType(currentRun.runType)
                                                      .setSectionType(StudioRunEvent.SectionType.GRADLE)
                                                      .setEventType(StudioRunEvent.EventType.FINISH)
                                                      .setDurationMs(
-                                                       calcDuration(myRun.gradleFinishedTimestamp, myRun.gradleInvokeTimestamp).toInt())
+                                                       calcDuration(currentRun.gradleFinishedTimestamp,
+                                                                    currentRun.gradleInvokeTimestamp).toInt())
                                                      .setIsSuccessful(isSuccessful)
-                                                     .build(), myRun.packageName))
+                                                     .build(), currentRun.packageName))
   }
 
+  /**
+   * Called before starting an AVD. Note this could be called outside of a run through the AVD manager on here and [notifyRunStarted] is a
+   * could the [Run] instance be null. In that case we do not track the emulator duration as it is not part of a run.
+   */
   override fun notifyEmulatorStarting() {
+    val currentRun = myRun?: return
     synchronized(lock) {
-      myRun.emulatorStartTimestamp = System.currentTimeMillis()
+      currentRun.emulatorStartTimestamp = System.currentTimeMillis()
     }
     UsageTracker.getInstance().log(getEventBuilder(StudioRunEvent.newBuilder()
-                                                     .setRunId(myRun.runId.toString())
-                                                     .setRunType(myRun.runType)
+                                                     .setRunId(currentRun.runId.toString())
+                                                     .setRunType(currentRun.runType)
                                                      .setSectionType(StudioRunEvent.SectionType.EMULATOR)
                                                      .setEventType(StudioRunEvent.EventType.START)
-                                                     .build(), myRun.packageName))
+                                                     .build(), currentRun.packageName))
   }
 
+  /**
+   *
+   */
   override fun notifyEmulatorStarted(isSuccessful: Boolean) {
+    val currentRun = myRun?: return
     synchronized(lock) {
-      myRun.emulatorFinishTimestamp = System.currentTimeMillis()
+      currentRun.emulatorFinishTimestamp = System.currentTimeMillis()
     }
     UsageTracker.getInstance().log(getEventBuilder(StudioRunEvent.newBuilder()
-                                                     .setRunId(myRun.runId.toString())
-                                                     .setRunType(myRun.runType)
+                                                     .setRunId(currentRun.runId.toString())
+                                                     .setRunType(currentRun.runType)
                                                      .setSectionType(StudioRunEvent.SectionType.EMULATOR)
                                                      .setDurationMs(
-                                                       calcDuration(myRun.emulatorFinishTimestamp, myRun.emulatorStartTimestamp).toInt())
+                                                       calcDuration(currentRun.emulatorFinishTimestamp,
+                                                                    currentRun.emulatorStartTimestamp).toInt())
                                                      .setIsSuccessful(isSuccessful)
                                                      .setEventType(StudioRunEvent.EventType.FINISH)
-                                                     .build(), myRun.packageName))
+                                                     .build(), currentRun.packageName))
   }
 
   override fun notifyDeployStarted(deployTask: StudioRunEvent.DeployTask,
@@ -142,47 +159,56 @@ class RunStatsServiceImpl : RunStatsService() {
                                    artifactCount: Int,
                                    isPatchBuild: Boolean,
                                    dontKill: Boolean) {
+    val currentRun = myRun?: return
     synchronized(lock) {
-      myRun.deployStartTimestamp = System.currentTimeMillis()
+      currentRun.deployStartTimestamp = System.currentTimeMillis()
     }
     UsageTracker.getInstance().log(getEventBuilder(StudioRunEvent.newBuilder()
-                                                     .setRunId(myRun.runId.toString())
-                                                     .setRunType(myRun.runType)
+                                                     .setRunId(currentRun.runId.toString())
+                                                     .setRunType(currentRun.runType)
                                                      .setSectionType(StudioRunEvent.SectionType.DEPLOY)
                                                      .setEventType(StudioRunEvent.EventType.START)
                                                      .setArtifactCount(artifactCount)
                                                      .setDeployTask(deployTask)
-                                                     .build(), myRun.packageName)
+                                                     .build(), currentRun.packageName)
                                      .setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(device)))
   }
 
   override fun notifyDeployFinished(isSuccessful: Boolean) {
+    val currentRun = myRun?: return
     synchronized(lock) {
-      myRun.deployFinishTimestamp = System.currentTimeMillis()
+      currentRun.deployFinishTimestamp = System.currentTimeMillis()
     }
     UsageTracker.getInstance().log(getEventBuilder(StudioRunEvent.newBuilder()
-                                                     .setRunId(myRun.runId.toString())
-                                                     .setRunType(myRun.runType)
+                                                     .setRunId(currentRun.runId.toString())
+                                                     .setRunType(currentRun.runType)
                                                      .setSectionType(StudioRunEvent.SectionType.DEPLOY)
                                                      .setEventType(StudioRunEvent.EventType.FINISH)
                                                      .setDurationMs(
-                                                       calcDuration(myRun.deployFinishTimestamp, myRun.deployStartTimestamp).toInt())
+                                                       calcDuration(currentRun.deployFinishTimestamp,
+                                                                    currentRun.deployStartTimestamp).toInt())
                                                      .setIsSuccessful(isSuccessful)
-                                                     .build(), myRun.packageName))
+                                                     .build(), currentRun.packageName))
   }
 
   override fun notifyRunFinished(isSuccessful: Boolean) {
+    val currentRun = myRun?: return
     synchronized(lock) {
-      myRun.runFinishTimestamp = System.currentTimeMillis()
+      currentRun.runFinishTimestamp = System.currentTimeMillis()
     }
     UsageTracker.getInstance().log(getEventBuilder(StudioRunEvent.newBuilder()
-                                                     .setRunId(myRun.runId.toString())
-                                                     .setRunType(myRun.runType)
+                                                     .setRunId(currentRun.runId.toString())
+                                                     .setRunType(currentRun.runType)
                                                      .setSectionType(StudioRunEvent.SectionType.TOTAL)
                                                      .setEventType(StudioRunEvent.EventType.FINISH)
-                                                     .setDurationMs(calcDuration(myRun.runFinishTimestamp, myRun.startTimestamp).toInt())
+                                                     .setDurationMs(
+                                                       calcDuration(currentRun.runFinishTimestamp, currentRun.startTimestamp).toInt())
                                                      .setIsSuccessful(isSuccessful)
-                                                     .build(), myRun.packageName))
+                                                     .build(), currentRun.packageName))
+    // clear current run instance when deploy is done.
+    synchronized(lock) {
+      myRun = null
+    }
   }
 
   private fun calcDuration(finishTime: Long?, startTime: Long?): Long {
