@@ -492,6 +492,10 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable
   }
 
   @Override
+  public void syncTaskCreated(@NotNull Project project, @NotNull GradleSyncInvoker.Request request) {
+  }
+
+  @Override
   public void syncStarted(@NotNull Project project, boolean skipped, boolean sourceGenerationRequested) {
     if (myUiInitialized) {
       myNotificationPanel.removeAll();

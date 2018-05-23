@@ -16,11 +16,22 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import com.intellij.openapi.project.Project;
+import org.gradle.api.tasks.Sync;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.EventListener;
 
 public interface GradleSyncListener extends EventListener {
+  /**
+   * Invoked when sync task has been created and sync is going to happen some time soon. Useful in situations when
+   * sync gets executed asynchronously so syncStarted() isn't called yet but it's necessary to know that sync is
+   * imminent.
+   *
+   * @param project Project which sync has been requested for.
+   * @param request Sync request to be fulfilled.
+   */
+  void syncTaskCreated(@NotNull Project project, @NotNull GradleSyncInvoker.Request request);
+
   void syncStarted(@NotNull Project project, boolean skipped, boolean sourceGenerationRequested);
 
   void setupStarted(@NotNull Project project);
@@ -42,6 +53,10 @@ public interface GradleSyncListener extends EventListener {
   void syncSkipped(@NotNull Project project);
 
   abstract class Adapter implements GradleSyncListener {
+    @Override
+    public void syncTaskCreated(@NotNull Project project, @NotNull GradleSyncInvoker.Request request) {
+    }
+
     @Override
     public void syncStarted(@NotNull Project project, boolean skipped, boolean sourceGenerationRequested) {
     }

@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.util.BuildMode
+import com.android.tools.idea.npw.model.MultiTemplateRenderer
 import com.android.tools.idea.testing.IdeComponents
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.mock.MockDumbService
@@ -230,6 +231,88 @@ class IndexingSuspenderTest : IdeaTestCase() {
     assertEquals(1, currentBatchUpdateLevel)
     buildState.buildFinished(BuildStatus.SUCCESS)
     assertFalse(buildState.isBuildInProgress)
+    assertEquals(0, currentBatchUpdateLevel)
+  }
+
+  fun testTemplateRenderingRegularEventsWorkflow() {
+    setUpIndexingSpecificExpectations(dumbModeCount = 1, batchUpdateCount = 1)
+
+    MultiTemplateRenderer.multiRenderingStarted(project)
+    val dumbService = DumbService.getInstance(project)
+    // We should already enter both sentinel dumb mode and start a batch update no matter what.
+    assertTrue(dumbService.isDumb)
+    assertEquals(1, currentBatchUpdateLevel)
+
+    val syncState = GradleSyncState.getInstance(project)
+    syncState.syncTaskCreated(mock(GradleSyncInvoker.Request::class.java))
+    MultiTemplateRenderer.multiRenderingFinished(project)
+    // Yes, rendering finished but we were notified that sync is imminent, so suspension should continue.
+    assertTrue(dumbService.isDumb)
+    assertEquals(1, currentBatchUpdateLevel)
+
+    syncState.syncStarted(true, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_USER_REQUEST))
+    // No change
+    assertTrue(dumbService.isDumb)
+    assertEquals(1, currentBatchUpdateLevel)
+
+    syncState.setupStarted()
+    // No change
+    assertTrue(dumbService.isDumb)
+    assertEquals(1, currentBatchUpdateLevel)
+
+    val buildContext = mock(BuildContext::class.java)
+    val buildState = GradleBuildState.getInstance(project)
+    buildState.buildExecutorCreated(mock(GradleBuildInvoker.Request::class.java))
+    // No change
+    assertTrue(dumbService.isDumb)
+    assertEquals(1, currentBatchUpdateLevel)
+
+    syncState.syncEnded()
+    // No change
+    assertTrue(dumbService.isDumb)
+    assertEquals(1, currentBatchUpdateLevel)
+
+    buildState.buildStarted(buildContext)
+    // No change even during build (for template-rendering initiated suspension only).
+    assertTrue(dumbService.isDumb)
+    assertEquals(1, currentBatchUpdateLevel)
+
+    buildState.buildFinished(BuildStatus.SUCCESS)
+    dumbService.waitForSmartMode()
+    assertFalse(dumbService.isDumb)
+    assertEquals(0, currentBatchUpdateLevel)
+  }
+
+  fun testTemplateRenderingWhenSyncFailed() {
+    setUpIndexingSpecificExpectations(dumbModeCount = 1, batchUpdateCount = 1)
+
+    MultiTemplateRenderer.multiRenderingStarted(project)
+    val dumbService = DumbService.getInstance(project)
+    // We should already enter both sentinel dumb mode and start a batch update no matter what.
+    assertTrue(dumbService.isDumb)
+    assertEquals(1, currentBatchUpdateLevel)
+
+    val syncState = GradleSyncState.getInstance(project)
+    syncState.syncTaskCreated(mock(GradleSyncInvoker.Request::class.java))
+    MultiTemplateRenderer.multiRenderingFinished(project)
+    // Yes, rendering finished but we were notified that sync is imminent, so suspension should continue.
+    assertTrue(dumbService.isDumb)
+    assertEquals(1, currentBatchUpdateLevel)
+
+    syncState.syncStarted(true, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_USER_REQUEST))
+    // No change
+    assertTrue(dumbService.isDumb)
+    assertEquals(1, currentBatchUpdateLevel)
+
+    syncState.setupStarted()
+    // No change
+    assertTrue(dumbService.isDumb)
+    assertEquals(1, currentBatchUpdateLevel)
+
+    syncState.syncFailed("Test!")
+    dumbService.waitForSmartMode()
+    assertFalse(dumbService.isDumb)
+    assertEquals(0, currentBatchUpdateLevel)
   }
 
   private fun doTestGradleSyncWhen(failed: Boolean) {
@@ -251,6 +334,9 @@ class IndexingSuspenderTest : IdeaTestCase() {
     else {
       syncState.syncEnded()
     }
+    assertEquals(0, currentBatchUpdateLevel)
+    dumbService.waitForSmartMode()
+    assertFalse(dumbService.isDumb)
   }
 
   private fun doTestGradleBuildWhen(buildStatus: BuildStatus) {
@@ -265,6 +351,9 @@ class IndexingSuspenderTest : IdeaTestCase() {
     assertEquals(1, actualBatchUpdateCount)
 
     buildState.buildFinished(buildStatus)
+    assertEquals(0, currentBatchUpdateLevel)
+    dumbService.waitForSmartMode()
+    assertFalse(dumbService.isDumb)
   }
 
   /**

@@ -121,6 +121,8 @@ public class GradleSyncInvoker {
       }
     };
 
+    GradleSyncState.getInstance(project).syncTaskCreated(request);
+
     Application application = ApplicationManager.getApplication();
     if (application.isUnitTestMode()) {
       application.invokeAndWait(syncTask);
