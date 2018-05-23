@@ -205,7 +205,7 @@ final class ConnectionsView {
     textPane.setEditable(false);
     textPane.setBorder(TOOLTIP_BORDER);
     textPane.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
-    textPane.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
+    textPane.setForeground(ProfilerColors.TOOLTIP_TEXT);
     textPane.setFont(ProfilerFonts.TOOLTIP_BODY_FONT);
     TooltipComponent tooltip =
       new TooltipComponent.Builder(textPane, myConnectionsTable, stageView.getProfilersView().getComponent()).build();
