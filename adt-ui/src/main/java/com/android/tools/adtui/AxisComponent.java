@@ -155,6 +155,8 @@ public final class AxisComponent extends AnimatedComponent {
 
     myModel.addDependency(myAspectObserver)
       .onChange(AxisComponentModel.Aspect.AXIS, this::modelChanged);
+    // Sets the boolean myCalculateMarkers true for the initial markers.
+    myCalculateMarkers = true;
   }
 
   private void modelChanged() {
