@@ -78,9 +78,9 @@ public class CpuThreadsTooltipView extends ProfilerTooltipView {
   @NotNull
   @Override
   protected JComponent createTooltip() {
-    myContent.setLayout(new TabularLayout("*", "Fit-,5px,Fit"));
+    myContent.setLayout(new TabularLayout("*", "Fit-,8px,Fit"));
     JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
-    separator.setBorder(JBUI.Borders.empty(5, 0));
+    separator.setBorder(JBUI.Borders.empty(8, 0));
     myUnavailableDetails.add(separator, new TabularLayout.Constraint(0, 0));
     JLabel unavailableLabel = new JLabel("Details Unavailable");
     unavailableLabel.setFont(TOOLTIP_BODY_FONT);
