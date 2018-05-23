@@ -17,8 +17,10 @@ package com.android.tools.idea.navigator;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
+import com.android.tools.idea.navigator.nodes.android.BuildScriptTreeStructureProvider;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
+import com.intellij.ide.projectView.TreeStructureProvider;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.GroupByTypeComparator;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
@@ -46,8 +48,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
-import static com.android.tools.idea.testing.TestProjectPaths.NAVIGATOR_PACKAGEVIEW_COMMONROOTS;
-import static com.android.tools.idea.testing.TestProjectPaths.NAVIGATOR_PACKAGEVIEW_SIMPLE;
+import static com.android.tools.idea.testing.TestProjectPaths.*;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
@@ -249,6 +250,56 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     assertStructureEqual(structure, expected, numLines, createComparator(printInfo), structure.getRootElement(), printInfo);
   }
 
+  public void testKotlinBuildScriptStructure() throws Exception {
+    loadProject(KOTLIN_GRADLE_DSL);
+
+    myPane = createPane();
+    TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());
+
+    Queryable.PrintInfo printInfo = new Queryable.PrintInfo();
+    PsiDirectory dir = getBaseFolder();
+    assertNotNull(dir);
+
+    Module[] modules = ModuleManager.getInstance(getProject()).getModules();
+    assertThat(modules).hasLength(3);
+
+    String projectName = getProject().getName();
+    String expected = projectName + "\n" +
+                      " Gradle Scripts\n" +
+                      "  build.gradle (Project: " + projectName +  ")\n" +
+                      "  build.gradle.kts (Module: app)\n" +
+                      "  build.gradle.kts (Module: lib)\n" +
+                      "  build.gradle.kts (Project: " + projectName + ")\n" +
+                      "  gradle-wrapper.properties (Gradle Version)\n" +
+                      "  local.properties (SDK Location)\n" +
+                      "  settings.gradle.kts (Project Settings)\n" +
+                      " app (Android)\n" +
+                      "  manifests\n" +
+                      "   AndroidManifest.xml (main)\n" +
+                      "  res\n" +
+                      "   layout\n" +
+                      "    activity_main.xml\n" +
+                      "   mipmap\n" +
+                      "    ic_launcher (5)\n" +
+                      "     ic_launcher.png (hdpi)\n" +
+                      "     ic_launcher.png (mdpi)\n" +
+                      "     ic_launcher.png (xhdpi)\n" +
+                      "     ic_launcher.png (xxhdpi)\n" +
+                      "     ic_launcher.png (xxxhdpi)\n" +
+                      "   values\n" +
+                      "    colors.xml\n" +
+                      "    dimens (2)\n" +
+                      "     dimens.xml\n" +
+                      "     dimens.xml (w820dp)\n" +
+                      "    strings.xml\n" +
+                      "    styles.xml\n" +
+                      " lib (Android)\n" +
+                      "  manifests\n" +
+                      "   AndroidManifest.xml (main)\n";
+    int numLines = expected.split("\n").length;
+    assertStructureEqual(structure, expected, numLines, createComparator(printInfo), structure.getRootElement(), printInfo);
+  }
+
   public void testResourceGroupWithDifferentExtension() throws Exception {
     loadProject(NAVIGATOR_PACKAGEVIEW_SIMPLE);
 
@@ -302,6 +353,15 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
   private class TestAndroidTreeStructure extends TestProjectTreeStructure {
     public TestAndroidTreeStructure(Project project, Disposable parentDisposable) {
       super(project, parentDisposable);
+    }
+
+    @Override
+    public List<TreeStructureProvider> getProviders() {
+      List<TreeStructureProvider> providers = super.getProviders();
+      if (providers == null) {
+        return null;
+      }
+      return providers.stream().map(provider ->  new BuildScriptTreeStructureProvider(provider)).collect(Collectors.toList());
     }
 
     @Override
