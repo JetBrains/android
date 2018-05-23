@@ -128,6 +128,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     });
     myForceGarbageCollectionAction =
       new ProfilerAction.Builder("Force garbage collection")
+        .setContainerComponent(getComponent())
         .setIcon(myForceGarbageCollectionButton.getIcon())
         .setActionRunnable(() -> myForceGarbageCollectionButton.doClick(0))
         .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_G, AdtUiUtils.getActionMask())).build();
@@ -142,6 +143,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     });
     myHeapDumpAction =
       new ProfilerAction.Builder("Dump Java heap")
+        .setContainerComponent(getComponent())
         .setIcon(myHeapDumpButton.getIcon())
         .setActionRunnable(() -> myHeapDumpButton.doClick(0))
         .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_H, AdtUiUtils.getActionMask())).build();
@@ -165,12 +167,14 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     myAllocationAction =
       new ProfilerAction.Builder("Record allocations")
         .setIcon(StudioIcons.Profiler.Toolbar.RECORD)
+        .setContainerComponent(getComponent())
         .setEnableBooleanSupplier(() -> !getStage().isTrackingAllocations())
         .setActionRunnable(() -> myAllocationButton.doClick(0)).
         setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_R, AdtUiUtils.getActionMask())).build();
     myStopAllocationAction =
       new ProfilerAction.Builder("Stop recording")
         .setIcon(StudioIcons.Profiler.Toolbar.STOP_RECORDING)
+        .setContainerComponent(getComponent())
         .setEnableBooleanSupplier(() -> getStage().isTrackingAllocations())
         .setActionRunnable(() -> myAllocationButton.doClick(0)).
         setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_S, AdtUiUtils.getActionMask())).build();

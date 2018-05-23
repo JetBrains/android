@@ -496,11 +496,12 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     }
 
     myStageView = myBinder.build(this, stage);
+    SwingUtilities.invokeLater(() -> myStageView.getComponent().requestFocusInWindow());
+
     myStageCenterComponent.removeAll();
     myStageCenterComponent.add(myStageView.getComponent(), STAGE_VIEW_CARD);
     myStageCenterComponent.add(myStageLoadingPanel.getComponent(), LOADING_VIEW_CARD);
     myStageCenterComponent.revalidate();
-
     myStageToolbar.removeAll();
     myStageToolbar.add(myStageView.getToolbar(), BorderLayout.CENTER);
     myStageToolbar.revalidate();
