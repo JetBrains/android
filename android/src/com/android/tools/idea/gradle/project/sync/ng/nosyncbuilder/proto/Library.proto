@@ -25,9 +25,9 @@ message JavaLibrary {
 
 message ModuleDependency {
     optional Library library = 1; // inheritance emulation -> required
-    optional string build_id = 2;
-    optional string project_path = 3;
-    optional string variant = 4;
+    optional string build_id = 2; // required
+    optional string project_path = 3; // required
+    optional string variant = 4; // required
 }
 
 message NativeLibrary {
