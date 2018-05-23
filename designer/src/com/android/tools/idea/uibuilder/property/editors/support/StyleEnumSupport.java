@@ -20,7 +20,6 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.resources.ResourceType;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.res.ResourceHelper;
@@ -122,8 +121,7 @@ public class StyleEnumSupport extends EnumSupport {
     if (resolver == null) {
       return null;
     }
-    ResourceReference reference = new ResourceReference(namespace, ResourceType.STYLE, styleName);
-    return resolver.getStyle(reference);
+    return resolver.getStyle(ResourceReference.style(namespace, styleName));
   }
 
   @Nullable

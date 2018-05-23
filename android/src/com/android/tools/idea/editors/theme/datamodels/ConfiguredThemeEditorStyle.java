@@ -40,12 +40,11 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * This class represents styles in ThemeEditor
- * In addition to {@link ThemeEditorStyle}, it knows about current {@link Configuration} used in ThemeEditor
- * TODO: move Configuration independent methods to ThemeEditorStyle
+ * This class represents styles in ThemeEditor. In addition to {@link ThemeEditorStyle},
+ * it knows about current {@link Configuration} used in ThemeEditor.
+ * TODO: Move Configuration independent methods to ThemeEditorStyle.
  */
 public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
-
   private final @NotNull StyleResourceValue myStyleResourceValue;
   private final @NotNull Configuration myConfiguration;
 
@@ -55,10 +54,10 @@ public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
    */
   private final @Nullable Module mySourceModule;
 
-  public ConfiguredThemeEditorStyle(final @NotNull Configuration configuration,
-                                    final @NotNull StyleResourceValue styleResourceValue,
-                                    final @Nullable Module sourceModule) {
-    super(configuration.getConfigurationManager(), ResolutionUtils.getQualifiedStyleName(styleResourceValue));
+  public ConfiguredThemeEditorStyle(@NotNull Configuration configuration,
+                                    @NotNull StyleResourceValue styleResourceValue,
+                                    @Nullable Module sourceModule) {
+    super(configuration.getConfigurationManager(), styleResourceValue.asReference());
     myStyleResourceValue = styleResourceValue;
     myConfiguration = configuration;
     mySourceModule = sourceModule;
@@ -140,6 +139,7 @@ public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
    * Returns the names of all the parents of this style. Parents might differ depending on the folder configuration, this returns all the
    * variants for this style.
    */
+  // TODO(namespaces): Change return type to Collection<ConfiguredElement<ResourceReference>>.
   public Collection<ConfiguredElement<String>> getParentNames() {
     if (isFramework()) {
       // Framework themes do not have multiple parents so we just get the only one.
@@ -147,7 +147,7 @@ public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
       if (parent != null) {
         return ImmutableList.of(ConfiguredElement.create(new FolderConfiguration(), parent.getQualifiedName()));
       }
-      // The theme has no parent (probably the main "Theme" style)
+      // The theme has no parent (probably the main "Theme" style).
       return Collections.emptyList();
     }
 
@@ -196,7 +196,7 @@ public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
     }
 
     if (themeResolver == null) {
-      return ResolutionUtils.getStyle(myConfiguration, ResolutionUtils.getQualifiedStyleName(parent), null);
+      return ResolutionUtils.getThemeEditorStyle(myConfiguration, ResolutionUtils.getQualifiedStyleName(parent), null);
     }
     else {
       return themeResolver.getTheme(ResolutionUtils.getQualifiedStyleName(parent));
@@ -214,7 +214,7 @@ public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj == null || (!(obj instanceof ConfiguredThemeEditorStyle))) {
+    if (!(obj instanceof ConfiguredThemeEditorStyle)) {
       return false;
     }
 
@@ -235,7 +235,7 @@ public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
    * Plain getter, see {@link #mySourceModule} for field description.
    */
   @Nullable
-  public Module getSourceModule() {
+  public final Module getSourceModule() {
     return mySourceModule;
   }
 }

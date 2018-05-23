@@ -186,10 +186,10 @@ public class StyleEnumSupportTest {
   }
 
   static StyleResourceValue createFrameworkStyle(@NotNull String name) {
-    return new StyleResourceValueImpl(new ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, name), null, null);
+    return new StyleResourceValueImpl(ResourceNamespace.ANDROID, ResourceType.STYLE, name, null, null);
   }
 
   static StyleResourceValue createStyle(@NotNull String name, @Nullable String libraryName) {
-    return new StyleResourceValueImpl(new ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STYLE, name), null, libraryName);
+    return new StyleResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.STYLE, name, null, libraryName);
   }
 }
