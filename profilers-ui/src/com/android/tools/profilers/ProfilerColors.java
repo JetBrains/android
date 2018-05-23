@@ -234,7 +234,7 @@ public class ProfilerColors {
 
   public static final Color TOOLTIP_BACKGROUND = new JBColor(0xFFFFFF, 0x3D3F41);
 
-  public static final Color TOOLTIP_TEXT = new JBColor(0x545454, 0xCACACA);
+  public static final Color TOOLTIP_TEXT = JBColor.foreground();
 
   public static final Color TOOLTIP_LOW_CONTRAST = new JBColor(0x888888, 0x838485);
 }

@@ -42,10 +42,10 @@ public class CpuThreadsTooltipView extends ProfilerTooltipView {
     myContent = new JPanel();
     myLabel = new JLabel();
     myLabel.setFont(TOOLTIP_BODY_FONT);
-    myLabel.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
+    myLabel.setForeground(ProfilerColors.TOOLTIP_TEXT);
     myState = new JLabel();
     myState.setFont(TOOLTIP_BODY_FONT);
-    myState.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
+    myState.setForeground(ProfilerColors.TOOLTIP_TEXT);
     myUnavailableDetails = new JPanel(new TabularLayout("*", "Fit,Fit"));
     tooltip.addDependency(this).onChange(CpuThreadsTooltip.Aspect.THREAD_STATE, this::stateChanged);
   }

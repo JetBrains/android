@@ -257,7 +257,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     textPane.setEditable(false);
     textPane.setBorder(TOOLTIP_BORDER);
     textPane.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
-    textPane.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
+    textPane.setForeground(ProfilerColors.TOOLTIP_TEXT);
     textPane.setFont(ProfilerFonts.TOOLTIP_BODY_FONT);
     textPane.setText(
       "The Energy Profiler models your app's estimated energy usage of CPU, Network, and GPS resources of your device. " +
