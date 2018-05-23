@@ -272,15 +272,13 @@ public class NetworkProfilerStageTest {
 
     myTimer.tick(1);
     assertThat(networkUsageUpdated[0]).isTrue();
-    assertThat(trafficAxisUpdated[0]).isFalse();
-    assertThat(connectionAxisUpdated[0]).isFalse();
+    assertThat(trafficAxisUpdated[0]).isTrue();
+    assertThat(connectionAxisUpdated[0]).isTrue();
     assertThat(legendsUpdated[0]).isTrue();
     assertThat(tooltipLegendsUpdated[0]).isTrue();
 
     myStudioProfilers.getTimeline().getViewRange().set(TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(2));
     assertThat(networkUsageUpdated[0]).isTrue();
-    assertThat(trafficAxisUpdated[0]).isFalse();
-    assertThat(connectionAxisUpdated[0]).isFalse();
 
     // Make sure the axis lerps correctly when we move the range there.
     myStudioProfilers.getTimeline().getDataRange().setMax(TimeUnit.SECONDS.toMicros(101));
