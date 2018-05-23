@@ -26,6 +26,7 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.DumbModeTask;
 import com.intellij.openapi.project.Project;
@@ -86,12 +87,20 @@ public class ResourceFolderRegistry {
       Cache<VirtualFile, ResourceFolderRepository> cache =
         namespace == ResourceNamespace.RES_AUTO ? myNonNamespacedCache : myNamespacedCache;
 
-      ResourceFolderRepository repository = cache.get(dir, () -> ResourceFolderRepository.create(facet, dir, namespace));
+      ResourceFolderRepository repository;
+      try {
+        repository = cache.get(dir, () -> ResourceFolderRepository.create(facet, dir, namespace));
+      }
+      catch (ExecutionException | UncheckedExecutionException e) {
+        if (e.getCause() instanceof ProcessCanceledException) {
+          throw (ProcessCanceledException) e.getCause();
+        }
+        throw e;
+      }
       assert repository.getNamespace().equals(namespace);
 
       // TODO(b/80179120): figure out why this is not always true.
       //assert repository.getFacet().equals(facet);
-
       return repository;
     }
     catch (ExecutionException e) {
