@@ -55,7 +55,7 @@ class LayoutInspectorBuilder(project: Project, private val editorProvider: Edito
       // TODO: Handle other namespaces
       val property = properties.getOrNull(ANDROID_URI, propertyName)
       if (property != null) {
-        val line = inspector.addEditor(editorProvider(property))
+        val line = inspector.addEditor(editorProvider.createEditor(property))
         titleModel.addChild(line)
       }
     }

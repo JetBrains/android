@@ -65,7 +65,7 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NelePr
   }
 
   private fun addEditor(inspector: InspectorPanel, property: NelePropertyItem, group: InspectorLineModel): InspectorLineModel {
-    val line = inspector.addEditor(editorProvider(property))
+    val line = inspector.addEditor(editorProvider.createEditor(property))
     group.addChild(line)
     return line
   }

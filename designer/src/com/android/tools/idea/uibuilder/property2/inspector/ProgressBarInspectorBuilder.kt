@@ -48,7 +48,7 @@ class ProgressBarInspectorBuilder(private val editorProvider: EditorProvider<Nel
   }
 
   private fun addEditor(inspector: InspectorPanel, property: NelePropertyItem, group: InspectorLineModel): InspectorLineModel {
-    val line = inspector.addEditor(editorProvider(property))
+    val line = inspector.addEditor(editorProvider.createEditor(property))
     group.addChild(line)
     return line
   }
@@ -58,7 +58,7 @@ class ProgressBarInspectorBuilder(private val editorProvider: EditorProvider<Nel
     property: NelePropertyItem,
     group: InspectorLineModel
   ): PropertyEditorModel {
-    val (model, editor) = editorProvider(property)
+    val (model, editor) = editorProvider.createEditor(property)
     val line = inspector.addEditor(model, editor)
     group.addChild(line)
     return model

@@ -150,7 +150,7 @@ class FakeEditorProviderImpl: EditorProvider<NelePropertyItem> {
   private val enumSupportProvider = NeleEnumSupportProvider()
   private val controlTypeProvider = NeleControlTypeProvider(enumSupportProvider)
 
-  override fun invoke(property: NelePropertyItem): Pair<PropertyEditorModel, JComponent> {
+  override fun createEditor(property: NelePropertyItem, asTableCellEditor: Boolean): Pair<PropertyEditorModel, JComponent> {
     val enumSupport = enumSupportProvider(property)
     val controlType = controlTypeProvider(property)
 
