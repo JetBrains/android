@@ -15,15 +15,10 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
-import com.android.tools.idea.gradle.structure.configurables.ui.RenderedComboBox
-import com.android.tools.idea.gradle.structure.configurables.ui.TextRenderer
-import com.android.tools.idea.gradle.structure.configurables.ui.toRenderer
+import com.android.tools.idea.gradle.structure.configurables.ui.*
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.meta.*
-import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
@@ -233,29 +228,3 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
     reload()
   }
 }
-
-private fun <I, O> ListenableFuture<I>.continueOnEdt(continuation: (I) -> O) =
-  Futures.transform(
-    this, { continuation(it!!) },
-    {
-      val application = ApplicationManager.getApplication()
-      if (application.isDispatchThread) {
-        it.run()
-      }
-      else {
-        application.invokeLater(it, ModalityState.any())
-      }
-    })
-
-private fun <I, O> ListenableFuture<I>.invokeLater(continuation: (I) -> O) =
-  Futures.transform(
-    this, { continuation(it!!) },
-    {
-      val application = ApplicationManager.getApplication()
-      if (application.isUnitTestMode) {
-        it.run()
-      }
-      else {
-        application.invokeLater(it, ModalityState.any())
-      }
-    })
