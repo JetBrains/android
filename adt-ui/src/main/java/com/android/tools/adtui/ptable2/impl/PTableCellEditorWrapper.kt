@@ -45,7 +45,7 @@ class PTableCellEditorWrapper : AbstractTableCellEditor() {
     editor.requestFocus()
   }
 
-  fun activate() {
-    editor.activate()
+  fun toggleValue() {
+    editor.toggleValue()
   }
 }
