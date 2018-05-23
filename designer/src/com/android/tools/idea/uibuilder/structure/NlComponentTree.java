@@ -219,6 +219,11 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     Disposer.dispose(myUpdateQueue);
   }
 
+  @Override
+  public void updateUI() {
+    setUI(new MyUI());
+  }
+
   private void invalidateUI() {
     ((MyUI)ui).invalidateNodeSize();
   }
