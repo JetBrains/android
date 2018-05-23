@@ -74,11 +74,11 @@ public class GradleRenameModuleTest {
     GradleBuildModelFixture buildModel = guiTest.ideFrame().parseBuildFileForModule("app");
 
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
-    expected.configurationName = "debugCompile";
+    expected.configurationName = "debugImplementation";
     expected.path = ":newLibrary";
     buildModel.requireDependency(expected);
 
-    expected.configurationName = "releaseCompile";
+    expected.configurationName = "releaseImplementation";
     buildModel.requireDependency(expected);
   }
 
