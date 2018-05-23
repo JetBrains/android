@@ -24,10 +24,9 @@ interface ModuleDependency : Library {
   val variant: String
 
   fun toProto(): LibraryProto.ModuleDependency = LibraryProto.ModuleDependency.newBuilder()
-      .setLibrary(LibraryProto.Library.newBuilder().setArtifactAddress(artifactAddress))
-      .setBuildId(buildId)
-      .setProjectPath(projectPath)
-      .setVariant(variant)
-      .build()!!
+    .setLibrary(LibraryProto.Library.newBuilder().setArtifactAddress(artifactAddress))
+    .setBuildId(buildId)
+    .setProjectPath(projectPath)
+    .setVariant(variant)
+    .build()!!
 }
-
