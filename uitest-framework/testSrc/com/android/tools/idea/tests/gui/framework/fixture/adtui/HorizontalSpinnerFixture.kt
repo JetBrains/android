@@ -23,7 +23,7 @@ import org.fest.swing.fixture.JButtonFixture
 import javax.swing.JButton
 import javax.swing.JComponent
 
-class HorizontalSpinnerFixture(private val robot: Robot, spinner: HorizontalSpinner<*>) :
+class HorizontalSpinnerFixture(private val robot: Robot, private val spinner: HorizontalSpinner<*>) :
   ComponentFixture<HorizontalSpinnerFixture, HorizontalSpinner<*>>(HorizontalSpinnerFixture::class.java, robot, spinner) {
 
   fun nextButton(): JButtonFixture =
@@ -31,6 +31,8 @@ class HorizontalSpinnerFixture(private val robot: Robot, spinner: HorizontalSpin
 
   fun prevButton(): JButtonFixture =
     JButtonFixture(robot, robot.finder().find(Matchers.byName(JButton::class.java, "prev")))
+
+  fun value(): String? = spinner.model.getElementAt(spinner.selectedIndex)?.toString()
 
   companion object {
     @JvmStatic

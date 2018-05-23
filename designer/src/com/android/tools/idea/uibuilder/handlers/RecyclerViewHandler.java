@@ -63,10 +63,6 @@ public class RecyclerViewHandler extends ViewGroupHandler {
       return null;
     }
 
-    if (component.getAttribute(TOOLS_URI, ATTR_LISTITEM) != null) {
-      return null;
-    }
-
     AndroidFacet facet = AndroidFacet.getInstance(component.getModel().getModule());
     if (facet == null) {
       return null;

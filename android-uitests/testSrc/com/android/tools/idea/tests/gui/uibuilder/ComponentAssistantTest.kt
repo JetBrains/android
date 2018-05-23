@@ -21,9 +21,8 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.*
+import org.junit.Assert.*
 import org.junit.runner.RunWith
-
-import org.junit.Assert.assertTrue
 
 /**
  * UI test for the component assistant in the properties panel
@@ -69,8 +68,22 @@ class ComponentAssistantTest {
 
     // Verify changes
     editor.selectEditorTab(EditorFixture.Tab.EDITOR)
-    val contents = editor.currentFileContents
-    assertTrue(contents.contains("tools:listitem=\"@layout/recycler_view_item\""))
+    assertTrue(editor.currentFileContents.contains("tools:listitem=\"@layout/recycler_view_item\""))
+
+    editor.selectEditorTab(EditorFixture.Tab.DESIGN)
+    layout.findView("android.support.v7.widget.RecyclerView", 0)
+      .click()
+      .openComponentAssistant()
+      .getRecyclerViewAssistant().apply {
+        // Verify that changes persist
+        assertEquals("E-mail Client", spinner.value())
+        // Restore back to default
+        spinner.prevButton().click()
+      }
+      .close()
+
+    editor.selectEditorTab(EditorFixture.Tab.EDITOR)
+    assertFalse(editor.currentFileContents.contains("tools:listitem=\"@layout/recycler_view_item\""))
   }
 
   @Test

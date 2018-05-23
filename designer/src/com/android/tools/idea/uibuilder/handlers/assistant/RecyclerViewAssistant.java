@@ -16,8 +16,11 @@
 package com.android.tools.idea.uibuilder.handlers.assistant;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.tools.adtui.HorizontalSpinner;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.NlComponent;
@@ -27,6 +30,7 @@ import com.android.tools.idea.uibuilder.property.assistant.AssistantPopupPanel;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory.Context;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
+import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -34,6 +38,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -48,7 +53,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collections;
@@ -79,6 +84,11 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
     Template.fromStream("Grid",
                         RecyclerViewAssistant.class.getResourceAsStream("templates/avatar.xml"), true));
 
+  private static final int LONGEST_TEMPLATE = TEMPLATES.stream()
+                                                       .map(template -> template.component2().length())
+                                                       .max(Integer::compare)
+                                                       .orElse(0);
+
   private final NlComponent myComponent;
   private final String myOriginalListItemValue;
   private final String myOriginalLayoutManager;
@@ -90,6 +100,39 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
   @Nullable private PsiFile myCreatedFile;
 
 
+  /**
+   * Returns, from the list of valid templates, the template that is currently being used or null if no template
+   * is being used.
+   * This method helps finding if the layout pointed by reference, is pointing to an existing template.
+   */
+  @Nullable
+  private static Template getMatchingTemplate(@NotNull AndroidFacet facet, @NotNull ResourceReference reference) {
+    List<ResourceItem> items = ResourceRepositoryManager.getAppResources(facet).getResourceItems(reference);
+    if (items.isEmpty()) {
+      return null;
+    }
+
+    ResourceItem item = items.get(0);
+    File layoutFile = item.getSource() != null ? item.getSource().toFile() : null;
+    if (layoutFile == null || layoutFile.length() > LONGEST_TEMPLATE) {
+      // If the item does not point to a file (all layouts do), return null.
+      // We also have a shortcut to avoid loading long files unnecessarily
+      return null;
+    }
+
+    try {
+      String strValue = Files.toString(layoutFile, Charsets.UTF_8);
+      return TEMPLATES.stream()
+                      .filter(template -> template.hasSameContent(strValue))
+                      .findFirst()
+                      .orElse(null);
+    }
+    catch (IOException ignore) {
+    }
+
+    return null;
+  }
+
   public RecyclerViewAssistant(@NotNull Context context) {
     super();
 
@@ -98,31 +141,15 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
     VirtualFile resourceDir = ResourceFolderManager.getInstance(facet).getPrimaryFolder();
     assert resourceDir != null;
     myProject = facet.getModule().getProject();
-    myResourceName = getTemplateName(facet, "recycler_view_item");
 
-    mySpinner = HorizontalSpinner.forModel(
-      JBList.createDefaultListModel(TEMPLATES.toArray(new Template[0])));
-
-    mySpinner.addListSelectionListener(event -> {
-      if (event.getValueIsAdjusting()) {
-        return;
-      }
-
-      fireSelectionUpdated();
-    });
+    Template[] templates = TEMPLATES.toArray(new Template[0]);
+    mySpinner = HorizontalSpinner.forModel(JBList.createDefaultListModel(templates));
 
     String itemCountAttribute = myComponent.getAttribute(TOOLS_URI, ATTR_ITEM_COUNT);
     int count = parseItemCountAttribute(itemCountAttribute);
 
     myItemCount = new JBIntSpinner(count, 0, 50);
     myItemCount.setOpaque(false);
-    myItemCount.addChangeListener(new ChangeListener() {
-
-      @Override
-      public void stateChanged(ChangeEvent e) {
-        setItemCount(myComponent, myItemCount.getNumber());
-      }
-    });
     ((JSpinner.NumberEditor)myItemCount.getEditor()).getTextField().setEditable(false);
     ((JSpinner.NumberEditor)myItemCount.getEditor()).getTextField().setHorizontalAlignment(SwingConstants.LEADING);
 
@@ -134,20 +161,71 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
     content.add(AssistantUiKt.assistantLabel("Item count"));
     content.add(myItemCount);
 
-    myOriginalListItemValue = myComponent.getAttribute(TOOLS_URI, ATTR_LISTITEM);
+    String resourceName = null;
+    String originalLayoutManager = myComponent.getAttribute(TOOLS_URI, ATTR_LAYOUT_MANAGER);
+    String originalListItem = myComponent.getAttribute(TOOLS_URI, ATTR_LISTITEM);
+
+    if (originalListItem != null) {
+      // If the RecyclerView listitem is already pointing to a layout, we verify if that layout is one of the templates
+      // we use. If it is, we pre-select it on the drop-down.
+      ResourceUrl url = ResourceUrl.parse(originalListItem);
+      ResourceReference reference = url != null ? url.resolve(ResourceNamespace.TODO, ResourceNamespace.Resolver.EMPTY_RESOLVER) : null;
+      if (reference != null) {
+        Template originalTemplate = getMatchingTemplate(facet, reference);
+        if (originalTemplate != null) {
+          // This means that the current tools:listitem is one of our pre-defined templates
+          // pre-select that version in the templates combobox
+          mySpinner.setSelectedIndex(TEMPLATES.indexOf(originalTemplate));
+          resourceName = reference.getName();
+          // For the case where we are handling a template, we consider the "Default" option to remove
+          // both attributes
+          originalLayoutManager = null;
+          originalListItem = null;
+        }
+      }
+    }
+    myResourceName = resourceName == null ? getTemplateName(facet, "recycler_view_item") : resourceName;
+    myOriginalListItemValue = originalListItem;
+    myOriginalLayoutManager = originalLayoutManager;
     myOriginalSpanCountValue = myComponent.getAttribute(TOOLS_URI, ATTR_SPAN_COUNT);
-    myOriginalLayoutManager = myComponent.getAttribute(TOOLS_URI, ATTR_LAYOUT_MANAGER);
+
+    if (myOriginalSpanCountValue != null) {
+      // If there is a spanCount value, set the value in the spinner
+      try {
+        myItemCount.setNumber(Integer.parseUnsignedInt(myOriginalSpanCountValue));
+      }
+      catch (NumberFormatException ignore) {
+        // Ignore incorrectly formatted numbers
+      }
+    }
 
     addContent(content);
 
     ApplicationManager.getApplication().invokeLater(this::fireSelectionUpdated);
+
+    // All the content is now setup so we can add the listeners
+    mySpinner.addListSelectionListener(event -> {
+      if (event.getValueIsAdjusting()) {
+        return;
+      }
+
+      fireSelectionUpdated();
+    });
+    myItemCount.addChangeListener(new ChangeListener() {
+
+      @Override
+      public void stateChanged(ChangeEvent e) {
+        setItemCount(myComponent, myItemCount.getNumber());
+      }
+    });
   }
 
   private static int parseItemCountAttribute(@Nullable String attribute) {
     if (attribute != null) {
       try {
         return Integer.parseInt(attribute);
-      } catch(NumberFormatException ignore) {
+      }
+      catch (NumberFormatException ignore) {
       }
     }
     return ITEM_COUNT_DEFAULT;
@@ -174,7 +252,8 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
     do {
       resourceName = resourceNameRoot + (index < 1 ? "" : "_" + index);
       index++;
-    } while (!LocalResourceRepository.getResourceItems(ResourceNamespace.TODO(), ResourceType.LAYOUT, resourceName).isEmpty());
+    }
+    while (!LocalResourceRepository.getResourceItems(ResourceNamespace.TODO(), ResourceType.LAYOUT, resourceName).isEmpty());
     return resourceName;
   }
 
@@ -185,7 +264,10 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
                                      @NotNull Template template) {
     String content = template.getMyTemplate();
     AndroidFacet facet = component.getModel().getFacet();
-    VirtualFile resourceDir = ResourceFolderManager.getInstance(facet).getPrimaryFolder();
+    VirtualFile resourceDir = facet.getMainSourceProvider().getResDirectories().stream()
+                                   .map(resDir -> VfsUtil.findFileByIoFile(resDir, true))
+                                   .findFirst()
+                                   .orElse(null);
     assert resourceDir != null;
 
     return WriteCommandAction.runWriteCommandAction(project, (Computable<PsiFile>)() -> {
