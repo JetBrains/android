@@ -33,8 +33,8 @@ public class AxisComponentModelTest {
     SingleUnitAxisFormatter formatter = new SingleUnitAxisFormatter(1, 1, 10, "");
     Range range = new Range(0, 5);
 
-    AxisComponentModel model = new AxisComponentModel(range, formatter, true);
-    assertEquals(10.0, model.getRange().getMax(), 0.0);
+    AxisComponentModel model = new AxisComponentModel.Builder(range, formatter, true).build();
+    assertEquals(5.0, model.getRange().getMax(), 0.0); // Not updating range until first update.
     model.getRange().setMax(5.0);
     model.reset();
     assertEquals(10.0, model.getRange().getMax(), 0.0);
@@ -47,7 +47,7 @@ public class AxisComponentModelTest {
     FakeTimer t = new FakeTimer();
     Updater choreographer = new Updater(t);
 
-    AxisComponentModel model = new AxisComponentModel(range, formatter, false);
+    AxisComponentModel model = new AxisComponentModel.Builder(range, formatter, false).build();
     choreographer.register(model);
 
     assertEquals(5.0, model.getRange().getMax(), 0.0);  // before update.

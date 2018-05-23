@@ -78,8 +78,9 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
 
     myDetailedNetworkUsage = new DetailedNetworkUsage(profilers);
 
-    myTrafficAxis = new AxisComponentModel(myDetailedNetworkUsage.getTrafficRange(), TRAFFIC_AXIS_FORMATTER, true);
-    myConnectionsAxis = new AxisComponentModel(myDetailedNetworkUsage.getConnectionsRange(), CONNECTIONS_AXIS_FORMATTER, true);
+    myTrafficAxis = new AxisComponentModel.Builder(myDetailedNetworkUsage.getTrafficRange(), TRAFFIC_AXIS_FORMATTER, true).build();
+    myConnectionsAxis =
+      new AxisComponentModel.Builder(myDetailedNetworkUsage.getConnectionsRange(), CONNECTIONS_AXIS_FORMATTER, true).build();
 
     myLegends = new NetworkStageLegends(myDetailedNetworkUsage, timeline.getDataRange(), false);
     myTooltipLegends = new NetworkStageLegends(myDetailedNetworkUsage, timeline.getTooltipRange(), true);
@@ -90,7 +91,7 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
 
     mySelectionModel = new SelectionModel(timeline.getSelectionRange());
     profilers.addDependency(myAspectObserver)
-       .onChange(ProfilerAspect.AGENT, () -> mySelectionModel.setSelectionEnabled(profilers.isAgentAttached()));
+             .onChange(ProfilerAspect.AGENT, () -> mySelectionModel.setSelectionEnabled(profilers.isAgentAttached()));
     mySelectionModel.setSelectionEnabled(profilers.isAgentAttached());
     mySelectionModel.addListener(new SelectionListener() {
       @Override

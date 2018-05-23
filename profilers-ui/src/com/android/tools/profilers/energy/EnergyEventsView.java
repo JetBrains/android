@@ -122,7 +122,7 @@ public final class EnergyEventsView {
     myEventsTable = new HoverRowTable(myTableModel, ProfilerColors.DEFAULT_HOVER_COLOR);
     buildEventsTable(stageView);
     myStage.getAspect().addDependency(myAspectObserver).onChange(EnergyProfilerAspect.SELECTED_EVENT_DURATION, this::updateTableSelection)
-      .onChange(EnergyProfilerAspect.SELECTED_ORIGIN_FILTER, myTableModel::updateTableByOrigin);
+           .onChange(EnergyProfilerAspect.SELECTED_ORIGIN_FILTER, myTableModel::updateTableByOrigin);
   }
 
   private void buildEventsTable(@NotNull StageView stageView) {
@@ -195,7 +195,8 @@ public final class EnergyEventsView {
   }
 
   private void createTooltip(@NotNull StageView stageView) {
-    EnergyEventsTableTooltipInfoModel tooltipModel = new EnergyEventsTableTooltipInfoModel(myStage.getStudioProfilers().getTimeline().getDataRange());
+    EnergyEventsTableTooltipInfoModel tooltipModel =
+      new EnergyEventsTableTooltipInfoModel(myStage.getStudioProfilers().getTimeline().getDataRange());
     EnergyEventsTableTooltipInfoComponent tooltipInfoComponent = new EnergyEventsTableTooltipInfoComponent(tooltipModel);
     tooltipInfoComponent.setForeground(ProfilerColors.TOOLTIP_TEXT);
     tooltipInfoComponent.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
@@ -383,8 +384,8 @@ public final class EnergyEventsView {
 
     @NotNull
     private AxisComponent createAxis() {
-      AxisComponentModel model = new AxisComponentModel(myRange, new TimeAxisFormatter(1, 4, 1), false);
-      model.setGlobalRange(myStage.getStudioProfilers().getTimeline().getDataRange());
+      AxisComponentModel model = new AxisComponentModel.Builder(myRange, new TimeAxisFormatter(1, 4, 1), false)
+        .setGlobalRange(myStage.getStudioProfilers().getTimeline().getDataRange()).build();
       AxisComponent axis = new AxisComponent(model, AxisComponent.AxisOrientation.BOTTOM);
       axis.setShowAxisLine(false);
       axis.setMarkerColor(ProfilerColors.NETWORK_TABLE_AXIS);

@@ -188,7 +188,7 @@ final class ConnectionsView {
         for (int i = 0; i < Column.values().length; ++i) {
           Column column = Column.values()[i];
           myConnectionsTable.getColumnModel().getColumn(i)
-            .setPreferredWidth((int)(myConnectionsTable.getWidth() * column.getWidthPercentage()));
+                            .setPreferredWidth((int)(myConnectionsTable.getWidth() * column.getWidthPercentage()));
         }
       }
     });
@@ -218,7 +218,8 @@ final class ConnectionsView {
           tooltip.setVisible(true);
           String url = myTableModel.getHttpData(myConnectionsTable.convertRowIndexToModel(row)).getUrl();
           textPane.setText(url);
-        } else {
+        }
+        else {
           tooltip.setVisible(false);
         }
       }
@@ -364,8 +365,8 @@ final class ConnectionsView {
 
     @NotNull
     private AxisComponent createAxis() {
-      AxisComponentModel model = new AxisComponentModel(myRange, new TimeAxisFormatter(1, 4, 1), false);
-      model.setGlobalRange(myStage.getStudioProfilers().getTimeline().getDataRange());
+      AxisComponentModel model = new AxisComponentModel.Builder(myRange, new TimeAxisFormatter(1, 4, 1), false)
+        .setGlobalRange(myStage.getStudioProfilers().getTimeline().getDataRange()).build();
       AxisComponent axis = new AxisComponent(model, AxisComponent.AxisOrientation.BOTTOM);
       axis.setShowAxisLine(false);
       axis.setMarkerColor(ProfilerColors.NETWORK_TABLE_AXIS);
