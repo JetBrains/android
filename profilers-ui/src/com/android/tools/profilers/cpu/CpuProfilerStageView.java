@@ -155,11 +155,13 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   @NotNull private final RangeTooltipComponent myTooltipComponent;
 
+  @NotNull private final JLabel myImportedSelectedProcessLabel;
+
   public CpuProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull CpuProfilerStage stage) {
     super(profilersView, stage);
     myStage = stage;
     ProfilerTimeline timeline = getTimeline();
-
+    myImportedSelectedProcessLabel = new JLabel();
     stage.getAspect().addDependency(this)
          .onChange(CpuProfilerAspect.CAPTURE_STATE, this::updateCaptureState)
          .onChange(CpuProfilerAspect.CAPTURE_SELECTION, this::updateCaptureSelection)
@@ -824,7 +826,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   public JComponent getToolbar() {
     // We shouldn't display the CPU toolbar in import trace mode, so we return an empty panel.
     if (myStage.isImportTraceMode()) {
-      return new JPanel();
+      JPanel panel = new JPanel(new TabularLayout("8px,*", "*"));
+      panel.add(myImportedSelectedProcessLabel, new TabularLayout.Constraint(0,1));
+      return panel;
     }
     JPanel panel = new JPanel(new BorderLayout());
     JPanel toolbar = new JPanel(createToolbarLayout());
@@ -937,6 +941,11 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       myCaptureView = new CpuCaptureView(this);
       mySplitter.setSecondComponent(myCaptureView.getComponent());
       ensureCaptureInViewRange();
+      if (myStage.isImportTraceMode() && capture.getType() == com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.ATRACE) {
+        myImportedSelectedProcessLabel.setText("Process: " + capture.getCaptureNode(capture.getMainThreadId()).getData().getName());
+      } else {
+        myImportedSelectedProcessLabel.setText("");
+      }
     }
   }
 
