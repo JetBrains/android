@@ -36,7 +36,6 @@ import com.android.utils.SparseArray;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Table;
 import com.intellij.openapi.application.ReadAction;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
@@ -96,10 +95,11 @@ public class ResourceResolverCache {
                                               @NotNull String themeStyle,
                                               @NotNull FolderConfiguration fullConfiguration) {
     // Are caches up to date?
-    final LocalResourceRepository resources = ResourceRepositoryManager.getAppResources(myManager.getModule());
-    if (resources == null) {
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(myManager.getModule());
+    if (repositoryManager == null) {
       return ResourceResolver.create(Collections.emptyMap(), null);
     }
+    LocalResourceRepository resources = repositoryManager.getAppResources(true);
     if (myCachedGeneration != resources.getModificationCount()) {
       myResolverMap.clear();
       myAppResourceMap.clear();
@@ -144,14 +144,10 @@ public class ResourceResolverCache {
       assert themeStyle.startsWith(PREFIX_RESOURCE_REF) : themeStyle;
 
       // TODO(namespaces): the ResourceReference needs to be created by the caller, by resolving prefixes in the Manifest.
-      ResourceNamespace contextNamespace = ResourceNamespace.TODO();
-      AndroidFacet facet = AndroidFacet.getInstance(myManager.getModule());
-      if (facet != null) {
-        contextNamespace = ReadAction.compute(() -> ResourceRepositoryManager.getOrCreateInstance(facet).getNamespace());
-      }
       ResourceReference theme = null;
       ResourceUrl themeUrl = ResourceUrl.parse(themeStyle);
       if (themeUrl != null) {
+        ResourceNamespace contextNamespace = ReadAction.compute(() -> repositoryManager.getNamespace());
         theme = themeUrl.resolve(contextNamespace, ResourceNamespace.Resolver.EMPTY_RESOLVER);
       }
 

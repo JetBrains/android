@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -82,7 +81,7 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
   protected void tryUpdateConfiguration() {
     Configuration configuration = myRenderContext.getConfiguration();
     if (configuration != null) {
-      // See if after switching we need to switch files
+      // See if after switching we need to switch files.
       Configuration clone = configuration.clone();
       myFlags = 0;
       clone.addListener(this);
@@ -90,16 +89,16 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
       clone.removeListener(this);
 
       boolean affectsFileSelection = (myFlags & MASK_FILE_ATTRS) != 0;
-      // get the resources of the file's project.
+      // Get the resources of the file's project.
       if (affectsFileSelection) {
         Module module = myRenderContext.getConfiguration().getModule();
         if (module != null) {
           VirtualFile file = myRenderContext.getConfiguration().getFile();
           if (file != null) {
-            ConfigurationMatcher matcher = new ConfigurationMatcher(clone, ResourceRepositoryManager.getAppResources(module), file);
+            ConfigurationMatcher matcher = new ConfigurationMatcher(clone, file);
             List<VirtualFile> matchingFiles = matcher.getBestFileMatches();
             if (!matchingFiles.isEmpty() && !matchingFiles.contains(file)) {
-              // Switch files, and leave this configuration alone
+              // Switch files, and leave this configuration alone.
               pickedBetterMatch(matchingFiles.get(0), file);
               AndroidFacet facet = AndroidFacet.getInstance(module);
               assert facet != null;

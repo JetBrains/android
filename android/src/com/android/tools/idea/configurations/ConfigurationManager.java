@@ -28,7 +28,9 @@ import com.android.sdklib.repository.targets.PlatformTarget;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.model.MergedManifest.ActivityAttributes;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.res.*;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
@@ -158,8 +160,7 @@ public class ConfigurationManager implements Disposable {
   }
 
   /**
-   * Creates a new {@link Configuration} associated with this manager
-   * @return a new {@link Configuration}
+   * Creates and returns a new {@link Configuration} associated with this manager.
    */
   @NotNull
   private Configuration create(@NotNull VirtualFile file) {
@@ -171,8 +172,7 @@ public class ConfigurationManager implements Disposable {
       config = new FolderConfiguration();
     }
     Configuration configuration = Configuration.create(this, file, fileState, config);
-    LocalResourceRepository resources = ResourceRepositoryManager.getAppResources(getModule());
-    ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, resources, file);
+    ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, file);
     if (fileState != null) {
       matcher.adaptConfigSelection(true);
     } else {
@@ -207,8 +207,7 @@ public class ConfigurationManager implements Disposable {
     if (baseConfig != null) {
       configuration.setEffectiveDevice(baseConfig.getDevice(), baseConfig.getDeviceState());
     }
-    LocalResourceRepository resources = ResourceRepositoryManager.getAppResources(getModule());
-    ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, resources, file);
+    ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, file);
     matcher.adaptConfigSelection(true /*needBestMatch*/);
     myCache.put(file, configuration);
 

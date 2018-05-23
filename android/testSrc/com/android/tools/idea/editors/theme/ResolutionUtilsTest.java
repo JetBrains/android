@@ -40,9 +40,7 @@ public class ResolutionUtilsTest extends AndroidTestCase {
                                                                        null);
     assertEquals("android:myStyle", ResolutionUtils.getQualifiedStyleName(styleResourceValue));
 
-    styleResourceValue = new StyleResourceValueImpl(new ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STYLE, "myStyle"),
-                                                null,
-                                                null);
+    styleResourceValue = new StyleResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.STYLE, "myStyle", null, null);
     assertEquals("myStyle", ResolutionUtils.getQualifiedStyleName(styleResourceValue));
   }
 
@@ -79,9 +77,9 @@ public class ResolutionUtilsTest extends AndroidTestCase {
     VirtualFile myLayout = myFixture.copyFileToProject("themeEditor/layout.xml", "res/layout/layout1.xml");
     Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(myLayout);
 
-    assertNotNull(ResolutionUtils.getStyle(configuration, "android:TextAppearance", null));
+    assertNotNull(ResolutionUtils.getThemeEditorStyle(configuration, "android:TextAppearance", null));
 
-    ConfiguredThemeEditorStyle style = ResolutionUtils.getStyle(configuration, "android:Theme.Holo.Light", null);
+    ConfiguredThemeEditorStyle style = ResolutionUtils.getThemeEditorStyle(configuration, "android:Theme.Holo.Light", null);
     assertEquals("Theme.Holo.Light", style.getName());
 
     try {

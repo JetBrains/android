@@ -56,7 +56,6 @@ import static com.android.SdkConstants.*;
  * Utility methods for style resolution.
  */
 public class ResolutionUtils {
-
   private static final Logger LOG = Logger.getInstance(ResolutionUtils.class);
 
   // Utility methods class isn't meant to be constructed, all methods are static.
@@ -75,12 +74,27 @@ public class ResolutionUtils {
     String startChar = TAG_ATTR.equals(type) ? PREFIX_THEME_REF : PREFIX_RESOURCE_REF;
     int colonIndex = qualifiedName.indexOf(':');
     if (colonIndex != -1) {
-      // The theme name contains a namespace, change the format to be "@namespace:style/ThemeName"
+      // The theme name contains a namespace, change the format to be "@namespace:style/ThemeName".
       String namespace = qualifiedName.substring(0, colonIndex + 1); // Namespace plus + colon
       String themeNameWithoutNamespace = StringUtil.trimStart(qualifiedName, namespace);
       return startChar + namespace + type + "/" + themeNameWithoutNamespace;
     }
     return startChar + type + "/" + qualifiedName;
+  }
+
+  /**
+   * @deprecated Avoid qualified style and theme names and use {@link ResourceReference}s instead.
+   */
+  @Deprecated
+  @NotNull
+  public static ResourceReference getStyleReference(@NotNull String themeName) {
+    if (themeName.startsWith(ANDROID_NS_NAME_PREFIX)) {
+      return ResourceReference.style(ResourceNamespace.ANDROID, themeName.substring(ANDROID_NS_NAME_PREFIX.length()));
+    }
+    else {
+      assert themeName.indexOf(':') < 0;
+      return ResourceReference.style(ResourceNamespace.TODO(), themeName);
+    }
   }
 
   /**
@@ -135,9 +149,27 @@ public class ResolutionUtils {
   }
 
   @Nullable
-  private static StyleResourceValue getStyleResourceValue(@NotNull ResourceResolver resolver, @NotNull String qualifiedStyleName) {
+  public static ConfiguredThemeEditorStyle getThemeEditorStyle(@NotNull Configuration configuration,
+                                                               @NotNull ResourceReference styleReference,
+                                                               @Nullable Module module) {
+    ResourceResolver resolver = configuration.getResourceResolver();
+    assert resolver != null;
+    StyleResourceValue style = resolver.getStyle(styleReference);
+    return style == null ? null : new ConfiguredThemeEditorStyle(configuration, style, module);
+  }
+
+  /**
+   * @deprecated Use {@link #getThemeEditorStyle(Configuration, ResourceReference, Module)}.
+   */
+  @Deprecated
+  @Nullable
+  public static ConfiguredThemeEditorStyle getThemeEditorStyle(@NotNull Configuration configuration, @NotNull String qualifiedStyleName,
+                                                               @Nullable Module module) {
+    ResourceResolver resolver = configuration.getResourceResolver();
+    assert resolver != null;
     assert !qualifiedStyleName.startsWith(ANDROID_STYLE_RESOURCE_PREFIX);
     assert !qualifiedStyleName.startsWith(STYLE_RESOURCE_PREFIX);
+
     String styleName;
     boolean isFrameworkStyle;
 
@@ -149,32 +181,19 @@ public class ResolutionUtils {
       isFrameworkStyle = false;
     }
 
-    return resolver.getStyle(styleName, isFrameworkStyle);
-  }
-
-  /**
-   * Constructs a {@link ConfiguredThemeEditorStyle} instance for a theme with the given name and source module, using the passed resolver.
-   */
-  @Nullable
-  public static ConfiguredThemeEditorStyle getStyle(@NotNull Configuration configuration, @NotNull ResourceResolver resolver, @NotNull final String qualifiedStyleName, @Nullable Module module) {
-    final StyleResourceValue style = getStyleResourceValue(resolver, qualifiedStyleName);
+    StyleResourceValue style = configuration.getResourceResolver().getStyle(styleName, isFrameworkStyle);
     return style == null ? null : new ConfiguredThemeEditorStyle(configuration, style, module);
   }
 
   @Nullable
-  public static ConfiguredThemeEditorStyle getStyle(@NotNull Configuration configuration, @NotNull final String qualifiedStyleName, @Nullable Module module) {
-    ResourceResolver resolver = configuration.getResourceResolver();
-    assert resolver != null;
-    return getStyle(configuration, configuration.getResourceResolver(), qualifiedStyleName, module);
-  }
-
-  @Nullable
-  public static AttributeDefinition getAttributeDefinition(@NotNull Configuration configuration, @NotNull StyleItemResourceValue itemResValue) {
+  public static AttributeDefinition getAttributeDefinition(@NotNull Configuration configuration,
+                                                           @NotNull StyleItemResourceValue itemResValue) {
     return getAttributeDefinition(configuration.getModule(), configuration, getQualifiedItemAttrName(itemResValue));
   }
 
   @Nullable
-  public static AttributeDefinition getAttributeDefinition(@NotNull Module module, @Nullable Configuration configuration, @NotNull String name) {
+  public static AttributeDefinition getAttributeDefinition(@NotNull Module module, @Nullable Configuration configuration,
+                                                           @NotNull String name) {
     AttributeDefinitions definitions;
 
     if (name.startsWith(ANDROID_NS_NAME_PREFIX)) {
