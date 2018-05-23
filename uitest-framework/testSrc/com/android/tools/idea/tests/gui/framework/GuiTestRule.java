@@ -69,7 +69,6 @@ import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.refreshFiles;
 import static com.google.common.truth.Truth.assertAbout;
-import static com.google.common.truth.TruthJUnit.assume;
 import static com.intellij.openapi.util.io.FileUtil.sanitizeFileName;
 import static org.fest.reflect.core.Reflection.*;
 
@@ -117,6 +116,7 @@ public class GuiTestRule implements TestRule {
       .around(myRobotTestRule)
       .around(myLeakCheck)
       .around(new IdeHandling())
+      .around(new NpwControl())
       .around(new ScreenshotOnFailure())
       .around(new SavePerformanceOnFailure())
       .around(myTimeout);

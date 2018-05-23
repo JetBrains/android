@@ -39,12 +39,12 @@ public final class MultiTemplateRenderer {
      * Called just before rendering multiple templates. Since rendering typically involves adding quite a lot of files
      * to the project, this callback is useful to prevent other file-intensive operations such as indexing.
      */
-    void multiRenderingStarted();
+   default void multiRenderingStarted() {}
 
     /**
      * Called when the last template in the series has been rendered.
      */
-    void multiRenderingFinished();
+   default void multiRenderingFinished() {}
   }
 
   private static final Topic<TemplateRendererListener> TEMPLATE_RENDERER_TOPIC = new Topic<>("Template rendering",
