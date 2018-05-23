@@ -25,8 +25,6 @@ import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.OnePixelSplitter;
 import com.intellij.ui.TableSpeedSearch;
-import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.components.JBTextField;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.ColumnInfo;
@@ -49,25 +47,14 @@ import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
 
-public class ArtifactRepositorySearchForm {
+public class ArtifactRepositorySearchForm extends ArtifactRepositorySearchFormUi {
   private static final String SEARCHING_EMPTY_TEXT = "Searching...";
   private static final String NOTHING_TO_SHOW_EMPTY_TEXT = "Nothing to show";
 
   @NotNull private final ArtifactRepositorySearch mySearch;
 
-  private JBLabel myArtifactNameLabel;
-  private JBTextField myArtifactNameTextField;
-
-  private JBLabel myGroupIdLabel;
-  private JBTextField myGroupIdTextField;
-
-  private JButton mySearchButton;
-
-  private JPanel myResultsPanel;
   private TableView<FoundArtifact> myResultsTable;
   private AvailableVersionsPanel myVersionsPanel;
-
-  private JPanel myPanel;
 
   @NotNull private final SelectionChangeEventDispatcher<String> myEventDispatcher = new SelectionChangeEventDispatcher<>();
   @NotNull private final List<Exception> mySearchErrors = Lists.newArrayList();
