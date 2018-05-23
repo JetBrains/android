@@ -70,7 +70,7 @@ public class AxisComponentModel extends AspectModel<AxisComponentModel.Aspect> i
                    ? clampedMaxTarget
                    : Updater.lerp(myRange.getMax(), clampedMaxTarget, Updater.DEFAULT_LERP_FRACTION, elapsedNs,
                                   (float)(clampedMaxTarget * Updater.DEFAULT_LERP_THRESHOLD_PERCENTAGE));
-      if (Double.compare(max, myRange.getMax()) != 0) {  // Precise comparison, since the lerp snaps to the target value.
+      if (Double.compare(max, myRange.getMax()) != 0 || myFirstUpdate) {  // Precise comparison, since the lerp snaps to the target value.
         myRange.setMax(max);
         needsUpdate = true;
       }
