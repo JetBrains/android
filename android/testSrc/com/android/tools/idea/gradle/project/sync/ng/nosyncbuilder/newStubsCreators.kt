@@ -17,10 +17,13 @@ package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder
 
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.androidproject.AaptOptions
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.androidproject.AndroidProject
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.variant.InstantRun
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.variant.Variant
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.PathConverter
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.androidproject.NewAaptOptions
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.androidproject.NewAndroidProject
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.androidproject.NewJavaCompileOptions
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.variant.*
 import java.io.File
 
 val modulePath = File("/path/to/module")
@@ -50,3 +53,94 @@ fun createNewAndroidProject(): AndroidProject {
     signingConfigs = listOf() // TODO add flag for signing configs
   )
 }
+
+fun createNewVariant(): Variant {
+  val instantRun = NewInstantRun(
+    File(buildPath, "info/file"),
+    true,
+    InstantRun.Status.SUPPORTED
+  )
+
+  val dependencies = NewDependencies(listOf(), listOf(), listOf(), listOf())
+
+  val mergedSourceProvider = NewArtifactSourceProvider(
+    null,
+    createNewAndroidSourceSet("buildType"),
+    null,
+    listOf(),
+    createNewAndroidSourceSet("default"),
+    File(buildPath, "classes/folder"),
+    listOf(),
+    File(buildPath, "java/resources/folder"),
+    listOf(),
+    listOf()
+  )
+
+  // TODO add boolean flags to create Variant with [Android/unit] test artifacts
+  val mainArtifact = NewAndroidArtifact(
+    "sourceGenTaskName",
+    null,
+    false,
+    "com.google.application.id",
+    listOf(),
+    instantRun,
+    listOf(),
+    null,
+    "app",
+    "compileTaskName",
+    "assembleTaskName",
+    dependencies,
+    mergedSourceProvider,
+    listOf("ideSetupTaskName"),
+    "instrumentedTestTaskName",
+    "bundleTaskName",
+    null
+  )
+
+  val apiVersion = NewApiVersion(
+    27,
+    "Oreo",
+    "Oreo"
+  )
+
+  val variantConfig = NewVariantConfig(
+    "app",
+    mapOf(),
+    listOf(),
+    mapOf(),
+    true,
+    "com.google.application.id",
+    1,
+    "version 1",
+    apiVersion,
+    apiVersion,
+    listOf()
+  )
+
+  val testedTargetVariant = NewTestedTargetVariant("/path/to/target/project", "app")
+
+  return NewVariant(
+    "app",
+    "app",
+    mainArtifact,
+    null,
+    null,
+    variantConfig,
+    listOf(testedTargetVariant)
+  )
+}
+
+fun createNewAndroidSourceSet(name: String) = NewAndroidSourceSet(
+  name,
+  File(modulePath, "${name}Manifest.xml"),
+  listOf(File(buildPath, "${name}JavaDirectory")),
+  listOf(File(buildPath,"${name}JavaResourcesDirectory")),
+  listOf(File(buildPath,"${name}aidlDirectory")),
+  listOf(File(buildPath,"${name}renderscriptDirectory")),
+  listOf(File(buildPath,"${name}cDirectory")),
+  listOf(File(buildPath,"${name}cppDirectory")),
+  listOf(File(buildPath,"${name}androidResourcesDirectory")),
+  listOf(File(buildPath,"${name}assetsDirectory")),
+  listOf(File(buildPath,"${name}jniLibsDirectory")),
+  listOf(File(buildPath,"${name}shadersDirectory"))
+)
