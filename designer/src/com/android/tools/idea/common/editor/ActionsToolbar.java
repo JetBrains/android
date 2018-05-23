@@ -32,9 +32,11 @@ import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import java.awt.*;
@@ -56,6 +58,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   private JComponent myToolbarComponent;
   private ActionToolbar myNorthToolbar;
   private ActionToolbar myNorthEastToolbar;
+  private ActionToolbarImpl myCenterToolbar;
   private ActionToolbar myEastToolbar;
   private final DefaultActionGroup myDynamicGroup = new DefaultActionGroup();
   private Configuration myConfiguration;
@@ -99,6 +102,11 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     return myToolbarComponent;
   }
 
+  @TestOnly
+  ActionToolbarImpl getCenterToolbar() {
+    return myCenterToolbar;
+  }
+
   @NotNull
   private JComponent createToolbarComponent() {
     ToolbarActionGroups groups = mySurface.getLayoutType().getToolbarActionGroups(mySurface);
@@ -114,9 +122,9 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     JComponent northEastToolbarComponent = myNorthEastToolbar.getComponent();
     northEastToolbarComponent.setName("NlRhsConfigToolbar");
 
-    ActionToolbar centerToolbar = createActionToolbar("NlLayoutToolbar", myDynamicGroup);
+    myCenterToolbar = createActionToolbar("NlLayoutToolbar", myDynamicGroup);
 
-    JComponent centerToolbarComponent = centerToolbar.getComponent();
+    JComponent centerToolbarComponent = myCenterToolbar.getComponent();
     centerToolbarComponent.setName("NlLayoutToolbar");
     // Wrap the component inside a fixed height component so it doesn't disappear
     JPanel centerToolbarComponentWrapper = new AdtPrimaryPanel(new BorderLayout());
@@ -144,13 +152,13 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   }
 
   @NotNull
-  private static ActionToolbar createActionToolbar(@NotNull String place, @NotNull ActionGroup group) {
+  private static ActionToolbarImpl createActionToolbar(@NotNull String place, @NotNull ActionGroup group) {
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(place, group, true);
     toolbar.setLayoutPolicy(ActionToolbar.WRAP_LAYOUT_POLICY);
     if (group == ActionGroup.EMPTY_GROUP) {
       toolbar.getComponent().setVisible(false);
     }
-    return toolbar;
+    return (ActionToolbarImpl)toolbar;
   }
 
   public void updateActions() {
@@ -201,11 +209,13 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
 
     // TODO: Perform caching
     myDynamicGroup.removeAll();
+
     NlComponent parent = findSharedParent(newSelection);
     if (parent != null) {
       mySurface.getActionManager().addActions(myDynamicGroup, null, parent, newSelection, true);
     }
     updateBottomActionBarBorder();
+    myCenterToolbar.clearPresentationCache();
   }
 
   // ---- Implements DesignSurfaceListener ----
