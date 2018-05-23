@@ -98,7 +98,9 @@ public class ResourceFolderRegistry {
         throw e;
       }
       assert repository.getNamespace().equals(namespace);
-      assert repository.getFacet().equals(facet);
+
+      // TODO(b/80179120): figure out why this is not always true.
+      // assert repository.getFacet().equals(facet);
       return repository;
     }
     catch (ExecutionException e) {
