@@ -34,7 +34,7 @@ public class AxisComponentModelTest {
     Range range = new Range(0, 5);
 
     AxisComponentModel model = new AxisComponentModel(range, formatter, true);
-    assertEquals(10.0, model.getRange().getMax(), 0.0); // range should be correct right after construction.
+    assertEquals(10.0, model.getRange().getMax(), 0.0);
     model.getRange().setMax(5.0);
     model.reset();
     assertEquals(10.0, model.getRange().getMax(), 0.0);

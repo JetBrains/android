@@ -271,7 +271,7 @@ public class NetworkProfilerStageTest {
     );
 
     myTimer.tick(1);
-    assertThat(networkUsageUpdated[0]).isFalse();
+    assertThat(networkUsageUpdated[0]).isTrue();
     assertThat(trafficAxisUpdated[0]).isFalse();
     assertThat(connectionAxisUpdated[0]).isFalse();
     assertThat(legendsUpdated[0]).isTrue();

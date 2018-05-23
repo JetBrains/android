@@ -114,7 +114,7 @@ public class NetworkMonitorTest {
       AxisComponentModel.Aspect.AXIS, () -> trafficAxisUpdated[0] = true);
 
     myTimer.tick(1);
-    assertFalse(usageUpdated[0]);
+    assertTrue(usageUpdated[0]);
     assertTrue(legendUpdated[0]);
     assertFalse(trafficAxisUpdated[0]);
     myProfilers.getTimeline().getViewRange().set(1.0, 2.0);
