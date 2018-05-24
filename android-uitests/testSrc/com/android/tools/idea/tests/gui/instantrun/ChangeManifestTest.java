@@ -145,6 +145,8 @@ public class ChangeManifestTest {
       .findApplyChangesButton()
       .click();
 
+    guiTest.waitForBackgroundTasks();
+
     // Studio takes a few seconds to reset Run tool window contents.
     Wait.seconds(OUTPUT_RESET_TIMEOUT)
         .expecting("Run tool window output has been reset")
