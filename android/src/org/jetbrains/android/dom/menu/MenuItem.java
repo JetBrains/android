@@ -22,6 +22,7 @@ import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.ExtendClass;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.AndroidResourceType;
+import org.jetbrains.android.dom.ResAutoAttributeValue;
 import org.jetbrains.android.dom.Styleable;
 import org.jetbrains.android.dom.converters.CompleteNonModuleClass;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
@@ -57,7 +58,11 @@ public interface MenuItem extends MenuElement {
                allowAbstract = false,
                allowInterface = false,
                allowEnum = false)
-  AndroidAttributeValue<PsiClass> getActionViewClass();
+  AndroidAttributeValue<PsiClass> getAndroidActionViewClass();
+
+  @Attribute("actionViewClass")
+  @Convert(PackageClassConverter.class)
+  ResAutoAttributeValue<PsiClass> getResAutoActionViewClass();
 
   @Attribute("actionProviderClass")
   @Convert(PackageClassConverter.class)
@@ -67,5 +72,9 @@ public interface MenuItem extends MenuElement {
                allowAbstract = false,
                allowInterface = false,
                allowEnum = false)
-  AndroidAttributeValue<PsiClass> getActionProviderClass();
+  AndroidAttributeValue<PsiClass> getAndroidActionProviderClass();
+
+  @Attribute("actionProviderClass")
+  @Convert(PackageClassConverter.class)
+  ResAutoAttributeValue<PsiClass> getResAutoActionProviderClass();
 }
