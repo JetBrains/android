@@ -18,8 +18,11 @@ package com.android.tools.profilers.sessions
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.CpuProfiler
+import com.android.tools.profiler.proto.MemoryProfiler
 import com.android.tools.profilers.*
 import com.android.tools.profilers.cpu.FakeCpuService
+import com.android.tools.profilers.cpu.ProfilingConfiguration
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.memory.MemoryProfilerStage
@@ -90,6 +93,50 @@ class SessionItemTest {
   }
 
   @Test
+  fun testImportedHprofSessionName() {
+    val profilers = StudioProfilers(myGrpcChannel.client, FakeIdeProfilerServices(), FakeTimer())
+    val sessionsManager = profilers.sessionsManager
+    sessionsManager.createImportedSession("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE, 0, 0, 0)
+    sessionsManager.update()
+    Truth.assertThat(sessionsManager.sessionArtifacts.size).isEqualTo(1)
+    val sessionItem = sessionsManager.sessionArtifacts[0] as SessionItem
+    Truth.assertThat(sessionItem.subtitle).isEqualTo(SessionItem.SESSION_LOADING)
+
+    val heapDumpInfo = MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(1).build()
+    myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
+    sessionsManager.update()
+    Truth.assertThat(sessionItem.subtitle).isEqualTo("Heap Dump")
+  }
+
+  @Test
+  fun testImportedCpuCaptureSessionName() {
+    val profilers = StudioProfilers(myGrpcChannel.client, FakeIdeProfilerServices(), FakeTimer())
+    val sessionsManager = profilers.sessionsManager
+    sessionsManager.createImportedSession("fake.trace", Common.SessionMetaData.SessionType.CPU_CAPTURE, 0, 0, 0)
+    sessionsManager.update()
+    Truth.assertThat(sessionsManager.sessionArtifacts.size).isEqualTo(1)
+    val sessionItem = sessionsManager.sessionArtifacts[0] as SessionItem
+    Truth.assertThat(sessionItem.subtitle).isEqualTo(SessionItem.SESSION_LOADING)
+
+    val simpleperfTraceInfo = CpuProfiler.TraceInfo.newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.SIMPLEPERF).build()
+    myCpuService.addTraceInfo(simpleperfTraceInfo)
+    sessionsManager.update()
+    Truth.assertThat(sessionItem.subtitle).isEqualTo(ProfilingConfiguration.getDefaultConfigName(simpleperfTraceInfo.profilerType))
+
+    val artTraceInfo = CpuProfiler.TraceInfo.newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.ART).build()
+    myCpuService.clearTraceInfo()
+    myCpuService.addTraceInfo(artTraceInfo)
+    sessionsManager.update()
+    Truth.assertThat(sessionItem.subtitle).isEqualTo(ProfilingConfiguration.getDefaultConfigName(artTraceInfo.profilerType))
+
+    val atraceInfo = CpuProfiler.TraceInfo.newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.ATRACE).build()
+    myCpuService.clearTraceInfo()
+    myCpuService.addTraceInfo(atraceInfo)
+    sessionsManager.update()
+    Truth.assertThat(sessionItem.subtitle).isEqualTo(ProfilingConfiguration.getDefaultConfigName(atraceInfo.profilerType))
+  }
+
+  @Test
   fun testDurationUpdates() {
     val profilers = StudioProfilers(
       myGrpcChannel.client,
@@ -102,7 +149,8 @@ class SessionItemTest {
     val finishedSession = Common.Session.newBuilder()
       .setStartTimestamp(TimeUnit.SECONDS.toNanos(5))
       .setEndTimestamp(TimeUnit.SECONDS.toNanos(10)).build()
-    val finishedSessionItem = SessionItem(profilers, finishedSession, Common.SessionMetaData.getDefaultInstance())
+    val finishedSessionItem = SessionItem(profilers, finishedSession,
+                                          Common.SessionMetaData.newBuilder().setType(Common.SessionMetaData.SessionType.FULL).build())
     finishedSessionItem.addDependency(observer1)
       .onChange(SessionItem.Aspect.MODEL, { aspectChangeCount1++ })
     Truth.assertThat(finishedSessionItem.subtitle).isEqualTo("5 sec")
@@ -117,7 +165,8 @@ class SessionItemTest {
     val ongoingSession = Common.Session.newBuilder()
       .setStartTimestamp(TimeUnit.SECONDS.toNanos(5))
       .setEndTimestamp(Long.MAX_VALUE).build()
-    val ongoingSessionItem = SessionItem(profilers, ongoingSession, Common.SessionMetaData.getDefaultInstance())
+    val ongoingSessionItem = SessionItem(profilers, ongoingSession,
+                                         Common.SessionMetaData.newBuilder().setType(Common.SessionMetaData.SessionType.FULL).build())
     ongoingSessionItem.addDependency(observer2)
       .onChange(SessionItem.Aspect.MODEL, { aspectChangeCount2++ })
     Truth.assertThat(ongoingSessionItem.subtitle).isEqualTo("0 sec")

@@ -408,7 +408,10 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       sessionArtifacts.add(item);
       List<SessionArtifact> artifacts = new ArrayList<>();
       myArtifactsFetchers.forEach(fetcher -> artifacts.addAll(fetcher.fetch(myProfilers, item.getSession(), item.getSessionMetaData())));
-      sessionArtifacts.addAll(artifacts);
+      item.setChildArtifacts(artifacts);
+      if (item.getSessionMetaData().getType() == Common.SessionMetaData.SessionType.FULL) {
+        sessionArtifacts.addAll(artifacts);
+      }
     }
     Collections.sort(sessionArtifacts, ARTIFACT_COMPARATOR);
 
