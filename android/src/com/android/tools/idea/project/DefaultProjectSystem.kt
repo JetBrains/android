@@ -86,8 +86,6 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
 
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
     return object : AndroidModuleSystem {
-      override fun getDependencies(): Sequence<GoogleMavenArtifactId> = emptySequence()
-
       override fun registerDependency(coordinate: GradleCoordinate) {}
 
       override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? = null
