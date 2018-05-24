@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.theme;
 
+import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -28,8 +29,10 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ResourceResolverCache;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Pair;
@@ -55,6 +58,7 @@ public class ThemeResolver {
 
   private final Configuration myConfiguration;
   private final ResourceResolver myResolver;
+  private List<ResourceReference> myRecommendedThemes;
 
   public ThemeResolver(@NotNull Configuration configuration) {
     myConfiguration = configuration;
@@ -271,5 +275,52 @@ public class ThemeResolver {
   @NotNull
   Configuration getConfiguration() {
     return myConfiguration;
+  }
+
+  /**
+   * Checks if the given theme is recommended or not.
+   *
+   * @see #getRecommendedThemes()
+   */
+  public boolean isRecommendedTheme(@NotNull ResourceReference styleReference) {
+    return getRecommendedThemes().contains(styleReference);
+  }
+
+  /**
+   * Returns the recommended themes. These are the themes we encourage developers to use. They will be
+   * displayed as an option in dropdown menu. The returned themes depend on whether the module of this
+   * ThemeResolver depends on appcompat or not, and whether namespacing is enabled or not.
+   */
+  @NotNull
+  public List<ResourceReference> getRecommendedThemes() {
+    if (myRecommendedThemes == null) {
+      myRecommendedThemes = computeRecommendedThemes(myConfiguration.getModule());
+    }
+    return myRecommendedThemes;
+  }
+
+  @NotNull
+  private static List<ResourceReference> computeRecommendedThemes(@NotNull Module module) {
+    ResourceNamespace appcompatNamespace;
+    if (DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7)) {
+      appcompatNamespace = isNamespacingEnabled(module) ? ResourceNamespace.APPCOMPAT : ResourceNamespace.RES_AUTO;
+    } else if (DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.APP_COMPAT_V7)) {
+      appcompatNamespace = isNamespacingEnabled(module) ? ResourceNamespace.APPCOMPAT_LEGACY : ResourceNamespace.RES_AUTO;
+    } else {
+      return ImmutableList.of(
+          ResourceReference.style(ResourceNamespace.ANDROID, "Theme.Material.Light.NoActionBar"),
+          ResourceReference.style(ResourceNamespace.ANDROID, "Theme.Material.NoActionBar"));
+    }
+
+    return ImmutableList.of(
+        ResourceReference.style(ResourceNamespace.ANDROID, "Theme.Material.Light.NoActionBar"),
+        ResourceReference.style(ResourceNamespace.ANDROID, "Theme.Material.NoActionBar"),
+        ResourceReference.style(appcompatNamespace, "Theme.AppCompat.Light.NoActionBar"),
+        ResourceReference.style(appcompatNamespace, "Theme.AppCompat.NoActionBar"));
+  }
+
+  private static boolean isNamespacingEnabled(@NotNull Module module) {
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(module);
+    return repositoryManager != null && repositoryManager.getNamespacing() == AaptOptions.Namespacing.REQUIRED;
   }
 }

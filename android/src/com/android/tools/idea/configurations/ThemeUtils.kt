@@ -21,20 +21,8 @@ import com.android.SdkConstants.STYLE_RESOURCE_PREFIX
 import com.android.ide.common.resources.ResourceResolver.THEME_NAME
 import com.android.tools.idea.editors.theme.ThemeResolver
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle
-import com.google.common.collect.ImmutableList
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.project.Project
-
-/**
- * The themes we encourage developer to use. They will be displayed as an option in dropdown menu.
- */
-@JvmField
-val RECOMMENDED_THEMES: ImmutableList<String> = ImmutableList.of(
-  "android:Theme.Material.Light.NoActionBar",
-  "android:Theme.Material.NoActionBar",
-  "Theme.AppCompat.Light.NoActionBar",
-  "Theme.AppCompat.NoActionBar"
-)
 
 private const val ANDROID_THEME = PREFIX_ANDROID + "Theme"
 private const val ANDROID_THEME_PREFIX = PREFIX_ANDROID + "Theme."
@@ -45,8 +33,8 @@ private const val RECENTLY_USED_THEMES_PROPERTY = "android.recentlyUsedThemes"
 private const val MAX_RECENTLY_USED_THEMES = 5
 
 /**
- * If the [theme] is called [THEME_NAME] or [PROJECT_THEME], return [THEME_NAME]
- * otherwise, if the [theme] has prefix [ANDROID_THEME_PREFIX], [PROJECT_THEME_PREFIX], or [STYLE_RESOURCE_PREFIX], remove it.
+ * If the [theme] is called "Theme" or "android:Theme", returns "Theme".
+ * Otherwise, if the [theme] has prefix "android:Theme.", "Theme.", or "@style/", removes it.
  */
 internal fun getPreferredThemeName(theme: String): String {
   if (theme == ANDROID_THEME || theme == PROJECT_THEME) {
@@ -56,27 +44,41 @@ internal fun getPreferredThemeName(theme: String): String {
   return theme.removePrefix(ANDROID_THEME_PREFIX).removePrefix(PROJECT_THEME_PREFIX).removePrefix(STYLE_RESOURCE_PREFIX)
 }
 
-fun getFrameworkThemes(themeResolver: ThemeResolver, excludedThemes: Set<String> = emptySet()) =
-  getFilteredSortedNames(getPublicThemes(themeResolver.frameworkThemes), excludedThemes)
+fun getFrameworkThemes(themeResolver: ThemeResolver): List<ConfiguredThemeEditorStyle> =
+  getFilteredByPrefixSortedByName(getPublicThemes(themeResolver.frameworkThemes))
 
-fun getProjectThemes(themeResolver: ThemeResolver, excludedThemes: Set<String> = emptySet()) =
-  getFilteredSortedNames(getPublicThemes(themeResolver.localThemes), excludedThemes)
+fun getFrameworkThemeNames(themeResolver: ThemeResolver, excludedNames: Set<String> = emptySet()) =
+  getFilteredNames(getFrameworkThemes(themeResolver), excludedNames)
 
-fun getLibraryThemes(themeResolver: ThemeResolver, excludedThemes: Set<String> = emptySet()) =
-  getFilteredPrefixesSortedNames(getPublicThemes(themeResolver.externalLibraryThemes), excludedThemes, setOf("Base.", "Platform."))
+fun getProjectThemes(themeResolver: ThemeResolver): List<ConfiguredThemeEditorStyle> =
+  getFilteredByPrefixSortedByName(getPublicThemes(themeResolver.localThemes))
 
-fun getRecommendedThemes(themeResolver: ThemeResolver, excludedThemes: Set<String> = emptySet()) =
-  sequenceOf(getLibraryThemes(themeResolver, excludedThemes), getFrameworkThemes(themeResolver, excludedThemes))
+fun getProjectThemeNames(themeResolver: ThemeResolver, excludedNames: Set<String> = emptySet()) =
+  getFilteredNames(getProjectThemes(themeResolver), excludedNames)
+
+fun getLibraryThemes(themeResolver: ThemeResolver, excludedNames: Set<String> = emptySet()): List<ConfiguredThemeEditorStyle> =
+  getFilteredByPrefixSortedByName(getPublicThemes(themeResolver.externalLibraryThemes), setOf("Base.", "Platform."))
+
+fun getLibraryThemeNames(themeResolver: ThemeResolver, excludedNames: Set<String> = emptySet()) =
+  getFilteredNames(getPublicThemes(themeResolver.externalLibraryThemes), excludedNames)
+
+fun getRecommendedThemes(themeResolver: ThemeResolver): List<ConfiguredThemeEditorStyle> {
+  val recommendedThemes = themeResolver.recommendedThemes
+  return sequenceOf(getLibraryThemes(themeResolver), getFrameworkThemes(themeResolver))
     .flatten()
-    .filter { it in RECOMMENDED_THEMES }
+    .filter { it.styleReference in recommendedThemes }
     .toList()
+}
+
+fun getRecommendedThemeNames(themeResolver: ThemeResolver, excludedNames: Set<String> = emptySet()) =
+  getFilteredNames(getRecommendedThemes(themeResolver), excludedNames)
 
 @JvmOverloads
-fun getRecentlyUsedThemes(project: Project, excludedThemes: Set<String> = emptySet()) =
+fun getRecentlyUsedThemes(project: Project, excludedNames: Set<String> = emptySet()) =
   PropertiesComponent.getInstance(project)
     .getValues(RECENTLY_USED_THEMES_PROPERTY)
     ?.asList()
-    ?.minus(excludedThemes) ?: emptyList()
+    ?.minus(excludedNames) ?: emptyList()
 
 fun addRecentlyUsedTheme(project: Project, theme: String) {
   // The recently used themes are not shared between different projects.
@@ -91,20 +93,18 @@ fun addRecentlyUsedTheme(project: Project, theme: String) {
 private fun getPublicThemes(themes: List<ConfiguredThemeEditorStyle>) = themes.filter { it.isPublic }
 
 /**
- * Sorts the [themes] excluding those in [excludedThemes]
- * @return the sorted themes excluding those in excludedThemes
+ * Returns the [themes] excluding those with names starting with prefixes in [excludedPrefixes] sorted by qualified name.
  */
-private fun getFilteredSortedNames(themes: List<ConfiguredThemeEditorStyle>, excludedThemes: Set<String>) =
-  getFilteredPrefixesSortedNames(themes, excludedThemes, emptySet())
+private fun getFilteredByPrefixSortedByName(themes: List<ConfiguredThemeEditorStyle>,
+                                            excludedPrefixes: Set<String> = emptySet()): List<ConfiguredThemeEditorStyle> =
+  themes
+    .filter { theme -> excludedPrefixes.none({ prefix -> theme.name.startsWith(prefix) })}
+    .sortedBy { it.qualifiedName }
 
 /**
- * Sorts the [themes] excluding those in [excludedThemes] and those starting with prefixes in [excludedPrefixes]
- * @return the sorted themes excluding those in excludedThemes or starting with a prefix in excludedPrefixes
+ * Returns the names of the [themes] excluding those with qualified names in [excludedNames].
  */
-private fun getFilteredPrefixesSortedNames(themes: List<ConfiguredThemeEditorStyle>,
-                                           excludedThemes: Set<String>,
-                                           excludedPrefixes: Set<String>) =
-  themes.filterNot { it.qualifiedName in excludedThemes }
-    .filter { theme -> excludedPrefixes.none({ prefix -> theme.name.startsWith(prefix) })}
+private fun getFilteredNames(themes: List<ConfiguredThemeEditorStyle>, excludedNames: Set<String> = emptySet()) =
+  themes
     .map { it.qualifiedName }
-    .sorted()
+    .filterNot { it in excludedNames }

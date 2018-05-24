@@ -31,7 +31,6 @@ import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -133,12 +132,12 @@ public class ThemeMenuAction extends DropDownAction {
     }
 
     // Add project themes exclude the default theme.
-    Set<String> excludedThemes = defaultTheme != null ? ImmutableSet.of(defaultTheme) : Collections.EMPTY_SET;
-    List<String> projectThemeWithoutDefaultTheme = ThemeUtils.getProjectThemes(myThemeResolver, excludedThemes);
+    Set<String> excludedThemes = defaultTheme != null ? ImmutableSet.of(defaultTheme) : ImmutableSet.of();
+    List<String> projectThemeWithoutDefaultTheme = ThemeUtils.getProjectThemeNames(myThemeResolver, excludedThemes);
     addThemes(projectThemeWithoutDefaultTheme, currentThemeName, false);
 
     // Add recommended themes.
-    List<String> recommendedThemes = ThemeUtils.getRecommendedThemes(myThemeResolver, excludedThemes);
+    List<String> recommendedThemes = ThemeUtils.getRecommendedThemeNames(myThemeResolver, excludedThemes);
     addThemes(recommendedThemes, currentThemeName, true);
 
     Configuration config = myRenderContext.getConfiguration();
@@ -157,10 +156,10 @@ public class ThemeMenuAction extends DropDownAction {
   }
 
   /**
-   * Get the current theme name of the current configuration.<br>
-   * It is the theme of current configuration in layout editor, may be different than the applied theme at runtime.<br>
-   * The returned name does **not** have resource prefix.<br>
-   * If the current configuration or its theme doesn't exist, return null instead.
+   * Returns the current theme name of the current configuration.
+   * It is the theme of current configuration in layout editor, may be different than the applied theme at runtime.
+   * The returned name does <b>not</b> have resource prefix.
+   * If the current configuration or its theme doesn't exist, returns null instead.
    *
    * @return The name of current theme without resource prefix, or null if the theme doesn't exist.
    */
@@ -172,14 +171,12 @@ public class ThemeMenuAction extends DropDownAction {
     }
 
     String theme = configuration.getTheme();
-    if (theme != null) {
-      theme = convertToNonResourcePrefixName(theme);
-    }
+    theme = convertToNonResourcePrefixName(theme);
     return theme;
   }
 
   /**
-   * Get the default theme which will be applied at runtime.
+   * Returns the default theme which will be applied at runtime.
    */
   @Nullable
   private String getDefaultTheme() {

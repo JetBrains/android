@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.resources.ResourceItem;
@@ -31,7 +32,10 @@ import com.android.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.AndroidTextUtils;
 import com.android.tools.idea.actions.OverrideResourceAction;
-import com.android.tools.idea.configurations.*;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.configurations.ResourceResolverCache;
+import com.android.tools.idea.configurations.ThemeSelectionPanel;
 import com.android.tools.idea.editors.manifest.ManifestUtils;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
@@ -69,7 +73,6 @@ import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
-import kotlin.text.StringsKt;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.dom.resources.Style;
@@ -103,9 +106,6 @@ public class ThemeEditorUtils {
   private static final Cache<String, String> ourTooltipCache =
     CacheBuilder.newBuilder().weakValues().maximumSize(30) // To be able to cache roughly one screen of attributes
       .build();
-  private static final ImmutableList<String> DEFAULT_THEMES =
-    ThemeUtils.RECOMMENDED_THEMES.stream().map(theme -> StringsKt.removePrefix(theme, "android:"))
-      .collect(ImmutableCollectors.toImmutableList());
 
   private static final String[] CUSTOM_WIDGETS_JAR_PATHS = {
     // Bundled path
@@ -192,7 +192,7 @@ public class ThemeEditorUtils {
     return null;
   }
 
-  @Nullable
+  @NotNull
   public static Object extractRealValue(@NotNull final EditedStyleItem item, @NotNull final Class<?> desiredClass) {
     String value = item.getValue();
     if (desiredClass == Boolean.class && ("true".equals(value) || "false".equals(value))) {
@@ -218,16 +218,20 @@ public class ThemeEditorUtils {
 
   @NotNull
   private static ImmutableList<ConfiguredThemeEditorStyle> findThemes(@NotNull Collection<ConfiguredThemeEditorStyle> themes,
-                                                                      @NotNull Collection<String> names) {
-    // Make sure the order of returned list is same as names'.
-    Map<String, ConfiguredThemeEditorStyle> candidates = themes.stream().filter(theme -> theme != null)
-      .collect(Collectors.toMap(ConfiguredThemeEditorStyle::getName, Function.identity()));
-    return names.stream().map(name -> candidates.get(name)).filter(theme -> theme != null).collect(ImmutableCollectors.toImmutableList());
+                                                                      @NotNull ThemeResolver themeResolver) {
+    List<ResourceReference> recommendedThemes = themeResolver.getRecommendedThemes();
+    // Make sure the order of returned list is same as recommendedThemes.
+    Map<ResourceReference, ConfiguredThemeEditorStyle> candidates = themes.stream()
+        .collect(Collectors.toMap(ConfiguredThemeEditorStyle::getStyleReference, Function.identity()));
+    return recommendedThemes.stream()
+        .map(ref -> candidates.get(ref))
+        .filter(theme -> theme != null)
+        .collect(ImmutableCollectors.toImmutableList());
   }
 
   @NotNull
   public static Stream<Module> findAndroidModules(@NotNull Project project) {
-    final ModuleManager manager = ModuleManager.getInstance(project);
+    ModuleManager manager = ModuleManager.getInstance(project);
 
     return Arrays.stream(manager.getModules())
           .filter(module -> AndroidFacet.getInstance(module) != null);
@@ -241,7 +245,7 @@ public class ThemeEditorUtils {
     ImmutableList<ConfiguredThemeEditorStyle> readOnlyLibAndFrameworkThemes =
       Stream.concat(readOnlyFrameworkThemes.stream(), readOnlyLibThemes.stream()).collect(ImmutableCollectors.toImmutableList());
 
-    ImmutableList<ConfiguredThemeEditorStyle> foundThemes = findThemes(readOnlyLibAndFrameworkThemes, DEFAULT_THEMES);
+    ImmutableList<ConfiguredThemeEditorStyle> foundThemes = findThemes(readOnlyLibAndFrameworkThemes, themeResolver);
     if (!foundThemes.isEmpty()) {
       return foundThemes.stream().map(ConfiguredThemeEditorStyle::getQualifiedName).collect(ImmutableCollectors.toImmutableList());
     }
@@ -669,7 +673,7 @@ public class ThemeEditorUtils {
   @NotNull
   public static ChooseResourceDialog getResourceDialog(@NotNull EditedStyleItem item,
                                                        @NotNull ThemeEditorContext context,
-                                                       EnumSet<ResourceType> allowedTypes) {
+                                                       @NotNull EnumSet<ResourceType> allowedTypes) {
     Module module = context.getModuleForResources();
     StyleItemResourceValue itemSelectedValue = item.getSelectedValue();
 
@@ -711,16 +715,16 @@ public class ThemeEditorUtils {
    * @param initialName a name that result should be based on (that might not be vacant)
    */
   @NotNull
-  private static String getDefaultResourceName(@NotNull ThemeEditorContext context, final @NotNull String initialName) {
+  private static String getDefaultResourceName(@NotNull ThemeEditorContext context, @NotNull String initialName) {
     if (context.getCurrentTheme() == null || !context.getCurrentTheme().isReadOnly()) {
       // If the currently selected theme is not read-only, then the expected
       // behaviour of color picker would be to edit the existing resource.
       return initialName;
     }
 
-    final ResourceResolver resolver = context.getResourceResolver();
+    ResourceResolver resolver = context.getResourceResolver();
     assert resolver != null;
-    final ResourceValue value = resolver.findResValue(SdkConstants.COLOR_RESOURCE_PREFIX + initialName, false);
+    ResourceValue value = resolver.findResValue(SdkConstants.COLOR_RESOURCE_PREFIX + initialName, false);
 
     // Value doesn't exist, safe to use initial guess
     if (value == null) {
