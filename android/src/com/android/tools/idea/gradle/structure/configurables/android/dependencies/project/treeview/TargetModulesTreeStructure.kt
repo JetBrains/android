@@ -25,8 +25,6 @@ import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsDeclaredLibraryAndroidDependency
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency
 import com.google.common.collect.HashMultimap
-import com.google.common.collect.Lists
-import com.google.common.collect.Maps
 import com.intellij.openapi.util.Pair
 import com.intellij.ui.treeStructure.SimpleNode
 import java.util.*
@@ -48,7 +46,6 @@ internal class TargetModulesTreeStructure(var uiSettings: PsUISettings) : Abstra
     //  1. Extract modules (to show them as top-level nodes)
     //  2. Extract variants/artifact (i.e. PsDependencyContainer) per module (to show them as children nodes of the module nodes)
     dependencyNodes.forEach { node ->
-      val declaredDependencyNodes = getDeclaredDependencyNodeHierarchy(node)
 
       // Create the module and version used.
       val versionByModule = mutableMapOf<String, String?>()
@@ -61,8 +58,7 @@ internal class TargetModulesTreeStructure(var uiSettings: PsUISettings) : Abstra
         }
       }
 
-      val topParentNode = declaredDependencyNodes[declaredDependencyNodes.size - 1]
-      for (dependency in topParentNode.models) {
+      for (dependency in node.models) {
         val module = dependency.parent
         val moduleName = module.name
         val existing = modules[moduleName]
@@ -71,34 +67,32 @@ internal class TargetModulesTreeStructure(var uiSettings: PsUISettings) : Abstra
         }
       }
 
-      declaredDependencyNodes.forEach { declaredDependencyNode ->
-        val declaredDependencies = getDeclaredDependencies(declaredDependencyNode)
+      val declaredDependencies = getDeclaredDependencies(node)
 
-        declaredDependencies.forEach { declaredDependency ->
-          val module = declaredDependency.parent
-          val moduleName = module.name
+      declaredDependencies.forEach { declaredDependency ->
+        val module = declaredDependency.parent
+        val moduleName = module.name
 
-          for (container in declaredDependency.containers) {
-            val artifact = container.findArtifact(module, false)
+        for (container in declaredDependency.containers) {
+          val artifact = container.findArtifact(module, false)
 
-            val configurationName = declaredDependency.configurationName
-            if (artifact != null && artifact.containsConfigurationName(configurationName)) {
-              val transitive = declaredDependencyNode !== node
+          val configurationName = declaredDependency.configurationName
+          if (artifact != null && artifact.containsConfigurationName(configurationName)) {
+            val transitive = false
 
-              val configurations = configurationNamesByModule.get(moduleName)
-              var found = false
-              for (configuration in configurations) {
-                if (configuration.name == configurationName) {
-                  configuration.addType(transitive)
-                  found = true
-                  break
-                }
+            val configurations = configurationNamesByModule.get(moduleName)
+            var found = false
+            for (configuration in configurations) {
+              if (configuration.name == configurationName) {
+                configuration.addType(transitive)
+                found = true
+                break
               }
+            }
 
-              if (!found) {
-                val icon = artifact.icon
-                configurationNamesByModule.put(moduleName, Configuration(configurationName, icon, transitive))
-              }
+            if (!found) {
+              val icon = artifact.icon
+              configurationNamesByModule.put(moduleName, Configuration(configurationName, icon, transitive))
             }
           }
         }
@@ -124,25 +118,6 @@ internal class TargetModulesTreeStructure(var uiSettings: PsUISettings) : Abstra
 
     Collections.sort(children, SimpleNodeComparator())
     rootNode.setChildren(children)
-  }
-
-  private fun getDeclaredDependencyNodeHierarchy(node: AbstractDependencyNode<*>): List<AbstractDependencyNode<out PsAndroidDependency>> {
-    val nodes = mutableListOf<AbstractDependencyNode<out PsAndroidDependency>>()
-    if (node.isDeclared) {
-      nodes.add(node)
-    }
-    var current: SimpleNode = node
-    while (true) {
-      val parent = current.parent
-      if (parent is AbstractDependencyNode<*> && parent.isDeclared) {
-        nodes.add(parent as AbstractDependencyNode<out PsAndroidDependency>)
-      }
-      else if (parent == null) {
-        break
-      }
-      current = parent
-    }
-    return nodes
   }
 
   private fun getDeclaredDependencies(node: AbstractDependencyNode<out PsAndroidDependency>): List<PsDeclaredLibraryAndroidDependency> {
