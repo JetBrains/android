@@ -32,16 +32,17 @@ class NavSceneDecoratorFactory(schema: NavigationSchema) : SceneDecoratorFactory
 
   init {
     for ((key, value) in schema.tagTypeMap) {
-      val decoratorClass: Class<out SceneDecorator> = when (value) {
+      val decoratorClass: Class<out SceneDecorator>? = when (value) {
         NavigationSchema.DestinationType.NAVIGATION -> NavigationDecorator::class.java
         NavigationSchema.DestinationType.ACTIVITY -> ActivityDecorator::class.java
         NavigationSchema.DestinationType.FRAGMENT -> FragmentDecorator::class.java
-        else -> throw IllegalStateException()
+        else -> null
       }
 
-      ourConstructorMap.put(key, decoratorClass.getConstructor())
-      ourConstructorMap.put(NavigationSchema.TAG_ACTION, ActionDecorator::class.java.getConstructor())
+      decoratorClass?.let { ourConstructorMap[key] = it.getConstructor() }
     }
+
+    ourConstructorMap[NavigationSchema.TAG_ACTION] = ActionDecorator::class.java.getConstructor()
   }
 
   override fun get(component: NlComponent): SceneDecorator {

@@ -1178,4 +1178,66 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(serialized, list.serialize())
   }
+
+  fun testCustomDestination() {
+    val relativePath = "src/mytest/navtest/Frag.java"
+    val fileText = "package com.example.mmoro.myapplication;\n" +
+                 "\n" +
+                 "import android.os.Bundle;\n" +
+                 "import android.support.annotation.NonNull;\n" +
+                 "import android.support.annotation.Nullable;\n" +
+                 "\n" +
+                 "import androidx.navigation.NavDestination;\n" +
+                 "import androidx.navigation.NavOptions;\n" +
+                 "import androidx.navigation.Navigator;\n" +
+                 "\n" +
+                 "@Navigator.Name(\"MyTestNavigator\")\n" +
+                 "public class TestNavigator extends Navigator<TestNavigator.Destination> {\n" +
+                 "    @NonNull\n" +
+                 "    @Override\n" +
+                 "    public TestNavigator.Destination createDestination() {\n" +
+                 "        return null;\n" +
+                 "    }\n" +
+                 "\n" +
+                 "    @Override\n" +
+                 "    public boolean popBackStack() {\n" +
+                 "        return false;\n" +
+                 "    }\n" +
+                 "\n" +
+                 "    @Override\n" +
+                 "    public void navigate(@NonNull TestNavigator.Destination destination, @Nullable Bundle bundle, @Nullable NavOptions navOptions) {\n" +
+                 "\n" +
+                 "    }\n" +
+                 "\n" +
+                 "    public static class Destination extends NavDestination {\n" +
+                 "        Destination(@NonNull Navigator<? extends NavDestination> navigator) {\n" +
+                 "            super(navigator);\n" +
+                 "        }\n" +
+                 "    }\n" +
+                 "}\n"
+
+    myFixture.addFileToProject(relativePath, fileText)
+
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1")
+      }
+    }
+
+    val surface = model.surface
+    val scene = surface.scene!!
+    scene.layout(0, SceneContext.get())
+
+    val list = DisplayList()
+    scene.buildDisplayList(list, 0, NavView(surface as NavDesignSurface, scene.sceneManager))
+
+    assertEquals(
+      "Clip,0,0,876,928\n" +
+      "DrawRectangle,1,400x400x76x128,ffa7a7a7,1,0\n" +
+      "DrawPreviewUnavailable,401x401x74x126\n" +
+      "DrawTruncatedText,3,fragment1,400x390x76x5,ff656565,Default:0:9,false\n" +
+      "\n" +
+      "UNClip\n", list.serialize()
+    )
+  }
 }

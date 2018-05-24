@@ -428,7 +428,9 @@ public class NavDesignSurface extends DesignSurface {
     }
 
     @NavCoordinate Rectangle selectionBounds =
-      NavSceneManager.getBoundingBox(list.stream().map(nlComponent -> scene.getSceneComponent(nlComponent)).collect(Collectors.toList()));
+      NavSceneManager.getBoundingBox(list.stream().map(nlComponent -> scene.getSceneComponent(nlComponent))
+                                         .filter(sceneComponent -> sceneComponent != null)
+                                         .collect(Collectors.toList()));
     @SwingCoordinate Dimension swingViewportSize = getScrollPane().getViewport().getExtentSize();
 
     @SwingCoordinate int swingStartCenterXInViewport =
