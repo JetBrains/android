@@ -161,7 +161,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
     }
 
     try {
-      GradleSyncListener syncListener = new GradleSyncListener.Adapter() {
+      GradleSyncListener syncListener = new GradleSyncListener() {
         @Override
         public void syncSucceeded(@NotNull Project project) {
           ApplicationManager.getApplication().invokeLater(() -> {

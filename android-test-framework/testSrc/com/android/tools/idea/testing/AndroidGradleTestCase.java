@@ -578,7 +578,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }.execute().getResultObject();
   }
 
-  public static class SyncListener extends GradleSyncListener.Adapter {
+  public static class SyncListener implements GradleSyncListener {
     @NotNull private final CountDownLatch myLatch;
 
     boolean syncSkipped;

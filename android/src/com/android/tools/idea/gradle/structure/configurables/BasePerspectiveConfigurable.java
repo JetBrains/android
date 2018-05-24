@@ -72,7 +72,7 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
 
   protected BasePerspectiveConfigurable(@NotNull PsContext context) {
     ((JBSplitter)getSplitter()).setSplitterProportionKey("android.psd.proportion.modules");
-    context.add(new GradleSyncListener.Adapter() {
+    context.add(new GradleSyncListener() {
       @Override
       public void syncStarted(@NotNull Project project, boolean skipped, boolean sourceGenerationRequested) {
         if (myLoadingPanel != null) {

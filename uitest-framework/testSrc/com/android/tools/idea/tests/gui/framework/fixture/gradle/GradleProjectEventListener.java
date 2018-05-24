@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.concurrent.GuardedBy;
 
-public class GradleProjectEventListener extends GradleSyncListener.Adapter implements GradleBuildListener {
+public class GradleProjectEventListener implements GradleSyncListener, GradleBuildListener {
   private boolean mySyncStarted;
   private boolean mySyncFinished;
   private boolean mySyncSkipped;

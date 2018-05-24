@@ -251,7 +251,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
         GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
         request.runInBackground = false;
 
-        GradleSyncInvoker.getInstance().requestProjectSync(myProject, request, new GradleSyncListener.Adapter() {
+        GradleSyncInvoker.getInstance().requestProjectSync(myProject, request, new GradleSyncListener() {
           @Override
           public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
             errorMsgRef.set(errorMessage);
