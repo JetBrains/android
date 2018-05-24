@@ -128,7 +128,6 @@ object PropertyModelTestUtil {
 
   fun makePropertyEditorModel(propertyItem: PropertyItem): TestPropertyEditorModel {
     return object: TestPropertyEditorModel {
-
       override var property = propertyItem
 
       override var value: String = property.value ?: ""
@@ -140,6 +139,10 @@ object PropertyModelTestUtil {
 
       override var toggleCount = 0
         private set
+
+      override var onEnter = {}
+
+      override fun cancelEditing() {}
 
       override fun requestFocus() {
         focusWasRequested = true

@@ -36,6 +36,6 @@ class TextFieldPropertyEditorModel(property: PropertyItem, override val editable
   }
 
   fun escape() {
-    fireValueChanged()
+    cancelEditing()
   }
 }

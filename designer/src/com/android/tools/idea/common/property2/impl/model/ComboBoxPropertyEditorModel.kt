@@ -63,10 +63,19 @@ class ComboBoxPropertyEditorModel(property: PropertyItem, private val enumSuppor
   }
 
   fun escapeKeyPressed() {
-    blockUpdates = true
-    updateValueFromProperty()
-    isPopupVisible = false
-    blockUpdates = false
+    cancelEditing()
+  }
+
+  override fun cancelEditing() {
+    if (isPopupVisible) {
+      blockUpdates = true
+      updateValueFromProperty()
+      isPopupVisible = false
+      blockUpdates = false
+    }
+    else {
+      super.cancelEditing()
+    }
   }
 
   fun popupMenuWillBecomeVisible() {

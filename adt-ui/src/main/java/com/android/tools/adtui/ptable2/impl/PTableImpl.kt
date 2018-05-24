@@ -27,6 +27,7 @@ import com.intellij.util.ui.UIUtil
 import java.awt.*
 import java.awt.event.*
 import javax.swing.*
+import javax.swing.event.ChangeEvent
 import javax.swing.table.TableCellEditor
 import javax.swing.table.TableCellRenderer
 import javax.swing.table.TableModel
@@ -41,6 +42,7 @@ import kotlin.properties.Delegates
  * expose a minimal API in [PTable].
  */
 open class PTableImpl(tableModel: PTableModel,
+                      override val context: Any?,
                       private val rendererProvider: PTableCellRendererProvider,
                       private val editorProvider: PTableCellEditorProvider)
   : JBTable(PTableModelImpl(tableModel)), PTable {
@@ -99,6 +101,24 @@ open class PTableImpl(tableModel: PTableModel,
 
   override fun isExpanded(item: PTableGroupItem): Boolean {
     return model.isExpanded(item)
+  }
+
+  override fun startNextEditor(): Boolean {
+    var row = -1
+    if (isEditing) {
+      row = getEditingRow()
+      removeEditor()
+    }
+    row++
+    val tableModel = model.tableModel
+    while (row < itemCount && !tableModel.isCellEditable(item(row), PTableColumn.VALUE)) {
+      row++
+    }
+    if (row == itemCount) {
+      return false
+    }
+    startEditing(row, {})
+    return true
   }
 
   override fun getModel(): PTableModelImpl {
@@ -191,6 +211,9 @@ open class PTableImpl(tableModel: PTableModel,
     actionMap.put("home", MyHomeAction())
     focusedInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_END, 0), "end")
     actionMap.put("end", MyEndAction())
+
+    // Disable auto start editing from JTable
+    putClientProperty("JTable.autoStartsEdit", java.lang.Boolean.FALSE)
   }
 
   private fun toggleTreeNode(row: Int) {
@@ -228,6 +251,17 @@ open class PTableImpl(tableModel: PTableModel,
       editor.requestFocus()
       afterActivation()
     }
+  }
+
+  override fun editingCanceled(event: ChangeEvent?) {
+    // This method is called from the IDEEventQueue.EditingCanceller
+    // an event preprocessing utility. For a ComboBox with an open
+    // popup we simply want to close the popup.
+    // Therefore: give the editor a change to handle this event
+    // before stopping the cell editor.
+    //
+    // Do not remove the editor i.e. do not call the super method.
+    tableCellEditor.editor.cancelEditing()
   }
 
   override fun removeEditor() {
@@ -390,7 +424,7 @@ open class PTableImpl(tableModel: PTableModel,
     override fun keyTyped(event: KeyEvent) {
       val table = this@PTableImpl
       val row = table.selectedRow
-      if (table.isEditing || row == -1 || event.keyChar == '\t') {
+      if (table.isEditing || row == -1 || event.keyChar == '\t' || event.keyCode == KeyEvent.VK_ESCAPE) {
         return
       }
       table.startEditing(row, {

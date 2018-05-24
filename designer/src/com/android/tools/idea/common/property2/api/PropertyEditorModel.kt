@@ -47,6 +47,8 @@ interface PropertyEditorModel {
    */
   var lineModel: InspectorLineModel?
 
+  var onEnter: () -> Unit
+
   /**
    * Returns true if the action button should be focusable.
    *
@@ -99,6 +101,13 @@ interface PropertyEditorModel {
    * Update the value shown in the editor.
    */
   fun refresh()
+
+  /**
+   * Cancel editing and revert to the value of the property.
+   *
+   * i.e. discard changes by the editor that are not yet applied.
+   */
+  fun cancelEditing()
 
   /**
    * Add a listener that respond to value changes.
