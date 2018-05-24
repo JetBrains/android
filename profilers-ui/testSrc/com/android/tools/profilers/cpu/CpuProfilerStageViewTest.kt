@@ -44,13 +44,14 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import java.awt.Graphics2D
-import java.awt.event.MouseEvent
 import java.io.File
 import javax.swing.JLabel
 import javax.swing.JList
 
 // Path to trace file. Used in test to build AtraceParser.
 private const val TOOLTIP_TRACE_DATA_FILE = "tools/adt/idea/profilers-ui/testData/cputraces/atrace.ctrace"
+
+private const val ATRACE_MISSING_DATA_FILE = "tools/adt/idea/profilers-ui/testData/cputraces/atrace_processid_1.ctrace"
 
 class CpuProfilerStageViewTest {
 
@@ -358,6 +359,23 @@ class CpuProfilerStageViewTest {
     assertThat(processLabel.text).isEqualTo("Process: init")
   }
 
+  @Test
+  fun traceMissingDataShowsDialog() {
+    // Set a capture of type atrace.
+    myCpuService.profilerType = CpuProfiler.CpuProfilerType.ATRACE
+    myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)
+    myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE)))
+    val cpuStageView = CpuProfilerStageView(myProfilersView, myStage)
+    // Select valid capture no dialog should be presented.
+    myStage.setAndSelectCapture(0)
+    assertThat(myIdeServices.balloonTitle).isNull();
+    assertThat(myIdeServices.balloonBody).isNull();
+    // Select invalid capture we should see dialog.
+    myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(ATRACE_MISSING_DATA_FILE)))
+    myStage.setAndSelectCapture(1)
+    assertThat(myIdeServices.balloonTitle).isEqualTo(CpuProfilerStageView.ATRACE_BUFFER_OVERFLOW_TITLE)
+    assertThat(myIdeServices.balloonBody).isEqualTo(CpuProfilerStageView.ATRACE_BUFFER_OVERFLOW_MESSAGE)
+  }
   /**
    * Checks that the menu items common to all profilers are installed in the CPU profiler context menu.
    * They should be at the bottom of the context menu, starting at a given index.

@@ -200,6 +200,12 @@ class AtraceParserTest {
     assertThat(info.processName).isEqualTo(".gms.persistent")
   }
 
+  @Test
+  fun missingDataCaptureReturnsMissingdata() {
+    val parser = AtraceParser(CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace"))
+    assertThat(parser.isMissingData).isTrue()
+  }
+
   companion object {
     private val DELTA = .00000001
 

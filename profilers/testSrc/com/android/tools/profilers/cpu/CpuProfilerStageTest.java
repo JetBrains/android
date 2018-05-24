@@ -1340,10 +1340,10 @@ public class CpuProfilerStageTest extends AspectObserver {
     // Sanity check to see if we reached the final capture state
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
 
-    assertThat(myServices.getErrorBalloonTitle()).isEqualTo(CpuProfilerStage.CAPTURE_START_FAILURE_BALLOON_TITLE);
-    assertThat(myServices.getErrorBalloonBody()).isEqualTo(CpuProfilerStage.CAPTURE_START_FAILURE_BALLOON_TEXT);
-    assertThat(myServices.getErrorBalloonUrl()).isEqualTo(CpuProfilerStage.CPU_BUG_TEMPLATE_URL);
-    assertThat(myServices.getErrorBalloonUrlText()).isEqualTo(CpuProfilerStage.REPORT_A_BUG_TEXT);
+    assertThat(myServices.getBalloonTitle()).isEqualTo(CpuProfilerStage.CAPTURE_START_FAILURE_BALLOON_TITLE);
+    assertThat(myServices.getBalloonBody()).isEqualTo(CpuProfilerStage.CAPTURE_START_FAILURE_BALLOON_TEXT);
+    assertThat(myServices.getBalloonUrl()).isEqualTo(CpuProfilerStage.CPU_BUG_TEMPLATE_URL);
+    assertThat(myServices.getBalloonUrlText()).isEqualTo(CpuProfilerStage.REPORT_A_BUG_TEXT);
   }
 
   @Test
@@ -1368,10 +1368,10 @@ public class CpuProfilerStageTest extends AspectObserver {
     stopCapturing();
     // Sanity check to see if we reached the final capture state
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
-    assertThat(myServices.getErrorBalloonTitle()).isEqualTo(CpuProfilerStage.CAPTURE_STOP_FAILURE_BALLOON_TITLE);
-    assertThat(myServices.getErrorBalloonBody()).isEqualTo(CpuProfilerStage.CAPTURE_STOP_FAILURE_BALLOON_TEXT);
-    assertThat(myServices.getErrorBalloonUrl()).isEqualTo(CpuProfilerStage.CPU_BUG_TEMPLATE_URL);
-    assertThat(myServices.getErrorBalloonUrlText()).isEqualTo(CpuProfilerStage.REPORT_A_BUG_TEXT);
+    assertThat(myServices.getBalloonTitle()).isEqualTo(CpuProfilerStage.CAPTURE_STOP_FAILURE_BALLOON_TITLE);
+    assertThat(myServices.getBalloonBody()).isEqualTo(CpuProfilerStage.CAPTURE_STOP_FAILURE_BALLOON_TEXT);
+    assertThat(myServices.getBalloonUrl()).isEqualTo(CpuProfilerStage.CPU_BUG_TEMPLATE_URL);
+    assertThat(myServices.getBalloonUrlText()).isEqualTo(CpuProfilerStage.REPORT_A_BUG_TEXT);
   }
 
   @Test
@@ -1398,10 +1398,10 @@ public class CpuProfilerStageTest extends AspectObserver {
     stopCapturing();
     // Sanity check to see if we reached the final capture state
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
-    assertThat(myServices.getErrorBalloonTitle()).isEqualTo(CpuProfilerStage.PARSING_FAILURE_BALLOON_TITLE);
-    assertThat(myServices.getErrorBalloonBody()).isEqualTo(CpuProfilerStage.PARSING_FAILURE_BALLOON_TEXT);
-    assertThat(myServices.getErrorBalloonUrl()).isEqualTo(CpuProfilerStage.CPU_BUG_TEMPLATE_URL);
-    assertThat(myServices.getErrorBalloonUrlText()).isEqualTo(CpuProfilerStage.REPORT_A_BUG_TEXT);
+    assertThat(myServices.getBalloonTitle()).isEqualTo(CpuProfilerStage.PARSING_FAILURE_BALLOON_TITLE);
+    assertThat(myServices.getBalloonBody()).isEqualTo(CpuProfilerStage.PARSING_FAILURE_BALLOON_TEXT);
+    assertThat(myServices.getBalloonUrl()).isEqualTo(CpuProfilerStage.CPU_BUG_TEMPLATE_URL);
+    assertThat(myServices.getBalloonUrlText()).isEqualTo(CpuProfilerStage.REPORT_A_BUG_TEXT);
   }
 
   @Test
@@ -1459,10 +1459,10 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(stage.isImportTraceMode()).isTrue();
 
     // We should show a balloon saying the import has failed
-    assertThat(myServices.getErrorBalloonTitle()).isEqualTo(CpuProfilerStage.PARSING_FILE_FAILURE_BALLOON_TITLE);
-    assertThat(myServices.getErrorBalloonBody()).isEqualTo(CpuProfilerStage.PARSING_FILE_FAILURE_BALLOON_TEXT);
-    assertThat(myServices.getErrorBalloonUrl()).isEqualTo(CpuProfilerStage.CPU_BUG_TEMPLATE_URL);
-    assertThat(myServices.getErrorBalloonUrlText()).isEqualTo(CpuProfilerStage.REPORT_A_BUG_TEXT);
+    assertThat(myServices.getBalloonTitle()).isEqualTo(CpuProfilerStage.PARSING_FILE_FAILURE_BALLOON_TITLE);
+    assertThat(myServices.getBalloonBody()).isEqualTo(CpuProfilerStage.PARSING_FILE_FAILURE_BALLOON_TEXT);
+    assertThat(myServices.getBalloonUrl()).isEqualTo(CpuProfilerStage.CPU_BUG_TEMPLATE_URL);
+    assertThat(myServices.getBalloonUrlText()).isEqualTo(CpuProfilerStage.REPORT_A_BUG_TEXT);
 
     // We should track failed imports
     assertThat(tracker.getLastCpuProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER);
@@ -1483,10 +1483,10 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(stage.isImportTraceMode()).isTrue();
 
     // We should show a balloon saying the parsing was aborted, because FakeParserCancelParsing emulates a cancelled parsing task
-    assertThat(myServices.getErrorBalloonTitle()).isEqualTo(CpuProfilerStage.PARSING_ABORTED_BALLOON_TITLE);
-    assertThat(myServices.getErrorBalloonBody()).isEqualTo(CpuProfilerStage.PARSING_IMPORTED_TRACE_ABORTED_BALLOON_TEXT);
-    assertThat(myServices.getErrorBalloonUrl()).isNull();
-    assertThat(myServices.getErrorBalloonUrlText()).isNull();
+    assertThat(myServices.getBalloonTitle()).isEqualTo(CpuProfilerStage.PARSING_ABORTED_BALLOON_TITLE);
+    assertThat(myServices.getBalloonBody()).isEqualTo(CpuProfilerStage.PARSING_IMPORTED_TRACE_ABORTED_BALLOON_TEXT);
+    assertThat(myServices.getBalloonUrl()).isNull();
+    assertThat(myServices.getBalloonUrlText()).isNull();
   }
 
   @Test
@@ -1501,10 +1501,10 @@ public class CpuProfilerStageTest extends AspectObserver {
     stopCapturing(stage);
 
     // We should show a balloon saying the parsing was aborted, because FakeParserCancelParsing emulates a cancelled parsing task
-    assertThat(myServices.getErrorBalloonTitle()).isEqualTo(CpuProfilerStage.PARSING_ABORTED_BALLOON_TITLE);
-    assertThat(myServices.getErrorBalloonBody()).isEqualTo(CpuProfilerStage.PARSING_RECORDED_TRACE_ABORTED_BALLOON_TEXT);
-    assertThat(myServices.getErrorBalloonUrl()).isNull();
-    assertThat(myServices.getErrorBalloonUrlText()).isNull();
+    assertThat(myServices.getBalloonTitle()).isEqualTo(CpuProfilerStage.PARSING_ABORTED_BALLOON_TITLE);
+    assertThat(myServices.getBalloonBody()).isEqualTo(CpuProfilerStage.PARSING_RECORDED_TRACE_ABORTED_BALLOON_TEXT);
+    assertThat(myServices.getBalloonUrl()).isNull();
+    assertThat(myServices.getBalloonUrlText()).isNull();
   }
 
   @Test

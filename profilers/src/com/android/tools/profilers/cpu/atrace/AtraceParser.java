@@ -137,6 +137,18 @@ public class AtraceParser implements TraceParser {
   }
 
   /**
+   * Returns true if there is potentially missing data. While it is never
+   * a guarantee if data is missing or not we make a best guess.
+   * The realtime timestamp is written out as soon as we start
+   * an atrace capture. If this timestamp does not exist this value
+   * will be 0. The value wont exist if the user attempted to capture
+   * more data than the size of the existing buffer.
+   */
+  public boolean isMissingData() {
+    return myModel.getRealtimeTimestamp() == 0;
+  }
+
+  /**
    * An array of CPU process information is returned. This array is sorted using the following criteria,
    * 1) Process names matching the hint string.
    * 2) Processes with the most activity

@@ -382,13 +382,22 @@ public class IntellijProfilerServices implements IdeProfilerServices {
 
   @Override
   public void showErrorBalloon(@NotNull String title, @NotNull String body, @Nullable String url, @Nullable String urlText) {
+    showBalloon(NotificationType.ERROR, title, body, url, urlText);
+  }
+
+  @Override
+  public void showWarningBalloon(@NotNull String title, @NotNull String body, @Nullable String url, @Nullable String urlText) {
+    showBalloon(NotificationType.WARNING, title, body, url, urlText);
+  }
+
+  private void showBalloon(@NotNull NotificationType type, @NotNull String title, @NotNull String body, @Nullable String url, @Nullable String urlText) {
     if (url != null && urlText != null) {
       OpenUrlHyperlink hyperlink = new OpenUrlHyperlink(url, urlText);
       AndroidNotification.getInstance(myProject)
-                         .showBalloon(title, body, NotificationType.ERROR, AndroidNotification.BALLOON_GROUP, false, hyperlink);
+                         .showBalloon(title, body, type, AndroidNotification.BALLOON_GROUP, false, hyperlink);
     }
     else {
-      AndroidNotification.getInstance(myProject).showBalloon(title, body, NotificationType.ERROR, AndroidNotification.BALLOON_GROUP);
+      AndroidNotification.getInstance(myProject).showBalloon(title, body, type, AndroidNotification.BALLOON_GROUP);
     }
   }
 

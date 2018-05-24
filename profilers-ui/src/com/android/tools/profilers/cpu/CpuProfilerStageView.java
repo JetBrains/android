@@ -31,6 +31,7 @@ import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.ui.HideablePanel;
 import com.android.tools.profiler.proto.CpuProfiler.TraceInitiationType;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
 import com.android.tools.profilers.event.*;
@@ -110,6 +111,13 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   private static final int DETAILS_PANEL_ROW = 1;
   private static final int DETAILS_KERNEL_PANEL_ROW = 0;
   private static final int DETAILS_THREADS_PANEL_ROW = 1;
+
+  @VisibleForTesting
+  static final String ATRACE_BUFFER_OVERFLOW_TITLE = "System Trace Buffer Overflow Detected";
+
+  @VisibleForTesting
+  static final String ATRACE_BUFFER_OVERFLOW_MESSAGE = "Your capture exceeded the buffer limit, some data may be missing. Consider recording a shorter trace.";
+
 
   /**
    * Default ratio of splitter. The splitter ratio adjust the first elements size relative to the bottom elements size.
@@ -961,9 +969,18 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       myCaptureView = new CpuCaptureView(this);
       mySplitter.setSecondComponent(myCaptureView.getComponent());
       ensureCaptureInViewRange();
-      if (myStage.isImportTraceMode() && capture.getType() == com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.ATRACE) {
-        myImportedSelectedProcessLabel.setText("Process: " + capture.getCaptureNode(capture.getMainThreadId()).getData().getName());
-      } else {
+      if (capture.getType() == com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.ATRACE) {
+        if (myStage.isImportTraceMode()) {
+          myImportedSelectedProcessLabel.setText("Process: " + capture.getCaptureNode(capture.getMainThreadId()).getData().getName());
+        }
+        else if (((AtraceCpuCapture)capture).isMissingData()) {
+          myStage.getStudioProfilers().getIdeServices().showWarningBalloon(ATRACE_BUFFER_OVERFLOW_TITLE,
+                                                                         ATRACE_BUFFER_OVERFLOW_MESSAGE,
+                                                                         null,
+                                                                         null);
+        }
+      }
+      else {
         myImportedSelectedProcessLabel.setText("");
       }
     }
