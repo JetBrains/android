@@ -28,8 +28,6 @@ import java.util.Set;
 
 public class CpuCapture implements ConfigurableDurationData {
 
-  public static final String MAIN_THREAD_NAME = "main";
-
   private final int myMainThreadId;
 
   @NotNull
@@ -49,40 +47,22 @@ public class CpuCapture implements ConfigurableDurationData {
   private final CpuProfiler.CpuProfilerType myType;
 
   public CpuCapture(@NotNull TraceParser parser, int traceId, CpuProfiler.CpuProfilerType type) {
-    this(parser, traceId, type, MAIN_THREAD_NAME);
-  }
-
-  public CpuCapture(@NotNull TraceParser parser, int traceId, CpuProfiler.CpuProfilerType type, @NotNull String mainThreadName) {
     myParser = parser;
     myTraceId = traceId;
     myType = type;
 
-    // Try to find the main thread. The main thread is called "main" but if we fail
-    // to find it we will fall back to the thread with the most information.
+    // Try to find the main thread. If there is no actual main thread, we will fall back to the thread with the most information.
     Map.Entry<CpuThreadInfo, CaptureNode> main = null;
-    boolean foundMainThread = false;
-
     for (Map.Entry<CpuThreadInfo, CaptureNode> entry : myParser.getCaptureTrees().entrySet()) {
-      // Systrace populates the process Id, as well as the thread Id. If the thread id, matches
-      // our process Id then this entry is our main thread entry. The reason this is needed is
-      // systrace can sometimes product two entries with the same thread name, and different thread ids.
-      if (entry.getKey().getId() == entry.getKey().getProcessId()) {
+      if (entry.getKey().isMainThread()) {
         main = entry;
         break;
       }
-      else if (entry.getKey().getName().equals(mainThreadName)) {
-        // We don't break here because we may find a thread that matches its thread id to the process id. This match
-        // may happen after we match a thread by thread name.
-        main = entry;
-        foundMainThread = true;
-      }
-      if (!foundMainThread && (main == null || main.getValue().getDuration() < entry.getValue().getDuration())) {
+
+      if (main == null || main.getValue().getDuration() < entry.getValue().getDuration()) {
         main = entry;
       }
     }
-    // If there is no thread named "main", and the trace does not have a main thread id defined then the trace file is not valid.
-    // In this case, we would have caught a BufferUnderflowException from VmTraceParser above and rethrown it as IllegalStateException.
-    // If a thread named "main" is not required in the future, we need to double-check the object value for null here instead of asserting.
     assert main != null;
     myMainThreadId = main.getKey().getId();
 

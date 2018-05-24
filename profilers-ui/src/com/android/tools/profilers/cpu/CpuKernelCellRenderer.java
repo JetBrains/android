@@ -24,6 +24,7 @@ import com.android.tools.adtui.model.updater.UpdatableManager;
 import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerLayout;
+import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
@@ -36,7 +37,7 @@ import java.awt.*;
 /**
  * This class is responsible for the layout of each row of the cpu process rendering.
  */
-public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuState, CpuThreadInfo> {
+public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuState, CpuThreadSliceInfo> {
   /**
    * Maintain threads list so we can match selection state between the two lists.
    */
@@ -72,7 +73,7 @@ public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuSta
 
   @Override
   @NotNull
-  StateChart<CpuThreadInfo> getChartForModel(@NotNull CpuKernelModel.CpuState model) {
+  StateChart<CpuThreadSliceInfo> getChartForModel(@NotNull CpuKernelModel.CpuState model) {
     return myStateCharts.get(model.getCpuId()).getChart();
   }
 
@@ -97,8 +98,8 @@ public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuSta
     // to be called. As this method can be called by Swing more often than our update cycle, we cache the models to avoid
     // recalculating the render states. This causes the rendering time to be substantially improved.
     int cpuId = value.getCpuId();
-    StateChartModel<CpuThreadInfo> model = value.getModel();
-    StateChart<CpuThreadInfo> stateChart = getOrCreateStateChart(cpuId, model);
+    StateChartModel<CpuThreadSliceInfo> model = value.getModel();
+    StateChart<CpuThreadSliceInfo> stateChart = getOrCreateStateChart(cpuId, model);
     stateChart.setDrawDebugInfo(myDebugRenderingEnabled);
     stateChart.setOpaque(true);
     panel.add(myLabel, new TabularLayout.Constraint(0, 0));
@@ -109,18 +110,18 @@ public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuSta
   /**
    * Returns a {@link StateChart} corresponding to a given thread or create a new one if it doesn't exist.
    */
-  private StateChart<CpuThreadInfo> getOrCreateStateChart(int cpuId, StateChartModel<CpuThreadInfo> model) {
+  private StateChart<CpuThreadSliceInfo> getOrCreateStateChart(int cpuId, StateChartModel<CpuThreadSliceInfo> model) {
     if (myStateCharts.containsKey(cpuId) && myStateCharts.get(cpuId).getModel().equals(model)) {
       // State chart is already saved on the map. Return it.
       return myStateCharts.get(cpuId).getChart();
     }
     // The state chart corresponding to the thread is not stored on the map. Create a new one.
-    StateChart<CpuThreadInfo> stateChart = new StateChart<>(model, new StateChartColorProvider<CpuThreadInfo>() {
+    StateChart<CpuThreadSliceInfo> stateChart = new StateChart<>(model, new StateChartColorProvider<CpuThreadSliceInfo>() {
       @NotNull
       @Override
-      public Color getColor(boolean isMouseOver, @NotNull CpuThreadInfo value) {
+      public Color getColor(boolean isMouseOver, @NotNull CpuThreadSliceInfo value) {
         // On the null thread return the background color.
-        if (value == CpuThreadInfo.NULL_THREAD) {
+        if (value == CpuThreadSliceInfo.NULL_THREAD) {
           return ProfilerColors.DEFAULT_BACKGROUND;
         }
         // Return other process colors.
@@ -142,9 +143,9 @@ public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuSta
       }
       @NotNull
       @Override
-      public Color getFontColor(boolean isMouseOver, @NotNull CpuThreadInfo value) {
+      public Color getFontColor(boolean isMouseOver, @NotNull CpuThreadSliceInfo value) {
         // On the null thread return the background color.
-        if (value == CpuThreadInfo.NULL_THREAD) {
+        if (value == CpuThreadSliceInfo.NULL_THREAD) {
           return AdtUiUtils.DEFAULT_FONT_COLOR;
         }
         // Return other process color.
@@ -166,7 +167,7 @@ public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuSta
       }
     }, (threadInfo) -> threadInfo.getName());
     stateChart.setRenderMode(StateChart.RenderMode.TEXT);
-    CpuCellRenderer.StateChartData<CpuThreadInfo> data = new CpuCellRenderer.StateChartData<>(stateChart, model);
+    CpuCellRenderer.StateChartData<CpuThreadSliceInfo> data = new CpuCellRenderer.StateChartData<>(stateChart, model);
     stateChart.setHeightGap(0.0f); // Default config sets this to 0.5f;
     myStateCharts.put(cpuId, data);
     return stateChart;

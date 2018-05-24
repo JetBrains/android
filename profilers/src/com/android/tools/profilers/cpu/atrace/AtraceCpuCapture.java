@@ -19,7 +19,6 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
-import com.android.tools.profilers.cpu.CpuThreadInfo;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -30,7 +29,7 @@ public class AtraceCpuCapture extends CpuCapture {
   private final AtraceParser myParser;
 
   public AtraceCpuCapture(AtraceParser parser, int traceId) {
-    super(parser, traceId, CpuProfiler.CpuProfilerType.ATRACE, parser.getMainThreadName());
+    super(parser, traceId, CpuProfiler.CpuProfilerType.ATRACE);
     myParser = parser;
   }
 
@@ -46,13 +45,13 @@ public class AtraceCpuCapture extends CpuCapture {
   }
 
   /**
-   * @param cpu The cpu index to get {@link CpuThreadInfo} series for.
-   * @return A series of {@link CpuThreadInfo} information. The information is computed from the
+   * @param cpu The cpu index to get {@link CpuThreadSliceInfo} series for.
+   * @return A series of {@link CpuThreadSliceInfo} information. The information is computed from the
    * sched_switch trace line reported by atrace.
    */
   @NotNull
-  public List<SeriesData<CpuThreadInfo>> getCpuThreadInfoStates(int cpu) {
-    return myParser.getCpuThreadInfoStates().getOrDefault(cpu, new ArrayList<>());
+  public List<SeriesData<CpuThreadSliceInfo>> getCpuThreadSliceInfoStates(int cpu) {
+    return myParser.getCpuThreadSliceInfoStates().getOrDefault(cpu, new ArrayList<>());
   }
 
   /**
@@ -67,6 +66,6 @@ public class AtraceCpuCapture extends CpuCapture {
    * @return The number of cores represented by this capture.
    */
   public int getCpuCount() {
-    return myParser.getCpuThreadInfoStates().size();
+    return myParser.getCpuThreadSliceInfoStates().size();
   }
 }

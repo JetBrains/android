@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
+import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -60,14 +61,14 @@ public class CpuKernelModel extends DefaultListModel<CpuKernelModel.CpuState> {
   public class CpuState {
     private final int myCpuId;
     @NotNull
-    private final AtraceDataSeries<CpuThreadInfo> myAtraceCpuStateDataSeries;
+    private final AtraceDataSeries<CpuThreadSliceInfo> myAtraceCpuStateDataSeries;
     @NotNull
-    private final StateChartModel<CpuThreadInfo> myModel;
+    private final StateChartModel<CpuThreadSliceInfo> myModel;
 
     public CpuState(int cpuId, @NotNull CpuProfilerStage stage) {
       myCpuId = cpuId;
       myModel = new StateChartModel<>();
-      myAtraceCpuStateDataSeries = new AtraceDataSeries<>(stage, capture -> capture.getCpuThreadInfoStates(myCpuId));
+      myAtraceCpuStateDataSeries = new AtraceDataSeries<>(stage, capture -> capture.getCpuThreadSliceInfoStates(myCpuId));
       myModel.addSeries(new RangedSeries<>(myRange, myAtraceCpuStateDataSeries));
     }
 
@@ -76,12 +77,12 @@ public class CpuKernelModel extends DefaultListModel<CpuKernelModel.CpuState> {
     }
 
     @NotNull
-    public AtraceDataSeries<CpuThreadInfo> getSeries() {
+    public AtraceDataSeries<CpuThreadSliceInfo> getSeries() {
       return myAtraceCpuStateDataSeries;
     }
 
     @NotNull
-    public StateChartModel<CpuThreadInfo> getModel() {
+    public StateChartModel<CpuThreadSliceInfo> getModel() {
       return myModel;
     }
   }

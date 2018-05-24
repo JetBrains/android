@@ -24,6 +24,7 @@ import com.android.tools.profilers.*;
 import com.android.tools.profilers.analytics.FilterMetadata;
 import com.android.tools.profilers.cpu.atrace.AtraceParser;
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
+import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.network.FakeNetworkService;
@@ -643,25 +644,25 @@ public class CpuProfilerStageTest extends AspectObserver {
 
     // Null series
     tooltip.setCpuSeries(0, null);
-    assertThat(tooltip.getCpuThreadInfo()).isNull();
+    assertThat(tooltip.getCpuThreadSliceInfo()).isNull();
 
     // Test Series
     tooltipRange.set(11, 11);
-    List<SeriesData<CpuThreadInfo>> cpuSeriesData = new ArrayList<>();
-    cpuSeriesData.add(new SeriesData<>(5, CpuThreadInfo.NULL_THREAD));
-    cpuSeriesData.add(new SeriesData<>(10, new CpuThreadInfo(0, "Test", 0, "Test")));
-    AtraceDataSeries<CpuThreadInfo> series = new AtraceDataSeries<>(myStage, (capture) -> cpuSeriesData);
+    List<SeriesData<CpuThreadSliceInfo>> cpuSeriesData = new ArrayList<>();
+    cpuSeriesData.add(new SeriesData<>(5, CpuThreadSliceInfo.NULL_THREAD));
+    cpuSeriesData.add(new SeriesData<>(10, new CpuThreadSliceInfo(0, "Test", 0, "Test")));
+    AtraceDataSeries<CpuThreadSliceInfo> series = new AtraceDataSeries<>(myStage, (capture) -> cpuSeriesData);
     tooltip.setCpuSeries(1, series);
-    assertThat(tooltip.getCpuThreadInfo().getProcessName()).isEqualTo("Test");
+    assertThat(tooltip.getCpuThreadSliceInfo().getProcessName()).isEqualTo("Test");
 
     // Tooltip before all data.
     long tooltipTimeUs = TimeUnit.SECONDS.toMicros(0);
     tooltipRange.set(tooltipTimeUs, tooltipTimeUs);
-    assertThat(tooltip.getCpuThreadInfo()).isNull();
+    assertThat(tooltip.getCpuThreadSliceInfo()).isNull();
 
     // Tooltip null process is null.
     tooltipRange.set(0, 9);
-    assertThat(tooltip.getCpuThreadInfo()).isNull();
+    assertThat(tooltip.getCpuThreadSliceInfo()).isNull();
   }
 
   @Test

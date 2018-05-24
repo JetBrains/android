@@ -46,12 +46,6 @@ class AtraceParserTest {
   }
 
   @Test
-  fun testCaptureMainThreadHasNameOfParserMainThread() {
-    val captureNodeName = myCapture.getCaptureNode(myCapture.mainThreadId)!!.data.name
-    assertThat(captureNodeName).isEqualTo(myParser.mainThreadName)
-  }
-
-  @Test
   fun testGetCaptureTrees() {
     val range = myParser.range
     val result = myParser.captureTrees
@@ -62,9 +56,11 @@ class AtraceParserTest {
     assertThat(cpuThreadInfo.name).isEqualTo("splayingbitmaps")
     assertThat(cpuThreadInfo.id).isEqualTo(TEST_PID)
     // Validate capture trees sets the process name and id for threads.
-    assertThat(cpuThreadInfo.processName).isEqualTo("splayingbitmaps")
-    assertThat(cpuThreadInfo.processId).isEqualTo(TEST_PID)
-    assertThat(myParser.mainThreadName).isEqualTo(cpuThreadInfo.name)
+    assertThat(cpuThreadInfo).isInstanceOf(CpuThreadSliceInfo::class.java)
+    val cpuProcessInfo = cpuThreadInfo as CpuThreadSliceInfo
+    assertThat(cpuProcessInfo.processName).isEqualTo("splayingbitmaps")
+    assertThat(cpuProcessInfo.processId).isEqualTo(TEST_PID)
+    assertThat(cpuProcessInfo.isMainThread).isTrue()
 
     // Base node is a root node that is equivlant to the length of capture.
     val captureNode = result.get(cpuThreadInfo)!!
@@ -112,7 +108,7 @@ class AtraceParserTest {
   @Test
   fun testGetCpuUtilizationDataSeries() {
     val dataSeries = myParser.cpuUtilizationSeries
-    val size = 100 / myParser.cpuThreadInfoStates.size.toDouble()
+    val size = 100 / myParser.cpuThreadSliceInfoStates.size.toDouble()
     // No values should exceed the bounds
     for (data in dataSeries) {
       assertThat(data.value).isAtLeast(0)
@@ -123,7 +119,7 @@ class AtraceParserTest {
 
   @Test
   fun testGetCpuProcessData() {
-    val dataSeries = myParser.cpuThreadInfoStates
+    val dataSeries = myParser.cpuThreadSliceInfoStates
     assertThat(dataSeries).hasSize(4)
     for (i in 0..3) {
       assertThat(dataSeries.containsKey(i))
@@ -131,7 +127,7 @@ class AtraceParserTest {
     // Verify that we have a perfd process, null process, then rcu process.
     // Verifying the null process is important as it ensures we render the data properly.
     assertThat(dataSeries[0]!![0].value.name).matches("perfd")
-    assertThat(dataSeries[0]!![1].value).isEqualTo(CpuThreadInfo.NULL_THREAD)
+    assertThat(dataSeries[0]!![1].value).isEqualTo(CpuThreadSliceInfo.NULL_THREAD)
     assertThat(dataSeries[0]!![2].value.name).matches("rcu_preempt")
   }
 

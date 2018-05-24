@@ -50,12 +50,12 @@ public class AtraceParser implements TraceParser {
   private final Map<CpuThreadInfo, CaptureNode> myCaptureTreeNodes;
 
   /**
-   * Map between processor ids and its set of thread changes.
+   * Map between processor ids and its set of {@link CpuThreadSliceInfo}.
    * Note: In kernel space all user space processes are treated at threads, where each thread has a TGID (Thread group ID).
    * The TGID is the main thread of a user space process. All references to processes outside this class refer to user space
    * processes while threads refer to threads within those processes.
    */
-  private final Map<Integer, List<SeriesData<CpuThreadInfo>>> myCpuSchedulingToCpuData;
+  private final Map<Integer, List<SeriesData<CpuThreadSliceInfo>>> myCpuSchedulingToCpuData;
 
   /**
    * Map between thread id, and the thread state for each state transition on that thread.
@@ -144,9 +144,9 @@ public class AtraceParser implements TraceParser {
    * 4) Processes without names.
    */
   @NotNull
-  public CpuThreadInfo[] getProcessList(String hint) {
+  public CpuThreadSliceInfo[] getProcessList(String hint) {
     assert myModel != null;
-    CpuThreadInfo[] processList = new CpuThreadInfo[myModel.getProcesses().size()];
+    CpuThreadSliceInfo[] processList = new CpuThreadSliceInfo[myModel.getProcesses().size()];
     Stream<ProcessModel> processStream = myModel.getProcesses().values().stream();
     int index = 0;
     String hintLower = hint.toLowerCase(Locale.getDefault());
@@ -197,12 +197,12 @@ public class AtraceParser implements TraceParser {
     List<ProcessModel> processes = processStream.collect(Collectors.toList());
     for (ProcessModel process : processes) {
       String name = getMainThreadForProcess(process);
-      processList[index++] = new CpuThreadInfo(process.getId(), name, process.getId(), name);
+      processList[index++] = new CpuThreadSliceInfo(process.getId(), name, process.getId(), name);
     }
     return processList;
   }
 
-  public void setSelectProcess(@NotNull CpuThreadInfo process) {
+  public void setSelectProcess(@NotNull CpuThreadSliceInfo process) {
     assert myModel != null;
     assert myModel.getProcesses().containsKey(process.getProcessId());
     myProcessId = process.getProcessId();
@@ -233,7 +233,7 @@ public class AtraceParser implements TraceParser {
   }
 
   @NotNull
-  public Map<Integer, List<SeriesData<CpuThreadInfo>>> getCpuThreadInfoStates() {
+  public Map<Integer, List<SeriesData<CpuThreadSliceInfo>>> getCpuThreadSliceInfoStates() {
     return myCpuSchedulingToCpuData;
   }
 
@@ -249,8 +249,8 @@ public class AtraceParser implements TraceParser {
   private void buildCaptureTreeNodes() {
     Range range = getRange();
     for (ThreadModel thread : myProcessModel.getThreads()) {
-      CpuThreadInfo threadInfo =
-        new CpuThreadInfo(thread.getId(), thread.getName(), thread.getProcess().getId(), thread.getProcess().getName());
+      CpuThreadSliceInfo threadInfo =
+        new CpuThreadSliceInfo(thread.getId(), thread.getName(), thread.getProcess().getId(), thread.getProcess().getName());
       CaptureNode root = new CaptureNode(new AtraceNodeModel(thread.getName()));
       root.setStartGlobal((long)range.getMin());
       root.setEndGlobal((long)range.getMax());
@@ -309,17 +309,19 @@ public class AtraceParser implements TraceParser {
     myCpuUtilizationSeries.add(new SeriesData<>(convertToUserTimeUs(myModel.getBeginTimestamp()), 0L));
     for (CpuModel cpu : myModel.getCpus()) {
       ListIterator<SeriesData<Long>> cpuSeriesIt = myCpuUtilizationSeries.listIterator();
-      List<SeriesData<CpuThreadInfo>> processList = new ArrayList<>();
+      List<SeriesData<CpuThreadSliceInfo>> processList = new ArrayList<>();
       CpuProcessSlice lastSlice = cpu.getSlices().get(0);
       for (CpuProcessSlice slice : cpu.getSlices()) {
-        Long sliceStartTimeUs = convertToUserTimeUs(slice.getStartTime());
-        Long sliceEndTimeUs = convertToUserTimeUs(slice.getEndTime());
+        long sliceStartTimeUs = convertToUserTimeUs(slice.getStartTime());
+        long sliceEndTimeUs = convertToUserTimeUs(slice.getEndTime());
+        long durationUs = sliceEndTimeUs - sliceStartTimeUs;
         if (slice.getStartTime() > lastSlice.getEndTime()) {
-          processList.add(new SeriesData<>(convertToUserTimeUs(lastSlice.getEndTime()), CpuThreadInfo.NULL_THREAD));
+          processList.add(new SeriesData<>(sliceEndTimeUs, CpuThreadSliceInfo.NULL_THREAD));
         }
-        processList.add(new SeriesData<>(sliceStartTimeUs,
-                                         new CpuThreadInfo(slice.getThreadId(), slice.getThreadName(), slice.getId(),
-                                                           slice.getName())));
+
+        processList.add(
+          new SeriesData<>(sliceStartTimeUs,
+                           new CpuThreadSliceInfo(slice.getThreadId(), slice.getThreadName(), slice.getId(), slice.getName(), durationUs)));
         lastSlice = slice;
 
         // While looping the process slices we build our CPU utilization graph so we don't need to loop the same data twice.
@@ -329,7 +331,7 @@ public class AtraceParser implements TraceParser {
       }
 
       // We are done with this Cpu so we add a null process at the end to properly render this segment.
-      processList.add(new SeriesData<>(convertToUserTimeUs(myModel.getEndTimestamp()), CpuThreadInfo.NULL_THREAD));
+      processList.add(new SeriesData<>(convertToUserTimeUs(myModel.getEndTimestamp()), CpuThreadSliceInfo.NULL_THREAD));
       myCpuSchedulingToCpuData.put(cpu.getId(), processList);
     }
 
@@ -466,10 +468,5 @@ public class AtraceParser implements TraceParser {
       }
     }
     return name;
-  }
-
-  @NotNull
-  public String getMainThreadName() {
-    return getMainThreadForProcess(myProcessModel);
   }
 }

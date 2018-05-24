@@ -17,10 +17,12 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.ProfilerTooltipView;
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
+import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,6 +42,7 @@ public class CpuKernelTooltipView extends ProfilerTooltipView {
   @NotNull private final JPanel myContent;
   @NotNull private final JLabel myThread;
   @NotNull private final JLabel myProcess;
+  @NotNull private final JLabel myDuration;
   @NotNull private final JLabel myCpu;
   @NotNull private final JPanel myUnavailableDetails;
 
@@ -51,9 +54,10 @@ public class CpuKernelTooltipView extends ProfilerTooltipView {
     myContent = new JPanel();
     myThread = createTooltipLabel();
     myProcess = createTooltipLabel();
+    myDuration = createTooltipLabel();
     myCpu = createTooltipLabel();
     myUnavailableDetails = new JPanel(new TabularLayout("*", "Fit,Fit"));
-    tooltip.addDependency(this).onChange(CpuKernelTooltip.Aspect.CPU_KERNEL_THREAD_INFO, this::threadInfoChanged);
+    tooltip.addDependency(this).onChange(CpuKernelTooltip.Aspect.CPU_KERNEL_THREAD_SLICE_INFO, this::threadSliceInfoChanged);
   }
 
   @Override
@@ -62,28 +66,30 @@ public class CpuKernelTooltipView extends ProfilerTooltipView {
     myTooltip.removeDependencies(this);
   }
 
-  private void threadInfoChanged() {
+  private void threadSliceInfoChanged() {
     Range range = myTimeline.getTooltipRange();
-    CpuThreadInfo threadInfo = myTooltip.getCpuThreadInfo();
+    CpuThreadSliceInfo threadSlice = myTooltip.getCpuThreadSliceInfo();
     myContent.removeAll();
-    if (range.isEmpty() || threadInfo == null) {
+    if (range.isEmpty() || threadSlice == null) {
       return;
     }
-    myThread.setText(String.format("Thread: %s", threadInfo.getName()));
+    myThread.setText(String.format("Thread: %s", threadSlice.getName()));
     myContent.add(myThread, new TabularLayout.Constraint(0, 0));
-    myProcess.setText(String.format("Process: %s", threadInfo.getProcessName()));
+    myProcess.setText(String.format("Process: %s", threadSlice.getProcessName()));
     myContent.add(myProcess, new TabularLayout.Constraint(2, 0));
+    myDuration.setText(String.format("Duration: %s", TimeFormatter.getSingleUnitDurationString(threadSlice.getDurationUs())));
+    myContent.add(myDuration, new TabularLayout.Constraint(4, 0));
     myCpu.setText(String.format("CPU: %d", myTooltip.getCpuId()));
-    myContent.add(myCpu, new TabularLayout.Constraint(4, 0));
-    if (myProcessId != threadInfo.getProcessId()) {
-      myContent.add(myUnavailableDetails, new TabularLayout.Constraint(5, 0));
+    myContent.add(myCpu, new TabularLayout.Constraint(6, 0));
+    if (myProcessId != threadSlice.getProcessId()) {
+      myContent.add(myUnavailableDetails, new TabularLayout.Constraint(7, 0));
     }
   }
 
   @NotNull
   @Override
   protected JComponent createTooltip() {
-    myContent.setLayout(new TabularLayout("*", "Fit-,8px,Fit-,8px,Fit"));
+    myContent.setLayout(new TabularLayout("*", "Fit-,8px,Fit-,8px,Fit-,8px,Fit"));
     JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
     separator.setBorder(JBUI.Borders.empty(8, 0));
     myUnavailableDetails.add(separator, new TabularLayout.Constraint(0, 0));
