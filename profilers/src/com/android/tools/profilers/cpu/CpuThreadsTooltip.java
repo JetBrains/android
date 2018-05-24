@@ -38,6 +38,7 @@ public class CpuThreadsTooltip extends AspectModel<CpuThreadsTooltip.Aspect> imp
   @Nullable private String myThreadName;
   @Nullable private DataSeries<CpuProfilerStage.ThreadState> mySeries;
   @Nullable private CpuProfilerStage.ThreadState myThreadState;
+  private long myDurationUs;
 
   CpuThreadsTooltip(@NotNull CpuProfilerStage stage) {
     myStage = stage;
@@ -52,6 +53,7 @@ public class CpuThreadsTooltip extends AspectModel<CpuThreadsTooltip.Aspect> imp
 
   private void updateThreadState() {
     myThreadState = null;
+    myDurationUs = 0;
     if (mySeries == null) {
       changed(Aspect.THREAD_STATE);
       return;
@@ -74,7 +76,16 @@ public class CpuThreadsTooltip extends AspectModel<CpuThreadsTooltip.Aspect> imp
     if (threadStateIndex < 0) {
       threadStateIndex = -threadStateIndex - 2;
     }
-    myThreadState = threadStateIndex < 0 ? null : series.get(threadStateIndex).value;
+    if (threadStateIndex >= 0) {
+      SeriesData<CpuProfilerStage.ThreadState> currentState = series.get(threadStateIndex);
+      myThreadState = currentState.value;
+      // If the state is not the last of the list, calculate the duration from the difference between the current and the next timestamps
+      // TODO(b/80240220): Calculate the duration of the last state, unless it's in progress.
+      if (threadStateIndex < series.size() - 1) {
+        myDurationUs = series.get(threadStateIndex + 1).x - currentState.x;
+      }
+    }
+
     changed(Aspect.THREAD_STATE);
   }
 
@@ -92,5 +103,9 @@ public class CpuThreadsTooltip extends AspectModel<CpuThreadsTooltip.Aspect> imp
   @Nullable
   CpuProfilerStage.ThreadState getThreadState() {
     return myThreadState;
+  }
+
+  public long getDurationUs() {
+    return myDurationUs;
   }
 }

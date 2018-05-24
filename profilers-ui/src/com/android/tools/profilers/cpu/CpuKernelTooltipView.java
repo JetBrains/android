@@ -94,11 +94,4 @@ public class CpuKernelTooltipView extends ProfilerTooltipView {
     myContent.add(myUnavailableDetails, new TabularLayout.Constraint(0, 0));
     return myContent;
   }
-
-  private static JLabel createTooltipLabel() {
-    JLabel label = new JLabel();
-    label.setFont(TOOLTIP_BODY_FONT);
-    label.setForeground(ProfilerColors.TOOLTIP_TEXT);
-    return label;
-  }
 }
