@@ -62,12 +62,12 @@ fun Module.getDependencies(): Sequence<GoogleMavenArtifactId> {
 }
 
 /**
- * Returns whether this module depends on the new support library artifacts (androidx)
+ * Returns whether this module depends on the new support library artifacts (androidx).
  */
 fun Module.dependsOnAndroidx(): Boolean = this.getDependencies().any { it.mavenGroupId.startsWith(SdkConstants.ANDROIDX_PKG) }
 
 /**
- * Returns whether this module depends on the old support library artifacts (androidx)
+ * Returns whether this module depends on the old support library artifacts (com.android.support).
  */
 fun Module.dependsOnOldSupportLib(): Boolean = this.getDependencies().any { it.mavenGroupId.startsWith(SdkConstants.SUPPORT_LIB_GROUP_ID) }
 

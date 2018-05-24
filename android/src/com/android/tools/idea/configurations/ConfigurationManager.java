@@ -346,8 +346,7 @@ public class ConfigurationManager implements Disposable {
   public String computePreferredTheme(@NotNull Configuration configuration) {
     MergedManifest manifest = MergedManifest.get(getModule());
 
-    // TODO: If we are rendering a layout in included context, pick the theme
-    // from the outer layout instead
+    // TODO: If we are rendering a layout in included context, pick the theme from the outer layout instead.
 
     String activity = configuration.getActivity();
     if (activity != null) {
@@ -360,7 +359,7 @@ public class ConfigurationManager implements Disposable {
       ActivityAttributes attributes = manifest.getActivityAttributes(activityFqcn);
       if (attributes != null) {
         String theme = attributes.getTheme();
-        // Check that the theme looks like a reference
+        // Check that the theme looks like a reference.
         if (theme != null && theme.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
           return theme;
         }
@@ -370,16 +369,15 @@ public class ConfigurationManager implements Disposable {
       attributes = manifest.getActivityAttributes(activity);
       if (attributes != null) {
         String theme = attributes.getTheme();
-        // Check that the theme looks like a reference
+        // Check that the theme looks like a reference.
         if (theme != null && theme.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
           return theme;
         }
       }
     }
 
-    // Look up the default/fallback theme to use for this project (which
-    // depends on the screen size when no particular theme is specified
-    // in the manifest)
+    // Look up the default/fallback theme to use for this project (which depends on
+    // the screen size when no particular theme is specified in the manifest).
     return manifest.getDefaultTheme(configuration.getTarget(), configuration.getScreenSize(), configuration.getDevice());
   }
 
@@ -526,7 +524,7 @@ public class ConfigurationManager implements Disposable {
       // configuration too!
       boolean updateTheme = false;
       String theme = configuration.getTheme();
-      if (theme != null && theme.startsWith(ANDROID_STYLE_RESOURCE_PREFIX)) {
+      if (theme.startsWith(ANDROID_STYLE_RESOURCE_PREFIX)) {
         updateTheme = true;
         configuration.startBulkEditing();
         configuration.setTheme(null);

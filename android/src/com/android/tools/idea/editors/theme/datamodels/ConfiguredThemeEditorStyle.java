@@ -64,8 +64,8 @@ public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
   }
 
   /**
-   * @return url representation of this style,
-   * Result will start either with {@value SdkConstants#ANDROID_STYLE_RESOURCE_PREFIX} or {@value SdkConstants#STYLE_RESOURCE_PREFIX}
+   * Returns the url representation of this style. The result will start either with
+   * {@value SdkConstants#ANDROID_STYLE_RESOURCE_PREFIX} or {@value SdkConstants#STYLE_RESOURCE_PREFIX}.
    */
   @NotNull
   public String getStyleResourceUrl() {
@@ -73,7 +73,7 @@ public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
   }
 
   /**
-   * Returns StyleResourceValue for current Configuration
+   * Returns StyleResourceValue for current Configuration.
    */
   @NotNull
   public StyleResourceValue getStyleResourceValue() {
@@ -196,10 +196,10 @@ public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
     }
 
     if (themeResolver == null) {
-      return ResolutionUtils.getThemeEditorStyle(myConfiguration, ResolutionUtils.getQualifiedStyleName(parent), null);
+      return ResolutionUtils.getThemeEditorStyle(myConfiguration, parent.asReference(), null);
     }
     else {
-      return themeResolver.getTheme(ResolutionUtils.getQualifiedStyleName(parent));
+      return themeResolver.getTheme(parent.asReference());
     }
   }
 
@@ -218,12 +218,12 @@ public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
       return false;
     }
 
-    return getQualifiedName().equals(((ConfiguredThemeEditorStyle)obj).getQualifiedName());
+    return getStyleReference().equals(((ConfiguredThemeEditorStyle)obj).getStyleReference());
   }
 
   @Override
   public int hashCode() {
-    return getQualifiedName().hashCode();
+    return getStyleReference().hashCode();
   }
 
   @NotNull
