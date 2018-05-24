@@ -98,8 +98,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
   private final boolean myUseGradleForSigning;
   @VisibleForTesting
   AndroidFacet mySelection;
-  @VisibleForTesting
-  final List<AndroidFacet> myFacets;
+  @VisibleForTesting final List<AndroidFacet> myFacets;
 
   public KeystoreStep(@NotNull ExportSignedPackageWizard wizard,
                       boolean useGradleForSigning,
@@ -141,8 +140,9 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     myCloseAndUpdateLink.addHyperlinkListener(new HyperlinkListener() {
       @Override
       public void hyperlinkUpdate(HyperlinkEvent e) {
-        DynamicAppUtils.promptUserForGradleUpdate(project);
-        myWizard.close(CANCEL_EXIT_CODE);
+        if (DynamicAppUtils.promptUserForGradleUpdate(project)) {
+          myWizard.close(CANCEL_EXIT_CODE);
+        }
       }
     });
     myGradlePanel.setVisible(false);
@@ -156,7 +156,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     boolean isBundle = myWizard.getTargetType().equals(ExportSignedPackageWizard.BUNDLE);
     updateModuleDropdown(isBundle);
 
-    if(isBundle) {
+    if (isBundle) {
       final GenerateSignedApkSettings settings = GenerateSignedApkSettings.getInstance(myWizard.getProject());
       myExportKeysCheckBox.setSelected(settings.EXPORT_PRIVATE_KEY);
       myGoogleAppSigningLabel.setHyperlinkText(" (needed to enroll your app in ",
@@ -165,11 +165,11 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
       myGoogleAppSigningLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
       myExportKeysCheckBox.setVisible(true);
       myGoogleAppSigningLabel.setVisible(true);
-    } else {
+    }
+    else {
       myExportKeysCheckBox.setVisible(false);
       myGoogleAppSigningLabel.setVisible(false);
     }
-
   }
 
   private void updateModuleDropdown(boolean isBundle) {
@@ -206,11 +206,10 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
 
   private void updateSelection(@Nullable AndroidFacet selectedItem) {
     mySelection = selectedItem;
-    showGradleError(!isGradleValid(myWizard.getTargetType(), myWizard.getProject()));
+    showGradleError(!isGradleValid(myWizard.getTargetType()));
   }
 
-
-  private boolean isGradleValid(@Nullable String targetType, @NotNull Project project) {
+  private boolean isGradleValid(@Nullable String targetType) {
     // all gradle versions are valid unless targetType is bundle
     if (!targetType.equals(ExportSignedPackageWizard.BUNDLE)) {
       return true;
@@ -293,7 +292,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
 
   @Override
   protected void commitForNext() throws CommitStepException {
-    if (!isGradleValid(myWizard.getTargetType(), myWizard.getProject())) {
+    if (!isGradleValid(myWizard.getTargetType())) {
       throw new CommitStepException(AndroidBundle.message("android.export.package.bundle.gradle.error"));
     }
 
@@ -319,7 +318,8 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
 
     if (myUseGradleForSigning) {
       myWizard.setGradleSigningInfo(new GradleSigningInfo(keyStoreLocation, keyStorePassword, keyAlias, keyPassword));
-    } else {
+    }
+    else {
       final KeyStore keyStore = loadKeyStore(new File(keyStoreLocation));
       if (keyStore == null) {
         throw new CommitStepException(AndroidBundle.message("android.export.package.keystore.error.title"));
