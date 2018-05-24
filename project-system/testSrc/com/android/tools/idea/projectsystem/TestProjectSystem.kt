@@ -17,6 +17,8 @@ package com.android.tools.idea.projectsystem
 
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.google.common.collect.HashMultimap
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -26,13 +28,15 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElementFinder
 import com.intellij.ui.AppUIUtil
 import java.nio.file.Path
+import java.util.concurrent.CountDownLatch
 
 /**
  * This implementation of AndroidProjectSystem is used during integration tests and includes methods
  * to stub project system functionalities.
  */
-class TestProjectSystem(val project: Project,
-                        private val allowedFutureDependencies: List<GradleCoordinate> = listOf())
+class TestProjectSystem @JvmOverloads constructor(val project: Project,
+                                                  private val allowedFutureDependencies: List<GradleCoordinate> = listOf(),
+                                                  @Volatile private var lastSyncResult: SyncResult = SyncResult.SUCCESS)
   : AndroidProjectSystem, AndroidProjectSystemProvider {
 
   data class TestDependencyVersion(override val mavenVersion: GradleVersion?) : GoogleMavenArtifactVersion {
@@ -97,19 +101,29 @@ class TestProjectSystem(val project: Project,
     }
   }
 
+  fun emulateSync(result: SyncResult) {
+    val latch = CountDownLatch(1)
+
+    AppUIUtil.invokeLaterIfProjectAlive(project, {
+      lastSyncResult = result
+      project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(result)
+      latch.countDown()
+    })
+
+    latch.await()
+  }
+
   override fun getSyncManager(): ProjectSystemSyncManager = object : ProjectSystemSyncManager {
-    override fun syncProject(reason: ProjectSystemSyncManager.SyncReason, requireSourceGeneration: Boolean): ListenableFuture<ProjectSystemSyncManager.SyncResult> {
-      AppUIUtil.invokeLaterIfProjectAlive(project, {
-        project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
-      })
-      return Futures.immediateFuture(ProjectSystemSyncManager.SyncResult.SUCCESS)
+    override fun syncProject(reason: SyncReason, requireSourceGeneration: Boolean): ListenableFuture<SyncResult> {
+      emulateSync(SyncResult.SUCCESS)
+      return Futures.immediateFuture(SyncResult.SUCCESS)
     }
 
     override fun isSyncInProgress() = false
 
-    override fun isSyncNeeded() = false
+    override fun isSyncNeeded() = !lastSyncResult.isSuccessful
 
-    override fun getLastSyncResult() = ProjectSystemSyncManager.SyncResult.SUCCESS
+    override fun getLastSyncResult() = lastSyncResult
   }
 
   override fun getDefaultApkFile(): VirtualFile? {
