@@ -34,7 +34,7 @@ class TargetAndroidModuleNode internal constructor(
   private var myChildren = emptyList<TargetConfigurationNode>()
 
   init {
-    isAutoExpandNode = true
+    autoExpandNode = true
   }
 
   override fun getChildren(): Array<SimpleNode> = myChildren.toTypedArray()

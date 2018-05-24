@@ -122,7 +122,7 @@ public class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryAndro
 
       List<PsLibraryAndroidDependency> models = getModels();
       for (PsLibraryAndroidDependency ourModel : models) {
-        List<DependencyModel> ourParsedModels = getDependencyParsedModels(ourModel);
+        List<DependencyModel> ourParsedModels = Companion.getDependencyParsedModels(ourModel);
         if (other.getParsedModel() instanceof ArtifactDependencyModel) {
           ArtifactDependencyModel theirs = (ArtifactDependencyModel)other.getParsedModel();
           for (DependencyModel resolvedFromParsedDependency : ourParsedModels) {
