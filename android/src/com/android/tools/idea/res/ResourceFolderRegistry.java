@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
@@ -26,7 +27,6 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.DumbModeTask;
 import com.intellij.openapi.project.Project;
@@ -83,29 +83,23 @@ public class ResourceFolderRegistry {
   @NotNull
   @VisibleForTesting
   ResourceFolderRepository get(@NotNull final AndroidFacet facet, @NotNull final VirtualFile dir, @NotNull ResourceNamespace namespace) {
+    Cache<VirtualFile, ResourceFolderRepository> cache =
+      namespace == ResourceNamespace.RES_AUTO ? myNonNamespacedCache : myNamespacedCache;
+
+    ResourceFolderRepository repository;
     try {
-      Cache<VirtualFile, ResourceFolderRepository> cache =
-        namespace == ResourceNamespace.RES_AUTO ? myNonNamespacedCache : myNamespacedCache;
-
-      ResourceFolderRepository repository;
-      try {
-        repository = cache.get(dir, () -> ResourceFolderRepository.create(facet, dir, namespace));
-      }
-      catch (ExecutionException | UncheckedExecutionException e) {
-        if (e.getCause() instanceof ProcessCanceledException) {
-          throw (ProcessCanceledException) e.getCause();
-        }
-        throw e;
-      }
-      assert repository.getNamespace().equals(namespace);
-
-      // TODO(b/80179120): figure out why this is not always true.
-      // assert repository.getFacet().equals(facet);
-      return repository;
+      repository = cache.get(dir, () -> ResourceFolderRepository.create(facet, dir, namespace));
     }
-    catch (ExecutionException e) {
-      throw new UncheckedExecutionException(e.getCause());
+    catch (ExecutionException | UncheckedExecutionException e) {
+      Throwables.throwIfUnchecked(e.getCause());
+      throw new UncheckedExecutionException(e);
     }
+    assert repository.getNamespace().equals(namespace);
+
+    // TODO(b/80179120): figure out why this is not always true.
+    // assert repository.getFacet().equals(facet);
+
+    return repository;
   }
 
   @Nullable
