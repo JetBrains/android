@@ -28,7 +28,7 @@ class TableEditor(private val lineModel: TableLineModel,
                   rendererProvider: PTableCellRendererProvider,
                   editorProvider: PTableCellEditorProvider) {
 
-  private val table = PTable.create(lineModel.tableModel, rendererProvider, editorProvider)
+  private val table = PTable.create(lineModel.tableModel, lineModel, rendererProvider, editorProvider)
 
   val component = table.component
 
@@ -39,5 +39,8 @@ class TableEditor(private val lineModel: TableLineModel,
   private fun handleValueChanged() {
     component.isVisible = lineModel.visible
     table.filter = lineModel.filter
+    if (lineModel.startEditing) {
+      table.startNextEditor()
+    }
   }
 }

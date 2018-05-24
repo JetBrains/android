@@ -47,6 +47,8 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
       fireValueChanged()
     }
 
+  override var onEnter = { gotoNextLine() }
+
   final override var hasFocus = false
     private set
 
@@ -81,10 +83,7 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
 
   override var lineModel: InspectorLineModel? = null
 
-  open fun enterKeyPressed() {
-    val line = lineModel ?: return
-    line.gotoNextLine(line)
-  }
+  open fun enterKeyPressed() = onEnter()
 
   open fun f1KeyPressed() {
     (property as? HelpSupport)?.help()
@@ -92,6 +91,10 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
 
   open fun shiftF1KeyPressed() {
     (property as? HelpSupport)?.secondaryHelp()
+  }
+
+  override fun cancelEditing() {
+    refresh()
   }
 
   override fun refresh() {
@@ -138,5 +141,10 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
     if (!blockUpdates) {
       valueChangeListeners.forEach { it.valueChanged() }
     }
+  }
+
+  private fun gotoNextLine() {
+    val line = lineModel ?: return
+    line.gotoNextLine(line)
   }
 }

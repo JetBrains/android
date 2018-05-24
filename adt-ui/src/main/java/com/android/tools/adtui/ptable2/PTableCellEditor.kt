@@ -54,6 +54,11 @@ interface PTableCellEditor {
   fun requestFocus()
 
   /**
+   * Editing was cancelled.
+   */
+  fun cancelEditing()
+
+  /**
    * Close is called when the editor is no longer used.
    */
   fun close(oldTable: PTable)
@@ -72,6 +77,8 @@ class DefaultPTableCellEditor : PTableCellEditor {
   override fun toggleValue() {}
 
   override fun requestFocus() {}
+
+  override fun cancelEditing() {}
 
   override fun close(oldTable: PTable) {}
 }
