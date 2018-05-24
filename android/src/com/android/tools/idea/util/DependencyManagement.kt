@@ -23,6 +23,7 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.support.AndroidxName
 import com.android.support.AndroidxNameUtils
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.projectsystem.*
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -51,25 +52,23 @@ fun Module.dependsOn(artifactId: GoogleMavenArtifactId): Boolean {
   return false
 }
 
-fun Module.getDependencies(): Sequence<GoogleMavenArtifactId> {
-  try {
-    return project.getProjectSystem().getModuleSystem(this).getDependencies()
-  }
-  catch (e: DependencyManagementException) {
-    Logger.getInstance(this.javaClass.name).warn(e.message)
-  }
-  return emptySequence()
-}
-
 /**
  * Returns whether this module depends on the new support library artifacts (androidx).
  */
-fun Module.dependsOnAndroidx(): Boolean = this.getDependencies().any { it.mavenGroupId.startsWith(SdkConstants.ANDROIDX_PKG) }
+fun Module.dependsOnAndroidx(): Boolean =
+  GoogleMavenArtifactId.values()
+    .filter { it.mavenGroupId.startsWith(SdkConstants.ANDROIDX_PKG) }
+    .firstOrNull { dependsOn(it) }
+    ?.let { true } ?: false
 
 /**
  * Returns whether this module depends on the old support library artifacts (com.android.support).
  */
-fun Module.dependsOnOldSupportLib(): Boolean = this.getDependencies().any { it.mavenGroupId.startsWith(SdkConstants.SUPPORT_LIB_GROUP_ID) }
+fun Module.dependsOnOldSupportLib(): Boolean =
+  GoogleMavenArtifactId.values()
+    .filter { it.mavenGroupId.startsWith(SdkConstants.SUPPORT_LIB_GROUP_ID) }
+    .firstOrNull { dependsOn(it) }
+    ?.let { true } ?: false
 
 fun Module?.mapAndroidxName(name: AndroidxName): String {
   val dependsOnAndroidx = this?.dependsOnAndroidx() ?: return name.defaultName()

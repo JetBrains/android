@@ -78,9 +78,6 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
         dependenciesByModule.put(module, coordinate)
       }
 
-      override fun getDependencies(): Sequence<GoogleMavenArtifactId> =
-        dependenciesByModule[module].asSequence().mapNotNull { GoogleMavenArtifactId.forCoordinate(it) }
-
       override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? =
         dependenciesByModule[module].firstOrNull { it.matches(coordinate) }
 
