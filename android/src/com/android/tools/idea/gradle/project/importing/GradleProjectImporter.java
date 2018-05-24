@@ -143,7 +143,7 @@ public class GradleProjectImporter {
 
   @NotNull
   private static GradleSyncListener createNewProjectListener(@NotNull VirtualFile projectFolder) {
-    return new GradleSyncListener.Adapter() {
+    return new GradleSyncListener() {
       @Override
       public void syncSucceeded(@NotNull Project project) {
         TransactionGuard.getInstance().submitTransactionLater(project, () -> {

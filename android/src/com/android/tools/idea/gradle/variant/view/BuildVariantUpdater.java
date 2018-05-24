@@ -247,7 +247,7 @@ class BuildVariantUpdater {
   private static void requestGradleSync(@NotNull Project project,
                                         @NotNull Runnable variantSelectionChangeListeners) {
     GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED,
-                                                                          new GradleSyncListener.Adapter() {
+                                                                          new GradleSyncListener() {
                                                                             @Override
                                                                             public void syncSucceeded(@NotNull Project project) {
                                                                               variantSelectionChangeListeners.run();

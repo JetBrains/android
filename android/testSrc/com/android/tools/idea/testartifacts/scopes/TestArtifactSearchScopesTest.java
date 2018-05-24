@@ -138,7 +138,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     appendToFile(virtualToIoFile(buildFile), "\n\ndependencies { compile 'com.google.code.gson:gson:2.2.4' }\n");
 
     CountDownLatch latch = new CountDownLatch(1);
-    GradleSyncListener postSetupListener = new GradleSyncListener.Adapter() {
+    GradleSyncListener postSetupListener = new GradleSyncListener() {
       @Override
       public void syncSucceeded(@NotNull Project project) {
         latch.countDown();

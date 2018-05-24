@@ -369,7 +369,7 @@ public class GradleFiles {
    * Listens for GradleSync events in order to clear the files that have changed and update the
    * file hashes for each of the gradle build files.
    */
-  private class SyncListener extends GradleSyncListener.Adapter {
+  private class SyncListener implements GradleSyncListener {
     @Override
     public void syncStarted(@NotNull Project project, boolean skipped, boolean sourceGenerationRequested) {
       maybeProcessSyncStarted(project);
