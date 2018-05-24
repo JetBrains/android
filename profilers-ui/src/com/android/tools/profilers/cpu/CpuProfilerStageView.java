@@ -544,7 +544,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     InstructionsPanel infoMessage = new InstructionsPanel.Builder(
       new TextInstruction(headerMetrics, "Thread details unavailable"),
       new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-      new TextInstruction(bodyMetrics, "Click the record button to start CPU profiling"),
+      new TextInstruction(bodyMetrics, "Click Record to start capturing CPU activity"),
       new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
       new TextInstruction(bodyMetrics, "or select a capture in the timeline."))
       .setColors(JBColor.foreground(), null)
@@ -843,7 +843,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     assert parent.getLayout().getClass() == TabularLayout.class;
     FontMetrics metrics = SwingUtilities2.getFontMetrics(parent, ProfilerFonts.H2_FONT);
     InstructionsPanel panel =
-      new InstructionsPanel.Builder(new TextInstruction(metrics, "Click the record button to start method profiling"))
+      new InstructionsPanel.Builder(new TextInstruction(metrics, "Click Record to start capturing CPU activity"))
         .setEaseOut(getStage().getInstructionsEaseOutModel(), instructionsPanel -> parent.remove(instructionsPanel))
         .setBackgroundCornerRadius(PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER, PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER)
         .build();
