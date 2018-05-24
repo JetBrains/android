@@ -68,6 +68,20 @@ class MigrateToAndroidxTest : AndroidTestCase() {
       .run(myFixture)
   }
 
+  fun testMigrateClassNamesInXmlAttributes() {
+    AndroidxMigrationBuilder()
+      .withEntry(PackageMigrationEntry("android.support.v7.widget", "androidx.appcompat.widget"))
+      .withEntry(
+        ClassMigrationEntry(
+          "android.support.v4.media.session.MediaButtonReceiver",
+          "androidx.media.session.MediaButtonReceiver"
+        )
+      )
+      .withFileInProject("menu_main.xml", "res/menu/menu_main.xml")
+      .withFileInProject("AndroidManifest.xml", "AndroidManifest.xml")
+      .run(myFixture)
+  }
+
   fun testMigrateBuildDependencies() {
     // test both map notation as well as compact notation
     AndroidxMigrationBuilder()
@@ -103,7 +117,7 @@ class MigrateToAndroidxTest : AndroidTestCase() {
   internal class AndroidxMigrationBuilder {
     val paths = mutableMapOf<String, String>()
     val entries = mutableListOf<AppCompatMigrationEntry>()
-    var versionProvider: ((String,  String,  String) -> String)? = null
+    var versionProvider: ((String, String, String) -> String)? = null
 
     fun withFileInProject(pathRelativeToBase: String, targetPath: String) = apply {
       paths[pathRelativeToBase] = targetPath
@@ -137,7 +151,7 @@ class MigrateToAndroidxTest : AndroidTestCase() {
       }
     }
 
-    fun withVersionProvider(versionProvider: (String,  String,  String) -> String): AndroidxMigrationBuilder {
+    fun withVersionProvider(versionProvider: (String, String, String) -> String): AndroidxMigrationBuilder {
       this.versionProvider = versionProvider
       return this
     }

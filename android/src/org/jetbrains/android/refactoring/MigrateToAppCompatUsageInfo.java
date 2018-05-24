@@ -181,13 +181,16 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
       else {
         final TextRange range = getRangeInElement();
         for (PsiReference reference : element.getReferences()) {
+          if (reference == null) {
+            continue;
+          }
           if (reference instanceof JavaClassReference) {
             final JavaClassReference classReference = (JavaClassReference)reference;
             if (classReference.getRangeInElement().equals(range)) {
               return classReference.bindToElement(aPackage);
             }
           }
-          else if (reference != null && reference.getElement() instanceof XmlTag) {
+          else if (reference.getElement() instanceof XmlTag) {
             XmlTag ref = (XmlTag)reference.getElement();
             String localName = ref.getLocalName();
             if (localName.startsWith(mapEntry.myOldName)) {
@@ -198,9 +201,19 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
               ref.setName(newName);
             }
           }
-          else if (reference != null &&
-                   MigrateToAppCompatUtil.isKotlinSimpleNameReference(reference) &&
-                   (element.getParent() != null && element.getParent().getText().equals(mapEntry.myOldName))) {
+          else if (reference.getElement() instanceof XmlAttributeValue) {
+            PsiElement parent = reference.getElement().getParent();
+            if (parent instanceof XmlAttribute) {
+              XmlAttribute attribute = (XmlAttribute)parent;
+              String oldValue = StringUtil.notNullize(attribute.getValue());
+              if (oldValue.startsWith(mapEntry.myOldName)) {
+                attribute.setValue(oldValue.replace(mapEntry.myOldName, mapEntry.myNewName));
+              }
+            }
+          }
+          else if (MigrateToAppCompatUtil.isKotlinSimpleNameReference(reference) &&
+                   element.getParent() != null &&
+                   element.getParent().getText().equals(mapEntry.myOldName)) {
             // Before changing the package, we verify that this is actually the correct refactoring by seeing
             // if the element matches the old package name. This is a workaround for b/78800780
             return reference.bindToElement(aPackage);
