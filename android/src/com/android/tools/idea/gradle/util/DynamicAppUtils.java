@@ -37,6 +37,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -63,6 +64,9 @@ import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
  * of dynamic apps.
  */
 public class DynamicAppUtils {
+  /** Index for user clicking on the confirm button of the dialog. **/
+  private static final int UPDATE_BUTTON_INDEX = 1;
+
   /**
    * Returns the list of dynamic feature {@link Module modules} that depend on this base module.
    */
@@ -148,7 +152,11 @@ public class DynamicAppUtils {
     return !StringUtil.isEmpty(androidModule.getSelectedVariant().getMainArtifact().getBundleTaskName());
   }
 
-  public static void promptUserForGradleUpdate(@NotNull Project project) {
+  /**
+   * Displays a message prompting user to update their project's gradle in order to use Android App Bundles.
+   * @return {@code true} if user agrees to update, {@code false} if user declines.
+   */
+  public static boolean promptUserForGradleUpdate(@NotNull Project project) {
     HtmlBuilder builder = new HtmlBuilder();
     builder.openHtmlBody();
     builder.add("Building Android App Bundles requires you to update to the latest version of the Android Gradle Plugin.");
@@ -164,20 +172,22 @@ public class DynamicAppUtils {
     builder.newline();
     builder.newline();
     builder.closeHtmlBody();
-    final int updateButtonIndex = 1;
     int result = Messages.showDialog(project,
                                      builder.getHtml(),
                                      "Update the Android Gradle Plugin",
                                      new String[]{Messages.CANCEL_BUTTON, "Update"},
-                                     updateButtonIndex /* Default button */,
+                                     UPDATE_BUTTON_INDEX /* Default button */,
                                      AllIcons.General.WarningDialog);
 
-    if (result == updateButtonIndex) {
-      GradleVersion gradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION);
-      GradleVersion pluginVersion = GradleVersion.parse(AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion());
-      AndroidPluginVersionUpdater updater = AndroidPluginVersionUpdater.getInstance(project);
-      updater.updatePluginVersion(pluginVersion, gradleVersion);
+    if (result == UPDATE_BUTTON_INDEX) {
+      ApplicationManager.getApplication().invokeLater(() -> {
+        GradleVersion gradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION);
+        GradleVersion pluginVersion = GradleVersion.parse(AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion());
+        AndroidPluginVersionUpdater updater = AndroidPluginVersionUpdater.getInstance(project);
+        updater.updatePluginVersion(pluginVersion, gradleVersion);
+      });
     }
+    return result == UPDATE_BUTTON_INDEX;
   }
 
   /**

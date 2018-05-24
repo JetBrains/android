@@ -30,8 +30,11 @@ import com.android.tools.idea.gradle.run.OutputBuildAction;
 import com.android.tools.idea.testing.Facets;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.TestMessagesDialog;
+import com.android.tools.idea.util.FutureUtils;
 import com.google.common.collect.ImmutableList;
+import com.intellij.ide.IdeEventQueue;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
@@ -41,6 +44,8 @@ import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
 import java.util.Collections;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.Projects.getBaseDirPath;
@@ -126,10 +131,12 @@ public class BuildBundleActionTest extends IdeaTestCase {
     myAction.actionPerformed(event);
 
     assertThat(testDialog.getDisplayedMessage()).isEqualTo(getHtmlUpdateMessage());
+    // flush event queue to ensure the update call is processed.
+    IdeEventQueue.getInstance().flushQueue();
     verify(myAndroidPluginVersionUpdater).updatePluginVersion(any(), any());
   }
 
-  public void testUpdateGradlePluginCanceledNotification() {
+  public void testUpdateGradlePluginCanceledNotification() throws InterruptedException {
     Module appModule = createModule("app1");
     setUpModuleAsAndroidModule(appModule, myAndroidModel, myIdeAndroidProject, myIdeVariant, myMainArtifact);
     when(myMainArtifact.getBundleTaskName()).thenReturn(null);
