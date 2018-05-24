@@ -92,10 +92,7 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
     durationLabel.setFont(STATUS_FONT);
     durationLabel
       .setForeground(AdtUiUtils.overlayColor(durationLabel.getBackground().getRGB(), StandardColors.TEXT_COLOR.getRGB(), 0.6f));
-    // Only show duration for non-imported sessions.
-    if (getArtifact().getSessionMetaData().getType() == Common.SessionMetaData.SessionType.FULL) {
-      panel.add(durationLabel, new TabularLayout.Constraint(2, 0, 1, 3));
-    }
+    panel.add(durationLabel, new TabularLayout.Constraint(2, 0, 1, 3));
 
     // TODO (b/78520629) - TabularLayout currently does not account for size of components that span multiple row/column, hence we are
     // inserting a filler to occupy the blank space in 1st row, 3rd col to make sure the dimensions of the session name + duration labels

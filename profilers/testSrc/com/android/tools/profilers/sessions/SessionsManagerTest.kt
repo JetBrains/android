@@ -31,6 +31,7 @@ import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.memory.HprofSessionArtifact
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact
 import com.android.tools.profilers.network.FakeNetworkService
+import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -304,8 +305,10 @@ class SessionsManagerTest {
     var sessionItem1 = sessionItems[1] as SessionItem
     assertThat(sessionItem0.session).isEqualTo(session2)
     assertThat(sessionItem0.timestampNs).isEqualTo(0)
+    assertThat(sessionItem0.childArtifacts).isEmpty()
     assertThat(sessionItem1.session).isEqualTo(session1)
     assertThat(sessionItem1.timestampNs).isEqualTo(0)
+    assertThat(sessionItem1.childArtifacts).isEmpty()
 
     val heapDumpTimestamp = 10L
     val cpuTraceTimestamp = 20L
@@ -337,6 +340,7 @@ class SessionsManagerTest {
 
     assertThat(sessionItem0.session).isEqualTo(session2)
     assertThat(sessionItem0.timestampNs).isEqualTo(0)
+    assertThat(sessionItem0.childArtifacts).containsExactly(legacyAllocationsItem0, cpuCaptureItem0, hprofItem0)
     assertThat(hprofItem0.session).isEqualTo(session2)
     assertThat(hprofItem0.timestampNs).isEqualTo(heapDumpTimestamp - session2Timestamp)
     assertThat(cpuCaptureItem0.session).isEqualTo(session2)
@@ -345,12 +349,30 @@ class SessionsManagerTest {
     assertThat(legacyAllocationsItem0.timestampNs).isEqualTo(legacyAllocationsInfoTimestamp - session2Timestamp)
     assertThat(sessionItem1.session).isEqualTo(session1)
     assertThat(sessionItem1.timestampNs).isEqualTo(0)
+    assertThat(sessionItem1.childArtifacts).containsExactly(legacyAllocationsItem1, cpuCaptureItem1, hprofItem1)
     assertThat(hprofItem1.session).isEqualTo(session1)
     assertThat(hprofItem1.timestampNs).isEqualTo(heapDumpTimestamp - session1Timestamp)
     assertThat(cpuCaptureItem1.session).isEqualTo(session1)
     assertThat(cpuCaptureItem1.timestampNs).isEqualTo(cpuTraceTimestamp - session1Timestamp)
     assertThat(legacyAllocationsItem1.session).isEqualTo(session1)
     assertThat(legacyAllocationsItem1.timestampNs).isEqualTo(legacyAllocationsInfoTimestamp - session1Timestamp)
+  }
+
+  @Test
+  fun testImportedSessionDoesNotHaveChildren() {
+    myManager.createImportedSession("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE, 0, 0, 0)
+    val heapDumpInfo = MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(1).build()
+    myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
+    myManager.createImportedSession("fake.trace", Common.SessionMetaData.SessionType.CPU_CAPTURE, 0, 0, 1)
+    val simpleperfTraceInfo = CpuProfiler.TraceInfo.newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.SIMPLEPERF).build()
+    myCpuService.addTraceInfo(simpleperfTraceInfo)
+    myManager.update()
+
+    Truth.assertThat(myManager.sessionArtifacts.size).isEqualTo(2)
+    val cpuTraceSessionItem = myManager.sessionArtifacts[0] as SessionItem
+    Truth.assertThat(cpuTraceSessionItem.sessionMetaData.type).isEqualTo(Common.SessionMetaData.SessionType.CPU_CAPTURE)
+    val hprofSessionItem = myManager.sessionArtifacts[1] as SessionItem
+    Truth.assertThat(hprofSessionItem.sessionMetaData.type).isEqualTo(Common.SessionMetaData.SessionType.MEMORY_CAPTURE)
   }
 
   @Test
@@ -385,6 +407,7 @@ class SessionsManagerTest {
     assertThat(myObserver.sessionsChangedCount).isEqualTo(3)
   }
 
+  @Test
   fun testDeleteProfilingSession() {
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Common.Process.newBuilder().setPid(10).setDeviceId(1).setState(Common.Process.State.ALIVE).build()
@@ -395,6 +418,8 @@ class SessionsManagerTest {
     myProfilerService.addProcess(device, process2)
     myProfilerService.addProcess(device, process3)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    myProfilers.device = device
+    myProfilers.process = process1
 
     // Create a finished session and a ongoing profiling session.
     myManager.endCurrentSession()

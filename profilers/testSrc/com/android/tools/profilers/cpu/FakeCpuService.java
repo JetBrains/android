@@ -312,6 +312,10 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     myAdditionalTraceInfos.add(infoList);
   }
 
+  public void clearTraceInfo() {
+    myAdditionalTraceInfos.clear();
+  }
+
   @Override
   public void getThreads(CpuProfiler.GetThreadsRequest request, StreamObserver<CpuProfiler.GetThreadsResponse> responseObserver) {
     CpuProfiler.GetThreadsResponse.Builder response = CpuProfiler.GetThreadsResponse.newBuilder();

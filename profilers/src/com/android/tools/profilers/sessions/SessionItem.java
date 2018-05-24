@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.sessions;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profiler.proto.Common;
@@ -24,6 +25,8 @@ import com.android.tools.profilers.StudioMonitorStage;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -36,12 +39,17 @@ public class SessionItem extends AspectModel<SessionItem.Aspect> implements Sess
   }
 
   private static final String SESSION_INITIALIZING = "Starting...";
+  @VisibleForTesting static final String SESSION_LOADING = "Loading...";
 
   @NotNull private final StudioProfilers myProfilers;
   @NotNull private Common.Session mySession;
   @NotNull private final Common.SessionMetaData mySessionMetaData;
   private long myDurationNs;
   private boolean myWaitingForAgent;
+  /**
+   * The list of artifacts (e.g. cpu capture, hprof, etc) that belongs to this session.
+   */
+  @NotNull private List<SessionArtifact> myChildArtifacts = Collections.emptyList();
 
   public SessionItem(@NotNull StudioProfilers profilers, @NotNull Common.Session session, @NotNull Common.SessionMetaData metaData) {
     myProfilers = profilers;
@@ -80,6 +88,12 @@ public class SessionItem extends AspectModel<SessionItem.Aspect> implements Sess
     return mySessionMetaData;
   }
 
+  @VisibleForTesting
+  @NotNull
+  List<SessionArtifact> getChildArtifacts() {
+    return myChildArtifacts;
+  }
+
   @Override
   @NotNull
   public String getName() {
@@ -103,6 +117,16 @@ public class SessionItem extends AspectModel<SessionItem.Aspect> implements Sess
 
   @NotNull
   public String getSubtitle() {
+    if (mySessionMetaData.getType() != Common.SessionMetaData.SessionType.FULL) {
+      if (!myChildArtifacts.isEmpty()) {
+        assert myChildArtifacts.size() == 1;
+        return myChildArtifacts.get(0).getName();
+      }
+      else {
+        return SESSION_LOADING;
+      }
+    }
+
     if (myWaitingForAgent) {
       return SESSION_INITIALIZING;
     }
@@ -124,6 +148,11 @@ public class SessionItem extends AspectModel<SessionItem.Aspect> implements Sess
   public void setSession(@NotNull Common.Session session) {
     assert session.getSessionId() == mySession.getSessionId();
     mySession = session;
+  }
+
+  public void setChildArtifacts(@NotNull List<SessionArtifact> childArtifacts) {
+    myChildArtifacts = childArtifacts;
+    changed(Aspect.MODEL);
   }
 
   @Override
