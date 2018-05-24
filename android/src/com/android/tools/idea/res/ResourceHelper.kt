@@ -62,6 +62,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.*
 import com.intellij.ui.ColorUtil
+import com.intellij.util.text.nullize
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.jetbrains.android.sdk.AndroidPlatform
@@ -942,7 +943,7 @@ fun getNamespaceResolver(element: XmlElement): ResourceNamespace.Resolver {
     // TODO(b/72688160, namespaces): precompute this to avoid the read lock.
     object : ResourceNamespace.Resolver {
       override fun uriToPrefix(namespaceUri: String): String? = withTag { tag -> tag.getPrefixByNamespace(namespaceUri) }
-      override fun prefixToUri(namespacePrefix: String): String? = withTag { tag -> tag.getNamespaceByPrefix(namespacePrefix) }
+      override fun prefixToUri(namespacePrefix: String): String? = withTag { tag -> tag.getNamespaceByPrefix(namespacePrefix).nullize() }
     }
   }
 }

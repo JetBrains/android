@@ -63,6 +63,7 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
       """
         <resources>
           <string name="libString">Hello from lib</string>
+          <attr name="libAttr" format="string" />
         </resources>
       """.trimIndent()
     )
@@ -95,8 +96,41 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
       "/res/layout/layout.xml",
       // language=xml
       """
-        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android">
-          <TextView android:text="@string/appString" />
+        <LinearLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            app:libAttr="layout">
+          <TextView android:text="@string/appString" app:libAttr="view" />
+          <TextView android:text="@string/libString" />
+        </LinearLayout>
+      """.trimIndent()
+    )
+
+    myFixture.addFileToProject(
+      "/res/layout/layout2.xml",
+      // language=xml
+      """
+        <LinearLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            xmlns:existing="http://schemas.android.com/apk/res/com.example.lib"
+            app:libAttr="layout">
+          <TextView android:text="@string/appString" app:libAttr="view" />
+          <TextView android:text="@string/libString" />
+        </LinearLayout>
+      """.trimIndent()
+    )
+
+    myFixture.addFileToProject(
+      "/res/layout/layout3.xml",
+      // language=xml
+      """
+        <LinearLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            xmlns:lib="http://example.com"
+            app:libAttr="layout">
+          <TextView android:text="@string/appString" app:libAttr="view" />
           <TextView android:text="@string/libString" />
         </LinearLayout>
       """.trimIndent()
@@ -108,8 +142,45 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
       "/res/layout/layout.xml",
       // language=xml
       """
-        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android">
-          <TextView android:text="@string/appString" />
+        <LinearLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            xmlns:lib="http://schemas.android.com/apk/res/com.example.lib"
+            lib:libAttr="layout">
+          <TextView android:text="@string/appString" lib:libAttr="view" />
+          <TextView android:text="@com.example.lib:string/libString" />
+        </LinearLayout>
+      """.trimIndent(),
+      true
+    )
+
+    myFixture.checkResult(
+      "/res/layout/layout2.xml",
+      // language=xml
+      """
+        <LinearLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            xmlns:existing="http://schemas.android.com/apk/res/com.example.lib"
+            existing:libAttr="layout">
+          <TextView android:text="@string/appString" existing:libAttr="view" />
+          <TextView android:text="@com.example.lib:string/libString" />
+        </LinearLayout>
+      """.trimIndent(),
+      true
+    )
+
+    myFixture.checkResult(
+      "/res/layout/layout3.xml",
+      // language=xml
+      """
+        <LinearLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            xmlns:lib="http://example.com"
+            xmlns:lib2="http://schemas.android.com/apk/res/com.example.lib"
+            lib2:libAttr="layout">
+          <TextView android:text="@string/appString" lib2:libAttr="view" />
           <TextView android:text="@com.example.lib:string/libString" />
         </LinearLayout>
       """.trimIndent(),
