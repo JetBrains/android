@@ -81,18 +81,8 @@ class HprofSessionArtifactTest {
     val finishedInfo = MemoryProfiler.HeapDumpInfo.newBuilder()
       .setStartTime(TimeUnit.SECONDS.toNanos(5)).setEndTime(TimeUnit.SECONDS.toNanos(10)).build()
 
-    // Date takes in a year value relative to 1900. So a input of 100 should give year 2000.
-    val fakeDateNs = TimeUnit.MILLISECONDS.toNanos(Date(100, 0, 2, 3, 4).time)
-    // This is an invalid case, but we test to make sure the ongoing state of an imported capture is ignored.
-    val ongoingButImportedCaptureArtifact = HprofSessionArtifact(myProfilers,
-                                                                 Common.Session.newBuilder().setStartTimestamp(fakeDateNs).build(),
-                                                                 Common.SessionMetaData.newBuilder().setType(
-                                                                   Common.SessionMetaData.SessionType.MEMORY_CAPTURE).build(),
-                                                                 ongoingInfo)
-    assertThat(ongoingButImportedCaptureArtifact.subtitle).isEqualTo("01/02/2000, 03:04 AM")
-
     val ongoingCaptureArtifact = HprofSessionArtifact(myProfilers,
-                                                      Common.Session.newBuilder().setStartTimestamp(fakeDateNs).build(),
+                                                      Common.Session.getDefaultInstance(),
                                                       Common.SessionMetaData.getDefaultInstance(),
                                                       ongoingInfo)
     assertThat(ongoingCaptureArtifact.subtitle).isEqualTo(SessionArtifact.CAPTURING_SUBTITLE)

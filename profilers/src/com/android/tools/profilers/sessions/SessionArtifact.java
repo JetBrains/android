@@ -23,10 +23,6 @@ import com.android.tools.profilers.StudioProfilers;
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 /**
  * A SessionArtifact is any session-related entity that should show up in the sessions panel as its own row. (e.g. A session, a memory
  * heap dump, a CPU capture, etc).
@@ -78,12 +74,6 @@ public interface SessionArtifact<T extends GeneratedMessageV3> extends Updatable
 
   @Override
   default void update(long elapseNs) {
-  }
-
-  @NotNull
-  static String getDisplayTime(long timeMs) {
-    DateFormat timeFormat = new SimpleDateFormat("MM/dd/yyyy, hh:mm a");
-    return timeFormat.format(new Date(timeMs));
   }
 
   /**
