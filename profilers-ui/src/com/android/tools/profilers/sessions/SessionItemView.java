@@ -17,6 +17,7 @@ package com.android.tools.profilers.sessions;
 
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.stdui.StandardColors;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.ProfilerAction;
@@ -30,12 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
 import java.awt.font.TextAttribute;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 
@@ -65,8 +61,7 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
     JPanel panel = new JPanel(new TabularLayout("Fit,Fit,*", "Fit,Fit,Fit"));
 
     boolean isSessionAlive = SessionsManager.isSessionAlive(getArtifact().getSession());
-    DateFormat timeFormat = new SimpleDateFormat("hh:mm a");
-    JLabel startTime = new JLabel(timeFormat.format(new Date(getArtifact().getSessionMetaData().getStartTimestampEpochMs())));
+    JLabel startTime = new JLabel(TimeFormatter.getLocalizedTime(getArtifact().getSessionMetaData().getStartTimestampEpochMs()));
     startTime.setBorder(LABEL_PADDING);
     startTime.setFont(SESSION_TIME_FONT);
     startTime.setForeground(StandardColors.TEXT_COLOR);

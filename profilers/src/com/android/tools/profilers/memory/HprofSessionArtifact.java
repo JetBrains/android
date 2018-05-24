@@ -85,7 +85,7 @@ public final class HprofSessionArtifact implements SessionArtifact<HeapDumpInfo>
   @NotNull
   public String getSubtitle() {
     if (mySessionMetaData.getType() == Common.SessionMetaData.SessionType.MEMORY_CAPTURE) {
-      return SessionArtifact.getDisplayTime(TimeUnit.NANOSECONDS.toMillis(mySession.getStartTimestamp()));
+      return TimeFormatter.getLocalizedDateTime(TimeUnit.NANOSECONDS.toMillis(mySession.getStartTimestamp()));
     }
     else {
       return isOngoingCapture()
