@@ -22,6 +22,8 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.common.api.DragType;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -35,8 +37,6 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
-import com.android.tools.idea.common.api.DragType;
-import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
@@ -68,9 +68,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_ID;
-import static com.android.SdkConstants.STYLE_RESOURCE_PREFIX;
+import static com.android.SdkConstants.*;
 
 /**
  * Model for an XML file
@@ -156,10 +154,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   public void updateTheme() {
-    String theme = myConfiguration.getTheme();
-    ResourceUrl themeUrl = theme != null ? ResourceUrl.parse(myConfiguration.getTheme()) : null;
-    if (themeUrl != null &&
-        themeUrl.type == ResourceType.STYLE) {
+    ResourceUrl themeUrl = ResourceUrl.parse(myConfiguration.getTheme());
+    if (themeUrl != null && themeUrl.type == ResourceType.STYLE) {
       ResourceResolver resolver = myConfiguration.getResourceResolver();
       if (resolver == null || resolver.getTheme(themeUrl.name, themeUrl.isFramework()) == null) {
         myConfiguration.setTheme(myConfiguration.getConfigurationManager().computePreferredTheme(myConfiguration));
