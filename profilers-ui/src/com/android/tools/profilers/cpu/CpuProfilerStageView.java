@@ -32,6 +32,7 @@ import com.android.tools.adtui.ui.HideablePanel;
 import com.android.tools.profiler.proto.CpuProfiler.TraceInitiationType;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
+import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
 import com.android.tools.profilers.event.*;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.sessions.SessionsManager;
@@ -713,8 +714,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     }
     CpuKernelModel.CpuState state = cpuModel.getElementAt(selectedIndex);
     Range tooltipRange = myStage.getStudioProfilers().getTimeline().getTooltipRange();
-    List<SeriesData<CpuThreadInfo>> process =
-      state.getModel().getSeries().get(0).getDataSeries().getDataForXRange(tooltipRange);
+    List<SeriesData<CpuThreadSliceInfo>> process = state.getModel().getSeries().get(0).getDataSeries().getDataForXRange(tooltipRange);
     if (process.isEmpty()) {
       return;
     }

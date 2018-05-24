@@ -22,6 +22,7 @@ import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.cpu.art.ArtTraceParser;
 import com.android.tools.profilers.cpu.atrace.AtraceDecompressor;
 import com.android.tools.profilers.cpu.atrace.AtraceParser;
+import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
 import com.android.tools.profilers.cpu.simpleperf.SimpleperfTraceParser;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
@@ -224,11 +225,11 @@ public class CpuCaptureParser {
           AtraceParser parser = new AtraceParser(traceFile);
           // Any process matching the application id of the current project will be sorted to
           // the top of our process list.
-          CpuThreadInfo[] processList = parser.getProcessList(myServices.getApplicationId());
-          CpuThreadInfo selected = myServices.openListBoxChooserDialog("Select a process",
-                                              "Select the process you want to analyze.",
-                                              processList,
-                                              (t) -> t.getProcessName());
+          CpuThreadSliceInfo[] processList = parser.getProcessList(myServices.getApplicationId());
+          CpuThreadSliceInfo selected = myServices.openListBoxChooserDialog("Select a process",
+                                                                            "Select the process you want to analyze.",
+                                                                            processList,
+                                                                            (t) -> t.getProcessName());
           if (selected != null) {
             parser.setSelectProcess(selected);
             return parser.parse(traceFile, IMPORTED_TRACE_ID);

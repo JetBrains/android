@@ -21,6 +21,7 @@ import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.FakeTraceParser;
 import com.android.tools.profilers.cpu.art.ArtTraceParser;
 import com.android.tools.profilers.cpu.atrace.AtraceParser;
+import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import com.android.tools.profilers.cpu.simpleperf.SimpleperfTraceParser;
 import com.google.common.collect.ImmutableMap;
@@ -68,28 +69,28 @@ public class CpuCaptureTest {
   }
 
   @Test
-  public void invalidMainName() {
-    CpuThreadInfo info = new CpuThreadInfo(10, "Thread1");
+  public void noMainThreads() {
+    CpuThreadInfo info = new CpuThreadInfo(10, "Thread1", false);
     Range range = new Range(0, 30);
     Map<CpuThreadInfo, CaptureNode> captureTrees =
       new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>().put(info, new CaptureNode(new SingleNameModel("Thread1"))).build();
     CpuCapture capture =
-      new CpuCapture(new FakeTraceParser(range, captureTrees, true), 20, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER, "Invalid");
-    // Test if we don't have a main thread, and we pass in an invalid name we still get a main thread id.
+      new CpuCapture(new FakeTraceParser(range, captureTrees, true), 20, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER);
+    // Test if we don't have an actual main thread, we still get a main thread id.
     assertThat(capture.getMainThreadId()).isEqualTo(10);
     assertThat(capture.getCaptureNode(10).getData().getName()).isEqualTo("Thread1");
   }
 
   @Test
   public void validThreadNameOtherThanMain() {
-    CpuThreadInfo valid = new CpuThreadInfo(10, "Valid");
+    CpuThreadInfo valid = new CpuThreadInfo(10, "Valid", true);
     CpuThreadInfo other = new CpuThreadInfo(11, "Other");
     Range range = new Range(0, 30);
     Map<CpuThreadInfo, CaptureNode> captureTrees =
       new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>().put(valid, new CaptureNode(new SingleNameModel("Valid")))
                                                             .put(other, new CaptureNode(new SingleNameModel("Other"))).build();
     CpuCapture capture =
-      new CpuCapture(new FakeTraceParser(range, captureTrees, true), 20, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER, "Valid");
+      new CpuCapture(new FakeTraceParser(range, captureTrees, true), 20, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER);
     // Test if we don't have a main thread, and we pass in an invalid name we still get a main thread id.
     assertThat(capture.getMainThreadId()).isEqualTo(10);
     assertThat(capture.getCaptureNode(10).getData().getName()).isEqualTo("Valid");
@@ -97,16 +98,16 @@ public class CpuCaptureTest {
 
   @Test
   public void multipleThreadsSameNameGetsCorrectMainThread() {
-    CpuThreadInfo main = new CpuThreadInfo(10, "MainThread", 10, "MainThread");
-    CpuThreadInfo other = new CpuThreadInfo(11, "Other", main.getProcessId(), main.getProcessName());
-    CpuThreadInfo notMain = new CpuThreadInfo(12, "MainThread", main.getProcessId(), main.getProcessName());
+    CpuThreadSliceInfo main = new CpuThreadSliceInfo(10, "MainThread", 10, "MainThread");
+    CpuThreadSliceInfo other = new CpuThreadSliceInfo(11, "Other", main.getProcessId(), main.getProcessName());
+    CpuThreadInfo notMain = new CpuThreadSliceInfo(12, "MainThread", main.getProcessId(), main.getProcessName());
     Range range = new Range(0, 30);
     Map<CpuThreadInfo, CaptureNode> captureTrees =
       new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>().put(notMain, new CaptureNode(new SingleNameModel("MainThread")))
                                                             .put(other, new CaptureNode(new SingleNameModel("Other")))
                                                             .put(main, new CaptureNode(new SingleNameModel("MainThread"))).build();
     CpuCapture capture =
-      new CpuCapture(new FakeTraceParser(range, captureTrees, true), 20, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER, main.getProcessName());
+      new CpuCapture(new FakeTraceParser(range, captureTrees, true), 20, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER);
     // Test if we don't have a main thread, and we pass in an invalid name we still get a main thread id.
     assertThat(capture.getMainThreadId()).isEqualTo(main.getProcessId());
     assertThat(capture.getCaptureNode(main.getProcessId()).getData().getName()).isEqualTo(main.getProcessName());

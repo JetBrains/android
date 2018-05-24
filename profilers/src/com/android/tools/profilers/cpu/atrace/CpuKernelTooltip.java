@@ -21,7 +21,6 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.ProfilerTooltip;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
-import com.android.tools.profilers.cpu.CpuThreadInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,13 +31,13 @@ import java.util.List;
  */
 public class CpuKernelTooltip extends AspectModel<CpuKernelTooltip.Aspect> implements ProfilerTooltip {
   public enum Aspect {
-    // Triggered when the CpuThreadInfo being tracked by the tooltip model changes.
-    CPU_KERNEL_THREAD_INFO,
+    // Triggered when the CpuThreadSliceInfo being tracked by the tooltip model changes.
+    CPU_KERNEL_THREAD_SLICE_INFO,
   }
 
   @NotNull private final CpuProfilerStage myStage;
-  @Nullable private DataSeries<CpuThreadInfo> mySeries;
-  @Nullable private CpuThreadInfo myCpuThreadInfo;
+  @Nullable private DataSeries<CpuThreadSliceInfo> mySeries;
+  @Nullable private CpuThreadSliceInfo myCpuThreadSliceInfo;
   private int myCpuId;
 
   public CpuKernelTooltip(@NotNull CpuProfilerStage stage) {
@@ -56,30 +55,30 @@ public class CpuKernelTooltip extends AspectModel<CpuKernelTooltip.Aspect> imple
    * Called when the tooltip range changes, or when the user mouses over a thread series.
    */
   private void updateState() {
-    myCpuThreadInfo = null;
+    myCpuThreadSliceInfo = null;
     if (mySeries == null) {
-      changed(Aspect.CPU_KERNEL_THREAD_INFO);
+      changed(Aspect.CPU_KERNEL_THREAD_SLICE_INFO);
       return;
     }
 
     Range tooltipRange = myStage.getStudioProfilers().getTimeline().getTooltipRange();
-    List<SeriesData<CpuThreadInfo>> series = mySeries.getDataForXRange(tooltipRange);
-    myCpuThreadInfo = series.isEmpty() ? null : series.get(0).value;
-    if (myCpuThreadInfo == CpuThreadInfo.NULL_THREAD) {
-      myCpuThreadInfo = null;
+    List<SeriesData<CpuThreadSliceInfo>> series = mySeries.getDataForXRange(tooltipRange);
+    myCpuThreadSliceInfo = series.isEmpty() ? null : series.get(0).value;
+    if (myCpuThreadSliceInfo == CpuThreadSliceInfo.NULL_THREAD) {
+      myCpuThreadSliceInfo = null;
     }
-    changed(Aspect.CPU_KERNEL_THREAD_INFO);
+    changed(Aspect.CPU_KERNEL_THREAD_SLICE_INFO);
   }
 
-  public void setCpuSeries(int cpuId, @Nullable DataSeries<CpuThreadInfo> stateSeries) {
+  public void setCpuSeries(int cpuId, @Nullable DataSeries<CpuThreadSliceInfo> stateSeries) {
     mySeries = stateSeries;
     myCpuId = cpuId;
     updateState();
   }
 
   @Nullable
-  public CpuThreadInfo getCpuThreadInfo() {
-    return myCpuThreadInfo;
+  public CpuThreadSliceInfo getCpuThreadSliceInfo() {
+    return myCpuThreadSliceInfo;
   }
 
   public int getCpuId() {

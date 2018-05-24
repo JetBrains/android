@@ -24,6 +24,7 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.*
 import com.android.tools.profilers.cpu.atrace.AtraceParser
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip
+import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -67,25 +68,26 @@ class CpuKernelTooltipViewTest {
 
   @Test
   fun textUpdateOnRangeChange() {
-    val testSeriesData = ArrayList<SeriesData<CpuThreadInfo>>()
-    testSeriesData.add(SeriesData(0, CpuThreadInfo(0, "SomeThread", 0, "MyProcess")))
-    testSeriesData.add(SeriesData(5, CpuThreadInfo.NULL_THREAD))
-    val series = AtraceDataSeries<CpuThreadInfo>(myStage, { _ -> testSeriesData })
+    val testSeriesData = ArrayList<SeriesData<CpuThreadSliceInfo>>()
+    testSeriesData.add(SeriesData(0, CpuThreadSliceInfo(0, "SomeThread", 0, "MyProcess", TimeUnit.SECONDS.toMicros(2))))
+    testSeriesData.add(SeriesData(5, CpuThreadSliceInfo.NULL_THREAD))
+    val series = AtraceDataSeries<CpuThreadSliceInfo>(myStage, { _ -> testSeriesData })
     myRange.set(1.0, 1.0)
     myCpuKernelTooltip.setCpuSeries(1, series)
     val labels = TreeWalker(myCpuKernelTooltipView.tooltipPanel).descendants().filterIsInstance<JLabel>()
-    assertThat(labels.stream().anyMatch({ label -> label.text.equals("00:00.000") })).isTrue()
-    assertThat(labels.stream().anyMatch({ label -> label.text.equals("CPU: 1") })).isTrue()
-    assertThat(labels.stream().anyMatch({ label -> label.text.equals("Thread: SomeThread") })).isTrue()
-    assertThat(labels.stream().anyMatch({ label -> label.text.equals("Process: MyProcess") })).isTrue()
-    assertThat(labels.stream().anyMatch({ label -> label.text.equals("Other (not selectable)") })).isFalse()
+    assertThat(labels).hasSize(5)
+    assertThat(labels[0].text).isEqualTo("00:00.000")
+    assertThat(labels[1].text).isEqualTo("Thread: SomeThread")
+    assertThat(labels[2].text).isEqualTo("Process: MyProcess")
+    assertThat(labels[3].text).isEqualTo("Duration: 2 s")
+    assertThat(labels[4].text).isEqualTo("CPU: 1")
   }
 
   @Test
   fun otherDetailsAppearOnOtherApps() {
-    val testSeriesData = ArrayList<SeriesData<CpuThreadInfo>>()
-    testSeriesData.add(SeriesData(0, CpuThreadInfo(0, "SomeThread", 22, "MyProcess")))
-    val series = AtraceDataSeries<CpuThreadInfo>(myStage, { _ -> testSeriesData })
+    val testSeriesData = ArrayList<SeriesData<CpuThreadSliceInfo>>()
+    testSeriesData.add(SeriesData(0, CpuThreadSliceInfo(0, "SomeThread", 22, "MyProcess")))
+    val series = AtraceDataSeries<CpuThreadSliceInfo>(myStage, { _ -> testSeriesData })
     myRange.set(1.0, 1.0)
     myCpuKernelTooltip.setCpuSeries(1, series)
     val labels = TreeWalker(myCpuKernelTooltipView.tooltipPanel).descendants().filterIsInstance<JLabel>()

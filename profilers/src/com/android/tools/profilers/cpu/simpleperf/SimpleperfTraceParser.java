@@ -122,13 +122,6 @@ public class SimpleperfTraceParser implements TraceParser {
    */
   private String myAppDataFolderPrefix;
 
-  /**
-   * Name of the main thread of the application if it can be inferred from the trace file. The main thread name should match the application
-   * package name. However, native thread names are limited to {@link #THREAD_NAME_CHAR_LIMIT} characters, so the resulting name might be a
-   * substring of the application package name.
-   */
-  private String myMainThreadName;
-
   public SimpleperfTraceParser() {
     myFiles = new HashMap<>();
     mySamples = new ArrayList<>();
@@ -174,12 +167,7 @@ public class SimpleperfTraceParser implements TraceParser {
   public CpuCapture parse(File trace, int traceId) throws IOException {
     parseTraceFile(trace);
     parseSampleData();
-    if (myMainThreadName == null) {
-      return new CpuCapture(this, traceId, CpuProfiler.CpuProfilerType.SIMPLEPERF);
-    }
-    else {
-      return new CpuCapture(this, traceId, CpuProfiler.CpuProfilerType.SIMPLEPERF, myMainThreadName);
-    }
+    return new CpuCapture(this, traceId, CpuProfiler.CpuProfilerType.SIMPLEPERF);
   }
 
   @Override
@@ -190,10 +178,6 @@ public class SimpleperfTraceParser implements TraceParser {
   @Override
   public Map<CpuThreadInfo, CaptureNode> getCaptureTrees() {
     return myCaptureTrees;
-  }
-
-  String getMainThreadName() {
-    return myMainThreadName;
   }
 
   @Override
@@ -371,11 +355,8 @@ public class SimpleperfTraceParser implements TraceParser {
     long firstTimestamp = threadSamples.get(0).getTime();
     String threadName = myThreads.get(threadId);
     CaptureNode root = createCaptureNode(new SingleNameModel(threadName), firstTimestamp);
-    if (isMainThread(threadName)) {
-      myMainThreadName = threadName;
-    }
     root.setDepth(0);
-    myCaptureTrees.put(new CpuThreadInfo(threadId, myThreads.get(threadId)), root);
+    myCaptureTrees.put(new CpuThreadInfo(threadId, myThreads.get(threadId), isMainThread(threadName)), root);
 
     // Parse the first call chain so we have a value for lastCallchain
     List<SimpleperfReport.Sample.CallChainEntry> previousCallChain = Lists.reverse(threadSamples.get(0).getCallchainList());

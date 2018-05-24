@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu.simpleperf;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.cpu.CaptureNode;
+import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import org.junit.Before;
@@ -142,10 +143,6 @@ public class SimpleperfTraceParserTest {
       .findAny()
       .orElse(null);
     assertNotNull(mainThread);
-
-    String mainThreadName = myParser.getMainThreadName();
-    assertNotNull(mainThreadName);
-    assertEquals(mainThreadName, mainThread.getData().getName());
   }
 
   @Test
