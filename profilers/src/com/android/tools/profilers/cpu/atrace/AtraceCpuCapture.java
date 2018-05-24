@@ -68,4 +68,11 @@ public class AtraceCpuCapture extends CpuCapture {
   public int getCpuCount() {
     return myParser.getCpuThreadSliceInfoStates().size();
   }
+
+  /**
+   * @return If the capture is potentially missing data due to the capture buffer being a ring buffer.
+   */
+  public boolean isMissingData() {
+    return myParser.isMissingData();
+  }
 }

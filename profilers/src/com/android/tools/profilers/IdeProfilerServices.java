@@ -152,6 +152,13 @@ public interface IdeProfilerServices {
   void showErrorBalloon(@NotNull String title, @NotNull String body, @Nullable String url, @Nullable String urlText);
 
   /**
+   * Displays a balloon message showing the user a warning balloon.
+   *
+   * See {@link #showErrorBalloon(String, String, String, String)} for argument details.
+   */
+  void showWarningBalloon(@NotNull String title, @NotNull String body, @Nullable String url, @Nullable String urlText);
+
+  /**
    * Wraps the supplied expection in a NoPiiException that is then sent to the crash report.
    * This function should only be called when we are sure there is no PII within the exception message.
    * The NoPiiException uploads the full exception message to the crash report site. This can then be
