@@ -17,16 +17,15 @@ package com.android.tools.idea.startup
 
 import com.android.annotations.VisibleForTesting
 import com.android.annotations.concurrency.GuardedBy
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
 import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.res.ResourceClassRegistry
 import com.android.tools.idea.res.ResourceIdManager
 import com.android.tools.idea.res.ResourceRepositoryManager
-import com.android.tools.idea.util.listenUntilNextSuccessfulSync
 import com.intellij.openapi.components.AbstractProjectComponent
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
 import com.intellij.util.messages.MessageBusConnection
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.android.util.AndroidUtils
@@ -45,19 +44,27 @@ class ClearResourceCacheAfterFirstBuild(project: Project) : AbstractProjectCompo
   @GuardedBy("lock")
   private var errorOccurred = false
   private val callbacks = mutableListOf<CacheClearedCallback>()
-  private lateinit var messageBusConnection: MessageBusConnection
+  private var messageBusConnection: MessageBusConnection? = null
 
   override fun projectOpened() {
-    messageBusConnection = listenUntilNextSuccessfulSync(myProject, listener = object : SyncResultListener {
-      override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
-        if (result.isSuccessful) {
-          syncSucceeded()
+    // Listen for sync results until the first successful project sync.
+    messageBusConnection = myProject.messageBus.connect(myProject).apply {
+      subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : SyncResultListener {
+        override fun syncEnded(result: SyncResult) {
+          if (result.isSuccessful) {
+            if (messageBusConnection != null) {
+              messageBusConnection = null
+              disconnect()
+            }
+
+            syncSucceeded()
+          }
+          else {
+            syncFailed()
+          }
         }
-        else {
-          syncFailed()
-        }
-      }
-    })
+      })
+    }
   }
 
   /**
@@ -75,11 +82,15 @@ class ClearResourceCacheAfterFirstBuild(project: Project) : AbstractProjectCompo
   fun runWhenResourceCacheClean(onCacheClean: Runnable, onSourceGenerationError: Runnable) {
     // There's no need to wait for the first successful project sync this session if the project's sync state
     // is already clean. In this case, we can go ahead and clear the cache and notify callbacks of a success.
-    if (this::messageBusConnection.isInitialized && !Disposer.isDisposed(messageBusConnection) && syncStateClean()) {
-      Disposer.dispose(messageBusConnection)
-      syncSucceeded()
-      onCacheClean.run()
-      return
+    messageBusConnection?.apply {
+      if (syncStateClean()) {
+        messageBusConnection = null
+        disconnect()
+
+        syncSucceeded()
+        onCacheClean.run()
+        return
+      }
     }
 
     val (cacheClean, errorOccurred) = synchronized(lock) {

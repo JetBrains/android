@@ -29,24 +29,19 @@ import com.intellij.util.messages.MessageBusConnection
  * Registers [listener] to be notified of any sync result broadcast on [PROJECT_SYSTEM_SYNC_TOPIC] on [project]'s message bus
  * until the next successful sync completes. The [listener] maintains its subscription to [PROJECT_SYSTEM_SYNC_TOPIC] until either
  *
- * 1) a sync completes successfully and [listener] is notified of the success,
- * 2) [parentDisposable] is disposed, or
- * 3) the [MessageBusConnection] returned by this method is disposed
+ * 1) a sync completes successfully and [listener] is notified of the success, or
+ * 2) [parentDisposable] is disposed
  */
 @JvmOverloads
-fun listenUntilNextSuccessfulSync(project: Project, parentDisposable: Disposable = project, listener: SyncResultListener)
-    : MessageBusConnection {
-
-  val connection = project.messageBus.connect(parentDisposable)
-
-  connection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object: SyncResultListener {
-    override fun syncEnded(result: SyncResult) {
-      if (result.isSuccessful) {
-        Disposer.dispose(connection)
+fun listenUntilNextSuccessfulSync(project: Project, parentDisposable: Disposable = project, listener: SyncResultListener) {
+  project.messageBus.connect(parentDisposable).apply {
+    subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object: SyncResultListener {
+      override fun syncEnded(result: SyncResult) {
+        if (result.isSuccessful) {
+          disconnect()
+        }
+        listener.syncEnded(result)
       }
-      listener.syncEnded(result)
-    }
-  })
-
-  return connection
+    })
+  }
 }

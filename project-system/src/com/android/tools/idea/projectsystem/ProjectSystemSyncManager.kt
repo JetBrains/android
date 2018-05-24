@@ -17,13 +17,8 @@
 
 package com.android.tools.idea.projectsystem
 
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
 import com.google.common.util.concurrent.ListenableFuture
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
-import com.intellij.util.messages.MessageBusConnection
 import com.intellij.util.messages.Topic
 
 /**
@@ -117,25 +112,3 @@ interface ProjectSystemSyncManager {
 
 /** Endpoint for broadcasting changes in global sync status */
 @JvmField val PROJECT_SYSTEM_SYNC_TOPIC = Topic<SyncResultListener>("Project sync", SyncResultListener::class.java)
-
-/**
- * Registers [listener] to be notified of the next sync result broadcast on [PROJECT_SYSTEM_SYNC_TOPIC] on
- * [project]'s message bus. The [listener] maintains its subscription to [PROJECT_SYSTEM_SYNC_TOPIC] until either
- *
- * 1) a sync completes and [listener] receives the result,
- * 2) [parentDisposable] is disposed, or
- * 3) the [MessageBusConnection] returned by this method is disposed
- */
-@JvmOverloads
-fun listenForNextSyncResult(project: Project, parentDisposable: Disposable = project, listener: SyncResultListener): MessageBusConnection {
-  val connection = project.messageBus.connect(parentDisposable)
-
-  connection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object: SyncResultListener {
-    override fun syncEnded(result: SyncResult) {
-      Disposer.dispose(connection)
-      listener.syncEnded(result)
-    }
-  })
-
-  return connection
-}
