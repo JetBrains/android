@@ -97,6 +97,10 @@ open class PTableImpl(tableModel: PTableModel,
     return super.getValueAt(row, 0) as PTableItem
   }
 
+  override fun isExpanded(item: PTableGroupItem): Boolean {
+    return model.isExpanded(item)
+  }
+
   override fun getModel(): PTableModelImpl {
     return super.getModel() as PTableModelImpl
   }

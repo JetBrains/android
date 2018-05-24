@@ -57,8 +57,6 @@ class TableLineModelTest {
   fun testMatchIncludesGroupItemsWhenGroupsAreExpanded() {
     val test = TableTest(true)
     val model = TableLineModel(test.model, true)
-    test.group1.expanded = true
-    test.group2.expanded = true
     model.filter = "to"
     test.applyTableLineModel(model)
     assertThat(test.table.itemCount).isEqualTo(6)
@@ -71,8 +69,8 @@ class TableLineModelTest {
   }
 
   class TableTest(expanded: Boolean = false) {
-    val group1: PTableGroupItem = GroupItem("border", mapOf("left" to "4", "right" to "4", "top" to "8", "bottom" to "8"))
-    val group2: PTableGroupItem = GroupItem("group2", mapOf("size" to "4dp", "tone" to "C"))
+    private val group1: PTableGroupItem = GroupItem("border", mapOf("left" to "4", "right" to "4", "top" to "8", "bottom" to "8"))
+    private val group2: PTableGroupItem = GroupItem("group2", mapOf("size" to "4dp", "tone" to "C"))
     val model = makeTableModel(expanded, mapOf("color" to "blue", "topText" to "Hello", "container" to "id2"), listOf(group1, group2))
     val table = PTable.create(model)
 
@@ -102,7 +100,6 @@ class TableLineModelTest {
 
     private class GroupItem(override val name: String, items: Map<String, String>): PTableGroupItem {
       override val value: String? = null
-      override var expanded = true
       override val children = items.map { (name, value) -> TableItem(name, value) }
     }
   }

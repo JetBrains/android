@@ -30,6 +30,7 @@ interface PTable {
   var filter: String
 
   fun item(row: Int): PTableItem
+  fun isExpanded(item: PTableGroupItem): Boolean
 
   companion object {
     fun create(tableModel: PTableModel,

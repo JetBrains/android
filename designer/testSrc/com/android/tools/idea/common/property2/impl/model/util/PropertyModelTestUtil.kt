@@ -66,7 +66,6 @@ object PropertyModelTestUtil {
   fun makeFlagsProperty(propertyName: String, flagNames: List<String>, values: List<Int>): FlagsPropertyItem<FlagPropertyItem> {
     require(flagNames.size == values.size)
     val property = object : FlagsPropertyItem<FlagPropertyItem> {
-      override var expanded = true
       override val namespace = ANDROID_URI
       override val name = propertyName
       override val children = mutableListOf<FlagPropertyItem>()
