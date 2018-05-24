@@ -575,17 +575,17 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     myMinSdkVersion = null;
   }
 
+  @VisibleForTesting
   @NotNull
-  private String findVariantToSelect(@NotNull String variantName) {
-    Collection<String> variantNames = getVariantNames();
+  String findVariantToSelect(@NotNull String variantName) {
     String newVariantName;
-    if (variantNames.contains(variantName)) {
+    if (myVariantsByName.containsKey(variantName)) {
       newVariantName = variantName;
     }
     else {
-      List<String> sorted = new ArrayList<>(variantNames);
+      List<String> sorted = new ArrayList<>(myVariantsByName.keySet());
       Collections.sort(sorted);
-      // AndroidProject has always at least 2 variants (debug and release.)
+      assert !myVariantsByName.isEmpty() : "There is no variant model in AndroidModuleModel!";
       newVariantName = sorted.get(0);
     }
     return newVariantName;
