@@ -70,19 +70,32 @@ class CpuThreadsTooltipViewTest {
 
     cpuThreadsTooltip.setThread("myThread", threadSeries)
     var labels = TreeWalker(cpuThreadsTooltipView.tooltipPanel).descendants().filterIsInstance<JLabel>()
-    assertThat(labels.stream().anyMatch({ label -> label.text.equals("00:01.000") })).isTrue()
-    assertThat(labels.stream().anyMatch({ label -> label.text.equals("Running") })).isTrue()
-    assertThat(labels.stream().anyMatch({ label -> label.text.equals("Thread: myThread") })).isTrue()
-    assertThat(labels.stream().anyMatch({ label -> label.text.equals("Details Unavailable") })).isTrue()
+    assertThat(labels).hasSize(5) // time, name, state, duration, details unavailable
+    assertThat(labels[0].text).isEqualTo("00:01.000")
+    assertThat(labels[1].text).isEqualTo("Thread: myThread")
+    assertThat(labels[2].text).isEqualTo("Running")
+    assertThat(labels[3].text).isEqualTo("7 s") // 1 to 8 seconds
+    assertThat(labels[4].text).isEqualTo("Details Unavailable")
+
+    var tooltipTime = TimeUnit.SECONDS.toMicros(9) // Should be the last state. Duration is unavailable.
+    cpuStage.studioProfilers.timeline.tooltipRange.set(tooltipTime.toDouble(), tooltipTime.toDouble())
+    labels = TreeWalker(cpuThreadsTooltipView.tooltipPanel).descendants().filterIsInstance<JLabel>()
+    assertThat(labels).hasSize(4) // time, name, state, details unavailable
+    assertThat(labels[0].text).isEqualTo("00:09.000")
+    assertThat(labels[1].text).isEqualTo("Thread: myThread")
+    assertThat(labels[2].text).isEqualTo("Dead")
+    assertThat(labels[3].text).isEqualTo("Details Unavailable")
+
     threadSeries = ThreadStateDataSeries(cpuStage, ProfilersTestData.SESSION_DATA, 3)
-    val tooltipTime = TimeUnit.SECONDS.toMicros(3)
+    tooltipTime = TimeUnit.SECONDS.toMicros(3) // Should be a captured state.
     cpuStage.studioProfilers.timeline.tooltipRange.set(tooltipTime.toDouble(), tooltipTime.toDouble())
     cpuThreadsTooltip.setThread("newThread", threadSeries)
     labels = TreeWalker(cpuThreadsTooltipView.tooltipPanel).descendants().filterIsInstance<JLabel>()
-    assertThat(labels.stream().anyMatch({ label -> label.text.equals("00:03.000") })).isTrue()
-    assertThat(labels.stream().anyMatch({ label -> label.text.equals("Sleeping") })).isTrue()
-    assertThat(labels.stream().anyMatch({ label -> label.text.equals("Thread: newThread") })).isTrue()
-    assertThat(labels.stream().anyMatch({ label -> label.text.equals("Details Unavailable") })).isFalse()
+    assertThat(labels).hasSize(4) // time, name, state, duration
+    assertThat(labels[0].text).isEqualTo("00:03.000")
+    assertThat(labels[1].text).isEqualTo("Thread: newThread")
+    assertThat(labels[2].text).isEqualTo("Sleeping")
+    assertThat(labels[3].text).isEqualTo("2 s") // 2 to 4 seconds
   }
 
   private class FakeCpuThreadsTooltipView(

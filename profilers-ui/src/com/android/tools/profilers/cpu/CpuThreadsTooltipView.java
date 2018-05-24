@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.ProfilerTooltipView;
@@ -33,6 +34,7 @@ public class CpuThreadsTooltipView extends ProfilerTooltipView {
   @NotNull private final JPanel myContent;
   @NotNull private final JLabel myLabel;
   @NotNull private final JLabel myState;
+  @NotNull private final JLabel myDuration;
   @NotNull private final JPanel myUnavailableDetails;
 
   protected CpuThreadsTooltipView(@NotNull CpuProfilerStageView view, @NotNull CpuThreadsTooltip tooltip) {
@@ -40,12 +42,9 @@ public class CpuThreadsTooltipView extends ProfilerTooltipView {
     myTimeline = view.getTimeline();
     myTooltip = tooltip;
     myContent = new JPanel();
-    myLabel = new JLabel();
-    myLabel.setFont(TOOLTIP_BODY_FONT);
-    myLabel.setForeground(ProfilerColors.TOOLTIP_TEXT);
-    myState = new JLabel();
-    myState.setFont(TOOLTIP_BODY_FONT);
-    myState.setForeground(ProfilerColors.TOOLTIP_TEXT);
+    myLabel = createTooltipLabel();
+    myState = createTooltipLabel();
+    myDuration = createTooltipLabel();
     myUnavailableDetails = new JPanel(new TabularLayout("*", "Fit,Fit"));
     tooltip.addDependency(this).onChange(CpuThreadsTooltip.Aspect.THREAD_STATE, this::stateChanged);
   }
@@ -66,11 +65,18 @@ public class CpuThreadsTooltipView extends ProfilerTooltipView {
     String title = myTooltip.getThreadName() != null ? myTooltip.getThreadName() : "CPU";
     myLabel.setText(String.format("Thread: %s", title));
     myContent.add(myLabel, new TabularLayout.Constraint(0, 0));
+
     if (myTooltip.getThreadState() != null) {
       myState.setText(threadStateToString(myTooltip.getThreadState()));
       myContent.add(myState, new TabularLayout.Constraint(2, 0));
+
+      if (myTooltip.getDurationUs() > 0) {
+        myDuration.setText(TimeFormatter.getSingleUnitDurationString(myTooltip.getDurationUs()));
+        myContent.add(myDuration, new TabularLayout.Constraint(4, 0));
+      }
+
       if (!threadStateIsCaptured(myTooltip.getThreadState())) {
-        myContent.add(myUnavailableDetails, new TabularLayout.Constraint(3, 0));
+        myContent.add(myUnavailableDetails, new TabularLayout.Constraint(5, 0));
       }
     }
   }
@@ -78,7 +84,7 @@ public class CpuThreadsTooltipView extends ProfilerTooltipView {
   @NotNull
   @Override
   protected JComponent createTooltip() {
-    myContent.setLayout(new TabularLayout("*", "Fit-,8px,Fit"));
+    myContent.setLayout(new TabularLayout("*", "Fit-,8px,Fit-,8px,Fit"));
     JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
     separator.setBorder(JBUI.Borders.empty(8, 0));
     myUnavailableDetails.add(separator, new TabularLayout.Constraint(0, 0));

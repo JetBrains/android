@@ -28,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 
+import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_BODY_FONT;
 import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_HEADER_FONT;
 
 public abstract class ProfilerTooltipView extends AspectObserver {
@@ -66,6 +67,13 @@ public abstract class ProfilerTooltipView extends AspectObserver {
 
   @NotNull
   protected abstract JComponent createTooltip();
+
+  protected static JLabel createTooltipLabel() {
+    JLabel label = new JLabel();
+    label.setFont(TOOLTIP_BODY_FONT);
+    label.setForeground(ProfilerColors.TOOLTIP_TEXT);
+    return label;
+  }
 
   public final JComponent createComponent() {
     TooltipPanel tooltipPanel = new TooltipPanel(new TabularLayout("Fit", "Fit-,8px,Fit"));
