@@ -81,7 +81,7 @@ public final class DependencyNodes {
     declared.addAll(otherUnrecognised);
 
     for (PsDependency dependency : declared) {
-      AbstractDependencyNode<?> child = AbstractDependencyNode.createNode(parent, collection, dependency);
+      AbstractDependencyNode<?> child = AbstractDependencyNode.Companion.createNode(parent, collection, dependency);
       if (child != null) {
         children.add(child);
       }
