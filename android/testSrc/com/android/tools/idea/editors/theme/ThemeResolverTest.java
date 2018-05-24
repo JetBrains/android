@@ -15,22 +15,32 @@
  */
 package com.android.tools.idea.editors.theme;
 
+import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.StyleItemResourceValue;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
+import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.PlatformTestUtil;
 import org.jetbrains.android.AndroidTestCase;
 
 import java.io.IOException;
 
+import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class ThemeResolverTest extends AndroidTestCase {
@@ -39,8 +49,8 @@ public class ThemeResolverTest extends AndroidTestCase {
    */
 
   public void testFrameworkThemeRead() {
-    VirtualFile myLayout = myFixture.copyFileToProject("xmlpull/layout.xml", "res/layout/layout1.xml");
-    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(myLayout);
+    VirtualFile layoutFile = myFixture.copyFileToProject("xmlpull/layout.xml", "res/layout/layout1.xml");
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layoutFile);
     ThemeResolver themeResolver = new ThemeResolver(configuration);
 
     // It's system theme and we're not specifying namespace so it will fail.
@@ -66,11 +76,11 @@ public class ThemeResolverTest extends AndroidTestCase {
   }
 
   private void doTestLocalThemes() throws IOException {
-    VirtualFile myLayout = myFixture.copyFileToProject("themeEditor/layout.xml", "res/layout/layout.xml");
-    VirtualFile myStyleFile = myFixture.copyFileToProject("themeEditor/styles.xml", "res/values/styles.xml");
+    VirtualFile layoutFile = myFixture.copyFileToProject("themeEditor/layout.xml", "res/layout/layout.xml");
+    VirtualFile styleFile = myFixture.copyFileToProject("themeEditor/styles.xml", "res/values/styles.xml");
 
     ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
-    Configuration configuration = configurationManager.getConfiguration(myLayout);
+    Configuration configuration = configurationManager.getConfiguration(layoutFile);
     ThemeResolver themeResolver = new ThemeResolver(configuration);
 
     assertEquals(1, themeResolver.getLocalThemes().size()); // There are no libraries, so this will only include the project theme.
@@ -93,14 +103,14 @@ public class ThemeResolverTest extends AndroidTestCase {
     // Modify a value.
     theme.setValue("android:windowBackground", "@drawable/other");
     FileDocumentManager.getInstance().saveAllDocuments();
-    assertFalse(new String(myStyleFile.contentsToByteArray(), UTF_8).contains("@drawable/pic"));
-    assertTrue(new String(myStyleFile.contentsToByteArray(), UTF_8).contains("@drawable/other"));
+    assertFalse(new String(styleFile.contentsToByteArray(), UTF_8).contains("@drawable/pic"));
+    assertTrue(new String(styleFile.contentsToByteArray(), UTF_8).contains("@drawable/other"));
 
     // Add a value.
     theme.setValue("android:windowBackground2", "@drawable/second_background");
     FileDocumentManager.getInstance().saveAllDocuments();
-    assertTrue(new String(myStyleFile.contentsToByteArray(), UTF_8).contains("@drawable/other"));
-    assertTrue(new String(myStyleFile.contentsToByteArray(), UTF_8).contains("@drawable/second_background"));
+    assertTrue(new String(styleFile.contentsToByteArray(), UTF_8).contains("@drawable/other"));
+    assertTrue(new String(styleFile.contentsToByteArray(), UTF_8).contains("@drawable/second_background"));
   }
 
   /** Check that, after a configuration update, the resolver updates the list of themes */
@@ -119,14 +129,54 @@ public class ThemeResolverTest extends AndroidTestCase {
     assertNotNull(resolver.getTheme(ResourceReference.style(moduleNamespace, "V19OnlyTheme")));
     assertNotNull(resolver.getTheme(ResourceReference.style(moduleNamespace, "V17OnlyTheme")));
 
-    // Set API level 17 and check that only the V17 theme can be resolved
+    // Set API level 17 and check that only the V17 theme can be resolved.
     //noinspection ConstantConditions
-    configuration
-      .setTarget(new CompatibilityRenderTarget(configurationManager.getHighestApiTarget(), 17, null));
+    configuration.setTarget(new CompatibilityRenderTarget(configurationManager.getHighestApiTarget(), 17, null));
     context = new ThemeEditorContext(configuration);
     resolver = context.getThemeResolver();
     assertNull(resolver.getTheme(ResourceReference.style(moduleNamespace, "V20OnlyTheme")));
     assertNull(resolver.getTheme(ResourceReference.style(moduleNamespace, "V19OnlyTheme")));
     assertNotNull(resolver.getTheme(ResourceReference.style(moduleNamespace, "V17OnlyTheme")));
+  }
+
+  public void testRecommendedThemesNoDependencies() {
+    VirtualFile layoutFile = myFixture.copyFileToProject("themeEditor/layout.xml", "res/layout/layout.xml");
+    ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
+    Configuration configuration = configurationManager.getConfiguration(layoutFile);
+    ThemeResolver themeResolver = new ThemeResolver(configuration);
+    assertThat(themeResolver.getRecommendedThemes()).containsExactly(
+        ResourceReference.style(ResourceNamespace.ANDROID, "Theme.Material.Light.NoActionBar"),
+        ResourceReference.style(ResourceNamespace.ANDROID, "Theme.Material.NoActionBar"));
+  }
+
+  public void testRecommendedThemesAppcompat() {
+    doTestRecommendedThemesAppcompat();
+  }
+
+  public void testRecommendedThemesAppcompatNamespaced() {
+    enableNamespacing("com.example.app");
+    doTestRecommendedThemesAppcompat();
+  }
+
+  private void doTestRecommendedThemesAppcompat() {
+    TestProjectSystem projectSystem =
+        new TestProjectSystem(getProject(), ImmutableList.of(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7.getCoordinate("+")));
+    ExtensionPointName<AndroidProjectSystemProvider> epName = new ExtensionPointName<>("com.android.project.projectsystem");
+    PlatformTestUtil.registerExtension(Extensions.getArea(getProject()), epName, projectSystem, getTestRootDisposable());
+    projectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7, myModule, new GradleVersion(1337, 600613));
+
+    ResourceNamespace appcompatNamespace =
+        ResourceRepositoryManager.getOrCreateInstance(myModule).getNamespacing() == AaptOptions.Namespacing.DISABLED
+        ? ResourceNamespace.RES_AUTO
+        : ResourceNamespace.APPCOMPAT;
+    VirtualFile layoutFile = myFixture.copyFileToProject("themeEditor/layout.xml", "res/layout/layout.xml");
+    ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
+    Configuration configuration = configurationManager.getConfiguration(layoutFile);
+    ThemeResolver themeResolver = new ThemeResolver(configuration);
+    assertThat(themeResolver.getRecommendedThemes()).containsExactly(
+      ResourceReference.style(ResourceNamespace.ANDROID, "Theme.Material.Light.NoActionBar"),
+      ResourceReference.style(ResourceNamespace.ANDROID, "Theme.Material.NoActionBar"),
+      ResourceReference.style(appcompatNamespace, "Theme.AppCompat.Light.NoActionBar"),
+      ResourceReference.style(appcompatNamespace, "Theme.AppCompat.NoActionBar"));
   }
 }

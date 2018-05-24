@@ -93,9 +93,9 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     myExcludedThemes = excludedThemes;
 
     ThemeResolver themeResolver = new ThemeResolver(configuration);
-    myFrameworkThemes = ThemeUtils.getFrameworkThemes(themeResolver, myExcludedThemes);
-    myProjectThemes = ThemeUtils.getProjectThemes(themeResolver, myExcludedThemes);
-    myLibraryThemes = ThemeUtils.getLibraryThemes(themeResolver, myExcludedThemes);
+    myFrameworkThemes = ThemeUtils.getFrameworkThemeNames(themeResolver, myExcludedThemes);
+    myProjectThemes = ThemeUtils.getProjectThemeNames(themeResolver, myExcludedThemes);
+    myLibraryThemes = ThemeUtils.getLibraryThemeNames(themeResolver, myExcludedThemes);
 
     String currentTheme = configuration.getTheme();
     if (currentTheme != null) {
