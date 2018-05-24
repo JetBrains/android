@@ -16,6 +16,5 @@
 package com.android.tools.adtui.ptable2
 
 interface PTableGroupItem : PTableItem {
-  var expanded: Boolean
   val children: List<PTableItem>
 }

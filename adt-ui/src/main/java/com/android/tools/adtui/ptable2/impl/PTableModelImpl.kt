@@ -25,7 +25,8 @@ import javax.swing.table.AbstractTableModel
  * A table model implementation for a JTable.
  */
 class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
-  val items = mutableListOf<PTableItem>()
+  private val items = mutableListOf<PTableItem>()
+  private val expandedItems = mutableSetOf<PTableGroupItem>()
 
   init {
     items.addAll(tableModel.items)
@@ -45,9 +46,13 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
     return item is PTableGroupItem
   }
 
+  fun isExpanded(item: PTableGroupItem): Boolean {
+    return expandedItems.contains(item)
+  }
+
   fun toggle(index: Int) {
     val item = groupAt(index) ?: return
-    if (item.expanded) {
+    if (expandedItems.contains(item)) {
       collapse(item, index)
     }
     else {
@@ -74,20 +79,16 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
   }
 
   private fun expand(item: PTableGroupItem, index: Int) {
-    if (item.expanded) {
-      return
+    if (expandedItems.add(item)) {
+      items.addAll(index + 1, item.children)
+      fireTableDataChanged()
     }
-    item.expanded = true
-    items.addAll(index + 1, item.children)
-    fireTableDataChanged()
   }
 
   private fun collapse(item: PTableGroupItem, row: Int) {
-    if (!item.expanded) {
-      return
+    if (expandedItems.remove(item)) {
+      items.subList(row + 1, row + 1 + item.children.size).clear()
+      fireTableDataChanged()
     }
-    item.expanded = false
-    items.subList(row + 1, row + 1 + item.children.size).clear()
-    fireTableDataChanged()
   }
 }

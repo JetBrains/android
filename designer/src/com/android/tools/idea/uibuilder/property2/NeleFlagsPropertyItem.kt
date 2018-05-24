@@ -88,8 +88,6 @@ class NeleFlagsPropertyItem(
     return children.find { it.name == itemName } ?: throw IllegalArgumentException(itemName)
   }
 
-  override var expanded: Boolean = false
-
   fun isFlagSet(flag: NeleFlagPropertyItem) = lastValues.contains(flag.name)
 
   fun setFlag(flag: NeleFlagPropertyItem, on: Boolean) {

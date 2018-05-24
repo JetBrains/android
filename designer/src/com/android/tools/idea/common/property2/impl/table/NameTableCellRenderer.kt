@@ -43,7 +43,7 @@ class NameTableCellRenderer : SimpleColoredComponent(), PTableCellRenderer {
     setFocusBorderAroundIcon(true)
     var indent = leftIconArea
     if (item is PTableGroupItem) {
-      icon = UIUtil.getTreeNodeIcon(item.expanded, isSelected, hasFocus)
+      icon = UIUtil.getTreeNodeIcon(table.isExpanded(item), isSelected, hasFocus)
       indent = max(iconCenterXPos - icon.iconWidth / 2, minSpacing)
       iconTextGap = max(leftIconArea - indent - icon.iconWidth, minSpacing)
     }
