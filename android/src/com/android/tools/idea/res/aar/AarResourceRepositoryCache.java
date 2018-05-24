@@ -17,6 +17,7 @@ package com.android.tools.idea.res.aar;
 
 import com.android.builder.model.AaptOptions;
 import com.android.tools.idea.res.FileResourceRepository;
+import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.UncheckedExecutionException;
@@ -72,7 +73,8 @@ public final class AarResourceRepositoryCache {
       }
       return aarRepository;
     }
-    catch (ExecutionException e) {
+    catch (ExecutionException | UncheckedExecutionException e) {
+      Throwables.throwIfUnchecked(e.getCause());
       throw new UncheckedExecutionException(e.getCause());
     }
   }
