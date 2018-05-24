@@ -109,11 +109,8 @@ public class GradleFiles {
 
     GradleSyncState.subscribe(myProject, mySyncListener);
     // Populate build file hashes on creation.
-    if (myProject.isInitialized()) {
-      updateFileHashes();
-    }
-    else if (!myProject.isDefault()) {
-      StartupManager.getInstance(myProject).registerPostStartupActivity(this::updateFileHashes);
+    if (!myProject.isDefault()) {
+      StartupManager.getInstance(myProject).runWhenProjectIsInitialized(this::updateFileHashes);
     }
   }
 
