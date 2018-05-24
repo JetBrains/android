@@ -31,6 +31,7 @@ public class DurationDataModel<E extends DurationData> extends AspectModel<Durat
 
   public DurationDataModel(@NotNull RangedSeries<E> series) {
     mySeries = series;
+    mySeries.getXRange().addDependency(this).onChange(Range.Aspect.RANGE, () -> changed(Aspect.DURATION_DATA));
   }
 
   @NotNull
