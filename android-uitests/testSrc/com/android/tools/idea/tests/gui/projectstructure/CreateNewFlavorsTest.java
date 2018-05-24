@@ -66,7 +66,7 @@ public class CreateNewFlavorsTest {
    *   set in the project structure flavor dialog
    * </pre>
    */
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void createNewFlavors() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
