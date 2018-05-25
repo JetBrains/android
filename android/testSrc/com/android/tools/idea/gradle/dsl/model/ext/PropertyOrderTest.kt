@@ -1221,4 +1221,24 @@ class PropertyOrderTest : GradleFileModelTestCase() {
                    }""".trimIndent()
     verifyFileContents(myBuildFile, expected)
   }
+
+  @Test
+  fun testExtReferenceToVar() {
+    val text = """
+              ext.deps = [:]
+              def deps  = [:]
+              def support = [:]
+              support.app_compat = "com.android.support:appcompat-v7:1.0"
+              deps.support = support
+
+              ext.deps = deps
+              ext.value = ext.deps.support.app_compat
+               """.trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    val propertyModel = buildModel.ext().findProperty("value")
+    verifyPropertyModel(propertyModel.resolve(), STRING_TYPE, "com.android.support:appcompat-v7:1.0", STRING, REGULAR, 1)
+  }
 }
