@@ -62,7 +62,7 @@ public class DeployTargetPickerDialogFixture extends ComponentFixture<DeployTarg
       protected boolean isMatching(@NotNull AnimatedIcon component) {
         return component.isRunning();
       }
-    }, 10);
+    }, 30);
     return new DeployTargetPickerDialogFixture(robot, (JDialog)dialog);
   }
 
