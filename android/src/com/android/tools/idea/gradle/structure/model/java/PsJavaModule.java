@@ -101,7 +101,7 @@ public class PsJavaModule extends PsModule {
     // Reset dependencies.
     myDependencyCollection = null;
 
-    PsArtifactDependencySpec spec = PsArtifactDependencySpec.create(library);
+    PsArtifactDependencySpec spec = PsArtifactDependencySpec.Companion.create(library);
     assert spec != null;
     fireLibraryDependencyAddedEvent(spec);
     setModified(true);

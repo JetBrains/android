@@ -46,7 +46,7 @@ class PsJavaDependencyCollection implements PsModelCollection<PsJavaDependency> 
     for (JarLibraryDependency libraryDependency : gradleModel.getJarLibraryDependencies()) {
       GradleModuleVersion moduleVersion = libraryDependency.getModuleVersion();
       if (moduleVersion != null) {
-        PsArtifactDependencySpec spec = PsArtifactDependencySpec.create(moduleVersion);
+        PsArtifactDependencySpec spec = PsArtifactDependencySpec.Companion.create(moduleVersion);
         List<ArtifactDependencyModel>
           parsed = parsedDependencies.findLibraryDependencies(moduleVersion.getGroup(), moduleVersion.getName());
         if (!parsed.isEmpty()) {

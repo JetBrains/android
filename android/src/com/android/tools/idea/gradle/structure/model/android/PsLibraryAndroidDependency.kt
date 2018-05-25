@@ -42,9 +42,9 @@ open class PsDeclaredLibraryAndroidDependency(
   private val groupResolvedProperty = parsedModel.group()
   private val versionResolvedProperty = parsedModel.version()
   override val spec: PsArtifactDependencySpec
-    get() = PsArtifactDependencySpec(
-      nameResolvedProperty.forceString(),
+    get() = PsArtifactDependencySpec.create(
       groupResolvedProperty.toString(),
+      nameResolvedProperty.forceString(),
       versionResolvedProperty.toString()
     )
   override val resolvedModel: Any? = null
