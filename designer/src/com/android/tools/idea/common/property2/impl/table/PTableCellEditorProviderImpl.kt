@@ -19,7 +19,6 @@ import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.adtui.ptable2.*
 import com.android.tools.idea.common.property2.api.*
 import com.android.tools.idea.common.property2.impl.model.TableLineModel
-import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import javax.swing.JComponent
@@ -84,7 +83,7 @@ class PTableCellEditorImpl<in P : PropertyItem>(
     val (newModel, newEditor) = editorProvider.createEditor(newProperty, asTableCellEditor = true)
     val panel = AdtSecondaryPanel(BorderLayout())
     panel.add(newEditor, BorderLayout.CENTER)
-    panel.border = JBUI.Borders.customLine(JBColor.border(), 0, 1, 0, 0)
+    panel.border = JBUI.Borders.customLine(newTable.gridLineColor, 0, 1, 0, 0)
     newModel.onEnter = { startNextEditor() }
 
     property = newProperty

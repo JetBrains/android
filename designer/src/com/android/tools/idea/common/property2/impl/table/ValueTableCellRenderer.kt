@@ -18,9 +18,9 @@ package com.android.tools.idea.common.property2.impl.table
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.adtui.ptable2.*
 import com.android.tools.idea.common.property2.api.*
-import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
+import java.awt.Color
 import javax.swing.Icon
 import javax.swing.JComponent
 
@@ -46,16 +46,16 @@ class ValueTableCellRenderer<in P : PropertyItem>(private val itemClass: Class<P
     val controlType = controlTypeProvider(property)
     val icon = findActionIcon(property)
     val key = ControlKey(controlType, icon)
-    val (model, editor) = componentCache[key] ?: createEditor(key, property)
+    val (model, editor) = componentCache[key] ?: createEditor(key, property, table.gridLineColor)
     model.property = property
     return editor
   }
 
-  private fun createEditor(key: ControlKey, property: P): Pair<PropertyEditorModel, JComponent> {
+  private fun createEditor(key: ControlKey, property: P, gridLineColor: Color): Pair<PropertyEditorModel, JComponent> {
     val (model, editor) = editorProvider.createEditor(property, asTableCellEditor = true)
     val panel = AdtSecondaryPanel(BorderLayout())
     panel.add(editor, BorderLayout.CENTER)
-    panel.border = JBUI.Borders.customLine(JBColor.border(), 0, 1, 0, 0)
+    panel.border = JBUI.Borders.customLine(gridLineColor, 0, 1, 0, 0)
     val result = Pair(model, panel)
     componentCache[key] = result
     return result

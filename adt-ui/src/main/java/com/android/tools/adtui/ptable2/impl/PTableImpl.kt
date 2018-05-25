@@ -57,6 +57,8 @@ open class PTableImpl(tableModel: PTableModel,
     get() = super.getForeground()
   override val activeFont: Font
     get() = super.getFont()
+  override val gridLineColor: Color
+    get() = gridColor
 
   init {
     // The row heights should be identical, save time by only looking at the first rows
