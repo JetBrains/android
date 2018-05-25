@@ -22,6 +22,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.AbstractResourceRepository
 import com.android.ide.common.resources.SingleNamespaceResourceRepository
 import com.android.resources.ResourceType
+import com.android.resources.ResourceUrl
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.res.ResourceRepositoryManager
@@ -63,6 +64,7 @@ import com.intellij.util.xml.GenericDomValue
 import com.intellij.util.xml.WrappingConverter
 import org.jetbrains.android.dom.converters.AndroidResourceReference
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter
+import org.jetbrains.android.dom.converters.StyleItemNameConverter
 import org.jetbrains.android.dom.layout.LayoutElement
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils
 import org.jetbrains.android.dom.resources.ResourceValue
@@ -147,6 +149,11 @@ private class CodeUsageInfo(
 private class XmlAttributeUsageInfo(attribute: XmlAttribute) : ResourceUsageInfo(attribute) {
   override val resourceType: ResourceType get() = ResourceType.ATTR
   override val name: String = attribute.localName
+}
+
+private class StyleItemUsageInfo(val domValue: GenericDomValue<*>, url: ResourceUrl) : ResourceUsageInfo(domValue.xmlElement!!) {
+  override val resourceType: ResourceType = url.type
+  override val name: String = url.name
 }
 
 /**
@@ -255,6 +262,10 @@ class MigrateToResourceNamespacesProcessor(
     val domManager = DomManager.getDomManager(myProject)
     val moduleRepo = ResourceRepositoryManager.getModuleResources(currentFacet)
 
+    fun referenceNeedsRewriting(resourceType: ResourceType, name: String): Boolean {
+      return !moduleRepo.hasResourceItem(ResourceNamespace.RES_AUTO, resourceType, name)
+    }
+
     xmlFile.accept(object : XmlRecursiveElementVisitor() {
       override fun visitXmlTag(tag: XmlTag) {
         val domElement = domManager.getDomElement(tag)
@@ -298,7 +309,7 @@ class MigrateToResourceNamespacesProcessor(
                   // See if this resource is defined in the same module, otherwise it needs to be rewritten.
                   val name = resourceValue.resourceName.nullize(nullizeSpaces = true) ?: continue@references
                   val resourceType = resourceValue.type ?: continue@references
-                  if (!moduleRepo.hasResourceItem(ResourceNamespace.RES_AUTO, resourceType, name)) {
+                  if (referenceNeedsRewriting(resourceType, name)) {
                     // We know this GenericDomValue used ResourceReferenceConverter, which is for ResourceValue.
                     @Suppress("UNCHECKED_CAST")
                     result += DomValueUsageInfo(reference, domValue as GenericDomValue<ResourceValue>)
@@ -307,7 +318,13 @@ class MigrateToResourceNamespacesProcessor(
               }
             }
           }
-        // TODO(b/78765120): handle other relevant converters.
+          is StyleItemNameConverter -> {
+            val url = domValue.stringValue?.let(ResourceUrl::parseAttrReference) ?: return
+            if (url.namespace == null && referenceNeedsRewriting(url.type, url.name)) {
+              result += StyleItemUsageInfo(domValue, url)
+            }
+          }
+          // TODO(b/78765120): handle other relevant converters.
         }
       }
     })
@@ -366,8 +383,7 @@ class MigrateToResourceNamespacesProcessor(
       when (usageInfo) {
         is DomValueUsageInfo -> {
           val oldResourceValue = usageInfo.domValue.value ?: return@forEachIndexed
-          val tag = usageInfo.domValue.xmlTag ?: return@forEachIndexed
-          val prefix = findOrCreateNamespacePrefix(tag, inferredPackage)
+          val prefix = findOrCreateNamespacePrefix(usageInfo.domValue.xmlTag, inferredPackage)
           val newResourceValue = ResourceValue.referenceTo(
             oldResourceValue.prefix,
             prefix,
@@ -382,6 +398,11 @@ class MigrateToResourceNamespacesProcessor(
           element.references
             .find {it is SchemaPrefixReference}
             ?.handleElementRename(prefix)
+        }
+        is StyleItemUsageInfo -> {
+          val prefix = findOrCreateNamespacePrefix(usageInfo.domValue.xmlTag, inferredPackage)
+          val newUrl = ResourceUrl.create(prefix, ResourceType.ATTR, usageInfo.name)
+          usageInfo.domValue.stringValue = newUrl.qualifiedName
         }
         is CodeUsageInfo -> {
           usageInfo.classReference.bindToElement(
