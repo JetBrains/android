@@ -132,6 +132,7 @@ public final class TooltipComponent extends AnimatedComponent {
         myTooltipContent.setSize(0, 0);
         myParent.addComponentListener(myParentListener);
         myParent.add(TooltipComponent.this, JLayeredPane.POPUP_LAYER);
+        myLastPoint = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), TooltipComponent.this);
         setVisible(true);
         revalidate();
         opaqueRepaint();
