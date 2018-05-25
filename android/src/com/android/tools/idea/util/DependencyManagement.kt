@@ -58,8 +58,7 @@ fun Module.dependsOn(artifactId: GoogleMavenArtifactId): Boolean {
 fun Module.dependsOnAndroidx(): Boolean =
   GoogleMavenArtifactId.values()
     .filter { it.mavenGroupId.startsWith(SdkConstants.ANDROIDX_PKG) }
-    .firstOrNull { dependsOn(it) }
-    ?.let { true } ?: false
+    .any { dependsOn(it) }
 
 /**
  * Returns whether this module depends on the old support library artifacts (com.android.support).
@@ -67,8 +66,7 @@ fun Module.dependsOnAndroidx(): Boolean =
 fun Module.dependsOnOldSupportLib(): Boolean =
   GoogleMavenArtifactId.values()
     .filter { it.mavenGroupId.startsWith(SdkConstants.SUPPORT_LIB_GROUP_ID) }
-    .firstOrNull { dependsOn(it) }
-    ?.let { true } ?: false
+    .any { dependsOn(it) }
 
 fun Module?.mapAndroidxName(name: AndroidxName): String {
   val dependsOnAndroidx = this?.dependsOnAndroidx() ?: return name.defaultName()
