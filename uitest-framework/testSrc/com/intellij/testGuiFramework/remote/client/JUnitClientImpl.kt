@@ -17,12 +17,10 @@ package com.intellij.testGuiFramework.remote.client
 
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.impl.ApplicationImpl
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.testGuiFramework.remote.transport.KeepAliveMessage
 import com.intellij.testGuiFramework.remote.transport.MessageFromClient
 import com.intellij.testGuiFramework.remote.transport.MessageFromServer
-import com.intellij.testGuiFramework.remote.transport.TransportMessage
-import org.apache.log4j.Logger
-import java.io.NotSerializableException
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.net.*
@@ -37,7 +35,7 @@ import java.util.concurrent.TimeUnit
  */
 class JUnitClientImpl(val host: String, val port: Int, initHandlers: Array<ClientHandler>? = null) : JUnitClient {
 
-  private val LOG = Logger.getLogger("#com.intellij.testGuiFramework.remote.client.JUnitClientImpl")
+  private val LOG = Logger.getInstance("#com.intellij.testGuiFramework.remote.client.JUnitClientImpl")
   private val RECEIVE_THREAD = "JUnit Client Receive Thread"
   private val SEND_THREAD = "JUnit Client Send Thread"
   private val KEEP_ALIVE_THREAD = "JUnit Keep Alive Thread"

@@ -15,18 +15,15 @@
  */
 package com.intellij.testGuiFramework.framework
 
-import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Ref
 import com.intellij.testGuiFramework.impl.GuiTestStarter
-import com.intellij.testGuiFramework.impl.GuiTestThread
 import com.intellij.testGuiFramework.launcher.GuiTestLauncher
 import com.intellij.testGuiFramework.remote.server.JUnitServer
 import com.intellij.testGuiFramework.remote.server.JUnitServerHolder
 import com.intellij.testGuiFramework.remote.transport.*
 import org.apache.log4j.Level
-import org.apache.log4j.Logger
-import org.junit.Assert
 import org.junit.AssumptionViolatedException
 import org.junit.internal.runners.model.EachTestNotifier
 import org.junit.runner.notification.Failure
@@ -148,10 +145,10 @@ open class GuiTestRemoteRunner @Throws(InitializationError::class)
   }
 
   companion object {
-    private val LOG = Logger.getLogger("#com.intellij.testGuiFramework.framework.GuiTestRemoteRunner[CLIENT]")
+    private val LOG = Logger.getInstance("#com.intellij.testGuiFramework.framework.GuiTestRemoteRunner")
 
     init {
-      LOG.level = Level.INFO
+      LOG.setLevel(Level.INFO)
     }
   }
 }

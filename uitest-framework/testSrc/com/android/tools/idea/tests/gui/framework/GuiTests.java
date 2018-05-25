@@ -161,8 +161,16 @@ public final class GuiTests {
     // TODO: setUpDefaultGeneralSettings();
   }
 
+  private static File getAndroidSdk() {
+    String androidHome = System.getenv("ANDROID_HOME");
+    if (androidHome == null) {
+      throw new RuntimeException("Must set ANDROID_HOME environment variable when running in standalone mode");
+    }
+    return new File(androidHome);
+  }
+
   public static void setUpSdks() {
-    File androidSdkPath = TestUtils.getSdk();
+    File androidSdkPath = GuiTestOptions.INSTANCE.isRunningOnRelease() ? getAndroidSdk() : TestUtils.getSdk();
 
     GuiTask.execute(
       () -> {
