@@ -52,7 +52,9 @@ public class ApplyDslElement extends GradlePropertiesDslElement {
           GradleDslFile dslFile = getDslFile().getContext().getOrCreateBuildFile(file);
           myAppliedDslFiles.add(dslFile);
 
-          getDslFile().addAppliedModelProperties(dslFile);
+          if (myParent instanceof GradlePropertiesDslElement) {
+            ((GradlePropertiesDslElement)myParent).addAppliedModelProperties(dslFile);
+          }
         }
       }
     }

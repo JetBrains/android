@@ -229,5 +229,24 @@ class GradleDslFileTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
+  fun testApplyFromBlock() {
+    val appliedFile = "ext.prop = \"value\""
+    val text = """
+               buildscript {
+                 apply from: 'a.gradle'
+                 dependencies {
+                   classpath ext.prop
+                 }
+               }""".trimIndent()
+    writeToNewProjectFile("a.gradle", appliedFile)
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    val property = buildModel.buildscript().dependencies().artifacts()[0].completeModel()
+    verifyPropertyModel(property, STRING_TYPE, "value", STRING, REGULAR, 0)
+  }
+
   fun getFile(file : File, files : Set<GradleFileModel>) = files.first { toSystemIndependentPath(file.absolutePath) == it.virtualFile.path }
 }
