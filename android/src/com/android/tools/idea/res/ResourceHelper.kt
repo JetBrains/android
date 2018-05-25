@@ -83,17 +83,6 @@ private val LOG = Logger.getInstance("#com.android.tools.idea.res.ResourceHelper
 private val NO_PREFIX_PACKAGES = arrayOf(ANDROID_WIDGET_PREFIX, ANDROID_VIEW_PKG, ANDROID_WEBKIT_PKG)
 
 /**
- * Returns true if the given style represents a project theme
- *
- * @param styleResourceUrl a theme style resource url
- * @return true if the style string represents a project theme, as opposed
- * to a framework theme
- */
-fun isProjectStyle(styleResourceUrl: String): Boolean {
-  return !styleResourceUrl.startsWith(ANDROID_STYLE_RESOURCE_PREFIX)
-}
-
-/**
  * Returns the theme name to be shown for theme styles, e.g. for "@style/Theme" it
  * returns "Theme"
  *
@@ -114,53 +103,45 @@ fun styleToTheme(style: String): String {
 }
 
 /**
- * Is this a resource that can be defined in any file within the "values" folder?
- *
+ * Checks if this is a resource that can be defined in any file within the "values" folder.
  *
  * Some resource types can be defined **both** as a separate XML file as well
  * as defined within a value XML file. This method will return true for these types
  * as well. In other words, a ResourceType can return true for both
- * [.isValueBasedResourceType] and [.isFileBasedResourceType].
+ * [ResourceType.isValueBased] and [ResourceType.isFileBased].
  *
- * @param type the resource type to check
  * @return true if the given resource type can be represented as a value under the
  * values/ folder
  */
-fun isValueBasedResourceType(type: ResourceType): Boolean {
-  return FolderTypeRelationship.getRelatedFolders(type).contains(ResourceFolderType.VALUES)
+fun ResourceType.isValueBased(): Boolean {
+  return FolderTypeRelationship.getRelatedFolders(this).contains(ResourceFolderType.VALUES)
 }
 
 /**
- * Is this a resource that is defined in a file named by the resource plus the extension?
- *
+ * Checks if this a resource that is defined in a file named by the resource plus the extension.
  *
  * Some resource types can be defined **both** as a separate XML file as well as
  * defined within a value XML file along with other properties. This method will
  * return true for these resource types as well. In other words, a ResourceType can
- * return true for both [.isValueBasedResourceType] and
- * [.isFileBasedResourceType].
+ * return true for both [ResourceType.isValueBased] and [ResourceType.isFileBased].
  *
- * @param type the resource type to check
  * @return true if the given resource type is stored in a file named by the resource
  */
-fun isFileBasedResourceType(type: ResourceType): Boolean {
-  if (type == ResourceType.ID) {
+fun ResourceType.isFileBased(): Boolean {
+  if (this == ResourceType.ID) {
     // The folder types for ID is not only VALUES but also
     // LAYOUT and MENU. However, unlike resources, they are only defined
-    // inline there so for the purposes of isFileBasedResourceType
+    // inline there so for the purposes of isFileBased
     // (where the intent is to figure out files that are uniquely identified
     // by a resource's name) this method should return false anyway.
     return false
   }
 
-  return FolderTypeRelationship.getRelatedFolders(type).firstOrNull { it != ResourceFolderType.VALUES } != null
+  return FolderTypeRelationship.getRelatedFolders(this).firstOrNull { it != ResourceFolderType.VALUES } != null
 }
 
 /**
  * Returns the resource name of the given file.
- *
- *
- * For example, `getResourceName(</res/layout-land/foo.xml, false) = "foo"`.
  *
  * @param file the file to compute a resource name for
  * @return the resource name
@@ -175,8 +156,6 @@ fun getResourceName(file: VirtualFile): String {
 /**
  * Returns the resource name of the given file.
  *
- * For example, `getResourceName(</res/layout-land/foo.xml, false) = "foo"`.
- *
  * @param file the file to compute a resource name for
  * @return the resource name
  */
@@ -189,10 +168,12 @@ fun getResourceName(file: PsiFile): String {
 }
 
 fun getFolderType(file: PsiFile?): ResourceFolderType? {
-  if (file == null) return null
-  if (!ApplicationManager.getApplication().isReadAccessAllowed) return runReadAction { getFolderType(file) }
-  if (!file.isValid) return getFolderType(file.virtualFile)
-  return file.parent?.let { ResourceFolderType.getFolderType(it.name) }
+  return when {
+    file == null -> null
+    !ApplicationManager.getApplication().isReadAccessAllowed -> runReadAction { getFolderType(file) }
+    !file.isValid -> getFolderType(file.virtualFile)
+    else -> file.parent?.let { ResourceFolderType.getFolderType(it.name) }
+  }
 }
 
 fun getFolderType(file: VirtualFile?): ResourceFolderType? = file?.parent?.let { ResourceFolderType.getFolderType(it.name) }
@@ -200,10 +181,12 @@ fun getFolderType(file: VirtualFile?): ResourceFolderType? = file?.parent?.let {
 fun getFolderType(file: ResourceFile): ResourceFolderType? = file.file.parentFile?.let { ResourceFolderType.getFolderType(it.name) }
 
 fun getFolderConfiguration(file: PsiFile?): FolderConfiguration? {
-  if (file == null) return null
-  if (!ApplicationManager.getApplication().isReadAccessAllowed) return runReadAction { getFolderConfiguration(file) }
-  if (!file.isValid) return getFolderConfiguration(file.virtualFile)
-  return file.parent?.let { FolderConfiguration.getConfigForFolder(it.name) }
+  return when {
+    file == null -> null
+    !ApplicationManager.getApplication().isReadAccessAllowed -> runReadAction { getFolderConfiguration(file) }
+    !file.isValid -> getFolderConfiguration(file.virtualFile)
+    else -> file.parent?.let { FolderConfiguration.getConfigForFolder(it.name) }
+  }
 }
 
 fun getFolderConfiguration(file: VirtualFile?): FolderConfiguration? = file?.parent?.let { FolderConfiguration.getConfigForFolder(it.name) }
@@ -256,12 +239,7 @@ fun getResourceVariations(file: VirtualFile?, includeSelf: Boolean): List<Virtua
  * Returns the [VirtualFile] representing the source of the given resource item, or null
  * if the source of the resource item is unknown or there is no VirtualFile for it.
  */
-fun ResourceItem.getSourceAsVirtualFile(): VirtualFile? {
-  if (this is PsiResourceItem) {
-    return psiFile?.virtualFile
-  }
-  return source?.toVirtualFile()
-}
+fun ResourceItem.getSourceAsVirtualFile(): VirtualFile? = if (this is PsiResourceItem) psiFile?.virtualFile else source?.toVirtualFile()
 
 /**
  * Returns the [VirtualFile] representing the file resource given its path, or null
@@ -308,7 +286,9 @@ fun isViewPackageNeeded(qualifiedName: String, apiLevel: Int): Boolean {
     // Special case: starting from API level 20, classes from "android.app" also inflated
     // without fully qualified names
     !isDirectlyInPackage(qualifiedName, ANDROID_APP_PKG)
-  } else true
+  } else {
+    true
+  }
 }
 
 /**
@@ -325,15 +305,13 @@ fun isViewPackageNeeded(qualifiedName: String, apiLevel: Int): Boolean {
 fun isClassPackageNeeded(qualifiedName: String, baseClass: PsiClass, apiLevel: Int): Boolean {
   val viewClass = JavaPsiFacade.getInstance(baseClass.project).findClass(CLASS_VIEW, GlobalSearchScope.allScope(baseClass.project))
 
-  return if (viewClass != null && baseClass.isInheritor(viewClass, true)) {
-    isViewPackageNeeded(qualifiedName, apiLevel)
-  } else if (CLASS_PREFERENCE == baseClass.qualifiedName) {
-    // Handled by PreferenceInflater in Android framework
-    !isDirectlyInPackage(qualifiedName, "android.preference.")
-  } else {
-    // TODO: removing that makes some of unit tests fail, but leaving it as it is can introduce buggy XML validation
-    // Issue with further information: http://b.android.com/186559
-    !qualifiedName.startsWith(ANDROID_PKG_PREFIX)
+  return when {
+    viewClass != null && baseClass.isInheritor(viewClass, true) -> isViewPackageNeeded(qualifiedName, apiLevel)
+    CLASS_PREFERENCE == baseClass.qualifiedName -> // Handled by PreferenceInflater in Android framework
+      !isDirectlyInPackage(qualifiedName, "android.preference.")
+    else -> // TODO: removing that makes some of unit tests fail, but leaving it as it is can introduce buggy XML validation
+      // Issue with further information: http://b.android.com/186559
+      !qualifiedName.startsWith(ANDROID_PKG_PREFIX)
   }
 }
 
@@ -368,7 +346,7 @@ fun RenderResources.resolveColor(colorValue: ResourceValue?, project: Project): 
 // TODO(namespaces): require more information here as context for namespaced lookup
 private fun RenderResources.resolveColor(colorValue: ResourceValue?, project: Project, depth: Int): Color? {
   if (depth >= MAX_RESOURCE_INDIRECTION) {
-    LOG.warn("too deep " + colorValue)
+    LOG.warn("too deep $colorValue")
     return null
   }
   val result = resolveNullableResValue(colorValue) ?: return null
@@ -414,7 +392,7 @@ fun RenderResources.resolveMultipleColors(value: ResourceValue?, project: Projec
 // TODO(namespaces): require more information here as context for namespaced lookup
 private fun RenderResources.resolveMultipleColors(value: ResourceValue?, project: Project, depth: Int): List<Color> {
   if (depth >= MAX_RESOURCE_INDIRECTION) {
-    LOG.warn("too deep " + value)
+    LOG.warn("too deep $value")
     return emptyList()
   }
 
@@ -495,8 +473,8 @@ fun pickAnyLayoutFile(module: Module, facet: AndroidFacet): VirtualFile? {
  *
  * Has to be called inside a read action.
  */
-fun getNamespace(element: PsiElement): ResourceNamespace? {
-  return ResourceRepositoryManager.getOrCreateInstance(AndroidFacet.getInstance(element) ?: return null).namespace
+val PsiElement.resourceNamespace: ResourceNamespace? get() {
+  return ResourceRepositoryManager.getOrCreateInstance(AndroidFacet.getInstance(this) ?: return null).namespace
 }
 
 /** A pair of the current ("context") [ResourceNamespace] and a [ResourceNamespace.Resolver] for dealing with prefixes. */
@@ -504,7 +482,7 @@ data class ResourceNamespaceContext(val currentNs: ResourceNamespace, val resolv
 
 /** Constructs the right [ResourceNamespaceContext] for a given [XmlElement]. */
 fun getNamespacesContext(element: XmlElement): ResourceNamespaceContext? {
-  return ResourceNamespaceContext(getNamespace(element)?: return null, getNamespaceResolver(element))
+  return ResourceNamespaceContext(element.resourceNamespace ?: return null, getNamespaceResolver(element))
 }
 
 /** Resolves a given [ResourceUrl] in the context of the given [XmlElement]. */
@@ -535,7 +513,7 @@ fun RenderResources.resolveStateList(value: ResourceValue, project: Project): St
 // TODO(namespaces): require more information here as context for namespaced lookup
 private fun RenderResources.resolveStateList(resourceValue: ResourceValue, project: Project, depth: Int): StateList? {
   if (depth >= MAX_RESOURCE_INDIRECTION) {
-    LOG.warn("too deep " + resourceValue)
+    LOG.warn("too deep $resourceValue")
     return null
   }
 

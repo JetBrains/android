@@ -47,44 +47,37 @@ import static com.google.common.truth.Truth.assertThat;
 
 public class ResourceHelperTest extends AndroidTestCase {
   public void testIsFileBasedResourceType() {
-    assertTrue(ResourceHelper.isFileBasedResourceType(ResourceType.ANIMATOR));
-    assertTrue(ResourceHelper.isFileBasedResourceType(ResourceType.LAYOUT));
+    assertTrue(ResourceHelper.isFileBased(ResourceType.ANIMATOR));
+    assertTrue(ResourceHelper.isFileBased(ResourceType.LAYOUT));
 
-    assertFalse(ResourceHelper.isFileBasedResourceType(ResourceType.STRING));
-    assertFalse(ResourceHelper.isFileBasedResourceType(ResourceType.DIMEN));
-    assertFalse(ResourceHelper.isFileBasedResourceType(ResourceType.ID));
+    assertFalse(ResourceHelper.isFileBased(ResourceType.STRING));
+    assertFalse(ResourceHelper.isFileBased(ResourceType.DIMEN));
+    assertFalse(ResourceHelper.isFileBased(ResourceType.ID));
 
     // Both:
-    assertTrue(ResourceHelper.isFileBasedResourceType(ResourceType.DRAWABLE));
-    assertTrue(ResourceHelper.isFileBasedResourceType(ResourceType.COLOR));
+    assertTrue(ResourceHelper.isFileBased(ResourceType.DRAWABLE));
+    assertTrue(ResourceHelper.isFileBased(ResourceType.COLOR));
   }
 
   public void testIsValueBasedResourceType() {
-    assertTrue(ResourceHelper.isValueBasedResourceType(ResourceType.STRING));
-    assertTrue(ResourceHelper.isValueBasedResourceType(ResourceType.DIMEN));
-    assertTrue(ResourceHelper.isValueBasedResourceType(ResourceType.ID));
+    assertTrue(ResourceHelper.isValueBased(ResourceType.STRING));
+    assertTrue(ResourceHelper.isValueBased(ResourceType.DIMEN));
+    assertTrue(ResourceHelper.isValueBased(ResourceType.ID));
 
-    assertFalse(ResourceHelper.isValueBasedResourceType(ResourceType.LAYOUT));
+    assertFalse(ResourceHelper.isValueBased(ResourceType.LAYOUT));
 
     // These can be both:
-    assertTrue(ResourceHelper.isValueBasedResourceType(ResourceType.DRAWABLE));
-    assertTrue(ResourceHelper.isValueBasedResourceType(ResourceType.COLOR));
+    assertTrue(ResourceHelper.isValueBased(ResourceType.DRAWABLE));
+    assertTrue(ResourceHelper.isValueBased(ResourceType.COLOR));
   }
 
   public void testStyleToTheme() {
     assertEquals("Foo", ResourceHelper.styleToTheme("Foo"));
     assertEquals("Theme", ResourceHelper.styleToTheme("@android:style/Theme"));
     assertEquals("LocalTheme", ResourceHelper.styleToTheme("@style/LocalTheme"));
-    //assertEquals("LocalTheme", ResourceHelper.styleToTheme("@foo.bar:style/LocalTheme"));
+    assertEquals("LocalTheme", ResourceHelper.styleToTheme("@foo.bar:style/LocalTheme"));
   }
 
-  public void testIsProjectStyle() {
-    assertFalse(ResourceHelper.isProjectStyle("@android:style/Theme"));
-    assertTrue(ResourceHelper.isProjectStyle("@namespace:style/Theme"));
-    assertTrue(ResourceHelper.isProjectStyle("@style/LocalTheme"));
-  }
-
-  @SuppressWarnings("ConstantConditions")
   public void testGetResourceNameAndUrl() {
     PsiFile file1 = myFixture.addFileToProject("res/layout-land/foo1.xml", "<LinearLayout/>");
     PsiFile file2 = myFixture.addFileToProject("res/menu-en-rUS/foo2.xml", "<menu/>");
@@ -100,7 +93,6 @@ public class ResourceHelperTest extends AndroidTestCase {
     assertEquals("foo3", ResourceHelper.getResourceName(file3.getVirtualFile()));
   }
 
-  @SuppressWarnings("ConstantConditions")
   public void testGetFolderConfiguration() {
     PsiFile file1 = myFixture.addFileToProject("res/layout-land/foo1.xml", "<LinearLayout/>");
     PsiFile file2 = myFixture.addFileToProject("res/menu-en-rUS/foo2.xml", "<menu/>");

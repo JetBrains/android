@@ -166,7 +166,7 @@ public class GradleInstantRunContext implements InstantRunContext {
         if (resourceValue != null) {
           String text = resourceValue.getValue();
           if (text != null) {
-            if (ResourceHelper.isFileBasedResourceType(url.type)) {
+            if (ResourceHelper.isFileBased(url.type)) {
               File f = new File(text);
               if (f.exists()) {
                 try {
