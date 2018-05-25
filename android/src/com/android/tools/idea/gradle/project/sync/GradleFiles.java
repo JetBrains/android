@@ -457,7 +457,7 @@ public class GradleFiles {
 
     @Override
     public void childRemoved(@NotNull PsiTreeChangeEvent event) {
-      processEvent(event, event.getOldChild());
+      processEvent(event, event.getChild());
     }
 
     @Override
