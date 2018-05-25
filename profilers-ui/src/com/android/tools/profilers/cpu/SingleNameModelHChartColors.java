@@ -34,15 +34,15 @@ class SingleNameModelHChartColors {
     }
   }
 
-  static Color getFillColor(@NotNull CaptureNodeModel model, CaptureModel.Details.Type chartType, boolean isUnmatched) {
+  static Color getFillColor(@NotNull CaptureNodeModel model, CaptureModel.Details.Type chartType, boolean isUnmatched, boolean isFocused) {
     validateModel(model);
 
     Color color;
     if (chartType == CaptureModel.Details.Type.CALL_CHART) {
-        color = ProfilerColors.CPU_CALLCHART_APP;
+      color = isFocused ? ProfilerColors.CPU_CALLCHART_APP_HOVER : ProfilerColors.CPU_CALLCHART_APP;
     }
     else {
-        color = ProfilerColors.CPU_FLAMECHART_APP;
+      color = isFocused ? ProfilerColors.CPU_FLAMECHART_APP_HOVER : ProfilerColors.CPU_FLAMECHART_APP;
     }
     return isUnmatched ? toUnmatchColor(color) : color;
   }

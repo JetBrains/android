@@ -40,6 +40,8 @@ public class ProfilerColors {
 
   public static final Color CPU_USAGE_CAPTURED = new JBColor(0x19AF9A, 0x43CAA2);
 
+  public static final Color CPU_USAGE_CAPTURED_HOVER = new JBColor(0x159482, 0x73D7BA);
+
   public static final Color CPU_OTHER_USAGE = new JBColor(0xe9f3f6, 0x39444e);
 
   public static final Color CPU_OTHER_USAGE_CAPTURED = new JBColor(0xC8E0E8, 0x455B75);
@@ -47,6 +49,10 @@ public class ProfilerColors {
   public static final Color THREADS_COUNT = new JBColor(0x224E4D, 0xDAFFF4);
 
   public static final Color THREADS_COUNT_CAPTURED = new JBColor(0x224E4D, 0xDAFFF4);
+
+  public static final Color CPU_TRACE_IDLE = new JBColor(0x218677, 0x33807E);
+
+  public static final Color CPU_TRACE_IDLE_HOVER = new JBColor(0x1C7265, 0x44ACA9);
 
   // TODO: define final color
   public static final Color CPU_CAPTURE_EVENT = new JBColor(0x888888, 0x888888);
@@ -64,7 +70,6 @@ public class ProfilerColors {
   public static final Color CPU_KERNEL_APP_HOVER = new JBColor(0x169986, 0x6BD5B6);
   public static final Color CPU_KERNEL_OTHER = new JBColor(0xE5F1F5, 0x353C45);
   public static final Color CPU_KERNEL_OTHER_HOVER = new JBColor(0x80B7CA, 0x587495);
-
   /**
    * Represents pair of colors of non-selected and hovered states of a thread.
    * The first color is for a non-selected thread, the second one is for a hovered thread.
@@ -76,10 +81,10 @@ public class ProfilerColors {
            new JBColor(0x159482, 0x73D7BA))
       .add(CpuProfilerStage.ThreadState.RUNNING_CAPTURED,
            CPU_USAGE_CAPTURED,
-           new JBColor(0x159482, 0x73D7BA))
+           CPU_USAGE_CAPTURED_HOVER)
       .add(CpuProfilerStage.ThreadState.RUNNABLE_CAPTURED,
-           new JBColor(0x2D7E77, 0x33807E),
-           new JBColor(0x266B65, 0x44ACA9))
+           CPU_TRACE_IDLE,
+           CPU_TRACE_IDLE_HOVER)
       .add(CpuProfilerStage.ThreadState.WAITING,
            new JBColor(0xeccc8e, 0xa5956a),
            new JBColor(0xE3AD48, 0xF8E8C3))
@@ -136,17 +141,29 @@ public class ProfilerColors {
 
   public static final Color CPU_CAPTURE_SPARKLINE_SELECTED = new JBColor(0x4785EB, 0x5887DC);
 
-  public static final Color CPU_CALLCHART_VENDOR = new JBColor(0xA2DEFF, 0x7EB1CC);
+  public static final Color CPU_CALLCHART_VENDOR = new JBColor(0xA2DEFF, 0xA2DEFF);
 
-  public static final Color CPU_CALLCHART_APP = new JBColor(0x9FEAAD, 0x92D09F);
+  public static final Color CPU_CALLCHART_VENDOR_HOVER = new JBColor(0xB2E5FF, 0xB2E5FF);
 
-  public static final Color CPU_CALLCHART_PLATFORM = new JBColor(0xFECC82, 0xD0AA6F);
+  public static final Color CPU_CALLCHART_APP = new JBColor(0x9FEAAD, 0x9FEAAD);
 
-  public static final Color CPU_FLAMECHART_VENDOR = new JBColor(0xFFB74D, 0xFFCA28);
+  public static final Color CPU_CALLCHART_APP_HOVER = new JBColor(0xADF0B9, 0xADF0B9);
 
-  public static final Color CPU_FLAMECHART_APP = new JBColor(0xFF7043, 0xFF6E40);
+  public static final Color CPU_CALLCHART_PLATFORM = new JBColor(0xFECC82, 0xFECC82);
 
-  public static final Color CPU_FLAMECHART_PLATFORM = new JBColor(0xFFEE58, 0xFFECB3);
+  public static final Color CPU_CALLCHART_PLATFORM_HOVER = new JBColor(0xFFDAA2, 0xFFDAA2);
+
+  public static final Color CPU_FLAMECHART_VENDOR = new JBColor(0xFFC56F, 0xFFC56F);
+
+  public static final Color CPU_FLAMECHART_VENDOR_HOVER = new JBColor(0xFFD495, 0xFFD495);
+
+  public static final Color CPU_FLAMECHART_APP = new JBColor(0xFFE0B2, 0xFFE0B2);
+
+  public static final Color CPU_FLAMECHART_APP_HOVER = new JBColor(0xFFECD1, 0xFFECD1);
+
+  public static final Color CPU_FLAMECHART_PLATFORM = new JBColor(0xFF855E, 0xFF855E);
+
+  public static final Color CPU_FLAMECHART_PLATFORM_HOVER = new JBColor(0xFF9674, 0xFF9674);
 
   public static final Color CPU_PROFILING_CONFIGURATIONS_SELECTED = new JBColor(0x1155CC, 0x1155CC);
 

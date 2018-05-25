@@ -39,6 +39,7 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.ViewBinder;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.cpu.nodemodel.AtraceNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
@@ -291,7 +292,14 @@ class CpuCaptureView {
     chart.setHRenderer(new CaptureNodeHRenderer(type));
     chart.setRootVisible(false);
     chart.setHTree(node);
-    CpuChartTooltipView.install(chart, stageView);
+    if (node != null) {
+      if (node.getData() instanceof AtraceNodeModel && type == CaptureModel.Details.Type.CALL_CHART) {
+        chart.addMouseMotionListener(new CpuTraceEventTooltipView(chart, stageView));
+      }
+      else {
+        chart.addMouseMotionListener(new CpuChartTooltipView(chart, stageView));
+      }
+    }
 
     if (stageView.getStage().getCapture() != null && stageView.getStage().getCapture().getType() != CpuProfiler.CpuProfilerType.ATRACE) {
       CodeNavigator navigator = stageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator();

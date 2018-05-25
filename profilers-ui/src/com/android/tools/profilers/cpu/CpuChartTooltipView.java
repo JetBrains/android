@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,78 +16,48 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.TabularLayout;
-import com.android.tools.adtui.TooltipComponent;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerLayeredPane;
-import com.android.tools.profilers.ProfilerLayout;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
 import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_BODY_FONT;
 
-class CpuChartTooltipView extends MouseAdapter {
-  @NotNull
-  private final HTreeChart<CaptureNode> myChart;
-
-  @NotNull
-  private final TooltipComponent myTooltipComponent;
-
-  @NotNull
-  private final JPanel myContent;
-
-  @NotNull
-  private final CpuProfilerStageView myStageView;
-
-  private CpuChartTooltipView(@NotNull HTreeChart<CaptureNode> chart, @NotNull CpuProfilerStageView stageView) {
-    myStageView = stageView;
-    myChart = chart;
-
-    myContent = new JPanel(new TabularLayout("*", "*"));
-    myContent.setBorder(ProfilerLayout.TOOLTIP_BORDER);
-    myContent.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
-
-    myTooltipComponent = new TooltipComponent.Builder(myContent, chart, myStageView.getProfilersView().getComponent()).build();
-    myTooltipComponent.registerListenersOn(chart);
+class CpuChartTooltipView extends CpuChartTooltipViewBase {
+  public CpuChartTooltipView(@NotNull HTreeChart<CaptureNode> chart,
+                             @NotNull CpuProfilerStageView stageView) {
+    super(chart, stageView);
   }
 
   @Override
-  public void mouseMoved(MouseEvent e) {
-    myTooltipComponent.setVisible(false);
-    CaptureNode node = myChart.getNodeAt(e.getPoint());
-    if (node != null) {
-      showTooltip(node);
-    }
-  }
-
-  private void showTooltip(@NotNull CaptureNode node) {
-    myTooltipComponent.setVisible(true);
+  protected void showTooltip(@NotNull CaptureNode node) {
     Range dataRange = myStageView.getTimeline().getDataRange();
     long start = (long)(node.getStart() - dataRange.getMin());
     long end = (long)(node.getEnd() - dataRange.getMin());
+    long totalDuration = node.getDuration();
 
-    myContent.removeAll();
+    getTooltipContainer().removeAll();
     JLabel nameLabel = new JLabel(node.getData().getFullName());
     nameLabel.setFont(TOOLTIP_BODY_FONT);
     nameLabel.setForeground(ProfilerColors.TOOLTIP_TEXT);
-    myContent.add(nameLabel, new TabularLayout.Constraint(0, 0));
+    getTooltipContainer().add(nameLabel, new TabularLayout.Constraint(0, 0));
 
-    JLabel durationLabel = new JLabel(String.format("%s - %s (%s)", TimeFormatter.getFullClockString(start),
-                                                    TimeFormatter.getFullClockString(end),
-                                                    TimeFormatter.getSingleUnitDurationString(node.getDuration())));
+    JLabel timelineLabel = new JLabel(String.format("%s - %s", TimeFormatter.getFullClockString(start),
+                                                    TimeFormatter.getFullClockString(end)));
+    timelineLabel.setFont(TOOLTIP_BODY_FONT);
+    timelineLabel.setForeground(ProfilerColors.TOOLTIP_TEXT);
+    timelineLabel.setBorder(JBUI.Borders.empty());
+
+    JLabel durationLabel = new JLabel(String.format("%s", TimeFormatter.getSingleUnitDurationString(totalDuration)));
     durationLabel.setFont(TOOLTIP_BODY_FONT);
     durationLabel.setForeground(ProfilerColors.TOOLTIP_TEXT);
-    durationLabel.setBorder(new EmptyBorder(5, 0, 0, 0));
-    myContent.add(durationLabel, new TabularLayout.Constraint(1, 0));
-  }
+    durationLabel.setBorder(JBUI.Borders.empty());
 
-  static void install(@NotNull HTreeChart<CaptureNode> chart, @NotNull CpuProfilerStageView stageView) {
-    chart.addMouseMotionListener(new CpuChartTooltipView(chart, stageView));
+    getTooltipContainer().add(timelineLabel, new TabularLayout.Constraint(1, 0));
+    getTooltipContainer().add(durationLabel, new TabularLayout.Constraint(2, 0));
   }
 }

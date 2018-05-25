@@ -16,12 +16,10 @@
 
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.cpu.nodemodel.AtraceNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
-import com.intellij.ui.ColorUtil;
-import com.intellij.ui.JBColor;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -34,6 +32,8 @@ import static com.android.tools.profilers.cpu.CaptureNodeHRenderer.toUnmatchColo
  */
 class AtraceNodeModelHChartColors {
 
+  private static EnumColors<CpuProfilerStage.ThreadState> threadColors = ProfilerColors.THREAD_STATES.build();
+
   private static void validateModel(@NotNull CaptureNodeModel model) {
     if (!(model instanceof AtraceNodeModel)) {
       throw new IllegalStateException("Model must be an instance of AtraceNodeModel.");
@@ -41,19 +41,21 @@ class AtraceNodeModelHChartColors {
   }
 
   /**
-   * For cpu idle time (time the node is scheduled wall clock, but not thread time). we apply a slightly darker
-   * shade of the {@code getFillColor} color to show a subtle difference in timings.
+   * For cpu idle time (time the node is scheduled wall clock, but not thread time), we match thread colors.
    */
-  static Color getIdleCpuColor(@NotNull CaptureNodeModel model, CaptureModel.Details.Type chartType, boolean isUnmatched) {
+  static Color getIdleCpuColor(@NotNull CaptureNodeModel model,
+                               CaptureModel.Details.Type chartType,
+                               boolean isUnmatched,
+                               boolean isFocused) {
     Color color;
     if (chartType == CaptureModel.Details.Type.CALL_CHART) {
-      color = ProfilerColors.CPU_USAGE_CAPTURED;
+      threadColors.setColorIndex(isFocused ? 1 : 0);
+      color = threadColors.getColor(CpuProfilerStage.ThreadState.RUNNABLE_CAPTURED);
     }
     else {
       // Atrace captures do not know where calls come from so we always use APP.
-      color = ProfilerColors.CPU_FLAMECHART_APP;
+      color = isFocused ? ProfilerColors.CPU_FLAMECHART_APP_HOVER : ProfilerColors.CPU_FLAMECHART_APP;
     }
-    color = ColorUtil.darker(color, 3);
     return isUnmatched ? toUnmatchColor(color) : color;
   }
 
@@ -61,15 +63,16 @@ class AtraceNodeModelHChartColors {
    * We use the usage captured color. This gives the UI a consistent look
    * across CPU, Kernel, Threads, and trace nodes.
    */
-  static Color getFillColor(@NotNull CaptureNodeModel model, CaptureModel.Details.Type chartType, boolean isUnmatched) {
+  static Color getFillColor(@NotNull CaptureNodeModel model, CaptureModel.Details.Type chartType, boolean isUnmatched, boolean isFocused) {
     validateModel(model);
     Color color;
     if (chartType == CaptureModel.Details.Type.CALL_CHART) {
-      color = ProfilerColors.CPU_USAGE_CAPTURED;
+      threadColors.setColorIndex(isFocused ? 1 : 0);
+      color = threadColors.getColor(CpuProfilerStage.ThreadState.RUNNING_CAPTURED);
     }
     else {
       // Atrace captures do not know where calls come from so we always use APP.
-      color = ProfilerColors.CPU_FLAMECHART_APP;
+      color = isFocused ? ProfilerColors.CPU_FLAMECHART_APP_HOVER : ProfilerColors.CPU_FLAMECHART_APP;
     }
     return isUnmatched ? toUnmatchColor(color) : color;
   }
