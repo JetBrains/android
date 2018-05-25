@@ -21,10 +21,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.treeview.Abstrac
 import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
 import com.android.tools.idea.gradle.structure.model.PsDependency
 import com.android.tools.idea.gradle.structure.model.PsResolvedDependency
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependencyCollection
-import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency
-import com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDependency
+import com.android.tools.idea.gradle.structure.model.android.*
 
 abstract class AbstractDependencyNode<T : PsAndroidDependency> : AbstractPsModelNode<T> {
 
@@ -35,7 +32,7 @@ abstract class AbstractDependencyNode<T : PsAndroidDependency> : AbstractPsModel
 
   companion object {
     fun createNode(parent: AbstractPsNode,
-                   collection: PsAndroidDependencyCollection?,
+                   collection: PsAndroidArtifactDependencyCollection?,
                    dependency: PsDependency): AbstractDependencyNode<*>? =
       when (dependency) {
         is PsLibraryAndroidDependency -> LibraryDependencyNode(parent, collection, dependency)
