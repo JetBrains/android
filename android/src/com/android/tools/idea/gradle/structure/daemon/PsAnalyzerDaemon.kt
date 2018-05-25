@@ -27,7 +27,6 @@ import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath
 import com.android.tools.idea.gradle.structure.quickfix.PsLibraryDependencyVersionQuickFixPath
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.EventDispatcher
 import com.intellij.util.ui.update.MergingUpdateQueue
@@ -128,10 +127,8 @@ class PsAnalyzerDaemon(context: PsContext, libraryUpdateCheckerDaemon: PsLibrary
       LOG.info("Failed to find analyzer for model of type " + model.javaClass.name)
       return
     }
-    ReadAction.run<RuntimeException> {
-      if (!isStopped) {
-        analyzer.analyze(model, issues)
-      }
+    if (!isStopped) {
+      analyzer.analyze(model, issues)
     }
     resultsUpdaterQueue.queue(IssuesComputed(model))
   }
