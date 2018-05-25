@@ -76,7 +76,7 @@ class PsModuleAndroidDependencyTest : DependencyTestCase() {
     fun findLib(name: String, version: String) =
       appModule.dependencies
         .findLibraryDependencies("com.example.libs", name)
-        .find { (it as? PsLibraryDependency)?.spec?.version == version } as? PsDeclaredLibraryAndroidDependency
+        .find { (it as? PsLibraryDependency)?.spec?.version == version }
 
     val releaseImplementationLib1 = findLib("lib1", "0.9.1")
 
