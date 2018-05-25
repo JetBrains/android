@@ -74,7 +74,7 @@ public class LibraryDependency extends Dependency {
 
   @NotNull
   public File[] getBinaryPaths() {
-    return myBinaryPaths.isEmpty() ? EMPTY_FILE_ARRAY : myBinaryPaths.toArray(new File[myBinaryPaths.size()]);
+    return myBinaryPaths.isEmpty() ? EMPTY_FILE_ARRAY : myBinaryPaths.toArray(new File[0]);
   }
 
   @NotNull

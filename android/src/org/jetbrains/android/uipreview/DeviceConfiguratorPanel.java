@@ -372,7 +372,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
         result.add(qualifier);
       }
     }
-    return result.toArray(new ResourceQualifier[result.size()]);
+    return result.toArray(new ResourceQualifier[0]);
   }
 
   public FolderConfiguration getConfiguration() {

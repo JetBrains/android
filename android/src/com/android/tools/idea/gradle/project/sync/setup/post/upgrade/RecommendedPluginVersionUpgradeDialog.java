@@ -132,7 +132,7 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
     if (actions.length > 0) {
       JPanel buttonsPanel = createButtons(actions, buttons);
       panel.add(buttonsPanel, BorderLayout.CENTER);
-      myButtons = buttons.toArray(new JButton[buttons.size()]);
+      myButtons = buttons.toArray(new JButton[0]);
     }
 
     if (getStyle() == DialogStyle.COMPACT) {

@@ -273,7 +273,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
         }
       }
     }
-    return result.toArray(new ProblemDescriptor[result.size()]);
+    return result.toArray(ProblemDescriptor.EMPTY_ARRAY);
   }
 
   @NotNull
@@ -286,7 +286,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
       result.addAll(Arrays.asList(BatchSuppressManager.SERVICE.getInstance().createBatchSuppressActions(HighlightDisplayKey.find(getShortName()))));
       result.addAll(Arrays.asList(new XmlSuppressableInspectionTool.SuppressTagStatic(getShortName()),
                                   new XmlSuppressableInspectionTool.SuppressForFile(getShortName())));
-      return result.toArray(new SuppressQuickFix[result.size()]);
+      return result.toArray(SuppressQuickFix.EMPTY_ARRAY);
     } else {
       return new SuppressQuickFix[] { suppressLintQuickFix };
     }

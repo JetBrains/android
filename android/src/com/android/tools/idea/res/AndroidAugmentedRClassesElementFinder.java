@@ -65,6 +65,6 @@ public class AndroidAugmentedRClassesElementFinder extends PsiElementFinder {
     for (PsiClass parentClass : JavaPsiFacade.getInstance(project).findClasses(parentName, scope)) {
       ContainerUtil.addIfNotNull(result, parentClass.findInnerClassByName(shortName, false));
     }
-    return result.isEmpty() ? PsiClass.EMPTY_ARRAY : result.toArray(new PsiClass[result.size()]);
+    return result.isEmpty() ? PsiClass.EMPTY_ARRAY : result.toArray(PsiClass.EMPTY_ARRAY);
   }
 }

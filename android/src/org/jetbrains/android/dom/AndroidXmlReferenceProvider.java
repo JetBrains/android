@@ -57,7 +57,7 @@ public class AndroidXmlReferenceProvider extends PsiReferenceProvider {
     if (closingTagName != null && areReferencesProvidedByReferenceProvider(closingTagName)) {
       addReferences(tag, closingTagName.getPsi(), result, module, baseClassQName, false);
     }
-    return result.toArray(new PsiReference[result.size()]);
+    return result.toArray(PsiReference.EMPTY_ARRAY);
   }
 
   private static void addReferences(@NotNull XmlTag tag,

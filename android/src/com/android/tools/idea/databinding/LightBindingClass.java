@@ -120,7 +120,7 @@ public class LightBindingClass extends AndroidLightClassBase {
           // create hidden constructor
           PsiMethod constructor = createConstructor(factory);
           methods.add(constructor);
-          return methods.toArray(new PsiMethod[methods.size()]);
+          return methods.toArray(PsiMethod.EMPTY_ARRAY);
         }
 
         @Override
@@ -264,7 +264,7 @@ public class LightBindingClass extends AndroidLightClassBase {
         matched.add(method);
       }
     }
-    return matched == null ? PsiMethod.EMPTY_ARRAY : matched.toArray(new PsiMethod[matched.size()]);
+    return matched == null ? PsiMethod.EMPTY_ARRAY : matched.toArray(PsiMethod.EMPTY_ARRAY);
   }
 
   @Override

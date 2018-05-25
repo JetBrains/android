@@ -121,7 +121,7 @@ public class CreateMissingClassQuickFix implements LocalQuickFix {
         break;
       default:
         // There are several directories, present a dialog window for a user to choose a particular destination directory
-        final PsiDirectory[] array = filteredDirectories.toArray(new PsiDirectory[filteredDirectories.size()]);
+        final PsiDirectory[] array = filteredDirectories.toArray(PsiDirectory.EMPTY_ARRAY);
         directory = DirectoryChooserUtil.selectDirectory(aPackage.getProject(), array, filteredDirectories.get(0), "");
     }
 

@@ -230,10 +230,10 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
 
     List<TemplateRenderer> filteredTemplates = templateRenderers.stream().filter(predicate).collect(Collectors.toList());
     if (filteredTemplates.size() > 1) {
-      return filteredTemplates.toArray(new TemplateRenderer[filteredTemplates.size()]);
+      return filteredTemplates.toArray(new TemplateRenderer[0]);
     }
 
-    return templateRenderers.toArray(new TemplateRenderer[templateRenderers.size()]);
+    return templateRenderers.toArray(new TemplateRenderer[0]);
   }
 
   private void validateTemplate() {

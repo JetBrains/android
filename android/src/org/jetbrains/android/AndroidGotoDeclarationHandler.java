@@ -127,7 +127,7 @@ public class AndroidGotoDeclarationHandler implements GotoDeclarationHandler {
       resourceList.sort(AndroidResourceUtil.RESOURCE_ELEMENT_COMPARATOR);
     }
 
-    return resourceList.toArray(new PsiElement[resourceList.size()]);
+    return resourceList.toArray(PsiElement.EMPTY_ARRAY);
   }
 
   private static void collectManifestElements(@NotNull String nestedClassName,

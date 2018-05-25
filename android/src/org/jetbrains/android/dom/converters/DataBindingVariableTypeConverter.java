@@ -191,7 +191,7 @@ public class DataBindingVariableTypeConverter extends DataBindingConverter {
       });
     }
 
-    return result.toArray(new PsiReference[result.size()]);
+    return result.toArray(PsiReference.EMPTY_ARRAY);
   }
 
   private static String getName(PsiJavaCodeReferenceElement reference) {

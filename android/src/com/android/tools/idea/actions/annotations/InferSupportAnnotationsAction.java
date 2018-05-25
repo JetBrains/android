@@ -220,7 +220,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
 
     List<UsageInfo> usages = new ArrayList<>();
     inferrer.collect(usages, scope);
-    return usages.toArray(new UsageInfo[usages.size()]);
+    return usages.toArray(UsageInfo.EMPTY_ARRAY);
   }
 
   // For Android we need to check SDK version and possibly update the gradle project file
@@ -396,7 +396,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
 
     Runnable refactoringRunnable = applyRunnable(project, () -> {
       Set<UsageInfo> infos = UsageViewUtil.getNotExcludedUsageInfos(usageView);
-      return infos.toArray(new UsageInfo[infos.size()]);
+      return infos.toArray(UsageInfo.EMPTY_ARRAY);
     });
 
     String canNotMakeString =

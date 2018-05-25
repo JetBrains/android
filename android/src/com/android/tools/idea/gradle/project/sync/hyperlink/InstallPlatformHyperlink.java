@@ -34,7 +34,7 @@ public class InstallPlatformHyperlink extends NotificationHyperlink {
   @NotNull private final AndroidVersion[] myAndroidVersions;
 
   public InstallPlatformHyperlink(@NotNull Collection<AndroidVersion> androidVersions) {
-    this(androidVersions.toArray(new AndroidVersion[androidVersions.size()]));
+    this(androidVersions.toArray(new AndroidVersion[0]));
   }
 
   public InstallPlatformHyperlink(@NotNull AndroidVersion... androidVersions) {

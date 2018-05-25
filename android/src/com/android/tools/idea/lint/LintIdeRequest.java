@@ -100,7 +100,7 @@ public class LintIdeRequest extends LintRequest {
         // Make one project for each module, mark each one as a library,
         // and add projects for the gradle libraries and set error reporting to
         // false on those
-        projects = LintIdeProject.create(mLintClient, myFileList, myModules.toArray(new Module[myModules.size()]));
+        projects = LintIdeProject.create(mLintClient, myFileList, myModules.toArray(Module.EMPTY_ARRAY));
       } else {
         projects = super.getProjects();
       }

@@ -393,7 +393,7 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
     }
 
     MigrateToAppCompatUtil.removeUnneededUsages(infos);
-    return infos.toArray(new UsageInfo[infos.size()]);
+    return infos.toArray(UsageInfo.EMPTY_ARRAY);
   }
 
   private void finishMigration() {

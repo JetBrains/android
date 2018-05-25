@@ -44,6 +44,6 @@ public class AndroidArtifactNode extends AbstractPsModelNode<PsAndroidArtifact> 
 
   @Override
   public SimpleNode[] getChildren() {
-    return myChildren.toArray(new SimpleNode[myChildren.size()]);
+    return myChildren.toArray(new SimpleNode[0]);
   }
 }

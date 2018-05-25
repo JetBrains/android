@@ -140,7 +140,7 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
     final Collection<PsiClass> activities = findRelatedActivities((XmlFile)file, facet, description);
     final MyVisitor visitor = new MyVisitor(manager, isOnTheFly, activities);
     file.accept(visitor);
-    return visitor.myResult.toArray(new ProblemDescriptor[visitor.myResult.size()]);
+    return visitor.myResult.toArray(ProblemDescriptor.EMPTY_ARRAY);
   }
 
   private static class MyVisitor extends XmlRecursiveElementVisitor {

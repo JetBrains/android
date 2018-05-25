@@ -35,7 +35,7 @@ public abstract class AbstractPsResettableNode<T extends PsModel> extends Abstra
     if (myChildren == null) {
       myChildren = createChildren();
     }
-    return myChildren.toArray(new SimpleNode[myChildren.size()]);
+    return myChildren.toArray(new SimpleNode[0]);
   }
 
   public void reset() {

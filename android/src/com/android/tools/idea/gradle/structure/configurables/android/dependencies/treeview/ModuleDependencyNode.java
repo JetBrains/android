@@ -59,7 +59,7 @@ public class ModuleDependencyNode extends AbstractDependencyNode<PsModuleAndroid
   @Override
   @NotNull
   public SimpleNode[] getChildren() {
-    return myChildren.toArray(new SimpleNode[myChildren.size()]);
+    return myChildren.toArray(new SimpleNode[0]);
   }
 
   @Override

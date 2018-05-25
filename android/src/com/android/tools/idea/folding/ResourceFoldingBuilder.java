@@ -114,7 +114,7 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
       });
     }
 
-    return result.toArray(new FoldingDescriptor[result.size()]);
+    return result.toArray(FoldingDescriptor.EMPTY);
   }
 
   @NotNull

@@ -219,7 +219,7 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
     List<PsiReference> result = new ArrayList<>();
     int startOffset = attrValue.getValueTextRange().getStartOffset() - attrValue.getTextRange().getStartOffset();
     createReferences(element, strValue, false, startOffset, context, result);
-    return result.toArray(new PsiReference[result.size()]);
+    return result.toArray(PsiReference.EMPTY_ARRAY);
   }
 
   /**

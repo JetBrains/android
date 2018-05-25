@@ -50,7 +50,7 @@ public class AndroidLintInvalidUsesTagAttributeInspection extends AndroidLintIns
       for (String suggestion : suggestions) {
         fixes.add(new ReplaceStringQuickFix("Replace with \"" + suggestion + "\"", null, regexp, suggestion));
       }
-      return fixes.toArray(new AndroidLintQuickFix[fixes.size()]);
+      return fixes.toArray(AndroidLintQuickFix.EMPTY_ARRAY);
     }
     else {
       return super.getQuickFixes(startElement, endElement, message, fixData);

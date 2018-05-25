@@ -28,6 +28,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
@@ -136,7 +137,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
   public PsiReference[] createReferences(GenericDomValue<PsiClass> value, final PsiElement element, ConvertContext context) {
     assert element instanceof XmlAttributeValue;
     final XmlAttributeValue attrValue = (XmlAttributeValue)element;
-    final String strValue = attrValue.getValue();
+    final String strValue = StringUtil.notNullize(attrValue.getValue());
 
     final boolean startsWithPoint = strValue.startsWith(".");
     final int start = attrValue.getValueTextRange().getStartOffset() - attrValue.getTextRange().getStartOffset();
@@ -162,9 +163,8 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
     final List<PsiReference> result = new ArrayList<>();
     final Module module = context.getModule();
 
-    /**
-     * Using inner class here as opposed to anonymous one as with anonymous class it wouldn't be possible to access {@code myPartStart} later
-     */
+    // Using inner class here as opposed to anonymous one as with anonymous class it wouldn't be possible to access {@code myPartStart}
+    // later.
     class CustomConsumer implements Consumer<Integer> {
       int myPartStart = 0;
       private boolean myIsPackage = true;
@@ -190,7 +190,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
     AndroidTextUtils.forEachOccurrence(strValue, '$', consumer.myPartStart, consumer);
     consumer.consume(strValue.length());
 
-    return result.toArray(new PsiReference[result.size()]);
+    return result.toArray(PsiReference.EMPTY_ARRAY);
   }
 
   @Nullable

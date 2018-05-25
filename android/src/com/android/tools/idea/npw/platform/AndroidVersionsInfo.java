@@ -217,7 +217,7 @@ public class AndroidVersionsInfo {
         result.add(target);
       }
     }
-    return result.toArray(new IAndroidTarget[result.size()]);
+    return result.toArray(new IAndroidTarget[0]);
   }
 
   private void loadRemoteTargets(@NotNull FormFactor myFormFactor, int minSdkLevel, @NotNull List<VersionItem> versionItemList,

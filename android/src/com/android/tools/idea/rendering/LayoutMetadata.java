@@ -372,7 +372,7 @@ public class LayoutMetadata {
           affectedFiles.add(psiFile);
         }
       }
-      action = new WriteCommandAction<Void>(project, title, affectedFiles.toArray(new PsiFile[affectedFiles.size()])) {
+      action = new WriteCommandAction<Void>(project, title, affectedFiles.toArray(PsiFile.EMPTY_ARRAY)) {
         @Override
         protected void run(@NotNull Result<Void> result) throws Throwable {
           for (XmlTag tag : list) {

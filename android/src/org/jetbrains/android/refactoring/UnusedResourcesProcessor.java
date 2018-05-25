@@ -92,7 +92,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
   protected UsageInfo[] findUsages() {
     Map<Issue, Map<File, List<ProblemData>>> map = computeUnusedMap();
     List<PsiElement> elements = computeUnusedDeclarationElements(map);
-    myElements = elements.toArray(new PsiElement[elements.size()]);
+    myElements = elements.toArray(PsiElement.EMPTY_ARRAY);
     UsageInfo[] result = new UsageInfo[myElements.length];
     for (int i = 0, n = myElements.length; i < n; i++) {
       PsiElement element = myElements[i];

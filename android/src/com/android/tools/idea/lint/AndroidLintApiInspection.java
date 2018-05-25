@@ -80,7 +80,7 @@ public abstract class AndroidLintApiInspection extends AndroidLintInspectionBase
         list.add(new AddTargetApiQuickFix(api, true, startElement));
       }
 
-      return list.toArray(new AndroidLintQuickFix[list.size()]);
+      return list.toArray(AndroidLintQuickFix.EMPTY_ARRAY);
     }
 
     return super.getQuickFixes(startElement, endElement, message, fixData);

@@ -137,7 +137,7 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
     if (selected.isEmpty()) {
       return PsiClass.EMPTY_ARRAY;
     }
-    return selected.toArray(new PsiClass[selected.size()]);
+    return selected.toArray(PsiClass.EMPTY_ARRAY);
   }
 
   @NotNull
