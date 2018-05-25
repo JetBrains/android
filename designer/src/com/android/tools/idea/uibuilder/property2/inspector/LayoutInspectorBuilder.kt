@@ -47,16 +47,14 @@ class LayoutInspectorBuilder(project: Project, private val editorProvider: Edito
     val titleModel = inspector.addExpandableTitle("layout")
 
     if (custom != null) {
-      val customLine = inspector.addComponent(custom)
-      titleModel.addChild(customLine)
+      inspector.addComponent(custom, titleModel)
     }
 
     for (propertyName in attributes) {
       // TODO: Handle other namespaces
       val property = properties.getOrNull(ANDROID_URI, propertyName)
       if (property != null) {
-        val line = inspector.addEditor(editorProvider.createEditor(property))
-        titleModel.addChild(line)
+        inspector.addEditor(editorProvider.createEditor(property), titleModel)
       }
     }
   }

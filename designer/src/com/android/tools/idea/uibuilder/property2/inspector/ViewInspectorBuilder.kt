@@ -56,15 +56,13 @@ class ViewInspectorBuilder(project: Project, private val editorProvider: EditorP
     val titleModel = inspector.addExpandableTitle(tagName.substring(tagName.lastIndexOf('.') + 1))
 
     if (custom != null) {
-      val customLine = inspector.addComponent(custom)
-      titleModel.addChild(customLine)
+      inspector.addComponent(custom, titleModel)
     }
 
     for (propertyName in attributes) {
       val property = findProperty(propertyName, properties)
       if (property != null) {
-        val line = inspector.addEditor(editorProvider.createEditor(property))
-        titleModel.addChild(line)
+        inspector.addEditor(editorProvider.createEditor(property), titleModel)
       }
     }
   }

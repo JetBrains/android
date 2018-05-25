@@ -243,7 +243,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
     return model
   }
 
-  override fun addEditor(editorModel: PropertyEditorModel, editor: JComponent): InspectorLineModel {
+  override fun addCustomEditor(editorModel: PropertyEditorModel, editor: JComponent, parent: InspectorLineModel?): InspectorLineModel {
     val model = CollapsibleLabelModel(editorModel.property.name, editorModel)
     val label = CollapsibleLabel(model)
     label.border = JBUI.Borders.emptyLeft(LEFT_HORIZONTAL_CONTENT_BORDER_SIZE)
@@ -252,43 +252,56 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
     inspector.addLineElement(label, editor)
     model.gotoNextLine = gotoNextLine
     lastAddedNonTitleLine = model
+    addAsChild(model, parent)
     return model
   }
 
-  override fun addTable(tableModel: PTableModel, searchable: Boolean, tableUI: TableUIProvider): InspectorLineModel {
+  override fun addTable(tableModel: PTableModel,
+                        searchable: Boolean,
+                        tableUI: TableUIProvider,
+                        parent: InspectorLineModel?): InspectorLineModel {
     val model = TableLineModel(tableModel, searchable)
     val editor = TableEditor(model, tableUI.tableCellRendererProvider, tableUI.tableCellEditorProvider)
     inspectorModel.add(model)
     inspector.addLineElement(editor.component)
     model.gotoNextLine = gotoNextLine
     lastAddedNonTitleLine = model
+    addAsChild(model, parent)
     return model
   }
 
-  override fun addComponent(component: JComponent): InspectorLineModel {
+  override fun addComponent(component: JComponent, parent: InspectorLineModel?): InspectorLineModel {
     val model = GenericInspectorLineModel()
     val wrapper = GenericLinePanel(component, model)
     inspectorModel.add(model)
     inspector.addLineElement(wrapper)
     model.gotoNextLine = gotoNextLine
     lastAddedNonTitleLine = model
+    addAsChild(model, parent)
     return model
+  }
+
+  private fun addAsChild(child: GenericInspectorLineModel, parent: InspectorLineModel?) {
+    if (parent == null) {
+      return
+    }
+    val label = parent as? CollapsibleLabelModel ?: throw IllegalArgumentException()
+    label.addChild(child)
   }
 
   private fun addSeparatorBeforeTitle() {
     val lastLine = lastAddedNonTitleLine ?: return
-    val separator = addSeparator(bottomDivider = true)
-    lastLine.parent?.addChild(separator)
+    addSeparator(bottomDivider = true, parent = lastLine.parent)
   }
 
-  private fun addSeparator(bottomDivider: Boolean): InspectorLineModel {
+  private fun addSeparator(bottomDivider: Boolean, parent: InspectorLineModel? = null): GenericInspectorLineModel {
     val component = JPanel()
     val bottom = if (bottomDivider) 1 else 0
     component.preferredSize = JBDimension(0, TITLE_SEPARATOR_HEIGHT)
     component.background = inspector.background
     component.border = JBUI.Borders.customLine(JBColor.border(), 0, 0, bottom, 0)
-    val line = addComponent(component)
+    val line = addComponent(component, parent)
     lastAddedNonTitleLine = null
-    return line
+    return line as GenericInspectorLineModel
   }
 }

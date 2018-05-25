@@ -61,7 +61,7 @@ public class MotionLayoutAttributesView {
       if (target == null || position == null) {
         return;
       }
-      inspector.addEditor(myEditorProvider.createEditor(position, false));
+      inspector.addEditor(myEditorProvider.createEditor(position, false), null);
 
       Set<String> excluded = ImmutableSet.of(Key_frameTarget, Key_framePosition);
       MotionSceneModel.BaseTag tag = position.getTag();
@@ -70,7 +70,7 @@ public class MotionLayoutAttributesView {
       List<MotionPropertyItem> attributes = properties.getValues().stream()
                                                       .filter(item -> !excluded.contains(item.getName()))
                                                       .collect(Collectors.toList());
-      title.addChild(inspector.addTable(new MotionTableModel(attributes), true, myTableUIProvider));
+      inspector.addTable(new MotionTableModel(attributes), true, myTableUIProvider, title);
     }
 
     @Override
