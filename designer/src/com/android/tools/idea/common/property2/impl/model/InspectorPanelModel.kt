@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.property2.impl.model
 
+import com.android.annotations.VisibleForTesting
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.common.property2.api.InspectorLineModel
 import com.intellij.psi.codeStyle.NameUtil
@@ -28,7 +29,8 @@ import com.intellij.psi.codeStyle.NameUtil
  */
 class InspectorPanelModel {
   private var listeners = mutableListOf<ValueChangedListener>()
-  private val lines = mutableListOf<InspectorLineModel>()
+  @VisibleForTesting
+  val lines = mutableListOf<InspectorLineModel>()
 
   var filter: String = ""
     set(value) {

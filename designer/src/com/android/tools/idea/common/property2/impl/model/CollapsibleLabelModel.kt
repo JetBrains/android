@@ -39,12 +39,12 @@ const val KEY_PREFIX = "inspector.open."
  * @property expanded True if this label is currently expanded.
  * @property icon Shows the expansion state f this is an expandable label, otherwise it may show the namespace of the property.
  */
-class CollapsibleLabelModel(
+open class CollapsibleLabelModel(
   val name: String,
   val editorModel: PropertyEditorModel? = null,
   @TestOnly val properties: PropertiesComponent = PropertiesComponent.getInstance()
 ) : GenericInspectorLineModel() {
-  private var children: MutableList<InspectorLineModel>? = null
+  @VisibleForTesting var children: MutableList<InspectorLineModel>? = null
   private var defaultExpansionValue = true
 
   var expandable = false
@@ -117,15 +117,10 @@ class CollapsibleLabelModel(
     editorModel?.refresh()
   }
 
-  var separatorAfterTitle: GenericInspectorLineModel? = null
-
   override fun makeExpandable(initiallyExpanded: Boolean) {
     defaultExpansionValue = initiallyExpanded
     expandable = true
     expanded = properties.getBoolean(KEY_PREFIX + name, defaultExpansionValue)
-    val separator = separatorAfterTitle ?: return
-    addChild(separator)
-    separatorAfterTitle = null
   }
 
   fun addChild(child: GenericInspectorLineModel) {
@@ -151,3 +146,10 @@ class CollapsibleLabelModel(
     }
   }
 }
+
+/**
+ * This class exists for the benefit of unit testing only.
+ *
+ * The model is used for generated separators around title elements in the properties panel.
+ */
+class TitleLineModel(name: String): CollapsibleLabelModel(name)
