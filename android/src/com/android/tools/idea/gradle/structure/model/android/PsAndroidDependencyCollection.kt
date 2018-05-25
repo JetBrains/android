@@ -19,19 +19,16 @@ import com.android.builder.model.level2.Library
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
-import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
-import com.android.tools.idea.gradle.structure.model.PsModelCollection
-import com.android.tools.idea.gradle.structure.model.PsParsedDependencies
+import com.android.tools.idea.gradle.structure.model.*
 import com.android.tools.idea.gradle.structure.model.pom.MavenPoms.findDependenciesInPomFile
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.LinkedListMultimap
 import java.util.function.Consumer
 
 abstract class PsAndroidDependencyCollection(protected val parent: PsAndroidModule) : PsModelCollection<PsAndroidDependency> {
-  protected data class LibraryKey(val group: String, val name: String)
 
   protected val moduleDependenciesByGradlePath = LinkedListMultimap.create<String, PsModuleAndroidDependency>()!!
-  protected val libraryDependenciesBySpec = LinkedListMultimap.create<LibraryKey, PsLibraryAndroidDependency>()!!
+  protected val libraryDependenciesBySpec = LinkedListMultimap.create<PsLibraryKey, PsLibraryAndroidDependency>()!!
 
   override fun forEach(consumer: Consumer<PsAndroidDependency>) {
     libraryDependenciesBySpec.values().forEach(consumer)
@@ -43,11 +40,9 @@ abstract class PsAndroidDependencyCollection(protected val parent: PsAndroidModu
   }
 
   fun findLibraryDependencies(group: String?, name: String): List<PsLibraryAndroidDependency> =
-    libraryDependenciesBySpec[LibraryKey(group.orEmpty(), name)].toList()
+    libraryDependenciesBySpec[PsLibraryKey(group.orEmpty(), name)].toList()
 
   fun isEmpty(): Boolean = moduleDependenciesByGradlePath.isEmpty && libraryDependenciesBySpec.isEmpty
-
-  protected fun PsArtifactDependencySpec.toLibraryKey(): LibraryKey = LibraryKey(group.orEmpty(), name)
 }
 
 /**
