@@ -19,7 +19,6 @@ import com.android.tools.adtui.chart.hchart.HRenderer;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.profilers.cpu.nodemodel.*;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.ui.ColorUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -58,35 +57,35 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
     this(type, (text, metrics, width) -> metrics.stringWidth(text) <= width);
   }
 
-  private Color getFillColor(CaptureNode node) {
+  private Color getFillColor(CaptureNode node, boolean isFocused) {
     // TODO (b/74349846): Change this function to use a binder base on CaptureNode.
     CaptureNodeModel nodeModel = node.getData();
     if (nodeModel instanceof JavaMethodModel) {
-      return JavaMethodHChartColors.getFillColor(nodeModel, myType, node.isUnmatched());
+      return JavaMethodHChartColors.getFillColor(nodeModel, myType, node.isUnmatched(), isFocused);
     }
     else if (nodeModel instanceof NativeNodeModel) {
-      return NativeModelHChartColors.getFillColor(nodeModel, myType, node.isUnmatched());
+      return NativeModelHChartColors.getFillColor(nodeModel, myType, node.isUnmatched(), isFocused);
     }
     // AtraceNodeModel is a SingleNameModel as such this check needs to happen before SingleNameModel check.
     else if (nodeModel instanceof AtraceNodeModel) {
-      return AtraceNodeModelHChartColors.getFillColor(nodeModel, myType, node.isUnmatched());
+      return AtraceNodeModelHChartColors.getFillColor(nodeModel, myType, node.isUnmatched(), isFocused);
     }
     else if (nodeModel instanceof SingleNameModel) {
-      return SingleNameModelHChartColors.getFillColor(nodeModel, myType, node.isUnmatched());
+      return SingleNameModelHChartColors.getFillColor(nodeModel, myType, node.isUnmatched(), isFocused);
     }
     throw new IllegalStateException("Node type not supported.");
   }
 
-  private Color getIdleCpuColor(CaptureNode node) {
+  private Color getIdleCpuColor(CaptureNode node, boolean isFocused) {
     // TODO (b/74349846): Change this function to use a binder base on CaptureNode.
 
     // The only nodes that actually show idle time are the atrace nodes. As such they are the only ones,
     // that return a custom color for the idle cpu time.
     CaptureNodeModel nodeModel = node.getData();
     if (nodeModel instanceof AtraceNodeModel) {
-      return AtraceNodeModelHChartColors.getIdleCpuColor(nodeModel, myType, node.isUnmatched());
+      return AtraceNodeModelHChartColors.getIdleCpuColor(nodeModel, myType, node.isUnmatched(), isFocused);
     }
-    return getFillColor(node);
+    return getFillColor(node, isFocused);
   }
 
   /**
@@ -107,13 +106,8 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
     // Draw rectangle background
     CaptureNode captureNode = node;
     CaptureNodeModel nodeModel = node.getData();
-    Color nodeColor = getFillColor(captureNode);
-    Color idleColor = getIdleCpuColor(captureNode);
-    if (isFocused) {
-      // All colors we use in call and flame charts are pretty bright, so darkening them works as an effective highlight
-      nodeColor = ColorUtil.darker(nodeColor, 2);
-      idleColor = ColorUtil.darker(idleColor, 2);
-    }
+    Color nodeColor = getFillColor(captureNode, isFocused);
+    Color idleColor = getIdleCpuColor(captureNode, isFocused);
     g.setPaint(nodeColor);
     g.fill(drawingArea);
 

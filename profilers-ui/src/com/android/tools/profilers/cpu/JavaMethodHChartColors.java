@@ -47,30 +47,30 @@ class JavaMethodHChartColors {
   }
 
 
-  static Color getFillColor(@NotNull CaptureNodeModel model, CaptureModel.Details.Type chartType, boolean isUnmatched) {
+  static Color getFillColor(@NotNull CaptureNodeModel model, CaptureModel.Details.Type chartType, boolean isUnmatched, boolean isFocused) {
     validateModel(model);
 
     Color color;
     if (chartType == CaptureModel.Details.Type.CALL_CHART) {
       if (isMethodVendor(model)) {
-        color = ProfilerColors.CPU_CALLCHART_VENDOR;
+        color = isFocused ? ProfilerColors.CPU_CALLCHART_VENDOR_HOVER : ProfilerColors.CPU_CALLCHART_VENDOR;
       }
       else if (isMethodPlatform(model)) {
-        color = ProfilerColors.CPU_CALLCHART_PLATFORM;
+        color = isFocused ? ProfilerColors.CPU_CALLCHART_PLATFORM_HOVER : ProfilerColors.CPU_CALLCHART_PLATFORM;
       }
       else {
-        color = ProfilerColors.CPU_CALLCHART_APP;
+        color = isFocused ? ProfilerColors.CPU_CALLCHART_APP_HOVER : ProfilerColors.CPU_CALLCHART_APP;
       }
     }
     else {
       if (isMethodVendor(model)) {
-        color = ProfilerColors.CPU_FLAMECHART_VENDOR;
+        color = isFocused ? ProfilerColors.CPU_FLAMECHART_VENDOR_HOVER : ProfilerColors.CPU_FLAMECHART_VENDOR;
       }
       else if (isMethodPlatform(model)) {
-        color = ProfilerColors.CPU_FLAMECHART_PLATFORM;
+        color = isFocused ? ProfilerColors.CPU_FLAMECHART_PLATFORM_HOVER : ProfilerColors.CPU_FLAMECHART_PLATFORM;
       }
       else {
-        color = ProfilerColors.CPU_FLAMECHART_APP;
+        color = isFocused ? ProfilerColors.CPU_FLAMECHART_APP_HOVER : ProfilerColors.CPU_FLAMECHART_APP;
       }
     }
     return isUnmatched ? toUnmatchColor(color) : color;
