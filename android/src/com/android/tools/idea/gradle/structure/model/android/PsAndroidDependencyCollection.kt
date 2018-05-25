@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.builder.model.level2.Library
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.structure.model.*
 import com.android.tools.idea.gradle.structure.model.pom.MavenPoms.findDependenciesInPomFile
@@ -129,21 +128,22 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact) :
   }
 
   private fun addLibrary(library: Library, artifact: PsAndroidArtifact) {
-    val parsedModels = mutableListOf<ArtifactDependencyModel>()
+    val declaredDependencies = mutableListOf<PsDeclaredLibraryAndroidDependency>()
     // TODO(solodkyy): Inverse the process and match parsed dependencies with resolved instead. (See other TODOs).
-    val parsedDependencies = parent.parsedDependencies
+    val parsedDependencies = parent.dependencies
 
     val coordinates = GradleCoordinate.parseCoordinateString(library.artifactAddress)
     if (coordinates != null) {
       val spec = PsArtifactDependencySpec.create(coordinates)
       // TODO(b/74425541): Make sure it returns all the matching parsed dependencies rather than the first one.
-      val matchingParsedDependencies =
+      val matchingDeclaredDependencies =
         parsedDependencies
           .findLibraryDependencies(coordinates.groupId, coordinates.artifactId!!)
-          .filter { artifact.contains(it) }
+          .map { it as PsDeclaredLibraryAndroidDependency }
+          .filter { artifact.contains(it.parsedModel) }
       // TODO(b/74425541): Reconsider duplicates.
-      parsedModels.addAll(matchingParsedDependencies)
-      val androidDependency = PsResolvedLibraryAndroidDependency(parent, spec, listOf(artifact), library, parsedModels)
+      declaredDependencies.addAll(matchingDeclaredDependencies)
+      val androidDependency = PsResolvedLibraryAndroidDependency(parent, spec, artifact, library, declaredDependencies)
       androidDependency.setDependenciesFromPomFile(findDependenciesInPomFile(library.artifact))
       libraryDependenciesBySpec.put(androidDependency.spec.toLibraryKey(), androidDependency)
     }

@@ -101,11 +101,12 @@ open class PsDeclaredLibraryAndroidDependency(
 open class PsResolvedLibraryAndroidDependency(
   parent: PsAndroidModule,
   override val spec: PsArtifactDependencySpec,
-  containers: Collection<PsAndroidArtifact>,
+  val artifact: PsAndroidArtifact,
   override val resolvedModel: Library,
-  private val parsedModels: Collection<ArtifactDependencyModel>
-) : PsLibraryAndroidDependency(parent, containers), PsResolvedDependency, PsResolvedLibraryDependency {
-  override val isDeclared: Boolean get() = !parsedModels.isEmpty()
+  private val declaredDependencies: Collection<PsDeclaredLibraryAndroidDependency>
+) : PsLibraryAndroidDependency(parent, listOf(artifact)), PsResolvedDependency, PsResolvedLibraryDependency {
+  private val parsedModels = declaredDependencies.map { it.parsedModel }
+  override val isDeclared: Boolean get() = !declaredDependencies.isEmpty()
   override val joinedConfigurationNames: String get() = parsedModels.joinToString(separator = ", ") { it.configurationName() }
 
   override fun getParsedModels(): List<DependencyModel> = parsedModels.toList()
@@ -131,7 +132,7 @@ abstract class PsLibraryAndroidDependency internal constructor(
   parent: PsAndroidModule,
   containers: Collection<PsAndroidArtifact>
 ) : PsAndroidDependency(parent, containers), PsLibraryDependency {
-  private val pomDependencies = mutableListOf<PsArtifactDependencySpec>()
+  internal val pomDependencies = mutableListOf<PsArtifactDependencySpec>()
 
 
   internal fun setDependenciesFromPomFile(value: List<PsArtifactDependencySpec>) {
@@ -139,7 +140,7 @@ abstract class PsLibraryAndroidDependency internal constructor(
     pomDependencies.addAll(value)
   }
 
-  fun getTransitiveDependencies(artifactDependencies: PsAndroidDependencyCollection): Set<PsLibraryAndroidDependency> {
+  fun getTransitiveDependencies(artifactDependencies: PsAndroidArtifactDependencyCollection): Set<PsLibraryAndroidDependency> {
     val transitive = ImmutableSet.builder<PsLibraryAndroidDependency>()
     for (dependency in pomDependencies) {
       // TODO(b/74948244): Include the requested version as a parsed model so that we see any promotions.

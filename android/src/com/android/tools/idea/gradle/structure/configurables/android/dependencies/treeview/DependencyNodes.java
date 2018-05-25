@@ -91,7 +91,7 @@ public final class DependencyNodes {
   }
 
   private static void addTransitive(@NotNull PsDependency dependency,
-                                    @NotNull PsAndroidDependencyCollection collection,
+                                    @NotNull PsAndroidArtifactDependencyCollection collection,
                                     @NotNull Set<String> allTransitive) {
     if (dependency instanceof PsLibraryAndroidDependency) {
       PsLibraryAndroidDependency libraryDependency = (PsLibraryAndroidDependency)dependency;

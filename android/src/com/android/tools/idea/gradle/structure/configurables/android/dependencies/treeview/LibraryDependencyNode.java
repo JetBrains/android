@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency;
 import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.android.tools.idea.gradle.structure.model.PsResolvedDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifactDependencyCollection;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependencyCollection;
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsResolvedLibraryAndroidDependency;
@@ -47,7 +48,7 @@ public class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryAndro
 
   public LibraryDependencyNode(
     @NotNull AbstractPsNode parent,
-    @Nullable PsAndroidDependencyCollection collection,
+    @Nullable PsAndroidArtifactDependencyCollection collection,
     @NotNull PsLibraryAndroidDependency dependency) {
     super(parent, dependency);
     myDependencyNodeComparator = new DependencyNodeComparator(new PsDependencyComparator(getUiSettings()));
@@ -55,14 +56,14 @@ public class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryAndro
   }
 
   public LibraryDependencyNode(@NotNull AbstractPsNode parent,
-                               @Nullable PsAndroidDependencyCollection collection,
+                               @Nullable PsAndroidArtifactDependencyCollection collection,
                                @NotNull List<PsLibraryAndroidDependency> dependencies) {
     super(parent, dependencies);
     myDependencyNodeComparator = new DependencyNodeComparator(new PsDependencyComparator(getUiSettings()));
     setUp(dependencies.get(0), collection);
   }
 
-  private void setUp(@NotNull PsLibraryAndroidDependency dependency, @Nullable PsAndroidDependencyCollection collection) {
+  private void setUp(@NotNull PsLibraryAndroidDependency dependency, @Nullable PsAndroidArtifactDependencyCollection collection) {
     myName = getText(dependency);
     // TODO(b/74380202): Setup children from Pom dependencies without a PsAndroidDependencyCollection.
     if (collection != null) {
