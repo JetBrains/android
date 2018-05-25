@@ -46,6 +46,16 @@ interface PTable {
   /** The font color used in the table */
   val foregroundColor: Color
 
+  /**
+   * The grid color used in the table.
+   *
+   * Note: The 2 columns are NOT divided by a grid line, since the implementation would always show
+   * a vertical line after each column. We don't want a line after the value column.
+   * If a consumer of this interface wants a vertical grid line between the 2 columns, the consumer
+   * must draw this line. Here is the color used for the horizontal grid lines.
+   */
+  val gridLineColor: Color
+
   /** The filter used to limit the items shown in the table. Use the empty string for no filter. */
   var filter: String
 
