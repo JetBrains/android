@@ -30,10 +30,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
-import io.grpc.ManagedChannel;
-import io.grpc.MethodDescriptor;
-import io.grpc.ServerCallHandler;
-import io.grpc.ServerServiceDefinition;
+import io.grpc.*;
 import io.grpc.stub.ServerCalls;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
@@ -176,7 +173,13 @@ public class ProfilerServiceProxy extends PerfdProxyService
     TimeResponse response;
     if (myIsDeviceApiSupported) {
       // if device API is supported, use grpc to get the current time
-      response = myServiceStub.getCurrentTime(request);
+      try {
+        response = myServiceStub.getCurrentTime(request);
+      } catch (StatusRuntimeException e) {
+        responseObserver.onError(e);
+        return;
+      }
+
     }
     else {
       // otherwise, return a default (any) instance of TimeResponse
