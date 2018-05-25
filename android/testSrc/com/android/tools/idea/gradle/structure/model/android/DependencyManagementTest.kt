@@ -413,7 +413,6 @@ private fun PsAndroidModuleDependencyCollection.findLibraryDependency(compactNot
       spec.name
     )
       .filter { it.spec.version == spec.version }
-      .map { it as PsDeclaredLibraryAndroidDependency }
       .let { if (it.isEmpty()) null else it }
   }
 
@@ -424,7 +423,6 @@ private fun PsAndroidArtifactDependencyCollection.findLibraryDependency(compactN
       spec.name
     )
       .filter { it.spec.version == spec.version }
-      .map { it as PsResolvedLibraryAndroidDependency }
       .let { if (it.isEmpty()) null else it }
   }
 
