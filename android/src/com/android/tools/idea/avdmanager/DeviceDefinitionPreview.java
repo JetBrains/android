@@ -260,7 +260,7 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
         infoSegmentY = round(JBUI.scale(100) + screenSize.height + PADDING);
       }
       infoSegmentY += stringHeight;
-      ScreenSize size = AvdScreenData.getScreenSize(myDeviceData.diagonalScreenSize().get());
+      ScreenSize size = ScreenSize.getScreenSize(myDeviceData.diagonalScreenSize().get());
 
       g2d.drawString("Size:      " + size.getResourceValue(), infoSegmentX, infoSegmentY);
       infoSegmentY += stringHeight;

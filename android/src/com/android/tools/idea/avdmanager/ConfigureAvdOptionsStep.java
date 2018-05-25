@@ -25,7 +25,7 @@ import com.android.resources.ScreenOrientation;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.*;
-import com.android.sdklib.internal.avd.GpuMode;
+import com.android.sdklib.internal.avd.*;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.adtui.util.FormScalingUtil;
@@ -280,7 +280,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   }
 
   private void initCpuCoreDropDown() {
-    for (int core = 1; core <= AvdOptionsModel.MAX_NUMBER_OF_CORES; core++) {
+    for (int core = 1; core <= EmulatedProperties.MAX_NUMBER_OF_CORES; core++) {
       myCoreCount.addItem(core);
     }
   }
@@ -530,7 +530,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
 
     mySelectedCoreCount = getModel().useQemu2().get() ? getModel().cpuCoreCount().getValueOr(1)
-                                                      : AvdOptionsModel.RECOMMENDED_NUMBER_OF_CORES;
+                                                      : EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES;
   }
 
   private void addListeners() {
@@ -1110,13 +1110,13 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     boolean showMultiCoreOption = isAdvancedPanel() && doesSystemImageSupportQemu2();
     myQemu2Panel.setVisible(showMultiCoreOption);
     if (showMultiCoreOption) {
-      boolean showCores = supportsMultipleCpuCores() && getModel().useQemu2().get() && AvdOptionsModel.MAX_NUMBER_OF_CORES > 1;
+      boolean showCores = supportsMultipleCpuCores() && getModel().useQemu2().get() && EmulatedProperties.MAX_NUMBER_OF_CORES > 1;
       if (useQemu2Changed) {
         if (showCores) {
           getModel().cpuCoreCount().setValue(mySelectedCoreCount);
         }
         else {
-          mySelectedCoreCount = getModel().cpuCoreCount().getValueOr(AvdOptionsModel.RECOMMENDED_NUMBER_OF_CORES);
+          mySelectedCoreCount = getModel().cpuCoreCount().getValueOr(EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES);
           getModel().cpuCoreCount().setValue(1);
         }
       }
