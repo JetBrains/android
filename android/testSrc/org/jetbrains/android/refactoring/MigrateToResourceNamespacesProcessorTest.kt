@@ -148,7 +148,7 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
             xmlns:lib="http://schemas.android.com/apk/res/com.example.lib"
             lib:libAttr="layout">
           <TextView android:text="@string/appString" lib:libAttr="view" />
-          <TextView android:text="@com.example.lib:string/libString" />
+          <TextView android:text="@lib:string/libString" />
         </LinearLayout>
       """.trimIndent(),
       true
@@ -164,7 +164,7 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
             xmlns:existing="http://schemas.android.com/apk/res/com.example.lib"
             existing:libAttr="layout">
           <TextView android:text="@string/appString" existing:libAttr="view" />
-          <TextView android:text="@com.example.lib:string/libString" />
+          <TextView android:text="@existing:string/libString" />
         </LinearLayout>
       """.trimIndent(),
       true
@@ -181,7 +181,7 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
             xmlns:lib2="http://schemas.android.com/apk/res/com.example.lib"
             lib2:libAttr="layout">
           <TextView android:text="@string/appString" lib2:libAttr="view" />
-          <TextView android:text="@com.example.lib:string/libString" />
+          <TextView android:text="@lib2:string/libString" />
         </LinearLayout>
       """.trimIndent(),
       true
@@ -193,10 +193,10 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
     myFixture.checkResult(
       // language=xml
       """
-        <resources>
+        <resources xmlns:lib="http://schemas.android.com/apk/res/com.example.lib">
           <string name="appString">Hello from app</string>
           <string name="s1">@string/appString</string>
-          <string name="s2">@com.example.lib:string/libString</string>
+          <string name="s2">@lib:string/libString</string>
         </resources>
       """.trimIndent(),
       true
@@ -217,9 +217,10 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
       """
         <?xml version="1.0" encoding="utf-8"?>
         <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-                  package="com.example.app">
+            xmlns:lib="http://schemas.android.com/apk/res/com.example.lib"
+            package="com.example.app">
             <application android:icon="@drawable/icon"
-                android:label="@com.example.lib:string/libString">
+                android:label="@lib:string/libString">
             </application>
         </manifest>
       """.trimIndent(),

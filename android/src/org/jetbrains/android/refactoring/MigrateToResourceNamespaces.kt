@@ -366,14 +366,22 @@ class MigrateToResourceNamespacesProcessor(
       when (usageInfo) {
         is DomValueUsageInfo -> {
           val oldResourceValue = usageInfo.domValue.value ?: return@forEachIndexed
+          val tag = usageInfo.domValue.xmlTag ?: return@forEachIndexed
+          val prefix = findOrCreateNamespacePrefix(tag, inferredPackage)
           val newResourceValue = ResourceValue.referenceTo(
             oldResourceValue.prefix,
-            inferredPackage,
+            prefix,
             oldResourceValue.resourceType,
             oldResourceValue.resourceName
           )
-
           usageInfo.domValue.value = newResourceValue
+        }
+        is XmlAttributeUsageInfo -> {
+          val element = usageInfo.element as? XmlAttribute ?: return@forEachIndexed
+          val prefix = findOrCreateNamespacePrefix(element.parent, inferredPackage)
+          element.references
+            .find {it is SchemaPrefixReference}
+            ?.handleElementRename(prefix)
         }
         is CodeUsageInfo -> {
           usageInfo.classReference.bindToElement(
@@ -383,26 +391,6 @@ class MigrateToResourceNamespacesProcessor(
               AndroidResourceUtil.packageToRClass(inferredPackage)
             )
           )
-        }
-        is XmlAttributeUsageInfo -> {
-          val element = usageInfo.element as? XmlAttribute ?: return@forEachIndexed
-          val tag = element.parent
-          val prefix = tag.getPrefixByNamespace(URI_PREFIX + inferredPackage) ?: run {
-            var newPrefix = choosePrefix(inferredPackage)
-            if (tag.getNamespaceByPrefix(newPrefix).isNotEmpty()) {
-              var i = 2
-              while (tag.getNamespaceByPrefix(newPrefix + i).isNotEmpty()) {
-                i++
-              }
-
-              newPrefix += i
-            }
-
-            tag.parentOfType<XmlDocument>()?.rootTag?.let { addXmlnsDeclaration(it, newPrefix, URI_PREFIX + inferredPackage) }
-            newPrefix
-          }
-
-          element.references.find {it is SchemaPrefixReference}?.handleElementRename(prefix)
         }
       }
 
@@ -427,6 +415,27 @@ class MigrateToResourceNamespacesProcessor(
     val application = ApplicationManager.getApplication()
     if (!application.isUnitTestMode) {
       application.invokeLater { AndroidRefactoringUtil.offerToSync(myProject, commandName) }
+    }
+  }
+
+  /**
+   * Finds the xmlns prefix used for the given resource package name in the context of the given [tag]. If no such prefix is defined,
+   * it gets added to the root tag of the document.
+   */
+  private fun findOrCreateNamespacePrefix(tag: XmlTag, inferredPackage: String): String {
+    return tag.getPrefixByNamespace(URI_PREFIX + inferredPackage) ?: run {
+      var newPrefix = choosePrefix(inferredPackage)
+      if (tag.getNamespaceByPrefix(newPrefix).isNotEmpty()) {
+        var i = 2
+        while (tag.getNamespaceByPrefix(newPrefix + i).isNotEmpty()) {
+          i++
+        }
+
+        newPrefix += i
+      }
+
+      tag.parentOfType<XmlDocument>()?.rootTag?.let { addXmlnsDeclaration(it, newPrefix, URI_PREFIX + inferredPackage) }
+      newPrefix
     }
   }
 
