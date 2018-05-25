@@ -268,7 +268,7 @@ public class AtraceParser implements TraceParser {
       root.setEndGlobal((long)range.getMax());
       myCaptureTreeNodes.put(threadInfo, root);
       for (SliceGroup slice : thread.getSlices()) {
-        CaptureNode node = populateCaptureNode(slice, 0);
+        CaptureNode node = populateCaptureNode(slice, 1);
         root.addChild(node);
       }
     }

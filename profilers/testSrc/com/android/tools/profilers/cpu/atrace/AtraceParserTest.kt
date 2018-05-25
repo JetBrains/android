@@ -74,8 +74,8 @@ class AtraceParserTest {
     assertThat(captureNode.getChildAt(0).start).isLessThan(range.max.toLong())
     assertThat(captureNode.getChildAt(0).end).isGreaterThan(range.min.toLong())
     assertThat(captureNode.getChildAt(0).end).isLessThan(range.max.toLong())
-    assertThat(captureNode.getChildAt(0).depth).isEqualTo(0)
-    assertThat(captureNode.getChildAt(2).getChildAt(0).depth).isEqualTo(1)
+    assertThat(captureNode.getChildAt(0).depth).isEqualTo(1)
+    assertThat(captureNode.getChildAt(2).getChildAt(0).depth).isEqualTo(2)
   }
 
   @Test
