@@ -69,7 +69,7 @@ private fun GradleDslElement.printElement(builder : StringBuilder, indent : Int)
     }
     is GradlePropertiesDslElement -> {
       builder.append("${javaClass.simpleName.red} : ${name.magenta}\n")
-      allPropertyElements.forEach {
+      allElements.forEach {
         builder.append("${" ".repeat(indent)}| ${it.name.blue} -> ")
         it.printElement(builder, indent + INDENT)
         if (builder.last() != '\n') builder.append("\n")
