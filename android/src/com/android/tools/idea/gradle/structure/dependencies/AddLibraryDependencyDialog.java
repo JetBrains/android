@@ -110,7 +110,7 @@ public class AddLibraryDependencyDialog extends AbstractAddDependenciesDialog {
     if (isEmpty(selectedLibrary)) {
       return new ValidationInfo("Please specify the library to add as dependency", myLibraryDependenciesForm.getPreferredFocusedComponent());
     }
-    PsArtifactDependencySpec spec = PsArtifactDependencySpec.create(selectedLibrary);
+    PsArtifactDependencySpec spec = PsArtifactDependencySpec.Companion.create(selectedLibrary);
     PsModule module = getModule();
     if (spec != null && module instanceof PsAndroidModule) {
       PsAndroidModule androidModule = (PsAndroidModule)module;

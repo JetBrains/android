@@ -52,7 +52,7 @@ public final class QuickFixes {
                                                   @NotNull String configurationName,
                                                   @NotNull String version) {
     PsModule module = context.getProject().findModuleByName(moduleName);
-    PsArtifactDependencySpec spec = PsArtifactDependencySpec.create(dependency);
+    PsArtifactDependencySpec spec = PsArtifactDependencySpec.Companion.create(dependency);
     if (module != null && spec != null) {
       module.setLibraryDependencyVersion(spec, configurationName, version);
     }
