@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.FilterComponent;
 import com.android.tools.adtui.RangeTimeScrollBar;
 import com.android.tools.adtui.TabularLayout;
@@ -25,7 +26,9 @@ import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.AxisComponentModel;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.stdui.CommonTabbedPane;
 import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.android.tools.perflib.vmtrace.ClockType;
@@ -56,6 +59,8 @@ import javax.swing.event.TreeWillExpandListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
@@ -566,8 +571,10 @@ class CpuCaptureView {
       RangeTimeScrollBar horizontalScrollBar = new RangeTimeScrollBar(captureRange, selectionRange, TimeUnit.MICROSECONDS);
       horizontalScrollBar.setPreferredSize(new Dimension(horizontalScrollBar.getPreferredSize().width, 10));
 
-      JPanel contentPanel = new JPanel(new TabularLayout("*,Fit", "*,Fit"));
+      AxisComponent axis = createAxis(selectionRange, stageView.getTimeline().getDataRange());
 
+      JPanel contentPanel = new JPanel(new TabularLayout("*,Fit", "*,Fit"));
+      contentPanel.add(axis, new TabularLayout.Constraint(0, 0));
       contentPanel.add(myChart, new TabularLayout.Constraint(0, 0));
       contentPanel.add(new HTreeChartVerticalScrollBar<>(myChart), new TabularLayout.Constraint(0, 1));
       contentPanel.add(horizontalScrollBar, new TabularLayout.Constraint(1, 0, 1, 2));
@@ -577,7 +584,10 @@ class CpuCaptureView {
       myPanel.add(getNoDataForRange(), CARD_EMPTY_INFO);
 
       myObserver = new AspectObserver();
+
       myCallChart.getRange().addDependency(myObserver).onChange(Range.Aspect.RANGE, this::callChartRangeChanged);
+      selectionRange.addDependency(myObserver).onChange(Range.Aspect.RANGE, () -> axis.getModel().update(1));
+
       callChartRangeChanged();
     }
 
@@ -586,6 +596,27 @@ class CpuCaptureView {
       assert node != null;
       Range intersection = myCallChart.getRange().getIntersection(new Range(node.getStart(), node.getEnd()));
       switchCardLayout(myPanel, intersection.isEmpty() || intersection.getLength() == 0);
+    }
+
+    private static AxisComponent createAxis(@NotNull Range range, @NotNull Range globalRange) {
+      AxisComponentModel axisModel = new AxisComponentModel.Builder(
+        range,
+        new TimeAxisFormatter(1, 10, 1),
+        false
+      ).setGlobalRange(globalRange).build();
+      axisModel.update(1);
+
+      AxisComponent axis = new AxisComponent(axisModel, AxisComponent.AxisOrientation.BOTTOM);
+      axis.setShowAxisLine(false);
+      axis.setMarkerColor(ProfilerColors.CPU_AXIS_GUIDE_COLOR);
+      axis.addComponentListener(new ComponentAdapter() {
+        @Override
+        public void componentResized(ComponentEvent e) {
+          axis.setMarkerLengths(axis.getHeight(), 0);
+          axis.repaint();
+        }
+      });
+      return axis;
     }
 
     @NotNull
