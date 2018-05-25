@@ -36,8 +36,7 @@ class AdvancedInspectorBuilder(private val tableUIProvider: TableUIProvider) : I
   private fun addTable(inspector: InspectorPanel, title: String, properties: List<NelePropertyItem>, searchable: Boolean) {
     val titleModel = inspector.addExpandableTitle(title, true)
     val tableModel = NeleTableModel(properties)
-    val lineModel = inspector.addTable(tableModel, searchable, tableUIProvider)
-    titleModel.addChild(lineModel)
+    inspector.addTable(tableModel, searchable, tableUIProvider, titleModel)
   }
 }
 

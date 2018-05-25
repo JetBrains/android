@@ -117,7 +117,7 @@ class CollapsibleLabelModel(
     editorModel?.refresh()
   }
 
-  var separatorAfterTitle: InspectorLineModel? = null
+  var separatorAfterTitle: GenericInspectorLineModel? = null
 
   override fun makeExpandable(initiallyExpanded: Boolean) {
     defaultExpansionValue = initiallyExpanded
@@ -128,7 +128,7 @@ class CollapsibleLabelModel(
     separatorAfterTitle = null
   }
 
-  override fun addChild(child: InspectorLineModel) {
+  fun addChild(child: GenericInspectorLineModel) {
     if (children == null) {
       children = mutableListOf()
     }

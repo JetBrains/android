@@ -39,7 +39,7 @@ interface InspectorLineModel {
    *
    * The inspector will set this property when a parent is adding a child.
    */
-  var parent: InspectorLineModel?
+  val parent: InspectorLineModel?
 
   /**
    * If true, this line should be hidden at all times.
@@ -60,7 +60,7 @@ interface InspectorLineModel {
   /**
    * Request focus to be placed on the next line of the lines containing this line.
    */
-  var gotoNextLine: (InspectorLineModel) -> Unit
+  val gotoNextLine: (InspectorLineModel) -> Unit
 
   /**
    * Request the focus to be placed in this line.
@@ -105,15 +105,10 @@ interface InspectorLineModel {
   /**
    * Make this line expandable.
    *
-   * Must be called before calling addChild.
-   * Note: Use with care since not all lines can be made expandable. If
-   * [initiallyExpanded] is true the group should be "open" initially
+   * Must be called before any children is added to this line.
+   * Note: Use with care since not all lines can be made expandable.
+   * If [initiallyExpanded] is true the group should be "open" initially
    * unless we are restoring this state from earlier.
    */
   fun makeExpandable(initiallyExpanded: Boolean) { throw IllegalStateException() }
-
-  /**
-   * Add a line as a child in a sub section under this line.
-   */
-  fun addChild(child: InspectorLineModel) { throw IllegalStateException() }
 }
