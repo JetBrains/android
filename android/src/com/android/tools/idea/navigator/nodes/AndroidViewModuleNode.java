@@ -15,8 +15,10 @@ package com.android.tools.idea.navigator.nodes;
 
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode;
+import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Comparing;
 
 /**
  * Specialization of {@link ProjectViewModuleNode} for Android view.
@@ -32,6 +34,6 @@ public abstract class AndroidViewModuleNode extends ProjectViewModuleNode {
     if (!(o instanceof AndroidViewModuleNode)) {
       return false;
     }
-    return super.equals(o);
+    return Comparing.equal(getValue(), ((AbstractTreeNode)o).getValue());
   }
 }
