@@ -24,10 +24,7 @@ import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.devices.Storage;
-import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.sdklib.internal.avd.AvdManager;
-import com.android.sdklib.internal.avd.GpuMode;
-import com.android.sdklib.internal.avd.HardwareProperties;
+import com.android.sdklib.internal.avd.*;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.observable.core.*;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -63,8 +60,6 @@ import static com.google.common.base.Strings.nullToEmpty;
  * See also {@link AvdDeviceData}, which these options supplement.
  */
 public final class AvdOptionsModel extends WizardModel {
-  static final int MAX_NUMBER_OF_CORES = Runtime.getRuntime().availableProcessors() / 2;
-  static final int RECOMMENDED_NUMBER_OF_CORES = Integer.min(4, MAX_NUMBER_OF_CORES);
 
   private static final Storage minGeneralInternalMemSize = new Storage(200, Storage.Unit.MiB);
   private static final Storage minPlayStoreInternalMemSize = new Storage(2, Storage.Unit.GiB);
@@ -83,7 +78,7 @@ public final class AvdOptionsModel extends WizardModel {
   private StringProperty myAvdId = new StringValueProperty();
   private StringProperty myAvdDisplayName = new StringValueProperty();
 
-  private ObjectProperty<Storage> myInternalStorage = new ObjectValueProperty<>(AvdWizardUtils.DEFAULT_INTERNAL_STORAGE);
+  private ObjectProperty<Storage> myInternalStorage = new ObjectValueProperty<>(EmulatedProperties.DEFAULT_INTERNAL_STORAGE);
   private ObjectProperty<ScreenOrientation> mySelectedAvdOrientation =
     new ObjectValueProperty<>(ScreenOrientation.PORTRAIT);
   private ObjectProperty<AvdCamera> mySelectedAvdFrontCamera;
@@ -93,15 +88,15 @@ public final class AvdOptionsModel extends WizardModel {
   private BoolProperty myUseExternalSdCard = new BoolValueProperty(false);
   private BoolProperty myUseBuiltInSdCard = new BoolValueProperty(true);
   private ObjectProperty<AvdNetworkSpeed> mySelectedNetworkSpeed =
-    new ObjectValueProperty<>(AvdWizardUtils.DEFAULT_NETWORK_SPEED);
+    new ObjectValueProperty<>(EmulatedProperties.DEFAULT_NETWORK_SPEED);
   private ObjectProperty<AvdNetworkLatency> mySelectedNetworkLatency =
-    new ObjectValueProperty<>(AvdWizardUtils.DEFAULT_NETWORK_LATENCY);
+    new ObjectValueProperty<>(EmulatedProperties.DEFAULT_NETWORK_LATENCY);
 
   private StringProperty mySystemImageName = new StringValueProperty();
   private StringProperty mySystemImageDetails = new StringValueProperty();
 
-  private OptionalProperty<Integer> myCpuCoreCount = new OptionalValueProperty<>(RECOMMENDED_NUMBER_OF_CORES);
-  private ObjectProperty<Storage> myVmHeapStorage = new ObjectValueProperty<>(new Storage(16, Storage.Unit.MiB));
+  private OptionalProperty<Integer> myCpuCoreCount = new OptionalValueProperty<>(EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES);
+  private ObjectProperty<Storage> myVmHeapStorage = new ObjectValueProperty<>(EmulatedProperties.DEFAULT_HEAP);
 
   private StringProperty myExternalSdCardLocation = new StringValueProperty();
   private OptionalProperty<Storage> mySdCardStorage = new OptionalValueProperty<>(defaultSdSize);
@@ -163,7 +158,14 @@ public final class AvdOptionsModel extends WizardModel {
     myDevice.addListener(sender -> {
       if (myDevice.get().isPresent()) {
         myAvdDeviceData.updateValuesFromDevice(myDevice.getValue(), mySystemImage.getValueOrNull());
-        myVmHeapStorage.set(calculateInitialVmHeap(myAvdDeviceData));
+
+        ScreenSize size = ScreenSize.getScreenSize(myAvdDeviceData.diagonalScreenSize().get());
+        Density density = AvdScreenData.getScreenDensity(myAvdDeviceData.deviceId().get(),
+                                                         myAvdDeviceData.isTv().get(),
+                                                         myAvdDeviceData.screenDpi().get(),
+                                                         myAvdDeviceData.screenResolutionHeight().get());
+        Storage vmHeapSize = EmulatedProperties.calculateDefaultVmHeapSize(size, density, myAvdDeviceData.isTv().get());
+        myVmHeapStorage.set(vmHeapSize);
       }
     });
     mySystemImage.addListener(sender -> {
@@ -572,102 +574,6 @@ public final class AvdOptionsModel extends WizardModel {
     if (storage != null && storage.getSize() != 0) {
       myInternalStorage.set(storage);
     }
-  }
-
-  /**
-   * Set the initial VM heap size. This is based on the Android CDD minimums for each screen size and density.
-   */
-  @NotNull
-  private static Storage calculateInitialVmHeap(@NotNull AvdDeviceData deviceData) {
-    ScreenSize size = AvdScreenData.getScreenSize(deviceData.diagonalScreenSize().get());
-    Density density = AvdScreenData.getScreenDensity(deviceData.deviceId().get(),
-                                                     deviceData.isTv().get(),
-                                                     deviceData.screenDpi().get(),
-                                                     deviceData.screenResolutionHeight().get());
-    int vmHeapSize = 32;
-
-    // These values are taken from Android 6.0 Compatibility
-    // Definition (dated October 16, 2015), section 3.7,
-    // Runtime Compatibility (with ANYDPI and NODPI defaulting
-    // to MEDIUM).
-
-    if (deviceData.isWear().get()) {
-      switch(density) {
-        case LOW:
-        case ANYDPI:
-        case NODPI:
-        case MEDIUM:
-        case TV:        vmHeapSize =  32; break;
-        case HIGH:
-        case DPI_280:   vmHeapSize =  36; break;
-        case XHIGH:
-        case DPI_360:   vmHeapSize =  48; break;
-        case DPI_400:   vmHeapSize =  56; break;
-        case DPI_420:   vmHeapSize =  64; break;
-        case XXHIGH:    vmHeapSize =  88; break;
-        case DPI_560:   vmHeapSize = 112; break;
-        case XXXHIGH:   vmHeapSize = 154; break;
-      }
-    } else {
-      switch(size) {
-        case SMALL:
-        case NORMAL:
-          switch(density) {
-            case LOW:
-            case ANYDPI:
-            case NODPI:
-            case MEDIUM:    vmHeapSize =  32; break;
-            case TV:
-            case HIGH:
-            case DPI_280:   vmHeapSize =  48; break;
-            case XHIGH:
-            case DPI_360:   vmHeapSize =  80; break;
-            case DPI_400:   vmHeapSize =  96; break;
-            case DPI_420:   vmHeapSize = 112; break;
-            case XXHIGH:    vmHeapSize = 128; break;
-            case DPI_560:   vmHeapSize = 192; break;
-            case XXXHIGH:   vmHeapSize = 256; break;
-          }
-          break;
-        case LARGE:
-          switch(density) {
-            case LOW:       vmHeapSize =  32; break;
-            case ANYDPI:
-            case NODPI:
-            case MEDIUM:    vmHeapSize =  48; break;
-            case TV:
-            case HIGH:      vmHeapSize =  80; break;
-            case DPI_280:   vmHeapSize =  96; break;
-            case XHIGH:     vmHeapSize = 128; break;
-            case DPI_360:   vmHeapSize = 160; break;
-            case DPI_400:   vmHeapSize = 192; break;
-            case DPI_420:   vmHeapSize = 228; break;
-            case XXHIGH:    vmHeapSize = 256; break;
-            case DPI_560:   vmHeapSize = 384; break;
-            case XXXHIGH:   vmHeapSize = 512; break;
-          }
-          break;
-        case XLARGE:
-          switch(density) {
-            case LOW:       vmHeapSize =  48; break;
-            case ANYDPI:
-            case NODPI:
-            case MEDIUM:    vmHeapSize =  80; break;
-            case TV:
-            case HIGH:      vmHeapSize =  96; break;
-            case DPI_280:   vmHeapSize = 144; break;
-            case XHIGH:     vmHeapSize = 192; break;
-            case DPI_360:   vmHeapSize = 240; break;
-            case DPI_400:   vmHeapSize = 288; break;
-            case DPI_420:   vmHeapSize = 336; break;
-            case XXHIGH:    vmHeapSize = 384; break;
-            case DPI_560:   vmHeapSize = 576; break;
-            case XXXHIGH:   vmHeapSize = 768; break;
-          }
-          break;
-      }
-    }
-    return new Storage(vmHeapSize, Storage.Unit.MiB);
   }
 
   /**
