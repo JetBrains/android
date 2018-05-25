@@ -3725,6 +3725,21 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertThat(configModel.storePassword().fullExpressionPsiElement!!.text, equalTo("System.getenv(\"KSTOREPWD\")"))
   }
 
+  @Test
+  fun testAddToVariable() {
+    val text = """
+               def vars = [:]
+               vars.one = 1
+               ext.value = vars.one
+               """.trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    val propertyModel = buildModel.ext().findProperty("value")
+
+    verifyPropertyModel(propertyModel.resolve(), INTEGER_TYPE, 1, INTEGER, REGULAR, 1)
+  }
+
   private fun checkContainsValue(models: Collection<GradlePropertyModel>, model: GradlePropertyModel) {
     val result = models.any { areModelsEqual(it, model) }
     assertTrue("checkContainsValue", result)

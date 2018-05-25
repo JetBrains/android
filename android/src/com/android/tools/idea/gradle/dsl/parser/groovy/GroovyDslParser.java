@@ -713,18 +713,18 @@ public class GroovyDslParser implements GradleDslParser {
       nestedElementName = nestedElementName.trim();
       // We don't require PsiElement for backing block elements.
       GradleNameElement elementName = GradleNameElement.fake(nestedElementName);
-      GradleDslElement element = resultElement.getPropertyElement(nestedElementName);
+      GradleDslElement element = resultElement.getElement(nestedElementName);
       if (element == null) {
         GradlePropertiesDslElement newElement;
         // Ext element is supported for any Gradle domain object that implements ExtensionAware.
         if (!(resultElement instanceof BuildScriptDslElement) && EXT_BLOCK_NAME.equals(nestedElementName)) {
           newElement = new ExtDslElement(resultElement);
         }
+        else if (APPLY_BLOCK_NAME.equals(nestedElementName)) {
+          newElement = new ApplyDslElement(resultElement);
+        }
         else if (resultElement instanceof GradleDslFile || resultElement instanceof SubProjectsDslElement) {
-          if (APPLY_BLOCK_NAME.equals(nestedElementName)) {
-            newElement = new ApplyDslElement(resultElement);
-          }
-          else if (EXT_BLOCK_NAME.equals(nestedElementName)) {
+          if (EXT_BLOCK_NAME.equals(nestedElementName)) {
             newElement = new ExtDslElement(resultElement);
           }
           else if (ANDROID_BLOCK_NAME.equals(nestedElementName)) {
