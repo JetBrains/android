@@ -58,7 +58,7 @@ public class BuildApkAction extends DumbAwareAction {
       if (!appModules.isEmpty()) {
         GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
         gradleBuildInvoker.add(new GoToApkLocationTask(appModules, ACTION_TEXT));
-        Module[] modulesToBuild = appModules.toArray(new Module[appModules.size()]);
+        Module[] modulesToBuild = appModules.toArray(Module.EMPTY_ARRAY);
         gradleBuildInvoker.assemble(modulesToBuild, TestCompileType.ALL, Collections.emptyList(),
                                     new OutputBuildAction(getModuleGradlePaths(appModules)));
       }

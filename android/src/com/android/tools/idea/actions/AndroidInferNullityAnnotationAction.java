@@ -295,7 +295,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
 
     Runnable refactoringRunnable = applyRunnable(project, () -> {
       Set<UsageInfo> infos = UsageViewUtil.getNotExcludedUsageInfos(usageView);
-      return infos.toArray(new UsageInfo[infos.size()]);
+      return infos.toArray(UsageInfo.EMPTY_ARRAY);
     });
 
     String canNotMakeString =

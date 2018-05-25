@@ -82,6 +82,6 @@ public class UnusedResourcesHandler implements RefactoringActionHandler {
       }
     }
 
-    invoke(project, moduleSet.toArray(new Module[moduleSet.size()]), null, false, false);
+    invoke(project, moduleSet.toArray(Module.EMPTY_ARRAY), null, false, false);
   }
 }

@@ -343,7 +343,7 @@ public class NdkLibraryNode extends ProjectViewNode<Collection<NativeArtifact>> 
         }
       }
     }
-    return folders.toArray(new PsiDirectory[folders.size()]);
+    return folders.toArray(PsiDirectory.EMPTY_ARRAY);
   }
 
   @NotNull

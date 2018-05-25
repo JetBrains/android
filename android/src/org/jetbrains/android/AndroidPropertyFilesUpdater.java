@@ -161,7 +161,7 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
                 facet.getProperties().UPDATE_PROPERTY_FILES = Boolean.TRUE.toString();
               }
             }
-            if (ReadonlyStatusHandler.ensureFilesWritable(myProject, toAskFiles.toArray(new VirtualFile[toAskFiles.size()]))) {
+            if (ReadonlyStatusHandler.ensureFilesWritable(myProject, toAskFiles.toArray(VirtualFile.EMPTY_ARRAY))) {
               CommandProcessor.getInstance().executeCommand(myProject, new Runnable() {
                 @Override
                 public void run() {
@@ -182,7 +182,7 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
       }
 
       if (!changes.isEmpty() && ReadonlyStatusHandler.ensureFilesWritable(
-        myProject, files.toArray(new VirtualFile[files.size()]))) {
+        myProject, files.toArray(VirtualFile.EMPTY_ARRAY))) {
         CommandProcessor.getInstance().executeCommand(myProject, new Runnable() {
           @Override
           public void run() {
@@ -306,7 +306,7 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
         dependenciesList.add(libDir);
       }
     }
-    return dependenciesList.toArray(new VirtualFile[dependenciesList.size()]);
+    return dependenciesList.toArray(VirtualFile.EMPTY_ARRAY);
   }
 
   private static void updateTargetProperty(@NotNull AndroidFacet facet,

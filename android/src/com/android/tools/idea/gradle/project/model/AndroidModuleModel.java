@@ -705,7 +705,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
    */
   @NotNull
   public File[] getExtraGeneratedSourceFolderPaths() {
-    return myExtraGeneratedSourceFolders.toArray(new File[myExtraGeneratedSourceFolders.size()]);
+    return myExtraGeneratedSourceFolders.toArray(new File[0]);
   }
 
   @Nullable

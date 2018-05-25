@@ -365,7 +365,7 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
         }
       }
     }
-    return result.toArray(new IDevice[result.size()]);
+    return result.toArray(new IDevice[0]);
   }
 
   @NotNull
@@ -382,7 +382,7 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
       }
     }
 
-    return filteredDevices.toArray(new IDevice[filteredDevices.size()]);
+    return filteredDevices.toArray(new IDevice[0]);
   }
 
   private boolean isRowCompatible(int row) {

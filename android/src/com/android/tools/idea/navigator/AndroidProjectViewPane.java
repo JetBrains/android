@@ -189,7 +189,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
           dirs.add(dir);
         }
       }
-      selectedDirectories = dirs.toArray(new PsiDirectory[dirs.size()]);
+      selectedDirectories = dirs.toArray(PsiDirectory.EMPTY_ARRAY);
     }
 
     return selectedDirectories;
@@ -262,7 +262,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
               virtualFiles.add(file.getVirtualFile());
             }
           }
-          return virtualFiles.toArray(new VirtualFile[virtualFiles.size()]);
+          return virtualFiles.toArray(VirtualFile.EMPTY_ARRAY);
         }
       }
 
@@ -275,7 +275,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
               virtualFiles.add(directory.getVirtualFile());
             }
           }
-          return virtualFiles.toArray(new VirtualFile[virtualFiles.size()]);
+          return virtualFiles.toArray(VirtualFile.EMPTY_ARRAY);
         }
       }
     }
@@ -328,7 +328,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
         result.add((TreeNode)lastPathComponent);
       }
     }
-    return result.toArray(new TreeNode[result.size()]);
+    return result.toArray(new TreeNode[0]);
   }
 
   private boolean isTopModuleDirectoryOrParent(@NotNull VirtualFile directory) {

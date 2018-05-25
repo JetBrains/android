@@ -209,7 +209,7 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
                                 dexConfig.OPTIMIZE));
         }
       }
-      return items.toArray(new ProcessingItem[items.size()]);
+      return items.toArray(ProcessingItem.EMPTY_ARRAY);
     }
   }
 
@@ -250,7 +250,7 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
           }
         }
       }
-      return results.toArray(new ProcessingItem[results.size()]);
+      return results.toArray(ProcessingItem.EMPTY_ARRAY);
     }
 
     private void addMessages(Map<CompilerMessageCategory, List<String>> messages, Module module) {

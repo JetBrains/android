@@ -486,7 +486,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
       for (PsiElement var : vars) {
         JavaTemplateUtil.addElementLookupItem(set, var);
       }
-      LookupElement[] elements = set.toArray(new LookupElement[set.size()]);
+      LookupElement[] elements = set.toArray(LookupElement.EMPTY_ARRAY);
       if (elements.length == 0) {
         return elements;
       }

@@ -74,7 +74,7 @@ public class AndroidResGroupNode extends ProjectViewNode<List<PsiFile>> implemen
   @Override
   @NotNull
   public PsiFile[] getFiles() {
-    return getResFiles().toArray(new PsiFile[getResFiles().size()]);
+    return getResFiles().toArray(PsiFile.EMPTY_ARRAY);
   }
 
   @NotNull

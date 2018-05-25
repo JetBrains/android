@@ -59,7 +59,7 @@ public class AndroidResFolderTypeNode extends ProjectViewNode<List<PsiDirectory>
   @NotNull
   public PsiDirectory[] getFolders() {
     List<PsiDirectory> folders = getResFolders();
-    return folders.toArray(new PsiDirectory[folders.size()]);
+    return folders.toArray(PsiDirectory.EMPTY_ARRAY);
   }
 
   @Override

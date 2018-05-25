@@ -517,7 +517,7 @@ public class GradleBuildInvoker {
   @VisibleForTesting
   @NotNull
   protected AfterGradleInvocationTask[] getAfterInvocationTasks() {
-    return myAfterTasks.toArray(new AfterGradleInvocationTask[myAfterTasks.size()]);
+    return myAfterTasks.toArray(new AfterGradleInvocationTask[0]);
   }
 
   public void remove(@NotNull AfterGradleInvocationTask task) {

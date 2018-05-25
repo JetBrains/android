@@ -114,7 +114,7 @@ class MigrateDrawableToMipmapFix implements AndroidLintQuickFix {
 
     WriteCommandAction<Void> action = new WriteCommandAction<Void>(project,
                                                                    "Migrate Drawable to Bitmap",
-                                                                   applicableFiles.toArray(new PsiFile[applicableFiles.size()])) {
+                                                                   applicableFiles.toArray(PsiFile.EMPTY_ARRAY)) {
       @Override
       protected void run(@NotNull Result<Void> result) throws Throwable {
         // Move each drawable bitmap from drawable-my-qualifiers to bitmap-my-qualifiers

@@ -110,7 +110,7 @@ public class StringsWriteUtils {
       files.add(tag.getContainingFile());
     }
     final boolean deleteTag = attribute.equals(SdkConstants.ATTR_NAME) && (value == null || value.isEmpty());
-    new WriteCommandAction.Simple(project, "Setting attribute " + attribute, files.toArray(new PsiFile[files.size()])) {
+    new WriteCommandAction.Simple(project, "Setting attribute " + attribute, files.toArray(PsiFile.EMPTY_ARRAY)) {
       @Override
       public void run() {
         // Makes the command global even if only one xml file is modified

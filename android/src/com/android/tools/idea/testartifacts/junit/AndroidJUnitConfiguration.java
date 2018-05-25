@@ -75,7 +75,7 @@ public class AndroidJUnitConfiguration extends JUnitConfiguration {
   public Module[] getModulesToCompile() {
     if (TEST_PACKAGE.equals(getPersistentData().TEST_OBJECT) && (getPersistentData().getScope() == TestSearchScope.WHOLE_PROJECT)) {
       Collection<Module> modules = getAllModules();
-      return modules.toArray(new Module[modules.size()]);
+      return modules.toArray(Module.EMPTY_ARRAY);
     }
     return getModules();
   }

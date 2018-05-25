@@ -31,13 +31,10 @@ import java.util.Set;
 
 public class PsiCFGClass implements PsiAnnotationOwner {
 
-  public static PsiAnnotation[] emptyAnnotationArray = new PsiAnnotation[0];
-
   public static final PsiCFGClass[] EMPTY_ARRAY = new PsiCFGClass[0];
 
   private PsiClass mRef;
   private PsiLambdaExpression mLambdaExpressionRef;
-  private PsiAnnotation[] annotationArray = emptyAnnotationArray;
   private PsiFile mPsiFileRef;
   private int mModifierbits;
   private boolean mIsInterface = false;
@@ -390,7 +387,7 @@ public class PsiCFGClass implements PsiAnnotationOwner {
       return this.mRef.getModifierList().getAnnotations();
     }
     else {
-      return emptyAnnotationArray;
+      return PsiAnnotation.EMPTY_ARRAY;
     }
   }
 
@@ -401,7 +398,7 @@ public class PsiCFGClass implements PsiAnnotationOwner {
       return this.mRef.getModifierList().getApplicableAnnotations();
     }
     else {
-      return emptyAnnotationArray;
+      return PsiAnnotation.EMPTY_ARRAY;
     }
   }
 

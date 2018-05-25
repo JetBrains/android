@@ -104,7 +104,7 @@ public class ParentStyleConverter extends ResourceReferenceConverter {
       }
       offset = offset - ids[i].length() - 1;
     }
-    return result.toArray(new PsiReference[result.size()]);
+    return result.toArray(PsiReference.EMPTY_ARRAY);
   }
 
   @Override

@@ -88,7 +88,7 @@ public class AndroidInlineLayoutProcessor extends BaseRefactoringProcessor {
     for (PsiField field : AndroidResourceUtil.findResourceFieldsForFileResource(myLayoutFile, false)) {
       AndroidInlineUtil.addReferences(field, usages);
     }
-    return usages.toArray(new UsageInfo[usages.size()]);
+    return usages.toArray(UsageInfo.EMPTY_ARRAY);
   }
 
   @Override

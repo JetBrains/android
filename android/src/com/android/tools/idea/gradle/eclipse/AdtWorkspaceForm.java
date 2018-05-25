@@ -182,7 +182,7 @@ class AdtWorkspaceForm extends ProjectImportWizardStep {
     private String[] myKeys;
 
     public PathMapModel(Map<String, File> map) {
-      myKeys = map.keySet().toArray(new String[map.size()]);
+      myKeys = map.keySet().toArray(new String[0]);
       Arrays.sort(myKeys);
       myPathMap = map;
     }

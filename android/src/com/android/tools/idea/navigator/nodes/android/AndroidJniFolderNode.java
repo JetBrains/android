@@ -84,7 +84,7 @@ public class AndroidJniFolderNode extends ProjectViewNode<NdkModuleModel> implem
       }
     }
 
-    return folders.toArray(new PsiDirectory[folders.size()]);
+    return folders.toArray(PsiDirectory.EMPTY_ARRAY);
   }
 
   @Override

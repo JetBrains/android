@@ -351,7 +351,7 @@ public class NdkLibraryEnhancedHeadersNode extends ProjectViewNode<Collection<Na
         }
       }
     }
-    return folders.toArray(new PsiDirectory[folders.size()]);
+    return folders.toArray(PsiDirectory.EMPTY_ARRAY);
   }
 
   @NotNull

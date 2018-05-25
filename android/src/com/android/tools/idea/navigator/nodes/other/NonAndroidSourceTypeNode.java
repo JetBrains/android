@@ -175,6 +175,6 @@ public class NonAndroidSourceTypeNode extends ProjectViewNode<Module> implements
         folders.add(dir);
       }
     }
-    return folders.toArray(new PsiDirectory[folders.size()]);
+    return folders.toArray(PsiDirectory.EMPTY_ARRAY);
   }
 }

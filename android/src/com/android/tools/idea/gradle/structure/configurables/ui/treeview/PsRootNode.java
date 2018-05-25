@@ -36,6 +36,6 @@ public class PsRootNode extends AbstractPsNode {
 
   @Override
   public SimpleNode[] getChildren() {
-    return myChildren.isEmpty() ? NO_CHILDREN : myChildren.toArray(new SimpleNode[myChildren.size()]);
+    return myChildren.isEmpty() ? NO_CHILDREN : myChildren.toArray(new SimpleNode[0]);
   }
 }

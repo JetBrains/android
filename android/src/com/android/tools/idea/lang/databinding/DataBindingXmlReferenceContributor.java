@@ -267,7 +267,7 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
             selected.add(new PsiMethodReference(callExpr, ((PsiModelMethod)modelMethod).getPsiMethod()));
           }
         }
-        return selected.toArray(new PsiReference[selected.size()]);
+        return selected.toArray(PsiReference.EMPTY_ARRAY);
       }
     });
   }

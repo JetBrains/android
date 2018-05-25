@@ -58,7 +58,7 @@ public class DataBindingProjectComponent implements ModificationTracker {
       }
 
       myModificationCount.incrementAndGet();
-      return CachedValueProvider.Result.create(facets.toArray(new AndroidFacet[facets.size()]),
+      return CachedValueProvider.Result.create(facets.toArray(new AndroidFacet[0]),
                                                DataBindingUtil.DATA_BINDING_ENABLED_TRACKER, ModuleManager.getInstance(project));
     }, false);
 
