@@ -52,20 +52,36 @@ class RunStatsServiceTest {
 
   @Test
   fun testNotifyRunStart() {
-    myRunStatsService.notifyRunStarted(packageName, "Run", false, false)
+    myRunStatsService.notifyRunStarted(packageName, "Run", true, false, false)
     val usages = myUsageTracker.usages.filterNotNull()
 
     // verify called twice, once to start overall and other to track start of studio processing
-    Truth.assertThat(usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_RUN_EVENT }).hasSize(2)
+    val runEvents = usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_RUN_EVENT }
+    Truth.assertThat(runEvents).hasSize(2)
+
+    val totalStartEvent = runEvents[0].studioEvent.studioRunEvent
+    Truth.assertThat(runEvents[0].studioEvent.projectId).isNotEmpty()
+    Truth.assertThat(runEvents[0].studioEvent.rawProjectId).isEqualTo(packageName)
+    Truth.assertThat(totalStartEvent.runType).isEqualTo(StudioRunEvent.RunType.RUN)
+    Truth.assertThat(totalStartEvent.sectionType).isEqualTo(StudioRunEvent.SectionType.TOTAL)
+    Truth.assertThat(totalStartEvent.eventType).isEqualTo(StudioRunEvent.EventType.START)
+    Truth.assertThat(totalStartEvent.debuggable).isTrue()
+
+    val studioStartEvent = runEvents[1].studioEvent.studioRunEvent
+    Truth.assertThat(runEvents[1].studioEvent.projectId).isNotEmpty()
+    Truth.assertThat(runEvents[1].studioEvent.rawProjectId).isEqualTo(packageName)
+    Truth.assertThat(studioStartEvent.runType).isEqualTo(StudioRunEvent.RunType.RUN)
+    Truth.assertThat(studioStartEvent.sectionType).isEqualTo(StudioRunEvent.SectionType.STUDIO)
+    Truth.assertThat(studioStartEvent.eventType).isEqualTo(StudioRunEvent.EventType.START)
   }
 
   @Test
   fun testStudioProcessingTracking() {
-    myRunStatsService.notifyRunStarted(packageName, "Run", false, false)
+    myRunStatsService.notifyRunStarted(packageName, "Run", false, false, true)
     var usages = myUsageTracker.usages.filterNotNull()
     Truth.assertThat(usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_RUN_EVENT }).hasSize(2)
 
-    myRunStatsService.notifyStudioSectionFinished(true, false, false)
+    myRunStatsService.notifyStudioSectionFinished(true, false)
     assertNotNull(myRunStatsService.myRun?.studioProcessFinishedTimestamp)
     usages = myUsageTracker.usages.filterNotNull()
     Truth.assertThat(usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_RUN_EVENT }).hasSize(3)
@@ -102,7 +118,8 @@ class RunStatsServiceTest {
     val mockDevice = Mockito.mock(IDevice::class.java, Answer {
       if (String::class.java == it.method.returnType) {
         "This is my default answer for all methods that returns string"
-      } else {
+      }
+      else {
         Mockito.RETURNS_DEFAULTS.answer(it)
       }
     })
@@ -112,7 +129,7 @@ class RunStatsServiceTest {
     Truth.assertThat(usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_RUN_EVENT }).hasSize(1)
     Truth.assertThat(
       usages.find { it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_RUN_EVENT }?.studioEvent?.studioRunEvent?.artifactCount).isEqualTo(
-      1);
+      1)
   }
 
 }

@@ -45,6 +45,7 @@ class RunStatsServiceImpl : RunStatsService() {
 
   override fun notifyRunStarted(packageName: String,
                                 runType: String,
+                                isDebuggable: Boolean,
                                 forceColdswap: Boolean,
                                 instantRunEnabled: Boolean) {
     synchronized(lock) {
@@ -56,6 +57,7 @@ class RunStatsServiceImpl : RunStatsService() {
                                                      .setRunType(currentRun.runType)
                                                      .setSectionType(StudioRunEvent.SectionType.TOTAL)
                                                      .setEventType(StudioRunEvent.EventType.START)
+                                                     .setDebuggable(isDebuggable)
                                                      .build(), currentRun.packageName))
     UsageTracker.getInstance().log(getEventBuilder(StudioRunEvent.newBuilder()
                                                      .setRunId(currentRun.runId.toString())
@@ -65,9 +67,7 @@ class RunStatsServiceImpl : RunStatsService() {
                                                      .build(), currentRun.packageName))
   }
 
-  override fun notifyStudioSectionFinished(isSuccessful: Boolean,
-                                           isDebugging: Boolean,
-                                           isInstantRun: Boolean) {
+  override fun notifyStudioSectionFinished(isSuccessful: Boolean, isInstantRun: Boolean) {
     val currentRun = myRun?: return
     synchronized(lock) {
       currentRun.studioProcessFinishedTimestamp = System.currentTimeMillis()
@@ -81,6 +81,7 @@ class RunStatsServiceImpl : RunStatsService() {
                                                      .setDurationMs(
                                                        calcDuration(currentRun.studioProcessFinishedTimestamp,
                                                                     currentRun.startTimestamp).toInt())
+                                                     .setInstantRun(isInstantRun)
                                                      .setIsSuccessful(isSuccessful)
                                                      .build(), currentRun.packageName))
   }
@@ -172,6 +173,8 @@ class RunStatsServiceImpl : RunStatsService() {
                                                      .setArtifactCount(artifactCount)
                                                      .setDeployTask(deployTask)
                                                      .setDisabledDynamicFeaturesCount(disabledDynamicFeaturesCount)
+                                                     .setPatchBuild(isPatchBuild)
+                                                     .setDoNotRestart(dontKill)
                                                      .build(), currentRun.packageName)
                                      .setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(device)))
   }

@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.run.editor.*;
 import com.android.tools.idea.run.tasks.InstantRunNotificationTask;
@@ -261,8 +262,17 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     final AndroidSessionInfo existingSessionInfo = AndroidSessionInfo.findOldSession(project, null, getUniqueID());
 
     try {
-      RunStatsService.get(getProject()).notifyRunStarted(getApplicationIdProvider(facet).getPackageName(), executor.getId(), forceColdswap,
-                                                         instantRunEnabled);
+      Boolean debuggable = AndroidModuleInfo.getInstance(facet).isDebuggable();
+      // match logic in LaunchUtils.canDebugAppOnDevice, null means debuggable.
+      if (debuggable == null) {
+        debuggable = true;
+      }
+      RunStatsService.get(getProject())
+                     .notifyRunStarted(getApplicationIdProvider(facet).getPackageName(),
+                                       executor.getId(),
+                                       debuggable,
+                                       forceColdswap,
+                                       instantRunEnabled);
     }
     catch (ApkProvisionException e) {
       getLogger().error(e);
@@ -275,20 +285,20 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (forceColdswap) {
       DeployTarget deployTarget = getDeployTarget(executor, env, isDebugging, facet);
       if (deployTarget == null) { // if user doesn't select a deploy target from the dialog
-        RunStatsService.get(project).notifyStudioSectionFinished(false, isDebugging, false);
+        RunStatsService.get(project).notifyStudioSectionFinished(false, false);
         return null;
       }
 
       DeployTargetState deployTargetState = getDeployTargetContext().getCurrentDeployTargetState();
       if (deployTarget.hasCustomRunProfileState(executor)) {
-        RunStatsService.get(project).notifyStudioSectionFinished(false, isDebugging, false);
+        RunStatsService.get(project).notifyStudioSectionFinished(false, false);
         return deployTarget.getRunProfileState(executor, env, deployTargetState);
       }
 
       deviceFutures = deployTarget.getDevices(deployTargetState, facet, getDeviceCount(isDebugging), isDebugging, getUniqueID());
       if (deviceFutures == null) {
         // The user deliberately canceled, or some error was encountered and exposed by the chooser. Quietly exit.
-        RunStatsService.get(project).notifyStudioSectionFinished(false, isDebugging, false);
+        RunStatsService.get(project).notifyStudioSectionFinished(false, false);
         return null;
       }
     }
@@ -298,7 +308,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       PrepareSessionResult result = prepareInstantRunSession(existingSessionInfo, executor, facet, project, deviceFutures, forceColdswap);
       // returns null if we prompt user and they choose to abort the Run
       if (result == null) {
-        RunStatsService.get(project).notifyStudioSectionFinished(false, isDebugging, false);
+        RunStatsService.get(project).notifyStudioSectionFinished(false, false);
         return null;
       }
       if (deviceFutures == null && !forceColdswap) { // if user used apply changes, then set deviceFutures based on session
@@ -308,7 +318,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     if (deviceFutures == null || deviceFutures.get().isEmpty()) {
-      RunStatsService.get(project).notifyStudioSectionFinished(false, isDebugging, false);
+      RunStatsService.get(project).notifyStudioSectionFinished(false, false);
       throw new ExecutionException(AndroidBundle.message("deployment.target.not.found"));
     }
 
@@ -323,7 +333,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (isDebugging) {
       String error = canDebug(deviceFutures, facet, module.getName());
       if (error != null) {
-        RunStatsService.get(project).notifyStudioSectionFinished(false, isDebugging, instantRunContext != null);
+        RunStatsService.get(project).notifyStudioSectionFinished(false, instantRunContext != null);
         throw new ExecutionException(error);
       }
     }
@@ -353,7 +363,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
                                        applicationIdProvider, launchOptions.build(), instantRunContext, processHandler);
 
     InstantRunStatsService.get(project).notifyBuildStarted();
-    RunStatsService.get(project).notifyStudioSectionFinished(true, isDebugging, instantRunContext != null);
+    RunStatsService.get(project).notifyStudioSectionFinished(true, instantRunContext != null);
     return new AndroidRunState(env, getName(), module, applicationIdProvider, getConsoleProvider(), deviceFutures, providerFactory,
                                processHandler);
   }

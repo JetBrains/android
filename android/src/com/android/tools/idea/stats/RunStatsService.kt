@@ -49,13 +49,12 @@ abstract class RunStatsService {
   }
 
   abstract fun notifyRunStarted(packageName: String,
-                       runType: String,
-                       forceColdswap: Boolean,
-                       instantRunEnabled: Boolean)
+                                runType: String,
+                                isDebuggable: Boolean,
+                                forceColdswap: Boolean,
+                                instantRunEnabled: Boolean)
 
-  abstract fun notifyStudioSectionFinished(isSuccessful: Boolean,
-                                  isDebugging: Boolean,
-                                  isInstantRun: Boolean)
+  abstract fun notifyStudioSectionFinished(isSuccessful: Boolean, isInstantRun: Boolean)
 
   abstract fun notifyGradleStarted(buildMode: BuildMode?)
 
