@@ -224,6 +224,34 @@ public class PsArtifactDependencySpecTest extends IdeaTestCase {
     assertEquals("name", spec.getDisplayText(uiSettings));
   }
 
+  public void testGetDisplayText_doNotShowVersion() {
+    PsArtifactDependencySpec spec = PsArtifactDependencySpec.create("group:name:1.1");
+    assertNotNull(spec);
+
+    assertEquals("group:name", spec.getDisplayText(true, false));
+  }
+
+  public void testGetDisplayText_doNotShowGroupAndVersion() {
+    PsArtifactDependencySpec spec = PsArtifactDependencySpec.create("group:name:1.1");
+    assertNotNull(spec);
+
+    assertEquals("name", spec.getDisplayText(false, false));
+  }
+
+  public void testGetDisplayText_doNotShowGroup() {
+    PsArtifactDependencySpec spec = PsArtifactDependencySpec.create("group:name:1.1");
+    assertNotNull(spec);
+
+    assertEquals("name:1.1", spec.getDisplayText(false, true));
+  }
+
+  public void testGetDisplayText_showAll() {
+    PsArtifactDependencySpec spec = PsArtifactDependencySpec.create("group:name:1.1");
+    assertNotNull(spec);
+
+    assertEquals("group:name:1.1", spec.getDisplayText(true, true));
+  }
+
   public void testCompactNotation() {
     PsArtifactDependencySpec spec = PsArtifactDependencySpec.create("group:name:1.0");
     assertNotNull(spec);
