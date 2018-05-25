@@ -20,12 +20,11 @@ import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.tests.IdeaTestSuiteBase
 import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.testGuiFramework.impl.GuiTestStarter
-import com.intellij.testGuiFramework.remote.server.JUnitServerHolder
 import org.apache.log4j.Level
-import org.apache.log4j.Logger
 import org.jetbrains.jps.model.JpsElementFactory
 import org.jetbrains.jps.model.JpsProject
 import org.jetbrains.jps.model.java.JpsJavaExtensionService
@@ -40,7 +39,6 @@ import java.util.*
 import java.util.jar.Attributes
 import java.util.jar.JarOutputStream
 import java.util.jar.Manifest
-import kotlin.concurrent.thread
 
 /**
  * [GuiTestLauncher] handles the mechanics of preparing to launch the client IDE and forking the process. It can do this two ways:
@@ -61,7 +59,7 @@ import kotlin.concurrent.thread
  */
 object GuiTestLauncher {
 
-  private val LOG = Logger.getLogger("#com.intellij.testGuiFramework.launcher.GuiTestLauncher")
+  private val LOG = Logger.getInstance("#com.intellij.testGuiFramework.launcher.GuiTestLauncher")
 
   var process: Process? = null
   private var vmOptionsFile: File? = null
@@ -71,7 +69,7 @@ object GuiTestLauncher {
   private const val MAIN_CLASS_NAME = "com.intellij.idea.Main"
 
   init {
-    LOG.level = Level.INFO
+    LOG.setLevel(Level.INFO)
   }
 
   val project: JpsProject by lazy {
@@ -118,7 +116,10 @@ object GuiTestLauncher {
     FileUtil.createTempFile("studio_uitests.vmoptions", "", true).apply {
       FileUtil.writeToFile(this, """${originalFile.readText()}
 -Didea.gui.test.port=$port
--Didea.application.starter.command=${GuiTestStarter.COMMAND_NAME}""")
+-Didea.application.starter.command=${GuiTestStarter.COMMAND_NAME}
+-Didea.gui.test.remote.ide.path=${GuiTestOptions.getRemoteIdePath()}
+-Didea.config.path=${GuiTests.getConfigDirPath()}
+-Didea.system.path=${GuiTests.getSystemDirPath()}""")
     }
 
   private fun createArgs(port: Int): List<String> {

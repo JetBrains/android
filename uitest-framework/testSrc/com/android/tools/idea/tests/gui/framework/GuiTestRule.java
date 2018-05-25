@@ -30,12 +30,14 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.plugins.PluginManager;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.testGuiFramework.impl.GuiTestThread;
+import com.intellij.testGuiFramework.launcher.GuiTestOptions;
 import com.intellij.testGuiFramework.remote.transport.RestartIdeMessage;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.WaitTimedOutError;
@@ -183,9 +185,6 @@ public class GuiTestRule implements TestRule {
     GuiTests.setUpDefaultProjectCreationLocationPath(myTestDirectory);
     GuiTests.setIdeSettings();
     GuiTests.setUpSdks();
-
-    // Compute the workspace root before any IDE code starts messing with user.dir:
-    TestUtils.getWorkspaceRoot();
 
     if (!HAS_EXTERNAL_WINDOW_MANAGER) {
       KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(myGlobalFocusListener);
@@ -360,7 +359,9 @@ public class GuiTestRule implements TestRule {
     /* TODO(b/74197807) This new approach doesn't work when running tests from bazel or on the release:
      * File path = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(gradleVersion);
      */
-    File path = getWorkspaceFile("tools/external/gradle/gradle-" + gradleVersion + "-bin.zip");
+    File path = GuiTestOptions.INSTANCE.isRunningOnRelease() ?
+                new File(PathManager.getHomePath(), "gradle/gradle-" + gradleVersion + "-bin.zip") :
+                getWorkspaceFile("tools/external/gradle/gradle-" + gradleVersion + "-bin.zip");
     assertAbout(file()).that(path).named("Gradle distribution path").isFile();
     wrapper.updateDistributionUrl(path);
     return wrapper != null;

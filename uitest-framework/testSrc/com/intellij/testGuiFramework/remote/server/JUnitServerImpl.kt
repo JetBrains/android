@@ -16,6 +16,7 @@
 package com.intellij.testGuiFramework.remote.server
 
 import com.android.tools.idea.tests.gui.framework.GuiTests
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testGuiFramework.launcher.GuiTestLauncher
 import com.intellij.testGuiFramework.launcher.GuiTestOptions
@@ -23,8 +24,6 @@ import com.intellij.testGuiFramework.launcher.RestartPolicy
 import com.intellij.testGuiFramework.remote.transport.CloseIdeMessage
 import com.intellij.testGuiFramework.remote.transport.MessageFromClient
 import com.intellij.testGuiFramework.remote.transport.MessageFromServer
-import org.apache.log4j.Level
-import org.apache.log4j.Logger
 import org.junit.runner.Description
 import org.junit.runner.Result
 import org.junit.runner.notification.Failure
@@ -51,7 +50,7 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
   private val RECEIVE_THREAD = "JUnit Server Receive Thread"
   private val postingMessages: BlockingQueue<MessageFromServer> = LinkedBlockingQueue()
   private val receivingMessages: BlockingQueue<MessageFromClient> = LinkedBlockingQueue()
-  private val LOG = Logger.getLogger("#com.intellij.testGuiFramework.remote.server.JUnitServerImpl")
+  private val LOG = Logger.getInstance("#com.intellij.testGuiFramework.remote.server.JUnitServerImpl")
 
   private val serverSocket = ServerSocket(0, 50, InetAddress.getLoopbackAddress())
   lateinit private var serverSendThread: ServerSendThread
@@ -71,7 +70,6 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
 
   init {
     port = serverSocket.localPort
-    LOG.level = Level.INFO
     LOG.info("Server running on port $port")
     serverSocket.soTimeout = IDE_STARTUP_TIMEOUT
     notifier.addListener(object : RunListener() {
@@ -79,6 +77,7 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
 
       override fun testFailure(failure: Failure?) {
         testFailed = true
+        failure?.exception?.let { LOG.warn(it) }
         super.testFailure(failure)
       }
 

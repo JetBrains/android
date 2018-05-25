@@ -47,5 +47,6 @@ iml_module(
         "//tools/adt/idea/android-layout-inspector[module, test]",
         "//tools/adt/idea/adt-testutils[module, test]",
         "//tools/adt/idea/profilers-android:intellij.android.profilersAndroid[module, test]",
+        "//tools/idea/platform/testFramework/bootstrap:intellij.tools.testsBootstrap[module, test]",
     ],
 )

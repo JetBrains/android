@@ -46,5 +46,6 @@
     <orderEntry type="module" module-name="android-layout-inspector" scope="TEST" />
     <orderEntry type="module" module-name="adt-testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.profilersAndroid" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.tools.testsBootstrap" scope="TEST" />
   </component>
 </module>
