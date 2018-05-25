@@ -60,16 +60,18 @@ public final class AarResourceRepositoryCache {
       FileResourceRepository aarRepository = cache.get(aarDirectory, () -> {
         FileResourceRepository repository =
             namespacing == AaptOptions.Namespacing.REQUIRED ? AarProtoResourceRepository.createIfProtoAar(aarDirectory, libraryName) : null;
-        // TODO(b/74425399): Remove the fallback to FileResourceRepository when namespacing is enabled.
         if (repository == null) {
+          if (namespacing == AaptOptions.Namespacing.REQUIRED) {
+            Logger.getInstance(AarResourceRepositoryCache.class).warn("Failed to load AAR proto repository from " + aarDirectory);
+          }
+          // TODO(b/74425399): Remove the fallback to FileResourceRepository when namespacing is enabled.
           repository = FileResourceRepository.create(aarDirectory, libraryName);
         }
         return repository;
       });
       if (!Objects.equals(libraryName, aarRepository.getLibraryName())) {
-        assert false : "Library name mismatch: " + libraryName + " vs " + aarRepository.getLibraryName();
         Logger logger = Logger.getInstance(AarResourceRepositoryCache.class);
-        logger.warn(new Exception("Library name mismatch: " + libraryName + " vs " + aarRepository.getLibraryName()));
+        logger.error(new Exception("Library name mismatch: " + libraryName + " vs " + aarRepository.getLibraryName()));
       }
       return aarRepository;
     }
