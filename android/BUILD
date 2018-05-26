@@ -77,7 +77,7 @@ iml_module(
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
         "//tools/adt/idea/android/lib:spantable",
         "//tools/idea/.idea/libraries:jsr305",
-        "//tools/adt/idea/android/lib:jgraphx-3.4.0.1",
+        "//prebuilts/tools/common/m2/repository/org/tinyjee/jgraphx/jgraphx/3.4.1.3:jar",
         "//tools/base/repository:studio.android.sdktools.repository[module]",
         "//tools/base/instant-run:studio.android.sdktools.instant-run-client[module]",
         "//tools/base/instant-run:studio.android.sdktools.instant-run-common[module]",

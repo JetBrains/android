@@ -35,13 +35,6 @@ java_import(
 
 # managed by go/iml_to_build
 java_import(
-    name = "jgraphx-3.4.0.1",
-    jars = ["jgraphx-3.4.0.1.jar"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-java_import(
     name = "baksmali-2.2.1",
     jars = ["baksmali-2.2.1.jar"],
     visibility = ["//visibility:public"],
