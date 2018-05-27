@@ -35,7 +35,6 @@ public class AttributeValueTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Test
-  @RunIn(TestGroup.UNRELIABLE) // b/75979069
   public void testAttributeValueInput() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
     final EditorFixture editor = guiTest.ideFrame().getEditor();
