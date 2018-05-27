@@ -46,7 +46,6 @@ import static com.google.common.truth.Truth.assertThat;
 public class NewImageAssetTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/77269384
   @Test
   public void testAdaptiveIconsPreviewPanelContents() throws Exception {
     AssetStudioWizardFixture wizard = guiTest.importSimpleApplication()
@@ -64,7 +63,6 @@ public class NewImageAssetTest {
     wizard.clickCancel();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/77269384
   @Test
   public void testNotificationImageCount() throws Exception {
     NewImageAssetStepFixture<AssetStudioWizardFixture> step = guiTest.importSimpleApplication()
