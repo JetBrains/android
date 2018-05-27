@@ -21,6 +21,7 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
+import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
@@ -57,8 +58,7 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import java.io.File;
 import java.util.*;
 
-import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT;
-import static com.android.SdkConstants.SUPPORT_LIB_ARTIFACT;
+import static com.android.SdkConstants.*;
 
 /**
  * An {@linkplain LintIdeProject} represents a lint project, which typically corresponds to a {@link Module},
@@ -649,6 +649,20 @@ public class LintIdeProject extends Project {
         if (foundDependency != null) {
           return Boolean.TRUE;
         }
+
+        // Check new AndroidX namespace too
+        if (artifact.startsWith(SUPPORT_LIB_GROUP_ID)) {
+          String newArtifact = AndroidxNameUtils.getCoordinateMapping(artifact);
+          if (!newArtifact.equals(artifact)) {
+            queryCoordinate = GradleCoordinate.parseCoordinateString(newArtifact + ":+");
+            if (queryCoordinate != null) {
+              foundDependency = ProjectSystemUtil.getModuleSystem(myFacet.getModule()).getResolvedDependency(queryCoordinate);
+              if (foundDependency != null) {
+                return Boolean.TRUE;
+              }
+            }
+          }
+        }
       }
 
       return super.dependsOn(artifact);
@@ -975,30 +989,68 @@ public class LintIdeProject extends Project {
       // TODO: b/22928250
       AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
 
-      if (SUPPORT_LIB_ARTIFACT.equals(artifact) && androidModel != null) {
+      if (SUPPORT_LIB_ARTIFACT.equals(artifact)
+          || ANDROIDX_SUPPORT_LIB_ARTIFACT.equals(artifact)) {
         if (supportLib == null) {
-          if (myFacet.requiresAndroidModel() && myFacet.getConfiguration().getModel() != null) {
-            supportLib = GradleUtil.dependsOn(androidModel, artifact);
-          } else {
-            supportLib = depsDependsOn(this, artifact);
+          if (myFacet.requiresAndroidModel() && myFacet.getConfiguration().getModel() != null && androidModel != null) {
+            supportLib =
+              GradleUtil.dependsOn(androidModel, SUPPORT_LIB_ARTIFACT) ||
+              GradleUtil.dependsOn(androidModel, ANDROIDX_SUPPORT_LIB_ARTIFACT);
+          }
+          else {
+            supportLib =
+              depsDependsOn(this, SUPPORT_LIB_ARTIFACT) ||
+              depsDependsOn(this, ANDROIDX_SUPPORT_LIB_ARTIFACT);
           }
         }
         return supportLib;
-      } else if (APPCOMPAT_LIB_ARTIFACT.equals(artifact) && androidModel != null) {
+      } else if (APPCOMPAT_LIB_ARTIFACT.equals(artifact)
+                 || ANDROIDX_APPCOMPAT_LIB_ARTIFACT.equals(artifact)) {
         if (appCompat == null) {
-          if (myFacet.requiresAndroidModel() && myFacet.getConfiguration().getModel() != null) {
-            appCompat = GradleUtil.dependsOn(androidModel, artifact);
-          } else {
-            appCompat = depsDependsOn(this, artifact);
+          if (myFacet.requiresAndroidModel() && myFacet.getConfiguration().getModel() != null && androidModel != null) {
+            appCompat =
+              GradleUtil.dependsOn(androidModel, APPCOMPAT_LIB_ARTIFACT) ||
+              GradleUtil.dependsOn(androidModel, ANDROIDX_APPCOMPAT_LIB_ARTIFACT);
+          }
+          else {
+            appCompat =
+              depsDependsOn(this, APPCOMPAT_LIB_ARTIFACT) ||
+              depsDependsOn(this, ANDROIDX_APPCOMPAT_LIB_ARTIFACT);
           }
         }
         return appCompat;
-      } else {
+      }
+      else if (LEANBACK_V17_ARTIFACT.equals(artifact)
+               || ANDROIDX_LEANBACK_ARTIFACT.equals(artifact)) {
+        if (leanback == null) {
+          if (myFacet.requiresAndroidModel() && myFacet.getConfiguration().getModel() != null && androidModel != null) {
+            leanback =
+              GradleUtil.dependsOn(androidModel, LEANBACK_V17_ARTIFACT) ||
+              GradleUtil.dependsOn(androidModel, ANDROIDX_LEANBACK_ARTIFACT);
+          }
+          else {
+            leanback =
+              depsDependsOn(this, LEANBACK_V17_ARTIFACT) ||
+              depsDependsOn(this, ANDROIDX_LEANBACK_ARTIFACT);
+          }
+        }
+        return leanback;
+      }
+      else {
         // Some other (not yet directly cached result)
         if (myFacet.requiresAndroidModel() && myFacet.getConfiguration().getModel() != null
-            && androidModel != null
-            && GradleUtil.dependsOn(androidModel, artifact)) {
-          return true;
+            && androidModel != null) {
+          if (GradleUtil.dependsOn(androidModel, artifact)) {
+            return true;
+          }
+
+          // Check new AndroidX namespace too
+          if (artifact.startsWith(SUPPORT_LIB_GROUP_ID)) {
+            String newArtifact = AndroidxNameUtils.getCoordinateMapping(artifact);
+            if (!newArtifact.equals(artifact) && GradleUtil.dependsOn(androidModel, newArtifact)) {
+              return true;
+            }
+          }
         }
 
         return super.dependsOn(artifact);
@@ -1152,22 +1204,38 @@ public class LintIdeProject extends Project {
     @Nullable
     @Override
     public Boolean dependsOn(@NonNull String artifact) {
-      if (SUPPORT_LIB_ARTIFACT.equals(artifact)) {
+      if (SUPPORT_LIB_ARTIFACT.equals(artifact)
+          || ANDROIDX_SUPPORT_LIB_ARTIFACT.equals(artifact)) {
         if (supportLib == null) {
-          supportLib = GradleUtil.dependsOn(myLibrary, artifact, true);
+          supportLib =
+            GradleUtil.dependsOn(myLibrary, SUPPORT_LIB_ARTIFACT, true) ||
+            GradleUtil.dependsOn(myLibrary, ANDROIDX_SUPPORT_LIB_ARTIFACT, true);
         }
         return supportLib;
-      } else if (APPCOMPAT_LIB_ARTIFACT.equals(artifact)) {
+      }
+      else if (APPCOMPAT_LIB_ARTIFACT.equals(artifact)
+               || ANDROIDX_APPCOMPAT_LIB_ARTIFACT.equals(artifact)) {
         if (appCompat == null) {
-          appCompat = GradleUtil.dependsOn(myLibrary, artifact, true);
+          appCompat =
+            GradleUtil.dependsOn(myLibrary, APPCOMPAT_LIB_ARTIFACT, true) ||
+            GradleUtil.dependsOn(myLibrary, ANDROIDX_APPCOMPAT_LIB_ARTIFACT, true);
         }
         return appCompat;
-      } else {
+      }
+      else if (LEANBACK_V17_ARTIFACT.equals(artifact)
+               || ANDROIDX_LEANBACK_ARTIFACT.equals(artifact)) {
+        if (leanback == null) {
+          leanback =
+            GradleUtil.dependsOn(myLibrary, LEANBACK_V17_ARTIFACT, true) ||
+            GradleUtil.dependsOn(myLibrary, ANDROIDX_LEANBACK_ARTIFACT, true);
+        }
+        return leanback;
+      }
+      else {
         // Some other (not yet directly cached result)
         if (GradleUtil.dependsOn(myLibrary, artifact, true)) {
           return true;
         }
-
         return super.dependsOn(artifact);
       }
     }
