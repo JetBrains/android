@@ -16,6 +16,8 @@
 package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
@@ -89,6 +91,7 @@ public final class ComponentTreeTest {
     assertEquals(expected, editor.getCurrentFileContents());
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/80336716
   @Test
   public void multiSelectComponentDoNotJumpToXML() {
     EditorFixture editor = null;
