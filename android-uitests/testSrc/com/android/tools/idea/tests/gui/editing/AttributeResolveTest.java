@@ -40,7 +40,6 @@ public class AttributeResolveTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/73210921
   @Test
   public void testResolveNewlyAddedTag() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
