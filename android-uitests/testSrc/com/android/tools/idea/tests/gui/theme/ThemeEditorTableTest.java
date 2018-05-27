@@ -134,7 +134,6 @@ public class ThemeEditorTableTest {
       .until(() -> parentName.equals(themesComboBox.target().getSelectedItem().toString()));
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/72471564
   @Test
   public void testSettingColorAttribute() throws IOException {
     guiTest.importSimpleApplication();
@@ -258,7 +257,6 @@ public class ThemeEditorTableTest {
   /**
    * @see com.android.tools.idea.editors.theme.ThemeEditorTable#getPopupMenuAtCell(int, int)
    */
-  @RunIn(TestGroup.UNRELIABLE)  // b/73729624
   @Test
   public void testResettingColorAttribute() throws IOException {
     guiTest.importSimpleApplication();
