@@ -109,7 +109,6 @@ public class NewInstantAppTest {
     createAndOpenDefaultAIAProject(projectName, featureModuleName, activityName, false);
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/66249968 or similar issue, apparently
   @Test
   public void testNoWarningsInDefaultNewInstantAppProjects() throws IOException {
     String projectName = "Warning";
