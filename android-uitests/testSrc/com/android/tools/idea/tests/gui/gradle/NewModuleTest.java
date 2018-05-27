@@ -98,7 +98,6 @@ public class NewModuleTest {
       .waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/73262313
   @Test
   public void createNewJavaLibraryWithDefaults() throws Exception {
     guiTest.importSimpleLocalApplication()
