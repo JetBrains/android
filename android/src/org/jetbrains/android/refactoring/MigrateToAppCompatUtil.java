@@ -59,6 +59,7 @@ import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.android.SdkConstants.ANDROIDX_APPCOMPAT_LIB_ARTIFACT;
 import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT;
 import static com.android.SdkConstants.CLASS_ACTIVITY;
 
@@ -185,7 +186,7 @@ class MigrateToAppCompatUtil {
             @Override
             public Boolean dependsOn(@NotNull String artifact) {
               // Make it look like the App already depends on AppCompat to get the warnings for custom views.
-              if (APPCOMPAT_LIB_ARTIFACT.equals(artifact)) {
+              if (APPCOMPAT_LIB_ARTIFACT.equals(artifact) || ANDROIDX_APPCOMPAT_LIB_ARTIFACT.equals(artifact)) {
                 return Boolean.TRUE;
               }
               return super.dependsOn(artifact);

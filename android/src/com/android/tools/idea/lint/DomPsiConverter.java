@@ -608,7 +608,7 @@ class DomPsiConverter {
       throw new UnsupportedOperationException(); // Read-only bridge
     }
 
-    @NotNull
+    @Nullable
     @Override
     public Object getUserData(String s) {
       throw new UnsupportedOperationException(); // Not supported
@@ -696,6 +696,12 @@ class DomPsiConverter {
       }
 
       return myChildren;
+    }
+
+    @Nullable
+    @Override
+    public Object getUserData(String s) {
+      return null;
     }
 
     // From org.w3c.dom.Document:

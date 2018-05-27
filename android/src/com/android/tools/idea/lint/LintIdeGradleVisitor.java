@@ -119,7 +119,8 @@ public class LintIdeGradleVisitor extends GradleVisitor {
                         // things with the positions here (map between two nodes), and the property abstraction we
                         // pass to GradleDetector doesn't distinguish between assignments and DSL method calls, so just
                         // handle it here.
-                        if (property.equals(ATTR_MIN_SDK_VERSION) || property.equals(ATTR_TARGET_SDK_VERSION)) {
+                        if (!parentName.equals("ext") &&
+                            (property.equals(ATTR_MIN_SDK_VERSION) || property.equals(ATTR_TARGET_SDK_VERSION))) {
                           int lValueEnd = lValue.getTextRange().getEndOffset();
                           int rValueStart = rValue.getTextRange().getStartOffset();
                           assert lValueEnd <= rValueStart;
