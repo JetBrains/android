@@ -21,8 +21,6 @@ import com.android.fakeadbserver.FakeAdbServer;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.AndroidProfilerToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.google.common.truth.Correspondence;
@@ -46,7 +44,6 @@ import java.io.IOException;
 import static com.android.fakeadbserver.DeviceState.HostConnectionType.USB;
 import static com.google.common.truth.Truth.assertThat;
 
-@RunIn(TestGroup.UNRELIABLE)  // until we know b/79200296 is fixed
 @RunWith(GuiTestRemoteRunner.class)
 public class AndroidProfilerTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
