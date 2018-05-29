@@ -41,6 +41,7 @@ import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationDslElement;
 import com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
@@ -75,6 +76,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE;
 import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INCOMPLETE_PARSING;
@@ -239,7 +241,9 @@ public class GroovyDslParser implements GradleDslParser {
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(myDslFile.getProject());
     GrClosableBlock block = factory.createClosureFromText("{\n}");
     for (ArtifactDependencySpec spec : excludes) {
-      String text = String.format("exclude group: '%s', module: '%s'", spec.getGroup(), spec.getName());
+      String group = FakeArtifactElement.shouldInterpolate(spec.getGroup()) ? iStr(spec.getGroup()) : "'" + spec.getGroup() + "'";
+      String name = FakeArtifactElement.shouldInterpolate(spec.getName()) ? iStr(spec.getName()) : "'" + spec.getName() + "'";
+      String text = String.format("exclude group: %s, module: %s", group, name);
       block.addBefore(factory.createStatementFromText(text), block.getLastChild());
       PsiElement lineTerminator = factory.createLineTerminator(1);
       block.addBefore(lineTerminator, block.getLastChild());

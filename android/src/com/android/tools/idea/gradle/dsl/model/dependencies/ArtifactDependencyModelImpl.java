@@ -30,8 +30,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr;
 
 /**
  * A Gradle artifact dependency. There are two notations supported for declaring a dependency on an external module. One is a string
@@ -171,7 +174,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
                      @NotNull List<ArtifactDependencySpec> excludes) {
     GradleNameElement name = GradleNameElement.create(configurationName);
     GradleDslLiteral literal = new GradleDslLiteral(parent, name);
-    literal.setValue(dependency.compactNotation());
+    literal.setValue(createCompactNotationForLiterals(dependency));
 
     if (!excludes.isEmpty()) {
       PsiElement configBlock = parent.getDslFile().getParser().convertToExcludesBlock(excludes);
@@ -180,6 +183,17 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     }
 
     parent.setNewElement(literal);
+  }
+
+  /**
+   * @return same as {@link ArtifactDependencySpec#compactNotation} but quoted if interpolation is needed.
+   */
+  @NotNull
+  private static String createCompactNotationForLiterals(@NotNull ArtifactDependencySpec spec) {
+    List<String> segments = Lists.newArrayList(spec.getGroup(), spec.getName(), spec.getVersion(), spec.getClassifier(), spec.getExtension());
+    boolean shouldInterpolate = segments.stream().filter(Objects::nonNull).anyMatch(FakeArtifactElement::shouldInterpolate);
+    String compact = spec.compactNotation();
+    return shouldInterpolate ? iStr(compact) : compact;
   }
 
   private static class MapNotation extends ArtifactDependencyModelImpl {
