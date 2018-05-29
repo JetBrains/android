@@ -47,13 +47,6 @@ java_import(
     visibility = ["//visibility:public"],
 )
 
-# managed by go/iml_to_build
-java_import(
-    name = "guava-testlib-21.0",
-    jars = ["guava-testlib-21.0.jar"],
-    visibility = ["//visibility:public"],
-)
-
 filegroup(
     name = "androidWidgets",
     srcs = glob(["androidWidgets/**"]),
