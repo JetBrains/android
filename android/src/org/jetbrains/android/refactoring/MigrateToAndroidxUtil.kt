@@ -31,9 +31,12 @@ const val ENABLE_JETIFIER_PROPERTY = "android.enableJetifier"
 /**
  * Returns a [PropertiesFile] instance for the `gradle.properties` file in the given project or null if it does not exist.
  */
-private fun Project.getProjectProperties(): PropertiesFile? {
-  val gradlePropertiesFile = VfsUtil.findFileByIoFile(File(FileUtil.toCanonicalPath(basePath), SdkConstants.FN_GRADLE_PROPERTIES),
-                                                      true)
+private fun Project.getProjectProperties(createIfNotExists: Boolean = false): PropertiesFile? {
+  val projectBaseDirectory = VfsUtil.findFileByIoFile(File(FileUtil.toCanonicalPath(basePath)), true)
+  val gradlePropertiesFile = if (createIfNotExists)
+    projectBaseDirectory?.findOrCreateChildData(this, SdkConstants.FN_GRADLE_PROPERTIES)
+  else
+    projectBaseDirectory?.findChild(SdkConstants.FN_GRADLE_PROPERTIES)
   val psiPropertiesFile = PsiManager.getInstance(this).findFile(gradlePropertiesFile ?: return null)
 
   return if (psiPropertiesFile is PropertiesFile) psiPropertiesFile else null
@@ -41,7 +44,7 @@ private fun Project.getProjectProperties(): PropertiesFile? {
 
 fun Project.setAndroidxProperties() {
   // Add gradle properties to enable the androidx handling
-  getProjectProperties()?.let {
+  getProjectProperties(true)?.let {
     it.findPropertyByKey(USE_ANDROIDX_PROPERTY)?.setValue("true") ?: it.addProperty(USE_ANDROIDX_PROPERTY, "true")
     it.findPropertyByKey(ENABLE_JETIFIER_PROPERTY)?.setValue("true") ?: it.addProperty(ENABLE_JETIFIER_PROPERTY, "true")
   }
