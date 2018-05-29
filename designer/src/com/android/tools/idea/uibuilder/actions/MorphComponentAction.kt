@@ -193,7 +193,7 @@ class MorphComponentAction(component: NlComponent, designSurface: DesignSurface)
     document.replaceString(myTagNameRange.startOffset, myTagNameRange.endOffset, newName)
   }
 
-  override fun actionPerformed(e: AnActionEvent?) = showMorphPopup()
+  override fun actionPerformed(e: AnActionEvent?): Unit = showMorphPopup()
 
   /**
    * Render showing a remove or add icon and running the provided [runnable] when clicking

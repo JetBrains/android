@@ -41,7 +41,7 @@ class RelativeWidgetTarget(val type: Type) : BaseRelativeTarget() {
   private var x2 = Int.MIN_VALUE
   private var y2 = Int.MIN_VALUE
 
-  override fun getPreferenceLevel() = Target.GUIDELINE_ANCHOR_LEVEL
+  override fun getPreferenceLevel(): Int = Target.GUIDELINE_ANCHOR_LEVEL
 
   override fun layout(context: SceneContext, l: Int, t: Int, r: Int, b: Int): Boolean {
     val parent = myComponent.parent ?: return false

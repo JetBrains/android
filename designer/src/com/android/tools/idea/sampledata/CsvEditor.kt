@@ -162,13 +162,13 @@ class CsvEditor(private val myFile: PsiPlainTextFile, private val myProject: Pro
   }
 
   override fun getPreferredFocusedComponent(): JComponent? = myEditorPanel
-  override fun getName() = "CSV Editor"
+  override fun getName(): String = "CSV Editor"
   override fun setState(state: FileEditorState) {}
   override fun dispose() {}
   override fun selectNotify() {}
   override fun deselectNotify() {}
-  override fun isValid() = myFile.isValid
-  override fun isModified() = false
+  override fun isValid(): Boolean = myFile.isValid
+  override fun isModified(): Boolean = false
   override fun addPropertyChangeListener(listener: PropertyChangeListener) {}
   override fun removePropertyChangeListener(listener: PropertyChangeListener) {}
   override fun getBackgroundHighlighter(): BackgroundEditorHighlighter? = null

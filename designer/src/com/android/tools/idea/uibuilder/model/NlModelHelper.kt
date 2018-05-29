@@ -22,6 +22,14 @@ import com.android.resources.Density
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.State
 import com.android.tools.idea.avdmanager.AvdScreenData
+import com.android.tools.idea.common.editor.NlEditor
+import com.android.tools.idea.common.editor.NlEditorProvider
+import com.android.tools.idea.common.model.AndroidCoordinate
+import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.common.util.XmlTagUtil.createTag
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ConfigurationMatcher
@@ -32,16 +40,8 @@ import com.android.tools.idea.uibuilder.api.DragHandler
 import com.android.tools.idea.uibuilder.api.InsertType
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler
 import com.android.tools.idea.uibuilder.api.ViewHandler
-import com.android.tools.idea.common.editor.NlEditor
-import com.android.tools.idea.common.editor.NlEditorProvider
-import com.android.tools.idea.common.model.AndroidCoordinate
-import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
-import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.common.util.XmlTagUtil.createTag
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Sets
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -56,8 +56,8 @@ import java.util.*
  * Layout editor-specific helper methods and data for NlModel
  */
 
-const val CUSTOM_DENSITY_ID = "Custom Density"
-val BASE_ID_PATTERN = Regex("(.*[^0-9])([0-9]+)?")
+const val CUSTOM_DENSITY_ID: String = "Custom Density"
+val BASE_ID_PATTERN: Regex = Regex("(.*[^0-9])([0-9]+)?")
 
 /**
  * Returns true if the current module depends on the specified library.

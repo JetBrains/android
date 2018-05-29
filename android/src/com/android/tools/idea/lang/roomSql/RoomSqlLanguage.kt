@@ -22,7 +22,7 @@ import com.intellij.openapi.fileTypes.LanguageFileType
 import icons.AndroidIcons
 import javax.swing.Icon
 
-val ROOM_SQL_DESCRIPTION = "Android Room SQL"
+val ROOM_SQL_DESCRIPTION: String = "Android Room SQL"
 
 object ROOM_SQL_LANGUAGE : Language("RoomSql") {
   override fun getDisplayName(): String = ROOM_SQL_DESCRIPTION
