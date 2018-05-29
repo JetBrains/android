@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
+import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
@@ -51,7 +52,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import java.util.regex.Pattern;
 
 public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   private static final String HAS_USED_CPU_CAPTURE = "cpu.used.capture";
@@ -1059,12 +1059,12 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     }
   }
 
-  public void setCaptureFilter(@Nullable Pattern filter, @NotNull FilterModel model) {
+  public void setCaptureFilter(@NotNull Filter filter) {
     myCaptureModel.setFilter(filter);
-    trackFilterUsage(filter, model);
+    trackFilterUsage(filter);
   }
 
-  private void trackFilterUsage(@Nullable Pattern filter, @NotNull FilterModel model) {
+  private void trackFilterUsage(@NotNull Filter filter) {
     FilterMetadata filterMetadata = new FilterMetadata();
     FeatureTracker featureTracker = getStudioProfilers().getIdeServices().getFeatureTracker();
     CaptureModel.Details details = getCaptureDetails();
@@ -1083,10 +1083,10 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
         filterMetadata.setView(FilterMetadata.View.CPU_FLAME_CHART);
         break;
     }
-    filterMetadata.setFeaturesUsed(model.getIsMatchCase(), model.getIsRegex());
+    filterMetadata.setFeaturesUsed(filter.isMatchCase(), filter.isRegex());
     filterMetadata.setMatchedElementCount(myCaptureModel.getFilterNodeCount());
     filterMetadata.setTotalElementCount(myCaptureModel.getNodeCount());
-    filterMetadata.setFilterTextLength(filter == null ? 0 : filter.pattern().length());
+    filterMetadata.setFilterTextLength(filter.isEmpty() ? 0 : filter.getFilterString().length());
     featureTracker.trackFilterMetadata(filterMetadata);
   }
 

@@ -16,6 +16,8 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.filter.Filter;
+import com.android.tools.adtui.model.filter.FilterModel;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
@@ -45,7 +47,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -1641,7 +1642,11 @@ public class CpuProfilerStageTest extends AspectObserver {
     // Capture a trace to apply filter on.
     captureSuccessfully();
 
-    myStage.setCaptureFilter(Pattern.compile(""), new FilterModel());
+    FilterModel filterModel = new FilterModel();
+    Filter filter = Filter.EMPTY_FILTER;
+    filterModel.setFilter(filter);
+
+    myStage.setCaptureFilter(filter);
 
     FilterMetadata filterMetadata = tracker.getLastFilterMetadata();
     assertThat(filterMetadata).isNotNull();
@@ -1649,10 +1654,10 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(filterMetadata.getFeaturesUsed()).isEqualTo(0);
 
     // Test with some filter features and non empty text
-    FilterModel filterModel = new FilterModel();
-    filterModel.setIsMatchCase(true);
-    filterModel.setIsRegex(true);
-    myStage.setCaptureFilter(Pattern.compile("some"), filterModel);
+
+    filter = new Filter("some", true, true);
+    filterModel.setFilter(filter);
+    myStage.setCaptureFilter(filter);
     filterMetadata = tracker.getLastFilterMetadata();
     assertThat(filterMetadata).isNotNull();
     assertThat(filterMetadata.getFilterTextLength()).isEqualTo(4);

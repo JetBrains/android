@@ -15,6 +15,9 @@
  */
 package com.android.tools.adtui
 
+import com.android.tools.adtui.model.filter.Filter
+import com.android.tools.adtui.model.filter.FilterHandler
+import com.android.tools.adtui.model.filter.FilterResult
 import com.android.tools.adtui.stdui.CommonToggleButton
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -22,7 +25,6 @@ import org.junit.Ignore
 import org.junit.Test
 import java.awt.BorderLayout
 import java.util.concurrent.CountDownLatch
-import java.util.regex.Pattern
 import javax.swing.JPanel
 
 class FilterComponentTest {
@@ -48,25 +50,18 @@ class FilterComponentTest {
     assertThat(myFilterComponent.isVisible).isFalse()
   }
 
-  // b/76172927 fix the flakiness of the test and remove @Ignore.
-  @Ignore
   @Test
-  fun changeFilterContent() {
-    val latch = CountDownLatch(3)
-    var pattern = Pattern.compile("")
-    myFilterComponent.addOnFilterChange { p, _ ->
-        if (p != null) {
-          pattern = p
-        }
-        latch.countDown()
-    }
-    myFilterComponent.matchCaseCheckBox.isSelected = true
-    myFilterComponent.textEditor.text = "test[A-Z]ext"
-    myFilterComponent.regexCheckBox.isSelected = true
-    latch.await()
-    assertThat(pattern.matcher("testText").matches()).isTrue()
-    assertThat(pattern.matcher("testAext").matches()).isTrue()
-    assertThat(pattern.matcher("testaext").matches()).isFalse()
-    assertThat(pattern.matcher("test.ext").matches()).isFalse()
+  fun changeFilterResult() {
+    myFilterComponent.model.setFilterHandler(object: FilterHandler() {
+      override fun applyFilter(filter: Filter): FilterResult {
+        return FilterResult(Integer.parseInt(filter.filterString), true)
+      }
+    })
+    myFilterComponent.model.setFilter(Filter("0"));
+    assertThat(myFilterComponent.countLabel.text).isEqualTo("No matches")
+    myFilterComponent.model.setFilter(Filter("1"));
+    assertThat(myFilterComponent.countLabel.text).isEqualTo("One match")
+    myFilterComponent.model.setFilter(Filter("1234567"));
+    assertThat(myFilterComponent.countLabel.text).isEqualTo("1,234,567 matches")
   }
 }

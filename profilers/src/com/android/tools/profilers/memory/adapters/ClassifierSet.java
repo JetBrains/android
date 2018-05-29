@@ -16,13 +16,13 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.adtui.model.filter.Filter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.*;
 import java.util.function.Supplier;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -53,6 +53,9 @@ public abstract class ClassifierSet implements MemoryObject {
   private long myTotalShallowSize = 0L;
   private long myTotalRetainedSize = 0L;
   private int myInstancesWithStackInfoCount = 0;
+
+  // Number of ClassifierSet that match the filter.
+  protected int myFilterMatchCount = 0;
 
   protected boolean myIsFiltered;
   protected boolean myIsMatched;
@@ -115,6 +118,9 @@ public abstract class ClassifierSet implements MemoryObject {
     return myTotalNativeSize;
   }
 
+  public int getFilterMatchCount() {
+    return myFilterMatchCount;
+  }
   /**
    * Add an instance to the baseline snapshot and update the accounting of the "total" values.
    * Note that instances at the baseline must be an allocation event.
@@ -276,6 +282,7 @@ public abstract class ClassifierSet implements MemoryObject {
     myInstancesWithStackInfoCount = 0;
     myObjectSetCount = 0;
     myFilteredObjectSetCount = 0;
+    myFilterMatchCount = 0;
   }
 
   public int getInstancesCount() {
@@ -421,7 +428,7 @@ public abstract class ClassifierSet implements MemoryObject {
   // Apply filter and update allocation information
   // Filter children classifierSets that neither match the pattern nor have any matched ancestors
   // Update information base on unfiltered children classifierSets
-  protected void applyFilter(@Nullable Pattern filter, boolean hasMatchedAncestor, boolean filterChanged) {
+  protected void applyFilter(@NotNull Filter filter, boolean hasMatchedAncestor, boolean filterChanged) {
     if (!filterChanged && !myNeedsRefiltering) {
       return;
     }
@@ -439,6 +446,7 @@ public abstract class ClassifierSet implements MemoryObject {
     myFilteredObjectSetCount = 0;
 
     myIsMatched = matches(filter);
+    myFilterMatchCount = myIsMatched ? 1 : 0;
 
     assert myClassifier != null;
     for (ClassifierSet classifierSet : myClassifier.getAllClassifierSets()) {
@@ -453,6 +461,7 @@ public abstract class ClassifierSet implements MemoryObject {
         myTotalNativeSize += classifierSet.myTotalNativeSize;
         myTotalRetainedSize += classifierSet.myTotalRetainedSize;
         myInstancesWithStackInfoCount += classifierSet.myInstancesWithStackInfoCount;
+        myFilterMatchCount += classifierSet.myFilterMatchCount;
         myFilteredObjectSetCount++;
       }
     }
@@ -460,8 +469,8 @@ public abstract class ClassifierSet implements MemoryObject {
     myNeedsRefiltering = false;
   }
 
-  protected boolean matches(Pattern filter) {
-    return filter != null && filter.matcher(getName()).matches();
+  protected boolean matches(@NotNull Filter filter) {
+    return filter.matches(getName());
   }
 
   /**

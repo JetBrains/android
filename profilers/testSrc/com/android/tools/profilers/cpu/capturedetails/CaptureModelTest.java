@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu.capturedetails;
 
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.*;
@@ -116,7 +117,7 @@ public class CaptureModelTest {
     myModel.setCapture(capture);
     myModel.setThread(101);
     myModel.setDetails(CaptureModel.Details.Type.CALL_CHART);
-    myModel.setFilter(Pattern.compile("^.*" + Pattern.quote("myPackage") + ".*$"));
+    myModel.setFilter(new Filter("myPackage"));
     CaptureNode node = ((CaptureModel.CallChart)myModel.getDetails()).getNode();
     // mainPackage.main
     assertThat(node.getFilterType()).isEqualTo(CaptureNode.FilterType.MATCH);

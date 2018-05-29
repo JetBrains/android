@@ -621,7 +621,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       buttonToolbar.add(button);
       FilterComponent filterComponent =
         new FilterComponent(FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_HISTORY_SIZE, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
-      filterComponent.addOnFilterChange((pattern, model) -> getStage().selectCaptureFilter(pattern, model));
+
+      filterComponent.getModel().setFilterHandler(getStage().getFilterHandler());
       headingPanel.add(filterComponent, BorderLayout.SOUTH);
       filterComponent.setVisible(false);
       filterComponent.setBorder(new JBEmptyBorder(0, 4, 0, 0));
