@@ -17,11 +17,10 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.google.common.base.Throwables;
+import com.android.utils.concurrency.CacheUtils;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -86,14 +85,7 @@ public class ResourceFolderRegistry {
     Cache<VirtualFile, ResourceFolderRepository> cache =
       namespace == ResourceNamespace.RES_AUTO ? myNonNamespacedCache : myNamespacedCache;
 
-    ResourceFolderRepository repository;
-    try {
-      repository = cache.get(dir, () -> ResourceFolderRepository.create(facet, dir, namespace));
-    }
-    catch (ExecutionException | UncheckedExecutionException e) {
-      Throwables.throwIfUnchecked(e.getCause());
-      throw new UncheckedExecutionException(e);
-    }
+    ResourceFolderRepository repository = CacheUtils.getAndUnwrap(cache, dir, () -> ResourceFolderRepository.create(facet, dir, namespace));
     assert repository.getNamespace().equals(namespace);
 
     // TODO(b/80179120): figure out why this is not always true.

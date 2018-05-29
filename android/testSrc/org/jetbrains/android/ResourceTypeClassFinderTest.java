@@ -7,7 +7,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidAugmentedRClassesElementFinderTest extends AndroidTestCase {
+public class ResourceTypeClassFinderTest extends AndroidTestCase {
   private static final String BASE_PATH = "/psiElementFinder/";
 
   public void testResourceClasses() throws Exception {

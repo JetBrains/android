@@ -23,6 +23,8 @@ import com.intellij.psi.PsiElementFinder;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.SmartList;
 import com.intellij.util.containers.ContainerUtil;
+import org.jetbrains.android.augment.AndroidPsiAugmentProvider;
+import org.jetbrains.android.augment.ResourceTypeClass;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,11 +32,20 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 /**
- * An element finder which finds inner classes within augmented R classes.
+ * A {@link PsiElementFinder} for finding inner classes of R classes, e.g. {@code R.string}.
+ *
+ * As the top-level R class for a given package is either generated or augmented, new inner classes may be added by creating instances of
+ * {@link ResourceTypeClass}. Both modes (generating the R class from scratch or augmenting an existing one) support retrieving such inner
+ * class by calling {@link PsiClass#findInnerClassByName(String, boolean)}, so this is exactly what this {@link PsiElementFinder} does if it
+ * suspects the class in question is an inner class of an R class.
+ *
+ * @see AndroidPsiAugmentProvider
+ * @see ResourceTypeClass
+ * @see AndroidPackageRClass
  */
-public class AndroidAugmentedRClassesElementFinder extends PsiElementFinder {
+public class ResourceTypeClassFinder extends PsiElementFinder {
 
-  public static final AndroidAugmentedRClassesElementFinder INSTANCE = new AndroidAugmentedRClassesElementFinder();
+  public static final ResourceTypeClassFinder INSTANCE = new ResourceTypeClassFinder();
 
   @Nullable
   @Override
@@ -61,7 +72,7 @@ public class AndroidAugmentedRClassesElementFinder extends PsiElementFinder {
     if (shortName.isEmpty() || !parentName.endsWith(".R")) {
       return PsiClass.EMPTY_ARRAY;
     }
-    List<PsiClass> result = new SmartList<PsiClass>();
+    List<PsiClass> result = new SmartList<>();
     for (PsiClass parentClass : JavaPsiFacade.getInstance(project).findClasses(parentName, scope)) {
       ContainerUtil.addIfNotNull(result, parentClass.findInnerClassByName(shortName, false));
     }

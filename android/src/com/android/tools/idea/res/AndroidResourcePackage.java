@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res;
 
+import com.google.common.base.MoreObjects;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.impl.file.PsiPackageImpl;
 
@@ -36,6 +37,6 @@ public class AndroidResourcePackage extends PsiPackageImpl {
 
   @Override
   public String toString() {
-    return "AndroidResourcePackage: " + getQualifiedName();
+    return MoreObjects.toStringHelper(this).addValue(getQualifiedName()).toString();
   }
 }
