@@ -729,9 +729,31 @@ public final class GroovyDslUtil {
     element.getNameElement().commitNameChange(newElement);
   }
 
+  /**
+   * @param startElement starting element
+   * @return the last none null psi element in the tree starting at node startElement.
+   */
+  @Nullable
+  static PsiElement findLastPsiElementIn(@NotNull GradleDslElement startElement) {
+    PsiElement psiElement = startElement.getPsiElement();
+    if (psiElement != null) {
+      return psiElement;
+    }
+
+    for (GradleDslElement element : Lists.reverse(new ArrayList<>(startElement.getChildren()))) {
+      if (element != null) {
+        PsiElement psi = findLastPsiElementIn(element);
+        if (psi != null) {
+          return psi;
+        }
+      }
+    }
+    return null;
+  }
+
   @Nullable
   static PsiElement getPsiElementForAnchor(@NotNull PsiElement parent, @Nullable GradleDslElement dslAnchor) {
-    PsiElement anchorAfter = dslAnchor == null ? null : dslAnchor.getPsiElement();
+    PsiElement anchorAfter = dslAnchor == null ? null : findLastPsiElementIn(dslAnchor);
     if (anchorAfter == null && parent instanceof GrClosableBlock) {
       return adjustForCloseableBlock((GrClosableBlock)parent);
     }

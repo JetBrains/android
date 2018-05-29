@@ -33,9 +33,9 @@ import java.io.IOException;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.*;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTEGER;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*;
 import static com.google.common.truth.Truth.assertThat;
 
@@ -1711,6 +1711,47 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     ArtifactDependencyModel adm = depModel.artifacts().get(0);
 
     verifyPropertyModel(adm.version().getResultModel(), STRING_TYPE, "2.3", STRING, REGULAR, 0, "jUnitVersion");
+  }
+
+  @Test
+  public void testSetVersionReference() throws IOException {
+    writeToBuildFile("ext.jUnitVersion = 2");
+
+    GradleBuildModel model = getGradleBuildModel();
+    DependenciesModel depModel = model.dependencies();
+
+    depModel.addArtifact("implementation", "junit:junit:${jUnitVersion}");
+
+    applyChangesAndReparse(model);
+    depModel = model.dependencies();
+    ArtifactDependencyModel artModel = depModel.artifacts().get(0);
+    verifyPropertyModel(artModel.completeModel().resolve(), STRING_TYPE, "junit:junit:2", STRING, REGULAR, 1);
+    verifyPropertyModel(artModel.version().getResultModel(), INTEGER_TYPE, 2, INTEGER, REGULAR, 0);
+  }
+
+  @Test
+  public void testSetExcludesBlockToReferences() throws IOException {
+    writeToBuildFile("ext.junit_version = '2.3.1'\n" +
+                     "ext.excludes_name = 'bad'\n" +
+                     "ext.excludes_group = 'dependency'\n" +
+                     "dependencies {\n" +
+                     "}");
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    ArtifactDependencySpec spec = ArtifactDependencySpec.create("junit:junit:$junit_version");
+    ArtifactDependencySpec excludesSpec = ArtifactDependencySpec.create("$excludes_group:$excludes_name");
+    buildModel.dependencies().addArtifact("implementation", spec, ImmutableList.of(excludesSpec));
+
+    // Dependency configuration blocks are not supported before applying and re-parsing.
+
+    applyChangesAndReparse(buildModel);
+
+    ArtifactDependencyModel artifactModel = buildModel.dependencies().artifacts().get(0);
+    ExcludedDependencyModel excludedModel = artifactModel.configuration().excludes().get(0);
+
+    verifyPropertyModel(excludedModel.group(), STRING_TYPE, "dependency", STRING, DERIVED, 1);
+    verifyPropertyModel(excludedModel.module(), STRING_TYPE, "bad", STRING, DERIVED, 1);
+    verifyPropertyModel(artifactModel.completeModel(), STRING_TYPE, "junit:junit:2.3.1", STRING, REGULAR, 1);
   }
 
   public static class ExpectedArtifactDependency extends ArtifactDependencySpecImpl {

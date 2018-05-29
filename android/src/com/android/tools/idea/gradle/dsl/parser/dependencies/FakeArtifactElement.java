@@ -49,6 +49,10 @@ public class FakeArtifactElement extends FakeElement {
   @NotNull private static final Pattern WRAPPED_VARIABLE_FORM = Pattern.compile("\\$\\{(.*)}");
   @NotNull private static final Pattern UNWRAPPED_VARIABLE_FORM = Pattern.compile("\\$(([a-zA-Z]\\w*)(\\.([a-zA-Z]\\w+))*)");
 
+  public static boolean shouldInterpolate(@Nullable String str) {
+    return str != null && (WRAPPED_VARIABLE_FORM.matcher(str).matches() || UNWRAPPED_VARIABLE_FORM.matcher(str).matches());
+  }
+
   public FakeArtifactElement(@Nullable GradleDslElement parent,
                              @NotNull GradleNameElement name,
                              @NotNull GradleDslSimpleExpression originExpression,
