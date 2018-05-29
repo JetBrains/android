@@ -250,6 +250,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myToolbar.setPreferredSize(new Dimension(0, TOOLBAR_HEIGHT));
 
     myCommonToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
+    myCommonToolbar.setBorder(new JBEmptyBorder(0, 3, 0, 0));
     JButton button = new CommonButton(StudioIcons.Common.BACK_ARROW);
     button.addActionListener(action -> {
       myProfiler.setMonitoringStage();
