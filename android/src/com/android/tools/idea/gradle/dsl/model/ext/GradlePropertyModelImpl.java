@@ -480,7 +480,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     else if (element instanceof GradleDslExpressionList) {
       return LIST;
     }
-    else if (element instanceof GradleDslLiteral && ((GradleDslLiteral)element).isReference()) {
+    else if (element instanceof GradleDslSimpleExpression && ((GradleDslSimpleExpression)element).isReference()) {
       return REFERENCE;
     }
     else if ((element instanceof GradleDslMethodCall &&
@@ -536,7 +536,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     else if (valueType == REFERENCE) {
       // For references only display the reference text for both resolved and unresolved values.
       // Users should follow the reference to obtain the value.
-      GradleDslLiteral ref = (GradleDslLiteral)element;
+      GradleDslSimpleExpression ref = (GradleDslSimpleExpression)element;
       String refText = ref.getReferenceText();
       value = refText == null ? null : typeReference.castTo(refText);
     }

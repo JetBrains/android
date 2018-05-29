@@ -52,6 +52,7 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 public abstract class GradleDslSimpleExpression extends GradleDslElementImpl implements GradleDslExpression {
   @NotNull private static final String SINGLE_QUOTES = "\'";
   @NotNull private static final String DOUBLE_QUOTES = "\"";
+  protected boolean myIsReference;
   @Nullable private PsiElement myUnsavedConfigBlock;
 
   @Nullable protected PsiElement myExpression;
@@ -170,6 +171,19 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
   @NotNull
   public List<GradleReferenceInjection> getResolvedVariables() {
     return myDependencies.stream().filter(e -> e.isResolved()).collect(Collectors.toList());
+  }
+
+  public boolean isReference() {
+    return myIsReference;
+  }
+
+  public void setReference(boolean isReference) {
+    myIsReference = isReference;
+  }
+
+  @Nullable
+  public String getReferenceText() {
+    return null; // Overridden by subclasses.
   }
 
   @Override

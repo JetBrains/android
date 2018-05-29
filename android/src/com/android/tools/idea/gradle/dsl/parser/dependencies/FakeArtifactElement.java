@@ -19,12 +19,18 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.ext.RawText;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil;
+import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.google.common.collect.ImmutableList;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr;
 import static com.intellij.openapi.util.text.StringUtil.isQuotedString;
@@ -39,6 +45,9 @@ import static com.intellij.openapi.util.text.StringUtil.unquoteString;
 public class FakeArtifactElement extends FakeElement {
   @NotNull private final Function<ArtifactDependencySpec, String> myGetter;
   @NotNull private final BiConsumer<ArtifactDependencySpec, String> mySetter;
+
+  @NotNull private static final Pattern WRAPPED_VARIABLE_FORM = Pattern.compile("\\$\\{(.*)}");
+  @NotNull private static final Pattern UNWRAPPED_VARIABLE_FORM = Pattern.compile("\\$(([a-zA-Z]\\w*)(\\.([a-zA-Z]\\w+))*)");
 
   public FakeArtifactElement(@Nullable GradleDslElement parent,
                              @NotNull GradleNameElement name,
@@ -115,6 +124,61 @@ public class FakeArtifactElement extends FakeElement {
   @Override
   public GradleDslSimpleExpression copy() {
     return new FakeArtifactElement(myParent, GradleNameElement.copy(myFakeName), myRealExpression, myGetter, mySetter, myCanDelete);
+  }
+
+  @NotNull
+  @Override
+  public List<GradleReferenceInjection> getResolvedVariables() {
+    PsiElement realExpression = myRealExpression.getExpression();
+    if (realExpression == null) {
+      return ImmutableList.of();
+    }
+
+    String referenceText = getReferenceText();
+    if (referenceText == null) {
+      return ImmutableList.of();
+    }
+
+    GradleDslSimpleExpression resolved = PropertyUtil.resolveElement(myRealExpression);
+    GradleDslElement element = resolved.resolveReference(referenceText, true);
+    return ImmutableList.of(new GradleReferenceInjection(this, element, realExpression /* Used as a placeholders */, referenceText));
+  }
+
+  @Override
+  public boolean isReference() {
+    GradleDslSimpleExpression resolved = PropertyUtil.resolveElement(myRealExpression);
+    ArtifactDependencySpec spec = getSpec(resolved);
+    String result = myGetter.apply(spec);
+    if (result != null && (WRAPPED_VARIABLE_FORM.matcher(result).matches() || UNWRAPPED_VARIABLE_FORM.matcher(result).matches())) {
+      return true;
+    }
+
+    return false;
+  }
+
+  @Nullable
+  @Override
+  public String getReferenceText() {
+    GradleDslSimpleExpression resolved = PropertyUtil.resolveElement(myRealExpression);
+    ArtifactDependencySpec spec = getSpec(resolved);
+    String result = myGetter.apply(spec);
+    if (result == null) {
+      return null;
+    }
+    if (result.startsWith("${")) {
+      Matcher m = WRAPPED_VARIABLE_FORM.matcher(result);
+      if (!m.matches() || m.groupCount() < 1) {
+        return null;
+      }
+      return m.group(1);
+    }
+    else {
+      Matcher m = UNWRAPPED_VARIABLE_FORM.matcher(result);
+      if (!m.matches() || m.groupCount() < 1) {
+        return null;
+      }
+      return m.group(1);
+    }
   }
 
   @Nullable
