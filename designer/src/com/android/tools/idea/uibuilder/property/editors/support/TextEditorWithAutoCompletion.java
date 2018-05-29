@@ -83,7 +83,7 @@ public class TextEditorWithAutoCompletion extends TextFieldWithAutoCompletion<St
     editor.getColorsScheme().setAttributes(HighlighterColors.TEXT, myTextAttributes);
     editor.setHighlighter(new EmptyEditorHighlighter(myTextAttributes));
     editor.getDocument().putUserData(UndoConstants.DONT_RECORD_UNDO, true);
-    editor.setBorder(new CommonBorder(1, new DefaultCommonBorderModel(), myEditorInsets.top, myEditorInsets.left, myEditorInsets.bottom, myEditorInsets.right));
+    editor.setBorder(new CommonBorder(1, new DefaultCommonBorderModel(), myEditorInsets));
     LookupManager.getInstance(getProject()).addPropertyChangeListener(myPropertyChangeListener);
   }
 

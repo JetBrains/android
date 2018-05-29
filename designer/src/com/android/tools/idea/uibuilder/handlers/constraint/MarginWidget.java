@@ -41,7 +41,6 @@ public class MarginWidget extends CommonComboBox<String, DefaultCommonComboBoxMo
   public MarginWidget(@NotNull String name) {
     super(new DefaultCommonComboBoxModel<>(str[0], Arrays.asList(str)));
     getModel().setEditable(true);
-    setBackground(StudioColorsKt.getSecondaryPanelBackground());
     JTextField textField = (JTextField)getEditor().getEditorComponent();
     textField.setFont(textField.getFont().deriveFont(12f));
     initComboBox(name);

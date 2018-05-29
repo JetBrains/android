@@ -33,17 +33,17 @@ import javax.swing.JList
 import javax.swing.JTextField
 import javax.swing.plaf.basic.BasicComboBoxUI
 
-private const val MAX_PERCENT_DIFFERENT = 5.0f
+private const val MAX_PERCENT_DIFFERENT = 5.2f
 
 @RunWith(JUnit4::class)
 class CommonComboBoxTest {
-  private val model = DefaultCommonComboBoxModel("two", listOf("one", "two", "three", "four", "five", "six"))
+  private val model = DefaultCommonComboBoxModel("t", listOf("one", "two", "three", "four", "five", "six", "t"))
   private val comboBox = CommonComboBox(model)
   private val focusManager = Mockito.mock(KeyboardFocusManager::class.java)
 
   @Before
   fun setUp() {
-    comboBox.font = UIUtil.getFontWithFallback("Ariel", Font.BOLD, 12)
+    comboBox.font = UIUtil.getFontWithFallback("Courier New", Font.PLAIN, 12)
   }
 
   @After
@@ -54,13 +54,13 @@ class CommonComboBoxTest {
 
   @Test
   fun regularComboBox() {
-    model.selectedItem = "two"
+    model.selectedItem = "t"
     checkLook("regularComboBox.png")
   }
 
   @Test
   fun focusedComboBox() {
-    model.selectedItem = "two"
+    model.selectedItem = "t"
     Mockito.`when`(focusManager.focusOwner).thenReturn(comboBox)
     KeyboardFocusManager.setCurrentKeyboardFocusManager(focusManager)
     checkLook("focusedComboBox.png")
@@ -68,14 +68,14 @@ class CommonComboBoxTest {
 
   @Test
   fun disabledComboBox() {
-    model.selectedItem = "two"
+    model.selectedItem = "t"
     model.enabled = false
     checkLook("disabledComboBox.png")
   }
 
   @Test
   fun placeHolderComboBox() {
-    model.placeHolderValue = "Holder"
+    model.placeHolderValue = "t"
     (comboBox.editor.editorComponent as JTextField).text = ""
     checkLook("placeHolderComboBox.png")
   }
@@ -88,14 +88,14 @@ class CommonComboBoxTest {
 
   @Test
   fun regularComboBoxHiRes() {
-    model.selectedItem = "two"
+    model.selectedItem = "t"
     JBUI.setUserScaleFactor(1.75f)
     checkLook("regularComboBoxHiRes.png")
   }
 
   @Test
   fun focusedComboBoxHiRes() {
-    model.selectedItem = "two"
+    model.selectedItem = "t"
     JBUI.setUserScaleFactor(1.75f)
     Mockito.`when`(focusManager.focusOwner).thenReturn(comboBox)
     KeyboardFocusManager.setCurrentKeyboardFocusManager(focusManager)
@@ -104,7 +104,7 @@ class CommonComboBoxTest {
 
   @Test
   fun disabledComboBoxHiRes() {
-    model.selectedItem = "two"
+    model.selectedItem = "t"
     JBUI.setUserScaleFactor(1.75f)
     model.enabled = false
     checkLook("disabledComboBoxHiRes.png")
@@ -113,7 +113,7 @@ class CommonComboBoxTest {
   @Test
   fun placeHolderComboBoxHiRes() {
     JBUI.setUserScaleFactor(1.75f)
-    model.placeHolderValue = "Holder"
+    model.placeHolderValue = "H"
     (comboBox.editor.editorComponent as JTextField).text = ""
     checkLook("placeHolderComboBoxHiRes.png")
   }

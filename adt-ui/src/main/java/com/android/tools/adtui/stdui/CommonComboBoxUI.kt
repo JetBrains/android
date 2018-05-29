@@ -53,13 +53,12 @@ open class CommonComboBoxUI : BasicComboBoxUI() {
     super.installDefaults()
 
     if (comboBox.border == null || comboBox.border is UIResource) {
-      comboBox.border = BorderUIResource(
-        CommonBorder(DROPDOWN_CORNER_RADIUS, EditorCommonBorderModel(comboBox), 0, 0, 0, 0))
+      comboBox.border = BorderUIResource(CommonBorder(DROPDOWN_CORNER_RADIUS, EditorCommonBorderModel(comboBox), JBUI.emptyInsets()))
     }
     if (comboBox.background == null || comboBox.background is UIResource) {
       comboBox.background = ColorUIResource(StandardColors.BACKGROUND_COLOR)
     }
-    LookAndFeel.installProperty(comboBox, "opaque", true)
+    LookAndFeel.installProperty(comboBox, "opaque", false)
   }
 
   // Fudge the display size such that TextFields and comboBoxes are about the same height
@@ -90,6 +89,11 @@ open class CommonComboBoxUI : BasicComboBoxUI() {
       override fun configurePopup() {
         super.configurePopup()
         border = JBUI.Borders.customLine(StandardColors.INNER_BORDER_COLOR)
+      }
+
+      override fun configureList() {
+        super.configureList()
+        list.componentOrientation = comboBox.componentOrientation
       }
 
       override fun computePopupBounds(x: Int, y: Int, width: Int, height: Int): Rectangle  {
@@ -255,6 +259,8 @@ open class CommonComboBoxUI : BasicComboBoxUI() {
           }
         }
         editor.border = JBUI.Borders.empty()
+        editor.background = comboBox.background
+        editor.componentOrientation = comboBox.componentOrientation
         editor.addFocusListener(object : FocusAdapter() {
           override fun focusGained(event: FocusEvent) {
             comboBox.revalidate()
