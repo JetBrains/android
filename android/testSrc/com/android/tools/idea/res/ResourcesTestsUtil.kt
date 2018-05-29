@@ -20,6 +20,7 @@ package com.android.tools.idea.res
 import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.projectsystem.FilenameConstants
+import com.android.tools.idea.res.aar.AarSourceResourceRepository
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.DependencyScope
 import com.intellij.openapi.roots.ModuleRootModificationUtil
@@ -44,8 +45,8 @@ fun createTestAppResourceRepository(facet: AndroidFacet): LocalResourceRepositor
 }
 
 
-fun getTestAarRepository(): FileResourceRepository {
-  return FileResourceRepository.create(
+fun getTestAarRepository(): AarSourceResourceRepository {
+  return AarSourceResourceRepository.create(
     Paths.get(AndroidTestBase.getTestDataPath(), "rendering", FilenameConstants.EXPLODED_AAR, "my_aar_lib", "res").toFile(),
     AAR_LIBRARY_NAME
   )

@@ -65,7 +65,7 @@ import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
  * module with dependencies will contain these components:
  * <ul>
  *   <li> A {@link AppResourceRepository} which contains a
- *          {@link FileResourceRepository} wrapping each AAR library dependency, and merges this with
+ *          {@link AarSourceResourceRepository} wrapping each AAR library dependency, and merges this with
  *          the project resource repository </li>
  *   <li> A {@link ProjectResourceRepository} representing the collection of module repositories</li>
  *   <li> For each module (e.g. the main module and library module}, a {@link ModuleResourceRepository}</li>

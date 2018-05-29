@@ -23,6 +23,7 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceTable;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.stubs.android.ClassFieldStub;
+import com.android.tools.idea.res.aar.AarSourceResourceRepository;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
@@ -106,7 +107,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     assertTrue(moduleRepository.hasResourceItem(RES_AUTO, ResourceType.STRING, "title_card_flip"));
     assertFalse(moduleRepository.hasResourceItem(RES_AUTO, ResourceType.STRING, "non_existent_title_card_flip"));
 
-    FileResourceRepository aar1 = FileResourceRepository.create(VfsUtilCore.virtualToIoFile(res3), null);
+    AarSourceResourceRepository aar1 = AarSourceResourceRepository.create(VfsUtilCore.virtualToIoFile(res3), null);
     appResources.updateRoots(Arrays.asList(projectResources, aar1), Collections.singletonList(aar1));
 
     assertTrue(appResources.hasResourceItem(RES_AUTO, ResourceType.STRING, "another_unique_string"));
@@ -170,7 +171,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     Set<VirtualFile> folders = appResources.getResourceDirs();
     assertSameElements(folders, res1);
 
-    FileResourceRepository aar1 = FileResourceRepository.create(VfsUtilCore.virtualToIoFile(res2), null);
+    AarSourceResourceRepository aar1 = AarSourceResourceRepository.create(VfsUtilCore.virtualToIoFile(res2), null);
     appResources.updateRoots(Arrays.asList(projectResources, aar1), Collections.singletonList(aar1));
 
     Set<VirtualFile> foldersWithAar = appResources.getResourceDirs();
@@ -184,7 +185,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     final LocalResourceRepository projectResources = ProjectResourceRepository.createForTest(
       myFacet, ImmutableList.of(moduleRepository));
 
-    FileResourceRepository aar = ResourcesTestsUtil.getTestAarRepository();
+    AarSourceResourceRepository aar = ResourcesTestsUtil.getTestAarRepository();
     final AppResourceRepository appResources = AppResourceRepository.createForTest(
       myFacet, ImmutableList.of(projectResources, aar), ImmutableList.of(aar));
 
@@ -234,7 +235,8 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
 
     VirtualFile aarLibResources = myFixture.copyFileToProject(VALUES_OVERLAY2, "aarLib/res/values/values.xml").getParent().getParent();
     ResourceNamespace aarLibNamespace = ResourceNamespace.fromPackageName("com.aarLib");
-    FileResourceRepository aarLib = FileResourceRepository.createForTest(new File(aarLibResources.getPath()), aarLibNamespace, null);
+    AarSourceResourceRepository
+      aarLib = AarSourceResourceRepository.createForTest(new File(aarLibResources.getPath()), aarLibNamespace, null);
 
     AppResourceRepository appResourceRepository = AppResourceRepository.createForTest(myFacet,
                                                                                       Arrays.asList(projectResourceRepository, aarLib),

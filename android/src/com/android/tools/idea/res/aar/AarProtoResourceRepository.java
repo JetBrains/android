@@ -26,7 +26,6 @@ import com.android.ide.common.util.PathString;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
-import com.android.tools.idea.res.FileResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.ListMultimap;
@@ -50,7 +49,7 @@ import java.util.zip.ZipFile;
  * See https://developer.android.com/studio/projects/android-library.html.
  * See https://android.googlesource.com/platform/frameworks/base/+/master/tools/aapt2/Resources.proto
  */
-public class AarProtoResourceRepository extends FileResourceRepository {
+public class AarProtoResourceRepository extends AarSourceResourceRepository {
   private static final Logger LOG = Logger.getInstance(AarProtoResourceRepository.class);
   private static final String RES_APK = "res.apk";
   /** The name of the res.apk ZIP entry containing value resources. */
@@ -326,7 +325,7 @@ public class AarProtoResourceRepository extends FileResourceRepository {
     }
     for (Resources.Attribute.Symbol symbolMsg : symbolList) {
       String name = symbolMsg.getName().getName();
-      // Remove the explicit resource type to match behavior of FileResourceRepository.
+      // Remove the explicit resource type to match behavior of AarSourceResourceRepository.
       int slashPos = name.lastIndexOf('/');
       if (slashPos >= 0) {
         name = name.substring(slashPos + 1);

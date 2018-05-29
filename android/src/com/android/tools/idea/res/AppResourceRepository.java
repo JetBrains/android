@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.res.aar.AarResourceRepositoryCache;
+import com.android.tools.idea.res.aar.AarSourceResourceRepository;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -47,7 +48,7 @@ class AppResourceRepository extends MultiResourceRepository {
   static final Key<Boolean> TEMPORARY_RESOURCE_CACHE = Key.create("TemporaryResourceCache");
 
   private final AndroidFacet myFacet;
-  private List<FileResourceRepository> myLibraries;
+  private List<AarSourceResourceRepository> myLibraries;
   private long myIdsModificationCount;
   private Set<String> myIds;
 
@@ -61,7 +62,7 @@ class AppResourceRepository extends MultiResourceRepository {
 
   @NotNull
   static AppResourceRepository create(@NotNull AndroidFacet facet) {
-    List<FileResourceRepository> libraries = computeLibraries(facet);
+    List<AarSourceResourceRepository> libraries = computeLibraries(facet);
     AppResourceRepository repository = new AppResourceRepository(facet, computeRepositories(facet, libraries), libraries);
     ProjectResourceRepositoryRootListener.ensureSubscribed(facet.getModule().getProject());
 
@@ -82,7 +83,7 @@ class AppResourceRepository extends MultiResourceRepository {
   }
 
   private static List<LocalResourceRepository> computeRepositories(@NotNull AndroidFacet facet,
-                                                                   List<FileResourceRepository> libraries) {
+                                                                   List<AarSourceResourceRepository> libraries) {
     List<LocalResourceRepository> repositories = new ArrayList<>(10);
     LocalResourceRepository resources = ResourceRepositoryManager.getProjectResources(facet);
     repositories.addAll(libraries);
@@ -91,7 +92,7 @@ class AppResourceRepository extends MultiResourceRepository {
     return repositories;
   }
 
-  private static List<FileResourceRepository> computeLibraries(@NotNull AndroidFacet facet) {
+  private static List<AarSourceResourceRepository> computeLibraries(@NotNull AndroidFacet facet) {
     if (LOG.isDebugEnabled()) {
       LOG.debug("computeLibraries");
     }
@@ -118,7 +119,7 @@ class AppResourceRepository extends MultiResourceRepository {
     }
 
     AaptOptions.Namespacing namespacing = ResourceRepositoryManager.getOrCreateInstance(facet).getNamespacing();
-    List<FileResourceRepository> resources = new ArrayList<>(aarDirs.size());
+    List<AarSourceResourceRepository> resources = new ArrayList<>(aarDirs.size());
     // TODO: Load AAR repositories on multiple threads.
     for (Map.Entry<File, String> entry : aarDirs.entrySet()) {
       File directory = entry.getKey();
@@ -133,7 +134,7 @@ class AppResourceRepository extends MultiResourceRepository {
 
   protected AppResourceRepository(@NotNull AndroidFacet facet,
                                   @NotNull List<? extends LocalResourceRepository> delegates,
-                                  @NotNull List<FileResourceRepository> libraries) {
+                                  @NotNull List<AarSourceResourceRepository> libraries) {
     super(facet.getModule().getName() + " with modules and libraries");
     myFacet = facet;
     myLibraries = libraries;
@@ -144,7 +145,7 @@ class AppResourceRepository extends MultiResourceRepository {
    * Returns the libraries among the app resources, if any.
    */
   @NotNull
-  List<FileResourceRepository> getLibraries() {
+  List<AarSourceResourceRepository> getLibraries() {
     return myLibraries;
   }
 
@@ -161,7 +162,7 @@ class AppResourceRepository extends MultiResourceRepository {
       myIdsModificationCount = currentModCount;
       if (myIds == null) {
         int size = 0;
-        for (FileResourceRepository library : myLibraries) {
+        for (AarSourceResourceRepository library : myLibraries) {
           if (library.getAllDeclaredIds() != null) {
             size += library.getAllDeclaredIds().size();
           }
@@ -171,7 +172,7 @@ class AppResourceRepository extends MultiResourceRepository {
       else {
         myIds.clear();
       }
-      for (FileResourceRepository library : myLibraries) {
+      for (AarSourceResourceRepository library : myLibraries) {
         if (library.getAllDeclaredIds() != null) {
           myIds.addAll(library.getAllDeclaredIds().keySet());
         }
@@ -192,13 +193,13 @@ class AppResourceRepository extends MultiResourceRepository {
   }
 
   void updateRoots() {
-    List<FileResourceRepository> libraries = computeLibraries(myFacet);
+    List<AarSourceResourceRepository> libraries = computeLibraries(myFacet);
     List<LocalResourceRepository> repositories = computeRepositories(myFacet, libraries);
     updateRoots(repositories, libraries);
   }
 
   @VisibleForTesting
-  void updateRoots(List<LocalResourceRepository> resources, List<FileResourceRepository> libraries) {
+  void updateRoots(@NotNull List<LocalResourceRepository> resources, @NotNull List<AarSourceResourceRepository> libraries) {
     synchronized (RESOURCE_MAP_LOCK) {
       myResourceDirMap = null;
     }
@@ -221,18 +222,18 @@ class AppResourceRepository extends MultiResourceRepository {
   @NotNull
   static AppResourceRepository createForTest(@NotNull AndroidFacet facet,
                                              @NotNull List<LocalResourceRepository> modules,
-                                             @NotNull List<FileResourceRepository> libraries) {
+                                             @NotNull List<AarSourceResourceRepository> libraries) {
     assert modules.containsAll(libraries);
     assert modules.size() == libraries.size() + 1; // should only combine with the module set repository
     return new AppResourceRepository(facet, modules, libraries);
   }
 
   @Nullable
-  FileResourceRepository findRepositoryFor(@NotNull File aarDirectory) {
+  AarSourceResourceRepository findRepositoryFor(@NotNull File aarDirectory) {
     String aarPath = aarDirectory.getPath();
     for (LocalResourceRepository r : myLibraries) {
-      if (r instanceof FileResourceRepository) {
-        FileResourceRepository repository = (FileResourceRepository)r;
+      if (r instanceof AarSourceResourceRepository) {
+        AarSourceResourceRepository repository = (AarSourceResourceRepository)r;
         if (repository.getResourceDirectory().getPath().startsWith(aarPath)) {
           return repository;
         }
@@ -252,8 +253,8 @@ class AppResourceRepository extends MultiResourceRepository {
     if (exploded != -1) {
       String suffix = aarPath.substring(exploded) + File.separator + FD_RES;
       for (LocalResourceRepository r : myLibraries) {
-        if (r instanceof FileResourceRepository) {
-          FileResourceRepository repository = (FileResourceRepository)r;
+        if (r instanceof AarSourceResourceRepository) {
+          AarSourceResourceRepository repository = (AarSourceResourceRepository)r;
           String path = repository.getResourceDirectory().getPath();
           if (path.endsWith(suffix)) {
             return repository;

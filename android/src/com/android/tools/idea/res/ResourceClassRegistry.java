@@ -40,7 +40,7 @@ public class ResourceClassRegistry implements ProjectComponent {
    *
    * <p>Note that the {@link ResourceClassRegistry} is a project-level component, so the same R class may be generated in different ways
    * depending on the repository used. In non-namespaced project, the repository is the full {@link AppResourceRepository} of the module
-   * in question. In namespaced projects the repository is a {@link FileResourceRepository} of just the AAR contents.
+   * in question. In namespaced projects the repository is a {@link AarSourceResourceRepository} of just the AAR contents.
    */
   public void addLibrary(@NotNull AbstractResourceRepository repo,
                          @NotNull ResourceIdManager idManager,

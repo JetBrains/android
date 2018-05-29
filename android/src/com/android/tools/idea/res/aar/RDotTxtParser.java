@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.res;
+package com.android.tools.idea.res.aar;
 
 import com.android.ide.common.symbols.SymbolIo;
 import com.android.ide.common.symbols.SymbolTable;
@@ -30,7 +30,6 @@ import java.util.stream.Collectors;
  * Utility methods to extract information from R.txt files.
  */
 class RDotTxtParser {
-
   private static Logger ourLog;
 
   @NotNull

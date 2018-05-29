@@ -81,7 +81,7 @@ import static org.jetbrains.android.util.AndroidResourceUtil.XML_FILE_RESOURCE_T
  * example, when it notices that the user is editing the value inside a <string> element in a value folder XML file, it will directly update
  * the resource value for the given resource item, and so on.
  *
- * <p>For efficiency, the ResourceFolderRepository is initialized via the same parsers as the {@link FileResourceRepository} and then lazily
+ * <p>For efficiency, the ResourceFolderRepository is initialized via the same parsers as the {@link AarSourceResourceRepository} and then lazily
  * switches to PSI parsers after edits. See also {@code README.md} in this package.
  *
  * <p>Remaining work:
