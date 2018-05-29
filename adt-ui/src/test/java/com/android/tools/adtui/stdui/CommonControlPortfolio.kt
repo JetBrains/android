@@ -71,8 +71,10 @@ object CommonControlPortfolio {
     topPanel.add(grid, "TextField")
 
     grid = JPanel(VerticalFlowLayout())
-    grid.add(makeComboBox("zero", enabled = true, editable = true))
-    grid.add(makeComboBox("zero", enabled = true, editable = false))
+    grid.add(makeComboBox("zero", enabled = true, editable = true, leftToRight = true))
+    grid.add(makeComboBox("zero", enabled = true, editable = false, leftToRight = true))
+    grid.add(makeComboBox("one", enabled = true, editable = true, leftToRight = false))
+    grid.add(makeComboBox("one", enabled = true, editable = false, leftToRight = false))
     topPanel.add(grid, "ComboBox")
 
     val menuPanel = JPanel(VerticalFlowLayout())
@@ -170,7 +172,7 @@ object CommonControlPortfolio {
     return field
   }
 
-  private fun makeComboBox(initialValue: String, enabled: Boolean, editable: Boolean): JComponent {
+  private fun makeComboBox(initialValue: String, enabled: Boolean, editable: Boolean, leftToRight: Boolean): JComponent {
     val model = DefaultCommonComboBoxModel(initialValue, listOf("one", "two", "three", "four", "five", "six"))
     model.enabled = enabled
     model.editable = editable
@@ -178,6 +180,8 @@ object CommonControlPortfolio {
 
     val combo = CommonComboBox(model)
     combo.isOpaque = false
+    combo.componentOrientation = if (leftToRight) ComponentOrientation.LEFT_TO_RIGHT else ComponentOrientation.RIGHT_TO_LEFT
+    combo.updateUI()
     return combo
   }
 

@@ -75,8 +75,7 @@ public class TextEditor extends BaseComponentEditor {
           getEditor().getDocument().putUserData(UndoConstants.DONT_RECORD_UNDO, true);
           if (drawBorder) {
             getEditor().setBorder(
-              new CommonBorder(1f, new DefaultCommonBorderModel(), VERTICAL_SPACING + VERTICAL_PADDING, HORIZONTAL_PADDING,
-                               VERTICAL_SPACING + VERTICAL_PADDING, HORIZONTAL_PADDING));
+              new CommonBorder(1f, new DefaultCommonBorderModel(), JBUI.insets(VERTICAL_SPACING + VERTICAL_PADDING, HORIZONTAL_PADDING)));
           }
         }
 

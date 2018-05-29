@@ -25,6 +25,7 @@ import com.intellij.openapi.fileTypes.FileTypes
 import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorTextField
 import java.awt.BorderLayout
+import java.awt.Insets
 import javax.swing.JComponent
 import javax.swing.border.EmptyBorder
 
@@ -37,8 +38,9 @@ class NonEditableEditor(listener: NlEditingListener, project: Project) : BaseCom
       super.addNotify()
       editor?.document?.putUserData(UndoConstants.DONT_RECORD_UNDO, true)
       editor?.setBorder(
-        CommonBorder(1f, DefaultCommonBorderModel(), VERTICAL_SPACING + VERTICAL_PADDING, HORIZONTAL_PADDING,
-                     VERTICAL_SPACING + VERTICAL_PADDING, HORIZONTAL_PADDING))
+        CommonBorder(1f, DefaultCommonBorderModel(),
+                     Insets(VERTICAL_SPACING + VERTICAL_PADDING, HORIZONTAL_PADDING,
+                            VERTICAL_SPACING + VERTICAL_PADDING, HORIZONTAL_PADDING)))
     }
 
     override fun removeNotify() {

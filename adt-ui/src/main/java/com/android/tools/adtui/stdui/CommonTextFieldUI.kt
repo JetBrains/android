@@ -21,6 +21,7 @@ import com.android.tools.adtui.stdui.StandardDimensions.TEXT_FIELD_CORNER_RADIUS
 import com.android.tools.adtui.stdui.StandardDimensions.VERTICAL_PADDING
 import java.awt.Color
 import java.awt.Graphics
+import java.awt.Insets
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import javax.swing.LookAndFeel
@@ -53,7 +54,7 @@ open class CommonTextFieldUI(private val editor: CommonTextField<*>) : BasicText
 
     if (editor.border == null || editor.border is UIResource) {
       editor.border = BorderUIResource(CommonBorder(
-        TEXT_FIELD_CORNER_RADIUS, EditorCommonBorderModel(editor), VERTICAL_PADDING, HORIZONTAL_PADDING, 0, HORIZONTAL_PADDING))
+        TEXT_FIELD_CORNER_RADIUS, EditorCommonBorderModel(editor), Insets(VERTICAL_PADDING, HORIZONTAL_PADDING, 0, HORIZONTAL_PADDING)))
     }
     if (editor.foreground == null || editor.foreground is UIResource) {
       editor.foreground = ColorUIResource(StandardColors.TEXT_COLOR)
@@ -70,7 +71,7 @@ open class CommonTextFieldUI(private val editor: CommonTextField<*>) : BasicText
     if (editor.disabledTextColor == null || editor.disabledTextColor is UIResource) {
       editor.disabledTextColor = ColorUIResource(StandardColors.DISABLED_TEXT_COLOR)
     }
-    LookAndFeel.installProperty(editor, "opaque", true)
+    LookAndFeel.installProperty(editor, "opaque", false)
   }
 
   override fun paintSafely(g: Graphics) {

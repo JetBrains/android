@@ -28,6 +28,7 @@ import java.awt.*
 import java.awt.geom.Path2D
 import java.awt.geom.Rectangle2D
 import javax.swing.border.Border
+import kotlin.math.max
 
 /**
  * A [Border] that has curved edges.
@@ -42,14 +43,11 @@ import javax.swing.border.Border
  */
 class CommonBorder(private val cornerRadius: Float,
                    private val model: CommonBorderModel = DefaultCommonBorderModel(),
-                   val paddingTop: Int = VERTICAL_PADDING,
-                   val paddingLeft: Int = HORIZONTAL_PADDING,
-                   val paddingBottom: Int = VERTICAL_PADDING,
-                   val paddingRight: Int = HORIZONTAL_PADDING)
+                   private val padding: Insets = Insets(VERTICAL_PADDING, HORIZONTAL_PADDING, VERTICAL_PADDING, HORIZONTAL_PADDING))
   : Border {
 
   override fun getBorderInsets(component: Component): Insets {
-    val insets = Insets(paddingTop, paddingLeft, paddingBottom, paddingRight)
+    val insets: Insets = padding.clone() as Insets
     val inset = Math.round(INNER_BORDER_WIDTH + OUTER_BORDER_WIDTH)
     insets.left += inset
     insets.right += inset
@@ -111,17 +109,16 @@ class CommonBorder(private val cornerRadius: Float,
                               stroke: Float,
                               cornerRadius: Float,
                               backgroundColor: Color = UIUtil.TRANSPARENT_COLOR) {
-    val inset = INNER_BORDER_WIDTH + OUTER_BORDER_WIDTH
-    val builder = PathBuilder(UIUtil.isJreHiDPI(g2), rect, stroke, cornerRadius, paddingTop.toFloat(), paddingBottom.toFloat(), inset + paddingLeft, inset + paddingRight)
+    val builder = PathBuilder(UIUtil.isJreHiDPI(g2), rect, stroke, cornerRadius, padding)
 
     if (backgroundColor != UIUtil.TRANSPARENT_COLOR) {
       g2.color = backgroundColor
       g2.fill(builder.makeLeftMargin())
       g2.fill(builder.makeRightMargin())
-      if (paddingTop > 0) {
+      if (padding.top > 0) {
         g2.fill(builder.makeTopMargin())
       }
-      if (paddingBottom > 0) {
+      if (padding.bottom > 0) {
         g2.fill(builder.makeBottomMargin())
       }
     }
@@ -135,10 +132,7 @@ class CommonBorder(private val cornerRadius: Float,
                             rect: Rectangle2D.Float,
                             stroke: Float,
                             cornerRadius: Float,
-                            private val marginTop: Float,
-                            private val marginBottom: Float,
-                            private val marginLeft: Float,
-                            private val marginRight: Float) {
+                            padding: Insets) {
 
     private val left: Float
     private val top: Float
@@ -147,6 +141,10 @@ class CommonBorder(private val cornerRadius: Float,
     private val corner: Float
     private val curve1: Float
     private val curve2: Float
+    private val marginLeft: Float
+    private val marginRight: Float
+    private val marginTop: Float
+    private val marginBottom: Float
 
     init {
       if (stroke > 1f || hiDpi) {
@@ -171,6 +169,11 @@ class CommonBorder(private val cornerRadius: Float,
         rect.width += 1f
         rect.height += 1f
       }
+      val inset = INNER_BORDER_WIDTH + OUTER_BORDER_WIDTH
+      marginLeft = max(inset + padding.left, corner + left)
+      marginRight = max(inset + padding.right, corner)
+      marginTop = padding.top.toFloat()
+      marginBottom = padding.bottom.toFloat()
     }
 
     fun makeRoundedRect(): Shape {

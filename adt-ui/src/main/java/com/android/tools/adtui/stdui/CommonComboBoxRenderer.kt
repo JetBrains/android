@@ -35,7 +35,13 @@ open class CommonComboBoxRenderer : BasicComboBoxRenderer() {
     cellHasFocus: Boolean
   ) : Component {
     val component = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus) as JComponent
-    component.border = JBUI.Borders.emptyLeft(leftPadding(index))
+    component.componentOrientation = list.componentOrientation
+    if (list.componentOrientation.isLeftToRight) {
+      component.border = JBUI.Borders.emptyLeft(padding(index))
+    }
+    else {
+      component.border = JBUI.Borders.emptyRight(padding(index))
+    }
     return component
   }
 
@@ -43,7 +49,7 @@ open class CommonComboBoxRenderer : BasicComboBoxRenderer() {
     // The left padding should be 0 when displaying the current value (index = -1).
     // Otherwise use the standard padding of [HORIZONTAL_PADDING].
     // This method can be used by a custom cell renderer.
-    fun leftPadding(index: Int): Int {
+    fun padding(index: Int): Int {
       return if (index < 0) 0 else HORIZONTAL_PADDING
     }
   }
