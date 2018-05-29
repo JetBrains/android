@@ -53,7 +53,7 @@ public class CompileWithJava8Test {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.SANITY_BAZEL)
+  @RunIn(TestGroup.SANITY)
   public void compileWithJava8() throws Exception {
     IdeFrameFixture ideFrameFixture =
       guiTest.importProjectAndWaitForProjectSyncToFinish("MinSdk24App");
