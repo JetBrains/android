@@ -15,8 +15,9 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.model.AxisComponentModel;
+import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.model.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.model.legend.Legend;
@@ -46,7 +47,7 @@ public class MemoryMonitor extends ProfilerMonitor {
     super(profilers);
     myMemoryUsage = new MemoryUsage(profilers);
 
-    myMemoryAxis = new AxisComponentModel.Builder(myMemoryUsage.getMemoryRange(), MEMORY_AXIS_FORMATTER, true).build();
+    myMemoryAxis = new ClampedAxisComponentModel.Builder(myMemoryUsage.getMemoryRange(), MEMORY_AXIS_FORMATTER).build();
     myMemoryLegend = new MemoryLegend(myMemoryUsage, getTimeline().getDataRange(), LEGEND_UPDATE_FREQUENCY_MS);
     myTooltipLegend = new MemoryLegend(myMemoryUsage, getTimeline().getTooltipRange(), 0);
   }

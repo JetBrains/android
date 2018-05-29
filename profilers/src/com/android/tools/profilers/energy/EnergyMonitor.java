@@ -14,8 +14,9 @@
 package com.android.tools.profilers.energy;
 
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.adtui.model.AxisComponentModel;
+import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
 import com.android.tools.adtui.model.formatter.EnergyAxisFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
@@ -35,7 +36,7 @@ public class EnergyMonitor extends ProfilerMonitor {
   public EnergyMonitor(@NotNull StudioProfilers profilers) {
     super(profilers);
     myUsage = new EnergyUsage(profilers);
-    myAxis = new AxisComponentModel.Builder(myUsage.getUsageRange(), EnergyAxisFormatter.DEFAULT, true).build();
+    myAxis = new ClampedAxisComponentModel.Builder(myUsage.getUsageRange(), EnergyAxisFormatter.DEFAULT).build();
     myLegends = new Legends(myUsage, getTimeline().getDataRange(), false);
     myTooltipLegends = new Legends(myUsage, getTimeline().getTooltipRange(), true);
     changed(Aspect.ENABLE);

@@ -16,6 +16,7 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.*;

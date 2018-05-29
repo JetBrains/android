@@ -15,9 +15,10 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.model.AxisComponentModel;
+import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.Interpolatable;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.model.formatter.NetworkTrafficFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
@@ -43,7 +44,7 @@ public class NetworkMonitor extends ProfilerMonitor {
 
     myNetworkUsage = new NetworkUsage(profilers);
 
-    myTrafficAxis = new AxisComponentModel.Builder(myNetworkUsage.getTrafficRange(), BANDWIDTH_AXIS_FORMATTER_L1, true).build();
+    myTrafficAxis = new ClampedAxisComponentModel.Builder(myNetworkUsage.getTrafficRange(), BANDWIDTH_AXIS_FORMATTER_L1).build();
     myLegends = new NetworkLegends(myNetworkUsage, getTimeline().getDataRange(), false);
     myTooltipLegends = new NetworkLegends(myNetworkUsage, getTimeline().getTooltipRange(), true);
   }

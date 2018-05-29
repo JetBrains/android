@@ -15,10 +15,9 @@ package com.android.tools.profilers.energy
 
 import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.model.AspectObserver
-import com.android.tools.adtui.model.AxisComponentModel
+import com.android.tools.adtui.model.axis.AxisComponentModel
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.LineChartModel
-import com.android.tools.adtui.model.formatter.EnergyAxisFormatter
 import com.android.tools.adtui.model.legend.LegendComponentModel
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.EnergyProfiler
@@ -138,7 +137,7 @@ class EnergyMonitorTest {
         LegendComponentModel.Aspect.LEGEND, { tooltipLegendUpated = true})
     var axisUpdated = false
     monitor.axis.addDependency(observer).onChange(
-        AxisComponentModel.Aspect.AXIS, { axisUpdated = true })
+      AxisComponentModel.Aspect.AXIS, { axisUpdated = true })
 
     monitor.enter()
     timer.tick(1)
@@ -166,7 +165,7 @@ class EnergyMonitorTest {
         LegendComponentModel.Aspect.LEGEND, { tooltipLegendUpated = true})
     var axisUpdated = false
     monitor.axis.addDependency(observer).onChange(
-        AxisComponentModel.Aspect.AXIS, { axisUpdated = true })
+      AxisComponentModel.Aspect.AXIS, { axisUpdated = true })
 
     monitor.exit()
     timer.tick(1)

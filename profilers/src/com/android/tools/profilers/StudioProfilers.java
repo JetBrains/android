@@ -17,6 +17,8 @@ package com.android.tools.profilers;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.axis.AxisComponentModel;
+import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
@@ -193,7 +195,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
                        .onChange(SessionAspect.SELECTED_SESSION, this::selectedSessionChanged)
                        .onChange(SessionAspect.PROFILING_SESSION, this::profilingSessionChanged);
 
-      myViewAxis = new AxisComponentModel.Builder(myTimeline.getViewRange(), TimeAxisFormatter.DEFAULT, false)
+      myViewAxis = new ResizingAxisComponentModel.Builder(myTimeline.getViewRange(), TimeAxisFormatter.DEFAULT)
         .setGlobalRange(myTimeline.getDataRange()).build();
 
       myUpdater.register(myViewAxis);

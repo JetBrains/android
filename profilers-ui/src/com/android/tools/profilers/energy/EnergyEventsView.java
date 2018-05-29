@@ -20,6 +20,8 @@ import com.android.tools.adtui.TableUtils;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TooltipComponent;
 import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.axis.AxisComponentModel;
+import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.EventModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
@@ -384,13 +386,11 @@ public final class EnergyEventsView {
 
     @NotNull
     private AxisComponent createAxis() {
-      AxisComponentModel model = new AxisComponentModel.Builder(myRange, new TimeAxisFormatter(1, 4, 1), false)
+      AxisComponentModel model = new ResizingAxisComponentModel.Builder(myRange, new TimeAxisFormatter(1, 4, 1))
         .setGlobalRange(myStage.getStudioProfilers().getTimeline().getDataRange()).build();
       AxisComponent axis = new AxisComponent(model, AxisComponent.AxisOrientation.BOTTOM);
       axis.setShowAxisLine(false);
       axis.setMarkerColor(ProfilerColors.NETWORK_TABLE_AXIS);
-
-      model.update(1);
       return axis;
     }
   }
