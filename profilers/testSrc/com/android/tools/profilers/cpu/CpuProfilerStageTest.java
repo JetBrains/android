@@ -925,6 +925,28 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(myStage.getInProgressTraceDuration().getSeries().getSeries()).hasSize(1);
     assertThat(myStage.getInProgressTraceDuration().getSeries().getSeries().get(0).value.getDurationUs()).isEqualTo(Long.MAX_VALUE);
     myCpuService.setValidTrace(true);
+
+    Iterator<CpuProfilerStage.CaptureState> comingStates = Iterators.forArray(CpuProfilerStage.CaptureState.STOPPING,
+                                                                              CpuProfilerStage.CaptureState.PARSING,
+                                                                              CpuProfilerStage.CaptureState.IDLE);
+
+    AspectObserver observer = new AspectObserver();
+    myStage.getAspect().addDependency(observer).onChange(CpuProfilerAspect.CAPTURE_STATE, () -> {
+      assertThat(myStage.getCaptureState()).isEqualTo(comingStates.next());
+      switch (myStage.getCaptureState()) {
+        case IDLE:
+          assertThat(myStage.getInProgressTraceDuration().getSeries().getSeries()).hasSize(0);
+          break;
+        case STOPPING:
+        case PARSING:
+          assertThat(myStage.getInProgressTraceDuration().getSeries().getSeries()).hasSize(1);
+          assertThat(myStage.getInProgressTraceDuration().getSeries().getSeries().get(0).value.getDurationUs()).isLessThan(Long.MAX_VALUE);
+          break;
+        default:
+          throw new RuntimeException("Unreachable code");
+      }
+    });
+
     stopCapturing();
     assertThat(myStage.getInProgressTraceDuration().getSeries().getSeries()).hasSize(0);
   }

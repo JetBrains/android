@@ -586,9 +586,13 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
                                                                      myProfilerConfigModel.getProfilingConfiguration().getProfilerType())
                                                                    .setSession(mySession)
                                                                    .build();
+    // Setting duration of the in progress trace series, so it's temporarily displayed in the chart while the trace is being parsed.
+    myInProgressTraceSeries.clear();
+    long captureStartTimeUs = TimeUnit.NANOSECONDS.toMicros(myCaptureStartTimeNs);
+    long currentTimeUs = TimeUnit.NANOSECONDS.toMicros(currentTimeNs());
+    myInProgressTraceSeries.add(captureStartTimeUs, new DefaultDurationData(currentTimeUs - captureStartTimeUs));
 
     setCaptureState(CaptureState.STOPPING);
-    myInProgressTraceSeries.clear();
     CompletableFuture.supplyAsync(
       () -> cpuService.stopProfilingApp(request), getStudioProfilers().getIdeServices().getPoolExecutor())
                      .thenAcceptAsync(this::stopCapturingCallback, getStudioProfilers().getIdeServices().getMainExecutor());
@@ -759,6 +763,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
     // TODO (b/79244375): extract callback to its own method
     Consumer<CpuCapture> parsingCallback = (parsedCapture) -> {
+      myInProgressTraceSeries.clear();
       if (parsedCapture != null) {
         setCaptureState(CaptureState.IDLE);
         setAndSelectCapture(parsedCapture);
