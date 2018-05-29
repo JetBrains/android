@@ -139,7 +139,6 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
 
     // Draw text
     Font font = g.getFont();
-    FontMetrics fontMetrics = g.getFontMetrics(font);
     if (captureNode.getFilterType() == CaptureNode.FilterType.MATCH) {
       g.setPaint(Color.BLACK);
     }
@@ -148,8 +147,11 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
     }
     else {
       g.setPaint(Color.BLACK);
-      g.setFont(font.deriveFont(Font.BOLD));
+      font = font.deriveFont(Font.BOLD);
+      g.setFont(font);
     }
+    FontMetrics fontMetrics = g.getFontMetrics(font);
+
     Float availableWidth = (float)drawingArea.getWidth() - LEFT_MARGIN_PX;
     String text = generateFittingText(node.getData(), s -> myTextFitsPredicate.test(s, fontMetrics, availableWidth));
     float textPositionX = LEFT_MARGIN_PX + (float)drawingArea.getX();
