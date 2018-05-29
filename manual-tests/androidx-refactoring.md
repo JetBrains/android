@@ -4,7 +4,7 @@ Simple test
 ----
 1. Create a new basic project with an `Empty Activity`
 1. Open the `app/build.gradle` file
-1. Click `Refactor/Refactor to AndroidX...`
+1. Click `Refactor/Migrate to AndroidX...`
 
     ![Menu option][menu]
 

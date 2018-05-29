@@ -114,12 +114,12 @@ class MigrateToAndroidxHandler : RefactoringActionHandler {
     }
 
     val warningContent = if (!supportedCompileSdk) {
-      "You need to have at least have compileSdk 28 set in your module build.gradle to refactor to AndroidX.\n"
+      "You need to have at least have compileSdk 28 set in your module build.gradle to migrate to AndroidX.\n"
     } else {
       ""
     } + if (!supportedGradleVersion) {
       "The gradle plugin version in your project build.gradle file needs to be set to at least com.android.tools.build:gradle:3.2.0 " +
-      "in order to refactor to AndroidX."
+      "in order to migrate to AndroidX."
     } else {
       ""
     }

@@ -238,7 +238,7 @@
             description="Migrate App To AppCompat">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
-    <action id="AndroidMigrateToAndroidxAction" class="org.jetbrains.android.refactoring.MigrateToAndroidxAction" text="Refactor to AndroidX..."
+    <action id="AndroidMigrateToAndroidxAction" class="org.jetbrains.android.refactoring.MigrateToAndroidxAction" text="Migrate to AndroidX..."
             description="Migrate To AndroidX Package Names">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
