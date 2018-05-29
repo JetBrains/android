@@ -51,73 +51,83 @@ class ResolvedDependenciesTreeRootNodeTest : DependencyTestCase() {
 
     // Note: indentation matters!
     val expectedProjectStructure = """
-        app
+    app
+        freeDebug
+            mainModule
+                lib1:1.0
+                    lib2:1.0
+                        lib3:1.0
+                            lib4:1.0
+                lib3:0.6→1.0
+                    lib4:1.0
+        freeDebugAndroidTest
             freeDebug
                 mainModule
                     lib1:1.0
                         lib2:1.0
                             lib3:1.0
                                 lib4:1.0
-            freeDebugAndroidTest
-                freeDebug
-                    mainModule
-                        lib1:1.0
-                            lib2:1.0
-                                lib3:1.0
-                                    lib4:1.0
-            freeDebugUnitTest
-                freeDebug
-                    mainModule
-                        lib1:1.0
-                            lib2:1.0
-                                lib3:1.0
-                                    lib4:1.0
+                    lib3:0.6→1.0
+                        lib4:1.0
+        freeDebugUnitTest
+            freeDebug
+                mainModule
+                    lib1:1.0
+                        lib2:1.0
+                            lib3:1.0
+                                lib4:1.0
+                    lib3:0.6→1.0
+                        lib4:1.0
+        freeRelease
+            mainModule
+                lib1:1.0,0.9.1→1.0
+                    lib2:1.0
+                        lib3:1.0
+                            lib4:1.0
+                lib3:0.6→1.0
+                    lib4:1.0
+        freeReleaseUnitTest
             freeRelease
                 mainModule
                     lib1:1.0,0.9.1→1.0
                         lib2:1.0
                             lib3:1.0
                                 lib4:1.0
-            freeReleaseUnitTest
-                freeRelease
-                    mainModule
-                        lib1:1.0,0.9.1→1.0
-                            lib2:1.0
-                                lib3:1.0
-                                    lib4:1.0
+                    lib3:0.6→1.0
+                        lib4:1.0
+        paidDebug
+            mainModule
+                lib1:1.0
+                    lib2:1.0
+                        lib3:1.0
+                            lib4:1.0
+        paidDebugAndroidTest
             paidDebug
                 mainModule
                     lib1:1.0
                         lib2:1.0
                             lib3:1.0
                                 lib4:1.0
-            paidDebugAndroidTest
-                paidDebug
-                    mainModule
-                        lib1:1.0
-                            lib2:1.0
-                                lib3:1.0
-                                    lib4:1.0
-            paidDebugUnitTest
-                paidDebug
-                    mainModule
-                        lib1:1.0
-                            lib2:1.0
-                                lib3:1.0
-                                    lib4:1.0
+        paidDebugUnitTest
+            paidDebug
+                mainModule
+                    lib1:1.0
+                        lib2:1.0
+                            lib3:1.0
+                                lib4:1.0
+        paidRelease
+            mainModule
+                lib1:1.0,0.9.1→1.0
+                    lib2:1.0
+                        lib3:1.0
+                            lib4:1.0
+        paidReleaseUnitTest
             paidRelease
                 mainModule
                     lib1:1.0,0.9.1→1.0
                         lib2:1.0
                             lib3:1.0
-                                lib4:1.0
-            paidReleaseUnitTest
-                paidRelease
-                    mainModule
-                        lib1:1.0,0.9.1→1.0
-                            lib2:1.0
-                                lib3:1.0
-                                    lib4:1.0""".trimIndent()
+                                lib4:1.0""".trimIndent()
     val treeStructure = node.testStructure({ !it.name.startsWith("appcompat-v7") })
     // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
     assertThat(treeStructure.toString(), equalTo(expectedProjectStructure))
@@ -154,7 +164,7 @@ class ResolvedDependenciesTreeRootNodeTest : DependencyTestCase() {
                     lib1:1.0,0.9.1→1.0""".trimIndent()
 
     val treeStructure = node.testStructure({ it !is LibraryDependencyNode || it.matches(lib1_09) })
-    // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
+// Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
     assertThat(treeStructure.toString(), equalTo(expectedProjectStructure))
   }
 }

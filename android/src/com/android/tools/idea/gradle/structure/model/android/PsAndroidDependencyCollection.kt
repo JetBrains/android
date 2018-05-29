@@ -54,6 +54,9 @@ class PsAndroidModuleDependencyCollection(parent: PsAndroidModule) : PsAndroidDe
   fun findLibraryDependencies(group: String?, name: String): List<PsDeclaredLibraryAndroidDependency> =
     libraryDependenciesBySpec[PsLibraryKey(group.orEmpty(), name)].toList()
 
+  fun findLibraryDependencies(libraryKey: PsLibraryKey): List<PsDeclaredLibraryAndroidDependency> =
+    libraryDependenciesBySpec[libraryKey].toList()
+
   fun reindex() {
     val libraryDependencies = libraryDependenciesBySpec.values().toList()
     val moduleDependencies = moduleDependenciesByGradlePath.values().toList()
@@ -105,11 +108,13 @@ class PsAndroidModuleDependencyCollection(parent: PsAndroidModule) : PsAndroidDe
  */
 class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact) : PsAndroidDependencyCollection(artifact.parent.parent) {
 
+  internal val reverseDependencies: Map<PsLibraryKey, Set<ReverseDependency>>
   private val moduleDependenciesByGradlePath = LinkedListMultimap.create<String, PsModuleAndroidDependency>()!!
   private val libraryDependenciesBySpec = LinkedListMultimap.create<PsLibraryKey, PsResolvedLibraryAndroidDependency>()!!
 
   init {
     collectResolvedDependencies(artifact)
+    reverseDependencies = collectReverseDependencies()
   }
 
   fun isEmpty(): Boolean = moduleDependenciesByGradlePath.isEmpty && libraryDependenciesBySpec.isEmpty
@@ -149,6 +154,23 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact) : P
     }
   }
 
+  private fun collectReverseDependencies(): Map<PsLibraryKey, Set<ReverseDependency>> {
+    return libraryDependenciesBySpec
+      .values()
+      .flatMap { resolvedDependency ->
+        resolvedDependency.pomDependencies.mapNotNull { transitiveDependencyTargetSpec ->
+          libraryDependenciesBySpec[transitiveDependencyTargetSpec.toLibraryKey()]?.singleOrNull()?.let { pomResolvedDependency ->
+            ReverseDependency.Transitive(pomResolvedDependency.spec, resolvedDependency, transitiveDependencyTargetSpec)
+          }
+        } +
+        parent.dependencies.findLibraryDependencies(resolvedDependency.spec.toLibraryKey())
+          .filter { declaredDependency -> artifact.contains(declaredDependency.parsedModel) }
+          .map { declaredDependency -> ReverseDependency.Declared(resolvedDependency.spec, declaredDependency) }
+      }
+      .groupBy({ it.spec.toLibraryKey() })
+      .mapValues { it.value.toSet() }
+  }
+
   private fun addLibrary(library: Library, artifact: PsAndroidArtifact) {
     val declaredDependencies = mutableListOf<PsDeclaredLibraryAndroidDependency>()
     // TODO(solodkyy): Inverse the process and match parsed dependencies with resolved instead. (See other TODOs).
@@ -164,7 +186,7 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact) : P
           .filter { artifact.contains(it.parsedModel) }
       // TODO(b/74425541): Reconsider duplicates.
       declaredDependencies.addAll(matchingDeclaredDependencies)
-      val androidDependency = PsResolvedLibraryAndroidDependency(parent, spec, artifact, library, declaredDependencies)
+      val androidDependency = PsResolvedLibraryAndroidDependency(parent, this, spec, artifact, library, declaredDependencies)
       androidDependency.setDependenciesFromPomFile(findDependenciesInPomFile(library.artifact))
       libraryDependenciesBySpec.put(androidDependency.spec.toLibraryKey(), androidDependency)
     }
