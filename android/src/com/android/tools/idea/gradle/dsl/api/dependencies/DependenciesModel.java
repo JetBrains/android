@@ -38,8 +38,8 @@ public interface DependenciesModel {
   void addArtifact(@NotNull String configurationName, @NotNull ArtifactDependencySpec dependency);
 
   void addArtifact(@NotNull String configurationName,
-                                @NotNull ArtifactDependencySpec dependency,
-                                @NotNull List<ArtifactDependencySpec> excludes);
+                   @NotNull ArtifactDependencySpec dependency,
+                   @NotNull List<ArtifactDependencySpec> excludes);
 
   /**
    * Replaces the artifact dependency which contains the given {@link PsiElement} with a new dependency given by
@@ -61,9 +61,9 @@ public interface DependenciesModel {
   void addFileTree(@NotNull String configurationName, @NotNull String dir);
 
   void addFileTree(@NotNull String configurationName,
-                                @NotNull String dir,
-                                @Nullable List<String> includes,
-                                @Nullable List<String> excludes);
+                   @NotNull String dir,
+                   @Nullable List<String> includes,
+                   @Nullable List<String> excludes);
 
 
   @NotNull

@@ -31,8 +31,6 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr
  * Represents a literal element.
  */
 public final class GradleDslLiteral extends GradleDslSettableExpression {
-  private boolean myIsReference;
-
   public GradleDslLiteral(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, null, name, null);
     // Will be set in the call to #setValue
@@ -147,6 +145,7 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
     return myDependencies.isEmpty() ? null : myDependencies.get(0);
   }
 
+  @Override
   @Nullable
   public String getReferenceText() {
     if (!myIsReference) {
@@ -155,14 +154,6 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
 
     PsiElement element = getCurrentElement();
     return element != null ? getPsiText(element) : null;
-  }
-
-  public boolean isReference() {
-    return myIsReference;
-  }
-
-  public void setReference(boolean isReference) {
-    myIsReference = isReference;
   }
 
   @Override

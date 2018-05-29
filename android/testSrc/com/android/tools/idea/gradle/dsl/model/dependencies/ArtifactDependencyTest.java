@@ -1697,6 +1697,22 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     verifyMapProperty(model.completeModel(), ImmutableMap.of("group", "guava", "name", "com.google.guava", "version", "3.0"));
   }
 
+  @Test
+  public void testCorrectObtainResultModel() throws IOException {
+    String text = "ext.jUnitVersion = '2.3'\n" +
+                  "dependencies {\n" +
+                  "  implementation \"junit:junit:${jUnitVersion}\"\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel depModel = buildModel.dependencies();
+
+    ArtifactDependencyModel adm = depModel.artifacts().get(0);
+
+    verifyPropertyModel(adm.version().getResultModel(), STRING_TYPE, "2.3", STRING, REGULAR, 0, "jUnitVersion");
+  }
+
   public static class ExpectedArtifactDependency extends ArtifactDependencySpecImpl {
     @NotNull public String configurationName;
 
