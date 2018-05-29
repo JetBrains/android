@@ -68,7 +68,8 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
   public EnergyProfilerStage(@NotNull StudioProfilers profilers) {
     super(profilers);
     myDetailedUsage = new DetailedEnergyUsage(profilers);
-    myAxis = new ResizingAxisComponentModel.Builder(myDetailedUsage.getUsageRange(), EnergyAxisFormatter.DEFAULT).build();
+    myAxis = new ResizingAxisComponentModel.Builder(myDetailedUsage.getUsageRange(), EnergyAxisFormatter.DEFAULT)
+      .setMarkerRange(EnergyMonitor.AXIS_MARKER_RANGE).build();
     myEventMonitor = new EventMonitor(profilers);
     myLegends = new EnergyUsageLegends(myDetailedUsage, profilers.getTimeline().getDataRange());
     myUsageTooltipLegends = new EnergyUsageLegends(myDetailedUsage, profilers.getTimeline().getTooltipRange());

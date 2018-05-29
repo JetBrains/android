@@ -86,4 +86,18 @@ public class AxisComponentTest {
     assertEquals("1cm", component.getMinLabel());
     assertEquals("5cm", component.getMaxLabel());
   }
+
+  @Test
+  public void testLabelOutOfMarkersRange() {
+    final int MAJOR_TICKS = 5;
+    AxisComponentModel model =
+      new ResizingAxisComponentModel.Builder(new Range(10, 90), new MockAxisFormatter(1, MAJOR_TICKS - 1, 1))
+        .setGlobalRange(new Range(0, 100)).setMarkerRange(new Range(0, 50)).build();
+    AxisComponent component = new AxisComponent(model, AxisComponent.AxisOrientation.TOP);
+    component.setShowMin(true);
+    component.setShowMax(true);
+    component.calculateMarkers(new Dimension(100, 100));
+    assertEquals("1cm", component.getMinLabel());
+    assertNull(component.getMaxLabel());
+  }
 }

@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 public class EnergyAxisFormatter extends BaseAxisFormatter {
   public static final String[] LABELS = {"Light", "Medium", "Heavy"};
 
-  private static final int DEFAULT_MAJOR_INTERVAL = 200;
+  public static final int DEFAULT_MAJOR_INTERVAL = 200;
 
   // Default formatter for the Energy Axis value. As the Axis may display a label at the max value, this formatter would not show duplicate
   // labels at the max value and second max value.
