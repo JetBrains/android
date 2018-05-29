@@ -27,6 +27,7 @@ import com.google.common.collect.*;
 import com.google.common.hash.Hashing;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
@@ -44,6 +45,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import static com.google.common.collect.Sets.newLinkedHashSetWithExpectedSize;
 
@@ -83,6 +86,7 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
 
   private final boolean myWithLocaleResources;
   private final Map<ResourceType, Set<ResourceItem>> myPublicResources = new EnumMap<>(ResourceType.class);
+  private Future myCacheCreatedFuture;
   private boolean myLoadedFromCache;
 
   private FrameworkResourceRepository(@NotNull File resFolder, boolean withLocaleResources) {
@@ -135,13 +139,15 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
     }
 
     repository.loadPublicResources();
+
     if (usePersistentCache) {
-      // It would be nice to create persistent cache asynchronously, but unfortunately
-      // this is not possible because Xerces DOM implementation is not thread-safe.
-      // See https://xerces.apache.org/xerces2-j/faq-dom.html#faq-1.
-      repository.createPersistentCache();
+      repository.createPersistentCacheAsynchronously();
     }
     return repository;
+  }
+
+  private void createPersistentCacheAsynchronously() {
+    myCacheCreatedFuture = ApplicationManager.getApplication().executeOnPooledThread(this::createPersistentCache);
   }
 
   @Override
@@ -167,6 +173,14 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
     String dirHash = Hashing.md5().hashUnencodedChars(resourceDir.getAbsolutePath()).toString();
     String filename = String.format("%s%s.bin", dirHash, withLocaleResources ? "_L" : "");
     return new File(new File(PathManager.getSystemPath(), CACHE_DIRECTORY), filename);
+  }
+
+  /**
+   * Waits until the asynchronous creation of the persistent cache finishes, either successfully or not.
+   */
+  @VisibleForTesting
+  void waitUntilPersistentCacheCreated() throws ExecutionException, InterruptedException {
+    myCacheCreatedFuture.get();
   }
 
   @VisibleForTesting
@@ -729,41 +743,45 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
       if (node == null) {
         writeByte(0);
       } else {
-        short nodeType = node.getNodeType();
-        writeByte(nodeType);
-        if (nodeType == Node.ELEMENT_NODE) {
-          writeUTF(node.getNodeName());
-          NamedNodeMap attributes = node.getAttributes();
-          int numAttributes = attributes.getLength();
-          if (numAttributes > 0xFF) {
-            throw new IOException("XML node " + node.getNodeName() + " has too many attributes: " + numAttributes);
-          }
-          writeByte(numAttributes);
-          for (int i = 0; i < numAttributes; i++) {
-            writeAttribute((Attr)attributes.item(i));
-          }
-          NodeList children = node.getChildNodes();
-          int numChildren = children.getLength();
-          if (numChildren > 0xFFFF) {
-            throw new IOException("XML node " + node.getNodeName() + " has too many children: " + numChildren);
-          }
-          int numSignificantChildren = numChildren;
-          for (int i = 0; i < numChildren; i++) {
-            if (children.item(i).getNodeType() == Node.COMMENT_NODE) {
-              numSignificantChildren--;
+        synchronized (node.getOwnerDocument()) {
+          short nodeType = node.getNodeType();
+          writeByte(nodeType);
+          if (nodeType == Node.ELEMENT_NODE) {
+            writeUTF(node.getNodeName());
+            NamedNodeMap attributes = node.getAttributes();
+            int numAttributes = attributes.getLength();
+            if (numAttributes > 0xFF) {
+              throw new IOException("XML node " + node.getNodeName() + " has too many attributes: " + numAttributes);
+            }
+            writeByte(numAttributes);
+            for (int i = 0; i < numAttributes; i++) {
+              writeAttribute((Attr)attributes.item(i));
+            }
+            NodeList children = node.getChildNodes();
+            int numChildren = children.getLength();
+            if (numChildren > 0xFFFF) {
+              throw new IOException("XML node " + node.getNodeName() + " has too many children: " + numChildren);
+            }
+            int numSignificantChildren = numChildren;
+            for (int i = 0; i < numChildren; i++) {
+              if (children.item(i).getNodeType() == Node.COMMENT_NODE) {
+                numSignificantChildren--;
+              }
+            }
+            writeShort(numSignificantChildren);
+            for (int i = 0; i < numChildren; i++) {
+              Node child = children.item(i);
+              if (child.getNodeType() != Node.COMMENT_NODE) {
+                writeNode(child);
+              }
             }
           }
-          writeShort(numSignificantChildren);
-          for (int i = 0; i < numChildren; i++) {
-            Node child = children.item(i);
-            if (child.getNodeType() != Node.COMMENT_NODE) {
-              writeNode(child);
-            }
+          else if (nodeType == Node.TEXT_NODE) {
+            writeUTF(node.getNodeValue());
           }
-        } else if (nodeType == Node.TEXT_NODE) {
-          writeUTF(node.getNodeValue());
-        } else {
-          throw new RuntimeException("Unsupported XML node type: " + nodeType);
+          else {
+            throw new RuntimeException("Unsupported XML node type: " + nodeType);
+          }
         }
       }
     }
@@ -1374,7 +1392,7 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
 
     @Override
     public Document getOwnerDocument() {
-      throw createAndLogUnsupportedOperationException();
+      return null; // No parent references are kept to save memory.
     }
 
     @Override

@@ -19,15 +19,12 @@ import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
-import com.intellij.openapi.module.Module;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.annotations.NotNull;
@@ -83,7 +80,7 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
     }
   }
 
-  public void testLoading() {
+  public void testLoading() throws Exception {
     for (boolean withLocaleResources : new boolean[] {true, false}) {
       // Test loading without cache.
       long start = System.currentTimeMillis();
@@ -96,6 +93,7 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
       checkContents(fromSourceFiles);
 
       // Test loading from cache.
+      fromSourceFiles.waitUntilPersistentCacheCreated();
       start = System.currentTimeMillis();
       FrameworkResourceRepository fromCache = FrameworkResourceRepository.create(myResourceFolder, withLocaleResources, true);
       long loadTimeWithCache = System.currentTimeMillis() - start;
