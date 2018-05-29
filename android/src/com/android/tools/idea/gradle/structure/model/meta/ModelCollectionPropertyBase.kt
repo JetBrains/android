@@ -29,6 +29,7 @@ abstract class ModelCollectionPropertyBase<in ContextT, in ModelT, out ResolvedT
       ?.parsedPropertyGetter()
 
   fun setParsedValue(model: ModelT, value: ParsedValue<CollectionT>) {
+    model.setModified()
     val parsedProperty = model.getParsedProperty() ?: throw IllegalStateException()
     when (value) {
       is ParsedValue.NotSet -> {
@@ -46,7 +47,6 @@ abstract class ModelCollectionPropertyBase<in ContextT, in ModelT, out ResolvedT
         }
       }
     }
-    model.setModified()
   }
 
   protected fun ModelT.setModified() = modelDescriptor.setModified(this)

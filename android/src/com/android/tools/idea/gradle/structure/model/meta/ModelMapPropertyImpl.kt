@@ -78,25 +78,25 @@ class ModelMapPropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, ValueT : 
   }
 
   private fun addEntry(model: ModelT, key: String): ModelPropertyCore<ValueT> =
-  // No need to mark the model modified here since adding an empty property does not really affect its state. However, TODO(b/73059531).
     model
+      .apply { setModified() }
       .getParsedProperty()
       ?.addMapEntry(key, getter, setter, matcher, { model.setModified() })
     ?: throw IllegalStateException()
 
   private fun deleteEntry(model: ModelT, key: String) =
     model
+      .apply { setModified() }
       .getParsedProperty()
       ?.deleteMapEntry(key)
-      .also { model.setModified() }
     ?: throw IllegalStateException()
 
   private fun changeEntryKey(model: ModelT, old: String, new: String): ModelPropertyCore<ValueT> =
   // Both make the property modify-aware and make the model modified since both operations involve changing the model.
     model
+      .apply { setModified() }
       .getParsedProperty()
       ?.changeMapEntryKey(old, new, getter, setter, matcher, { model.setModified() })
-      .also { model.setModified() }
     ?: throw IllegalStateException()
 
   private fun getParsedValue(model: ModelT): Annotated<ParsedValue<Map<String, ValueT>>> {

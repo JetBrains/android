@@ -73,16 +73,17 @@ class ModelListPropertyImpl<in ContextT, in ModelT, out ResolvedT, ParsedT, Valu
 
   private fun addItem(model: ModelT, index: Int): ModelPropertyCore<ValueT> =
     model
+      .apply { setModified() }
       .getParsedProperty()
       ?.addListItem(index, getter, setter, { parsed, resolved -> matcher(model, parsed, resolved) }, { model.setModified() })
-      .also { model.setModified() }
     ?: throw IllegalStateException()
 
   private fun deleteItem(model: ModelT, index: Int) =
     model
+      .apply { setModified() }
       .getParsedProperty()
       ?.deleteListItem(index)
-      ?.also { model.setModified() } ?: throw IllegalStateException()
+    ?: throw IllegalStateException()
 
   private fun getParsedValue(model: ModelT): Annotated<ParsedValue<List<ValueT>>> {
     val parsedModel = modelDescriptor.getParsed(model)
