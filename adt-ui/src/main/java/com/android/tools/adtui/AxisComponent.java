@@ -18,7 +18,7 @@ package com.android.tools.adtui;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.RotatedLabel;
-import com.android.tools.adtui.model.AxisComponentModel;
+import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
 import com.intellij.ui.JBColor;
@@ -153,8 +153,8 @@ public final class AxisComponent extends AnimatedComponent {
     setForeground(AdtUiUtils.DEFAULT_FONT_COLOR);
     setFont(AdtUiUtils.DEFAULT_FONT);
 
-    myModel.addDependency(myAspectObserver)
-      .onChange(AxisComponentModel.Aspect.AXIS, this::modelChanged);
+    myModel.addDependency(myAspectObserver).onChange(AxisComponentModel.Aspect.AXIS, this::modelChanged);
+
     // Sets the boolean myCalculateMarkers true for the initial markers.
     myCalculateMarkers = true;
   }
@@ -188,7 +188,7 @@ public final class AxisComponent extends AnimatedComponent {
     double currentMinValueRelative = myModel.getRange().getMin() - myModel.getZero();
     double currentMaxValueRelative = myModel.getRange().getMax() - myModel.getZero();
     double range = myModel.getRange().getLength();
-    double labelRange = myModel.getGlobalRange() == null ? range : myModel.getGlobalRange().getLength();
+    double labelRange = myModel.getDataRange();
 
     BaseAxisFormatter formatter = myModel.getFormatter();
     // During the postAnimate phase, use the interpolated min/max/range values to calculate the current major and minor intervals that

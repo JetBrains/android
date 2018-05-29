@@ -21,8 +21,9 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TooltipComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.adtui.model.AxisComponentModel;
+import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.*;
@@ -266,13 +267,12 @@ final class ThreadsView {
     @NotNull
     private AxisComponent createAxis() {
       ProfilerTimeline timeline = myStage.getStudioProfilers().getTimeline();
-      AxisComponentModel model = new AxisComponentModel.Builder(timeline.getSelectionRange(), new TimeAxisFormatter(1, 5, 1), false)
+      AxisComponentModel model = new ResizingAxisComponentModel.Builder(timeline.getSelectionRange(), new TimeAxisFormatter(1, 5, 1))
         .setGlobalRange(timeline.getDataRange()).build();
 
       AxisComponent axis = new AxisComponent(model, AxisComponent.AxisOrientation.BOTTOM);
       axis.setShowAxisLine(false);
       axis.setMarkerColor(ProfilerColors.NETWORK_TABLE_AXIS);
-      model.update(1);
       return axis;
     }
   }
@@ -427,14 +427,14 @@ final class ThreadsView {
           JLabel label = newTooltipLabel(data.getJavaThreads().get(i).getName());
           addToContent(label);
           if (i == data.getJavaThreads().size() - 1) {
-            label.setBorder(new EmptyBorder(5, 0, 5, 0));
+            label.setBorder(JBUI.Borders.empty(5, 0));
           }
         }
       }
     }
 
     private void addToContent(@NotNull JComponent component) {
-      component.setBorder(new EmptyBorder(5, 0, 0, 0));
+      component.setBorder(JBUI.Borders.emptyTop(5));
       myContent.add(component, new TabularLayout.Constraint(myContent.getComponentCount(), 0));
     }
 

@@ -21,6 +21,8 @@ import com.android.tools.adtui.chart.linechart.LineChartReducer;
 import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.model.axis.AxisComponentModel;
+import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.updater.Updatable;
@@ -80,7 +82,7 @@ public class LineChartReducerVisualTest extends VisualTest {
     myOptimizedLineChart = new LineChart(myOptimizedLineChartModel);
 
     myXAxisModel =
-      new AxisComponentModel.Builder(myViewXRange, new SingleUnitAxisFormatter(1, 5, 1, ""), false).build();
+      new ResizingAxisComponentModel.Builder(myViewXRange, new SingleUnitAxisFormatter(1, 5, 1, "")).build();
     myXAxis = new AxisComponent(myXAxisModel, AxisComponent.AxisOrientation.BOTTOM);
     SelectionModel selection = new SelectionModel(mySelectionXRange);
     mySelection = new SelectionComponent(selection, myViewXRange);

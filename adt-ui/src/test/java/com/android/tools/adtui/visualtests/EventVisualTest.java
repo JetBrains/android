@@ -22,6 +22,8 @@ import com.android.tools.adtui.eventrenderer.KeyboardEventRenderer;
 import com.android.tools.adtui.eventrenderer.SimpleEventRenderer;
 import com.android.tools.adtui.eventrenderer.TouchEventRenderer;
 import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.axis.AxisComponentModel;
+import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.event.*;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.Updatable;
@@ -93,7 +95,7 @@ public class EventVisualTest extends VisualTest {
     myOpenActivities = new ArrayList<>();
 
     // add horizontal time axis
-    myTimeAxisModel = new AxisComponentModel.Builder(xTimelineRange, TimeAxisFormatter.DEFAULT, false).build();
+    myTimeAxisModel = new ResizingAxisComponentModel.Builder(xTimelineRange, TimeAxisFormatter.DEFAULT).build();
     myTimeAxis = new AxisComponent(myTimeAxisModel, AxisComponent.AxisOrientation.BOTTOM);
     List<Updatable> componentsList = new ArrayList<>();
     // Add the scene components to the list

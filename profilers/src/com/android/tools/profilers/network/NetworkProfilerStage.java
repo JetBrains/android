@@ -16,6 +16,8 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.axis.AxisComponentModel;
+import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.model.formatter.NetworkTrafficFormatter;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
@@ -78,9 +80,9 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
 
     myDetailedNetworkUsage = new DetailedNetworkUsage(profilers);
 
-    myTrafficAxis = new AxisComponentModel.Builder(myDetailedNetworkUsage.getTrafficRange(), TRAFFIC_AXIS_FORMATTER, true).build();
+    myTrafficAxis = new ClampedAxisComponentModel.Builder(myDetailedNetworkUsage.getTrafficRange(), TRAFFIC_AXIS_FORMATTER).build();
     myConnectionsAxis =
-      new AxisComponentModel.Builder(myDetailedNetworkUsage.getConnectionsRange(), CONNECTIONS_AXIS_FORMATTER, true).build();
+      new ClampedAxisComponentModel.Builder(myDetailedNetworkUsage.getConnectionsRange(), CONNECTIONS_AXIS_FORMATTER).build();
 
     myLegends = new NetworkStageLegends(myDetailedNetworkUsage, timeline.getDataRange(), false);
     myTooltipLegends = new NetworkStageLegends(myDetailedNetworkUsage, timeline.getTooltipRange(), true);

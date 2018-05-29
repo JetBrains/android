@@ -15,6 +15,9 @@
  */
 package com.android.tools.adtui.model;
 
+import com.android.tools.adtui.model.axis.AxisComponentModel;
+import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
+import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.updater.Updater;
 import org.junit.Test;
@@ -33,7 +36,7 @@ public class AxisComponentModelTest {
     SingleUnitAxisFormatter formatter = new SingleUnitAxisFormatter(1, 1, 10, "");
     Range range = new Range(0, 5);
 
-    AxisComponentModel model = new AxisComponentModel.Builder(range, formatter, true).build();
+    AxisComponentModel model = new ClampedAxisComponentModel.Builder(range, formatter).build();
     assertEquals(5.0, model.getRange().getMax(), 0.0); // Not updating range until first update.
     model.getRange().setMax(5.0);
     model.reset();
@@ -47,7 +50,7 @@ public class AxisComponentModelTest {
     FakeTimer t = new FakeTimer();
     Updater choreographer = new Updater(t);
 
-    AxisComponentModel model = new AxisComponentModel.Builder(range, formatter, false).build();
+    AxisComponentModel model = new ResizingAxisComponentModel.Builder(range, formatter).build();
     choreographer.register(model);
 
     assertEquals(5.0, model.getRange().getMax(), 0.0);  // before update.

@@ -20,6 +20,9 @@ import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.axis.AxisComponentModel;
+import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
+import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
@@ -97,13 +100,13 @@ public class AxisLineChartVisualTest extends VisualTest {
 
     // add horizontal time axis
     mTimeAxisModel =
-      new AxisComponentModel.Builder(mTimeViewRangeUs, TimeAxisFormatter.DEFAULT, false).setGlobalRange(mTimeGlobalRangeUs).build();
+      new ResizingAxisComponentModel.Builder(mTimeViewRangeUs, TimeAxisFormatter.DEFAULT).setGlobalRange(mTimeGlobalRangeUs).build();
 
     mTimeAxis = new AxisComponent(mTimeAxisModel, AxisComponent.AxisOrientation.BOTTOM);
     mTimeAxis.setMargins(AXIS_SIZE, AXIS_SIZE);
 
     // add axis guide to time axis
-    mTimeAxisGuideModel = new AxisComponentModel.Builder(mTimeViewRangeUs, TimeAxisFormatter.DEFAULT_WITHOUT_MINOR_TICKS, false)
+    mTimeAxisGuideModel = new ResizingAxisComponentModel.Builder(mTimeViewRangeUs, TimeAxisFormatter.DEFAULT_WITHOUT_MINOR_TICKS)
       .setGlobalRange(mTimeGlobalRangeUs).build();
 
     mTimeAxisGuide = new AxisComponent(mTimeAxisGuideModel, AxisComponent.AxisOrientation.BOTTOM);
@@ -121,7 +124,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     // left memory data + axis
     Range yRange1Animatable = new Range(0, 100);
     mMemoryAxisModel1 =
-      new AxisComponentModel.Builder(yRange1Animatable, MemoryAxisFormatter.DEFAULT, false).setLabel(SERIES1_LABEL).build();
+      new ResizingAxisComponentModel.Builder(yRange1Animatable, MemoryAxisFormatter.DEFAULT).setLabel(SERIES1_LABEL).build();
     mMemoryAxis1 = new AxisComponent(mMemoryAxisModel1, AxisComponent.AxisOrientation.LEFT);
     mMemoryAxis1.setShowMax(true);
     mMemoryAxis1.setShowUnitAtMax(true);
@@ -135,7 +138,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     // right memory data + axis
     Range yRange2Animatable = new Range(0, 100);
     mMemoryAxisModel2 =
-      new AxisComponentModel.Builder(yRange2Animatable, MemoryAxisFormatter.DEFAULT, true).setLabel(SERIES2_LABEL).build();
+      new ClampedAxisComponentModel.Builder(yRange2Animatable, MemoryAxisFormatter.DEFAULT).setLabel(SERIES2_LABEL).build();
     mMemoryAxis2 = new AxisComponent(mMemoryAxisModel2, AxisComponent.AxisOrientation.RIGHT);
     mMemoryAxis2.setShowMax(true);
     mMemoryAxis2.setShowUnitAtMax(true);

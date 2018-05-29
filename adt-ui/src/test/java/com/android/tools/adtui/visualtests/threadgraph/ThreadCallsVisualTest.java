@@ -21,6 +21,8 @@ import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.chart.hchart.JavaMethodHRenderer;
 import com.android.tools.adtui.chart.hchart.Method;
+import com.android.tools.adtui.model.axis.AxisComponentModel;
+import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.visualtests.VisualTest;
@@ -64,7 +66,7 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
   public ThreadCallsVisualTest() {
     mTimeGlobalRangeUs = new Range(0, 0);
 
-    mAxisModel = new AxisComponentModel.Builder(mTimeGlobalRangeUs, TimeAxisFormatter.DEFAULT, false).build();
+    mAxisModel = new ResizingAxisComponentModel.Builder(mTimeGlobalRangeUs, TimeAxisFormatter.DEFAULT).build();
     mAxis = new AxisComponent(mAxisModel, AxisComponent.AxisOrientation.BOTTOM);
 
     mTimeSelectionRangeUs = new Range(0, 0);

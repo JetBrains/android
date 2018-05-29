@@ -16,6 +16,9 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.axis.AxisComponentModel;
+import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
+import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
@@ -266,10 +269,10 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
     myCpuUsage = new DetailedCpuUsage(profilers);
 
-    myCpuUsageAxis = new AxisComponentModel.Builder(myCpuUsage.getCpuRange(), CPU_USAGE_FORMATTER, true).build();
-    myThreadCountAxis = new AxisComponentModel.Builder(myCpuUsage.getThreadRange(), NUM_THREADS_AXIS, true).build();
+    myCpuUsageAxis = new ClampedAxisComponentModel.Builder(myCpuUsage.getCpuRange(), CPU_USAGE_FORMATTER).build();
+    myThreadCountAxis = new ClampedAxisComponentModel.Builder(myCpuUsage.getThreadRange(), NUM_THREADS_AXIS).build();
     myTimeAxisGuide =
-      new AxisComponentModel.Builder(viewRange, TimeAxisFormatter.DEFAULT_WITHOUT_MINOR_TICKS, false).setGlobalRange(dataRange).build();
+      new ResizingAxisComponentModel.Builder(viewRange, TimeAxisFormatter.DEFAULT_WITHOUT_MINOR_TICKS).setGlobalRange(dataRange).build();
 
     myLegends = new CpuStageLegends(myCpuUsage, dataRange);
 
