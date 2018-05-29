@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu.capturedetails;
 
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.CaptureNode;
@@ -71,8 +72,8 @@ public class CaptureModel {
   /**
    * A filter that is applied to the current {@link CaptureNode}.
    */
-  @Nullable
-  private Pattern myFilter;
+  @NotNull
+  private Filter myFilter = Filter.EMPTY_FILTER;
 
   @Nullable
   private Details myDetails;
@@ -149,7 +150,7 @@ public class CaptureModel {
     return myClockType;
   }
 
-  public void setFilter(@Nullable Pattern filter) {
+  public void setFilter(@NotNull Filter filter) {
     if (Objects.equals(filter, myFilter)) {
       return;
     }

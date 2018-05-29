@@ -18,6 +18,9 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
+import com.android.tools.adtui.model.filter.Filter;
+import com.android.tools.adtui.model.filter.FilterHandler;
+import com.android.tools.adtui.model.filter.FilterResult;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.model.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
@@ -49,15 +52,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 import static com.android.tools.adtui.model.Interpolatable.RoundedSegmentInterpolator;
 
@@ -92,7 +91,8 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   @NotNull
   private AspectModel<MemoryProfilerAspect> myAspect = new AspectModel<>();
 
-  @Nullable private Pattern myFilter;
+  @NotNull private FilterHandler myFilterHandler;
+  @Nullable private Filter myLastFilter;
 
   private final MemoryServiceBlockingStub myClient;
   private final DurationDataModel<CaptureDurationData<CaptureObject>> myHeapDumpDurations;
@@ -169,6 +169,16 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
         selectCaptureFromSelectionRange();
       }
     });
+
+    myFilterHandler = new FilterHandler() {
+      @Override
+      @NotNull
+      protected FilterResult applyFilter(@NotNull Filter filter) {
+        selectCaptureFilter(filter);
+        HeapSet heapSet = getSelectedHeapSet();
+        return heapSet == null ? new FilterResult(0, false) : new FilterResult(heapSet.getFilterMatchCount(), true);
+      }
+    };
 
     myAllocationStackTraceModel = new StackTraceModel(profilers.getIdeServices().getCodeNavigator());
     myDeallocationStackTraceModel = new StackTraceModel(profilers.getIdeServices().getCodeNavigator());
@@ -484,12 +494,12 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
   public void refreshSelectedHeap() {
     myAspect.changed(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS);
-    selectCaptureFilter(getCaptureFilter());
+    myFilterHandler.refreshFilterContent();
   }
 
   public void selectHeapSet(@Nullable HeapSet heapSet) {
     mySelection.selectHeapSet(heapSet);
-    selectCaptureFilter(getCaptureFilter());
+    myFilterHandler.refreshFilterContent();
     if (heapSet != null) {
       getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectMemoryHeap(heapSet.getName());
     }
@@ -500,8 +510,12 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     return mySelection.getHeapSet();
   }
 
-  public void selectCaptureFilter(@Nullable Pattern filter) {
-    myFilter = filter;
+  private void selectCaptureFilter(@NotNull Filter filter) {
+    // Only track filter usage when filter has been updated.
+    if (Objects.equals(myLastFilter, filter)) {
+      myLastFilter = filter;
+      trackFilterUsage(filter);
+    }
     if (getSelectedHeapSet() != null) {
       getSelectedHeapSet().selectFilter(filter);
     }
@@ -512,12 +526,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     myAspect.changed(MemoryProfilerAspect.CURRENT_FILTER);
   }
 
-  public void selectCaptureFilter(@Nullable Pattern filter, @NotNull FilterModel model) {
-    selectCaptureFilter(filter);
-    trackFilterUsage(filter, model);
-  }
-
-  private void trackFilterUsage(@Nullable Pattern filter, @NotNull FilterModel model) {
+  private void trackFilterUsage(@NotNull Filter filter) {
     FilterMetadata filterMetadata = new FilterMetadata();
     FeatureTracker featureTracker = getStudioProfilers().getIdeServices().getFeatureTracker();
     switch (getConfiguration().getClassGrouping()) {
@@ -531,16 +540,18 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
         filterMetadata.setView(FilterMetadata.View.MEMORY_CALLSTACK);
         break;
     }
-    filterMetadata.setFeaturesUsed(model.getIsMatchCase(), model.getIsRegex());
-    filterMetadata.setMatchedElementCount(getSelectedHeapSet().getFilteredObjectSetCount());
-    filterMetadata.setTotalElementCount(getSelectedHeapSet().getTotalObjectSetCount());
-    filterMetadata.setFilterTextLength(filter == null ? 0 : filter.pattern().length());
+    filterMetadata.setFeaturesUsed(filter.isMatchCase(), filter.isRegex());
+    if (getSelectedHeapSet() != null) {
+      filterMetadata.setMatchedElementCount(getSelectedHeapSet().getFilteredObjectSetCount());
+      filterMetadata.setTotalElementCount(getSelectedHeapSet().getTotalObjectSetCount());
+    }
+    filterMetadata.setFilterTextLength(filter.isEmpty() ? 0 : filter.getFilterString().length());
     featureTracker.trackFilterMetadata(filterMetadata);
   }
 
-  @Nullable
-  public Pattern getCaptureFilter() {
-    return myFilter;
+  @NotNull
+  public FilterHandler getFilterHandler() {
+    return myFilterHandler;
   }
 
   @VisibleForTesting

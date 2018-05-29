@@ -18,17 +18,22 @@ package com.android.tools.profilers.cpu.capturedetails;
 import com.android.tools.adtui.FilterComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.flat.FlatSeparator;
+import com.android.tools.adtui.model.filter.Filter;
+import com.android.tools.adtui.model.filter.FilterHandler;
+import com.android.tools.adtui.model.filter.FilterResult;
 import com.android.tools.adtui.stdui.CommonTabbedPane;
 import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.JComboBoxView;
 import com.android.tools.profilers.ViewBinder;
-import com.android.tools.profilers.cpu.*;
+import com.android.tools.profilers.cpu.CpuCapture;
+import com.android.tools.profilers.cpu.CpuProfilerAspect;
+import com.android.tools.profilers.cpu.CpuProfilerStageView;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.ui.*;
+import com.intellij.ui.ListCellRendererWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -108,7 +113,16 @@ public class CpuCaptureView {
       toolbar.add(new FlatSeparator());
       toolbar.add(filterButton);
 
-      myFilterComponent.addOnFilterChange((pattern, model) -> myView.getStage().setCaptureFilter(pattern, model));
+      myFilterComponent.getModel().setFilterHandler(new FilterHandler() {
+        @Override
+        @NotNull
+        protected FilterResult applyFilter(@NotNull Filter filter) {
+          myView.getStage().setCaptureFilter(filter);
+          // TODO: b/110904682 Show match count result for cpu profiler.
+          return new FilterResult(0, false);
+        }
+      });
+
       myFilterComponent.setVisible(false);
       myFilterComponent.setBorder(DEFAULT_BOTTOM_BORDER);
       FilterComponent.configureKeyBindingAndFocusBehaviors(myPanel, myFilterComponent, filterButton);

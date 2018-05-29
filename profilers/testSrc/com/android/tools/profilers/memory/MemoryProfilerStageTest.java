@@ -15,9 +15,8 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.model.FakeTimer;
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
@@ -39,7 +38,6 @@ import org.junit.Test;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.android.tools.profilers.FakeProfilerService.FAKE_DEVICE_ID;
@@ -331,22 +329,21 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertThat(myStage.getSelectedInstanceObject()).isNull();
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0, 0);
 
-    Pattern pattern = Pattern.compile("Filter");
-    myStage.selectCaptureFilter(pattern);
+    String filterString = "Filter";
+    myStage.getFilterHandler().setFilter(new Filter(filterString));
     assertThat(myStage.getSelectedCapture()).isEqualTo(captureObject);
     assertThat(myStage.getSelectedHeapSet()).isEqualTo(heapSet);
     assertThat(myStage.getConfiguration().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
     assertThat(myStage.getSelectedClassSet()).isNull();
     assertThat(myStage.getSelectedInstanceObject()).isNull();
-    assertThat(myStage.getCaptureFilter()).isEqualTo(pattern);
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0, 0);
 
     assertThat(myStage.getConfiguration().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
     myStage.getConfiguration().setClassGrouping(ARRANGE_BY_PACKAGE);
     // Retain Filter after Grouping change
-    assertThat(myStage.getCaptureFilter()).isEqualTo(pattern);
+    assertThat(myStage.getFilterHandler().getFilter().getFilterString()).isEqualTo(filterString);
     // Reset Filter
-    myStage.selectCaptureFilter(null);
+    myStage.getFilterHandler().setFilter(Filter.EMPTY_FILTER);
     assertThat(myStage.getConfiguration().getClassGrouping()).isEqualTo(ARRANGE_BY_PACKAGE);
     myAspectObserver.assertAndResetCounts(0, 0, 0, 1, 0, 0, 0, 0);
 

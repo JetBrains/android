@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.HNode;
+import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import org.jetbrains.annotations.NotNull;
@@ -184,10 +185,10 @@ public class CaptureNode implements HNode<CaptureNode> {
 
   /**
    * @return true if this node matches to the {@param filter}.
-   * Note: this node matches to the null {@param filter}.
+   * Note: this node matches to the empty {@param filter}.
    */
-  public boolean matchesToFilter(@Nullable Pattern filter) {
-    return filter == null || filter.matcher(getData().getFullName()).matches();
+  public boolean matchesToFilter(@NotNull Filter filter) {
+    return filter.matches(getData().getFullName());
   }
 
   @NotNull
