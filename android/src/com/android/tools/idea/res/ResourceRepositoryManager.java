@@ -288,12 +288,6 @@ public class ResourceRepositoryManager implements Disposable {
         // For now, the way we associate them with each other is via the library name.
         // In the future the model will provide this for us.
         String libraryName = library.getArtifactAddress();
-        // Strip the build system prefix and the "@aar" suffix, if present (b/79942260).
-        // For example, both, "Gradle: com.android.support:appcompat-v7-27.1.0" and
-        // "com.android.support:appcompat-v7:27.1.0@aar", become "com.android.support:appcompat-v7:27.1.0".
-        int prefixEnd = libraryName.lastIndexOf(' ') + 1;
-        int suffixStart = libraryName.endsWith("@aar") ? libraryName.length() - "@aar".length() : libraryName.length();
-        libraryName = libraryName.substring(prefixEnd, suffixStart);
         if (!moduleNames.contains(libraryName)) {
           File resFolder = new File(library.getResFolder());
           if (resFolder.exists()) {
