@@ -57,5 +57,5 @@ class RoomSqlParserDefinition : ParserDefinition {
   override fun getWhitespaceTokens(): TokenSet = WHITE_SPACES
   override fun getCommentTokens(): TokenSet = COMMENTS
   override fun getStringLiteralElements(): TokenSet = STRING_LITERALS
-  override fun spaceExistanceTypeBetweenTokens(left: ASTNode?, right: ASTNode?) = ParserDefinition.SpaceRequirements.MAY
+  override fun spaceExistanceTypeBetweenTokens(left: ASTNode?, right: ASTNode?): ParserDefinition.SpaceRequirements = ParserDefinition.SpaceRequirements.MAY
 }

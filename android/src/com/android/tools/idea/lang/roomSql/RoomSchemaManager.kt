@@ -88,7 +88,7 @@ data class RoomSchema(
     val databases: Set<Database>,
     val entities: Set<Entity>,
     val daos: Set<Dao>) {
-  fun findEntity(psiClass: PsiClass) = entities.find { it.psiClass == psiClass }
+  fun findEntity(psiClass: PsiClass): Entity? = entities.find { it.psiClass == psiClass }
 }
 
 

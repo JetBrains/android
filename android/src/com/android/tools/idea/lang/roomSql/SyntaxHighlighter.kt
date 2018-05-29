@@ -29,7 +29,7 @@ import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.TokenSet
 
-val KEYWORDS = TokenSet.create(
+val KEYWORDS: TokenSet = TokenSet.create(
     ABORT, ACTION, ADD, AFTER, ALL, ALTER, ANALYZE, AND, AS, ASC, ATTACH, AUTOINCREMENT, BEFORE, BEGIN, BETWEEN, BY, CASCADE, CASE, CAST,
     CHECK, COLLATE, COLUMN, COMMIT, CONFLICT, CONSTRAINT, CREATE, CROSS, DATABASE, DEFAULT, DEFERRABLE, DEFERRED, DELETE, DESC, DETACH,
     DISTINCT, DROP, EACH, ELSE, END, ESCAPE, EXCEPT, EXCLUSIVE, EXISTS, EXPLAIN, FAIL, FOR, FOREIGN, FROM, GLOB, GROUP, HAVING, IF, IGNORE,
@@ -38,15 +38,15 @@ val KEYWORDS = TokenSet.create(
     REINDEX, RELEASE, RENAME, REPLACE, RESTRICT, ROLLBACK, ROW, ROWID, SAVEPOINT, SELECT, SET, TABLE, TEMP, TEMPORARY, THEN, TO,
     TRANSACTION, TRIGGER, UNION, UNIQUE, UPDATE, USING, VACUUM, VALUES, VIEW, VIRTUAL, WHEN, WHERE, WITH, WITHOUT)
 
-val OPERATORS =
+val OPERATORS: TokenSet =
     TokenSet.create(AMP, BAR, CONCAT, DIV, EQ, EQEQ, GT, GTE, LT, LTE, MINUS, MOD, NOT_EQ, PLUS, SHL, SHR, STAR, TILDE, UNEQ)
 
-val CONSTANTS = TokenSet.create(CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP)
+val CONSTANTS: TokenSet = TokenSet.create(CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP)
 
-val IDENTIFIERS = TokenSet.create(IDENTIFIER, BRACKET_LITERAL, BACKTICK_LITERAL)
-val WHITE_SPACES = TokenSet.create(TokenType.WHITE_SPACE)
-val COMMENTS = TokenSet.create(COMMENT, LINE_COMMENT)
-val STRING_LITERALS = TokenSet.create(SINGLE_QUOTE_STRING_LITERAL, DOUBLE_QUOTE_STRING_LITERAL)
+val IDENTIFIERS: TokenSet = TokenSet.create(IDENTIFIER, BRACKET_LITERAL, BACKTICK_LITERAL)
+val WHITE_SPACES: TokenSet = TokenSet.create(TokenType.WHITE_SPACE)
+val COMMENTS: TokenSet = TokenSet.create(COMMENT, LINE_COMMENT)
+val STRING_LITERALS: TokenSet = TokenSet.create(SINGLE_QUOTE_STRING_LITERAL, DOUBLE_QUOTE_STRING_LITERAL)
 
 private enum class RoomSqlTextAttributes(fallback: TextAttributesKey) {
   BAD_CHARACTER(HighlighterColors.BAD_CHARACTER),
@@ -95,6 +95,6 @@ class RoomSqlSyntaxHighlighter : SyntaxHighlighterBase() {
 }
 
 class RoomSqlSyntaxHighlighterFactory : SyntaxHighlighterFactory() {
-  override fun getSyntaxHighlighter(project: Project?, virtualFile: VirtualFile?) = RoomSqlSyntaxHighlighter()
+  override fun getSyntaxHighlighter(project: Project?, virtualFile: VirtualFile?): RoomSqlSyntaxHighlighter = RoomSqlSyntaxHighlighter()
 }
 

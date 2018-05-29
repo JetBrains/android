@@ -42,5 +42,5 @@ class RoomSqlFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, RO
   override fun getIcon(flags: Int): Icon? = ROOM_SQL_ICON
 }
 
-val ROOM_SQL_FILE_NODE_TYPE = IFileElementType(ROOM_SQL_LANGUAGE)
+val ROOM_SQL_FILE_NODE_TYPE: IFileElementType = IFileElementType(ROOM_SQL_LANGUAGE)
 

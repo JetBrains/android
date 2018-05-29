@@ -16,17 +16,17 @@
 package com.android.tools.idea.uibuilder.handlers.coordinator
 
 import com.android.SdkConstants.*
-import com.android.tools.idea.uibuilder.api.DragHandler
-import com.android.tools.idea.uibuilder.api.DragType
-import com.android.tools.idea.uibuilder.api.ViewEditor
-import com.android.tools.idea.uibuilder.handlers.ScrollViewHandler
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.*
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneInteraction
 import com.android.tools.idea.common.scene.target.Target
-import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
 import com.android.tools.idea.common.surface.Interaction
+import com.android.tools.idea.uibuilder.api.DragHandler
+import com.android.tools.idea.uibuilder.api.DragType
+import com.android.tools.idea.uibuilder.api.ViewEditor
+import com.android.tools.idea.uibuilder.handlers.ScrollViewHandler
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintResizeTarget
+import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
 import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.google.common.collect.ImmutableList
 import java.util.*
@@ -38,7 +38,7 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
 
   enum class InteractionState { NORMAL, DRAGGING }
 
-  var interactionState = InteractionState.NORMAL
+  var interactionState: InteractionState = InteractionState.NORMAL
 
   override fun getInspectorProperties(): List<String> {
     return ImmutableList.of<String>(

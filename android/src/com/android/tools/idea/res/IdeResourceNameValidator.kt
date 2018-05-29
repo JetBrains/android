@@ -52,7 +52,7 @@ class IdeResourceNameValidator private constructor(
      */
     @JvmStatic
     @JvmOverloads
-    fun forResourceName(type: ResourceType, existing: AbstractResourceRepository? = null) =
+    fun forResourceName(type: ResourceType, existing: AbstractResourceRepository? = null): IdeResourceNameValidator =
         IdeResourceNameValidator(
             InputType.ValueName(type),
             existing?.getItemsOfType(type)?.mapTo(HashSet(), ValueResourceNameValidator::normalizeName))
@@ -77,11 +77,11 @@ class IdeResourceNameValidator private constructor(
     }
   }
 
-  override fun checkInput(inputString: String) = getErrorText(inputString) == null
+  override fun checkInput(inputString: String): Boolean = getErrorText(inputString) == null
 
-  override fun canClose(inputString: String) = checkInput(inputString)
+  override fun canClose(inputString: String): Boolean = checkInput(inputString)
 
-  fun doesResourceExist(name: String) = existing?.contains(ValueResourceNameValidator.normalizeName(name)) ?: false
+  fun doesResourceExist(name: String): Boolean = existing?.contains(ValueResourceNameValidator.normalizeName(name)) ?: false
 
   override fun getErrorText(inputString: String?): String? {
     if (inputString == null || inputString.isBlank()) {
