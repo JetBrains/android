@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.res;
+package com.android.tools.idea.res.aar;
 
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.res.ResourcesTestsUtil;
 import com.google.common.collect.ListMultimap;
 import com.intellij.util.containers.ContainerUtil;
 import junit.framework.TestCase;
@@ -28,10 +29,13 @@ import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.testFramework.UsefulTestCase.assertSameElements;
 
-public class FileResourceRepositoryTest extends TestCase {
+/**
+ * Tests for {@link AarSourceResourceRepository}.
+ */
+public class AarSourceResourceRepositoryTest extends TestCase {
 
   public void testGetAllDeclaredIds() {
-    FileResourceRepository repository = ResourcesTestsUtil.getTestAarRepository();
+    AarSourceResourceRepository repository = ResourcesTestsUtil.getTestAarRepository();
     assertThat(repository.getAllDeclaredIds()).containsExactly(
       "id1", 0x7f0b0000,
       "id2", 0x7f0b0001,
@@ -39,7 +43,7 @@ public class FileResourceRepositoryTest extends TestCase {
   }
 
   public void testMultipleValues() {
-    FileResourceRepository repository = ResourcesTestsUtil.getTestAarRepository();
+    AarSourceResourceRepository repository = ResourcesTestsUtil.getTestAarRepository();
     List<ResourceItem> items = repository.getResourceItems(RES_AUTO, ResourceType.STRING, "hello");
     assertNotNull(items);
     List<String> helloVariants = ContainerUtil.map(
@@ -53,7 +57,7 @@ public class FileResourceRepositoryTest extends TestCase {
   }
 
   public void testLibraryNameIsMaintained() {
-    FileResourceRepository repository = ResourcesTestsUtil.getTestAarRepository();
+    AarSourceResourceRepository repository = ResourcesTestsUtil.getTestAarRepository();
     assertThat(repository.getLibraryName()).isEqualTo(ResourcesTestsUtil.AAR_LIBRARY_NAME);
     for (ListMultimap<String, ResourceItem> multimap : repository.getItems().values()) {
       for (ResourceItem item : multimap.values()) {
@@ -63,7 +67,7 @@ public class FileResourceRepositoryTest extends TestCase {
   }
 
   public void testPackageName() {
-    FileResourceRepository repository = ResourcesTestsUtil.getTestAarRepository();
+    AarSourceResourceRepository repository = ResourcesTestsUtil.getTestAarRepository();
     assertThat(repository.getPackageName()).isEqualTo(ResourcesTestsUtil.AAR_PACKAGE_NAME);
   }
 }

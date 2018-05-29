@@ -22,6 +22,7 @@ import com.android.ide.common.resources.*;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.log.LogWrapper;
+import com.android.tools.idea.res.aar.AarSourceResourceRepository;
 import com.android.utils.ILogger;
 import com.google.common.collect.*;
 import com.google.common.hash.Hashing;
@@ -53,7 +54,7 @@ import static com.google.common.collect.Sets.newLinkedHashSetWithExpectedSize;
 /**
  * Repository of resources of the Android framework.
  *
- * <p>This repository behaves similar to {@link FileResourceRepository} except that it differentiates
+ * <p>This repository behaves similar to {@link AarSourceResourceRepository} except that it differentiates
  * between resources that are public and non public. {@link #getPublicResourcesOfType(ResourceType)}
  * can be used to obtain only public resources. This is typically used to display resource lists in
  * the UI.
@@ -68,7 +69,7 @@ import static com.google.common.collect.Sets.newLinkedHashSetWithExpectedSize;
  *
  * @see ResourceRepositoryManager#getFrameworkResources(boolean)
  */
-public final class FrameworkResourceRepository extends FileResourceRepository {
+public final class FrameworkResourceRepository extends AarSourceResourceRepository {
   private static final ResourceNamespace ANDROID_NAMESPACE = ResourceNamespace.ANDROID;
   private static final String CACHE_DIRECTORY = "caches/framework_resources";
   private static final String CACHE_FILE_HEADER = "Framework resource cache";

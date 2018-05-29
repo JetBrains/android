@@ -25,6 +25,7 @@ import com.android.ide.common.resources.ResourceRepositoryFixture;
 import com.android.ide.common.resources.ResourceTable;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.projectsystem.FilenameConstants;
+import com.android.tools.idea.res.aar.AarSourceResourceRepository;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
@@ -223,7 +224,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
                      FilenameConstants.EXPLODED_AAR + separatorChar +
                      "my_aar_lib" + separatorChar +
                      "res";
-    FileResourceRepository libraryRepository = FileResourceRepository.create(new File(aarPath), LIBRARY_NAME);
+    AarSourceResourceRepository libraryRepository = AarSourceResourceRepository.create(new File(aarPath), LIBRARY_NAME);
     AppResourceRepository appResources = new AppResourceRepository(myFacet,
                                                                    ImmutableList.of(resourcesA, libraryRepository),
                                                                    Lists.newArrayList(libraryRepository));

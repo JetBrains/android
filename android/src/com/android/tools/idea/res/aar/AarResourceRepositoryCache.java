@@ -16,7 +16,6 @@
 package com.android.tools.idea.res.aar;
 
 import com.android.builder.model.AaptOptions;
-import com.android.tools.idea.res.FileResourceRepository;
 import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -34,8 +33,8 @@ import java.util.concurrent.ExecutionException;
  * Cache of AAR resource repositories. This class is thread-safe.
  */
 public final class AarResourceRepositoryCache {
-  private final Cache<File, FileResourceRepository> myNamespacedCache = CacheBuilder.newBuilder().softValues().build();
-  private final Cache<File, FileResourceRepository> myNonnamespacedCache = CacheBuilder.newBuilder().softValues().build();
+  private final Cache<File, AarSourceResourceRepository> myNamespacedCache = CacheBuilder.newBuilder().softValues().build();
+  private final Cache<File, AarSourceResourceRepository> myNonnamespacedCache = CacheBuilder.newBuilder().softValues().build();
 
   /**
    * Returns the cache.
@@ -53,19 +52,19 @@ public final class AarResourceRepositoryCache {
    * @return the resource repository
    */
   @NotNull
-  public FileResourceRepository get(@NotNull File aarDirectory, @NotNull AaptOptions.Namespacing namespacing,
-                                    @Nullable String libraryName) {
-    Cache<File, FileResourceRepository> cache = namespacing == AaptOptions.Namespacing.REQUIRED ? myNamespacedCache : myNonnamespacedCache;
+  public AarSourceResourceRepository get(@NotNull File aarDirectory, @NotNull AaptOptions.Namespacing namespacing,
+                                         @Nullable String libraryName) {
+    Cache<File, AarSourceResourceRepository> cache = namespacing == AaptOptions.Namespacing.REQUIRED ? myNamespacedCache : myNonnamespacedCache;
     try {
-      FileResourceRepository aarRepository = cache.get(aarDirectory, () -> {
-        FileResourceRepository repository =
+      AarSourceResourceRepository aarRepository = cache.get(aarDirectory, () -> {
+        AarSourceResourceRepository repository =
             namespacing == AaptOptions.Namespacing.REQUIRED ? AarProtoResourceRepository.createIfProtoAar(aarDirectory, libraryName) : null;
         if (repository == null) {
           if (namespacing == AaptOptions.Namespacing.REQUIRED) {
             Logger.getInstance(AarResourceRepositoryCache.class).warn("Failed to load AAR proto repository from " + aarDirectory);
           }
-          // TODO(b/74425399): Remove the fallback to FileResourceRepository when namespacing is enabled.
-          repository = FileResourceRepository.create(aarDirectory, libraryName);
+          // TODO(b/74425399): Remove the fallback to AarSourceResourceRepository when namespacing is enabled.
+          repository = AarSourceResourceRepository.create(aarDirectory, libraryName);
         }
         return repository;
       });

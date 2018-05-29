@@ -27,7 +27,6 @@ import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.resources.ResourceVisibility;
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.res.FileResourceRepository;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Splitter;
 import org.jetbrains.android.AndroidTestCase;
@@ -121,7 +120,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
       if (actualItem == null || expectedItem == null || !areEquivalent(expectedItem, actualItem) ||
           !expectedItem.getConfiguration().equals(actualItem.getConfiguration())) {
         if (actualItem != null && actualItem.getType() == ResourceType.ID) {
-          // FileResourceRepository does not create ID resources for some attr values and for inline ID declarations ("@+id/name").
+          // AarSourceResourceRepository does not create ID resources for some attr values and for inline ID declarations ("@+id/name").
           i--; // Skip the ID resource.
         } else if (actualItem != null && actualItem.getName().startsWith("$")) {
           i--; // Ignore the resource corresponding to the extracted aapt tag.
@@ -505,7 +504,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
     return map;
   }
 
-  private void updateEnumMap(@NotNull FileResourceRepository repository) {
+  private void updateEnumMap(@NotNull AarSourceResourceRepository repository) {
     ResourceNamespace namespace = repository.getNamespace();
     List<ResourceItem> items = repository.getResourceItems(namespace, ResourceType.DECLARE_STYLEABLE);
     for (ResourceItem item : items) {
@@ -557,7 +556,8 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
     for (int i = 0; i < count; i++) {
       ResourceNamespace namespace = ResourceNamespace.fromPackageName(LIBRARY_PACKAGE);
       long start = System.currentTimeMillis();
-      FileResourceRepository fromSources = FileResourceRepository.createForTest(new File(myAarFolder, "res"), namespace, LIBRARY_NAME);
+      AarSourceResourceRepository
+        fromSources = AarSourceResourceRepository.createForTest(new File(myAarFolder, "res"), namespace, LIBRARY_NAME);
       loadTimeFromSources += System.currentTimeMillis() - start;
       start = System.currentTimeMillis();
       AarProtoResourceRepository fromResApk = AarProtoResourceRepository.createIfProtoAar(myAarFolder, LIBRARY_NAME);

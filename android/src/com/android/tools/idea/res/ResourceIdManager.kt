@@ -22,6 +22,7 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.resources.ResourceType.*
 import com.android.tools.idea.experimental.codeanalysis.datastructs.Modifier
+import com.android.tools.idea.res.aar.AarSourceResourceRepository
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleServiceManager
@@ -131,7 +132,7 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
     return ResourceRepositoryManager.getOrCreateInstance(facet)
       .libraries
       .asSequence()
-      .mapNotNull { (it as FileResourceRepository).allDeclaredIds?.get(resource.name) }
+      .mapNotNull { (it as AarSourceResourceRepository).allDeclaredIds?.get(resource.name) }
       .any()
   }
 

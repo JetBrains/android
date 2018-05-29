@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.tools.idea.projectsystem.FilenameConstants;
+import com.android.tools.idea.res.aar.AarSourceResourceRepository;
 import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
 import org.jetbrains.android.AndroidFacetProjectDescriptor;
@@ -72,7 +73,7 @@ public class ResourceClassRegistryTest extends LightCodeInsightFixtureTestCase {
     String pkg2 = "com.google.example.aar2";
     File aarDir2 = new File("/exploded-aar2");
     AppResourceRepository appRepository = mock(AppResourceRepository.class);
-    FileResourceRepository fileRepository = mock(FileResourceRepository.class);
+    AarSourceResourceRepository fileRepository = mock(AarSourceResourceRepository.class);
     when(appRepository.findRepositoryFor(aarDir1)).thenReturn(fileRepository);
     when(appRepository.findRepositoryFor(aarDir2)).thenReturn(fileRepository);
     addAarLibrary(myRegistry, appRepository, myIdManager, aarDir1, pkg1);
@@ -88,7 +89,7 @@ public class ResourceClassRegistryTest extends LightCodeInsightFixtureTestCase {
     File aarDir = new File("/exploded-aar");
     String pkg2 = "com.google.example";
     AppResourceRepository appRepository = mock(AppResourceRepository.class);
-    FileResourceRepository fileRepository = mock(FileResourceRepository.class);
+    AarSourceResourceRepository fileRepository = mock(AarSourceResourceRepository.class);
     when(appRepository.findRepositoryFor(aarDir)).thenReturn(fileRepository);
     addAarLibrary(myRegistry, appRepository, myIdManager, aarDir, pkg1);
     assertSameElements(myRegistry.getGeneratorMap().keySet(), appRepository);
@@ -105,7 +106,7 @@ public class ResourceClassRegistryTest extends LightCodeInsightFixtureTestCase {
                                     @NotNull String packageName) {
     String path = aarDir.getPath();
     if (path.endsWith(DOT_AAR) || path.contains(FilenameConstants.EXPLODED_AAR)) {
-      FileResourceRepository repository = appResources.findRepositoryFor(aarDir);
+      AarSourceResourceRepository repository = appResources.findRepositoryFor(aarDir);
       if (repository != null) {
         registry.addLibrary(appResources, idManager, packageName, ResourceNamespace.fromPackageName(packageName));
       }

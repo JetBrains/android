@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.res;
+package com.android.tools.idea.res.aar;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -22,6 +22,7 @@ import com.android.ide.common.xml.AndroidManifestParser;
 import com.android.ide.common.xml.ManifestData;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.log.LogWrapper;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.utils.ILogger;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
@@ -44,17 +45,10 @@ import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
 import static com.android.SdkConstants.FN_RESOURCE_TEXT;
 
 /**
- * A {@link AbstractResourceRepository} for plain java.io Files; this is needed for repositories
- * in output folders such as build, where Studio will not create PsiDirectories, and
- * as a result cannot use the normal {@link ResourceFolderRepository}. This is the case
- * for example for the expanded {@code .aar} directories.
- *
- * <p>Most of the implementation is based on {@link ResourceMerger} which means the behavior is highly
- * consistent with what happens at build time.
+ * A resource repository representing unpacked contents of a non-namespaced AAR.
  */
-// TODO: Rename to AarSourceResourceRepository and move to the com.android.tools.idea.res.aar package.
-public class FileResourceRepository extends LocalResourceRepository implements SingleNamespaceResourceRepository {
-  private static final Logger LOG = Logger.getInstance(FileResourceRepository.class);
+public class AarSourceResourceRepository extends LocalResourceRepository implements SingleNamespaceResourceRepository {
+  private static final Logger LOG = Logger.getInstance(AarSourceResourceRepository.class);
   protected final ResourceTable myFullTable = new ResourceTable();
   /** @see #getAllDeclaredIds() */
   @Nullable private Map<String, Integer> myAarDeclaredIds;
@@ -66,7 +60,8 @@ public class FileResourceRepository extends LocalResourceRepository implements S
   /** The package name read on-demand from the manifest. */
   @NotNull private final NullableLazyValue<String> myManifestPackageName;
 
-  protected FileResourceRepository(@NotNull File resourceDirectory, @NotNull ResourceNamespace namespace, @Nullable String libraryName) {
+  protected AarSourceResourceRepository(@NotNull File resourceDirectory, @NotNull ResourceNamespace namespace,
+                                        @Nullable String libraryName) {
     super(resourceDirectory.getName());
     myResourceDirectory = resourceDirectory;
     myNamespace = namespace;
@@ -90,22 +85,21 @@ public class FileResourceRepository extends LocalResourceRepository implements S
   }
 
   /**
-   * Creates and loads a resource repository. Consider calling
-   * {@link com.android.tools.idea.res.aar.AarResourceRepositoryCache#get} instead of this method.
+   * Creates and loads a resource repository. Consider calling {@link AarResourceRepositoryCache#get} instead of this method.
    *
    * @param resourceDirectory the directory containing resources
    * @param libraryName the name of the library
    * @return the created resource repository
    */
   @NotNull
-  public static FileResourceRepository create(@NotNull File resourceDirectory, @Nullable String libraryName) {
+  public static AarSourceResourceRepository create(@NotNull File resourceDirectory, @Nullable String libraryName) {
     return create(resourceDirectory, ResourceNamespace.RES_AUTO, libraryName);
   }
 
   @NotNull
-  private static FileResourceRepository create(@NotNull File resourceDirectory, @NotNull ResourceNamespace namespace,
-                                               @Nullable String libraryName) {
-    FileResourceRepository repository = new FileResourceRepository(resourceDirectory, namespace, libraryName);
+  private static AarSourceResourceRepository create(@NotNull File resourceDirectory, @NotNull ResourceNamespace namespace,
+                                                    @Nullable String libraryName) {
+    AarSourceResourceRepository repository = new AarSourceResourceRepository(resourceDirectory, namespace, libraryName);
     try {
       ResourceMerger resourceMerger = createResourceMerger(resourceDirectory, namespace, libraryName);
       ResourceRepositories.updateTableFromMerger(resourceMerger, repository.getItems());
@@ -121,8 +115,8 @@ public class FileResourceRepository extends LocalResourceRepository implements S
 
   @VisibleForTesting
   @NotNull
-  public static FileResourceRepository createForTest(@NotNull File resourceDirectory, @NotNull ResourceNamespace namespace,
-                                                     @Nullable String libraryName) {
+  public static AarSourceResourceRepository createForTest(@NotNull File resourceDirectory, @NotNull ResourceNamespace namespace,
+                                                          @Nullable String libraryName) {
     assert ApplicationManager.getApplication() == null || ApplicationManager.getApplication().isUnitTestMode();
     return create(resourceDirectory, namespace, libraryName);
   }
