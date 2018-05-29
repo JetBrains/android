@@ -19,7 +19,6 @@ import com.android.builder.model.level2.Library
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.structure.model.*
-import com.android.tools.idea.gradle.structure.model.pom.MavenPoms.findDependenciesInPomFile
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.LinkedListMultimap
 import java.util.function.Consumer
@@ -33,8 +32,6 @@ class PsAndroidModuleDependencyCollection(parent: PsAndroidModule) : PsAndroidDe
 
   private val moduleDependenciesByGradlePath = LinkedListMultimap.create<String, PsModuleAndroidDependency>()!!
   private val libraryDependenciesBySpec = LinkedListMultimap.create<PsLibraryKey, PsDeclaredLibraryAndroidDependency>()!!
-
-  val libraryDependencies: List<PsDeclaredLibraryAndroidDependency> get() = libraryDependenciesBySpec.values().toList()
 
   init {
     collectParsedDependencies()
@@ -187,7 +184,7 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact) : P
       // TODO(b/74425541): Reconsider duplicates.
       declaredDependencies.addAll(matchingDeclaredDependencies)
       val androidDependency = PsResolvedLibraryAndroidDependency(parent, this, spec, artifact, library, declaredDependencies)
-      androidDependency.setDependenciesFromPomFile(findDependenciesInPomFile(library.artifact))
+      androidDependency.setDependenciesFromPomFile(parent.parent.pomDependencyCache.getPomDependencies(library.artifact))
       libraryDependenciesBySpec.put(androidDependency.spec.toLibraryKey(), androidDependency)
     }
   }

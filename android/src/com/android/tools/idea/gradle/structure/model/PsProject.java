@@ -45,6 +45,7 @@ public class PsProject extends PsModel {
 
   @NotNull private final List<PsModule> myModules = Lists.newArrayList();
   @NotNull private final PsVariables myVariables;
+  @NotNull private final PsPomDependencyCache myPomDependencyCache = new PsPomDependencies();
 
   private boolean myModified;
 
@@ -153,5 +154,10 @@ public class PsProject extends PsModel {
   @NotNull
   public PsVariables getVariables() {
     return myVariables;
+  }
+
+  @NotNull
+  public PsPomDependencyCache getPomDependencyCache() {
+    return myPomDependencyCache;
   }
 }
