@@ -16,6 +16,7 @@
 package com.android.tools.idea.res;
 
 import com.android.resources.ResourceType;
+import com.google.common.base.MoreObjects;
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -56,7 +57,7 @@ public class AndroidPackageRClass extends AndroidLightClassBase {
     super(psiManager);
 
     myModule = module;
-    myFullyQualifiedName = packageName + AndroidResourceClassFinder.INTERNAL_R_CLASS_SHORTNAME;
+    myFullyQualifiedName = packageName + ".R";
     myFile =
         PsiFileFactory.getInstance(myManager.getProject())
             .createFileFromText("R.java", JavaFileType.INSTANCE, "package " + packageName + ";");
@@ -73,7 +74,7 @@ public class AndroidPackageRClass extends AndroidLightClassBase {
 
   @Override
   public String toString() {
-    return "AndroidPackageRClass";
+    return MoreObjects.toStringHelper(this).addValue(getQualifiedName()).toString();
   }
 
   @Nullable

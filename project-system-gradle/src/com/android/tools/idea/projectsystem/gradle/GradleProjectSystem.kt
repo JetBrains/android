@@ -26,7 +26,9 @@ import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
-import com.android.tools.idea.res.AndroidAugmentedRClassesElementFinder
+import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
+import com.android.tools.idea.res.ProjectLightResourceClassService
+import com.android.tools.idea.res.ResourceTypeClassFinder
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.templates.GradleFilePsiMerger
 import com.android.tools.idea.templates.GradleFileSimpleMerger
@@ -36,11 +38,23 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiElementFinder
 import org.jetbrains.annotations.TestOnly
 import java.nio.file.Path
 
 class GradleProjectSystem(val project: Project, @TestOnly private val mavenRepository: GoogleMavenRepository = IdeGoogleMavenRepository) : AndroidProjectSystem {
   private val mySyncManager: ProjectSystemSyncManager = GradleProjectSystemSyncManager(project)
+
+  private val myPsiElementFinders: List<PsiElementFinder> = run {
+    if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      listOf(
+        ResourceTypeClassFinder.INSTANCE,
+        AndroidResourceClassPsiElementFinder(ProjectLightResourceClassService.getInstance(project))
+      )
+    } else {
+      listOf(ResourceTypeClassFinder.INSTANCE)
+    }
+  }
 
   override fun getSyncManager(): ProjectSystemSyncManager = mySyncManager
 
@@ -93,10 +107,7 @@ class GradleProjectSystem(val project: Project, @TestOnly private val mavenRepos
     return null
   }
 
-  override fun getPsiElementFinders(): List<AndroidAugmentedRClassesElementFinder> {
-    // TODO: check the flag and use the other finders.
-    return listOf(AndroidAugmentedRClassesElementFinder.INSTANCE)
-  }
+  override fun getPsiElementFinders(): List<PsiElementFinder> = myPsiElementFinders
 
   override fun getAugmentRClasses() = !StudioFlags.IN_MEMORY_R_CLASSES.get()
 }

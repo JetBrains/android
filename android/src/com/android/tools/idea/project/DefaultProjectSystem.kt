@@ -19,12 +19,15 @@ import com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT
 import com.android.SdkConstants.SUPPORT_LIB_ARTIFACT
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.apk.analyzer.AaptInvoker
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.model.MergedManifest
 import com.android.tools.idea.projectsystem.*
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
-import com.android.tools.idea.res.AndroidAugmentedRClassesElementFinder
+import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
+import com.android.tools.idea.res.ProjectLightResourceClassService
+import com.android.tools.idea.res.ResourceTypeClassFinder
 import com.android.tools.idea.sdk.AndroidSdks
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -35,6 +38,7 @@ import com.intellij.openapi.roots.ModuleOrderEntry
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiElementFinder
 import com.intellij.ui.AppUIUtil
 import org.jetbrains.android.facet.AndroidFacet
 import java.nio.file.Path
@@ -141,7 +145,16 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
     }
   }
 
-  override fun getPsiElementFinders() = listOf(AndroidAugmentedRClassesElementFinder.INSTANCE)
+  override fun getPsiElementFinders(): List<PsiElementFinder> {
+    return if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      listOf(
+        ResourceTypeClassFinder.INSTANCE,
+        AndroidResourceClassPsiElementFinder(ProjectLightResourceClassService.getInstance(project))
+      )
+    } else {
+      listOf(ResourceTypeClassFinder.INSTANCE)
+    }
+  }
 
-  override fun getAugmentRClasses() = true
+  override fun getAugmentRClasses() = !StudioFlags.IN_MEMORY_R_CLASSES.get()
 }
