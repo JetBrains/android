@@ -87,11 +87,11 @@ class ModelSimplePropertyImpl<in ContextT, in ModelT, ResolvedT, ParsedT, Proper
     getParsedValue(modelDescriptor.getParsed(thisRef)?.parsedPropertyGetter(), getter).value
 
   override fun setValue(thisRef: ModelT, property: KProperty<*>, value: ParsedValue<PropertyT>) {
+    thisRef.setModified()
     setParsedValue((modelDescriptor.getParsed(thisRef) ?: throw IllegalStateException()).parsedPropertyGetter(),
                    setter,
                    { delete() },
                    value)
-    thisRef.setModified()
   }
 
   inner class SimplePropertyCore(private val model: ModelT)
@@ -154,8 +154,8 @@ abstract class ModelPropertyCoreImpl<PropertyT : Any> : ModelPropertyCore<Proper
   override fun getParsedValue(): Annotated<ParsedValue<PropertyT>> = getParsedValue(getParsedProperty(), getter)
 
   override fun setParsedValue(value: ParsedValue<PropertyT>) {
-    setParsedValue(getParsedProperty() ?: throw IllegalStateException(), setter, nullifier, value)
     setModified()
+    setParsedValue(getParsedProperty() ?: throw IllegalStateException(), setter, nullifier, value)
   }
 
   override val isModified: Boolean? get() = getParsedProperty()?.isModified

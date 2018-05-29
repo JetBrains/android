@@ -277,6 +277,119 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     verifyValues(appModule.findBuildType("release")!!, afterSync = true)
   }
 
+  fun testSetProperties_undeclaredDebug() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    var project = PsProject(resolvedProject)
+
+    var appModule = project.findModuleByName("app") as PsAndroidModule
+    assertThat(appModule, notNullValue())
+
+    val buildType = appModule.findBuildType("debug")
+    assertThat(buildType, notNullValue()); buildType!!
+    assertThat(buildType.isDeclared, equalTo(false))
+
+
+    buildType.jniDebuggable = true.asParsed()
+
+    fun verifyValues(buildType: PsBuildType, afterSync: Boolean = false) {
+      val jniDebuggable = PsBuildType.BuildTypeDescriptors.jniDebuggable.bind(buildType).getValue()
+
+      assertThat(jniDebuggable.parsedValue.asTestValue(), equalTo(true))
+
+      if (afterSync) {
+        assertThat(jniDebuggable.parsedValue.asTestValue(), equalTo(jniDebuggable.resolved.asTestValue()))
+       }
+    }
+
+    verifyValues(buildType)
+
+    appModule.applyChanges()
+    requestSyncAndWait()
+    project = PsProject(resolvedProject)
+    appModule = project.findModuleByName("app") as PsAndroidModule
+    // Verify nothing bad happened to the values after the re-parsing.
+    verifyValues(appModule.findBuildType("debug")!!, afterSync = true)
+  }
+
+  fun testEditLists_undeclaredDebug() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    var project = PsProject(resolvedProject)
+
+    var appModule = project.findModuleByName("app") as PsAndroidModule
+    assertThat(appModule, notNullValue())
+
+    val buildType = appModule.findBuildType("debug")
+    assertThat(buildType, notNullValue()); buildType!!
+
+    PsBuildType.BuildTypeDescriptors.proGuardFiles.bind(buildType).run {
+      addItem(0).setParsedValue(File("z.txt").asParsed())
+    }
+
+
+    fun verifyValues(buildType: PsBuildType, afterSync: Boolean = false) {
+      val proGuardFiles = PsBuildType.BuildTypeDescriptors.proGuardFiles.bind(buildType).getEditableValues().map { it.getValue() }
+
+      // TODO(b/72814329): Resolved values are not yet supported on list properties.
+      assertThat(proGuardFiles[0].resolved.asTestValue(), nullValue())
+      assertThat(proGuardFiles[0].parsedValue.asTestValue(), equalTo(File("z.txt")))
+
+      if (afterSync) {
+        // TODO(b/72814329): assertThat(proGuardFiles[0].parsedValue.asTestValue(), equalTo(proGuardFiles[0].resolved.asTestValue()))
+       }
+    }
+
+    verifyValues(buildType)
+
+    appModule.applyChanges()
+    requestSyncAndWait()
+    project = PsProject(resolvedProject)
+    appModule = project.findModuleByName("app") as PsAndroidModule
+    // Verify nothing bad happened to the values after the re-parsing.
+    verifyValues(appModule.findBuildType("debug")!!, afterSync = true)
+  }
+
+  fun testEditMaps_undeclaredDebug() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    var project = PsProject(resolvedProject)
+
+    var appModule = project.findModuleByName("app") as PsAndroidModule
+    assertThat(appModule, notNullValue())
+
+    val buildType = appModule.findBuildType("debug")
+    assertThat(buildType, notNullValue()); buildType!!
+
+    PsBuildType.BuildTypeDescriptors.manifestPlaceholders.bind(buildType).run {
+      addEntry("k").setParsedValue("v".asParsed())
+    }
+
+
+    fun verifyValues(buildType: PsBuildType, afterSync: Boolean = false) {
+      val manifestPlaceholders =
+        PsBuildType.BuildTypeDescriptors.manifestPlaceholders.bind(buildType).getEditableValues().mapValues { it.value.getValue() }
+
+      assertThat(manifestPlaceholders["k"]?.parsedValue?.asTestValue(), equalTo("v"))
+
+      if (afterSync) {
+        assertThat(manifestPlaceholders["k"]?.parsedValue?.asTestValue(), equalTo(manifestPlaceholders["k"]?.resolved?.asTestValue()))
+       }
+    }
+
+    verifyValues(buildType)
+
+    appModule.applyChanges()
+    requestSyncAndWait()
+    project = PsProject(resolvedProject)
+    appModule = project.findModuleByName("app") as PsAndroidModule
+    // Verify nothing bad happened to the values after the re-parsing.
+    verifyValues(appModule.findBuildType("debug")!!, afterSync = true)
+  }
+
   fun testInsertingProguardFiles() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
 

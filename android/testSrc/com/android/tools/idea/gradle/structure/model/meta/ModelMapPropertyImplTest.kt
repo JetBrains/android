@@ -167,13 +167,13 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
     val newPropRef = map.changeEntryKey("propRef", "newPropRef")
     val newOne = map.changeEntryKey("one", "newOne")
     // Add new.
-    val newNew = map.addEntry("new")  // Does not count as modified.
+    val newNew = map.addEntry("new")  // Does count as modified. This is required to auto-instantiate "debug" alike entities.
     newNew.testSetValue("new")
     // Add new and change it.
-    val new2 = map.addEntry("new2")  // Does not count as modified.
+    val new2 = map.addEntry("new2")  // Does count as modified. This is required to auto-instantiate "debug" alike entities.
     new2.testSetReference("propC1")
     val newChanged = map.changeEntryKey("new2", "newChanged")
-    assertThat(modifiedCount, equalTo(8))
+    assertThat(modifiedCount, equalTo(10))
 
     assertThat(newOne.testValue(), equalTo("1"))
     assertThat(newPropC.testValue(), equalTo("3"))
