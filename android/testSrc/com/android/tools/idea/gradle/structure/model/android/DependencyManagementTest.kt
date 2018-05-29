@@ -404,6 +404,56 @@ class DependencyManagementTest : DependencyTestCase() {
 //    module = project.findModuleByName("jModuleL") as PsJavaModule
 //    assertThat(module.findModuleDependency(":jModuleL"), notNullValue())
   }
+
+  data class TestReverseDependency(val from: String, val to: String, val resolved: String, val kind: String, val isPromoted: Boolean)
+
+  private fun ReverseDependency.toTest() =
+    TestReverseDependency(
+      when (this) {
+        is ReverseDependency.Declared -> dependency.configurationName
+        is ReverseDependency.Transitive -> requestingResolvedDependency.spec.toString()
+      },
+      spec.toString(), resolvedSpec.toString(), javaClass.simpleName, isPromoted)
+
+  fun testReverseDependencies() {
+    val module = project.findModuleByName("mainModule") as PsAndroidModule
+    run {
+      val resolvedDependencies = module.findVariant("freeRelease")?.findArtifact(ARTIFACT_MAIN)?.dependencies
+      val lib3 = resolvedDependencies?.findLibraryDependencies("com.example.jlib", "lib3")?.singleOrNull()?.getReverseDependencies()
+      val lib2 = resolvedDependencies?.findLibraryDependencies("com.example.libs", "lib2")?.singleOrNull()?.getReverseDependencies()
+      val lib1 = resolvedDependencies?.findLibraryDependencies("com.example.libs", "lib1")?.singleOrNull()?.getReverseDependencies()
+
+      assertThat(
+        lib3?.map { it.toTest() }?.toSet(),
+        equalTo(
+          setOf(
+            TestReverseDependency(
+              from = "com.example.libs:lib2:1.0", to = "com.example.jlib:lib3:1.0", resolved = "com.example.jlib:lib3:1.0",
+              kind = "Transitive", isPromoted = false),
+            TestReverseDependency(
+              from = "freeImplementation", to = "com.example.jlib:lib3:0.6", resolved = "com.example.jlib:lib3:1.0",
+              kind = "Declared", isPromoted = true))))
+
+      assertThat(
+        lib2?.map { it.toTest() }?.toSet(),
+        equalTo(
+          setOf(
+            TestReverseDependency(
+              from = "com.example.libs:lib1:1.0", to = "com.example.libs:lib2:1.0", resolved = "com.example.libs:lib2:1.0",
+              kind = "Transitive", isPromoted = false))))
+
+      assertThat(
+        lib1?.map { it.toTest() }?.toSet(),
+        equalTo(
+          setOf(
+            TestReverseDependency(
+              from = "implementation", to = "com.example.libs:lib1:1.0", resolved = "com.example.libs:lib1:1.0",
+              kind = "Declared", isPromoted = false),
+            TestReverseDependency(
+              from = "releaseImplementation", to = "com.example.libs:lib1:0.9.1", resolved = "com.example.libs:lib1:1.0",
+              kind = "Declared", isPromoted = true))))
+    }
+  }
 }
 
 private fun PsAndroidModuleDependencyCollection.findLibraryDependency(compactNotation: String): List<PsDeclaredLibraryAndroidDependency>? =

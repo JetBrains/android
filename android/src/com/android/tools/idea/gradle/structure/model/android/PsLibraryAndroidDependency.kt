@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.builder.model.level2.Library
-import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.structure.model.*
@@ -100,10 +99,11 @@ open class PsDeclaredLibraryAndroidDependency(
 
 open class PsResolvedLibraryAndroidDependency(
   parent: PsAndroidModule,
+  val collection: PsAndroidArtifactDependencyCollection,
   override val spec: PsArtifactDependencySpec,
   val artifact: PsAndroidArtifact,
   override val resolvedModel: Library,
-  private val declaredDependencies: Collection<PsDeclaredLibraryAndroidDependency>
+  internal val declaredDependencies: Collection<PsDeclaredLibraryAndroidDependency>
 ) : PsLibraryAndroidDependency(parent, listOf(artifact)), PsResolvedDependency, PsResolvedLibraryDependency {
   private val parsedModels = declaredDependencies.map { it.parsedModel }
   override val isDeclared: Boolean get() = !declaredDependencies.isEmpty()
@@ -111,21 +111,10 @@ open class PsResolvedLibraryAndroidDependency(
 
   override fun getParsedModels(): List<DependencyModel> = parsedModels.toList()
 
-  override fun hasPromotedVersion(): Boolean {
-    val declaredSpecs = getParsedModels().map {
-      PsArtifactDependencySpec.create(it as ArtifactDependencyModel)
-    }
-    for (declaredSpec in declaredSpecs) {
-      if (spec.version != null && declaredSpec.version != null) {
-        val declaredVersion = GradleVersion.tryParse(declaredSpec.version!!)
-        if (declaredVersion != null && declaredVersion < spec.version!!) {
-          return true
-        }
-      }
-    }
-    return false
-  }
+  override fun hasPromotedVersion(): Boolean = getReverseDependencies().any { it.isPromoted }
 
+  fun getReverseDependencies(): Set<ReverseDependency> =
+    artifact.dependencies.reverseDependencies[spec.toLibraryKey()].orEmpty()
 }
 
 abstract class PsLibraryAndroidDependency internal constructor(
@@ -167,4 +156,3 @@ fun ArtifactRepositorySearchResults.toVersionValueDescriptors(): List<ValueDescr
     .distinct()
     .sortedDescending()
     .map { version -> ValueDescriptor(version.toString()) }
-
