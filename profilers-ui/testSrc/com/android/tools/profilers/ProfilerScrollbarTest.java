@@ -133,7 +133,7 @@ public class ProfilerScrollbarTest {
     assertEquals(initialMax - delta * 0.5, myTimeline.getViewRange().getMax(), EPSILON);
 
     // Set our data min large enough that when we zoom in it moves our view min.
-    myTimeline.getDataRange().setMin(myTimeline.getViewRange().getMin() + 1000);
+    myTimeline.getDataRange().setMin(myTimeline.getViewRange().getMin() + 2000);
     assertFalse(myScrollbar.isScrollable());
     // Zoom in again
     double delta2 = myScrollbar.getZoomWheelDelta() * 2;

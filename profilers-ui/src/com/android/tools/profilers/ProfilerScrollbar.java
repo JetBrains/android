@@ -20,7 +20,6 @@ import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.components.JBScrollBar;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,7 +35,7 @@ public final class ProfilerScrollbar extends JBScrollBar {
   /**
    * The percentage of the current view range's length to zoom per mouse wheel click.
    */
-  private static final float VIEW_ZOOM_PERCENTAGE_PER_MOUSEHWEEL_FACTOR = 0.050f;
+  private static final float VIEW_ZOOM_PER_MOUSEWHEEL_FACTOR = 0.125f;
 
   /**
    * The percentage of the current view range's length to pan per mouse wheel click.
@@ -87,7 +86,7 @@ public final class ProfilerScrollbar extends JBScrollBar {
       }
     });
     zoomPanComponent.addMouseWheelListener(e -> {
-      int count = e.getWheelRotation();
+      double count = e.getPreciseWheelRotation();
       boolean isMenuKeyDown = AdtUiUtils.isActionKeyDown(e);
       if (isMenuKeyDown) {
         double anchor = ((float)e.getX() / e.getComponent().getWidth());
@@ -105,7 +104,7 @@ public final class ProfilerScrollbar extends JBScrollBar {
 
   @VisibleForTesting
   public double getZoomWheelDelta() {
-    return myTimeline.getViewRange().getLength() * VIEW_ZOOM_PERCENTAGE_PER_MOUSEHWEEL_FACTOR;
+    return myTimeline.getViewRange().getLength() * VIEW_ZOOM_PER_MOUSEWHEEL_FACTOR;
   }
 
   @VisibleForTesting
