@@ -214,9 +214,9 @@ public final class AxisComponent extends AnimatedComponent {
 
     // We always start from a major marker.
     for (int i = 0; i < numMarkers; i++) {
-      // Discard negative values (TODO configurable?)
+      // Discard values that is configured out of the marker range, by default this discards negative values.
       double markerValue = firstMarkerValue + i * minorInterval;
-      if (markerValue < 0f) {
+      if (!myModel.getMarkerRange().contains(markerValue)) {
         continue;
       }
 
@@ -235,10 +235,10 @@ public final class AxisComponent extends AnimatedComponent {
       }
     }
 
-    if (myShowMin) {
+    if (myShowMin && myModel.getMarkerRange().contains(currentMinValueRelative)) {
       myMinLabel = formatter.getFormattedString(labelRange, currentMinValueRelative, !myShowUnitAtMax);
     }
-    if (myShowMax) {
+    if (myShowMax && myModel.getMarkerRange().contains(currentMaxValueRelative)) {
       myMaxLabel = formatter.getFormattedString(labelRange, currentMaxValueRelative, true);
     }
   }
