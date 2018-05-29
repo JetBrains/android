@@ -134,7 +134,6 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     // Avoid rendering any other components (nav bar and similar) so we do not have dependencies on the Material theme
     model.getConfiguration().setTheme("android:Theme.NoTitleBar.Fullscreen");
     mySurface.setModel(model);
-    assertNull(mySurface.getSceneManager().getRenderResult());
 
     mySurface.requestRender();
     assertTrue(mySurface.getSceneManager().getRenderResult().getRenderResult().isSuccess());
@@ -164,7 +163,6 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     // Avoid rendering any other components (nav bar and similar) so we do not have dependencies on the Material theme
     model.getConfiguration().setTheme("android:Theme.NoTitleBar.Fullscreen");
     mySurface.setModel(model);
-    assertNull(mySurface.getSceneManager().getRenderResult());
 
     mySurface.requestRender();
 
