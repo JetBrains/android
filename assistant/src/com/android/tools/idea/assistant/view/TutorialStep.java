@@ -133,6 +133,7 @@ public class TutorialStep extends JPanel {
             Image scaledImage = image.getScaledInstance(imageElement.getWidth(), imageElement.getHeight(), Image.SCALE_SMOOTH);
             imageIcon = new ImageIcon(scaledImage, imageElement.getDescription());
             JPanel containerPanel = new JPanel(new HorizontalLayout(0));
+            containerPanel.setBackground(UIUtils.getBackgroundColor());
             containerPanel.setBorder(new JBEmptyBorder(IMAGE_PADDING, 0, IMAGE_PADDING, 0));
             containerPanel.add(new JLabel(imageIcon));
             myContents.add(containerPanel);
