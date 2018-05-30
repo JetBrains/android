@@ -42,7 +42,7 @@ class NavPropertiesInspectorProvidersTest : NavTestCase() {
       navigation("root") {
         include("navigation")
         fragment("f1") {
-          action("a1", destination = "f3")
+          action("a1", destination = "f2")
         }
         fragment("f2")
         navigation("subnav") {

@@ -38,5 +38,18 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/lib/org.eclipse.elk.alg.layered-0.3.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/org.eclipse.elk.core-0.3.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/org.eclipse.elk.graph-0.3.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/org.eclipse.emf.ecore-2.12.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/org.eclipse.emf.common-2.12.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>
