@@ -19,8 +19,7 @@ import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.updater.Updatable;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class LegendComponentModel extends AspectModel<LegendComponentModel.Aspect> implements Updatable {
@@ -31,12 +30,14 @@ public class LegendComponentModel extends AspectModel<LegendComponentModel.Aspec
 
   @NotNull
   private final List<Legend> myLegends;
+  private final Map<Legend, String> myLegendStringMap;
   private final long mUpdateFrequencyNs;
   private long mElapsedNs;
 
   public LegendComponentModel(int updateFrequencyMs) {
     mUpdateFrequencyNs = TimeUnit.MILLISECONDS.toNanos(updateFrequencyMs);
     myLegends = new ArrayList<>();
+    myLegendStringMap = new HashMap<>();
     // Set elapsedNs to full value to ensure update loop always triggers the first time
     mElapsedNs = mUpdateFrequencyNs;
   }
@@ -51,7 +52,28 @@ public class LegendComponentModel extends AspectModel<LegendComponentModel.Aspec
     mElapsedNs += elapsedNs;
     if (mElapsedNs >= mUpdateFrequencyNs) {
       mElapsedNs = 0;
-      changed(Aspect.LEGEND);
+
+      boolean changed = false;
+      for (Legend legend : myLegends) {
+        if (myLegends.contains(legend)) {
+          String newValue = legend.getValue();
+          String oldValue = myLegendStringMap.put(legend, newValue);
+          if (!Objects.equals(oldValue, newValue)) {
+            changed = true;
+          }
+        }
+        else {
+          // We should still execute this even if the values are null (and not roll this into the previous branch).
+          // The reason is because the legend might've gotten added, and there were no values associated with it,
+          // we still want to fire an aspect changed so that the name label is updated.
+          changed = true;
+          myLegendStringMap.put(legend, legend.getValue());
+        }
+      }
+
+      if (changed) {
+        changed(Aspect.LEGEND);
+      }
     }
   }
 
@@ -62,6 +84,7 @@ public class LegendComponentModel extends AspectModel<LegendComponentModel.Aspec
 
   public void remove(@NotNull Legend legend) {
     myLegends.remove(legend);
+    myLegendStringMap.remove(legend);
     changed(Aspect.LEGEND);
   }
 }
