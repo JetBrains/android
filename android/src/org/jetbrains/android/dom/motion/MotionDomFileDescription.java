@@ -15,18 +15,11 @@
  */
 package org.jetbrains.android.dom.motion;
 
-import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
-import org.jetbrains.android.util.AndroidUtils;
 
 public class MotionDomFileDescription extends AndroidResourceDomFileDescription<MotionScene> {
   public MotionDomFileDescription() {
     super(MotionScene.class, "MotionScene", ResourceFolderType.XML);
-  }
-
-  @Override
-  protected void initializeFileDescription() {
-    registerNamespacePolicy(AndroidUtils.NAMESPACE_KEY, SdkConstants.AUTO_URI);
   }
 }
