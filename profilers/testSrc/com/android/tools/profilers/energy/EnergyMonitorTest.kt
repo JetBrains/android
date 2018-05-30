@@ -143,12 +143,12 @@ class EnergyMonitorTest {
     timer.tick(1)
     assertThat(usageUpdated).isTrue() // LineChartModel always updates on first update.
     assertThat(legendUpdated).isTrue()
-    assertThat(tooltipLegendUpated).isTrue()
+    assertThat(tooltipLegendUpated).isFalse() // Mouse did not enter, so this should not update.
     assertThat(axisUpdated).isTrue() // This would change since it's first update.
     usageUpdated = false
 
     profilers.timeline.viewRange.set(1.0, 2.0)
-    assertThat(usageUpdated).isTrue() // This should triger a LINE_CHART aspect since the view range changed.
+    assertThat(usageUpdated).isTrue() // This should trigger a LINE_CHART aspect since the view range changed.
   }
 
   @Test
