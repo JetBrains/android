@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.actions;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.model.RenderTemplateModel;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
@@ -52,15 +53,21 @@ public class NewAndroidComponentAction extends AnAction {
 
   private final String myTemplateCategory;
   private final String myTemplateName;
-  private final int myMinSdkVersion;
+  private final int myMinSdkApi;
+  private final int myMinBuildSdkApi;
   private boolean myShouldOpenFiles = true;
 
   public NewAndroidComponentAction(@NotNull String templateCategory, @NotNull String templateName, int minSdkVersion) {
+    this(templateCategory, templateName, minSdkVersion, minSdkVersion);
+  }
+
+  public NewAndroidComponentAction(@NotNull String templateCategory, @NotNull String templateName, int minSdkVersion, int minBuildSdkApi) {
     super(templateName, AndroidBundle.message("android.wizard.action.new.component", templateName), null);
     myTemplateCategory = templateCategory;
     myTemplateName = templateName;
     getTemplatePresentation().setIcon(isActivityTemplate() ? AndroidIcons.Activity : AndroidIcons.AndroidFile);
-    myMinSdkVersion = minSdkVersion;
+    myMinSdkApi = minSdkVersion;
+    myMinBuildSdkApi = minBuildSdkApi;
   }
 
   public void setShouldOpenFiles(boolean shouldOpenFiles) {
@@ -84,9 +91,13 @@ public class NewAndroidComponentAction extends AnAction {
     }
 
     Presentation presentation = e.getPresentation();
-    int moduleMinSdkVersion = moduleInfo.getMinSdkVersion().getApiLevel();
-    if (myMinSdkVersion > moduleMinSdkVersion) {
-      presentation.setText(AndroidBundle.message("android.wizard.action.requires.minsdk", myTemplateName, myMinSdkVersion));
+    AndroidVersion buildSdkVersion = moduleInfo.getBuildSdkVersion();
+    if (myMinSdkApi > moduleInfo.getMinSdkVersion().getFeatureLevel()) {
+      presentation.setText(AndroidBundle.message("android.wizard.action.requires.minsdk", myTemplateName, myMinSdkApi));
+      presentation.setEnabled(false);
+    }
+    else if (buildSdkVersion != null && myMinBuildSdkApi > buildSdkVersion.getFeatureLevel()) {
+      presentation.setText(AndroidBundle.message("android.wizard.action.requires.minbuildsdk", myTemplateName, myMinBuildSdkApi));
       presentation.setEnabled(false);
     }
     else {
