@@ -25,9 +25,13 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.util.Ref;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
+import java.util.function.BiFunction;
 
+import static com.android.tools.idea.testing.TestProjectPaths.ANDROIDX_SIMPLE;
 import static com.android.tools.idea.testing.TestProjectPaths.MIGRATE_TO_APP_COMPAT;
 
 /**
@@ -37,8 +41,13 @@ import static com.android.tools.idea.testing.TestProjectPaths.MIGRATE_TO_APP_COM
 public class MigrateToAppCompatGradleTest extends AndroidGradleTestCase {
 
   public void testMigrationRefactoring() throws Exception {
+    Ref<GoogleMavenArtifactId> ref = new Ref<>();
     loadProject(MIGRATE_TO_APP_COMPAT);
-    runProcessor();
+    runProcessor((artifact, version) -> {
+      ref.set(artifact);
+      return MigrateToAppCompatProcessor.DEFAULT_MIGRATION_FACTORY.apply(artifact, version);
+    });
+    assertFalse(ref.get().isAndroidxLibrary());
 
     GradleVersion version = GradleUtil.getAndroidGradleModelVersionInUse(getProject());
     String configName = GradleUtil.mapConfigurationName("implementation", version, false);
@@ -237,8 +246,23 @@ public class MigrateToAppCompatGradleTest extends AndroidGradleTestCase {
     assertEquals(expected, result);
   }
 
-  private void runProcessor() {
-    new MigrateToAppCompatProcessor(getProject()).run();
+  /**
+   * Regression test for b/80091217
+   * Ignored until the androidx artifacts are merged
+   */
+  public void ignore_testMigrateOnAndroidXProject() throws Exception {
+    Ref<GoogleMavenArtifactId> ref = new Ref<>();
+    loadProject(ANDROIDX_SIMPLE);
+    runProcessor((artifact, version) -> {
+      ref.set(artifact);
+      return MigrateToAppCompatProcessor.DEFAULT_MIGRATION_FACTORY.apply(artifact, version);
+    });
+
+    assertTrue(ref.get().isAndroidxLibrary());
+  }
+
+  private void runProcessor(@NotNull BiFunction<GoogleMavenArtifactId, String, AppCompatStyleMigration> factory) {
+    new MigrateToAppCompatProcessor(getProject(), factory).run();
   }
 
   private static String getAppCompatGradleCoordinate() {

@@ -394,7 +394,7 @@ public class MigrateToAppCompatTest extends AndroidTestCase {
       AppCompatStyleMigration styleMigration = new AppCompatStyleMigration(myAppCompatAttrs, myAppCompatStyles);
       return new MigrateToAppCompatProcessor(project,
                                              allEntries ? buildMigrationMap() : migrationMap,
-                                             styleMigration);
+                                             (artifact, version) -> styleMigration);
     }
   }
 }

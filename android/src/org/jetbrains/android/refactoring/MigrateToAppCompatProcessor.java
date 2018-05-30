@@ -62,6 +62,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
 import static com.android.SdkConstants.*;
@@ -73,6 +74,9 @@ import static org.jetbrains.android.refactoring.AppCompatMigrationEntry.*;
  * objects and complete a migration.
  */
 public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
+
+  protected static final BiFunction<GoogleMavenArtifactId, String, AppCompatStyleMigration> DEFAULT_MIGRATION_FACTORY = (artifact, version) ->
+    AppCompatPublicDotTxtLookup.getInstance().createAppCompatStyleMigration(artifact, version);
 
   static final int MIGRATION_ENTRY_SIZE = 35;
   static final String ATTR_ACTION_VIEW_CLASS = "actionViewClass";
@@ -112,9 +116,10 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
   private final List<AppCompatMigrationEntry> myMigrationMap;
   private AppCompatStyleMigration myAppCompatStyleMigration;
   private PsiElement[] myElements = PsiElement.EMPTY_ARRAY;
-  private final boolean myCreateAppCompatStyleInstance;
   private List<SmartPsiElementPointer<PsiElement>> myRefsToShorten;
   private List<ClassMigrationUsageInfo> myClassMigrations;
+
+  private final BiFunction<GoogleMavenArtifactId, String, AppCompatStyleMigration> myAppCompatStyleMigrationFactory;
 
   /**
    * Keep track of files that may need {@link android.app.Activity} to be imported
@@ -133,17 +138,22 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
   private PsiMigration myPsiMigration;
 
   protected MigrateToAppCompatProcessor(@NotNull Project project) {
-    this(project, buildMigrationMap(), null);
+    this(project, DEFAULT_MIGRATION_FACTORY);
+  }
+
+  @VisibleForTesting
+  protected MigrateToAppCompatProcessor(@NotNull Project project,
+                                        @NotNull BiFunction<GoogleMavenArtifactId, String, AppCompatStyleMigration> appCompatStyleMigrationFactory) {
+    this(project, buildMigrationMap(), appCompatStyleMigrationFactory);
   }
 
   @VisibleForTesting
   protected MigrateToAppCompatProcessor(@NonNull Project project, @NonNull List<AppCompatMigrationEntry> migrationMap,
-                                        @Nullable AppCompatStyleMigration appCompatStyleMigration) {
+                                        @NotNull BiFunction<GoogleMavenArtifactId, String, AppCompatStyleMigration> appCompatStyleMigrationFactory) {
     super(project, null);
     myModules = ModuleManager.getInstance(project).getModules();
     myMigrationMap = migrationMap;
-    myAppCompatStyleMigration = appCompatStyleMigration;
-    myCreateAppCompatStyleInstance = myAppCompatStyleMigration == null;
+    myAppCompatStyleMigrationFactory = appCompatStyleMigrationFactory;
     myPsiFilesWithFragmentActivityImports = new SmartHashSet<>();
     myPsiFilesWithActivityImports = new SmartHashSet<>();
     myPsiMigration = startMigration(project);
@@ -291,8 +301,8 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
     myPsiFilesWithFragmentActivityImports.clear();
     myPsiFilesWithActivityImports.clear();
 
-    if (myCreateAppCompatStyleInstance) {
-      createAppCompatStyleMigration();
+    if (myAppCompatStyleMigration == null) {
+      myAppCompatStyleMigration = createAppCompatStyleMigration(myModules, myAppCompatStyleMigrationFactory);
     }
 
     List<UsageInfo> infos = new ArrayList<>();
@@ -589,10 +599,13 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
   }
 
   // Create an instance of the AppCompatStyleMigration by looking at the compile Sdk version
-  private void createAppCompatStyleMigration() {
-
+  private static AppCompatStyleMigration createAppCompatStyleMigration(
+    @NotNull Module[] modules,
+    @NotNull BiFunction<GoogleMavenArtifactId, String, AppCompatStyleMigration> factory) {
+    boolean dependsOnAndroidX = false;
     AndroidVersion highest = new AndroidVersion(21); // atleast 21
-    for (Module module : myModules) {
+    for (Module module : modules) {
+      dependsOnAndroidX |= DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
       GradleBuildModel build = GradleBuildModel.get(module);
       if (build != null && build.android() != null) {
         //noinspection ConstantConditions
@@ -609,14 +622,28 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
         }
       }
     }
+    GoogleMavenArtifactId artifact;
     AndroidVersion finalAndroidVersion = highest;
-    Predicate<GradleVersion> filter = v -> v.toString().startsWith(Integer.toString(finalAndroidVersion.getApiLevel()));
+    Predicate<GradleVersion> filter;
 
+    if (dependsOnAndroidX) {
+      artifact = GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7;
+      filter = null;
+    }
+    else {
+      artifact = GoogleMavenArtifactId.APP_COMPAT_V7;
+      // Only find version that match the API level
+      filter = v -> v.toString().startsWith(Integer.toString(finalAndroidVersion.getApiLevel()));
+    }
+
+    // For androidx since it it not stable, we need to also look in previews
     GradleVersion version = IdeGoogleMavenRepository.INSTANCE.findVersion(
-      GoogleMavenArtifactId.APP_COMPAT_V7.getMavenGroupId(), GoogleMavenArtifactId.APP_COMPAT_V7.getMavenArtifactId(), filter,
-      finalAndroidVersion.isPreview());
+      artifact.getMavenGroupId(), artifact.getMavenArtifactId(), filter,
+      artifact.isAndroidxLibrary() ||finalAndroidVersion.isPreview());
 
-    myAppCompatStyleMigration = AppCompatPublicDotTxtLookup.getInstance()
-      .createAppCompatStyleMigration(version == null ? "26.1.0" : version.toString());
+    String defaultVersion = artifact.isAndroidxLibrary() ?
+                            "1.0.0-alpha1" :
+                            "26.1.0";
+    return factory.apply(artifact, version == null ? defaultVersion : version.toString());
   }
 }

@@ -30,6 +30,8 @@ import com.google.common.collect.TreeRangeMap
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.command.CommandProcessor
+import com.intellij.openapi.diagnostic.debug
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.GeneratedSourcesFilter
@@ -58,6 +60,8 @@ private const val CLASS_MIGRATION_BASE_PRIORITY = 1_000_000
 private const val PACKAGE_MIGRATION_BASE_PRIORITY = 1_000
 private const val DEFAULT_MIGRATION_BASE_PRIORITY = 0
 
+private val log = logger<MigrateToAndroidxProcessor>()
+
 private fun isImportElement(element: PsiElement?): Boolean =
   element != null && (element.node?.elementType.toString() == "IMPORT_LIST" || isImportElement(element.parent))
 
@@ -73,10 +77,14 @@ private fun getLibraryRevision(newGroupName: String, newArtifactName: String, de
                                                                  sdk.location,
                                                                  FileOpUtils.create())
     if (revision != null) {
+      log.debug { "$newGroupName:$newArtifactName will use $revision" }
       return revision
     }
+    log.debug { "Unable to find library revision for $newGroupName:$newArtifactName. Using $defaultVersion" }
   }
-
+  else {
+    log.debug { "Unable to find library revision for $newGroupName:$newArtifactName, SDK was null. Using $defaultVersion" }
+  }
   return defaultVersion
 }
 
@@ -157,6 +165,10 @@ open class MigrateToAndroidxProcessor(val project: Project,
       ApplicationManager.getApplication().invokeLater(Runnable {
         WriteAction.run<RuntimeException> { run { this.finishFindMigration() } }
       }, myProject.disposed)
+    }
+
+    log.debug {
+      usageAccumulator.usageInfos.joinToString(separator = "\n")
     }
 
     return usageAccumulator.usageInfos.toTypedArray()
