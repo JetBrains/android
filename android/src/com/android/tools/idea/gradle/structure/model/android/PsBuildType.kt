@@ -213,7 +213,8 @@ open class PsBuildType(
       parsedPropertyGetter = { proguardFiles() },
       getter = { asFile() },
       setter = { setValue(it.toString()) },
-      parser = ::parseFile
+      parser = ::parseFile,
+      knownValuesGetter = { _, model -> proGuardFileValues(model.parent) }
     )
 
     val manifestPlaceholders: MapProperty<PsBuildType, String> = mapProperty(

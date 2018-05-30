@@ -17,6 +17,7 @@
 
 package com.android.tools.idea.gradle.structure.model.helpers
 
+import com.android.tools.idea.gradle.structure.configurables.ui.readOnPooledThread
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
@@ -25,6 +26,8 @@ import com.android.tools.idea.gradle.structure.model.meta.getText
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.pom.java.LanguageLevel
+import com.intellij.psi.search.FilenameIndex
+import java.io.File
 
 fun booleanValues(context: Any?, model: Any?): ListenableFuture<List<ValueDescriptor<Boolean>>> =
   immediateFuture(listOf(ValueDescriptor(value = false), ValueDescriptor(value = true)))
@@ -50,3 +53,23 @@ fun languageLevels(context: Any?, model: Any?): ListenableFuture<List<ValueDescr
 fun signingConfigs(module: PsAndroidModule): ListenableFuture<List<ValueDescriptor<Unit>>> = immediateFuture(module.signingConfigs.map {
   ValueDescriptor(ParsedValue.Set.Parsed(Unit, DslText.Reference("signingConfigs.${it.name}")))
 })
+
+fun proGuardFileValuesCore(module: PsAndroidModule): List<ValueDescriptor<File>> =
+  module.resolvedModel?.let { ideModule ->
+    FilenameIndex.getAllFilesByExt(
+      ideModule.project,
+      "pro",
+      ideModule.moduleContentScope)
+      .map { ValueDescriptor(ParsedValue.Set.Parsed(File(it.path).relativeTo(module.gradleModel.rootDirPath), DslText.Literal)) } +
+    FilenameIndex.getAllFilesByExt(
+      ideModule.project,
+      "txt",
+      ideModule.moduleContentScope)
+      .filter { it.name.startsWith("proguard", ignoreCase = true) }
+      .map { ValueDescriptor(ParsedValue.Set.Parsed(File(it.path).relativeTo(module.gradleModel.rootDirPath), DslText.Literal)) }
+  }.orEmpty() +
+  ValueDescriptor(ParsedValue.Set.Parsed(null, DslText.OtherUnparsedDslText("getDefaultProguardFile('proguard-android.txt')")))
+
+fun proGuardFileValues(module: PsAndroidModule): ListenableFuture<List<ValueDescriptor<File>>> =
+  readOnPooledThread { proGuardFileValuesCore(module) }
+

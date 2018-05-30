@@ -17,8 +17,11 @@ package com.android.tools.idea.gradle.structure.configurables.ui
 
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.ReadAction
+import org.jetbrains.ide.PooledThreadExecutor
 
 internal fun <I, O> ListenableFuture<I>.continueOnEdt(continuation: (I) -> O) =
   Futures.transform(
@@ -45,3 +48,6 @@ internal fun <I, O> ListenableFuture<I>.invokeLater(continuation: (I) -> O) =
         application.invokeLater(it, ModalityState.any())
       }
     })
+
+internal fun <T> readOnPooledThread(block: () -> T): ListenableFuture<T> =
+  MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE).submit<T> { ReadAction.compute<T, Throwable>(block) }
