@@ -168,7 +168,7 @@ public class AndroidPluginVersionUpdater {
         if (AndroidPluginGeneration.find(artifactId, groupId) != null) {
           String versionValue = dependency.version().toString();
           if (isEmpty(versionValue) || pluginVersion.compareTo(versionValue) != 0) {
-            dependency.version().setValue(pluginVersion.toString());
+            dependency.version().getResultModel().setValue(pluginVersion.toString());
             // Add Google Maven repository to buildscript (b/69977310)
             if (gradleVersion != null) {
               buildModel.buildscript().repositories().addGoogleMavenRepository(gradleVersion);
