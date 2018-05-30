@@ -40,7 +40,7 @@ abstract class AbstractDependencyNode<T : PsAndroidDependency> : AbstractPsModel
         else -> null
       }
 
-    protected fun getDependencyParsedModels(model: PsDependency): List<DependencyModel> =
+    fun getDependencyParsedModels(model: PsDependency): List<DependencyModel> =
       when (model) {
         is PsResolvedDependency -> model.getParsedModels()
         is PsDeclaredDependency -> listOf(model.parsedModel)
