@@ -93,6 +93,7 @@ class LightCalloutPopup(
       .setPositionChangeYShift(2)
       .setHideOnKeyOutside(false)
       .setHideOnAction(true)
+      .setBlockClicksThroughBalloon(true)
       .setRequestFocus(true)
       .setDialogMode(false)
       .createBalloon()
