@@ -89,7 +89,9 @@ private fun getLibraryRevision(newGroupName: String, newArtifactName: String, de
 
 open class MigrateToAndroidxProcessor(val project: Project,
                                       private val migrationMap: List<AppCompatMigrationEntry>,
-                                      versionProvider: ((String, String, String) -> String)? = null) : BaseRefactoringProcessor(project) {
+                                      versionProvider: ((String, String, String) -> String)? = null,
+                                      private val callSyncAfterMigration: Boolean = true
+) : BaseRefactoringProcessor(project) {
   private val elements: MutableList<PsiElement> = ArrayList()
   private val refsToShorten: MutableList<SmartPsiElementPointer<PsiElement>> = ArrayList()
   private val versionProvider = versionProvider ?: ::getLibraryRevision
@@ -215,7 +217,7 @@ open class MigrateToAndroidxProcessor(val project: Project,
       RefactoringUIUtil.processIncorrectOperation(project, e)
     }
 
-    if (usages.any { it is MigrateToAppCompatUsageInfo.GradleDependencyUsageInfo }) {
+    if (callSyncAfterMigration && usages.any { it is MigrateToAppCompatUsageInfo.GradleDependencyUsageInfo }) {
       // If we modified gradle entries, request sync.
       syncBeforeFinishingRefactoring(myProject)
     }
