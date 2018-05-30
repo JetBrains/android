@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
 import com.android.tools.idea.gradle.project.sync.ng.caching.ModelNotFoundInCacheException;
+import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModels;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
@@ -69,7 +70,7 @@ class SyncResultHandler {
                       @NotNull PostSyncProjectSetup.Request setupRequest,
                       @NotNull ProgressIndicator indicator,
                       @Nullable GradleSyncListener syncListener) {
-    SyncProjectModels models = callback.getModels();
+    SyncProjectModels models = callback.getSyncModels();
     ExternalSystemTaskId taskId = callback.getTaskId();
     if (models != null) {
       try {
@@ -129,7 +130,8 @@ class SyncResultHandler {
         syncListener.syncSucceeded(myProject);
       }
 
-      StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator, taskId));
+      StartupManager.getInstance(myProject)
+                    .runWhenProjectIsInitialized(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator, taskId));
     }
     catch (Throwable e) {
       notifyAndLogSyncError(nullToUnknownErrorCause(getRootCauseMessage(e)), e, syncListener);
@@ -153,7 +155,8 @@ class SyncResultHandler {
       syncListener.syncSkipped(myProject);
     }
 
-    StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator, taskId));
+    StartupManager.getInstance(myProject)
+                  .runWhenProjectIsInitialized(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator, taskId));
   }
 
   void onSyncFailed(@NotNull SyncExecutionCallback callback, @Nullable GradleSyncListener syncListener) {
@@ -166,7 +169,9 @@ class SyncResultHandler {
   private void notifyAndLogSyncError(@NotNull String errorMessage, @Nullable Throwable error, @Nullable GradleSyncListener syncListener) {
     if (ApplicationManager.getApplication().isUnitTestMode() && error != null) {
       // This is extremely handy when debugging sync errors in tests. Do not remove.
+      //noinspection UseOfSystemOutOrSystemErr
       System.out.println("***** sync error: " + error.getMessage());
+      //noinspection CallToPrintStackTrace
       error.printStackTrace();
     }
 
@@ -201,5 +206,35 @@ class SyncResultHandler {
   @NotNull
   private static Logger getLog() {
     return Logger.getInstance(SyncResultHandler.class);
+  }
+
+  void onVariantOnlySyncFinished(@NotNull SyncExecutionCallback callback,
+                                 @NotNull PostSyncProjectSetup.Request setupRequest,
+                                 @NotNull ProgressIndicator indicator,
+                                 @Nullable GradleSyncListener syncListener) {
+    VariantOnlyProjectModels models = callback.getVariantOnlyModels();
+    ExternalSystemTaskId taskId = callback.getTaskId();
+    if (models != null) {
+      try {
+        mySyncState.setupStarted();
+
+        ProjectSetup projectSetup = myProjectSetupFactory.create(myProject);
+        projectSetup.setUpProject(models, indicator);
+        projectSetup.commit();
+
+        if (syncListener != null) {
+          syncListener.syncSucceeded(myProject);
+        }
+        StartupManager.getInstance(myProject)
+                      .runWhenProjectIsInitialized(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator, taskId));
+      }
+      catch (Throwable e) {
+        notifyAndLogSyncError(nullToUnknownErrorCause(getRootCauseMessage(e)), e, syncListener);
+      }
+    }
+    else {
+      // SyncAction.ProjectModels should not be null. Something went wrong.
+      notifyAndLogSyncError("Gradle did not return any project models", null /* no exception */, syncListener);
+    }
   }
 }

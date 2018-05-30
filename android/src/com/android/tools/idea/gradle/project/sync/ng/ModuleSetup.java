@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
 import com.android.tools.idea.gradle.project.sync.ng.caching.ModelNotFoundInCacheException;
+import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModelsSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.GradleModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
@@ -33,37 +34,69 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-abstract class ModuleSetup {
-  abstract void setUpModules(@NotNull SyncProjectModels projectModels, @NotNull ProgressIndicator indicator);
+import static com.android.tools.idea.gradle.project.sync.ng.GradleSyncProgress.notifyProgress;
 
-  abstract void setUpModules(@NotNull CachedProjectModels projectModels, @NotNull ProgressIndicator indicator)
-    throws ModelNotFoundInCacheException;
+public abstract class ModuleSetup<T> {
+  @NotNull protected final Project myProject;
+  @NotNull protected final IdeModifiableModelsProvider myModelsProvider;
+
+  public ModuleSetup(@NotNull Project project,
+                     @NotNull IdeModifiableModelsProvider modelsProvider) {
+    myProject = project;
+    myModelsProvider = modelsProvider;
+  }
+
+  public abstract void setUpModules(@NotNull T projectModels, @NotNull ProgressIndicator indicator) throws ModelNotFoundInCacheException;
 
   static class Factory {
     @NotNull
-    ModuleSetup create(@NotNull Project project,
-                       @NotNull IdeModifiableModelsProvider modelsProvider) {
+    SyncProjectModelsSetup createForFullSync(@NotNull Project project,
+                                             @NotNull IdeModifiableModelsProvider modelsProvider) {
       IdeDependenciesFactory dependenciesFactory = new IdeDependenciesFactory();
-      return new ModuleSetupImpl(project,
-                                 modelsProvider,
-                                 dependenciesFactory,
-                                 ExtraGradleSyncModelsManager.getInstance(),
-                                 new ModuleFactory(project, modelsProvider),
-                                 new GradleModuleSetup(),
-                                 new AndroidModuleSetup(),
-                                 new NdkModuleSetup(),
-                                 new JavaModuleSetup(),
-                                 new AndroidModuleProcessor(project, modelsProvider),
-                                 new AndroidModelFactory(new VariantSelector(), dependenciesFactory),
-                                 new ProjectCleanup(),
-                                 new ObsoleteModuleDisposer(project, modelsProvider),
-                                 new CachedProjectModels.Factory(),
-                                 new IdeNativeAndroidProjectImpl.FactoryImpl(),
-                                 new JavaModuleModelFactory(),
-                                 new ProjectDataNodeSetup(),
-                                 new ModuleSetupContext.Factory(),
-                                 new ModuleFinder.Factory(),
-                                 new CompositeBuildDataSetup());
+      return new SyncProjectModelsSetup(project,
+                                        modelsProvider,
+                                        dependenciesFactory,
+                                        ExtraGradleSyncModelsManager.getInstance(),
+                                        new ModuleFactory(project, modelsProvider),
+                                        new GradleModuleSetup(),
+                                        new AndroidModuleSetup(),
+                                        new NdkModuleSetup(),
+                                        new JavaModuleSetup(),
+                                        new AndroidModuleProcessor(project, modelsProvider),
+                                        new AndroidModelFactory(new VariantSelector(), dependenciesFactory),
+                                        new ProjectCleanup(),
+                                        new ObsoleteModuleDisposer(project, modelsProvider),
+                                        new CachedProjectModels.Factory(),
+                                        new IdeNativeAndroidProjectImpl.FactoryImpl(),
+                                        new JavaModuleModelFactory(),
+                                        new ProjectDataNodeSetup(),
+                                        new ModuleSetupContext.Factory(),
+                                        new ModuleFinder.Factory(),
+                                        new CompositeBuildDataSetup());
     }
+
+    @NotNull
+    CachedProjectModelsSetup createForCachedSync(@NotNull Project project,
+                                                 @NotNull IdeModifiableModelsProvider modelsProvider) {
+      return new CachedProjectModelsSetup(project,
+                                          modelsProvider,
+                                          new GradleModuleSetup(),
+                                          new AndroidModuleSetup(),
+                                          new NdkModuleSetup(),
+                                          new JavaModuleSetup(),
+                                          new ModuleSetupContext.Factory(),
+                                          new ModuleFinder.Factory(),
+                                          new CompositeBuildDataSetup());
+    }
+
+    @NotNull
+    VariantOnlyProjectModelsSetup createForVariantOnlySync(@NotNull Project project,
+                                                           @NotNull IdeModifiableModelsProvider modelsProvider) {
+      return new VariantOnlyProjectModelsSetup(project, modelsProvider);
+    }
+  }
+
+  protected static void notifyModuleConfigurationStarted(@NotNull ProgressIndicator indicator) {
+    notifyProgress(indicator, "Configuring modules");
   }
 }

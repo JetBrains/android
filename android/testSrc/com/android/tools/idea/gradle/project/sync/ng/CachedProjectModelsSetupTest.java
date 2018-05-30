@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
-import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
-import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.model.*;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedModuleModels;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
@@ -27,7 +28,6 @@ import com.android.tools.idea.gradle.project.sync.setup.module.GradleModuleSetup
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetup;
-import com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanup;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
@@ -40,32 +40,21 @@ import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
- * Tests for {@link ModuleSetupImpl}.
+ * Tests for {@link CachedProjectModelsSetup}.
  */
-public class ModuleSetupImplTest extends IdeaTestCase {
+public class CachedProjectModelsSetupTest extends IdeaTestCase {
   @Mock private IdeModifiableModelsProvider myModelsProvider;
-  @Mock private ModuleFactory myModuleFactory;
   @Mock private GradleModuleSetup myGradleModuleSetup;
   @Mock private AndroidModuleSetup myAndroidModuleSetup;
   @Mock private NdkModuleSetup myNdkModuleSetup;
   @Mock private JavaModuleSetup myJavaModuleSetup;
-  @Mock private AndroidModuleProcessor myAndroidModuleProcessor;
-  @Mock private AndroidModelFactory myAndroidModelFactory;
-  @Mock private ProjectCleanup myProjectCleanup;
-  @Mock private ObsoleteModuleDisposer myModuleDisposer;
-  @Mock private CachedProjectModels.Factory myCachedProjectModelsFactory;
   @Mock private CachedProjectModels myCachedProjectModels;
-  @Mock private IdeNativeAndroidProject.Factory myNativeAndroidProjectFactory;
-  @Mock private JavaModuleModelFactory myJavaModuleModelFactory;
-  @Mock private ExtraGradleSyncModelsManager myExtraModelsManager;
-  @Mock private IdeDependenciesFactory myDependenciesFactory;
-  @Mock private ProjectDataNodeSetup myProjectDataNodeSetup;
   @Mock private ModuleFinder.Factory myModulesFinderFactory;
   @Mock private ModuleSetupContext.Factory myModuleSetupContextFactory;
   @Mock private ModuleFinder myModuleFinder;
   @Mock private CompositeBuildDataSetup myCompositeBuildDataSetup;
 
-  private ModuleSetupImpl myModuleSetup;
+  private CachedProjectModelsSetup myModuleSetup;
 
   @Override
   protected void setUp() throws Exception {
@@ -74,12 +63,9 @@ public class ModuleSetupImplTest extends IdeaTestCase {
 
     when(myModulesFinderFactory.create(myProject)).thenReturn(myModuleFinder);
 
-    myModuleSetup = new ModuleSetupImpl(getProject(), myModelsProvider, myDependenciesFactory, myExtraModelsManager, myModuleFactory,
-                                        myGradleModuleSetup, myAndroidModuleSetup, myNdkModuleSetup, myJavaModuleSetup,
-                                        myAndroidModuleProcessor, myAndroidModelFactory, myProjectCleanup, myModuleDisposer, myCachedProjectModelsFactory,
-                                        myNativeAndroidProjectFactory, myJavaModuleModelFactory,
-                                        myProjectDataNodeSetup, myModuleSetupContextFactory, myModulesFinderFactory,
-                                        myCompositeBuildDataSetup);
+    myModuleSetup =
+      new CachedProjectModelsSetup(getProject(), myModelsProvider, myGradleModuleSetup, myAndroidModuleSetup, myNdkModuleSetup,
+                                   myJavaModuleSetup, myModuleSetupContextFactory, myModulesFinderFactory, myCompositeBuildDataSetup);
   }
 
   public void testSetUpModulesFromCache() throws Exception {

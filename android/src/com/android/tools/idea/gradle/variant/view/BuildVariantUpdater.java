@@ -18,13 +18,16 @@ package com.android.tools.idea.gradle.variant.view;
 import com.android.builder.model.level2.Library;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
+import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlySyncOptions;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.CompilerOutputModuleSetupStep;
@@ -52,6 +55,7 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.util.GradleProjects.executeProjectChanges;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
@@ -107,11 +111,10 @@ class BuildVariantUpdater {
     // 2. Build files were not changed, variant to select doesn't exist, which can only happen with single-variant sync, request Variant-only Sync.
     // 3. Build files were not changed, variant to select exists, do module setup for affected modules.
     if (hasBuildFilesChanged(project)) {
-      requestGradleSync(project, variantSelectionChangeListeners);
+      requestFullGradleSync(project, variantSelectionChangeListeners);
     }
     else if (!variantToUpdateExists) {
-      // TODO: request variant-only sync.
-      throw new UnsupportedOperationException();
+      requestVariantOnlyGradleSync(project, moduleName, buildVariantName, variantSelectionChangeListeners);
     }
     else {
       executeProjectChanges(project, () -> {
@@ -201,9 +204,7 @@ class BuildVariantUpdater {
     if (variantToSelectExists) {
       androidModel.setSelectedVariantName(variantToSelect);
       androidModel.syncSelectedVariantAndTestArtifact(androidFacet);
-    }
-    // The variant of dependency modules can be updated only if the target variant exists, otherwise, there's no way to get the dependency modules of target variant.
-    if (variantToSelectExists) {
+      // The variant of dependency modules can be updated only if the target variant exists, otherwise, there's no way to get the dependency modules of target variant.
       updateSelectedVariantsForDependencyModules(project, androidModel, affectedFacets);
     }
     return variantToSelectExists;
@@ -244,15 +245,40 @@ class BuildVariantUpdater {
     return GradleSyncState.getInstance(project).isSyncNeeded().equals(YES);
   }
 
-  private static void requestGradleSync(@NotNull Project project,
-                                        @NotNull Runnable variantSelectionChangeListeners) {
+  private static void requestFullGradleSync(@NotNull Project project,
+                                            @NotNull Runnable variantSelectionChangeListeners) {
     GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED,
-                                                                          new GradleSyncListener() {
-                                                                            @Override
-                                                                            public void syncSucceeded(@NotNull Project project) {
-                                                                              variantSelectionChangeListeners.run();
-                                                                            }
-                                                                          });
+                                                                          getSyncListener(variantSelectionChangeListeners));
+  }
+
+  @NotNull
+  private static GradleSyncListener getSyncListener(@NotNull Runnable variantSelectionChangeListeners) {
+    return new GradleSyncListener() {
+      @Override
+      public void syncSucceeded(@NotNull Project project) {
+        variantSelectionChangeListeners.run();
+      }
+    };
+  }
+
+  private static void requestVariantOnlyGradleSync(@NotNull Project project,
+                                                   @NotNull String moduleName,
+                                                   @NotNull String buildVariantName,
+                                                   @NotNull Runnable variantSelectionChangeListeners) {
+    Module moduleToUpdate = findModule(project, moduleName);
+    if (moduleToUpdate != null) {
+      GradleFacet gradleFacet = GradleFacet.getInstance(moduleToUpdate);
+      if (gradleFacet != null) {
+        AndroidModuleModel androidModel = AndroidModuleModel.get(moduleToUpdate);
+        GradleModuleModel gradleModel = gradleFacet.getGradleModuleModel();
+        if (androidModel != null && gradleModel != null) {
+          GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER);
+          request.variantOnlySyncOptions =
+            new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), buildVariantName);
+          GradleSyncInvoker.getInstance().requestProjectSync(project, request, getSyncListener(variantSelectionChangeListeners));
+        }
+      }
+    }
   }
 
   private void setUpModules(@NotNull String variant,

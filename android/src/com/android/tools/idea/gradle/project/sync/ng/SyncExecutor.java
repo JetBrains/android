@@ -18,6 +18,9 @@ package com.android.tools.idea.gradle.project.sync.ng;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandlerManager;
+import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModels;
+import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlySyncAction;
+import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlySyncOptions;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.build.DefaultBuildDescriptor;
 import com.intellij.build.SyncViewManager;
@@ -40,11 +43,9 @@ import org.gradle.tooling.BuildActionExecuter;
 import org.gradle.tooling.CancellationTokenSource;
 import org.gradle.tooling.ProjectConnection;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
-
-import java.util.Collections;
-import java.util.List;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.ng.GradleSyncProgress.notifyProgress;
@@ -54,6 +55,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getOrCreateGradleExe
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.convert;
 import static java.lang.System.currentTimeMillis;
+import static java.util.Collections.emptyList;
 import static org.gradle.tooling.GradleConnector.newCancellationTokenSource;
 import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.prepare;
 
@@ -83,7 +85,14 @@ class SyncExecutor {
     mySelectedVariantCollector = selectedVariantCollector;
   }
 
-  void syncProject(@NotNull ProgressIndicator indicator, @NotNull SyncExecutionCallback callback) {
+  void syncProject(@NotNull ProgressIndicator indicator,
+                   @NotNull SyncExecutionCallback callback) {
+    syncProject(indicator, callback, null /* full gradle sync*/);
+  }
+
+  void syncProject(@NotNull ProgressIndicator indicator,
+                   @NotNull SyncExecutionCallback callback,
+                   @Nullable VariantOnlySyncOptions options) {
     if (myProject.isDisposed()) {
       callback.reject(String.format("Project '%1$s' is already disposed", myProject.getName()));
     }
@@ -91,8 +100,13 @@ class SyncExecutor {
     // TODO: Handle sync cancellation.
 
     GradleExecutionSettings executionSettings = getOrCreateGradleExecutionSettings(myProject);
+    // We try to avoid passing JVM arguments, to share Gradle daemons between Gradle sync and Gradle build.
+    // If JVM arguments from Gradle sync are different than the ones from Gradle build, Gradle won't reuse daemons. This is bad because
+    // daemons are expensive (memory-wise) and slow to start.
+    executionSettings.withArguments(myCommandLineArgs.get(myProject)).withVmOptions(emptyList());
+
     Function<ProjectConnection, Void> syncFunction = connection -> {
-      syncProject(connection, executionSettings, indicator, callback);
+      syncProject(connection, executionSettings, indicator, callback, options);
       return null;
     };
 
@@ -107,49 +121,65 @@ class SyncExecutor {
   private void syncProject(@NotNull ProjectConnection connection,
                            @NotNull GradleExecutionSettings executionSettings,
                            @NotNull ProgressIndicator indicator,
-                           @NotNull SyncExecutionCallback callback) {
-    SyncAction syncAction = createSyncAction();
-    BuildActionExecuter<SyncProjectModels> executor = connection.action(syncAction);
-
-    List<String> commandLineArgs = myCommandLineArgs.get(myProject);
-
+                           @NotNull SyncExecutionCallback callback,
+                           @Nullable VariantOnlySyncOptions options) {
     // Create a task id for this sync
     ExternalSystemTaskId id = createId(myProject);
     SyncViewManager syncViewManager = ServiceManager.getService(myProject, SyncViewManager.class);
     // Attach output
     //noinspection resource, IOResourceOpenedButNotSafelyClosed
-    BuildOutputInstantReaderImpl buildOutputReader = new BuildOutputInstantReaderImpl(id, syncViewManager, Collections.emptyList());
+    BuildOutputInstantReaderImpl buildOutputReader = new BuildOutputInstantReaderImpl(id, syncViewManager, emptyList());
     // Add a StartEvent to the build tool window
     String projectPath = getBaseDirPath(myProject).getPath();
     DefaultBuildDescriptor buildDescriptor = new DefaultBuildDescriptor(id, myProject.getName(), projectPath, currentTimeMillis());
     StartBuildEventImpl startEvent = new StartBuildEventImpl(buildDescriptor, "syncing...");
     syncViewManager.onEvent(startEvent);
-
-    // We try to avoid passing JVM arguments, to share Gradle daemons between Gradle sync and Gradle build.
-    // If JVM arguments from Gradle sync are different than the ones from Gradle build, Gradle won't reuse daemons. This is bad because
-    // daemons are expensive (memory-wise) and slow to start.
-    prepare(executor, id, executionSettings, new GradleSyncNotificationListener(id, indicator, buildOutputReader),
-            Collections.emptyList() /* JVM args */, commandLineArgs, connection);
-
-    CancellationTokenSource cancellationTokenSource = newCancellationTokenSource();
-    executor.withCancellationToken(cancellationTokenSource.token());
-
     try {
-      SyncProjectModels models = executor.run();
-      callback.setDone(models, id);
+      if (options == null) {
+        executeFullSync(connection, executionSettings, indicator, id, buildOutputReader, callback);
+      }
+      else {
+        executeVariantOnlySync(connection, executionSettings, indicator, id, buildOutputReader, callback, options);
+      }
     }
     catch (RuntimeException e) {
       myErrorHandlerManager.handleError(e);
       callback.setRejected(e);
 
       // Generate a failure result event, but make sure that it is generated after the errors generated by myErrorHandlerManager
-      Runnable runnable = () -> {
-        finishFailedSync(id, myProject);
-      };
+      Runnable runnable = () -> finishFailedSync(id, myProject);
       ApplicationManager.getApplication().invokeLater(runnable);
     }
     // Close the reader in case no end or cancelled events were created.
     buildOutputReader.close();
+  }
+
+  void executeFullSync(@NotNull ProjectConnection connection,
+                       @NotNull GradleExecutionSettings executionSettings,
+                       @NotNull ProgressIndicator indicator,
+                       @NotNull ExternalSystemTaskId id,
+                       @NotNull BuildOutputInstantReaderImpl buildOutputReader,
+                       @NotNull SyncExecutionCallback callback) {
+    SyncAction syncAction = createSyncAction();
+    BuildActionExecuter<SyncProjectModels> executor = connection.action(syncAction);
+
+    prepare(executor, id, executionSettings, new GradleSyncNotificationListener(id, indicator, buildOutputReader), connection);
+    CancellationTokenSource cancellationTokenSource = newCancellationTokenSource();
+    executor.withCancellationToken(cancellationTokenSource.token());
+    callback.setDone(executor.run(), id);
+  }
+
+  void executeVariantOnlySync(@NotNull ProjectConnection connection,
+                              @NotNull GradleExecutionSettings executionSettings,
+                              @NotNull ProgressIndicator indicator,
+                              @NotNull ExternalSystemTaskId id,
+                              @NotNull BuildOutputInstantReaderImpl buildOutputReader,
+                              @NotNull SyncExecutionCallback callback,
+                              @NotNull VariantOnlySyncOptions options) {
+    VariantOnlySyncAction syncAction = new VariantOnlySyncAction(options);
+    BuildActionExecuter<VariantOnlyProjectModels> executor = connection.action(syncAction);
+    prepare(executor, id, executionSettings, new GradleSyncNotificationListener(id, indicator, buildOutputReader), connection);
+    callback.setDone(executor.run(), id);
   }
 
   @VisibleForTesting

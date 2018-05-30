@@ -20,6 +20,9 @@ import com.android.builder.model.Variant;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandlerManager;
+import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModels;
+import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModels.VariantOnlyModuleModel;
+import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlySyncOptions;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.BuildEnvironment;
 import com.google.common.base.Charsets;
@@ -48,6 +51,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * Tests for {@link SyncExecutorIntegration}.
@@ -98,7 +102,7 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
 
     syncListener.propagateFailureIfAny();
 
-    SyncProjectModels models = syncListener.getModels();
+    SyncProjectModels models = syncListener.getSyncModels();
     Map<String, SyncModuleModels> modelsByModule = indexByModuleName(models.getModuleModels());
     assertThat(modelsByModule).hasSize(2);
 
@@ -120,7 +124,7 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
 
     syncListener.propagateFailureIfAny();
 
-    SyncProjectModels models = syncListener.getModels();
+    SyncProjectModels models = syncListener.getSyncModels();
     Map<String, SyncModuleModels> modelsByModule = indexByModuleName(models.getModuleModels());
 
     verifyRequestedVariants(modelsByModule.get("app"), singletonList("debug"));
@@ -150,7 +154,7 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
 
     syncListener.propagateFailureIfAny();
 
-    SyncProjectModels models = syncListener.getModels();
+    SyncProjectModels models = syncListener.getSyncModels();
     Map<String, SyncModuleModels> modelsByModule = indexByModuleName(models.getModuleModels());
 
     // app -> library2 -> library1
@@ -198,7 +202,7 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
 
     syncListener.propagateFailureIfAny();
 
-    SyncProjectModels models = syncListener.getModels();
+    SyncProjectModels models = syncListener.getSyncModels();
     Map<String, SyncModuleModels> modelsByModule = indexByModuleName(models.getModuleModels());
 
     // app -> library2 -> library1
@@ -251,7 +255,7 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
     syncListener.await();
 
     syncListener.propagateFailureIfAny();
-    SyncProjectModels models = syncListener.getModels();
+    SyncProjectModels models = syncListener.getSyncModels();
     Map<String, SyncModuleModels> modelsByModule = indexByModuleName(models.getModuleModels());
     assertThat(modelsByModule).hasSize(2);
 
@@ -270,6 +274,46 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
       modelsByModuleName.put(moduleModels.getModuleName(), moduleModels);
     }
     return modelsByModuleName;
+  }
+
+
+  public void testVariantOnlySyncWithRecursiveSelection() throws Throwable {
+    prepareProjectForImport(TRANSITIVE_DEPENDENCIES);
+
+    Project project = getProject();
+    SyncExecutor syncExecutor = new SyncExecutor(project, ExtraGradleSyncModelsManager.getInstance(),
+                                                 new CommandLineArgs(true /* apply Java library plugin */),
+                                                 new SyncErrorHandlerManager(project), new SelectedVariantCollectorMock(project));
+    SyncListener syncListener = new SyncListener();
+
+    // Request for single-variant sync for library2 with variant "release".
+    File buildId = getProjectFolderPath();
+    VariantOnlySyncOptions options = new VariantOnlySyncOptions(buildId, ":library2", "release");
+    syncExecutor.syncProject(new MockProgressIndicator(), syncListener, options);
+    syncListener.await();
+
+    syncListener.propagateFailureIfAny();
+
+    VariantOnlyProjectModels models = syncListener.getVariantOnlyModels();
+    Map<String, VariantOnlyModuleModel> modelsByModuleId =
+      models.getModuleModels().stream().collect(toMap(VariantOnlyModuleModel::getModuleId, m -> m));
+
+    // app -> library2 -> library1
+    // Verify that models for app was not requested.
+    assertNull(modelsByModuleId.get(createUniqueModuleId(buildId, ":app")));
+    // Verify that models for library1 and library2 are requested based on user selection.
+    verifyRequestedVariants(modelsByModuleId.get(createUniqueModuleId(buildId, ":library1")), singletonList("release"));
+    verifyRequestedVariants(modelsByModuleId.get(createUniqueModuleId(buildId, ":library2")), singletonList("release"));
+  }
+
+  private static void verifyRequestedVariants(@NotNull VariantOnlyModuleModel moduleModels, @NotNull List<String> requestedVariants) {
+    AndroidProject androidProject = moduleModels.getAndroidProject();
+    assertNotNull(androidProject);
+    assertThat(androidProject.getVariants()).isEmpty();
+
+    for (String variant : requestedVariants) {
+      assertTrue(moduleModels.containsVariant(variant));
+    }
   }
 
   private static class SelectedVariantCollectorMock extends SelectedVariantCollector {

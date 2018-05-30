@@ -160,11 +160,15 @@ public class NewGradleSync implements GradleSync {
     setSkipAndroidPluginUpgrade(request, setupRequest);
 
     SyncExecutionCallback callback = myCallbackFactory.create();
-    // @formatter:off
-    callback.doWhenDone(() -> myResultHandler.onSyncFinished(callback, setupRequest, indicator, syncListener))
-            .doWhenRejected(() -> myResultHandler.onSyncFailed(callback, syncListener));
-    // @formatter:on
-    mySyncExecutor.syncProject(indicator, callback);
+    callback.doWhenRejected(() -> myResultHandler.onSyncFailed(callback, syncListener));
+    if (request.variantOnlySyncOptions != null) {
+      callback.doWhenDone(() -> myResultHandler.onVariantOnlySyncFinished(callback, setupRequest, indicator, syncListener));
+      mySyncExecutor.syncProject(indicator, callback, request.variantOnlySyncOptions);
+    }
+    else {
+      callback.doWhenDone(() -> myResultHandler.onSyncFinished(callback, setupRequest, indicator, syncListener));
+      mySyncExecutor.syncProject(indicator, callback);
+    }
   }
 
   private static void setSkipAndroidPluginUpgrade(@NotNull GradleSyncInvoker.Request syncRequest,

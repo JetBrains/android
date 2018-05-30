@@ -22,6 +22,8 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
 import com.android.tools.idea.gradle.project.sync.ng.caching.ModelNotFoundInCacheException;
+import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModels;
+import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlySyncOptions;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
@@ -217,5 +219,37 @@ public class NewGradleSyncTest extends IdeaTestCase {
 
     Task task = myGradleSync.createSyncTask(request, null);
     assertThat(task).isInstanceOf(Task.Backgroundable.class);
+  }
+
+  public void testSyncWithVariantOnlySuccessfulSync() {
+    // Simulate successful sync.
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    request.variantOnlySyncOptions = mock(VariantOnlySyncOptions.class);
+
+    myCallback.setDone(mock(VariantOnlyProjectModels.class), mock(ExternalSystemTaskId.class));
+    when(myCallbackFactory.create()).thenReturn(myCallback);
+    doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback));
+
+    myGradleSync.sync(request, mySyncListener);
+
+    verify(mySyncMessages).removeAllMessages();
+    verify(myResultHandler).onVariantOnlySyncFinished(same(myCallback), any(), any(), same(mySyncListener));
+    verify(myResultHandler, never()).onSyncFailed(myCallback, mySyncListener);
+  }
+
+  public void testSyncWithVariantOnlyFailedSync() {
+    // Simulate failed sync.
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    request.variantOnlySyncOptions = mock(VariantOnlySyncOptions.class);
+
+    myCallback.setRejected(new Throwable("Test error"));
+    when(myCallbackFactory.create()).thenReturn(myCallback);
+    doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback));
+
+    myGradleSync.sync(request, mySyncListener);
+
+    verify(mySyncMessages).removeAllMessages();
+    verify(myResultHandler, never()).onSyncFinished(same(myCallback), any(), any(), same(mySyncListener));
+    verify(myResultHandler).onSyncFailed(myCallback, mySyncListener);
   }
 }
