@@ -138,7 +138,7 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
       }
       if (myExportedKeyFile != null) {
         buffer.append("<br/>");
-        buffer.append("<a href=\"").append(LOCATE_KEY_URL_PREFIX).append("\">Show Exported Key File</a>");
+        buffer.append("<a href=\"").append(LOCATE_KEY_URL_PREFIX).append("\">Locate</a> exported key file.");
       }
 
       String text = buffer.toString();
