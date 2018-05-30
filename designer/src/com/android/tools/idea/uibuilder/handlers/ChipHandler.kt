@@ -25,7 +25,7 @@ class ChipHandler : ViewHandler() {
     return ImmutableList.of(
       ATTR_STYLE,
       ATTR_CHECKABLE,
-      ATTR_CHIP_TEXT,
+      ATTR_TEXT,
       ATTR_CHIP_ICON,
       ATTR_CHIP_ICON_ENABLED,
       ATTR_CHECKED_ICON,
