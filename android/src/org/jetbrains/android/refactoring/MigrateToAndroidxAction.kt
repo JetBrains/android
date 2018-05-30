@@ -20,12 +20,15 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.sdklib.AndroidVersion
 import com.android.support.MigrationParserVisitor
 import com.android.support.parseMigrationFile
+import com.android.tools.idea.actions.ExportProjectZip
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.intellij.lang.Language
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.ex.ActionUtil
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -35,6 +38,20 @@ import com.intellij.psi.PsiFile
 import com.intellij.refactoring.RefactoringActionHandler
 import com.intellij.refactoring.actions.BaseRefactoringAction
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.*
+import javax.swing.JCheckBox
+
+const val ACTION_WARNING_TEXT = """
+Before proceeding, we recommend that you make a backup of your project.
+
+Depending on your project dependencies, you might need to manually fix
+some errors after the refactoring in order to successfully compile your project.
+
+Do you want to proceed with the migration?
+"""
+const val RESULT_MIGRATE_WITH_BACKUP = 0
+const val RESULT_MIGRATE = 1
+const val RESULT_CANCEL = 2
+
 
 class MigrateToAndroidxAction : BaseRefactoringAction() {
 
@@ -64,6 +81,36 @@ class MigrateToAndroidxHandler : RefactoringActionHandler {
       return
     }
 
+    val okCancelResult = Messages.showCheckboxMessageDialog(ACTION_WARNING_TEXT,
+                                                            "Migrate to AndroidX",
+                                                            arrayOf("Cancel", "Migrate"),
+                                                            "Backup project as Zip file",
+                                                            true,
+                                                            0, 0,
+                                                            Messages.getWarningIcon(),
+                                                            { index: Int, checkbox: JCheckBox ->
+                                                              when {
+                                                                index != 1 -> RESULT_CANCEL
+                                                                checkbox.isSelected -> RESULT_MIGRATE_WITH_BACKUP
+                                                                else -> RESULT_MIGRATE
+                                                              }
+                                                            })
+
+    when (okCancelResult) {
+      RESULT_CANCEL -> return
+      RESULT_MIGRATE_WITH_BACKUP -> {
+        val exportZip = ExportProjectZip()
+        val context = dataContext ?: SimpleDataContext.getProjectContext(project)
+        ActionUtil.invokeAction(exportZip, context, "Migrate to AndroidX", null, Runnable {
+          // Once the export has completed, run the migration
+          runMigration(project)
+        })
+      }
+      else -> runMigration(project)
+    }
+  }
+
+  private fun runMigration(project: Project) {
     val processor = MigrateToAndroidxProcessor(project, parseMigrationMap())
 
     with(processor) {
