@@ -29,7 +29,7 @@ public class MotionSceneTest extends AndroidDomTestCase {
   }
 
   public void testMotionSceneSubTags() throws Throwable {
-    doTestCompletionVariants(getTestName(true) + ".xml", "ConstraintSet", "OnSwipe", "Transition", "KeyFrameSet");
+    doTestCompletionVariants(getTestName(true) + ".xml", "ConstraintSet", "OnSwipe", "Transition", "KeyFrameSet", "StateSet");
   }
 
   public void testConstraintSetSubTags() throws Throwable {
@@ -41,10 +41,7 @@ public class MotionSceneTest extends AndroidDomTestCase {
   }
 
   public void testKeyFrameSetSubTags() throws Throwable {
-    doTestCompletionVariants(getTestName(true) + ".xml",
-                             "KeyAttribute",
-                             "KeyCycle",
-                             "KeyPosition");
+    doTestCompletionVariants(getTestName(true) + ".xml", "KeyAttribute", "KeyCycle", "KeyPosition");
   }
 
   public void testKeyAttributeSubTags() throws Throwable {
@@ -53,6 +50,14 @@ public class MotionSceneTest extends AndroidDomTestCase {
 
   public void testKeyCycleSubTags() throws Throwable {
     doTestCompletionVariants(getTestName(true) + ".xml", "CustomAttribute");
+  }
+
+  public void testStateSetSubTags() throws Throwable {
+    doTestCompletionVariants(getTestName(true) + ".xml", "State");
+  }
+
+  public void testStateSubTags() throws Throwable {
+    doTestCompletionVariants(getTestName(true) + ".xml", "Variant");
   }
 
   // TODO: Add attribute completion tests after ConstraintLayout 2.0 are available in prebuilts

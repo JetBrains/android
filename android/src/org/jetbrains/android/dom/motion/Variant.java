@@ -19,15 +19,8 @@ import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.NameStrategy;
 import org.jetbrains.android.dom.Styleable;
 
-import java.util.List;
-
 @DefinesXml
 @NameStrategy(PascalNameStrategy.class)
-@Styleable(value = "MotionScene", packageName = "android.support.constraint")
-public interface MotionScene extends MotionElement {
-  OnSwipe getOnSwipe();
-  List<Transition> getTransitions();
-  StateSet getStateSet();
-  List<ConstraintSet> getConstraintSets();
-  List<KeyFrameSet> getKeyFrameSets();
+@Styleable(value = "Variant", packageName = "android.support.constraint")
+public interface Variant extends MotionElement {
 }
