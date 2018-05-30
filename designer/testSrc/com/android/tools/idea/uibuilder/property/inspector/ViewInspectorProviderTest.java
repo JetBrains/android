@@ -34,9 +34,9 @@ import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 public class ViewInspectorProviderTest extends PropertyTestCase {
@@ -122,6 +122,12 @@ public class ViewInspectorProviderTest extends PropertyTestCase {
     NlComponentEditor srcEditor = inspector.getEditors().get(0);
     assertThat(srcEditor.getProperty()).isNotNull();
     assertThat(srcEditor.getProperty().getName()).isEqualTo(ATTR_SRC);
+    assertThat(srcEditor.getProperty().getNamespace()).isEqualTo(ANDROID_URI);
+
+    NlComponentEditor srcToolsEditor = inspector.getEditors().get(1);
+    assertThat(srcToolsEditor.getProperty()).isNotNull();
+    assertThat(srcToolsEditor.getProperty().getName()).isEqualTo(ATTR_SRC);
+    assertThat(srcToolsEditor.getProperty().getNamespace()).isEqualTo(TOOLS_URI);
 
     // Simulate the addition of appcompat library:
     AttributeDefinition srcCompatDefinition = new AttributeDefinition(ATTR_SRC_COMPAT);
@@ -133,6 +139,12 @@ public class ViewInspectorProviderTest extends PropertyTestCase {
     srcEditor = inspector.getEditors().get(0);
     assertThat(srcEditor.getProperty()).isNotNull();
     assertThat(srcEditor.getProperty().getName()).isEqualTo(ATTR_SRC_COMPAT);
+    assertThat(srcEditor.getProperty().getNamespace()).isEqualTo(AUTO_URI);
+
+    srcToolsEditor = inspector.getEditors().get(1);
+    assertThat(srcToolsEditor.getProperty()).isNotNull();
+    assertThat(srcToolsEditor.getProperty().getName()).isEqualTo(ATTR_SRC_COMPAT);
+    assertThat(srcToolsEditor.getProperty().getNamespace()).isEqualTo(TOOLS_URI);
 
     // Simulate the removal of appcompat library:
     properties.remove(ATTR_SRC_COMPAT);
@@ -142,5 +154,11 @@ public class ViewInspectorProviderTest extends PropertyTestCase {
     srcEditor = inspector.getEditors().get(0);
     assertThat(srcEditor.getProperty()).isNotNull();
     assertThat(srcEditor.getProperty().getName()).isEqualTo(ATTR_SRC);
+    assertThat(srcEditor.getProperty().getNamespace()).isEqualTo(ANDROID_URI);
+
+    srcToolsEditor = inspector.getEditors().get(1);
+    assertThat(srcToolsEditor.getProperty()).isNotNull();
+    assertThat(srcToolsEditor.getProperty().getName()).isEqualTo(ATTR_SRC);
+    assertThat(srcToolsEditor.getProperty().getNamespace()).isEqualTo(TOOLS_URI);
   }
 }

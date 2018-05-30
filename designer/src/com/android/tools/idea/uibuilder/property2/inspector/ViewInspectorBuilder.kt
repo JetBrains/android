@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.text.StringUtil
 import javax.swing.JPanel
 
 /**
@@ -60,13 +61,29 @@ class ViewInspectorBuilder(project: Project, private val editorProvider: EditorP
     }
 
     for (propertyName in attributes) {
-      // TODO: Handle other namespaces
-      val property = properties.getOrNull(ANDROID_URI, propertyName)
+      val property = findProperty(propertyName, properties)
       if (property != null) {
         val line = inspector.addEditor(editorProvider(property))
         titleModel.addChild(line)
       }
     }
+  }
+
+  private fun findProperty(propertyName: String, properties: PropertiesTable<NelePropertyItem>): NelePropertyItem? {
+    // TODO: Handle other namespaces
+    val property = findPropertyWithoutPrefix(StringUtil.trimStart(propertyName, TOOLS_NS_NAME_PREFIX), properties)
+    val isDesignProperty = propertyName.startsWith(TOOLS_NS_NAME_PREFIX)
+    return if (isDesignProperty) property?.designProperty else property
+  }
+
+  private fun findPropertyWithoutPrefix(propertyName: String, properties: PropertiesTable<NelePropertyItem>): NelePropertyItem? {
+    if (propertyName == ATTR_SRC) {
+      val srcCompat = properties.getOrNull(AUTO_URI, ATTR_SRC_COMPAT)
+      if (srcCompat != null) {
+        return srcCompat
+      }
+    }
+    return properties.getOrNull(ANDROID_URI, propertyName)
   }
 
   private fun getTagName(properties: PropertiesTable<NelePropertyItem>): String? {
@@ -88,7 +105,7 @@ class ViewInspectorBuilder(project: Project, private val editorProvider: EditorP
   private fun createCustomPanel(tagName: String): CustomPanel {
     val handler = viewHandlerManager.getHandler(tagName)
     val panel = handler?.customPanel ?: DummyCustomPanel.INSTANCE
-    cachedCustomPanels.put(tagName, panel)
+    cachedCustomPanels[tagName] = panel
     return panel
   }
 }
