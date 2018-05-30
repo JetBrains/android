@@ -820,8 +820,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     ProfilerAction record = new ProfilerAction.Builder(() -> myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING
                                                              ? "Stop recording" : "Record CPU trace")
       .setContainerComponent(getComponent())
-      .setEnableBooleanSupplier(() -> !myStage.isImportTraceMode() && (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING
-                                                                       || myStage.getCaptureState() == CpuProfilerStage.CaptureState.IDLE))
+      .setEnableBooleanSupplier(() -> shouldEnableCaptureButton() && !myStage.isImportTraceMode()
+                                      && (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING
+                                          || myStage.getCaptureState() == CpuProfilerStage.CaptureState.IDLE))
       .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_R, AdtUiUtils.getActionMask()))
       .setActionRunnable(() -> capture())
       .build();
