@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
 import com.android.tools.idea.gradle.project.sync.ng.caching.ModelNotFoundInCacheException;
+import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModels;
+import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModelsSetup;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -33,6 +35,8 @@ abstract class ProjectSetup {
 
   abstract void setUpProject(@NotNull CachedProjectModels projectModels, @NotNull ProgressIndicator indicator)
     throws ModelNotFoundInCacheException;
+
+  abstract void setUpProject(@NotNull VariantOnlyProjectModels projectModels, @NotNull ProgressIndicator indicator);
 
   abstract void commit();
 
@@ -60,7 +64,7 @@ abstract class ProjectSetup {
 
     @Override
     void setUpProject(@NotNull SyncProjectModels projectModels, @NotNull ProgressIndicator indicator) {
-      ModuleSetup moduleSetup = myModuleSetupFactory.create(myProject, myModelsProvider);
+      SyncProjectModelsSetup moduleSetup = myModuleSetupFactory.createForFullSync(myProject, myModelsProvider);
       try {
         moduleSetup.setUpModules(projectModels, indicator);
       }
@@ -73,7 +77,19 @@ abstract class ProjectSetup {
     @Override
     void setUpProject(@NotNull CachedProjectModels projectModels, @NotNull ProgressIndicator indicator)
       throws ModelNotFoundInCacheException {
-      ModuleSetup moduleSetup = myModuleSetupFactory.create(myProject, myModelsProvider);
+      CachedProjectModelsSetup moduleSetup = myModuleSetupFactory.createForCachedSync(myProject, myModelsProvider);
+      try {
+        moduleSetup.setUpModules(projectModels, indicator);
+      }
+      catch (Throwable e) {
+        disposeChanges();
+        throw e;
+      }
+    }
+
+    @Override
+    void setUpProject(@NotNull VariantOnlyProjectModels projectModels, @NotNull ProgressIndicator indicator) {
+      VariantOnlyProjectModelsSetup moduleSetup = myModuleSetupFactory.createForVariantOnlySync(myProject, myModelsProvider);
       try {
         moduleSetup.setUpModules(projectModels, indicator);
       }

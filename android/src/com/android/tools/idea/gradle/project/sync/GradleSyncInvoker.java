@@ -23,11 +23,11 @@ import com.android.tools.idea.gradle.project.sync.cleanup.PreSyncProjectCleanUp;
 import com.android.tools.idea.gradle.project.sync.idea.IdeaGradleSync;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
+import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlySyncOptions;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncChecks;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.google.common.base.Objects;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -50,6 +50,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Objects;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.util.GradleProjects.setSyncRequestedDuringBuild;
@@ -267,6 +268,8 @@ public class GradleSyncInvoker {
     public boolean cleanProject;
     public boolean useCachedGradleModels;
     public boolean skipAndroidPluginUpgrade;
+    // Perform a variant-only sync if not null.
+    @Nullable public VariantOnlySyncOptions variantOnlySyncOptions;
 
     @NotNull
     public static Request projectLoaded() {
@@ -305,12 +308,14 @@ public class GradleSyncInvoker {
              cleanProject == request.cleanProject &&
              generateSourcesOnSuccess == request.generateSourcesOnSuccess &&
              useCachedGradleModels == request.useCachedGradleModels &&
-             trigger == request.trigger;
+             trigger == request.trigger &&
+             Objects.equals(variantOnlySyncOptions, request.variantOnlySyncOptions);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hashCode(runInBackground, cleanProject, generateSourcesOnSuccess, useCachedGradleModels, trigger);
+      return Objects
+        .hash(runInBackground, cleanProject, generateSourcesOnSuccess, useCachedGradleModels, trigger, variantOnlySyncOptions);
     }
 
     @Override
@@ -321,6 +326,7 @@ public class GradleSyncInvoker {
              ", myGenerateSourcesOnSuccess=" + generateSourcesOnSuccess +
              ", myUseCachedGradleModels=" + useCachedGradleModels +
              ", myTrigger=" + trigger +
+             ", variantOnlySyncOptions=" + variantOnlySyncOptions +
              '}';
     }
   }

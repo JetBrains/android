@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.ng;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModels;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.intellij.mock.MockProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -58,7 +59,7 @@ public class SyncResultHandlerTest extends IdeaTestCase {
     Project project = getProject();
 
     SyncProjectModels models = mock(SyncProjectModels.class);
-    when(mySyncCallback.getModels()).thenReturn(models);
+    when(mySyncCallback.getSyncModels()).thenReturn(models);
 
     ProjectSetup projectSetup = mock(ProjectSetup.class);
     when(myProjectSetupFactory.create(project)).thenReturn(projectSetup);
@@ -93,5 +94,30 @@ public class SyncResultHandlerTest extends IdeaTestCase {
     verify(mySyncListener, never()).setupStarted(project);
     verify(mySyncListener, never()).syncSucceeded(project);
     verify(mySyncListener).syncFailed(project, "Test error");
+  }
+
+  public void testOnVariantOnlySyncFinished() {
+    Project project = getProject();
+
+    VariantOnlyProjectModels models = mock(VariantOnlyProjectModels.class);
+    when(mySyncCallback.getVariantOnlyModels()).thenReturn(models);
+
+    ProjectSetup projectSetup = mock(ProjectSetup.class);
+    when(myProjectSetupFactory.create(project)).thenReturn(projectSetup);
+
+    PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
+    myResultHandler.onVariantOnlySyncFinished(mySyncCallback, setupRequest, myIndicator, mySyncListener);
+
+    verify(mySyncState).setupStarted();
+    verify(mySyncState, never()).syncFailed(any());
+
+    verify(projectSetup).setUpProject(same(models), any());
+    verify(projectSetup).commit();
+
+    verify(mySyncListener, never()).setupStarted(project);
+    verify(mySyncListener).syncSucceeded(project);
+    verify(mySyncListener, never()).syncFailed(any(), any());
+
+    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
   }
 }
