@@ -116,11 +116,14 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
   @Override
   public File moduleDirectory(String modulePath) {
     modulePath = standardiseModulePath(modulePath);
-
     if (!modulePaths().contains(modulePath)) {
       return null;
     }
+    return moduleDirectoryNoCheck(modulePath);
+  }
 
+  @Nullable
+  private File moduleDirectoryNoCheck(String modulePath) {
     File rootDirPath = getBaseDirPath(myGradleDslFile.getProject());
     if (modulePath.equals(":")) {
       return rootDirPath;
@@ -140,11 +143,11 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
       parentDir = rootDirPath;
     }
     else {
-      String parentModule = parentModule(modulePath);
+      String parentModule = parentModuleNoCheck(modulePath);
       if (parentModule == null) {
         return null;
       }
-      parentDir = moduleDirectory(parentModule);
+      parentDir = moduleDirectoryNoCheck(parentModule);
     }
     String moduleName = modulePath.substring(modulePath.lastIndexOf(':') + 1);
     return new File(parentDir, moduleName);
@@ -181,23 +184,29 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
   @Override
   public String parentModule(@NotNull String modulePath) {
     modulePath = standardiseModulePath(modulePath);
-
     List<String> allModulePaths = modulePaths();
     if (!allModulePaths.contains(modulePath)) {
       return null;
     }
+    String currentPath = modulePath;
+    do {
+      currentPath = parentModuleNoCheck(currentPath);
+      if (allModulePaths.contains(currentPath)) {
+        return currentPath;
+      }
+    }
+    while (currentPath != null && !currentPath.equals(":"));
+    return null;
+  }
 
+  @Nullable
+  private String parentModuleNoCheck(@NotNull String modulePath) {
+    modulePath = standardiseModulePath(modulePath);
     if (modulePath.equals(":")) {
       return null;
     }
-
     int lastPathElementIndex = modulePath.lastIndexOf(':');
-    String parentModulePath = lastPathElementIndex == 0 ? ":" : modulePath.substring(0, lastPathElementIndex);
-
-    if (allModulePaths.contains(parentModulePath)) {
-      return parentModulePath;
-    }
-    return null;
+    return lastPathElementIndex == 0 ? ":" : modulePath.substring(0, lastPathElementIndex);
   }
 
   @Nullable

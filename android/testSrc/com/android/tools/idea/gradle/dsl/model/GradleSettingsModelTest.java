@@ -204,11 +204,13 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
                   "project(':libs:mylibrary').projectDir = new File(rootDir, 'xyz/mylibrary')\n" +
                   "include \":olibs\"\n" +
                   "project  (   \":olibs\"  )   .   projectDir = new File(rootDir, 'otherlibs')\n" +
-                  "include 'olibs:mylibrary'";
+                  "include 'olibs:mylibrary'\n" +
+                  "include ':notamodule:deepmodule'";
 
     writeToSettingsFile(text);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
-    assertEquals(ImmutableList.of(":", ":app", ":libs", ":libs:mylibrary", ":olibs", ":olibs:mylibrary"), settingsModel.modulePaths());
+    assertEquals(ImmutableList.of(":", ":app", ":libs", ":libs:mylibrary", ":olibs", ":olibs:mylibrary", ":notamodule:deepmodule"),
+                 settingsModel.modulePaths());
 
     File rootDir = getBaseDirPath(myProject);
     assertEquals(rootDir, settingsModel.moduleDirectory(":"));
@@ -217,6 +219,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     assertEquals(new File(rootDir, "xyz/mylibrary"), settingsModel.moduleDirectory(":libs:mylibrary"));
     assertEquals(new File(rootDir, "otherlibs"), settingsModel.moduleDirectory("olibs"));
     assertEquals(new File(rootDir, "otherlibs/mylibrary"), settingsModel.moduleDirectory(":olibs:mylibrary"));
+    assertEquals(new File(rootDir, "notamodule/deepmodule"), settingsModel.moduleDirectory(":notamodule:deepmodule"));
   }
 
   @Test
@@ -226,11 +229,13 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
                   "project(':libs:mylibrary').projectDir = new File(rootDir, 'xyz/mylibrary')\n" +
                   "include \":olibs\"\n" +
                   "project  (   \":olibs\"  )   .   projectDir = new File(rootDir, 'otherlibs')\n" +
-                  "include 'olibs:mylibrary'";
+                  "include 'olibs:mylibrary'\n" +
+                  "include ':notamodule:deepmodule'";
 
     writeToSettingsFile(text);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
-    assertEquals(ImmutableList.of(":", ":app", ":libs", ":libs:mylibrary", ":olibs", ":olibs:mylibrary"), settingsModel.modulePaths());
+    assertEquals(ImmutableList.of(":", ":app", ":libs", ":libs:mylibrary", ":olibs", ":olibs:mylibrary", ":notamodule:deepmodule"),
+                 settingsModel.modulePaths());
 
     File rootDir = getBaseDirPath(myProject);
     assertEquals(":", settingsModel.moduleWithDirectory(rootDir));
@@ -239,6 +244,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     assertEquals(":libs:mylibrary", settingsModel.moduleWithDirectory(new File(rootDir, "xyz/mylibrary")));
     assertEquals(":olibs", settingsModel.moduleWithDirectory(new File(rootDir, "otherlibs")));
     assertEquals(":olibs:mylibrary", settingsModel.moduleWithDirectory(new File(rootDir, "otherlibs/mylibrary")));
+    assertEquals(":notamodule:deepmodule", settingsModel.moduleWithDirectory(new File(rootDir, "notamodule/deepmodule")));
   }
 
   @Test
@@ -265,17 +271,20 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     String text = "include \"app\", \":libs\"\n" +
                   "include 'libs:mylibrary'\n" +
                   "include \":olibs\"\n" +
-                  "include 'olibs:mylibrary'";
+                  "include 'olibs:mylibrary'\n" +
+                  "include ':notamodule:deepmodule'";
 
     writeToSettingsFile(text);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
-    assertEquals(ImmutableList.of(":", ":app", ":libs", ":libs:mylibrary", ":olibs", ":olibs:mylibrary"), settingsModel.modulePaths());
+    assertEquals(ImmutableList.of(":", ":app", ":libs", ":libs:mylibrary", ":olibs", ":olibs:mylibrary", ":notamodule:deepmodule"),
+                 settingsModel.modulePaths());
 
     assertEquals(":", settingsModel.parentModule("app"));
     assertEquals(":", settingsModel.parentModule(":libs"));
     assertEquals(":libs", settingsModel.parentModule("libs:mylibrary"));
     assertEquals(":", settingsModel.parentModule("olibs"));
     assertEquals(":olibs", settingsModel.parentModule(":olibs:mylibrary"));
+    assertEquals(":", settingsModel.parentModule(":notamodule:deepmodule"));
   }
 
   private void applyChanges(@NotNull final GradleSettingsModel settingsModel) {
