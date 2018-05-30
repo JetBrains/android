@@ -901,7 +901,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     myCaptureViewLoading.stopLoading();
     switch (myStage.getCaptureState()) {
       case IDLE:
-        myCaptureButton.setEnabled(true);
+        myCaptureButton.setEnabled(shouldEnableCaptureButton());
         myCaptureButton.setText("Record");
         myCaptureStatus.setText("");
         myCaptureButton.setToolTipText("Record a trace");
@@ -912,7 +912,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
           myCaptureButton.setEnabled(false);
         }
         else {
-          myCaptureButton.setEnabled(true);
+          myCaptureButton.setEnabled(shouldEnableCaptureButton());
         }
         myCaptureButton.setText("Stop");
         myCaptureStatus.setText("");
