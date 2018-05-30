@@ -61,9 +61,14 @@
             the on-device developer options.]]>
           </section>
         </stepElement>
-          <stepElement>
+        <stepElement>
           <section>
-            <![CDATA[Depending on the version of Android you're using, proceed as follows:
+            <![CDATA[Depending on the version of Android you're using, proceed as follows:]]>
+          </section>
+        </stepElement>
+        <stepElement>
+          <section>
+            <![CDATA[
             <ul>
               <li>On Android 8.0 and higher, go to <b>Settings > System > About phone</b> and tap <b>Build number</b> seven times.</li>
               <li>On Android 4.2 and higher, go to <b>Settings > About phone</b> and tap <b>Build number</b> seven times.</li>
