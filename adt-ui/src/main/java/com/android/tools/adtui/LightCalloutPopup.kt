@@ -42,9 +42,17 @@ class LightCalloutPopup(
 
   private var balloon: Balloon? = null
 
+  /**
+   * @param content The content in Popup Window
+   * @param parentComponent The anchor component. Can be null.
+   * @param location The position relates to [parentComponent]. If [parentComponent] is null, position will relate to
+   *                 the top-left point of screen.
+   * @param position The popup position, see [Balloon.Position]. The default value is [Balloon.Position.below].
+   */
+  @JvmOverloads
   fun show(
     content: JComponent,
-    parentComponent: JComponent,
+    parentComponent: JComponent?,
     location: Point,
     position: Balloon.Position = Balloon.Position.below
   ) {
@@ -70,7 +78,12 @@ class LightCalloutPopup(
         }
       })
 
-      val relativePoint = RelativePoint(parentComponent, location)
+      val relativePoint = if (parentComponent != null) {
+        RelativePoint(parentComponent, location)
+      }
+      else {
+        RelativePoint(location)
+      }
       show(relativePoint, position)
     }
   }
@@ -92,7 +105,7 @@ class LightCalloutPopup(
       .setShowCallout(true)
       .setPositionChangeYShift(2)
       .setHideOnKeyOutside(false)
-      .setHideOnAction(true)
+      .setHideOnAction(false)
       .setBlockClicksThroughBalloon(true)
       .setRequestFocus(true)
       .setDialogMode(false)
