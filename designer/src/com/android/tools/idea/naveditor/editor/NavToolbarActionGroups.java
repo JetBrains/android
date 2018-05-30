@@ -19,6 +19,7 @@ import com.android.tools.idea.common.actions.*;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceShortcut;
+import com.android.tools.idea.naveditor.actions.AutoArrangeAction;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import org.jetbrains.annotations.NotNull;
@@ -37,6 +38,9 @@ public class NavToolbarActionGroups extends ToolbarActionGroups {
   @Override
   protected ActionGroup getEastGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
+    group.add(new AutoArrangeAction(mySurface));
+    group.addSeparator();
+
     group.add(DesignSurfaceShortcut.ZOOM_OUT.registerForAction(new ZoomOutAction(mySurface), mySurface, this));
     group.add(new ZoomLabelAction(mySurface));
     group.add(DesignSurfaceShortcut.ZOOM_IN.registerForAction(new ZoomInAction(mySurface), mySurface, this));

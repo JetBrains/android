@@ -44,6 +44,8 @@ import org.jetbrains.android.dom.navigation.NavigationDomFileDescription
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.facet.AndroidFacet
 
+const val SKIP_PERSISTED_LAYOUT = "skipPersistedLayout"
+
 /**
  * [NavSceneLayoutAlgorithm] that puts screens in locations that have been specified by the user
  */
@@ -96,6 +98,10 @@ class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutA
   }
 
   override fun doLayout(component: SceneComponent): Boolean {
+    if (component.nlComponent.getClientProperty(SKIP_PERSISTED_LAYOUT) == true) {
+      return false
+    }
+
     if (!component.nlComponent.isDestination) {
       return false
     }

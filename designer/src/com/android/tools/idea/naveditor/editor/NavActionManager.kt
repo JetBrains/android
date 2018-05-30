@@ -19,17 +19,13 @@ import com.android.tools.idea.common.actions.*
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurfaceShortcut
-import com.android.tools.idea.gradle.actions.SelectBuildVariantAction
 import com.android.tools.idea.naveditor.actions.*
 import com.android.tools.idea.naveditor.model.*
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.IdeActions
-import com.intellij.openapi.actionSystem.ShortcutSet
 import com.intellij.openapi.util.SystemInfo
-import org.jetbrains.android.dom.navigation.NavActionElement
-import java.awt.Toolkit
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import javax.swing.JComponent
@@ -40,6 +36,7 @@ import javax.swing.JComponent
 // Open for testing only
 open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesignSurface>(surface) {
   private val gotoComponentAction: AnAction = GotoComponentAction(surface)
+  private val autoArrangeAction: AnAction = AutoArrangeAction(surface)
   private val zoomInAction: AnAction = DesignSurfaceShortcut.ZOOM_IN.registerForAction(ZoomInAction(surface), surface, surface)
   private val zoomOutAction: AnAction = DesignSurfaceShortcut.ZOOM_OUT.registerForAction(ZoomOutAction(surface), surface, surface)
   private val zoomToFitAction: AnAction = DesignSurfaceShortcut.ZOOM_FIT.registerForAction(ZoomToFitAction(surface), surface, surface)
@@ -98,6 +95,9 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
 
   private fun addSurfaceGroup(group: DefaultActionGroup) {
     group.add(selectAllAction)
+
+    group.addSeparator()
+    group.add(autoArrangeAction)
 
     group.addSeparator()
     group.add(zoomInAction)
