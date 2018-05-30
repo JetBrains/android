@@ -19,6 +19,8 @@ import com.android.tools.idea.gradle.dsl.api.ext.ExtModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
+import com.android.tools.idea.gradle.structure.model.android.asParsed
+import com.android.tools.idea.gradle.structure.model.helpers.parseInt
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -246,4 +248,40 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
     applyChangesAndReparse(buildModel)
     verify(buildModel.ext())
   }
+
+  @Test
+  fun testRebindResolvedProperty() {
+    val text = """
+               ext {
+                 propList = [1]
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModelInstance = gradleBuildModel
+    val extModel = buildModelInstance.ext()
+
+    val propList = extModel.findProperty("propList").wrap(::parseInt, ResolvedPropertyModel::asInt)
+
+    val newResolvedProperty = extModel.findProperty("newVar").resolve()
+    var localModified = false
+    @Suppress("UNCHECKED_CAST")
+    val reboundProp = (propList.getEditableValues()[0] as GradleModelCoreProperty<Int, ModelPropertyCore<Int>>)
+      .rebind(newResolvedProperty, { localModified = true })
+    assertThat(reboundProp.getParsedValue(), equalTo<Annotated<ParsedValue<Int>>>(ParsedValue.NotSet.annotated()))
+    reboundProp.setParsedValue(1.asParsed())
+    assertThat(reboundProp.getParsedValue(), equalTo<Annotated<ParsedValue<Int>>>(1.asParsed().annotated()))
+    assertThat(localModified, equalTo(true))
+    assertThat(newResolvedProperty.isModified, equalTo(true))
+    assertThat(newResolvedProperty.getValue(GradlePropertyModel.INTEGER_TYPE), equalTo(1))
+
+    applyChangesAndReparse(buildModelInstance)
+
+    val expected = """
+               ext {
+                 propList = [1]
+                 newVar = 1
+               }""".trimIndent()
+    verifyFileContents(myBuildFile, expected)
+  }
+
 }

@@ -114,7 +114,9 @@ fun <ContextT, ModelT, ValueT : Any, ModelPropertyT : ModelListProperty<ContextT
   val boundContext = property.bindContext(context, model)
   return ListPropertyEditor(
     boundProperty, boundContext,
-    { propertyCore, _, variables -> SimplePropertyEditor(propertyCore, boundContext, variables, listOf()) },
+    { propertyCore, _, variables ->
+      SimplePropertyEditor(propertyCore, boundContext, variables, createDefaultEditorExtensions(project, module))
+    },
     variablesScope)
 }
 
@@ -131,6 +133,8 @@ fun <ContextT, ModelT, ValueT : Any, ModelPropertyT : ModelMapProperty<ContextT,
   val boundContext = property.bindContext(context, model)
   return MapPropertyEditor(
     boundProperty, boundContext,
-    { propertyCore, _, variables -> SimplePropertyEditor(propertyCore, boundContext, variables, listOf()) },
+    { propertyCore, _, variables ->
+      SimplePropertyEditor(propertyCore, boundContext, variables, createDefaultEditorExtensions(project, module))
+    },
     variablesScope)
 }
