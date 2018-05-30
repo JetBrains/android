@@ -45,9 +45,13 @@ public class LineChartModel extends AspectModel<LineChartModel.Aspect> implement
     // TODO Handle stacked configs
     for (RangedContinuousSeries ranged : mySeries) {
       Range range = ranged.getYRange();
-      double yMax = Double.MIN_VALUE;
+      double yMax = -Double.MAX_VALUE;
 
       List<SeriesData<Long>> seriesList = ranged.getSeries();
+      if (seriesList.isEmpty()) {
+        continue;
+      }
+
       for (SeriesData<Long> series : seriesList) {
         double value = series.value;
         if (yMax < value) {
