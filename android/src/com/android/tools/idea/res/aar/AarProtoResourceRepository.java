@@ -356,7 +356,7 @@ public class AarProtoResourceRepository extends FileResourceRepository {
 
   @NotNull
   private ResourceValue createStyleableValue(@NotNull Resources.Styleable styleableMsg, @NotNull String resourceName) {
-    DeclareStyleableResourceValue styleableValue =
+    DeclareStyleableResourceValueImpl styleableValue =
         new DeclareStyleableResourceValueImpl(getNamespace(), ResourceType.DECLARE_STYLEABLE, resourceName, null, getLibraryName());
     for (Resources.Styleable.Entry entryMsg : styleableMsg.getEntryList()) {
       String url = entryMsg.getAttr().getName();

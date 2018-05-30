@@ -251,11 +251,12 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
       /**
        * Restores a modified theme with its original content
        */
-      private void restoreOriginalTheme(@NotNull ConfiguredThemeEditorStyle modifiedTheme, @NotNull List<StyleItemResourceValue> originalItems) {
+      private void restoreOriginalTheme(@NotNull ConfiguredThemeEditorStyle modifiedTheme,
+                                        @NotNull List<StyleItemResourceValue> originalItems) {
         StyleResourceValue modifiedResourceValue = modifiedTheme.getStyleResourceValue();
-        StyleResourceValue restoredResourceValue = new StyleResourceValueImpl(modifiedResourceValue.asReference(),
-                                                                              modifiedResourceValue.getParentStyleName(),
-                                                                              modifiedResourceValue.getLibraryName());
+        StyleResourceValueImpl restoredResourceValue = new StyleResourceValueImpl(modifiedResourceValue.asReference(),
+                                                                                  modifiedResourceValue.getParentStyleName(),
+                                                                                  modifiedResourceValue.getLibraryName());
         for (StyleItemResourceValue item : originalItems) {
           restoredResourceValue.addItem(item);
         }
@@ -713,7 +714,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
       .format("<html>The %1$s '<code>%2$s</code>' is Read-Only.<br/>A new %1$s will be created to modify '<code>%3$s</code>'.<br/></html>",
               isSubStyleSelected ? "style" : "theme", selectedStyle.getQualifiedName(), rv.getAttrName());
 
-    final StyleItemResourceValue originalValue = rv.getSelectedValue();
+    StyleItemResourceValue originalValue = rv.getSelectedValue();
     ParentRendererEditor.ThemeParentChangedListener themeListener = new ParentRendererEditor.ThemeParentChangedListener() {
       private ConfiguredThemeEditorStyle myModifiedTheme;
 
