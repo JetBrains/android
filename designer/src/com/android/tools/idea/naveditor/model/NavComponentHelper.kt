@@ -295,6 +295,12 @@ class NavComponentMixin(component: NlComponent)
     return null
   }
 
+  override fun beforeMove(insertType: InsertType, receiver: NlComponent, ids: MutableSet<String>) {
+    if (receiver.children.any { it.id == component.id }) {
+      component.incrementId(ids)
+    }
+  }
+
   override fun getTooltipText(): String? {
     // TODO
     return null
