@@ -260,4 +260,22 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     // Verify nothing bad happened to the values after the re-parsing.
     verifyValues(appModule.defaultConfig, afterSync = true)
   }
+
+  fun testProGuardKnownValues() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    val project = PsProject(resolvedProject)
+
+    val appModule = project.findModuleByName("app") as PsAndroidModule
+    assertThat(appModule, notNullValue())
+
+    val defaultConfig = appModule.defaultConfig
+    assertThat(defaultConfig, notNullValue())
+
+    val context = PsAndroidModuleDefaultConfigDescriptors.proGuardFiles.bindContext(null, defaultConfig)
+    val knownValues = context.getKnownValues().get()
+    assertThat(knownValues.literals.map { it.value.getText { toString() } }.toSet(),
+               equalTo(setOf("other.pro", "proguard-rules.txt", "\$getDefaultProguardFile('proguard-android.txt')")))
+  }
 }
