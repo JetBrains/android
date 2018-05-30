@@ -18,6 +18,7 @@ package com.android.tools.idea.naveditor.scene.layout
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import org.jetbrains.android.dom.navigation.NavigationSchema
+import java.util.stream.Collectors
 
 /**
  * Tests for [DummyAlgorithm]
@@ -46,7 +47,7 @@ class DummyAlgorithmTest : NavTestCase() {
     val root = scene.root!!
     val algorithm = DummyAlgorithm(NavigationSchema.get(myFacet))
     root.flatten().forEach { it.setPosition(-500, -500) }
-    root.flatten().forEach { algorithm.layout(it) }
+    algorithm.layout(root.flatten().collect(Collectors.toList()))
 
     assertEquals(20, scene.getSceneComponent("fragment1")!!.drawX)
     assertEquals(20, scene.getSceneComponent("fragment1")!!.drawY)
@@ -94,7 +95,7 @@ class DummyAlgorithmTest : NavTestCase() {
     val manual = scene.getSceneComponent("fragment1")!!
     root.flatten().forEach { c -> c.setPosition(-500, -500) }
     manual.setPosition(190, 100)
-    root.flatten().filter { it !== manual }.forEach { algorithm.layout(it) }
+    algorithm.layout(root.flatten().filter { it !== manual }.collect(Collectors.toList()))
 
     assertEquals(190, manual.drawX)
     assertEquals(100, manual.drawY)

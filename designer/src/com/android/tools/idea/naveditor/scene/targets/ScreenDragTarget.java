@@ -24,6 +24,7 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.MultiComponentTarget;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -103,7 +104,7 @@ public class ScreenDragTarget extends DragBaseTarget implements MultiComponentTa
       if (Math.abs(x - myFirstMouseX) <= 1 && Math.abs(y - myFirstMouseY) <= 1) {
         return;
       }
-      ((NavSceneManager)myComponent.getScene().getSceneManager()).save(myComponent);
+      ((NavSceneManager)myComponent.getScene().getSceneManager()).save(ImmutableList.of(myComponent));
     }
     if (myChangedComponent) {
       myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);

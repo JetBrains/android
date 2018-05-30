@@ -47,7 +47,7 @@ import org.jetbrains.android.facet.AndroidFacet
 /**
  * [NavSceneLayoutAlgorithm] that puts screens in locations that have been specified by the user
  */
-class ManualLayoutAlgorithm(private val module: Module) : NavSceneLayoutAlgorithm {
+class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutAlgorithm() {
   private var _schema: NavigationSchema? = null
   private var _storage: Storage? = null
   private val tagPositionMap: BiMap<SmartPsiElementPointer<XmlTag>, LayoutPositions> = HashBiMap.create()
@@ -95,7 +95,7 @@ class ManualLayoutAlgorithm(private val module: Module) : NavSceneLayoutAlgorith
     storage.rootPositions = state
   }
 
-  override fun layout(component: SceneComponent): Boolean {
+  override fun doLayout(component: SceneComponent): Boolean {
     if (!component.nlComponent.isDestination) {
       return false
     }
