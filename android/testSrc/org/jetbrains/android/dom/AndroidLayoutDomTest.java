@@ -147,6 +147,10 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     doTestCompletionVariantsContains("tools_sample_completion.xml", "@tools:sample/full_names", "@tools:sample/lorem");
   }
 
+  public void testToolsSampleHighlighting() throws Throwable {
+    doTestHighlighting(getTestName(true) + ".xml");
+  }
+
   // "-1" is not a valid tools:targetApi value
   public void testTargetApiErrorMessage1() throws Throwable {
     doTestHighlighting("tools_targetapi_error1.xml");

@@ -147,7 +147,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
             items.stream()
               .filter(SampleDataResourceItem.class::isInstance)
               .map(SampleDataResourceItem.class::cast)
-              .forEach(sampleDataItem -> sampleDataItem.createResolveResult());
+              .forEach(sampleDataItem -> result.add(sampleDataItem.createResolveResult()));
           }
         }
       }
