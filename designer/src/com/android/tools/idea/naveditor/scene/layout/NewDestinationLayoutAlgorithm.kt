@@ -28,8 +28,8 @@ const val NEW_DESTINATION_MARKER_PROPERTY = "new.destination"
 @SwingCoordinate private val TOLERANCE = JBUI.scale(5)
 
 
-class NewDestinationLayoutAlgorithm : NavSceneLayoutAlgorithm {
-  override fun layout(component: SceneComponent): Boolean {
+class NewDestinationLayoutAlgorithm : SingleComponentLayoutAlgorithm() {
+  override fun doLayout(component: SceneComponent): Boolean {
     if (component.nlComponent.getClientProperty(NEW_DESTINATION_MARKER_PROPERTY) != true) {
       return false
     }

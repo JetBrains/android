@@ -138,15 +138,13 @@ class NavSceneTest : NavTestCase() {
 
     val scene = model.surface.scene!!
     val sceneManager = scene.sceneManager as NavSceneManager
-    var component = scene.getSceneComponent("fragment1")!!
-    component.setPosition(-100, -200)
-    sceneManager.save(component)
-    component = scene.getSceneComponent("fragment2")!!
-    component.setPosition(-300, 0)
-    sceneManager.save(component)
-    component = scene.getSceneComponent("fragment3")!!
-    component.setPosition(200, 200)
-    sceneManager.save(component)
+    val component1 = scene.getSceneComponent("fragment1")!!
+    component1.setPosition(-100, -200)
+    val component2 = scene.getSceneComponent("fragment2")!!
+    component2.setPosition(-300, 0)
+    val component3 = scene.getSceneComponent("fragment3")!!
+    component3.setPosition(200, 200)
+    sceneManager.save(listOf(component1, component2, component3))
 
     val list = DisplayList()
     model.surface.sceneManager!!.update()
@@ -182,15 +180,13 @@ class NavSceneTest : NavTestCase() {
 
     val scene = model.surface.scene!!
     val sceneManager: NavSceneManager = scene.sceneManager as NavSceneManager
-    var component = scene.getSceneComponent("fragment1")!!
-    component.setPosition(1900, 1800)
-    sceneManager.save(component)
-    component = scene.getSceneComponent("fragment2")!!
-    component.setPosition(1700, 2000)
-    sceneManager.save(component)
-    component = scene.getSceneComponent("fragment3")!!
-    component.setPosition(2200, 2200)
-    sceneManager.save(component)
+    val component1 = scene.getSceneComponent("fragment1")!!
+    component1.setPosition(1900, 1800)
+    val component2 = scene.getSceneComponent("fragment2")!!
+    component2.setPosition(1700, 2000)
+    val component3 = scene.getSceneComponent("fragment3")!!
+    component3.setPosition(2200, 2200)
+    sceneManager.save(listOf(component1, component2, component3))
 
     val list = DisplayList()
     model.surface.sceneManager!!.update()

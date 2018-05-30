@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  *
  * TODO: implement a better way
  */
-public class DummyAlgorithm implements NavSceneLayoutAlgorithm {
+public class DummyAlgorithm extends SingleComponentLayoutAlgorithm {
   @NavCoordinate private static final int WIDTH = JBUI.scale(600);
   @NavCoordinate private static final int INITIAL_OFFSET = JBUI.scale(20);
   @NavCoordinate private static final int INTERVAL = JBUI.scale(60);
@@ -44,7 +44,7 @@ public class DummyAlgorithm implements NavSceneLayoutAlgorithm {
   }
 
   @Override
-  public boolean layout(@NotNull SceneComponent component) {
+  public boolean doLayout(@NotNull SceneComponent component) {
     if (!NavComponentHelperKt.isDestination(component.getNlComponent())) {
       return false;
     }

@@ -360,17 +360,18 @@ public class NavSceneManager extends SceneManager {
       destination.setPosition(0, 0);
     }
 
-    for (SceneComponent destination : destinations) {
-      for (NavSceneLayoutAlgorithm algorithm : myLayoutAlgorithms) {
-        if (algorithm.layout(destination)) {
-          // If the algorithm that laid out the component can't persist the position, assume the position hasn't been persisted and
-          // needs to be
-          if (!algorithm.canSave()) {
-            save(destination);
-          }
-          break;
-        }
+    for (NavSceneLayoutAlgorithm algorithm : myLayoutAlgorithms) {
+      List<SceneComponent> remaining = algorithm.layout(destinations);
+      destinations.removeAll(remaining);
+      // If the algorithm that laid out the component can't persist the position, assume the position hasn't been persisted and
+      // needs to be
+      if (!algorithm.canSave()) {
+        save(destinations);
       }
+      if (remaining.isEmpty()) {
+        break;
+      }
+      destinations = remaining;
     }
 
     HashSet<String> connectedActionSources = new HashSet<>();
@@ -408,9 +409,9 @@ public class NavSceneManager extends SceneManager {
     }
   }
 
-  public void save(@NotNull SceneComponent component) {
+  public void save(@NotNull List<SceneComponent> components) {
     if (mySavingLayoutAlgorithm != null) {
-      mySavingLayoutAlgorithm.save(component);
+      components.forEach(mySavingLayoutAlgorithm::save);
     }
   }
 

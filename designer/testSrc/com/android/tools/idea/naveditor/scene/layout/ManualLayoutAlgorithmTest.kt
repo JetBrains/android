@@ -29,6 +29,7 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.testFramework.PlatformTestUtil
 import org.jetbrains.android.dom.navigation.NavigationSchema
+import java.util.stream.Collectors
 
 /**
  * Tests for [ManualLayoutAlgorithm]
@@ -56,7 +57,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
 
     val scene = model.surface.scene!!
     val algorithm = ManualLayoutAlgorithm(NavigationSchema.get(myFacet), rootPositions, myModule)
-    scene.root!!.flatten().forEach { algorithm.layout(it) }
+    algorithm.layout(scene.root!!.flatten().collect(Collectors.toList()))
 
     assertEquals(123, scene.getSceneComponent("fragment1")!!.drawX)
     assertEquals(456, scene.getSceneComponent("fragment1")!!.drawY)
@@ -92,10 +93,10 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
 
     val scene = model.surface.scene!!
     val algorithm = ManualLayoutAlgorithm(NavigationSchema.get(myFacet), rootPositions, myModule)
-    scene.root!!.flatten().forEach { algorithm.layout(it) }
+    algorithm.layout(scene.root!!.flatten().collect(Collectors.toList()))
 
     val scene2 = model2.surface.scene!!
-    scene2.root!!.flatten().forEach { algorithm.layout(it) }
+    algorithm.layout(scene2.root!!.flatten().collect(Collectors.toList()))
 
     assertEquals(123, scene.getSceneComponent("fragment1")!!.drawX)
     assertEquals(456, scene.getSceneComponent("fragment1")!!.drawY)
@@ -133,7 +134,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     surface.model = model
     component = surface.scene!!.getSceneComponent("fragment1")!!
     algorithm = ManualLayoutAlgorithm(model.module)
-    algorithm.layout(component)
+    algorithm.layout(listOf(component))
     assertEquals(100, component.drawX)
     assertEquals(200, component.drawY)
   }
@@ -169,7 +170,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     surface.model = model
     component = surface.scene!!.getSceneComponent("fragment2")!!
     algorithm = ManualLayoutAlgorithm(model.module)
-    algorithm.layout(component)
+    algorithm.layout(listOf(component))
     assertEquals(400, component.drawX)
     assertEquals(500, component.drawY)
 
@@ -197,14 +198,13 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
 
     val scene = model.surface.scene!!
     val algorithm = ManualLayoutAlgorithm(NavigationSchema.get(myFacet), rootPositions, myModule)
-    scene.root!!.flatten().forEach { algorithm.layout(it) }
+    algorithm.layout(scene.root!!.flatten().collect(Collectors.toList()))
 
     WriteCommandAction.runWriteCommandAction(project) { model.find("fragment1")!!.setAttribute(ANDROID_URI, ATTR_ID, "@+id/renamed") }
 
-    scene.root!!.flatten().forEach {
-      it.setPosition(0, 0)
-      algorithm.layout(it)
-    }
+    scene.root!!.flatten().forEach { it.setPosition(0, 0) }
+    algorithm.layout(scene.root!!.flatten().collect(Collectors.toList()))
+
 
     assertEquals(123, scene.getSceneComponent("renamed")!!.drawX)
     assertEquals(456, scene.getSceneComponent("renamed")!!.drawY)
