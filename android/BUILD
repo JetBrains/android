@@ -152,6 +152,7 @@ iml_module(
         "//prebuilts/studio/sdk:ndk-bundle",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/studio/sdk:platforms/latest-preview",
         "//prebuilts/studio/sdk:sources",
         "//prebuilts/studio/sdk:support_latest",
         "//prebuilts/studio/sdk:test-runner_latest",

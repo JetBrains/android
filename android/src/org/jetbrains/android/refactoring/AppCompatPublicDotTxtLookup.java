@@ -60,9 +60,14 @@ public class AppCompatPublicDotTxtLookup {
 
   private static final String BASE_URL =
     "https://maven.google.com/com/android/support/appcompat-v7/%1$s/appcompat-v7-%2$s.aar";
+  private static final String ANDROIDX_BASE_URL =
+    "https://maven.google.com/androidx/appcompat/appcompat/%1$s/appcompat-%2$s.aar";
   private static final Splitter PUBLIC_TXT_SPLITTER = Splitter.on(' ').trimResults();
   private static final String RELATIVE_URI_PATH = "com/android/support/appcompat-v7/%1$s/" + FN_PUBLIC_TXT;
+  private static final String ANDROIDX_RELATIVE_URI_PATH = "androidx/appcompat/appcompat/%1$s/" + FN_PUBLIC_TXT;
   private static final String RELATIVE_FILE_PATH = RELATIVE_URI_PATH.replace('/', File.separatorChar);
+  private static final String ANDROIDX_RELATIVE_FILE_PATH = ANDROIDX_RELATIVE_URI_PATH.replace('/', File.separatorChar);
+
 
   private static final class LookupCreator {
     static final AppCompatPublicDotTxtLookup INSTANCE = new AppCompatPublicDotTxtLookup();
@@ -76,11 +81,11 @@ public class AppCompatPublicDotTxtLookup {
   AppCompatPublicDotTxtLookup() {
   }
 
-  AppCompatStyleMigration createAppCompatStyleMigration(@NotNull String appCompatVersion) {
+  AppCompatStyleMigration createAppCompatStyleMigration(@NotNull GoogleMavenArtifactId artifactId, @NotNull String appCompatVersion) {
     Set<String> attrSet = Sets.newHashSetWithExpectedSize(250); // 25.1.1 has 198 entries for attr
     Set<String> styleSet = Sets.newHashSetWithExpectedSize(200); // 25.1.1 has 149 entries for style
 
-    try (BufferedReader reader = findAppCompatPublicTxt(appCompatVersion)) {
+    try (BufferedReader reader = findAppCompatPublicTxt(artifactId, appCompatVersion)) {
       String line;
       while ((line = reader.readLine()) != null) {
         List<String> splitList = PUBLIC_TXT_SPLITTER.splitToList(line);
@@ -124,11 +129,12 @@ public class AppCompatPublicDotTxtLookup {
   }
 
   @NotNull
-  private static JarFile findRemoteAppCompatAar(@NotNull String appCompatVersion) throws IOException {
+  private static JarFile findRemoteAppCompatAar(@NotNull GoogleMavenArtifactId artifactId, @NotNull String appCompatVersion) throws IOException {
     URLConnection ucon = null;
     BufferedInputStream is = null;
     try {
-      String url = String.format(BASE_URL, appCompatVersion, appCompatVersion);
+      String url = String.format(artifactId.isAndroidxLibrary() ? ANDROIDX_BASE_URL : BASE_URL,
+                                 appCompatVersion, appCompatVersion);
       ucon = HttpConfigurable.getInstance().openConnection(url);
       is = new BufferedInputStream(ucon.getInputStream());
       // Create a temp file for the aar file
@@ -147,12 +153,12 @@ public class AppCompatPublicDotTxtLookup {
   }
 
   @Nullable
-  private static JarFile findLocalAppCompatAar(@NotNull String appCompatVersion) throws IOException {
-    GradleCoordinate coordinate = GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate(appCompatVersion);
+  private static JarFile findLocalAppCompatAar(@NotNull GoogleMavenArtifactId artifactId, @NotNull String appCompatVersion) throws IOException {
     AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
     if (sdkData == null) {
       return null;
     }
+    GradleCoordinate coordinate = artifactId.getCoordinate(appCompatVersion);
     File appCompatAarFile = RepositoryUrlManager.get().getArchiveForCoordinate(coordinate, sdkData.getLocation(), FileOpUtils.create());
     if (appCompatAarFile == null || !appCompatAarFile.exists()) {
       return null;
@@ -160,10 +166,10 @@ public class AppCompatPublicDotTxtLookup {
     return new JarFile(appCompatAarFile);
   }
 
-  private static byte[] findEntryRemote(@NotNull String appCompatVersion) throws IOException {
-    JarFile jarFile = findLocalAppCompatAar(appCompatVersion);
+  private static byte[] findEntryRemote(@NotNull GoogleMavenArtifactId artifactId, @NotNull String appCompatVersion) throws IOException {
+    JarFile jarFile = findLocalAppCompatAar(artifactId, appCompatVersion);
     if (jarFile == null) {
-      jarFile = findRemoteAppCompatAar(appCompatVersion);
+      jarFile = findRemoteAppCompatAar(artifactId, appCompatVersion);
     }
     try (InputStream is = jarFile.getInputStream(jarFile.getEntry(FN_PUBLIC_TXT))) {
       return ByteStreams.toByteArray(is);
@@ -174,15 +180,17 @@ public class AppCompatPublicDotTxtLookup {
   }
 
   @NotNull
-  private synchronized BufferedReader findAppCompatPublicTxt(@NotNull String appCompatVersion) throws IOException {
+  private synchronized BufferedReader findAppCompatPublicTxt(@NotNull GoogleMavenArtifactId artifactId, @NotNull String appCompatVersion) throws IOException {
     if (getCacheDir() != null) {
-      File file = new File(getCacheDir(), String.format(RELATIVE_FILE_PATH, appCompatVersion));
+      File file = new File(getCacheDir(),
+                           String.format(artifactId.isAndroidxLibrary() ?
+                                         ANDROIDX_RELATIVE_FILE_PATH : RELATIVE_FILE_PATH, appCompatVersion));
       if (file.exists()) {
         return new BufferedReader(new InputStreamReader(new FileInputStream(file), UTF_8));
       }
       else {
         try {
-          byte[] bytes = findEntryRemote(appCompatVersion);
+          byte[] bytes = findEntryRemote(artifactId, appCompatVersion);
           ByteArrayInputStream in = new ByteArrayInputStream(bytes);
           if (file.getParentFile().mkdirs()) {
             in.mark(Integer.MAX_VALUE);
