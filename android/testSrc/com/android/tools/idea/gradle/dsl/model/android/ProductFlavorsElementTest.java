@@ -269,4 +269,37 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
     assertEquals("name", "flavorA", productFlavor.name());
     assertEquals("applicationId", "appid", productFlavor.applicationId());
   }
+
+  @Test
+  public void testProductFlavorsNotRemoved() throws Exception {
+    String text = "android {\n" +
+                  "  productFlavors {\n" +
+                  "    x {\n" +
+                  "      externalNativeBuild {\n" +
+                  "        cmake {\n" +
+                  "           arguments '-DANDROID_STL=c++_static'\n" +
+                  "        }\n" +
+                  "      }\n" +
+                  "    }\n" +
+                  "  }\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    ProductFlavorModel xModel = buildModel.android().productFlavors().get(0);
+    xModel.externalNativeBuild().removeCMake();
+
+    checkForValidPsiElement(xModel, ProductFlavorModelImpl.class);
+
+    applyChangesAndReparse(buildModel);
+
+    checkForValidPsiElement(buildModel.android().productFlavors().get(0), ProductFlavorModelImpl.class);
+    String expected = "android {\n" +
+                      "  productFlavors {\n" +
+                      "    x {\n" +
+                      "    }\n" +
+                      "  }\n" +
+                      "}";
+    verifyFileContents(myBuildFile, expected);
+  }
 }

@@ -1060,9 +1060,10 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("versionNameSuffix", buildType.versionNameSuffix());
     assertMissingProperty("zipAlignEnabled", buildType.zipAlignEnabled());
 
-    // Now remove the applicationIdSuffix also and see the whole android block is removed as it would be an empty block.
+    // Now remove the applicationIdSuffix and build type and see that the whole android block is removed as it would be an empty block.
 
     buildType.applicationIdSuffix().delete();
+    buildModel.android().removeBuildType("xyz");
     assertThat(android, instanceOf(AndroidModelImpl.class));
     assertTrue(((AndroidModelImpl)android).hasValidPsiElement());
     assertThat(buildType, instanceOf(BuildTypeModelImpl.class));
