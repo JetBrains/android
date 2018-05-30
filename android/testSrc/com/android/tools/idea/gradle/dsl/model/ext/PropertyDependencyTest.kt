@@ -19,14 +19,15 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTEGER
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*
 import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.PasswordType.PLAIN_TEXT
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.FAKE
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
+import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
@@ -526,5 +527,49 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
       val newMapReference = childModel.ext().findProperty("mapItem")
       verifyPropertyModel(newMapReference.resolve(), STRING_TYPE, "myDebugFile.txt", STRING, REGULAR, 1, "mapItem")
     }
+  }
+
+  @Test
+  fun testBuildScriptAppliedDependencies() {
+    val text = """
+               buildscript {
+                 apply from: 'versions.gradle'
+                 dependencies {
+                   classpath deps.android_gradle_plugin
+                 }
+               }
+               """.trimIndent()
+    val appliedText = """
+                      ext.deps = [:]
+                      def versions = [:]
+                      versions.android_gradle_plugin = "3.1.0"
+
+                      def deps = [:]
+                      deps.android_gradle_plugin = "com.android.tools.build:gradle:${'$'}versions.android_gradle_plugin"
+                      ext.deps = deps
+                      """.trimIndent()
+    writeToNewProjectFile("versions.gradle", appliedText)
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    val classPathProperty = buildModel.buildscript().dependencies().artifacts()[0]
+
+    verifyPropertyModel(classPathProperty.completeModel(), STRING_TYPE, "com.android.tools.build:gradle:3.1.0", STRING, REGULAR, 1)
+
+    // Set the value of the result of the version
+    classPathProperty.version().resultModel.setValue("3.2.0")
+
+    fun verify() {
+      verifyPropertyModel(classPathProperty.completeModel(), STRING_TYPE, "com.android.tools.build:gradle:3.2.0", STRING, REGULAR, 1)
+      verifyPropertyModel(classPathProperty.completeModel().unresolvedModel, STRING_TYPE, "deps.android_gradle_plugin", REFERENCE, REGULAR,
+                          1)
+      assertThat(classPathProperty.completeModel().resultModel.getRawValue(STRING_TYPE),
+                 equalTo("com.android.tools.build:gradle:${'$'}versions.android_gradle_plugin"))
+      verifyPropertyModel(classPathProperty.version(), STRING_TYPE, "3.2.0", STRING, FAKE, 1)
+      verifyPropertyModel(classPathProperty.version().resultModel, STRING_TYPE, "3.2.0", STRING, REGULAR, 0)
+    }
+    verify()
+    applyChangesAndReparse(buildModel)
+    verify()
   }
 }
