@@ -41,12 +41,6 @@ import com.intellij.openapi.util.Computable
  * Layout editor-specific helper methods and data for NlComponent
  */
 
-/**
- * Regex to get the base name of a component id, where the basename of
- * "component123" is "component"
- */
-private val BASE_ID_PATTERN = Regex("(.*[^0-9])([0-9]+)?")
-
 @AndroidCoordinate
 var NlComponent.x: Int
   get() = this.nlComponentData.x
@@ -130,16 +124,6 @@ fun NlComponent.needsDefaultId(): Boolean {
   }
 
   return true
-}
-
-/**
- * Returns the basename of a component id, where the basename of
- * "component123" is "component" or null if the id is empty or null, or no baseName can be found
- */
-fun NlComponent.getBaseIdName(): String? {
-  return this.id?.let {
-    return BASE_ID_PATTERN.find(it)?.groups?.get(1)?.value
-  }
 }
 
 /**
@@ -488,15 +472,7 @@ class NlComponentMixin(component: NlComponent)
 
     // AssignId
     if (component.needsDefaultId() && !realInsertType.isMove) {
-      val id = component.id
-      if (id == null || id.isEmpty()) {
-        ids.add(component.assignId(ids))
-      } else {
-        val baseName = component.getBaseIdName()
-        if (baseName != null && !baseName.isEmpty()) {
-          ids.add(component.assignId(baseName, ids))
-        }
-      }
+      component.incrementId(ids)
     }
   }
 

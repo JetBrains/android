@@ -685,6 +685,21 @@ public class NlComponent implements NlAttributesHolder {
     return newId;
   }
 
+  public void incrementId(@NotNull Set<String> ids) {
+    String id = getId();
+    if (id == null || id.isEmpty()) {
+      ids.add(assignId(ids));
+    }
+    else {
+      // Regex to get the base name of a component id, where the basename of
+      // "component123" is "component"
+      String baseName = id.replaceAll("[0-9]*$", "");
+      if (baseName != null && !baseName.isEmpty()) {
+        ids.add(assignId(baseName, ids));
+      }
+    }
+  }
+
   @NotNull
   public static String generateId(@NotNull String baseName, @NotNull Set<String> ids, ResourceFolderType type, Module module) {
     String idValue = StringUtil.decapitalize(baseName.substring(baseName.lastIndexOf('.') + 1));

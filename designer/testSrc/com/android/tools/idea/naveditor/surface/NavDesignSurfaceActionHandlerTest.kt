@@ -196,4 +196,26 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     assertSameElements(fragment2.children.map { it.id }, "a1")
   }
 
+  fun testCopyPasteToSelf() {
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("fragment1")
+      }
+    }
+
+    val root = model.find("root")!!
+    val fragment1 = model.find("fragment1")!!
+
+    val surface = NavDesignSurface(project, project)
+    surface.model = model
+    val handler = NavDesignSurfaceActionHandler(surface)
+
+    surface.selectionModel.setSelection(listOf(fragment1))
+    handler.performCopy(mock(DataContext::class.java))
+    handler.performPaste(mock(DataContext::class.java))
+
+    val fragment = model.find("fragment")
+    assertNotNull(fragment)
+    assertSameElements(root.children, fragment, fragment1)
+  }
 }
