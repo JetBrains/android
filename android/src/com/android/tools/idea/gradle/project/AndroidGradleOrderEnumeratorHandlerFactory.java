@@ -1,10 +1,11 @@
 package com.android.tools.idea.gradle.project;
 
+import com.android.builder.model.AndroidArtifact;
+import com.android.builder.model.BaseArtifact;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.io.FilePaths;
-import com.google.common.collect.Collections2;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootModel;
 import com.intellij.openapi.roots.OrderRootType;
@@ -16,6 +17,7 @@ import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
 import java.io.File;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
@@ -94,31 +96,35 @@ public class AndroidGradleOrderEnumeratorHandlerFactory extends FactoryImpl {
   }
 
   @NotNull
-  private static Collection<String> getAndroidCompilerOutputFolders(@NotNull AndroidModuleModel androidModel,
+  private static List<String> getAndroidCompilerOutputFolders(@NotNull AndroidModuleModel androidModel,
                                                                     boolean includeProduction,
                                                                     boolean includeTests) {
-    Collection<String> toAdd = new LinkedList<>();
+    List<String> toAdd = new LinkedList<>();
     if (includeProduction) {
-      toAdd.add(pathToIdeaUrl(androidModel.getSelectedVariant().getMainArtifact().getClassesFolder()));
-      toAdd.add(pathToIdeaUrl(androidModel.getSelectedVariant().getMainArtifact().getJavaResourcesFolder()));
-      androidModel.getSelectedVariant().getMainArtifact().getGeneratedResourceFolders().stream()
-        .filter(Objects::nonNull)
-        .map(FilePaths::pathToIdeaUrl)
-        .forEach(toAdd::add);
+      addFoldersFromArtifact(androidModel.getSelectedVariant().getMainArtifact(), toAdd);
     }
     if (includeTests && androidModel.getSelectedVariant().getUnitTestArtifact() != null) {
-      toAdd.add(pathToIdeaUrl(androidModel.getSelectedVariant().getUnitTestArtifact().getClassesFolder()));
-      toAdd.add(pathToIdeaUrl(androidModel.getSelectedVariant().getUnitTestArtifact().getJavaResourcesFolder()));
+      addFoldersFromArtifact(androidModel.getSelectedVariant().getUnitTestArtifact(), toAdd);
     }
     if (includeTests && androidModel.getSelectedVariant().getAndroidTestArtifact() != null) {
-      toAdd.add(pathToIdeaUrl(androidModel.getSelectedVariant().getAndroidTestArtifact().getClassesFolder()));
-      toAdd.add(pathToIdeaUrl(androidModel.getSelectedVariant().getAndroidTestArtifact().getJavaResourcesFolder()));
-      androidModel.getSelectedVariant().getAndroidTestArtifact().getGeneratedResourceFolders().stream()
-        .filter(Objects::nonNull)
-        .map(FilePaths::pathToIdeaUrl)
-        .forEach(toAdd::add);
+      addFoldersFromArtifact(androidModel.getSelectedVariant().getAndroidTestArtifact(), toAdd);
     }
     return toAdd;
+  }
+
+  private static void addFoldersFromArtifact(@NotNull BaseArtifact artifact, @NotNull List<String> toAdd) {
+    toAdd.add(pathToIdeaUrl(artifact.getClassesFolder()));
+    artifact.getAdditionalClassesFolders().stream()
+            .filter(Objects::nonNull)
+            .map(FilePaths::pathToIdeaUrl)
+            .forEach(toAdd::add);
+    toAdd.add(pathToIdeaUrl(artifact.getJavaResourcesFolder()));
+    if (artifact instanceof AndroidArtifact) {
+      ((AndroidArtifact)artifact).getGeneratedResourceFolders().stream()
+                                 .filter(Objects::nonNull)
+                                 .map(FilePaths::pathToIdeaUrl)
+                                 .forEach(toAdd::add);
+    }
   }
 
   @NotNull
