@@ -61,7 +61,7 @@ class ComponentAssistantActionTarget(
     }
     else {
       val location = Point(context.getSwingXDip(centerX), context.getSwingYDip(myTop))
-      popup.show(component, parentComponent, location, Balloon.Position.above)
+      popup.show(component, parentComponent, location, position = Balloon.Position.above)
     }
   }
 
