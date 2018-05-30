@@ -368,14 +368,37 @@ class CpuProfilerStageViewTest {
     val cpuStageView = CpuProfilerStageView(myProfilersView, myStage)
     // Select valid capture no dialog should be presented.
     myStage.setAndSelectCapture(0)
-    assertThat(myIdeServices.balloonTitle).isNull();
-    assertThat(myIdeServices.balloonBody).isNull();
+    assertThat(myIdeServices.balloonTitle).isNull()
+    assertThat(myIdeServices.balloonBody).isNull()
     // Select invalid capture we should see dialog.
     myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(ATRACE_MISSING_DATA_FILE)))
     myStage.setAndSelectCapture(1)
     assertThat(myIdeServices.balloonTitle).isEqualTo(CpuProfilerStageView.ATRACE_BUFFER_OVERFLOW_TITLE)
     assertThat(myIdeServices.balloonBody).isEqualTo(CpuProfilerStageView.ATRACE_BUFFER_OVERFLOW_MESSAGE)
   }
+
+  @Test
+  fun recordTraceMenuItemOnlyEnabledInLiveSessions() {
+    // Clear any context menu items added to the service to make sure we'll have only the items created in CpuProfilerStageView
+    myComponents.clearContextMenuItems()
+    // Create a CpuProfilerStageView. We don't need its value, so we don't store it in a variable.
+    CpuProfilerStageView(myProfilersView, myStage)
+
+    var recordTraceEntry = myComponents.allContextMenuItems[0]
+    assertThat(recordTraceEntry.text).isEqualTo("Record CPU trace")
+    // As the current session is alive, the item should be enabled.
+    assertThat(recordTraceEntry.isEnabled).isTrue()
+
+    myStage.studioProfilers.sessionsManager.endCurrentSession()
+    // Clear the components again and create a new instance of CpuProfilerStageView to re-add the components.
+    myComponents.clearContextMenuItems()
+    CpuProfilerStageView(myProfilersView, myStage)
+    recordTraceEntry = myComponents.allContextMenuItems[0]
+    assertThat(recordTraceEntry.text).isEqualTo("Record CPU trace")
+    // As the current session is dead, the item should be disabled.
+    assertThat(recordTraceEntry.isEnabled).isFalse()
+  }
+
   /**
    * Checks that the menu items common to all profilers are installed in the CPU profiler context menu.
    * They should be at the bottom of the context menu, starting at a given index.
