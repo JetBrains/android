@@ -44,12 +44,18 @@ public class AndroidGradleOrderEnumeratorHandlerTest extends AndroidGradleTestCa
 
     AndroidModuleModel model = AndroidModuleModel.get(module);
     assertContainsElements(result, pathToIdeaUrl(model.getSelectedVariant().getMainArtifact().getClassesFolder()));
+    assertContainsElements(result, Collections2.transform(model.getSelectedVariant().getMainArtifact().getAdditionalClassesFolders(),
+                                                          (input) -> input == null ? null : pathToIdeaUrl(input)));
     assertContainsElements(result, pathToIdeaUrl(model.getSelectedVariant().getMainArtifact().getJavaResourcesFolder()));
     assertContainsElements(result, Collections2.transform(model.getSelectedVariant().getMainArtifact().getGeneratedResourceFolders(),
                                                           (input) -> input == null ? null : pathToIdeaUrl(input)));
     assertDoesntContain(result, pathToIdeaUrl(model.getSelectedVariant().getUnitTestArtifact().getClassesFolder()));
+    assertDoesntContain(result, Collections2.transform(model.getSelectedVariant().getUnitTestArtifact().getAdditionalClassesFolders(),
+                                                          (input) -> input == null ? null : pathToIdeaUrl(input)));
     assertDoesntContain(result, pathToIdeaUrl(model.getSelectedVariant().getUnitTestArtifact().getJavaResourcesFolder()));
     assertDoesntContain(result, pathToIdeaUrl(model.getSelectedVariant().getAndroidTestArtifact().getClassesFolder()));
+    assertDoesntContain(result, Collections2.transform(model.getSelectedVariant().getAndroidTestArtifact().getAdditionalClassesFolders(),
+                                                          (input) -> input == null ? null : pathToIdeaUrl(input)));
     assertDoesntContain(result, pathToIdeaUrl(model.getSelectedVariant().getAndroidTestArtifact().getJavaResourcesFolder()));
     assertDoesntContain(result, Collections2.transform(model.getSelectedVariant().getAndroidTestArtifact().getGeneratedResourceFolders(),
                                                           (input) -> input == null ? null : pathToIdeaUrl(input)));
@@ -62,12 +68,18 @@ public class AndroidGradleOrderEnumeratorHandlerTest extends AndroidGradleTestCa
 
     AndroidModuleModel model = AndroidModuleModel.get(module);
     assertContainsElements(result, pathToIdeaUrl(model.getSelectedVariant().getMainArtifact().getClassesFolder()));
+    assertContainsElements(result, Collections2.transform(model.getSelectedVariant().getMainArtifact().getAdditionalClassesFolders(),
+                                                          (input) -> input == null ? null : pathToIdeaUrl(input)));
     assertContainsElements(result, pathToIdeaUrl(model.getSelectedVariant().getMainArtifact().getJavaResourcesFolder()));
     assertContainsElements(result, Collections2.transform(model.getSelectedVariant().getMainArtifact().getGeneratedResourceFolders(),
                                                           (input) -> input == null ? null : pathToIdeaUrl(input)));
     assertContainsElements(result, pathToIdeaUrl(model.getSelectedVariant().getUnitTestArtifact().getClassesFolder()));
+    assertContainsElements(result, Collections2.transform(model.getSelectedVariant().getUnitTestArtifact().getAdditionalClassesFolders(),
+                                                          (input) -> input == null ? null : pathToIdeaUrl(input)));
     assertContainsElements(result, pathToIdeaUrl(model.getSelectedVariant().getUnitTestArtifact().getJavaResourcesFolder()));
     assertContainsElements(result, pathToIdeaUrl(model.getSelectedVariant().getAndroidTestArtifact().getClassesFolder()));
+    assertContainsElements(result, Collections2.transform(model.getSelectedVariant().getAndroidTestArtifact().getAdditionalClassesFolders(),
+                                                          (input) -> input == null ? null : pathToIdeaUrl(input)));
     assertContainsElements(result, pathToIdeaUrl(model.getSelectedVariant().getAndroidTestArtifact().getJavaResourcesFolder()));
     assertContainsElements(result, Collections2.transform(model.getSelectedVariant().getAndroidTestArtifact().getGeneratedResourceFolders(),
                                                           (input) -> input == null ? null : pathToIdeaUrl(input)));
