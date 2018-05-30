@@ -131,7 +131,7 @@ public final class GroovyDslUtil {
       return false;
     }
 
-    if (!element.isBlockElement() || !element.isInsignificantIfEmpty()) {
+    if (!element.isBlockElement() || !(element.getChildren().isEmpty() && element.isInsignificantIfEmpty())) {
       return false;
     }
 
@@ -166,6 +166,7 @@ public final class GroovyDslUtil {
     }
 
     PsiElement parent = element.getParent();
+    GradleDslElement dslParent = getNextValidParent(containingDslElement);
 
     if (!element.isValid()) {
       // Skip deleting
@@ -181,20 +182,22 @@ public final class GroovyDslUtil {
       }
     }
     else if (element instanceof GrClosableBlock) {
-      final Boolean[] isEmpty = new Boolean[]{true};
-      ((GrClosableBlock)element).acceptChildren(new GroovyElementVisitor() {
-        @Override
-        public void visitElement(@NotNull GroovyPsiElement child) {
-          if (child instanceof GrParameterList) {
-            if (((GrParameterList)child).getParameters().length == 0) {
-              return; // Ignore the empty parameter list.
+      if (dslParent == null || dslParent.isInsignificantIfEmpty()) {
+        final Boolean[] isEmpty = new Boolean[]{true};
+        ((GrClosableBlock)element).acceptChildren(new GroovyElementVisitor() {
+          @Override
+          public void visitElement(@NotNull GroovyPsiElement child) {
+            if (child instanceof GrParameterList) {
+              if (((GrParameterList)child).getParameters().length == 0) {
+                return; // Ignore the empty parameter list.
+              }
             }
+            isEmpty[0] = false;
           }
-          isEmpty[0] = false;
+        });
+        if (isEmpty[0]) {
+          element.delete();
         }
-      });
-      if (isEmpty[0]) {
-        element.delete();
       }
     }
     else if (element instanceof GrMethodCallExpression) {
@@ -262,10 +265,23 @@ public final class GroovyDslUtil {
       // Give the parent a chance to adapt to the missing child.
       handleElementRemoved(parent, element);
       // If this element is deleted, also delete the parent if it is empty.
-      GradleDslElement dslParent =
-        element == containingDslElement.getPsiElement() ? containingDslElement.getParent() : containingDslElement;
-      maybeDeleteIfEmpty(parent, dslParent);
+      if (dslParent != null && dslParent.isInsignificantIfEmpty()) {
+        maybeDeleteIfEmpty(parent, element == dslParent.getPsiElement() ? dslParent : containingDslElement);
+      }
     }
+  }
+
+  @Nullable
+  static GradleDslElement getNextValidParent(@NotNull GradleDslElement element) {
+    PsiElement psi = element.getPsiElement();
+    while (element != null && (psi == null || !psi.isValid())) {
+      element = element.getParent();
+      if (element != null) {
+        psi = element.getPsiElement();
+      }
+    }
+
+    return element;
   }
 
   static void removePsiIfInvalid(@Nullable GradleDslElement element) {
@@ -846,5 +862,21 @@ public final class GroovyDslUtil {
     closure.applyChanges();
     element.setParsedClosureElement(closure);
     element.setNewClosureElement(null);
+  }
+
+  static void deletePsiElement(@NotNull GradleDslElement context, @Nullable PsiElement psiElement) {
+    if (psiElement == null || !psiElement.isValid()) {
+      return;
+    }
+
+    PsiElement parent = psiElement.getParent();
+    psiElement.delete();
+
+    maybeDeleteIfEmpty(parent, context);
+
+    // Now we have deleted all empty PsiElements in the Psi tree, we also need to make sure
+    // to clear any invalid PsiElements in the GradleDslElement tree otherwise we will
+    // be prevented from recreating these elements.
+    removePsiIfInvalid(context);
   }
 }

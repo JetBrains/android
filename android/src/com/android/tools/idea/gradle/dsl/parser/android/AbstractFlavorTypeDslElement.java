@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
+import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,6 +55,7 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
 
   @Override
   public boolean isInsignificantIfEmpty() {
-    return false;
+    // defaultConfig is special in that is can be deleted if it is empty.
+    return myName.name().equals(AndroidModelImpl.DEFAULT_CONFIG);
   }
 }

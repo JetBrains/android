@@ -46,7 +46,7 @@ import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptio
 public final class AndroidModelImpl extends GradleDslBlockModel implements AndroidModel {
   @NonNls private static final String BUILD_TOOLS_VERSION = "buildToolsVersion";
   @NonNls private static final String COMPILE_SDK_VERSION = "compileSdkVersion";
-  @NonNls private static final String DEFAULT_CONFIG = "defaultConfig";
+  @NonNls public static final String DEFAULT_CONFIG = "defaultConfig";
   @NonNls private static final String DEFAULT_PUBLISH_CONFIG = "defaultPublishConfig";
   @NonNls private static final String FLAVOR_DIMENSIONS = "flavorDimensions";
   @NonNls private static final String GENERATE_PURE_SPLITS = "generatePureSplits";

@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiWhiteSpace;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
@@ -100,6 +99,10 @@ public class GroovyDslWriter implements GradleDslWriter {
       return psiElement;
     }
 
+    if (isNewEmptyBlockElement(element)) {
+      return null; // Avoid creation of an empty block statement.
+    }
+
     // If the parent doesn't have a psi element, the anchor will be used to create the parent in getParentPsi.
     // In this case we want to be placed in the newly made parent so we ignore our anchor.
     if (needToCreateParent(element)) {
@@ -112,10 +115,6 @@ public class GroovyDslWriter implements GradleDslWriter {
 
     Project project = parentPsiElement.getProject();
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(project);
-
-    if (isNewEmptyBlockElement(element)) {
-      return null; // Avoid creation of an empty block statement.
-    }
 
     String statementText = maybeTrimForParent(element.getNameElement(), element.getParent());
     assert statementText != null && !statementText.isEmpty() : "Element name can't be null! This will cause statement creation to error.";
@@ -206,21 +205,10 @@ public class GroovyDslWriter implements GradleDslWriter {
 
   @Override
   public void deleteDslElement(@NotNull GradleDslElement element) {
-    PsiElement psiElement = element.getPsiElement();
-    if (psiElement == null || !psiElement.isValid()) {
-      return;
-    }
-
-    PsiElement parent = psiElement.getParent();
-    psiElement.delete();
-
-    maybeDeleteIfEmpty(parent, element);
-
-    // Now we have deleted all empty PsiElements in the Psi tree, we also need to make sure
-    // to clear any invalid PsiElements in the GradleDslElement tree otherwise we will
-    // be prevented from recreating these elements.
-    removePsiIfInvalid(element);
+    deletePsiElement(element, element.getPsiElement());
   }
+
+
 
   @Override
   public PsiElement createDslLiteral(@NotNull GradleDslLiteral literal) {
@@ -234,14 +222,7 @@ public class GroovyDslWriter implements GradleDslWriter {
 
   @Override
   public void deleteDslLiteral(@NotNull GradleDslLiteral literal) {
-    PsiElement expression = literal.getExpression();
-    if (expression == null) {
-      return;
-    }
-    PsiElement parent = expression.getParent();
-    expression.delete();
-    maybeDeleteIfEmpty(parent, literal);
-    removePsiIfInvalid(literal);
+    deletePsiElement(literal, literal.getExpression());
   }
 
   @Override
