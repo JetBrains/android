@@ -47,6 +47,7 @@ public class EventActivityTooltipView extends ProfilerMonitorTooltipView<EventMo
 
     // Callback on the data range so the active event time gets updated properly.
     getMonitor().getProfilers().getTimeline().getDataRange().addDependency(this).onChange(Range.Aspect.RANGE, this::timeChanged);
+    getMonitor().getProfilers().getTimeline().getTooltipRange().addDependency(this).onChange(Range.Aspect.RANGE, this::timeChanged);
   }
 
   @Override

@@ -29,7 +29,7 @@ class EventActivityTooltipViewTest {
 
   private lateinit var myActivityTooltipView: FakeEventActivityTooltipView
   private var myTimer: FakeTimer = FakeTimer()
-  private var myMonitor: EventMonitor? = null
+  private lateinit var myMonitor: EventMonitor
   private var myEventService = FakeEventService()
   @get:Rule
   val myGrpcChannel = FakeGrpcChannel("EventActivityTooltipViewTest", myEventService)
@@ -40,11 +40,11 @@ class EventActivityTooltipViewTest {
     myTimer.tick(TimeUnit.SECONDS.toNanos(1))
     myMonitor = EventMonitor(profilers)
     val view = StudioProfilersView(profilers, FakeIdeProfilerComponents())
-    myActivityTooltipView = FakeEventActivityTooltipView(view.stageView, EventActivityTooltip(myMonitor!!))
+    myActivityTooltipView = FakeEventActivityTooltipView(view.stageView, EventActivityTooltip(myMonitor))
     val tooltipTime = TimeUnit.SECONDS.toMicros(1) + TimeUnit.MILLISECONDS.toMicros(1)
     val timelineRange = TimeUnit.SECONDS.toMicros(5)
-    myMonitor!!.timeline.dataRange.set(0.0, timelineRange.toDouble())
-    myMonitor!!.timeline.tooltipRange.set(tooltipTime.toDouble(), tooltipTime.toDouble())
+    myMonitor.timeline.dataRange.set(0.0, timelineRange.toDouble())
+    myMonitor.timeline.tooltipRange.set(tooltipTime.toDouble(), tooltipTime.toDouble())
   }
 
   @Test
@@ -60,6 +60,34 @@ class EventActivityTooltipViewTest {
     assertThat(myActivityTooltipView.headingText).matches("00:01.001")
     assertThat(myActivityTooltipView.contentText).matches(ACTIVITY_NAME)
     assertThat(myActivityTooltipView.durationText).matches("00:01.000 - 00:03.000")
+  }
+
+  @Test
+  fun tooltipRangeChangeShouldBeHandled() {
+    myEventService.addActivityEvent(
+      buildActivityEvent(ACTIVITY_NAME, arrayOf(
+        ActivityStateData(EventProfiler.ActivityStateData.ActivityState.ADDED, TimeUnit.SECONDS.toNanos(1)),
+        ActivityStateData(EventProfiler.ActivityStateData.ActivityState.PAUSED, TimeUnit.SECONDS.toNanos(5))
+      ), 0))
+
+    myEventService.addActivityEvent(
+      buildActivityEvent(OTHER_ACTIVITY_NAME, arrayOf(
+        ActivityStateData(EventProfiler.ActivityStateData.ActivityState.ADDED, TimeUnit.SECONDS.toNanos(6)),
+        ActivityStateData(EventProfiler.ActivityStateData.ActivityState.PAUSED, TimeUnit.SECONDS.toNanos(7))
+      ), 0))
+
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+
+    assertThat(myActivityTooltipView.headingText).matches("00:01.001")
+    assertThat(myActivityTooltipView.contentText).matches(ACTIVITY_NAME)
+    assertThat(myActivityTooltipView.durationText).matches("00:01.000 - 00:05.000")
+
+    val tooltipTime = TimeUnit.SECONDS.toMicros(6).toDouble()
+    myMonitor.timeline.tooltipRange.set(tooltipTime, tooltipTime)
+
+    assertThat(myActivityTooltipView.headingText).matches("00:06.000")
+    assertThat(myActivityTooltipView.contentText).matches(OTHER_ACTIVITY_NAME)
+    assertThat(myActivityTooltipView.durationText).matches("00:06.000 - 00:07.000")
   }
 
   @Test
@@ -89,12 +117,12 @@ class EventActivityTooltipViewTest {
 
   private fun buildActivityEvent(name: String,
                                  states: Array<ActivityStateData>,
-                                 contextHash: Long): com.android.tools.profiler.proto.EventProfiler.ActivityData {
-    val builder = com.android.tools.profiler.proto.EventProfiler.ActivityData.newBuilder()
+                                 contextHash: Long): EventProfiler.ActivityData {
+    val builder = EventProfiler.ActivityData.newBuilder()
     builder.setPid(ProfilersTestData.SESSION_DATA.pid)
         .setName(name)
         .setHash(name.hashCode().toLong())
-        .setFragmentData(com.android.tools.profiler.proto.EventProfiler.FragmentData.newBuilder().setActivityContextHash(contextHash))
+        .setFragmentData(EventProfiler.FragmentData.newBuilder().setActivityContextHash(contextHash))
     for (state in states) {
       builder.addStateChanges(EventProfiler.ActivityStateData.newBuilder()
           .setState(state.activityState)
@@ -123,5 +151,6 @@ class EventActivityTooltipViewTest {
   companion object {
     private val TEST_START_TIME_NS = TimeUnit.SECONDS.toNanos(1)
     private val ACTIVITY_NAME = "TestActivity"
+    private val OTHER_ACTIVITY_NAME = "OtherTestActivity"
   }
 }
