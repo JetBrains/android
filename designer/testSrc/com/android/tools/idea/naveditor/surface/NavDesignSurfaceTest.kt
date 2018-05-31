@@ -203,11 +203,12 @@ class NavDesignSurfaceTest : NavTestCase() {
     surface.scene!!.getSceneComponent(f1)!!.setPosition(0, 0)
     surface.scene!!.getSceneComponent(f2)!!.setPosition(100, 100)
     surface.scene!!.getSceneComponent(f3)!!.setPosition(200, 200)
+    (surface.sceneManager as NavSceneManager).layout(false)
 
-    verifyScroll(ImmutableList.of(f2), surface, scheduleRef, scrollPosition, -22, 4)
-    verifyScroll(ImmutableList.of(f1, f2), surface, scheduleRef, scrollPosition, -47, -21)
-    verifyScroll(ImmutableList.of(f1, f3), surface, scheduleRef, scrollPosition, -22, 4)
-    verifyScroll(ImmutableList.of(f3), surface, scheduleRef, scrollPosition, 28, 54)
+    verifyScroll(ImmutableList.of(f2), surface, scheduleRef, scrollPosition, -12, 14)
+    verifyScroll(ImmutableList.of(f1, f2), surface, scheduleRef, scrollPosition, -37, -11)
+    verifyScroll(ImmutableList.of(f1, f3), surface, scheduleRef, scrollPosition, -12, 14)
+    verifyScroll(ImmutableList.of(f3), surface, scheduleRef, scrollPosition, 38, 64)
   }
 
   private fun verifyScroll(

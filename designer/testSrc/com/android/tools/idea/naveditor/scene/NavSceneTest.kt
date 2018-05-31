@@ -27,6 +27,7 @@ import com.android.tools.idea.common.surface.InteractionManager
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import com.android.tools.idea.naveditor.scene.targets.ScreenDragTarget
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
 import com.google.common.collect.ImmutableList
@@ -63,6 +64,11 @@ class NavSceneTest : NavTestCase() {
       }
     }
     val scene = model.surface.scene!!
+
+    moveComponentTo(scene.getSceneComponent("fragment1")!!, 200, 20)
+    moveComponentTo(scene.getSceneComponent("subnav")!!, 380, 20)
+    moveComponentTo(scene.getSceneComponent("activity")!!, 20, 20)
+    scene.sceneManager.layout(false)
 
     val list = DisplayList()
     scene.layout(0, SceneContext.get(model.surface.currentSceneView))
@@ -106,6 +112,9 @@ class NavSceneTest : NavTestCase() {
       }
     }
     val scene = model.surface.scene!!
+    moveComponentTo(scene.getSceneComponent("fragment1")!!, 140, 20)
+    moveComponentTo(scene.getSceneComponent("nav")!!, 320, 20)
+    scene.sceneManager.layout(false)
 
     val list = DisplayList()
     scene.layout(0, SceneContext.get(model.surface.currentSceneView))
@@ -232,6 +241,11 @@ class NavSceneTest : NavTestCase() {
     root.fragment("fragment3")
     modelBuilder.updateModel(model)
     model.notifyModified(NlModel.ChangeType.EDIT)
+    moveComponentTo(scene.getSceneComponent("fragment1")!!, 200, 20)
+    moveComponentTo(scene.getSceneComponent("fragment2")!!, 20, 20)
+    moveComponentTo(scene.getSceneComponent("fragment3")!!, 380, 20)
+    scene.sceneManager.layout(false)
+
     scene.layout(0, SceneContext.get(model.surface.currentSceneView))
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
@@ -267,6 +281,9 @@ class NavSceneTest : NavTestCase() {
     val editor = TestNlEditor(model.virtualFile, project)
 
     val scene = model.surface.scene!!
+    moveComponentTo(scene.getSceneComponent("fragment1")!!, 200, 20)
+    moveComponentTo(scene.getSceneComponent("fragment2")!!, 20, 20)
+    scene.sceneManager.layout(false)
 
     val list = DisplayList()
     model.delete(listOf(model.find("fragment2")!!))
@@ -338,6 +355,11 @@ class NavSceneTest : NavTestCase() {
     }
 
     val scene = model.surface.scene!!
+    moveComponentTo(scene.getSceneComponent("fragment1")!!, 200, 20)
+    moveComponentTo(scene.getSceneComponent("fragment2")!!, 380, 20)
+    moveComponentTo(scene.getSceneComponent("subnav")!!, 20, 20)
+    scene.sceneManager.layout(false)
+
     val surface = model.surface as NavDesignSurface
 
     val view = NavView(surface, scene.sceneManager)
@@ -375,6 +397,11 @@ class NavSceneTest : NavTestCase() {
 
     `when`<NlComponent>(surface.currentNavigation).then { model.find("subnav")!! }
     scene.sceneManager.update()
+    moveComponentTo(scene.getSceneComponent("fragment3")!!, 200, 20)
+    moveComponentTo(scene.getSceneComponent("fragment4")!!, 20, 20)
+    scene.sceneManager.layout(false)
+
+
     scene.layout(0, SceneContext.get(view))
     scene.buildDisplayList(list, 0, view)
     assertEquals(
@@ -455,6 +482,9 @@ class NavSceneTest : NavTestCase() {
       }
     }
     val scene = model.surface.scene!!
+    moveComponentTo(scene.getSceneComponent("fragment1")!!, 140, 20)
+    moveComponentTo(scene.getSceneComponent("nav1")!!, 320, 20)
+    scene.sceneManager.layout(false)
 
     val list = DisplayList()
     scene.layout(0, SceneContext.get(model.surface.currentSceneView))
@@ -519,6 +549,10 @@ class NavSceneTest : NavTestCase() {
     // Selecting global nav brings it to the front
     model.surface.selectionModel.setSelection(ImmutableList.of(model.find("a1")!!))
 
+    moveComponentTo(scene.getSceneComponent("fragment1")!!, 140, 20)
+    moveComponentTo(scene.getSceneComponent("subnav")!!, 320, 20)
+
+    scene.sceneManager.layout(false)
     var list = DisplayList()
     scene.layout(0, SceneContext.get(model.surface.currentSceneView))
     val view = NavView(model.surface as NavDesignSurface, scene.sceneManager)
@@ -608,6 +642,9 @@ class NavSceneTest : NavTestCase() {
     }
 
     val scene = model.surface.scene!!
+    moveComponentTo(scene.getSceneComponent("fragment1")!!, 140, 20)
+    moveComponentTo(scene.getSceneComponent("subnav")!!, 320, 20)
+    scene.sceneManager.layout(false)
 
     val list = DisplayList()
     val view = model.surface.currentSceneView!!
@@ -693,6 +730,8 @@ class NavSceneTest : NavTestCase() {
     }
 
     val scene = model.surface.scene!!
+    moveComponentTo(scene.getSceneComponent("fragment1")!!, 20, 20)
+    scene.sceneManager.layout(false)
 
     val list = DisplayList()
     val view = model.surface.currentSceneView!!
@@ -731,6 +770,9 @@ class NavSceneTest : NavTestCase() {
 
     val surface = model.surface
     val scene = surface.scene!!
+    moveComponentTo(scene.getSceneComponent("fragment1")!!, 140, 20)
+    moveComponentTo(scene.getSceneComponent("subnav")!!, 320, 20)
+    scene.sceneManager.layout(false)
 
     val list = DisplayList()
     val view = surface.currentSceneView!!
@@ -849,6 +891,12 @@ class NavSceneTest : NavTestCase() {
     val list = DisplayList()
     val surface = model.surface
     val scene = surface.scene!!
+
+    moveComponentTo(scene.getSceneComponent("fragment1")!!, 200, 20)
+    moveComponentTo(scene.getSceneComponent("fragment2")!!, 380, 20)
+    moveComponentTo(scene.getSceneComponent("fragment3")!!, 20, 20)
+    scene.sceneManager.layout(false)
+
     scene.layout(0, SceneContext.get())
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
@@ -897,6 +945,10 @@ class NavSceneTest : NavTestCase() {
     val list = DisplayList()
     val surface = model.surface
     val scene = surface.scene!!
+    moveComponentTo(scene.getSceneComponent("fragment1")!!, 200, 20)
+    moveComponentTo(scene.getSceneComponent("fragment2")!!, 20, 20)
+    scene.sceneManager.layout(false)
+
     scene.layout(0, SceneContext.get())
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
@@ -933,7 +985,7 @@ class NavSceneTest : NavTestCase() {
             action("action6", destination = "fragment1")
             action("action7", destination = "fragment2")
           }
-          fragment("fragment4") {
+          fragment("fragment5") {
             action("action8", destination = "fragment1")
             action("action9", destination = "fragment5")
           }
@@ -949,6 +1001,13 @@ class NavSceneTest : NavTestCase() {
 
     val scene = surface.scene!!
     scene.sceneManager.update()
+
+    moveComponentTo(scene.getSceneComponent("fragment2")!!, 200, 20)
+    moveComponentTo(scene.getSceneComponent("fragment3")!!, 380, 20)
+    moveComponentTo(scene.getSceneComponent("fragment4")!!, 20, 260)
+    moveComponentTo(scene.getSceneComponent("fragment5")!!, 200, 320)
+    moveComponentTo(scene.getSceneComponent("nav2")!!, 20, 20)
+    scene.sceneManager.layout(false)
 
     val view = NavView(surface, surface.sceneManager!!)
     scene.layout(0, SceneContext.get(view))
@@ -986,11 +1045,11 @@ class NavSceneTest : NavTestCase() {
       "\n" +
       "DrawRectangle,1,490x550x76x128,ffa7a7a7,1,0\n" +
       "DrawPreviewUnavailable,491x551x74x126\n" +
-      "DrawTruncatedText,3,fragment4,490x540x76x5,ff656565,Default:0:9,false\n" +
+      "DrawArrow,2,UP,547x682x6x5,b2a7a7a7\n" +
+      "DrawSelfAction,566x614,550x686,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment5,490x540x76x5,ff656565,Default:0:9,false\n" +
       "DrawLine,2,567x605,574x605,b2a7a7a7,3:0:1\n" +
       "DrawArrow,2,RIGHT,574x602x5x6,b2a7a7a7\n" +
-      "DrawLine,2,567x623,574x623,b2a7a7a7,3:0:1\n" +
-      "DrawArrow,2,RIGHT,574x620x5x6,b2a7a7a7\n" +
       "\n" +
       "DrawFilledRectangle,1,400x400x70x19,fffafafa,6\n" +
       "DrawRectangle,1,400x400x70x19,ffa7a7a7,1,6\n" +
@@ -1063,6 +1122,12 @@ class NavSceneTest : NavTestCase() {
     val list = DisplayList()
     val surface = model.surface
     val scene = surface.scene!!
+    moveComponentTo(scene.getSceneComponent("fragment1")!!, 200, 20)
+    moveComponentTo(scene.getSceneComponent("fragment2")!!, 380, 20)
+    moveComponentTo(scene.getSceneComponent("nav1")!!, 20, 80)
+    moveComponentTo(scene.getSceneComponent("nav2")!!, 20, 20)
+    scene.sceneManager.layout(false)
+
     scene.layout(0, SceneContext.get())
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
@@ -1268,5 +1333,16 @@ class NavSceneTest : NavTestCase() {
       "\n" +
       "UNClip\n", list.serialize()
     )
+  }
+
+  /**
+   * Reposition a component. If we just set the position directly children't aren't updated.
+   */
+  private fun moveComponentTo(component: SceneComponent, x: Int, y: Int) {
+    val dragTarget = component.targets.filterIsInstance(ScreenDragTarget::class.java).first()
+    dragTarget.mouseDown(component.drawX, component.drawY)
+    dragTarget.mouseDrag(x, y, listOf())
+    // the release position isn't used
+    dragTarget.mouseRelease(x, y, listOf())
   }
 }

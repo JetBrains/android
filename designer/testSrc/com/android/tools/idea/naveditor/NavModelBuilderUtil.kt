@@ -42,6 +42,9 @@ import java.awt.Point
 import java.util.function.BiConsumer
 import java.util.function.Function
 
+@DslMarker
+annotation class NavTestDsl
+
 /**
  * Descriptors used for building navigation [com.android.tools.idea.common.model.NlModel]s
  */
@@ -218,5 +221,6 @@ object NavModelBuilderUtil {
     }
   }
 
+  @NavTestDsl
   open class NavComponentDescriptor(tagName: String) : ComponentDescriptor(tagName)
 }
