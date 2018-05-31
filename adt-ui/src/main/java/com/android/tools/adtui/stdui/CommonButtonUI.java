@@ -53,7 +53,7 @@ class CommonButtonUI extends BasicButtonUI {
     Border border = b.getBorder();
     if (border == null || border instanceof UIResource) {
       // TODO: This is only for 16x16 icon buttons
-      b.setBorder(BorderFactory.createEmptyBorder(JBUI.scale(4), JBUI.scale(4), JBUI.scale(5), JBUI.scale(5)));
+      b.setBorder(BorderFactory.createEmptyBorder(JBUI.scale(4), JBUI.scale(4), JBUI.scale(4), JBUI.scale(4)));
     }
   }
 

@@ -15,9 +15,8 @@
  */
 package com.android.tools.adtui.stdui
 
-import com.intellij.openapi.util.SystemInfo
-import com.intellij.ui.ColorUtil
 import com.intellij.ui.Gray
+import com.intellij.ui.JBColor
 import com.intellij.util.ui.GraphicsUtil
 import com.intellij.util.ui.UIUtil
 import java.awt.*
@@ -63,19 +62,16 @@ fun paintBackground(graphics: Graphics, component: JComponent) {
   val bg = if (opaque != null) opaque.background else component.background
 
   val rect = RoundRectangle2D.Double(1.0, 1.0, (size.width - 3).toDouble(), (size.height - 3).toDouble(), 4.0, 4.0)
-  if (UIUtil.isUnderAquaLookAndFeel() || SystemInfo.isMac && UIUtil.isUnderIntelliJLaF()) {
-    val darker = ColorUtil.darker(bg, 1)
-    g.color = darker
+  if (UIUtil.isUnderAquaLookAndFeel() || UIUtil.isUnderDefaultMacTheme()) {
+    g.color = Gray.xE0
     g.fill(rect)
-    g.color = Gray.xCC
+    g.color = Gray.xCA
     g.draw(rect)
   } else {
     val dark = UIUtil.isUnderDarcula()
-    val color = if (UIUtil.isUnderWin10LookAndFeel()) Gray.xE6 else if (dark) ColorUtil.shift(bg, 1.0 / 0.7) else Gray.xD0
-    g.color = color
+    g.color = JBColor(Gray.xE8, Color(0x464a4d))
     g.fill(rect)
-    val shift = if (UIUtil.isUnderDarcula()) 1 / 0.49 else 0.49
-    g.color = ColorUtil.shift(UIUtil.getPanelBackground(), shift)
+    g.color = JBColor(Gray.xCC, Color(0x757b80))
     g.draw(rect)
   }
   config.restore()

@@ -874,8 +874,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     toolbar.add(myCaptureButton);
     toolbar.add(myCaptureStatus);
 
-    myProfilingConfigurationView.getComponent().setPreferredSize(
-      JBDimension.create(myProfilingConfigurationView.getComponent().getPreferredSize()).withHeight(TOOLBAR_HEIGHT - 1));
     SessionsManager sessions = getStage().getStudioProfilers().getSessionsManager();
     sessions.addDependency(this).onChange(SessionAspect.SELECTED_SESSION, () -> myCaptureButton.setEnabled(shouldEnableCaptureButton()));
     myCaptureButton.setEnabled(shouldEnableCaptureButton());
