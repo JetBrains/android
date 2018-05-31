@@ -29,7 +29,7 @@ open class PsBuildType(
   final override val parent: PsAndroidModule,
   final override val resolvedModel: BuildType?,
   private var parsedModel: BuildTypeModel?
-) : PsChildModel(parent), PsAndroidModel {
+) : PsChildModel(), PsAndroidModel {
 
   override val name = resolvedModel?.name ?: parsedModel?.name() ?: ""
 
