@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.VariantOnlySyncModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.IdeModifiableModelsProviderFactory;
 import com.android.tools.idea.testing.IdeComponents;
@@ -31,7 +32,6 @@ import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.mockito.Mock;
 
-import java.util.Arrays;
 import java.util.Collections;
 
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
@@ -78,7 +78,7 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     new IdeComponents(project).replaceProjectService(PostSyncProjectSetup.class, myPostSyncProjectSetup);
 
     myVariantUpdater = new BuildVariantUpdater(myModuleSetupContextFactory, myModifiableModelsProviderFactory,
-                                               Arrays.asList(mySetupStepToInvoke, mySetupStepToIgnore));
+                                               new VariantOnlySyncModuleSetup(mySetupStepToInvoke, mySetupStepToIgnore));
   }
 
   public void testUpdateSelectedVariant() {

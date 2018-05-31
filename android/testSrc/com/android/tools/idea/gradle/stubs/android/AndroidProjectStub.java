@@ -20,6 +20,7 @@ import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.ImmutableList;
@@ -90,9 +91,20 @@ public class AndroidProjectStub implements IdeAndroidProject {
 
   @Override
   public void forEachVariant(@NotNull Consumer<IdeVariant> action) {
-    for (IdeVariant next: myVariants.values()) {
+    for (IdeVariant next : myVariants.values()) {
       action.accept(next);
     }
+  }
+
+  @Override
+  public void addVariants(@NotNull Collection<Variant> variants, @NotNull IdeDependenciesFactory factory) {
+    for (Variant variant : variants) {
+      addVariant(variant.getName());
+    }
+  }
+
+  @Override
+  public void addSyncIssues(@NotNull Collection<SyncIssue> syncIssues) {
   }
 
   @Override
@@ -369,7 +381,7 @@ public class AndroidProjectStub implements IdeAndroidProject {
     return myBuildFile;
   }
 
-  public void setVariantNames(@NotNull String...variantNames) {
+  public void setVariantNames(@NotNull String... variantNames) {
     myVariantNames.clear();
     myVariantNames.addAll(Arrays.asList(variantNames));
   }

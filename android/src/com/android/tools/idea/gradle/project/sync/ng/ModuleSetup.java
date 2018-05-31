@@ -23,10 +23,7 @@ import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
 import com.android.tools.idea.gradle.project.sync.ng.caching.ModelNotFoundInCacheException;
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModelsSetup;
-import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetup;
-import com.android.tools.idea.gradle.project.sync.setup.module.GradleModuleSetup;
-import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
-import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetup;
+import com.android.tools.idea.gradle.project.sync.setup.module.*;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanup;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -39,11 +36,14 @@ import static com.android.tools.idea.gradle.project.sync.ng.GradleSyncProgress.n
 public abstract class ModuleSetup<T> {
   @NotNull protected final Project myProject;
   @NotNull protected final IdeModifiableModelsProvider myModelsProvider;
+  @NotNull protected final ModuleSetupContext.Factory myModuleSetupFactory;
 
   public ModuleSetup(@NotNull Project project,
-                     @NotNull IdeModifiableModelsProvider modelsProvider) {
+                     @NotNull IdeModifiableModelsProvider modelsProvider,
+                     @NotNull ModuleSetupContext.Factory moduleSetupFactory) {
     myProject = project;
     myModelsProvider = modelsProvider;
+    myModuleSetupFactory = moduleSetupFactory;
   }
 
   public abstract void setUpModules(@NotNull T projectModels, @NotNull ProgressIndicator indicator) throws ModelNotFoundInCacheException;
@@ -92,7 +92,12 @@ public abstract class ModuleSetup<T> {
     @NotNull
     VariantOnlyProjectModelsSetup createForVariantOnlySync(@NotNull Project project,
                                                            @NotNull IdeModifiableModelsProvider modelsProvider) {
-      return new VariantOnlyProjectModelsSetup(project, modelsProvider);
+      return new VariantOnlyProjectModelsSetup(project,
+                                               modelsProvider,
+                                               new ModuleSetupContext.Factory(),
+                                               new IdeDependenciesFactory(),
+                                               new CachedProjectModels.Loader(),
+                                               new VariantOnlySyncModuleSetup());
     }
   }
 

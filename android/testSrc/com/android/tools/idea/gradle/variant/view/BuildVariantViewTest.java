@@ -19,6 +19,7 @@ import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
+import com.android.tools.idea.gradle.project.sync.setup.module.VariantOnlySyncModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -29,6 +30,8 @@ import org.mockito.Mock;
 
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static java.util.Collections.emptyList;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -48,6 +51,7 @@ public class BuildVariantViewTest extends IdeaTestCase {
   @Mock private PostSyncProjectSetup myPostSyncProjectSetup;
   @Mock private ModuleSetupContext.Factory myModuleSetupContextFactory;
   @Mock private ModuleSetupContext myModuleSetupContext;
+  @Mock private VariantOnlySyncModuleSetup myModuleSetup;
 
   @Override
   public void setUp() throws Exception {
@@ -75,7 +79,7 @@ public class BuildVariantViewTest extends IdeaTestCase {
     when(myModuleSetupContextFactory.create(myModule, myModifiableModelsProvider)).thenReturn(myModuleSetupContext);
 
     BuildVariantUpdater variantUpdater =
-      new BuildVariantUpdater(myModuleSetupContextFactory, myModifiableModelsProviderFactory, emptyList());
+      new BuildVariantUpdater(myModuleSetupContextFactory, myModifiableModelsProviderFactory, myModuleSetup);
     myView.setUpdater(variantUpdater);
   }
 
@@ -84,6 +88,8 @@ public class BuildVariantViewTest extends IdeaTestCase {
     when(myAndroidModel.variantExists(variantToSelect)).thenReturn(true);
     // Changing selected variant from "debug" to "release".
     myView.buildVariantSelected(myModule.getName(), variantToSelect);
+    // Verify module setup was called.
+    verify(myModuleSetup).setUpModule(any(), any());
     // Verify listener is invoked.
     assertTrue(myListener.myWasCalled);
   }
