@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.editors.hprof;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -23,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.CapturesToolWindowFixt
 import com.android.tools.idea.tests.gui.framework.fixture.HprofEditorFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.fixture.JTreeFixture;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -47,6 +49,9 @@ public class HprofEditorTest {
 
   @Before
   public void init() throws IOException {
+    // Override the following flag, because if it's enabled the file is going to be open in Android Profiler and the test will fail.
+    StudioFlags.PROFILER_OPEN_CAPTURES.override(false);
+
     GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
     guiTest.importProjectAndWaitForProjectSyncToFinish(CAPTURES_APPLICATION);
 
@@ -74,5 +79,11 @@ public class HprofEditorTest {
       fail();
     }
     catch (IndexOutOfBoundsException ignored) {}
+  }
+
+  @After
+  public void tearDown() {
+    // Make sure to clear the flag override
+    StudioFlags.PROFILER_OPEN_CAPTURES.clearOverride();
   }
 }
