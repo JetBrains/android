@@ -29,7 +29,7 @@ class PsSigningConfig(
   override val parent: PsAndroidModule,
   override val resolvedModel: SigningConfig?,
   private val parsedModel: SigningConfigModel?
-) : PsChildModel(parent), PsAndroidModel {
+) : PsChildModel(), PsAndroidModel {
 
   override val name = when {
     resolvedModel != null -> resolvedModel.name

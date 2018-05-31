@@ -26,7 +26,7 @@ interface PsResolvedDependency {
   fun getParsedModels(): List<DependencyModel>
 }
 
-abstract class PsDependency protected constructor(parent: PsModule) : PsChildModel(parent), PsBaseDependency {
+abstract class PsDependency protected constructor() : PsChildModel(), PsBaseDependency {
   enum class TextType {
     PLAIN_TEXT, FOR_NAVIGATION
   }

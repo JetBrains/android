@@ -48,6 +48,7 @@ import java.util.Objects;
 import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
 
 public abstract class PsModule extends PsChildModel {
+  @NotNull private final PsProject myParent;
   @Nullable private String myGradlePath;
 
   // Module can be null in the case of new modules created in the PSD.
@@ -66,7 +67,7 @@ public abstract class PsModule extends PsChildModel {
                      @NotNull Module resolvedModel,
                      @NotNull String gradlePath,
                      @NotNull GradleBuildModel parsedModel) {
-    super(parent);
+    myParent = parent;
     myResolvedModel = resolvedModel;
     myGradlePath = gradlePath;
     myModuleName = resolvedModel.getName();
@@ -76,7 +77,7 @@ public abstract class PsModule extends PsChildModel {
   }
 
   protected PsModule(@NotNull PsProject parent, @NotNull String name) {
-    super(parent);
+    myParent = parent;
     myResolvedModel = null;
     myModuleName = name;
     myVariables = new PsVariablesScope() {
@@ -139,7 +140,7 @@ public abstract class PsModule extends PsChildModel {
   @Override
   @NotNull
   public PsProject getParent() {
-    return (PsProject)super.getParent();
+    return myParent;
   }
 
   @Override

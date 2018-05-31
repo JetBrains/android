@@ -15,4 +15,4 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
-abstract class PsChildModel protected constructor(override val parent: PsModel) : PsModel(parent)
+abstract class PsChildModel protected constructor() : PsModel()

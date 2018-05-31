@@ -50,7 +50,6 @@ public class PsProject extends PsModel {
   private boolean myModified;
 
   public PsProject(@NotNull Project project) {
-    super(null);
     myProject = project;
     myParsedModel = GradleModelProvider.get().getProjectModel(project);
     // TODO(b/77695733): Ensure that getProjectBuildModel() is indeed not null.

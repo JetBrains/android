@@ -21,6 +21,8 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
@@ -67,8 +69,8 @@ public class PsAndroidArtifactTest {
     myVariant = new PsVariant(new PsAndroidModule(project, resolvedModel, "gradle:path", mock(AndroidModuleModel.class),
                                                   parsedModel), "", "", Collections.emptyList(), null) {
       @Override
-      public void forEachProductFlavor(@NotNull Consumer<PsProductFlavor> consumer) {
-        myProductFlavors.forEach(consumer);
+      public void forEachProductFlavor(@NotNull Function1<? super PsProductFlavor, Unit> consumer) {
+        myProductFlavors.forEach(it -> consumer.invoke(it));
       }
 
       @Override

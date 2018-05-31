@@ -26,7 +26,7 @@ open class PsProductFlavor(
   final override val parent: PsAndroidModule,
   final override val resolvedModel: ProductFlavor?,
   private val parsedModel: ProductFlavorModel?
-) : PsChildModel(parent), PsAndroidModel {
+) : PsChildModel(), PsAndroidModel {
 
   override val name = when {
     resolvedModel != null -> resolvedModel.name
