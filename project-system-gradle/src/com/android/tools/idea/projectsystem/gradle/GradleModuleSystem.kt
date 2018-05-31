@@ -36,9 +36,7 @@ class GradleModuleSystem(val module: Module, @TestOnly private val mavenReposito
 
   override fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate? {
     // Check for android library dependencies from the build model
-    val androidModuleModel = AndroidModuleModel.get(module) ?: throw DependencyManagementException(
-      "Could not find android module model for module $module",
-      DependencyManagementException.ErrorCodes.BUILD_SYSTEM_NOT_READY)
+    val androidModuleModel = AndroidModuleModel.get(module) ?: return null
 
     return androidModuleModel.selectedMainCompileLevel2Dependencies.androidLibraries
       .asSequence()
