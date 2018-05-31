@@ -107,6 +107,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     }
   }
 
+  private static final String RECORD_TEXT = "Record";
+  private static final String STOP_TEXT = "Stop";
+
   private static final int MONITOR_PANEL_ROW = 0;
   private static final int DETAILS_PANEL_ROW = 1;
   private static final int DETAILS_KERNEL_PANEL_ROW = 0;
@@ -306,7 +309,12 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     mySplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
     getComponent().add(mySplitter, BorderLayout.CENTER);
 
-    myCaptureButton = new JButton();
+    // Set to the longest text this button will show as to initialize the persistent size properly.
+    // Call setPreferredSize to avoid the initialized size being overwritten.
+    // TODO: b/80546414 Use common button instead.
+    myCaptureButton = new JButton(RECORD_TEXT);
+    // The toolbar is 30pt high so we change the default height of the button/combo box to be 29pt so we have a padding.
+    myCaptureButton.setPreferredSize(JBDimension.create(myCaptureButton.getPreferredSize()).withHeight(TOOLBAR_HEIGHT - 1));
     myCaptureButton.addActionListener(event -> capture());
 
     myCaptureStatus = new JLabel("");
@@ -866,8 +874,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     toolbar.add(myCaptureButton);
     toolbar.add(myCaptureStatus);
 
-    // The toolbar is 30pt high so we change the default height of the button/combo box to be 29pt so we have a padding.
-    myCaptureButton.setPreferredSize(JBDimension.create(myCaptureButton.getPreferredSize()).withHeight(TOOLBAR_HEIGHT - 1));
     myProfilingConfigurationView.getComponent().setPreferredSize(
       JBDimension.create(myProfilingConfigurationView.getComponent().getPreferredSize()).withHeight(TOOLBAR_HEIGHT - 1));
     SessionsManager sessions = getStage().getStudioProfilers().getSessionsManager();
@@ -903,7 +909,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     switch (myStage.getCaptureState()) {
       case IDLE:
         myCaptureButton.setEnabled(shouldEnableCaptureButton());
-        myCaptureButton.setText("Record");
+        myCaptureButton.setText(RECORD_TEXT);
         myCaptureStatus.setText("");
         myCaptureButton.setToolTipText("Record a trace");
         myProfilingConfigurationView.getComponent().setEnabled(true);
@@ -915,7 +921,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         else {
           myCaptureButton.setEnabled(shouldEnableCaptureButton());
         }
-        myCaptureButton.setText("Stop");
+        myCaptureButton.setText(STOP_TEXT);
         myCaptureStatus.setText("");
         myCaptureButton.setToolTipText("Stop recording");
         myProfilingConfigurationView.getComponent().setEnabled(false);
