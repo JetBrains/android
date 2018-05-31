@@ -59,7 +59,7 @@ public class LineChartReducerVisualTest extends VisualTest {
   private int mySampleSize = 10;
   private SelectionComponent mySelection;
   private LineChartModel myOptimizedLineChartModel;
-  private AxisComponentModel myXAxisModel;
+  private ResizingAxisComponentModel myXAxisModel;
 
   @Override
   protected List<Updatable> createModelList() {
@@ -95,7 +95,7 @@ public class LineChartReducerVisualTest extends VisualTest {
     myLineChart.configure(mySeries, new LineConfig(JBColor.BLUE));
     myOptimizedLineChart.configure(myOptimizedSeries, new LineConfig(JBColor.RED));
 
-    return Arrays.asList(myLineChartModel, myOptimizedLineChartModel, myXAxisModel);
+    return Arrays.asList(myLineChartModel, myOptimizedLineChartModel);
   }
 
   @Override

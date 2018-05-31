@@ -36,11 +36,6 @@ public final class ResizingAxisComponentModel extends AxisComponentModel {
     updateImmediately();
   }
 
-  @Override
-  public void update(long elapsedNs) {
-    // We don't need to do anything since we only rely on Range aspect changes.
-  }
-
   private void onGlobalRangeUpdated() {
     // We only care about the global range min, so we fire the aspect only when that changes.
     assert myGlobalRange != null;

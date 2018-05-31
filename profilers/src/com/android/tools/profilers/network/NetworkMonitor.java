@@ -36,7 +36,7 @@ public class NetworkMonitor extends ProfilerMonitor {
   private static final BaseAxisFormatter BANDWIDTH_AXIS_FORMATTER_L1 = new NetworkTrafficFormatter(1, 2, 5);
   private final NetworkUsage myNetworkUsage;
   private final NetworkLegends myLegends;
-  private final AxisComponentModel myTrafficAxis;
+  private final ClampedAxisComponentModel myTrafficAxis;
   private final NetworkLegends myTooltipLegends;
 
   public NetworkMonitor(@NotNull StudioProfilers profilers) {

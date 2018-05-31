@@ -68,7 +68,7 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
   private LineChart mLineChart;
 
   private JScrollBar mScrollBar;
-  private final AxisComponentModel mAxisModel;
+  private final ResizingAxisComponentModel mAxisModel;
 
   public FlameGraphVisualTest() {
     this.mTimeGlobalRangeUs = new Range(0, 0);
@@ -94,10 +94,7 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
 
   @Override
   protected List<Updatable> createModelList() {
-    List<Updatable> list = new ArrayList<>();
-    list.add(mAxisModel);
-    list.add(mLineChartModel);
-    return list;
+    return Collections.singletonList(mLineChartModel);
   }
 
   @Override

@@ -198,7 +198,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       myViewAxis = new ResizingAxisComponentModel.Builder(myTimeline.getViewRange(), TimeAxisFormatter.DEFAULT)
         .setGlobalRange(myTimeline.getDataRange()).build();
 
-      myUpdater.register(myViewAxis);
       myUpdater.register(this);
     }
   }

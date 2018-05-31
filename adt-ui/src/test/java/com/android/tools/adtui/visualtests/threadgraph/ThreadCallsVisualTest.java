@@ -61,7 +61,7 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
 
   @NotNull
   private JScrollBar mScrollBar;
-  private final AxisComponentModel mAxisModel;
+  private final ResizingAxisComponentModel mAxisModel;
 
   public ThreadCallsVisualTest() {
     mTimeGlobalRangeUs = new Range(0, 0);
@@ -85,9 +85,7 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
 
   @Override
   protected List<Updatable> createModelList() {
-    List<Updatable> list = new ArrayList<>();
-    list.add(mAxisModel);
-    return list;
+    return Collections.emptyList();
   }
 
   @Override

@@ -108,9 +108,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   private final CpuThreadsModel myThreadsStates;
   private final CpuKernelModel myCpuKernelModel;
-  private final AxisComponentModel myCpuUsageAxis;
-  private final AxisComponentModel myThreadCountAxis;
-  private final AxisComponentModel myTimeAxisGuide;
+  private final ClampedAxisComponentModel myCpuUsageAxis;
+  private final ClampedAxisComponentModel myThreadCountAxis;
+  private final ResizingAxisComponentModel myTimeAxisGuide;
   private final DetailedCpuUsage myCpuUsage;
   private final CpuStageLegends myLegends;
   private final DurationDataModel<CpuTraceInfo> myTraceDurations;
@@ -472,7 +472,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     getStudioProfilers().getUpdater().register(myRecentTraceDurations);
     getStudioProfilers().getUpdater().register(myCpuUsageAxis);
     getStudioProfilers().getUpdater().register(myThreadCountAxis);
-    getStudioProfilers().getUpdater().register(myTimeAxisGuide);
     getStudioProfilers().getUpdater().register(myLegends);
     getStudioProfilers().getUpdater().register(myThreadsStates);
     getStudioProfilers().getUpdater().register(myCaptureElapsedTimeUpdatable);
@@ -508,7 +507,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     getStudioProfilers().getUpdater().unregister(myInProgressTraceDuration);
     getStudioProfilers().getUpdater().unregister(myCpuUsageAxis);
     getStudioProfilers().getUpdater().unregister(myThreadCountAxis);
-    getStudioProfilers().getUpdater().unregister(myTimeAxisGuide);
     getStudioProfilers().getUpdater().unregister(myLegends);
     getStudioProfilers().getUpdater().unregister(myThreadsStates);
     getStudioProfilers().getUpdater().unregister(myCaptureElapsedTimeUpdatable);

@@ -61,8 +61,8 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
   private final DetailedNetworkUsage myDetailedNetworkUsage;
   private final NetworkStageLegends myLegends;
   private final NetworkStageLegends myTooltipLegends;
-  private final AxisComponentModel myTrafficAxis;
-  private final AxisComponentModel myConnectionsAxis;
+  private final ClampedAxisComponentModel myTrafficAxis;
+  private final ClampedAxisComponentModel myConnectionsAxis;
   private final EventMonitor myEventMonitor;
   private final StackTraceModel myStackTraceModel;
   private final SelectionModel mySelectionModel;
