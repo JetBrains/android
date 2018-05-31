@@ -17,6 +17,7 @@ package com.android.tools.idea.projectsystem
 
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.testing.IdeComponents
@@ -63,5 +64,11 @@ class GradleModuleSystemTest : IdeaTestCase() {
   fun testPreviewDependencyIsUnavailable() {
     // In the test data, NAVIGATION only has a preview version
     assertThat(gradleProjectSystem.getAvailableDependency(GoogleMavenArtifactId.NAVIGATION.getCoordinate("+"), false)).isNull()
+  }
+
+  fun testNoAndroidModuleModel() {
+    // The AndroidModuleModel shouldn't be created when running from an IdeaTestCase.
+    assertThat(AndroidModuleModel.get(myModule)).isNull()
+    assertThat(gradleModuleSystem.getResolvedDependency(GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+"))).isNull()
   }
 }

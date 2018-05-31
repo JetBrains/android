@@ -28,11 +28,6 @@ class DependencyManagementException(override val message: String, val errorCode:
      */
     MALFORMED_PROJECT,
     /**
-     * The build system is not ready to perform the requested operation.
-     * (e.g. A sync in progress or a project that has not yet been fully initialized.)
-     */
-    BUILD_SYSTEM_NOT_READY,
-    /**
      * The given source context is not a valid source context of the project.
      */
     BAD_SOURCE_CONTEXT,
