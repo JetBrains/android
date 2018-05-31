@@ -31,7 +31,6 @@ import com.intellij.testFramework.PsiTestUtil
 import com.intellij.util.io.ZipUtil
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestCase
-import org.jetbrains.android.dom.navigation.NavigationSchema
 import java.io.File
 
 abstract class NavTestCase : AndroidTestCase() {

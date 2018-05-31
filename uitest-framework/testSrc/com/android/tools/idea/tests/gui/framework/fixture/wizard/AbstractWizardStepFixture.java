@@ -16,8 +16,6 @@
 package com.android.tools.idea.tests.gui.framework.fixture.wizard;
 
 import com.android.tools.idea.tests.gui.framework.fixture.JComponentFixture;
-import com.intellij.openapi.application.TransactionGuard;
-import com.intellij.openapi.application.TransactionGuardImpl;
 import com.intellij.ui.components.JBLabel;
 import org.fest.swing.core.matcher.JTextComponentMatcher;
 import org.fest.swing.fixture.JCheckBoxFixture;
@@ -28,8 +26,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
-
-import static org.fest.swing.edt.GuiTask.execute;
 
 public abstract class AbstractWizardStepFixture<S, W extends AbstractWizardFixture> extends JComponentFixture<S, JRootPane> {
   private final W myWizard;
