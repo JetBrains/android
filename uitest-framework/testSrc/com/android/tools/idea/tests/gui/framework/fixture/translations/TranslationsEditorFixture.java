@@ -27,6 +27,7 @@ import com.intellij.openapi.application.TransactionGuardImpl;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.SimpleColoredComponent.ColoredIterator;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBLoadingPanel;
 import org.fest.swing.cell.JTableCellWriter;
 import org.fest.swing.core.ComponentMatcher;
@@ -39,6 +40,7 @@ import org.fest.swing.driver.JTableCheckBoxEditorCellWriter;
 import org.fest.swing.driver.JTableTextComponentEditorCellWriter;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.JButtonFixture;
+import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -51,6 +53,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 import static org.fest.swing.edt.GuiTask.execute;
 
 public final class TranslationsEditorFixture {
@@ -95,6 +98,35 @@ public final class TranslationsEditorFixture {
 
   public void clickFilterLocalesComboBoxItem(@NotNull String text) {
     clickComboBoxItem(getButton("Show All Locales"), text);
+  }
+
+  public void addNewLocale(@NotNull String newLocale) {
+    getAddLocaleButton().click();
+    JListFixture listFixture= new JListFixture(myRobot, getLocaleList());
+    listFixture.replaceCellReader((jList, index) -> jList.getModel().getElementAt(index).toString());
+    listFixture.clickItem(newLocale);
+  }
+
+  @NotNull
+  private JBList getLocaleList() {
+    return waitUntilFound(myRobot, null, new GenericTypeMatcher<JBList>(JBList.class) {
+      @Override
+      protected boolean isMatching(@NotNull JBList list) {
+        return "localeList".equals(list.getName());
+      }
+    });
+  }
+
+  @NotNull
+  private ActionButtonFixture getAddLocaleButton() {
+    GenericTypeMatcher<ActionButton> matcher = new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+      @Override
+      protected boolean isMatching(@NotNull ActionButton button) {
+        return "Add Locale".equals(button.getAction().getTemplatePresentation().getText());
+      }
+    };
+
+    return new ActionButtonFixture(myRobot, GuiTests.waitUntilShowingAndEnabled(myRobot, myLoadingPanel, matcher));
   }
 
   private JButtonFixture getButton(@NotNull String text) {
