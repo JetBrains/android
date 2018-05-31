@@ -18,6 +18,7 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.memory.adapters.*;
@@ -121,7 +122,7 @@ final class MemoryClassSetView extends AspectObserver {
           if (node instanceof ValueObject) {
             ValueObject valueObject = (ValueObject)node;
             if (valueObject.getDepth() >= 0 && valueObject.getDepth() < Integer.MAX_VALUE) {
-              return Integer.toString(valueObject.getDepth());
+              return NumberFormatter.formatInteger(valueObject.getDepth());
             }
           }
           return "";
@@ -184,7 +185,7 @@ final class MemoryClassSetView extends AspectObserver {
         "Native Size",
         () -> new SimpleColumnRenderer<>(value -> {
           MemoryObject node = value.getAdapter();
-          return node instanceof ValueObject ? Long.toString(((ValueObject)node).getNativeSize()) : "";
+          return node instanceof ValueObject ? NumberFormatter.formatInteger(((ValueObject)node).getNativeSize()) : "";
         }, value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
@@ -196,7 +197,7 @@ final class MemoryClassSetView extends AspectObserver {
         "Shallow Size",
         () -> new SimpleColumnRenderer<>(value -> {
           MemoryObject node = value.getAdapter();
-          return node instanceof ValueObject ? Integer.toString(((ValueObject)node).getShallowSize()) : "";
+          return node instanceof ValueObject ? NumberFormatter.formatInteger(((ValueObject)node).getShallowSize()) : "";
         }, value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
@@ -208,7 +209,7 @@ final class MemoryClassSetView extends AspectObserver {
         "Retained Size",
         () -> new SimpleColumnRenderer<>(value -> {
           MemoryObject node = value.getAdapter();
-          return node instanceof ValueObject ? Long.toString(((ValueObject)node).getRetainedSize()) : "";
+          return node instanceof ValueObject ? NumberFormatter.formatInteger(((ValueObject)node).getRetainedSize()) : "";
         }, value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,

@@ -17,6 +17,7 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.stdui.CommonTabbedPane;
 import com.android.tools.profilers.ContextMenuInstaller;
@@ -127,7 +128,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
         () -> new SimpleColumnRenderer<ValueObject>(value -> {
           int depth = value.getAdapter().getDepth();
           if (depth >= 0 && depth < Integer.MAX_VALUE) {
-            return Integer.toString(depth);
+            return NumberFormatter.formatInteger(depth);
           }
           return "";
         }, value -> null, SwingConstants.RIGHT),
@@ -176,7 +177,9 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       new AttributeColumn<ValueObject>(
         "Native Size",
         () -> new SimpleColumnRenderer<ValueObject>(
-          value -> value.getAdapter().getNativeSize() != INVALID_VALUE ? Long.toString(value.getAdapter().getNativeSize()) : "",
+          value -> value.getAdapter().getNativeSize() != INVALID_VALUE
+                   ? NumberFormatter.formatInteger(value.getAdapter().getNativeSize())
+                   : "",
           value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
@@ -187,7 +190,9 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       new AttributeColumn<ValueObject>(
         "Shallow Size",
         () -> new SimpleColumnRenderer<ValueObject>(
-          value -> value.getAdapter().getShallowSize() != INVALID_VALUE ? Integer.toString(value.getAdapter().getShallowSize()) : "",
+          value -> value.getAdapter().getShallowSize() != INVALID_VALUE
+                   ? NumberFormatter.formatInteger(value.getAdapter().getShallowSize())
+                   : "",
           value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
@@ -198,7 +203,8 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       new AttributeColumn<ValueObject>(
         "Retained Size",
         () -> new SimpleColumnRenderer<ValueObject>(
-          value -> value.getAdapter().getRetainedSize() != INVALID_VALUE ? Long.toString(value.getAdapter().getRetainedSize()) : "",
+          value -> value.getAdapter().getRetainedSize() != INVALID_VALUE ? NumberFormatter
+            .formatInteger(value.getAdapter().getRetainedSize()) : "",
           value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,

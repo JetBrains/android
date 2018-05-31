@@ -17,6 +17,7 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeTestInfo;
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.memory.adapters.*;
@@ -163,10 +164,10 @@ public class MemoryClassSetViewTest {
                                     new String[]{""},
                                     new String[]{""},
                                     new String[]{(instance.getDepth() >= 0 && instance.getDepth() < Integer.MAX_VALUE) ?
-                                                 Integer.toString(instance.getDepth()) : ""},
-                                    new String[]{Long.toString(instance.getNativeSize())},
-                                    new String[]{Integer.toString(instance.getShallowSize())},
-                                    new String[]{Long.toString(instance.getRetainedSize())});
+                                                 NumberFormatter.formatInteger(instance.getDepth()) : ""},
+                                    new String[]{NumberFormatter.formatInteger(instance.getNativeSize())},
+                                    new String[]{NumberFormatter.formatInteger(instance.getShallowSize())},
+                                    new String[]{NumberFormatter.formatInteger(instance.getRetainedSize())});
     }
   }
 

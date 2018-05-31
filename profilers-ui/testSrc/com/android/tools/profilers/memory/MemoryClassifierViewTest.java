@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.ColumnTreeTestInfo;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.stacktrace.CodeLocation;
@@ -1121,10 +1122,10 @@ public class MemoryClassifierViewTest {
         expected.poll();
         testInfo.verifyRendererValues(node,
                                       new String[]{testData.name},
-                                      new String[]{Integer.toString(testData.allocations)},
-                                      new String[]{Integer.toString(testData.deallocations)},
-                                      new String[]{Integer.toString(testData.total)},
-                                      new String[]{Long.toString(testData.shallowSize)});
+                                      new String[]{NumberFormatter.formatInteger(testData.allocations)},
+                                      new String[]{NumberFormatter.formatInteger(testData.deallocations)},
+                                      new String[]{NumberFormatter.formatInteger(testData.total)},
+                                      new String[]{NumberFormatter.formatInteger(testData.shallowSize)});
 
         // Children's size
         assertThat(node.getChildCount()).isEqualTo(testData.childrenSize);

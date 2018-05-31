@@ -20,6 +20,7 @@ import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.NewRowInstruction;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.profilers.ContextMenuInstaller;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
@@ -54,7 +55,8 @@ import java.util.*;
 import java.util.List;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
-import static com.android.tools.profilers.ProfilerLayout.*;
+import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
+import static com.android.tools.profilers.ProfilerLayout.TABLE_ROW_BORDER;
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
 
 final class MemoryClassifierView extends AspectObserver {
@@ -129,7 +131,7 @@ final class MemoryClassifierView extends AspectObserver {
       new AttributeColumn<>(
         "Allocations",
         () -> new SimpleColumnRenderer<ClassifierSet>(
-          value -> Integer.toString(value.getAdapter().getDeltaAllocationCount()),
+          value -> NumberFormatter.formatInteger(value.getAdapter().getDeltaAllocationCount()),
           value -> null,
           SwingConstants.RIGHT),
         SwingConstants.RIGHT,
@@ -142,7 +144,7 @@ final class MemoryClassifierView extends AspectObserver {
       new AttributeColumn<>(
         "Deallocations",
         () -> new SimpleColumnRenderer<ClassifierSet>(
-          value -> Integer.toString(value.getAdapter().getDeltaDeallocationCount()),
+          value -> NumberFormatter.formatInteger(value.getAdapter().getDeltaDeallocationCount()),
           value -> null,
           SwingConstants.RIGHT),
         SwingConstants.RIGHT,
@@ -155,7 +157,7 @@ final class MemoryClassifierView extends AspectObserver {
       new AttributeColumn<>(
         "Total Count",
         () -> new SimpleColumnRenderer<ClassifierSet>(
-          value -> Integer.toString(value.getAdapter().getTotalObjectCount()),
+          value -> NumberFormatter.formatInteger(value.getAdapter().getTotalObjectCount()),
           value -> null,
           SwingConstants.RIGHT),
         SwingConstants.RIGHT,
@@ -168,7 +170,7 @@ final class MemoryClassifierView extends AspectObserver {
       new AttributeColumn<>(
         "Native Size",
         () -> new SimpleColumnRenderer<ClassifierSet>(
-          value -> Long.toString(value.getAdapter().getTotalNativeSize()),
+          value -> NumberFormatter.formatInteger(value.getAdapter().getTotalNativeSize()),
           value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
@@ -179,7 +181,7 @@ final class MemoryClassifierView extends AspectObserver {
       new AttributeColumn<>(
         "Shallow Size",
         () -> new SimpleColumnRenderer<ClassifierSet>(
-          value -> Long.toString(value.getAdapter().getTotalShallowSize()),
+          value -> NumberFormatter.formatInteger(value.getAdapter().getTotalShallowSize()),
           value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
@@ -190,7 +192,7 @@ final class MemoryClassifierView extends AspectObserver {
       new AttributeColumn<>(
         "Retained Size",
         () -> new SimpleColumnRenderer<ClassifierSet>(
-          value -> Long.toString(value.getAdapter().getTotalRetainedSize()),
+          value -> NumberFormatter.formatInteger(value.getAdapter().getTotalRetainedSize()),
           value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
