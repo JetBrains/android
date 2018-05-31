@@ -69,7 +69,7 @@ public class RunInstrumentationTest {
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/80421743
   @Test
   public void runInstrumentationTest() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("InstrumentationTest");
