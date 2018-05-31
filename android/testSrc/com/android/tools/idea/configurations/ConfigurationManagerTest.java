@@ -42,8 +42,7 @@ public class ConfigurationManagerTest extends AndroidTestCase {
   }
 
   @SuppressWarnings("UnusedAssignment") // need to null out local vars before GC
-  // fails after IDEA 181.3263.15 merge
-  public void ignore_testCaching() {
+  public void testCaching() {
     VirtualFile file1 = myFixture.copyFileToProject("xmlpull/layout.xml", "res/layout/layout1.xml");
     VirtualFile file2 = myFixture.copyFileToProject("xmlpull/layout.xml", "res/layout-no-rNO/layout1.xml");
 
@@ -74,11 +73,15 @@ public class ConfigurationManagerTest extends AndroidTestCase {
     assertTrue(manager.hasCachedConfiguration(file1));
     assertTrue(manager.hasCachedConfiguration(file2));
 
-    try {
+    int iterations = 0;
+    do {
+      // The amount of memory this method allocates since merging 181.3263.15 is not enough to collect soft references. Since this is the
+      // only Android test that uses that, we just try a couple of times in a loop.
       PlatformTestUtil.tryGcSoftlyReachableObjects();
-    } catch (Throwable t) {
-      // The above method can throw java.lang.OutOfMemoryError; that's fine for this test
+      iterations++;
     }
+    while (manager.hasCachedConfiguration(file1) && iterations < 10);
+
     System.gc();
     assertFalse(manager.hasCachedConfiguration(file1));
     assertFalse(manager.hasCachedConfiguration(file2));
