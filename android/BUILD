@@ -378,6 +378,8 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/com/android/support/animated-vector-drawable/27.1.1:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/appcompat-v7/26.0.2:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/appcompat-v7/27.1.1:aar",
+        "//prebuilts/tools/common/m2/repository/com/android/support/constraint/constraint-layout-solver/1.1.0:jar",
+        "//prebuilts/tools/common/m2/repository/com/android/support/constraint/constraint-layout/1.1.0:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/design/27.1.1:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/leanback-v17/27.1.1:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/multidex/1.0.1:aar",
