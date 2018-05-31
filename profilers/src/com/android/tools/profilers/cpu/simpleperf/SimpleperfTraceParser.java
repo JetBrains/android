@@ -29,7 +29,6 @@ import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -64,11 +63,6 @@ public class SimpleperfTraceParser implements TraceParser {
   private static final String DATA_APP_DIR = "/data/app";
 
   /**
-   * Maximum number of characters of a native thread name.
-   */
-  private static final int THREAD_NAME_CHAR_LIMIT = 15;
-
-  /**
    * Version of the trace file to be parsed. Should be obtained from the file itself.
    */
   private int myTraceVersion;
@@ -79,9 +73,9 @@ public class SimpleperfTraceParser implements TraceParser {
   private final Map<Integer, SimpleperfReport.File> myFiles;
 
   /**
-   * Maps a thread id to its correspondent name.
+   * Maps a thread id to its corresponding {@link SimpleperfReport.Thread} object.
    */
-  private final Map<Integer, String> myThreads;
+  private final Map<Integer, SimpleperfReport.Thread> myThreads;
 
   /**
    * List of samples containing method trace data.
@@ -249,7 +243,7 @@ public class SimpleperfTraceParser implements TraceParser {
           break;
         case THREAD:
           SimpleperfReport.Thread thread = record.getThread();
-          myThreads.put(thread.getThreadId(), thread.getThreadName());
+          myThreads.put(thread.getThreadId(), thread);
           break;
         case META_INFO:
           SimpleperfReport.MetaInfo info = record.getMetaInfo();
@@ -353,10 +347,10 @@ public class SimpleperfTraceParser implements TraceParser {
 
     // Add a root node to represent the thread itself.
     long firstTimestamp = threadSamples.get(0).getTime();
-    String threadName = myThreads.get(threadId);
-    CaptureNode root = createCaptureNode(new SingleNameModel(threadName), firstTimestamp);
+    SimpleperfReport.Thread thread = myThreads.get(threadId);
+    CaptureNode root = createCaptureNode(new SingleNameModel(thread.getThreadName()), firstTimestamp);
     root.setDepth(0);
-    myCaptureTrees.put(new CpuThreadInfo(threadId, myThreads.get(threadId), isMainThread(threadName)), root);
+    myCaptureTrees.put(new CpuThreadInfo(threadId, thread.getThreadName(), threadId == thread.getProcessId()), root);
 
     // Parse the first call chain so we have a value for lastCallchain
     List<SimpleperfReport.Sample.CallChainEntry> previousCallChain = Lists.reverse(threadSamples.get(0).getCallchainList());
@@ -380,17 +374,6 @@ public class SimpleperfTraceParser implements TraceParser {
     updateAncestorsEndTime(lastTimestamp, lastVisitedNode);
     // update the root timestamp
     setNodeEndTime(root, lastTimestamp);
-  }
-
-  /**
-   * Whether the given thread name is equal to the application's or is a substring of it and is capped by {@link #THREAD_NAME_CHAR_LIMIT}.
-   */
-  private boolean isMainThread(@NotNull String threadName) {
-    assert myAppPackageName != null;
-    if (threadName.equals(myAppPackageName)) {
-      return true;
-    }
-    return threadName.length() == THREAD_NAME_CHAR_LIMIT && myAppPackageName.contains(threadName);
   }
 
   /**

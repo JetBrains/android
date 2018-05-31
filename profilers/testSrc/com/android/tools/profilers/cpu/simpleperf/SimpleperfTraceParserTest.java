@@ -136,13 +136,16 @@ public class SimpleperfTraceParserTest {
 
   @Test
   public void mainProcessShouldBePresent() throws IOException {
-    myParser.parse(myTraceFile, 0);
+    CpuCapture capture = myParser.parse(myTraceFile, 0);
+    int appPid = 8589;
     CaptureNode mainThread = myParser.getCaptureTrees().entrySet().stream()
-      .filter(entry -> entry.getKey().getId() == 8589 /* App pid */)
+      .filter(entry -> entry.getKey().getId() == appPid)
       .map(Map.Entry::getValue)
       .findAny()
       .orElse(null);
     assertNotNull(mainThread);
+
+    assertEquals(appPid, capture.getMainThreadId());
   }
 
   @Test
