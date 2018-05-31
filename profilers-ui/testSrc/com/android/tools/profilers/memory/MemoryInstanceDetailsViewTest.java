@@ -17,6 +17,7 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeTestInfo;
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.memory.adapters.*;
@@ -282,10 +283,10 @@ public class MemoryInstanceDetailsViewTest {
                                     new String[]{"mField in "},
                                     new String[]{""},
                                     new String[]{""},
-                                    new String[]{Integer.toString(ref.getDepth())},
-                                    new String[]{Long.toString(ref.getNativeSize())},
-                                    new String[]{Integer.toString(ref.getShallowSize())},
-                                    new String[]{Long.toString(ref.getRetainedSize())});
+                                    new String[]{NumberFormatter.formatInteger(ref.getDepth())},
+                                    new String[]{NumberFormatter.formatInteger(ref.getNativeSize())},
+                                    new String[]{NumberFormatter.formatInteger(ref.getShallowSize())},
+                                    new String[]{NumberFormatter.formatInteger(ref.getRetainedSize())});
     }
   }
 }
