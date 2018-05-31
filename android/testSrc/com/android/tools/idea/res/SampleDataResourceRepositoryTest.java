@@ -172,6 +172,9 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
 
 
     assertNull(resolver.findResValue("@sample/invalid", false));
+
+    ResourceReference elementRef = new ResourceReference(ResourceNamespace.TODO(), ResourceType.SAMPLE_DATA, "strings[1]");
+    assertNotNull(resolver.getResolvedResource(elementRef));
   }
 
   public void testSampleDataFileInvalidation() throws IOException {
