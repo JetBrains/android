@@ -3,18 +3,18 @@ package org.jetbrains.android.dom;
 import com.android.SdkConstants;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.testFramework.fixtures.*;
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
+import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.usageView.UsageInfo;
 import org.jetbrains.android.AndroidFindUsagesTest;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.inspections.AndroidDomInspection;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -24,7 +24,6 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 /**
  * @author Eugene.Kudelevsky
  */
-@SuppressWarnings("ResultOfMethodCallIgnored")
 public class AndroidLibraryProjectTest extends AndroidTestCase {
   private static final String BASE_PATH = "libModule/";
 
@@ -78,20 +77,6 @@ public class AndroidLibraryProjectTest extends AndroidTestCase {
     myFixture.checkHighlighting(true, true, true);
   }
 
-  private void doRename(final VirtualFile file, final String newName) {
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          file.rename(myFixture.getProject(), newName);
-        }
-        catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      }
-    });
-  }
-
   public void testCompletion() {
     doTestCompletion();
   }
@@ -114,7 +99,7 @@ public class AndroidLibraryProjectTest extends AndroidTestCase {
     myFixture.checkResultByFile(BASE_PATH + getTestName(true) + "_after.xml");
   }
 
-  public void testJavaNavigation() throws Exception {
+  public void testJavaNavigation() {
     myFixture.copyFileToProject("R.java", "src/p1/p2/R.java");
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".java", "src/p1/p2/Java.java");
     myFixture.configureFromExistingVirtualFile(file);
@@ -164,6 +149,9 @@ public class AndroidLibraryProjectTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "picture1.png", "additionalModules/lib/res/drawable/picture1.png");
     myFixture.copyFileToProject("R.java", "src/p1/p2/R.java");
     myFixture.copyFileToProject(BASE_PATH + "LibR.java", "additionalModules/lib/src/p1/p2/lib/R.java");
+
+    VirtualFileManager.getInstance().syncRefresh();
+
     Collection<UsageInfo> references = findCodeUsages(getTestName(false) + "." + extension, dir);
     assertEquals(buildFileList(references), 5, references.size());
   }
