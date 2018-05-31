@@ -21,6 +21,12 @@ import com.android.tools.idea.run.util.LaunchStatus;
 import org.jetbrains.annotations.NotNull;
 
 public interface LaunchTask {
+  /**
+   * A description which may get shown to the user as the task is being launched.
+   *
+   * The description should start with a verb using present continuous tense for the verb,
+   * e.g. "Launching X", "Opening Y", "Starting Z"
+   */
   @NotNull
   String getDescription();
 
