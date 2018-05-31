@@ -17,7 +17,10 @@ package com.android.tools.idea.gradle.project.model;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.*;
-import com.android.ide.common.gradle.model.*;
+import com.android.ide.common.gradle.model.IdeAndroidArtifact;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.ide.common.gradle.model.IdeAndroidProjectImpl;
+import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.repository.GradleVersion;
@@ -25,6 +28,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.idea.gradle.AndroidGradleClassJarProvider;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
+import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModels.VariantOnlyModuleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.android.tools.idea.projectsystem.FilenameConstants;
@@ -171,8 +175,22 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   /**
+   * Inject the Variant-Only Sync model to existing AndroidProject.
+   * Since the build files were not changed from last sync, only SyncIssues and Variant models need to be injected.
+   *
+   * @param moduleModel The module model obtained from Variant-Only sync.
+   * @param factory     IdeDependenciesFactory that handles GlobalLibraryMap for DependencyGraph.
+   */
+  public void addVariantOnlyModuleModel(@NotNull VariantOnlyModuleModel moduleModel, @NotNull IdeDependenciesFactory factory) {
+    myAndroidProject.addVariants(moduleModel.getVariants(), factory);
+    myAndroidProject.addSyncIssues(moduleModel.getAndroidProject().getSyncIssues());
+    populateVariantsByName();
+  }
+
+  /**
    * @deprecated Use {@link #getSelectedMainCompileLevel2Dependencies()}
    */
+  @SuppressWarnings("DeprecatedIsStillUsed")
   @Deprecated
   @NotNull
   public Dependencies getSelectedMainCompileDependencies() {

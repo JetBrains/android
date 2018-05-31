@@ -16,39 +16,36 @@
 package com.android.tools.idea.gradle.project.sync.ng.caching;
 
 import com.android.tools.idea.gradle.project.sync.ng.GradleModuleModels;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 public class CachedModuleModels implements GradleModuleModels {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 3L;
+  private static final long serialVersionUID = 4L;
 
   @NotNull private final String myModuleName;
-  @NotNull private final Map<Class<?>, List<Serializable>> myGradleModelsByType = new HashMap<>();
+  @NotNull private final Map<Class<?>, Serializable> myGradleModelsByType = new HashMap<>();
 
   CachedModuleModels(@NotNull Module module) {
     myModuleName = module.getName();
   }
 
   public void addModel(@NotNull Serializable model) {
-    List<Serializable> models = myGradleModelsByType.computeIfAbsent(model.getClass(), k -> new ArrayList<>());
-    models.add(model);
+    myGradleModelsByType.put(model.getClass(), model);
   }
 
   @Override
   @Nullable
   public <T> T findModel(@NotNull Class<T> modelType) {
-    List<Serializable> models = myGradleModelsByType.get(modelType);
-    if (models == null || models.isEmpty()) {
-      return null;
-    }
-    assert models.size() == 1 : "More than one models available, please use findModels() instead.";
-    Serializable model = models.get(0);
+    Serializable model = myGradleModelsByType.get(modelType);
     if (modelType.isInstance(model)) {
       return modelType.cast(model);
     }
@@ -58,11 +55,9 @@ public class CachedModuleModels implements GradleModuleModels {
   @Nullable
   @Override
   public <T> List<T> findModels(@NotNull Class<T> modelType) {
-    List<Serializable> models = myGradleModelsByType.get(modelType);
-    if (models == null || models.isEmpty()) {
-      return null;
-    }
-    return models.stream().filter(modelType::isInstance).map(modelType::cast).collect(Collectors.toList());
+    // There is at most one model for each type, the types are AndroidModuleModel, GradleModuleModel and etc.
+    T model = findModel(modelType);
+    return model == null ? null : ImmutableList.of(model);
   }
 
   @Override

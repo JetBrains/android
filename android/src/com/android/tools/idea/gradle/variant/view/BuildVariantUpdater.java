@@ -28,11 +28,8 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlySyncOptions;
-import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetupStep;
-import com.android.tools.idea.gradle.project.sync.setup.module.android.CompilerOutputModuleSetupStep;
-import com.android.tools.idea.gradle.project.sync.setup.module.android.ContentRootsModuleSetupStep;
-import com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesAndroidModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.VariantOnlySyncModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.ndk.ContentRootModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.google.common.annotations.VisibleForTesting;
@@ -50,7 +47,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.GradleProjects.executeProjectChanges;
@@ -67,21 +63,20 @@ import static com.intellij.util.ThreeState.YES;
 class BuildVariantUpdater {
   @NotNull private final ModuleSetupContext.Factory myModuleSetupContextFactory;
   @NotNull private final IdeModifiableModelsProviderFactory myModifiableModelsProviderFactory;
-  @NotNull private final List<AndroidModuleSetupStep> myAndroidModuleSetupSteps;
+  @NotNull private final VariantOnlySyncModuleSetup myAndroidModuleSetupSteps;
   @NotNull private final NdkModuleSetupStep[] myNdkModuleSetupSteps = {new ContentRootModuleSetupStep()};
 
   BuildVariantUpdater() {
-    this(new ModuleSetupContext.Factory(), new IdeModifiableModelsProviderFactory(),
-         Arrays.asList(new ContentRootsModuleSetupStep(), new DependenciesAndroidModuleSetupStep(), new CompilerOutputModuleSetupStep()));
+    this(new ModuleSetupContext.Factory(), new IdeModifiableModelsProviderFactory(), new VariantOnlySyncModuleSetup());
   }
 
   @VisibleForTesting
   BuildVariantUpdater(@NotNull ModuleSetupContext.Factory moduleSetupContextFactory,
                       @NotNull IdeModifiableModelsProviderFactory modifiableModelsProviderFactory,
-                      @NotNull List<AndroidModuleSetupStep> androidModuleSetupSteps) {
+                      @NotNull VariantOnlySyncModuleSetup androidModuleSetup) {
     myModuleSetupContextFactory = moduleSetupContextFactory;
     myModifiableModelsProviderFactory = modifiableModelsProviderFactory;
-    myAndroidModuleSetupSteps = androidModuleSetupSteps;
+    myAndroidModuleSetupSteps = androidModuleSetup;
   }
 
   /**
@@ -275,6 +270,9 @@ class BuildVariantUpdater {
           GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER);
           request.variantOnlySyncOptions =
             new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), buildVariantName);
+          // TODO: It is not necessary to generate source for all modules, only the modules that have variant changes need to be re-generated.
+          // Need to change generateSource functions to accept specified modules.
+          request.generateSourcesOnSuccess = true;
           GradleSyncInvoker.getInstance().requestProjectSync(project, request, getSyncListener(variantSelectionChangeListeners));
         }
       }
@@ -319,12 +317,7 @@ class BuildVariantUpdater {
     IdeModifiableModelsProvider modelsProvider = myModifiableModelsProviderFactory.create(module.getProject());
     ModuleSetupContext context = myModuleSetupContextFactory.create(module, modelsProvider);
     try {
-      for (AndroidModuleSetupStep setupStep : myAndroidModuleSetupSteps) {
-        if (setupStep.invokeOnBuildVariantChange()) {
-          // TODO get modules by gradle path
-          setupStep.setUpModule(context, androidModel);
-        }
-      }
+      myAndroidModuleSetupSteps.setUpModule(context, androidModel);
       modelsProvider.commit();
     }
     catch (Throwable t) {

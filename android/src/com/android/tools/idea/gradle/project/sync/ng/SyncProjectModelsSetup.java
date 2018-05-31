@@ -67,7 +67,6 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
   @NotNull private final ExtraGradleSyncModelsManager myExtraModelsManager;
   @NotNull private final IdeDependenciesFactory myDependenciesFactory;
   @NotNull private final ProjectDataNodeSetup myProjectDataNodeSetup;
-  @NotNull private final ModuleSetupContext.Factory myModuleSetupFactory;
   @NotNull private final ModuleFinder.Factory myModuleFinderFactory;
   @NotNull private final CompositeBuildDataSetup myCompositeBuildDataSetup;
 
@@ -93,7 +92,7 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
                          @NotNull ModuleSetupContext.Factory moduleSetupFactory,
                          @NotNull ModuleFinder.Factory moduleFinderFactory,
                          @NotNull CompositeBuildDataSetup compositeBuildDataSetup) {
-    super(project, modelsProvider);
+    super(project, modelsProvider, moduleSetupFactory);
     myModuleFactory = moduleFactory;
     myGradleModuleSetup = gradleModuleSetup;
     myAndroidModuleSetup = androidModuleSetup;
@@ -109,7 +108,6 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
     myExtraModelsManager = extraModelsManager;
     myDependenciesFactory = dependenciesFactory;
     myProjectDataNodeSetup = projectDataNodeSetup;
-    myModuleSetupFactory = moduleSetupFactory;
     myModuleFinderFactory = moduleFinderFactory;
     myCompositeBuildDataSetup = compositeBuildDataSetup;
   }

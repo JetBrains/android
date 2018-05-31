@@ -50,7 +50,6 @@ class CachedProjectModelsSetup extends ModuleSetup<CachedProjectModels> {
   @NotNull private final AndroidModuleSetup myAndroidModuleSetup;
   @NotNull private final NdkModuleSetup myNdkModuleSetup;
   @NotNull private final JavaModuleSetup myJavaModuleSetup;
-  @NotNull private final ModuleSetupContext.Factory myModuleSetupFactory;
   @NotNull private final ModuleFinder.Factory myModuleFinderFactory;
   @NotNull private final CompositeBuildDataSetup myCompositeBuildDataSetup;
 
@@ -63,12 +62,11 @@ class CachedProjectModelsSetup extends ModuleSetup<CachedProjectModels> {
                            @NotNull ModuleSetupContext.Factory moduleSetupFactory,
                            @NotNull ModuleFinder.Factory moduleFinderFactory,
                            @NotNull CompositeBuildDataSetup compositeBuildDataSetup) {
-    super(project, modelsProvider);
+    super(project, modelsProvider, moduleSetupFactory);
     myGradleModuleSetup = gradleModuleSetup;
     myAndroidModuleSetup = androidModuleSetup;
     myNdkModuleSetup = ndkModuleSetup;
     myJavaModuleSetup = javaModuleSetup;
-    myModuleSetupFactory = moduleSetupFactory;
     myModuleFinderFactory = moduleFinderFactory;
     myCompositeBuildDataSetup = compositeBuildDataSetup;
   }
