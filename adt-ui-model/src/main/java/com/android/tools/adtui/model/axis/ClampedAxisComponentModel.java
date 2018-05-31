@@ -26,7 +26,6 @@ public final class ClampedAxisComponentModel extends AxisComponentModel {
 
   private ClampedAxisComponentModel(@NotNull BaseBuilder<ClampedAxisComponentModel> builder) {
     super(builder);
-    myRange.addDependency(this).onChange(Range.Aspect.RANGE, this::updateImmediately);
   }
 
   @Override
