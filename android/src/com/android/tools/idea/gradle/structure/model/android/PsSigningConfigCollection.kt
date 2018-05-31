@@ -15,67 +15,29 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.builder.model.SigningConfig
-import com.android.tools.idea.gradle.structure.model.PsModelCollection
-import java.util.function.Consumer
-
-class PsSigningConfigCollection internal constructor(private val parent: PsAndroidModule) : PsModelCollection<PsSigningConfig> {
-  private val signingConfigsByName = mutableMapOf<String, PsSigningConfig>()
-
-  init {
-    val signingConfigsFromGradle = mutableMapOf<String, SigningConfig>()
-    for (signingConfig in parent.gradleModel.androidProject.signingConfigs) {
-      signingConfigsFromGradle[signingConfig.name] = signingConfig
-    }
-
-    val parsedModel = parent.parsedModel
-    if (parsedModel != null) {
-      val android = parsedModel.android()
-      if (android != null) {
-        val parsedSigningConfigs = android.signingConfigs()
-        for (parsedSigningConfig in parsedSigningConfigs) {
-          val name = parsedSigningConfig.name()
-          val fromGradle = signingConfigsFromGradle.remove(name)
-
-          val model = PsSigningConfig(parent, fromGradle, parsedSigningConfig)
-          signingConfigsByName[name] = model
-        }
-      }
-    }
-
-    if (!signingConfigsFromGradle.isEmpty()) {
-      for (signingConfig in signingConfigsFromGradle.values) {
-        val model = PsSigningConfig(parent, signingConfig, null)
-        signingConfigsByName[signingConfig.name] = model
-      }
-    }
+class PsSigningConfigCollection internal constructor(parent: PsAndroidModule)
+  : PsMutableCollectionBase<PsSigningConfig, String, PsAndroidModule>(parent) {
+  override fun getKeys(from: PsAndroidModule): Set<String> {
+    val result = mutableSetOf<String>()
+    result.addAll(from.parsedModel?.android()?.signingConfigs()?.map { it.name() }.orEmpty())
+    result.addAll(from.gradleModel.androidProject.signingConfigs.map { it.name })
+    return result
   }
 
-  fun findElement(name: String): PsSigningConfig? {
-    return signingConfigsByName[name]
+  override fun create(key: String): PsSigningConfig = PsSigningConfig(parent)
+
+  override fun update(key: String, model: PsSigningConfig) {
+    model.init(
+      parent.gradleModel.androidProject.signingConfigs.firstOrNull { it.name == key },
+      parent.parsedModel?.android()?.signingConfigs()?.firstOrNull { it.name() == key }
+    )
   }
 
-  override fun forEach(consumer: Consumer<PsSigningConfig>) {
-    signingConfigsByName.values.forEach(consumer)
+  override fun instantiateNew(key: String) {
+    parent.parsedModel!!.android()!!.addSigningConfig(key)
   }
 
-  fun addNew(name: String): PsSigningConfig {
-    assert(parent.parsedModel != null)
-    val androidModel = parent.parsedModel!!.android()!!
-
-    androidModel.addSigningConfig(name)
-    val signingConfigs = androidModel.signingConfigs()
-    val model = PsSigningConfig(parent, null, signingConfigs.single { it -> it.name() == name })
-    signingConfigsByName[name] = model
-    parent.isModified = true
-    return model
-  }
-
-  fun remove(name: String) {
-    assert(parent.parsedModel != null)
-    val androidModel = parent.parsedModel!!.android()!!
-    androidModel.removeSigningConfig(name)
-    signingConfigsByName.remove(name)
-    parent.isModified = true
+  override fun removeExisting(key: String) {
+    parent.parsedModel!!.android()!!.removeSigningConfig(key)
   }
 }

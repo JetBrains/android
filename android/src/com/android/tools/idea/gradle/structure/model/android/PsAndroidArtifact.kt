@@ -31,11 +31,39 @@ import icons.AndroidIcons.AndroidTestRoot
 import org.jetbrains.annotations.NonNls
 import javax.swing.Icon
 
-class PsAndroidArtifact(override val parent: PsVariant, val resolvedName: String, override val resolvedModel: IdeBaseArtifact?)
+class PsAndroidArtifact(override val parent: PsVariant, val resolvedName: String)
   : PsChildModel(), PsAndroidModel {
 
   override val name: String
   override val icon: Icon
+  override var resolvedModel: IdeBaseArtifact? = null
+
+  constructor(parent: PsVariant, resolvedName: String, resolvedModel: IdeBaseArtifact?): this(parent, resolvedName) {
+    init(resolvedModel)
+  }
+
+  fun init(resolvedModel: IdeBaseArtifact?) {
+    this.resolvedModel = resolvedModel
+  }
+
+  init {
+    var icon = Artifact
+    var name = ""
+    when (resolvedName) {
+      ARTIFACT_MAIN -> icon = AllIcons.Modules.SourceRoot
+      ARTIFACT_ANDROID_TEST -> {
+        name = "AndroidTest"
+        icon = AndroidTestRoot
+      }
+      ARTIFACT_UNIT_TEST -> {
+        name = "UnitTest"
+        icon = TestRoot
+      }
+    }
+    this.name = name
+    this.icon = icon
+  }
+
   private var myDependencies: PsAndroidArtifactDependencyCollection? = null
 
   override val gradleModel: AndroidModuleModel get() = parent.gradleModel
@@ -105,26 +133,6 @@ class PsAndroidArtifact(override val parent: PsVariant, val resolvedName: String
       }
       return configurationNames
     }
-
-  init {
-
-    var icon = Artifact
-    var name = ""
-    when (resolvedName) {
-      ARTIFACT_MAIN -> icon = AllIcons.Modules.SourceRoot
-      ARTIFACT_ANDROID_TEST -> {
-        name = "AndroidTest"
-        icon = AndroidTestRoot
-      }
-      ARTIFACT_UNIT_TEST -> {
-        name = "UnitTest"
-        icon = TestRoot
-      }
-    }
-
-    this.name = name
-    this.icon = icon
-  }
 
   internal fun resetDependencies() {
     myDependencies = null

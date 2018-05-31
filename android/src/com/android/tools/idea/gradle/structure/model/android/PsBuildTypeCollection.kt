@@ -15,67 +15,29 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.builder.model.BuildType
-import com.android.tools.idea.gradle.structure.model.PsModelCollection
-import java.util.function.Consumer
-
-class PsBuildTypeCollection internal constructor(private val parent: PsAndroidModule) : PsModelCollection<PsBuildType> {
-  private val buildTypesByName = mutableMapOf<String, PsBuildType>()
-
-  init {
-    val buildTypesFromGradle = mutableMapOf<String, BuildType>()
-    for (container in parent.gradleModel.androidProject.buildTypes) {
-      val buildType = container.buildType
-      buildTypesFromGradle[buildType.name] = buildType
-    }
-
-    val parsedModel = parent.parsedModel
-    if (parsedModel != null) {
-      val android = parsedModel.android()
-      if (android != null) {
-        val parsedBuildTypes = android.buildTypes()
-        for (parsedBuildType in parsedBuildTypes) {
-          val name = parsedBuildType.name()
-          val fromGradle = buildTypesFromGradle.remove(name)
-
-          val model = PsBuildType(parent, fromGradle, parsedBuildType)
-          buildTypesByName[name] = model
-        }
-      }
-    }
-
-    if (!buildTypesFromGradle.isEmpty()) {
-      for (buildType in buildTypesFromGradle.values) {
-        val model = PsBuildType(parent, buildType, null)
-        buildTypesByName[buildType.name] = model
-      }
-    }
+class PsBuildTypeCollection internal constructor(parent: PsAndroidModule)
+  : PsMutableCollectionBase<PsBuildType, String, PsAndroidModule>(parent) {
+  override fun getKeys(from: PsAndroidModule): Set<String> {
+    val result = mutableSetOf<String>()
+    result.addAll(from.parsedModel?.android()?.buildTypes()?.map { it.name() }.orEmpty())
+    result.addAll(from.gradleModel.androidProject.buildTypes.map { it.buildType.name })
+    return result
   }
 
-  fun findElement(name: String): PsBuildType? {
-    return buildTypesByName[name]
+  override fun create(key: String): PsBuildType = PsBuildType(parent)
+
+  override fun update(key: String, model: PsBuildType) {
+    model.init(
+      parent.gradleModel.androidProject.buildTypes.map { it.buildType }.firstOrNull { it.name == key },
+      parent.parsedModel?.android()?.buildTypes()?.firstOrNull { it.name() == key }
+    )
   }
 
-  override fun forEach(consumer: Consumer<PsBuildType>) {
-    buildTypesByName.values.forEach(consumer)
+  override fun instantiateNew(key: String) {
+    parent.parsedModel!!.android()!!.addBuildType(key)
   }
 
-  fun addNew(name: String): PsBuildType {
-    assert(parent.parsedModel != null)
-    val androidModel = parent.parsedModel!!.android()!!
-    androidModel.addBuildType(name)
-    val buildTypes = androidModel.buildTypes()
-    val model = PsBuildType(parent, null, buildTypes.single { it.name() == name })
-    buildTypesByName[name] = model
-    parent.isModified = true
-    return model
-  }
-
-  fun remove(name: String) {
-    assert(parent.parsedModel != null)
-    val androidModel = parent.parsedModel!!.android()!!
-    androidModel.removeBuildType(name)
-    buildTypesByName.remove(name)
-    parent.isModified = true
+  override fun removeExisting(key: String) {
+    parent.parsedModel!!.android()!!.removeBuildType(key)
   }
 }

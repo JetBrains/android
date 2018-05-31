@@ -15,36 +15,20 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.tools.idea.gradle.structure.model.PsModelCollection
-import java.util.function.Consumer
+import com.android.ide.common.gradle.model.IdeVariant
 
-internal class PsVariantCollection(parent: PsAndroidModule) : PsModelCollection<PsVariant> {
-  private val variantsByName = mutableMapOf<String, PsVariant>()
+internal class PsVariantCollection(parent: PsAndroidModule) : PsCollectionBase<PsVariant, String, PsAndroidModule>(parent) {
+  override fun getKeys(from: PsAndroidModule): Set<String> =
+    from.gradleModel.androidProject.variantNames.toSet()
 
-  init {
-    parent.gradleModel.androidProject.forEachVariant { ideVariant ->
-      val productFlavors = mutableListOf<String>()
-      for (productFlavorName in ideVariant.productFlavors) {
-        val productFlavor = parent.findProductFlavor(productFlavorName)
-        if (productFlavor != null) {
-          productFlavors.add(productFlavor.name)
-        }
-        else {
-          // TODO handle case when product flavor is not found.
-        }
-      }
-      val buildType = ideVariant.buildType
+  override fun create(key: String): PsVariant = PsVariant(parent, key)
 
-      val variant = PsVariant(parent, ideVariant.name, buildType, productFlavors, ideVariant)
-      variantsByName[ideVariant.name] = variant
-    }
-  }
-
-  fun findElement(name: String): PsVariant? {
-    return variantsByName[name]
-  }
-
-  override fun forEach(consumer: Consumer<PsVariant>) {
-    variantsByName.values.forEach(consumer)
+  override fun update(key: String, model: PsVariant) {
+    val resolvedVariant = parent.gradleModel.androidProject.variants.singleOrNull { it.name == key } as? IdeVariant
+                          ?: throw IllegalStateException("Cannot find a resolved variant named '$key'")
+    model.init(
+      resolvedVariant.buildType,
+      resolvedVariant.productFlavors,
+      resolvedVariant)
   }
 }

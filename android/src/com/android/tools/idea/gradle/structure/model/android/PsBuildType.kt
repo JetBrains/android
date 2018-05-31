@@ -26,12 +26,22 @@ import java.io.File
 private const val DEBUG_BUILD_TYPE_NAME = "debug"
 
 open class PsBuildType(
-  final override val parent: PsAndroidModule,
-  final override val resolvedModel: BuildType?,
-  private var parsedModel: BuildTypeModel?
+  final override val parent: PsAndroidModule
 ) : PsChildModel(), PsAndroidModel {
 
-  override val name = resolvedModel?.name ?: parsedModel?.name() ?: ""
+  final override var resolvedModel: BuildType? = null
+  private var parsedModel: BuildTypeModel? = null
+
+  constructor (parent: PsAndroidModule, resolvedModel: BuildType?, parsedModel: BuildTypeModel?) : this(parent) {
+    init(resolvedModel, parsedModel)
+  }
+
+  fun init(resolvedModel: BuildType?, parsedModel: BuildTypeModel?) {
+    this.resolvedModel = resolvedModel
+    this.parsedModel = parsedModel
+  }
+
+  override val name get() = resolvedModel?.name ?: parsedModel?.name() ?: ""
 
   var applicationIdSuffix by BuildTypeDescriptors.applicationIdSuffix
   var embedMicroApp by BuildTypeDescriptors.embedMicroApp
@@ -49,7 +59,7 @@ open class PsBuildType(
   var manifestPlaceholders by BuildTypeDescriptors.manifestPlaceholders
 
   override val isDeclared: Boolean get() = parsedModel != null
-  override val gradleModel: AndroidModuleModel = parent.gradleModel
+  override val gradleModel: AndroidModuleModel get() = parent.gradleModel
 
   fun ensureDeclared() {
     if (parsedModel == null) {
