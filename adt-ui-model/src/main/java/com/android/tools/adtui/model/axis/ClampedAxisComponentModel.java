@@ -17,10 +17,11 @@ package com.android.tools.adtui.model.axis;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
+import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
 import org.jetbrains.annotations.NotNull;
 
-public final class ClampedAxisComponentModel extends AxisComponentModel {
+public final class ClampedAxisComponentModel extends AxisComponentModel implements Updatable {
   // This needs to be removed once AxisComponentModel separates the target lerp Range from the current lerp state Range.
   private boolean myIsUpdating = false;
 

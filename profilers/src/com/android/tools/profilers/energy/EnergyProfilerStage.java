@@ -46,7 +46,7 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
   private static final String ENERGY_EVENT_ORIGIN_INDEX = "energy.event.origin";
 
   @NotNull private final DetailedEnergyUsage myDetailedUsage;
-  @NotNull private final AxisComponentModel myAxis;
+  @NotNull private final ResizingAxisComponentModel myAxis;
   @NotNull private final EventMonitor myEventMonitor;
   @NotNull private final EnergyUsageLegends myLegends;
   @NotNull private final EnergyUsageLegends myUsageTooltipLegends;
@@ -126,7 +126,6 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
   public void enter() {
     myEventMonitor.enter();
 
-    getStudioProfilers().getUpdater().register(myAxis);
     getStudioProfilers().getUpdater().register(myDetailedUsage);
     getStudioProfilers().getUpdater().register(myLegends);
     getStudioProfilers().getUpdater().register(myUsageTooltipLegends);
@@ -141,7 +140,6 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
   public void exit() {
     myEventMonitor.exit();
 
-    getStudioProfilers().getUpdater().unregister(myAxis);
     getStudioProfilers().getUpdater().unregister(myDetailedUsage);
     getStudioProfilers().getUpdater().unregister(myLegends);
     getStudioProfilers().getUpdater().unregister(myUsageTooltipLegends);

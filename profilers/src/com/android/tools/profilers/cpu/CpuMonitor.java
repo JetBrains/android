@@ -31,7 +31,7 @@ public class CpuMonitor extends ProfilerMonitor {
   private static final SingleUnitAxisFormatter CPU_USAGE_FORMATTER = new SingleUnitAxisFormatter(1, 2, 10, "%");
 
   @NotNull private final CpuUsage myThisProcessCpuUsage;
-  @NotNull private final AxisComponentModel myCpuUsageAxis;
+  @NotNull private final ClampedAxisComponentModel myCpuUsageAxis;
   @NotNull private final Legends myLegends;
   @NotNull private final Legends myTooltipLegends;
 

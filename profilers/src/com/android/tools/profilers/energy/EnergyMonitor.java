@@ -32,7 +32,7 @@ public class EnergyMonitor extends ProfilerMonitor {
     new Range(0, EnergyAxisFormatter.DEFAULT_MAJOR_INTERVAL * EnergyAxisFormatter.LABELS.length);
 
   @NotNull private final EnergyUsage myUsage;
-  @NotNull private final AxisComponentModel myAxis;
+  @NotNull private final ClampedAxisComponentModel myAxis;
   @NotNull private final Legends myLegends;
   @NotNull private final Legends myTooltipLegends;
 

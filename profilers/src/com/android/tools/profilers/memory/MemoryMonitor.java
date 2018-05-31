@@ -36,7 +36,7 @@ public class MemoryMonitor extends ProfilerMonitor {
   }
 
   @NotNull
-  private final AxisComponentModel myMemoryAxis;
+  private final ClampedAxisComponentModel myMemoryAxis;
 
   private static final BaseAxisFormatter MEMORY_AXIS_FORMATTER = new MemoryAxisFormatter(1, 2, 5);
   private final MemoryUsage myMemoryUsage;

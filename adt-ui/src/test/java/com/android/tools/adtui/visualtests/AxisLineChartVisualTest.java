@@ -77,9 +77,9 @@ public class AxisLineChartVisualTest extends VisualTest {
 
   private LegendComponent mLegendComponent;
   private LineChartModel mLineChartModel;
-  private AxisComponentModel mTimeAxisModel;
-  private AxisComponentModel mMemoryAxisModel1;
-  private AxisComponentModel mMemoryAxisModel2;
+  private ResizingAxisComponentModel mTimeAxisModel;
+  private ResizingAxisComponentModel mMemoryAxisModel1;
+  private ClampedAxisComponentModel mMemoryAxisModel2;
   private LegendComponentModel mLegendComponentModel;
 
   private AxisComponentModel mTimeAxisGuideModel;
@@ -166,10 +166,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     // The comment on each line highlights why the component needs to be in that position.
     return Arrays.asList(mAnimatedTimeRange, // Update global time range immediate.
                          mLineChartModel, // Set y's interpolation values.
-                         mMemoryAxisModel1, // Clamp/interpolate ranges to major ticks if enabled.
                          mMemoryAxisModel2, // Sync with mMemoryAxis1 if enabled.
-                         mTimeAxisModel, // Read ranges.
-                         mTimeAxisGuideModel,
                          mLegendComponentModel); // Reset flags.
   }
 

@@ -72,7 +72,7 @@ public class EventVisualTest extends VisualTest {
 
   private AnimatedTimeRange myTimelineRange;
 
-  private AxisComponentModel myTimeAxisModel;
+  private ResizingAxisComponentModel myTimeAxisModel;
 
   private EventModel<ActionType> myEventModel;
   private EventModel<StackedEventType> myStackedEventModel;
@@ -101,7 +101,6 @@ public class EventVisualTest extends VisualTest {
     // Add the scene components to the list
     componentsList.add(myAnimatedRange);
     componentsList.add(myTimelineRange);
-    componentsList.add(myTimeAxisModel);
     return componentsList;
   }
 

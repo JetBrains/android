@@ -22,7 +22,7 @@ import com.android.tools.adtui.model.updater.Updatable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class AxisComponentModel extends AspectModel<AxisComponentModel.Aspect> implements Updatable {
+public abstract class AxisComponentModel extends AspectModel<AxisComponentModel.Aspect> {
 
   public enum Aspect {
     AXIS
@@ -48,7 +48,6 @@ public abstract class AxisComponentModel extends AspectModel<AxisComponentModel.
 
   public abstract void updateImmediately();
 
-  @Override
   public void reset() {
     myFirstUpdate = true;
     updateImmediately();

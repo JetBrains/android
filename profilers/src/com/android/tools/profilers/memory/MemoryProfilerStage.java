@@ -74,8 +74,8 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   }
 
   private final DetailedMemoryUsage myDetailedMemoryUsage;
-  private final AxisComponentModel myMemoryAxis;
-  private final AxisComponentModel myObjectsAxis;
+  private final ClampedAxisComponentModel myMemoryAxis;
+  private final ClampedAxisComponentModel myObjectsAxis;
   private final MemoryStageLegends myLegends;
   private final MemoryStageLegends myTooltipLegends;
   private final EaseOutModel myInstructionsEaseOutModel;
