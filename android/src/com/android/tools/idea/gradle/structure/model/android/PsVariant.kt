@@ -18,19 +18,30 @@ package com.android.tools.idea.gradle.structure.model.android
 import com.android.ide.common.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.structure.model.PsChildModel
-import com.google.common.base.Objects
 import com.google.common.collect.ImmutableList
 import icons.AndroidIcons
 import org.jetbrains.annotations.TestOnly
 import javax.swing.Icon
 
 open class PsVariant(override val parent: PsAndroidModule,
-                     override val name: String,
-                     private val myBuildType: String,
-                     private val myProductFlavors: List<String>,
-                     override val resolvedModel: IdeVariant?) : PsChildModel(), PsAndroidModel {
+                     override val name: String) : PsChildModel(), PsAndroidModel {
 
+  private var myBuildType: String = ""
+  private var myProductFlavors: List<String> = listOf()
+  final override var resolvedModel: IdeVariant? = null
   private var myArtifactCollection: PsAndroidArtifactCollection? = null
+
+  constructor (parent: PsAndroidModule, name: String, buildType: String, productFlavors: List<String>, resolvedModel: IdeVariant?)
+    : this(parent, name) {
+    init(buildType, productFlavors, resolvedModel)
+  }
+
+  internal fun init(buildType: String, productFlavors: List<String>, resolvedModel: IdeVariant?) {
+    myBuildType = buildType
+    myProductFlavors = productFlavors
+    this.resolvedModel = resolvedModel
+    myArtifactCollection = null
+  }
 
   override val gradleModel: AndroidModuleModel get() = parent.gradleModel
 
@@ -61,8 +72,4 @@ open class PsVariant(override val parent: PsAndroidModule,
       consumer(productFlavor!!)
     }
   }
-
-  override fun equals(o: Any?): Boolean = throw UnsupportedOperationException()
-
-  override fun hashCode(): Int = throw UnsupportedOperationException()
 }

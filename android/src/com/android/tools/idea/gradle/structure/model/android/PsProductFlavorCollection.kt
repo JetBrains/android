@@ -15,67 +15,29 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.builder.model.ProductFlavor
-import com.android.tools.idea.gradle.structure.model.PsModelCollection
-import java.util.function.Consumer
-
-internal class PsProductFlavorCollection(private val parent: PsAndroidModule) : PsModelCollection<PsProductFlavor> {
-  private val productFlavorsByName = mutableMapOf<String, PsProductFlavor>()
-
-  init {
-    val productFlavorsFromGradle = mutableMapOf<String, ProductFlavor>()
-    for (container in parent.gradleModel.androidProject.productFlavors) {
-      val productFlavor = container.productFlavor
-      productFlavorsFromGradle[productFlavor.name] = productFlavor
-    }
-
-    val parsedModel = parent.parsedModel
-    if (parsedModel != null) {
-      val android = parsedModel.android()
-      if (android != null) {
-        val parsedProductFlavors = android.productFlavors()
-        for (parsedProductFlavor in parsedProductFlavors) {
-          val name = parsedProductFlavor.name()
-          val fromGradle = productFlavorsFromGradle.remove(name)
-
-          val model = PsProductFlavor(parent, fromGradle, parsedProductFlavor)
-          productFlavorsByName[name] = model
-        }
-      }
-    }
-
-    if (!productFlavorsFromGradle.isEmpty()) {
-      for (productFlavor in productFlavorsFromGradle.values) {
-        val model = PsProductFlavor(parent, productFlavor, null)
-        productFlavorsByName[productFlavor.name] = model
-      }
-    }
+internal class PsProductFlavorCollection(parent: PsAndroidModule)
+  : PsMutableCollectionBase<PsProductFlavor, String, PsAndroidModule>(parent) {
+  override fun getKeys(from: PsAndroidModule): Set<String> {
+    val result = mutableSetOf<String>()
+    result.addAll(from.parsedModel?.android()?.productFlavors()?.map { it.name() }.orEmpty())
+    result.addAll(from.gradleModel.androidProject.productFlavors.map { it.productFlavor.name })
+    return result
   }
 
-  override fun forEach(consumer: Consumer<PsProductFlavor>) {
-    productFlavorsByName.values.forEach(consumer)
+  override fun create(key: String): PsProductFlavor = PsProductFlavor(parent)
+
+  override fun update(key: String, model: PsProductFlavor) {
+    model.init(
+      parent.gradleModel.androidProject.productFlavors.map { it.productFlavor }.firstOrNull { it.name == key },
+      parent.parsedModel?.android()?.productFlavors()?.firstOrNull { it.name() == key }
+    )
   }
 
-  fun findElement(name: String): PsProductFlavor? {
-    return productFlavorsByName[name]
+  override fun instantiateNew(key: String) {
+    parent.parsedModel!!.android()!!.addProductFlavor(key)
   }
 
-  fun addNew(name: String): PsProductFlavor {
-    assert(parent.parsedModel != null)
-    val androidModel = parent.parsedModel!!.android()!!
-    androidModel.addProductFlavor(name)
-    val productFlavors = androidModel.productFlavors()
-    val model = PsProductFlavor(parent, null, productFlavors.single { it.name() == name })
-    productFlavorsByName[name] = model
-    parent.isModified = true
-    return model
-  }
-
-  fun remove(name: String) {
-    assert(parent.parsedModel != null)
-    val androidModel = parent.parsedModel!!.android()!!
-    androidModel.removeProductFlavor(name)
-    productFlavorsByName.remove(name)
-    parent.isModified = true
+  override fun removeExisting(key: String) {
+    parent.parsedModel!!.android()!!.removeProductFlavor(key)
   }
 }

@@ -15,45 +15,28 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.ide.common.gradle.model.IdeAndroidArtifact
 import com.android.ide.common.gradle.model.IdeBaseArtifact
-import com.android.ide.common.gradle.model.IdeJavaArtifact
-import com.android.tools.idea.gradle.structure.model.PsModelCollection
-import java.util.function.Consumer
 
-class PsAndroidArtifactCollection internal constructor(val parent: PsVariant) : PsModelCollection<PsAndroidArtifact> {
-  private val artifactsByName = mutableMapOf<String, PsAndroidArtifact>()
 
-  init {
-    val variant = this.parent.resolvedModel
+class PsAndroidArtifactCollection internal constructor(parent: PsVariant) : PsCollectionBase<PsAndroidArtifact, String, PsVariant>(parent) {
+  override fun getKeys(from: PsVariant): Set<String> {
+    val result = mutableSetOf<String>()
+    val variant = from.resolvedModel
     if (variant != null) {
-      addArtifact(variant.mainArtifact)
-      for (androidArtifact in variant.extraAndroidArtifacts) {
-        if (androidArtifact != null) {
-          addArtifact(androidArtifact as IdeAndroidArtifact)
-        }
-      }
-      for (javaArtifact in variant.extraJavaArtifacts) {
-        if (javaArtifact != null) {
-          addArtifact(javaArtifact as IdeJavaArtifact)
-        }
-      }
+      result.add(variant.mainArtifact.name)
+      result.addAll(variant.extraAndroidArtifacts.map { it.name })
+      result.addAll(variant.extraJavaArtifacts.map { it.name })
     }
+    return result
   }
 
-  private fun addArtifacts(artifacts: Collection<IdeBaseArtifact>) {
-    artifacts.forEach(Consumer { this.addArtifact(it) })
-  }
+  override fun create(key: String): PsAndroidArtifact = PsAndroidArtifact(parent, key)
 
-  private fun addArtifact(artifact: IdeBaseArtifact) {
-    artifactsByName[artifact.name] = PsAndroidArtifact(parent, artifact.name, artifact)
-  }
-
-  fun findElement(name: String): PsAndroidArtifact? {
-    return artifactsByName[name]
-  }
-
-  override fun forEach(consumer: Consumer<PsAndroidArtifact>) {
-    artifactsByName.values.forEach(consumer)
+  override fun update(key: String, model: PsAndroidArtifact) {
+    val resolved = parent.resolvedModel?.let {
+      it.mainArtifact.takeIf { it.name == key } ?: it.extraAndroidArtifacts.firstOrNull { it.name == key }
+      ?: it.extraJavaArtifacts.firstOrNull { it.name == key }
+    } as? IdeBaseArtifact
+    model.init(resolved ?: throw IllegalStateException("Cannot find a resolved artifact named '$key' in variant '${parent.name}'"))
   }
 }

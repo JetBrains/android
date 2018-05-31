@@ -26,16 +26,23 @@ import com.android.tools.idea.gradle.structure.model.meta.*
 import java.io.File
 
 class PsSigningConfig(
-  override val parent: PsAndroidModule,
-  override val resolvedModel: SigningConfig?,
-  private val parsedModel: SigningConfigModel?
+  override val parent: PsAndroidModule
 ) : PsChildModel(), PsAndroidModel {
 
-  override val name = when {
-    resolvedModel != null -> resolvedModel.name
-    parsedModel != null -> parsedModel.name()
-    else -> ""
+  override var resolvedModel: SigningConfig? = null
+  private var parsedModel: SigningConfigModel? = null
+
+  constructor(parent: PsAndroidModule, resolvedModel: SigningConfig?, parsedModel: SigningConfigModel?) : this(parent) {
+    init(resolvedModel, parsedModel)
   }
+
+  internal fun init(resolvedModel: SigningConfig?,
+                    parsedModel: SigningConfigModel?) {
+    this.resolvedModel = resolvedModel
+    this.parsedModel = parsedModel
+  }
+
+  override val name get() = resolvedModel?.name ?:    parsedModel?.name() ?: ""
 
   var storeFile by SigningConfigDescriptors.storeFile
   var storePassword by SigningConfigDescriptors.storePassword
@@ -43,7 +50,7 @@ class PsSigningConfig(
   var keyPassword by SigningConfigDescriptors.keyPassword
 
   override val isDeclared: Boolean get() = parsedModel != null
-  override val gradleModel: AndroidModuleModel = parent.gradleModel
+  override val gradleModel: AndroidModuleModel get() = parent.gradleModel
 
   object SigningConfigDescriptors : ModelDescriptor<PsSigningConfig, SigningConfig, SigningConfigModel> {
     override fun getResolved(model: PsSigningConfig): SigningConfig? = model.resolvedModel
