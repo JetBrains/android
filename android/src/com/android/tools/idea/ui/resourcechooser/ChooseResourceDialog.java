@@ -48,6 +48,7 @@ import com.android.tools.idea.ui.resourcechooser.groups.ResourceChooserGroups;
 import com.android.tools.idea.ui.resourcechooser.icons.IconFactory;
 import com.android.tools.idea.ui.resourcechooser.preview.*;
 import com.android.tools.idea.ui.resourcechooser.util.SimpleTabUI;
+import com.android.tools.idea.util.DefaultIgnorable;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -1756,6 +1757,9 @@ public class ChooseResourceDialog extends DialogWrapper {
         JScrollPane scrollPane = ScrollPaneFactory.createScrollPane(myHtmlTextArea, true);
         myPreviewPanel.add(scrollPane, TEXT);
       }
+
+      // b/80221739 Remove all Left-to-Right and Right-to-Left escape characters before displaying this documentation
+      doc = DefaultIgnorable.removeDefaultIgnorable(doc);
 
       myHtmlTextArea.setText(doc);
       HtmlBuilderHelper.fixFontStyles(myHtmlTextArea);
