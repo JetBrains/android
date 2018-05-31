@@ -15,37 +15,26 @@
  */
 package com.android.tools.idea.gradle.structure.model;
 
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleModelProvider;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.android.tools.idea.gradle.structure.model.java.PsJavaModule;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
-
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 
 public class PsProject extends PsModel {
   @NotNull private final Project myProject;
   @NotNull private final ProjectBuildModel myParsedModel;
 
-  @NotNull private final List<PsModule> myModules = Lists.newArrayList();
   @NotNull private final PsVariables myVariables;
   @NotNull private final PsPomDependencyCache myPomDependencyCache = new PsPomDependencies();
+  @NotNull private final PsModuleCollection myModuleCollection;
 
   private boolean myModified;
 
@@ -55,50 +44,17 @@ public class PsProject extends PsModel {
     // TODO(b/77695733): Ensure that getProjectBuildModel() is indeed not null.
     myVariables = new PsVariables(
       this, "Project: " + getName(), Objects.requireNonNull(this.myParsedModel.getProjectBuildModel()).ext(), null);
-    for (Module resolvedModel : ModuleManager.getInstance(myProject).getModules()) {
-      String gradlePath = getGradlePath(resolvedModel);
-      GradleBuildModel parsedModel = myParsedModel.getModuleBuildModel(resolvedModel);
-      if (gradlePath != null && parsedModel != null) {
-        // Only Gradle-based modules are displayed in the PSD.
-        PsModule module = null;
-
-        AndroidModuleModel gradleModel = AndroidModuleModel.get(resolvedModel);
-        if (gradleModel != null) {
-          module = new PsAndroidModule(this, resolvedModel, gradlePath, gradleModel, parsedModel);
-        }
-        // TODO enable when Java module support is complete.
-        else {
-          JavaModuleModel javaModuleModel = JavaModuleModel.get(resolvedModel);
-          if (javaModuleModel != null && javaModuleModel.isBuildable()) {
-            module = new PsJavaModule(this, resolvedModel, gradlePath, javaModuleModel, parsedModel);
-          }
-        }
-
-        if (module != null) {
-          myModules.add(module);
-        }
-      }
-    }
+    myModuleCollection = new PsModuleCollection(this);
   }
 
   @Nullable
   public PsModule findModuleByName(@NotNull String moduleName) {
-    for (PsModule model : myModules) {
-      if (moduleName.equals(model.getName())) {
-        return model;
-      }
-    }
-    return null;
+    return myModuleCollection.items().stream().filter(it -> Objects.equals(it.getName(), moduleName)).findFirst().orElse(null);
   }
 
   @Nullable
   public PsModule findModuleByGradlePath(@NotNull String gradlePath) {
-    for (PsModule model : myModules) {
-      if (gradlePath.equals(model.getGradlePath())) {
-        return model;
-      }
-    }
-    return null;
+    return myModuleCollection.items().stream().filter(it -> Objects.equals(it.getGradlePath(), gradlePath)).findFirst().orElse(null);
   }
 
   @Override
@@ -114,7 +70,7 @@ public class PsProject extends PsModel {
   }
 
   public void forEachModule(@NotNull Consumer<PsModule> consumer) {
-    myModules.stream().sorted(Comparator.comparing(v -> v.getName().toLowerCase())).forEachOrdered(consumer);
+    myModuleCollection.items().stream().sorted(Comparator.comparing(v -> v.getName().toLowerCase())).forEachOrdered(consumer);
   }
 
   @Override
@@ -135,7 +91,7 @@ public class PsProject extends PsModel {
   }
 
   public int getModelCount() {
-    return myModules.size();
+    return myModuleCollection.items().size();
   }
 
   public void applyChanges() {
@@ -158,5 +114,10 @@ public class PsProject extends PsModel {
   @NotNull
   public PsPomDependencyCache getPomDependencyCache() {
     return myPomDependencyCache;
+  }
+
+  @NotNull
+  public ProjectBuildModel getParsedModel() {
+    return myParsedModel;
   }
 }
