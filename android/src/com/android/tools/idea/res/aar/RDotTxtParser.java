@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res.aar;
 
+import com.android.ide.common.symbols.Symbol;
 import com.android.ide.common.symbols.SymbolIo;
 import com.android.ide.common.symbols.SymbolTable;
 import com.android.resources.ResourceType;
@@ -23,7 +24,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -36,8 +38,8 @@ class RDotTxtParser {
   static Map<String, Integer> getIds(@NotNull final File rFile) {
     try {
       SymbolTable symbolTable = SymbolIo.readFromAapt(rFile, null);
-      return symbolTable.getSymbols().row(ResourceType.ID).entrySet().stream()
-        .collect(Collectors.toMap(Map.Entry::getKey, e -> Integer.decode(e.getValue().getValue())));
+      return symbolTable.getSymbols().row(ResourceType.ID).values().stream()
+                        .collect(Collectors.toMap(Symbol::getName, e -> ((Symbol.NormalSymbol)e).getIntValue()));
     }
     catch (IOException e) {
       getLog().warn("Unable to read file: " + rFile.getPath(), e);
