@@ -42,8 +42,11 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.RepositoryUrlManager;
+import com.android.tools.idea.ui.GuiTestingService;
+import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -393,6 +396,10 @@ public final class TemplateValueInjector {
   }
 
   private void addKotlinVersion() {
+    assert PluginManager.getPlugin(PluginId.findId(("org.jetbrains.kotlin"))) != null ||
+           !GuiTestingService.getInstance().isGuiTestingMode()
+      : "Run Test Configuration missing. You should set -Dplugin.path=../../../../prebuilts/tools/common/kotlin-plugin/Kotlin";
+
     // Always add the kotlin version attribute. If we are adding a new kotlin activity, we may need to add dependencies
     final ConvertJavaToKotlinProvider provider = getJavaToKotlinConversionProvider();
     myTemplateValues.put(ATTR_KOTLIN_VERSION, provider.getKotlinVersion());
