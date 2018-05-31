@@ -41,7 +41,7 @@ public class ProfilerLayout {
    */
   public static final int Y_AXIS_TOP_MARGIN = JBUI.scale(30);
 
-  public static final Border MONITOR_LABEL_PADDING = BorderFactory.createEmptyBorder(5, 10, 5, 10);
+  public static final Border MONITOR_LABEL_PADDING = JBUI.Borders.empty(5, 10);
 
   public static final Border MONITOR_BORDER = BorderFactory.createMatteBorder(0, 0, 1, 0, ProfilerColors.MONITOR_BORDER);
 
@@ -54,9 +54,9 @@ public class ProfilerLayout {
 
   public static final int ROW_HEIGHT_PADDING = JBUI.scale(4);
 
-  public static final Border TABLE_ROW_BORDER = new EmptyBorder(0, 10, 0, 0);
-  public static final Border TABLE_COLUMN_HEADER_BORDER = new EmptyBorder(3, 10, 3, 0);
-  public static final Border TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER = new EmptyBorder(3, 0, 3, 10);
+  public static final Border TABLE_ROW_BORDER = JBUI.Borders.emptyLeft(10);
+  public static final Border TABLE_COLUMN_HEADER_BORDER = JBUI.Borders.empty(3, 10, 3, 0);
+  public static final Border TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER = JBUI.Borders.empty(3, 0, 3, 10);
 
   public static final Insets TABLE_COLUMN_CELL_INSETS = new Insets(3, 10, 3, 0);
   public static final Insets TABLE_COLUMN_RIGHT_ALIGNED_CELL_INSETS = new Insets(3, 0, 3, 10);
@@ -75,8 +75,8 @@ public class ProfilerLayout {
   public static final int FILTER_TEXT_FIELD_TRIGGER_DELAY_MS = 250;
   public static final int FILTER_TEXT_HISTORY_SIZE = 5;
 
-  // There is a border of 5 pixels that is not scaled.
-  public static final int TOOLBAR_HEIGHT = JBUI.scale(25) + 5;
+  // The total usable height of the toolbar is 30px the 1px is for a 1px border at the bottom of the toolbar.
+  public static final int TOOLBAR_HEIGHT = JBUI.scale(31);
   public static final Border TOOLBAR_LABEL_BORDER = JBUI.Borders.empty(3, 8, 3, 3);
   public static final Border TOOLBAR_ICON_BORDER = JBUI.Borders.empty(4);
 
@@ -91,7 +91,8 @@ public class ProfilerLayout {
   }
 
   @NotNull
-  public static FlowLayout createToolbarLayout() {
-    return new FlowLayout(FlowLayout.CENTER, 0, 1);
+  public static LayoutManager createToolbarLayout() {
+    // We use a GridBagLayout because by default it acts like a FlowLayout that is vertically aligned.
+    return new GridBagLayout();
   }
 }

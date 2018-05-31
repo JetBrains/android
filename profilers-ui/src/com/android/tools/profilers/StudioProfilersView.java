@@ -244,13 +244,12 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
 
   private void initializeStageUi() {
     myToolbar = new JPanel(new BorderLayout());
-    JPanel leftToolbar = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+    JPanel leftToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
 
     myToolbar.setBorder(DEFAULT_BOTTOM_BORDER);
     myToolbar.setPreferredSize(new Dimension(0, TOOLBAR_HEIGHT));
 
     myCommonToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
-    myCommonToolbar.setBorder(new JBEmptyBorder(0, 3, 0, 0));
     JButton button = new CommonButton(StudioIcons.Common.BACK_ARROW);
     button.addActionListener(action -> {
       myProfiler.setMonitoringStage();
