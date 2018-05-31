@@ -16,64 +16,38 @@
 package com.android.tools.idea.gradle.structure.model;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.google.common.base.Objects;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 import static com.android.tools.idea.gradle.structure.model.PsPath.TexType.FOR_COMPARE_TO;
 
-public abstract class PsPath implements Comparable<PsPath> {
-  @Nullable private final PsPath myParentPath;
-
-  protected PsPath(@Nullable PsPath path) {
-    myParentPath = path;
-  }
+public interface PsPath extends Comparable<PsPath> {
 
   @Override
-  public int compareTo(PsPath path) {
+  default int compareTo(PsPath path) {
     return toText(FOR_COMPARE_TO).compareTo(path.toText(FOR_COMPARE_TO));
   }
 
   @NotNull
-  public abstract String toText(@NotNull TexType type);
+  String toText(@NotNull TexType type);
 
   @Nullable
-  public abstract String getHyperlinkDestination(@NotNull PsContext context);
+  String getHyperlinkDestination(@NotNull PsContext context);
 
   @NotNull
-  public abstract String getHtml(@NotNull PsContext context);
+  String getHtml(@NotNull PsContext context);
 
   /**
-   * Returns a path to the parent/content entity if any.
+   * Returns a list of parent context paths.
    *
    * For example, a module would be a parent for its dependencies.
    */
-  // The method is final and returns a value of a final field to prevent accidental loops in parents.
-  @Nullable
-  final public PsPath getParent() {
-    return myParentPath;
-  }
+  @NotNull
+  List<PsPath> getParents();
 
-  @Override
-  public String toString() {
-    return toText(FOR_COMPARE_TO);
-  }
-
-  public enum TexType {
+  enum TexType {
     PLAIN_TEXT, FOR_COMPARE_TO
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    PsPath path = (PsPath)o;
-    return Objects.equal(myParentPath, path.myParentPath);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(myParentPath);
   }
 }

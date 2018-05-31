@@ -19,12 +19,15 @@ import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsIssueType;
 import com.android.tools.idea.gradle.structure.model.PsPath;
+import com.google.common.collect.ImmutableList;
 import org.hamcrest.CoreMatchers;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+
+import java.util.List;
 
 import static org.junit.Assert.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -45,7 +48,7 @@ public class DependencyViewIssueRendererTest {
 
   @NotNull
   private PsPath createPath(final String text) {
-    return new PsPath(null) {
+    return new PsPath() {
       @NotNull
       @Override
       public String toText(@NotNull TexType type) {
@@ -69,6 +72,12 @@ public class DependencyViewIssueRendererTest {
       @Override
       public String getHtml(@NotNull PsContext context) {
         return "<" + text + ">";
+      }
+
+      @NotNull
+      @Override
+      public List<PsPath> getParents() {
+        return ImmutableList.of();
       }
     };
   }

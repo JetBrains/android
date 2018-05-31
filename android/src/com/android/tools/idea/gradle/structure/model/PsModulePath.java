@@ -17,14 +17,16 @@ package com.android.tools.idea.gradle.structure.model;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class PsModulePath extends PsPath {
+import java.util.List;
+
+public final class PsModulePath implements PsPath {
   @NotNull private final String myModuleName;
 
   public PsModulePath(@NotNull PsModule module) {
-    super(null);
     myModuleName = module.getName();
   }
 
@@ -57,17 +59,27 @@ public final class PsModulePath extends PsPath {
     return "";
   }
 
+  @NotNull
+  @Override
+  public List<PsPath> getParents() {
+    return ImmutableList.of();
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-    if (!super.equals(o)) return false;
     PsModulePath path = (PsModulePath)o;
     return Objects.equal(myModuleName, path.myModuleName);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(super.hashCode(), myModuleName);
+    return Objects.hashCode(myModuleName);
+  }
+
+  @Override
+  public String toString() {
+    return toText(TexType.FOR_COMPARE_TO);
   }
 }

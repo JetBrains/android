@@ -17,14 +17,17 @@ package com.android.tools.idea.gradle.structure.model;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 import static com.android.tools.idea.gradle.structure.model.PsPath.TexType.FOR_COMPARE_TO;
 
-public class TestPath extends PsPath {
+public class TestPath implements PsPath {
   @NotNull
-  public static final PsPath EMPTY_PATH = new PsPath(null) {
+  public static final PsPath EMPTY_PATH = new PsPath() {
     @Override
     @NotNull
     public String toText(@NotNull TexType type) {
@@ -43,6 +46,12 @@ public class TestPath extends PsPath {
       return null;
     }
 
+    @NotNull
+    @Override
+    public List<PsPath> getParents() {
+      return ImmutableList.of();
+    }
+
     @Override
     public boolean equals(Object obj) {
       return this == obj;
@@ -59,6 +68,7 @@ public class TestPath extends PsPath {
     }
   };
 
+  @NotNull private final PsPath myParent;
   @NotNull private final String myComparisonValue;
   @NotNull private final String myOtherValue;
   @Nullable private final String myHyperlinkDestination;
@@ -76,7 +86,7 @@ public class TestPath extends PsPath {
   }
 
   public TestPath(@NotNull String comparisonValue, @NotNull String otherValue, @Nullable PsPath parentPath, @Nullable String hyperlinkDestination) {
-    super(parentPath);
+    myParent = parentPath;
     myComparisonValue = comparisonValue;
     myOtherValue = otherValue;
     myHyperlinkDestination = hyperlinkDestination;
@@ -100,18 +110,24 @@ public class TestPath extends PsPath {
     return myOtherValue;
   }
 
+  @NotNull
+  @Override
+  public List<PsPath> getParents() {
+    return myParent != null ? ImmutableList.of(myParent) : ImmutableList.of();
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-    if (!super.equals(o)) return false;
     TestPath path = (TestPath)o;
-    return Objects.equal(myComparisonValue, path.myComparisonValue) &&
+    return Objects.equal(myParent, path.myParent) &&
+           Objects.equal(myComparisonValue, path.myComparisonValue) &&
            Objects.equal(myOtherValue, path.myOtherValue);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(super.hashCode(), myComparisonValue, myOtherValue);
+    return Objects.hashCode(myParent, myComparisonValue, myOtherValue);
   }
 }

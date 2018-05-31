@@ -23,8 +23,11 @@ import com.android.tools.idea.gradle.structure.model.PsModulePath;
 import com.android.tools.idea.gradle.structure.model.PsPath;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import com.intellij.ui.navigation.Place;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.gradle.structure.configurables.issues.GoToPathLinkHandler.GO_TO_PATH_TYPE;
@@ -32,13 +35,14 @@ import static com.android.tools.idea.gradle.structure.model.PsDependency.TextTyp
 import static com.android.tools.idea.gradle.structure.navigation.Places.serialize;
 import static com.android.tools.idea.structure.dialog.ProjectStructureConfigurable.putPath;
 
-public final class PsLibraryDependencyNavigationPath extends PsPath {
+public final class PsLibraryDependencyNavigationPath implements PsPath {
+  @NotNull private final PsModulePath myParent;
   @NotNull private final String myModuleName;
   @NotNull private final String myDependency;
   @NotNull private final String myNavigationText;
 
   public PsLibraryDependencyNavigationPath(@NotNull PsLibraryDependency dependency) {
-    super(new PsModulePath(dependency.getParent()));
+    myParent = new PsModulePath(dependency.getParent());
     myModuleName = dependency.getParent().getName();
     PsArtifactDependencySpec spec = dependency.getSpec();
     myNavigationText = dependency.toText(FOR_NAVIGATION);
@@ -78,19 +82,30 @@ public final class PsLibraryDependencyNavigationPath extends PsPath {
     return String.format("<a href='%1$s'>%2$s</a> (%3$s)", getHyperlinkDestination(context), myDependency, myModuleName);
   }
 
+  @NotNull
+  @Override
+  public List<PsPath> getParents() {
+    return ImmutableList.of(myParent);
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-    if (!super.equals(o)) return false;
     PsLibraryDependencyNavigationPath path = (PsLibraryDependencyNavigationPath)o;
-    return Objects.equal(myModuleName, path.myModuleName) &&
+    return Objects.equal(myParent, path.myParent) &&
+           Objects.equal(myModuleName, path.myModuleName) &&
            Objects.equal(myDependency, path.myDependency) &&
            Objects.equal(myNavigationText, path.myNavigationText);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(super.hashCode(), myModuleName, myDependency, myNavigationText);
+    return Objects.hashCode(myParent, myModuleName, myDependency, myNavigationText);
+  }
+
+  @Override
+  public String toString() {
+    return toText(TexType.FOR_COMPARE_TO);
   }
 }

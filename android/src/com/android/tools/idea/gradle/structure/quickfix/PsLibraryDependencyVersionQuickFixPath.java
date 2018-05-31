@@ -20,13 +20,16 @@ import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.PsPath;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 import static com.android.tools.idea.gradle.structure.configurables.issues.QuickFixLinkHandler.QUICK_FIX_PATH_TYPE;
 import static com.android.tools.idea.gradle.structure.quickfix.QuickFixes.QUICK_FIX_PATH_SEPARATOR;
 import static com.android.tools.idea.gradle.structure.quickfix.QuickFixes.SET_LIBRARY_DEPENDENCY_QUICK_FIX;
 
-public final class PsLibraryDependencyVersionQuickFixPath extends PsPath {
+public final class PsLibraryDependencyVersionQuickFixPath implements PsPath {
   public static final String DEFAULT_QUICK_FIX_TEXT = "[Fix]";
 
   @NotNull private final String myModuleName;
@@ -36,7 +39,6 @@ public final class PsLibraryDependencyVersionQuickFixPath extends PsPath {
   @NotNull private final String myConfigurationName;
 
   public PsLibraryDependencyVersionQuickFixPath(@NotNull PsLibraryDependency dependency, @NotNull String quickFixText) {
-    super(null);
     myModuleName = dependency.getParent().getName();
     myDependency = getCompactNotation(dependency);
     String version = dependency.getSpec().getVersion();
@@ -49,7 +51,6 @@ public final class PsLibraryDependencyVersionQuickFixPath extends PsPath {
   public PsLibraryDependencyVersionQuickFixPath(@NotNull PsLibraryDependency dependency,
                                                 @NotNull String version,
                                                 @NotNull String quickFixText) {
-    super(null);
     myModuleName = dependency.getParent().getName();
     myDependency = getCompactNotation(dependency);
     myConfigurationName = dependency.getJoinedConfigurationNames();  // Parsed dependencies have only one configuration name.
@@ -82,11 +83,16 @@ public final class PsLibraryDependencyVersionQuickFixPath extends PsPath {
     return String.format("<a href=\"%s\">%s</a>", getHyperlinkDestination(context), myQuickFixText);
   }
 
+  @NotNull
+  @Override
+  public List<PsPath> getParents() {
+    return ImmutableList.of();
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-    if (!super.equals(o)) return false;
     PsLibraryDependencyVersionQuickFixPath path = (PsLibraryDependencyVersionQuickFixPath)o;
     return Objects.equal(myModuleName, path.myModuleName) &&
            Objects.equal(myDependency, path.myDependency) &&
@@ -97,6 +103,11 @@ public final class PsLibraryDependencyVersionQuickFixPath extends PsPath {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(super.hashCode(), myModuleName, myDependency, myVersion, myConfigurationName, myQuickFixText);
+    return Objects.hashCode(myModuleName, myDependency, myVersion, myConfigurationName, myQuickFixText);
+  }
+
+  @Override
+  public String toString() {
+    return toText(TexType.FOR_COMPARE_TO);
   }
 }
