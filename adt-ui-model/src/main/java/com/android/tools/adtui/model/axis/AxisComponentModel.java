@@ -41,6 +41,7 @@ public abstract class AxisComponentModel extends AspectModel<AxisComponentModel.
     myRange = builder.myRange;
     myFormatter = builder.myFormatter;
     myLabel = builder.myLabel;
+    myRange.addDependency(this).onChange(Range.Aspect.RANGE, this::updateImmediately);
   }
 
   public abstract void updateImmediately();

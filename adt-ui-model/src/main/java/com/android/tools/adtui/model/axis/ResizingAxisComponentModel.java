@@ -30,7 +30,7 @@ public final class ResizingAxisComponentModel extends AxisComponentModel {
 
     myGlobalRange = builder.myGlobalRange;
     if (myGlobalRange != null) {
-      myGlobalRange.addDependency(this).onChange(Range.Aspect.RANGE, this::updateImmediately);
+      myGlobalRange.addDependency(this).onChange(Range.Aspect.RANGE, this::onGlobalRangeUpdated);
       myGlobalRangeMin = myGlobalRange.getMin();
     }
   }
@@ -40,16 +40,18 @@ public final class ResizingAxisComponentModel extends AxisComponentModel {
     // We don't need to do anything since we only rely on Range aspect changes.
   }
 
+  private void onGlobalRangeUpdated() {
+    // We only care about the global range min, so we fire the aspect only when that changes.
+    assert myGlobalRange != null;
+    if (Doubles.compare(myGlobalRangeMin, myGlobalRange.getMin()) != 0) {
+      updateImmediately();
+    }
+  }
+
   @Override
   public void updateImmediately() {
     myFirstUpdate = false;
-
-    // We only care about the global range min, so we fire the aspect only when that changes.
-    if (myGlobalRange != null && Doubles.compare(myGlobalRangeMin, myGlobalRange.getMin()) != 0) {
-      myGlobalRangeMin = myGlobalRange.getMin();
-      // TODO also change when data changes
-      changed(Aspect.AXIS);
-    }
+    changed(Aspect.AXIS);
   }
 
   @Override
