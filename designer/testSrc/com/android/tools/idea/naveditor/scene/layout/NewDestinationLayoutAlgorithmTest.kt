@@ -44,7 +44,5 @@ class NewDestinationLayoutAlgorithmTest : NavTestCase() {
     assertEquals(80, scene.getSceneComponent("fragment2")!!.drawY)
     assertEquals(120, scene.getSceneComponent("fragment3")!!.drawX)
     assertEquals(120, scene.getSceneComponent("fragment3")!!.drawY)
-    assertEquals(200, scene.getSceneComponent("fragment4")!!.drawX)
-    assertEquals(320, scene.getSceneComponent("fragment4")!!.drawY)
   }
 }

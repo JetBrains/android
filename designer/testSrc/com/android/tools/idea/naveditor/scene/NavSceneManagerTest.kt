@@ -32,12 +32,11 @@ class NavSceneManagerTest : NavTestCase() {
     }
     val scene = model.surface.scene!!
 
-    assertEquals(200, scene.getSceneComponent("fragment1")!!.drawX)
-    assertEquals(20, scene.getSceneComponent("fragment1")!!.drawY)
-    assertEquals(380, scene.getSceneComponent("fragment2")!!.drawX)
-    assertEquals(20, scene.getSceneComponent("fragment2")!!.drawY)
-    assertEquals(20, scene.getSceneComponent("fragment3")!!.drawX)
-    assertEquals(20, scene.getSceneComponent("fragment3")!!.drawY)
+
+    val fragment2x = scene.getSceneComponent("fragment2")!!.drawX
+    val fragment2y = scene.getSceneComponent("fragment2")!!.drawY
+    val fragment3x = scene.getSceneComponent("fragment3")!!.drawX
+    val fragment3y = scene.getSceneComponent("fragment3")!!.drawY
 
     val sceneComponent = scene.getSceneComponent("fragment1")!!
     val dragTarget = sceneComponent.targets.filterIsInstance(ScreenDragTarget::class.java).first()
@@ -51,10 +50,10 @@ class NavSceneManagerTest : NavTestCase() {
 
     assertEquals(100, scene.getSceneComponent("fragment1")!!.drawX)
     assertEquals(50, scene.getSceneComponent("fragment1")!!.drawY)
-    assertEquals(380, scene.getSceneComponent("fragment2")!!.drawX)
-    assertEquals(20, scene.getSceneComponent("fragment2")!!.drawY)
-    assertEquals(20, scene.getSceneComponent("fragment3")!!.drawX)
-    assertEquals(20, scene.getSceneComponent("fragment3")!!.drawY)
+    assertEquals(fragment2x, scene.getSceneComponent("fragment2")!!.drawX)
+    assertEquals(fragment2y, scene.getSceneComponent("fragment2")!!.drawY)
+    assertEquals(fragment3x, scene.getSceneComponent("fragment3")!!.drawX)
+    assertEquals(fragment3y, scene.getSceneComponent("fragment3")!!.drawY)
   }
 
   fun testLandscape() {
