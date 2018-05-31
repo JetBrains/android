@@ -46,9 +46,9 @@ public class PsIssueCollection {
   public void add(@NotNull PsIssue issue) {
     PsPath path = issue.getPath();
     synchronized (myLock) {
-      while (path != null) {
-        myIssues.put(path, issue);
-        path = path.getParent();
+      myIssues.put(path, issue);
+      for (PsPath parent : path.getParents()) {
+        myIssues.put(parent, issue);
       }
     }
   }

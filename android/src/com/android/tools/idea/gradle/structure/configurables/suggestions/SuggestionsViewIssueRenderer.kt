@@ -24,9 +24,6 @@ class SuggestionsViewIssueRenderer(val context: PsContext, val showParentPath: B
 
   override fun renderIssue(buffer: StringBuilder, issue: PsIssue) {
     val issuePath = issue.path
-    val parentPath = issuePath.parent
-    val parentPathHref = parentPath?.getHyperlinkDestination(context)
-    val parentPathText = parentPath?.toText(PsPath.TexType.PLAIN_TEXT)?.makeTextWrappable()
     val issuePathHref = issuePath.getHyperlinkDestination(context)
     val issuePathText = issuePath.toText(PsPath.TexType.PLAIN_TEXT).makeTextWrappable()
     val issueText = issue.text.makeTextWrappable()
@@ -36,8 +33,12 @@ class SuggestionsViewIssueRenderer(val context: PsContext, val showParentPath: B
     buffer.append("</td><td valign='top'>")
     buffer.append("<b>")
     buffer.append(issuePathText)
-    if (showParentPath && parentPath != null) {
-      buffer.append(" (<a href=\"$parentPathHref\">$parentPathText</a>)")
+    if (showParentPath) {
+      issuePath.parents.forEach { parentPath ->
+        val parentPathHref = parentPath.getHyperlinkDestination(context)
+        val parentPathText = parentPath.toText(PsPath.TexType.PLAIN_TEXT).makeTextWrappable()
+        buffer.append(" (<a href=\"$parentPathHref\">$parentPathText</a>)")
+      }
     }
     buffer.append(" : ")
     buffer.append(issueText)
