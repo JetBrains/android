@@ -13,21 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.model;
+package com.android.tools.idea.gradle.structure.model
 
-import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.NotNull;
+import com.google.common.collect.ImmutableList
+import java.util.function.Consumer
 
-import java.util.List;
-import java.util.function.Consumer;
+interface PsModelCollection<T : PsModel> {
 
-public interface PsModelCollection<T extends PsModel> {
+  fun forEach(consumer: Consumer<T>)
 
-  void forEach(@NotNull Consumer<T> consumer);
+  fun forEach(consumer: (T) -> Unit) = forEach(Consumer { consumer(it) })
 
-  default List<T> items() {
-    ImmutableList.Builder<T> result = new ImmutableList.Builder<>();
-    forEach(result::add);
-    return result.build();
+  fun items(): List<T> {
+    val result = ImmutableList.Builder<T>()
+    forEach(Consumer { result.add(it) })
+    return result.build()
   }
 }
