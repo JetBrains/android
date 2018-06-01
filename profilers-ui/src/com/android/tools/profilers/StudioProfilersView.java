@@ -121,6 +121,9 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myStageLoadingPanel.getComponent().setBackground(ProfilerColors.DEFAULT_BACKGROUND);
 
     mySplitter = new ThreeComponentsSplitter();
+    // Override the splitter's custom traversal policy back to the default, because the custom policy prevents the profilers from tabbing
+    // across the components (e.g. sessions panel and the main stage UI).
+    mySplitter.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
     mySplitter.setDividerWidth(0);
     mySplitter.setDividerMouseZoneSize(-1);
     mySplitter.setHonorComponentsMinimumSize(true);

@@ -18,6 +18,7 @@ package com.android.tools.profilers.sessions
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.stdui.CommonAction
+import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.CpuProfiler
@@ -373,6 +374,79 @@ class SessionsViewTest {
     ui.layout()
     ui.mouse.click(sessionItem1.bounds.x + 1, sessionItem1.bounds.y + 1)
     assertThat(mySessionsManager.selectedSession).isEqualTo(session1)
+  }
+
+  @Test
+  fun testSessionArtifactKeyboardSelect() {
+    val sessionsPanel = mySessionsView.sessionsPanel
+    sessionsPanel.setSize(200, 200)
+
+    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
+    val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
+    val process2 = Common.Process.newBuilder().setPid(20).setState(Common.Process.State.ALIVE).build()
+    myProfilerService.setTimestampNs(1)
+    mySessionsManager.beginSession(device, process1)
+    mySessionsManager.endCurrentSession()
+    val session1 = mySessionsManager.selectedSession
+    myProfilerService.setTimestampNs(2)
+    mySessionsManager.beginSession(device, process2)
+    mySessionsManager.endCurrentSession()
+    val session2 = mySessionsManager.selectedSession
+
+    assertThat(sessionsPanel.componentCount).isEqualTo(2)
+    var sessionItem0 = sessionsPanel.getComponent(0) as SessionItemView
+    var sessionItem1 = sessionsPanel.getComponent(1) as SessionItemView
+
+    // Make sure the second session item is selected
+    assertThat(mySessionsManager.selectedSession).isEqualTo(session2)
+    val ui = FakeUi(sessionsPanel)
+    ui.keyboard.setFocus(sessionItem1)
+    ui.keyboard.press(FakeKeyboard.Key.ENTER)
+    ui.keyboard.release(FakeKeyboard.Key.ENTER)
+    assertThat(mySessionsManager.selectedSession).isEqualTo(session1)
+    ui.keyboard.setFocus(sessionItem0)
+    ui.keyboard.press(FakeKeyboard.Key.ENTER)
+    ui.keyboard.release(FakeKeyboard.Key.ENTER)
+    assertThat(mySessionsManager.selectedSession).isEqualTo(session2)
+  }
+
+  @Test
+  fun testSessionArtifactKeyboardDelete() {
+    val sessionsPanel = mySessionsView.sessionsPanel
+    sessionsPanel.setSize(200, 200)
+
+    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
+    val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
+    val process2 = Common.Process.newBuilder().setPid(20).setState(Common.Process.State.ALIVE).build()
+    myProfilerService.setTimestampNs(1)
+    mySessionsManager.beginSession(device, process1)
+    mySessionsManager.endCurrentSession()
+    myProfilerService.setTimestampNs(2)
+    mySessionsManager.beginSession(device, process2)
+    mySessionsManager.endCurrentSession()
+
+    assertThat(sessionsPanel.componentCount).isEqualTo(2)
+    var sessionItem = sessionsPanel.getComponent(0) as SessionItemView
+    // Delete the ongoing session
+    FakeUi(sessionsPanel).let { ui ->
+      ui.keyboard.setFocus(sessionItem)
+      ui.keyboard.press(FakeKeyboard.Key.BACKSPACE)
+      ui.keyboard.release(FakeKeyboard.Key.BACKSPACE)
+      assertThat(mySessionsManager.sessionArtifacts).hasSize(1)
+      assertThat(mySessionsManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
+      assertThat(mySessionsManager.profilingSession).isEqualTo(Common.Session.getDefaultInstance())
+    }
+
+    // Delete the remaining session
+    assertThat(sessionsPanel.componentCount).isEqualTo(1)
+    FakeUi(sessionsPanel).let { ui ->
+      sessionItem = sessionsPanel.getComponent(0) as SessionItemView
+      ui.layout()
+      ui.keyboard.setFocus(sessionItem)
+      ui.keyboard.press(FakeKeyboard.Key.BACKSPACE)
+      ui.keyboard.release(FakeKeyboard.Key.BACKSPACE)
+      assertThat(mySessionsManager.sessionArtifacts).hasSize(0)
+    }
   }
 
   @Test

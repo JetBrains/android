@@ -34,10 +34,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,6 +45,10 @@ import static com.android.tools.profilers.ProfilerColors.SELECTED_SESSION_COLOR;
  * A view for showing different {@link SessionArtifact}'s in the sessions panel.
  */
 public abstract class SessionArtifactView<T extends SessionArtifact> extends JPanel {
+
+  private static final String PREVIOUS = "Previous";
+  private static final String NEXT = "Next";
+  private static final String SELECT = "Select";
 
   private static final Border ARTIFACT_ICON_BORDER = JBUI.Borders.empty(2, 0);
   private static final Border EXPORT_ICON_BORDER = JBUI.Borders.empty(4);
@@ -73,6 +74,7 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
   @NotNull private final List<JComponent> myMouseListeningComponents;
 
   public SessionArtifactView(@NotNull ArtifactDrawInfo artifactDrawInfo, @NotNull T artifact) {
+    setFocusable(true);
     myArtifactDrawInfo = artifactDrawInfo;
     myArtifact = artifact;
     myObserver = new AspectObserver();
@@ -115,6 +117,46 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
           SwingUtilities.convertPointFromScreen(mousePosition, SessionArtifactView.this);
           showHoverState(SessionArtifactView.this.contains(mousePosition));
         }
+      }
+    });
+
+    addFocusListener(new FocusListener() {
+      @Override
+      public void focusGained(FocusEvent e) {
+        showHoverState(true);
+      }
+
+      @Override
+      public void focusLost(FocusEvent e) {
+        showHoverState(false);
+      }
+    });
+
+    InputMap inputMap = getInputMap(WHEN_FOCUSED);
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), NEXT);
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), PREVIOUS);
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), SELECT);
+    ActionMap actionMap = getActionMap();
+    actionMap.put(NEXT,new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        int artifactCount = myArtifactDrawInfo.mySessionsView.getSessionsPanel().getComponentCount();
+        int nextIndex = Math.floorMod(myArtifactDrawInfo.myIndex + 1, artifactCount);
+        myArtifactDrawInfo.mySessionsView.getSessionsPanel().getComponent(nextIndex).requestFocusInWindow();
+      }
+    });
+    actionMap.put(PREVIOUS,new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        int artifactCount = myArtifactDrawInfo.mySessionsView.getSessionsPanel().getComponentCount();
+        int prevIndex = Math.floorMod(myArtifactDrawInfo.myIndex - 1, artifactCount);
+        myArtifactDrawInfo.mySessionsView.getSessionsPanel().getComponent(prevIndex).requestFocusInWindow();
+      }
+    });
+    actionMap.put(SELECT,new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        getArtifact().onSelect();
       }
     });
   }
