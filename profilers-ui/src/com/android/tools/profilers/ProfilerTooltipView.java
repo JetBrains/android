@@ -46,12 +46,17 @@ public abstract class ProfilerTooltipView extends AspectObserver {
     myHeadingLabel.setForeground(ProfilerColors.TOOLTIP_TEXT);
     myFont = TOOLTIP_HEADER_FONT;
     myHeadingLabel.setFont(myFont);
-    timeline.getTooltipRange().addDependency(this).onChange(Range.Aspect.RANGE, this::updateHeader);
+    timeline.getTooltipRange().addDependency(this).onChange(Range.Aspect.RANGE, this::timeChanged);
   }
 
   @VisibleForTesting
   public String getHeadingText() {
     return myHeadingLabel.getText();
+  }
+
+  private void timeChanged() {
+    updateHeader();
+    updateTooltip();
   }
 
   private void updateHeader() {
@@ -63,6 +68,13 @@ public abstract class ProfilerTooltipView extends AspectObserver {
     else {
       myHeadingLabel.setText("");
     }
+  }
+
+  /**
+   * Function for tooltip views to override if they want to react on tooltip range change events.
+   */
+  protected void updateTooltip() {
+
   }
 
   @NotNull

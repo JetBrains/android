@@ -90,6 +90,21 @@ public class SelectionModelTest {
   }
 
   @Test
+  public void canSelectWithConstraints() {
+    SelectionModel selection = new SelectionModel(mySelection);
+    selection.addConstraint(createConstraint(false, false, 0, 5, 15, 20));
+    assertThat(selection.canSelectRange(new Range(15, 15))).isTrue();
+    assertThat(selection.canSelectRange(new Range(14, 14))).isFalse();
+  }
+
+  @Test
+  public void canSelectWithOutConstraints() {
+    SelectionModel selection = new SelectionModel(mySelection);
+    assertThat(selection.canSelectRange(new Range(15, 15))).isTrue();
+    assertThat(selection.canSelectRange(new Range(14, 14))).isTrue();
+  }
+
+  @Test
   public void testNestedFullConstraints() {
     SelectionModel selection = new SelectionModel(mySelection);
     selection.addConstraint(createConstraint(false, false, 2, 3, 18, 19, 38, 39));
@@ -445,7 +460,9 @@ public class SelectionModelTest {
     assertThat(mySelection.getMax()).isWithin(Float.MIN_VALUE).of(12);
   }
 
-  private DurationDataModel<DefaultConfigurableDurationData> createConstraint(boolean selectableWhenUnspecifiedDuration, boolean selectPartialRange, long... values) {
+  private static DurationDataModel<DefaultConfigurableDurationData> createConstraint(boolean selectableWhenUnspecifiedDuration,
+                                                                                     boolean selectPartialRange,
+                                                                                     long... values) {
     DefaultDataSeries<DefaultConfigurableDurationData> series = new DefaultDataSeries<>();
     RangedSeries<DefaultConfigurableDurationData> ranged = new RangedSeries<>(new Range(0, 100), series);
     DurationDataModel<DefaultConfigurableDurationData> constraint = new DurationDataModel<>(ranged);
