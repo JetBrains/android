@@ -37,7 +37,7 @@ class DependenciesTreeRootNode(model: PsProject, uiSettings: PsUISettings) : Abs
     val collector = DependencyCollector()
     firstModel.forEachModule { module -> collectDeclaredDependencies(module, collector) }
 
-    return (collector.libraryDependenciesBySpec.values.map { LibraryDependencyNode(this, null, it) } +
+    return (collector.libraryDependenciesBySpec.values.map { LibraryDependencyNode(this, null, it, forceGroupId = true) } +
            collector.moduleDependenciesByGradlePath.values.map { ModuleDependencyNode(this, it) })
              .sortedWith(dependencyNodeComparator)
   }

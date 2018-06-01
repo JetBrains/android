@@ -36,20 +36,25 @@ class LibraryDependencyNode : AbstractDependencyNode<PsLibraryAndroidDependency>
   constructor(
     parent: AbstractPsNode,
     collection: PsAndroidArtifactDependencyCollection?,
-    dependency: PsLibraryAndroidDependency) : super(parent, dependency) {
+    dependency: PsLibraryAndroidDependency,
+    forceGroupId: Boolean
+  ) : super(parent, dependency) {
     dependencyComparator = PsDependencyComparator(uiSettings)
-    setUp(dependency, collection)
+    setUp(dependency, collection, forceGroupId)
   }
 
-  constructor(parent: AbstractPsNode,
-              collection: PsAndroidArtifactDependencyCollection?,
-              dependencies: List<PsLibraryAndroidDependency>) : super(parent, dependencies) {
+  constructor(
+    parent: AbstractPsNode,
+    collection: PsAndroidArtifactDependencyCollection?,
+    dependencies: List<PsLibraryAndroidDependency>,
+    forceGroupId: Boolean
+  ) : super(parent, dependencies) {
     dependencyComparator = PsDependencyComparator(uiSettings)
-    setUp(dependencies[0], collection)
+    setUp(dependencies[0], collection, forceGroupId)
   }
 
-  private fun setUp(dependency: PsLibraryAndroidDependency, collection: PsAndroidArtifactDependencyCollection?) {
-    myName = getText(dependency)
+  private fun setUp(dependency: PsLibraryAndroidDependency, collection: PsAndroidArtifactDependencyCollection?, forceGroupId: Boolean) {
+    myName = getText(dependency, forceGroupId)
     // TODO(b/74380202): Setup children from Pom dependencies without a PsAndroidDependencyCollection.
     if (collection != null) {
       val transitiveDependencies = dependency.getTransitiveDependencies(collection)
@@ -57,11 +62,11 @@ class LibraryDependencyNode : AbstractDependencyNode<PsLibraryAndroidDependency>
       myChildren.addAll(
         transitiveDependencies
           .sortedWith(dependencyComparator)
-          .map { transitiveLibrary -> LibraryDependencyNode(this, collection, transitiveLibrary) })
+          .map { transitiveLibrary -> LibraryDependencyNode(this, collection, transitiveLibrary, forceGroupId) })
     }
   }
 
-  private fun getText(dependency: PsLibraryAndroidDependency): String {
+  private fun getText(dependency: PsLibraryAndroidDependency, forceGroupId: Boolean): String {
     val resolvedSpec = dependency.spec
     // TODO(b/74948244): Display POM dependency promotions correctly.
     if (dependency is PsResolvedLibraryAndroidDependency &&
@@ -79,7 +84,7 @@ class LibraryDependencyNode : AbstractDependencyNode<PsLibraryAndroidDependency>
       return getTextForSpec(resolvedSpec.name, version, resolvedSpec.group,
                             uiSettings.DECLARED_DEPENDENCIES_SHOW_GROUP_ID)
     }
-    return resolvedSpec.getDisplayText(uiSettings)
+    return resolvedSpec.getDisplayText(forceGroupId || uiSettings.DECLARED_DEPENDENCIES_SHOW_GROUP_ID, true)
   }
 
   private fun getTextForSpec(name: String, version: String, group: String?, showGroupId: Boolean): String =
