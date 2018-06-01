@@ -61,6 +61,7 @@ class SampleDrawablePanel(val module: Module) : JPanel(BorderLayout()) {
 
   private val allCheckbox = JBCheckBox("Use as set", true).apply {
     alignmentX = LEFT_ALIGNMENT
+    border = JBUI.Borders.emptyLeft(1)
     addActionListener { selectedIndex = if (isSelected) -1 else 0 }
   }
 
@@ -71,9 +72,15 @@ class SampleDrawablePanel(val module: Module) : JPanel(BorderLayout()) {
     add(allCheckbox, BorderLayout.NORTH)
 
     add(JPanel(VerticalFlowLayout(0, 8)).apply {
+      val borderLeft = JBUI.Borders.emptyLeft(4) // Used to left align elements with the grid
       add(drawableGrid)
-      add(JLabel("Resource name").apply { font = font.deriveFont(Font.BOLD) })
-      add(resourceNameLabel)
+      add(JLabel("Resource name").apply {
+        border = borderLeft
+        font = font.deriveFont(Font.BOLD)
+      })
+      add(resourceNameLabel.apply {
+        border = borderLeft
+      })
     })
 
     add(JPanel().apply {
