@@ -67,16 +67,6 @@ public class AndroidSdkAdditionalData implements ValidatableSdkAdditionalData {
     }
   }
 
-  @Override
-  public Object clone() throws CloneNotSupportedException {
-    AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)super.clone();
-    Sdk jdk = getJavaSdk();
-    assert jdk != null;
-    data.setJavaSdk(jdk);
-    data.myBuildTarget = myBuildTarget;
-    return data;
-  }
-
   @Nullable
   public Sdk getJavaSdk() {
     final ProjectJdkTable jdkTable = ProjectJdkTable.getInstance();

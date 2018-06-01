@@ -72,14 +72,14 @@ public class ThemeEditorProvider implements FileEditorProvider, DumbAware {
 
   @NotNull
   @Override
-  public FileEditorState readState(@NotNull Element sourceElement, @NotNull Project project, @NotNull VirtualFile file) {
-    String themeName = sourceElement.getAttributeValue(THEME_NAME);
-    String styleName = sourceElement.getAttributeValue(STYLE_NAME);
-    String moduleName = sourceElement.getAttributeValue(MODULE_NAME);
+  public FileEditorState readState(@Nullable Element sourceElement, @NotNull Project project, @NotNull VirtualFile file) {
+    String themeName = sourceElement == null ? null : sourceElement.getAttributeValue(THEME_NAME);
+    String styleName = sourceElement == null ? null : sourceElement.getAttributeValue(STYLE_NAME);
+    String moduleName = sourceElement == null ? null : sourceElement.getAttributeValue(MODULE_NAME);
 
     Float proportion = null;
     try {
-      String proportionString = sourceElement.getAttributeValue(PROPORTION);
+      String proportionString = sourceElement == null ? null : sourceElement.getAttributeValue(PROPORTION);
       if (proportionString != null) {
         proportion = Float.parseFloat(proportionString);
       }

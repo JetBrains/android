@@ -1,3 +1,4 @@
+// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.actions;
 
 import com.android.resources.ResourceFolderType;
@@ -30,7 +31,7 @@ public class CreateResourceDirectoryAction extends CreateResourceActionBase {
 
   public CreateResourceDirectoryAction(@Nullable ResourceFolderType resourceFolderType) {
     super(AndroidBundle.message("new.resource.dir.action.title"), AndroidBundle.message("new.resource.action.description"),
-          PlatformIcons.DIRECTORY_CLOSED_ICON);
+          PlatformIcons.FOLDER_ICON);
     myResourceFolderType = resourceFolderType;
   }
 

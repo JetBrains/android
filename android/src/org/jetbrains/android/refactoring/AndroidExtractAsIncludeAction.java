@@ -1,3 +1,4 @@
+// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.refactoring;
 
 
@@ -8,13 +9,11 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.IncludeReference;
 import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.ide.DataManager;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.UndoConfirmationPolicy;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.AsyncResult;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -22,7 +21,6 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.Consumer;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
@@ -149,24 +147,26 @@ public class AndroidExtractAsIncludeAction extends AndroidBaseLayoutRefactoringA
                                        : null;
     final String title = "Extract Android Layout";
 
-    AsyncResult<DataContext> dataContextAsyncResult = DataManager.getInstance().getDataContextFromFocus();
-    dataContextAsyncResult.doWhenDone((Consumer<DataContext>)dataContext ->
-      CommandProcessor.getInstance().executeCommand(project, new Runnable() {
-      @Override
-      public void run() {
-        final XmlFile newFile =
-          CreateResourceFileAction.createFileResource(facet, ResourceFolderType.LAYOUT, fileName, "temp_root", config, true, title,
-                                                      null, dataContext);
-        if (newFile != null) {
-          ApplicationManager.getApplication().runWriteAction(new Runnable() {
-            @Override
-            public void run() {
-              doRefactor(facet, file, newFile, from, to, parentTag, tagsInRange.size() > 1);
-            }
-          });
-        }
-      }
-    }, title, null, UndoConfirmationPolicy.REQUEST_CONFIRMATION));
+    DataManager.getInstance()
+               .getDataContextFromFocusAsync()
+               .onSuccess(dataContext ->
+                 CommandProcessor.getInstance().executeCommand(project, new Runnable() {
+                   @Override
+                   public void run() {
+                     final XmlFile newFile =
+                       CreateResourceFileAction
+                         .createFileResource(facet, ResourceFolderType.LAYOUT, fileName, "temp_root", config, true, title,
+                                             null, dataContext);
+                     if (newFile != null) {
+                       ApplicationManager.getApplication().runWriteAction(new Runnable() {
+                         @Override
+                         public void run() {
+                           doRefactor(facet, file, newFile, from, to, parentTag, tagsInRange.size() > 1);
+                         }
+                       });
+                     }
+                   }
+                 }, title, null, UndoConfirmationPolicy.REQUEST_CONFIRMATION));
   }
 
   private static void doRefactor(AndroidFacet facet,

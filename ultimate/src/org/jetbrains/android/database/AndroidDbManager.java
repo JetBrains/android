@@ -6,12 +6,8 @@ import com.intellij.database.dialects.DatabaseDialectEx;
 import com.intellij.database.dialects.SqliteDialect;
 import com.intellij.database.model.DatabaseSystem;
 import com.intellij.database.psi.BasicDbPsiManager;
-import com.intellij.database.psi.DbDataSource;
-import com.intellij.database.psi.DbElement;
-import com.intellij.database.psi.DbPsiFacade;
 import com.intellij.database.util.DbSqlUtil;
 import com.intellij.facet.ProjectFacetManager;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.UndoConfirmationPolicy;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.command.undo.GlobalUndoableAction;
@@ -20,7 +16,6 @@ import com.intellij.openapi.command.undo.UndoableAction;
 import com.intellij.openapi.command.undo.UnexpectedUndoException;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.sql.dialects.SqlLanguageDialect;
@@ -41,55 +36,49 @@ public class AndroidDbManager extends BasicDbPsiManager<AndroidDataSource> {
   public static final String NOTIFICATION_GROUP_ID = "Android Data Source Manager";
   static final DataSourceTemplate DEFAULT_TEMPLATE = new AndroidDataSourceTemplate();
 
-  public AndroidDbManager(@NotNull DbPsiFacade dbFacade) {
-    super(dbFacade, AndroidDataSourceStorage.getInstance(dbFacade.getProject()).getDataSources());
+  public AndroidDbManager(@NotNull Project project) {
+    super(project, AndroidDataSourceStorage.getInstance(project).getDataSources());
   }
 
   @Nullable
   @Override
-  public DatabaseDialectEx getDatabaseDialect(@NotNull DbDataSource element) {
+  public DatabaseDialectEx getDatabaseDialect(@NotNull DatabaseSystem element) {
     return SqliteDialect.INSTANCE;
   }
 
   @Nullable
   @Override
-  public SqlLanguageDialect getSqlDialect(@NotNull DbDataSource element) {
+  public SqlLanguageDialect getSqlDialect(@NotNull DatabaseSystem element) {
     return DbSqlUtil.findSqlDialect(SqliteDialect.INSTANCE);
   }
 
   @Override
-  public void setDataSourceName(@NotNull DbDataSource element, String name) {
-    if (!(element.getDelegate() instanceof AndroidDataSource)) throw new UnsupportedOperationException();
-    final AndroidDataSource dataSource = (AndroidDataSource)element.getDelegate();
+  public void setDataSourceName(@NotNull DatabaseSystem element, String name) {
+    if (!(element instanceof AndroidDataSource)) throw new UnsupportedOperationException();
+    final AndroidDataSource dataSource = (AndroidDataSource)element;
     dataSource.setName(name);
-    myDbFacade.clearCaches(element);
-  }
-
-  @NotNull
-  @Override
-  public ModificationTracker getModificationTracker(@NotNull DbElement element) {
-    return (AndroidDataSource)element.getDataSource().getDelegate();
+    updateDataSource((AndroidDataSource)element);
   }
 
   @Override
-  public void removeDataSource(DbDataSource element) {
-    if (!(element.getDelegate() instanceof AndroidDataSource)) throw new UnsupportedOperationException();
-    final AndroidDataSource dataSource = (AndroidDataSource)element.getDelegate();
+  public void removeDataSource(DatabaseSystem element) {
+    if (!(element instanceof AndroidDataSource)) throw new UnsupportedOperationException();
+    final AndroidDataSource dataSource = (AndroidDataSource)element;
     processAddOrRemove(dataSource, false);
   }
 
   @NotNull
   @Override
-  public Configurable createDataSourceEditor(DbDataSource template) {
-    if (!(template.getDelegate() instanceof AndroidDataSource)) throw new UnsupportedOperationException();
-    AndroidDataSource dataSource = (AndroidDataSource)template.getDelegate();
-    return new AndroidDataSourceConfigurable(this, template.getProject(), dataSource);
+  public Configurable createDataSourceEditor(DatabaseSystem template) {
+    if (!(template instanceof AndroidDataSource)) throw new UnsupportedOperationException();
+    AndroidDataSource dataSource = (AndroidDataSource)template;
+    return new AndroidDataSourceConfigurable(this, myProject, dataSource);
   }
 
   @NotNull
   @Override
   public List<DataSourceTemplate> getDataSourceTemplates() {
-    if (ProjectFacetManager.getInstance(myDbFacade.getProject()).hasFacets(AndroidFacet.ID)) {
+    if (ProjectFacetManager.getInstance(myProject).hasFacets(AndroidFacet.ID)) {
       return Collections.singletonList(DEFAULT_TEMPLATE);
     }
     else {
@@ -99,63 +88,54 @@ public class AndroidDbManager extends BasicDbPsiManager<AndroidDataSource> {
 
   @Nullable
   @Override
-  public DataSourceTemplate getDataSourceTemplate(DbDataSource element) {
+  public DataSourceTemplate getDataSourceTemplate(DatabaseSystem element) {
     return DEFAULT_TEMPLATE;
   }
 
   public void processAddOrRemove(final AndroidDataSource dataSource, final boolean add) {
-    final Project project = myDbFacade.getProject();
-
     final UndoableAction action = new GlobalUndoableAction() {
       public void undo() throws UnexpectedUndoException {
-        if (add) {
-          removeDataSourceInner(project, dataSource);
-        }
-        else {
-          addDataSourceInner(project, dataSource);
-        }
+        doIt(!add);
       }
 
       public void redo() throws UnexpectedUndoException {
+        doIt(add);
+      }
+
+      private void doIt(boolean add) {
         if (add) {
-          addDataSourceInner(project, dataSource);
+          addDataSourceInner(myProject, dataSource);
         }
         else {
-          removeDataSourceInner(project, dataSource);
+          removeDataSourceInner(myProject, dataSource);
         }
       }
     };
-    final String commandName = add ? DatabaseMessages.message("command.name.add.data.source")
-                                   : DatabaseMessages.message("command.name.remove.data.source");
-    new WriteCommandAction(project, commandName) {
-      protected void run(@NotNull final Result result) throws Throwable {
-        action.redo();
-        UndoManager.getInstance(project).undoableActionPerformed(action);
-      }
-
-      @Override
-      protected UndoConfirmationPolicy getUndoConfirmationPolicy() {
-        return UndoConfirmationPolicy.REQUEST_CONFIRMATION;
-      }
-    }.execute();
+    try {
+      WriteCommandAction.writeCommandAction(myProject)
+                        .withName(add ? DatabaseMessages.message("command.name.add.data.source")
+                                      : DatabaseMessages.message("command.name.remove.data.source"))
+                        .withUndoConfirmationPolicy(UndoConfirmationPolicy.REQUEST_CONFIRMATION)
+                        .run(() -> {
+                          action.redo();
+                          UndoManager.getInstance(myProject).undoableActionPerformed(action);
+                        });
+    }
+    catch (UnexpectedUndoException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private void removeDataSourceInner(final Project project, final AndroidDataSource dataSource) {
     AndroidDataSourceStorage storage = AndroidDataSourceStorage.getInstance(project);
     storage.removeDataSource(dataSource);
     detachDataSource(dataSource);
-    clearCaches(null);
   }
 
   private void addDataSourceInner(final Project project, final AndroidDataSource dataSource) {
     AndroidDataSourceStorage storage = AndroidDataSourceStorage.getInstance(project);
     storage.addDataSource(dataSource);
     attachDataSource(dataSource);
-    clearCaches(null);
-  }
-
-  private void clearCaches(@Nullable final DatabaseSystem info) {
-    myDbFacade.clearCaches(info != null ? myDbFacade.findDataSource(info.getUniqueId()) : null);
   }
 
   @Override
@@ -165,7 +145,7 @@ public class AndroidDbManager extends BasicDbPsiManager<AndroidDataSource> {
 
   @NotNull
   @Override
-  public Collection<DbDataSource> createDataSourceByFiles(Collection<VirtualFile> files) {
+  public Collection<AndroidDataSource> createDataSourceByFiles(Collection<VirtualFile> files) {
     return Collections.emptyList();
   }
 

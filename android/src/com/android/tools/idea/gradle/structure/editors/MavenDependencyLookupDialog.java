@@ -200,7 +200,7 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
     myAndroidModule = module != null && AndroidFacet.getInstance(module) != null;
     myProgressIcon.suspend();
 
-    mySearchField.setButtonIcon(AllIcons.Actions.Menu_find);
+    mySearchField.setButtonIcon(AllIcons.Actions.Find);
     mySearchField.getButton().addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {

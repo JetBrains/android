@@ -28,7 +28,10 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.options.*;
+import com.intellij.openapi.options.Configurable;
+import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.options.SearchableConfigurable;
+import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectBundle;
 import com.intellij.openapi.project.ProjectManager;
@@ -65,9 +68,7 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 import static com.intellij.ui.navigation.Place.goFurther;
 import static com.intellij.util.ui.UIUtil.*;
 
-public class ProjectStructureConfigurable extends BaseConfigurable
-  implements SearchableConfigurable, Place.Navigator, Configurable.NoMargin, Configurable.NoScroll {
-
+public class ProjectStructureConfigurable implements SearchableConfigurable, Place.Navigator, Configurable.NoMargin, Configurable.NoScroll {
   public static final DataKey<ProjectStructureConfigurable> KEY = DataKey.create("ProjectStructureConfiguration");
   @NonNls public static final String CATEGORY = "category";
   @NonNls public static final String CATEGORY_NAME = "categoryName";
@@ -217,14 +218,9 @@ public class ProjectStructureConfigurable extends BaseConfigurable
       mySidePanel.select(createPlaceFor(toSelect));
     }
 
-    JComponent toFocus = null;
-    if (mySelectedConfigurable instanceof BaseConfigurable) {
-      BaseConfigurable configurable = (BaseConfigurable)mySelectedConfigurable;
-      toFocus = configurable.getPreferredFocusedComponent();
-    }
-    else if (mySelectedConfigurable instanceof MasterDetailsComponent) {
-      MasterDetailsComponent configurable = (MasterDetailsComponent)mySelectedConfigurable;
-      toFocus = configurable.getMaster();
+    JComponent toFocus = mySelectedConfigurable == null ? null : mySelectedConfigurable.getPreferredFocusedComponent();
+    if (toFocus == null && mySelectedConfigurable instanceof MasterDetailsComponent) {
+      toFocus = ((MasterDetailsComponent)mySelectedConfigurable).getMaster();
     }
 
     if (toFocus == null && detailsContent != null) {
@@ -325,8 +321,8 @@ public class ProjectStructureConfigurable extends BaseConfigurable
     };
 
     DefaultActionGroup toolbarGroup = new DefaultActionGroup();
-    toolbarGroup.add(new BackAction(component));
-    toolbarGroup.add(new ForwardAction(component));
+    toolbarGroup.add(new BackAction(component, myDisposable));
+    toolbarGroup.add(new ForwardAction(component, myDisposable));
 
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("AndroidProjectStructure", toolbarGroup, true);
     toolbar.setTargetComponent(component);

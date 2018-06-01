@@ -13,11 +13,11 @@ public class AndroidIcons {
     return IconLoader.getIcon(path, AndroidIcons.class);
   }
 
-  public static final Icon Android = load("/icons/android.png"); // 16x16
+  public static final Icon Android = load("/icons/android.svg"); // 16x16
   public static final Icon Android24 = load("/icons/android24.png"); // 24x24
   public static final Icon AndroidLarge = load("/icons/androidLarge.png"); // 64x64
   public static final Icon AndroidPreview = load("/icons/androidPreview.png"); // 13x13
-  public static final Icon AndroidToolWindow = load("/icons/androidToolWindow.png"); // 13x13
+  public static final Icon AndroidToolWindow = load("/icons/androidToolWindow.svg"); // 13x13
   public static final Icon AndroidModule = load("/icons/androidModule.png"); // 16x16
 
   public static final Icon AvdManager = load("/icons/avd_manager.png"); // 16x16
@@ -66,6 +66,7 @@ public class AndroidIcons {
   public static final Icon AppModule = load("/icons/appModule.png");
   public static final Icon LibraryModule = load("/icons/libraryModule.png");
   public static final Icon AndroidTestRoot = load("/icons/androidTestRoot.png");
+  public static final Icon AndroidTestsScope = load("/icons/androidTestsScope.svg");
 
   public static final Icon GreyQuestionMark = load("/icons/grey_question.png"); // 23x23
 
@@ -199,8 +200,8 @@ public class AndroidIcons {
   }
 
   public static class ToolWindows {
-    public static final Icon HeapAnalysis = IconLoader.getIcon("/icons/toolwindows/toolWindowHeapAnalysis.png"); // 13x13
-    public static final Icon Warning = IconLoader.getIcon("/icons/toolwindows/toolWindowWarning.png"); // 13x13
+    public static final Icon HeapAnalysis = IconLoader.getIcon("/icons/toolwindows/toolWindowHeapAnalysis.svg"); // 13x13
+    public static final Icon Warning = IconLoader.getIcon("/icons/toolwindows/toolWindowWarning.svg"); // 13x13
   }
 
   public static class Issue {

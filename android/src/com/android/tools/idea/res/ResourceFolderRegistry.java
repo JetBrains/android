@@ -146,9 +146,8 @@ public class ResourceFolderRegistry {
 
       // Cap the threads to 4 for now. Scaling is okay from 1 to 2, but not necessarily much better as we go higher.
       int maxThreads = Math.min(4, Runtime.getRuntime().availableProcessors());
-      ExecutorService parallelExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor(PopulateCachesTask.class.getName(),
-                                                                                              maxThreads);
-
+      ExecutorService
+        parallelExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor("ResourceFolderRegistry", maxThreads);
       List<Future<ResourceFolderRepository>> repositoryJobs = Lists.newArrayList();
       for (Map.Entry<VirtualFile, AndroidFacet> entry : resDirectories.entrySet()) {
         AndroidFacet facet = entry.getValue();

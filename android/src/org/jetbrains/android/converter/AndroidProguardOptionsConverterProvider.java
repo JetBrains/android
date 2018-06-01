@@ -1,3 +1,4 @@
+// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.converter;
 
 import com.intellij.conversion.*;
@@ -80,7 +81,7 @@ public class AndroidProguardOptionsConverterProvider extends ConverterProvider {
       if (proguardCfgOptionElement != null) {
         confElement.removeContent(proguardCfgOptionElement);
       }
-      final String proguardCfgFileUrl = VfsUtilCore.pathToUrl('$' + PathMacroUtil.MODULE_DIR_MACRO_NAME + '$' + proguardCfgRelPath);
+      final String proguardCfgFileUrl = VfsUtilCore.pathToUrl(PathMacroUtil.DEPRECATED_MODULE_DIR + proguardCfgRelPath);
       final Element includeSystemCfgElement = confElement.getChild("includeSystemProguardFile");
       final String includeSystemCfgStr = includeSystemCfgElement != null ? includeSystemCfgElement.getText() : null;
 

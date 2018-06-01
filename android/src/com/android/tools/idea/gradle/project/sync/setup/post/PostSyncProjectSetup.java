@@ -189,7 +189,7 @@ public class PostSyncProjectSetup {
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     List<Module> modules = Arrays.asList(moduleManager.getModules());
     CommonModuleValidator moduleValidator = myModuleValidatorFactory.create(myProject);
-    JobLauncher.getInstance().invokeConcurrentlyUnderProgress(modules, progressIndicator, true, module -> {
+    JobLauncher.getInstance().invokeConcurrentlyUnderProgress(modules, progressIndicator, module -> {
       moduleValidator.validate(module);
       return true;
     });
@@ -397,7 +397,7 @@ public class PostSyncProjectSetup {
         newBeforeRunTasks.add(beforeRunTask);
       }
     }
-    runManager.setBeforeRunTasks(runConfiguration, newBeforeRunTasks, false);
+    runManager.setBeforeRunTasks(runConfiguration, newBeforeRunTasks);
   }
 
   private void attemptToGenerateSources(@NotNull Request request, boolean cleanProjectAfterSync) {

@@ -38,6 +38,7 @@ import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.google.common.collect.Lists;
 import com.intellij.execution.BeforeRunTask;
+import com.intellij.execution.RunManagerEx;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.impl.RunManagerImpl;
@@ -78,7 +79,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
   @Mock private GradleProjectBuilder myProjectBuilder;
   @Mock private CommonModuleValidator.Factory myModuleValidatorFactory;
   @Mock private CommonModuleValidator myModuleValidator;
-  @Mock private RunManagerImpl myRunManager;
+  @Mock private RunManagerEx myRunManager;
   @Mock private ProvisionTasks myProvisionTasks;
   @Mock private ExternalSystemTaskId myTaskId;
   @Mock private EnableDisableSingleVariantSyncStep myEnableDisableSingleVariantSyncStep;
@@ -138,7 +139,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     BeforeRunTask newTask = taskProvider.createTask(runConfiguration);
     newTask.setEnabled(true);
     tasks.add(newTask);
-    myRunManager.setBeforeRunTasks(runConfiguration, tasks, false);
+    myRunManager.setBeforeRunTasks(runConfiguration, tasks);
 
     mySetup.setUpProject(request, myProgressIndicator, myTaskId);
     assertSize(2, myRunManager.getBeforeRunTasks(runConfiguration));
