@@ -271,12 +271,6 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
    * See {@link #adjustRangeCloseToMiddleView(Range)}.
    */
   private void ensureRangeFitsViewRange(@NotNull Range target) {
-    setStreaming(false);
-    if (myViewRangeUs.contains(target.getMin()) && myViewRangeUs.contains(target.getMax())) {
-      // Target already visible. No need to animate to it.
-      return;
-    }
-
     // First, zoom out until the target range fits the view range.
     double delta = target.getLength() - myViewRangeUs.getLength();
     if (delta > 0) {
@@ -303,6 +297,12 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
    */
   public void adjustRangeCloseToMiddleView(@NotNull Range target) {
     if (target.isEmpty()) {
+      return;
+    }
+    setStreaming(false);
+    boolean targetContainedInViewRange = myViewRangeUs.contains(target.getMin()) && myViewRangeUs.contains(target.getMax());
+    if (targetContainedInViewRange) {
+      // Target already visible. No need to animate to it.
       return;
     }
 
