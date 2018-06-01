@@ -17,13 +17,12 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.LibraryDependencyNode
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
-import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode
+import com.android.tools.idea.gradle.structure.configurables.ui.testStructure
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.openapi.project.Project
-import com.intellij.util.containers.nullize
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.notNullValue
 import org.junit.Assert.assertThat
@@ -168,13 +167,3 @@ class ResolvedDependenciesTreeRootNodeTest : DependencyTestCase() {
     assertThat(treeStructure.toString(), equalTo(expectedProjectStructure))
   }
 }
-
-private data class TestTree(val text: String, val children: List<TestTree>?) {
-  override fun toString(): String =
-    listOfNotNull(text, children?.nullize()?.joinToString("\n")?.prependIndent("    ")).joinToString("\n")
-}
-
-private fun AbstractPsNode.testStructure(filter: (AbstractPsNode) -> Boolean = { true }): TestTree =
-  TestTree(name,
-           children.mapNotNull { it as? AbstractPsNode }.filter { filter(it) }.map { it.testStructure(filter) })
-
