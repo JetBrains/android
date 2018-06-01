@@ -58,7 +58,6 @@ import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.font.FontRenderContext;
-import java.io.IOException;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
@@ -214,7 +213,7 @@ public class MoreFontsDialog extends DialogWrapper {
           throw new RuntimeException("Unexpected font source " + family.getFontSource());
       }
     }
-    catch (IOException ex) {
+    catch (Exception ex) {
       Logger.getInstance(MoreFontsDialog.class).warn("Could not create font resource file", ex);
       Messages.showErrorDialog(myContentPanel, "Could not create font resource file");
       return;
