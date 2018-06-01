@@ -42,6 +42,8 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.navigation.Place;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.ui.update.MergingUpdateQueue;
+import com.intellij.util.ui.update.Update;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -71,11 +73,14 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
   @NotNull private final SelectionChangeEventDispatcher<List<AbstractDependencyNode<? extends PsAndroidDependency>>> myEventDispatcher =
     new SelectionChangeEventDispatcher<>();
 
+  private final MergingUpdateQueue myUpdateIssuesQueue = new MergingUpdateQueue("myUpdateIssuesQueue", 300, true, this, this);
+
   private boolean myIgnoreTreeSelectionEvents;
 
   DependencyGraphPanel(@NotNull PsModule fakeModule, @NotNull PsContext context) {
     super("All Dependencies", context, null);
     myContext = context;
+    myUpdateIssuesQueue.setRestartTimerOnAdd(true);
 
     initializeDependencyDetails();
 
@@ -112,7 +117,6 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
       if (!myIgnoreTreeSelectionEvents) {
         List<AbstractDependencyNode<? extends PsAndroidDependency>> selection = getSelection();
         PsAndroidDependency selected = !selection.isEmpty() ? selection.get(0).getFirstModel() : null;
-
         if (selected == null) {
           notifySelectionChanged(Collections.emptyList());
         }
@@ -173,13 +177,18 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
   }
 
   private void updateIssues(@NotNull List<AbstractDependencyNode<? extends PsAndroidDependency>> selection) {
-    List<PsIssue> issues = Lists.newArrayList();
-    for (AbstractDependencyNode<? extends PsAndroidDependency> node : selection) {
-      for (PsAndroidDependency dependency : node.getModels()) {
-        issues.addAll(myContext.getAnalyzerDaemon().getIssues().findIssues(dependency, null));
+    myUpdateIssuesQueue.queue(new Update(this) {
+      @Override
+      public void run() {
+        List<PsIssue> issues = Lists.newArrayList();
+        for (AbstractDependencyNode<? extends PsAndroidDependency> node : selection) {
+          for (PsAndroidDependency dependency : node.getModels()) {
+            issues.addAll(myContext.getAnalyzerDaemon().getIssues().findIssues(dependency, null));
+          }
+        }
+        displayIssues(issues);
       }
-    }
-    displayIssues(issues);
+    });
   }
 
   private void notifySelectionChanged(@NotNull List<AbstractDependencyNode<? extends PsAndroidDependency>> selected) {

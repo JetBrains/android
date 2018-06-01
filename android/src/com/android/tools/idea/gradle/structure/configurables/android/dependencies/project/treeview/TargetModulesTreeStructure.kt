@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseTreeStructure
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.PsRootNode
 import com.android.tools.idea.gradle.structure.model.android.*
+import com.android.tools.idea.gradle.structure.model.toLibraryKey
 import java.util.*
 import java.util.function.Function
 
@@ -36,6 +37,11 @@ class TargetModulesTreeStructure(var uiSettings: PsUISettings) : AbstractBaseTre
     if (libraryModels.isNotEmpty() && moduleModels.isNotEmpty()) return
 
     if (moduleModels.isNotEmpty()) return
+
+    if (libraryModels.groupBy { it.spec.toLibraryKey() }.size > 1) {
+      rootNode.setChildren(listOf())
+      return
+    }
 
     val resolvedLibraryModels = libraryModels.filterIsInstance<PsResolvedLibraryAndroidDependency>()
       .groupBy { it.artifact.parent.parent }
