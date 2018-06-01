@@ -79,6 +79,5 @@ public class ThumbnailManagerTest extends NavTestCase {
 
     image = imageFuture.get();
     imageFuture = manager.getThumbnail(psiFile, model.getConfiguration());
-    assertSame(image, imageFuture.get());
-  }
+    assertSame(image, imageFuture.get());  }
 }

@@ -20,7 +20,6 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.surface.InteractionManager
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
@@ -94,11 +93,11 @@ class ActionTargetTest : NavTestCase() {
     fragment1.buildDisplayList(0, list, context)
 
     assertEquals("DrawRectangle,1,490x400x76x128,ffa7a7a7,1,0\n" +
-                 "DrawPreviewUnavailable,491x401x74x126\n" +
                  "DrawAction,NORMAL,490x400x76x128,400x400x76x128,NORMAL\n" +
                  "DrawArrow,2,UP,435x532x6x5,b2a7a7a7\n" +
                  "DrawTruncatedText,3,fragment1,498x390x68x5,ff656565,Default:0:9,false\n" +
                  "DrawIcon,490x389x7x7,START_DESTINATION\n" +
+                 "DrawNavScreen,491x401x74x126\n" +
                  "\n", list.generateSortedDisplayList(context))
 
     (fragment1.targets[fragment1.findTarget(ActionTarget::class.java)] as ActionTarget).isHighlighted = true
@@ -106,11 +105,11 @@ class ActionTargetTest : NavTestCase() {
     fragment1.buildDisplayList(0, list, context)
 
     assertEquals("DrawRectangle,1,490x400x76x128,ffa7a7a7,1,0\n" +
-                 "DrawPreviewUnavailable,491x401x74x126\n" +
                  "DrawAction,NORMAL,490x400x76x128,400x400x76x128,HOVER\n" +
                  "DrawArrow,2,UP,435x532x6x5,ffa7a7a7\n" +
                  "DrawTruncatedText,3,fragment1,498x390x68x5,ff656565,Default:0:9,false\n" +
                  "DrawIcon,490x389x7x7,START_DESTINATION\n" +
+                 "DrawNavScreen,491x401x74x126\n" +
                  "\n", list.generateSortedDisplayList(context))
   }
 
@@ -159,36 +158,36 @@ class ActionTargetTest : NavTestCase() {
     assertEquals(
       "Clip,0,0,1376,1428\n" +
       "DrawRectangle,1,650x650x76x128,ffa7a7a7,1,0\n" +
-      "DrawPreviewUnavailable,651x651x74x126\n" +
+      "DrawNavScreen,651x651x74x126\n" +
       "DrawIcon,650x639x7x7,START_DESTINATION\n" +
       "DrawTruncatedText,3,fragment1,658x640x68x5,ff656565,Default:0:9,false\n" +
       "\n" +
       "DrawRectangle,1,650x400x76x128,ffa7a7a7,1,0\n" +
-      "DrawPreviewUnavailable,651x401x74x126\n" +
+      "DrawNavScreen,651x401x74x126\n" +
       "DrawAction,NORMAL,650x400x76x128,650x650x76x128,NORMAL\n" +
       "DrawArrow,2,DOWN,685x641x6x5,b2a7a7a7\n" +
       "DrawTruncatedText,3,fragment2,650x390x76x5,ff656565,Default:0:9,false\n" +
       "\n" +
       "DrawRectangle,1,900x400x76x128,ffa7a7a7,1,0\n" +
-      "DrawPreviewUnavailable,901x401x74x126\n" +
+      "DrawNavScreen,901x401x74x126\n" +
       "DrawAction,NORMAL,900x400x76x128,650x650x76x128,NORMAL\n" +
       "DrawArrow,2,DOWN,685x641x6x5,b2a7a7a7\n" +
       "DrawTruncatedText,3,fragment3,900x390x76x5,ff656565,Default:0:9,false\n" +
       "\n" +
       "DrawRectangle,1,400x650x76x128,ffa7a7a7,1,0\n" +
-      "DrawPreviewUnavailable,401x651x74x126\n" +
+      "DrawNavScreen,401x651x74x126\n" +
       "DrawAction,NORMAL,400x650x76x128,650x650x76x128,NORMAL\n" +
       "DrawArrow,2,RIGHT,641x711x5x6,b2a7a7a7\n" +
       "DrawTruncatedText,3,fragment4,400x640x76x5,ff656565,Default:0:9,false\n" +
       "\n" +
       "DrawRectangle,1,650x900x76x128,ffa7a7a7,1,0\n" +
-      "DrawPreviewUnavailable,651x901x74x126\n" +
+      "DrawNavScreen,651x901x74x126\n" +
       "DrawAction,NORMAL,650x900x76x128,650x650x76x128,NORMAL\n" +
       "DrawArrow,2,UP,685x782x6x5,b2a7a7a7\n" +
       "DrawTruncatedText,3,fragment5,650x890x76x5,ff656565,Default:0:9,false\n" +
       "\n" +
       "DrawRectangle,1,900x900x76x128,ffa7a7a7,1,0\n" +
-      "DrawPreviewUnavailable,901x901x74x126\n" +
+      "DrawNavScreen,901x901x74x126\n" +
       "DrawAction,NORMAL,900x900x76x128,650x650x76x128,NORMAL\n" +
       "DrawArrow,2,UP,685x782x6x5,b2a7a7a7\n" +
       "DrawTruncatedText,3,fragment6,900x890x76x5,ff656565,Default:0:9,false\n" +

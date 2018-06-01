@@ -26,19 +26,18 @@ import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.naveditor.scene.ThumbnailManager
 import com.android.tools.idea.naveditor.scene.createDrawCommand
 import com.android.tools.idea.naveditor.scene.draw.DrawNavScreen
-import com.android.tools.idea.naveditor.scene.draw.DrawPreviewUnavailable
 import com.android.tools.idea.res.resolve
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.xml.XmlFile
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
 import java.io.File
-import java.util.concurrent.ExecutionException
+import java.util.concurrent.CompletableFuture
 
 /**
  * [NavScreenDecorator] Base class for navigation decorators.
  */
-
 abstract class NavScreenDecorator : SceneDecorator() {
   override fun addFrame(list: DisplayList, sceneContext: SceneContext, component: SceneComponent) {
   }
@@ -63,14 +62,10 @@ abstract class NavScreenDecorator : SceneDecorator() {
   }
 
   protected fun drawImage(list: DisplayList, sceneContext: SceneContext, component: SceneComponent, rectangle: Rectangle) {
-    val image = buildImage(sceneContext, component)
-    list.add(
-        if (image == null) DrawPreviewUnavailable(rectangle)
-        else DrawNavScreen(rectangle.x, rectangle.y, rectangle.width, rectangle.height, image)
-    )
+    list.add(DrawNavScreen(rectangle, buildImage(sceneContext, component)))
   }
 
-  private fun buildImage(sceneContext: SceneContext, component: SceneComponent): BufferedImage? {
+  private fun buildImage(sceneContext: SceneContext, component: SceneComponent): CompletableFuture<BufferedImage?>? {
     val surface = sceneContext.surface ?: return null
     val configuration = surface.configuration ?: return null
     val facet = surface.model?.facet ?: return null
@@ -80,27 +75,19 @@ abstract class NavScreenDecorator : SceneDecorator() {
     if (resourceUrl.type != ResourceType.LAYOUT) {
       return null
     }
-    val resourceResolver = configuration.resourceResolver ?: return null
-    val resourceValue = resourceResolver.resolve(resourceUrl, component.nlComponent.tag)?.value ?: return null
+    val resourceResolver = configuration.resourceResolver
+    val resourceValue = ApplicationManager.getApplication().runReadAction<String> {
+      resourceResolver?.resolve(resourceUrl, component.nlComponent.tag)?.value
+    } ?: return null
 
     val file = File(resourceValue)
     if (!file.exists()) {
       return null
     }
-    val manager = ThumbnailManager.getInstance(facet)
     val virtualFile = VfsUtil.findFileByIoFile(file, false) ?: return null
+
     val psiFile = AndroidPsiUtils.getPsiFileSafely(surface.project, virtualFile) as? XmlFile ?: return null
-    val thumbnail = manager.getThumbnail(psiFile, configuration) ?: return null
-    return try {
-      // TODO: show progress icon during image creation
-      thumbnail.get()
-    }
-    catch (ignore: InterruptedException) {
-      // Shouldn't happen
-      null
-    }
-    catch (ignore: ExecutionException) {
-      null
-    }
+    val manager = ThumbnailManager.getInstance(facet)
+    return manager.getThumbnail(psiFile, configuration)
   }
 }

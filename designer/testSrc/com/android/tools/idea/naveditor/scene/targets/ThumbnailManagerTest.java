@@ -17,11 +17,8 @@ package com.android.tools.idea.naveditor.scene.targets;
 
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.naveditor.NavTestCase;
 import com.android.tools.idea.naveditor.scene.ThumbnailManager;
-import com.android.tools.idea.naveditor.surface.NavDesignSurface;
-import com.android.tools.idea.rendering.ImagePool;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
@@ -31,8 +28,6 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.concurrent.CompletableFuture;
-
-import static org.mockito.Mockito.mock;
 
 /**
  * Tests for {@link ThumbnailManager}
@@ -51,8 +46,7 @@ public class ThumbnailManagerTest extends NavTestCase {
 
     NlModel model = NlModel.create(null, myFacet, psiFile.getVirtualFile());
     CompletableFuture<BufferedImage> imageFuture = manager.getThumbnail(psiFile, model.getConfiguration());
-    BufferedImage image = imageFuture.get();
-    ImageDiffUtil.assertImageSimilar("thumbnail.png", goldenImage, image, MAX_PERCENT_DIFFERENT);
+    BufferedImage image = imageFuture.get();    ImageDiffUtil.assertImageSimilar("thumbnail.png", goldenImage, image, MAX_PERCENT_DIFFERENT);
     Disposer.dispose(model);
   }
 }

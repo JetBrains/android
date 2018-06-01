@@ -20,6 +20,9 @@ import com.android.tools.idea.common.scene.draw.*
 import com.android.tools.idea.naveditor.scene.targets.ActionTarget
 import junit.framework.TestCase
 import java.awt.*
+import java.awt.image.BufferedImage
+import java.awt.image.BufferedImage.TYPE_INT_RGB
+import java.util.concurrent.CompletableFuture
 
 class SerializationTest : TestCase() {
   fun testDrawIcon() {
@@ -131,11 +134,13 @@ class SerializationTest : TestCase() {
     testSerialization("DrawEmptyDesigner,10x20", DrawEmptyDesigner(Point(10, 20)), factory)
   }
 
-  fun testDrawPreviewUnavailable() {
-    val factory = { s: String -> DrawPreviewUnavailable(s) }
+  fun testDrawNavScreen() {
+    // Unfortunately the serialization doesn't include the actual image, so we'll always deserialize as "preview unavailable"
+    val factory = { s: String -> DrawNavScreen(s) }
 
-    testSerialization("DrawPreviewUnavailable,1x2x3x4", DrawPreviewUnavailable(Rectangle(1, 2, 3, 4)), factory)
-    testSerialization("DrawPreviewUnavailable,5x6x7x8", DrawPreviewUnavailable(Rectangle(5, 6, 7, 8)), factory)
+    testSerialization("DrawNavScreen,10x20x30x40", DrawNavScreen(Rectangle(10, 20, 30, 40), null), factory)
+    testSerialization("DrawNavScreen,10x20x30x40", DrawNavScreen(Rectangle(10, 20, 30, 40), CompletableFuture.completedFuture(
+      BufferedImage(1, 1, TYPE_INT_RGB))), factory)
   }
 
   fun testDrawSelfAction() {
