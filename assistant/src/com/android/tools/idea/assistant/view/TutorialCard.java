@@ -244,7 +244,7 @@ public class TutorialCard extends CardViewPanel {
       setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, UIUtils.getSeparatorColor()));
       setOpaque(false);
       JPanel containerPanel = new JPanel(new BorderLayout());
-      containerPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+      containerPanel.setBorder(JBUI.Borders.empty(5));
 
       myPrevButton = new StepButton("Previous", StepButton.Direction.PREV, e -> handleStepButtonClick(e));
       containerPanel.add(myPrevButton, BorderLayout.LINE_START);
@@ -297,10 +297,6 @@ public class TutorialCard extends CardViewPanel {
     public StepButton(String label, Direction direction, ActionListener listener) {
       super(label, TutorialChooser.NAVIGATION_KEY, listener);
       myDirection = direction;
-      setContentAreaFilled(false);
-      setBorderPainted(false);
-      setBorder(null);
-      setOpaque(false);
       if (Direction.NEXT == direction) {
         setIcon(AllIcons.Diff.CurrentLine);
         setHorizontalTextPosition(LEFT);
