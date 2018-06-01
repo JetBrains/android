@@ -31,7 +31,7 @@ class TargetModulesTreeBuilder(
   fun displayTargetModules(dependencyNodes: List<AbstractDependencyNode<out PsAndroidDependency>>) {
     val treeStructure = treeStructure
     if (treeStructure is TargetModulesTreeStructure) {
-      treeStructure.displayTargetModules(dependencyNodes)
+      treeStructure.displayTargetModules(dependencyNodes.map { it.models })
       queueUpdate()
     }
   }

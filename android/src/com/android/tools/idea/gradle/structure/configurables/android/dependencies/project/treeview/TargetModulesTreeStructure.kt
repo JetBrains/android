@@ -26,16 +26,15 @@ import com.android.tools.idea.gradle.structure.model.android.PsDeclaredLibraryAn
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency
 import com.google.common.collect.HashMultimap
 import com.intellij.openapi.util.Pair
-import com.intellij.ui.treeStructure.SimpleNode
 import java.util.*
 
-internal class TargetModulesTreeStructure(var uiSettings: PsUISettings) : AbstractBaseTreeStructure() {
+class TargetModulesTreeStructure(var uiSettings: PsUISettings) : AbstractBaseTreeStructure() {
 
   private val rootNode: PsRootNode = PsRootNode(uiSettings)
 
   override fun getRootElement(): Any = rootNode
 
-  fun displayTargetModules(dependencyNodes: List<AbstractDependencyNode<out PsAndroidDependency>>) {
+  fun displayTargetModules(dependencyNodes: List<List<PsAndroidDependency>>) {
     // Key: module name, Value: pair of module and version of the dependency used in the module.
     val modules = mutableMapOf<String, Pair<PsAndroidModule, String>>()
 
@@ -49,7 +48,7 @@ internal class TargetModulesTreeStructure(var uiSettings: PsUISettings) : Abstra
 
       // Create the module and version used.
       val versionByModule = mutableMapOf<String, String?>()
-      for (dependency in node.models) {
+      for (dependency in node) {
         if (dependency is PsLibraryAndroidDependency) {
           val spec = dependency.spec
           // For library dependencies we display the version of the library being used.
@@ -58,7 +57,7 @@ internal class TargetModulesTreeStructure(var uiSettings: PsUISettings) : Abstra
         }
       }
 
-      for (dependency in node.models) {
+      for (dependency in node) {
         val module = dependency.parent
         val moduleName = module.name
         val existing = modules[moduleName]
@@ -120,8 +119,8 @@ internal class TargetModulesTreeStructure(var uiSettings: PsUISettings) : Abstra
     rootNode.setChildren(children)
   }
 
-  private fun getDeclaredDependencies(node: AbstractDependencyNode<out PsAndroidDependency>): List<PsDeclaredLibraryAndroidDependency> {
-    return node.models
+  private fun getDeclaredDependencies(node: List<PsAndroidDependency>): List<PsDeclaredLibraryAndroidDependency> {
+    return node
       .filter { it -> it is PsDeclaredLibraryAndroidDependency }
       .map { it -> it as PsDeclaredLibraryAndroidDependency }
       .filter { it.isDeclared }
