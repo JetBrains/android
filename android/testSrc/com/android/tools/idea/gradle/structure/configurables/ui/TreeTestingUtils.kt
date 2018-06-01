@@ -24,6 +24,6 @@ internal data class TestTree(val text: String, val children: List<TestTree>?) {
 }
 
 internal fun AbstractPsNode.testStructure(filter: (AbstractPsNode) -> Boolean = { true }): TestTree =
-  TestTree(name,
+  TestTree(name ?: "(null)",
            children.mapNotNull { it as? AbstractPsNode }.filter { filter(it) }.map { it.testStructure(filter) })
 
