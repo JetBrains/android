@@ -46,14 +46,21 @@ private val ITEM_BORDER_SELECTED = JBUI.Borders.merge(
  * Component that displays [ResourceValue] in a grid.
  */
 open class DrawableGrid(val module: Module,
-                   model: ListModel<ResourceValue>,
-                   imageSize: Int = DEFAULT_IMAGE_SIZE,
-                   private val cacheSize: Long = DEFAULT_CACHE_SIZE)
+                        model: ListModel<ResourceValue>,
+                        imageSize: Int = DEFAULT_IMAGE_SIZE,
+                        private val cacheSize: Long = DEFAULT_CACHE_SIZE)
   : JList<ResourceValue>(model) {
 
   init {
     layoutOrientation = HORIZONTAL_WRAP
     setImageSize(imageSize)
+  }
+
+  override fun setSelectionInterval(anchor: Int, lead: Int) {
+    if (lead >= 0 && lead < model.size && model.getElementAt(lead) == null) {
+      return
+    }
+    super.setSelectionInterval(anchor, lead)
   }
 
   fun setImageSize(drawableSize: Int) {
@@ -97,6 +104,7 @@ internal class DrawableCellRenderer(private val module: Module,
 
     if (value == null || module.isDisposed) {
       label.icon = emptyIcon
+      label.disabledIcon = emptyIcon
       return label
     }
     else {
