@@ -23,14 +23,12 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.project.Project
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
+import org.junit.*
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
+@Ignore // TODO(b/80590520): figure out why it's flaky.
 class ClearResourceCacheAfterFirstBuildTest {
   @JvmField @Rule val projectRule = AndroidProjectRule.inMemory().initAndroid(false)
 
