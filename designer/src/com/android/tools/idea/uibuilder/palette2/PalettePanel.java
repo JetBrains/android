@@ -109,8 +109,8 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
     super(new BorderLayout());
     myProject = project;
     myDependencyManager = dependencyManager;
-    myDependencyManager.registerDependencyUpdates(this, this);
     myDataModel = new DataModel(myDependencyManager);
+    myDependencyManager.registerDependencyUpdates(this, this);
     myCopyProvider = new CopyProviderImpl();
 
     myCategoryList = new CategoryList();
@@ -149,6 +149,11 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
 
     myLayoutType = NlLayoutType.UNKNOWN;
     myLastSelectedGroup = DataModel.COMMON;
+  }
+
+  void onDependenciesUpdated() {
+    myDataModel.notifyDependenciesUpdated();
+    repaint();
   }
 
   @NotNull

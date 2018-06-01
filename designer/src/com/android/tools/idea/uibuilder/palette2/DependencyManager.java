@@ -94,10 +94,10 @@ public class DependencyManager {
     return true;
   }
 
-  public void registerDependencyUpdates(@NotNull JComponent paletteUI, @NotNull Disposable parentDisposable) {
+  public void registerDependencyUpdates(@NotNull PalettePanel paletteUI, @NotNull Disposable parentDisposable) {
     myProject.getMessageBus().connect(parentDisposable).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, result -> {
       if (result == ProjectSystemSyncManager.SyncResult.SUCCESS && checkForNewMissingDependencies()) {
-        paletteUI.repaint();
+        paletteUI.onDependenciesUpdated();
       }
     });
   }

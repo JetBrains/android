@@ -218,6 +218,14 @@ public class DataModel {
     updateCategoryModel(groups, matchCounts);
   }
 
+  /**
+   * Notifies the {@link DataModel} that the dependencies have changed so the items might need to be re-filtered.
+   */
+  void notifyDependenciesUpdated() {
+    update();
+    categorySelectionChanged(myCurrentSelectedGroup);
+  }
+
   private void updateCategoryModel(@NotNull List<Palette.Group> groups, @NotNull List<Integer> matchCounts) {
     UIUtil.invokeLaterIfNeeded(() -> myListModel.update(groups, matchCounts));
   }
