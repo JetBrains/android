@@ -28,6 +28,8 @@ class TargetModulesTreeBuilder(
   uiSettings: PsUISettings
 ) : AbstractPsNodeTreeBuilder(tree, treeModel, TargetModulesTreeStructure(uiSettings)) {
 
+  override fun isSmartExpand(): Boolean = false
+
   fun displayTargetModules(dependencyNodes: List<AbstractDependencyNode<out PsAndroidDependency>>) {
     val treeStructure = treeStructure
     if (treeStructure is TargetModulesTreeStructure) {
