@@ -324,7 +324,7 @@ class MigrateToResourceNamespacesProcessor(
               result += StyleItemUsageInfo(domValue, url)
             }
           }
-          // TODO(b/78765120): handle other relevant converters.
+        // TODO(b/78765120): handle other relevant converters.
         }
       }
     })
@@ -383,7 +383,8 @@ class MigrateToResourceNamespacesProcessor(
       when (usageInfo) {
         is DomValueUsageInfo -> {
           val oldResourceValue = usageInfo.domValue.value ?: return@forEachIndexed
-          val prefix = findOrCreateNamespacePrefix(usageInfo.domValue.xmlTag, inferredPackage)
+          val tag = usageInfo.domValue.xmlTag ?: return@forEachIndexed
+          val prefix = findOrCreateNamespacePrefix(tag, inferredPackage)
           val newResourceValue = ResourceValue.referenceTo(
             oldResourceValue.prefix,
             prefix,
@@ -400,7 +401,8 @@ class MigrateToResourceNamespacesProcessor(
             ?.handleElementRename(prefix)
         }
         is StyleItemUsageInfo -> {
-          val prefix = findOrCreateNamespacePrefix(usageInfo.domValue.xmlTag, inferredPackage)
+          val tag = usageInfo.domValue.xmlTag ?: return@forEachIndexed
+          val prefix = findOrCreateNamespacePrefix(tag, inferredPackage)
           val newUrl = ResourceUrl.create(prefix, ResourceType.ATTR, usageInfo.name)
           usageInfo.domValue.stringValue = newUrl.qualifiedName
         }
