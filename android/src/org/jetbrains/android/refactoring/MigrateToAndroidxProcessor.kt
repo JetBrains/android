@@ -229,7 +229,8 @@ open class MigrateToAndroidxProcessor(val project: Project,
    *
    * This is a workaround for http://b/79220682.
    */
-  override fun shouldApplyRefactoringHelper(key: RefactoringHelper<*>): Boolean = false
+  override fun shouldApplyRefactoringHelper(key: RefactoringHelper<*>): Boolean =
+    key::class.simpleName == "KotlinRefactoringHelperForDelayedRequests"
 
   override fun performPsiSpoilingRefactoring() {
     val styleManager = JavaCodeStyleManager.getInstance(myProject)
