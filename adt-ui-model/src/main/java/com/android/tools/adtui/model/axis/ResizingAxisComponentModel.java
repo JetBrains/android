@@ -33,6 +33,7 @@ public final class ResizingAxisComponentModel extends AxisComponentModel {
       myGlobalRange.addDependency(this).onChange(Range.Aspect.RANGE, this::onGlobalRangeUpdated);
       myGlobalRangeMin = myGlobalRange.getMin();
     }
+    updateImmediately();
   }
 
   @Override

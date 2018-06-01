@@ -598,7 +598,6 @@ class CpuCaptureView {
       myObserver = new AspectObserver();
 
       myCallChart.getRange().addDependency(myObserver).onChange(Range.Aspect.RANGE, this::callChartRangeChanged);
-      selectionRange.addDependency(myObserver).onChange(Range.Aspect.RANGE, () -> axis.getModel().update(1));
 
       callChartRangeChanged();
     }
@@ -613,8 +612,6 @@ class CpuCaptureView {
     private static AxisComponent createAxis(@NotNull Range range, @NotNull Range globalRange) {
       AxisComponentModel axisModel =
         new ResizingAxisComponentModel.Builder(range, new TimeAxisFormatter(1, 10, 1)).setGlobalRange(globalRange).build();
-      axisModel.update(1);
-
       AxisComponent axis = new AxisComponent(axisModel, AxisComponent.AxisOrientation.BOTTOM);
       axis.setShowAxisLine(false);
       axis.setMarkerColor(ProfilerColors.CPU_AXIS_GUIDE_COLOR);
