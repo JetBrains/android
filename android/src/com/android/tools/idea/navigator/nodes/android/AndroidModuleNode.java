@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.navigator.nodes.android;
 
+import com.android.ide.common.gradle.model.IdeAndroidArtifact;
+import com.android.ide.common.gradle.model.IdeJavaArtifact;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
@@ -39,11 +41,14 @@ import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
 import static com.android.tools.idea.flags.StudioFlags.ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT;
 import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static org.jetbrains.android.facet.AndroidSourceType.GENERATED_JAVA;
 
 /**
  * {@link com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode} does not classify source types, and just assumes that all source
@@ -147,7 +152,7 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
       if (sourceType == AndroidSourceType.SHADERS && (androidModel == null || !androidModel.getFeatures().isShadersSupported())) {
         continue;
       }
-      Set<VirtualFile> sources = getSources(sourceType, providers);
+      Set<VirtualFile> sources = sourceType == GENERATED_JAVA ? getGeneratedSources(androidModel) : getSources(sourceType, providers);
       if (sources.isEmpty()) {
         continue;
       }
@@ -176,6 +181,32 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
       sources.addAll(sourceType.getSources(provider));
     }
 
+    return sources;
+  }
+
+  /**
+   * Collect generated java source folders from main artifact and test artifacts.
+   */
+  @NotNull
+  private static Set<VirtualFile> getGeneratedSources(@Nullable AndroidModuleModel androidModuleModel) {
+    Set<VirtualFile> sources = new HashSet<>();
+    if (androidModuleModel != null) {
+      List<File> files = new ArrayList<>(androidModuleModel.getMainArtifact().getGeneratedSourceFolders());
+      IdeAndroidArtifact androidTestArtifact = androidModuleModel.getArtifactForAndroidTest();
+      if (androidTestArtifact != null) {
+        files.addAll(androidTestArtifact.getGeneratedSourceFolders());
+      }
+      IdeJavaArtifact unitTestArtifact = androidModuleModel.getSelectedVariant().getUnitTestArtifact();
+      if (unitTestArtifact != null) {
+        files.addAll(unitTestArtifact.getGeneratedSourceFolders());
+      }
+      for (File file : files) {
+        VirtualFile vFile = findFileByIoFile(file, false /* Don't refresh. */);
+        if (vFile != null) {
+          sources.add(vFile);
+        }
+      }
+    }
     return sources;
   }
 

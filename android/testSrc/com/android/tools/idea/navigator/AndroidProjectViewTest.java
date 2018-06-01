@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.navigator;
 
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
@@ -28,6 +29,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.projectView.TestProjectTreeStructure;
 import com.intellij.psi.PsiDirectory;
@@ -37,7 +39,9 @@ import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,6 +49,8 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static com.android.tools.idea.testing.TestProjectPaths.NAVIGATOR_PACKAGEVIEW_COMMONROOTS;
 import static com.android.tools.idea.testing.TestProjectPaths.NAVIGATOR_PACKAGEVIEW_SIMPLE;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static com.intellij.testFramework.PlatformTestUtil.createComparator;
 import static com.intellij.testFramework.ProjectViewTestUtil.assertStructureEqual;
 
@@ -262,8 +268,32 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     assertSameElements(fileNames, ImmutableList.of("j.png", "j.xml"));
   }
 
+  // Test that the generated source files are displayed under app/generatedJava.
+  public void testGeneratedSourceFiles() throws Exception {
+    loadSimpleApplication();
+    // Create BuildConfig.java in one of the generated source folders.
+    Module appModule = myModules.getAppModule();
+    AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
+    assertNotNull(androidModel);
+    Collection<File> generatedFolders = androidModel.getMainArtifact().getGeneratedSourceFolders();
+    assertThat(generatedFolders).isNotEmpty();
+    File generatedFile = new File(generatedFolders.iterator().next(), join("com", "application", "BuildConfig.java"));
+    String text = "package com.application;\n" +
+                  "public final class BuildConfig {\n" +
+                  "}\n";
+    writeToFile(generatedFile, text);
+    LocalFileSystem.getInstance().refresh(false/* synchronously */);
+
+    myPane = createPane();
+    TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());
+
+    // Find the node app/generatedJava, and make sure it contains the generated BuildConfig.java.
+    Object element = findElementForPath(structure, "app (Android)", "generatedJava", "application", "BuildConfig");
+    assertNotNull(element);
+  }
+
   @Nullable
-  private PsiDirectory getBaseFolder() throws Exception {
+  private PsiDirectory getBaseFolder() {
     VirtualFile folder = getProject().getBaseDir();
     assertNotNull("project basedir is null!", folder);
     return PsiManager.getInstance(getProject()).findDirectory(folder);
