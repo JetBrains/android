@@ -17,7 +17,6 @@ package com.android.tools.idea.naveditor.scene;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
@@ -26,6 +25,7 @@ import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
@@ -50,6 +50,8 @@ public class ThumbnailManager extends AndroidFacetScopedService {
   private final Table<VirtualFile, Configuration, Long> myRenderVersions = HashBasedTable.create();
   private final Table<VirtualFile, Configuration, Long> myRenderModStamps = HashBasedTable.create();
   private final LocalResourceRepository myResourceRepository;
+
+  private static final Object LOCK = new Object();
 
   @NotNull
   public static ThumbnailManager getInstance(@NotNull AndroidFacet facet) {
@@ -83,31 +85,45 @@ public class ThumbnailManager extends AndroidFacetScopedService {
         && myRenderModStamps.get(file, configuration) == file.getModificationStamp()) {
       return CompletableFuture.completedFuture(cached);
     }
-
-    RenderService renderService = RenderService.getInstance(getModule().getProject());
-    RenderTask task = createTask(getFacet(), xmlFile, configuration, renderService);
     CompletableFuture<BufferedImage> result = new CompletableFuture<>();
-    if (task != null) {
-      ListenableFuture<RenderResult> renderResult = task.render();
-      renderResult.addListener(() -> {
-        try {
-          BufferedImage image = renderResult.get().getRenderedImage().getCopy();
-          myImages.put(file, configuration, new SoftReference<>(image));
-          myRenderVersions.put(file, configuration, version);
-          myRenderModStamps.put(file, configuration, modStamp);
-          result.complete(image);
+    // TODO we run in a separate thread because task.render() currently isn't asynchronous
+    // if inflate() (which is itself synchronous) hasn't already been called.
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      ListenableFuture<RenderResult> renderResult = null;
+      // TODO: this shouldn't be required, since RenderService should supposedly provide this functionality.
+      synchronized (LOCK) {
+        // We might have been disposed while waiting
+        if (isDisposed()) {
+          result.complete(null);
+          return;
         }
-        catch (InterruptedException | ExecutionException e) {
-          result.completeExceptionally(e);
+        RenderService renderService = RenderService.getInstance(getModule().getProject());
+        RenderTask task = createTask(getFacet(), xmlFile, configuration, renderService);
+        if (task != null) {
+          renderResult = task.render();
         }
-      }, PooledThreadExecutor.INSTANCE);
-    }
-    else {
-      result.complete(null);
-    }
+      }
+      ListenableFuture<RenderResult> actualRenderResult = renderResult;
+      if (actualRenderResult != null) {
+        actualRenderResult.addListener(() -> {
+          try {
+            BufferedImage image = actualRenderResult.get().getRenderedImage().getCopy();
+            myImages.put(file, configuration, new SoftReference<>(image));
+            myRenderVersions.put(file, configuration, version);
+            myRenderModStamps.put(file, configuration, modStamp);
+            result.complete(image);
+          }
+          catch (InterruptedException | ExecutionException e) {
+            result.completeExceptionally(e);
+          }
+        }, PooledThreadExecutor.INSTANCE);
+      }
+      else {
+        result.complete(null);
+      }
+    });
     return result;
   }
-
   @Nullable
   protected RenderTask createTask(@NotNull AndroidFacet facet,
                                   @NotNull XmlFile file,

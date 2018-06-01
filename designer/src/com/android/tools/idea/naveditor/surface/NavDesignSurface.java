@@ -154,6 +154,9 @@ public class NavDesignSurface extends DesignSurface {
    */
   @Override
   public CompletableFuture<?> goingToSetModel(NlModel model) {
+    // So it's cached in the future
+    model.getConfiguration().getResourceResolver();
+
     AndroidFacet facet = model.getFacet();
     CompletableFuture<?> result = new CompletableFuture<>();
     Application application = ApplicationManager.getApplication();
