@@ -44,6 +44,7 @@ public class NlViewActionToolbarFixture extends JComponentFixture<NlViewActionTo
   @NotNull
   public static NlViewActionToolbarFixture create(@NotNull NlEditorFixture nlEditorFixture) {
     Robot robot = nlEditorFixture.robot();
-    return new NlViewActionToolbarFixture(robot, robot.finder().findByName("NlLayoutToolbar", ActionToolbarImpl.class, false));
+    return new NlViewActionToolbarFixture(robot, robot.finder().findByName(
+      nlEditorFixture.target(), "NlLayoutToolbar", ActionToolbarImpl.class, false));
   }
 }
