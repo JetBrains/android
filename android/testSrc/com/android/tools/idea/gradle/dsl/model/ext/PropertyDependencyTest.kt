@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.model.ext
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*
@@ -53,7 +54,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     return field.get(unresolved) as GradleDslElement
   }
 
-  private fun GradlePropertyModel.fileModelToElement() : GradleDslElement {
+  private fun GradlePropertyModel.fileModelToElement(): GradleDslElement {
     val methodCallElement = element() as GradleDslMethodCall
     assertSize(1, methodCallElement.arguments)
     return methodCallElement.arguments[0]
@@ -154,7 +155,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
   private fun assertDependencyNumbers(
     element: GradleDslElement,
     numResolvedDependencies: Int,
-    numTotalDependencies : Int,
+    numTotalDependencies: Int,
     numUnresolvedDependencies: Int,
     numDependents: Int
   ) {
@@ -167,7 +168,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
   private fun assertDependencyNumbers(
     model: GradlePropertyModel,
     numResolvedDependencies: Int,
-    numTotalDependencies : Int,
+    numTotalDependencies: Int,
     numUnresolvedDependencies: Int,
     numDependents: Int
   ) {
@@ -207,7 +208,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     val seventhModel = ext.findProperty("prop2")
 
     assertDependencyNumbers(firstModel, 0, 0, 0, 1)
-    assertDependencyNumbers(secondModel, 0, 0,  0, 1)
+    assertDependencyNumbers(secondModel, 0, 0, 0, 1)
     assertDependencyNumbers(thirdModel, 0, 0, 0, 1)
     // Note: Unresolved dependencies are only counted at the item level.
     assertDependencyNumbers(fourthModel, 3, 3, 0, 1)
@@ -268,8 +269,8 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     val appliedSigningVarModel = appliedSigningModel.dependencies[0]!!
     val storeFModel = appliedSigningVarModel.toMap()!!["storeF"]!!
     val storePModel = appliedSigningVarModel.toMap()!!["storeP"]!!
-    val keyFModel   = appliedSigningVarModel.toMap()!!["keyF"]!!
-    val keyPModel   = appliedSigningVarModel.toMap()!!["keyP"]!!
+    val keyFModel = appliedSigningVarModel.toMap()!!["keyF"]!!
+    val keyPModel = appliedSigningVarModel.toMap()!!["keyP"]!!
     assertDependencyNumbers(varsModel, 2, 2, 0, 0)
     assertDependencyNumbers(appliedMinSdkModel, 0, 0, 0, 2)
     assertDependencyNumbers(appliedMaxDskModel, 1, 1, 0, 1)
@@ -347,7 +348,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     val otherNewModel = buildModel.ext().findProperty("otherNewProp")
     otherNewModel.setValue(ReferenceTo("N0"))
     assertDependencyNumbers(otherNewModel, 1, 1, 0, 0)
-    assertDependencyBetween(otherNewModel,  buildModel.ext().findProperty("N0"), "N0")
+    assertDependencyBetween(otherNewModel, buildModel.ext().findProperty("N0"), "N0")
     val keyPass = buildModel.android()!!.signingConfigs()[0]!!.keyPassword()
     keyPass.setValue(PLAIN_TEXT, iStr("${'$'}{prop2['key']}${'$'}{N1}"))
     assertDependencyNumbers(keyPass, 2, 2, 0, 0)
@@ -379,7 +380,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     // Create a variable in the child model that used applied and parents.
     val newModel = childModel.ext().findProperty("newProp")
     newModel.setValue(iStr("${'$'}{vars.maxSdk} - 12 - ${'$'}{numbers[4]} = ${'$'}{varInt}"))
-    assertDependencyNumbers(newModel, 3,3, 0, 0)
+    assertDependencyNumbers(newModel, 3, 3, 0, 0)
     assertDependencyBetween(newModel, maxSdkModel, "vars.maxSdk")
     assertDependencyBetween(newModel, number4Model, "numbers[4]")
     assertDependencyBetween(newModel, varIntModel, "varInt")
@@ -532,11 +533,15 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
   @Test
   fun testBuildScriptAppliedDependencies() {
     val text = """
-               buildscript {
+                 buildscript {
                  apply from: 'versions.gradle'
                  dependencies {
                    classpath deps.android_gradle_plugin
                  }
+               }
+
+               dependencies {
+                 compile deps.android_gradle_plugin
                }
                """.trimIndent()
     val appliedText = """
@@ -553,23 +558,65 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
 
     val buildModel = gradleBuildModel
     val classPathProperty = buildModel.buildscript().dependencies().artifacts()[0]
+    val depsProperty = buildModel.dependencies().artifacts()[0]
 
     verifyPropertyModel(classPathProperty.completeModel(), STRING_TYPE, "com.android.tools.build:gradle:3.1.0", STRING, REGULAR, 1)
 
     // Set the value of the result of the version
     classPathProperty.version().resultModel.setValue("3.2.0")
 
-    fun verify() {
-      verifyPropertyModel(classPathProperty.completeModel(), STRING_TYPE, "com.android.tools.build:gradle:3.2.0", STRING, REGULAR, 1)
-      verifyPropertyModel(classPathProperty.completeModel().unresolvedModel, STRING_TYPE, "deps.android_gradle_plugin", REFERENCE, REGULAR,
+    fun verify(model: ArtifactDependencyModel) {
+      verifyPropertyModel(model.completeModel(), STRING_TYPE, "com.android.tools.build:gradle:3.2.0", STRING, REGULAR, 1)
+      verifyPropertyModel(model.completeModel().unresolvedModel, STRING_TYPE, "deps.android_gradle_plugin", REFERENCE, REGULAR,
                           1)
-      assertThat(classPathProperty.completeModel().resultModel.getRawValue(STRING_TYPE),
+      assertThat(model.completeModel().resultModel.getRawValue(STRING_TYPE),
                  equalTo("com.android.tools.build:gradle:${'$'}versions.android_gradle_plugin"))
-      verifyPropertyModel(classPathProperty.version(), STRING_TYPE, "3.2.0", STRING, FAKE, 1)
-      verifyPropertyModel(classPathProperty.version().resultModel, STRING_TYPE, "3.2.0", STRING, REGULAR, 0)
+      verifyPropertyModel(model.version(), STRING_TYPE, "3.2.0", STRING, FAKE, 1)
+      verifyPropertyModel(model.version().resultModel, STRING_TYPE, "3.2.0", STRING, REGULAR, 0)
     }
-    verify()
+    verify(classPathProperty)
+    verify(depsProperty)
     applyChangesAndReparse(buildModel)
-    verify()
+    verify(classPathProperty)
+    verify(depsProperty)
+  }
+
+  @Test
+  fun testBuildScriptAppliedInParentModule() {
+    val text = """
+               buildscript {
+                 apply from: 'versions.gradle'
+               }
+               """.trimIndent()
+    val childText = """
+                    dependencies {
+                      compile rootProject.ext.deps.android_gradle_plugin
+                    }
+                    """.trimIndent()
+    val appliedText = """
+                      ext.deps = [:]
+                      def versions = [:]
+                      versions.android_gradle_plugin = "3.1.0"
+
+                      def deps = [:]
+                      deps.android_gradle_plugin = "com.android.tools.build:gradle:${'$'}versions.android_gradle_plugin"
+                      ext.deps = deps
+                      """.trimIndent()
+    writeToNewProjectFile("versions.gradle", appliedText)
+    writeToBuildFile(text)
+    writeToSubModuleBuildFile(childText)
+    writeToSettingsFile("include ':${SUB_MODULE_NAME}'")
+
+    val buildModel = subModuleGradleBuildModel
+    val artModel = buildModel.dependencies().artifacts()[0]
+
+    verifyPropertyModel(artModel.completeModel(), STRING_TYPE, "com.android.tools.build:gradle:3.1.0", STRING, REGULAR, 1)
+    verifyPropertyModel(artModel.completeModel().unresolvedModel, STRING_TYPE, "rootProject.ext.deps.android_gradle_plugin", REFERENCE,
+                        REGULAR,
+                        1)
+    assertThat(artModel.completeModel().resultModel.getRawValue(STRING_TYPE),
+               equalTo("com.android.tools.build:gradle:${'$'}versions.android_gradle_plugin"))
+    verifyPropertyModel(artModel.version(), STRING_TYPE, "3.1.0", STRING, FAKE, 1)
+    verifyPropertyModel(artModel.version().resultModel, STRING_TYPE, "3.1.0", STRING, REGULAR, 0)
   }
 }
