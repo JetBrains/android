@@ -17,23 +17,38 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTooltipView;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
+import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_BODY_FONT;
+
 class CpuUsageTooltipView extends ProfilerTooltipView {
   @NotNull private final CpuUsageTooltip myTooltip;
+  @NotNull private final CpuProfilerStageView myView;
+  @NotNull private final JPanel myUnavailableDetails;
 
   CpuUsageTooltipView(@NotNull CpuProfilerStageView view, @NotNull CpuUsageTooltip tooltip) {
     super(view.getTimeline());
     myTooltip = tooltip;
+    myView = view;
+    myUnavailableDetails = new JPanel(new TabularLayout("*", "Fit,Fit-"));
+  }
+
+  @Override
+  protected void updateTooltip() {
+    boolean canSelect = myView.getStage().getSelectionModel().canSelectRange(myView.getTimeline().getTooltipRange());
+    myUnavailableDetails.setVisible(!canSelect);
   }
 
   @NotNull
   @Override
   protected JComponent createTooltip() {
+    JPanel panel = new JPanel(new TabularLayout("*", "*,Fit"));
     CpuProfilerStage.CpuStageLegends legends = myTooltip.getLegends();
 
     LegendComponent legend =
@@ -43,6 +58,16 @@ class CpuUsageTooltipView extends ProfilerTooltipView {
     legend.configure(legends.getOthersLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.CPU_OTHER_USAGE_CAPTURED));
     legend.configure(legends.getThreadsLegend(),
                      new LegendConfig(LegendConfig.IconType.DASHED_LINE, ProfilerColors.THREADS_COUNT_CAPTURED));
-    return legend;
+    panel.add(legend, new TabularLayout.Constraint(0, 0));
+    // Build detail unavailable panel.
+    JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
+    separator.setBorder(JBUI.Borders.empty(8, 0));
+    myUnavailableDetails.add(separator, new TabularLayout.Constraint(0, 0));
+    JLabel unavailableLabel = new JLabel("Selection Unavailable");
+    unavailableLabel.setFont(TOOLTIP_BODY_FONT);
+    unavailableLabel.setForeground(ProfilerColors.TOOLTIP_LOW_CONTRAST);
+    myUnavailableDetails.add(unavailableLabel, new TabularLayout.Constraint(1, 0));
+    panel.add(myUnavailableDetails, new TabularLayout.Constraint(1, 0));
+    return panel;
   }
 }
