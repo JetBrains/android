@@ -31,7 +31,7 @@ import java.util.function.Predicate;
  */
 public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
 
-  private static final int LEFT_MARGIN_PX = 3;
+  private static final int MARGIN_PX = 3; // Padding on left and right of node label
 
   @NotNull
   private CaptureModel.Details.Type myType;
@@ -146,9 +146,9 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
     }
     FontMetrics fontMetrics = g.getFontMetrics(font);
 
-    Float availableWidth = (float)drawingArea.getWidth() - LEFT_MARGIN_PX;
+    Float availableWidth = (float)drawingArea.getWidth() - 2 * MARGIN_PX; // Left and right margin
     String text = generateFittingText(node.getData(), s -> myTextFitsPredicate.test(s, fontMetrics, availableWidth));
-    float textPositionX = LEFT_MARGIN_PX + (float)drawingArea.getX();
+    float textPositionX = MARGIN_PX + (float)drawingArea.getX();
     float textPositionY = (float)(drawingArea.getY() + fontMetrics.getAscent());
     g.drawString(text, textPositionX, textPositionY);
 
@@ -190,8 +190,7 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
       }
     }
 
-    // Try: toString or t...
-    return AdtUiUtils.shrinkToFit(model.getName(), textFitsPredicate);
+    return AdtUiUtils.shrinkToFit(model.getName(), textFitsPredicate, AdtUiUtils.ShrinkToFitOptions.USE_ELLIPSE);
   }
 
   public interface TextFitsPredicate {
