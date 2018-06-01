@@ -28,20 +28,15 @@ import com.intellij.ui.treeStructure.SimpleNode
 class TargetAndroidModuleNode internal constructor(
   parent: AbstractPsNode,
   module: PsAndroidModule,
-  private val version: String?
+  private val version: String?,
+  private val children: List<AbstractPsModelNode<*>>
 ) : AbstractPsModelNode<PsAndroidModule>(parent, module, parent.uiSettings), CellAppearanceEx {
-
-  private var myChildren = emptyList<TargetConfigurationNode>()
 
   init {
     autoExpandNode = true
   }
 
-  override fun getChildren(): Array<SimpleNode> = myChildren.toTypedArray()
-
-  internal fun setChildren(children: List<TargetConfigurationNode>) {
-    myChildren = children
-  }
+  override fun getChildren(): Array<SimpleNode> = children.toTypedArray()
 
   override fun getText(): String = myName
 
