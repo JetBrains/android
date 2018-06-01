@@ -171,13 +171,17 @@ public class LayoutStructureViewBuilder extends TreeBasedStructureViewBuilder {
 
     @Override
     public Icon getIcon(boolean open) {
-      return AndroidDomElementDescriptorProvider.getIconForViewTag(myElement.getXmlTag().getName());
+      XmlTag tag = myElement.getXmlTag();
+      if (tag == null) {
+        return null;
+      }
+      return AndroidDomElementDescriptorProvider.getIconForViewTag(tag.getName());
     }
 
     @Override
     public String getLocationString() {
       final XmlTag xmlTag = myElement.getXmlTag();
-      final XmlAttribute idAttribute = xmlTag.getAttribute("id", SdkConstants.NS_RESOURCES);
+      final XmlAttribute idAttribute = xmlTag == null ? null : xmlTag.getAttribute("id", SdkConstants.NS_RESOURCES);
       return idAttribute == null ? null : idAttribute.getValue();
     }
 
@@ -190,6 +194,9 @@ public class LayoutStructureViewBuilder extends TreeBasedStructureViewBuilder {
     @Override
     public String getPresentableText() {
       final XmlTag xmlTag = myElement.getXmlTag();
+      if (xmlTag == null) {
+        return "";
+      }
       final String className = xmlTag.getName();
       return className.substring(className.lastIndexOf('.') + 1);
     }

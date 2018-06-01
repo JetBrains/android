@@ -35,6 +35,9 @@ public class StructureUtils {
    */
   public static void acceptChildrenInOrder(@NotNull DomElement element, @NotNull DomElementVisitor visitor) {
     final XmlTag tag = element.getXmlTag();
+    if (tag == null) {
+      return;
+    }
     for (XmlTag xmlTag : tag.getSubTags()) {
       final DomElement child = element.getManager().getDomElement(xmlTag);
       if (child == null) {
