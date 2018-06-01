@@ -190,7 +190,7 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
       }
     }
 
-    return AdtUiUtils.shrinkToFit(model.getName(), textFitsPredicate, AdtUiUtils.ShrinkToFitOptions.USE_ELLIPSE);
+    return AdtUiUtils.shrinkToFit(model.getName(), textFitsPredicate);
   }
 
   public interface TextFitsPredicate {
