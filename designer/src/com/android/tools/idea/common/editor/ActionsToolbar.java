@@ -108,6 +108,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   }
 
   private void updateActionGroups(@NotNull NlLayoutType layoutType) {
+   myToolbarComponent.removeAll();
     if (myToolbarActionGroups != null) {
       Disposer.dispose(myToolbarActionGroups);
     }
