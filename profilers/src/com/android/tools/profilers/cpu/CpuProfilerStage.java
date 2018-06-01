@@ -393,7 +393,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
         public void selectionCreationFailure() {
           mySelectionFailure = true;
           selectionChanged();
-          setProfilerMode(ProfilerMode.EXPANDED);
         }
       });
     }
@@ -951,7 +950,10 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   @VisibleForTesting
   void setCapture(@Nullable CpuCapture capture) {
     myCaptureModel.setCapture(capture);
-    setProfilerMode(capture == null ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED);
+    // If there's a capture, expand the profiler UI. Otherwise keep it the same.
+    if (capture != null) {
+      setProfilerMode(ProfilerMode.EXPANDED);
+    }
   }
 
   private void setCapture(int traceId) {

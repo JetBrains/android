@@ -530,8 +530,9 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(myStage.getSelectedThread()).isEqualTo(capture.getMainThreadId());
 
     myStage.setCapture(null);
-    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
-    // Thread selection is reset when going to NORMAL mode
+    // Profiler mode remains expanded so there's no jumping back and forth
+    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
+    // Thread selection is reset
     assertThat(myStage.getSelectedThread()).isEqualTo(CaptureModel.NO_THREAD);
   }
 
@@ -563,6 +564,21 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(myStage.getCapture()).isEqualTo(capture2);
     // Thread selection should be kept instead of selecting capture2 main thread.
     assertThat(myStage.getSelectedThread()).isEqualTo(otherThread);
+  }
+
+  @Test
+  public void selectingAndDeselectingCaptureShouldNotMakeUiJump() throws Exception {
+    CpuCapture capture = CpuProfilerTestUtils.getValidCapture();
+    assertThat(capture).isNotNull();
+
+    myStage.setAndSelectCapture(capture);
+    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
+
+    myStage.setCapture(null);
+    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
+
+    myStage.setAndSelectCapture(capture);
+    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
   }
 
   @Test
