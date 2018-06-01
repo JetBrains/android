@@ -347,6 +347,8 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/androidx/arch/core/core-runtime/2.0.0-alpha1:aar",
         "//prebuilts/tools/common/m2/repository/androidx/asynclayoutinflater/asynclayoutinflater/1.0.0-alpha1:aar",
         "//prebuilts/tools/common/m2/repository/androidx/collection/collection/1.0.0-alpha1:jar",
+        "//prebuilts/tools/common/m2/repository/androidx/constraintlayout/constraintlayout-solver/1.1.0:jar",
+        "//prebuilts/tools/common/m2/repository/androidx/constraintlayout/constraintlayout/1.1.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/coordinatorlayout/coordinatorlayout/1.0.0-alpha1:aar",
         "//prebuilts/tools/common/m2/repository/androidx/core/core/1.0.0-alpha1:aar",
         "//prebuilts/tools/common/m2/repository/androidx/cursoradapter/cursoradapter/1.0.0-alpha1:aar",
