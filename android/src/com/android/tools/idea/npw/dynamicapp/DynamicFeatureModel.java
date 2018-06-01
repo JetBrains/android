@@ -46,7 +46,6 @@ public class DynamicFeatureModel extends WizardModel {
   @NotNull private final OptionalProperty<Module> myBaseApplication = new OptionalValueProperty<>();
   @NotNull private final BoolProperty myFeatureOnDemand = new BoolValueProperty(true);
   @NotNull private final BoolProperty myFeatureFusing = new BoolValueProperty(true);
-  @NotNull private final BoolProperty myFeatureInstant = new BoolValueProperty(false);
 
   public DynamicFeatureModel(@NotNull Project project,
                              @NotNull TemplateHandle templateHandle) {
@@ -95,10 +94,6 @@ public class DynamicFeatureModel extends WizardModel {
     return myFeatureFusing;
   }
 
-  public BoolProperty featureInstant() {
-    return myFeatureInstant;
-  }
-
   @Override
   protected void handleFinished() {
     File moduleRoot = new File(myProject.getBasePath(), moduleName().get());
@@ -114,7 +109,6 @@ public class DynamicFeatureModel extends WizardModel {
     myTemplateValues.put(ATTR_DYNAMIC_FEATURE_TITLE, featureTitle().get());
     myTemplateValues.put(ATTR_DYNAMIC_FEATURE_ON_DEMAND, featureOnDemand().get());
     myTemplateValues.put(ATTR_DYNAMIC_FEATURE_FUSING, featureFusing().get());
-    myTemplateValues.put(ATTR_DYNAMIC_FEATURE_INSTANT, featureInstant().get());
     myTemplateValues.put(ATTR_MAKE_IGNORE, true);
     myTemplateValues.put(ATTR_IS_NEW_PROJECT, true);
     myTemplateValues.put(ATTR_IS_LIBRARY_MODULE, false);
