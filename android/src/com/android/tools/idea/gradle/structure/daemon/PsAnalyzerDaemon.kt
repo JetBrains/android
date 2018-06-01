@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.structure.quickfix.PsLibraryDependencyVersi
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.EventDispatcher
+import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.MergingUpdateQueue.ANY_COMPONENT
 import com.intellij.util.ui.update.Update
@@ -59,33 +60,35 @@ class PsAnalyzerDaemon(context: PsContext, libraryUpdateCheckerDaemon: PsLibrary
 
   private fun addApplicableUpdatesAsIssues() {
     val context = context
-    context.project.forEachModule { module ->
-      var updatesFound = false
-      if (module is PsAndroidModule) {
-        module.dependencies.forEach { dependency ->
-          if (dependency is PsLibraryDependency) {
-            val found = checkForUpdates(dependency as PsLibraryDependency)
-            if (found) {
-              updatesFound = true
+    UIUtil.invokeAndWaitIfNeeded(Runnable {
+      context.project.forEachModule { module ->
+        var updatesFound = false
+        if (module is PsAndroidModule) {
+          module.dependencies.forEach { dependency ->
+            if (dependency is PsLibraryDependency) {
+              val found = checkForUpdates(dependency as PsLibraryDependency)
+              if (found) {
+                updatesFound = true
+              }
             }
           }
         }
-      }
-      else if (module is PsJavaModule) {
-        module.forEachDeclaredDependency { dependency ->
-          if (dependency is PsLibraryDependency) {
-            val found = checkForUpdates(dependency as PsLibraryDependency)
-            if (found) {
-              updatesFound = true
+        else if (module is PsJavaModule) {
+          module.forEachDeclaredDependency { dependency ->
+            if (dependency is PsLibraryDependency) {
+              val found = checkForUpdates(dependency as PsLibraryDependency)
+              if (found) {
+                updatesFound = true
+              }
             }
           }
         }
-      }
 
-      if (updatesFound) {
-        resultsUpdaterQueue.queue(IssuesComputed(module))
+        if (updatesFound) {
+          resultsUpdaterQueue.queue(IssuesComputed(module))
+        }
       }
-    }
+    })
   }
 
   private fun checkForUpdates(dependency: PsLibraryDependency): Boolean {
