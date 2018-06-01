@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.Configurable;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
@@ -111,7 +110,7 @@ public class StringResourceRepository {
         .forEach(key -> map.put(key, new StringResource(key, this, project)));
     }
 
-    return new StringResourceData(facet, map);
+    return new StringResourceData(facet, map, this);
   }
 
   @NotNull
@@ -143,7 +142,6 @@ public class StringResourceRepository {
   @Nullable
   private ResourceItem getItem(@NotNull StringResourceKey key, @NotNull Predicate<ResourceItem> predicate) {
     LocalResourceRepository repository = getRepository(key);
-    repository.sync();
 
     Optional<ResourceItem> optionalItem = getItems(repository, key).stream()
       .filter(predicate)
@@ -159,7 +157,9 @@ public class StringResourceRepository {
   }
 
   @NotNull
-  private static Collection<ResourceItem> getItems(@NotNull AbstractResourceRepository repository, @NotNull StringResourceKey key) {
+  private static Collection<ResourceItem> getItems(@NotNull LocalResourceRepository repository, @NotNull StringResourceKey key) {
+    repository.sync();
+
     Collection<ResourceItem> items = repository.getResourceItem(ResourceType.STRING, key.getName());
     return items == null ? Collections.emptyList() : items;
   }
