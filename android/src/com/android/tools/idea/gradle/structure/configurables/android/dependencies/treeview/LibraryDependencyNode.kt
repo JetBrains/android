@@ -19,12 +19,13 @@ import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsDependencyComparator
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode
-import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
+import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsModel
 import com.android.tools.idea.gradle.structure.model.PsResolvedDependency
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifactDependencyCollection
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency
 import com.android.tools.idea.gradle.structure.model.android.PsResolvedLibraryAndroidDependency
+import com.android.tools.idea.gradle.structure.model.toLibraryKey
 import com.google.common.collect.Lists
 import com.intellij.openapi.util.text.StringUtil.isNotEmpty
 import com.intellij.ui.treeStructure.SimpleNode
@@ -101,15 +102,18 @@ class LibraryDependencyNode : AbstractDependencyNode<PsLibraryAndroidDependency>
   override fun getChildren(): Array<SimpleNode> = myChildren.toTypedArray()
 
   override fun matches(model: PsModel): Boolean {
-    // Only top level LibraryDependencyNodes can match declared dependencies.
-    return when {
-      model is PsDeclaredDependency && parent !is LibraryDependencyNode -> {
-        val parsedModel = model.parsedModel
-        models.any { ourModel ->
-          parsedModel is ArtifactDependencyModel &&
-          getDependencyParsedModels(ourModel).any { resolvedFromParsedDependency ->
-            resolvedFromParsedDependency is ArtifactDependencyModel &&
-            parsedModel.configurationName() == resolvedFromParsedDependency.configurationName()
+    return when (model) {
+      is PsDeclaredLibraryDependency -> {
+        // Only top level LibraryDependencyNodes can match declared dependencies.
+        val nodeSpec = firstModel.spec  // All the models have the same library key.
+        parent !is LibraryDependencyNode && model.spec.toLibraryKey() == nodeSpec.toLibraryKey() && run {
+          val parsedModel = model.parsedModel
+          models.any { ourModel ->
+            parsedModel is ArtifactDependencyModel &&
+            getDependencyParsedModels(ourModel).any { resolvedFromParsedDependency ->
+              resolvedFromParsedDependency is ArtifactDependencyModel &&
+              parsedModel.configurationName() == resolvedFromParsedDependency.configurationName()
+            }
           }
         }
       }
