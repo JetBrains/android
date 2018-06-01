@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.palette2
 
-import com.android.SdkConstants
 import com.android.tools.idea.common.model.NlLayoutType
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.uibuilder.palette.NlPaletteModel
@@ -42,7 +41,7 @@ import org.mockito.Mockito.*
 import java.io.File
 
 class DependencyManagerTest : AndroidTestCase() {
-  private var myPanel: JComponent? = null
+  private var myPanel: PalettePanel? = null
   private var myDisposable: Disposable? = null
   private var myPalette: Palette? = null
   private var myManager: DependencyManager? = null
@@ -56,7 +55,7 @@ class DependencyManagerTest : AndroidTestCase() {
     PlatformTestUtil.registerExtension<AndroidProjectSystemProvider>(Extensions.getArea(project), EP_NAME,
         TestProjectSystem(project, allowedDependencies), testRootDisposable)
 
-    myPanel = mock(JComponent::class.java)
+    myPanel = mock(PalettePanel::class.java)
     myDisposable = mock(Disposable::class.java)
     myPalette = NlPaletteModel.get(myFacet).getPalette(NlLayoutType.LAYOUT)
 
@@ -105,11 +104,11 @@ class DependencyManagerTest : AndroidTestCase() {
 
   fun testRegisterDependencyUpdates() {
     simulateProjectSync()
-    verify(myPanel, never())!!.repaint()
+    verify(myPanel, never())!!.onDependenciesUpdated()
 
     myManager!!.ensureLibraryIsIncluded(findItem(FLOATING_ACTION_BUTTON.defaultName()))
     simulateProjectSync()
-    verify(myPanel)!!.repaint()
+    verify(myPanel)!!.onDependenciesUpdated()
   }
 
   fun testDisposeStopsProjectSyncListening() {
@@ -117,7 +116,7 @@ class DependencyManagerTest : AndroidTestCase() {
 
     myManager!!.ensureLibraryIsIncluded(findItem(FLOATING_ACTION_BUTTON.defaultName()))
     simulateProjectSync()
-    verify(myPanel, never())!!.repaint()
+    verify(myPanel, never())!!.onDependenciesUpdated()
   }
 
   fun testAndroidxDependencies() {
