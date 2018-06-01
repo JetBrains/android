@@ -45,11 +45,34 @@ class DependenciesTreeRootNodeTest : DependencyTestCase() {
     // Note: indentation matters!
     val expectedProjectStructure = """
       testTreeStructure
-          com.android.support:appcompat-v7:+
-          com.example.libs:lib1:0.+
-          com.example.libs:lib1:0.9.1
-          com.example.libs:lib1:1.0
-          com.example.jlib:lib3:0.6
+          android.arch.core:common:1.1.0
+          android.arch.core:runtime:1.1.0
+          android.arch.lifecycle:common:1.1.0
+          android.arch.lifecycle:livedata-core:1.1.0
+          android.arch.lifecycle:runtime:1.1.0
+          android.arch.lifecycle:viewmodel:1.1.0
+          com.android.support:animated-vector-drawable:27.1.1
+          com.android.support:appcompat-v7
+          support-annotations:→27.1.1
+          com.android.support:support-compat:27.1.1
+          com.android.support:support-core-ui:27.1.1
+          com.android.support:support-core-utils:27.1.1
+          com.android.support:support-fragment:27.1.1
+          com.android.support:support-vector-drawable:27.1.1
+          com.example.jlib:lib3
+              lib3:0.6
+              lib3:1.0
+              lib3:0.9.1
+          com.example.jlib:lib4
+              lib4:1.0
+              lib4:0.9.1
+          com.example.libs:lib1
+              lib1:1.0
+              lib1:0.9.1
+              lib1:0.+
+          com.example.libs:lib2
+              lib2:1.0
+              lib2:0.9.1
           mainModule""".trimIndent()
     val treeStructure = node.testStructure({ !it.name.startsWith("appcompat-v7") })
     // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
