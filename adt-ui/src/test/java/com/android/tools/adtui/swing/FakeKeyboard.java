@@ -133,7 +133,9 @@ public final class FakeKeyboard {
 
   public enum Key {
     ALT(KeyEvent.VK_ALT),
+    BACKSPACE(KeyEvent.VK_BACK_SPACE),
     CTRL(KeyEvent.VK_CONTROL),
+    DELETE(KeyEvent.VK_DELETE),
     ENTER(KeyEvent.VK_ENTER),
     ESC(KeyEvent.VK_ESCAPE),
     LEFT(KeyEvent.VK_LEFT),

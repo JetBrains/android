@@ -19,7 +19,6 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.stdui.StandardColors;
-import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.ProfilerAction;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.collect.ImmutableList;
@@ -31,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.awt.font.TextAttribute;
 import java.util.*;
 import java.util.List;
@@ -143,7 +143,9 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
       .setIcon(endIcon)
       .build();
     ProfilerAction deleteAction = new ProfilerAction.Builder("Delete")
+      .setContainerComponent(this)
       .setActionRunnable(() -> getArtifact().deleteSession())
+      .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0))
       .build();
 
     return ImmutableList.of(endAction, ContextMenuItem.SEPARATOR, deleteAction);
