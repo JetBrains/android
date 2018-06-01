@@ -106,14 +106,12 @@ class NlTreeCellRenderer(
     // Trim text
     var availableSpace = computeAvailableSpace(row, primaryLabel.icon, cellWidth)
     val previousLength = primaryLabelText.length
-    primaryLabelText = AdtUiUtils.shrinkToFit(primaryLabelText, primaryLabelMetrics, availableSpace.toFloat(),
-                                              AdtUiUtils.ShrinkToFitOptions.USE_ELLIPSE)
+    primaryLabelText = AdtUiUtils.shrinkToFit(primaryLabelText, primaryLabelMetrics, availableSpace.toFloat())
 
     // If the primary text has been shrunk, there is no need to display the secondary
     secondaryLabelText = if (primaryLabelText.length == previousLength) {
       availableSpace -= primaryLabelMetrics.stringWidth(primaryLabelText)
-      AdtUiUtils.shrinkToFit(secondaryLabelText, secondaryLabelMetrics, availableSpace.toFloat(),
-                             AdtUiUtils.ShrinkToFitOptions.USE_ELLIPSE)
+      AdtUiUtils.shrinkToFit(secondaryLabelText, secondaryLabelMetrics, availableSpace.toFloat())
     }
     else {
       ""

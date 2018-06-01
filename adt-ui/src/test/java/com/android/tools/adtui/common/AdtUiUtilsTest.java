@@ -46,12 +46,14 @@ public class AdtUiUtilsTest {
     // Not enough space for ellipsis so an empty string should be returned
     assertEquals("", AdtUiUtils.shrinkToFit(testString, testMetrics, ellipsisWidth - 1));
 
+    // Just enough space for ellipsis, but we should still return an empty string (since "..." on
+    // its own is useless)
+    assertEquals("", AdtUiUtils.shrinkToFit(testString, testMetrics, ellipsisWidth));
+
     for (int i = 5; i < 80; ++i) {
       int spaceAvailable = i * perCharacterWidth;
-      String shrunk = AdtUiUtils.shrinkToFit(testString, testMetrics, spaceAvailable);
-      assertEquals(StringUtil.repeat("A", i), shrunk);
-      shrunk = AdtUiUtils.shrinkToFit(testString, s -> testMetrics.stringWidth(s) <= spaceAvailable + ellipsisWidth,
-                                      AdtUiUtils.ShrinkToFitOptions.USE_ELLIPSE);
+
+      String shrunk = AdtUiUtils.shrinkToFit(testString, s -> testMetrics.stringWidth(s) <= spaceAvailable + ellipsisWidth);
       assertEquals(StringUtil.repeat("A", i) + "...", shrunk);
     }
   }

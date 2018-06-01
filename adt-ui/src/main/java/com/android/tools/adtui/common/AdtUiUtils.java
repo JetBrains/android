@@ -41,11 +41,6 @@ import static java.awt.event.InputEvent.META_DOWN_MASK;
  * ADT-UI utility class to hold constants and function used across the ADT-UI framework.
  */
 public final class AdtUiUtils {
-  public enum ShrinkToFitOptions {
-    NONE,
-    USE_ELLIPSE,
-  }
-
   /**
    * Default font to be used in the profiler UI.
    */
@@ -79,23 +74,6 @@ public final class AdtUiUtils {
   }
 
   /**
-   * Similar to {@link #shrinkToFit(String, Predicate<String>)},
-   * but instead of a predicate to fit space it uses the font metrics compared to available space.
-   */
-  public static String shrinkToFit(String text, FontMetrics metrics, float availableSpace, ShrinkToFitOptions options) {
-    return shrinkToFit(text, s -> metrics.stringWidth(s) <= availableSpace, options);
-  }
-
-  /**
-   * Similar to {@link #shrinkToFit(String, FontMetrics, ShrinkToFitOptions)},
-   * but takes a predicate method to determine whether the text should fit or not.
-   * The default option are {@link ShrinkToFitOptions.NONE}
-   */
-  public static String shrinkToFit(String text, Predicate<String> textFitPredicate) {
-    return shrinkToFit(text, textFitPredicate, ShrinkToFitOptions.NONE);
-  }
-
-  /**
    * Collapses a line of text to fit the availableSpace by truncating the string and pad the end with ellipsis.
    *
    * @param text              the original text.
@@ -104,7 +82,7 @@ public final class AdtUiUtils {
    * @param options           options to format the fitted string.
    * @return the fitted text.
    */
-  public static String shrinkToFit(String text, Predicate<String> textFitPredicate, ShrinkToFitOptions options) {
+  public static String shrinkToFit(String text, Predicate<String> textFitPredicate) {
     if (textFitPredicate.test(text)) {
       // Enough space - early return.
       return text;
@@ -117,10 +95,9 @@ public final class AdtUiUtils {
     int smallestLength = 0;
     int largestLength = text.length();
     int bestLength = smallestLength;
-    String ellipseString = options == ShrinkToFitOptions.USE_ELLIPSE ? ELLIPSIS : "";
     do {
       int midLength = smallestLength + (largestLength - smallestLength) / 2;
-      if (textFitPredicate.test(text.substring(0, midLength) + ellipseString)) {
+      if (textFitPredicate.test(text.substring(0, midLength) + ELLIPSIS)) {
         bestLength = midLength;
         smallestLength = midLength + 1;
       }
@@ -129,7 +106,8 @@ public final class AdtUiUtils {
       }
     } while (smallestLength <= largestLength);
 
-    return text.substring(0, bestLength) + ellipseString;
+    // Note: Don't return "..." if that's all we could show
+    return (bestLength > 0) ? text.substring(0, bestLength) + ELLIPSIS : "";
   }
 
   /**
