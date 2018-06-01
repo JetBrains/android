@@ -44,7 +44,7 @@ abstract class AbstractPsModelNode<T : PsModel> : AbstractPsNode {
   }
 
   private fun updateNameAndIcon() {
-    myName = models.joinToString(", ") { nameOf(it) }
+    myName = models.map { nameOf(it) }.distinct().joinToString(", ")
     icon = models.firstOrNull()?.icon
   }
 
