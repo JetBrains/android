@@ -38,6 +38,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class StringResourceData {
+  private static final int MAX_LOCALE_LABEL_COUNT = 3;
+
   private final Facet myFacet;
   private final Map<StringResourceKey, StringResource> myKeyToResourceMap;
   private final StringResourceRepository myRepository;
@@ -162,27 +164,28 @@ public class StringResourceData {
       return getLabel(Iterables.getFirst(locales, null));
     }
 
-    final int max = 3;
-    List<Locale> sorted = getLowest(locales, max);
-    if (size <= max) {
+    List<Locale> sorted = getLowest(locales);
+
+    if (size <= MAX_LOCALE_LABEL_COUNT) {
       return getLabels(sorted.subList(0, size - 1)) + " and " + getLabel(sorted.get(size - 1));
     }
     else {
-      return String.format("%1$s and %2$d more", getLabels(sorted), size - max);
+      return getLabels(sorted) + " and " + (size - MAX_LOCALE_LABEL_COUNT) + " more";
     }
   }
 
-  private static List<Locale> getLowest(Collection<Locale> locales, int n) {
+  @NotNull
+  private static List<Locale> getLowest(@NotNull Collection<Locale> locales) {
     return locales.stream()
-      .limit(n)
-      .sorted(Comparator.comparing(StringResourceData::getLabel))
-      .collect(Collectors.toList());
+                  .limit(MAX_LOCALE_LABEL_COUNT)
+                  .sorted(Comparator.comparing(StringResourceData::getLabel))
+                  .collect(Collectors.toList());
   }
 
   private static String getLabels(Collection<Locale> locales) {
     return locales.stream()
-      .map(StringResourceData::getLabel)
-      .collect(Collectors.joining(", "));
+                  .map(StringResourceData::getLabel)
+                  .collect(Collectors.joining(", "));
   }
 
   private static String getLabel(@Nullable Locale locale) {
