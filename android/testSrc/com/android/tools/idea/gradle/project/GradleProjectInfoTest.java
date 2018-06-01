@@ -28,7 +28,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -41,7 +40,6 @@ import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.android.tools.idea.testing.ProjectFiles.createFileInProjectRoot;
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -68,12 +66,8 @@ public class GradleProjectInfoTest extends IdeaTestCase {
     assertFalse(myProjectInfo.canUseLocalMavenRepo());
   }
 
-  public void testHasTopLevelGradleBuildFileUsingGradleProject() {
-    File projectFolderPath = getBaseDirPath(getProject());
-    File buildFilePath = new File(projectFolderPath, "build.gradle");
-    assertTrue("Failed to create top-level build.gradle file", createIfNotExists(buildFilePath));
-
-    assertNotNull(LocalFileSystem.getInstance().refreshAndFindFileByIoFile(buildFilePath));
+  public void testHasTopLevelGradleBuildFileUsingGradleProject() throws Exception {
+    createFileInProjectRoot(getProject(), "build.gradle");
     assertTrue(myProjectInfo.hasTopLevelGradleBuildFile());
   }
 
