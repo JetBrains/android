@@ -448,7 +448,7 @@ public class ProfilerTimelineTest {
   }
 
   @Test
-  public void jumpToTargetOnTheLeft() {
+  public void viewRangeChangedWhenJumpingToTargetOnTheLeftOfIt() {
     // Give time to make data range non-empty, streaming will update the data range.
     myTimer.tick(TimeUnit.MICROSECONDS.toNanos(300));
 
@@ -494,7 +494,7 @@ public class ProfilerTimelineTest {
   }
 
   @Test
-  public void jumpToTargetOnTheRight() {
+  public void viewRangeChangedWhenJumpingToTargetOnTheRightOfIt() {
     // Give time to make data range non-empty, streaming will update the data range.
     myTimer.tick(TimeUnit.MICROSECONDS.toNanos(300));
     // View range initially: #####
@@ -540,7 +540,7 @@ public class ProfilerTimelineTest {
   }
 
   @Test
-  public void jumpToTargetWithinViewRange() {
+  public void jumpToTargetWithinViewRangeShouldntChangeViewRange() {
     // Give time to make data range non-empty, streaming will update the data range.
     myTimer.tick(TimeUnit.MICROSECONDS.toNanos(300));
 
@@ -553,9 +553,27 @@ public class ProfilerTimelineTest {
     myTimeline.adjustRangeCloseToMiddleView(targetRange);
     myTimer.tick(TimeUnit.SECONDS.toNanos(10)); // Give plenty of time to animate.
     assertThat(myTimeline.isStreaming()).isFalse();
-    // target range is smaller than view range, so view range keeps the same length and there is no need to move, and make 70 the middle.
-    assertThat(myViewRange.getMin()).isWithin(DELTA).of(45);
-    assertThat(myViewRange.getMax()).isWithin(DELTA).of(95);
+    // target range is contained in the view range, so view range keeps the same length and there is no need to move.
+    assertThat(myViewRange.getMin()).isWithin(DELTA).of(50);
+    assertThat(myViewRange.getMax()).isWithin(DELTA).of(100);
+  }
+
+  @Test
+  public void viewRangeChangedWhenJumpingToTargetLargerThanIt() {
+    // Give time to make data range non-empty, streaming will update the data range.
+    myTimer.tick(TimeUnit.MICROSECONDS.toNanos(300));
+    // View range initially: #####
+    //         target range:      ##########
+    //     View range after:      ##########
+    myViewRange.set(50, 100);
+    Range targetRange = new Range(100, 200);
+
+    myTimeline.adjustRangeCloseToMiddleView(targetRange);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(10)); // Give plenty of time to animate.
+    assertThat(myTimeline.isStreaming()).isFalse();
+    // target range is larger than view range, so view range zooms out and grows to fit the target, which becomes the new view range.
+    assertThat(myViewRange.getMin()).isWithin(DELTA).of(100);
+    assertThat(myViewRange.getMax()).isWithin(DELTA).of(200);
 
     // View range initially:      #####
     //         target range: ###############
@@ -577,23 +595,5 @@ public class ProfilerTimelineTest {
 
   private static long secToNanos(long sec) {
     return TimeUnit.SECONDS.toNanos(sec);
-  }
-
-  @Test
-  public void jumpToLargerTarget() {
-    // Give time to make data range non-empty, streaming will update the data range.
-    myTimer.tick(TimeUnit.MICROSECONDS.toNanos(300));
-    // View range initially: #####
-    //         target range:      ##########
-    //     View range after:      ##########
-    myViewRange.set(50, 100);
-    Range targetRange = new Range(100, 200);
-
-    myTimeline.adjustRangeCloseToMiddleView(targetRange);
-    myTimer.tick(TimeUnit.SECONDS.toNanos(10)); // Give plenty of time to animate.
-    assertThat(myTimeline.isStreaming()).isFalse();
-    // target range is larger than view range, so view range zooms out and grows to fit the target, which becomes the new view range.
-    assertThat(myViewRange.getMin()).isWithin(DELTA).of(100);
-    assertThat(myViewRange.getMax()).isWithin(DELTA).of(200);
   }
 }
