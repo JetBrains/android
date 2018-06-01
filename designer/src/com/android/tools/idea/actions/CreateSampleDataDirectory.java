@@ -41,7 +41,7 @@ public class CreateSampleDataDirectory extends AnAction {
   @SuppressWarnings("UnusedDeclaration")
   public CreateSampleDataDirectory() {
     super(AndroidBundle.message("new.sampledata.dir.action.title"), AndroidBundle.message("new.sampledata.dir.action.description"),
-          PlatformIcons.DIRECTORY_CLOSED_ICON);
+          PlatformIcons.FOLDER_ICON);
   }
 
   @Nullable

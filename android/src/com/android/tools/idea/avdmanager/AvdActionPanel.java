@@ -54,7 +54,7 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
   @NotNull private final AvdInfo myAvdInfo;
   private final AvdRefreshProvider myRefreshProvider;
   private final JBPopupMenu myOverflowMenu = new JBPopupMenu();
-  private final FocusableHyperlinkLabel myOverflowMenuButton = new FocusableHyperlinkLabel("", AllIcons.ToolbarDecorator.Mac.MoveDown);
+  private final FocusableHyperlinkLabel myOverflowMenuButton = new FocusableHyperlinkLabel("", AllIcons.Actions.MoveDown);
   private final Border myMargins = JBUI.Borders.empty(5, 3, 5, 3);
 
   public List<FocusableHyperlinkLabel> myVisibleComponents = Lists.newArrayList();

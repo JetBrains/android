@@ -35,7 +35,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.options.BaseConfigurable;
+import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
@@ -94,7 +94,7 @@ import static com.intellij.util.ui.UIUtil.getTextFieldBackground;
 /**
  * Allows the user set global Android SDK and JDK locations that are used for Gradle-based Android projects.
  */
-public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navigator {
+public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   @NonNls private static final String SDKS_PLACE = "sdks.place";
   @NonNls public static final String IDE_SDKS_LOCATION_VIEW = "IdeSdksView";
 
@@ -104,7 +104,7 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
 
   private static final Logger LOG = Logger.getInstance(IdeSdksConfigurable.class);
 
-  @Nullable private final BaseConfigurable myHost;
+  @Nullable private final Configurable myHost;
   @Nullable private final Project myProject;
 
   @NotNull private final BiMap<String, Component> myComponentsById = HashBiMap.create();
@@ -131,7 +131,7 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
 
   private String mySelectedComponentId;
 
-  public IdeSdksConfigurable(@Nullable BaseConfigurable host, @Nullable Project project) {
+  public IdeSdksConfigurable(@Nullable Configurable host, @Nullable Project project) {
     myHost = host;
     myProject = project;
     myWholePanel.setPreferredSize(JBUI.size(700, 500));
@@ -419,7 +419,7 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
   private static FileChooserDescriptor createSingleFolderDescriptor(@NotNull String title, @NotNull Function<File, Void> validation) {
     FileChooserDescriptor descriptor = new FileChooserDescriptor(false, true, false, false, false, false) {
       @Override
-      public void validateSelectedFiles(VirtualFile[] files) throws Exception {
+      public void validateSelectedFiles(VirtualFile[] files) {
         for (VirtualFile virtualFile : files) {
           File file = virtualToIoFile(virtualFile);
           validation.fun(file);

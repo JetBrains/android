@@ -92,7 +92,7 @@ public class AndroidImportProjectAction extends AnAction {
   @Override
   public void update(@NotNull AnActionEvent e) {
     if (NewWelcomeScreen.isNewWelcomeScreen(e)) {
-      e.getPresentation().setIcon(AllIcons.Welcome.ImportProject);
+      e.getPresentation().setIcon(AllIcons.ToolbarDecorator.Import);
     }
   }
 

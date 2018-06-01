@@ -16,14 +16,14 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
-import icons.StudioIcons;
+import com.intellij.icons.AllIcons;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 
 public class EditAvdAction extends AvdUiAction {
   public EditAvdAction(AvdInfoProvider avdInfoProvider) {
-    this(avdInfoProvider, "Edit", "Edit this AVD", StudioIcons.Avd.EDIT);
+    this(avdInfoProvider, "Edit", "Edit this AVD", AllIcons.Actions.Edit);
   }
 
   protected EditAvdAction(AvdInfoProvider avdInfoProvider, String text, String description, Icon icon) {

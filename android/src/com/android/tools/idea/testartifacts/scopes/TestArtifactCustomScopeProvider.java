@@ -26,6 +26,7 @@ import com.intellij.psi.search.scope.packageSet.CustomScopesProviderEx;
 import com.intellij.psi.search.scope.packageSet.NamedScope;
 import com.intellij.psi.search.scope.packageSet.NamedScopesHolder;
 import com.intellij.ui.Colored;
+import icons.AndroidIcons;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -66,7 +67,7 @@ public class TestArtifactCustomScopeProvider extends CustomScopesProviderEx {
   public static class AndroidTestsScope extends NamedScope {
     public static final String NAME = AndroidBundle.message("android.test.run.configuration.type.name");
     public AndroidTestsScope() {
-      super(NAME, new AbstractPackageSet("test:*..*") {
+      super(NAME, AndroidIcons.AndroidTestsScope, new AbstractPackageSet("test:*..*") {
         @Override
         public boolean contains(@Nullable VirtualFile file, @NotNull NamedScopesHolder holder) {
           return contains(file, holder.getProject(), holder);
@@ -87,7 +88,7 @@ public class TestArtifactCustomScopeProvider extends CustomScopesProviderEx {
   public static class UnitTestsScope extends NamedScope {
     public static final String NAME = "Local Unit Tests";
     public UnitTestsScope() {
-      super(NAME, new AbstractPackageSet("test:*..*") {
+      super(NAME, AndroidIcons.AndroidTestsScope, new AbstractPackageSet("test:*..*") {
         @Override
         public boolean contains(@Nullable VirtualFile file, @NotNull NamedScopesHolder holder) {
           return contains(file, holder.getProject(), holder);

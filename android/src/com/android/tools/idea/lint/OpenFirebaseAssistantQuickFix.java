@@ -24,11 +24,9 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.psi.PsiElement;
-import com.intellij.util.Consumer;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.android.util.AndroidBundle;
@@ -37,16 +35,19 @@ import org.jetbrains.annotations.NotNull;
 public class OpenFirebaseAssistantQuickFix implements AndroidLintQuickFix {
   @Override
   public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
-    DataManager.getInstance().getDataContextFromFocus().doWhenDone((Consumer<DataContext>)dataContext -> {
-      AnAction openFirebaseAssistant = ActionManager.getInstance().getAction("DeveloperServices.Firebase");
-      if (openFirebaseAssistant == null) {
-        ApplicationManager.getApplication().invokeLater(this::reportFirebaseNotAvailable);
-        return;
-      }
-      AnActionEvent openFirebaseAssistantEvent = AnActionEvent.createFromAnAction(openFirebaseAssistant, null, "Android Lint QuickFix",
-                                                                                  dataContext);
-      openFirebaseAssistant.actionPerformed(openFirebaseAssistantEvent);
-    });
+    DataManager.getInstance()
+               .getDataContextFromFocusAsync()
+               .onSuccess(dataContext -> {
+                 AnAction openFirebaseAssistant = ActionManager.getInstance().getAction("DeveloperServices.Firebase");
+                 if (openFirebaseAssistant == null) {
+                   ApplicationManager.getApplication().invokeLater(this::reportFirebaseNotAvailable);
+                   return;
+                 }
+                 AnActionEvent openFirebaseAssistantEvent =
+                   AnActionEvent.createFromAnAction(openFirebaseAssistant, null, "Android Lint QuickFix",
+                                                    dataContext);
+                 openFirebaseAssistant.actionPerformed(openFirebaseAssistantEvent);
+               });
   }
 
   private void reportFirebaseNotAvailable() {

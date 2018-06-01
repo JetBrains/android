@@ -3422,7 +3422,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
     VirtualFile file2 = myFixture.copyFileToProject(VALUES_WITH_DUPES, "res/values-en/values_with_dupes.xml");
-    ExecutorService executorService = new SequentialTaskExecutor("", PooledThreadExecutor.INSTANCE);
+    ExecutorService executorService = SequentialTaskExecutor.createSequentialApplicationPoolExecutor(getTestName(false));
     Future<ResourceFolderRepository> loadJob = executorService.submit(() -> createRepository());
     final ResourceFolderRepository resources = loadJob.get();
     assertNotNull(resources);
