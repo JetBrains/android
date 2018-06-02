@@ -45,6 +45,7 @@ final class TabUiUtils {
   // Padding to be aligned with the tab title on the left.
   public static final int HORIZONTAL_PADDING = 15;
 
+  // TODO(b/109661512): Move vgap scale into TabularLayout
   public static final int TAB_SECTION_VGAP = JBUI.scale(5);
   public static final int PAGE_VGAP = JBUI.scale(28);
   public static final int SECTION_VGAP = JBUI.scale(10);
