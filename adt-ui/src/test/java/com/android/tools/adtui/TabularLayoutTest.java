@@ -32,6 +32,22 @@ public final class TabularLayoutTest {
   }
 
   @Test
+  public void layoutThrowsExceptionIfComponentAddedWithoutConstraint() {
+    final JPanel panel = new JPanel(new TabularLayout("*"));
+    final JPanel row1 = new JPanel();
+    final JPanel row2 = new JPanel();
+
+    panel.add(row1, new TabularLayout.Constraint(0, 0));
+    try {
+      panel.add(row2);
+      fail();
+    }
+    catch (IllegalArgumentException ignored) {
+    }
+  }
+
+
+  @Test
   public void fitPreferredWidthUsesComponentPrefferedSizeNotMinimumnSize() {
     final JPanel panel = new JPanel(new TabularLayout("Fit"));
 
