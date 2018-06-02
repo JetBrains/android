@@ -17,6 +17,7 @@ package com.android.tools.adtui;
 
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.AspectObserver;
+import com.intellij.ide.ui.UISettings;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -93,6 +94,9 @@ public abstract class AnimatedComponent extends JComponent {
 
     mLastRenderTime = System.nanoTime();
     Graphics2D g2d = (Graphics2D)g.create();
+    // Set up anti-aliasing for all animated components, so any subclass can call gl.drawString
+    // directly and text will look good cross-platform.
+    UISettings.setupAntialiasing(g2d);
     draw(g2d, getSize());
     mDrawCount++;
 
