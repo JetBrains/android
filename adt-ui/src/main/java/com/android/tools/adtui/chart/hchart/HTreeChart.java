@@ -21,6 +21,7 @@ import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
+import com.intellij.ide.ui.UISettings;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -171,8 +172,6 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
       myDataUpdated = false;
     }
     g.setFont(getFont());
-    g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
     if (myRoot == null || myRoot.getChildCount() == 0) {
       g.drawString(NO_HTREE, dim.width / 2 - mDefaultFontMetrics.stringWidth(NO_HTREE),
@@ -196,18 +195,17 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
   }
 
   private void redrawToCanvas(@NotNull Dimension dim) {
-    final Graphics2D g;
-    if (myCanvas != null && ImageUtil.getUserWidth(myCanvas) >= dim.width && ImageUtil.getUserHeight(myCanvas) >= dim.height) {
-      g = (Graphics2D)myCanvas.getGraphics();
-      g.setColor(getBackground());
-      g.fillRect(0, 0, dim.width, dim.height);
-    } else {
-      myCanvas = UIUtil.createImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB);
-      g = (Graphics2D)myCanvas.getGraphics();
+    if (myCanvas == null || (ImageUtil.getUserWidth(myCanvas) < dim.width || ImageUtil.getUserHeight(myCanvas) < dim.height)) {
+      // Note: We intentionally create an RGB image, not an ARGB image, because this allows nodes
+      // to render their text clearly (ARGB prevents LCD rendering from working).
+      myCanvas = UIUtil.createImage(dim.width, dim.height, BufferedImage.TYPE_INT_RGB);
     }
+    final Graphics2D g = (Graphics2D)myCanvas.getGraphics();
+    g.setColor(getBackground());
+    g.fillRect(0, 0, dim.width, dim.height);
+
+    UISettings.setupAntialiasing(g);
     g.setFont(getFont());
-    g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
     myDrawnNodes.clear();
     myDrawnNodes.addAll(myNodes);
