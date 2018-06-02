@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project;
+package com.android.tools.idea.flags;
 
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.testFramework.IdeaTestCase;
 import org.mockito.Mock;
@@ -22,22 +23,22 @@ import org.mockito.Mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
- * Tests for {@link GradleExperimentalSettingsConfigurable}.
+ * Tests for {@link ExperimentalSettingsConfigurable}.
  */
-public class GradleExperimentalSettingsConfigurableTest extends IdeaTestCase {
+public class ExperimentalSettingsConfigurableTest extends IdeaTestCase {
   @Mock private GradleExperimentalSettings mySettings;
 
-  private GradleExperimentalSettingsConfigurable myConfigurable;
+  private ExperimentalSettingsConfigurable myConfigurable;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
 
-    myConfigurable = new GradleExperimentalSettingsConfigurable(mySettings);
+    myConfigurable = new ExperimentalSettingsConfigurable(mySettings);
   }
 
-  public void testIsModified() throws Exception {
+  public void testIsModified() {
     myConfigurable.setMaxModuleCountForSourceGen(6);
     mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN = 8;
     assertTrue(myConfigurable.isModified());
