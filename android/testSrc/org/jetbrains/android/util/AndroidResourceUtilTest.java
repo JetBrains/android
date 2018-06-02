@@ -288,9 +288,9 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
     assertThat(file.getName()).isEqualTo("nav.xml");
     assertThat(file.getText()).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                                          "<navigation xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                                         "    xmlns:app=\"http://schemas.android.com/apk/res-auto\" android:id=\"@+id/nav\"\">\n" +
+                                         "    xmlns:app=\"http://schemas.android.com/apk/res-auto\" android:id=\"@+id/nav\">\n" +
                                          "\n" +
-                                         "    </navigation>");
+                                         "</navigation>");
   }
 
   @NotNull
