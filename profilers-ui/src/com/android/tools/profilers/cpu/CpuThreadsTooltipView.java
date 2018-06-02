@@ -41,11 +41,13 @@ public class CpuThreadsTooltipView extends ProfilerTooltipView {
     super(view.getTimeline());
     myTimeline = view.getTimeline();
     myTooltip = tooltip;
-    myContent = new JPanel();
+    // TODO(b/109661512): Move vgap scale into TabularLayout
+    myContent = new JPanel(new TabularLayout("*").setVGap(JBUI.scale(8)));
     myLabel = createTooltipLabel();
     myState = createTooltipLabel();
     myDuration = createTooltipLabel();
-    myUnavailableDetails = new JPanel(new TabularLayout("*", "Fit,Fit"));
+    // TODO(b/109661512): Move vgap scale into TabularLayout
+    myUnavailableDetails = new JPanel(new TabularLayout("*").setVGap(JBUI.scale(1)));
     tooltip.addDependency(this).onChange(CpuThreadsTooltip.Aspect.THREAD_STATE, this::stateChanged);
   }
 
@@ -55,28 +57,33 @@ public class CpuThreadsTooltipView extends ProfilerTooltipView {
     myTooltip.removeDependencies(this);
   }
 
+  private void addRow(JPanel parent, JComponent c) {
+    int nextRow = parent.getComponentCount();
+    parent.add(c, new TabularLayout.Constraint(nextRow, 0));
+  }
+
   private void stateChanged() {
     Range range = myTimeline.getTooltipRange();
     myContent.removeAll();
     if (range.isEmpty()) {
-      myContent.add(myUnavailableDetails, new TabularLayout.Constraint(0, 0));
+      addRow(myContent, myUnavailableDetails);
       return;
     }
     String title = myTooltip.getThreadName() != null ? myTooltip.getThreadName() : "CPU";
     myLabel.setText(String.format("Thread: %s", title));
-    myContent.add(myLabel, new TabularLayout.Constraint(0, 0));
+    addRow(myContent, myLabel);
 
     if (myTooltip.getThreadState() != null) {
       myState.setText(threadStateToString(myTooltip.getThreadState()));
-      myContent.add(myState, new TabularLayout.Constraint(2, 0));
+      addRow(myContent, myState);
 
       if (myTooltip.getDurationUs() > 0) {
         myDuration.setText(TimeFormatter.getSingleUnitDurationString(myTooltip.getDurationUs()));
-        myContent.add(myDuration, new TabularLayout.Constraint(4, 0));
+        addRow(myContent, myDuration);
       }
 
       if (!threadStateIsCaptured(myTooltip.getThreadState())) {
-        myContent.add(myUnavailableDetails, new TabularLayout.Constraint(5, 0));
+        addRow(myContent, myUnavailableDetails);
       }
     }
   }
@@ -84,15 +91,15 @@ public class CpuThreadsTooltipView extends ProfilerTooltipView {
   @NotNull
   @Override
   protected JComponent createTooltip() {
-    myContent.setLayout(new TabularLayout("*", "Fit-,8px,Fit-,8px,Fit"));
     JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
-    separator.setBorder(JBUI.Borders.empty(8, 0));
-    myUnavailableDetails.add(separator, new TabularLayout.Constraint(0, 0));
+    //TODO (b/77491599): Remove workaround after tabular layout no longer defaults to min size:
+    separator.setMinimumSize(separator.getPreferredSize());
+    addRow(myUnavailableDetails, separator);
     JLabel unavailableLabel = new JLabel("Details Unavailable");
     unavailableLabel.setFont(TOOLTIP_BODY_FONT);
     unavailableLabel.setForeground(ProfilerColors.TOOLTIP_LOW_CONTRAST);
-    myUnavailableDetails.add(unavailableLabel, new TabularLayout.Constraint(1, 0));
-    myContent.add(myUnavailableDetails, new TabularLayout.Constraint(0, 0));
+    addRow(myUnavailableDetails, unavailableLabel);
+    addRow(myContent, myUnavailableDetails);
     return myContent;
   }
 
