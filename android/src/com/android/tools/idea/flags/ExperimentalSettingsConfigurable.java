@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project;
+package com.android.tools.idea.flags;
 
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
@@ -27,23 +28,25 @@ import org.jetbrains.annotations.TestOnly;
 import javax.swing.*;
 import javax.swing.text.NumberFormatter;
 
-public class GradleExperimentalSettingsConfigurable implements SearchableConfigurable, Configurable.NoScroll {
+public class ExperimentalSettingsConfigurable implements SearchableConfigurable, Configurable.NoScroll {
   @NotNull private final GradleExperimentalSettings mySettings;
 
   private JPanel myPanel;
   private JSpinner myModuleNumberSpinner;
   private JCheckBox mySkipSourceGenOnSyncCheckbox;
   private JCheckBox myUseL2DependenciesCheckBox;
+  private JCheckBox myEnableNavEditorCheckbox;
 
-  public GradleExperimentalSettingsConfigurable() {
+  public ExperimentalSettingsConfigurable() {
     this(GradleExperimentalSettings.getInstance());
   }
 
   @VisibleForTesting
-  GradleExperimentalSettingsConfigurable(@NotNull GradleExperimentalSettings settings) {
+  ExperimentalSettingsConfigurable(@NotNull GradleExperimentalSettings settings) {
     mySettings = settings;
     // TODO make visible once Gradle Sync switches to L2 dependencies
     myUseL2DependenciesCheckBox.setVisible(false);
+    reset();
   }
 
   @Override
@@ -79,7 +82,8 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
   @Override
   public boolean isModified() {
     if (mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC != isSkipSourceGenOnSync() ||
-        mySettings.USE_L2_DEPENDENCIES_ON_SYNC != isUseL2DependenciesInSync()) {
+        mySettings.USE_L2_DEPENDENCIES_ON_SYNC != isUseL2DependenciesInSync() ||
+        StudioFlags.ENABLE_NAV_EDITOR.get() != enableNavEditor()) {
       return true;
     }
     Integer value = getMaxModuleCountForSourceGen();
@@ -95,6 +99,8 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
     if (value != null) {
       mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN = value;
     }
+
+    StudioFlags.ENABLE_NAV_EDITOR.override(enableNavEditor());
   }
 
   @VisibleForTesting
@@ -129,11 +135,16 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
     myUseL2DependenciesCheckBox.setSelected(value);
   }
 
+  private boolean enableNavEditor() {
+    return myEnableNavEditorCheckbox.isSelected();
+  }
+
   @Override
   public void reset() {
     mySkipSourceGenOnSyncCheckbox.setSelected(mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC);
     myModuleNumberSpinner.setValue(mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN);
     myUseL2DependenciesCheckBox.setSelected(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
+    myEnableNavEditorCheckbox.setSelected(StudioFlags.ENABLE_NAV_EDITOR.get());
   }
 
   private void createUIComponents() {
