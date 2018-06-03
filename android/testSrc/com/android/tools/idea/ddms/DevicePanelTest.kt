@@ -95,6 +95,12 @@ internal class DevicePanelTest {
     assertSame(device, myDeviceComboBox.selectedItem)
   }
 
+  @Test
+  fun updateProcessComboBoxDoesntThrowNullPointerExceptionAfterDispose() {
+    Disposer.dispose(myPanel)
+    myPanel.deviceChangedImpl(mockDevice(), IDevice.CHANGE_CLIENT_LIST)
+  }
+
   private fun mockDevice(): IDevice {
     val device = Mockito.mock(IDevice::class.java)
 

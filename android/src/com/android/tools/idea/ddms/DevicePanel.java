@@ -254,15 +254,19 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
 
   @Override
   public void deviceChanged(@NotNull final IDevice device, final int changeMask) {
-    UIUtil.invokeLaterIfNeeded(() -> {
-      if ((changeMask & IDevice.CHANGE_CLIENT_LIST) != 0) {
-        updateProcessComboBox();
-      }
-      else if ((changeMask & IDevice.CHANGE_STATE) != 0) {
-        updateDeviceCombo();
-      }
-      myDeviceContext.fireDeviceChanged(device, changeMask);
-    });
+    UIUtil.invokeLaterIfNeeded(() -> deviceChangedImpl(device, changeMask));
+  }
+
+  @VisibleForTesting
+  void deviceChangedImpl(@NotNull IDevice device, int changeMask) {
+    if ((changeMask & IDevice.CHANGE_CLIENT_LIST) != 0) {
+      updateProcessComboBox();
+    }
+    else if ((changeMask & IDevice.CHANGE_STATE) != 0) {
+      updateDeviceCombo();
+    }
+
+    myDeviceContext.fireDeviceChanged(device, changeMask);
   }
 
   @Override
@@ -329,6 +333,10 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
   }
 
   private void updateProcessComboBox() {
+    if (myDeviceCombo == null) {
+      return;
+    }
+
     myIgnoringActionEvents = true;
 
     IDevice device = (IDevice)myDeviceCombo.getSelectedItem();
