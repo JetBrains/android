@@ -293,9 +293,9 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
     myDeviceCombo.setSerialNumbersVisible(DeviceRenderer.shouldShowSerialNumbers(devices));
 
     Optional<IDevice> optionalDevice = IntStream.range(0, myDeviceCombo.getItemCount())
-      .mapToObj(i -> myDeviceCombo.getItemAt(i))
-      .filter(device -> equals(device, selectedDevice))
-      .findFirst();
+                                                .mapToObj(i -> myDeviceCombo.getItemAt(i))
+                                                .filter(device -> equals(device, selectedDevice))
+                                                .findFirst();
 
     if (optionalDevice.isPresent()) {
       IDevice device = optionalDevice.get();
