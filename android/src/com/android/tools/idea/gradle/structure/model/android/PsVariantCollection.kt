@@ -19,7 +19,7 @@ import com.android.ide.common.gradle.model.IdeVariant
 
 internal class PsVariantCollection(parent: PsAndroidModule) : PsCollectionBase<PsVariant, String, PsAndroidModule>(parent) {
   override fun getKeys(from: PsAndroidModule): Set<String> =
-    from.gradleModel.androidProject.variantNames.toSet()
+    from.gradleModel.androidProject.variants.map { it.name }.toSet()
 
   override fun create(key: String): PsVariant = PsVariant(parent, key)
 
