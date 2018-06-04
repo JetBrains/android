@@ -647,6 +647,17 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
         Collectors.toList());
   }
 
+  @VisibleForTesting
+  public boolean isApplied(@NotNull GradleDslElement element) {
+    for (ElementList.ElementItem item : myProperties.myElements) {
+      if (item.myElement == element) {
+        return item.myElementState == APPLIED;
+      }
+    }
+    // The element must be found.
+    throw new IllegalStateException("Element not found in parent");
+  }
+
   /**
    * Class to deal with retrieving the correct property for a given context. It manages whether
    * or not variable types should be returned along with coordinating a number of properties
