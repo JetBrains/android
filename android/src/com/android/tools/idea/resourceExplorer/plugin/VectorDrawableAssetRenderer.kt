@@ -38,10 +38,15 @@ class VectorDrawableAssetRenderer : DesignAssetRenderer {
   private val documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder()
 
   override fun isFileSupported(file: VirtualFile): Boolean {
+    if (!"xml".equals(file.extension, true)
+        || file.length == 0L) {
+      return false
+    }
     return try {
       val document = documentBuilder.parse(file.inputStream)
       document.documentElement.nodeName == SdkConstants.TAG_VECTOR
-    } catch (ex: Exception) {
+    }
+    catch (ex: Exception) {
       false
     }
   }
@@ -62,6 +67,6 @@ class VectorDrawableAssetRenderer : DesignAssetRenderer {
 
     }
     return drawableRenderer?.renderDrawable(String(file.contentsToByteArray()), dimension)
-        ?: return Futures.immediateFuture(null)
+           ?: return Futures.immediateFuture(null)
   }
 }
