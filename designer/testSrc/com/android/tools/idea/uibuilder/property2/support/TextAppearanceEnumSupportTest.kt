@@ -53,7 +53,7 @@ class TextAppearanceEnumSupportTest: AndroidTestCase() {
   fun testTextViewTextAppearanceWithAppCompat() {
     // setup
     myFixture.addFileToProject("res/values/appcompat_styles.xml", APPCOMPAT_TEXT_APPEARANCES)
-    val util = SupportTestUtil(testRootDisposable, myFacet, myFixture, TEXT_VIEW)
+    val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW)
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE)
     EnumValueUtil.patchLibraryNameOfAllAppCompatStyles(property)
 
@@ -90,7 +90,7 @@ class TextAppearanceEnumSupportTest: AndroidTestCase() {
 
   fun testTextViewTextAppearanceWithoutAppCompat() {
     // setup
-    val util = SupportTestUtil(testRootDisposable, myFacet, myFixture, TEXT_VIEW)
+    val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW)
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE)
 
     // test

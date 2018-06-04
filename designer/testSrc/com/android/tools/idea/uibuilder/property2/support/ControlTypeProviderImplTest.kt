@@ -31,7 +31,7 @@ class ControlTypeProviderImplTest: AndroidTestCase() {
 
   @Test
   fun testFlagEditorForFlagProperties() {
-    val util = SupportTestUtil(testRootDisposable, myFacet, myFixture, TEXT_VIEW)
+    val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW)
     val provide = NeleControlTypeProvider()
     val definition = AttributeDefinition(name, null, null, listOf(AttributeFormat.Flags))
     val property = util.makeFlagsProperty(ANDROID_URI, definition)
@@ -41,7 +41,7 @@ class ControlTypeProviderImplTest: AndroidTestCase() {
 
   @Test
   fun testComboBoxForEnumSupport() {
-    val util = SupportTestUtil(testRootDisposable, myFacet, myFixture, TEXT_VIEW)
+    val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW)
     val provide = NeleControlTypeProvider()
     val property = util.makeProperty(ANDROID_URI, ATTR_LAYOUT_HEIGHT, NelePropertyType.BOOLEAN)
     val enumSupport = mock(EnumSupport::class.java)
@@ -50,7 +50,7 @@ class ControlTypeProviderImplTest: AndroidTestCase() {
 
   @Test
   fun testBooleanForBooleanTypes() {
-    val util = SupportTestUtil(testRootDisposable, myFacet, myFixture, TEXT_VIEW)
+    val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW)
     val provide = NeleControlTypeProvider()
     val property = util.makeProperty(ANDROID_URI, ATTR_CLICKABLE, NelePropertyType.BOOLEAN)
     assertThat(provide(property, null)).isEqualTo(ControlType.THREE_STATE_BOOLEAN)
@@ -58,7 +58,7 @@ class ControlTypeProviderImplTest: AndroidTestCase() {
 
   @Test
   fun testTextEditorForEverythingElse() {
-    val util = SupportTestUtil(testRootDisposable, myFacet, myFixture, TEXT_VIEW)
+    val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW)
     val provide = NeleControlTypeProvider()
     val property = util.makeProperty(ANDROID_URI, ATTR_PADDING_BOTTOM, NelePropertyType.DIMENSION)
     assertThat(provide(property, null)).isEqualTo(ControlType.TEXT_EDITOR)
