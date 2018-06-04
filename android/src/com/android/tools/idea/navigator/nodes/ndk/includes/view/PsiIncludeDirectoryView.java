@@ -75,9 +75,7 @@ public class PsiIncludeDirectoryView extends PsiDirectoryNode {
       if (element instanceof PsiDirectory) {
         PsiDirectory concrete = (PsiDirectory)element;
         PsiDirectoryNode node = new PsiIncludeDirectoryView(getProject(), myVirtualFileExcludes, true, concrete, getSettings());
-        if (!node.getChildren().isEmpty()) {
-          result.add(node);
-        }
+        result.add(node);
         return true;
       }
       if (element instanceof PsiFile) {
