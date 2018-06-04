@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.ide.common.util.AssetUtil;
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
 import com.google.common.util.concurrent.Futures;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -33,7 +33,6 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assertWithMessage;
 import static org.jetbrains.android.AndroidTestBase.getTestDataPath;
 import static org.junit.Assert.fail;
 
@@ -77,32 +76,29 @@ public final class BitmapGeneratorTests {
 
       String testDataDir = getTestDataPath();
       String path = "images" + File.separator + folderName + File.separator + relativePath;
-      try (InputStream is = new FileInputStream(new File(testDataDir, path))) {
+      File goldenFile = new File(testDataDir, path);
+      try (InputStream is = new FileInputStream(goldenFile)) {
         if (generatedIcon instanceof GeneratedImageIcon) {
           BufferedImage image = ((GeneratedImageIcon)generatedIcon).getImage();
-
-          if (is == null) {
-            String filePath = folderName + File.separator + relativePath;
-            String generatedFilePath =generateGoldenImage(getTestDataDir(), image, path, filePath);
-            errors.add("File did not exist, created " + generatedFilePath);
-          }
-          else {
-            BufferedImage goldenImage = ImageIO.read(is);
-            assertImageSimilar(relativePath.toString(), goldenImage, image, 5.0f);
-          }
+          BufferedImage goldenImage = ImageIO.read(is);
+          assertImageSimilar(relativePath.toString(), goldenImage, image, 5.0f);
           fileCount++;
         }
         else if (generatedIcon instanceof GeneratedXmlResource) {
           String text = ((GeneratedXmlResource)generatedIcon).getXmlText();
-          if (is == null) {
-            String filePath = folderName + File.separator + relativePath;
-            String generatedFilePath = generateGoldenText(getTestDataDir(), text, path, filePath);
-            errors.add("File did not exist, created " + generatedFilePath);
-          }
-          else {
-            String goldenText = CharStreams.toString(new InputStreamReader(is, Charsets.UTF_8));
-            assertThat(text.replace("\r\n", "\n")).isEqualTo(goldenText.replace("\r\n", "\n"));
-          }
+          String goldenText = CharStreams.toString(new InputStreamReader(is, Charsets.UTF_8));
+          assertThat(text.replace("\r\n", "\n")).isEqualTo(goldenText.replace("\r\n", "\n"));
+        }
+      } catch (FileNotFoundException e) {
+        if (generatedIcon instanceof GeneratedImageIcon) {
+          BufferedImage image = ((GeneratedImageIcon)generatedIcon).getImage();
+          generateGoldenImage(image, goldenFile);
+          errors.add("File did not exist, created " + goldenFile);
+        }
+        else if (generatedIcon instanceof GeneratedXmlResource) {
+          String text = ((GeneratedXmlResource)generatedIcon).getXmlText();
+          generateGoldenText(text, goldenFile);
+          errors.add("File did not exist, created " + goldenFile);
         }
       }
     }
@@ -114,7 +110,7 @@ public final class BitmapGeneratorTests {
   private static final GraphicGeneratorContext GRAPHIC_GENERATOR_CONTEXT = new GraphicGeneratorContext(0) {
     @Override
     @Nullable
-    public BufferedImage loadImageResource(@NonNull String path) {
+    public BufferedImage loadImageResource(@NotNull String path) {
       try {
         try (InputStream is = BitmapGeneratorTests.class.getResourceAsStream(path)) {
           return (is == null) ? null : ImageIO.read(is);
@@ -132,35 +128,18 @@ public final class BitmapGeneratorTests {
     return new File(getTestDataPath());
   }
 
-  private static String generateGoldenImage(File targetDir, BufferedImage goldenImage, String missingFilePath, String filePath)
-      throws IOException {
-    if (targetDir == null) {
-      fail("Did not find \"" + missingFilePath + "\".");
-    }
-    File fileName = new File(targetDir, filePath);
-    assertThat(fileName.exists()).isFalse();
-    if (!fileName.getParentFile().exists()) {
-      boolean mkdir = fileName.getParentFile().mkdirs();
-      assertWithMessage(fileName.getParent()).that(mkdir).isTrue();
-    }
-
-    ImageIO.write(goldenImage, "PNG", fileName);
-    return fileName.getPath();
+  private static void generateGoldenImage(@NotNull BufferedImage goldenImage, @NotNull File goldenFile) throws IOException {
+    assert !goldenFile.exists();
+    //noinspection ResultOfMethodCallIgnored
+    goldenFile.getParentFile().mkdirs();
+    ImageIO.write(goldenImage, "PNG", goldenFile);
   }
 
-  private static String generateGoldenText(File targetDir, String goldenText, String missingFilePath, String filePath) throws IOException {
-    if (targetDir == null) {
-      fail("Did not find \"" + missingFilePath + "\".");
-    }
-    File fileName = new File(targetDir, filePath);
-    assertThat(fileName.exists()).isFalse();
-    if (!fileName.getParentFile().exists()) {
-      boolean mkdir = fileName.getParentFile().mkdirs();
-      assertWithMessage(fileName.getParent()).that(mkdir).isTrue();
-    }
-
-    com.google.common.io.Files.write(goldenText, fileName, Charsets.UTF_8);
-    return fileName.getPath();
+  private static void generateGoldenText(@NotNull String goldenText, @NotNull File goldenFile) throws IOException {
+    assert !goldenFile.exists();
+    //noinspection ResultOfMethodCallIgnored
+    goldenFile.getParentFile().mkdirs();
+    com.google.common.io.Files.write(goldenText, goldenFile, Charsets.UTF_8);
   }
 
   @SuppressWarnings("SameParameterValue")

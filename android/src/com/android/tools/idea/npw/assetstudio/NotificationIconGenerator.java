@@ -83,7 +83,7 @@ public class NotificationIconGenerator extends IconGenerator {
       targetRectMdpi = new Rectangle(0, 5, 16, 16);
     }
 
-    float scaleFactor = getMdpiScaleFactor(options.density);
+    double scaleFactor = getMdpiScaleFactor(options.density);
     Rectangle imageRect = scaleRectangle(iconSizeMdpi, scaleFactor);
     Rectangle targetRect = scaleRectangle(targetRectMdpi, scaleFactor);
 

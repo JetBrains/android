@@ -28,6 +28,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleRectangle;
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleRectangleAroundCenter;
 
 /**
  * Generates icons for the action bar.
@@ -98,11 +99,10 @@ public class ActionBarIconGenerator extends IconGenerator {
       sourceImage = AssetStudioUtils.createDummyImage();
     }
     ActionBarOptions actionBarOptions = (ActionBarOptions)options;
-    Rectangle iconSizeMdpi = new Rectangle(0, 0, 32, 32);
-    Rectangle targetRectMdpi = actionBarOptions.sourceIsClipart
-        ? new Rectangle(0, 0, 32, 32)
-        : new Rectangle(4, 4, 24, 24);
-    final float scaleFactor = getMdpiScaleFactor(options.density);
+    // See https://developer.android.com/guide/practices/ui_guidelines/icon_design_action_bar
+    Rectangle iconSizeMdpi = new Rectangle(0, 0, 24, 24);
+    Rectangle targetRectMdpi = new Rectangle(0, 0, 24, 24);
+    double scaleFactor = getMdpiScaleFactor(options.density);
     Rectangle imageRect = scaleRectangle(iconSizeMdpi, scaleFactor);
     Rectangle targetRect = scaleRectangle(targetRectMdpi, scaleFactor);
     BufferedImage outImage = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);

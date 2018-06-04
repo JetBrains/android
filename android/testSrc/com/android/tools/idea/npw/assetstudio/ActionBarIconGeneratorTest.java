@@ -32,8 +32,11 @@ public class ActionBarIconGeneratorTest {
     options.theme = theme;
 
     ActionBarIconGenerator generator = new ActionBarIconGenerator(15);
-    BitmapGeneratorTests.checkGraphic(4, "actions", baseName, generator, options);
-    Disposer.dispose(generator);
+    try {
+      BitmapGeneratorTests.checkGraphic(5, "actions", baseName, generator, options);
+    } finally {
+      Disposer.dispose(generator);
+    }
   }
 
   @Test

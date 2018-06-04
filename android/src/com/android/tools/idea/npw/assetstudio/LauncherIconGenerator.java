@@ -645,8 +645,8 @@ public class LauncherIconGenerator extends IconGenerator {
         image = AssetUtil.trimmedImage(image);
         // For preview, scale image down so that it does not display relatively
         // too big compared to the other preview icons.
-        float scale = getMdpiScaleFactor(options.previewDensity);
-        return scaledPreviewImage(image, 0.25f * scale);
+        double scale = getMdpiScaleFactor(options.previewDensity);
+        return scaledPreviewImage(image, 0.25 * scale);
       }
 
       case NONE:
@@ -667,7 +667,7 @@ public class LauncherIconGenerator extends IconGenerator {
 
   /**
    * Generates a {@link BufferedImage} for either a "Legacy", "Round" or "Web" icon. The created
-   * image consists of both background and foregroud layer images merge together, then a shape
+   * image consists of both background and foreground layer images merge together, then a shape
    * (e.g. circle, square) mask is applied, and finally the image is scaled to the appropriate
    * size (48x48 legacy or 512x512px web).
    */
@@ -766,9 +766,9 @@ public class LauncherIconGenerator extends IconGenerator {
    * generating preview images.
    */
   @NotNull
-  private static BufferedImage scaledPreviewImage(@NotNull BufferedImage image, float scale) {
-    int width = Math.round(image.getWidth() * scale);
-    int height = Math.round(image.getHeight() * scale);
+  private static BufferedImage scaledPreviewImage(@NotNull BufferedImage image, double scale) {
+    int width = (int)Math.round(image.getWidth() * scale);
+    int height = (int)Math.round(image.getHeight() * scale);
     return scaledPreviewImage(image, width, height);
   }
 
@@ -793,7 +793,8 @@ public class LauncherIconGenerator extends IconGenerator {
 
   /** Generate a preview image with a Shape mask applied (e.g. Square, Squircle). */
   @NotNull
-  private static BufferedImage generateViewportPreviewImage(@NotNull GraphicGeneratorContext context, @NotNull LauncherIconOptions options) {
+  private static BufferedImage generateViewportPreviewImage(@NotNull GraphicGeneratorContext context,
+                                                            @NotNull LauncherIconOptions options) {
     Layers layers = generateIconLayers(context, options);
     BufferedImage result = mergeLayers(layers);
     BufferedImage mask = generateMaskLayer(context, options, options.previewShape);
@@ -1117,7 +1118,7 @@ public class LauncherIconGenerator extends IconGenerator {
   }
 
   private static void drawAdaptiveIconGrid(@NotNull LauncherIconOptions options, @NotNull Graphics2D out) {
-    float scaleFactor = getMdpiScaleFactor(options.density);
+    double scaleFactor = getMdpiScaleFactor(options.density);
 
     // 72x72
     int size = IMAGE_SIZE_VIEWPORT_DP.width;
@@ -1159,7 +1160,7 @@ public class LauncherIconGenerator extends IconGenerator {
   }
 
   private static void drawFullBleedIconGrid(@NotNull LauncherIconOptions options, @NotNull Graphics2D out) {
-    float scaleFactor = getMdpiScaleFactor(options.density);
+    double scaleFactor = getMdpiScaleFactor(options.density);
 
     // 108x108
     int size = IMAGE_SIZE_FULL_BLEED_DP.width;
@@ -1191,7 +1192,7 @@ public class LauncherIconGenerator extends IconGenerator {
   }
 
   private static void drawLegacyIconGrid(@NotNull LauncherIconOptions options, @NotNull Graphics2D out) {
-    float scaleFactor = getMdpiScaleFactor(options.density);
+    double scaleFactor = getMdpiScaleFactor(options.density);
 
     // 48x48
     int size = IMAGE_SIZE_LEGACY_DP.width;

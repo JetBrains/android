@@ -65,9 +65,9 @@ import java.awt.Graphics2D;
 public class PrimitiveShapesHelper {
     private static final int STROKE_WIDTH = 1;
     private final Graphics2D out;
-    private final float scaleFactor;
+    private final double scaleFactor;
 
-    public PrimitiveShapesHelper(Graphics2D out, float scaleFactor) {
+    public PrimitiveShapesHelper(Graphics2D out, double scaleFactor) {
         this.out = out;
         this.scaleFactor = scaleFactor;
     }
@@ -101,16 +101,16 @@ public class PrimitiveShapesHelper {
     }
 
     public int scale(int value) {
-        return Math.round(value * this.scaleFactor);
+        return (int)Math.round(value * this.scaleFactor);
     }
 
     public int scaleWidth(int x, int width) {
-        int scaled = Math.round(width * this.scaleFactor);
+        int scaled = (int)Math.round(width * this.scaleFactor);
         return scaled - STROKE_WIDTH;
     }
 
     public int scaleHeight(int y, int height) {
-        int scaled = Math.round(height * this.scaleFactor);
+        int scaled = (int)Math.round(height * this.scaleFactor);
         return scaled - STROKE_WIDTH;
     }
 

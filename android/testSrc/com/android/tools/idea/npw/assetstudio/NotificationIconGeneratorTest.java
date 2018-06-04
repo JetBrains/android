@@ -30,13 +30,16 @@ public class NotificationIconGeneratorTest {
     NotificationOptions options = new NotificationOptions();
 
     NotificationIconGenerator generator = new NotificationIconGenerator(minSdk);
-    BitmapGeneratorTests.checkGraphic(expectedCount, folderName, baseName, generator, options);
-    Disposer.dispose(generator);
+    try {
+      BitmapGeneratorTests.checkGraphic(expectedCount, folderName, baseName, generator, options);
+    } finally {
+      Disposer.dispose(generator);
+    }
   }
 
   @SuppressWarnings("SameParameterValue")
   private static void checkGraphic(String baseName) throws IOException {
-    checkGraphic(baseName, 1, "notification", 12);
+    checkGraphic(baseName, 1, "notification", 15);
   }
 
   @Test
@@ -46,11 +49,11 @@ public class NotificationIconGeneratorTest {
 
   @Test
   public void testNotification2() throws Exception {
-    checkGraphic("ic_stat_1", 9 /* minSdk */, "notification-v9+", 8 /* fileCount */);
+    checkGraphic("ic_stat_1", 9 /* minSdk */, "notification-v9+", 10 /* fileCount */);
   }
 
   @Test
   public void testNotification3() throws Exception {
-    checkGraphic("ic_stat_1", 11, "notification-v11+", 4);
+    checkGraphic("ic_stat_1", 11, "notification-v11+", 5);
   }
 }
