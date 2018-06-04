@@ -344,7 +344,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     });
     ProfilerAction zoomInAction =
       new ProfilerAction.Builder(ZOOM_IN).setContainerComponent(myStageComponent)
-                                           .setActionRunnable(() -> myZoomIn.doClick())
+                                           .setActionRunnable(() -> myZoomIn.doClick(0))
                                            .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, SHORTCUT_MODIFIER_MASK_NUMBER),
                                                           KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, SHORTCUT_MODIFIER_MASK_NUMBER),
                                                           KeyStroke.getKeyStroke(KeyEvent.VK_ADD, SHORTCUT_MODIFIER_MASK_NUMBER)).build();
