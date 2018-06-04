@@ -71,16 +71,6 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/libwebp.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module" module-name="intellij.platform.externalSystem.impl" />
     <orderEntry type="library" name="Gradle" level="project" />
     <orderEntry type="module" module-name="intellij.gradle.java" />
     <orderEntry type="module" module-name="intellij.android.layoutlib" />
@@ -89,7 +79,6 @@
     <orderEntry type="module" module-name="android.sdktools.binary-resources" />
     <orderEntry type="module" module-name="android.sdktools.analyzer" />
     <orderEntry type="module" module-name="android.sdktools.pixelprobe" />
-    <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module" module-name="intellij.android.observable" />
     <orderEntry type="module" module-name="intellij.gradle.toolingExtension.impl" />
     <orderEntry type="module" module-name="intellij.android.wizard" />
@@ -122,5 +111,6 @@
     <orderEntry type="module" module-name="android.sdktools.usb-devices" />
     <orderEntry type="module" module-name="intellij.android.android-adb" />
     <orderEntry type="module" module-name="intellij.android.apkanalyzer" />
+    <orderEntry type="library" name="Guava" level="project" />
   </component>
 </module>

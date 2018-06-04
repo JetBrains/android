@@ -21,7 +21,6 @@
     <orderEntry type="module" module-name="intellij.platform.externalSystem.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.observable" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.compiler" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.gradle.toolingExtension" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="Eclipse" level="project" />
     <orderEntry type="module" module-name="intellij.xml.psi.impl" scope="TEST" />
@@ -70,5 +69,6 @@
     <orderEntry type="module" module-name="intellij.android.apkanalyzer" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.android-adb" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="Guava" level="project" />
   </component>
 </module>
