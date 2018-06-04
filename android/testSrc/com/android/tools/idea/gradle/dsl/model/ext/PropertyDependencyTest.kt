@@ -22,8 +22,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*
 import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.PasswordType.PLAIN_TEXT
-import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.FAKE
-import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
@@ -618,5 +617,64 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
                equalTo("com.android.tools.build:gradle:${'$'}versions.android_gradle_plugin"))
     verifyPropertyModel(artModel.version(), STRING_TYPE, "3.1.0", STRING, FAKE, 1)
     verifyPropertyModel(artModel.version().resultModel, STRING_TYPE, "3.1.0", STRING, REGULAR, 0)
+  }
+
+  @Test
+  fun testSubProjectsAppliedDependencies() {
+    runApplyFileToChildrenTest("subprojects")
+  }
+
+  @Test
+  fun testAllProjectsAppliedDependencies() {
+    runApplyFileToChildrenTest("allprojects")
+  }
+
+  private fun runApplyFileToChildrenTest(function : String) {
+    val text = """
+               $function { project ->
+                 apply from: "versions.gradle"
+               }
+               """.trimIndent()
+    val appliedText = "ext.property = 'boo'"
+    val childText = """
+                    dependencies {
+                      compile "${'$'}{property}:${'$'}property:2.0"
+                    }
+                    """.trimIndent()
+    writeToNewProjectFile("versions.gradle", appliedText)
+    writeToBuildFile(text)
+    writeToSubModuleBuildFile(childText)
+    writeToSettingsFile("include ':${SUB_MODULE_NAME}'")
+
+
+    val buildModel = subModuleGradleBuildModel
+    val artModel = buildModel.dependencies().artifacts()[0]
+
+    verifyPropertyModel(artModel.completeModel(), STRING_TYPE, "boo:boo:2.0", STRING, REGULAR, 2)
+  }
+
+  @Test
+  fun testApplyFileWithVariables() {
+    val text = """
+               def namePart1 = 'super'
+               ext.namePart2 = 'awesome'
+               apply from: "${'$'}{namePart1}${'$'}{namePart2}.gradle"
+
+               dependencies {
+                 api("${'$'}group:${'$'}name:${'$'}version")
+               }
+               """.trimIndent()
+    val appliedText = """
+                      ext.group   = 'super'
+                      ext.name    = 'powers'
+                      ext.version = '1.0.0'
+                      """.trimIndent()
+    writeToNewProjectFile("superawesome.gradle", appliedText)
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    val artModel = buildModel.dependencies().artifacts()[0]
+
+    verifyPropertyModel(artModel.completeModel(), STRING_TYPE, "super:powers:1.0.0", STRING, DERIVED, 3)
   }
 }
