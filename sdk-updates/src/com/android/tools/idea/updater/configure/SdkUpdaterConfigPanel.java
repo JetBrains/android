@@ -205,7 +205,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
                                @Nullable Downloader downloader,
                                @Nullable SettingsController settings,
                                @NotNull SdkUpdaterConfigurable configurable) {
-    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+    UsageTracker.log(AndroidStudioEvent.newBuilder()
                                      .setCategory(EventCategory.SDK_MANAGER)
                                      .setKind(EventKind.SDK_MANAGER_LOADED));
 

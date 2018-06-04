@@ -122,7 +122,7 @@ public class IncludesViewNode extends ProjectViewNode<NativeIncludes> implements
       return getChildrenImpl();
     }
     finally {
-      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.CPP_HEADERS_VIEW_EVENT)
+      UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.CPP_HEADERS_VIEW_EVENT)
                                        .setCppHeadersViewEvent(
                                          CppHeadersViewEvent.newBuilder().setEventDurationMs(System.currentTimeMillis() - startTime)
                                            .setType(CppHeadersViewEvent.CppHeadersViewEventType.OPEN_TOP_INCLUDES_NODE)));

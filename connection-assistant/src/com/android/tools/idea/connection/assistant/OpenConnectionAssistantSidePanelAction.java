@@ -31,8 +31,7 @@ public class OpenConnectionAssistantSidePanelAction extends OpenAssistSidePanelA
   public void actionPerformed(AnActionEvent event) {
     super.actionPerformed(event);
 
-    UsageTracker.getInstance()
-      .log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.CONNECTION_ASSISTANT_EVENT)
+    UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.CONNECTION_ASSISTANT_EVENT)
              .setConnectionAssistantEvent(ConnectionAssistantEvent.newBuilder()
                                             .setType(ConnectionAssistantEvent.ConnectionAssistantEventType.OPEN)));
   }

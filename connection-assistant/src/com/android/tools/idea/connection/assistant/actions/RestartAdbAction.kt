@@ -38,8 +38,7 @@ class RestartAdbAction : AssistActionHandler {
     val adb = AndroidDebugBridge.getBridge() ?: return
     ApplicationManager.getApplication().executeOnPooledThread { adb.restart() }
 
-    UsageTracker.getInstance()
-        .log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.CONNECTION_ASSISTANT_EVENT)
+    UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.CONNECTION_ASSISTANT_EVENT)
             .setConnectionAssistantEvent(ConnectionAssistantEvent.newBuilder()
                 .setType(ConnectionAssistantEvent.ConnectionAssistantEventType.RESTART_ADB_CLICKED)))
   }

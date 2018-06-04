@@ -414,8 +414,7 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
       createNotification(AndroidBundle.message("android.ddms.actions.layoutinspector.dumpdisplay.notification.success"),
                          NotificationType.INFORMATION);
 
-      UsageTracker.getInstance()
-        .log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.LAYOUT_INSPECTOR_EVENT)
+      UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.LAYOUT_INSPECTOR_EVENT)
                .setLayoutInspectorEvent(LayoutInspectorEvent.newBuilder()
                                           .setType(LayoutInspectorEvent.LayoutInspectorEventType.DUMP_DISPLAYLIST)
                ));
@@ -452,8 +451,7 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
 
   @VisibleForTesting
   public void showSubView(@NotNull ViewNode node) {
-    UsageTracker.getInstance()
-      .log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.LAYOUT_INSPECTOR_EVENT)
+    UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.LAYOUT_INSPECTOR_EVENT)
              .setLayoutInspectorEvent(LayoutInspectorEvent.newBuilder()
                                         .setType(LayoutInspectorEvent.LayoutInspectorEventType.RENDER_SUB_VIEW)
              ));

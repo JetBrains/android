@@ -81,8 +81,7 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
     getDevices().thenAccept(
       {
         if (!myProject.isDisposed) {
-          UsageTracker.getInstance()
-            .log(
+          UsageTracker.log(
               AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.CONNECTION_ASSISTANT_EVENT)
                 .setConnectionAssistantEvent(
                   ConnectionAssistantEvent.newBuilder()

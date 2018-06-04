@@ -95,7 +95,7 @@ class ChooseAndAttachJavaSourcesTask implements Runnable {
              .setApkDebugProject(project);
         // @formatter:on
 
-        UsageTracker.getInstance().log(event);
+        UsageTracker.log(event);
       }
 
       ModifiableRootModel moduleModel = ModuleRootManager.getInstance(myModule).getModifiableModel();

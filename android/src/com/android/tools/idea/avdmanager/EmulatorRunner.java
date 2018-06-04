@@ -49,7 +49,7 @@ public class EmulatorRunner {
                             .setBuildApiLevelFull(avdInfo.getAndroidVersion().toString()));
     }
 
-    UsageTracker.getInstance().log(event);
+    UsageTracker.log(event);
   }
 
   public ProcessHandler start() throws ExecutionException {

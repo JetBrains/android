@@ -63,7 +63,7 @@ public class AndroidPlugin implements ApplicationComponent {
     // Move the "Sync Project with Gradle Files" toolbar button to a less prominent place.
     moveAction("Android.MainToolBarGradleGroup", IdeActions.GROUP_MAIN_TOOLBAR, "Android.MainToolBarActionGroup",
                new Constraints(Anchor.LAST, null));
-    UsageTracker.getInstance().setIdeBrand(AndroidStudioEvent.IdeBrand.INTELLIJ);
+    UsageTracker.setIdeBrand(AndroidStudioEvent.IdeBrand.INTELLIJ);
   }
 
   private static void setUpActionsUnderFlag() {

@@ -64,8 +64,7 @@ public class StatisticsViewer extends JPanel implements Disposable {
 
   private void hookUsageTracker() {
     // Use the setInstanceForTest API to temporary wrap the UsageTracker in our own usage tracker that logs to our console.
-    myOriginalUsageTracker = UsageTracker.getInstance();
-    UsageTracker.setInstanceForTest(new UsageTracker(myOriginalUsageTracker.getAnalyticsSettings(), myOriginalUsageTracker.getScheduler()) {
+    myOriginalUsageTracker = UsageTracker.setInstanceForTest(new UsageTracker(myOriginalUsageTracker.getAnalyticsSettings(), myOriginalUsageTracker.getScheduler()) {
       @Override
       public void logDetails(@NonNull ClientAnalytics.LogEvent.Builder logEvent) {
         myOriginalUsageTracker.logDetails(logEvent);
@@ -90,8 +89,6 @@ public class StatisticsViewer extends JPanel implements Disposable {
         myOriginalUsageTracker.close();
       }
     });
-    UsageTracker.getInstance().setVersion(myOriginalUsageTracker.getVersion());
-    UsageTracker.getInstance().setIdeBrand(myOriginalUsageTracker.getIdeBrand());
   }
 
   // Create a non-modal dialog with this panel so the user can interact with Android Studio while looking at metrics on another screen.

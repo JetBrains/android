@@ -51,7 +51,7 @@ public class AndroidDeepLinkLaunchTask implements LaunchTask {
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
     printer.stdout("Launching deeplink: " + myDeepLink + ".\n");
-    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+    UsageTracker.log(AndroidStudioEvent.newBuilder()
                                    .setCategory(EventCategory.APP_INDEXING)
                                    .setKind(EventKind.APP_INDEXING_DEEP_LINK_LAUNCHED));
     // Enable AppIndexing API log

@@ -294,6 +294,7 @@ public class LayoutTestUtilities {
 
   public static NlUsageTracker mockNlUsageTracker(@NotNull DesignSurface surface) {
     AnalyticsSettings settings = mock(AnalyticsSettings.class);
+    AnalyticsSettings.setInstanceForTest(settings);
     when(settings.hasOptedIn()).thenReturn(true);
 
     UsageTracker tracker = mock(UsageTracker.class);

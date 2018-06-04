@@ -177,7 +177,7 @@ public class ApkViewPanel implements TreeSelectionListener {
                               size > 2 && result.get(2) instanceof AndroidApplicationInfo ? ((AndroidApplicationInfo)result
                                 .get(2)).packageId : "unknown";
 
-                            UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                            UsageTracker.log(AndroidStudioEvent.newBuilder()
                                                              .setKind(AndroidStudioEvent.EventKind.APK_ANALYZER_STATS)
                                                              .setProjectId(AnonymizerUtil.anonymizeUtf8(applicationId))
                                                              .setRawProjectId(applicationId)

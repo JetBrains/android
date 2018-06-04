@@ -49,7 +49,7 @@ class LintIdeAnalytics(private val project: com.intellij.openapi.project.Project
       }.build()
       lintAction = action
     }
-    UsageTracker.getInstance().log(event)
+    UsageTracker.log(event)
   }
 
   /** Logs feedback from user on a lint run (either on-the-fly in the editor, or explicit full inspection run) */
@@ -89,7 +89,7 @@ class LintIdeAnalytics(private val project: com.intellij.openapi.project.Project
       }
     }
 
-    UsageTracker.getInstance().log(event)
+    UsageTracker.log(event)
   }
 
   private fun computePerformance(driver: LintDriver, singleFileAnalysis: Boolean): LintPerformance =

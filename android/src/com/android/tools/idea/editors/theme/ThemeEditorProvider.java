@@ -59,7 +59,7 @@ public class ThemeEditorProvider implements FileEditorProvider, DumbAware {
   @NotNull
   @Override
   public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
-    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+    UsageTracker.log(AndroidStudioEvent.newBuilder()
                                      .setCategory(EventCategory.THEME_EDITOR)
                                      .setKind(EventKind.THEME_EDITOR_OPEN));
     return new ThemeEditor(project, file);

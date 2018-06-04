@@ -88,6 +88,10 @@ public class AndroidLintTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    AnalyticsSettings analyticsSettings = new AnalyticsSettings();
+    analyticsSettings.setHasOptedIn(false);
+    AnalyticsSettings.setInstanceForTest(analyticsSettings);
+
     AndroidLintInspectionBase.invalidateInspectionShortName2IssueMap();
     AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(false);
     myFixture.allowTreeAccessForAllFiles();

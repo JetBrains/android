@@ -89,7 +89,7 @@ public abstract class SyncErrorHandler {
     if (gradleMissingSignature != null) {
       builder.setGradleMissingSignature(gradleMissingSignature);
     }
-    UsageTracker.getInstance().log(builder);
+    UsageTracker.log(builder);
   }
 
   @NotNull

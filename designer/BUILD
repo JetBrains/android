@@ -123,6 +123,7 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module, test]",
         "//tools/analytics-library/shared:analytics-shared[module, test]",
+        "//tools/analytics-library/testing:android.sdktools.analytics-testing[module]",
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding[module, test]",
         "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates[module, test]",
         "//tools/base/layoutinspector:studio.android.sdktools.layoutinspector[module, test]",

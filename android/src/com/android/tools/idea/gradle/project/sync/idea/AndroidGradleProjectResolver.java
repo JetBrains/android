@@ -142,7 +142,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
            .setGradleVersion(androidProject.getModelVersion());
       // @formatter:on
 
-      UsageTracker.getInstance().log(event);
+      UsageTracker.log(event);
 
       String msg = getUnsupportedModelVersionErrorMsg(getModelVersion(androidProject));
       throw new IllegalStateException(msg);
@@ -457,7 +457,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
                .setKind(GRADLE_SYNC_FAILURE)
                .setGradleSyncFailure(GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION);
           // @formatter:on;
-          UsageTracker.getInstance().log(event);
+          UsageTracker.log(event);
 
           return new ExternalSystemException("The project is using an unsupported version of Gradle.");
         }

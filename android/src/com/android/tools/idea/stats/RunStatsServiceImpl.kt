@@ -52,14 +52,14 @@ class RunStatsServiceImpl : RunStatsService() {
       myRun = Run(UUID.randomUUID(), packageName, determineRunType(runType), System.currentTimeMillis())
     }
     val currentRun = myRun?: return
-    UsageTracker.getInstance().log(getEventBuilder(StudioRunEvent.newBuilder()
+    UsageTracker.log(getEventBuilder(StudioRunEvent.newBuilder()
                                                      .setRunId(currentRun.runId.toString())
                                                      .setRunType(currentRun.runType)
                                                      .setSectionType(StudioRunEvent.SectionType.TOTAL)
                                                      .setEventType(StudioRunEvent.EventType.START)
                                                      .setDebuggable(isDebuggable)
                                                      .build(), currentRun.packageName))
-    UsageTracker.getInstance().log(getEventBuilder(StudioRunEvent.newBuilder()
+    UsageTracker.log(getEventBuilder(StudioRunEvent.newBuilder()
                                                      .setRunId(currentRun.runId.toString())
                                                      .setRunType(currentRun.runType)
                                                      .setSectionType(StudioRunEvent.SectionType.STUDIO)
@@ -73,7 +73,7 @@ class RunStatsServiceImpl : RunStatsService() {
       currentRun.studioProcessFinishedTimestamp = System.currentTimeMillis()
     }
 
-    UsageTracker.getInstance().log(getEventBuilder(StudioRunEvent.newBuilder()
+    UsageTracker.log(getEventBuilder(StudioRunEvent.newBuilder()
                                                      .setRunId(currentRun.runId.toString())
                                                      .setRunType(currentRun.runType)
                                                      .setSectionType(StudioRunEvent.SectionType.STUDIO)
@@ -92,7 +92,7 @@ class RunStatsServiceImpl : RunStatsService() {
     synchronized(lock) {
       currentRun.gradleInvokeTimestamp = System.currentTimeMillis()
     }
-    UsageTracker.getInstance().log(getEventBuilder(StudioRunEvent.newBuilder()
+    UsageTracker.log(getEventBuilder(StudioRunEvent.newBuilder()
                                                      .setRunId(currentRun.runId.toString())
                                                      .setRunType(currentRun.runType)
                                                      .setSectionType(StudioRunEvent.SectionType.GRADLE)
@@ -106,7 +106,7 @@ class RunStatsServiceImpl : RunStatsService() {
     synchronized(lock) {
       currentRun.gradleFinishedTimestamp = System.currentTimeMillis()
     }
-    UsageTracker.getInstance().log(getEventBuilder(StudioRunEvent.newBuilder()
+    UsageTracker.log(getEventBuilder(StudioRunEvent.newBuilder()
                                                      .setRunId(currentRun.runId.toString())
                                                      .setRunType(currentRun.runType)
                                                      .setSectionType(StudioRunEvent.SectionType.GRADLE)
@@ -127,7 +127,7 @@ class RunStatsServiceImpl : RunStatsService() {
     synchronized(lock) {
       currentRun.emulatorStartTimestamp = System.currentTimeMillis()
     }
-    UsageTracker.getInstance().log(getEventBuilder(StudioRunEvent.newBuilder()
+    UsageTracker.log(getEventBuilder(StudioRunEvent.newBuilder()
                                                      .setRunId(currentRun.runId.toString())
                                                      .setRunType(currentRun.runType)
                                                      .setSectionType(StudioRunEvent.SectionType.EMULATOR)
@@ -141,7 +141,7 @@ class RunStatsServiceImpl : RunStatsService() {
     synchronized(lock) {
       currentRun.emulatorFinishTimestamp = System.currentTimeMillis()
     }
-    UsageTracker.getInstance().log(getEventBuilder(StudioRunEvent.newBuilder()
+    UsageTracker.log(getEventBuilder(StudioRunEvent.newBuilder()
                                                      .setRunId(currentRun.runId.toString())
                                                      .setRunType(currentRun.runType)
                                                      .setSectionType(StudioRunEvent.SectionType.EMULATOR)
@@ -166,7 +166,7 @@ class RunStatsServiceImpl : RunStatsService() {
     synchronized(lock) {
       currentRun.deployStartTimestamp = System.currentTimeMillis()
     }
-    UsageTracker.getInstance().log(getEventBuilder(StudioRunEvent.newBuilder()
+    UsageTracker.log(getEventBuilder(StudioRunEvent.newBuilder()
                                                      .setRunId(currentRun.runId.toString())
                                                      .setRunType(currentRun.runType)
                                                      .setSectionType(StudioRunEvent.SectionType.DEPLOY)
@@ -185,7 +185,7 @@ class RunStatsServiceImpl : RunStatsService() {
     synchronized(lock) {
       currentRun.deployFinishTimestamp = System.currentTimeMillis()
     }
-    UsageTracker.getInstance().log(getEventBuilder(StudioRunEvent.newBuilder()
+    UsageTracker.log(getEventBuilder(StudioRunEvent.newBuilder()
                                                      .setRunId(currentRun.runId.toString())
                                                      .setRunType(currentRun.runType)
                                                      .setSectionType(StudioRunEvent.SectionType.DEPLOY)
@@ -202,7 +202,7 @@ class RunStatsServiceImpl : RunStatsService() {
     synchronized(lock) {
       currentRun.runFinishTimestamp = System.currentTimeMillis()
     }
-    UsageTracker.getInstance().log(getEventBuilder(StudioRunEvent.newBuilder()
+    UsageTracker.log(getEventBuilder(StudioRunEvent.newBuilder()
                                                      .setRunId(currentRun.runId.toString())
                                                      .setRunType(currentRun.runType)
                                                      .setSectionType(StudioRunEvent.SectionType.TOTAL)
