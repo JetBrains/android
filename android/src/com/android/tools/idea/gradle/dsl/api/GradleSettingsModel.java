@@ -23,6 +23,10 @@ import java.io.File;
 import java.util.List;
 
 public interface GradleSettingsModel extends GradleFileModel {
+  /**
+   * @deprecated Use {@link ProjectBuildModel#getProjectSettingsModel()} instead.
+   */
+  @Deprecated
   @Nullable
   static GradleSettingsModel get(@NotNull Project project) {
     return GradleModelProvider.get().getSettingsModel(project);

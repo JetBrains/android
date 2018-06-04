@@ -29,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
+import java.io.File;
 import java.util.List;
 import java.util.Set;
 
@@ -38,7 +39,9 @@ public interface GradleBuildModel extends GradleFileModel {
    * Care should be taken when calling this method repeatedly since it runs over the whole PSI tree in order to build the model.
    * In most cases if you want to use this method you should use {@link ProjectBuildModel} instead since it prevents files from being
    * parsed more than once and ensures changes in applied files are mirrored by any model obtained from the it.
+   * @deprecated Use {@link ProjectBuildModel#get(Project)} instead.
    */
+  @Deprecated
   @Nullable
   static GradleBuildModel get(@NotNull Project project) {
     return GradleModelProvider.get().getBuildModel(project);
@@ -47,7 +50,9 @@ public interface GradleBuildModel extends GradleFileModel {
   /**
    * Obtains an instance of {@link GradleBuildModel} for the given modules build.gradle file.
    * Care should be taken when calling this method repeatedly since it runs over the whole PSI tree in order to build the model.
+   * @deprecated Use {@link ProjectBuildModel#get(Project)} instead.
    */
+  @Deprecated
   @Nullable
   static GradleBuildModel get(@NotNull Module module) {
     return GradleModelProvider.get().getBuildModel(module);
@@ -56,7 +61,9 @@ public interface GradleBuildModel extends GradleFileModel {
   /**
    * Obtains an instance of {@link GradleBuildModel} by parsing the given file.
    * Care should be taken when calling this method repeatedly since it runs over the whole PSI tree in order to build the model.
+   * @deprecated Use {@link ProjectBuildModel#getModuleBuildModel(Module)} instead.
    */
+  @Deprecated
   @NotNull
   static GradleBuildModel parseBuildFile(@NotNull VirtualFile file, @NotNull Project project) {
     return GradleModelProvider.get().parseBuildFile(file, project);
@@ -65,7 +72,9 @@ public interface GradleBuildModel extends GradleFileModel {
   /**
    * Obtains an instance of {@link GradleBuildModel} by parsing the given file.
    * Care should be taken when calling this method repeatedly since it runs over the whole PSI tree in order to build the model.
+   * @deprecated Use {@link ProjectBuildModel#getModuleBuildModel(Module)} instead.
    */
+  @Deprecated
   @NotNull
   static GradleBuildModel parseBuildFile(@NotNull VirtualFile file,
                                          @NotNull Project project,

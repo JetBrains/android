@@ -86,23 +86,39 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleBuildModel {
   @NonNls private static final String PLUGIN = "plugin";
 
+  /**
+   * @deprecated Use {@link ProjectBuildModel#get(Project)} instead.
+   */
+  @Deprecated
   @Nullable
   public static GradleBuildModel get(@NotNull Project project) {
     VirtualFile file = getGradleBuildFile(getBaseDirPath(project));
     return file != null ? parseBuildFile(file, project, project.getName()) : null;
   }
 
+  /**
+   * @deprecated Use {@link ProjectBuildModel#getModuleBuildModel(Module)} instead.
+   */
+  @Deprecated
   @Nullable
   public static GradleBuildModel get(@NotNull Module module) {
     VirtualFile file = getGradleBuildFile(module);
     return file != null ? parseBuildFile(file, module.getProject(), module.getName()) : null;
   }
 
+  /**
+   * @deprecated Use {@link ProjectBuildModel#getModuleBuildModel(Module)} instead.
+   */
+  @Deprecated
   @NotNull
   public static GradleBuildModel parseBuildFile(@NotNull VirtualFile file, @NotNull Project project) {
     return parseBuildFile(file, project, "<Unknown>");
   }
 
+  /**
+   * @deprecated Use {@link ProjectBuildModel#getModuleBuildModel(Module)} instead.
+   */
+  @Deprecated
   @NotNull
   public static GradleBuildModel parseBuildFile(@NotNull VirtualFile file,
                                                 @NotNull Project project,
