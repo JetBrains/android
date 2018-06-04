@@ -80,12 +80,12 @@ public class StudioIcons {
   }
 
   public static class Cursors {
-    public static final Icon EW_RESIZE = load("/studio/icons/cursors/ew-resize.png"); // 20x20
-    public static final Icon GRAB = load("/studio/icons/cursors/grab.png"); // 20x20
-    public static final Icon GRABBING = load("/studio/icons/cursors/grabbing.png"); // 20x20
-    public static final Icon NESW_RESIZE = load("/studio/icons/cursors/nesw-resize.png"); // 20x20
-    public static final Icon NS_RESIZE = load("/studio/icons/cursors/ns-resize.png"); // 20x20
-    public static final Icon NWSE_RESIZE = load("/studio/icons/cursors/nwse-resize.png"); // 20x20
+    public static final Icon EW_RESIZE = load("/studio/icons/cursors/ew-resize.png"); // 32x32
+    public static final Icon GRAB = load("/studio/icons/cursors/grab.png"); // 32x32
+    public static final Icon GRABBING = load("/studio/icons/cursors/grabbing.png"); // 32x32
+    public static final Icon NESW_RESIZE = load("/studio/icons/cursors/nesw-resize.png"); // 32x32
+    public static final Icon NS_RESIZE = load("/studio/icons/cursors/ns-resize.png"); // 32x32
+    public static final Icon NWSE_RESIZE = load("/studio/icons/cursors/nwse-resize.png"); // 32x32
   }
 
   public static class DeviceExplorer {
