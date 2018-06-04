@@ -28,6 +28,7 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.property.assistant.AssistantPopupPanel;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory.Context;
+import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
@@ -57,6 +58,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
@@ -68,7 +70,11 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
   private static final ImmutableList<Template> TEMPLATES = ImmutableList.of(
     Template.NONE_TEMPLATE,
     Template.fromStream("E-mail Client",
-                        RecyclerViewAssistant.class.getResourceAsStream("templates/email.xml")),
+                        RecyclerViewAssistant.class.getResourceAsStream("templates/email.xml"),
+                        EnumSet.of(TemplateTag.SUPPORT_LIBRARY)),
+    Template.fromStream("E-mail Client",
+                        RecyclerViewAssistant.class.getResourceAsStream("templates/email-androidx.xml"),
+                        EnumSet.of(TemplateTag.ANDROIDX)),
     Template.fromStream("One Line",
                         RecyclerViewAssistant.class.getResourceAsStream("templates/one_line.xml")),
     Template.fromStream("One Line w/ Avatar",
@@ -82,7 +88,7 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
     Template.fromStream("Three Lines w/ Avatar",
                         RecyclerViewAssistant.class.getResourceAsStream("templates/three_lines_avatar.xml")),
     Template.fromStream("Grid",
-                        RecyclerViewAssistant.class.getResourceAsStream("templates/avatar.xml"), true));
+                        RecyclerViewAssistant.class.getResourceAsStream("templates/avatar.xml"), EnumSet.of(TemplateTag.GRID)));
 
   private static final int LONGEST_TEMPLATE = TEMPLATES.stream()
                                                        .map(template -> template.component2().length())
@@ -142,7 +148,23 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
     assert resourceDir != null;
     myProject = facet.getModule().getProject();
 
-    Template[] templates = TEMPLATES.toArray(new Template[0]);
+    boolean dependsOnAndroidX = DependencyManagementUtil.dependsOnAndroidx(myComponent.getModel().getModule());
+    Template[] templates = TEMPLATES.stream()
+                                    .filter(template -> {
+                                      if (!template.hasTags()) {
+                                        return true;
+                                      }
+
+                                      if (template.hasTag(TemplateTag.ANDROIDX)) {
+                                        return dependsOnAndroidX;
+                                      }
+                                      else if (template.hasTag(TemplateTag.SUPPORT_LIBRARY)) {
+                                        return !dependsOnAndroidX;
+                                      }
+
+                                      return true;
+                                    })
+                                    .toArray(Template[]::new);
     mySpinner = HorizontalSpinner.forModel(JBList.createDefaultListModel(templates));
 
     String itemCountAttribute = myComponent.getAttribute(TOOLS_URI, ATTR_ITEM_COUNT);
@@ -288,8 +310,8 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
         LOG.debug(e);
       }
       component.setAttribute(TOOLS_URI, ATTR_LISTITEM, LAYOUT_RESOURCE_PREFIX + resourceName);
-      component.setAttribute(TOOLS_URI, ATTR_SPAN_COUNT, template.isGrid() ? "5" : null);
-      component.setAttribute(TOOLS_URI, "layoutManager", template.isGrid() ? "GridLayoutManager" : null);
+      component.setAttribute(TOOLS_URI, ATTR_SPAN_COUNT, template.hasTag(TemplateTag.GRID) ? "5" : null);
+      component.setAttribute(TOOLS_URI, "layoutManager", template.hasTag(TemplateTag.GRID) ? "GridLayoutManager" : null);
       CommandProcessor.getInstance().addAffectedFiles(project, component.getTag().getContainingFile().getVirtualFile());
 
       return PsiManager.getInstance(project).findFile(file);
