@@ -39,7 +39,6 @@ import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -114,7 +113,7 @@ public class SystemInfoStatsMonitor {
   private EnumSet<CpuInfoFlags> myCpuInfo = EnumSet.noneOf(CpuInfoFlags.class);
 
   public void start() {
-    if (!AnalyticsSettings.getInstance(new NullLogger()).hasOptedIn()) {
+    if (!AnalyticsSettings.getInstance(new NullLogger()).getOptedIn()) {
       return;
     }
 
@@ -131,7 +130,7 @@ public class SystemInfoStatsMonitor {
   private void updateAndUploadStats() {
     // double-check if the user has opted out of the metrics reporting since the
     // last run
-    if (!AnalyticsSettings.getInstance(new NullLogger()).hasOptedIn()) {
+    if (!AnalyticsSettings.getInstance(new NullLogger()).getOptedIn()) {
       myUploadTask.cancel(true);
       return;
     }

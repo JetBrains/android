@@ -90,7 +90,7 @@ public class AndroidLintTest extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     AnalyticsSettings analyticsSettings = new AnalyticsSettings();
-    analyticsSettings.setHasOptedIn(false);
+    analyticsSettings.setOptedIn(false);
     AnalyticsSettings.setInstanceForTest(analyticsSettings);
 
     AndroidLintInspectionBase.invalidateInspectionShortName2IssueMap();
@@ -175,10 +175,8 @@ public class AndroidLintTest extends AndroidTestCase {
     // Also tests analytics for single file (batch) analysis
 
     VirtualTimeScheduler scheduler = new VirtualTimeScheduler();
-    AnalyticsSettings analyticsSettings = new AnalyticsSettings();
-    analyticsSettings.setHasOptedIn(true);
-    TestUsageTracker usageTracker = new TestUsageTracker(analyticsSettings, scheduler);
-    UsageTracker.setInstanceForTest(usageTracker);
+    TestUsageTracker usageTracker = new TestUsageTracker(scheduler);
+    UsageTracker.setWriterForTest(usageTracker);
     try {
 
       doTestWithFix(new AndroidLintContentDescriptionInspection(),

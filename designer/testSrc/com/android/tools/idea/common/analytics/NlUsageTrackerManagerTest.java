@@ -25,6 +25,8 @@ import com.android.sdklib.devices.State;
 import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.TestUsageTracker;
+import com.android.tools.analytics.UsageTracker;
+import com.android.tools.analytics.UsageTrackerWriter;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.common.model.NlModel;
@@ -81,7 +83,19 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
   protected void setUp() throws Exception {
     super.setUp();
 
-    usageTracker = new TestUsageTracker(new AnalyticsSettings(), myVirtualTimeScheduler);
+    AnalyticsSettings settings = new AnalyticsSettings();
+    AnalyticsSettings.setInstanceForTest(settings);
+    usageTracker = new TestUsageTracker(myVirtualTimeScheduler);
+    UsageTracker.setWriterForTest(usageTracker);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      UsageTracker.cleanAfterTesting();
+    } finally {
+      super.tearDown();
+    }
   }
 
   public void testGetInstance() {
@@ -118,6 +132,10 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
     tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.RESTORE_ERROR_PANEL);
     assertEquals(1, usageTracker.getUsages().size());
     studioEvent = usageTracker.getUsages().get(0).getStudioEvent();
+
+    tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.RESTORE_ERROR_PANEL);
+    assertEquals(2, usageTracker.getUsages().size());
+    studioEvent = usageTracker.getUsages().get(1).getStudioEvent();
     assertEquals(LayoutEditorEvent.LayoutEditorEventType.RESTORE_ERROR_PANEL,
                  studioEvent.getLayoutEditorEvent().getType());
   }

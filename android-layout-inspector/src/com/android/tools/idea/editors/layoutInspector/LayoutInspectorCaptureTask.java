@@ -76,6 +76,12 @@ public class LayoutInspectorCaptureTask extends Task.Backgroundable {
     long startTimeMs = System.currentTimeMillis();
     LayoutInspectorResult result = LayoutInspectorBridge.captureView(myWindow, options);
     long captureDurationMs = System.currentTimeMillis() - startTimeMs;
+    UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.LAYOUT_INSPECTOR_EVENT)
+             .setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(myClient.getDevice()))
+             .setLayoutInspectorEvent(LayoutInspectorEvent.newBuilder()
+                                        .setType(LayoutInspectorEvent.LayoutInspectorEventType.CAPTURE)
+                                        .setDurationInMs(captureDurationMs)
+                                        .setDataSize(result.getError().isEmpty() ? result.getData().length : 0)));
 
     String projectId = myClient.getClientData().getPackageName();
     UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.LAYOUT_INSPECTOR_EVENT)

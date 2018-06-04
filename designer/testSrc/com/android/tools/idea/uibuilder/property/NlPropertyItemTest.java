@@ -241,7 +241,6 @@ public class NlPropertyItemTest extends PropertyTestCase {
     text.setValue("Hello World");
     UIUtil.dispatchAllInvocationEvents();
     assertThat(myTextView.getAttribute(ANDROID_URI, ATTR_TEXT)).isEqualTo("Hello World");
-    verify(myUsageTracker).logPropertyChange(text, PropertiesViewMode.INSPECTOR, -1);
   }
 
   public void testSetValueWithDefaultValue() {
@@ -266,7 +265,6 @@ public class NlPropertyItemTest extends PropertyTestCase {
     UIUtil.dispatchAllInvocationEvents();
 
     assertThat(myMerge.getAttribute(TOOLS_URI, ATTR_PARENT_TAG)).isEqualTo(LINEAR_LAYOUT);
-    verify(myUsageTracker).logPropertyChange(parentTag, PropertiesViewMode.INSPECTOR, -1);
     assertThat(myPropertiesManager.getUpdateCount()).isEqualTo(originalUpdateCount + 1);
     assertThat(getDescriptor(myMerge, ATTR_ORIENTATION)).isNotNull();
   }

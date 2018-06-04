@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.testartifacts.scopes;
 
+import com.android.tools.analytics.AnalyticsSettings;
+import com.android.tools.analytics.stubs.StubDateProvider;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -31,6 +33,8 @@ public abstract class TestArtifactsTestCase extends AndroidGradleTestCase {
   public void setUp() throws Exception {
     super.setUp();
     loadProject(TEST_ARTIFACTS_MULTIPROJECT);
+    AnalyticsSettings.setDateProvider(new StubDateProvider(2016, 4, 15));
+    AnalyticsSettings.setInstanceForTest(new AnalyticsSettings());
   }
 
   @NotNull

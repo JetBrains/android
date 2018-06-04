@@ -30,9 +30,10 @@ class ProvideLintFeedbackPanelTest : AndroidTestCase() {
   fun testFeedback() {
     val scheduler = VirtualTimeScheduler()
     val analyticsSettings = AnalyticsSettings()
-    analyticsSettings.setHasOptedIn(true)
-    val usageTracker = TestUsageTracker(analyticsSettings, scheduler)
-    UsageTracker.setInstanceForTest(usageTracker)
+    analyticsSettings.optedIn = true
+    AnalyticsSettings.setInstanceForTest(analyticsSettings)
+    val usageTracker = TestUsageTracker(scheduler)
+    UsageTracker.setWriterForTest(usageTracker)
 
     try {
       // Click first button in the panel (False Positive)

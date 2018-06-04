@@ -73,7 +73,7 @@ class LegacyAndroidProjects {
   }
 
   void trackProject() {
-    if (!AnalyticsSettings.getInstance(new NullLogger()).hasOptedIn()) {
+    if (!AnalyticsSettings.getInstance(new NullLogger()).getOptedIn()) {
       return;
     }
 
