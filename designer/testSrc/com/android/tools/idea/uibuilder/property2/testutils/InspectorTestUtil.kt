@@ -23,6 +23,7 @@ import com.android.tools.idea.common.property2.impl.model.TextFieldPropertyEdito
 import com.android.tools.idea.common.property2.impl.model.ThreeStateBooleanPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.support.PropertiesTableImpl
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.uibuilder.property2.NelePropertiesProvider
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider
@@ -39,7 +40,8 @@ class InspectorTestUtil(projectRule: AndroidProjectRule, tag: String, parentTag:
   : SupportTestUtil(AndroidFacet.getInstance(projectRule.module)!!, projectRule.fixture, tag, parentTag) {
   private val _properties: Table<String, String, NelePropertyItem> = HashBasedTable.create()
 
-  val properties: PropertiesTable<NelePropertyItem> = PropertiesTableImpl(_properties)
+  var properties: PropertiesTable<NelePropertyItem> = PropertiesTableImpl(_properties)
+    private set
 
   val editorProvider = FakeEditorProviderImpl()
 
@@ -57,6 +59,13 @@ class InspectorTestUtil(projectRule: AndroidProjectRule, tag: String, parentTag:
 
   fun removeProperty(namespace: String, name: String) {
     _properties.remove(namespace, name)
+  }
+
+  fun loadProperties() {
+    val provider = NelePropertiesProvider(model)
+    for (propertyItem in provider.getProperties(components).values) {
+      _properties.put(propertyItem.namespace, propertyItem.name, propertyItem)
+    }
   }
 }
 
