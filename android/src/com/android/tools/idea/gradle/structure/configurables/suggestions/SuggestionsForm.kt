@@ -30,7 +30,9 @@ class SuggestionsForm(
 
   val panel = myMainPanel!!
 
-  private val issuesViewer = SuggestionsViewer(context, suggestionsViewIssueRenderer)
+  private val issuesViewer = SuggestionsViewer(context, suggestionsViewIssueRenderer).also {
+    Disposer.register(this, it)
+  }
 
   init {
     setViewComponent(issuesViewer.panel)
