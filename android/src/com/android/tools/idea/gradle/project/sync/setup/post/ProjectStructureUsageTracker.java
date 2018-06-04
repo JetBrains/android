@@ -192,7 +192,7 @@ public class ProjectStructureUsageTracker {
       // @formatter:on
       AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder();
       event.setCategory(GRADLE).setKind(GRADLE_BUILD_DETAILS).setGradleBuildDetails(gradleBuild);
-      UsageTracker.getInstance().log(event);
+      UsageTracker.log(event);
     }
   }
 

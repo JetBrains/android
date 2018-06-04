@@ -82,7 +82,7 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
            .setKind(GRADLE_SYNC_FAILURE)
            .setGradleSyncFailure(UNKNOWN_GRADLE_FAILURE);
     // @formatter:on
-    UsageTracker.getInstance().log(event);
+    UsageTracker.log(event);
   }
 
   @NotNull

@@ -62,7 +62,7 @@ public class AndroidStudioUsageTracker {
 
   private static void runDailyReports() {
 
-    UsageTracker.getInstance().log(
+    UsageTracker.log(
       AndroidStudioEvent.newBuilder()
         .setCategory(AndroidStudioEvent.EventCategory.PING)
         .setKind(AndroidStudioEvent.EventKind.STUDIO_PING)
@@ -84,7 +84,7 @@ public class AndroidStudioUsageTracker {
   }
 
   private static void runHourlyReports() {
-    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+    UsageTracker.log(AndroidStudioEvent.newBuilder()
                                      .setCategory(AndroidStudioEvent.EventCategory.SYSTEM)
                                      .setKind(AndroidStudioEvent.EventKind.STUDIO_PROCESS_STATS)
                                      .setJavaProcessStats(CommonMetricsData.getJavaProcessStats()));
@@ -150,7 +150,7 @@ public class AndroidStudioUsageTracker {
     @Override
     public void beforeProjectLoaded(@NotNull Project project) {
       int projectsOpen = ProjectManager.getInstance().getOpenProjects().length;
-      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+      UsageTracker.log(AndroidStudioEvent.newBuilder()
                                        .setKind(AndroidStudioEvent.EventKind.STUDIO_PROJECT_OPENED)
                                        .setStudioProjectChange(StudioProjectChange.newBuilder()
                                                                  .setProjectsOpen(projectsOpen)));
@@ -159,7 +159,7 @@ public class AndroidStudioUsageTracker {
     @Override
     public void afterProjectClosed(@NotNull Project project) {
       int projectsOpen = ProjectManager.getInstance().getOpenProjects().length;
-      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+      UsageTracker.log(AndroidStudioEvent.newBuilder()
                                        .setKind(AndroidStudioEvent.EventKind.STUDIO_PROJECT_CLOSED)
                                        .setStudioProjectChange(StudioProjectChange.newBuilder()
                                                                  .setProjectsOpen(projectsOpen)));

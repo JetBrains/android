@@ -58,7 +58,7 @@ public class RunSdkConfigAction extends DumbAwareAction {
 
   @Override
   public void actionPerformed(@Nullable AnActionEvent e) {
-    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+    UsageTracker.log(AndroidStudioEvent.newBuilder()
                                    .setCategory(EventCategory.SDK_MANAGER)
                                    .setKind(AndroidStudioEvent.EventKind.SDK_MANAGER_TOOLBAR_CLICKED));
     if (e != null && ActionPlaces.WELCOME_SCREEN.equals(e.getPlace())) {

@@ -359,7 +359,7 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
         .setKind(AndroidStudioEvent.EventKind.ANDROID_PROFILER_DB_STATS)
         .setAndroidProfilerDbStats(dbStats);
 
-      UsageTracker.getInstance().log(event);
+      UsageTracker.log(event);
     }
 
     private void collectReport(AndroidProfilerDbStats.Builder dbStats) {

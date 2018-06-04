@@ -269,7 +269,7 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
 
   @Override
   public void launchDiagnostics(AdbAssistantStats.Trigger trigger) {
-    UsageTracker.getInstance().log(
+    UsageTracker.log(
       AndroidStudioEvent.newBuilder()
         .setKind(AndroidStudioEvent.EventKind.ADB_ASSISTANT_STATS)
         .setAdbAssistantStats(AdbAssistantStats.newBuilder().setTrigger(trigger)));

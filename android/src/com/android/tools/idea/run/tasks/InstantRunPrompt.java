@@ -47,7 +47,7 @@ public class InstantRunPrompt {
 
   public void show() {
     ApplicationManager.getApplication().invokeLater(() -> {
-      UsageTracker.getInstance()
+      UsageTracker
         .log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.INSTANT_RUN_PROMPT_FOR_APPLY_CHANGES_SHOWN));
 
       GotItMessage message =

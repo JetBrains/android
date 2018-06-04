@@ -465,7 +465,7 @@ public class CaptureService {
     final CaptureType type = CaptureTypeService.getInstance().getType(clazz);
     assert type != null;
 
-    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+    UsageTracker.log(AndroidStudioEvent.newBuilder()
                                    .setCategory(AndroidStudioEvent.EventCategory.PROFILING)
                                    .setKind(AndroidStudioEvent.EventKind.PROFILING_CAPTURE)
                                    .setProfilerCaptureType(type.getCaptureType()));

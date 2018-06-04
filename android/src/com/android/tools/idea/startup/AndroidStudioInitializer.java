@@ -107,12 +107,12 @@ public class AndroidStudioInitializer implements Runnable {
   private static void setupAnalytics() {
     AndroidStudioUsageTracker.setup(JobScheduler.getScheduler());
     ApplicationInfo application = ApplicationInfo.getInstance();
-    UsageTracker.getInstance().setVersion(application.getStrictVersion());
+    UsageTracker.setVersion(application.getStrictVersion());
     // Set the IDE brand when the android plugin is used in Studio.
     // See AndroidPlugin for the corresponding initialization when run in IntelliJ IDEA
     // We need to set this early enough in Studio before any events are logged.
     if (PlatformUtils.isAndroidStudio()) {
-      UsageTracker.getInstance().setIdeBrand(
+      UsageTracker.setIdeBrand(
         Arrays.stream(PluginManagerCore.getPlugins()).anyMatch(plugin -> "Android Studio with Blaze".equals(plugin.getName()))
         ? AndroidStudioEvent.IdeBrand.ANDROID_STUDIO_WITH_BLAZE
         : AndroidStudioEvent.IdeBrand.ANDROID_STUDIO);

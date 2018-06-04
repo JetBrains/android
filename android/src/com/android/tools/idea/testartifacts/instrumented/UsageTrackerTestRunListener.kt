@@ -65,7 +65,7 @@ class UsageTrackerTestRunListener @JvmOverloads constructor(
       testRun = this@UsageTrackerTestRunListener.testRun.build()
     }
 
-    UsageTracker.getInstance().log(studioEvent)
+    UsageTracker.log(studioEvent)
   }
 
   override fun testRunStopped(elapsedTime: Long) {}

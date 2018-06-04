@@ -116,10 +116,7 @@ public class DeployApkTask implements LaunchTask {
   }
 
   private static void trackInstallation(@NotNull IDevice device) {
-    if (!UsageTracker.getInstance().getAnalyticsSettings().hasOptedIn()) {
-      return;
-    }
-    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+    UsageTracker.log(AndroidStudioEvent.newBuilder()
        .setCategory(AndroidStudioEvent.EventCategory.DEPLOYMENT)
        .setKind(AndroidStudioEvent.EventKind.DEPLOYMENT_APK)
        .setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(device)));

@@ -56,7 +56,7 @@ public class RecordingAction extends ToggleAction {
   @Override
   public void setSelected(AnActionEvent e, boolean state) {
     if (myMonitorView.getIsPaused() != state) {
-      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+      UsageTracker.log(AndroidStudioEvent.newBuilder()
                                      .setCategory(EventCategory.PROFILING)
                                      .setKind(AndroidStudioEvent.EventKind.MONITOR_RUNNING)
                                      .setMonitorType(myMonitorView.getMonitorType()));

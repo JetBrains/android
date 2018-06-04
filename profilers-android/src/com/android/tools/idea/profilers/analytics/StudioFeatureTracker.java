@@ -586,7 +586,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
             .build());
       }
 
-      UsageTracker.getInstance().log(event);
+      UsageTracker.log(event);
     }
 
     private void populateEnergyRangeMetadata(@NotNull AndroidProfilerEvent.Builder profilerEvent) {

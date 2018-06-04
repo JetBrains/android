@@ -37,8 +37,7 @@ class UsageTrackerTestRunListenerTest : PlatformTestCase() {
 
   private fun checkLoggedEvent(instrumentationOutput: String, block: (AndroidStudioEvent) -> Unit) {
     val tracker = TestUsageTracker(AnalyticsSettings(), VirtualTimeScheduler())
-    UsageTracker.setInstanceForTest(tracker)
-
+    val oldTracker = UsageTracker.setInstanceForTest(tracker)
     val listener = UsageTrackerTestRunListener(
         AndroidArtifactStub("stub artifact", "stubFolder", "debug", FileStructure("rootFolder")),
         mock(IDevice::class.java)!!.also {
@@ -52,6 +51,7 @@ class UsageTrackerTestRunListenerTest : PlatformTestCase() {
     }
 
     block.invoke(tracker.usages.single().studioEvent)
+    UsageTracker.cleanAfterTesting()
   }
 
   fun testNormalRun() {

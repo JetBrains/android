@@ -43,7 +43,7 @@ public class WhatsNewAssistantSidePanelAction extends OpenAssistSidePanelAction 
       return;
     }
 
-    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+    UsageTracker.log(AndroidStudioEvent.newBuilder()
                                                      .setKind(AndroidStudioEvent.EventKind.WHATS_NEW_ASSISTANT_EVENT)
                                                      .setWhatsNewAssistantEvent(WhatsNewAssistantEvent.newBuilder().setType(
                                                        WhatsNewAssistantEvent.WhatsNewAssistantEventType.OPEN)));
@@ -63,7 +63,7 @@ public class WhatsNewAssistantSidePanelAction extends OpenAssistSidePanelAction 
         ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(OpenAssistSidePanelAction.TOOL_WINDOW_TITLE);
         if (window != null && !window.isVisible()) {
           ToolWindowManagerEx.getInstanceEx(project).removeToolWindowManagerListener(this);
-          UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+          UsageTracker.log(AndroidStudioEvent.newBuilder()
                                                            .setKind(AndroidStudioEvent.EventKind.WHATS_NEW_ASSISTANT_EVENT)
                                                            .setWhatsNewAssistantEvent(WhatsNewAssistantEvent.newBuilder().setType(
                                                              WhatsNewAssistantEvent.WhatsNewAssistantEventType.CLOSED)));

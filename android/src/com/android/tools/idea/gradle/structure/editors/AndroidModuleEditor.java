@@ -127,7 +127,7 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
 
         String appId = getApplicationId(myProject);
         if (appId != null) {
-          UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+          UsageTracker.log(AndroidStudioEvent.newBuilder()
                                            .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
                                            .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_TOP_TAB_CLICK)
                                            .setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
@@ -162,7 +162,7 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
     String appId = getApplicationId(myProject);
     for (ModuleConfigurationEditor editor : myEditors) {
       if (appId != null) {
-        UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+        UsageTracker.log(AndroidStudioEvent.newBuilder()
                                        .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
                                        .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_TOP_TAB_SAVE)
                                        .setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
