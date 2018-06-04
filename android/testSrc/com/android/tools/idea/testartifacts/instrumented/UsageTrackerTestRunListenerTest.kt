@@ -20,6 +20,7 @@ import com.android.ddmlib.testrunner.InstrumentationResultParser
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.TestUsageTracker
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.stubs.FileStructure
 import com.android.tools.idea.gradle.stubs.android.AndroidArtifactStub
 import com.android.tools.idea.stats.AnonymizerUtil
@@ -36,12 +37,13 @@ class UsageTrackerTestRunListenerTest : PlatformTestCase() {
 
   private fun checkLoggedEvent(instrumentationOutput: String, block: (AndroidStudioEvent) -> Unit) {
     val tracker = TestUsageTracker(AnalyticsSettings(), VirtualTimeScheduler())
+    UsageTracker.setInstanceForTest(tracker)
+
     val listener = UsageTrackerTestRunListener(
         AndroidArtifactStub("stub artifact", "stubFolder", "debug", FileStructure("rootFolder")),
         mock(IDevice::class.java)!!.also {
           `when`(it.serialNumber).thenReturn(serial)
-        },
-        tracker
+        }
     )
 
     InstrumentationResultParser(UsageTrackerTestRunListener::class.qualifiedName, listener).run {
