@@ -1191,6 +1191,8 @@
     <!-- Custom BuildOutputParsers -->
     <externalSystemOutputParserProvider implementation="com.android.tools.idea.gradle.project.build.output.GradleOutputParserProvider"
                                         id="gradle"/>
+
+    <usageGroupingRuleProvider implementation="org.jetbrains.android.refactoring.ResourcePackageGroupingRuleProvider" />
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">
