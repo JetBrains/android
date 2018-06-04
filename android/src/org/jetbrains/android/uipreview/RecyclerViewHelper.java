@@ -15,8 +15,11 @@
  */
 package org.jetbrains.android.uipreview;
 
+import com.intellij.util.containers.hash.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.org.objectweb.asm.*;
+
+import java.util.Map;
 
 import static org.jetbrains.org.objectweb.asm.Opcodes.*;
 
@@ -31,37 +34,40 @@ public class RecyclerViewHelper {
   public static final String CN_CUSTOM_VIEW_HOLDER = PACKAGE_NAME + ".Adapter$ViewHolder";
 
   // Lazily initialized.
-  private static byte[] ourAdapterClass;
-  private static byte[] ourViewHolder;
+  private static Map<String, byte[]> ourClassesCache = new HashMap<>();
 
   public static byte[] getAdapterClass(@NotNull String recyclerViewName,
                                        @NotNull String viewHolderName,
                                        @NotNull String adapterName) {
-    if (ourAdapterClass == null) {
+    byte[] adapterClass = ourClassesCache.get(adapterName);
+    if (adapterClass == null) {
       recyclerViewName = recyclerViewName.replaceAll("\\.", "/");
       viewHolderName = viewHolderName.replaceAll("\\.", "/");
       adapterName = adapterName.replaceAll("\\.", "/");
 
-      ourAdapterClass = getAdapterClassDump(recyclerViewName,
+      adapterClass = getAdapterClassDump(recyclerViewName,
                                             viewHolderName,
                                             adapterName);
+      ourClassesCache.put(adapterName, adapterClass);
     }
-    return ourAdapterClass;
+    return adapterClass;
   }
 
   public static byte[] getViewHolder(@NotNull String recyclerViewName,
                                      @NotNull String viewHolderName,
                                      @NotNull String adapterName) {
-    if (ourViewHolder == null) {
+    byte[] viewHolderClass = ourClassesCache.get(viewHolderName);
+    if (viewHolderClass == null) {
       recyclerViewName = recyclerViewName.replaceAll("\\.", "/");
       viewHolderName = viewHolderName.replaceAll("\\.", "/");
       adapterName = adapterName.replaceAll("\\.", "/");
 
-      ourViewHolder = getViewHolderDump(recyclerViewName,
+      viewHolderClass = getViewHolderDump(recyclerViewName,
                                         viewHolderName,
                                         adapterName);
+      ourClassesCache.put(viewHolderName, viewHolderClass);
     }
-    return ourViewHolder;
+    return viewHolderClass;
   }
 
   // See comment at the end of the file for how this method was generated.
