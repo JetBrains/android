@@ -21,6 +21,7 @@ import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModelTest;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.Sdks;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.module.Module;
@@ -79,10 +80,8 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     assertNotNull(myAppFacet);
     assertNotNull(myLibFacet);
 
-    Sdk sdk1 = addLatestAndroidSdk(myLibModule);
-    Sdk sdk2 = addLatestAndroidSdk(myAppModule);
-    Disposer.register(getTestRootDisposable(), ()-> WriteAction.run(()-> ProjectJdkTable.getInstance().removeJdk(sdk1)));
-    Disposer.register(getTestRootDisposable(), ()-> WriteAction.run(()-> ProjectJdkTable.getInstance().removeJdk(sdk2)));
+    Sdks.addLatestAndroidSdk(getTestRootDisposable(), myLibModule);
+    Sdks.addLatestAndroidSdk(getTestRootDisposable(), myAppModule);
 
     assertNotNull(AndroidPlatform.getInstance(myAppModule));
     assertNotNull(AndroidPlatform.getInstance(myLibModule));

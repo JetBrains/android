@@ -23,6 +23,7 @@ import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.lint.*;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.testing.Sdks;
 import com.android.tools.lint.checks.CommentDetector;
 import com.android.tools.lint.checks.IconDetector;
 import com.android.tools.lint.checks.TextViewDetector;
@@ -486,7 +487,7 @@ public class AndroidLintTest extends AndroidTestCase {
     // Needs a valid SDK; can't use the mock one in the test data.
     AndroidSdkData prevSdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
     if (prevSdkData == null) {
-      Sdk androidSdk = createLatestAndroidSdk();
+      Sdk androidSdk = Sdks.createLatestAndroidSdk();
       AndroidPlatform androidPlatform = AndroidPlatform.getInstance(androidSdk);
       assertNotNull(androidPlatform);
       // Put default platforms in the list before non-default ones so they'll be looked at first.
