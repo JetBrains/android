@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.parser.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
@@ -42,12 +43,20 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 public class GradleSettingsModelImpl extends GradleFileModelImpl implements GradleSettingsModel {
   public static final String INCLUDE = "include";
 
+  /**
+   * @deprecated Use {@link ProjectBuildModel#getProjectSettingsModel()} instead.
+   */
+  @Deprecated
   @Nullable
   public static GradleSettingsModel get(@NotNull Project project) {
     VirtualFile file = getGradleSettingsFile(getBaseDirPath(project));
     return file != null ? parseBuildFile(file, project, "settings") : null;
   }
 
+  /**
+   * @deprecated Use {@link ProjectBuildModel#getProjectSettingsModel()} instead.
+   */
+  @Deprecated
   @NotNull
   public static GradleSettingsModel parseBuildFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
     GradleSettingsFile settingsFile = new GradleSettingsFile(file, project, moduleName, BuildModelContext.create(project));
