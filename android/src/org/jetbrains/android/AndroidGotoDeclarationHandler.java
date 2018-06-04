@@ -92,15 +92,13 @@ public class AndroidGotoDeclarationHandler implements GotoDeclarationHandler {
     }
     else {
       ModuleResourceManagers resourceManagers = ModuleResourceManagers.getInstance(facet);
-      ResourceManager manager = info.isSystem()
+      ResourceManager manager = info.getNamespace() == ResourceNamespace.ANDROID
                                     ? resourceManagers.getSystemResourceManager(false)
                                     : resourceManagers.getLocalResourceManager();
       if (manager == null) {
         return null;
       }
-      // TODO: Namespaces
-      ResourceNamespace namespace = ResourceNamespace.fromBoolean(info.isSystem());
-      manager.collectLazyResourceElements(namespace, nestedClassName, fieldName, false, refExp, resourceList);
+      manager.collectLazyResourceElements(info.getNamespace(), nestedClassName, fieldName, false, refExp, resourceList);
 
       if (manager instanceof LocalResourceManager) {
         final LocalResourceManager lrm = (LocalResourceManager)manager;

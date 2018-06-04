@@ -16,6 +16,8 @@
 
 package org.jetbrains.android.util;
 
+import com.android.builder.model.AaptOptions;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.FileResourceNameValidator;
 import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
@@ -1025,7 +1027,7 @@ public class AndroidResourceUtil {
                                                                                @NotNull PsiReferenceExpression exp,
                                                                                @Nullable String className,
                                                                                boolean localOnly) {
-    final String resFieldName = exp.getReferenceName();
+    String resFieldName = exp.getReferenceName();
     if (resFieldName == null || resFieldName.isEmpty()) {
       return null;
     }
@@ -1034,9 +1036,9 @@ public class AndroidResourceUtil {
     if (!(qExp instanceof PsiReferenceExpression)) {
       return null;
     }
-    final PsiReferenceExpression resClassReference = (PsiReferenceExpression)qExp;
+    PsiReferenceExpression resClassReference = (PsiReferenceExpression)qExp;
 
-    final String resClassName = resClassReference.getReferenceName();
+    String resClassName = resClassReference.getReferenceName();
     if (resClassName == null || resClassName.isEmpty() ||
         className != null && !className.equals(resClassName)) {
       return null;
@@ -1047,33 +1049,45 @@ public class AndroidResourceUtil {
       return null;
     }
 
-    final PsiElement resolvedElement = ((PsiReferenceExpression)qExp).resolve();
+    PsiElement resolvedElement = ((PsiReferenceExpression)qExp).resolve();
     if (!(resolvedElement instanceof PsiClass)) {
       return null;
     }
     Module resolvedModule = ModuleUtilCore.findModuleForPsiElement(resolvedElement);
-    final PsiClass aClass = (PsiClass)resolvedElement;
-    final String classShortName = aClass.getName();
-    final boolean fromManifest = AndroidUtils.MANIFEST_CLASS_NAME.equals(classShortName);
+    PsiClass aClass = (PsiClass)resolvedElement;
+    String classShortName = aClass.getName();
+    boolean fromManifest = AndroidUtils.MANIFEST_CLASS_NAME.equals(classShortName);
 
     if (!fromManifest && !AndroidUtils.R_CLASS_NAME.equals(classShortName)) {
       return null;
     }
+    String qName = aClass.getQualifiedName();
+    if (qName == null) {
+      return null;
+    }
+
     if (!localOnly) {
-      final String qName = aClass.getQualifiedName();
 
       if (CLASS_R.equals(qName) || AndroidInternalRClassFinder.INTERNAL_R_CLASS_QNAME.equals(qName)) {
-        return new MyReferredResourceFieldInfo(resClassName, resFieldName, resolvedModule, true, false);
+        return new MyReferredResourceFieldInfo(resClassName, resFieldName, resolvedModule, ResourceNamespace.ANDROID, false);
       }
     }
-    final PsiFile containingFile = resolvedElement.getContainingFile();
+    PsiFile containingFile = resolvedElement.getContainingFile();
     if (containingFile == null) {
       return null;
     }
     if (fromManifest ? !isManifestJavaFile(facet, containingFile) : !isRJavaFile(facet, containingFile)) {
       return null;
     }
-    return new MyReferredResourceFieldInfo(resClassName, resFieldName, resolvedModule, false, fromManifest);
+
+    ResourceNamespace resourceNamespace;
+    if (ResourceRepositoryManager.getOrCreateInstance(facet).getNamespacing() == AaptOptions.Namespacing.DISABLED) {
+      resourceNamespace = ResourceNamespace.RES_AUTO;
+    } else {
+      resourceNamespace = ResourceNamespace.fromPackageName(StringUtil.getPackageName(qName));
+    }
+
+    return new MyReferredResourceFieldInfo(resClassName, resFieldName, resolvedModule, resourceNamespace, fromManifest);
   }
 
   /**
@@ -1235,20 +1249,29 @@ public class AndroidResourceUtil {
     return resDirectories;
   }
 
+  /**
+   * Data gathered from a reference to field of an aapt-generated class: R or Manifest.
+   */
   public static class MyReferredResourceFieldInfo {
-    private final String myClassName;
-    private final String myFieldName;
-    private final Module myResolvedModule;
-    private final boolean mySystem;
+    @NotNull private final String myClassName;
+    @NotNull private final String myFieldName;
+    @Nullable private final Module myResolvedModule;
+    @NotNull private final ResourceNamespace myNamespace;
     private final boolean myFromManifest;
 
-    public MyReferredResourceFieldInfo(
-      @NotNull String className, @NotNull String fieldName, @Nullable Module resolvedModule, boolean system, boolean fromManifest) {
+    public MyReferredResourceFieldInfo(@NotNull String className, @NotNull String fieldName, @Nullable Module resolvedModule,
+                                       @NotNull ResourceNamespace namespace, boolean fromManifest) {
       myClassName = className;
       myFieldName = fieldName;
+      myNamespace = namespace;
       myResolvedModule = resolvedModule;
-      mySystem = system;
       myFromManifest = fromManifest;
+    }
+
+    @Deprecated // TODO(b/109656760): kept for Kotlin binary compatibility.
+    public MyReferredResourceFieldInfo(
+      @NotNull String className, @NotNull String fieldName, @Nullable Module resolvedModule, boolean system, boolean fromManifest) {
+      this(className, fieldName, resolvedModule, ResourceNamespace.fromBoolean(system), fromManifest);
     }
 
     @NotNull
@@ -1261,17 +1284,23 @@ public class AndroidResourceUtil {
       return myFieldName;
     }
 
+    @NotNull
+    public ResourceNamespace getNamespace() {
+      return myNamespace;
+    }
+
     @Nullable
     public Module getResolvedModule() {
       return myResolvedModule;
     }
 
-    public boolean isSystem() {
-      return mySystem;
-    }
-
     public boolean isFromManifest() {
       return myFromManifest;
+    }
+
+    @Deprecated // TODO(b/109656760): kept for Kotlin binary compatibility.
+    public boolean isSystem() {
+      return myNamespace == ResourceNamespace.ANDROID;
     }
   }
 
