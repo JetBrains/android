@@ -441,7 +441,7 @@ public abstract class IconGenerator implements Disposable {
   }
 
   protected boolean includeDensity(@NotNull Density density) {
-    return density.isRecommended() && density != Density.LOW && density != Density.XXXHIGH;
+    return density.isRecommended() && density != Density.LOW;
   }
 
   /**
@@ -451,14 +451,14 @@ public abstract class IconGenerator implements Disposable {
    * @param density the density
    * @return a factor to multiple mdpi distances with to compute the target density
    */
-  public static float getMdpiScaleFactor(@NotNull Density density) {
+  public static double getMdpiScaleFactor(@NotNull Density density) {
     if (density == Density.ANYDPI) {
       density = Density.XXXHIGH;
     }
     if (density == Density.NODPI) {
       density = Density.MEDIUM;
     }
-    return density.getDpiValue() / (float)Density.MEDIUM.getDpiValue();
+    return density.getDpiValue() / (double)Density.MEDIUM.getDpiValue();
   }
 
   /**

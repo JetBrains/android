@@ -202,7 +202,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
         Density density = generatedImageIcon.getDensity();
         myDensityTextField.setText(density.getResourceValue());
 
-        float scaleFactor = getMdpiScaleFactor(density);
+        double scaleFactor = getMdpiScaleFactor(density);
         mySizeDpTextField.setText(
             String.format("%dx%d", Math.round(icon.getIconWidth() / scaleFactor), Math.round(icon.getIconHeight() / scaleFactor)));
 
