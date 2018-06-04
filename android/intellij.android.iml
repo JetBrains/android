@@ -107,7 +107,6 @@
     <orderEntry type="library" name="com.android.tools.analytics-library:shared:26.0.0" level="project" />
     <orderEntry type="library" name="commons-io" level="project" />
     <orderEntry type="library" name="lombok-ast" level="project" />
-    <orderEntry type="library" name="XStream" level="project" />
     <orderEntry type="library" name="jgraphx" level="project" />
     <orderEntry type="library" name="com.android.tools.build:manifest-merger:26.0.0" level="project" />
     <orderEntry type="module-library">
