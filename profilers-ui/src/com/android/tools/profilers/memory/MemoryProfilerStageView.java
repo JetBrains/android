@@ -150,7 +150,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         .setContainerComponent(getComponent())
         .setIcon(myHeapDumpButton.getIcon())
         .setActionRunnable(() -> myHeapDumpButton.doClick(0))
-        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_H, AdtUiUtils.getActionMask())).build();
+        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_D, AdtUiUtils.getActionMask())).build();
     myHeapDumpButton.setToolTipText(myHeapDumpAction.getDefaultToolTipText());
 
     myCaptureElapsedTime = new JLabel("");
