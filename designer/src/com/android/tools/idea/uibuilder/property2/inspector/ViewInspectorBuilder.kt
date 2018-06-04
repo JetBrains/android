@@ -71,19 +71,22 @@ class ViewInspectorBuilder(project: Project, private val editorProvider: EditorP
 
   private fun findProperty(propertyName: String, properties: PropertiesTable<NelePropertyItem>): NelePropertyItem? {
     // TODO: Handle other namespaces
-    val property = findPropertyWithoutPrefix(StringUtil.trimStart(propertyName, TOOLS_NS_NAME_PREFIX), properties)
+    val property = findPropertyByName(StringUtil.trimStart(propertyName, TOOLS_NS_NAME_PREFIX), properties)
     val isDesignProperty = propertyName.startsWith(TOOLS_NS_NAME_PREFIX)
     return if (isDesignProperty) property?.designProperty else property
   }
 
-  private fun findPropertyWithoutPrefix(propertyName: String, properties: PropertiesTable<NelePropertyItem>): NelePropertyItem? {
+  private fun findPropertyByName(propertyName: String, properties: PropertiesTable<NelePropertyItem>): NelePropertyItem? {
     if (propertyName == ATTR_SRC) {
       val srcCompat = properties.getOrNull(AUTO_URI, ATTR_SRC_COMPAT)
       if (srcCompat != null) {
         return srcCompat
       }
     }
+    // TODO: Handle other namespaces
     return properties.getOrNull(ANDROID_URI, propertyName)
+           ?: properties.getOrNull(AUTO_URI, propertyName)
+           ?: properties.getOrNull("", propertyName)
   }
 
   private fun getTagName(properties: PropertiesTable<NelePropertyItem>): String? {

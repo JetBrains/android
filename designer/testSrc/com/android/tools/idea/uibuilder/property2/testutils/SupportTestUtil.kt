@@ -31,8 +31,8 @@ import org.mockito.Mockito
 
 open class SupportTestUtil(private val facet: AndroidFacet, private val fixture: CodeInsightTestFixture,
                            tag: String, parentTag: String = "", activityName: String = "") {
-  private val model = NelePropertiesModel(fixture.testRootDisposable, facet)
-  private val components = listOf(createComponent(tag, parentTag, activityName))
+  val model = NelePropertiesModel(fixture.testRootDisposable, facet)
+  val components = listOf(createComponent(tag, parentTag, activityName))
   val nlModel = components[0].model
 
   fun makeProperty(namespace: String, name: String, type: NelePropertyType): NelePropertyItem {
