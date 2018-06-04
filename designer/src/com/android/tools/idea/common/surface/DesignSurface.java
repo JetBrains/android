@@ -31,7 +31,6 @@ import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
-import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.utils.ImmutableCollectors;
@@ -64,12 +63,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.Timer;
 import javax.swing.plaf.ScrollBarUI;
 import java.awt.*;
 import java.awt.event.*;
 import java.lang.ref.WeakReference;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -974,6 +974,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return myInteractionManager;
   }
 
+  protected boolean getSupportPinchAndZoom() {
+    return true;
+  }
+
   private static class MyScrollPane extends JBScrollPane {
     private MyScrollPane() {
       super(0);
@@ -1026,9 +1030,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   private class MyLayeredPane extends JLayeredPane implements Magnificator, DataProvider {
     public MyLayeredPane() {
-
-      // Enable pinching to zoom
-      putClientProperty(Magnificator.CLIENT_PROPERTY_KEY, this);
+      if (getSupportPinchAndZoom()) {
+        // Enable pinching to zoom
+        putClientProperty(Magnificator.CLIENT_PROPERTY_KEY, this);
+      }
     }
 
     // ---- Implements Magnificator ----
