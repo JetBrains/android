@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.theme;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
@@ -377,17 +376,17 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
 
   private class MyFileEditorManagerListener implements FileEditorManagerListener {
     @Override
-    public void fileOpened(@NonNull FileEditorManager source, @NonNull VirtualFile file) {
+    public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
       processFileEditorChange();
     }
 
     @Override
-    public void fileClosed(@NonNull FileEditorManager source, @NonNull VirtualFile file) {
+    public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
       ApplicationManager.getApplication().invokeLater(AndroidThemePreviewToolWindowManager.this::processFileEditorChange, myProject.getDisposed());
     }
 
     @Override
-    public void selectionChanged(@NonNull FileEditorManagerEvent event) {
+    public void selectionChanged(@NotNull FileEditorManagerEvent event) {
       final FileEditor newEditor = event.getNewEditor();
       TextEditor applicableTextEditor = null;
       if (newEditor instanceof TextEditor) {
