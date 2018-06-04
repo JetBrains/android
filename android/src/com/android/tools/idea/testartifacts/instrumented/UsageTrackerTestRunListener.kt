@@ -33,9 +33,7 @@ import com.google.wireless.android.sdk.stats.TestRun
  */
 class UsageTrackerTestRunListener @JvmOverloads constructor(
     private val artifact: IdeAndroidArtifact?,
-    private val device: IDevice,
-    private val usageTracker: UsageTracker = UsageTracker.getInstance()
-) : ITestRunListener {
+    private val device: IDevice) : ITestRunListener {
 
   private val testRun: TestRun.Builder = TestRun.newBuilder().apply {
     testInvocationType = TestRun.TestInvocationType.ANDROID_STUDIO_TEST
@@ -67,7 +65,7 @@ class UsageTrackerTestRunListener @JvmOverloads constructor(
       testRun = this@UsageTrackerTestRunListener.testRun.build()
     }
 
-    usageTracker.log(studioEvent)
+    UsageTracker.getInstance().log(studioEvent)
   }
 
   override fun testRunStopped(elapsedTime: Long) {}
