@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync;
 
 import com.android.testutils.TestUtils
 import com.android.testutils.VirtualTimeScheduler
-import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -25,11 +24,11 @@ import com.android.tools.idea.testing.TestProjectPaths
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 
 class GradleSyncStateLoggingTest : AndroidGradleTestCase() {
-  private val tracker = TestUsageTracker(AnalyticsSettings(), VirtualTimeScheduler())
+  private val tracker = TestUsageTracker(VirtualTimeScheduler())
 
   override fun setUp() {
     super.setUp()
-    UsageTracker.setInstanceForTest(tracker)
+    UsageTracker.setWriterForTest(tracker)
   }
 
   fun testKotlinLogging() {

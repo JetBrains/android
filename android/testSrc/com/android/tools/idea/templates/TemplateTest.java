@@ -20,7 +20,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.testutils.TestUtils;
 import com.android.testutils.VirtualTimeScheduler;
-import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.LoggedUsage;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
@@ -224,8 +223,8 @@ public class TemplateTest extends AndroidGradleTestCase {
   public void setUp() throws Exception {
     super.setUp();
     VirtualTimeScheduler scheduler = new VirtualTimeScheduler();
-    myUsageTracker = new TestUsageTracker(new AnalyticsSettings(), scheduler);
-    UsageTracker.setInstanceForTest(myUsageTracker);
+    myUsageTracker = new TestUsageTracker(scheduler);
+    UsageTracker.setWriterForTest(myUsageTracker);
     myApiSensitiveTemplate = true;
     if (!ourValidatedTemplateManager) {
       ourValidatedTemplateManager = true;

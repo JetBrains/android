@@ -78,8 +78,8 @@ class LintIdeAnalytics(private val project: com.intellij.openapi.project.Project
     val event = AndroidStudioEvent.newBuilder().apply {
       kind = AndroidStudioEvent.EventKind.LINT_SESSION
       lintSession = session
-      javaProcessStats = CommonMetricsData.getJavaProcessStats()
-      jvmDetails = CommonMetricsData.getJvmDetails()
+      javaProcessStats = CommonMetricsData.javaProcessStats
+      jvmDetails = CommonMetricsData.jvmDetails
 
       // We may not have raw project id's, for example when analyzing
       // non-Android projects

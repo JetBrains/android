@@ -17,9 +17,9 @@ package com.android.tools.idea.diagnostics.crash;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.NullUsageTracker;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.analytics.UsageTrackerWriter;
 import com.android.tools.analytics.crash.CrashReport;
 import com.android.tools.analytics.crash.GoogleCrashReporter;
 import com.google.common.collect.ImmutableList;
@@ -67,10 +67,10 @@ public class StudioCrashReporterTest {
 
   @Test
   public void ideBrandIncludedInExceptionReport() throws Exception {
-    UsageTracker usageTracker = new NullUsageTracker(new AnalyticsSettings(), null);
-    usageTracker.setIdeBrand(AndroidStudioEvent.IdeBrand.ANDROID_STUDIO);
+    UsageTrackerWriter usageTracker = NullUsageTracker.INSTANCE;
+    UsageTracker.setIdeBrand(AndroidStudioEvent.IdeBrand.ANDROID_STUDIO);
     try {
-      UsageTracker.setInstanceForTest(usageTracker);
+      UsageTracker.setWriterForTest(usageTracker);
       CrashReport report =
         new StudioExceptionReport.Builder()
           .setThrowable(new RuntimeException("Test Exception Message"))

@@ -86,6 +86,7 @@ iml_module(
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
         "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module, test]",
         "//tools/adt/idea/android-adb[module, test]",
+        "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
     ],
 )
 

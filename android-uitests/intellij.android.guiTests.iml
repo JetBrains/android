@@ -42,5 +42,6 @@
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.fakeadbserver" scope="TEST" />
     <orderEntry type="module" module-name="android-adb" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-testing" scope="TEST" />
   </component>
 </module>

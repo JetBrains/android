@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.testutils.VirtualTimeScheduler;
-import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.NullUsageTracker;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
@@ -90,7 +88,7 @@ public class GradleSyncGuiPerfSetupTest {
   @Test
   @RunIn(TestGroup.SYNC_PERFORMANCE_SETUP)
   public void syncPerfTest() throws IOException, NullPointerException {
-    UsageTracker.setInstanceForTest(new NullUsageTracker(new AnalyticsSettings(), new VirtualTimeScheduler()));
+    UsageTracker.setWriterForTest(NullUsageTracker.INSTANCE);
     guiTest.importProjectAndWaitForProjectSyncToFinish("android-studio-gradle-test");
     guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish(Wait.seconds(10 * 60));
     guiTest.ideFrame().invokeProjectMake(Wait.seconds(30 * 60));
