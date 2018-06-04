@@ -41,6 +41,16 @@ private val learnMoreLinkListener = LinkListener<String> { _, _ ->
 }
 
 /**
+ * Offset to left align siblings of the grid with the cell of the grid
+ */
+private val GRID_CELL_BORDER_OFFSET = JBUI.Borders.emptyLeft(4)
+private val CHECKBOX_ALIGNMENT_OFFSET = JBUI.Borders.emptyLeft(1)
+
+private val INFO_TEXT_PANEL_BORDER = JBUI.Borders.emptyTop(12)
+
+private val CONTENT_PADDING = JBUI.Borders.empty(18)
+
+/**
  * Panel for [com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog] to display
  * and select values of a [com.android.tools.idea.res.SampleDataResourceItem].
  */
@@ -61,18 +71,18 @@ class SampleDrawablePanel(val module: Module) : JPanel(BorderLayout()) {
 
   private val allCheckbox = JBCheckBox("Use as set", true).apply {
     alignmentX = LEFT_ALIGNMENT
-    border = JBUI.Borders.emptyLeft(1)
+    border = CHECKBOX_ALIGNMENT_OFFSET
     addActionListener { selectedIndex = if (isSelected) -1 else 0 }
   }
 
   init {
-    border = JBUI.Borders.empty(18)
+    border = CONTENT_PADDING
     alignmentX = JPanel.LEFT_ALIGNMENT
 
     add(allCheckbox, BorderLayout.NORTH)
 
     add(JPanel(VerticalFlowLayout(0, 8)).apply {
-      val borderLeft = JBUI.Borders.emptyLeft(4) // Used to left align elements with the grid
+      val borderLeft = GRID_CELL_BORDER_OFFSET // Used to left align elements with the grid
       add(drawableGrid)
       add(JLabel("Resource name").apply {
         border = borderLeft
@@ -84,7 +94,7 @@ class SampleDrawablePanel(val module: Module) : JPanel(BorderLayout()) {
     })
 
     add(JPanel().apply {
-      border = JBUI.Borders.emptyTop(12)
+      border = INFO_TEXT_PANEL_BORDER
       add(JLabel(INFO_TEXT, StudioIcons.Common.INFO, JLabel.LEFT))
       add(LinkLabel<String>(LEARN_MORE_LINK_TEXT, null, learnMoreLinkListener))
     }, BorderLayout.SOUTH)
