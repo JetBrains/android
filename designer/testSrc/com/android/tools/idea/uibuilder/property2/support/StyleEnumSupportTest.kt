@@ -46,7 +46,7 @@ class StyleEnumSupportTest: AndroidTestCase() {
   }
 
   fun testButtonStyles() {
-    val util = SupportTestUtil(testRootDisposable, myFacet, myFixture, BUTTON)
+    val util = SupportTestUtil(myFacet, myFixture, BUTTON)
     val property = util.makeProperty("", ATTR_STYLE, NelePropertyType.STYLE)
     patchLibraryNameOfAllAppCompatStyles(property)
     val support = StyleEnumSupport(property)

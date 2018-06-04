@@ -36,7 +36,7 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 
 class InspectorTestUtil(projectRule: AndroidProjectRule, tag: String, parentTag: String = "")
-  : SupportTestUtil(projectRule.project, AndroidFacet.getInstance(projectRule.module)!!, projectRule.fixture, tag, parentTag) {
+  : SupportTestUtil(AndroidFacet.getInstance(projectRule.module)!!, projectRule.fixture, tag, parentTag) {
   private val _properties: Table<String, String, NelePropertyItem> = HashBasedTable.create()
 
   val properties: PropertiesTable<NelePropertyItem> = PropertiesTableImpl(_properties)

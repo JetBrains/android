@@ -72,7 +72,7 @@ private const val OTHER_ACTIVITY = """
 class OnClickEnumSupportTest: AndroidTestCase() {
 
   fun testWithNoActivities() {
-    val util = SupportTestUtil(testRootDisposable, myFacet, myFixture, TEXT_VIEW, FRAME_LAYOUT)
+    val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW, FRAME_LAYOUT)
     val support = OnClickEnumSupport(util.nlModel)
     assertThat(support.values).isEmpty()
   }
@@ -102,7 +102,7 @@ class OnClickEnumSupportTest: AndroidTestCase() {
   private fun findEnumSupportFor(activityName: String): OnClickEnumSupport {
     myFixture.addClass(MAIN_ACTIVITY.trimIndent())
     myFixture.addClass(OTHER_ACTIVITY.trimIndent())
-    val util = SupportTestUtil(testRootDisposable, myFacet, myFixture, TEXT_VIEW, FRAME_LAYOUT, activityName)
+    val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW, FRAME_LAYOUT, activityName)
     return OnClickEnumSupport(util.nlModel)
   }
 }

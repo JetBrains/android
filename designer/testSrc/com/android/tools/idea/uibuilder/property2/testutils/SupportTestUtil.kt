@@ -22,7 +22,6 @@ import com.android.tools.idea.uibuilder.property2.NeleFlagsPropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
-import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
@@ -30,9 +29,9 @@ import org.jetbrains.android.dom.attrs.AttributeDefinition
 import org.jetbrains.android.facet.AndroidFacet
 import org.mockito.Mockito
 
-open class SupportTestUtil(parentDisposable: Disposable, private val facet: AndroidFacet, private val fixture: CodeInsightTestFixture,
+open class SupportTestUtil(private val facet: AndroidFacet, private val fixture: CodeInsightTestFixture,
                            tag: String, parentTag: String = "", activityName: String = "") {
-  private val model = NelePropertiesModel(parentDisposable, facet)
+  private val model = NelePropertiesModel(fixture.testRootDisposable, facet)
   private val components = listOf(createComponent(tag, parentTag, activityName))
   val nlModel = components[0].model
 
