@@ -35,7 +35,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
     INSERT_DEVICE,
     UPDATE_DEVICE_LAST_KNOWN_TIME,
     INSERT_PROCESS,
-    UPDATE_PROCESS,
+    UPDATE_PROCESS_STATE,
     INSERT_SESSION,
     UPDATE_SESSION,
     SELECT_PROCESSES,
@@ -62,8 +62,8 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
     try {
       createTable("Profiler_Bytes", "Id STRING NOT NULL", "Session INTEGER", "Data BLOB");
       createTable("Profiler_Devices", "DeviceId INTEGER", "LastKnownTime INTEGER", "Data BLOB");
-      createTable("Profiler_Processes", "DeviceId INTEGER", "ProcessId INTEGER", "AgentStatus INTEGER",
-                  "IsAgentAttachable INTEGER", "Data BLOB");
+      createTable("Profiler_Processes", "DeviceId INTEGER", "ProcessId INTEGER", "Name STRING NOT NULL", "State INTEGER",
+                  "StartTime INTEGER", "Arch STRING NOT NULL", "AgentStatus INTEGER", "IsAgentAttachable INTEGER");
       createTable("Profiler_Sessions", "SessionId INTEGER", "DeviceId INTEGER", "ProcessId INTEGER", "StartTime INTEGER",
                   "EndTime INTEGER", "StartTimeEpochMs INTEGER", "NAME TEXT", "JvmtiEnabled INTEGER", "LiveAllocationEnabled INTEGER",
                   "TypeId INTEGER");
@@ -94,9 +94,10 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
       createStatement(ProfilerStatements.UPDATE_DEVICE_LAST_KNOWN_TIME,
                       "UPDATE Profiler_Devices Set LastKnownTime = ? WHERE DeviceId = ?");
       createStatement(ProfilerStatements.INSERT_PROCESS,
-                      "INSERT OR REPLACE INTO Profiler_Processes (DeviceId, ProcessId, Data) values (?, ?, ?)");
-      createStatement(ProfilerStatements.UPDATE_PROCESS,
-                      "UPDATE Profiler_Processes Set Data = ? WHERE DeviceId = ? AND ProcessId = ?");
+                      "INSERT OR REPLACE INTO Profiler_Processes (DeviceId, ProcessId, Name, State, StartTime, Arch) " +
+                      "values (?, ?, ?, ?, ?, ?)");
+      createStatement(ProfilerStatements.UPDATE_PROCESS_STATE,
+                      "UPDATE Profiler_Processes Set State = ? WHERE DeviceId = ? AND ProcessId = ?");
       createStatement(ProfilerStatements.INSERT_SESSION,
                       "INSERT OR REPLACE INTO Profiler_Sessions " +
                       "(SessionId, DeviceId, ProcessId, StartTime, EndTime, StartTimeEpochMs, Name, JvmtiEnabled, LiveAllocationEnabled, TypeId) " +
@@ -104,9 +105,9 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
       createStatement(ProfilerStatements.UPDATE_SESSION,
                       "UPDATE Profiler_Sessions Set EndTime = ? WHERE SessionId = ?");
       createStatement(ProfilerStatements.SELECT_PROCESSES,
-                      "SELECT Data from Profiler_Processes WHERE DeviceId = ?");
+                      "SELECT DeviceId, ProcessId, Name, State, StartTime, Arch from Profiler_Processes WHERE DeviceId = ?");
       createStatement(ProfilerStatements.SELECT_PROCESS_BY_ID,
-                      "SELECT Data from Profiler_Processes WHERE DeviceId = ? AND ProcessId = ?");
+                      "SELECT ProcessId from Profiler_Processes WHERE DeviceId = ? AND ProcessId = ?");
       createStatement(ProfilerStatements.SELECT_DEVICE,
                       "SELECT Data from Profiler_Devices");
       createStatement(ProfilerStatements.SELECT_DEVICE_LAST_KNOWN_TIME,
@@ -180,12 +181,24 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
       try {
         ResultSet results = executeQuery(ProfilerStatements.SELECT_PROCESSES, request.getDeviceId());
         while (results.next()) {
-          byte[] data = results.getBytes(1);
-          Common.Process process = data == null ? Common.Process.getDefaultInstance() : Common.Process.parseFrom(data);
+          long deviceId = results.getLong(1);
+          int pid = results.getInt(2);
+          String name = results.getString(3);
+          int state = results.getInt(4);
+          long startTimeNs = results.getLong(5);
+          String arch = results.getString(6);
+          Common.Process process = Common.Process.newBuilder()
+            .setDeviceId(deviceId)
+            .setPid(pid)
+            .setName(name)
+            .setState(Common.Process.State.forNumber(state))
+            .setStartTimestampNs(startTimeNs)
+            .setAbiCpuArch(arch)
+            .build();
           responseBuilder.addProcess(process);
         }
       }
-      catch (InvalidProtocolBufferException | SQLException ex) {
+      catch (SQLException ex) {
         onError(ex);
       }
       return responseBuilder.build();
@@ -294,10 +307,11 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
       try {
         ResultSet results = executeQuery(ProfilerStatements.SELECT_PROCESS_BY_ID, devicdId.get(), process.getPid());
         if (results.next()) {
-          execute(ProfilerStatements.UPDATE_PROCESS, process.toByteArray(), devicdId.get(), process.getPid());
+          execute(ProfilerStatements.UPDATE_PROCESS_STATE, process.getStateValue(), devicdId.get(), process.getPid());
         }
         else {
-          execute(ProfilerStatements.INSERT_PROCESS, devicdId.get(), process.getPid(), process.toByteArray());
+          execute(ProfilerStatements.INSERT_PROCESS, devicdId.get(), process.getPid(), process.getName(), process.getStateValue(),
+                  process.getStartTimestampNs(), process.getAbiCpuArch());
         }
       }
       catch (SQLException ex) {

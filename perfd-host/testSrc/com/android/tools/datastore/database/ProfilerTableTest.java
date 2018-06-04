@@ -225,7 +225,9 @@ public class ProfilerTableTest {
 
   @Test
   public void testExistingProcessIsUpdated() {
-    Common.Process process = Common.Process.newBuilder().setPid(99).setName("FakeProcess").setState(Common.Process.State.ALIVE).build();
+    Common.Process process =
+      Common.Process.newBuilder().setDeviceId(FAKE_DEVICE_ID.get()).setPid(99).setName("FakeProcess").setState(Common.Process.State.ALIVE)
+                    .setStartTimestampNs(10).build();
 
     // Setup initial process and status.
     AgentStatusResponse status =
@@ -233,14 +235,31 @@ public class ProfilerTableTest {
     myTable.insertOrUpdateProcess(FAKE_DEVICE_ID, process);
     myTable.updateAgentStatus(FAKE_DEVICE_ID, process, status);
 
+    // Double-check the process has been added.
+    Profiler.GetProcessesResponse processes =
+      myTable.getProcesses(Profiler.GetProcessesRequest.newBuilder().setDeviceId(FAKE_DEVICE_ID.get()).build());
+    assertThat(processes.getProcessList()).hasSize(1);
+    assertThat(processes.getProcess(0)).isEqualTo(process);
+
     // Double-check status has been set.
     AgentStatusRequest request =
       AgentStatusRequest.newBuilder().setPid(process.getPid()).setDeviceId(FAKE_DEVICE_ID.get()).build();
     assertThat(myTable.getAgentStatus(request).getStatus()).isEqualTo(AgentStatusResponse.Status.ATTACHED);
 
-    // Update the process entry and verify that the agent status remains the same.
-    process = process.toBuilder().setState(Common.Process.State.DEAD).build();
-    myTable.insertOrUpdateProcess(FAKE_DEVICE_ID, process);
+    // Kill the process entry and verify that the process state is updated and the agent status remains the same.
+    Common.Process deadProcess = process.toBuilder().setState(Common.Process.State.DEAD).build();
+    myTable.insertOrUpdateProcess(FAKE_DEVICE_ID, deadProcess);
+    processes = myTable.getProcesses(Profiler.GetProcessesRequest.newBuilder().setDeviceId(FAKE_DEVICE_ID.get()).build());
+    assertThat(processes.getProcessList()).hasSize(1);
+    assertThat(processes.getProcess(0)).isEqualTo(deadProcess);
+    assertThat(myTable.getAgentStatus(request).getStatus()).isEqualTo(AgentStatusResponse.Status.ATTACHED);
+
+    // Resurrects the process and verify that the start time does not change. This is a scenario for Emulator Snapshots.
+    Common.Process resurrectedProcess = process.toBuilder().setStartTimestampNs(20).build();
+    myTable.insertOrUpdateProcess(FAKE_DEVICE_ID, resurrectedProcess);
+    processes = myTable.getProcesses(Profiler.GetProcessesRequest.newBuilder().setDeviceId(FAKE_DEVICE_ID.get()).build());
+    assertThat(processes.getProcessList()).hasSize(1);
+    assertThat(processes.getProcess(0)).isEqualTo(process);
     assertThat(myTable.getAgentStatus(request).getStatus()).isEqualTo(AgentStatusResponse.Status.ATTACHED);
   }
 }
