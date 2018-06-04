@@ -20,9 +20,11 @@ import com.android.builder.model.level2.Library.*
 import com.android.ide.common.gradle.model.IdeAndroidArtifact
 import com.android.ide.common.gradle.model.IdeJavaArtifact
 import com.android.ide.common.gradle.model.level2.IdeAndroidLibrary
+import com.android.ide.common.gradle.model.level2.IdeDependencies
 import com.android.ide.common.gradle.model.level2.IdeJavaLibrary
 import com.android.ide.common.gradle.model.level2.IdeModuleLibrary
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.library.Library
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.variant.Dependencies
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.library.NewAndroidLibrary
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.library.NewJavaLibrary
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.library.NewModuleDependency
@@ -42,3 +44,5 @@ fun Level2Library.toNew(): Library = when (this.type) {
   LIBRARY_MODULE -> NewModuleDependency(this as IdeModuleLibrary)
   else -> throw IllegalStateException("Level 2 library has unknown type")
 }
+
+fun IdeDependencies.toNew(): Dependencies = NewDependencies(this, listOf())
