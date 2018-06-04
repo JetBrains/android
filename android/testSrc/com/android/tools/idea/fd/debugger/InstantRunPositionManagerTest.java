@@ -16,6 +16,7 @@
 package com.android.tools.idea.fd.debugger;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.testing.Sdks;
 import com.intellij.debugger.engine.DebugProcess;
 import com.intellij.debugger.engine.DebugProcessImpl;
 import com.intellij.openapi.application.ApplicationManager;
@@ -70,7 +71,7 @@ public class InstantRunPositionManagerTest extends AndroidTestCase {
     Project project = getProject();
 
     // need to add the sdk to JdkTable for getSourceFolder(version) to return the source folder
-    ApplicationManager.getApplication().runWriteAction(() -> ProjectJdkTable.getInstance().addJdk(createLatestAndroidSdk()));
+    ApplicationManager.getApplication().runWriteAction(() -> ProjectJdkTable.getInstance().addJdk(Sdks.createLatestAndroidSdk()));
 
     // get reference to the file through the class
     PsiClass cls = JavaPsiFacade.getInstance(project).findClass("android.view.View", GlobalSearchScope.allScope(project));

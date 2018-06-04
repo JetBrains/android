@@ -19,6 +19,7 @@ import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.ddms.DeviceNameProperties;
 import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
+import com.android.tools.idea.testing.Sdks;
 import com.android.tools.idea.util.FutureUtils;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -42,7 +43,7 @@ public class AdbDeviceFileSystemRendererFactoryTest extends AndroidTestCase {
     // Setup Android SDK path so that ddmlib can find adb.exe
     //noinspection CodeBlock2Expr
     ApplicationManager.getApplication().runWriteAction(() -> {
-      ProjectRootManager.getInstance(getProject()).setProjectSdk(createLatestAndroidSdk());
+      ProjectRootManager.getInstance(getProject()).setProjectSdk(Sdks.createLatestAndroidSdk());
     });
   }
 

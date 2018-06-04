@@ -15,28 +15,18 @@
  */
 package org.jetbrains.android;
 
-import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.startup.ExternalAnnotationsSupport;
+import com.android.tools.idea.testing.Sdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.PathManagerEx;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.SdkModificator;
-import com.intellij.openapi.roots.JavadocOrderRootType;
-import com.intellij.openapi.roots.ModuleRootModificationUtil;
-import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.Segment;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.JarFileSystem;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -47,7 +37,6 @@ import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -116,63 +105,6 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     return PathManagerEx.findFileUnderCommunityHome("android/" + moduleFolder).getPath();
   }
 
-  protected static Sdk addLatestAndroidSdk(Module module) {
-    Sdk androidSdk = createLatestAndroidSdk();
-    ModuleRootModificationUtil.setModuleSdk(module, androidSdk);
-    return androidSdk;
-  }
-
-  public static Sdk createLatestAndroidSdk() {
-    return createLatestAndroidSdk(AndroidTestBase.class.getName(), true);
-  }
-
-  public static Sdk createLatestAndroidSdk(String name, boolean addToSdkTable) {
-    String sdkPath = TestUtils.getSdk().toString();
-    String platformDir = TestUtils.getLatestAndroidPlatform();
-
-    Sdk sdk = ProjectJdkTable.getInstance().createSdk(name, AndroidSdkType.getInstance());
-    if (addToSdkTable) {
-      ApplicationManager.getApplication().runWriteAction(() -> ProjectJdkTable.getInstance().addJdk(sdk));
-    }
-
-    SdkModificator sdkModificator = sdk.getSdkModificator();
-    sdkModificator.setHomePath(sdkPath);
-
-    VirtualFile androidJar = JarFileSystem.getInstance().findFileByPath(sdkPath + "/platforms/" + platformDir + "/android.jar!/");
-    sdkModificator.addRoot(androidJar, OrderRootType.CLASSES);
-
-    VirtualFile resFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/platforms/" + platformDir + "/data/res");
-    sdkModificator.addRoot(resFolder, OrderRootType.CLASSES);
-
-    VirtualFile androidSrcFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/sources/" + platformDir);
-    if (androidSrcFolder != null) {
-      sdkModificator.addRoot(androidSrcFolder, OrderRootType.SOURCES);
-    }
-
-    VirtualFile docsFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/docs/reference");
-    if (docsFolder != null) {
-      sdkModificator.addRoot(docsFolder, JavadocOrderRootType.getInstance());
-    }
-
-    AndroidSdkAdditionalData data = new AndroidSdkAdditionalData(sdk);
-    AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdkPath);
-    assertNotNull(sdkData);
-    IAndroidTarget target = null;
-    IAndroidTarget[] targets = sdkData.getTargets();
-    for (IAndroidTarget t : targets) {
-      if (t.getLocation().contains(platformDir)) {
-        target = t;
-        break;
-      }
-    }
-    assertNotNull(target);
-    data.setBuildTarget(target);
-    sdkModificator.setSdkAdditionalData(data);
-    ExternalAnnotationsSupport.attachJdkAnnotations(sdkModificator);
-    sdkModificator.commitChanges();
-    return sdk;
-  }
-
   protected Project getProject() {
     return myFixture.getProject();
   }
@@ -194,7 +126,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
   @Nullable
   protected AndroidSdkData createTestSdkManager() {
     VfsRootAccess.allowRootAccess(getTestRootDisposable(), TestUtils.getSdk().toString());
-    Sdk androidSdk = createLatestAndroidSdk();
+    Sdk androidSdk = Sdks.createLatestAndroidSdk();
     AndroidSdkAdditionalData data = AndroidSdks.getInstance().getAndroidSdkAdditionalData(androidSdk);
     if (data != null) {
       AndroidPlatform androidPlatform = data.getAndroidPlatform();

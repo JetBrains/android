@@ -7,6 +7,7 @@ import com.android.tools.idea.model.TestAndroidModel;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.startup.AndroidCodeStyleSettingsModifier;
+import com.android.tools.idea.testing.Sdks;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
 import com.intellij.analysis.AnalysisScope;
@@ -20,15 +21,13 @@ import com.intellij.codeInspection.reference.RefEntity;
 import com.intellij.codeInspection.ui.util.SynchronizedBidiMultiMap;
 import com.intellij.facet.*;
 import com.intellij.ide.highlighter.ModuleFileType;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleTypeId;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
-import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.util.Disposer;
@@ -291,12 +290,11 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   }
 
   public static AndroidFacet addAndroidFacet(Module module, boolean attachSdk) {
-    Sdk sdk = attachSdk ? addLatestAndroidSdk(module) : null;
     AndroidFacetType type = AndroidFacet.getFacetType();
     String facetName = "Android";
     AndroidFacet facet = addFacet(module, type, facetName);
-    if (sdk != null) {
-      Disposer.register(facet, ()-> WriteAction.run(()->ProjectJdkTable.getInstance().removeJdk(sdk)));
+    if (attachSdk) {
+      Sdks.addLatestAndroidSdk(facet, module);
     }
     return facet;
   }
