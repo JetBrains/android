@@ -16,5 +16,6 @@
     <orderEntry type="module" module-name="intellij.platform.lang" />
     <orderEntry type="library" name="analytics-protos" level="project" />
     <orderEntry type="library" name="protobuf" level="project" />
+    <orderEntry type="library" name="Guava" level="project" />
   </component>
 </module>

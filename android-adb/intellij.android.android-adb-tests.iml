@@ -15,6 +15,6 @@
     <orderEntry type="library" scope="TEST" name="com.android.tools:testutils:26.1.2" level="project" />
     <orderEntry type="library" scope="TEST" name="com.android.tools.ddms:ddmlib:26.1.2" level="project" />
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools:common:26.1.2" level="project" />
   </component>
 </module>
