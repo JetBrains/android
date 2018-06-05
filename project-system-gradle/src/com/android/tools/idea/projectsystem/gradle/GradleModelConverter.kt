@@ -427,12 +427,12 @@ class GradleModelConverter(
     return builder.build()
   }
 
-  private fun getResValues(classFields: Map<String, ClassField>): Map<String, ResValue> {
-    val result = HashMap<String, ResValue>()
+  private fun getResValues(classFields: Map<String, ClassField>): Map<String, DynamicResourceValue> {
+    val result = HashMap<String, DynamicResourceValue>()
     for (field in classFields.values) {
       val resourceType = ResourceType.getEnum(field.type)
       if (resourceType != null) {
-        result[field.name] = ResValue(resourceType, field.value)
+        result[field.name] = DynamicResourceValue(resourceType, field.value)
       }
     }
     return result
