@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.structure.model.java.PsJavaDependency;
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule;
 import com.android.tools.idea.gradle.structure.model.java.PsLibraryJavaDependency;
 import com.google.common.collect.Lists;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,7 +48,10 @@ class DeclaredDependenciesTableModel extends AbstractDeclaredDependenciesTableMo
   @Override
   public void reset() {
     List<PsJavaDependency> dependencies = Lists.newArrayList();
-    getModule().forEachDeclaredDependency(dependencies::add);
+    getModule().forEachDeclaredDependency(it -> {
+      dependencies.add(it);
+      return Unit.INSTANCE;
+    });
     Collections.sort(dependencies, new PsDependencyComparator(getContext().getUiSettings()));
     setItems(dependencies);
   }

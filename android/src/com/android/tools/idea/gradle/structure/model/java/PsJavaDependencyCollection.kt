@@ -53,12 +53,11 @@ internal class PsJavaDependencyCollection(private val parent: PsJavaModule) : Ps
     dependenciesBySpec.values.forEach(consumer)
   }
 
-  fun forEachDeclaredDependency(consumer: Consumer<PsJavaDependency>) {
+  fun forEachDeclaredDependency(consumer: (PsJavaDependency) -> Unit) {
     forEachDeclaredDependency(libraryDependenciesBySpec, consumer)
   }
 
-  private fun forEachDeclaredDependency(dependenciesBySpec: Map<String, PsJavaDependency>,
-                                        consumer: Consumer<PsJavaDependency>) {
+  private fun forEachDeclaredDependency(dependenciesBySpec: Map<String, PsJavaDependency>, consumer: (PsJavaDependency) -> Unit) {
     dependenciesBySpec.values.filter { it.isDeclared }.forEach(consumer)
   }
 }
