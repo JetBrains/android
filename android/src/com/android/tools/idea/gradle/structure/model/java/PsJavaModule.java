@@ -16,11 +16,12 @@
 package com.android.tools.idea.gradle.structure.model.java;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.android.tools.idea.gradle.structure.model.*;
+import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
+import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency;
+import com.android.tools.idea.gradle.structure.model.PsModule;
+import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -33,11 +34,11 @@ public class PsJavaModule extends PsModule {
   private PsJavaDependencyCollection myDependencyCollection;
 
   public PsJavaModule(@NotNull PsProject parent,
-                      @NotNull Module resolvedModel,
+                      @NotNull String name,
                       @NotNull String gradlePath,
                       @NotNull JavaModuleModel gradleModel,
                       @NotNull GradleBuildModel parsedModel) {
-    super(parent, resolvedModel, gradlePath, parsedModel);
+    super(parent, name, gradlePath, parsedModel);
     myGradleModel = gradleModel;
   }
 
@@ -70,14 +71,6 @@ public class PsJavaModule extends PsModule {
     String gradlePath = super.getGradlePath();
     assert gradlePath != null;
     return gradlePath;
-  }
-
-  @Override
-  @NotNull
-  public Module getResolvedModel() {
-    Module model = super.getResolvedModel();
-    assert model != null;
-    return model;
   }
 
   public void forEachDeclaredDependency(@NotNull Consumer<PsJavaDependency> consumer) {

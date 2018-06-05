@@ -19,22 +19,23 @@ import com.android.builder.model.AndroidProject.PROJECT_TYPE_APP
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.structure.model.*
+import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
+import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
+import com.android.tools.idea.gradle.structure.model.PsModule
+import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepositories
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.util.GradleUtil.getAndroidModuleIcon
 import com.android.utils.StringHelper
-import com.intellij.openapi.module.Module
 import javax.swing.Icon
 
 class PsAndroidModule(
   parent: PsProject,
-  resolvedModel: Module,
-  gradlePath: String,
   val gradleModel: AndroidModuleModel,
+  gradlePath: String,
   parsedModel: GradleBuildModel
-) : PsModule(parent, resolvedModel, gradlePath, parsedModel) {
+) : PsModule(parent, gradleModel.androidProject.name, gradlePath, parsedModel) {
   private var buildTypeCollection: PsBuildTypeCollection? = null
   private var productFlavorCollection: PsProductFlavorCollection? = null
   private var variantCollection: PsVariantCollection? = null

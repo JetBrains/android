@@ -18,12 +18,7 @@ package com.android.tools.idea.gradle.structure.model.android
 import com.android.builder.model.AndroidProject.ARTIFACT_MAIN
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel
-import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
-import com.android.tools.idea.gradle.structure.model.PsDependency
-import com.android.tools.idea.gradle.structure.model.PsModuleDependency
-import com.android.tools.idea.gradle.structure.model.PsResolvedDependency
-import com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon
-import com.intellij.openapi.module.Module
+import com.android.tools.idea.gradle.structure.model.*
 import icons.StudioIcons.Shell.Filetree.ANDROID_MODULE
 import javax.swing.Icon
 
@@ -49,16 +44,16 @@ class PsResolvedModuleAndroidDependency internal constructor(
   artifacts: Collection<PsAndroidArtifact>,
   configurationName: String,
   moduleVariant: String?,
-  val resolvedModel: Module,
+  private val targetModule: PsModule,
   private val parsedModels: Collection<ModuleDependencyModel>
 ) : PsModuleAndroidDependency(
   parent, gradlePath, artifacts, configurationName, moduleVariant
 ), PsResolvedDependency {
-  override val name: String = resolvedModel.name
+  override val name: String = targetModule.name
   override val isDeclared: Boolean get() = !parsedModels.isEmpty()
   override val joinedConfigurationNames: String get() = parsedModels.joinToString(separator = ", ") { it.configurationName()}
   override fun getParsedModels(): List<DependencyModel> = parsedModels.toList()
-  override val icon: Icon? get() = getModuleIcon(resolvedModel)
+  override val icon: Icon? get() = targetModule.icon
 }
 
 abstract class PsModuleAndroidDependency internal constructor(

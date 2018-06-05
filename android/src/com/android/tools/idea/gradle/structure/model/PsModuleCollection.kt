@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
-import com.android.tools.idea.gradle.dsl.api.GradleModelProvider
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.JavaModuleModel
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
@@ -58,8 +57,11 @@ class PsModuleCollection(parent: PsProject) : PsCollectionBase<PsModule, ModuleK
     val gradlePath = getGradlePath(module)!!
     val moduleParsedModel = projectParsedModel.getModuleBuildModel(module)!!
     return when (key.kind) {
-      ModuleKind.ANDROID ->PsAndroidModule(parent, module, gradlePath, AndroidModuleModel.get(module)!!, moduleParsedModel)
-      ModuleKind.JAVA -> PsJavaModule(parent, module, gradlePath, JavaModuleModel.get(module)!!, moduleParsedModel)
+      ModuleKind.ANDROID -> {
+        val moduleModel = AndroidModuleModel.get(module)!!
+        PsAndroidModule(parent, moduleModel, gradlePath, moduleParsedModel)
+      }
+      ModuleKind.JAVA -> PsJavaModule(parent, module.name, gradlePath, JavaModuleModel.get(module)!!, moduleParsedModel)
     }
   }
 
