@@ -71,7 +71,7 @@
             <![CDATA[
             <ul>
               <li>On Android 8.0 and higher, go to <b>Settings > System > About phone</b> and tap <b>Build number</b> seven times.</li>
-              <li>On Android 4.2 and higher, go to <b>Settings > About phone</b> and tap <b>Build number</b> seven times.</li>
+              <li>On Android 4.2 through 7.1.2, go to <b>Settings > About phone</b> and tap <b>Build number</b> seven times.</li>
             </ul>]]>
           </section>
         </stepElement>
@@ -98,7 +98,8 @@
         <stepElement>
           <section>
             <![CDATA[If your device appears below after restarting the ADB server, try deploying your app to the device.
-            Otherwise, click <b>Next</b> below to submit a bug report.]]>
+            If you continue to experience issues, please <a href="https://issuetracker.google.com/issues/new?component=328290&template=1">
+            submit a bug report</a>.]]>
           </section>
         </stepElement>
         <stepElement>
