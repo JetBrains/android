@@ -52,13 +52,14 @@ public class IssueView extends JPanel {
   private static final int BORDER_THICKNESS = 1;
   private static final JBColor SELECTED_BG_COLOR = new JBColor(0xf2f2f2, 0x232425);
   private static final RoundedLineBorder SELECTED_BORDER = IdeBorderFactory.createRoundedBorder(BORDER_THICKNESS);
-  private static final Border UNSELECTED_BORDER = IdeBorderFactory.createEmptyBorder(SELECTED_BORDER.getThickness());
+  private static final Border UNSELECTED_BORDER = JBUI.Borders.empty(SELECTED_BORDER.getThickness());
 
   static {
     SELECTED_BORDER.setColor(UIUtil.getTreeSelectionBorderColor());
   }
 
   private final IssuePanel myContainerIssuePanel;
+  @SuppressWarnings("FieldCanBeLocal") // Used for the form
   private JPanel myContent;
   private JBLabel myExpandIcon;
   private JLabel myErrorIcon;
@@ -278,7 +279,7 @@ public class IssueView extends JPanel {
    * from left to right
    */
   @NotNull
-  int[] getColumsX() {
+  int[] getColumnsX() {
     return new int[]{myExpandIcon.getX(), mySourceLabel.getX()};
   }
 
