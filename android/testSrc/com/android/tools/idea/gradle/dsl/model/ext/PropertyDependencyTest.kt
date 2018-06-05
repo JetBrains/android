@@ -646,7 +646,6 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     writeToSubModuleBuildFile(childText)
     writeToSettingsFile("include ':${SUB_MODULE_NAME}'")
 
-
     val buildModel = subModuleGradleBuildModel
     val artModel = buildModel.dependencies().artifacts()[0]
 
@@ -670,6 +669,29 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
                       ext.version = '1.0.0'
                       """.trimIndent()
     writeToNewProjectFile("superawesome.gradle", appliedText)
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    val artModel = buildModel.dependencies().artifacts()[0]
+
+    verifyPropertyModel(artModel.completeModel(), STRING_TYPE, "super:powers:1.0.0", STRING, DERIVED, 3)
+  }
+
+  @Test
+  fun testApplyFileWithRootDirVariables() {
+    val text = """
+               apply from: "${'$'}rootDir/deps.gradle"
+
+               dependencies {
+                 api("${'$'}group:${'$'}name:${'$'}version")
+               }
+               """.trimIndent()
+    val appliedText = """
+                      ext.group   = 'super'
+                      ext.name    = 'powers'
+                      ext.version = '1.0.0'
+                      """.trimIndent()
+    writeToNewProjectFile("deps.gradle", appliedText)
     writeToBuildFile(text)
 
     val buildModel = gradleBuildModel
