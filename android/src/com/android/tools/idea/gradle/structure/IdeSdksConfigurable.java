@@ -69,6 +69,7 @@ import java.awt.event.FocusListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
 import static com.android.SdkConstants.FD_NDK;
 import static com.android.SdkConstants.NDK_DIR_PROPERTY;
@@ -109,10 +110,10 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
   @NotNull private final BiMap<String, Component> myComponentsById = HashBiMap.create();
 
   // These paths are system-dependent.
-  private String myOriginalNdkHomePath;
-  private String myOriginalSdkHomePath;
-  private String myOriginalJdkHomePath;
-  private String myUserSelectedJdkHomePath;
+  @Nullable private String myOriginalNdkHomePath;
+  @Nullable private String myOriginalSdkHomePath;
+  @Nullable private String myOriginalJdkHomePath;
+  @Nullable private String myUserSelectedJdkHomePath;
   private boolean myOriginalUseEmbeddedJdk;
 
   private HyperlinkLabel myNdkDownloadHyperlinkLabel;
@@ -455,9 +456,9 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
 
   @Override
   public boolean isModified() {
-    return !myOriginalSdkHomePath.equals(getSdkLocation().getPath()) ||
-           !myOriginalNdkHomePath.equals(getNdkLocation().getPath()) ||
-           !myOriginalJdkHomePath.equals(getJdkLocation().getPath()) ||
+    return !Objects.equals(myOriginalSdkHomePath, getSdkLocation().getPath()) ||
+           !Objects.equals(myOriginalNdkHomePath, getNdkLocation().getPath()) ||
+           !Objects.equals(myOriginalJdkHomePath, getJdkLocation().getPath()) ||
            myOriginalUseEmbeddedJdk != useEmbeddedJdk();
   }
 
