@@ -30,7 +30,6 @@ sealed class ReverseDependency : PsModel() {
   val isPromoted: Boolean get() = resolvedSpec > spec
 
   override val isDeclared: Boolean = true
-  override val resolvedModel: Any? = null
   override val parent: PsModel? = null
 
   class Declared(

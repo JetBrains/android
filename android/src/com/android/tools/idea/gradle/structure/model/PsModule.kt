@@ -36,7 +36,7 @@ import javax.swing.Icon
 abstract class PsModule private constructor(
   override val parent: PsProject,
   override val name: String,
-  override val resolvedModel: Module?,
+  open val resolvedModel: Module?,
   open val gradlePath: String?,
   val parsedModel: GradleBuildModel?
 ) : PsChildModel() {

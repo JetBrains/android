@@ -26,7 +26,7 @@ open class PsProductFlavor(
   final override val parent: PsAndroidModule
 ) : PsChildModel(), PsAndroidModel {
 
-  final override var resolvedModel: ProductFlavor? = null
+  var resolvedModel: ProductFlavor? = null
   private var parsedModel: ProductFlavorModel? = null
 
   constructor(parent: PsAndroidModule, resolvedModel: ProductFlavor?, parsedModel: ProductFlavorModel?) : this(parent) {

@@ -28,7 +28,7 @@ open class PsVariant(override val parent: PsAndroidModule,
 
   private var myBuildType: String = ""
   private var myProductFlavors: List<String> = listOf()
-  final override var resolvedModel: IdeVariant? = null
+  var resolvedModel: IdeVariant? = null
   private var myArtifactCollection: PsAndroidArtifactCollection? = null
 
   constructor (parent: PsAndroidModule, name: String, buildType: String, productFlavors: List<String>, resolvedModel: IdeVariant?)

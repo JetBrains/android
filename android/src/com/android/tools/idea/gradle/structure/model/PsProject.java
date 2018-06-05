@@ -57,7 +57,6 @@ public class PsProject extends PsModel {
     return myModuleCollection.items().stream().filter(it -> Objects.equals(it.getGradlePath(), gradlePath)).findFirst().orElse(null);
   }
 
-  @Override
   @NotNull
   public Project getResolvedModel() {
     return myProject;

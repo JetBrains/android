@@ -33,8 +33,6 @@ abstract class PsModel protected constructor() {
 
   abstract val isDeclared: Boolean
 
-  abstract val resolvedModel: Any?
-
   open val icon: Icon? get() = null
 
   override fun toString(): String = name

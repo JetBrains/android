@@ -183,7 +183,7 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact) : P
           .filter { artifact.contains(it.parsedModel) }
       // TODO(b/74425541): Reconsider duplicates.
       declaredDependencies.addAll(matchingDeclaredDependencies)
-      val androidDependency = PsResolvedLibraryAndroidDependency(parent, this, spec, artifact, library, declaredDependencies)
+      val androidDependency = PsResolvedLibraryAndroidDependency(parent, this, spec, artifact, declaredDependencies)
       androidDependency.setDependenciesFromPomFile(parent.parent.pomDependencyCache.getPomDependencies(library.artifact))
       libraryDependenciesBySpec.put(androidDependency.spec.toLibraryKey(), androidDependency)
     }
