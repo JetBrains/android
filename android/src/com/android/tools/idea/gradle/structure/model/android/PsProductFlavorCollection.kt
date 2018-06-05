@@ -20,7 +20,7 @@ internal class PsProductFlavorCollection(parent: PsAndroidModule)
   override fun getKeys(from: PsAndroidModule): Set<String> {
     val result = mutableSetOf<String>()
     result.addAll(from.parsedModel?.android()?.productFlavors()?.map { it.name() }.orEmpty())
-    result.addAll(from.gradleModel.androidProject.productFlavors.map { it.productFlavor.name })
+    result.addAll(from.resolvedModel.androidProject.productFlavors.map { it.productFlavor.name })
     return result
   }
 
@@ -28,7 +28,7 @@ internal class PsProductFlavorCollection(parent: PsAndroidModule)
 
   override fun update(key: String, model: PsProductFlavor) {
     model.init(
-      parent.gradleModel.androidProject.productFlavors.map { it.productFlavor }.firstOrNull { it.name == key },
+      parent.resolvedModel.androidProject.productFlavors.map { it.productFlavor }.firstOrNull { it.name == key },
       parent.parsedModel?.android()?.productFlavors()?.firstOrNull { it.name() == key }
     )
   }
