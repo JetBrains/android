@@ -17,6 +17,7 @@ package com.android.tools.idea.databinding;
 
 import com.android.ide.common.resources.DataBindingResourceType;
 import com.android.tools.idea.res.*;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.*;
@@ -50,7 +51,7 @@ public class LightBrClass extends AndroidLightClassBase {
   private final Object myLock = new Object();
 
   public LightBrClass(@NotNull PsiManager psiManager, final AndroidFacet facet) {
-    super(psiManager);
+    super(psiManager, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL));
     myQualifiedName = DataBindingUtil.getBrQualifiedName(facet);
     myFacet = facet;
     myFieldCache =

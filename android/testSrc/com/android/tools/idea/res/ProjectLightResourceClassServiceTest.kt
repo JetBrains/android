@@ -59,7 +59,7 @@ class ProjectLightResourceClassServiceTest : AndroidTestCase() {
     assertThat(javaPsiFacade.findClass("p1.p2.R.color", myModule.moduleScope)).named("non-existing subclass").isNull()
   }
 
-  fun testCompletion() {
+  fun testInnerClassesCompletion() {
     myFixture.configureByText(
       "/src/p1/p2/MainActivity.java",
       // language=java
@@ -83,5 +83,31 @@ class ProjectLightResourceClassServiceTest : AndroidTestCase() {
 
     // TODO(b/80425291): remove "sample"
     assertThat(myFixture.lookupElementStrings).containsExactly("class", "string", "sample")
+  }
+
+  fun testTopLevelClassCompletion() {
+    val activity = myFixture.addFileToProject(
+      "/src/p1/p2/MainActivity.java",
+      // language=java
+      """
+        package p1.p2;
+
+        import android.app.Activity;
+        import android.os.Bundle;
+
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                getResources().getString(p1.p2.${caret});
+            }
+        }
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+    myFixture.completeBasic()
+
+    assertThat(myFixture.lookupElementStrings).containsExactly("R", "MainActivity")
   }
 }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.databinding;
 
 import com.android.SdkConstants;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -25,7 +26,6 @@ import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.light.LightIdentifier;
 import com.intellij.psi.impl.light.LightMethod;
-import com.intellij.psi.impl.light.LightModifierList;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.AnnotatedElementsSearch;
 import com.intellij.psi.util.CachedValue;
@@ -47,14 +47,12 @@ public class LightGeneratedComponentClass extends AndroidLightClassBase implemen
   private final AndroidFacet myFacet;
   private CachedValue<PsiMethod[]> myMethodCache;
   private PsiFile myContainingFile;
-  private final PsiModifierList myPsiModifierList;
   private final DataBindingMode myMode;
 
   public LightGeneratedComponentClass(@NotNull PsiManager psiManager, final AndroidFacet facet) {
-    super(psiManager);
+    super(psiManager, ImmutableSet.of(PsiModifier.PUBLIC));
     myMode = ModuleDataBinding.getInstance(facet).getDataBindingMode();
     myFacet = facet;
-    myPsiModifierList = new LightModifierList(myManager, getLanguage(), PsiModifier.PUBLIC);
     myMethodCache =
       CachedValuesManager.getManager(facet.getModule().getProject()).createCachedValue(
         () -> {
@@ -121,11 +119,6 @@ public class LightGeneratedComponentClass extends AndroidLightClassBase implemen
   @Override
   public boolean isInterface() {
     return true;
-  }
-
-  @Override
-  public PsiModifierList getModifierList() {
-    return myPsiModifierList;
   }
 
   @Override
