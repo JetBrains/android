@@ -188,12 +188,6 @@ public class PsIssueCollectionTest {
       public boolean isDeclared() {
         return false;
       }
-
-      @Nullable
-      @Override
-      public Object getResolvedModel() {
-        return null;
-      }
     }, Comparator.comparing(PsIssue::getText));
     assertThat(issues).isEmpty();
   }

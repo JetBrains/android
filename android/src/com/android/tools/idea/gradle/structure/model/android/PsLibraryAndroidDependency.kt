@@ -46,7 +46,6 @@ open class PsDeclaredLibraryAndroidDependency(
       nameResolvedProperty.forceString(),
       versionResolvedProperty.toString()
     )
-  override val resolvedModel: Any? = null
   override val isDeclared: Boolean = true
   final override val configurationName: String = parsedModel.configurationName()
   override val joinedConfigurationNames: String = configurationName
@@ -102,7 +101,6 @@ open class PsResolvedLibraryAndroidDependency(
   val collection: PsAndroidArtifactDependencyCollection,
   override val spec: PsArtifactDependencySpec,
   val artifact: PsAndroidArtifact,
-  override val resolvedModel: Library,
   internal val declaredDependencies: Collection<PsDeclaredLibraryAndroidDependency>
 ) : PsLibraryAndroidDependency(parent, listOf(artifact)), PsResolvedDependency, PsResolvedLibraryDependency {
   private val parsedModels = declaredDependencies.map { it.parsedModel }

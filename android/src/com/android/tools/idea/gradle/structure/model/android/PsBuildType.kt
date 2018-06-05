@@ -29,7 +29,7 @@ open class PsBuildType(
   final override val parent: PsAndroidModule
 ) : PsChildModel(), PsAndroidModel {
 
-  final override var resolvedModel: BuildType? = null
+  var resolvedModel: BuildType? = null
   private var parsedModel: BuildTypeModel? = null
 
   constructor (parent: PsAndroidModule, resolvedModel: BuildType?, parsedModel: BuildTypeModel?) : this(parent) {

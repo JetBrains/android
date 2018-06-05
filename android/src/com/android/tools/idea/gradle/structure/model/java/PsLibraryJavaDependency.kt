@@ -29,7 +29,7 @@ import kotlin.reflect.KProperty
 class PsLibraryJavaDependency(
   parent: PsJavaModule,
   override val spec: PsArtifactDependencySpec,
-  override val resolvedModel: JarLibraryDependency?,
+  val resolvedModel: JarLibraryDependency?,
   override val parsedModel: ArtifactDependencyModel
 ) : PsJavaDependency(parent),
     PsLibraryDependency, PsDeclaredDependency, PsResolvedDependency, PsDeclaredLibraryDependency, PsResolvedLibraryDependency {

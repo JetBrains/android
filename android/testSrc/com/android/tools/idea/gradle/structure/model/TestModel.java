@@ -44,12 +44,6 @@ public class TestModel extends PsModel {
 
   @Nullable
   @Override
-  public Object getResolvedModel() {
-    return null;
-  }
-
-  @Nullable
-  @Override
   public PsModel getParent() {
     return myParent;
   }

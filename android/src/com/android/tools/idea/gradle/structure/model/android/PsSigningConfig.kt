@@ -29,12 +29,8 @@ class PsSigningConfig(
   override val parent: PsAndroidModule
 ) : PsChildModel(), PsAndroidModel {
 
-  override var resolvedModel: SigningConfig? = null
+  var resolvedModel: SigningConfig? = null
   private var parsedModel: SigningConfigModel? = null
-
-  constructor(parent: PsAndroidModule, resolvedModel: SigningConfig?, parsedModel: SigningConfigModel?) : this(parent) {
-    init(resolvedModel, parsedModel)
-  }
 
   internal fun init(resolvedModel: SigningConfig?,
                     parsedModel: SigningConfigModel?) {

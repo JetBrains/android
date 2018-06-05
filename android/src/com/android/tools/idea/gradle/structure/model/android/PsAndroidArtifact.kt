@@ -35,7 +35,7 @@ class PsAndroidArtifact(override val parent: PsVariant, val resolvedName: String
 
   override val name: String
   override val icon: Icon
-  override var resolvedModel: IdeBaseArtifact? = null
+  var resolvedModel: IdeBaseArtifact? = null
 
   constructor(parent: PsVariant, resolvedName: String, resolvedModel: IdeBaseArtifact?): this(parent, resolvedName) {
     init(resolvedModel)
