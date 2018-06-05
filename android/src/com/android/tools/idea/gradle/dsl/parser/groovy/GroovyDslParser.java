@@ -84,7 +84,6 @@ import static com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslEle
 import static com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement.ADB_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement.BUILD_TYPES_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationsDslElement.CONFIGURATIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.DataBindingDslElement.DATA_BINDING_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.DexOptionsDslElement.DEX_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD_BLOCK_NAME;
@@ -106,6 +105,7 @@ import static com.android.tools.idea.gradle.dsl.parser.android.testOptions.UnitT
 import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationsDslElement.CONFIGURATIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.COMPILE_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT_BLOCK_NAME;
@@ -720,6 +720,12 @@ public class GroovyDslParser implements GradleDslParser {
       GradleDslElement element = resultElement.getElement(nestedElementName);
       if (element == null) {
         GradlePropertiesDslElement newElement;
+        if ("rootProject".equals(nestedElementName)) {
+          // Note: This behaviour is NOT completely consistent with Gradle, if a projects uses a mixture of
+          // different projects Ext blocks then we may say certain variables are in scope when in fact they aren't.
+          resultElement = myDslFile;
+          continue;
+        }
         // Ext element is supported for any Gradle domain object that implements ExtensionAware.
         if (!(resultElement instanceof BuildScriptDslElement) && EXT_BLOCK_NAME.equals(nestedElementName)) {
           newElement = new ExtDslElement(resultElement);

@@ -699,4 +699,33 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
 
     verifyPropertyModel(artModel.completeModel(), STRING_TYPE, "super:powers:1.0.0", STRING, DERIVED, 3)
   }
+
+  @Test
+  fun testMultipleAllProjectBlocks() {
+    val text = """
+               allprojects { project ->
+                 apply from: "versions.gradle"
+               }
+               subprojects { project ->
+                 apply from: "versions2.gradle"
+               }
+               """.trimIndent()
+    val allProjectsText = "rootProject.ext.property = 'boo'"
+    val subProjectsText = "ext.other = 'agh'"
+    val childText = """
+                    dependencies {
+                      compile "${'$'}{property}:${'$'}other:2.0"
+                    }
+                    """.trimIndent()
+    writeToNewProjectFile("versions.gradle", allProjectsText)
+    writeToNewProjectFile("versions2.gradle", subProjectsText)
+    writeToBuildFile(text)
+    writeToSubModuleBuildFile(childText)
+    writeToSettingsFile("include ':${SUB_MODULE_NAME}'")
+
+    val buildModel = subModuleGradleBuildModel
+    val artModel = buildModel.dependencies().artifacts()[0]
+
+    verifyPropertyModel(artModel.completeModel(), STRING_TYPE, "boo:agh:2.0", STRING, REGULAR, 2)
+  }
 }
