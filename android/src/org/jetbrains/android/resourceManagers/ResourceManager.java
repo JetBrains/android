@@ -88,17 +88,9 @@ public abstract class ResourceManager {
   @Nullable
   public abstract AttributeDefinitions getAttributeDefinitions();
 
-  private void processFileResources(boolean withDependencies,
+  private void processFileResources(@NotNull Multimap<String, VirtualFile> resDirs,
                                     @NotNull ResourceFolderType folderType,
                                     @NotNull FileResourceProcessor processor) {
-    Multimap<String, VirtualFile> resDirs;
-    if (withDependencies) {
-      resDirs = getAllResourceDirs();
-    } else {
-      resDirs = HashMultimap.create();
-      resDirs.putAll(null, getResourceDirs());
-    }
-
     for (Map.Entry<String, Collection<VirtualFile>> entry : resDirs.asMap().entrySet()) {
       for (VirtualFile resSubdir : AndroidResourceUtil.getResourceSubdirs(folderType,  entry.getValue())) {
         ResourceFolderType resType = ResourceFolderType.getFolderType(resSubdir.getName());
@@ -118,6 +110,18 @@ public abstract class ResourceManager {
     }
   }
 
+  @NotNull
+  private Multimap<String, VirtualFile> getResourceDirsByLibraryName(boolean withDependencies) {
+    Multimap<String, VirtualFile> resDirs;
+    if (withDependencies) {
+      resDirs = getAllResourceDirs();
+    } else {
+      resDirs = HashMultimap.create();
+      resDirs.putAll(null, getResourceDirs());
+    }
+    return resDirs;
+  }
+
   public boolean isResourcePublic(@NotNull String type, @NotNull String name) {
     return true;
   }
@@ -133,7 +137,7 @@ public abstract class ResourceManager {
                                          boolean distinguishDelimitersInName,
                                          boolean withDependencies) {
     List<PsiFile> result = new ArrayList<>();
-    processFileResources(withDependencies, resourceFolderType, (resFile, resName, libraryName) -> {
+    processFileResources(getResourceDirsByLibraryName(withDependencies), resourceFolderType, (resFile, resName, libraryName) -> {
       if (resName1 == null || AndroidUtils.equal(resName1, resName, distinguishDelimitersInName)) {
         PsiFile file = AndroidPsiUtils.getPsiFileSafely(myProject, resFile);
         if (file != null) {
@@ -147,7 +151,7 @@ public abstract class ResourceManager {
   @NotNull
   protected final Multimap<String, XmlFile> findValueResourcesByLibraryName() {
     Multimap<String, XmlFile> result = HashMultimap.create();
-    processFileResources(true, ResourceFolderType.VALUES, (resFile, resName, libraryName) -> {
+    processFileResources(getAllResourceDirs(), ResourceFolderType.VALUES, (resFile, resName, libraryName) -> {
         PsiFile file = AndroidPsiUtils.getPsiFileSafely(myProject, resFile);
         if (file instanceof XmlFile) {
           result.put(libraryName, (XmlFile)file);
