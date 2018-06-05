@@ -70,12 +70,14 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
                                       @NotNull GradleNameElement name,
                                       @Nullable PsiElement expression) {
     super(parent, psiElement, name);
-    myResolvedCachedValue = new CachedValue<>(this, GradleDslSimpleExpression::produceValue);
-    myUnresolvedCachedValue = new CachedValue<>(this, GradleDslSimpleExpression::produceUnresolvedValue);
-    myRawCachedValue = new CachedValue<>(this, GradleDslSimpleExpression::produceRawValue);
     myExpression = expression;
     myHasCycle = ThreeState.UNSURE;
     resolve();
+    // Resolved values must be created after resolve() is called. If the debugger calls toString to trigger
+    // any of the producers they will be stuck with the wrong value as dependencies have not been computed.
+    myResolvedCachedValue = new CachedValue<>(this, GradleDslSimpleExpression::produceValue);
+    myUnresolvedCachedValue = new CachedValue<>(this, GradleDslSimpleExpression::produceUnresolvedValue);
+    myRawCachedValue = new CachedValue<>(this, GradleDslSimpleExpression::produceRawValue);
   }
 
   @Nullable
