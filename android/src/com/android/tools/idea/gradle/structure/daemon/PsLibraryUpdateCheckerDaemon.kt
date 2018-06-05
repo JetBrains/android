@@ -137,7 +137,7 @@ class PsLibraryUpdateCheckerDaemon(context: PsContext) : PsDaemon(context) {
       val ids = mutableSetOf<LibraryUpdateId>()
       UIUtil.invokeAndWaitIfNeeded(Runnable {
         context.project.forEachModule { module ->
-          repositories.addAll(module.artifactRepositories)
+          repositories.addAll(module.getArtifactRepositories())
           if (module is PsAndroidModule) {
             module.dependencies.forEach { dependency ->
               if (dependency is PsLibraryDependency) {

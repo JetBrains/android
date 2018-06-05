@@ -104,7 +104,7 @@ class PsContextImpl constructor (override val project: PsProject, parentDisposab
     synchronized(lock) {
       artifactRepositorySearchServices
         .getOrPut(module, { CachingArtifactRepositorySearch(
-          ArtifactRepositorySearch(module.artifactRepositories)) })
+          ArtifactRepositorySearch(module.getArtifactRepositories())) })
     }
 
 

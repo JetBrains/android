@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeE
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.AbstractDependenciesPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.DeclaredDependenciesTableView
-import com.android.tools.idea.gradle.structure.daemon.PsAnalyzerDaemon
 import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
 import com.android.tools.idea.gradle.structure.model.PsIssue
 import com.android.tools.idea.gradle.structure.model.PsModule
@@ -81,7 +80,7 @@ internal class DeclaredDependenciesPanel(
     dependenciesTableModel = DeclaredDependenciesTableModel(module, context)
     dependenciesTable = DeclaredDependenciesTableView(dependenciesTableModel, context)
 
-    module.add(PsModule.DependenciesChangeListener { event ->
+    module.addDependencyChangedListener(this) { event ->
       dependenciesTableModel.reset()
       var toSelect: PsAndroidDependency? = null
       if (event is PsModule.LibraryDependencyAddedEvent) {
@@ -97,7 +96,7 @@ internal class DeclaredDependenciesPanel(
       if (toSelect != null) {
         dependenciesTable.selection = listOf(toSelect)
       }
-    }, this)
+    }
 
     dependenciesTable.selectionModel.addListSelectionListener { updateDetailsAndIssues() }
     dependenciesTable.selectFirstRow()

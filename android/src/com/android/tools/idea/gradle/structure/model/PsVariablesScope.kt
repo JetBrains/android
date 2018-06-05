@@ -60,4 +60,26 @@ interface PsVariablesScope {
 
   // TODO(solodkyy): Expose list/map manipulation methods instead.
   val container: ExtModel
+
+  object NONE : PsVariablesScope {
+    override val name: String = ""
+
+    override val title: String = ""
+
+    override val model: PsModel = throw UnsupportedOperationException()
+
+    override val container: ExtModel = throw UnsupportedOperationException()
+
+    override fun <ValueT : Any> getAvailableVariablesFor(
+      property: ModelPropertyContext<ValueT>): List<Annotated<ParsedValue.Set.Parsed<ValueT>>> = listOf()
+
+    override fun getModuleVariables(): List<PsVariable> = listOf()
+
+    override fun getVariableScopes(): List<PsVariablesScope> = listOf()
+
+    override fun getNewVariableName(preferredName: String): String = throw UnsupportedOperationException()
+
+    override fun getOrCreateVariable(name: String): PsVariable = throw UnsupportedOperationException()
+  }
 }
+

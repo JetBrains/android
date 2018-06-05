@@ -420,7 +420,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     val appModule = project.findModuleByName("app") as PsAndroidModule?
     assertNotNull(appModule); appModule!!
 
-    assertThat(appModule.configurations).containsExactly(
+    assertThat(appModule.getConfigurations()).containsExactly(
       "implementation",
       "releaseImplementation",
       "debugImplementation",
