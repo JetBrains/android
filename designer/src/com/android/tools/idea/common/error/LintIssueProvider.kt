@@ -52,8 +52,11 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
       builder.newline().newline()
       builder.addHtml(issue.getExplanation(TextFormat.HTML))
       builder.newline()
+      builder.newline()
+      builder.beginItalic()
       builder.addHtml("Issue id: ")
       builder.addHtml(issue.id)
+      builder.endItalic()
       builder.newline()
       val moreInfo = issue.moreInfo
       val count = moreInfo.size
