@@ -145,9 +145,9 @@ public abstract class ResourceManager {
   }
 
   @NotNull
-  protected Multimap<String, XmlFile> findResourceFilesByLibraryName(@NotNull ResourceFolderType folderType) {
+  protected final Multimap<String, XmlFile> findValueResourcesByLibraryName() {
     Multimap<String, XmlFile> result = HashMultimap.create();
-    processFileResources(true, folderType, (resFile, resName, libraryName) -> {
+    processFileResources(true, ResourceFolderType.VALUES, (resFile, resName, libraryName) -> {
         PsiFile file = AndroidPsiUtils.getPsiFileSafely(myProject, resFile);
         if (file instanceof XmlFile) {
           result.put(libraryName, (XmlFile)file);

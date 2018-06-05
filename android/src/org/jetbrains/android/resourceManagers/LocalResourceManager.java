@@ -123,7 +123,7 @@ public class LocalResourceManager extends ResourceManager {
           systemResourceManager == null ? null : systemResourceManager.getAttributeDefinitions();
       ApplicationManager.getApplication().runReadAction(() -> {
         myAttrDefs = new AttributeDefinitionsImpl(systemAttributeDefinitions,
-                                                  findResourceFilesByLibraryName(ResourceFolderType.VALUES));
+                                                  findValueResourcesByLibraryName());
       });
     }
     return myAttrDefs;
