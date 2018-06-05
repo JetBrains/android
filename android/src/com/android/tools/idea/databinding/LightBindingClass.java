@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.resources.DataBindingResourceType;
 import com.android.tools.idea.res.DataBindingInfo;
 import com.android.tools.idea.res.PsiDataBindingResourceItem;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.lang.Language;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.lang.java.JavaParserDefinition;
@@ -68,7 +69,7 @@ public class LightBindingClass extends AndroidLightClassBase {
   private final Object myLock = new Object();
 
   protected LightBindingClass(final AndroidFacet facet, @NotNull PsiManager psiManager, DataBindingInfo info) {
-    super(psiManager);
+    super(psiManager, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL));
     myInfo = info;
     myFacet = facet;
     // TODO we should create a virtual one not use the XML.

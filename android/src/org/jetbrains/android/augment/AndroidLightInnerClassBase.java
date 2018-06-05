@@ -1,19 +1,21 @@
 package org.jetbrains.android.augment;
 
+import com.google.common.collect.ImmutableSet;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiModifier;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * @author Eugene.Kudelevsky
+ * Base for all light inner classes implementations, e.g. {@code R.string} or {@code Manifest.permission}.
  */
-public abstract class AndroidLightClass extends AndroidLightClassBase {
-  private final PsiClass myContainingClass;
-  protected final String myName;
+public abstract class AndroidLightInnerClassBase extends AndroidLightClassBase {
+  @NotNull private final PsiClass myContainingClass;
+  @NotNull protected final String myName;
 
-  protected AndroidLightClass(@NotNull PsiClass context, @NotNull String name) {
-    super(context.getManager());
+  protected AndroidLightInnerClassBase(@NotNull PsiClass context, @NotNull String name) {
+    super(context.getManager(), ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
     myContainingClass = context;
     myName = name;
   }
@@ -54,11 +56,13 @@ public abstract class AndroidLightClass extends AndroidLightClassBase {
     return myContainingClass;
   }
 
+  @NotNull
   @Override
   public PsiClass getContainingClass() {
     return myContainingClass;
   }
 
+  @NotNull
   @Override
   public String getName() {
     return myName;

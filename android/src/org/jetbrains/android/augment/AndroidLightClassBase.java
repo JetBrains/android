@@ -31,8 +31,14 @@ import java.util.List;
  * @author Eugene.Kudelevsky
  */
 public abstract class AndroidLightClassBase extends LightElement implements PsiClass, SyntheticElement {
-  protected AndroidLightClassBase(@NotNull PsiManager psiManager) {
+  private final LightModifierList myPsiModifierList;
+
+  protected AndroidLightClassBase(@NotNull PsiManager psiManager, @NotNull Collection<String> modifiers) {
     super(psiManager, JavaLanguage.INSTANCE);
+    myPsiModifierList = new LightModifierList(psiManager);
+    for (String modifier : modifiers) {
+      myPsiModifierList.addModifier(modifier);
+    }
   }
 
   @Override
@@ -275,8 +281,8 @@ public abstract class AndroidLightClassBase extends LightElement implements PsiC
   }
 
   @Override
-  public PsiModifierList getModifierList() {
-    return new LightModifierList(myManager, getLanguage(), PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL);
+  public final PsiModifierList getModifierList() {
+    return myPsiModifierList;
   }
 
   @Override
