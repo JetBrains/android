@@ -397,7 +397,9 @@ public class StudioIcons {
 
     public static class Toolbar {
       public static final Icon ADD_DESTINATION = load("/studio/icons/nav-editor/toolbar/add-destination.png"); // 16x16
-      public static final Icon ADD_EXISTING = load("/studio/icons/nav-editor/toolbar/add-existing.png"); // 16x16
+      public static final Icon ASSIGN_START = load("/studio/icons/nav-editor/toolbar/assign-start.png"); // 16x16
+      public static final Icon AUTO_ARRANGE = load("/studio/icons/nav-editor/toolbar/auto-arrange.png"); // 16x16
+      public static final Icon DEEPLINK = load("/studio/icons/nav-editor/toolbar/deeplink.png"); // 16x16
     }
 
     public static class Tree {
