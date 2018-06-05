@@ -106,12 +106,8 @@ public class AndroidGradleTests {
   @NotNull
   public static String updateLocalRepositories(@NotNull String contents, @NotNull String localRepositories) {
     String newContents = REPOSITORIES_PATTERN.matcher(contents).replaceAll("repositories {\n" + localRepositories);
-    if (TestUtils.runningFromBazel()) {
-      // only remove google() and jcenter() repositories if tests run in Bazel, because the sandbox will make tests fail with
-      // Gradle 4.2+
-      newContents = GOOGLE_REPOSITORY_PATTERN.matcher(newContents).replaceAll("");
-      newContents = JCENTER_REPOSITORY_PATTERN.matcher(newContents).replaceAll("");
-    }
+    newContents = GOOGLE_REPOSITORY_PATTERN.matcher(newContents).replaceAll("");
+    newContents = JCENTER_REPOSITORY_PATTERN.matcher(newContents).replaceAll("");
     return newContents;
   }
 
