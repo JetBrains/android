@@ -728,4 +728,30 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
 
     verifyPropertyModel(artModel.completeModel(), STRING_TYPE, "boo:agh:2.0", STRING, REGULAR, 2)
   }
+
+  @Test
+  fun testReferenceBlockElement() {
+    val text = """
+               android {
+                 compileSdkVersion 26
+               }
+
+               ext {
+                 prop1 = android
+               }
+               """.trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    // Access the repository block to ensure nothing bad happens when resolving the reference
+    val repos = buildModel.repositories()
+    assertSize(0, repos.repositories())
+
+    val prop1Model = buildModel.ext().findProperty("prop1")
+    val prop2Model = buildModel.ext().findProperty("prop2")
+    prop2Model.setValue(ReferenceTo("repositories"))
+    verifyPropertyModel(prop1Model.resolve(), STRING_TYPE, "android", UNKNOWN, REGULAR, 1)
+    verifyPropertyModel(prop2Model.resolve(), STRING_TYPE, "repositories", REFERENCE, REGULAR, 0)
+  }
 }

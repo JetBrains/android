@@ -75,9 +75,6 @@ public final class DependencyManager {
       // Attempt to re-resolve any references.
       GradleDslElement newElement = injection.getOriginElement().resolveReference(injection.getName(), true);
       if (newElement != null) {
-        assert newElement instanceof GradleDslSimpleExpression ||
-               newElement instanceof GradleDslExpressionList ||
-               newElement instanceof GradleDslExpressionMap;
         injection.resolveWith(newElement);
         newElement.registerDependent(injection);
         it.remove();
