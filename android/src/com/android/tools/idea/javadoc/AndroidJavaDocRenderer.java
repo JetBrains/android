@@ -811,7 +811,9 @@ public class AndroidJavaDocRenderer {
                 }
                 ResourceValue resourceValue;
                 if (resolvedUrl.isTheme()) {
-                  resourceValue = resolver.findItemInTheme(resolvedUrl.name, resolvedUrl.isFramework());
+                  ResourceReference ref =
+                      new ResourceReference(ResourceNamespace.fromBoolean(resolvedUrl.isFramework()), ResourceType.ATTR, resolvedUrl.name);
+                  resourceValue = resolver.findItemInTheme(ref);
                 }
                 else {
                   resourceValue = resolver.findResValue(resolvedUrl.toString(), resolvedUrl.isFramework());

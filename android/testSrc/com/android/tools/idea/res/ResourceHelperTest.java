@@ -18,6 +18,7 @@ package com.android.tools.idea.res;
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -236,7 +237,7 @@ public class ResourceHelperTest extends AndroidTestCase {
 
   public void testResolveEmptyStatelist() {
     VirtualFile file = myFixture.copyFileToProject("resourceHelper/empty_state_list.xml", "res/color/empty_state_list.xml");
-    RenderResources rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver();
+    ResourceResolver rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver();
     assertNotNull(rr);
     ResourceValue rv = rr.getProjectResource(ResourceType.COLOR, "empty_state_list");
     assertNotNull(rv);
