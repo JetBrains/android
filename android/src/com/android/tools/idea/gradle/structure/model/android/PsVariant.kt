@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.ide.common.gradle.model.IdeVariant
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.google.common.collect.ImmutableList
 import icons.AndroidIcons
@@ -24,7 +23,7 @@ import org.jetbrains.annotations.TestOnly
 import javax.swing.Icon
 
 open class PsVariant(override val parent: PsAndroidModule,
-                     override val name: String) : PsChildModel(), PsAndroidModel {
+                     override val name: String) : PsChildModel() {
 
   private var myBuildType: String = ""
   private var myProductFlavors: List<String> = listOf()
@@ -42,8 +41,6 @@ open class PsVariant(override val parent: PsAndroidModule,
     this.resolvedModel = resolvedModel
     myArtifactCollection = null
   }
-
-  override val gradleModel: AndroidModuleModel get() = parent.gradleModel
 
   open val buildType: PsBuildType get() = parent.findBuildType(myBuildType)!!
 

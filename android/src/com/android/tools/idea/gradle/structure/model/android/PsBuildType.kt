@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.builder.model.BuildType
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.tools.idea.gradle.structure.model.helpers.*
 import com.android.tools.idea.gradle.structure.model.meta.*
@@ -27,7 +26,7 @@ private const val DEBUG_BUILD_TYPE_NAME = "debug"
 
 open class PsBuildType(
   final override val parent: PsAndroidModule
-) : PsChildModel(), PsAndroidModel {
+) : PsChildModel() {
 
   var resolvedModel: BuildType? = null
   private var parsedModel: BuildTypeModel? = null
@@ -59,7 +58,6 @@ open class PsBuildType(
   var manifestPlaceholders by BuildTypeDescriptors.manifestPlaceholders
 
   override val isDeclared: Boolean get() = parsedModel != null
-  override val gradleModel: AndroidModuleModel get() = parent.gradleModel
 
   fun ensureDeclared() {
     if (parsedModel == null) {

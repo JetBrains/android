@@ -24,7 +24,7 @@ import java.io.File
 
 open class PsProductFlavor(
   final override val parent: PsAndroidModule
-) : PsChildModel(), PsAndroidModel {
+) : PsChildModel() {
 
   var resolvedModel: ProductFlavor? = null
   private var parsedModel: ProductFlavorModel? = null
@@ -56,7 +56,6 @@ open class PsProductFlavor(
   var testInstrumentationRunnerArguments by ProductFlavorDescriptors.testInstrumentationRunnerArguments
 
   override val isDeclared: Boolean get() = parsedModel != null
-  override val gradleModel: AndroidModuleModel get() = parent.gradleModel
 
   object ProductFlavorDescriptors : ModelDescriptor<PsProductFlavor, ProductFlavor, ProductFlavorModel> {
     override fun getResolved(model: PsProductFlavor): ProductFlavor? = model.resolvedModel
