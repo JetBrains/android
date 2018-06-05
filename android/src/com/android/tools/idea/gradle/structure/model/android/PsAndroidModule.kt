@@ -32,9 +32,9 @@ class PsAndroidModule(
   parent: PsProject,
   resolvedModel: Module,
   gradlePath: String,
-  override val gradleModel: AndroidModuleModel,
+  val gradleModel: AndroidModuleModel,
   parsedModel: GradleBuildModel
-) : PsModule(parent, resolvedModel, gradlePath, parsedModel), PsAndroidModel {
+) : PsModule(parent, resolvedModel, gradlePath, parsedModel) {
   private var buildTypeCollection: PsBuildTypeCollection? = null
   private var productFlavorCollection: PsProductFlavorCollection? = null
   private var variantCollection: PsVariantCollection? = null

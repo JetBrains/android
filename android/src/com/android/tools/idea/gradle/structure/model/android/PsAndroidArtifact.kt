@@ -19,7 +19,6 @@ import com.android.builder.model.AndroidProject.*
 import com.android.ide.common.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.*
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
@@ -31,7 +30,7 @@ import org.jetbrains.annotations.NonNls
 import javax.swing.Icon
 
 class PsAndroidArtifact(override val parent: PsVariant, val resolvedName: String)
-  : PsChildModel(), PsAndroidModel {
+  : PsChildModel() {
 
   override val name: String
   override val icon: Icon
@@ -64,8 +63,6 @@ class PsAndroidArtifact(override val parent: PsVariant, val resolvedName: String
   }
 
   private var myDependencies: PsAndroidArtifactDependencyCollection? = null
-
-  override val gradleModel: AndroidModuleModel get() = parent.gradleModel
 
   override val isDeclared: Boolean = false
 

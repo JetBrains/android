@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.builder.model.SigningConfig
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.tools.idea.gradle.structure.model.helpers.matchFiles
 import com.android.tools.idea.gradle.structure.model.helpers.parseFile
@@ -27,7 +26,7 @@ import java.io.File
 
 class PsSigningConfig(
   override val parent: PsAndroidModule
-) : PsChildModel(), PsAndroidModel {
+) : PsChildModel() {
 
   var resolvedModel: SigningConfig? = null
   private var parsedModel: SigningConfigModel? = null
@@ -46,7 +45,6 @@ class PsSigningConfig(
   var keyPassword by SigningConfigDescriptors.keyPassword
 
   override val isDeclared: Boolean get() = parsedModel != null
-  override val gradleModel: AndroidModuleModel get() = parent.gradleModel
 
   object SigningConfigDescriptors : ModelDescriptor<PsSigningConfig, SigningConfig, SigningConfigModel> {
     override fun getResolved(model: PsSigningConfig): SigningConfig? = model.resolvedModel
