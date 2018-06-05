@@ -15,20 +15,16 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
 import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler;
 import com.android.fakeadbserver.shellcommandhandlers.GetPropCommandHandler;
-import com.android.fakeadbserver.shellcommandhandlers.ShellCommandHandler;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.google.common.base.Charsets;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.StringTextMatcher;
@@ -40,9 +36,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.Socket;
+import java.util.Arrays;
 
 import static com.android.testutils.truth.FileSubject.assertThat;
 
@@ -75,7 +69,10 @@ public class X86AbiSplitApksTest extends DebuggerTestBase {
       )
       // This test needs to query the device for ABIs, so we need some expanded functionality for the
       // getprop command handler:
-      .setShellCommandHandler(GetPropCommandHandler.COMMAND, GetAbiListPropCommandHandler::new)
+      .setShellCommandHandler(
+        GetPropCommandHandler.COMMAND,
+        () -> new GetAbiListPropCommandHandler(Arrays.asList("x86"))
+      )
       .setDeviceCommandHandler(JdwpCommandHandler.COMMAND, JdwpCommandHandler::new)
       .build();
 
@@ -150,26 +147,5 @@ public class X86AbiSplitApksTest extends DebuggerTestBase {
     AndroidDebugBridge.terminate();
     AndroidDebugBridge.disableFakeAdbServerMode();
     fakeAdbServer.close();
-  }
-
-  private static class GetAbiListPropCommandHandler extends ShellCommandHandler {
-    @Override
-    public boolean invoke(
-      @NonNull FakeAdbServer fakeAdbServer,
-      @NonNull Socket responseSocket,
-      @NonNull DeviceState device,
-      @Nullable String args
-    ) {
-      // Collect the base properties from the default getprop command handler:
-      new GetPropCommandHandler().invoke(fakeAdbServer, responseSocket, device, args);
-
-      try {
-        OutputStream response = responseSocket.getOutputStream();
-        response.write("[ro.product.cpu.abilist]: [x86]\n".getBytes(Charsets.UTF_8));
-      } catch (IOException ignored) {
-        // Unable to respond to client. Unable to do anything. Swallow exception and move on
-      }
-      return false;
-    }
   }
 }
