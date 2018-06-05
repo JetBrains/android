@@ -184,7 +184,7 @@ class DependencyManagementTest : DependencyTestCase() {
     val numberOfMatchingDependencies = 2
     assertThat(lib10!!.size, equalTo(numberOfMatchingDependencies))
     var notifications = 0
-    module.add(PsModule.DependenciesChangeListener { if (it is PsModule.DependencyRemovedEvent) notifications++ }, testRootDisposable)
+    module.addDependencyChangedListener(testRootDisposable) { if (it is PsModule.DependencyRemovedEvent) notifications++ }
     lib10.forEach {
       module.removeDependency(it)
     }
@@ -312,10 +312,10 @@ class DependencyManagementTest : DependencyTestCase() {
     }
 
     var modifiedEvent: PsModule.DependencyModifiedEvent? = null
-    module.add(PsModule.DependenciesChangeListener {
+    module.addDependencyChangedListener(testRootDisposable) {
       when (it) {is PsModule.DependencyModifiedEvent -> modifiedEvent = it
       }
-    }, testRootDisposable)
+    }
 
     declaredLib1Dependencies[0].version = "0.9.1".asParsed()
     assertThat<PsDeclaredDependency>(modifiedEvent?.dependency, sameInstance(declaredLib1Dependencies[0]))
