@@ -354,7 +354,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     }
     super.doLayout();
     if (lastView != null) {
-      myColumnHeaderView.setColumnsX(lastView.getColumsX());
+      myColumnHeaderView.setColumnsX(lastView.getColumnsX());
     }
   }
 
