@@ -15,9 +15,7 @@
  */
 package com.android.tools.adtui;
 
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.SelectionListener;
-import com.android.tools.adtui.model.SelectionModel;
+import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.swing.FakeKeyboard;
 import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.adtui.ui.AdtUiCursors;
@@ -195,6 +193,23 @@ public class SelectionComponentTest {
     assertThat(model.getSelectionRange().getMax()).isWithin(DELTA).of(85);
     ui.mouse.release();
     assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
+  }
+
+  @Test
+  public void mouseChangesWithConstraints() {
+    SelectionModel model = new SelectionModel(new Range(40, 50));
+    DefaultDataSeries<DefaultConfigurableDurationData> series = new DefaultDataSeries<>();
+    RangedSeries<DefaultConfigurableDurationData> ranged = new RangedSeries<>(new Range(0, 100), series);
+    DurationDataModel<DefaultConfigurableDurationData> constraint = new DurationDataModel<>(ranged);
+    series.add(41, new DefaultConfigurableDurationData(5, true, true));
+    model.addConstraint(constraint);
+    SelectionComponent component = new SelectionComponent(model, new Range(0, 100));
+    component.setSize(100, 100);
+    FakeUi ui = new FakeUi(component);
+    ui.mouse.moveTo(45, 50);
+    assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR));
+    ui.mouse.moveTo(30,50);
+    assertThat(component.getCursor()).isEqualTo(Cursor.getDefaultCursor());
   }
 
   @Test

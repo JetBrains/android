@@ -282,7 +282,8 @@ public final class SelectionComponent extends AnimatedComponent {
         setCursor(myMousePressed == -1 ? AdtUiCursors.GRAB : AdtUiCursors.GRABBING);
         break;
       case CREATE:
-        if (myMode == Mode.CREATE) {
+        double mouseRange = xToRange(newX);
+        if (myMode == Mode.CREATE && myModel.canSelectRange(new Range(mouseRange, mouseRange))) {
           // If already in CREATE mode, update cursor in case selection changed direction, e.g.
           // dragging max handle below min handle.
           if (myMousePressed < newX) {
