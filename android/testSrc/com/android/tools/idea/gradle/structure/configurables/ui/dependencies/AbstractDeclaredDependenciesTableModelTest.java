@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.dependencies;
 
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -56,8 +57,11 @@ public class AbstractDeclaredDependenciesTableModelTest extends IdeaTestCase {
     GradleBuildModel parsedModel = mock(GradleBuildModel.class);
     when(parsedModel.ext()).thenReturn(mock(ExtModel.class));
 
-    PsAndroidModule module =
-      new PsAndroidModule(project, myModule, "", mock(AndroidModuleModel.class), parsedModel);
+    IdeAndroidProject androidProject = mock(IdeAndroidProject.class);
+    when(androidProject.getName()).thenReturn("name");
+    AndroidModuleModel androidModuleModel = mock(AndroidModuleModel.class);
+    when(androidModuleModel.getAndroidProject()).thenReturn(androidProject);
+    PsAndroidModule module = new PsAndroidModule(project, androidModuleModel, "", parsedModel);
     PsContext context = mock(PsContext.class);
     when(context.getUiSettings()).thenReturn(myUISettings);
     myTableModel = new AbstractDeclaredDependenciesTableModel<PsAndroidDependency>(module, context) {};

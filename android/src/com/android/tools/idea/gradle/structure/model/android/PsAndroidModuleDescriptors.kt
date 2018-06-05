@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.ide.common.gradle.model.IdeAndroidProject
+import com.android.builder.model.AndroidProject
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel
 import com.android.tools.idea.gradle.structure.model.helpers.*
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.pom.java.LanguageLevel
 
-object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidProject, AndroidModel> {
-  override fun getResolved(model: PsAndroidModule): IdeAndroidProject = model.gradleModel.androidProject
+object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, AndroidProject, AndroidModel> {
+  override fun getResolved(model: PsAndroidModule): AndroidProject = model.gradleModel.androidProject
 
   override fun getParsed(model: PsAndroidModule): AndroidModel? = model.parsedModel?.android()
 

@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.structure.model.repositories.search.MavenCe
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.Result
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.module.Module
 import com.intellij.util.EventDispatcher
 import com.intellij.util.Urls
 import icons.StudioIcons.Shell.Filetree.ANDROID_MODULE
@@ -33,10 +32,9 @@ import java.io.File
 import java.util.*
 import javax.swing.Icon
 
-abstract class PsModule private constructor(
+abstract class PsModule protected constructor(
   override val parent: PsProject,
   override val name: String,
-  open val resolvedModel: Module?,
   open val gradlePath: String?,
   val parsedModel: GradleBuildModel?
 ) : PsChildModel() {
@@ -55,17 +53,10 @@ abstract class PsModule private constructor(
 
   override val icon: Icon? = ANDROID_MODULE
 
-  protected constructor(
-    parent: PsProject,
-    resolvedModel: Module,
-    gradlePath: String,
-    parsedModel: GradleBuildModel
-  ) : this(parent, resolvedModel.name, resolvedModel, gradlePath, parsedModel)
-
   /**
    * <All Modules> constructor.
    */
-  protected constructor(parent: PsProject, name: String) : this(parent, name, null, null, null)
+  protected constructor(parent: PsProject, name: String) : this(parent, name, null, null)
 
   abstract fun getConfigurations(): List<String>
   abstract fun addLibraryDependency(library: String, scopesNames: List<String>)

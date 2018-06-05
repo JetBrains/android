@@ -143,7 +143,11 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact) : P
     for (moduleLibrary in dependencies.moduleDependencies) {
       val gradlePath = moduleLibrary.projectPath
       if (gradlePath != null) {
-        addModule(gradlePath, artifact, moduleLibrary.variant)
+        val module = artifact.parent.parent.parent.findModuleByGradlePath(gradlePath)
+        // TODO(solodkyy): Support not yet resolved modules.
+        if (module != null) {
+          addModule(module, artifact, moduleLibrary.variant)
+        }
       }
     }
     for (javaLibrary in dependencies.javaLibraries) {
@@ -189,25 +193,22 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact) : P
     }
   }
 
-  private fun addModule(gradlePath: String, artifact: PsAndroidArtifact, projectVariant: String?) {
+  private fun addModule(module: PsModule, artifact: PsAndroidArtifact, projectVariant: String?) {
+    val gradlePath = module.gradlePath!!
     val matchingParsedDependency =
       parent
         .parsedDependencies
         .findModuleDependency(gradlePath) { parsedDependency: DependencyModel -> artifact.contains(parsedDependency) }
-    val module = parent.parent.findModuleByGradlePath(gradlePath)
-    val resolvedModule = module?.resolvedModel
-    if (resolvedModule != null) {
-      val dependency =
-        PsResolvedModuleAndroidDependency(
-          parent,
-          gradlePath,
-          ImmutableList.of(artifact),
-          matchingParsedDependency?.configurationName() ?: "",
-          projectVariant,
-          resolvedModule,
-          matchingParsedDependency.wrapInList())
-      moduleDependenciesByGradlePath.put(gradlePath, dependency)
-    }
+    val dependency =
+      PsResolvedModuleAndroidDependency(
+        parent,
+        gradlePath,
+        ImmutableList.of(artifact),
+        matchingParsedDependency?.configurationName() ?: "",
+        projectVariant,
+        module,
+        matchingParsedDependency.wrapInList())
+    moduleDependenciesByGradlePath.put(gradlePath, dependency)
     // else we have a resolved dependency on a removed module (or composite build etc.).
   }
 }
