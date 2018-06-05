@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.apply;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.PsiElement;
@@ -24,6 +25,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,7 +48,13 @@ public class ApplyDslElement extends GradlePropertiesDslElement {
       // Try and find the given file.
       String fileName = attemptToExtractFileName(from);
       if (fileName != null) {
-        VirtualFile file = VirtualFileManager.getInstance().findFileByUrl(getDslFile().getFile().getParent() + "/" + fileName);
+        File realFile = new File(fileName);
+        VirtualFile file;
+        if (realFile.exists() && realFile.isAbsolute()) {
+          file = LocalFileSystem.getInstance().findFileByIoFile(realFile);
+        } else {
+          file = VirtualFileManager.getInstance().findFileByUrl(getDslFile().getFile().getParent() + "/" + fileName);
+        }
         if (file != null) {
           // Parse the file
           GradleDslFile dslFile = getDslFile().getContext().getOrCreateBuildFile(file);
