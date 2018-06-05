@@ -72,7 +72,7 @@ public class AndroidDependencyScopesPanel extends AbstractDependencyScopesPanel 
   private JXLabel myScopesLabel;
 
   public AndroidDependencyScopesPanel(@NotNull PsAndroidModule module) {
-    myModelVersion = module.getGradleModel().getModelVersion();
+    myModelVersion = module.getResolvedModel().getModelVersion();
     myScopesLabel.setBorder(BorderFactory.createCompoundBorder(getTextFieldBorder(), JBUI.Borders.empty(2)));
     myScopesLabel.setBackground(getTextFieldBackground());
     myScopesLabel.setText(" ");

@@ -20,7 +20,7 @@ class PsSigningConfigCollection internal constructor(parent: PsAndroidModule)
   override fun getKeys(from: PsAndroidModule): Set<String> {
     val result = mutableSetOf<String>()
     result.addAll(from.parsedModel?.android()?.signingConfigs()?.map { it.name() }.orEmpty())
-    result.addAll(from.gradleModel.androidProject.signingConfigs.map { it.name })
+    result.addAll(from.resolvedModel.androidProject.signingConfigs.map { it.name })
     return result
   }
 
@@ -28,7 +28,7 @@ class PsSigningConfigCollection internal constructor(parent: PsAndroidModule)
 
   override fun update(key: String, model: PsSigningConfig) {
     model.init(
-      parent.gradleModel.androidProject.signingConfigs.firstOrNull { it.name == key },
+      parent.resolvedModel.androidProject.signingConfigs.firstOrNull { it.name == key },
       parent.parsedModel?.android()?.signingConfigs()?.firstOrNull { it.name() == key }
     )
   }

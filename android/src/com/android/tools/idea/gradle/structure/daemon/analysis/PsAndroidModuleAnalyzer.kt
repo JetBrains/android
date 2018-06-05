@@ -40,7 +40,7 @@ class PsAndroidModuleAnalyzer(context: PsContext) : PsModuleAnalyzer<PsAndroidMo
 
   override fun doAnalyze(model: PsAndroidModule, issueCollection: PsIssueCollection) {
     val issuesByData = ArrayListMultimap.create<String, SyncIssue>()
-    val gradleModel = model.gradleModel
+    val gradleModel = model.resolvedModel
     val syncIssues = gradleModel.androidProject.syncIssues
     for (syncIssue in syncIssues) {
       val data = nullToEmpty(syncIssue.data)

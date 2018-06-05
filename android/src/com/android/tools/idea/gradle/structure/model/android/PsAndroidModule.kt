@@ -32,17 +32,17 @@ import javax.swing.Icon
 
 class PsAndroidModule(
   parent: PsProject,
-  val gradleModel: AndroidModuleModel,
+  val resolvedModel: AndroidModuleModel,
   gradlePath: String,
   parsedModel: GradleBuildModel
-) : PsModule(parent, gradleModel.androidProject.name, gradlePath, parsedModel) {
+) : PsModule(parent, resolvedModel.androidProject.name, gradlePath, parsedModel) {
   private var buildTypeCollection: PsBuildTypeCollection? = null
   private var productFlavorCollection: PsProductFlavorCollection? = null
   private var variantCollection: PsVariantCollection? = null
   private var dependencyCollection: PsAndroidModuleDependencyCollection? = null
   private var signingConfigCollection: PsSigningConfigCollection? = null
 
-  val isLibrary: Boolean get() = gradleModel.androidProject.projectType != PROJECT_TYPE_APP
+  val isLibrary: Boolean get() = resolvedModel.androidProject.projectType != PROJECT_TYPE_APP
 
   val buildTypes: List<PsBuildType> get() = getOrCreateBuildTypeCollection().items()
   val productFlavors: List<PsProductFlavor> get() = getOrCreateProductFlavorCollection().items()
@@ -53,7 +53,7 @@ class PsAndroidModule(
   val flavorDimensions: Collection<String>
     get() {
       val result = mutableSetOf<String>()
-      result.addAll(gradleModel.androidProject.flavorDimensions)
+      result.addAll(resolvedModel.androidProject.flavorDimensions)
       val parsedFlavorDimensions = parsedModel?.android()?.flavorDimensions()?.toList()
       if (parsedFlavorDimensions != null) {
         result.addAll(parsedFlavorDimensions.map { v -> v.toString() })
@@ -73,7 +73,7 @@ class PsAndroidModule(
     // 'module' is either a Java library or an AAR module.
     (module as? PsAndroidModule)?.isLibrary == true
 
-  override val icon: Icon? get() = getAndroidModuleIcon(gradleModel)
+  override val icon: Icon? get() = getAndroidModuleIcon(resolvedModel)
 
   override fun populateRepositories(repositories: MutableList<ArtifactRepository>) {
     super.populateRepositories(repositories)
