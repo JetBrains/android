@@ -290,7 +290,12 @@ public class ResourceRepositoryManager implements Disposable {
         String libraryName = library.getArtifactAddress();
         if (!moduleNames.contains(libraryName)) {
           File resFolder = new File(library.getResFolder());
-          if (resFolder.exists()) {
+          if (new File(library.getFolder(), "res.apk").exists()) {
+            // TODO(b/74425399): Add getResApk() to Library and populate it in the model.
+            // TODO(b/74425399): decide what Gradle will do with AARv2 files and pass around the path to res.apk directly.
+            files.put(library.getFolder(), libraryName);
+            moduleNames.add(libraryName);
+          } else if (resFolder.exists()) {
             files.put(resFolder, libraryName);
             // Don't add it again!
             moduleNames.add(libraryName);
