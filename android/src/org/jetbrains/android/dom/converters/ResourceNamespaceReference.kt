@@ -41,7 +41,7 @@ import org.jetbrains.android.dom.resources.ResourceValue
 class ResourceNamespaceReference(
   domValue: GenericDomValue<*>,
   private val resourceValue: ResourceValue
-) : PsiReferenceBase<XmlElement>(DomUtil.getValueElement(domValue), null, true) {
+) : PsiReferenceBase<XmlElement>(DomUtil.getValueElement(domValue)!!, null, true) {
 
   override fun getVariants(): Array<PsiElement> = PsiElement.EMPTY_ARRAY
 
