@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.profilersAndroid",
     srcs = ["src"],
     iml_files = ["intellij.android.profilersAndroid.iml"],
+    tags = ["no_test_mac"],  # b/109766205
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
