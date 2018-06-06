@@ -21,5 +21,5 @@ import com.android.tools.idea.gradle.structure.model.PsDependency
 abstract class PsJavaDependency protected constructor(
   final override val parent: PsJavaModule
 ) : PsDependency() {
-  val gradleModel: JavaModuleModel get() = parent.gradleModel
+  val gradleModel: JavaModuleModel? get() = parent.gradleModel
 }

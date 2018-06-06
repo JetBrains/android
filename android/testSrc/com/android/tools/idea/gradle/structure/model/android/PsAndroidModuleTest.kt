@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
+import com.android.builder.model.AndroidProject
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
@@ -34,8 +35,22 @@ class PsAndroidModuleTest : DependencyTestCase() {
     val resolvedProject = myFixture.project
     val project = PsProject(resolvedProject)
 
-    val appModule = project.findModuleByName("app") as PsAndroidModule?
-    assertNotNull(appModule); appModule!!
+    val appModule = moduleWithSyncedModel(project, "app")
+    assertNotNull(appModule);
+
+    val flavorDimensions = getFlavorDimensions(appModule)
+    assertThat(flavorDimensions)
+      .containsExactly("foo", "bar").inOrder()
+  }
+
+  fun testFallbackFlavorDimensions() {
+    loadProject(PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    val project = PsProject(resolvedProject)
+
+    val appModule = moduleWithoutSyncedModel(project, "app")
+    assertNotNull(appModule);
 
     val flavorDimensions = getFlavorDimensions(appModule)
     assertThat(flavorDimensions)
@@ -48,8 +63,8 @@ class PsAndroidModuleTest : DependencyTestCase() {
     val resolvedProject = myFixture.project
     var project = PsProject(resolvedProject)
 
-    var appModule = project.findModuleByName("app") as PsAndroidModule?
-    assertNotNull(appModule); appModule!!
+    var appModule = moduleWithSyncedModel(project, "app")
+    assertNotNull(appModule)
 
     appModule.addNewFlavorDimension("new")
     // A product flavor is required for successful sync.
@@ -59,8 +74,8 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     requestSyncAndWait()
     project = PsProject(resolvedProject)
-    appModule = project.findModuleByName("app") as PsAndroidModule?
-    assertNotNull(appModule); appModule!!
+    appModule = moduleWithSyncedModel(project, "app")
+    assertNotNull(appModule)
 
     val flavorDimensions = getFlavorDimensions(appModule)
     assertThat(flavorDimensions)
@@ -73,8 +88,8 @@ class PsAndroidModuleTest : DependencyTestCase() {
     val resolvedProject = myFixture.project
     var project = PsProject(resolvedProject)
 
-    var appModule = project.findModuleByName("app") as PsAndroidModule?
-    assertNotNull(appModule); appModule!!
+    var appModule = moduleWithSyncedModel(project, "app")
+    assertNotNull(appModule)
 
     appModule.removeFlavorDimension("bar")
     // A product flavor must be removed for successful sync.
@@ -85,8 +100,8 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     requestSyncAndWait()
     project = PsProject(resolvedProject)
-    appModule = project.findModuleByName("app") as PsAndroidModule?
-    assertNotNull(appModule); appModule!!
+    appModule = moduleWithSyncedModel(project, "app")
+    assertNotNull(appModule)
 
     flavorDimensions = getFlavorDimensions(appModule)
     assertThat(flavorDimensions).containsExactly("foo")
@@ -102,8 +117,31 @@ class PsAndroidModuleTest : DependencyTestCase() {
     val resolvedProject = myFixture.project
     val project = PsProject(resolvedProject)
 
-    val appModule = project.findModuleByName("app") as PsAndroidModule?
-    assertNotNull(appModule); appModule!!
+    val appModule = moduleWithSyncedModel(project, "app")
+    assertNotNull(appModule)
+
+    val productFlavors = appModule.productFlavors
+    assertThat(productFlavors.map { it.name })
+      .containsExactly("basic", "paid").inOrder()
+    assertThat(productFlavors).hasSize(2)
+
+    val basic = appModule.findProductFlavor("basic")
+    assertNotNull(basic)
+    assertTrue(basic!!.isDeclared)
+
+    val release = appModule.findProductFlavor("paid")
+    assertNotNull(release)
+    assertTrue(release!!.isDeclared)
+  }
+
+  fun testFallbackProductFlavors() {
+    loadProject(PROJECT_WITH_APPAND_LIB)
+
+    val resolvedProject = myFixture.project
+    val project = PsProject(resolvedProject)
+
+    val appModule = moduleWithoutSyncedModel(project, "app")
+    assertNotNull(appModule)
 
     val productFlavors = appModule.productFlavors
     assertThat(productFlavors.map { it.name })
@@ -125,8 +163,8 @@ class PsAndroidModuleTest : DependencyTestCase() {
     val resolvedProject = myFixture.project
     var project = PsProject(resolvedProject)
 
-    var appModule = project.findModuleByName("app") as PsAndroidModule?
-    assertNotNull(appModule); appModule!!
+    var appModule = moduleWithSyncedModel(project, "app")
+    assertNotNull(appModule)
 
     var productFlavors = appModule.productFlavors
     assertThat(productFlavors.map { it.name })
@@ -145,8 +183,8 @@ class PsAndroidModuleTest : DependencyTestCase() {
     appModule.applyChanges()
     requestSyncAndWait()
     project = PsProject(resolvedProject)
-    appModule = project.findModuleByName("app") as PsAndroidModule?
-    assertNotNull(appModule); appModule!!
+    appModule = moduleWithSyncedModel(project, "app")
+    assertNotNull(appModule)
 
     productFlavors = appModule.productFlavors
     assertThat(productFlavors.map { it.name })
@@ -163,8 +201,8 @@ class PsAndroidModuleTest : DependencyTestCase() {
     val resolvedProject = myFixture.project
     var project = PsProject(resolvedProject)
 
-    var appModule = project.findModuleByName("app") as PsAndroidModule?
-    assertNotNull(appModule); appModule!!
+    var appModule = moduleWithSyncedModel(project, "app")
+    assertNotNull(appModule)
 
     var productFlavors = appModule.productFlavors
     assertThat(productFlavors.map { it.name })
@@ -179,8 +217,8 @@ class PsAndroidModuleTest : DependencyTestCase() {
     appModule.applyChanges()
     requestSyncAndWait()
     project = PsProject(resolvedProject)
-    appModule = project.findModuleByName("app") as PsAndroidModule?
-    assertNotNull(appModule); appModule!!
+    appModule = moduleWithSyncedModel(project, "app")
+    assertNotNull(appModule)
 
     productFlavors = appModule.productFlavors
     assertThat(productFlavors.map { it.name })
@@ -193,21 +231,39 @@ class PsAndroidModuleTest : DependencyTestCase() {
     val resolvedProject = myFixture.project
     val project = PsProject(resolvedProject)
 
-    val appModule = project.findModuleByName("app") as PsAndroidModule?
-    assertNotNull(appModule); appModule!!
+    val libModule = moduleWithSyncedModel(project, "lib")
+    assertNotNull(libModule)
 
-    val buildTypes = appModule.buildTypes
+    val buildTypes = libModule.buildTypes
     assertThat(buildTypes.map { it.name })
       .containsExactly("release", "debug").inOrder()
     assertThat(buildTypes).hasSize(2)
 
-    val release = appModule.findBuildType("release")
+    val release = libModule.findBuildType("release")
     assertNotNull(release)
     assertTrue(release!!.isDeclared)
 
-    val debug = appModule.findBuildType("debug")
+    val debug = libModule.findBuildType("debug")
     assertNotNull(debug)
     assertTrue(!debug!!.isDeclared)
+  }
+
+  fun testFallbackBuildTypes() {
+    loadProject(PROJECT_WITH_APPAND_LIB)
+
+    val resolvedProject = myFixture.project
+    val project = PsProject(resolvedProject)
+
+    val libModule = moduleWithoutSyncedModel(project, "lib")
+    assertNotNull(libModule)
+
+    val buildTypes = libModule.buildTypes
+    assertThat(buildTypes.map { it.name }).containsExactly("release")
+    assertThat(buildTypes).hasSize(1)
+
+    val release = libModule.findBuildType("release")
+    assertNotNull(release)
+    assertTrue(release!!.isDeclared)
   }
 
   fun testAddBuildType() {
@@ -216,8 +272,8 @@ class PsAndroidModuleTest : DependencyTestCase() {
     val resolvedProject = myFixture.project
     var project = PsProject(resolvedProject)
 
-    var appModule = project.findModuleByName("app") as PsAndroidModule?
-    assertNotNull(appModule); appModule!!
+    var appModule = moduleWithSyncedModel(project, "app")
+    assertNotNull(appModule)
 
     var buildTypes = appModule.buildTypes
     assertThat(buildTypes.map { it.name })
@@ -236,8 +292,8 @@ class PsAndroidModuleTest : DependencyTestCase() {
     appModule.applyChanges()
     requestSyncAndWait()
     project = PsProject(resolvedProject)
-    appModule = project.findModuleByName("app") as PsAndroidModule?
-    assertNotNull(appModule); appModule!!
+    appModule = moduleWithSyncedModel(project, "app")
+    assertNotNull(appModule)
 
     buildTypes = appModule.buildTypes
     assertThat(buildTypes.map { it.name })
@@ -254,8 +310,8 @@ class PsAndroidModuleTest : DependencyTestCase() {
     val resolvedProject = myFixture.project
     var project = PsProject(resolvedProject)
 
-    var appModule = project.findModuleByName("app") as PsAndroidModule?
-    assertNotNull(appModule); appModule!!
+    var appModule = moduleWithSyncedModel(project, "app")
+    assertNotNull(appModule)
 
     var buildTypes = appModule.buildTypes
     assertThat(buildTypes.map { it.name })
@@ -270,8 +326,8 @@ class PsAndroidModuleTest : DependencyTestCase() {
     appModule.applyChanges()
     requestSyncAndWait()
     project = PsProject(resolvedProject)
-    appModule = project.findModuleByName("app") as PsAndroidModule?
-    assertNotNull(appModule); appModule!!
+    appModule = moduleWithSyncedModel(project, "app")
+    assertNotNull(appModule)
 
     buildTypes = appModule.buildTypes
     assertThat(buildTypes.map { it.name })
@@ -288,8 +344,8 @@ class PsAndroidModuleTest : DependencyTestCase() {
     val resolvedProject = myFixture.project
     val project = PsProject(resolvedProject)
 
-    val appModule = project.findModuleByName("app") as PsAndroidModule?
-    assertNotNull(appModule); appModule!!
+    val appModule = moduleWithSyncedModel(project, "app")
+    assertNotNull(appModule)
 
     val variants = appModule.variants
     assertThat(variants).hasSize(4)
@@ -321,13 +377,13 @@ class PsAndroidModuleTest : DependencyTestCase() {
     val resolvedProject = myFixture.project
     val project = PsProject(resolvedProject)
 
-    val appModule = project.findModuleByName("app") as PsAndroidModule?
-    assertNotNull(appModule); appModule!!
+    val appModule = moduleWithSyncedModel(project, "app")
+    assertNotNull(appModule)
 
-    val libModule = project.findModuleByName("lib") as PsAndroidModule?
+    val libModule = moduleWithSyncedModel(project, "lib")
     assertNotNull(libModule)
 
-    assertTrue(appModule.canDependOn(libModule!!))
+    assertTrue(appModule.canDependOn(libModule))
     assertFalse(libModule.canDependOn(appModule))
   }
 
@@ -417,8 +473,8 @@ class PsAndroidModuleTest : DependencyTestCase() {
     val resolvedProject = myFixture.project
     val project = PsProject(resolvedProject)
 
-    val appModule = project.findModuleByName("app") as PsAndroidModule?
-    assertNotNull(appModule); appModule!!
+    val appModule = moduleWithSyncedModel(project, "app")
+    assertNotNull(appModule)
 
     assertThat(appModule.getConfigurations()).containsExactly(
       "implementation",
@@ -464,4 +520,31 @@ class PsAndroidModuleTest : DependencyTestCase() {
       "androidTestBasicBarImplementation",
       "androidTestPaidBarImplementation")
   }
+
+  fun testProjectTypeDetection() {
+    loadProject(PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    val project = PsProject(resolvedProject)
+
+    assertThat(moduleWithSyncedModel(project, "app").projectType).isEqualTo(AndroidProject.PROJECT_TYPE_APP)
+    assertThat(moduleWithSyncedModel(project, "lib").projectType).isEqualTo(AndroidProject.PROJECT_TYPE_LIBRARY)
+  }
+
+  fun testFallbackProjectTypeDetection() {
+    loadProject(PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    val project = PsProject(resolvedProject)
+
+    assertThat(moduleWithoutSyncedModel(project, "app").projectType).isEqualTo(AndroidProject.PROJECT_TYPE_APP)
+    assertThat(moduleWithoutSyncedModel(project, "lib").projectType).isEqualTo(AndroidProject.PROJECT_TYPE_LIBRARY)
+  }
 }
+
+private fun moduleWithoutSyncedModel(project: PsProject, name: String): PsAndroidModule {
+  val moduleWithSyncedModel = project.findModuleByName(name) as PsAndroidModule
+  return PsAndroidModule(project, moduleWithSyncedModel.name, null, moduleWithSyncedModel.gradlePath!!, moduleWithSyncedModel.parsedModel)
+}
+
+private fun moduleWithSyncedModel(project: PsProject, name: String): PsAndroidModule = project.findModuleByName(name) as PsAndroidModule

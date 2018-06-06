@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.pom.java.LanguageLevel
 
 object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, AndroidProject, AndroidModel> {
-  override fun getResolved(model: PsAndroidModule): AndroidProject = model.resolvedModel.androidProject
+  override fun getResolved(model: PsAndroidModule): AndroidProject? = model.resolvedModel?.androidProject
 
   override fun getParsed(model: PsAndroidModule): AndroidModel? = model.parsedModel?.android()
 
