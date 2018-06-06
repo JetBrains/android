@@ -205,12 +205,12 @@ public final class GradleUtil {
 
   @NotNull
   public static Icon getAndroidModuleIcon(@NotNull AndroidModuleModel androidModuleModel) {
-    return getAndroidModuleIcon(androidModuleModel.getAndroidProject());
+    return getAndroidModuleIcon(androidModuleModel.getAndroidProject().getProjectType());
   }
 
   @NotNull
-  public static Icon getAndroidModuleIcon(@NotNull AndroidProject androidProject) {
-    switch (androidProject.getProjectType()) {
+  public static Icon getAndroidModuleIcon(int androidProjectType) {
+    switch (androidProjectType) {
       case PROJECT_TYPE_APP:
         return ANDROID_MODULE;
       case PROJECT_TYPE_FEATURE:
