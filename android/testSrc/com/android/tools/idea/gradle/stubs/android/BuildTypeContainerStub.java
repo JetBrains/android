@@ -28,7 +28,7 @@ public class BuildTypeContainerStub implements BuildTypeContainer {
   @NotNull private final SourceProviderStub mySourceProvider;
   private final BuildTypeStub myBuildType;
 
-  BuildTypeContainerStub(@NotNull String name, @NotNull FileStructure fileStructure) {
+  public BuildTypeContainerStub(@NotNull String name, @NotNull FileStructure fileStructure) {
     myName = name;
     myBuildType = new BuildTypeStub(name);
     mySourceProvider = new SourceProviderStub(fileStructure);
