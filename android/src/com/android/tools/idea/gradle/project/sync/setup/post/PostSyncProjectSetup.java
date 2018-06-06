@@ -52,11 +52,11 @@ import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.concurrency.JobLauncher;
 import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.BeforeRunTaskProvider;
+import com.intellij.execution.RunManagerEx;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.execution.impl.RunManagerImpl;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.extensions.Extensions;
@@ -98,7 +98,7 @@ public class PostSyncProjectSetup {
   @NotNull private final VersionCompatibilityChecker myVersionCompatibilityChecker;
   @NotNull private final GradleProjectBuilder myProjectBuilder;
   @NotNull private final CommonModuleValidator.Factory myModuleValidatorFactory;
-  @NotNull private final RunManagerImpl myRunManager;
+  @NotNull private final RunManagerEx myRunManager;
   @NotNull private final ProvisionTasks myProvisionTasks;
   @NotNull private final EnableDisableSingleVariantSyncStep myEnableDisableSingleVariantSyncStep;
 
@@ -121,7 +121,7 @@ public class PostSyncProjectSetup {
                               @NotNull GradleProjectBuilder projectBuilder) {
     this(project, ideInfo, projectStructure, gradleProjectInfo, syncInvoker, syncState, dependencySetupIssues, new ProjectSetup(project),
          new ModuleSetup(project), pluginVersionUpgrade, versionCompatibilityChecker, projectBuilder, new CommonModuleValidator.Factory(),
-         RunManagerImpl.getInstanceImpl(project), new ProvisionTasks(), new EnableDisableSingleVariantSyncStep());
+         RunManagerEx.getInstanceEx(project), new ProvisionTasks(), new EnableDisableSingleVariantSyncStep());
   }
 
   @VisibleForTesting
@@ -138,7 +138,7 @@ public class PostSyncProjectSetup {
                        @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                        @NotNull GradleProjectBuilder projectBuilder,
                        @NotNull CommonModuleValidator.Factory moduleValidatorFactory,
-                       @NotNull RunManagerImpl runManager,
+                       @NotNull RunManagerEx runManager,
                        @NotNull ProvisionTasks provisionTasks,
                        @NotNull EnableDisableSingleVariantSyncStep enableSingleVariantSyncStep) {
     myProject = project;
@@ -342,7 +342,7 @@ public class PostSyncProjectSetup {
   private void modifyJUnitRunConfigurations() {
     ConfigurationType junitConfigurationType = AndroidJUnitConfigurationType.getInstance();
     BeforeRunTaskProvider<BeforeRunTask>[] taskProviders = Extensions.getExtensions(BeforeRunTaskProvider.EXTENSION_POINT_NAME, myProject);
-    RunManagerImpl runManager = RunManagerImpl.getInstanceImpl(myProject);
+    RunManagerEx runManager = RunManagerEx.getInstanceEx(myProject);
 
     // For Android Studio, use "Gradle-Aware Make" to run JUnit tests.
     // For IDEA, use regular "Make".
@@ -357,7 +357,7 @@ public class PostSyncProjectSetup {
 
     if (targetProvider != null) {
       // Store current before run tasks in each configuration to reset them after modifying the template, since modifying
-      Map<RunConfiguration, List<? extends BeforeRunTask<?>>> currentTasks = new HashMap<>();
+      Map<RunConfiguration, List<BeforeRunTask>> currentTasks = new HashMap<>();
       for (RunConfiguration runConfiguration : myRunManager.getConfigurationsList(junitConfigurationType)) {
         currentTasks.put(runConfiguration, new ArrayList<>(runManager.getBeforeRunTasks(runConfiguration)));
       }
@@ -382,7 +382,7 @@ public class PostSyncProjectSetup {
   private void setMakeStepInJUnitConfiguration(@NotNull BeforeRunTaskProvider targetProvider, @NotNull RunConfiguration runConfiguration) {
     // Only "make" steps of beforeRunTasks should be overridden (see http://b.android.com/194704 and http://b.android.com/227280)
     List<BeforeRunTask> newBeforeRunTasks = new LinkedList<>();
-    RunManagerImpl runManager = RunManagerImpl.getInstanceImpl(myProject);
+    RunManagerEx runManager = RunManagerEx.getInstanceEx(myProject);
     for (BeforeRunTask beforeRunTask : runManager.getBeforeRunTasks(runConfiguration)) {
       if (beforeRunTask.getProviderId().equals(CompileStepBeforeRun.ID)) {
         if (runManager.getBeforeRunTasks(runConfiguration, MakeBeforeRunTaskProvider.ID).isEmpty()) {
