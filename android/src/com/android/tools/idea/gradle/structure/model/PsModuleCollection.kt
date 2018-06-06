@@ -59,7 +59,7 @@ class PsModuleCollection(parent: PsProject) : PsCollectionBase<PsModule, ModuleK
     return when (key.kind) {
       ModuleKind.ANDROID -> {
         val moduleModel = AndroidModuleModel.get(module)!!
-        PsAndroidModule(parent, moduleModel, gradlePath, moduleParsedModel)
+        PsAndroidModule(parent, module.name, moduleModel, gradlePath, moduleParsedModel)
       }
       ModuleKind.JAVA -> PsJavaModule(parent, module.name, gradlePath, JavaModuleModel.get(module)!!, moduleParsedModel)
     }

@@ -32,10 +32,11 @@ import javax.swing.Icon
 
 class PsAndroidModule(
   parent: PsProject,
+  name: String,
   val resolvedModel: AndroidModuleModel,
   gradlePath: String,
   parsedModel: GradleBuildModel
-) : PsModule(parent, resolvedModel.androidProject.name, gradlePath, parsedModel) {
+) : PsModule(parent, name, gradlePath, parsedModel) {
   private var buildTypeCollection: PsBuildTypeCollection? = null
   private var productFlavorCollection: PsProductFlavorCollection? = null
   private var variantCollection: PsVariantCollection? = null
