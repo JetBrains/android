@@ -22,6 +22,8 @@ import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.intellij.icons.AllIcons
+import org.jetbrains.plugins.groovy.lang.resolve.delegatesTo.resolveActualCall
+import java.io.File
 import javax.swing.Icon
 
 class PsJavaModule(
@@ -34,6 +36,7 @@ class PsJavaModule(
 
   private var myDependencyCollection: PsJavaDependencyCollection? = null
 
+  override val rootDir: File? get() = gradleModel.contentRoots.firstOrNull()?.rootDirPath
   override val icon: Icon? = AllIcons.Nodes.PpJdk
 
   private val orCreateDependencyCollection: PsJavaDependencyCollection

@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.structure.model.repositories.search.Android
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.util.GradleUtil.getAndroidModuleIcon
 import com.android.utils.StringHelper
+import java.io.File
 import javax.swing.Icon
 
 class PsAndroidModule(
@@ -76,6 +77,7 @@ class PsAndroidModule(
     // 'module' is either a Java library or an AAR module.
     (module as? PsAndroidModule)?.isLibrary == true
 
+  override val rootDir: File get() = resolvedModel.rootDirPath
   override val icon: Icon? get() = projectType?.let { getAndroidModuleIcon(it) }
 
   override fun populateRepositories(repositories: MutableList<ArtifactRepository>) {

@@ -16,8 +16,11 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies
 
 import com.android.tools.idea.gradle.structure.model.*
+import java.io.File
 
 open class PsAllModulesFakeModule(override val parent: PsProject) : PsModule(parent, "<All Modules>") {
+
+  override val rootDir: File? = null
 
   override var isModified: Boolean
     get() = parent.isModified
