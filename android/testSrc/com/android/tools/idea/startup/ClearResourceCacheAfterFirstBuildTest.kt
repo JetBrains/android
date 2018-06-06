@@ -57,8 +57,12 @@ class ClearResourceCacheAfterFirstBuildTest {
     projectSystem = TestProjectSystem(project, lastSyncResult = SyncResult.UNKNOWN)
     Extensions.getArea(project).getExtensionPoint(EP_NAME).registerExtension(projectSystem)
 
-    clearResourceCacheAfterFirstBuild = ClearResourceCacheAfterFirstBuild(project)
-    clearResourceCacheAfterFirstBuild.projectOpened()
+    // AndroidProjectRule uses a shared project instance, so we use and reset the same instance
+    // of the ClearResourceCacheAfterFirstBuild project component for each test case.
+    if (!::clearResourceCacheAfterFirstBuild.isInitialized) {
+      clearResourceCacheAfterFirstBuild = project.getComponent(ClearResourceCacheAfterFirstBuild::class.java)
+      clearResourceCacheAfterFirstBuild.reset()
+    }
 
     onCacheClean = TestRunnable {
       assertWithMessage("onCacheClean callback was called before resource cache was cleared")
@@ -74,6 +78,7 @@ class ClearResourceCacheAfterFirstBuildTest {
   @After
   fun tearDown() {
     Extensions.getArea(project).getExtensionPoint(EP_NAME).unregisterExtension(projectSystem)
+    clearResourceCacheAfterFirstBuild.reset()
   }
 
   @Test
