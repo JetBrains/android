@@ -98,5 +98,5 @@ fun formatUnit(context: Any?, value: Unit): String = ""
 fun matchHashStrings(context: Any?, parsed: String?, resolved: String) =
   AndroidTargetHash.getPlatformVersion(parsed.orEmpty())?.featureLevel == AndroidTargetHash.getPlatformVersion(resolved)?.featureLevel
 
-fun matchFiles(rootDir: File, parsed: File?, resolved: File): Boolean =
-  parsed?.let { rootDir.resolve(parsed) } == resolved
+fun matchFiles(rootDir: File?, parsed: File?, resolved: File): Boolean =
+  parsed?.let { rootDir?.resolve(parsed) } == resolved

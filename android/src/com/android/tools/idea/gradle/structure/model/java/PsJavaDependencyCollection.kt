@@ -31,7 +31,7 @@ internal class PsJavaDependencyCollection(private val parent: PsJavaModule) : Ps
     val parsedDependencies = parent.parsedDependencies
 
     val gradleModel = parent.gradleModel
-    for (libraryDependency in gradleModel.jarLibraryDependencies) {
+    gradleModel?.jarLibraryDependencies?.forEach { libraryDependency ->
       val moduleVersion = libraryDependency.moduleVersion
       if (moduleVersion != null) {
         val spec = PsArtifactDependencySpec.create(moduleVersion)

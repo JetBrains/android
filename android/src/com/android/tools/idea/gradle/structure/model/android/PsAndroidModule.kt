@@ -35,9 +35,9 @@ import javax.swing.Icon
 class PsAndroidModule(
   parent: PsProject,
   name: String,
-  val resolvedModel: AndroidModuleModel,
+  val resolvedModel: AndroidModuleModel?,
   gradlePath: String,
-  parsedModel: GradleBuildModel
+  parsedModel: GradleBuildModel?
 ) : PsModule(parent, name, gradlePath, parsedModel) {
   private var buildTypeCollection: PsBuildTypeCollection? = null
   private var productFlavorCollection: PsProductFlavorCollection? = null
@@ -45,7 +45,7 @@ class PsAndroidModule(
   private var dependencyCollection: PsAndroidModuleDependencyCollection? = null
   private var signingConfigCollection: PsSigningConfigCollection? = null
 
-  val projectType: Int? get() = resolvedModel.androidProject.projectType
+  val projectType: Int? get() = resolvedModel?.androidProject?.projectType ?: parsedModel?.parsedModelModuleType()
   val isLibrary: Boolean get() = projectType != PROJECT_TYPE_APP
 
   val buildTypes: List<PsBuildType> get() = getOrCreateBuildTypeCollection().items()
@@ -57,7 +57,7 @@ class PsAndroidModule(
   val flavorDimensions: Collection<String>
     get() {
       val result = mutableSetOf<String>()
-      result.addAll(resolvedModel.androidProject.flavorDimensions)
+      result.addAll(resolvedModel?.androidProject?.flavorDimensions.orEmpty())
       val parsedFlavorDimensions = parsedModel?.android()?.flavorDimensions()?.toList()
       if (parsedFlavorDimensions != null) {
         result.addAll(parsedFlavorDimensions.map { v -> v.toString() })
@@ -77,7 +77,9 @@ class PsAndroidModule(
     // 'module' is either a Java library or an AAR module.
     (module as? PsAndroidModule)?.isLibrary == true
 
-  override val rootDir: File get() = resolvedModel.rootDirPath
+  override val rootDir: File?
+    get() = resolvedModel?.rootDirPath ?: parsedModel?.virtualFile?.path?.let { File(it).parentFile }
+
   override val icon: Icon? get() = projectType?.let { getAndroidModuleIcon(it) }
 
   override fun populateRepositories(repositories: MutableList<ArtifactRepository>) {

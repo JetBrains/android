@@ -19,12 +19,12 @@ import com.android.ide.common.gradle.model.IdeVariant
 
 internal class PsVariantCollection(parent: PsAndroidModule) : PsCollectionBase<PsVariant, String, PsAndroidModule>(parent) {
   override fun getKeys(from: PsAndroidModule): Set<String> =
-    from.resolvedModel.androidProject.variants.map { it.name }.toSet()
+    from.resolvedModel?.androidProject?.variants?.map { it.name }.orEmpty().toSet()
 
   override fun create(key: String): PsVariant = PsVariant(parent, key)
 
   override fun update(key: String, model: PsVariant) {
-    val resolvedVariant = parent.resolvedModel.androidProject.variants.singleOrNull { it.name == key } as? IdeVariant
+    val resolvedVariant = parent.resolvedModel?.androidProject?.variants?.singleOrNull { it.name == key } as? IdeVariant
                           ?: throw IllegalStateException("Cannot find a resolved variant named '$key'")
     model.init(
       resolvedVariant.buildType,

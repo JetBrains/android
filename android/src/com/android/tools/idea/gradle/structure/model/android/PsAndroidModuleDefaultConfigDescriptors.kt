@@ -23,7 +23,7 @@ import java.io.File
 
 object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModuleDefaultConfig, ProductFlavor, ProductFlavorModel> {
   override fun getResolved(model: PsAndroidModuleDefaultConfig): ProductFlavor? =
-    model.module.resolvedModel.androidProject.defaultConfig.productFlavor
+    model.module.resolvedModel?.androidProject?.defaultConfig?.productFlavor
 
   override fun getParsed(model: PsAndroidModuleDefaultConfig): ProductFlavorModel? =
     model.module.parsedModel?.android()?.defaultConfig()

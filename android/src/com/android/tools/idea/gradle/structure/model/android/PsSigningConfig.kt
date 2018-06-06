@@ -63,7 +63,7 @@ class PsSigningConfig(
       // TODO: Store project relative path if possible.
       setter = { setValue(it.toString()) },
       parser = ::parseFile,
-      matcher = { model, parsedValue, resolvedValue -> matchFiles(model.parent.resolvedModel.rootDirPath, parsedValue, resolvedValue) }
+      matcher = { model, parsedValue, resolvedValue -> matchFiles(model.parent.resolvedModel?.rootDirPath, parsedValue, resolvedValue) }
     )
 
     val storePassword: SimpleProperty<PsSigningConfig, String> = property(
