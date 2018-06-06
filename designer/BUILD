@@ -107,6 +107,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
+        "//tools/idea/.idea/libraries:KotlinTest[test]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/designer:intellij.android.designer[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
