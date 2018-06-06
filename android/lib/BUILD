@@ -33,20 +33,6 @@ java_import(
     visibility = ["//visibility:public"],
 )
 
-# managed by go/iml_to_build
-java_import(
-    name = "baksmali-2.2.1",
-    jars = ["baksmali-2.2.1.jar"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-java_import(
-    name = "dexlib2-2.2.1",
-    jars = ["dexlib2-2.2.1.jar"],
-    visibility = ["//visibility:public"],
-)
-
 filegroup(
     name = "androidWidgets",
     srcs = glob(["androidWidgets/**"]),
@@ -56,13 +42,6 @@ filegroup(
 filegroup(
     name = "sampleData",
     srcs = glob(["sampleData/**"]),
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-java_import(
-    name = "util-2.2.1",
-    jars = ["util-2.2.1.jar"],
     visibility = ["//visibility:public"],
 )
 
