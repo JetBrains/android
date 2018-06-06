@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.perfdHost",
     srcs = ["src/main/java"],
     iml_files = ["intellij.android.perfdHost.iml"],
+    tags = ["no_test_mac"],  # b/109766205
     test_resources = ["testData"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
