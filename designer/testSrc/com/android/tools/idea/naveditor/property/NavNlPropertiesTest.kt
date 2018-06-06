@@ -37,8 +37,8 @@ class NavNlPropertiesTest : NavTestCase() {
     Disposer.register(project, propertiesManager)
 
     val properties = NlProperties.getInstance().getProperties(myFacet, propertiesManager, listOf(model.find("a1")))
-    assertContainsElements(properties.row(AUTO_URI).keys, ATTR_CLEAR_TASK, ATTR_DESTINATION, ATTR_ENTER_ANIM, ATTR_EXIT_ANIM,
-                           ATTR_POP_ENTER_ANIM, ATTR_POP_EXIT_ANIM, ATTR_DOCUMENT, ATTR_POP_UP_TO, ATTR_POP_UP_TO_INCLUSIVE,
+    assertContainsElements(properties.row(AUTO_URI).keys, ATTR_DESTINATION, ATTR_ENTER_ANIM, ATTR_EXIT_ANIM,
+                           ATTR_POP_ENTER_ANIM, ATTR_POP_EXIT_ANIM, ATTR_POP_UP_TO, ATTR_POP_UP_TO_INCLUSIVE,
                            ATTR_SINGLE_TOP)
     assertContainsElements(properties.row(ANDROID_URI).keys, ATTR_ID)
   }

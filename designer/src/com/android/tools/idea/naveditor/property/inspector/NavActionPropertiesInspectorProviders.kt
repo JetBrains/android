@@ -26,6 +26,4 @@ class NavActionPopInspectorProvider : NavPropertiesInspectorProvider(mapOf(
     NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE to "Inclusive"), "Pop Behavior")
 
 class NavActionLaunchOptionsInspectorProvider : NavPropertiesInspectorProvider(mapOf(
-    NavigationSchema.ATTR_SINGLE_TOP to "Single Top",
-    NavigationSchema.ATTR_DOCUMENT to "Document",
-    NavigationSchema.ATTR_CLEAR_TASK to "Clear Task"), "Launch Options")
+    NavigationSchema.ATTR_SINGLE_TOP to "Single Top"), "Launch Options")
