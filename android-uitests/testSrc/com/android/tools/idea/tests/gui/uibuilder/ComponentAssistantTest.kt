@@ -98,7 +98,7 @@ class ComponentAssistantTest {
       .click()
       .openComponentAssistant()
       .getTextViewAssistant().apply {
-        combo.selectItem("@tools:sample/first_names")
+        combo.selectItem("first_names")
       }
 
     // Verify changes
