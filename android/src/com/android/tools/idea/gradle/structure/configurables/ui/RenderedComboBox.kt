@@ -20,6 +20,7 @@ import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBTextField
+import com.intellij.ui.components.fields.ExtendableTextComponent
 import com.intellij.ui.components.fields.ExtendableTextField
 import com.intellij.util.ui.StatusText
 import java.awt.Component
@@ -45,7 +46,7 @@ abstract class RenderedComboBox<T>(
   private val itemsModel: DefaultComboBoxModel<T>
 ) : ComboBox<T>() {
 
-  interface Extension : ExtendableTextField.Extension
+  interface Extension : ExtendableTextComponent.Extension
 
   protected var lastValueSet: T? = null
     private set
