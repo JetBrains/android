@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.intellij.icons.AllIcons
-import java.util.function.Consumer
 import javax.swing.Icon
 
 class PsJavaModule(

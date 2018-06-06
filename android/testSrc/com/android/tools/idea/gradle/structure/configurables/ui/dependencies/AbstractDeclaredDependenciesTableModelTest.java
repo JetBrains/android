@@ -61,7 +61,7 @@ public class AbstractDeclaredDependenciesTableModelTest extends IdeaTestCase {
     when(androidProject.getName()).thenReturn("name");
     AndroidModuleModel androidModuleModel = mock(AndroidModuleModel.class);
     when(androidModuleModel.getAndroidProject()).thenReturn(androidProject);
-    PsAndroidModule module = new PsAndroidModule(project, androidModuleModel, "", parsedModel);
+    PsAndroidModule module = new PsAndroidModule(project, "name", androidModuleModel, ":name", parsedModel);
     PsContext context = mock(PsContext.class);
     when(context.getUiSettings()).thenReturn(myUISettings);
     myTableModel = new AbstractDeclaredDependenciesTableModel<PsAndroidDependency>(module, context) {};
