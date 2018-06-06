@@ -66,7 +66,7 @@ iml_module(
         "//tools/idea/platform/platform-api:intellij.platform.ide[module, test]",
         "//tools/idea/platform/external-system-api:intellij.platform.externalSystem[module, test]",
         "//tools/idea/java/openapi:intellij.java[module, test]",
-        "//tools/idea/plugins/gradle:intellij.gradle[module, test]",
+        "//tools/idea/plugins/gradle/java:intellij.gradle.java[module, test]",
         "//tools/idea/java/compiler/openapi:intellij.java.compiler[module, test]",
         "//tools/idea:intellij.java.impl[module, test]",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module, test]",

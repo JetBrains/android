@@ -28,7 +28,7 @@ iml_module(
         "//tools/idea/.idea/libraries:jsr305[test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
-        "//tools/idea/plugins/gradle:intellij.gradle[module, test]",
+        "//tools/idea/plugins/gradle/java:intellij.gradle.java[module, test]",
         "//tools/idea/java/openapi:intellij.java[module, test]",
         "//tools/idea/platform/bootstrap:intellij.platform.bootstrap[module, test]",
         "//tools/idea/platform/xdebugger-impl:intellij.platform.debugger.impl[module, test]",
