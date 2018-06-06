@@ -57,6 +57,7 @@ public class StudioIcons {
     public static final Icon LOCKED_INLINE = load("/studio/icons/common/locked-inline.png"); // 16x16
     public static final Icon MISSING = load("/studio/icons/common/missing.png"); // 16x16
     public static final Icon MOVE_DOWN_SELECTED = load("/studio/icons/common/move-down-selected.png"); // 14x14
+    public static final Icon OVERFLOW = load("/studio/icons/common/overflow.png"); // 16x16
     public static final Icon PROPERTY_BOUND_FOCUS = load("/studio/icons/common/property-bound-focus.png"); // 15x20
     public static final Icon PROPERTY_BOUND = load("/studio/icons/common/property-bound.png"); // 15x20
     public static final Icon PROPERTY_UNBOUND_FOCUS = load("/studio/icons/common/property-unbound-focus.png"); // 15x20
@@ -246,6 +247,7 @@ public class StudioIcons {
     }
 
     public static class Toolbar {
+      public static final Icon ADD_COMPONENT = load("/studio/icons/layout-editor/toolbar/add-component.png"); // 16x16
       public static final Icon ANDROID_API = load("/studio/icons/layout-editor/toolbar/android-api.png"); // 16x16
       public static final Icon ARROW_DOWN = load("/studio/icons/layout-editor/toolbar/arrow-down.png"); // 16x16
       public static final Icon ARROW_LEFT = load("/studio/icons/layout-editor/toolbar/arrow-left.png"); // 16x16
@@ -510,6 +512,8 @@ public class StudioIcons {
       public static final Icon MANIFEST_FILE = load("/studio/icons/shell/filetree/manifest-file.png"); // 16x16
       public static final Icon MAVEN = load("/studio/icons/shell/filetree/maven.png"); // 16x16
       public static final Icon RENDER_SCRIPT = load("/studio/icons/shell/filetree/render-script.png"); // 16x16
+      public static final Icon SCENEFORM_ASSET_DESCRIPTION_FILE = load("/studio/icons/shell/filetree/sceneform-asset-description-file.png"); // 16x16
+      public static final Icon SCENEFORM_BINARY = load("/studio/icons/shell/filetree/sceneform-binary.png"); // 16x16
     }
 
     public static class Menu {
@@ -536,6 +540,7 @@ public class StudioIcons {
       public static final Icon FAVORITES = load("/studio/icons/shell/tool-windows/favorites.png"); // 13x13
       public static final Icon GRADLE = load("/studio/icons/shell/tool-windows/gradle.png"); // 13x13
       public static final Icon INSPECTION = load("/studio/icons/shell/tool-windows/inspection.png"); // 16x16
+      public static final Icon LINT = load("/studio/icons/shell/tool-windows/lint.png"); // 13x13
       public static final Icon LOCK = load("/studio/icons/shell/tool-windows/lock.png"); // 16x16
       public static final Icon LOGCAT = load("/studio/icons/shell/tool-windows/logcat.png"); // 13x13
       public static final Icon PALETTE = load("/studio/icons/shell/tool-windows/palette.png"); // 13x13
@@ -548,6 +553,7 @@ public class StudioIcons {
       public static final Icon TOGGLE_PROPERTIES = load("/studio/icons/shell/tool-windows/toggle-properties.png"); // 13x13
       public static final Icon TOOL_WINDOW = load("/studio/icons/shell/tool-windows/tool-window.png"); // 13x13
       public static final Icon VERSION_CONTROL = load("/studio/icons/shell/tool-windows/version-control.png"); // 13x13
+      public static final Icon VISUAL_ASSETS = load("/studio/icons/shell/tool-windows/visual-assets.png"); // 13x13
       public static final Icon WINDOW_TOGGLE = load("/studio/icons/shell/tool-windows/window-toggle.png"); // 16x16
       public static final Icon WINDOW_TOGGLED = load("/studio/icons/shell/tool-windows/window-toggled.png"); // 16x16
     }
