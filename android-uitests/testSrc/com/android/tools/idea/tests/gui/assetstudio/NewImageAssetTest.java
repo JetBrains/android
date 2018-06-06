@@ -79,7 +79,7 @@ public class NewImageAssetTest {
 
     step.selectIconType("Notification Icons");
     assertThat(step.getPreviewPanelCount()).isEqualTo(1);
-    assertThat(step.getPreviewPanelIconNames(0)).containsExactly("xxhdpi", "xhdpi", "hdpi", "mdpi").inOrder();
+    assertThat(step.getPreviewPanelIconNames(0)).containsExactly("xxxhdpi", "xxhdpi", "xhdpi", "hdpi", "mdpi").inOrder();
     step.wizard()
       .clickNext()
       .clickFinish();
@@ -90,7 +90,8 @@ public class NewImageAssetTest {
     assertThat(newFiles).containsExactly("app/src/main/res/drawable-mdpi/ic_stat_name.png",
                                          "app/src/main/res/drawable-hdpi/ic_stat_name.png",
                                          "app/src/main/res/drawable-xhdpi/ic_stat_name.png",
-                                         "app/src/main/res/drawable-xxhdpi/ic_stat_name.png");
+                                         "app/src/main/res/drawable-xxhdpi/ic_stat_name.png",
+                                         "app/src/main/res/drawable-xxxhdpi/ic_stat_name.png");
   }
 
   @RunIn(TestGroup.UNRELIABLE)  // b/76439151
@@ -127,16 +128,19 @@ public class NewImageAssetTest {
                                          "app/src/main/res/drawable-hdpi/ic_stat_name.png",
                                          "app/src/main/res/drawable-xhdpi/ic_stat_name.png",
                                          "app/src/main/res/drawable-xxhdpi/ic_stat_name.png",
+                                         "app/src/main/res/drawable-xxxhdpi/ic_stat_name.png",
 
                                          "app/src/main/res/drawable-mdpi-v9/ic_stat_name.png",
                                          "app/src/main/res/drawable-hdpi-v9/ic_stat_name.png",
                                          "app/src/main/res/drawable-xhdpi-v9/ic_stat_name.png",
                                          "app/src/main/res/drawable-xxhdpi-v9/ic_stat_name.png",
+                                         "app/src/main/res/drawable-xxxhdpi-v9/ic_stat_name.png",
 
                                          "app/src/main/res/drawable-mdpi-v11/ic_stat_name.png",
                                          "app/src/main/res/drawable-hdpi-v11/ic_stat_name.png",
                                          "app/src/main/res/drawable-xhdpi-v11/ic_stat_name.png",
-                                         "app/src/main/res/drawable-xxhdpi-v11/ic_stat_name.png"
+                                         "app/src/main/res/drawable-xxhdpi-v11/ic_stat_name.png",
+                                         "app/src/main/res/drawable-xxxhdpi-v11/ic_stat_name.png"
       );
   }
 
