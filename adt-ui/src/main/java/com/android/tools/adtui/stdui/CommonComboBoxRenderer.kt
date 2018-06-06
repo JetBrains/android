@@ -29,7 +29,7 @@ open class CommonComboBoxRenderer : BasicComboBoxRenderer() {
 
   override fun getListCellRendererComponent(
     list: JList<*>,
-    value: Any,
+    value: Any?,
     index: Int,
     isSelected: Boolean,
     cellHasFocus: Boolean
