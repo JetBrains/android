@@ -36,6 +36,16 @@ public final class FakeFeatureTracker implements FeatureTracker {
   private CpuCaptureMetadata myLastCpuCaptureMetadata;
 
   /**
+   * Stores the last {@link EnergyEventMetadata} passed to the tracker.
+   */
+  private EnergyEventMetadata myLastEnergyEventMetadata;
+
+  /**
+   * Stores the last {@link EnergyRangeMetadata} passed to the tracker.
+   */
+  private EnergyRangeMetadata myLastEnergyRangeMetadata;
+
+  /**
    * Stores the last {@link FilterMetadata} passed to the tracker.
    */
   private FilterMetadata myLastFilterMetadata;
@@ -353,12 +363,20 @@ public final class FakeFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackSelectEnergyRange(@NotNull EnergyRangeMetadata rangeMetadata) {
+    myLastEnergyRangeMetadata = rangeMetadata;
+  }
 
+  public EnergyRangeMetadata getLastEnergyRangeMetadata() {
+    return myLastEnergyRangeMetadata;
   }
 
   @Override
   public void trackSelectEnergyEvent(@NotNull EnergyEventMetadata eventMetadata) {
+    myLastEnergyEventMetadata = eventMetadata;
+  }
 
+  public EnergyEventMetadata getLastEnergyEventMetadata() {
+    return myLastEnergyEventMetadata;
   }
 
   public FilterMetadata getLastFilterMetadata() {
