@@ -23,6 +23,7 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.ScenePicker;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 
@@ -98,8 +99,9 @@ public abstract class BaseTarget implements Target {
   }
 
   @Override
+  @Nullable
   public String getToolTipText() {
-    return myComponent.getNlComponent().getTooltipText();
+    return null;
   }
 
   /**

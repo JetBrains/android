@@ -110,7 +110,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private final Object myErrorQueueLock = new Object();
   private MergingUpdateQueue myErrorQueue;
   private boolean myIsActive = false;
-  private String myDescriptionString;
   private LintIssueProvider myLintIssueProvider;
 
   /**
@@ -1322,7 +1321,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * Sets the tooltip for the design surface
    */
   public void setDesignToolTip(@Nullable String text) {
-    myDescriptionString = text;
+    myLayeredPane.setToolTipText(text);
   }
 
   @Override
