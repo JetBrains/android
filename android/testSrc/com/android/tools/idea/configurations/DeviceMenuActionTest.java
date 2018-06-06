@@ -27,10 +27,11 @@ import static org.mockito.Mockito.when;
 public class DeviceMenuActionTest extends AndroidTestCase {
 
   public void testActions() {
-    ConfigurationHolder holder = mock(ConfigurationHolder.class);
     Configuration configuration = mock(Configuration.class);
-    when(holder.getConfiguration()).thenReturn(configuration);
+    when(configuration.getModule()).thenReturn(myModule);
     when(configuration.getConfigurationManager()).thenReturn(ConfigurationManager.getOrCreateInstance(myModule));
+
+    ConfigurationHolder holder = () -> configuration;
 
     DeviceMenuAction menuAction = new DeviceMenuAction(holder);
     menuAction.updateActions();
@@ -69,21 +70,21 @@ public class DeviceMenuActionTest extends AndroidTestCase {
       "    Custom\n" +
       "    ------------------------------------------------------\n" +
       "    Generic Phones and Tablets\n" +
-      "        10.1\" WXGA (Tablet) (1280 \u00d7 800, mdpi)\n" +
-      "         7.0\" WSVGA (Tablet) (1024 \u00d7 600, mdpi)\n" +
-      "         5.4\" FWVGA (480 \u00d7 854, mdpi)\n" +
-      "         5.1\" WVGA (480 \u00d7 800, mdpi)\n" +
-      "         4.7\" WXGA (1280 \u00d7 720, xhdpi)\n" +
-      "         4.65\" 720p (720 \u00d7 1280, xhdpi)\n" +
-      "         4.0\" WVGA (480 \u00d7 800, hdpi)\n" +
-      "         3.7\" FWVGA slider (480 \u00d7 854, hdpi)\n" +
-      "         3.7\" WVGA (480 \u00d7 800, hdpi)\n" +
-      "         3.4\" WQVGA (240 \u00d7 432, ldpi)\n" +
-      "         3.3\" WQVGA (240 \u00d7 400, ldpi)\n" +
-      "         3.2\" QVGA (ADP2) (320 \u00d7 480, mdpi)\n" +
-      "         3.2\" HVGA slider (ADP1) (320 \u00d7 480, mdpi)\n" +
-      "         2.7\" QVGA slider (240 \u00d7 320, ldpi)\n" +
       "         2.7\" QVGA (240 \u00d7 320, ldpi)\n" +
+      "         2.7\" QVGA slider (240 \u00d7 320, ldpi)\n" +
+      "         3.2\" HVGA slider (ADP1) (320 \u00d7 480, mdpi)\n" +
+      "         3.2\" QVGA (ADP2) (320 \u00d7 480, mdpi)\n" +
+      "         3.3\" WQVGA (240 \u00d7 400, ldpi)\n" +
+      "         3.4\" WQVGA (240 \u00d7 432, ldpi)\n" +
+      "         3.7\" WVGA (480 \u00d7 800, hdpi)\n" +
+      "         3.7\" FWVGA slider (480 \u00d7 854, hdpi)\n" +
+      "         4.0\" WVGA (480 \u00d7 800, hdpi)\n" +
+      "         4.65\" 720p (720 \u00d7 1280, xhdpi)\n" +
+      "         4.7\" WXGA (1280 \u00d7 720, xhdpi)\n" +
+      "         5.1\" WVGA (480 \u00d7 800, mdpi)\n" +
+      "         5.4\" FWVGA (480 \u00d7 854, mdpi)\n" +
+      "         7.0\" WSVGA (Tablet) (1024 \u00d7 600, mdpi)\n" +
+      "        10.1\" WXGA (Tablet) (1280 \u00d7 800, mdpi)\n" +
       "    Add Device Definition...\n";
     Truth.assertThat(actual).isEqualTo(expected);
   }
@@ -95,11 +96,6 @@ public class DeviceMenuActionTest extends AndroidTestCase {
     }
     else {
       text = action.getTemplatePresentation().getText();
-      if (text != null && text.startsWith("AVD:")) {
-        // Skip AVD items in tests - these tend to vary from build environment to
-        // build environment
-        return;
-      }
     }
     if (text != null) {
       for (int i = 0; i < depth; i++) {
@@ -109,9 +105,27 @@ public class DeviceMenuActionTest extends AndroidTestCase {
     }
     DefaultActionGroup group = action instanceof DefaultActionGroup ? (DefaultActionGroup)action : null;
     if (group != null) {
+      // for skipping the Separator of AVD section.
+      boolean skipNext = false;
+
       for (AnAction child : group.getChildActionsOrStubs()) {
+        if (isAvdAction(child)) {
+          // Skip AVD items in tests - these tend to vary from build environment to build environment
+          skipNext = true;
+          continue;
+        }
+        if (skipNext) {
+          skipNext = false;
+          continue;
+        }
+        assert !skipNext;
         prettyPrintActions(child, sb, depth + 1);
       }
     }
+  }
+
+  private static boolean isAvdAction(AnAction action) {
+    String text = action.getTemplatePresentation().getText();
+    return text != null && text.startsWith("AVD:");
   }
 }
