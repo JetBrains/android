@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.project.build.output;
 
 import com.intellij.build.output.BuildOutputParser;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTask;
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemOutputParserProvider;
-import com.intellij.openapi.externalSystem.service.internal.ExternalSystemExecuteTaskTask;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.util.List;
@@ -32,7 +32,7 @@ public class GradleOutputParserProvider implements ExternalSystemOutputParserPro
   }
 
   @Override
-  public List<BuildOutputParser> getBuildOutputParsers(ExternalSystemExecuteTaskTask task) {
+  public List<BuildOutputParser> getBuildOutputParsers(ExternalSystemTask task) {
     return singletonList(new GradleBuildOutputParser());
   }
 }
