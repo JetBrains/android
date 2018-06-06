@@ -129,6 +129,12 @@ public class AndroidLibraryStub implements AndroidLibrary {
   }
 
   @Override
+  @Nullable
+  public File getResStaticLibrary() {
+    return new File(getFolder(), "res.apk");
+  }
+
+  @Override
   @NotNull
   public File getAssetsFolder() {
     return new File("assets");
