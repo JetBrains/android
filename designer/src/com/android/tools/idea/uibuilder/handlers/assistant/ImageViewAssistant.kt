@@ -70,7 +70,7 @@ class ImageViewAssistant(
 
   private val itemList = createItemList()
 
-  private var useAll = isSampleValueAll(originalValue)
+  private var useAll = originalValue == null || isSampleValueAll(originalValue)
     set(value) {
       field = value
       itemList.isEnabled = !value
@@ -88,6 +88,7 @@ class ImageViewAssistant(
     add(createHeaderControls(facet), BorderLayout.NORTH)
     add(itemList)
     add(createBottomBar(), BorderLayout.SOUTH)
+    updateUIState()
   }
 
   private fun createHeaderControls(facet: AndroidFacet): JPanel {
@@ -129,7 +130,7 @@ class ImageViewAssistant(
     setAssistantFont(this@apply)
     isSelected = useAll
     isOpaque = false
-    addActionListener { event -> useAll = (event.source as JBCheckBox).isSelected }
+    addItemListener { event -> useAll = (event.source as JBCheckBox).isSelected }
   }
 
   private fun createComboBox(sampleItems: List<SampleDataResourceItem>): CommonComboBox<String, DefaultCommonComboBoxModel<String>> {
@@ -147,17 +148,20 @@ class ImageViewAssistant(
       selectedSampleItem = sampleItemsWithNull[selectedIndex]
       displayResourceValues(selectedSampleItem, -1)
       addActionListener { event ->
-        if (selectedItem == NONE_VALUE) {
-          itemList.isEnabled = false
-          useAllCheckBox.isEnabled = false
-        }
-        else {
-          itemList.isEnabled = true && !useAll
-          useAllCheckBox.isEnabled = true
-        }
         val selectedIndex = (event.source as JComboBox<*>).selectedIndex
         setSelectedSampleItem(sampleItemsWithNull[selectedIndex]) // -1 to account for the None value
       }
+    }
+  }
+
+  private fun updateUIState() {
+    if (selectedSampleItem == null) {
+      itemList.isEnabled = false
+      useAllCheckBox.isEnabled = false
+    }
+    else {
+      itemList.isEnabled = true && !useAll
+      useAllCheckBox.isEnabled = true
     }
   }
 
@@ -192,9 +196,10 @@ class ImageViewAssistant(
     ResourceRepositoryManager.getAppResources(facet).getSampleDataOfType(IMAGE).toList()
 
   private fun applySampleItem(item: SampleDataResourceItem?, resourceValueIndex: Int) {
-    val useAll = resourceValueIndex < 0
+    val useAll = resourceValueIndex < 0 || item == null
     val itemName = if (item != null) item.name + if (useAll) "" else "[${resourceValueIndex}]" else ""
     itemDisplayName = itemName
+    updateUIState()
     imageHandler.setToolsSrc(nlComponent, item, resourceValueIndex)
   }
 
