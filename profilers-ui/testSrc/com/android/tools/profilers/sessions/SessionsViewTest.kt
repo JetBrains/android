@@ -640,7 +640,7 @@ class SessionsViewTest {
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
 
-    var allocationInfo = MemoryProfiler.MemoryData.newBuilder()
+    val allocationInfo = MemoryProfiler.MemoryData.newBuilder()
       .addAllocationsInfo(MemoryProfiler.AllocationsInfo.newBuilder().setStartTime(10).setEndTime(11).setLegacy(true).build())
       .build()
     myMemoryService.setMemoryData(allocationInfo)
@@ -650,10 +650,12 @@ class SessionsViewTest {
     val session = mySessionsManager.selectedSession
 
     assertThat(sessionsPanel.componentCount).isEqualTo(2)
-    var sessionItem = sessionsPanel.getComponent(0) as SessionItemView
-    var allocationItem = sessionsPanel.getComponent(1) as LegacyAllocationsArtifactView
+    val sessionItem = sessionsPanel.getComponent(0) as SessionItemView
+    val allocationItem = sessionsPanel.getComponent(1) as LegacyAllocationsArtifactView
     assertThat(sessionItem.artifact.session).isEqualTo(session)
     assertThat(allocationItem.artifact.session).isEqualTo(session)
+
+    myMemoryService.setExplicitAllocationEvents(MemoryProfiler.LegacyAllocationEventsResponse.Status.SUCCESS, emptyList())
 
     // Makes sure we're in monitor stage.
     assertThat(myProfilers.stage).isInstanceOf(StudioMonitorStage::class.java)
