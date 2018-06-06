@@ -256,7 +256,6 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
     // Reset only in one of the configurations (e.g. open old projects with run configs already created)
     myRunManager.setBeforeRunTasks(androidRunConfiguration, Lists.newArrayList());
-    myRunManager.fireBeforeRunTasksUpdated();
 
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
     mySetup.setUpProject(request, myProgressIndicator, myTaskId);
