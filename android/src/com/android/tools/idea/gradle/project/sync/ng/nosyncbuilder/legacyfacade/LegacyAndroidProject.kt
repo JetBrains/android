@@ -28,7 +28,7 @@ import java.io.File
 
 open class LegacyAndroidProject(private val androidProject: AndroidProject, private val variant: Variant) : OldAndroidProject {
   override fun getModelVersion(): String = androidProject.modelVersion
-  override fun getApiVersion(): Int = Version.BUILDER_MODEL_API_VERSION
+  override fun getApiVersion(): Int = 3
   override fun getName(): String = androidProject.name
   override fun getProjectType(): Int = androidProject.projectType.oldValue
   override fun getVariantNames(): Collection<String> = androidProject.variantNames
@@ -77,7 +77,7 @@ open class LegacyAndroidProject(private val androidProject: AndroidProject, priv
                                     "signingConfigs=$signingConfigs," +
                                     "dynamicFeatures=$dynamicFeatures," +
                                     "variants=$variants" +
-                                    // TODO "nativeToolchains=$nativeToolchains," +
+                                    // TODO(qumeric): "nativeToolchains=$nativeToolchains," +
                                     "}"
 
 }
