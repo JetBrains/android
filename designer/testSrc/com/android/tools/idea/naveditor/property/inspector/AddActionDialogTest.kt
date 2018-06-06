@@ -96,7 +96,6 @@ class AddActionDialogTest : NavTestCase() {
           action("a1", destination = "f2") {
             withAttribute(AUTO_URI, NavigationSchema.ATTR_ENTER_ANIM, "@anim/fade_in")
             withAttribute(AUTO_URI, NavigationSchema.ATTR_POP_UP_TO, "@id/f2")
-            withAttribute(AUTO_URI, NavigationSchema.ATTR_CLEAR_TASK, "true")
             withAttribute(AUTO_URI, NavigationSchema.ATTR_POP_ENTER_ANIM, "@anim/fade_out")
           }
         }
@@ -113,7 +112,6 @@ class AddActionDialogTest : NavTestCase() {
     assertEquals(model.find("f2"), dialog.destination)
     assertEquals("@anim/fade_in", dialog.enterTransition)
     assertEquals("@anim/fade_out", dialog.popEnterTransition)
-    assertTrue(dialog.isClearTask)
     assertEquals(model.find("f1"), dialog.source)
     assertEquals("f2", dialog.popTo)
     assertEquals("a1", dialog.id)
@@ -125,7 +123,6 @@ class AddActionDialogTest : NavTestCase() {
         fragment("f1") {
           action("a1", popUpTo = "f2") {
             withAttribute(AUTO_URI, NavigationSchema.ATTR_ENTER_ANIM, "@anim/fade_in")
-            withAttribute(AUTO_URI, NavigationSchema.ATTR_CLEAR_TASK, "true")
             withAttribute(AUTO_URI, NavigationSchema.ATTR_POP_ENTER_ANIM, "@anim/fade_out")
           }
         }
@@ -142,7 +139,6 @@ class AddActionDialogTest : NavTestCase() {
     assertEquals("f2", dialog.popTo)
     assertEquals("@anim/fade_in", dialog.enterTransition)
     assertEquals("@anim/fade_out", dialog.popEnterTransition)
-    assertTrue(dialog.isClearTask)
     assertEquals(model.find("f1"), dialog.source)
     assertEquals("f2", dialog.popTo)
     assertEquals("a1", dialog.id)

@@ -74,8 +74,6 @@ public class NavigationSchema implements Disposable {
   public static final String ATTR_POP_UP_TO = "popUpTo";
   public static final String ATTR_POP_UP_TO_INCLUSIVE = "popUpToInclusive";
   public static final String ATTR_SINGLE_TOP = "launchSingleTop";
-  public static final String ATTR_DOCUMENT = "launchDocument";
-  public static final String ATTR_CLEAR_TASK = "clearTask";
   public static final String ATTR_ENTER_ANIM = "enterAnim";
   public static final String ATTR_EXIT_ANIM = "exitAnim";
   public static final String ATTR_POP_ENTER_ANIM = "popEnterAnim";

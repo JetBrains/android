@@ -118,8 +118,6 @@ class NavPropertiesInspectorProvidersTest : NavTestCase() {
     val typeProperty = SimpleProperty(TYPE_EDITOR_PROPERTY_LABEL, a1Only)
     val idProperty = SimpleProperty(ATTR_ID, a1Only)
     val singleTopProperty = SimpleProperty(ATTR_SINGLE_TOP, a1Only)
-    val documentProperty = SimpleProperty(ATTR_DOCUMENT, a1Only)
-    val clearTaskProperty = SimpleProperty(ATTR_CLEAR_TASK, a1Only)
     val destinationProperty = SimpleProperty(NavigationSchema.ATTR_DESTINATION, a1Only)
     val popToProperty = SimpleProperty(NavigationSchema.ATTR_POP_UP_TO, a1Only)
     val popToInclusiveProperty = SimpleProperty(NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE, a1Only)
@@ -130,7 +128,7 @@ class NavPropertiesInspectorProvidersTest : NavTestCase() {
     // TODO: add more properties once they're fully supported
 
     val properties =
-        listOf(typeProperty, idProperty, destinationProperty, clearTaskProperty, singleTopProperty, documentProperty, popToProperty,
+        listOf(typeProperty, idProperty, destinationProperty, singleTopProperty, popToProperty,
             popToInclusiveProperty, enterAnimProperty, exitAnimProperty, popEnterAnimProperty, popExitAnimProperty, dummyProperty)
             .associateBy { it.name }
 
@@ -156,7 +154,7 @@ class NavPropertiesInspectorProvidersTest : NavTestCase() {
     val launchOptionsInspectorProvider = NavActionLaunchOptionsInspectorProvider()
     assertTrue(launchOptionsInspectorProvider.isApplicable(a1Only, properties, propertiesManager))
     val launchOptionsInspector = launchOptionsInspectorProvider.createCustomInspector(a1Only, properties, propertiesManager)
-    assertSameElements(launchOptionsInspector.editors.map { it.property }, listOf(documentProperty, singleTopProperty, clearTaskProperty))
+    assertSameElements(launchOptionsInspector.editors.map { it.property }, listOf(singleTopProperty))
   }
 
   fun testRootNavigationInspector() {

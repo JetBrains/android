@@ -170,7 +170,7 @@ private fun createPropertyMap(): Multimap<String, String> {
   map.putAll("include", listOf("graph"))
   map.keySet().forEach { map.putAll(it, listOf("id", "label"))}
 
-  map.putAll("action", listOf("id", "destination", "launchSingleTop", "launchDocument", "clearTask", "popUpTo",
+  map.putAll("action", listOf("id", "destination", "launchSingleTop", "popUpTo",
       "popUpToInclusive", "enterAnim", "exitAnim"))
   return map
 }

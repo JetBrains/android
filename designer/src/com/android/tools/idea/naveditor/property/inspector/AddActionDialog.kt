@@ -226,8 +226,6 @@ open class AddActionDialog(
     selectItem(dialog.myPopEnterComboBox, { it.value }, ATTR_POP_ENTER_ANIM, AUTO_URI, existingAction)
     selectItem(dialog.myPopExitComboBox, { it.value }, ATTR_POP_EXIT_ANIM, AUTO_URI, existingAction)
     dialog.mySingleTopCheckBox.isSelected = existingAction.singleTop
-    dialog.myDocumentCheckBox.isSelected = existingAction.document
-    dialog.myClearTaskCheckBox.isSelected = existingAction.clearTask
     dialog.myIdTextField.text = existingAction.id
   }
 
@@ -405,8 +403,6 @@ open class AddActionDialog(
         popEnterAnimation = popEnterTransition
         popExitAnimation = popExitTransition
         singleTop = isSingleTop
-        document = isDocument
-        clearTask = isClearTask
       }
       existingAction?.apply(actionSetup) ?: source.createAction(actionSetup = actionSetup, id = id.nullize(true))
     })
