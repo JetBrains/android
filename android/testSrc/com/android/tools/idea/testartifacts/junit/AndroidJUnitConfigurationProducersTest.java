@@ -142,7 +142,7 @@ public class AndroidJUnitConfigurationProducersTest extends AndroidGradleTestCas
     // Modify tasks
     CompileStepBeforeRun.MakeBeforeRunTask ideaMake = BeforeRunTaskProvider.getProvider(getProject(), CompileStepBeforeRun.ID).
       createTask(runConfiguration);
-    runManager.setBeforeRunTasks(runConfiguration, Lists.newArrayList(ideaMake));
+    runManager.setBeforeRunTasks(runConfiguration, Lists.<BeforeRunTask>newArrayList(ideaMake));
 
     // Re-sync and check again
     requestSyncAndWait();
