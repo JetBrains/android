@@ -21,9 +21,11 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.addAarDependency
+import com.android.tools.idea.testing.caret
 import com.android.utils.FileUtils
 import com.intellij.codeInsight.TargetElementUtil
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
@@ -185,6 +187,91 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
     )
   }
 
+  open fun testGotoAarResourceFromCode_libRClass() {
+    addAarDependency()
+
+    assertEquals("values/styles.xml:2:\n" +
+                 "  <style name=\"LibStyle\"></style>\n" +
+                 "              ~|~~~~~~~~~        \n",
+                 describeElements(
+                   getDeclarationsFrom(
+                     myFixture.addFileToProject(
+                       "src/p1/p2/GotoAarStyle.java",
+                       // language=java
+                       """
+                       package p1.p2;
+
+                       public class GotoAarStyle {
+                           public void f() {
+                               int id1 = p1.p2.aarLib.R.style.Lib${caret}Style;
+                           }
+                       }
+                       """.trimIndent()
+                     ).virtualFile
+                   )
+                 )
+    )
+
+    assertEquals("values/styles.xml:4:\n" +
+                 "  <attr name=\"libAttr\" format=\"string\" />\n" +
+                 "             ~|~~~~~~~~                  \n",
+                 describeElements(
+                   getDeclarationsFrom(
+                     myFixture.addFileToProject(
+                       "src/p1/p2/GotoAarStyleableAttr.java",
+                       // language=java
+                       """
+                       package p1.p2;
+
+                       public class GotoAarStyleableAttr {
+                           public void f() {
+                               int id1 = p1.p2.aarLib.R.style.lib${caret}Attr;
+                           }
+                       }
+                       """.trimIndent()
+                     ).virtualFile
+                   )
+                 )
+    )
+  }
+
+  open fun testGotoPermission() {
+    WriteCommandAction.runWriteCommandAction(project) {
+      myFacet.manifest!!.addPermission()?.apply { name.value = "com.example.SEND_MESSAGE" }
+      myFacet.manifest!!.addPermission()?.apply { name.value = "com.example.SEND-MESSAGE" }
+    }
+
+    val file = myFixture.addFileToProject(
+      "src/p1/p2/GotoPermission.java",
+      // language=java
+      """
+      package p1.p2;
+
+      public class GotoPermission {
+          public void f() {
+              String permissionName = Manifest.permission.SEND${caret}_MESSAGE;
+          }
+      }
+      """.trimIndent()
+    )
+
+    assertEquals(
+      """
+      AndroidManifest.xml:7:
+        <permission android:name="com.example.SEND_MESSAGE" />
+                                 ~|~~~~~~~~~~~~~~~~~~~~~~~~~
+      AndroidManifest.xml:8:
+        <permission android:name="com.example.SEND-MESSAGE" />
+                                 ~|~~~~~~~~~~~~~~~~~~~~~~~~~
+      """.trimIndent(),
+      describeElements(getDeclarationsFrom(file.virtualFile))
+        .lineSequence()
+        .map { it.trimEnd() }
+        .filter { it.isNotEmpty() }
+        .joinToString(separator = "\n")
+    )
+  }
+
   protected fun getDeclarationsFrom(file: VirtualFile): Array<PsiElement> {
     myFixture.configureFromExistingVirtualFile(file)
 
@@ -217,54 +304,6 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
     assertSize(1, appResources.getResourceItems(ResourceNamespace.RES_AUTO, ResourceType.STYLE, "LibStyle"))
     assertSize(1, appResources.getResourceItems(ResourceNamespace.RES_AUTO, ResourceType.ATTR, "libAttr"))
   }
-
-  open fun testGotoAarResourceFromCode_libRClass() {
-    addAarDependency()
-
-    assertEquals("values/styles.xml:2:\n" +
-                 "  <style name=\"LibStyle\"></style>\n" +
-                 "              ~|~~~~~~~~~        \n",
-                 describeElements(
-                   getDeclarationsFrom(
-                     myFixture.addFileToProject(
-                       "src/p1/p2/GotoAarStyle.java",
-                       // language=java
-                       """
-                       package p1.p2;
-
-                       public class GotoAarStyle {
-                           public void f() {
-                               int id1 = p1.p2.aarLib.R.style.Lib<caret>Style;
-                           }
-                       }
-                       """.trimIndent()
-                     ).virtualFile
-                   )
-                 )
-    )
-
-    assertEquals("values/styles.xml:4:\n" +
-                 "  <attr name=\"libAttr\" format=\"string\" />\n" +
-                 "             ~|~~~~~~~~                  \n",
-                 describeElements(
-                   getDeclarationsFrom(
-                     myFixture.addFileToProject(
-                       "src/p1/p2/GotoAarStyleableAttr.java",
-                       // language=java
-                       """
-                       package p1.p2;
-
-                       public class GotoAarStyleableAttr {
-                           public void f() {
-                               int id1 = p1.p2.aarLib.R.style.lib<caret>Attr;
-                           }
-                       }
-                       """.trimIndent()
-                     ).virtualFile
-                   )
-                 )
-    )
-  }
 }
 
 class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHandlerTestBase() {
@@ -272,6 +311,7 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
   override fun setUp() {
     super.setUp()
     myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java")
+    myFixture.copyFileToProject("Manifest.java", "gen/p1/p2/Manifest.java")
     myFixture.copyFileToProject("util/lib/R.java", "additionalModules/lib/gen/p1/p2/lib/R.java")
   }
 
@@ -310,7 +350,7 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
 
       public class LibString {
           public void f() {
-              int id1 = R.string.hel<caret>lo;
+              int id1 = R.string.hel${caret}lo;
           }
       }
       """.trimIndent()
@@ -339,7 +379,7 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
 
                        public class GotoAarStyle {
                            public void f() {
-                               int id1 = R.style.Lib<caret>Style;
+                               int id1 = R.style.Lib${caret}Style;
                            }
                        }
                        """.trimIndent()
@@ -361,7 +401,7 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
 
                        public class GotoAarStyleableAttr {
                            public void f() {
-                               int id1 = R.attr.lib<caret>Attr;
+                               int id1 = R.attr.lib${caret}Attr;
                            }
                        }
                        """.trimIndent()
@@ -410,7 +450,7 @@ class AndroidGotoDeclarationHandlerTestNamespaced : AndroidGotoDeclarationHandle
 
       public class LibString {
           public void f() {
-              int id1 = R.string.hel<caret>lo;
+              int id1 = R.string.hel${caret}lo;
           }
       }
       """.trimIndent()
@@ -433,7 +473,7 @@ class AndroidGotoDeclarationHandlerTestNamespaced : AndroidGotoDeclarationHandle
 
             public class GotoAarStyle {
                 public void f() {
-                    int id1 = R.style.Lib<caret>Style;
+                    int id1 = R.style.Lib${caret}Style;
                 }
             }
             """.trimIndent()
@@ -453,7 +493,7 @@ class AndroidGotoDeclarationHandlerTestNamespaced : AndroidGotoDeclarationHandle
 
             public class GotoAarStyleableAttr {
                 public void f() {
-                    int id1 = R.style.lib<caret>Attr;
+                    int id1 = R.style.lib${caret}Attr;
                 }
             }
             """.trimIndent()
@@ -465,5 +505,9 @@ class AndroidGotoDeclarationHandlerTestNamespaced : AndroidGotoDeclarationHandle
 
   override fun testGotoAarResourceFromCode_libRClass() {
     // TODO(b/77801019): start generating R classes for AARs in memory, so that this test passes.
+  }
+
+  override fun testGotoPermission() {
+    // TODO(b/77801019): start generating the Manifest class in memory, so that this test passes.
   }
 }
