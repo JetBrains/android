@@ -4,6 +4,6 @@
       android:versionCode="1"
       android:versionName="1.0">
   <permission android:name="my-permission"/>
-  <permission-group android:name="my-permission.group"/>
+  <permission-group android:name="my-permission-group"/>
   <permission-group android:name="my_permission_group"/>
 </manifest>

@@ -20,6 +20,7 @@ import com.android.resources.ResourceType;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandler;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiIdentifier;
@@ -150,9 +151,9 @@ public class AndroidGotoDeclarationHandler implements GotoDeclarationHandler {
     }
     for (ManifestElementWithRequiredName domElement : list) {
       final AndroidAttributeValue<String> nameAttribute = domElement.getName();
-      final String name = nameAttribute.getValue();
+      final String unqualifiedName = StringUtil.getShortName(StringUtil.notNullize(nameAttribute.getValue()));
 
-      if (AndroidUtils.equal(name, fieldName, false)) {
+      if (AndroidUtils.equal(unqualifiedName, fieldName, false)) {
         final XmlElement psiElement = nameAttribute.getXmlAttributeValue();
 
         if (psiElement != null) {
