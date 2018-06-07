@@ -27,6 +27,7 @@ import com.intellij.openapi.fileEditor.FileEditorStateLevel;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -93,7 +94,7 @@ class FontEditor implements FileEditor {
       myTextArea.setText(message);
       LOG.warn(message ,e);
     }
-    myRootPanel.add(myTextArea);
+    myRootPanel.add(ScrollPaneFactory.createScrollPane(myTextArea));
   }
 
   @NotNull
