@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res;
 
+import com.android.SdkConstants;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.builder.model.AaptOptions;
 import com.android.builder.model.AndroidProject;
@@ -290,7 +291,7 @@ public class ResourceRepositoryManager implements Disposable {
         String libraryName = library.getArtifactAddress();
         if (!moduleNames.contains(libraryName)) {
           File resFolder = new File(library.getResFolder());
-          if (new File(library.getFolder(), "res.apk").exists()) {
+          if (new File(library.getFolder(), SdkConstants.FN_RESOURCE_STATIC_LIBRARY).exists()) {
             // TODO(b/74425399): Add getResApk() to Library and populate it in the model.
             // TODO(b/74425399): decide what Gradle will do with AARv2 files and pass around the path to res.apk directly.
             files.put(library.getFolder(), libraryName);

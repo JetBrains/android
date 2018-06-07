@@ -12,36 +12,42 @@ import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiModificationTracker;
-import com.intellij.util.containers.HashMap;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * @author Eugene.Kudelevsky
+ * Base class for inner classes of the R class, e.g. {@code R.string}.
+ *
+ * <p>Implementations need to implement {@link #doGetFields()}, most likely by calling
+ * {@link #buildResourceFields(ResourceManager, AbstractResourceRepository, ResourceNamespace, boolean, ResourceType, PsiClass)} with the right
+ * arguments.
  */
 public abstract class ResourceTypeClassBase extends AndroidLightInnerClassBase {
+  @NotNull
+  protected final ResourceType myResourceType;
+
+  @Nullable
   private CachedValue<PsiField[]> myFieldsCache;
 
-  public ResourceTypeClassBase(PsiClass context, String name) {
-    super(context, name);
+  public ResourceTypeClassBase(@NotNull PsiClass context, @NotNull ResourceType resourceType) {
+    super(context, resourceType.getName());
+    myResourceType = resourceType;
   }
 
   @NotNull
-  static PsiField[] buildResourceFields(@NotNull ResourceManager manager,
+  static PsiField[] buildResourceFields(@Nullable ResourceManager manager,
                                         @NotNull AbstractResourceRepository repository,
                                         @NotNull ResourceNamespace namespace,
                                         boolean nonFinal,
-                                        @NotNull String resClassName,
+                                        @NotNull ResourceType resourceType,
                                         @NotNull PsiClass context) {
-    ResourceType resourceType = ResourceType.getEnum(resClassName);
-    if (resourceType == null) {
-      return PsiField.EMPTY_ARRAY;
-    }
-    else if (resourceType == ResourceType.STYLEABLE) {
+    if (resourceType == ResourceType.STYLEABLE) {
       // TODO(b/74325205): remove the need for this.
       resourceType = ResourceType.DECLARE_STYLEABLE;
     }
@@ -59,7 +65,7 @@ public abstract class ResourceTypeClassBase extends AndroidLightInnerClassBase {
         if (value != null) {
           List<AttrResourceValue> attributes = value.getAllAttributes();
           for (AttrResourceValue attr : attributes) {
-            if (manager.isResourcePublic(attr.getResourceType().getName(), attr.getName())) {
+            if (manager == null || manager.isResourcePublic(attr.getResourceType().getName(), attr.getName())) {
               ResourceNamespace attrNamespace = attr.getNamespace();
               String packageName = attrNamespace.getPackageName();
               if (attrNamespace.equals(namespace) || StringUtil.isEmpty(packageName)) {
@@ -94,12 +100,8 @@ public abstract class ResourceTypeClassBase extends AndroidLightInnerClassBase {
   @Override
   public PsiField[] getFields() {
     if (myFieldsCache == null) {
-      myFieldsCache = CachedValuesManager.getManager(getProject()).createCachedValue(new CachedValueProvider<PsiField[]>() {
-        @Override
-        public Result<PsiField[]> compute() {
-          return Result.create(doGetFields(), PsiModificationTracker.OUT_OF_CODE_BLOCK_MODIFICATION_COUNT);
-        }
-      });
+      myFieldsCache = CachedValuesManager.getManager(getProject()).createCachedValue(
+        () -> CachedValueProvider.Result.create(doGetFields(), PsiModificationTracker.OUT_OF_CODE_BLOCK_MODIFICATION_COUNT));
     }
     return myFieldsCache.getValue();
   }

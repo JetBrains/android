@@ -646,7 +646,7 @@ public class AarProtoResourceRepository extends AarSourceResourceRepository {
     void load() throws IOException {
       try {
         resourceTableMsg = readResourceTableFromResourcesPbFile(aarDir);
-        packageName = AndroidManifestUtils.getPackageNameFromManifestFile(aarDir);
+        packageName = AndroidManifestUtils.getPackageNameFromManifestFile(new File(aarDir, SdkConstants.FN_ANDROID_MANIFEST_XML));
       } catch (FileNotFoundException e) {
         File resApkFile = new File(aarDir, RES_APK);
         try (ZipFile zipFile = new ZipFile(resApkFile)) {
