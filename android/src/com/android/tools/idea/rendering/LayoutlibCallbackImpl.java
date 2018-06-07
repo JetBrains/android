@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.annotations.NonNull;
 import com.android.builder.model.AaptOptions;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
 import com.android.support.AndroidxName;
 import com.android.tools.idea.AndroidPsiUtils;
@@ -31,10 +31,7 @@ import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.parsers.*;
-import com.android.tools.idea.res.FileResourceOpener;
-import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceIdManager;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.*;
 import com.android.tools.idea.res.aar.ProtoXmlPullParser;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.lint.detector.api.Lint;
@@ -116,7 +113,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Nullable private final RenderTask myRenderTask;
   @NotNull private final DownloadableFontCacheService myFontCacheService;
   private boolean myUsed;
-  private Set<File> myParserFiles;
+  private Set<PathString> myParserFiles;
   private int myParserCount;
   @NotNull public ImmutableMap<String, TagSnapshot> myAaptDeclaredResources = ImmutableMap.of();
   private final Map<String, ResourceValue> myFontFamilies;
@@ -363,7 +360,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   }
 
   @Override
-  @NonNull
+  @NotNull
   public XmlPullParser createXmlParser() {
     return new NamedXmlParser(null);
   }
@@ -395,7 +392,11 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       parser = LayoutPsiPullParser.create(aaptResource, ResourceNamespace.TODO(), myLogger);
     }
     else {
-      parser = getParser(layoutResource.getName(), layoutResource.getNamespace(), new File(value));
+      PathString pathString = ResourceHelper.toFileResourcePathString(value);
+      if (pathString == null) {
+        return null;
+      }
+      parser = getParser(layoutResource.getName(), layoutResource.getNamespace(), pathString);
     }
 
     if (parser instanceof AaptAttrParser) {
@@ -414,7 +415,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   }
 
   @Nullable
-  private ILayoutPullParser getParser(@NotNull String layoutName, @NotNull ResourceNamespace namespace, @NotNull File xml) {
+  private ILayoutPullParser getParser(@NotNull String layoutName, @NotNull ResourceNamespace namespace, @NotNull PathString xml) {
     if (myParserFiles != null && myParserFiles.contains(xml)) {
       if (myParserCount > MAX_PARSER_INCLUDES) {
         // Unlikely large number of includes. Look for cyclic dependencies in the available files.
@@ -444,7 +445,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       ILayoutPullParser parser = myLayoutEmbeddedParser;
       // The parser should only be used once!! If it is included more than once,
       // subsequent includes should just use a plain pull parser that is not tied
-      // to the XML model
+      // to the XML model.
       myLayoutEmbeddedParser = null;
       return parser;
     }
@@ -452,60 +453,50 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     // See if we can find a corresponding PSI file for this included layout, and
     // if so directly reuse the PSI parser, such that we pick up the live, edited
     // contents rather than the most recently saved file contents.
-    if (xml.isFile()) {
-      File parent = xml.getParentFile();
-      String path = xml.getPath();
+    if (xml.getFilesystemUri().getScheme().equals("file")) {
+      String parentName = xml.getParentFileName();
+      String path = xml.getRawPath();
       // No need to generate a PSI-based parser (which can read edited/unsaved contents) for files in build outputs or
-      // layoutlib built-in directories
-      if (parent != null && !path.contains(FilenameConstants.EXPLODED_AAR) && !path.contains(FD_LAYOUTLIB) && !path.contains(BUILD_CACHE)) {
-        String parentName = parent.getName();
-        if (parentName.startsWith(FD_RES_LAYOUT) || parentName.startsWith(FD_RES_DRAWABLE) || parentName.startsWith(FD_RES_MENU)) {
-          VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(xml);
-          if (file != null) {
-            PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myModule.getProject(), file);
-            if (psiFile instanceof XmlFile) {
-              // Do not honor the merge tag for layouts that are inflated via this call. This is just being inflated as part of a different
-              // layout so we already have a parent.
-              LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger, false);
-              parser.setUseSrcCompat(myHasLegacyAppCompat || myHasAndroidXAppCompat);
-              if (parentName.startsWith(FD_RES_LAYOUT)) {
-                // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag
-                parser.setProvideViewCookies(myRenderTask != null && myRenderTask.getProvideCookiesForIncludedViews());
-              }
-              return parser;
+      // layoutlib built-in directories.
+      if (parentName != null
+          && !path.contains(FilenameConstants.EXPLODED_AAR) && !path.contains(FD_LAYOUTLIB) && !path.contains(BUILD_CACHE)
+          && (parentName.startsWith(FD_RES_LAYOUT) || parentName.startsWith(FD_RES_DRAWABLE) || parentName.startsWith(FD_RES_MENU))) {
+        VirtualFile file = ResourceHelper.toVirtualFile(xml);
+        if (file != null) {
+          PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myModule.getProject(), file);
+          if (psiFile instanceof XmlFile) {
+            // Do not honor the merge tag for layouts that are inflated via this call. This is just being inflated as part of a different
+            // layout so we already have a parent.
+            LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger, false);
+            parser.setUseSrcCompat(myHasLegacyAppCompat || myHasAndroidXAppCompat);
+            if (parentName.startsWith(FD_RES_LAYOUT)) {
+              // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag.
+              parser.setProvideViewCookies(myRenderTask != null && myRenderTask.getProvideCookiesForIncludedViews());
             }
+            return parser;
           }
         }
       }
-
-      // For included layouts, create a LayoutFilePullParser such that we get the
-      // layout editor behavior in included layouts as well - which for example
-      // replaces <fragment> tags with <include>.
-      try {
-        return LayoutFilePullParser.create(xml, namespace);
-      }
-      catch (XmlPullParserException e) {
-        LOG.error(e);
-      }
-      catch (FileNotFoundException e) {
-        // Shouldn't happen since we check isFile() above
-      }
-      catch (IOException e) {
-        LOG.error(e);
-      }
     }
 
-    return null;
+    // For included layouts, create a LayoutFilePullParser such that we get the
+    // layout editor behavior in included layouts as well - which for example
+    // replaces <fragment> tags with <include>.
+    return LayoutFilePullParser.create(xml, namespace);
   }
 
   /**
    * Searches for cycles in the {@code <include>} tag graph of the layout files we've
-   * been asked to provide parsers for
+   * been asked to provide parsers for.
    */
   private boolean findCycles() {
     Map<String, File> layoutToFile = new HashMap<>();
     Multimap<String, String> includeMap = ArrayListMultimap.create();
-    for (File file : myParserFiles) {
+    for (PathString path : myParserFiles) {
+      File file = path.toFile();
+      if (file == null) {
+        continue;
+      }
       String layoutName = Lint.getLayoutName(file);
       layoutToFile.put(layoutName, file);
       try {
@@ -522,7 +513,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
             }
           }
 
-          // Deals with tools:layout attribute from fragments
+          // Deals with tools:layout attribute from fragments.
           NodeList fragmentNodeList = document.getElementsByTagName(VIEW_FRAGMENT);
           for (int i = 0, n = fragmentNodeList.getLength(); i < n; i++) {
             Element fragment = (Element)fragmentNodeList.item(i);
@@ -539,11 +530,11 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       }
     }
 
-    // We now have a DAG over the include dependencies in the layouts
-    // Do a DFS to detect cycles
+    // We now have a DAG over the include dependencies in the layouts.
+    // Do a DFS to detect cycles.
 
     // Perform DFS on the include graph and look for a cycle; if we find one, produce
-    // a chain of includes on the way back to show to the user
+    // a chain of includes on the way back to show to the user.
     if (!includeMap.isEmpty()) {
       for (String from : includeMap.keySet()) {
         Set<String> visiting = Sets.newHashSetWithExpectedSize(includeMap.size());

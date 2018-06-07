@@ -709,7 +709,7 @@ fun RenderResources.resolveLayout(layout: ResourceValue?): VirtualFile? {
  * @param resourcePath the file resource path to convert
  * @return the converted resource path, or null if the `resourcePath` doesn't point to a file resource
  */
-private fun toFileResourcePathString(resourcePath: String): PathString? {
+fun toFileResourcePathString(resourcePath: String): PathString? {
   if (resourcePath.startsWith("apk:")) {
     val prefixLength = "apk:".length
     val separatorPos = resourcePath.lastIndexOf(JAR_SEPARATOR)
