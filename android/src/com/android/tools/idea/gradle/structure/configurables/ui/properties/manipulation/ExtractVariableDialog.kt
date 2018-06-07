@@ -28,7 +28,7 @@ class ExtractVariableDialog<PropertyT : Any, ModelPropertyCoreT : ModelPropertyC
   scope: PsVariablesScope,
   refactoredProperty: ModelPropertyCoreT,
   private var editorFactory: ModelPropertyEditorFactory<PropertyT, ModelPropertyCoreT>
-) : DialogWrapper(project.resolvedModel) {
+) : DialogWrapper(project.ideProject) {
 
   private var form: ExtractVariableForm? = null
   private val name: String get() = form?.myNameField?.text ?: ""

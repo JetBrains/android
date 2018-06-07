@@ -32,7 +32,7 @@ class PsModuleCollection(parent: PsProject) : PsCollectionBase<PsModule, ModuleK
   override fun getKeys(from: PsProject): Set<ModuleKey> {
     val result = mutableSetOf<ModuleKey>()
     val projectParsedModel = from.parsedModel
-    for (resolvedModel in ModuleManager.getInstance(from.resolvedModel).modules) {
+    for (resolvedModel in ModuleManager.getInstance(from.ideProject).modules) {
       val gradlePath = getGradlePath(resolvedModel)
       val moduleParsedModel = projectParsedModel.getModuleBuildModel(resolvedModel)
       if (gradlePath != null && moduleParsedModel != null) {
@@ -59,7 +59,7 @@ class PsModuleCollection(parent: PsProject) : PsCollectionBase<PsModule, ModuleK
 
   override fun update(key: ModuleKey, model: PsModule) {
     val projectParsedModel = parent.parsedModel
-    val moduleManager = ModuleManager.getInstance(parent.resolvedModel)
+    val moduleManager = ModuleManager.getInstance(parent.ideProject)
     val module = moduleManager.modules.firstOrNull { GradleFacet.getInstance(it)?.gradleModuleModel?.gradlePath == key.gradlePath }
     val moduleName = module!!.name
     val moduleParsedModel = module.let { projectParsedModel.getModuleBuildModel(module) }

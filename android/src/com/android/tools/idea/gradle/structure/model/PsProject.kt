@@ -20,7 +20,8 @@ import com.intellij.openapi.project.Project
 import java.util.function.Consumer
 
 interface PsProject : PsModel {
-  val resolvedModel: Project
+  val ideProject: Project
+  val resolvedModel: Project?
   val parsedModel: ProjectBuildModel
   val variables: PsVariables
   val pomDependencyCache: PsPomDependencyCache

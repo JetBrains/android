@@ -48,7 +48,7 @@ class PsLibraryUpdateCheckerDaemon(context: PsContext) : PsDaemon(context) {
 
   private val eventDispatcher = EventDispatcher.create(AvailableUpdatesListener::class.java)
 
-  fun getAvailableUpdates(): AvailableLibraryUpdates = AvailableLibraryUpdateStorage.getInstance(context.project.resolvedModel).getState()
+  fun getAvailableUpdates(): AvailableLibraryUpdates = AvailableLibraryUpdateStorage.getInstance(context.project.ideProject).getState()
 
   fun queueAutomaticUpdateCheck() {
     val searchTimeMillis = getAvailableUpdates().lastSearchTimeMillis
