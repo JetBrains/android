@@ -108,7 +108,7 @@ abstract class PsModule protected constructor(
   open fun applyChanges() {
     if (isModified && parsedModel?.isModified == true) {
       val name = String.format("Applying changes to module '%1\$s'", name)
-      object : WriteCommandAction<Nothing>(parent.resolvedModel, name) {
+      object : WriteCommandAction<Nothing>(parent.ideProject, name) {
         override fun run(result: Result<Nothing>) {
           parsedModel?.applyChanges()
           isModified = false

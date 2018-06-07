@@ -51,10 +51,10 @@ class PsContextImpl constructor (override val project: PsProject, parentDisposab
   private val artifactRepositorySearchServices = mutableMapOf<PsModule, ArtifactRepositorySearchService>()
 
   override val uiSettings: PsUISettings
-    get() = PsUISettings.getInstance(project.resolvedModel)
+    get() = PsUISettings.getInstance(project.ideProject)
 
   override val mainConfigurable: ProjectStructureConfigurable
-    get() = ProjectStructureConfigurable.getInstance(project.resolvedModel)
+    get() = ProjectStructureConfigurable.getInstance(project.ideProject)
 
   init {
     mainConfigurable.add(
@@ -72,7 +72,7 @@ class PsContextImpl constructor (override val project: PsProject, parentDisposab
   }
 
   private fun requestGradleSync() {
-    val project = this.project.resolvedModel
+    val project = this.project.ideProject
     gradleSyncEventDispatcher.multicaster.syncStarted(project, false, false)
     val callback = gradleSync.requestProjectSync(project)
     callback.doWhenDone { gradleSyncEventDispatcher.multicaster.syncSucceeded(project) }

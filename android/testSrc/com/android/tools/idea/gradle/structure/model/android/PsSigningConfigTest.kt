@@ -51,7 +51,7 @@ class PsSigningConfigTest : AndroidGradleTestCase() {
     // TODO(b/70501607): assertThat(keyPassword.resolved.asTestValue(), equalTo("android"))
     assertThat(keyPassword.parsedValue.asTestValue(), equalTo("android"))
 
-    assertThat(storeFile.resolved.asTestValue(), equalTo(File(File(project.resolvedModel.basePath, "app"), "debug.keystore")))
+    assertThat(storeFile.resolved.asTestValue(), equalTo(File(File(project.resolvedModel?.basePath, "app"), "debug.keystore")))
     assertThat(storeFile.parsedValue.asTestValue(), equalTo(File("debug.keystore")))
 
     assertThat(storePassword.resolved.asTestValue(), equalTo("android"))

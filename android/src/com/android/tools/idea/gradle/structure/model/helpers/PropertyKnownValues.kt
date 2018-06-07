@@ -56,7 +56,7 @@ fun signingConfigs(module: PsAndroidModule): ListenableFuture<List<ValueDescript
 })
 
 fun proGuardFileValuesCore(module: PsAndroidModule): List<ValueDescriptor<File>> =
-  ModuleManager.getInstance(module.parent.resolvedModel).findModuleByName(module.name)?.let { ideModule ->
+  ModuleManager.getInstance(module.parent.ideProject).findModuleByName(module.name)?.let { ideModule ->
     FilenameIndex.getAllFilesByExt(
       ideModule.project,
       "pro",

@@ -25,13 +25,14 @@ import java.util.*
 import java.util.function.Consumer
 import javax.swing.Icon
 
-class PsProjectImpl(override val resolvedModel: Project) : PsChildModel(), PsProject {
-  override val parsedModel: ProjectBuildModel = GradleModelProvider.get().getProjectModel(resolvedModel)
+class PsProjectImpl(override val ideProject: Project) : PsChildModel(), PsProject {
+  override var resolvedModel: Project? = ideProject ; private set
+  override val parsedModel: ProjectBuildModel = GradleModelProvider.get().getProjectModel(ideProject)
   override val variables: PsVariables
   override val pomDependencyCache: PsPomDependencyCache = PsPomDependencies()
   private val moduleCollection: PsModuleCollection
 
-  override val name: String get() = resolvedModel.name
+  override val name: String get() = resolvedModel?.name ?: ""
 
   override val parent: PsModel? = null
   override val isDeclared: Boolean = true
@@ -42,9 +43,7 @@ class PsProjectImpl(override val resolvedModel: Project) : PsChildModel(), PsPro
   init {
     // TODO(b/77695733): Ensure that getProjectBuildModel() is indeed not null.
     variables = PsVariables(
-      this, "Project: $name",
-      Objects.requireNonNull<GradleBuildModel>(this.parsedModel.projectBuildModel).ext(),
-      null)
+      this, "Project: $name", Objects.requireNonNull<GradleBuildModel>(this.parsedModel.projectBuildModel).ext(), null)
     moduleCollection = PsModuleCollection(this)
   }
 
@@ -60,7 +59,7 @@ class PsProjectImpl(override val resolvedModel: Project) : PsChildModel(), PsPro
 
   override fun applyChanges() {
     if (isModified) {
-      object : WriteCommandAction<Nothing>(resolvedModel, "Applying changes to the project structure.") {
+      object : WriteCommandAction<Nothing>(ideProject, "Applying changes to the project structure.") {
         override fun run(result: Result<Nothing>) {
           parsedModel.applyChanges()
           isModified = false
