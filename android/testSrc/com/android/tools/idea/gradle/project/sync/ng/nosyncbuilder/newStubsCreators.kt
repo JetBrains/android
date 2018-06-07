@@ -17,20 +17,31 @@ package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder
 
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.androidproject.AaptOptions
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.androidproject.AndroidProject
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.library.AndroidLibrary
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.library.JavaLibrary
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.library.ModuleDependency
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.library.NativeLibrary
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.variant.InstantRun
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.variant.Variant
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.PathConverter
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.androidproject.NewAaptOptions
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.androidproject.NewAndroidProject
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.androidproject.NewJavaCompileOptions
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.library.NewAndroidLibrary
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.library.NewGlobalLibraryMap
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.library.NewJavaLibrary
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.library.NewModuleDependency
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.newfacade.variant.*
+import org.gradle.internal.impldep.org.bouncycastle.math.raw.Nat
 import java.io.File
 
 val modulePath = File("/path/to/module")
 val sdkPath = File("/path/to/sdk")
 val buildPath = File(modulePath, "build")
+val libPath = File("/path/to/libraries")
+val outPath = File("/path/to/out")
 
-val testConverter = PathConverter(modulePath, sdkPath)
+val testConverter = PathConverter(modulePath, sdkPath, libPath, outPath)
 
 fun createNewAndroidProject(): AndroidProject {
   val aaptOptions = NewAaptOptions(AaptOptions.Namespacing.REQUIRED)
@@ -144,3 +155,52 @@ fun createNewAndroidSourceSet(name: String) = NewAndroidSourceSet(
   listOf(File(buildPath,"${name}jniLibsDirectory")),
   listOf(File(buildPath,"${name}shadersDirectory"))
 )
+
+fun createNewGlobalLibraryMap() = NewGlobalLibraryMap(
+  createNewAndroidLibraries(1),
+  createNewJavaLibraries(2),
+  mapOf(), // TODO use createNativeLibraries when it will be implemented
+  createNewModuleLibraries(3)
+)
+
+fun createNewAndroidLibraries(count: Int): Map<String, AndroidLibrary> {
+  val androidLibraries = mutableMapOf<String, AndroidLibrary>()
+  for (i in 1..count) {
+    val artifactAddress = "android_library:$i@aar"
+    androidLibraries[artifactAddress] = NewAndroidLibrary(
+      File(outPath, "android_artifact_i$"),
+      listOf(File(libPath,  "local_jar_$i")),
+      File(libPath, "bundle_folder_$i"),
+      artifactAddress
+    )
+  }
+  return androidLibraries
+}
+
+fun createNewJavaLibraries(count: Int): Map<String, JavaLibrary> {
+  val javaLibraries = mutableMapOf<String, JavaLibrary>()
+  for (i in 1..count) {
+    val artifactAddress = "java_library:$i@jar"
+    javaLibraries[artifactAddress] = NewJavaLibrary(
+      File(outPath, "java_artifact_$i"),
+      artifactAddress
+    )
+  }
+  return javaLibraries
+}
+
+fun createNewModuleLibraries(count: Int): Map<String, ModuleDependency> {
+  val moduleDependencies = mutableMapOf<String, ModuleDependency>()
+  for (i in 1..count) {
+    val artifactAddress = "module_dependency:$i@mod"
+    moduleDependencies[artifactAddress] = NewModuleDependency(
+      "build_id_$i",
+      "project_path_$i",
+      "variant_$i",
+      artifactAddress
+    )
+  }
+  return moduleDependencies
+}
+
+fun createNativeLibraries(): Map<String, NativeLibrary> = TODO("not implemented yet")

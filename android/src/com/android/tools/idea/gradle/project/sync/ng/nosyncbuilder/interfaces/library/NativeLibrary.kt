@@ -15,19 +15,28 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.library
 
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.PathConverter
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.proto.LibraryProto
+import java.io.File
 
-/** Represents a dependency on another module.*/
-interface ModuleDependency : Library {
-  val buildId: String
-  /** The gradle path. */
-  val projectPath: String
-  val variant: String
+interface NativeLibrary : Library {
+  /** The ABI of the library. */
+  val abi: String
+  /** The name of the toolchain used to compile the native library. */
+  val toolchainName: String
+  /* A list of compiler flags for C code. */
+  val cCompilerFlags: Collection<String>
+  /* A list of compiler flags for C++ code. */
+  val cppCompilerFlags: Collection<String>
+  /* TODO: document */
+  val debuggableLibraryFolders: Collection<File>
 
-  fun toProto() = LibraryProto.ModuleDependency.newBuilder()
+  fun toProto(converter: PathConverter) = LibraryProto.NativeLibrary.newBuilder()
     .setLibrary(LibraryProto.Library.newBuilder().setArtifactAddress(artifactAddress))
-    .setBuildId(buildId)
-    .setProjectPath(projectPath)
-    .setVariant(variant)
+    .setAbi(abi)
+    .setToolchainName(toolchainName)
+    .addAllCCompilerFlags(cCompilerFlags)
+    .addAllCppCompilerFlags(cppCompilerFlags)
+    .addAllDebuggableLibraryFolders(debuggableLibraryFolders.map { converter.fileToProto(it) }) // TODO add dir argument
     .build()!!
 }
