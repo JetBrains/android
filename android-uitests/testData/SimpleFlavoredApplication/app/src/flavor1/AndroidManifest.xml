@@ -1,0 +1,14 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="google.simpleapplication">
+
+    <application>
+        <activity
+            android:name="google.simpleapplication.F1MainActivity"
+            android:label="@string/title_activity_f1_main">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
