@@ -34,10 +34,10 @@ import javax.swing.Icon
 
 abstract class PsModule protected constructor(
   override val parent: PsProject,
-  override val name: String,
-  open val gradlePath: String?,
-  val parsedModel: GradleBuildModel?
+  open val gradlePath: String?
 ) : PsChildModel() {
+  override var name: String = ""
+  var parsedModel: GradleBuildModel? = null
 
   private var myParsedDependencies: PsParsedDependencies? = null
   private var myVariables: PsVariablesScope? = null
@@ -56,7 +56,17 @@ abstract class PsModule protected constructor(
   /**
    * <All Modules> constructor.
    */
-  protected constructor(parent: PsProject, name: String) : this(parent, name, null, null)
+  protected constructor(name: String, parent: PsProject) : this(parent, null) {
+    init(name, null)
+  }
+
+  protected fun init(name: String, parsedModel: GradleBuildModel?) {
+    this.name = name
+    this.parsedModel = parsedModel
+
+    myParsedDependencies = null
+    myVariables = null
+  }
 
   abstract val rootDir: File?
   abstract fun getConfigurations(): List<String>
@@ -99,7 +109,7 @@ abstract class PsModule protected constructor(
       val name = String.format("Applying changes to module '%1\$s'", name)
       object : WriteCommandAction<Nothing>(parent.resolvedModel, name) {
         override fun run(result: Result<Nothing>) {
-          parsedModel.applyChanges()
+          parsedModel?.applyChanges()
           isModified = false
         }
       }.execute()
@@ -107,7 +117,7 @@ abstract class PsModule protected constructor(
   }
 
   protected fun addLibraryDependencyToParsedModel(configurationNames: List<String>, compactNotation: String) {
-    parsedModel?.let {
+    parsedModel?.let { parsedModel ->
       val dependencies = parsedModel.dependencies()
       configurationNames.forEach { configurationName -> dependencies.addArtifact(configurationName, compactNotation) }
       parsedDependencies.reset(parsedModel)
@@ -115,7 +125,7 @@ abstract class PsModule protected constructor(
   }
 
   protected fun addModuleDependencyToParsedModel(configurationNames: List<String>, modulePath: String) {
-    parsedModel?.let {
+    parsedModel?.let { parsedModel ->
       val dependencies = parsedModel.dependencies()
       configurationNames.forEach { configurationName -> dependencies.addModule(configurationName, modulePath) }
       parsedDependencies.reset(parsedModel)
@@ -123,7 +133,7 @@ abstract class PsModule protected constructor(
   }
 
   protected fun removeDependencyFromParsedModel(dependency: PsDeclaredDependency) {
-    parsedModel?.let {
+    parsedModel?.let { parsedModel ->
       parsedModel.dependencies().remove(dependency.parsedModel)
       parsedDependencies.reset(parsedModel)
     }

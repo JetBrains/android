@@ -27,16 +27,19 @@ import javax.swing.Icon
 
 class PsJavaModule(
   parent: PsProject,
-  name: String,
-  gradlePath: String,
-  val resolvedModel: JavaModuleModel?,
-  parsedModel: GradleBuildModel?
-) : PsModule(parent, name, gradlePath, parsedModel) {
-
+  gradlePath: String
+  ) : PsModule(parent, gradlePath) {
+  var resolvedModel: JavaModuleModel? = null
+  override var rootDir: File? = null
+  override val icon: Icon? = AllIcons.Nodes.PpJdk
   private var myDependencyCollection: PsJavaDependencyCollection? = null
 
-  override val rootDir: File? get() = resolvedModel?.contentRoots?.firstOrNull()?.rootDirPath
-  override val icon: Icon? = AllIcons.Nodes.PpJdk
+  fun init(name: String, resolvedModel: JavaModuleModel?, parsedModel: GradleBuildModel?) {
+    super.init(name, parsedModel)
+    this.resolvedModel = resolvedModel
+    rootDir = resolvedModel?.contentRoots?.firstOrNull()?.rootDirPath
+    myDependencyCollection = null
+  }
 
   private val orCreateDependencyCollection: PsJavaDependencyCollection
     get() = myDependencyCollection ?: PsJavaDependencyCollection(this).also { myDependencyCollection = it }
