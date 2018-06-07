@@ -60,7 +60,9 @@ public class PropertyUtil {
   }
 
   @NotNull
-  public static GradleDslSimpleExpression createBasicExpression(@NotNull GradleDslElement parent, @NotNull Object value, @NotNull GradleNameElement name) {
+  public static GradleDslSimpleExpression createBasicExpression(@NotNull GradleDslElement parent,
+                                                                @NotNull Object value,
+                                                                @NotNull GradleNameElement name) {
     GradleDslSimpleExpression newElement = new GradleDslLiteral(parent, name);
     newElement.setValue(value);
     return newElement;
@@ -106,7 +108,8 @@ public class PropertyUtil {
     else if (holder instanceof GradleDslMethodCall) {
       GradleDslMethodCall methodCall = (GradleDslMethodCall)holder;
       methodCall.remove(element);
-    } else {
+    }
+    else {
       throw new IllegalStateException("Property holder has unknown type, " + holder);
     }
   }
@@ -131,14 +134,15 @@ public class PropertyUtil {
   }
 
   /**
-   * Follows references as the DslElement level to obtain the resulting element.
+   * Follows references as the DslElement level to obtain the resulting element. Note: This only works
+   * on GradleDslSimpleExpressions, for any expressions please use {@link #followElement(GradleDslSimpleExpression)}
    *
    * @param expression expression to start at
    * @return resolved expression
    */
   @NotNull
   public static GradleDslSimpleExpression resolveElement(@NotNull GradleDslSimpleExpression expression) {
-    while (expression instanceof GradleDslLiteral && ((GradleDslLiteral)expression).isReference() && !expression.hasCycle()) {
+    while (expression instanceof GradleDslLiteral && expression.isReference() && !expression.hasCycle()) {
       GradleReferenceInjection injection = ((GradleDslLiteral)expression).getReferenceInjection();
       if (injection == null) {
         return expression;
@@ -150,6 +154,23 @@ public class PropertyUtil {
       expression = next;
     }
     return expression;
+  }
+
+  @Nullable
+  public static GradleDslElement followElement(@NotNull GradleDslSimpleExpression expression) {
+    GradleDslElement element = expression;
+    while (element instanceof GradleDslLiteral && ((GradleDslLiteral)element).isReference() && !((GradleDslLiteral)element).hasCycle()) {
+      GradleReferenceInjection injection = ((GradleDslLiteral)expression).getReferenceInjection();
+      if (injection == null) {
+        return null;
+      }
+      GradleDslElement next = injection.getToBeInjected();
+      if (next == null) {
+        return null;
+      }
+      element = next;
+    }
+    return element;
   }
 
   @Nullable
@@ -216,7 +237,7 @@ public class PropertyUtil {
     GradleDslElement realExpression = element.getRealExpression();
     GradleDslElement realParent = realExpression.getParent();
     GradleDslElement oldRealExpression = realParent == null ? null : findOriginalElement(realParent, realExpression);
-    return oldRealExpression == null ||  isElementModified(oldRealExpression, realExpression);
+    return oldRealExpression == null || isElementModified(oldRealExpression, realExpression);
   }
 
   /**
@@ -293,5 +314,4 @@ public class PropertyUtil {
 
     return !Objects.equals(convertNameToKey(newName), convertNameToKey(oldName));
   }
-
 }

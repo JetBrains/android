@@ -41,6 +41,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.followElement;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isPropertiesElementOrMap;
 import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT_BLOCK_NAME;
@@ -391,15 +392,7 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
         element = map.getPropertyElement(index);
       }
       else if (element instanceof GradleDslLiteral && ((GradleDslLiteral)element).isReference()) {
-        // Follow the reference through then look for the element again.
-        GradleDslLiteral reference = (GradleDslLiteral)element;
-        GradleReferenceInjection injection = reference.getReferenceInjection();
-        if (injection == null) {
-          element = null;
-        }
-        else {
-          element = injection.getToBeInjected();
-        }
+        element = followElement((GradleDslLiteral)element);
         // Attempt to resolve the index part again
         indexParts.push(index);
       }
@@ -420,14 +413,8 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
     for (int i = 0; i < nameParts.size() - 1; i++) {
       // Only look for variables on the first iteration, otherwise only properties should be accessible.
       element = extractElementFromProperties(properties, nameParts.get(i), i == 0, child);
-      while (element instanceof GradleDslLiteral && ((GradleDslLiteral)element).isReference()) {
-        // Attempt to follow references
-        GradleReferenceInjection injection = ((GradleDslLiteral)element).getReferenceInjection();
-        if (injection == null) {
-          return null;
-        }
-
-        element = injection.getToBeInjected();
+      if (element instanceof GradleDslLiteral && ((GradleDslLiteral)element).isReference()) {
+        element = followElement((GradleDslLiteral)element);
       }
 
       // All elements we find must be GradlePropertiesDslElement on all but the last iteration.
@@ -602,6 +589,9 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
    * Works out whether or not this GradleDslSimpleExpression has a cycle.
    */
   public boolean hasCycle() {
+    if (myHasCycle != ThreeState.UNSURE) {
+      return myHasCycle == ThreeState.YES;
+    }
     return hasCycle(this, new HashSet<>(), new HashSet<>());
   }
 
