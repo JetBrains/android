@@ -60,6 +60,7 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    StudioFlags.NEW_SYNC_INFRA_ENABLED.override(true);
     setUpIdeGradleSettings();
   }
 
@@ -75,6 +76,7 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
   protected void tearDown() throws Exception {
     try {
       StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.clearOverride();
+      StudioFlags.NEW_SYNC_INFRA_ENABLED.clearOverride();
     }
     finally {
       super.tearDown();

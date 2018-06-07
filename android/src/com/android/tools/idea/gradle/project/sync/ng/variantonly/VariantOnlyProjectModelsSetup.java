@@ -54,11 +54,12 @@ public class VariantOnlyProjectModelsSetup extends ModuleSetup<VariantOnlyProjec
 
   @Override
   public void setUpModules(@NotNull VariantOnlyProjectModels projectModels, @NotNull ProgressIndicator indicator) {
+    notifyModuleConfigurationStarted(indicator);
     CachedProjectModels cache = myModelsCacheLoader.loadFromDisk(myProject);
     assert cache != null;
+    myDependenciesFactory.setUpGlobalLibraryMap(projectModels.getGlobalLibraryMap());
     // In the case of Variant-Only Sync, build files are not changed since last sync, so the ModuleFinder is still valid.
     ModuleFinder moduleFinder = ProjectStructure.getInstance(myProject).getModuleFinder();
-    // TODO: setup myDependenciesFactory with GlobalLibraryMap when switching to DependencyGraph.
     for (VariantOnlyModuleModel moduleModel : projectModels.getModuleModels()) {
       Module module = moduleFinder.findModuleByModuleId(moduleModel.getModuleId());
       if (module != null) {

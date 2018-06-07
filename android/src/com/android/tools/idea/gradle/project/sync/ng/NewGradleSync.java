@@ -50,7 +50,7 @@ public class NewGradleSync implements GradleSync {
   @NotNull private final SyncExecutionCallback.Factory myCallbackFactory;
 
   public static boolean isLevel4Model() {
-    return isEnabled() && !StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.get();
+    return isEnabled() && StudioFlags.L4_DEPENDENCY_MODEL.get();
   }
 
   public static boolean isEnabled() {

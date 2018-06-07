@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.project.sync.ng.variantonly;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.builder.model.AndroidLibrary;
-import com.android.builder.model.AndroidProject;
-import com.android.builder.model.ModelBuilderParameter;
-import com.android.builder.model.Variant;
+import com.android.builder.model.*;
+import com.android.builder.model.level2.DependencyGraphs;
+import com.android.builder.model.level2.GlobalLibraryMap;
+import com.android.builder.model.level2.GraphItem;
 import com.google.common.collect.ImmutableList;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.GradleProject;
@@ -34,19 +34,23 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
 
 import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
+import static com.android.tools.idea.gradle.project.sync.ng.AndroidModule.MODULE_ARTIFACT_ADDRESS_PATTERN;
 import static java.nio.file.Files.isSameFile;
 
 public class VariantOnlyProjectModels implements Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 2L;
 
   @NotNull private final Map<String, VariantOnlyModuleModel> myModuleModelsById = new HashMap<>();
+  @NotNull private final Map<File, GlobalLibraryMap> myLibraryMapsByBuildId = new HashMap<>();
 
   public void populate(@NotNull BuildController controller, @NotNull VariantOnlySyncOptions syncOptions) {
     populateModelsForModule(controller, syncOptions.myBuildId, syncOptions.myGradlePath, syncOptions.myVariantName);
-    // TODO: Request for GlobalLibraryMap when we have DependencyGraph support.
+    // Request for GlobalLibraryMap model at last, when all of other models have been built.
+    populateGlobalLibraryMap(controller);
   }
 
   private void populateModelsForModule(@NotNull BuildController controller,
@@ -71,24 +75,64 @@ public class VariantOnlyProjectModels implements Serializable {
       AndroidProject androidProject = controller.findModel(gradleProject, AndroidProject.class, ModelBuilderParameter.class,
                                                            parameter -> parameter.setShouldBuildVariant(false));
       if (androidProject != null) {
-        moduleModel = new VariantOnlyModuleModel(androidProject, gradleProject, moduleId);
+        moduleModel = new VariantOnlyModuleModel(androidProject, gradleProject, moduleId, buildId);
         myModuleModelsById.put(moduleId, moduleModel);
         Variant variant = syncAndAddVariant(moduleModel, variantName, controller);
         if (variant != null) {
           // Populate models for dependency modules.
-          populateForDependencyModules(variant, controller);
+          populateForDependencyModules(controller, variant);
         }
       }
     }
   }
 
-  private void populateForDependencyModules(@NotNull Variant variant, @NotNull BuildController controller) {
-    for (AndroidLibrary library : variant.getMainArtifact().getDependencies().getLibraries()) {
+  private void populateForDependencyModules(@NotNull BuildController controller, @NotNull Variant variant) {
+    AndroidArtifact artifact = variant.getMainArtifact();
+    Dependencies dependencies = artifact.getDependencies();
+    if (!dependencies.getLibraries().isEmpty()) {
+      populateForDependencyModules(controller, dependencies);
+    }
+    else {
+      populateForDependencyModules(controller, artifact.getDependencyGraphs());
+    }
+  }
+
+  private void populateForDependencyModules(@NotNull BuildController controller,
+                                            @NotNull DependencyGraphs dependencyGraphs) {
+    for (GraphItem item : dependencyGraphs.getCompileDependencies()) {
+      String address = item.getArtifactAddress();
+      Matcher matcher = MODULE_ARTIFACT_ADDRESS_PATTERN.matcher(address);
+      if (matcher.matches()) {
+        String dependencyBuildId = matcher.group(1);
+        String projectPath = matcher.group(2);
+        String variantToSelect = matcher.group(4);
+        if (projectPath != null && dependencyBuildId != null && variantToSelect != null) {
+          populateModelsForModule(controller, new File(dependencyBuildId), projectPath, variantToSelect);
+        }
+      }
+    }
+  }
+
+  private void populateForDependencyModules(@NotNull BuildController controller, @NotNull Dependencies dependencies) {
+    for (AndroidLibrary library : dependencies.getLibraries()) {
       String projectPath = library.getProject();
-      String buildId = library.getBuildId();
+      String dependencyBuildId = library.getBuildId();
       String variantToSelect = library.getProjectVariant();
-      if (projectPath != null && buildId != null && variantToSelect != null) {
-        populateModelsForModule(controller, new File(buildId), projectPath, variantToSelect);
+      if (projectPath != null && dependencyBuildId != null && variantToSelect != null) {
+        populateModelsForModule(controller, new File(dependencyBuildId), projectPath, variantToSelect);
+      }
+    }
+  }
+
+  private void populateGlobalLibraryMap(@NotNull BuildController controller) {
+    // Each included build has an instance of GlobalLibraryMap, so the model needs to be requested once for each included build.
+    for (VariantOnlyModuleModel moduleModel : myModuleModelsById.values()) {
+      File buildId = moduleModel.getBuildId();
+      if (!myLibraryMapsByBuildId.containsKey(buildId)) {
+        GlobalLibraryMap map = controller.findModel(moduleModel.getGradleProject(), GlobalLibraryMap.class);
+        if (map != null) {
+          myLibraryMapsByBuildId.put(buildId, map);
+        }
       }
     }
   }
@@ -156,6 +200,11 @@ public class VariantOnlyProjectModels implements Serializable {
   }
 
   @NotNull
+  public List<GlobalLibraryMap> getGlobalLibraryMap() {
+    return ImmutableList.copyOf(myLibraryMapsByBuildId.values());
+  }
+
+  @NotNull
   public List<VariantOnlyModuleModel> getModuleModels() {
     return ImmutableList.copyOf(myModuleModelsById.values());
   }
@@ -164,12 +213,17 @@ public class VariantOnlyProjectModels implements Serializable {
     @NotNull private final AndroidProject myAndroidProject;
     @NotNull private final GradleProject myGradleProject;
     @NotNull private final String myModuleId;
+    @NotNull private final File myBuildId;
     @NotNull private final Map<String, Variant> myVariantsByName = new HashMap<>();
 
-    public VariantOnlyModuleModel(@NotNull AndroidProject androidProject, @NotNull GradleProject gradleProject, @NotNull String moduleId) {
+    public VariantOnlyModuleModel(@NotNull AndroidProject androidProject,
+                                  @NotNull GradleProject gradleProject,
+                                  @NotNull String moduleId,
+                                  @NotNull File buildId) {
       myAndroidProject = androidProject;
       myGradleProject = gradleProject;
       myModuleId = moduleId;
+      myBuildId = buildId;
     }
 
     @NotNull
@@ -185,6 +239,11 @@ public class VariantOnlyProjectModels implements Serializable {
     @NotNull
     public String getModuleId() {
       return myModuleId;
+    }
+
+    @NotNull
+    public File getBuildId() {
+      return myBuildId;
     }
 
     @NotNull
