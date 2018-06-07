@@ -29,19 +29,19 @@ class PsJavaModule(
   parent: PsProject,
   name: String,
   gradlePath: String,
-  val gradleModel: JavaModuleModel?,
+  val resolvedModel: JavaModuleModel?,
   parsedModel: GradleBuildModel?
 ) : PsModule(parent, name, gradlePath, parsedModel) {
 
   private var myDependencyCollection: PsJavaDependencyCollection? = null
 
-  override val rootDir: File? get() = gradleModel?.contentRoots?.firstOrNull()?.rootDirPath
+  override val rootDir: File? get() = resolvedModel?.contentRoots?.firstOrNull()?.rootDirPath
   override val icon: Icon? = AllIcons.Nodes.PpJdk
 
   private val orCreateDependencyCollection: PsJavaDependencyCollection
     get() = myDependencyCollection ?: PsJavaDependencyCollection(this).also { myDependencyCollection = it }
 
-  override fun getConfigurations(): List<String> = gradleModel?.configurations.orEmpty()
+  override fun getConfigurations(): List<String> = resolvedModel?.configurations.orEmpty()
 
   // Java libraries can depend on any type of modules, including Android apps (when a Java library is actually a 'test'
   // module for the Android app.)
