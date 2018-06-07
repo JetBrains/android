@@ -106,6 +106,15 @@ public class StudioIcons {
       public static final Icon VISIBILITY_GONE_INLINE = load("/studio/icons/layout-editor/extras/visibility-gone-inline.png"); // 16x16
     }
 
+    public static class Menu {
+      public static final Icon CAST = load("/studio/icons/layout-editor/menu/cast.png"); // 16x16
+      public static final Icon GROUP = load("/studio/icons/layout-editor/menu/group.png"); // 16x16
+      public static final Icon ITEM = load("/studio/icons/layout-editor/menu/item.png"); // 16x16
+      public static final Icon MENU = load("/studio/icons/layout-editor/menu/menu.png"); // 16x16
+      public static final Icon SEARCH = load("/studio/icons/layout-editor/menu/search.png"); // 16x16
+      public static final Icon SWITCH = load("/studio/icons/layout-editor/menu/switch.png"); // 16x16
+    }
+
     public static class Motion {
       public static final Icon GO_TO_END = load("/studio/icons/layout-editor/motion/go-to-end.png"); // 16x16
       public static final Icon GO_TO_START = load("/studio/icons/layout-editor/motion/go-to-start.png"); // 16x16
@@ -148,7 +157,6 @@ public class StudioIcons {
       public static final Icon GRID_LAYOUT_COMPAT = load("/studio/icons/layout-editor/palette/grid-layout-compat.png"); // 16x16
       public static final Icon GRID_LAYOUT = load("/studio/icons/layout-editor/palette/grid-layout.png"); // 16x16
       public static final Icon GRID_VIEW = load("/studio/icons/layout-editor/palette/grid-view.png"); // 16x16
-      public static final Icon GROUP = load("/studio/icons/layout-editor/palette/group.png"); // 16x16
       public static final Icon HORIZONTAL_DIVIDER = load("/studio/icons/layout-editor/palette/horizontal-divider.png"); // 16x16
       public static final Icon HORIZONTAL_GUIDE = load("/studio/icons/layout-editor/palette/horizontal-guide.png"); // 16x16
       public static final Icon HORIZONTAL_SCROLL_VIEW = load("/studio/icons/layout-editor/palette/horizontal-scroll-view.png"); // 16x16
@@ -156,7 +164,6 @@ public class StudioIcons {
       public static final Icon IMAGE_SWITCHER = load("/studio/icons/layout-editor/palette/image-switcher.png"); // 16x16
       public static final Icon IMAGE_VIEW = load("/studio/icons/layout-editor/palette/image-view.png"); // 16x16
       public static final Icon INCLUDE = load("/studio/icons/layout-editor/palette/include.png"); // 16x16
-      public static final Icon ITEM = load("/studio/icons/layout-editor/palette/item.png"); // 16x16
       public static final Icon LINEAR_LAYOUT_HORZ = load("/studio/icons/layout-editor/palette/linear-layout-horz.png"); // 16x16
       public static final Icon LINEAR_LAYOUT_VERT = load("/studio/icons/layout-editor/palette/linear-layout-vert.png"); // 16x16
       public static final Icon LIST_VIEW = load("/studio/icons/layout-editor/palette/list-view.png"); // 16x16
@@ -368,15 +375,6 @@ public class StudioIcons {
     public static final Icon SNAPSHOT = load("/studio/icons/logcat/toolbar/snapshot.png"); // 16x16
     public static final Icon VIDEO_CAPTURE = load("/studio/icons/logcat/toolbar/video-capture.png"); // 16x16
     public static final Icon WRAP_TEXT = load("/studio/icons/logcat/toolbar/wrap-text.png"); // 16x16
-  }
-
-  public static class Menu {
-    public static final Icon CAST = load("/studio/icons/menu/cast.png"); // 16x16
-    public static final Icon GROUP = load("/studio/icons/menu/group.png"); // 16x16
-    public static final Icon ITEM = load("/studio/icons/menu/item.png"); // 16x16
-    public static final Icon MENU = load("/studio/icons/menu/menu.png"); // 16x16
-    public static final Icon SEARCH = load("/studio/icons/menu/search.png"); // 16x16
-    public static final Icon SWITCH = load("/studio/icons/menu/switch.png"); // 16x16
   }
 
   public static class NavEditor {

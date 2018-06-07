@@ -55,6 +55,6 @@ public class SwitchHandler extends ButtonHandler {
   @NotNull
   @Override
   public Icon getIcon(@NotNull NlComponent component) {
-    return StudioIcons.Menu.SWITCH;
+    return StudioIcons.LayoutEditor.Menu.SWITCH;
   }
 }
