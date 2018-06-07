@@ -297,11 +297,6 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   @Override
   @Nullable
   public AndroidModel android() {
-    AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.find(myGradleDslFile.getProject());
-    if (androidPluginInfo != null && androidPluginInfo.isExperimental()) {
-      return null; // Reading or updating Android block contents is not supported when experimental plugin is used.
-    }
-
     AndroidDslElement androidDslElement = myGradleDslFile.getPropertyElement(ANDROID_BLOCK_NAME, AndroidDslElement.class);
     if (androidDslElement == null) {
       androidDslElement = new AndroidDslElement(myGradleDslFile);
