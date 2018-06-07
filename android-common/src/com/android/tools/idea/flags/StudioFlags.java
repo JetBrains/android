@@ -29,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
  * A collection of all feature flags used by Android Studio. These flags can be used to gate
  * features entirely or branch internal logic of features, e.g. for experimentation or easy
  * rollback.
- *
+ * <p>
  * For information on how to add your own flags, see the README.md file under
  * "//tools/base/flags".
  */
@@ -279,7 +279,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> FIX_ANDROID_RUN_CONFIGURATIONS_ENABLED = Flag.create(
     GRADLE_IDE, "gradle.run.configuration.fix.enabled",
     "Check Android Run Configurations contains the \"Gradle-aware Make\" task and fix them",
-    "When a project is loaded, automatically add a \"Gradle-aware Make\" task to each Run Configuration if the task is missing" ,
+    "When a project is loaded, automatically add a \"Gradle-aware Make\" task to each Run Configuration if the task is missing",
     true);
 
   public static final Flag<Boolean> GRADLE_INVOCATIONS_INDEXING_AWARE = Flag.create(
@@ -295,6 +295,10 @@ public final class StudioFlags {
   public static final Flag<Boolean> SINGLE_VARIANT_SYNC_ENABLED = Flag.create(
     GRADLE_IDE, "single.variant.sync", "Enable new \"Single-Variant Sync\"",
     "Turns on Single-Variant Sync.", false);
+  // REMOVE or change default to true after http://b/80245603 is fixed.
+  public static final Flag<Boolean> L4_DEPENDENCY_MODEL = Flag.create(
+    GRADLE_IDE, "level4.dependency.model", "Use L4 DependencyGraph Model",
+    "Use level4 DependencyGraph model.", false);
 
   private static final FlagGroup SQLITE_VIEWER = new FlagGroup(FLAGS, "sqlite.viewer", "SQLite Viewer");
   public static final Flag<Boolean> SQLITE_VIEWER_ENABLED = Flag.create(
