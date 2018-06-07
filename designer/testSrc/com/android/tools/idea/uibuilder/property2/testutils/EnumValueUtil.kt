@@ -21,7 +21,9 @@ import com.android.ide.common.rendering.api.StyleResourceValue
 import com.android.resources.ResourceType
 import com.android.tools.idea.common.property2.api.EnumValue
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.android.tools.idea.uibuilder.property2.support.StyleEnumSupportTest
 import com.google.common.truth.Truth
+import com.intellij.openapi.diagnostic.Logger
 
 object EnumValueUtil {
 
@@ -78,6 +80,9 @@ object EnumValueUtil {
     for (style in resources.values) {
       if (style is StyleResourceValue && style.name.contains("AppCompat")) {
         libraryNameField.set(style, SdkConstants.APPCOMPAT_LIB_ARTIFACT)
+
+        // Temporary dump the styles generated in order to help with fixing b/80518128
+        Logger.getInstance(EnumValueUtil::class.java).warn("identified as AppCompat style: $style")
       }
     }
   }
