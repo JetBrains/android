@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.structure.model.*
 import java.io.File
 
 open class PsAllModulesFakeModule(override val parent: PsProject) : PsModule("<All Modules>", parent) {
+  override val projectType: PsModuleType = PsModuleType.UNKNOWN
 
   override val rootDir: File? = null
 

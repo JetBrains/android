@@ -69,6 +69,7 @@ abstract class PsModule protected constructor(
   }
 
   abstract val rootDir: File?
+  abstract val projectType: PsModuleType
   abstract fun getConfigurations(): List<String>
   abstract fun addLibraryDependency(library: String, scopesNames: List<String>)
   abstract fun addModuleDependency(modulePath: String, scopesNames: List<String>)
