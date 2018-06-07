@@ -21,6 +21,7 @@ class DefaultCommonTextFieldModel(initialValue: String) : CommonTextFieldModel {
   override var value = initialValue
     set(value) {
       field = value
+      text = value
       fireValueChanged()
     }
 

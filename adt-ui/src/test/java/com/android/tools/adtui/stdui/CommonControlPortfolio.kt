@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.stdui.CommonTextFieldModel
 import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.stdui.menu.CommonDropDownButton
+import com.intellij.ide.ui.laf.IntelliJLaf
 import com.intellij.ide.ui.laf.darcula.DarculaLaf
 import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.openapi.util.IconLoader
@@ -44,7 +45,7 @@ object CommonControlPortfolio {
   }
 
   private fun createAndShowGUI() {
-    setLAF(UIManager.getLookAndFeel())
+    setLAF(IntelliJLaf())
 
     //Create and set up the window.
     val frame = JFrame("Common Controls")
@@ -71,10 +72,8 @@ object CommonControlPortfolio {
     topPanel.add(grid, "TextField")
 
     grid = JPanel(VerticalFlowLayout())
-    grid.add(makeComboBox("zero", enabled = true, editable = true, leftToRight = true))
-    grid.add(makeComboBox("zero", enabled = true, editable = false, leftToRight = true))
-    grid.add(makeComboBox("one", enabled = true, editable = true, leftToRight = false))
-    grid.add(makeComboBox("one", enabled = true, editable = false, leftToRight = false))
+    grid.add(makeComboBox("zero", enabled = true, editable = true))
+    grid.add(makeComboBox("zero", enabled = true, editable = false))
     topPanel.add(grid, "ComboBox")
 
     val menuPanel = JPanel(VerticalFlowLayout())
@@ -109,9 +108,8 @@ object CommonControlPortfolio {
 
   private fun makeLAFControl(): JComponent {
     val control = JCheckBox("Darcula")
-    control.putClientProperty("LAF", UIManager.getLookAndFeel())
     control.addItemListener { _ ->
-      val laf = if (control.isSelected) DarculaLaf() else control.getClientProperty("LAF") as LookAndFeel
+      val laf = if (control.isSelected) DarculaLaf() else IntelliJLaf()
       if (laf !== UIManager.getLookAndFeel()) {
         setLAF(laf)
         updateFonts(SwingUtilities.getWindowAncestor(control))
@@ -124,11 +122,10 @@ object CommonControlPortfolio {
   private fun setLAF(laf: LookAndFeel) {
     try {
       UIManager.setLookAndFeel(laf)
-      JBColor.setDark(laf is DarculaLaf)
+      JBColor.setDark(UIUtil.isUnderDarcula())
     } catch (ex: Exception) {
       ex.printStackTrace()
     }
-
   }
 
   private fun updateFonts(component: Component) {
@@ -172,7 +169,7 @@ object CommonControlPortfolio {
     return field
   }
 
-  private fun makeComboBox(initialValue: String, enabled: Boolean, editable: Boolean, leftToRight: Boolean): JComponent {
+  private fun makeComboBox(initialValue: String, enabled: Boolean, editable: Boolean): JComponent {
     val model = DefaultCommonComboBoxModel(initialValue, listOf("one", "two", "three", "four", "five", "six"))
     model.enabled = enabled
     model.editable = editable
@@ -180,7 +177,6 @@ object CommonControlPortfolio {
 
     val combo = CommonComboBox(model)
     combo.isOpaque = false
-    combo.componentOrientation = if (leftToRight) ComponentOrientation.LEFT_TO_RIGHT else ComponentOrientation.RIGHT_TO_LEFT
     combo.updateUI()
     return combo
   }
