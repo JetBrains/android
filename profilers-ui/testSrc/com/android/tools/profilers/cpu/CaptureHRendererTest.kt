@@ -96,6 +96,26 @@ class CaptureNodeHRendererTest {
   }
 
   @Test
+  fun renderIdleTimeWithNegativeStartFillsIdleTime() {
+    val simpleNode = CaptureNode(AtraceNodeModel("SomeName"))
+    simpleNode.startGlobal = 10;
+    simpleNode.endGlobal = 110;
+    simpleNode.startThread = 10;
+    simpleNode.endThread = 15;
+    val renderer = CaptureNodeHRenderer(CaptureModel.Details.Type.CALL_CHART)
+    val renderWindow = Rectangle2D.Float(-100.0f, 0.0f, 300.0f,10.0f)
+    val clampWindow = Rectangle2D.Float(0f, 0f, 10f, 10f);
+    val fakeGraphics = TestGraphics2D()
+    renderer.render(fakeGraphics, simpleNode, renderWindow, clampWindow,false)
+    assertThat(fakeGraphics.fillShapes).hasSize(2)
+
+    // Validate we get the expected size of the window.
+    // Our first render should be only 10px on screen,
+    // The second (idle) should be this entire 10px.
+    fakeGraphics.expectFillShapes(clampWindow, clampWindow)
+  }
+
+  @Test
   fun renderInvalidNodeShouldThrowException() {
     val unsupportedNode = CaptureNode(StubCaptureNodeModel())
     val renderer = CaptureNodeHRenderer(CaptureModel.Details.Type.CALL_CHART)
